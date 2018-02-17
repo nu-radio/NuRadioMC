@@ -12,7 +12,7 @@ parser.add_argument('filename', type=str,
 parser.add_argument('outputfilename', type=str,
                     help='name of hdf5 output filename')
 args = parser.parse_args()
-version = 0
+ara_version = 0
 event_number = 0
 with open(args.filename, 'r') as fin:
     lines = fin.readlines()
@@ -29,7 +29,8 @@ with open(args.filename, 'r') as fin:
         import sys
         sys.exit(-1)
 
-    data = np.genfromtxt(BytesIO(data), comments='//', skip_header=3)
+    data = np.genfromtxt(BytesIO(data), comments='//', skip_header=3,
+                         dtype=(int, int, int, float, float, float, float, float, float, float, float))
     fout = h5py.File(args.outputfilename, 'w')
     fout['eventlist'] = data
     fout.attrs['VERSION'] = VERSION
