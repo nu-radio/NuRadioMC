@@ -1,0 +1,4 @@
+[
+    {"position": [100, 0, 0], "name": "test station 1"},
+    {"position": [100, 0, -200], "name": "test station 2"}
+]
