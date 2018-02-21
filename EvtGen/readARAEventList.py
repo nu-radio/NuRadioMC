@@ -30,8 +30,15 @@ with open(args.filename, 'r') as fin:
         sys.exit(-1)
 
     data = np.genfromtxt(BytesIO(data), comments='//', skip_header=3,
-                         dtype=(int, int, int, float, float, float, float, float, float, float, float))
+                         dtype=[('eventId', int), ('nuflavorint', int),
+                                ('nu_nubar', int), ('pnu', float),
+                                ('currentint', float),
+                                ('posnu_r', float), ('posnu_theta', float),
+                                ('posnu_phi', float), ('nnu_theta', float),
+                                ('nnu_phi', float), ('elast_y', float)])
+    print(data)
     fout = h5py.File(args.outputfilename, 'w')
     fout['eventlist'] = data
     fout.attrs['VERSION'] = VERSION
+    print(np.array(fout['eventlist']))
     fout.close()
