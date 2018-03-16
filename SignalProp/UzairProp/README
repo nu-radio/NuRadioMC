@@ -1,6 +1,4 @@
-I have uploaded my code in my repository. It is in "uzairlatif90/simcode". The version that we are supposed to use is MRootScript_v2.C.
-
-It basically takes in 7 argurments.
+The main code that does all the calculations is called RayTraceRK4(). It basically takes in 7 argurments.
 
 1st three arguments : x,y,z of the transmitter in ice
 
