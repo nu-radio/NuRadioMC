@@ -1,0 +1,5 @@
+<map id="temperature" name="temperature">
+<area shape="rect" id="node2" href="$RayTraceRK4_8C.html#aae00660ff3fdd0b0d57389488f592539" title="Takes in value of frequency in Ghz and depth z and returns you the value of attenuation length..." alt="" coords="144,5,203,32"/>
+<area shape="rect" id="node3" href="$RayTraceRK4_8C.html#af6f314596583a5c7b73b28e25579116a" title="Takes in the value of depth z and calculates the derivative of amplitude Tau w.r.t to length of the s..." alt="" coords="251,5,295,32"/>
+<area shape="rect" id="node4" href="$RayTraceRK4_8C.html#ad74a4b1ad27c12df9a385d42a67492ec" title="This is the main function where all the calculations are done using the RK4 method. This function takes in the values of: " alt="" coords="343,5,448,32"/>
+</map>

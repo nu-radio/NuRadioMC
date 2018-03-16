@@ -1,0 +1,51 @@
+I have uploaded my code in my repository. It is in "uzairlatif90/simcode". The version that we are supposed to use is MRootScript_v2.C.
+
+It basically takes in 7 argurments.
+
+1st three arguments : x,y,z of the transmitter in ice
+
+2nd three arguments : x,y,z of the reciever in ice
+
+Last argument "wsol" is what type of solution do you want:
+
+  //Find Direct Solutions
+  wsol==0
+  
+  //Find Reflected Solutions
+  wsol==1
+
+  //Find Refracted Solutions
+  wsol==2
+  
+  //Find Direct & Reflected Solutions
+  wsol==3
+
+  //Find Refracted & Reflected Solutions
+  wsol==4
+
+  //Find Direct,Refracted & Reflected Solutions
+  wsol==5
+
+
+The code returns you back a pointer to an array which you can use to get the Launch, Recieve and time (in seconds) of the ray. For example:
+
+Double_t *getres=MRootScript_v2(800,0,-400,1000,0,-200,5);
+
+getres[0]-> Launch angle of direct ray  in deg
+getres[1]-> Recieve angle of direct ray in deg
+getres[2]-> Time of direct ray in seconds
+
+getres[3]-> Launch angle of reflected ray  in deg
+getres[4]-> Recieve angle of reflected ray in deg
+getres[5]-> Time of reflected ray in seconds
+
+getres[6]-> Launch angle of refracted ray  in deg
+getres[7]-> Recieve angle of refracted ray in deg
+getres[8]-> Time of refracted ray in seconds
+
+IF the code does not find a solution 
+
+getres[1]=-1
+getres[4]=-1
+getres[7]=-1
+
