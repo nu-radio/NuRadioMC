@@ -1,0 +1,63 @@
+I have uploaded my code in my repository. It is in "uzairlatif90/simcode". The version that we are supposed to use is MRootScript_v2.C.
+
+It basically takes in 7 argurments.
+
+1st three arguments : x,y,z of the transmitter in ice
+
+2nd three arguments : x,y,z of the reciever in ice
+
+Last argument "wsol" is what type of solution do you want:
+
+  //Find Direct Solutions
+  wsol==0
+  
+  //Find Reflected Solutions
+  wsol==1
+
+  //Find Refracted Solutions
+  wsol==2
+  
+  //Find Direct & Reflected Solutions
+  wsol==3
+
+  //Find Refracted & Reflected Solutions
+  wsol==4
+
+  //Find Direct,Refracted & Reflected Solutions
+  wsol==5
+
+
+The code returns you back a pointer to an array which you can use to get the Launch, Recieve and time (in seconds) of the ray. For example:
+
+Double_t *getres=RayTraceRK4(800,0,-400,1000,0,-200,5);
+
+getres[0]-> Launch angle of direct ray  in deg
+getres[1]-> Recieve angle of direct ray in deg
+getres[2]-> Time of direct ray in seconds
+
+getres[3]-> Launch angle of reflected ray  in deg
+getres[4]-> Recieve angle of reflected ray in deg
+getres[5]-> Time of reflected ray in seconds
+
+getres[6]-> Launch angle of refracted ray  in deg
+getres[7]-> Recieve angle of refracted ray in deg
+getres[8]-> Time of refracted ray in seconds
+
+If the code does not find a solution then you will get:
+
+getres[1]=-1
+getres[4]=-1
+getres[7]=-1
+
+
+The function prints out the new launch angles in each iteration as it is zoning in on the target.
+
+Have a look at /docs/html/RayTraceRK4_8C.html to understand the code structure better.
+
+I would like to add that my code is a bit slow and I have not really optimised it to be fast yet so if you guys come up with any ideas let me know.
+
+Please read raytracing_code.pdf for more detail. If you find any weird behaviour or any issues please let me know.
+
+If you want to know how I derived the function to calculate launch angle read Der_LauAng.pdf.
+
+The temperature model has been taken from AraSim which also took it from here http://icecube.wisc.edu/~mnewcomb/radio/atten/ . This is basically Matt Newcomb's icecube directory which has alot of information, plots and codes about South Pole Ice activities. Please read it if you find it interesting: http://icecube.wisc.edu/~mnewcomb/radio/#iceabsorbtion
