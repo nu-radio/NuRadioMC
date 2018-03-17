@@ -174,7 +174,7 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
   
   Double_t *output=new Double_t[9];
 
-  Double_t D56cor[3]{c1,c2,c3};//Tx positions
+  Double_t D56cor[3]={c1,c2,c3};//Tx positions
   Double_t antcor[3]={r1,r2,r3};//Rx Positions
   
   /////Here are some example arguments
