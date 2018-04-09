@@ -10,6 +10,5 @@
 #define STANDARD_ASK_DEPTH 5.0
 #define STANDARD_ASK_R 1000.0
 #define STANDARD_ASK_NMAX 1000.0
-<<<<<<< HEAD
 #define NORM 0.5
 #define RADDEG 0.01745
