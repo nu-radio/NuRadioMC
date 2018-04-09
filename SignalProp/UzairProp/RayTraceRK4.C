@@ -1089,12 +1089,12 @@ Double_t *getAngleCorrections(Int_t num, Int_t antco, Int_t D56co,Double_t test0
       test1=test1+0.5*(pi/180)*psns;
     }
     if(num>8 && fabs(antco-D56co)>200){
-      test0=test0+2*(pi/180)*psns;
-      test1=test1+2*(pi/180)*psns;
+      test0=test0+1*(pi/180)*psns;
+      test1=test1+1*(pi/180)*psns;
     }
     if(num<9 && fabs(antco-D56co)>200){
-      test0=test0+4*(pi/180)*psns;
-      test1=test1+4*(pi/180)*psns;
+      test0=test0+2*(pi/180)*psns;
+      test1=test1+2*(pi/180)*psns;
     }
   }
 
