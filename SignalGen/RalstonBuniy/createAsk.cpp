@@ -83,10 +83,48 @@ std::pair<std::vector<float>, std::vector<std::vector<float> > > getTimeTrace(
 	return result;
 }
 
+void getTimeTrace2(double*& times, double*& ex, double*& ey, double*& ez,
+		int& size, double energy, double theta, double fmin,
+		double fmax, double df, bool isEMShower) {
+	Askaryan *h = new Askaryan();
+	vector<vector<float> > *Eshow = new vector<vector<float> >;
+	vector<float> *freqs = new vector<float>;
+	vector<float> e;
+	vector<float> *t = new vector<float>;
+	float R = 0.0;
+
+	for (float i = fmin; i < fmax; i += df) {
+		freqs->push_back(i / utl::GHz);
+	}
+	h->setAskFreq(freqs);
+	h->setAskTheta(theta);
+	if (isEMShower)
+		h->emShower(energy / utl::GeV);
+	else
+		h->hadShower(energy / utl::GeV);
+	h->setFormScale(7.8);
+	h->lpmEffect();
+	Eshow = h->E_t();
+	t = h->time();
+	R = h->getAskR();
+
+	size = t->size();
+	times = new double[size];
+	ex = new double[size];
+	ey = new double[size];
+	ez = new double[size];
+	for (int j = 0; j < t->size(); ++j) {
+		times[j] = t->at(j);
+		ex[j] = Eshow->at(0)[j];
+		ey[j] = Eshow->at(1)[j];
+		ez[j] = Eshow->at(2)[j];
+	}
+}
+
 int main(int argc, char **argv) {
 	const double emEnergy = atof(argv[1]) * utl::eV;
 	const float theta = atof(argv[2]) * utl::degree;
-	std::pair<std::vector<float>, std::vector<std::complex<float>>>result;
+	std::vector<std::complex<float>> result;
 
 	vector<float> freqs;
 	float df = 0.75;
@@ -101,18 +139,18 @@ int main(int argc, char **argv) {
 	for (float f1 = 1.0; f1 < 10.0; f1 = f1 + df)
 		freqs.push_back(f1 * 1e+1);
 
-	result = getFrequencySpectrum(emEnergy, theta, freqs);
+	result = getFrequencySpectrum(emEnergy, theta, freqs, true);
 	char title[100];
-	sprintf(title, "shower_%s.dat", argv[3]);
-	ofstream out(title);
-	for (int j = 0; j < result.second.size(); ++j) {
-		out << result.first[j] << " " << abs(result.second[j]) << " "
-				<< real(result.second[j]) << " " << imag(result.second[j])
-				<< std::endl;
-	}
-	out.close();
+//	sprintf(title, "shower_%s.dat", argv[3]);
+//	ofstream out(title);
+//	for (int j = 0; j < result.second.size(); ++j) {
+//		out << result.first[j] << " " << abs(result.second[j]) << " "
+//				<< real(result.second[j]) << " " << imag(result.second[j])
+//				<< std::endl;
+//	}
+//	out.close();
 
-	// get time trace
+// get time trace
 	std::pair<std::vector<float>, std::vector<std::vector<float> > > timeTrace;
 	timeTrace = getTimeTrace(1 * utl::EeV, theta, 0 * utl::MHz, 5 * utl::GHz,
 			10 * utl::MHz, true);
