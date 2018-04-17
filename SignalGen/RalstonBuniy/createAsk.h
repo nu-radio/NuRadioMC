@@ -8,7 +8,7 @@
 */
 
 
-std::vector<std::complex<float>> getFrequencySpectrum(const double energy,
+std::vector<std::complex<float> > getFrequencySpectrum(const double energy,
 		const double theta, std::vector<float> &freqs, const bool isEMShower);
 	/*! \fn std::vector<std::complex<float>> getFrequencySpectrum(const double energy,
 		const double theta, std::vector<float> &freqs, const bool isEMShower)
