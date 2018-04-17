@@ -40,4 +40,7 @@ void getTimeTrace2(double*& times, double*& ex, double*& ey, double*& ez,
 		int& size, double energy, double theta, double fmin,
 		double fmax, double df, bool isEMShower);
 
+void getFrequencySpectrum2(double*& spectrumReal, double*& spectrumImag, int& size,
+		const double energy, const double theta, double* freqs, int size_f, const bool isEMShower);
+
 int main(int argc, char **argv);

@@ -42,6 +42,38 @@ std::vector<std::complex<float>> getFrequencySpectrum(const double energy,
 	}
 	return result;
 }
+void getFrequencySpectrum2(double*& spectrumReal, double*& spectrumImag, int& size,
+		const double energy, const double theta, double* freqs, int size_f, const bool isEMShower) {
+	// we transform the frequency array to the base units of the Askaryan module which is GHz
+	std::vector<float> freqs2;
+	for (int i = 0; i < size_f; ++i) {
+		freqs2.push_back(freqs[i] / utl::GHz);
+	}
+
+	Askaryan *h = new Askaryan();
+	h->setFormScale(1 / (sqrt(2.0 * 3.14159) * 0.03));
+	h->setAskFreq(&freqs2);
+	if (isEMShower)
+		h->emShower(energy / utl::GeV); // Askaryan module uses GHz internally
+	else
+		h->hadShower(energy / utl::GeV);
+	h->setAskDepthA(1.5);
+	h->setAskR(1000.0);
+	h->setAskTheta(theta);
+	vector<vector<cf> > *Eshow = new vector<vector<cf> >;
+	Eshow = h->E_omega();
+	vector<cf> eTheta = Eshow->at(1);
+	delete Eshow;
+	delete h;
+
+	size = eTheta.size();
+	spectrumReal = new double[size];
+	spectrumImag = new double[size];
+	for (int j = 0; j < size; ++j) {
+		spectrumReal[j] = eTheta.at(j).real() * utl::V / utl::m / utl::MHz;
+		spectrumImag[j] = eTheta.at(j).imag() * utl::V / utl::m / utl::MHz;
+	}
+}
 
 std::pair<std::vector<float>, std::vector<std::vector<float> > > getTimeTrace(
 		const double energy, const double theta, const double fmin,
@@ -84,8 +116,8 @@ std::pair<std::vector<float>, std::vector<std::vector<float> > > getTimeTrace(
 }
 
 void getTimeTrace2(double*& times, double*& ex, double*& ey, double*& ez,
-		int& size, double energy, double theta, double fmin,
-		double fmax, double df, bool isEMShower) {
+		int& size, double energy, double theta, double fmin, double fmax,
+		double df, bool isEMShower) {
 	Askaryan *h = new Askaryan();
 	vector<vector<float> > *Eshow = new vector<vector<float> >;
 	vector<float> *freqs = new vector<float>;
