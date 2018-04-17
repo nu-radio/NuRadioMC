@@ -6,7 +6,7 @@ import numpy
 
 
 extensions = [
-    Extension('createAsk_call', ['createAsk_call.pyx', 'createAsk.cpp'],
+    Extension('create_askaryan', ['create_askaryan.pyx', 'createAsk.cpp', 'Askaryan.cxx'],
               include_dirs=[numpy.get_include(), '../../utilities/'],
 #               extra_compile_args=['-std=c++11'],
               libraries=['fftw3'],
