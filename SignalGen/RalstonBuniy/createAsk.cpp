@@ -11,7 +11,7 @@
 
 using namespace std;
 
-std::vector<std::complex<float>> getFrequencySpectrum(const double energy,
+std::vector<std::complex<float> > getFrequencySpectrum(const double energy,
 		const double theta, std::vector<float> &freqs, const bool isEMShower) {
 
 	// we transform the frequency array to the base units of the Askaryan module which is GHz
@@ -34,7 +34,7 @@ std::vector<std::complex<float>> getFrequencySpectrum(const double energy,
 	vector<cf> eTheta = Eshow->at(1);
 	delete Eshow;
 	delete h;
-	std::vector<std::complex<float>> result;
+	std::vector<std::complex<float> > result;
 	result = eTheta;
 	// convert to default units
 	for (int j = 0; j < result.size(); ++j) {
@@ -156,7 +156,7 @@ void getTimeTrace2(double*& times, double*& ex, double*& ey, double*& ez,
 int main(int argc, char **argv) {
 	const double emEnergy = atof(argv[1]) * utl::eV;
 	const float theta = atof(argv[2]) * utl::degree;
-	std::vector<std::complex<float>> result;
+	std::vector<std::complex<float> > result;
 
 	vector<float> freqs;
 	float df = 0.75;
