@@ -142,10 +142,12 @@ namespace utl {
   const double hertz = 1/second;
   const double kilohertz = kilo*hertz;
   const double megahertz = mega*hertz;
+  const double gigahertz = giga*hertz;
 
   const double Hz = hertz;
   const double kHz = kilohertz;
   const double MHz = megahertz;
+  const double GHz = gigahertz;
 
   // symbols
   const double ns = nanosecond;
