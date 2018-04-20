@@ -1,4 +1,4 @@
 <map id="Latten" name="Latten">
-<area shape="rect" id="node2" href="$RayTraceRK4_8C.html#af6f314596583a5c7b73b28e25579116a" title="Takes in the value of depth z and calculates the derivative of amplitude Tau w.r.t to length of the s..." alt="" coords="112,5,156,32"/>
-<area shape="rect" id="node3" href="$RayTraceRK4_8C.html#ad74a4b1ad27c12df9a385d42a67492ec" title="This is the main function where all the calculations are done using the RK4 method. This function takes in the values of: " alt="" coords="204,5,309,32"/>
+<area shape="rect" id="node2" href="$RayTraceRK4_8C.html#a0b88e3189963924bcd9ec97027477b3d" title="Takes in the value of depth z and the frequency (in Ghz) and calculates the derivative of amplitude T..." alt="" coords="112,5,156,32"/>
+<area shape="rect" id="node3" href="$RayTraceRK4_8C.html#ae524948803cf17eca25b0cd2ba17dc29" title="This is the main function where all the calculations are done using the RK4 method. This function takes in the values of: " alt="" coords="204,5,309,32"/>
 </map>

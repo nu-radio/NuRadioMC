@@ -7,7 +7,7 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TF1.h"
-#include "units.h"
+#include "../../utilities/units.h"
 
 const Double_t pi=4.0*atan(1.0); /**< Gives back value of Pi */
 
@@ -61,11 +61,11 @@ Double_t temperature(Double_t z);
  */
 Double_t Latten(Double_t z, Double_t frequency);
 
-/*! \brief Takes in the value of depth z and calculates the derivative of amplitude Tau w.r.t to length of the step. 
+/*! \brief Takes in the value of depth z and the frequency (in Ghz) and calculates the derivative of amplitude Tau w.r.t to length of the step. 
  *
- *Basically it helps calculate that how much will the amplitude be attenuated in each step of the RK4 calculations
+ *Basically it helps calculate that how much will the amplitude be attenuated at the specified frequency in each step at of the RK4 calculations
  */
-Double_t ftau(Double_t tau,Double_t z);
+Double_t ftau(Double_t tau,Double_t z, Double_t freq);
 
 /*! \brief Takes in the value of depth z and calculates the derivative of time w.r.t to length of the step. 
  *
@@ -116,7 +116,9 @@ Double_t *getAngleCorrections(Int_t num, Int_t antco, Int_t D56co,Double_t test0
  * @param r2 x position of reciever
  * @param r3 y position of reciever 
  * @param wsol is basically what solution you want.
- * 
+ * @param frequency pointer to the array of frequencies in the signal that will be used to calculate attenuation of the signal
+ * @param tausize size of the pointer
+ *
  *Find Direct Solutions,wsol==0
  *
  *Find Reflected Solutions, wsol==1
@@ -128,6 +130,8 @@ Double_t *getAngleCorrections(Int_t num, Int_t antco, Int_t D56co,Double_t test0
  *Find Refracted & Reflected Solutions, wsol==4
  *
  *Find Direct,Refracted & Reflected Solutions, wsol==5
+ *
+ *NOTE: Please look at testcode.C to see exactly how to use RayTraceRK4() function.
  *
  *It takes in these parameter values and calculates the ray path and then returns
  *The code returns you back a pointer to an array which you can use to get the Launch, Recieve and time (in seconds) of the ray. For example:
@@ -152,6 +156,12 @@ Double_t *getAngleCorrections(Int_t num, Int_t antco, Int_t D56co,Double_t test0
  *
  *getres[8]-> Time of refracted ray in seconds
  *
+ *getres[9+tausize-1]-> Fraction of Amplitde left after attenuation at the frequency values specified in the array of tauszie length for Direct Rays
+ *
+ *getres[tausize+tausize*2-1]-> Fraction of Amplitde left after attenuation at the frequency values specified in the array of tauszie length for Reflected Rays
+ *
+ *getres[tausize*2+tausize*3-1]-> Fraction of Amplitde left after attenuation at the frequency values specified in the array of tauszie length for Refracted Rays
+ *
  *If the code does not find a solution then:
  *
  *getres[1]=-1; and/or getres[4]=-1; and/or getres[7]=-1;
@@ -170,17 +180,18 @@ Double_t *getAngleCorrections(Int_t num, Int_t antco, Int_t D56co,Double_t test0
  * http://icecube.wisc.edu/~mnewcomb/radio/#iceabsorbtion
  *
  */
-Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r2,Double_t r3,Int_t wsol){
-  
-  Double_t *output=new Double_t[9];
+Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r2,Double_t r3,Int_t wsol, Double_t *frequency, Int_t tausize){
 
+  const Int_t ntausize=tausize;
+  Double_t *output=new Double_t[9+ntausize*3];
+  
   Double_t D56cor[3]={c1,c2,c3};//Tx positions
   Double_t antcor[3]={r1,r2,r3};//Rx Positions
   
   /////Here are some example arguments
-  // Int_t wsol=0;
+  // Int_t wsol=3;
   // string outFilename1="test.root";
-  // Double_t D56cor[3]{200,0,-350};//Tx positions
+  // Double_t D56cor[3]{800,0,-300};//Tx positions
   // Double_t antcor[3]={1000,0,-200};//Rx Positions
 
   ////Set the lower limit of the scan region in z axis.
@@ -243,6 +254,7 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
   //Make variables for storing in a TTree. This will go into the file that the user creates
   const  Int_t nxyzout=3;
   const  Int_t nxzout=2;
+  Int_t ntau;
   Int_t nxyz;
   Int_t nxz;
   Int_t ndhitbr;
@@ -253,7 +265,7 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
   Double_t xzTx[nxzout];               
   Double_t xzRx[nxzout];
   Double_t TransitTime;
-  Double_t AttFac;
+  Double_t AttFac[ntausize];
   Double_t L_ang;
   Double_t R_ang;
   Double_t I_ang;
@@ -265,14 +277,15 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
   chTreeR->Branch("nxyz",&nxyz,"nxyz/I");
   chTreeR->Branch("nxz",&nxz,"nxz/I");
   chTreeR->Branch("ndhitbr",&ndhitbr,"ndhitbr/I");
+  chTreeR->Branch("ntau",&ntau,"ntau/I");
   chTreeR->Branch("ovrallbr",&ovrallbr,"ovrallbr/I");  
   chTreeR->Branch("isolbr",&isolbr,"isolbr/I");  
   chTreeR->Branch("rTx",rTx,"rTx[nxyz]/D");
   chTreeR->Branch("rRx",rRx,"rRx[nxyz]/D");
   chTreeR->Branch("xzTx",xzTx,"xzTx[nxz]/D");
   chTreeR->Branch("xzRx",xzRx,"xzRx[nxz]/D");
+  chTreeR->Branch("AttFac",AttFac,"AttFac[ntau]/D");
   chTreeR->Branch("TransitTime",&TransitTime,"TransitTime/D");
-  chTreeR->Branch("AttFac",&AttFac,"AttFac/D");
   chTreeR->Branch("L_ang",&L_ang,"L_ang/D");
   chTreeR->Branch("R_ang",&R_ang,"R_ang/D");
   chTreeR->Branch("I_ang",&I_ang,"I_ang/D");
@@ -297,11 +310,11 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
   Double_t K3_theta;
   Double_t K4_theta;
 
-  Double_t K1_tau;
-  Double_t K2_tau;
-  Double_t K3_tau;
-  Double_t K4_tau;
-
+  Double_t K1_tau[ntausize];
+  Double_t K2_tau[ntausize];
+  Double_t K3_tau[ntausize];
+  Double_t K4_tau[ntausize];
+  
   Double_t K1_time;
   Double_t K2_time;
   Double_t K3_time;
@@ -323,14 +336,18 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
   Double_t *ang=0;
   Double_t th0=0;
   Double_t dist=0;
-  Double_t tau0=1.0;
   Double_t time0=0.0;
   Double_t th0i=0.0;
   
   Double_t minz=0.0;
   Double_t minx=0.0;
   Double_t minth=0.0;
-  Double_t mintau=0.0;
+  Double_t mintau[ntausize];
+  Double_t tau0[ntausize];
+  for(Int_t itau=0;itau<tausize;itau++){
+    mintau[itau]=0.0;
+    tau0[itau]=1.0;
+  }
   Double_t mintime=0.0;
   Double_t mindist=0.0;
   Double_t prdist=0.0;
@@ -392,12 +409,14 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
      
       cout<<"START: x0 "<<x0<<" ,z0 "<<z0<<" ,x1 "<<x1<<" ,z1 "<<z1<<" ,th0 "<<th0*(180/pi)<<" "<<i<<" "<<ndhit<<endl;
 
-      tau0=1.0;
+      for(Int_t itau=0;itau<tausize;itau++){
+	tau0[itau]=1.0;
+	mintau[itau]=0.0;
+      }
       time0=0.0;
       minz=1000.0;
       minx=1000.0;
       minth=0.0;
-      mintau=0.0;
       mintime=0.0;
       mindist=0.0;
       prdist=1;
@@ -425,12 +444,14 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
 	K2_theta=h*ftheta(th0+0.5*K1_theta, z0+0.5*K1_theta);
 	K3_theta=h*ftheta(th0+0.5*K2_theta, z0+0.5*K2_theta);
 	K4_theta=h*ftheta(th0+K3_theta,     z0+K3_theta);
-	
-	K1_tau=h*ftau(tau0,                 z0);
-	K2_tau=h*ftau(tau0+0.5*K1_tau,      z0+0.5*K1_tau);
-	K3_tau=h*ftau(tau0+0.5*K2_tau,      z0+0.5*K2_tau);
-	K4_tau=h*ftau(tau0+K3_tau,          z0+K3_tau);
 
+	for(Int_t itau=0;itau<tausize;itau++){
+	  K1_tau[itau]=h*ftau(tau0[itau],                 z0,frequency[itau]);
+	  K2_tau[itau]=h*ftau(tau0[itau]+0.5*K1_tau[itau],      z0+0.5*K1_tau[itau],frequency[itau]);
+	  K3_tau[itau]=h*ftau(tau0[itau]+0.5*K2_tau[itau],      z0+0.5*K2_tau[itau],frequency[itau]);
+	  K4_tau[itau]=h*ftau(tau0[itau]+K3_tau[itau],          z0+K3_tau[itau],frequency[itau]);
+	}
+	
 	K1_time=h*ftime(z0);
 	K2_time=h*ftime(z0+0.5*K1_time);
 	K3_time=h*ftime(z0+0.5*K2_time);
@@ -439,7 +460,11 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
 	x0=x0+Coef*(K1_x+2*(K2_x+K3_x)+K4_x);
 	z0=z0+Coef*(K1_z+2*(K2_z+K3_z)+K4_z);
 	th0=th0+Coef*(K1_theta+2*(K2_theta+K3_theta)+K4_theta);
-	tau0=tau0-Coef*(K1_tau+2*(K2_tau+K3_tau)+K4_tau);
+
+	for(Int_t itau=0;itau<tausize;itau++){
+	  tau0[itau]=tau0[itau]-Coef*(K1_tau[itau]+2*(K2_tau[itau]+K3_tau[itau])+K4_tau[itau]);
+	}
+	
 	time0=time0+Coef*(K1_time+2*(K2_time+K3_time)+K4_time);
 
 	//Store value of dz at closest apporoach
@@ -466,7 +491,9 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
 	      minx=x0;
 	      minz=z0;
 	      minth=th0;
-	      mintau=tau0;
+	      for(Int_t itau=0;itau<tausize;itau++){
+		mintau[itau]=tau0[itau];
+	      }
 	      mintime=time0;
 	      mindist=dist;
 	    }
@@ -693,17 +720,18 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
     //Now we are done with RK4. Store and print whatever solutions we got.
     if(chkn>0 && surfhit==false && (isol==0 || isol==2)){
       if(isol==0){
-      cout<<"x0 "<<D56cor[0]<<" ,z0 "<<iniz<<" ,x1 "<<minx<<" ,z1 "<<minz<<" ,th0 (Recieved Angle) "<<minth*(180/pi)<<" ,Lang "<<th0i*(180/pi)<<" ,time0 "<<mintime<<" ,tau0 "<<mintau<<" ,I_ang (Incident angle on suface) "<<I_ang<<" ,(Incident angle coordinates) I_corx "<<I_cor[0]<<" ,Icorz "<<I_cor[1]<<" Direct HIT!!. Writing file. "<<ovrall<<" "<<ndhit<<endl;
+      cout<<"x0 "<<D56cor[0]<<" ,z0 "<<iniz<<" ,x1 "<<minx<<" ,z1 "<<minz<<" ,th0 (Recieved Angle) "<<minth*(180/pi)<<" ,Lang "<<th0i*(180/pi)<<" ,time0 "<<mintime<<" ,tau0[4] "<<mintau[4]<<" ,I_ang (Incident angle on suface) "<<I_ang<<" ,(Incident angle coordinates) I_corx "<<I_cor[0]<<" ,Icorz "<<I_cor[1]<<" Direct HIT!!. Writing file. "<<ovrall<<" "<<ndhit<<endl;
       }
 
       if(isol==2){
-      cout<<"x0 "<<D56cor[0]<<" ,z0 "<<iniz<<" ,x1 "<<minx<<" ,z1 "<<minz<<" ,th0 (Recieved Angle) "<<minth*(180/pi)<<" ,Lang "<<th0i*(180/pi)<<" ,time0 "<<mintime<<" ,tau0 "<<mintau<<" ,I_ang (Incident angle on suface) "<<I_ang<<" ,(Incident angle coordinates) I_corx  "<<I_cor[0]<<" ,Icorz "<<I_cor[1]<<" Refracted HIT!!. Writing file. "<<ovrall<<" "<<ndhit<<endl;
+      cout<<"x0 "<<D56cor[0]<<" ,z0 "<<iniz<<" ,x1 "<<minx<<" ,z1 "<<minz<<" ,th0 (Recieved Angle) "<<minth*(180/pi)<<" ,Lang "<<th0i*(180/pi)<<" ,time0 "<<mintime<<" ,tau0[4] "<<mintau[4]<<" ,I_ang (Incident angle on suface) "<<I_ang<<" ,(Incident angle coordinates) I_corx  "<<I_cor[0]<<" ,Icorz "<<I_cor[1]<<" Refracted HIT!!. Writing file. "<<ovrall<<" "<<ndhit<<endl;
       }
       
       cout<<((mindist-minx))<<" "<<minz-z1<<" "<<mindist<<" hit room"<<endl;
       
       nxyz=3;
       nxz=2;
+      ntau=ntausize;
       ndhitbr=ndhit;
       ovrallbr=ovrall;
       isolbr=isol;
@@ -718,7 +746,9 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
       xzRx[0]=minx;
       xzRx[1]=minz;
       TransitTime=mintime;
-      AttFac=mintau;
+      for(Int_t itau=0;itau<tausize;itau++){
+	AttFac[itau]=mintau[itau];
+      }
       L_ang=th0i*(180/pi);
       R_ang=minth*(180/pi);
       WasSurfaceHit=surfhit;
@@ -726,12 +756,18 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
 	output[0]=L_ang;
 	output[1]=R_ang;
 	output[2]=TransitTime;      
+	for(Int_t itau=0;itau<tausize;itau++){
+	  output[itau+9]=mintau[itau];
+	}
       }
-
+      
       if(isol==2){
-	output[3]=L_ang;
-	output[4]=R_ang;
-	output[5]=TransitTime;      
+	output[6]=L_ang;
+	output[7]=R_ang;
+	output[8]=TransitTime;      
+	for(Int_t itau=tausize*2;itau<tausize*3;itau++){
+	  output[itau+9]=mintau[itau-tausize*2];
+	}
       }
 
       chTreeR->Fill();
@@ -739,11 +775,12 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
     }
     
     if(chkn>0 && surfhit==true && isol==1){
-      cout<<"x0 "<<D56cor[0]<<" ,z0 "<<iniz<<" ,x1 "<<minx<<" ,z1 "<<minz<<" ,th0 (Recieved Angle) "<<minth*(180/pi)<<" ,Lang "<<th0i*(180/pi)<<" ,time0 "<<mintime<<" ,tau0 "<<mintau<<" ,I_ang (Incident angle on suface) "<<I_ang<<" ,(Incident angle coordinates) I_corx  "<<I_cor[0]<<" ,Icorz "<<I_cor[1]<<" Reflected HIT!!. Writing file. "<<ovrall<<" "<<ndhit<<endl;
+      cout<<"x0 "<<D56cor[0]<<" ,z0 "<<iniz<<" ,x1 "<<minx<<" ,z1 "<<minz<<" ,th0 (Recieved Angle) "<<minth*(180/pi)<<" ,Lang "<<th0i*(180/pi)<<" ,time0 "<<mintime<<" ,tau0[4] "<<mintau[4]<<" ,I_ang (Incident angle on suface) "<<I_ang<<" ,(Incident angle coordinates) I_corx  "<<I_cor[0]<<" ,Icorz "<<I_cor[1]<<" Reflected HIT!!. Writing file. "<<ovrall<<" "<<ndhit<<endl;
       cout<<((mindist-minx))<<" "<<minz-z1<<" "<<mindist<<" hit room"<<endl;
       
       nxyz=3;
       nxz=2;
+      ntau=ntausize;
       ndhitbr=ndhit;
       ovrallbr=ovrall;
       isolbr=isol;
@@ -758,26 +795,32 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
       xzRx[0]=minx;
       xzRx[1]=minz;
       TransitTime=mintime;
-      AttFac=mintau;
+      for(Int_t itau=0;itau<tausize;itau++){
+      	AttFac[itau]=mintau[itau];
+      }
       L_ang=th0i*(180/pi);
       R_ang=minth*(180/pi);
       WasSurfaceHit=surfhit;
 
-      output[6]=L_ang;
-      output[7]=R_ang;
-      output[8]=TransitTime;      
-      
+      output[3]=L_ang;
+      output[4]=R_ang;
+      output[5]=TransitTime;      
+      for(Int_t itau=tausize;itau<tausize*2;itau++){
+	output[itau+9]=mintau[itau-tausize];
+      }
+     
       chTreeR->Fill();
       solexist=1;
     }
 
     if((ndhit>34 || chkn==0 || ovrall>63) && solexist==0){
       cout<<"NO solution. Writing file. "<<chkn<<endl;
-      cout<<"x0 "<<D56cor[0]<<" ,z0 "<<iniz<<" ,x1 "<<minx<<" ,z1 "<<minz<<" ,th0 "<<minth*(180/pi)<<" ,Lang "<<th0i*(180/pi)<<" ,time0 "<<mintime<<" ,tau0 "<<mintau<<" ,I_ang "<<I_ang<<" ,I_corx "<<I_cor[0]<<" ,Icorz "<<I_cor[1]<<" MISS!! "<<endl;
+      cout<<"x0 "<<D56cor[0]<<" ,z0 "<<iniz<<" ,x1 "<<minx<<" ,z1 "<<minz<<" ,th0 "<<minth*(180/pi)<<" ,Lang "<<th0i*(180/pi)<<" ,time0 "<<mintime<<" ,tau0[0] "<<mintau[0]<<" ,I_ang "<<I_ang<<" ,I_corx "<<I_cor[0]<<" ,Icorz "<<I_cor[1]<<" MISS!! "<<endl;
       cout<<((mindist-minx))<<" "<<minz-z1<<" "<<mindist<<" hit room"<<endl;
       
       nxyz=3;
       nxz=2;
+      ntau=ntausize;
       ndhitbr=ndhit;
       ovrallbr=ovrall;
       isolbr=isol;
@@ -792,22 +835,46 @@ Double_t* RayTraceRK4(Double_t c1,Double_t c2,Double_t c3,Double_t r1,Double_t r
       xzRx[0]=minx;
       xzRx[1]=minz;
       TransitTime=mintime;
-      AttFac=mintau;
-      L_ang=th0i*(180/pi);
-      R_ang=-1;
-      WasSurfaceHit=surfhit;
+      for(Int_t itau=0;itau<tausize;itau++){
+	AttFac[itau]=mintau[itau];
+      }
+     
+      if(isol==0){
+	L_ang=th0i*(180/pi);
+	R_ang=-1;
+	WasSurfaceHit=surfhit;
       
-      output[0]=L_ang;
-      output[1]=R_ang;
-      output[2]=TransitTime;      
+	output[0]=L_ang;
+	output[1]=R_ang;;
+	output[2]=TransitTime;
+	for(Int_t itau=0;itau<tausize;itau++){
+	  output[itau+9]=0;
+	}
+      }
+      if(isol==1){
+	L_ang=th0i*(180/pi);
+	R_ang=-1;
+	WasSurfaceHit=surfhit;
       
-      output[3]=L_ang;
-      output[4]=R_ang;
-      output[5]=TransitTime;      
+	output[3]=L_ang;
+	output[4]=R_ang;
+	output[5]=TransitTime;	
+	for(Int_t itau=tausize;itau<tausize*2;itau++){
+	  output[itau+9]=0;
+	}
+      }
+      if(isol==2){
+	L_ang=th0i*(180/pi);
+	R_ang=-1;
+	WasSurfaceHit=surfhit;
       
-      output[6]=L_ang;
-      output[7]=R_ang;
-      output[8]=TransitTime;      
+	output[6]=L_ang;
+	output[7]=R_ang;
+	output[8]=TransitTime;            
+	for(Int_t itau=tausize*2;itau<tausize*3;itau++){
+	  output[itau+9]=0;
+	}
+      }
       
       chTreeR->Fill();
     }
@@ -866,17 +933,10 @@ Double_t Latten(Double_t z, Double_t frequency){
   return 1./exp(a+bb*w);
 }
 
-Double_t ftau(Double_t tau,Double_t z){  
+Double_t ftau(Double_t tau,Double_t z ,Double_t freq){  
   // Double_t Latten=1000;
-  Double_t Lavg=0;
-  Int_t frband=floor((0.8-0.2)/0.1);
-  Double_t step=0.2;
-  for(Int_t i=0;i<frband;i++){
-    Lavg+=Latten(z,step);
-    step=step+0.1;
-  }
-  Lavg=Lavg/(Double_t)frband;
-  return tau/Lavg;
+  Double_t Lval=Latten(z,freq);
+  return tau/Lval;
 }
 
 Double_t ftime(Double_t z){  
