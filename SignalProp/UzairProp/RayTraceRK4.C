@@ -356,7 +356,7 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 	Double_t mindist = 0.0;
 	Double_t prdist = 0.0;
 	Bool_t dhit = true;
-	Double_t testfir[2] = { 3 * (pi / 180), 7 * (pi / 180) };
+	Double_t testfir[2] = { 3 * utl::deg, 7 * utl::deg };
 	Double_t dz[2] = { 0.0, 0.0 };
 	Double_t midang = 0;
 	Int_t ndhit = 0;
@@ -411,15 +411,15 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 				Double_t *infir = getStartAngles(x0, z0, x1, z1, isol);
 				testfir[0] = infir[0];
 				testfir[1] = infir[1];
-				cout << "START angles " << testfir[0] * (180 / pi) << " "
-						<< testfir[1] * (180 / pi) << endl;
+				cout << "START angles " << testfir[0] / utl::deg << " "
+						<< testfir[1] / utl::deg << endl;
 			}
 
 			th0i = testfir[i];
 			th0 = th0i;
 
 			cout << "START: x0 " << x0 << " ,z0 " << z0 << " ,x1 " << x1
-					<< " ,z1 " << z1 << " ,th0 " << th0 * (180 / pi) << " " << i
+					<< " ,z1 " << z1 << " ,th0 " << th0 / utl::deg << " " << i
 					<< " " << ndhit << endl;
 
 			for (Int_t itau = 0; itau < tausize; itau++) {
@@ -504,7 +504,7 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 
 				//Store the coordinates when surface is hit
 				if (z0 > 0.0) {
-					I_ang = th0 * (180 / pi);
+					I_ang = th0;
 					I_cor[0] = x0;
 					I_cor[1] = z0;
 					th0 = (pi / 2 - th0) + pi / 2;
@@ -598,49 +598,49 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 				testfir[0] = newang - fabs(tet1 - tet0) * 0.3;
 
 				if (dz[0] == 0 && dz[1] == 0) {
-					newang = 20 * (pi / 180);
+					newang = 20 * utl::deg;
 					cout << "Both dz are zero!" << endl;
-					testfir[1] = newang + 2 * (pi / 180);
-					testfir[0] = newang - 2 * (pi / 180);
+					testfir[1] = newang + 2 * utl::deg;
+					testfir[0] = newang - 2 * utl::deg;
 				}
 
 				if (testfir[0] < 0) {
-					newang = 2.5 * (pi / 180);
+					newang = 2.5 * utl::deg;
 					if (isol == 2) {
-						newang = 65.0 * (pi / 180);
+						newang = 65.0 * utl::deg;
 					}
 					testfir[1] = newang + fabs(tet1 - tet0) * 0.3;
 					testfir[0] = newang - fabs(tet1 - tet0) * 0.3;
 				}
 
-				if (newang > (65 * (pi / 180)) && (isol == 1)) {
-					newang = 5.0 * (pi / 180);
+				if (newang > (65 * utl::deg) && (isol == 1)) {
+					newang = 5.0 * utl::deg;
 					testfir[1] = newang + fabs(tet1 - tet0) * 0.3;
 					testfir[0] = newang - fabs(tet1 - tet0) * 0.3;
 				}
 
 				if (newang > pi && (isol == 1 || isol == 2)) {
-					newang = 50 * (pi / 180);
+					newang = 50 * utl::deg;
 					testfir[1] = newang + fabs(tet1 - tet0) * 0.3;
 					testfir[0] = newang - fabs(tet1 - tet0) * 0.3;
 				}
 
 				if (newang > pi && isol == 0) {
-					newang = 100 * (pi / 180);
+					newang = 100 * utl::deg;
 					testfir[1] = newang + fabs(tet1 - tet0) * 0.3;
 					testfir[0] = newang - fabs(tet1 - tet0) * 0.3;
 				}
 
-				cout << "new angles " << testfir[0] * (180 / pi) << " "
-						<< testfir[1] * (180 / pi) << endl;
+				cout << "new angles " << testfir[0] / utl::deg << " "
+						<< testfir[1] / utl::deg << endl;
 
 				if (testfir[1] > pi || testfir[0] > pi) {
 					dhit = false;
 					cout << "NO solution. Angle got too large." << chkn << endl;
 				}
 
-				if (testfir[1] < 0.1 * (pi / 180)
-						|| testfir[0] < 0.1 * (pi / 180)) {
+				if (testfir[1] < 0.1 * utl::deg
+						|| testfir[0] < 0.1 * utl::deg) {
 					dhit = false;
 					cout << "NO solution. Angle got too small." << chkn << endl;
 				}
@@ -648,10 +648,10 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 				if (iniz == 0) {
 					cout << "Source is right at the surfcace!!" << endl;
 					if (testfir[0] < pi / 2) {
-						testfir[0] = (pi / 2) + 0.01 * (pi / 180);
+						testfir[0] = (pi / 2) + 0.01 * utl::deg;
 					}
 					if (testfir[1] < pi / 2) {
-						testfir[1] = (pi / 2) + 2 * (pi / 180);
+						testfir[1] = (pi / 2) + 2 * utl::deg;
 					}
 				}
 
@@ -765,9 +765,10 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 			if (isol == 0) {
 				cout << "x0 " << D56cor[0] << " ,z0 " << iniz << " ,x1 " << minx
 						<< " ,z1 " << minz << " ,th0 (Recieved Angle) "
-						<< minth * (180 / pi) << " ,Lang " << th0i * (180 / pi)
+						<< minth / utl::deg << " ,Lang " << th0i / utl::deg
 						<< " ,time0 " << mintime << " ,tau0[4] " << mintau[4]
-						<< " ,I_ang (Incident angle on suface) " << I_ang
+						<< " ,I_ang (Incident angle on suface) "
+						<< I_ang / utl::deg
 						<< " ,(Incident angle coordinates) I_corx " << I_cor[0]
 						<< " ,Icorz " << I_cor[1]
 						<< " Direct HIT!!. Writing file. " << ovrall << " "
@@ -777,9 +778,10 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 			if (isol == 2) {
 				cout << "x0 " << D56cor[0] << " ,z0 " << iniz << " ,x1 " << minx
 						<< " ,z1 " << minz << " ,th0 (Recieved Angle) "
-						<< minth * (180 / pi) << " ,Lang " << th0i * (180 / pi)
+						<< minth / utl::deg << " ,Lang " << th0i / utl::deg
 						<< " ,time0 " << mintime << " ,tau0[4] " << mintau[4]
-						<< " ,I_ang (Incident angle on suface) " << I_ang
+						<< " ,I_ang (Incident angle on suface) "
+						<< I_ang / utl::deg
 						<< " ,(Incident angle coordinates) I_corx  " << I_cor[0]
 						<< " ,Icorz " << I_cor[1]
 						<< " Refracted HIT!!. Writing file. " << ovrall << " "
@@ -809,8 +811,8 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 			for (Int_t itau = 0; itau < tausize; itau++) {
 				AttFac[itau] = mintau[itau];
 			}
-			L_ang = th0i * (180 / pi);
-			R_ang = minth * (180 / pi);
+			L_ang = th0i;
+			R_ang = minth;
 			WasSurfaceHit = surfhit;
 			if (isol == 0) {
 				output[0] = L_ang;
@@ -837,9 +839,9 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 		if (chkn > 0 && surfhit == true && isol == 1) {
 			cout << "x0 " << D56cor[0] << " ,z0 " << iniz << " ,x1 " << minx
 					<< " ,z1 " << minz << " ,th0 (Recieved Angle) "
-					<< minth * (180 / pi) << " ,Lang " << th0i * (180 / pi)
+					<< minth / utl::deg << " ,Lang " << th0i / utl::deg
 					<< " ,time0 " << mintime << " ,tau0[4] " << mintau[4]
-					<< " ,I_ang (Incident angle on suface) " << I_ang
+					<< " ,I_ang (Incident angle on suface) " << I_ang / utl::deg
 					<< " ,(Incident angle coordinates) I_corx  " << I_cor[0]
 					<< " ,Icorz " << I_cor[1]
 					<< " Reflected HIT!!. Writing file. " << ovrall << " "
@@ -867,8 +869,8 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 			for (Int_t itau = 0; itau < tausize; itau++) {
 				AttFac[itau] = mintau[itau];
 			}
-			L_ang = th0i * (180 / pi);
-			R_ang = minth * (180 / pi);
+			L_ang = th0i;
+			R_ang = minth;
 			WasSurfaceHit = surfhit;
 
 			output[3] = L_ang;
@@ -885,11 +887,11 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 		if ((ndhit > 34 || chkn == 0 || ovrall > 63) && solexist == 0) {
 			cout << "NO solution. Writing file. " << chkn << endl;
 			cout << "x0 " << D56cor[0] << " ,z0 " << iniz << " ,x1 " << minx
-					<< " ,z1 " << minz << " ,th0 " << minth * (180 / pi)
-					<< " ,Lang " << th0i * (180 / pi) << " ,time0 " << mintime
-					<< " ,tau0[0] " << mintau[0] << " ,I_ang " << I_ang
-					<< " ,I_corx " << I_cor[0] << " ,Icorz " << I_cor[1]
-					<< " MISS!! " << endl;
+					<< " ,z1 " << minz << " ,th0 " << minth / utl::deg
+					<< " ,Lang " << th0i / utl::deg << " ,time0 " << mintime
+					<< " ,tau0[0] " << mintau[0] << " ,I_ang "
+					<< I_ang / utl::deg << " ,I_corx " << I_cor[0] << " ,Icorz "
+					<< I_cor[1] << " MISS!! " << endl;
 			cout << ((mindist - minx)) << " " << minz - z1 << " " << mindist
 					<< " hit room" << endl;
 
@@ -915,7 +917,7 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 			}
 
 			if (isol == 0) {
-				L_ang = th0i * (180 / pi);
+				L_ang = th0i;
 				R_ang = -1;
 				WasSurfaceHit = surfhit;
 
@@ -928,7 +930,7 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 				}
 			}
 			if (isol == 1) {
-				L_ang = th0i * (180 / pi);
+				L_ang = th0i;
 				R_ang = -1;
 				WasSurfaceHit = surfhit;
 
@@ -940,7 +942,7 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 				}
 			}
 			if (isol == 2) {
-				L_ang = th0i * (180 / pi);
+				L_ang = th0i;
 				R_ang = -1;
 				WasSurfaceHit = surfhit;
 
@@ -957,9 +959,9 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 
 	}  //isol loop
 
-	   ////Write the TTree to the root file the use specified
-	   // newfile->Write();
-	   // newfile->Close();
+	////Write the TTree to the root file the use specified
+	// newfile->Write();
+	// newfile->Close();
 
 	//Return the output array pointer
 	return output;
@@ -1138,32 +1140,32 @@ Double_t *getStartAngles(Double_t x0, Double_t z0, Double_t x1, Double_t z1,
 		midang = getReflAng(x0, z0, x1, z1);
 
 		if (solnum == 2 && midang != 0) {
-			midang = midang + 15 * (pi / 180.0);
+			midang = midang + 15 * utl::deg;
 		}
 
 		if (midang == 0) {
 			midang = ((pi / 2) - atan(fabs((z0 * 2.0) / (x1 - x0))));
-			if (midang > 49 * (pi / 180)) {
-				midang = midang - 15 * (pi / 180);
+			if (midang > 49 * utl::deg) {
+				midang = midang - 15 * utl::deg;
 			}
-			if (midang < 50 * (pi / 180)) {
-				midang = midang - 0.5 * (pi / 180);
+			if (midang < 50 * utl::deg) {
+				midang = midang - 0.5 * utl::deg;
 			}
 		}
 
-		outfir[0] = midang - 2 * (pi / 180);
-		outfir[1] = midang + 2 * (pi / 180);
+		outfir[0] = midang - 2 * utl::deg;
+		outfir[1] = midang + 2 * utl::deg;
 
-		if (outfir[0] < 0 * (pi / 180)) {
-			midang = 3 * (pi / 180);
-			outfir[0] = midang - 2 * (pi / 180);
-			outfir[1] = midang + 2 * (pi / 180);
+		if (outfir[0] < 0 * utl::deg) {
+			midang = 3 * utl::deg;
+			outfir[0] = midang - 2 * utl::deg;
+			outfir[1] = midang + 2 * utl::deg;
 		}
 
-		if (outfir[1] > 60 * (pi / 180) && solnum == 1) {
+		if (outfir[1] > 60 * utl::deg && solnum == 1) {
 			//midang=3*(pi/180);
-			outfir[0] = outfir[0] - 2 * (pi / 180);
-			outfir[1] = outfir[1] - 2 * (pi / 180);
+			outfir[0] = outfir[0] - 2 * utl::deg;
+			outfir[1] = outfir[1] - 2 * utl::deg;
 		}
 
 	}
@@ -1177,27 +1179,27 @@ Double_t *getStartAngles(Double_t x0, Double_t z0, Double_t x1, Double_t z1,
 			midang = ang2[0];
 		}
 
-		if (z1 > z0 && midang > 90 * (pi / 180)) {
+		if (z1 > z0 && midang > 90 * utl::deg) {
 			midang = pi - midang;
 		}
 
-		outfir[0] = midang - 2 * (pi / 180);
-		outfir[1] = midang + 2 * (pi / 180);
+		outfir[0] = midang - 2 * utl::deg;
+		outfir[1] = midang + 2 * utl::deg;
 
 		if (fabs(z0 - z1) < 0.15 || ang2[0] < 0.01 || ang2[1] < 0.01) {
 			midang = (pi / 2) - atan(fabs((z1 - z0) / x1));
 
 			if (midang > pi / 2) {
-				midang = (pi / 2) - 2 * (pi / 180);
+				midang = (pi / 2) - 2 * utl::deg;
 			}
 
-			outfir[0] = midang - 2 * (pi / 180);
-			outfir[1] = midang + 2 * (pi / 180);
+			outfir[0] = midang - 2 * utl::deg;
+			outfir[1] = midang + 2 * utl::deg;
 
-			if (outfir[0] < 0 * (pi / 180)) {
-				midang = 3 * (pi / 180);
-				outfir[0] = midang - 2 * (pi / 180);
-				outfir[1] = midang + 2 * (pi / 180);
+			if (outfir[0] < 0 * utl::deg) {
+				midang = 3 * utl::deg;
+				outfir[0] = midang - 2 * utl::deg;
+				outfir[1] = midang + 2 * utl::deg;
 			}
 
 		}
@@ -1221,31 +1223,31 @@ Double_t *getAngleCorrections(Int_t num, Int_t antco, Int_t D56co,
 
 	if (psns > 0) {
 		if (num > 8 && fabs(antco - D56co) <= 200) {
-			test0 = test0 + 0.1 * (pi / 180) * psns;
-			test1 = test1 + 0.1 * (pi / 180) * psns;
+			test0 = test0 + 0.1 * utl::deg * psns;
+			test1 = test1 + 0.1 * utl::deg * psns;
 		}
 		if (num < 9 && fabs(antco - D56co) <= 200) {
-			test0 = test0 + 0.5 * (pi / 180) * psns;
-			test1 = test1 + 0.5 * (pi / 180) * psns;
+			test0 = test0 + 0.5 * utl::deg * psns;
+			test1 = test1 + 0.5 * utl::deg * psns;
 		}
 		if (num > 8 && fabs(antco - D56co) > 200) {
-			test0 = test0 + 1 * (pi / 180) * psns;
-			test1 = test1 + 1 * (pi / 180) * psns;
+			test0 = test0 + 1 * utl::deg * psns;
+			test1 = test1 + 1 * utl::deg * psns;
 		}
 		if (num < 9 && fabs(antco - D56co) > 200) {
-			test0 = test0 + 2 * (pi / 180) * psns;
-			test1 = test1 + 2 * (pi / 180) * psns;
+			test0 = test0 + 2 * utl::deg * psns;
+			test1 = test1 + 2 * utl::deg * psns;
 		}
 	}
 
 	if (psns > 0 && solnum == 2) {
 		if (num > 8 && fabs(antco - D56co) <= 200) {
-			test0 = test0 + 1 * (pi / 180) * psns;
-			test1 = test1 + 1 * (pi / 180) * psns;
+			test0 = test0 + 1 * utl::deg * psns;
+			test1 = test1 + 1 * utl::deg * psns;
 		}
 		if (num < 9 && fabs(antco - D56co) <= 200) {
-			test0 = test0 + 2 * (pi / 180) * psns;
-			test1 = test1 + 2 * (pi / 180) * psns;
+			test0 = test0 + 2 * utl::deg * psns;
+			test1 = test1 + 2 * utl::deg * psns;
 		}
 	}
 
@@ -1320,7 +1322,7 @@ Double_t getReflAng(Double_t x0, Double_t z0, Double_t x1, Double_t z1) {
 																		2)), 2))
 								< 1 && iplt == 0) {
 							//cout<<ix<<" "<<iz<<" "<<ign<<" "<<dummyg<<" "<<ifn<<" "<<dummyf<<" "<<fabs(z0/dummyf)-fabs(z1/dummyg)<<" "<<thl*(180.0/pi)<<" "<<fabs(pow(dummyg,2)+pow(dummyf,2)-2*dummyg*dummyf*cos(dummyth)-pow(sqrt(pow(x0-x1,2)+pow(z0-z1,2)),2))<<endl;
-							rtrnang = (thl / 2) - 2.0 * (pi / 180.0);
+							rtrnang = (thl / 2) - 2.0 * utl::deg;
 							iplt++;
 						}
 					}
