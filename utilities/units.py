@@ -13,7 +13,7 @@ instead of:
     ``s = 1.5   # don't forget this is in km!``
 
 The conversion factors defined in this file
-convert your data into Auger base units, so that
+convert your data into NuRadioMC base units, so that
 all dimensional quantities in the code are in a
 single system of units!  You can also
 use the conversions defined here to, for example,
