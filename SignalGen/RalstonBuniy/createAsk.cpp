@@ -47,16 +47,16 @@ void getFrequencySpectrum2(double*& spectrumReal, double*& spectrumImag, int& si
 	// we transform the frequency array to the base units of the Askaryan module which is GHz
 	std::vector<float> freqs2;
 	for (int i = 0; i < size_f; ++i) {
-		freqs2.push_back(freqs[i] / utl::GHz);
+		freqs2.push_back(freqs[i] / utl::GHz); // Askaryan module uses GHz internally
 	}
 
 	Askaryan *h = new Askaryan();
 	h->setFormScale(1 / (sqrt(2.0 * 3.14159) * 0.03));
 	h->setAskFreq(&freqs2);
 	if (isEMShower)
-		h->emShower(energy / utl::GeV); // Askaryan module uses GHz internally
+		h->emShower(energy / utl::GeV); // Askaryan module uses GeV internally
 	else
-		h->hadShower(energy / utl::GeV);
+		h->hadShower(energy / utl::GeV); // Askaryan module uses GeV internally
 	h->setAskDepthA(1.5);
 	h->setAskR(1000.0);
 	h->setAskTheta(theta);
@@ -147,9 +147,9 @@ void getTimeTrace2(double*& times, double*& ex, double*& ey, double*& ez,
 	ez = new double[size];
 	for (int j = 0; j < t->size(); ++j) {
 		times[j] = t->at(j);
-		ex[j] = Eshow->at(0)[j];
-		ey[j] = Eshow->at(1)[j];
-		ez[j] = Eshow->at(2)[j];
+		ex[j] = Eshow->at(0)[j] * utl::V / utl::m * R;
+		ey[j] = Eshow->at(1)[j] * utl::V / utl::m * R;
+		ez[j] = Eshow->at(2)[j] * utl::V / utl::m * R;
 	}
 }
 
