@@ -169,6 +169,7 @@ for event in eventlist:
         station = ARIANNAreco.framework.station.Station(station_id)
         station.set_sim_station(sim_station)
         evt = ARIANNAreco.framework.event.Event(0, evid)
+        evt.set_station(station)
 
         # upsample simulated efield to achive a good time resolution in shifting channel traces to the correct time
         simEFieldResampler.run(evt, station, det, sampling_rate=100 * units.GHz)
@@ -186,7 +187,7 @@ for event in eventlist:
                              threshold_low=-40 * units.mV,
                              triggered_channels=triggered_channels,
                              number_concidences=1)
-        
+
         fig, (ax, axf) = plt.subplots(1, 2)
         trace = station.get_channel(0).get_trace()
         tt = station.get_channel(0).get_times()
@@ -200,10 +201,6 @@ for event in eventlist:
         fig.tight_layout()
         fig.savefig(os.path.join(PLOT_FOLDER, "event_{:04d}_station_{:02d}_afterdetector.png".format(evid, iStation)))
 
-        a = 1 / 0
-        if(not station['triggered']):
-            logger.info("removing event because it will not be triggered by ARIANNA")
-            continue
         eventWriter.run(evt)
-        eventWriter.end()
+eventWriter.end()
 
