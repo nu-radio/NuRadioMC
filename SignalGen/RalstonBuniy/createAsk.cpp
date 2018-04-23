@@ -42,8 +42,11 @@ std::vector<std::complex<float> > getFrequencySpectrum(const double energy,
 	}
 	return result;
 }
-void getFrequencySpectrum2(double*& spectrumReal, double*& spectrumImag, int& size,
-		const double energy, const double theta, double* freqs, int size_f, const bool isEMShower) {
+void getFrequencySpectrum2(double*& spectrumRealR, double*& spectrumImagR,
+		double*& spectrumRealTheta, double*& spectrumImagTheta,
+		double*& spectrumRealPhi, double*& spectrumImagPhi, int& size,
+		const double energy, const double theta, double* freqs, int size_f,
+		const bool isEMShower) {
 	// we transform the frequency array to the base units of the Askaryan module which is GHz
 	std::vector<float> freqs2;
 	for (int i = 0; i < size_f; ++i) {
@@ -62,16 +65,26 @@ void getFrequencySpectrum2(double*& spectrumReal, double*& spectrumImag, int& si
 	h->setAskTheta(theta);
 	vector<vector<cf> > *Eshow = new vector<vector<cf> >;
 	Eshow = h->E_omega();
+	vector<cf> eR = Eshow->at(0);
 	vector<cf> eTheta = Eshow->at(1);
+	vector<cf> ePhi = Eshow->at(2);
 	delete Eshow;
 	delete h;
 
 	size = eTheta.size();
-	spectrumReal = new double[size];
-	spectrumImag = new double[size];
+	spectrumRealR = new double[size];
+	spectrumImagR = new double[size];
+	spectrumRealTheta = new double[size];
+	spectrumImagTheta = new double[size];
+	spectrumRealPhi = new double[size];
+	spectrumImagPhi = new double[size];
 	for (int j = 0; j < size; ++j) {
-		spectrumReal[j] = eTheta.at(j).real() * utl::V / utl::m / utl::MHz;
-		spectrumImag[j] = eTheta.at(j).imag() * utl::V / utl::m / utl::MHz;
+		spectrumRealR[j] = eR.at(j).real() * utl::V / utl::m / utl::MHz;
+		spectrumImagR[j] = eR.at(j).imag() * utl::V / utl::m / utl::MHz;
+		spectrumRealTheta[j] = eTheta.at(j).real() * utl::V / utl::m / utl::MHz;
+		spectrumImagTheta[j] = eTheta.at(j).imag() * utl::V / utl::m / utl::MHz;
+		spectrumRealPhi[j] = ePhi.at(j).real() * utl::V / utl::m / utl::MHz;
+		spectrumImagPhi[j] = ePhi.at(j).imag() * utl::V / utl::m / utl::MHz;
 	}
 }
 
@@ -86,7 +99,7 @@ std::pair<std::vector<float>, std::vector<std::vector<float> > > getTimeTrace(
 	vector<float> *t = new vector<float>;
 	float R = 0.0;
 
-	for (float i = fmin; i < fmax; i += df) {
+	for (float i = fmin; i <= fmax; i += df) {
 		freqs->push_back(i / utl::GHz);
 	}
 	h->setAskFreq(freqs);
@@ -125,9 +138,13 @@ void getTimeTrace2(double*& times, double*& ex, double*& ey, double*& ez,
 	vector<float> *t = new vector<float>;
 	float R = 0.0;
 
-	for (float i = fmin; i < fmax; i += df) {
+	int counter = 0;
+	for (float i = fmin; i <= fmax; i += df) {
 		freqs->push_back(i / utl::GHz);
+		counter++;
+		std::cout << i / utl::GHz << std::endl;
 	}
+	std::cout << "frequency array as " << counter << " entries" << std::endl;
 	h->setAskFreq(freqs);
 	h->setAskTheta(theta);
 	if (isEMShower)
