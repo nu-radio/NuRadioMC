@@ -921,8 +921,8 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 				R_ang = -1;
 				WasSurfaceHit = surfhit;
 
-				output[0] = L_ang;
-				output[1] = R_ang;
+				output[0] = 90 * utl::deg - L_ang; // convert to NuRadioMC angle convention
+				output[1] = 90 * utl::deg - R_ang; // convert to NuRadioMC angle convention
 				;
 				output[2] = TransitTime;
 				for (Int_t itau = 0; itau < tausize; itau++) {
@@ -934,8 +934,8 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 				R_ang = -1;
 				WasSurfaceHit = surfhit;
 
-				output[3] = L_ang;
-				output[4] = R_ang;
+				output[3] = 90 * utl::deg - L_ang; // convert to NuRadioMC angle convention
+				output[4] = 90 * utl::deg - R_ang; // convert to NuRadioMC angle convention
 				output[5] = TransitTime;
 				for (Int_t itau = tausize; itau < tausize * 2; itau++) {
 					output[itau + 9] = 0;
@@ -946,8 +946,8 @@ Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
 				R_ang = -1;
 				WasSurfaceHit = surfhit;
 
-				output[6] = L_ang;
-				output[7] = R_ang;
+				output[6] = 90 * utl::deg - L_ang; // convert to NuRadioMC angle convention
+				output[7] = 90 * utl::deg - R_ang; // convert to NuRadioMC angle convention
 				output[8] = TransitTime;
 				for (Int_t itau = tausize * 2; itau < tausize * 3; itau++) {
 					output[itau + 9] = 0;
