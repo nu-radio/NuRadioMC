@@ -37,7 +37,7 @@ def read_ARA_eventlist(filename):
                                     ('nnu_phi', float), ('elast_y', float)])
         # convert angles into NuRadioMC coordinate convention
         for i in xrange(len(data)):
-            data[i][3] = 10**(data[i][3]) * units.eV
+            data[i][3] = 10**(data[i][3] + 18.) * units.eV
             data[i][4] = data[i][4] * units.m
             data[i][6] = hp.get_normalized_angle(0.5 * np.pi - data[i][6])  # convert theta angle into NuRadioMC coordinate convention
             data[i][8] = hp.get_normalized_angle(0.5 * np.pi - data[i][8])  # convert theta angle into NuRadioMC coordinate convention
