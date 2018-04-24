@@ -1,1 +1,1 @@
-python2 ../SignalGenProp/ParametrizationStraightLine.py ../data/eventlist.hdf5 ../data/dummyStationList.json ../data/dummyStationEfields.hdf5
+python2 ../SignalGenProp/DummySignalGenProp.py ../data/dummyEventList.hdf5 ../data/dummyStationList.json ../data/dummyStationEfields.hdf5
