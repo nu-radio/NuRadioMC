@@ -1,0 +1,5 @@
+to compile the Askaryan C++ code and to generate the python binding you need to execute
+
+python setup.py build_ext --inplace
+
+Then you should be able to just execute the example.py script.
