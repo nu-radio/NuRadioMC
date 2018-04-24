@@ -59,7 +59,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Parse ARA event list.')
     parser.add_argument('filename', type=str,
                         help='path to ARA event list')
-    parser.add_argument('outputfilename', type=str,
+    parser.add_argument('output_filename', type=str,
                         help='name of hdf5 output filename')
     args = parser.parse_args()
     convert_to_hdf5(args.filename, args.output_filename)
