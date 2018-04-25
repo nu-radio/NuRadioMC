@@ -1,0 +1,26 @@
+VERSION=0.1
+# standard event list format of NuRadioMC (adapted from ARASim)
+# the very first line defines the file version, all other lines represent the events
+# each row specifies one event
+# all quantities are in the default NuRadioMC units (i.e., meters, radians and eV)
+# all geometry quantities are in the NuRadioMC default local coordinate system:
+#     coordinate origin is at the surface
+#     x axis is towards Easting, y axis towards Northing, z axis upwards
+#     zenith/theta angle is defined with respect to z axis, i.e. 0deg = upwards, 90deg = towards horizon, 180deg = downwards
+#     azimuth/phi angle counting northwards from East
+# 
+# the collumns are defined as follows
+# 1. event id (integer)
+# 2. neutrino flavor (string, one of ['e', 'mu', 'tau'])
+# 3. particle or antiparticle (string, one of ['nu', 'nubar'])
+# 4. energy of neutrino (double)
+# 5. charge or neutral current interaction (string, one of ['cc', 'nc']
+# 6./7./8. position of neutrino interaction vertex in cartesian coordinates (x, y, z) (in default NuRadioMC local coordinate system)
+# 9. zenith/theta angle of neutrino direction (pointing into direction of propagation)
+# 10. azimuth/phi angle of neutrino direction (pointing into direction of propagation)
+# 11. inelasticity (the fraction of neutrino energy that goes into the hadronic part)
+#
+1   e   nu    1e18    nc    -200    0   -1000   2.3   0   0.3
+2   mu  nu    2.5e18  nc    -200    0   -1000   2.3   0   0.3
+3   tau nubar 2.3e20  cc    -200    0   -500    2.3   0   0.3
+4   e   nu    1e18    nc    -200    0   -1000   2.3   1.4 0.3
