@@ -32,6 +32,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("readARAEventList")
 
 PLOT_FOLDER = 'plots'
+if not os.path.isdir(PLOT_FOLDER):
+    PLOT_FOLDER = './'    
 
 VERSION = 0.1
 
