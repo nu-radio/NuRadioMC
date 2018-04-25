@@ -104,7 +104,7 @@ for event in eventlist:
         dPhi = np.arctan2(x_antenna[1] - position[1], x_antenna[0] - position[0])
         incoming_signal = hp.spherical_to_cartesian(launch_angle, 0)  # ignoring phi angle, assuming that everything happens in the x-z plane
         cherenkov_angle = hp.get_angle(shower_axis, incoming_signal)
-        tt, ex, ey, ez = get_time_trace(pnu, cherenkov_angle, ff.min(), ff.max(), ff[1] - ff[0], 0)
+        tt, ex, ey, ez = get_time_trace(pnu, cherenkov_angle, ff, 0)
 
         fig, ax = plt.subplots(1, 1)
         ax.plot(position[0] / units.m, position[2] / units.m, 'ko', label='start')
