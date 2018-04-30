@@ -12,7 +12,7 @@ VERSION=0.2
 # the collumns are defined as follows
 # 1. event id (integer)
 # 2. neutrino flavor (integer) encoded as using PDF numbering scheme, particles have positive sign, anti-particles have negative sign, relevant for us are:
-#       12: electorn neutrino
+#       12: electron neutrino
 #       14: muon neutrino
 #       16: tau neutrino
 # 3. energy of neutrino (double)
