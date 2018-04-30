@@ -18,14 +18,14 @@ def read_eventlist(filename):
             if line.startswith("VERSION"):
                 version = float(line.split("=")[1])
                 break
-        if(version != 0.1):
+        if(version != 0.2):
             print("file version is {}. version != 0.1 not supported".format(version))
             raise NotImplementedError
 
         fin.seek(0)  # reset file to beginning
         data = np.genfromtxt(fin, comments='#', skip_header=1,
-                             dtype=[('eventId', int), ('nuflavorint', '<S3'),
-                                    ('nu_nubar', '<S5'), ('pnu', float),
+                             dtype=[('eventId', int), ('nuflavor', int),
+                                    ('pnu', float),
                                     ('currentint', '|S2'),
                                     ('x', float), ('y', float),
                                     ('z', float), ('theta', float),

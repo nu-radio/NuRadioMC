@@ -1,4 +1,4 @@
-VERSION=0.1
+VERSION=0.2
 # standard event list format of NuRadioMC (adapted from ARASim)
 # the very first line defines the file version, all other lines represent the events
 # each row specifies one event
@@ -11,16 +11,18 @@ VERSION=0.1
 # 
 # the collumns are defined as follows
 # 1. event id (integer)
-# 2. neutrino flavor (string, one of ['e', 'mu', 'tau'])
-# 3. particle or antiparticle (string, one of ['nu', 'nubar'])
-# 4. energy of neutrino (double)
-# 5. charge or neutral current interaction (string, one of ['cc', 'nc']
-# 6./7./8. position of neutrino interaction vertex in cartesian coordinates (x, y, z) (in default NuRadioMC local coordinate system)
-# 9. zenith/theta angle of neutrino direction (pointing into direction of propagation)
-# 10. azimuth/phi angle of neutrino direction (pointing into direction of propagation)
-# 11. inelasticity (the fraction of neutrino energy that goes into the hadronic part)
+# 2. neutrino flavor (integer) encoded as using PDF numbering scheme, particles have positive sign, anti-particles have negative sign, relevant for us are:
+#       12: electorn neutrino
+#       14: muon neutrino
+#       16: tau neutrino
+# 3. energy of neutrino (double)
+# 4. charge or neutral current interaction (string, one of ['cc', 'nc']
+# 5./6./7. position of neutrino interaction vertex in cartesian coordinates (x, y, z) (in default NuRadioMC local coordinate system)
+# 8. zenith/theta angle of neutrino direction (pointing into direction of propagation)
+# 9. azimuth/phi angle of neutrino direction (pointing into direction of propagation)
+# 10. inelasticity (the fraction of neutrino energy that goes into the hadronic part)
 #
-1   e   nu    1e18    nc    -200    0   -1000   2.3   0   0.3
-2   mu  nu    2.5e18  nc    -200    0   -1000   2.3   0   0.3
-3   tau nubar 2.3e20  cc    -200    0   -500    2.3   0   0.3
-4   e   nu    1e18    nc    -200    0   -1000   2.3   1.4 0.3
+1   12    1e18    nc    -200    0   -1000   2.3   0   0.3
+2   14    2.5e18  nc    -200    0   -1000   2.3   0   0.3
+3   -16   2.3e20  cc    -200    0   -500    2.3   0   0.3
+4   12    1e18    nc    -200    0   -1000   2.3   1.4 0.3
