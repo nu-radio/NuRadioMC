@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 from scipy.optimize import fsolve, minimize, basinhopping, root
-from scipy import optimize
+from scipy import optimize, integrate
+import scipy.constants
 from NuRadioMC.utilities import units
 import logging
 logger = logging.getLogger('raytracing')
@@ -15,6 +16,8 @@ n_ice = 1.78
 b = 2 * n_ice
 z_0 = 71. * units.m
 delta_n = 0.427
+
+speed_of_light = scipy.constants.c * units.m / units.s
 
 
 def n(z):
@@ -82,6 +85,19 @@ def get_y(gamma, C_0, C_1):
     return result
 
 
+def get_y_diff(z_raw, C_0):
+    """
+    derivative dy(z)/dz
+    """
+    z = get_z_unmirrored(z_raw, C_0)
+    c = n_ice ** 2 - C_0 ** -2
+    res = (-np.sqrt(c) * np.exp(z / z_0) * b * delta_n + 0.2e1 * np.sqrt(-b * delta_n * np.exp(z / z_0) + delta_n ** 2 * np.exp(0.2e1 * z / z_0) + c) * c + 0.2e1 * c ** (0.3e1 / 0.2e1)) / (0.2e1 * np.sqrt(c) * np.sqrt(-b * delta_n * np.exp(z / z_0) + delta_n ** 2 * np.exp(0.2e1 * z / z_0) + c) - b * delta_n * np.exp(z / z_0) + 0.2e1 * c) * (-b * delta_n * np.exp(z / z_0) + delta_n ** 2 * np.exp(0.2e1 * z / z_0) + c) ** (-0.1e1 / 0.2e1) * ((n_ice ** 2 * C_0 ** 2 - 1) ** (-0.1e1 / 0.2e1))
+
+    if(z != z_raw):
+        res *= -1
+    return res
+
+
 def get_y_with_z_mirror(z, C_0, C_1=0):
     """
     analytic form of the ray tracing part given an exponential index of refraction profile
@@ -106,7 +122,7 @@ def get_y_with_z_mirror(z, C_0, C_1=0):
         z_turn = 0
         gamma_turn = get_gamma(0)
     y_turn = get_y(gamma_turn, C_0, C_1)
-    if(type(z) == float):
+    if(type(z) == float or (type(z) == int)):
         if(z < z_turn):
             gamma = get_gamma(z)
             return get_y(gamma, C_0, C_1)
@@ -126,6 +142,120 @@ def get_y_with_z_mirror(z, C_0, C_1=0):
 
         logger.debug('turning points for C_0 = {:.2f}, b= {:.2f}, gamma = {:.4f}, z = {:.1f}, y_turn = {:.0f}'.format(C_0, b, gamma_turn, z_turn, y_turn))
         return res, zs
+
+
+def get_z_mirrored(x1, x2, C_0):
+    """
+    calculates the mirrored x2 position so that y(z) can be used as a continuous function
+    """
+    c = n_ice ** 2 - C_0 ** -2
+    C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0)
+    gamma_turn, z_turn = get_turning_point(c)
+    if(z_turn >= 0):
+        # signal reflected at surface
+        logger.debug('signal reflects off surface')
+        z_turn = 0
+        gamma_turn = get_gamma(0)
+    y_turn = get_y(gamma_turn, C_0, C_1)
+    zstart = x1[1]
+    zstop = x2[1]
+    if(y_turn < x2[0]):
+        zstop = zstart + np.abs(z_turn - x1[1]) + np.abs(z_turn - x2[1])
+    x2_mirrored = [x2[0], zstop]
+    return x2_mirrored
+
+
+def get_z_unmirrored(z, C_0):
+    """
+    calculates the unmirrored z position
+    """
+    c = n_ice ** 2 - C_0 ** -2
+    gamma_turn, z_turn = get_turning_point(c)
+    if(z_turn >= 0):
+        # signal reflected at surface
+        logger.debug('signal reflects off surface')
+        z_turn = 0
+
+    z_unmirrored = z
+    if(z > z_turn):
+        z_unmirrored = 2 * z_turn - z
+    return z_unmirrored
+
+
+def ds(t, C_0):
+    """
+    helper to calculate line integral
+    """
+    return (get_y_diff(t, C_0) ** 2 + 1) ** 0.5
+
+
+def get_path_length(x1, x2, C_0):
+    x2_mirrored = get_z_mirrored(x1, x2, C_0)
+    path_length = integrate.quad(ds, x1[1], x2_mirrored[1], args=(C_0))
+    logger.info("calculating path length from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} m".format(x1[0], x1[1], x2[0], x2[1],
+                                                                                                                         x2_mirrored[0],
+                                                                                                                         x2_mirrored[1],
+                                                                                                                         path_length[0] / units.m))
+    return path_length
+
+
+def get_travel_time(x1, x2, C_0):
+    x2_mirrored = get_z_mirrored(x1, x2, C_0)
+
+    def dt(t, C_0):
+        z = get_z_unmirrored(t, C_0)
+        return ds(t, C_0) / speed_of_light * n(z)
+
+    travel_time = integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0))
+    logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} ns".format(x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], travel_time[0] / units.ns))
+    return travel_time
+
+
+def get_attenuation_along_path(x1, x2, C_0, frequency):
+    x2_mirrored = get_z_mirrored(x1, x2, C_0)
+
+    def dt(t, C_0):
+        z = get_z_unmirrored(t, C_0)
+        return ds(t, C_0) / get_attenuation_length(z, frequency)
+
+    tmp = integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0))
+    attenuation = np.exp(-1 * tmp[0])
+    logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.4g}".format(x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], attenuation))
+    return attenuation
+
+
+def get_temperature(z):
+    return (-51.5 + z * (-4.5319e-3 + 5.822e-6 * z))
+
+
+def get_attenuation_length(z, frequency):
+    t = get_temperature(z)
+    f0 = 0.0001
+    f2 = 3.16
+    w0 = np.log(f0)
+    w1 = 0.0
+    w2 = np.log(f2)
+    w = np.log(frequency / units.GHz)
+    b0 = -6.74890 + t * (0.026709 - t * 0.000884)
+    b1 = -6.22121 - t * (0.070927 + t * 0.001773)
+    b2 = -4.09468 - t * (0.002213 + t * 0.000332)
+    if (frequency < 1. * units.GHz):
+        a = (b1 * w0 - b0 * w1) / (w0 - w1)
+        bb = (b1 - b0) / (w1 - w0)
+    else:
+        a = (b2 * w1 - b1 * w2) / (w1 - w2)
+        bb = (b2 - b1) / (w2 - w1)
+
+    return 1. / np.exp(a + bb * w)
+
+
+def get_angle(x, x_start, C_0):
+    z = get_z_mirrored(x_start, x, C_0)[1]
+    dy = get_y_diff(z, C_0)
+    angle = np.arctan(dy)
+    if(angle < 0):
+        angle = np.pi + angle
+    return angle
 
 
 def get_path(x1, x2, C_0, n_points=1000):
@@ -162,9 +292,7 @@ def get_path(x1, x2, C_0, n_points=1000):
         gamma_turn = get_gamma(0)
     y_turn = get_y(gamma_turn, C_0, C_1)
     zstart = x1[1]
-    zstop = x2[1]
-    if(y_turn < x2[0]):
-        zstop = zstart + np.abs(z_turn - x1[1]) + np.abs(z_turn - x2[1])
+    zstop = get_z_mirrored(x1, x2, C_0)[1]
     z = np.linspace(zstart, zstop, n_points)
     mask = z < z_turn
     res = np.zeros_like(z)
