@@ -48,7 +48,7 @@ for i, x in enumerate([x2, x3]):
         ax.plot(x[0], x[1], 'dC{:d}-'.format(i))
 
         # calulate travel length
-        ray.get_attenuation_along_path(x, x1, C_0, 500 * units.MHz)
+        ray.get_attenuation_along_path(x, x1, C_0, np.array([200 * units.MHz, 500 * units.MHz, 1000 * units.MHz]))
         ray.get_path_length(x, x1, C_0)
         times[j] = ray.get_travel_time(x, x1, C_0)[0]
         print('launch angle = {:.2f}deg'.format(ray.get_angle(x, x, C_0) / units.deg))

@@ -214,13 +214,13 @@ def get_travel_time(x1, x2, C_0):
 def get_attenuation_along_path(x1, x2, C_0, frequency):
     x2_mirrored = get_z_mirrored(x1, x2, C_0)
 
-    def dt(t, C_0):
+    def dt(t, C_0, frequency):
         z = get_z_unmirrored(t, C_0)
         return ds(t, C_0) / get_attenuation_length(z, frequency)
 
-    tmp = integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0))
-    attenuation = np.exp(-1 * tmp[0])
-    logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.4g}".format(x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], attenuation))
+    tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f))[0] for f in frequency])
+    attenuation = np.exp(-1 * tmp)
+    logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation))
     return attenuation
 
 
@@ -239,12 +239,18 @@ def get_attenuation_length(z, frequency):
     b0 = -6.74890 + t * (0.026709 - t * 0.000884)
     b1 = -6.22121 - t * (0.070927 + t * 0.001773)
     b2 = -4.09468 - t * (0.002213 + t * 0.000332)
-    if (frequency < 1. * units.GHz):
-        a = (b1 * w0 - b0 * w1) / (w0 - w1)
-        bb = (b1 - b0) / (w1 - w0)
+    if((type(frequency) == float) or (type(frequency) == np.float64)):
+        if (frequency < 1. * units.GHz):
+            a = (b1 * w0 - b0 * w1) / (w0 - w1)
+            bb = (b1 - b0) / (w1 - w0)
+        else:
+            a = (b2 * w1 - b1 * w2) / (w1 - w2)
+            bb = (b2 - b1) / (w2 - w1)
     else:
-        a = (b2 * w1 - b1 * w2) / (w1 - w2)
-        bb = (b2 - b1) / (w2 - w1)
+        a = np.ones_like(frequency) * (b2 * w1 - b1 * w2) / (w1 - w2)
+        bb = np.ones_like(frequency) * (b2 - b1) / (w2 - w1)
+        a[frequency < 1. * units.GHz] = (b1 * w0 - b0 * w1) / (w0 - w1)
+        bb[frequency < 1. * units.GHz] = (b1 - b0) / (w1 - w0)
 
     return 1. / np.exp(a + bb * w)
 
