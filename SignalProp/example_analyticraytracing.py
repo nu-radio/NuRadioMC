@@ -21,9 +21,10 @@ for i, x in enumerate([x2, x3, x4, x5]):
     t = time.time()
     results = ray.find_solutions(x1, x, False)
     dt = time.time() - t
-    for j, C_0 in enumerate(results):
+    for j, (solution_type, C_0) in enumerate(results.items()):
+        print(solution_type, C_0)
         yy, zz = ray.get_path(x1, x, C_0)
-        ax.plot(yy, zz, 'C{:d}{}'.format(i, lss[j % 3]), label='C0 = {:.2f}'.format(C_0))
+        ax.plot(yy, zz, 'C{:d}{}'.format(i, lss[j % 3]), label='{} C0 = {:.2f}'.format(solution_type, C_0))
         ax.plot(x[0], x[1], 'dC{:d}-'.format(i))
 ax.legend()
 ax.set_xlabel("y [m]")
@@ -42,9 +43,9 @@ ax.plot(x1[0], x1[1], 'ko')
 for i, x in enumerate([x2, x3]):
     results = ray.find_solutions(x, x1, False)
     times = np.zeros(2)
-    for j, C_0 in enumerate(results):
+    for j, (solution_type, C_0) in enumerate(results.items()):
         yy, zz = ray.get_path(x, x1, C_0, 10000)
-        ax.plot(yy, zz, 'C{:d}{}'.format(i, lss[j % 3]), label='C0 = {:.2f}'.format(C_0))
+        ax.plot(yy, zz, 'C{:d}{}'.format(i, lss[j % 3]), label='{} C0 = {:.4f}'.format(solution_type, C_0))
         ax.plot(x[0], x[1], 'dC{:d}-'.format(i))
 
         # calulate travel length

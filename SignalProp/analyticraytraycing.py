@@ -122,7 +122,7 @@ def get_y_with_z_mirror(z, C_0, C_1=0):
         z_turn = 0
         gamma_turn = get_gamma(0)
     y_turn = get_y(gamma_turn, C_0, C_1)
-    if(type(z) == float or (type(z) == int)):
+    if(type(z) == float or (type(z) == int) or (type(z) == np.float64)):
         if(z < z_turn):
             gamma = get_gamma(z)
             return get_y(gamma, C_0, C_1)
@@ -135,7 +135,7 @@ def get_y_with_z_mirror(z, C_0, C_1=0):
         zs = np.zeros_like(z)
         gamma = get_gamma(z[mask])
         zs[mask] = z[mask]
-        res[mask] = get_y(gamma, C_0, C_1, c)
+        res[mask] = get_y(gamma, C_0, C_1)
         gamma = get_gamma(2 * z_turn - z[~mask])
         res[~mask] = 2 * y_turn - get_y(gamma, C_0, C_1)
         zs[~mask] = 2 * z_turn - z[~mask]
@@ -264,6 +264,14 @@ def get_angle(x, x_start, C_0):
     return angle
 
 
+def get_launch_angle(x1, C_0):
+    return get_angle(x1, x1, C_0)
+
+
+def get_receive_angle(x1, x2, C_0):
+    return np.pi - get_angle(x2, x1, C_0)
+
+
 def get_path(x1, x2, C_0, n_points=1000):
     """
     for plotting purposes only,  returns the ray tracing path between x1 and x2
@@ -377,6 +385,24 @@ def get_delta_y(C_0, x1, x2, C0range=[1. / n_ice, np.inf]):
         return -1 * diff
 
 
+def determine_solution_type(x1, x2, C_0):
+    c = n_ice ** 2 - C_0 ** -2
+    C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0)
+    gamma_turn, z_turn = get_turning_point(c)
+
+    if(z_turn >= 0):
+        z_turn = 0
+        gamma_turn = get_gamma(0)
+    y_turn = get_y(gamma_turn, C_0, C_1)
+    if(x2[0] < y_turn):
+        return 'direct'
+    else:
+        if(z_turn == 0):
+            return 'reflected'
+        else:
+            return 'refracted'
+
+
 def find_solutions(x1, x2, plot=False):
     """
     this function finds all ray tracing solutions
@@ -387,7 +413,7 @@ def find_solutions(x1, x2, plot=False):
     returns an array of the C_0 paramters of the solutions (the array might be empty)
     """
     tol = 1e-4
-    results = []
+    results = {}
     logger.debug('starting optimization with x0 = {:.2f} -> C0 = {:.3f}'.format(-1, get_C0_from_log(-1)))
     result = optimize.root(obj_delta_y_square, x0=-1, args=(x1, x2), tol=tol)
     if(plot):
@@ -395,9 +421,11 @@ def find_solutions(x1, x2, plot=False):
     if(result.fun < 1e-5):
         if(plot):
             plot_result(x1, x2, get_C0_from_log(result.x[0]), ax)
-        if(np.round(result.x[0], 3) not in np.round(results, 3)):
-            logger.info("found solution C0 = {:.2f}".format(get_C0_from_log(result.x[0])))
-            results.append(get_C0_from_log(result.x[0]))
+        if(np.round(result.x[0], 3) not in np.round(results.values(), 3)):
+            C_0 = get_C0_from_log(result.x[0])
+            solution_type = determine_solution_type(x1, x2, C_0)
+            logger.info("found {} solution C0 = {:.2f}".format(solution_type, C_0))
+            results[solution_type] = C_0
 
     # check if another solution with higher logC0 exists
     logC0_start = result.x[0] + 0.0001
@@ -410,9 +438,11 @@ def find_solutions(x1, x2, plot=False):
         result2 = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(x1, x2))
         if(plot):
             plot_result(x1, x2, get_C0_from_log(result2), ax)
-        if(np.round(result2, 3) not in np.round(results, 3)):
-            logger.info("found solution C0 = {:.2f}".format(get_C0_from_log(result2)))
-            results.append(get_C0_from_log(result2))
+        if(np.round(result2, 3) not in np.round(results.values(), 3)):
+            C_0 = get_C0_from_log(result2)
+            solution_type = determine_solution_type(x1, x2, C_0)
+            logger.info("found {} solution C0 = {:.2f}".format(solution_type, C_0))
+            results[solution_type] = C_0
 
     logC0_start = -100
     logC0_stop = result.x[0] - 0.0001
@@ -425,9 +455,11 @@ def find_solutions(x1, x2, plot=False):
 
         if(plot):
             plot_result(x1, x2, get_C0_from_log(result3), ax)
-        if(np.round(result3, 3) not in np.round(results, 3)):
-            logger.info("found solution C0 = {:.2f}".format(get_C0_from_log(result3)))
-            results.append(get_C0_from_log(result3))
+        if(np.round(result3, 3) not in np.round(results.values(), 3)):
+            C_0 = get_C0_from_log(result3)
+            solution_type = determine_solution_type(x1, x2, C_0)
+            logger.info("found {} solution C0 = {:.2f}".format(solution_type, C_0))
+            results[solution_type] = C_0
     if(plot):
         plt.show()
     return results
