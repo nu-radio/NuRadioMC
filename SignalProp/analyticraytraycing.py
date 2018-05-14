@@ -55,6 +55,10 @@ def get_C_1(x1, C_0):
     return x1[0] - get_y_with_z_mirror(x1[1], C_0)
 
 
+def get_c(C_0):
+    return n_ice ** 2 - C_0 ** -2
+
+
 def get_C0_from_log(logC0):
     """
     transforms the fit parameter C_0 so that the likelihood looks better
@@ -80,8 +84,7 @@ def get_y(gamma, C_0, C_1):
     logargument = gamma / (2 * c ** 0.5 * (root) ** 0.5 - b * gamma + 2 * c)
     if(np.sum(logargument <= 0)):
         logger.debug('log = ', logargument)
-    result = z_0 * (n_ice ** 2 * C_0 ** 2 - 1) ** -0.5 * \
-        np.log(logargument) + C_1
+    result = z_0 * (n_ice ** 2 * C_0 ** 2 - 1) ** -0.5 * np.log(logargument) + C_1
     return result
 
 
@@ -377,7 +380,7 @@ def get_delta_y(C_0, x1, x2, C0range=[1. / n_ice, np.inf]):
         # now it's a bit more complicated. we need to transform the coordinates to be on the mirrored part of the function
         z_mirrored = x2[1]
         gamma = get_gamma(z_mirrored)
-        logger.debug("get_y(", gamma, C_0, C_1)
+        logger.debug("get_y( {}, {}, {})".format(gamma, C_0, C_1))
         y2_raw = get_y(gamma, C_0, C_1)
         y2_fit = 2 * y_turn - y2_raw
         diff = (x2[0] - y2_fit)
@@ -413,7 +416,8 @@ def find_solutions(x1, x2, plot=False):
     returns an array of the C_0 paramters of the solutions (the array might be empty)
     """
     tol = 1e-4
-    results = {}
+    results = []
+    C0s = []  # intermediate storage of results
     logger.debug('starting optimization with x0 = {:.2f} -> C0 = {:.3f}'.format(-1, get_C0_from_log(-1)))
     result = optimize.root(obj_delta_y_square, x0=-1, args=(x1, x2), tol=tol)
     if(plot):
@@ -421,11 +425,14 @@ def find_solutions(x1, x2, plot=False):
     if(result.fun < 1e-5):
         if(plot):
             plot_result(x1, x2, get_C0_from_log(result.x[0]), ax)
-        if(np.round(result.x[0], 3) not in np.round(results.values(), 3)):
+        if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
             C_0 = get_C0_from_log(result.x[0])
+            C0s.append(C_0)
             solution_type = determine_solution_type(x1, x2, C_0)
             logger.info("found {} solution C0 = {:.2f}".format(solution_type, C_0))
-            results[solution_type] = C_0
+            results.append({'type': solution_type,
+                            'C0': C_0,
+                            'C1': get_C_1(x1, C_0)})
 
     # check if another solution with higher logC0 exists
     logC0_start = result.x[0] + 0.0001
@@ -438,11 +445,16 @@ def find_solutions(x1, x2, plot=False):
         result2 = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(x1, x2))
         if(plot):
             plot_result(x1, x2, get_C0_from_log(result2), ax)
-        if(np.round(result2, 3) not in np.round(results.values(), 3)):
+        if(np.round(result2, 3) not in np.round(C0s, 3)):
             C_0 = get_C0_from_log(result2)
+            C0s.append(C_0)
             solution_type = determine_solution_type(x1, x2, C_0)
             logger.info("found {} solution C0 = {:.2f}".format(solution_type, C_0))
-            results[solution_type] = C_0
+            results.append({'type': solution_type,
+                            'C0': C_0,
+                            'C1': get_C_1(x1, C_0)})
+    else:
+        logger.info("not solution with logC0 > {:.3f} exists".format(result.x[0]))
 
     logC0_start = -100
     logC0_stop = result.x[0] - 0.0001
@@ -455,11 +467,17 @@ def find_solutions(x1, x2, plot=False):
 
         if(plot):
             plot_result(x1, x2, get_C0_from_log(result3), ax)
-        if(np.round(result3, 3) not in np.round(results.values(), 3)):
+        if(np.round(result3, 3) not in np.round(C0s, 3)):
             C_0 = get_C0_from_log(result3)
+            C0s.append(C_0)
             solution_type = determine_solution_type(x1, x2, C_0)
             logger.info("found {} solution C0 = {:.2f}".format(solution_type, C_0))
-            results[solution_type] = C_0
+            results.append({'type': solution_type,
+                            'C0': C_0,
+                            'C1': get_C_1(x1, C_0)})
+    else:
+        logger.info("no solution with logC0 < {:.3f} exists".format(result.x[0]))
+
     if(plot):
         plt.show()
     return results
