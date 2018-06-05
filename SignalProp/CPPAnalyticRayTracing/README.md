@@ -15,14 +15,5 @@ Getting going is easy. Just:
   - Find the ray tracing path, path length, time of flight, and attenuation factor of the ray.
   - Find the launch and receive angles for the ray.
 
-## Performance
-- On a 3.40 GHz Intel i7-3770 machine, locating if, and how many, ray tracing solutions exists typically takes ~0.5 ms.
-
-## Benchmarking and Valiation
-- The `test` folder contains two subfolders `benchmarking` and `validation`
-- The `validation` folder contains function-by-function comparison to the origianl python version by Christian Glaser
-- The `benchmarking` folder contains a comparison between the C++ implementation and the python implementation by Christian Glaser
-
 ## Credit
-- This is largely a C++ transcription of the **fantastic** work done by Christian Glaser for the InIceSim working group.
-- Python version can be found [here](https://github.com/cg-laser/NuRadioMC). 
+- This is largely a C++ transcription of the **fantastic** work done by Christian Glaser
