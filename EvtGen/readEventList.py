@@ -34,8 +34,8 @@ def read_eventlist(filename):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Parse ARA event list.')
+    parser = argparse.ArgumentParser(description='Parse NuRadioMC event list.')
     parser.add_argument('filename', type=str,
-                        help='path to ARA event list')
+                        help='path to NuRadioMC event list')
     args = parser.parse_args()
     events = read_eventlist(args.filename)
