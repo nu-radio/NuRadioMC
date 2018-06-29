@@ -12,7 +12,7 @@ cdef extern from "createAsk.h":
     void getTimeTrace2(double *& , double *& , double *& , double *& , int & ,
                        double, double, double, double, double, int)
     void getFrequencySpectrum2(double *& , double *& , double *& , double *& , double *& , double *& , int & ,
-                               double, double, double * , int, int)
+                               double, double, double * , int, int, double, double)
 
 # cpdef get_time_trace(energy, theta, fmin, fmax, df, is_em_shower):
 #     cdef:
@@ -43,7 +43,7 @@ cdef extern from "createAsk.h":
 #     PyArray_ENABLEFLAGS(p_ez, np.NPY_OWNDATA)
 #     return p_t, p_ex, p_ey, p_ez
 
-cpdef get_frequency_spectrum(energy, theta, freqs, is_em_shower):
+cpdef get_frequency_spectrum(energy, theta, freqs, is_em_shower, n, R):
     cdef:
         double * spectrumRealR
         double * spectrumImagR
@@ -59,7 +59,7 @@ cpdef get_frequency_spectrum(energy, theta, freqs, is_em_shower):
                           spectrumRealTheta, spectrumImagTheta,
                           spectrumRealPhi, spectrumImagPhi,
                           size,
-                          energy, theta, & freqs2[0], len(freqs2), is_em_shower)
+                          energy, theta, & freqs2[0], len(freqs2), is_em_shower, n, R)
 
     # 1. Make sure that you have called np.import_array()
     # http://gael-varoquaux.info/programming/
@@ -86,8 +86,8 @@ cpdef get_frequency_spectrum(energy, theta, freqs, is_em_shower):
     return eR, eTheta, ePhi
 
 
-def get_time_trace(energy, theta, freqs, is_em_shower):
-    eR, eTheta, ePhi = get_frequency_spectrum(energy, theta, freqs, is_em_shower)
+def get_time_trace(energy, theta, freqs, is_em_shower, n, R):
+    eR, eTheta, ePhi = get_frequency_spectrum(energy, theta, freqs, is_em_shower, n, R)
     df = freqs[1] - freqs[0]
     length = (len(freqs) - 1) * 2
     sampling_rate = 2 * freqs[-1]
