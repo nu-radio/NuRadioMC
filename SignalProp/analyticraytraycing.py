@@ -1,3 +1,4 @@
+from __future__ import absolute_import, division, print_function
 import numpy as np
 import matplotlib.pyplot as plt
 import time
@@ -199,7 +200,7 @@ def get_path_length(x1, x2, C_0):
                                                                                                                          x2_mirrored[0],
                                                                                                                          x2_mirrored[1],
                                                                                                                          path_length[0] / units.m))
-    return path_length
+    return path_length[0]
 
 
 def get_travel_time(x1, x2, C_0):
@@ -420,6 +421,7 @@ def find_solutions(x1, x2, plot=False):
     C0s = []  # intermediate storage of results
     logger.debug('starting optimization with x0 = {:.2f} -> C0 = {:.3f}'.format(-1, get_C0_from_log(-1)))
     result = optimize.root(obj_delta_y_square, x0=-1, args=(x1, x2), tol=tol)
+    print(result)
     if(plot):
         fig, ax = plt.subplots(1, 1)
     if(result.fun < 1e-5):
@@ -454,7 +456,7 @@ def find_solutions(x1, x2, plot=False):
                             'C0': C_0,
                             'C1': get_C_1(x1, C_0)})
     else:
-        logger.info("not solution with logC0 > {:.3f} exists".format(result.x[0]))
+        logger.info("no solution with logC0 > {:.3f} exists".format(result.x[0]))
 
     logC0_start = -100
     logC0_stop = result.x[0] - 0.0001
@@ -500,3 +502,191 @@ def plot_result(x1, x2, C_0, ax):
 #     ax.plot(x2[1], x2[0], 'd')
     ax.legend()
 
+
+class ray_tracing:
+    """
+    utility class (wrapper around the 2D analytic ray tracing code) to get
+    ray tracing solutions in 3D for two arbitrary points x1 and x2
+    """
+
+    def __init__(self, x1, x2):
+        """
+        class initilization
+
+        Parameters
+        ----------
+        x1: 3dim np.array
+            start point of the ray
+        x2: 3dim np.array
+            stop point of the ray
+
+        returns
+        -------
+        has_solution: bool
+            true if solution exists, false otherwise
+        """
+
+        self.__swap = False
+        self.__X1 = x1
+        self.__X2 = x2
+        if(x2[2] < x1[2]):
+            self.__swap = True
+            logger.debug('swap = True')
+            self.__X2 = x1
+            self.__X1 = x2
+
+        dX = self.__X2 - self.__X1
+        self.__dPhi = -np.arctan2(dX[1], dX[0])
+        c, s = np.cos(self.__dPhi), np.sin(self.__dPhi)
+        self.__R = np.array(((c, -s, 0), (s, c, 0), (0, 0, 1)))
+        X1r = self.__X1
+        X2r = np.dot(self.__R, self.__X2 - self.__X1) + self.__X1
+        logger.debug("X1 = {}, X2 = {}".format(self.__X1, self.__X2))
+        logger.debug('dphi = {:.1f}'.format(self.__dPhi / units.deg))
+        logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self.__X2 - self.__X1, X1r, X2r))
+        self.__x1 = np.array([X1r[0], X1r[2]])
+        self.__x2 = np.array([X2r[0], X2r[2]])
+        print(self.__x1)
+        print(self.__x2)
+        self.__results = find_solutions(self.__x1, self.__x2)
+
+    def has_solution(self):
+        return len(self.__results) > 0
+
+    def get_number_of_solutions(self):
+        return len(self.__results)
+
+    def get_results(self):
+        return self.__results
+
+    def get_launch_vector(self, iS):
+        """
+        calculates the launch vector (in 3D) of solution iS
+
+        Parameters
+        ----------
+        iS: int
+            choose for which solution to compute the launch vector, counting
+            starts at zero
+
+        Returns
+        -------
+        launch_vector: 3dim np.array
+            the launch vector
+        """
+        n = self.get_number_of_solutions()
+        if(iS >= n):
+            logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            raise IndexError
+
+        result = self.__results[iS]
+        alpha = get_launch_angle(self.__x1, result['C0'])
+        launch_vector_2d = np.array([np.sin(alpha), 0, np.cos(alpha)])
+        if self.__swap:
+            alpha = get_receive_angle(self.__x1, self.__x2, result['C0'])
+            launch_vector_2d = np.array([-np.sin(alpha), 0, np.cos(alpha)])
+        logger.debug(self.__R.T)
+        launch_vector = np.dot(self.__R.T, launch_vector_2d)
+        return launch_vector
+
+    def get_receive_vector(self, iS):
+        """
+        calculates the receive vector (in 3D) of solution iS
+
+        Parameters
+        ----------
+        iS: int
+            choose for which solution to compute the launch vector, counting
+            starts at zero
+
+        Returns
+        -------
+        receive_vector: 3dim np.array
+            the receive vector
+        """
+        n = self.get_number_of_solutions()
+        if(iS >= n):
+            logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            raise IndexError
+
+        result = self.__results[iS]
+        alpha = get_receive_angle(self.__x1, self.__x2, result['C0'])
+        receive_vector_2d = np.array([-np.sin(alpha), 0, np.cos(alpha)])
+        if self.__swap:
+            alpha = get_launch_angle(self.__x1, result['C0'])
+            receive_vector_2d = np.array([np.sin(alpha), 0, np.cos(alpha)])
+        receive_vector = np.dot(self.__R.T, receive_vector_2d)
+        return receive_vector
+
+    def get_path_length(self, iS):
+        """
+        calculates the path length of solution iS
+
+        Parameters
+        ----------
+        iS: int
+            choose for which solution to compute the launch vector, counting
+            starts at zero
+
+        Returns
+        -------
+        distance: float
+            distance from x1 to x2 along the ray path
+        """
+        n = self.get_number_of_solutions()
+        if(iS >= n):
+            logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            raise IndexError
+
+        result = self.__results[iS]
+        return get_path_length(self.__x1, self.__x2, result['C0'])
+
+    def get_travel_time(self, iS):
+        """
+        calculates the travel time of solution iS
+
+        Parameters
+        ----------
+        iS: int
+            choose for which solution to compute the launch vector, counting
+            starts at zero
+
+        Returns
+        -------
+        time: float
+            travel time
+        """
+        n = self.get_number_of_solutions()
+        if(iS >= n):
+            logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            raise IndexError
+
+        result = self.__results[iS]
+        return get_travel_time(self.__x1, self.__x2, result['C0'])
+
+    def get_attenuation(self, iS, frequency):
+        """
+        calculates the signal attenuation due to attenuation in the medium (ice)
+
+        Parameters
+        ----------
+        iS: int
+            choose for which solution to compute the launch vector, counting
+            starts at zero
+
+        frequency: array of floats
+            the frequencies for which the attenuation is calculated
+
+        Returns
+        -------
+        attenuation: array of floats
+            the fraction of the signal that reaches the observer
+            (only ice attenuation, 1/R signal falloff not considered here)
+        """
+        n = self.get_number_of_solutions()
+        if(iS >= n):
+            logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            raise IndexError
+
+        result = self.__results[iS]
+        return get_attenuation_along_path(self.__x1, self.__x2, result['C0'], frequency)
