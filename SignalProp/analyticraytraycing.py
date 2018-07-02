@@ -208,8 +208,10 @@ class ray_tracing_2D():
             z = self.get_z_unmirrored(t, C_0)
             return self.ds(t, C_0) / self.get_attenuation_length(z, frequency)
 
-        tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f))[0] for f in frequency])
-        attenuation = np.exp(-1 * tmp)
+        mask = frequency > 0
+        tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in frequency[mask]])
+        attenuation = np.ones_like(frequency)
+        attenuation[mask] = np.exp(-1 * tmp)
         self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation))
         return attenuation
 
