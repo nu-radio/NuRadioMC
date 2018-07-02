@@ -199,7 +199,7 @@ class ray_tracing_2D():
 
         travel_time = integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0))
         self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} ns".format(x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], travel_time[0] / units.ns))
-        return travel_time
+        return travel_time[0]
 
     def get_attenuation_along_path(self, x1, x2, C_0, frequency):
         x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
