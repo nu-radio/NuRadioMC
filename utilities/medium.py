@@ -30,3 +30,10 @@ class southpole_simple(medium):
         self.z_0 = 71. * units.m
         self.delta_n = 0.427
 
+
+class mooresbay_simple(medium):
+
+    def __init__(self):
+        self.n_ice = 1.78
+        self.z_0 = 34.5 * units.m
+        self.delta_n = 0.46
