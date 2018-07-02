@@ -56,11 +56,12 @@ void getFrequencySpectrum2(double*& spectrumRealR, double*& spectrumImagR,
 	Askaryan *h = new Askaryan();
 	h->setFormScale(1 / (sqrt(2.0 * 3.14159) * 0.03));
 	h->setAskFreq(&freqs2);
-	if (isEMShower)
+	if (isEMShower) {
 		h->emShower(energy / utl::GeV); // Askaryan module uses GeV internally
-	else
+		h->lpmEffect();
+	} else {
 		h->hadShower(energy / utl::GeV); // Askaryan module uses GeV internally
-//	h->setAskDepthA(1.5);
+	}
 	h->setAskR(R);
 	h->setIndex(n);
 	h->setAskTheta(theta);
