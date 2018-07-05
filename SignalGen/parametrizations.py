@@ -67,13 +67,18 @@ def get_frequency_spectrum(energy, theta, freqs, is_em_shower, n_index, R, model
 
         f0 = 1.15 * units.GHz
         E = 2.53e-7 * energy / units.TeV * freqs / f0 / (1 + (freqs / f0) ** 1.44)
-        E *= units.V / units.m / units.MHz
+        E *= units.V / units.m
         E *= np.sin(theta) / np.sin(cherenkov_angle)
 
         if(is_em_shower):
-            return E * np.exp(-np.log(2) * ((theta - cherenkov_angle) / dThetaEM) ** 2) / R
+            tmp = E * np.exp(-np.log(2) * ((theta - cherenkov_angle) / dThetaEM) ** 2) / R
         else:
-            return E * np.exp(-np.log(2) * ((theta - cherenkov_angle) / dThetaHad) ** 2) / R
+            tmp = E * np.exp(-np.log(2) * ((theta - cherenkov_angle) / dThetaHad) ** 2) / R
+
+        # normalize the signal correctly
+        df = np.mean(freqs[1:] - freqs[:-1])
+        tmp *= (df / units.MHz) ** 0.5
+        return tmp
 
     elif(model == 'Alvarez2012'):
         import pyrex.signals
