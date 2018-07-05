@@ -52,16 +52,7 @@ cpdef get_frequency_spectrum(energy, theta, freqs, is_em_shower, n, R):
     eR = spec_realx + 1j * spec_imagx
     eTheta = spec_realy + 1j * spec_imagy
     ePhi = spec_realz + 1j * spec_imagz
+
     return eR, eTheta, ePhi
 
 
-def get_time_trace(energy, theta, freqs, is_em_shower, n, R):
-    eR, eTheta, ePhi = get_frequency_spectrum(energy, theta, freqs, is_em_shower, n, R)
-    df = freqs[1] - freqs[0]
-    length = (len(freqs) - 1) * 2
-    sampling_rate = 2 * freqs[-1]
-    tt = np.arange(0, length / sampling_rate, 1. / sampling_rate)
-    traceR = np.fft.irfft(eR * df ** 0.5, norm='ortho') / 2 ** 0.5  # an additional sqrt(2) is added because negative frequencies are omitted.
-    traceTheta = np.fft.irfft(eTheta * df ** 0.5, norm='ortho') / 2 ** 0.5
-    tracePhi = np.fft.irfft(ePhi * df ** 0.5, norm='ortho') / 2 ** 0.5
-    return tt, traceR, traceTheta, tracePhi

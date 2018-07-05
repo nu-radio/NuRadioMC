@@ -50,11 +50,11 @@ void getFrequencySpectrum2(double*& spectrumRealR, double*& spectrumImagR,
 	spectrumRealPhi = new double[size];
 	spectrumImagPhi = new double[size];
 	for (int j = 0; j < size; ++j) {
-		spectrumRealR[j] = eR.at(j).real() * utl::V / utl::m / utl::MHz;
-		spectrumImagR[j] = eR.at(j).imag() * utl::V / utl::m / utl::MHz;
-		spectrumRealTheta[j] = eTheta.at(j).real() * utl::V / utl::m / utl::MHz;
-		spectrumImagTheta[j] = eTheta.at(j).imag() * utl::V / utl::m / utl::MHz;
-		spectrumRealPhi[j] = ePhi.at(j).real() * utl::V / utl::m / utl::MHz;
-		spectrumImagPhi[j] = ePhi.at(j).imag() * utl::V / utl::m / utl::MHz;
+		spectrumRealR[j] = eR.at(j).real() * utl::V / utl::m;
+		spectrumImagR[j] = eR.at(j).imag() * utl::V / utl::m;
+		spectrumRealTheta[j] = eTheta.at(j).real() * utl::V / utl::m;
+		spectrumImagTheta[j] = eTheta.at(j).imag() * utl::V / utl::m;
+		spectrumRealPhi[j] = ePhi.at(j).real() * utl::V / utl::m;
+		spectrumImagPhi[j] = ePhi.at(j).imag() * utl::V / utl::m;
 	}
 }
