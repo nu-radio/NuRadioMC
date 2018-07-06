@@ -108,8 +108,12 @@ class Detector(object):
             dir_path = os.path.dirname(os.path.realpath(__file__))  # get the directory of this file
             filename = os.path.join(dir_path, json_filename)
             if(not os.path.exists(filename)):
-                logger.error("can't locate json database file {}".format(filename))
-                raise NameError
+                # try local folder instead
+                filename2 = json_filename
+                if(not os.path.exists(filename2)):
+                    logger.error("can't locate json database file {} or {}".format(filename, filename2))
+                    raise NameError
+                filename = filename2
             self.__db = TinyDB(filename, storage=serialization,
                                sort_keys=True, indent=4, separators=(',', ': '))
 
