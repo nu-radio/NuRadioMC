@@ -1,0 +1,78 @@
+NuRadioReco.framework package
+=============================
+
+Submodules
+----------
+
+NuRadioReco.framework.base\_station module
+------------------------------------------
+
+.. automodule:: NuRadioReco.framework.base_station
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco.framework.base\_trace module
+----------------------------------------
+
+.. automodule:: NuRadioReco.framework.base_trace
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco.framework.channel module
+------------------------------------
+
+.. automodule:: NuRadioReco.framework.channel
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco.framework.event module
+----------------------------------
+
+.. automodule:: NuRadioReco.framework.event
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco.framework.sim\_event module
+---------------------------------------
+
+.. automodule:: NuRadioReco.framework.sim_event
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco.framework.sim\_station module
+-----------------------------------------
+
+.. automodule:: NuRadioReco.framework.sim_station
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco.framework.station module
+------------------------------------
+
+.. automodule:: NuRadioReco.framework.station
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco.framework.trigger module
+------------------------------------
+
+.. automodule:: NuRadioReco.framework.trigger
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: NuRadioReco.framework
+    :members:
+    :undoc-members:
+    :show-inheritance:
