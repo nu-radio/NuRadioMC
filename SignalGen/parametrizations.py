@@ -19,7 +19,7 @@ The following models are implemented
 
 def get_parametrizations():
     """ returns a list of all implemented parametrizations """
-    return ['Alvarez2000', 'Alvarez2012']
+    return ['ZHS', 'Alvarez2000', 'Alvarez2012']
 
 
 def get_frequency_spectrum(energy, theta, freqs, is_em_shower, n_index, R, model):
@@ -48,6 +48,16 @@ def get_frequency_spectrum(energy, theta, freqs, is_em_shower, n_index, R, model
         the amplitude for the given frequency
 
     """
+    if(model == 'ZHS'):
+        vv0 = freqs / (0.5 * units.GHz)
+        cherenkov_angle = np.arccos(1. / n_index)
+        domega = theta - cherenkov_angle
+        tmp = 1.1e-7 * energy / units.TeV * vv0 * 1. / (1 + 0.4 * (vv0) ** 2) * np.exp(-0.5 * (domega / (2.4 * units.deg)) ** 2) * units.V / units.m / (R / units.m)
+        # normalize the signal correctly
+        df = np.mean(freqs[1:] - freqs[:-1])
+        tmp *= (df / units.MHz) ** 0.5
+        return tmp
+
     if(model == 'Alvarez2000'):
         cherenkov_angle = np.arccos(1. / n_index)
 
