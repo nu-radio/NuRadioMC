@@ -19,33 +19,38 @@ The following models are implemented
 
 def get_parametrizations():
     """ returns a list of all implemented parametrizations """
-    return ['ZHS', 'Alvarez2000', 'Alvarez2012']
+    return ['ZHS1992', 'Alvarez2000', 'Alvarez2011']
 
 
 def get_frequency_spectrum(energy, theta, freqs, is_em_shower, n_index, R, model):
     """
-    returns the magnitude of the frequency spectrum of the neutrino radio signal
+    returns the complex amplitudes of the frequency spectrum of the neutrino radio signal
 
     Parameters
     ----------
-    Enu : float
+    energy : float
         energy of the shower
-    theta: float or array
+    theta: float
         viewangle: angle between shower axis (neutrino direction) and the line
         of sight between interaction and detector
-    freqs : float or array
-        frequency
+    freqs : array
+        frequencies, the array must be equally spaced
     is_em_shower: bool
         true if EM shower, false otherwise
     n_index: float
         index of refraction at interaction vertex
     R: float
         distance from vetex to observer
+    model: string
+        specifies the signal model
+        * ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information
+        * Alvarez2000: what is in shelfmc
+        * Alvarez2011: parametrization based on ZHS from Jaime Alvarez-Muñiz, Andrés Romero-Wolf, and Enrique Zas Phys. Rev. D 84, 103003, doi:10.1103/PhysRevD.84.103003. The model is implemented in pyrex and here only a wrapper around the pyrex code is implemented
 
     Returns
     -------
-    E: float or array
-        the amplitude for the given frequency
+    spectrum: array
+        the complex amplitudes for the given frequencies
 
     """
     if(model == 'ZHS1992'):
