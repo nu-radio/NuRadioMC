@@ -48,11 +48,12 @@ def get_frequency_spectrum(energy, theta, freqs, is_em_shower, n_index, R, model
         the amplitude for the given frequency
 
     """
-    if(model == 'ZHS'):
+    if(model == 'ZHS1992'):
+        """ Parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992)."""
         vv0 = freqs / (0.5 * units.GHz)
         cherenkov_angle = np.arccos(1. / n_index)
-        domega = theta - cherenkov_angle
-        tmp = 1.1e-7 * energy / units.TeV * vv0 * 1. / (1 + 0.4 * (vv0) ** 2) * np.exp(-0.5 * (domega / (2.4 * units.deg)) ** 2) * units.V / units.m / (R / units.m)
+        domega = (theta - cherenkov_angle) 
+        tmp = 1.1e-7 * energy / units.TeV * vv0 * 1. / (1 + 0.4 * (vv0) ** 2) * np.exp(-0.5 * (domega / (2.4 * units.deg / vv0)) ** 2) * units.V / units.m / (R / units.m)
         # normalize the signal correctly
         df = np.mean(freqs[1:] - freqs[:-1])
         tmp *= (df / units.MHz) ** 0.5
