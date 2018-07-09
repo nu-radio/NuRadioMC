@@ -15,7 +15,7 @@ void getFrequencySpectrum2(double*& spectrumRealR, double*& spectrumImagR,
 		double*& spectrumRealTheta, double*& spectrumImagTheta,
 		double*& spectrumRealPhi, double*& spectrumImagPhi, int& size,
 		const double energy, const double theta, double* freqs, int size_f,
-		const bool isEMShower, const double n, const double R) {
+		const bool isEMShower, const double n, const double R, const bool LPM) {
 	// we transform the frequency array to the base units of the Askaryan module which is GHz
 	std::vector<float> freqs2;
 	for (int i = 0; i < size_f; ++i) {
@@ -27,7 +27,9 @@ void getFrequencySpectrum2(double*& spectrumRealR, double*& spectrumImagR,
 	h->setAskFreq(&freqs2);
 	if (isEMShower) {
 		h->emShower(energy / utl::GeV); // Askaryan module uses GeV internally
-		h->lpmEffect();
+		if(LPM) {
+			h->lpmEffect();
+		}
 	} else {
 		h->hadShower(energy / utl::GeV); // Askaryan module uses GeV internally
 	}
