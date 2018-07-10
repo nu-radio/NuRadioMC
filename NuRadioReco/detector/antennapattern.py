@@ -605,46 +605,43 @@ class AntennaPattern():
                                                                               phi / units.deg))
         return theta, phi
 
-
-    def get_antenna_response_dummy(self, freq, theta, phi, cutoff_freq = 50 * units.MHz):
+    def get_antenna_response_dummy(self, freq, theta, phi, cutoff_freq=50 * units.MHz):
         """
         Dummy LPDA model.
-        Flat gain as function of frequency, no group delay. 
+        Flat gain as function of frequency, no group delay.
         Can be used instead of __get_antenna_response_vectorized_raw
-        """       
-        max_gain_co = 4 
-        max_gain_cross = 2 #Check whether these values are actually reasonable
-        
+        """
+        max_gain_co = 4
+        max_gain_cross = 2  # Check whether these values are actually reasonable
+
         index = np.argmax(freq > cutoff_freq)
         Gain = np.ones_like(freq)
         from scipy.signal import hann
-        filter = hann(2*index)
+        filter = hann(2 * index)
         Gain[:index] = filter[:index]
-        H_eff = 1./freq * Gain
-    
+        H_eff = 1. / freq * Gain
+
         # at WIPL-D (1,0,0) Gain max for e_theta (?? I hope)
         # Standard units, deliver H_eff in meters
         Z_0 = constants.physical_constants['characteristic impedance of vacuum'][0] * units.ohm
         Z_ant = 50 * units.ohm
-        
-        #Assuming simple cosine, sine falls-off for dummy module
-        H_eff_t = Gain * max_gain_cross * 1/freq
-        H_eff_t *= np.cos(theta) * np.cos(phi) 
+
+        # Assuming simple cosine, sine falls-off for dummy module
+        H_eff_t = Gain * max_gain_cross * 1 / freq
+        H_eff_t *= np.cos(theta) * np.cos(phi)
         H_eff_t *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
-        
-        H_eff_p = Gain * max_gain_co * 1/freq
-        H_eff_p *= np.cos(theta) * np.cos(phi) 
+
+        H_eff_p = Gain * max_gain_co * 1 / freq
+        H_eff_p *= np.cos(theta) * np.cos(phi)
         H_eff_p *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
-    
 
 #         import matplotlib.pyplot as plt
 #         print theta, phi
 #         plt.plot(H_eff_t)
 #         plt.plot(H_eff_p)
 #         plt.show()
-#         1/0       
-        
-        
+#         1/0
+
         return H_eff_p, H_eff_t
 
     def get_antenna_response_vectorized(self, freq, zenith, azimuth, zen_boresight, azi_boresight, zen_ori, azi_ori):
