@@ -310,11 +310,13 @@ class Detector(object):
                     # we need to add further distinction here
                 else:
                     antenna_model = "{}_InfFirn".format(antenna_type)
-        else:
+        elif(not antenna_type.startswith('analytic')):
             if(antenna_relative_position[2] > 0):
                 antenna_model = "{}_InfAir".format(antenna_type)
             else:
                 antenna_model = "{}_InfFirn".format(antenna_type)
+        else:
+            antenna_model = antenna_type
         return antenna_model
 
     def get_noise_RMS(self, station_id, channel_id, stage='amp'):

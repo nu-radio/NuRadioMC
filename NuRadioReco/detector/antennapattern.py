@@ -371,18 +371,120 @@ def preprocess_ARA(path):
 #         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)
 
 
-class AntennaPattern():
+class AntennaPatternBase():
+
+    def _get_antenna_rotation(self, zen_boresight, azi_boresight, zen_ori, azi_ori):
+        # define orientation of wiplD antenna simulation (in ARIANNA CS)
+        e1 = hp.spherical_to_cartesian(self._zen_boresight, self._azi_boresight)  # boresight direction
+        e2 = hp.spherical_to_cartesian(self._zen_ori, self._azi_ori)  # vector perpendicular to tine plane
+        e3 = np.cross(e1, e2)
+        E = np.array([e1, e2, e3])
+#         logger.debug("antenna orientation in WIPLD= {}".format(E))
+#         print('E', E)
+
+        # get normal vectors for antenne orientation in field (in ARIANNA CS)
+        a1 = hp.spherical_to_cartesian(zen_boresight, azi_boresight)
+        a2 = hp.spherical_to_cartesian(zen_ori, azi_ori)
+        a3 = np.cross(a1, a2)
+        A = np.array([a1, a2, a3])
+#         logger.debug("antenna orientation in field = {}".format(A))
+        from numpy.linalg import inv
+#         print('A', A, inv(A))
+        return np.matmul(inv(E), A)
+
+    def _get_theta_and_phi(self, zenith, azimuth, zen_boresight, azi_boresight, zen_ori, azi_ori):
+        """
+        transform zenith and azimuth angle in ARIANNA coordinate system to the WIPLD coordinate system.
+        In addition the orientation of the antenna as deployed in the field is taken into account.
+        """
+
+        rot = self._get_antenna_rotation(zen_boresight, azi_boresight, zen_ori, azi_ori)
+
+        incoming_direction = hp.spherical_to_cartesian(zenith, azimuth)
+        incoming_direction_WIPLD = np.dot(rot, incoming_direction.T).T
+        theta, phi = hp.cartesian_to_spherical(*incoming_direction_WIPLD)
+#         theta = 0.5 * np.pi - theta  # in wipl D the elevation is defined with 0deg being in the x-y plane
+#         theta = hp.get_normalized_angle(theta)
+#         phi = hp.get_normalized_angle(phi)
+
+        logger.debug("zen/az {:.0f} {:.0f} transform to {:.0f} {:.0f}".format(zenith / units.deg,
+                                                                              azimuth / units.deg,
+                                                                              theta / units.deg,
+                                                                              phi / units.deg))
+        return theta, phi
+
+    def get_antenna_response_vectorized(self, freq, zenith, azimuth, zen_boresight, azi_boresight, zen_ori, azi_ori):
+        """
+        get the antenna response for a specific frequency, zenith and azimuth angle
+
+        All angles are specified in the ARIANNA coordinate system. All units are in ARIANNA default units
+
+        Parameters
+        ----------
+        freq : float or array of floats
+            frequency
+        zenith : float
+            zenith angle of incoming signal direction
+        azimuth : float
+            azimuth angle of incoming signal direction
+        zen_boresight : float
+            zenith angle of the boresight direction of the antenna. Specifies the orientation of the antenna in the field
+        azi_boresight : float
+            azimuth angle of the boresight direction of the antenna. Specifies the orientation of the antenna in the field
+        zen_ori : float
+            zenith angle of the vector perpendicular to the plane defined by the antenna tines, and into the direction of the connector
+        azi_ori : float
+            azimuth angle of the vector perpendicular to the plane defined by the antenna tines, and into the direction of the connector
+
+        Returns
+        -------
+        VEL: dictonary of complex arrays
+            theta and phi component of the vector effective length, both components
+            are complex floats or arrays of complex floats
+            of the same length as the frequency input
+        """
+        if self._notfound:
+            VEL = {}
+            VEL['theta'] = np.ones(len(freq), dtype=np.complex)
+            VEL['phi'] = np.ones(len(freq), dtype=np.complex)
+            return VEL
+
+        if(isinstance(freq, (float, int))):
+            freq = np.array([freq])
+        theta, phi = self._get_theta_and_phi(zenith, azimuth, zen_boresight, azi_boresight, zen_ori, azi_ori)
+#         print('get_antenna_response_vectorized', zenith, azimuth, theta, phi)
+        Vtheta_raw, Vphi_raw = self._get_antenna_response_vectorized_raw(freq, theta, phi)
+
+        # now rotate the raw theta and phi component of the VEL into the ARIANNA coordinate system.
+        # As the theta and phi angles are differently defined in WIPLD and ARIANNA, also the orientation of the
+        # eTheta and ePhi unit vectors are different.
+        cstrans = cs.cstrafo(zenith=theta, azimuth=phi)
+        V_xyz_raw = cstrans.transform_from_onsky_to_ground(np.array([np.zeros(Vtheta_raw.shape[0]), Vtheta_raw, Vphi_raw]))
+        rot = self._get_antenna_rotation(zen_boresight, azi_boresight, zen_ori, azi_ori)
+        from numpy.linalg import inv
+        V_xyz = np.dot(inv(rot), V_xyz_raw)
+#         V_xyz = V_xyz_raw
+
+        cstrans2 = cs.cstrafo(zenith=zenith, azimuth=azimuth)
+        V_onsky = cstrans2.transform_from_ground_to_onsky(V_xyz)
+        VEL = {}
+        VEL['theta'] = V_onsky[1]
+        VEL['phi'] = V_onsky[2]
+        return VEL
+
+
+class AntennaPattern(AntennaPatternBase):
 
     def __init__(self, antenna_model, path=path_to_antennamodels):
-        self.__name = antenna_model
+        self._name = antenna_model
         from time import time
         t = time()
         filename = os.path.join(path, antenna_model, "{}.pkl".format(antenna_model))
-        self.__notfound = False
+        self._notfound = False
         try:
-            self.zen_boresight, self.azi_boresight, self.zen_ori, self.azi_ori, ff, thetas, phis, H_phi, H_theta = get_WIPLD_antenna_response(filename)
+            self._zen_boresight, self._azi_boresight, self._zen_ori, self._azi_ori, ff, thetas, phis, H_phi, H_theta = get_WIPLD_antenna_response(filename)
         except IOError:
-            self.__notfound = True
+            self._notfound = True
             logger.warning("antenna response for {} not found".format(antenna_model))
             return
 
@@ -412,7 +514,7 @@ class AntennaPattern():
         for iFreq, freq in enumerate(self.frequencies):
             for iPhi, phi in enumerate(self.phi_angles):
                 for iTheta, theta in enumerate(self.theta_angles):
-                    index = self.__get_index(iFreq, iTheta, iPhi)
+                    index = self._get_index(iFreq, iTheta, iPhi)
 #                     print(index, iFreq, iTheta, iPhi, np.rad2deg(phis[index]), np.rad2deg(thetas[index]))
                     if (phi != phis[index]):
                         print "phi angle has changed during theta loop"
@@ -431,10 +533,10 @@ class AntennaPattern():
 
         logger.info('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
 
-    def __get_index(self, iFreq, iTheta, iPhi):
+    def _get_index(self, iFreq, iTheta, iPhi):
         return iFreq * self.n_theta * self.n_phi + iPhi * self.n_theta + iTheta
 
-    def __get_antenna_response_vectorized_raw(self, freq, theta, phi):
+    def _get_antenna_response_vectorized_raw(self, freq, theta, phi):
         """
         get vector effective length in WIPLD coordinate system
         """
@@ -454,7 +556,7 @@ class AntennaPattern():
             theta = self.theta_lower_bound
         if(((phi < self.phi_lower_bound) or (phi > self.phi_upper_bound)) or
            ((theta < self.theta_lower_bound) or (theta > self.theta_upper_bound))):
-            print self.__name
+            print self._name
             print "theta lower bound", self.theta_lower_bound, theta, self.theta_upper_bound
             print "phi lower bound", self.phi_lower_bound, phi, self.phi_upper_bound
 #             print "freq lower bound", self.frequency_lower_bound, freq, self.frequency_upper_bound
@@ -495,22 +597,22 @@ class AntennaPattern():
         # theta low
         VELt_freq_low_theta_low = interpolate_linear(
             phi, phi_lower, phi_upper,
-            self.VEL_theta[self.__get_index(iFrequency_lower, iTheta_lower, iPhi_lower)],
-            self.VEL_theta[self.__get_index(iFrequency_lower, iTheta_lower, iPhi_upper)])
+            self.VEL_theta[self._get_index(iFrequency_lower, iTheta_lower, iPhi_lower)],
+            self.VEL_theta[self._get_index(iFrequency_lower, iTheta_lower, iPhi_upper)])
         VELp_freq_low_theta_low = interpolate_linear(
             phi, phi_lower, phi_upper,
-            self.VEL_phi[self.__get_index(iFrequency_lower, iTheta_lower, iPhi_lower)],
-            self.VEL_phi[self.__get_index(iFrequency_lower, iTheta_lower, iPhi_upper)])
+            self.VEL_phi[self._get_index(iFrequency_lower, iTheta_lower, iPhi_lower)],
+            self.VEL_phi[self._get_index(iFrequency_lower, iTheta_lower, iPhi_upper)])
 
         # theta up
         VELt_freq_low_theta_up = interpolate_linear(
             phi, phi_lower, phi_upper,
-            self.VEL_theta[self.__get_index(iFrequency_lower, iTheta_upper, iPhi_lower)],
-            self.VEL_theta[self.__get_index(iFrequency_lower, iTheta_upper, iPhi_upper)])
+            self.VEL_theta[self._get_index(iFrequency_lower, iTheta_upper, iPhi_lower)],
+            self.VEL_theta[self._get_index(iFrequency_lower, iTheta_upper, iPhi_upper)])
         VELp_freq_low_theta_up = interpolate_linear(
             phi, phi_lower, phi_upper,
-            self.VEL_phi[self.__get_index(iFrequency_lower, iTheta_upper, iPhi_lower)],
-            self.VEL_phi[self.__get_index(iFrequency_lower, iTheta_upper, iPhi_upper)])
+            self.VEL_phi[self._get_index(iFrequency_lower, iTheta_upper, iPhi_lower)],
+            self.VEL_phi[self._get_index(iFrequency_lower, iTheta_upper, iPhi_upper)])
 
         VELt_freq_low = interpolate_linear(theta, theta_lower,
                                                       theta_upper,
@@ -525,22 +627,22 @@ class AntennaPattern():
         # theta low
         VELt_freq_up_theta_low = interpolate_linear(
             phi, phi_lower, phi_upper,
-            self.VEL_theta[self.__get_index(iFrequency_upper, iTheta_lower, iPhi_lower)],
-            self.VEL_theta[self.__get_index(iFrequency_upper, iTheta_lower, iPhi_upper)])
+            self.VEL_theta[self._get_index(iFrequency_upper, iTheta_lower, iPhi_lower)],
+            self.VEL_theta[self._get_index(iFrequency_upper, iTheta_lower, iPhi_upper)])
         VELp_freq_up_theta_low = interpolate_linear(
             phi, phi_lower, phi_upper,
-            self.VEL_phi[self.__get_index(iFrequency_upper, iTheta_lower, iPhi_lower)],
-            self.VEL_phi[self.__get_index(iFrequency_upper, iTheta_lower, iPhi_upper)])
+            self.VEL_phi[self._get_index(iFrequency_upper, iTheta_lower, iPhi_lower)],
+            self.VEL_phi[self._get_index(iFrequency_upper, iTheta_lower, iPhi_upper)])
 
         # theta up
         VELt_freq_up_theta_up = interpolate_linear(
             phi, phi_lower, phi_upper,
-            self.VEL_theta[self.__get_index(iFrequency_upper, iTheta_upper, iPhi_lower)],
-            self.VEL_theta[self.__get_index(iFrequency_upper, iTheta_upper, iPhi_upper)])
+            self.VEL_theta[self._get_index(iFrequency_upper, iTheta_upper, iPhi_lower)],
+            self.VEL_theta[self._get_index(iFrequency_upper, iTheta_upper, iPhi_upper)])
         VELp_freq_up_theta_up = interpolate_linear(
             phi, phi_lower, phi_upper,
-            self.VEL_phi[self.__get_index(iFrequency_upper, iTheta_upper, iPhi_lower)],
-            self.VEL_phi[self.__get_index(iFrequency_upper, iTheta_upper, iPhi_upper)])
+            self.VEL_phi[self._get_index(iFrequency_upper, iTheta_upper, iPhi_lower)],
+            self.VEL_phi[self._get_index(iFrequency_upper, iTheta_upper, iPhi_upper)])
 
         VELt_freq_up = interpolate_linear(theta, theta_lower, theta_upper,
                                                      VELt_freq_up_theta_low,
@@ -565,143 +667,63 @@ class AntennaPattern():
         interpolated_VELp[out_of_bound_freqs_high] = 0 + 0 * 1j
         return interpolated_VELt, interpolated_VELp
 
-    def __get_antenna_rotation(self, zen_boresight, azi_boresight, zen_ori, azi_ori):
-        # define orientation of wiplD antenna simulation (in ARIANNA CS)
-        e1 = hp.spherical_to_cartesian(self.zen_boresight, self.azi_boresight)  # boresight direction
-        e2 = hp.spherical_to_cartesian(self.zen_ori, self.azi_ori)  # vector perpendicular to tine plane
-        e3 = np.cross(e1, e2)
-        E = np.array([e1, e2, e3])
-#         logger.debug("antenna orientation in WIPLD= {}".format(E))
-#         print('E', E)
 
-        # get normal vectors for antenne orientation in field (in ARIANNA CS)
-        a1 = hp.spherical_to_cartesian(zen_boresight, azi_boresight)
-        a2 = hp.spherical_to_cartesian(zen_ori, azi_ori)
-        a3 = np.cross(a1, a2)
-        A = np.array([a1, a2, a3])
-#         logger.debug("antenna orientation in field = {}".format(A))
-        from numpy.linalg import inv
-#         print('A', A, inv(A))
-        return np.matmul(inv(E), A)
+class AntennaPatternAnalytic(AntennaPatternBase):
 
-    def __get_theta_and_phi(self, zenith, azimuth, zen_boresight, azi_boresight, zen_ori, azi_ori):
-        """
-        transform zenith and azimuth angle in ARIANNA coordinate system to the WIPLD coordinate system.
-        In addition the orientation of the antenna as deployed in the field is taken into account.
-        """
+    def __init__(self, antenna_model, cutoff_freq=50 * units.MHz):
+        self._notfound = False
+        self._model = antenna_model
+        self._cutoff_freq = cutoff_freq
+        if(self._model == 'analytic_LPDA'):
+            # LPDA dummy model points towards z direction and has its tines in the y-z plane
+            print("setting boresight direction")
+            self._zen_boresight = 0 * units.deg
+            self._azi_boresight = 0 * units.deg
+            self._zen_ori = 90 * units.deg
+            self._azi_ori = 0 * units.deg
 
-        rot = self.__get_antenna_rotation(zen_boresight, azi_boresight, zen_ori, azi_ori)
+    def _get_antenna_response_vectorized_raw(self, freq, theta, phi):
+        if(self._model == 'analytic_LPDA'):
+            """
+            Dummy LPDA model.
+            Flat gain as function of frequency, no group delay.
+            Can be used instead of __get_antenna_response_vectorized_raw
+            """
+            max_gain_co = 4
+            max_gain_cross = 2  # Check whether these values are actually reasonable
 
-        incoming_direction = hp.spherical_to_cartesian(zenith, azimuth)
-        incoming_direction_WIPLD = np.dot(rot, incoming_direction.T).T
-        theta, phi = hp.cartesian_to_spherical(*incoming_direction_WIPLD)
-#         theta = 0.5 * np.pi - theta  # in wipl D the elevation is defined with 0deg being in the x-y plane
-#         theta = hp.get_normalized_angle(theta)
-#         phi = hp.get_normalized_angle(phi)
+            index = np.argmax(freq > self._cutoff_freq)
+            Gain = np.ones_like(freq)
+            from scipy.signal import hann
+            filter = hann(2 * index)
+            Gain[:index] = filter[:index]
+#             H_eff = 1. / freq * Gain
 
-        logger.debug("zen/az {:.0f} {:.0f} transform to {:.0f} {:.0f}".format(zenith / units.deg,
-                                                                              azimuth / units.deg,
-                                                                              theta / units.deg,
-                                                                              phi / units.deg))
-        return theta, phi
+            # at WIPL-D (1,0,0) Gain max for e_theta (?? I hope)
+            # Standard units, deliver H_eff in meters
+            Z_0 = constants.physical_constants['characteristic impedance of vacuum'][0] * units.ohm
+            Z_ant = 50 * units.ohm
 
-    def get_antenna_response_dummy(self, freq, theta, phi, cutoff_freq=50 * units.MHz):
-        """
-        Dummy LPDA model.
-        Flat gain as function of frequency, no group delay.
-        Can be used instead of __get_antenna_response_vectorized_raw
-        """
-        max_gain_co = 4
-        max_gain_cross = 2  # Check whether these values are actually reasonable
+            # Assuming simple cosine, sine falls-off for dummy module
+            H_eff_t = np.zeros_like(Gain)
+            fmask = freq > 0
+            H_eff_t[fmask] = Gain[fmask] * max_gain_cross * 1 / freq[fmask]
+            H_eff_t *= np.cos(theta) * np.cos(phi)
+            H_eff_t *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
 
-        index = np.argmax(freq > cutoff_freq)
-        Gain = np.ones_like(freq)
-        from scipy.signal import hann
-        filter = hann(2 * index)
-        Gain[:index] = filter[:index]
-        H_eff = 1. / freq * Gain
+            H_eff_p = np.zeros_like(Gain)
+            H_eff_p[fmask] = Gain[fmask] * max_gain_co * 1 / freq[fmask]
+            H_eff_p *= np.cos(theta) * np.cos(phi)
+            H_eff_p *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
 
-        # at WIPL-D (1,0,0) Gain max for e_theta (?? I hope)
-        # Standard units, deliver H_eff in meters
-        Z_0 = constants.physical_constants['characteristic impedance of vacuum'][0] * units.ohm
-        Z_ant = 50 * units.ohm
+    #         import matplotlib.pyplot as plt
+    #         print theta, phi
+    #         plt.plot(H_eff_t)
+    #         plt.plot(H_eff_p)
+    #         plt.show()
+    #         1/0
 
-        # Assuming simple cosine, sine falls-off for dummy module
-        H_eff_t = Gain * max_gain_cross * 1 / freq
-        H_eff_t *= np.cos(theta) * np.cos(phi)
-        H_eff_t *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
-
-        H_eff_p = Gain * max_gain_co * 1 / freq
-        H_eff_p *= np.cos(theta) * np.cos(phi)
-        H_eff_p *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
-
-#         import matplotlib.pyplot as plt
-#         print theta, phi
-#         plt.plot(H_eff_t)
-#         plt.plot(H_eff_p)
-#         plt.show()
-#         1/0
-
-        return H_eff_p, H_eff_t
-
-    def get_antenna_response_vectorized(self, freq, zenith, azimuth, zen_boresight, azi_boresight, zen_ori, azi_ori):
-        """
-        get the antenna response for a specific frequency, zenith and azimuth angle
-
-        All angles are specified in the ARIANNA coordinate system. All units are in ARIANNA default units
-
-        Parameters
-        ----------
-        freq : float or array of floats
-            frequency
-        zenith : float
-            zenith angle of incoming signal direction
-        azimuth : float
-            azimuth angle of incoming signal direction
-        zen_boresight : float
-            zenith angle of the boresight direction of the antenna. Specifies the orientation of the antenna in the field
-        azi_boresight : float
-            azimuth angle of the boresight direction of the antenna. Specifies the orientation of the antenna in the field
-        zen_ori : float
-            zenith angle of the vector perpendicular to the plane defined by the antenna tines, and into the direction of the connector
-        azi_ori : float
-            azimuth angle of the vector perpendicular to the plane defined by the antenna tines, and into the direction of the connector
-
-        Returns
-        -------
-        VEL: dictonary of complex arrays
-            theta and phi component of the vector effective length, both components
-            are complex floats or arrays of complex floats
-            of the same length as the frequency input
-        """
-        if self.__notfound:
-            VEL = {}
-            VEL['theta'] = np.ones(len(freq), dtype=np.complex)
-            VEL['phi'] = np.ones(len(freq), dtype=np.complex)
-            return VEL
-
-        if(isinstance(freq, (float, int))):
-            freq = np.array([freq])
-        theta, phi = self.__get_theta_and_phi(zenith, azimuth, zen_boresight, azi_boresight, zen_ori, azi_ori)
-#         print('get_antenna_response_vectorized', zenith, azimuth, theta, phi)
-        Vtheta_raw, Vphi_raw = self.__get_antenna_response_vectorized_raw(freq, theta, phi)
-
-        # now rotate the raw theta and phi component of the VEL into the ARIANNA coordinate system.
-        # As the theta and phi angles are differently defined in WIPLD and ARIANNA, also the orientation of the
-        # eTheta and ePhi unit vectors are different.
-        cstrans = cs.cstrafo(zenith=theta, azimuth=phi)
-        V_xyz_raw = cstrans.transform_from_onsky_to_ground(np.array([np.zeros(Vtheta_raw.shape[0]), Vtheta_raw, Vphi_raw]))
-        rot = self.__get_antenna_rotation(zen_boresight, azi_boresight, zen_ori, azi_ori)
-        from numpy.linalg import inv
-        V_xyz = np.dot(inv(rot), V_xyz_raw)
-#         V_xyz = V_xyz_raw
-
-        cstrans2 = cs.cstrafo(zenith=zenith, azimuth=azimuth)
-        V_onsky = cstrans2.transform_from_ground_to_onsky(V_xyz)
-        VEL = {}
-        VEL['theta'] = V_onsky[1]
-        VEL['phi'] = V_onsky[2]
-        return VEL
+            return H_eff_p, H_eff_t
 
 
 class AntennaPatternProvider(object):
@@ -713,21 +735,25 @@ class AntennaPatternProvider(object):
         return AntennaPatternProvider.__instance
 
     def __init__(self):
-        self.__open_antenna_patterns = {}
-        self.__antenna_model_replacements = {}
+        self._open_antenna_patterns = {}
+        self._antenna_model_replacements = {}
 
         antenna_directory = os.path.dirname(os.path.abspath(__file__))
         filename = os.path.join(antenna_directory, 'antenna_model_replacements.json')
         if(os.path.exists(filename)):
             with open(filename, 'r') as fin:
-                self.__antenna_model_replacements = json.load(fin)
+                self._antenna_model_replacements = json.load(fin)
 
-    def load_antenna_pattern(self, name):
-        if(name in self.__antenna_model_replacements.keys()):
-            name = self.__antenna_model_replacements[name]
-        if (name not in self.__open_antenna_patterns.keys()):
-            self.__open_antenna_patterns[name] = AntennaPattern(name)
-        return self.__open_antenna_patterns[name]
+    def load_antenna_pattern(self, name, **kwargs):
+        if(name in self._antenna_model_replacements.keys()):
+            name = self._antenna_model_replacements[name]
+        if (name not in self._open_antenna_patterns.keys()):
+            if(name.startswith("analytic")):
+                self._open_antenna_patterns[name] = AntennaPatternAnalytic(name, **kwargs)
+                print("loading analytic antenna model {}".format(name))
+            else:
+                self._open_antenna_patterns[name] = AntennaPattern(name, **kwargs)
+        return self._open_antenna_patterns[name]
 
 # class AntennaPatternProvider:
 #
