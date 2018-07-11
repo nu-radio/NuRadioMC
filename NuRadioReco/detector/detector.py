@@ -71,6 +71,7 @@ def buffer_db(in_memory, filename=None):
                                 'ant_position_x': channel['ant.position_x'],
                                 'ant_position_y': channel['ant.position_y'],
                                 'ant_position_z': channel['ant.position_z'],
+                                'ant_deployment_time': channel['ant.deployment_time'],
                                 'ant_comment': channel['ant.comment'],
                                 'cab_length': channel['cab.cable_length'],
                                 'cab_reference_measurement': channel['cab.reference_measurement'],
@@ -263,6 +264,10 @@ class Detector(object):
     def get_antenna_type(self, station_id, channel_id):
         res = self.__get_channel(station_id, channel_id)
         return res['ant_type']
+
+    def get_antenna_deployment_time(self, station_id, channel_id):
+        res = self.__get_channel(station_id, channel_id)
+        return res['ant_deployment_time']
 
     def get_antanna_orientation(self, station_id, channel_id):
         """ returns the orientation of a specific antenna
