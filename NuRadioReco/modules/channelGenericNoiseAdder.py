@@ -31,7 +31,6 @@ class channelGenericNoiseAdder:
         amplitude = desired voltage of noise in spectrum 
         """
         frequencies = np.abs(np.fft.fftfreq(n_samples, 1/sampling_rate))
-        print min_freq, max_freq, sampling_rate, n_samples
         f = np.zeros(n_samples)
         selection = np.where((frequencies>=min_freq)& (frequencies<=max_freq))
         if type == 'perfect_white':
@@ -53,7 +52,7 @@ class channelGenericNoiseAdder:
     def run(self, event, station, detector, 
                             amplitude=1*units.mV,
                             min_freq=50*units.MHz,
-                            max_freq=2000*units.MHz,):
+                            max_freq=2000*units.MHz):
         
         channels = station.get_channels()
         for channel in channels:
@@ -66,7 +65,7 @@ class channelGenericNoiseAdder:
                                           sampling_rate=sampling_rate,
                                           amplitude=amplitude)
             
-            if debug:
+            if self.__debug:
                 new_trace = trace + noise
             
                 import matplotlib.pyplot as plt
