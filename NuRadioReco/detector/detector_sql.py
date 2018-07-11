@@ -21,7 +21,9 @@ class Detector(object):
 
         dir_path = os.path.dirname(os.path.realpath(__file__))  # get the directory of this file
         filename = os.path.join(dir_path, "detector_sql_auth.json")
-        mysql_opts = json.load(filename)
+        fin = open(filename, 'r')
+        mysql_opts = json.load(fin)
+        fin.close()
 
         self.__mysql = MySQLdb.connect(host=mysql_opts['host'],
                                        user=mysql_opts['user'],
@@ -58,7 +60,7 @@ class Detector(object):
                   'ch.channel_id', 'ch.commission_time', 'ch.decommission_time',
                   'ant.antenna_type', 'ant.orientation_phi', 'ant.orientation_theta',
                   'ant.rotation_phi', 'ant.rotation_theta', 'ant.position_x',
-                  'ant.position_y', 'ant.position_z', 'ant.comment',
+                  'ant.position_y', 'ant.position_z', 'ant.deployment_time', 'ant.comment',
                   'cab.cable_type', 'cab.cable_length', 'cab.reference_measurement',
                   'cab.time_delay', 'cab.cable_id', 'cab.comment',
                   'pos.position', 'pos.measurement_time', 'pos.easting', 'pos.northing',
@@ -101,7 +103,7 @@ class Detector(object):
         fields = ['st.station_id', 'ch.channel_id', 'ch.commission_time', 'ch.decommission_time',
                   'ant.antenna_type', 'ant.orientation_phi', 'ant.orientation_theta',
                   'ant.rotation_phi', 'ant.rotation_theta', 'ant.position_x',
-                  'ant.position_y', 'ant.position_z', 'ant.comment',
+                  'ant.position_y', 'ant.position_z', 'ant.deployment_time', 'ant.comment',
                   'cab.cable_type', 'cab.cable_length', 'cab.reference_measurement',
                   'cab.time_delay', 'cab.cable_id', 'cab.comment',
                   'amps.amp_type', 'amps.reference_measurement',
@@ -285,6 +287,25 @@ class Detector(object):
         if(len(antenna_type[0]) != 1):
             logger.error("more than one antenna type return for station channel combination -> bug in detector description, only first element is returned")
         return antenna_type[0][0]
+
+    def get_antenna_deployment_time(self, station_id, channel_id):
+        cursor = self.__mysql.cursor()
+        query = """
+        SELECT deployment_time FROM stations AS st
+            JOIN channels AS ch USING(station_uid)
+            JOIN antennas USING(antenna_uid)
+        WHERE CAST('{time}' AS DATETIME) between ch.commission_time and ch.decommission_time
+            AND CAST('{time}' AS DATETIME) between st.commission_time and st.decommission_time
+            AND st.station_id = {station_id} AND ch.channel_id = {channel_id:d} ;
+            """.format(time=self.__current_time, station_id=station_id, channel_id=channel_id)
+        cursor.execute(query)
+        deployment_time = np.array(cursor.fetchall())
+        if(len(deployment_time) == 0):
+            frame = inspect.currentframe()
+            self.__error(frame)
+        if(len(deployment_time[0]) != 1):
+            logger.error("more than one antenna deployment_time return for station channel combination -> bug in detector description, only first element is returned")
+        return deployment_time[0][0]
 
     def get_antanna_orientation(self, station_id, channel_id):
         """ returns the orientation of a specific antenna
