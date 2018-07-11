@@ -101,8 +101,19 @@ class Singleton(type):
 @six.add_metaclass(Singleton)
 class Detector(object):
 
-    def __init__(self, source='json', json_filename='ARIANNA/arianna_detector_db.json'):
+    def __init__(self, source='json', json_filename='ARIANNA/arianna_detector_db.json',assume_inf=True):
+        """
+        Initialize the stations detector properties. 
 
+        Parameters
+        ----------
+        source : str
+            default value is 'json'
+        json_filename : str
+            defoult value is 'ARIANNA/arianna_detector_db.json'
+        assume_inf : Bool
+            Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
+        """
         if(source == 'sql'):
             self.__db = buffer_db(in_memory=True)
         else:
@@ -133,6 +144,8 @@ class Detector(object):
         self.__current_time = None
         # just for testing
         self.__current_time = datetime.now()
+
+        self.__assume_inf = assume_inf
 
     def __query_channel(self, station_id, channel_id):
         Channel = Query()
