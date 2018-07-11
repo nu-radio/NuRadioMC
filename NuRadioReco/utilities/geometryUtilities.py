@@ -114,7 +114,7 @@ def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.):
 
 def get_fresnel_t_perpendicular(zenith_incoming, n_2=1.3, n_1=1.):
     """  returns the coefficient t which is the ratio of the transmitted wave's
-    electric field amplitude to that of the incident wave for perpendicular polarization
+    electric field amplitude to that of the incident wave for perpendicular polarization (p-wave)
 
     parallel and perpendicular refers to the signal's polarization with respect
     to the 'plane of incident' which is defindes as: "the plane of incidence
@@ -128,7 +128,7 @@ def get_fresnel_t_perpendicular(zenith_incoming, n_2=1.3, n_1=1.):
 
 def get_fresnel_t_parallel(zenith_incoming, n_2=1.3, n_1=1.):
     """  returns the coefficient t which is the ratio of the transmitted wave's
-    electric field amplitude to that of the incident wave for parallel polarization
+    electric field amplitude to that of the incident wave for parallel polarization (s-wave)
 
     parallel and perpendicular refers to the signal's polarization with respect
     to the 'plane of incident' which is defindes as: "the plane of incidence
@@ -138,4 +138,32 @@ def get_fresnel_t_parallel(zenith_incoming, n_2=1.3, n_1=1.):
     zenith_outgoing = get_fresnel_angle(zenith_incoming, n_2, n_1)
     t = 2 * n_1 * np.cos(zenith_incoming) / (n_1 * np.cos(zenith_incoming) + n_2 * np.cos(zenith_outgoing))
     return t
+
+
+def get_fresnel_r_perpendicular(zenith_incoming, n_2=1.3, n_1=1.):
+    """  returns the coefficient r which is the ratio of the reflected wave's
+    electric field amplitude to that of the incident wave for perpendicular polarization (p-wave)
+
+    parallel and perpendicular refers to the signal's polarization with respect
+    to the 'plane of incident' which is defindes as: "the plane of incidence
+    is the plane which contains the surface normal and the propagation vector
+    of the incoming radiation."
+    """
+    zenith_outgoing = get_fresnel_angle(zenith_incoming, n_2, n_1)
+    r = (n_2 * np.cos(zenith_incoming) - n_1 * np.cos(zenith_outgoing)) / (n_2 * np.cos(zenith_incoming) + n_1 * np.cos(zenith_outgoing))
+    return r
+
+
+def get_fresnel_r_parallel(zenith_incoming, n_2=1.3, n_1=1.):
+    """  returns the coefficient r which is the ratio of the reflected wave's
+    electric field amplitude to that of the incident wave for parallel polarization (s-wave)
+
+    parallel and perpendicular refers to the signal's polarization with respect
+    to the 'plane of incident' which is defindes as: "the plane of incidence
+    is the plane which contains the surface normal and the propagation vector
+    of the incoming radiation."
+    """
+    zenith_outgoing = get_fresnel_angle(zenith_incoming, n_2, n_1)
+    r = (n_1 * np.cos(zenith_incoming) - n_2 * np.cos(zenith_outgoing)) / (n_1 * np.cos(zenith_incoming) + n_2 * np.cos(zenith_outgoing))
+    return r
 
