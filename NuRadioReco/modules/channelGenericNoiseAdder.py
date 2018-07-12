@@ -23,7 +23,7 @@ class channelGenericNoiseAdder:
     
     def bandlimited_noise(self,min_freq, max_freq, n_samples, sampling_rate,amplitude, type='perfect_white'):
         """
-        Generating noise in a certain bandwidth. 
+        Generating noise of n_samples in a bandwidth [min_freq,max_freq]. 
         
         type = perfect_white: flat frequency spectrum
         type = white: flat frequency spectrum with random jitter
@@ -36,10 +36,10 @@ class channelGenericNoiseAdder:
         if type == 'perfect_white':
             f[selection] = amplitude
         elif type == 'white':
-            jitter = np.random.rand(n_samples)*0.001*amplitude
+            jitter = amplitude + np.random.rand(n_samples)*0.05*amplitude 
             f[selection] = jitter[selection]
         else:
-            logger.error("Other type of noise not yet implemented.")
+            logger.error("Other types of noise not yet implemented.")
             
         return self.fftnoise(f)
     
@@ -52,7 +52,8 @@ class channelGenericNoiseAdder:
     def run(self, event, station, detector, 
                             amplitude=1*units.mV,
                             min_freq=50*units.MHz,
-                            max_freq=2000*units.MHz):
+                            max_freq=2000*units.MHz,
+                            type='white'):
         
         channels = station.get_channels()
         for channel in channels:
@@ -63,7 +64,8 @@ class channelGenericNoiseAdder:
                                           max_freq=max_freq,
                                           n_samples=trace.shape[0],
                                           sampling_rate=sampling_rate,
-                                          amplitude=amplitude)
+                                          amplitude=amplitude,
+                                          type=type)
             
             if self.__debug:
                 new_trace = trace + noise
@@ -80,7 +82,6 @@ class channelGenericNoiseAdder:
                 plt.plot(np.abs(np.fft.rfft(new_trace)))
 
                 plt.show()
-                1/0
             
             trace += noise
         
