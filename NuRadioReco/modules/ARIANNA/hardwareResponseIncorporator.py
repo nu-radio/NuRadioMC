@@ -1,4 +1,4 @@
-from NuRadioReco.detector import analog_components
+from NuRadioReco.detector.ARIANNA import analog_components
 import numpy as np
 from NuRadioReco.utilities import units
 import time
