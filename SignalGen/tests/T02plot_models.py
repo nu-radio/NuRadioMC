@@ -39,7 +39,7 @@ for i in range(3):  # loop over EM/EM+LPM/HAD
     ax.legend(fontsize='small')
     ax.set_title("{} E = {:.1e}eV, R = {:.1f}km, {}".format(model, E / units.eV, R / units.km, emstr[i]))
     fig.tight_layout()
-    fig.savefig("plots/{}_E{:.1e}eV_R{:.0f}m_EM{}_LPM{}.png".format(model, E / units.eV, R / units.km, em[i], lpm[i]))
+    fig.savefig("plots/{}_E{:.1e}eV_R{:.0f}m_EM{}_LPM{}.png".format(model, E / units.eV, R / units.m, em[i], lpm[i]))
     plt.close('all')
 
 # plot distance dependence for domegas
@@ -65,5 +65,5 @@ for i in range(3):  # loop over EM/EM+LPM/HAD
         ax.legend(fontsize='small')
         ax.set_title("{} E = {:.1e}eV, $\Delta \Omega$ = {:.1f}deg, {}".format(model, E / units.eV, domega / units.deg, emstr[i]))
         fig.tight_layout()
-        fig.savefig("plots/{}_E{:.1e}eV_dOmega{:.0f}_EM{}_LPM{}.png".format(model, E / units.eV, domega / units.deg, em[i], lpm[i]))
+        fig.savefig("plots/{}_E{:.1e}eV_dOmega{:.1f}_EM{}_LPM{}.png".format(model, E / units.eV, domega / units.deg, em[i], lpm[i]))
         plt.close('all')

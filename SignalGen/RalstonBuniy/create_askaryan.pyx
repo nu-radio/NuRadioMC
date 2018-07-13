@@ -10,9 +10,9 @@ cdef extern from "numpy/arrayobject.h":
 
 cdef extern from "createAsk.h":
     void getFrequencySpectrum2(double *& , double *& , double *& , double *& , double *& , double *& , int & ,
-                               double, double, double * , int, int, double, double, int)
+                               double, double, double * , int, int, double, double, int, double)
 
-cpdef get_frequency_spectrum(energy, theta, freqs, is_em_shower, n, R, LPM):
+cpdef get_frequency_spectrum(energy, theta, freqs, is_em_shower, n, R, LPM, a):
     cdef:
         double * spectrumRealR
         double * spectrumImagR
@@ -28,7 +28,7 @@ cpdef get_frequency_spectrum(energy, theta, freqs, is_em_shower, n, R, LPM):
                           spectrumRealTheta, spectrumImagTheta,
                           spectrumRealPhi, spectrumImagPhi,
                           size,
-                          energy, theta, & freqs2[0], len(freqs2), is_em_shower, n, R, LPM)
+                          energy, theta, & freqs2[0], len(freqs2), is_em_shower, n, R, LPM, a)
 
     # 1. Make sure that you have called np.import_array()
     # http://gael-varoquaux.info/programming/

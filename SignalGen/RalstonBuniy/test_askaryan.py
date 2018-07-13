@@ -1,4 +1,4 @@
-from create_askaryan import get_frequency_spectrum
+import NuRadioMC.SignalGen.RalstonBuniy.askaryan_module as AskaryanModule
 from NuRadioMC.utilities import units
 from matplotlib import pyplot as plt
 import numpy as np
@@ -14,16 +14,16 @@ E = 100 * units.TeV
 
 fig, ax = plt.subplots(1, 1)
 for theta in np.arange(0, 10.5, 2.5) * units.deg:
-    spectrum = get_frequency_spectrum(E, theta + cherenkov_angle, ff, 0, n=1.78, R=R)
-    yy = np.abs(spectrum[1]) * R / E / units.V * units.MHz * units.TeV
+    spectrum = AskaryanModule.get_frequency_spectrum(E, theta + cherenkov_angle, ff, 0, n=1.78, R=R, LPM=False)
+    yy = np.abs(spectrum[1]) * R / E / units.V * units.TeV
     ax.plot(ff / units.MHz, yy, label=r'$\Theta - \Theta_C$ = {:.1f}'.format(theta / units.deg))
 ax.set_xlim(1, 2e3)
-ax.set_ylim(1e-11, 1e-5)
+ax.set_ylim(1e-10, 1e-5)
 ax.legend()
 ax.semilogx(True)
 ax.semilogy(True)
 ax.set_xlabel("Frequency [MHz]")
-ax.set_ylabel("R E/E_C [V/MHz/TeV]")
+ax.set_ylabel("R E/E_C [V/TeV] per {:.1f} MHz".format(df / units.MHz))
 fig.tight_layout()
 fig.savefig("fig5.png")
 plt.show()
@@ -34,7 +34,7 @@ E = 100 * units.PeV
 fig, ax = plt.subplots(1, 1)
 theta = cherenkov_angle + 2.5 * units.deg
 for R in [100 * units.m, 500 * units.m, 2 * units.km, 5 * units.km, 100 * units.km]:
-    spectrum = get_frequency_spectrum(E, theta, ff, 1, n=1.78, R=R)
+    spectrum = AskaryanModule.get_frequency_spectrum(E, theta, ff, 1, n=1.78, R=R)
     yy = np.abs(spectrum[1]) * R / E / units.V * units.MHz * units.TeV
     ax.plot(ff / units.MHz, yy, label=r'R = {:.0f}m'.format(R / units.m))
 ax.legend()
