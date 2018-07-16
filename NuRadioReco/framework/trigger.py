@@ -11,6 +11,7 @@ class Trigger:
         self.__coinc_window = None
         self.__number_concidences = None
         self.__triggered = False
+        self.__trigger_time = None
 
     def set_trigger_settings(self, threshold_high, threshold_low,
                              high_low_window, coinc_window, number_concidences):
@@ -33,12 +34,19 @@ class Trigger:
     def set_triggered(self, triggered=True):
         self.__triggered = triggered
 
+    def set_trigger_time(self, time):
+        self.__trigger_time = time
+
+    def get_trigger_time(self):
+        return self.__trigger_time
+
     def serialize(self):
         data = {'__threshold_high': self.__threshold_high,
                 '__threshold_low': self.__threshold_low,
                 '__high_low_window': self.__high_low_window,
                 '__coinc_window': self.__coinc_window,
                 '__number_concidences': self.__number_concidences,
+                '__trigger_time': self.__trigger_time,
                 '__triggered': self.__triggered}
         return pickle.dumps(data, protocol=2)
 
@@ -49,4 +57,5 @@ class Trigger:
         self.__high_low_window = data['__high_low_window']
         self.__coinc_window = data['__coinc_window']
         self.__number_concidences = data['__number_concidences']
+        self.__trigger_time = data['__trigger_time']
         self.__triggered = data['__triggered']

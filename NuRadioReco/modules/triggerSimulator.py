@@ -97,16 +97,17 @@ class triggerSimulator:
 #                     for tr2 in trigger[ch2]:
 #                         if abs(tr1 - tr2) < coinc_window / sampling_rate:
 #                             coinc += 1
-        second_run = station.has_parameter('triggered')  # the trigger simulator was called before. This means the that trace is already cut to the correct length. We do not need to do it again
+        second_run = station.get_trigger().get_trigger_time() is not None  # the trigger simulator was called before. This means the that trace is already cut to the correct length. We do not need to do it again
 
         if not has_triggered:
-            station['triggered'] = False
+            station.set_triggered(False)
             logger.info("Station has NOT passed trigger")
             trigger_time_sample = self.__samples_before_trigger
+            station.get_trigger().set_trigger_time(trigger_time_sample / sampling_rate)
         else:
-            station['triggered'] = True
-            station['trigger_time'] = trigger_time_sample / sampling_rate
-            logger.info("Station has passed trigger, trigger time is {:.1f} ns (sample {})".format(station['trigger_time'] / units.ns, trigger_time_sample))
+            station.set_triggered(True)
+            station.get_trigger().set_trigger_time(trigger_time_sample / sampling_rate)
+            logger.info("Station has passed trigger, trigger time is {:.1f} ns (sample {})".format(station.get_trigger().get_trigger_time() / units.ns, trigger_time_sample))
 
         if second_run:
             self.__t += time.time() - t
