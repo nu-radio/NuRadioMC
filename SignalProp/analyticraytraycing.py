@@ -497,10 +497,6 @@ class ray_tracing:
         x2: 3dim np.array
             stop point of the ray
 
-        returns
-        -------
-        has_solution: bool
-            true if solution exists, false otherwise
         """
         self.__logger = logging.getLogger('ray_tracing')
         self.__logger.setLevel(log_level)
@@ -536,6 +532,23 @@ class ray_tracing:
 
     def get_results(self):
         return self.__results
+
+    def get_solution_type(self, iS):
+        """ returns the type of the solution
+
+        Parameters
+        ----------
+        iS: int
+            choose for which solution to compute the launch vector, counting
+            starts at zero
+
+        Returns
+        -------
+        solution_type: string
+            * 'direct'
+            * 'refracted'
+            * 'reflected
+        """
 
     def get_launch_vector(self, iS):
         """
