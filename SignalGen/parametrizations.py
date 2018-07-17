@@ -98,7 +98,7 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
 
         f0 = 1.15 * units.GHz
         E = 2.53e-7 * energy / units.TeV * freqs / f0 / (1 + (freqs / f0) ** 1.44)
-        E *= units.V / units.m
+        E *= units.V / units.m / units.MHz
         E *= np.sin(theta) / np.sin(cherenkov_angle)
 
         if(is_em_shower):
