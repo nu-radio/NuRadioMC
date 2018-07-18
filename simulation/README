@@ -1,0 +1,2 @@
+to execute the end-to-end simulation execute:
+`python T03end_to_end.py eventlist_test01.txt SPsurfacestation.json `
