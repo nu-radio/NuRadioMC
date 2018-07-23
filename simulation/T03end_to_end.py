@@ -112,7 +112,7 @@ eventWriter.begin("test_01.ari")
 eventlist = readEventList.read_eventlist(args.inputfilename)
 weights = np.zeros(len(eventlist))
 triggered = np.zeros(len(eventlist), dtype=np.bool)
-n_events = 10000
+n_events = 1000
 
 t_start = time.time()
 for iE, event in enumerate(eventlist[:n_events]):
@@ -230,11 +230,11 @@ for iE, event in enumerate(eventlist[:n_events]):
     # start detector simulation
     # convolve efield with antenna pattern, adjust timing accordingly, account for transmission loss at boundary
     efieldToVoltageConverterPerChannel.run(evt, station, det)
-    one_sigma = 16 * units.micro * units.V
+    one_sigma = 11 * units.micro * units.V
 #     one_sigma = 16 * units.nano * units.V
     triggerSimulator.run(evt, station, det,
-                         threshold_high=4 * one_sigma,
-                         threshold_low=-4 * one_sigma,
+                         threshold_high=3 * one_sigma,
+                         threshold_low=-3 * one_sigma,
                          triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
                          number_concidences=2)
     # save events that trigger the detector
@@ -259,9 +259,9 @@ density_water = 997 * units.kg / units.m ** 3
 n_triggered = np.sum(weights[triggered])
 print('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(n_triggered, n_events, n_triggered / n_events))
 
-dX = 10 * units.km
-dY = 10 * units.km
-dZ = 3 * units.km
+dX = 2 * units.km
+dY = 2 * units.km
+dZ = 1 * units.km
 V = dX * dY * dZ
 Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
 
