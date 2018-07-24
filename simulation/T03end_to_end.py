@@ -15,7 +15,7 @@ import time
 import os
 # import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverterPerChannel
-import NuRadioReco.modules.triggerSimulator
+import NuRadioReco.modules.ARIANNA.triggerSimulator
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.framework.sim_station
@@ -105,7 +105,7 @@ station_id = 101
 
 # initialize detector sim modules
 efieldToVoltageConverterPerChannel = NuRadioReco.modules.efieldToVoltageConverterPerChannel.efieldToVoltageConverterPerChannel()
-triggerSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
+triggerSimulator = NuRadioReco.modules.ARIANNA.triggerSimulator.triggerSimulator()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 eventWriter.begin("test_01.ari")
 
@@ -242,7 +242,6 @@ for iE, event in enumerate(eventlist[:n_events]):
     eventWriter.run(evt)
 
     triggered[iE] = station.has_triggered()
-    print(station.has_triggered())
 
     # calculate weight
     weights[iE] = get_weight(zenith, energy, mode='simple')
