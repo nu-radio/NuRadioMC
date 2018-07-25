@@ -61,10 +61,8 @@ def parse_WIPLD_file(ad1, ra1, orientation):
         gains = []
         f = None
         for line in fin.readlines():
-#             print(line)
             if(line.strip().startswith('>')):
                 f = float(line.split()[4])
-#                 print(f)
             else:
                 ff2.append(f * units.GHz)
                 phi, theta, ReEphi, ImEphi, ReEtheta, ImEtheta, gain, gaindb = line.split()
@@ -74,12 +72,11 @@ def parse_WIPLD_file(ad1, ra1, orientation):
                 Ethetas.append(float(ReEtheta) + 1j * float(ImEtheta))
                 gains.append(float(gain))
 
-#                 print("{:.0f} {:.0f}".format(float(phi), float(theta)))
         if not np.array_equal(ff, np.unique(np.array(ff2))):
             logger.error("error in parsing WIPLD simulation, frequencies of ad1 and ra1 files do not match!")
             return None
-        print(np.unique(np.array(phis)))
-        print(np.unique(np.array(thetas)))
+        logger.debug(np.unique(np.array(phis)))
+        logger.debug(np.unique(np.array(thetas)))
         return zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, np.array(ff2), np.deg2rad(np.array(phis)), np.deg2rad(np.array(thetas)), np.array(Ephis), np.array(Ethetas), np.array(gains)
 
 
@@ -116,12 +113,6 @@ def preprocess_WIPLD(path):
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)
-
-#     output_filename = '{}_fromgain.pkl'.format(os.path.join(path, name, name))
-#     with open(output_filename, 'wb') as fout:
-#         logger.info('saving output to {}'.format(output_filename))
-#         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H, np.zeros_like(H)], fout, protocol=2)
-
 
 def get_WIPLD_antenna_response(path):
 
@@ -163,14 +154,14 @@ def get_WIPLD_antenna_response(path):
         folder = os.path.dirname(path)
         if(not os.path.exists(folder)):
             os.makedirs(folder)
-        print("downloading antenna pattern {} from {}. This can take a while...".format(antenna_pattern_name, URL))
+        logger.info("downloading antenna pattern {} from {}. This can take a while...".format(antenna_pattern_name, URL))
         r = requests.get(URL)
         if (r.status_code != requests.codes.ok):
-            print("error in download")
+            logger.error("error in download of antenna model")
             raise IOError
         with open(path, "wb") as code:
             code.write(r.content)
-        print("...download finished.")
+        logger.info("...download finished.")
 
 #         # does not exist yet -> precalculating WIPLD simulations from raw WIPLD output
 #         preprocess_WIPLD(path)
@@ -214,7 +205,7 @@ def parse_ARA_file(ara, orientation):
                     ff.append(f * units.MHz)
                     theta, phi, gaindB, gain, phase = tline.split()
                     if(i == 0):
-                        print(f, theta, phi, gaindB, gain, phase)
+                        logger.debug(f, theta, phi, gaindB, gain, phase)
                     phis.append(360. * units.deg)
                     thetas.append(float(theta) * units.deg)
                     gains.append(float(gain))
@@ -260,11 +251,7 @@ def preprocess_ARA(path):
     path = split[0]
     zen_boresight, azi_boresight, zen_ori, azi_ori, ff, phi, theta, gain, phase = parse_ARA_file(os.path.join(path, name, '{}.txt'.format(name)),
                                                                                                  os.path.join(path, name, '{}.orientation'.format(name)))
-#     print(np.unique(np.rad2deg(phi)))
-#     for p in np.unique(phi):
-#         print(np.sum(phi == p))
-#         mask = phi == p
-#         print(theta[mask])
+
     wavelength = c / ff
     H_theta = wavelength * (50 / (np.pi * Z_0)) ** 0.5 * gain ** 0.5  # * np.exp(1j * phase)  ## do not use phases, this will screw up the interpolation
     H_phi = H_theta * 1e-3
@@ -379,8 +366,6 @@ class AntennaPatternBase():
         e2 = hp.spherical_to_cartesian(self._zen_ori, self._azi_ori)  # vector perpendicular to tine plane
         e3 = np.cross(e1, e2)
         E = np.array([e1, e2, e3])
-#         logger.debug("antenna orientation in WIPLD= {}".format(E))
-#         print('E', E)
 
         # get normal vectors for antenne orientation in field (in ARIANNA CS)
         a1 = hp.spherical_to_cartesian(zen_boresight, azi_boresight)
@@ -389,7 +374,7 @@ class AntennaPatternBase():
         A = np.array([a1, a2, a3])
 #         logger.debug("antenna orientation in field = {}".format(A))
         from numpy.linalg import inv
-#         print('A', A, inv(A))
+
         return np.matmul(inv(E), A)
 
     def _get_theta_and_phi(self, zenith, azimuth, zen_boresight, azi_boresight, zen_ori, azi_ori):
@@ -463,7 +448,6 @@ class AntennaPatternBase():
         rot = self._get_antenna_rotation(zen_boresight, azi_boresight, zen_ori, azi_ori)
         from numpy.linalg import inv
         V_xyz = np.dot(inv(rot), V_xyz_raw)
-#         V_xyz = V_xyz_raw
 
         cstrans2 = cs.cstrafo(zenith=zenith, azimuth=azimuth)
         V_onsky = cstrans2.transform_from_ground_to_onsky(V_xyz)
@@ -491,7 +475,6 @@ class AntennaPattern(AntennaPatternBase):
         self.frequencies = np.unique(ff)
         self.frequency_lower_bound = self.frequencies[0]
         self.frequency_upper_bound = self.frequencies[-1]
-#         print("{} frequencies from {} to {}".format(len(self.frequencies), self.frequency_lower_bound, self.frequency_upper_bound))
 
         self.theta_angles = np.unique(thetas)
         self.theta_lower_bound = self.theta_angles[0]
@@ -517,19 +500,19 @@ class AntennaPattern(AntennaPatternBase):
                     index = self._get_index(iFreq, iTheta, iPhi)
 #                     print(index, iFreq, iTheta, iPhi, np.rad2deg(phis[index]), np.rad2deg(thetas[index]))
                     if (phi != phis[index]):
-                        print "phi angle has changed during theta loop"
-                        print phi / units.deg, phis[index] / units.deg
+                        logger.error("phi angle has changed during theta loop {0}, {1}".format(
+                                                phi / units.deg, phis[index] / units.deg))
                         raise Exception("phi angle has changed during theta loop")
 
                     if (theta != thetas[index]):
-                        print "theta angle has changed during theta loop"
-                        print theta / units.deg, thetas[index] / units.deg
+                        logger.error("theta angle has changed during theta loop {0}, {1}".format(
+                                                theta / units.deg, thetas[index] / units.deg)
                         raise Exception("theta angle has changed during theta loop")
 
                     if (freq != ff[index]):
-                        print "theta angle has changed during theta loop"
-                        print freq, ff[index]
-                        raise
+                        logger.error("frequency has changed {0}, {1}".format(
+                                                        freq, ff[index])
+                        raise Exception("frequency has changed")
 
         logger.info('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
 
@@ -540,10 +523,8 @@ class AntennaPattern(AntennaPatternBase):
         """
         get vector effective length in WIPLD coordinate system
         """
-#         print('initial phi', phi)
         while phi < self.phi_lower_bound:
             phi += 2 * np.pi
-#             print('+2pi = ', phi)
         while phi > self.phi_upper_bound:
             phi -= 2 * np.pi
 #             print('-2pi = ', phi)
@@ -559,7 +540,6 @@ class AntennaPattern(AntennaPatternBase):
             print self._name
             print "theta lower bound", self.theta_lower_bound, theta, self.theta_upper_bound
             print "phi lower bound", self.phi_lower_bound, phi, self.phi_upper_bound
-#             print "freq lower bound", self.frequency_lower_bound, freq, self.frequency_upper_bound
             print "theta, phi or frequency out of range, returning (0,0j)"
             print freq, self.frequency_lower_bound, self.frequency_upper_bound
             return (0, 0)
@@ -682,7 +662,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             self._zen_ori = 90 * units.deg
             self._azi_ori = 0 * units.deg
 
-    def _get_antenna_response_vectorized_raw(self, freq, theta, phi):
+    def _get_antenna_response_vectorized_raw(self, freq, theta, phi, group_delay=False):
         if(self._model == 'analytic_LPDA'):
             """
             Dummy LPDA model.
@@ -715,6 +695,11 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             H_eff_p[fmask] = Gain[fmask] * max_gain_co * 1 / freq[fmask]
             H_eff_p *= np.cos(theta) * np.cos(phi)
             H_eff_p *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
+
+            if group_delay:
+                #add here antenna model with analytic description of typical group delay
+                pass
+
 
     #         import matplotlib.pyplot as plt
     #         print theta, phi
@@ -750,28 +735,7 @@ class AntennaPatternProvider(object):
         if (name not in self._open_antenna_patterns.keys()):
             if(name.startswith("analytic")):
                 self._open_antenna_patterns[name] = AntennaPatternAnalytic(name, **kwargs)
-                print("loading analytic antenna model {}".format(name))
+                logger.info("loading analytic antenna model {}".format(name))
             else:
                 self._open_antenna_patterns[name] = AntennaPattern(name, **kwargs)
         return self._open_antenna_patterns[name]
-
-# class AntennaPatternProvider:
-#
-#     class __AntennaPatternProvider:
-#
-#         def __init__(self):
-#             self.val = arg
-#
-#         def __str__(self):
-#             return repr(self) + self.val
-#
-#     instance = None
-#
-#     def __init__(self, arg):
-#         if not AntennaPatternProvider.instance:
-#             AntennaPatternProvider.instance = AntennaPatternProvider.__AntennaPatternProvider(arg)
-#         else:
-#             AntennaPatternProvider.instance.val = arg
-#
-#     def __getattr__(self, name):
-#         return getattr(self.instance, name)
