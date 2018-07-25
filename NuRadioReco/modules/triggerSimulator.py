@@ -14,8 +14,8 @@ class triggerSimulator:
         self.__t = 0
         self.begin()
 
-    def begin(self):
-        pass
+    def begin(self, debug=False):
+        self.__debug = debug
 
     def run(self, evt, station, det, 
                             threshold = 60 * units.mV,
@@ -45,6 +45,13 @@ class triggerSimulator:
             trace = channel.get_trace()
             if np.max(np.abs(trace)) > threshold:
                 coincidences += 1
+            if self.__debug:
+                import matplotlib.pyplot as plt
+                plt.figure()
+                plt.plot(trace)
+                print np.std(trace)
+                plt.axhline(threshold)
+                plt.show()
         
         if coincidences >= number_concidences:
             station.set_triggered(True)
