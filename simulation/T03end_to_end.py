@@ -112,13 +112,14 @@ eventWriter.begin("test_01.ari")
 eventlist = readEventList.read_eventlist(args.inputfilename)
 weights = np.zeros(len(eventlist))
 triggered = np.zeros(len(eventlist), dtype=np.bool)
+n_events = len(eventlist)
 n_events = 1000
 
 t_start = time.time()
 for iE, event in enumerate(eventlist[:n_events]):
-    event_id, flavor, energy, ccnc, x, y, z, zenith, azimuth, inelasticity = event
+    event_id, flavor, energy, ccnc, x, y, z, zenith_nu, azimuth_nu, inelasticity = event
 
-    shower_axis = hp.spherical_to_cartesian(zenith, azimuth)
+    shower_axis = hp.spherical_to_cartesian(zenith_nu, azimuth_nu)
     x1 = np.array([x, y, z])
 
     # calculate correct chereknov angle for ice density at vertex position
@@ -128,6 +129,8 @@ for iE, event in enumerate(eventlist[:n_events]):
 
     # create NuRadioReco event structure
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
+    sim_station['zenith'] = zenith_nu
+    sim_station['azimuth'] = azimuth_nu
 
     candidate_event = False
 
@@ -170,7 +173,7 @@ for iE, event in enumerate(eventlist[:n_events]):
 
             fem, fhad = get_em_had_fraction(inelasticity, ccnc, flavor)
             # get neutrino pulse from Askaryan module
-            eR, eTheta, ePhi = get_frequency_spectrum(energy * fhad, viewing_angles[iS], ff, 0, n_index, R, a=1.5 * units.m)
+            eR, eTheta, ePhi = get_frequency_spectrum(energy * fhad, viewing_angles[iS], n_samples, dt, 0, n_index, R, a=1.5 * units.m)
             # apply frequency dependent attenuation
             attn = r.get_attenuation(iS, ff)
             eR *= attn
@@ -178,7 +181,7 @@ for iE, event in enumerate(eventlist[:n_events]):
             ePhi *= attn
 
             if(fem > 0 and 0):
-                eR2, eTheta2, ePhi2 = get_frequency_spectrum(energy * fem, viewing_angles[iS], ff, 1, n_index, R, a=1.5 * units.m)
+                eR2, eTheta2, ePhi2 = get_frequency_spectrum(energy * fem, viewing_angles[iS], n_samples, dt, 1, n_index, R, a=1.5 * units.m)
                 eR2 *= attn
                 eTheta2 *= attn
                 ePhi2 *= attn
@@ -228,13 +231,11 @@ for iE, event in enumerate(eventlist[:n_events]):
     station.set_station_time(evt_time)
 
     # start detector simulation
-    # convolve efield with antenna pattern, adjust timing accordingly, account for transmission loss at boundary
-    efieldToVoltageConverterPerChannel.run(evt, station, det)
+    efieldToVoltageConverterPerChannel.run(evt, station, det) # convolve efield with antenna pattern
     one_sigma = 11 * units.micro * units.V
 #     one_sigma = 16 * units.nano * units.V
     triggerSimulator.run(evt, station, det,
-                         threshold_high=3 * one_sigma,
-                         threshold_low=-3 * one_sigma,
+                         threshold=3 * one_sigma,
                          triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
                          number_concidences=2)
     # save events that trigger the detector
