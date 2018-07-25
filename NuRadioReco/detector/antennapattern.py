@@ -506,12 +506,12 @@ class AntennaPattern(AntennaPatternBase):
 
                     if (theta != thetas[index]):
                         logger.error("theta angle has changed during theta loop {0}, {1}".format(
-                                                theta / units.deg, thetas[index] / units.deg)
+                                                theta / units.deg, thetas[index] / units.deg))
                         raise Exception("theta angle has changed during theta loop")
 
                     if (freq != ff[index]):
                         logger.error("frequency has changed {0}, {1}".format(
-                                                        freq, ff[index])
+                                                        freq, ff[index]))
                         raise Exception("frequency has changed")
 
         logger.info('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
@@ -662,7 +662,20 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             self._zen_ori = 90 * units.deg
             self._azi_ori = 0 * units.deg
 
-    def _get_antenna_response_vectorized_raw(self, freq, theta, phi, group_delay=False):
+    def parametric_phase(self,freq,type='frontlobe_lpda'):
+            if type == 'frontlobe_lpda':
+                a =  0.0001* (freq - 400*units.MHz) **2 - 20
+                a[np.where(freq>400*units.MHz)] -= 0.00007*(freq[np.where(freq>400*units.MHz)]-400*units.MHz)**2
+
+            elif type == 'side_lpda':
+                a =  0.00004* (freq - 950*units.MHz) **2 - 40
+
+            elif type == 'back_lpda':
+                a =  0.00005* (freq - 950*units.MHz) **2 - 50
+
+            return a
+
+    def _get_antenna_response_vectorized_raw(self, freq, theta, phi, group_delay=None):
         if(self._model == 'analytic_LPDA'):
             """
             Dummy LPDA model.
@@ -686,7 +699,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
             # Assuming simple cosine, sine falls-off for dummy module
             H_eff_t = np.zeros_like(Gain)
-            fmask = freq > 0
+            fmask = freq >= 0
             H_eff_t[fmask] = Gain[fmask] * max_gain_cross * 1 / freq[fmask]
             H_eff_t *= np.cos(theta) * np.cos(phi)
             H_eff_t *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
@@ -696,17 +709,34 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             H_eff_p *= np.cos(theta) * np.cos(phi)
             H_eff_p *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
 
-            if group_delay:
+            if group_delay != None:
                 #add here antenna model with analytic description of typical group delay
-                pass
+                phase = self.parametric_phase(freq,group_delay)
+
+                H_eff_p = H_eff_p.astype(complex)
+                H_eff_t = H_eff_t.astype(complex)
+
+                H_eff_p *= np.exp(1j*phase)
+                H_eff_t *= np.exp(1j*phase)
 
 
-    #         import matplotlib.pyplot as plt
-    #         print theta, phi
-    #         plt.plot(H_eff_t)
-    #         plt.plot(H_eff_p)
-    #         plt.show()
-    #         1/0
+#             import matplotlib.pyplot as plt
+#             print theta, phi
+#
+#             print phase[0]
+#             print np.angle(np.exp(1j*phase))[0]
+#
+#             reverse = np.angle(np.exp(1j*phase))
+#
+#             plt.plot(freq,phase-phase[0])
+#             plt.plot(freq,np.angle(np.exp(1j*phase))-reverse[0])
+#
+#
+#             plt.figure()
+#             plt.plot(freq,np.angle(H_eff_t))
+#             plt.plot(freq,np.angle(H_eff_p))
+#             plt.show()
+#             1/0
 
             return H_eff_p, H_eff_t
 
