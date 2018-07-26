@@ -111,7 +111,7 @@ std::vector<std::vector<cf> >* Askaryan::E_omega(){
 		cf phiComp_num(0,0);
 		phiComp->push_back(phiComp_num);
 	}
-    
+
     if(_useFormFactor){
         std::vector<float>::iterator k;
         std::vector<cf>::iterator Er=rComp->begin();
@@ -129,7 +129,7 @@ std::vector<std::vector<cf> >* Askaryan::E_omega(){
             ++Ephi;
         }
     }
-    
+
 	delete K;
 	delete I_FF;
 	delete Eta;
@@ -278,7 +278,7 @@ void Askaryan::hadShower(float E){
     std::vector<float>::iterator n_max = max_element(nx->begin(),nx->end());
     float excess=0.09+dx*(std::distance(nx->begin(),n_max))/ICE_DENSITY*1.0e-4;
 	this->setNmax(excess*(*n_max)/1000.0);
-	//find depth, which is really the FWHM of this Gaisser-Hillas 
+	//find depth, which is really the FWHM of this Gaisser-Hillas
 	//formula.  I chose the 1-sigma width to better represent the gaussian.
 	std::vector<float>::iterator i;
 	for(i=nx->begin();i!=nx->end();++i){
@@ -295,7 +295,7 @@ void Askaryan::lpmEffect(){
     //"Accounts" for the "LPM effect," by "stretching" the shower profile, according to
     //Klein and Gerhardt (2010). Polynomial fit to figure 9 for EM and Hadronic.
     float prior_a = this->getAskDepthA();
-    
+
     if(_isEM){
         //EM fit parameters
         float p1 = -2.8564e2;
@@ -362,3 +362,4 @@ void Askaryan::setIndex(float n){
 	INDEX = n;
 	COS_THETA_C = 1.0/n;
 }
+
