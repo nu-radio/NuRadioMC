@@ -7,7 +7,7 @@ from io import BytesIO
 import logging
 logger = logging.getLogger("readEventList")
 
-VERSION = 0.1
+VERSION = 0.2
 
 
 def read_eventlist(filename):
@@ -18,8 +18,8 @@ def read_eventlist(filename):
             if line.startswith("VERSION"):
                 version = float(line.split("=")[1])
                 break
-        if(version != 0.2):
-            print("file version is {}. version != 0.1 not supported".format(version))
+        if(version != VERSION):
+            print("file version is {}. version != {} not supported".format(version, VERSION))
             raise NotImplementedError
 
         fin.seek(0)  # reset file to beginning

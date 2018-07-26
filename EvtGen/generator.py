@@ -1,19 +1,12 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from NuRadioMC.utilities import units
+import h5py
 
-# define simulation volume
-xmin = -5 * units.km
-xmax = 5 * units.km
-ymin = -5 * units.km
-ymax = 5 * units.km
-zmin = -3 * units.km
-zmax = 0 * units.km
+VERSION_MAJOR = 1
+VERSION_MINOR = 0
 
-HEADER = """VERSION=0.2
-# standard event list format of NuRadioMC (adapted from ARASim)
-# the very first line defines the file version, all other lines represent the events
-# each row specifies one event
+HEADER = """
 # all quantities are in the default NuRadioMC units (i.e., meters, radians and eV)
 # all geometry quantities are in the NuRadioMC default local coordinate system:
 #     coordinate origin is at the surface
@@ -38,8 +31,61 @@ HEADER = """VERSION=0.2
 
 
 def generate_eventlist(filename, n_events, Emin, Emax,
+                       xmin, xmax, ymin, ymax, zmin, zmax,
                        start_event_id=1,
-                       flavor=[12, -12, 14, -14, 16, -16]):
+                       flavor=[12, -12, 14, -14, 16, -16],
+                       n_events_per_file=None):
+    """
+    Event generator
+
+    Generates neutrino interactions, i.e., vertex positions, neutrino directions,
+    neutrino flavor, charged currend/neutral current and inelastiviy distributions.
+    All events are saved in an hdf5 file.
+
+    Parameters
+    ----------
+    filename: string
+        the output filename of the hdf5 file
+    n_events: int
+        number of events to generate
+    Emin: float
+        the minimum neutrino energy (energies are randomly chosen assuming a
+        uniform distribution in the logarithm of the energy)
+    Emax: float
+        the maximum neutrino energy (energies are randomly chosen assuming a
+        uniform distribution in the logarithm of the energy)
+    xmin: float
+        lower x coordinate of simulated volume
+    xmax: float
+        upper x coordinate of simulated volume
+    ymin: float
+        lower y coordinate of simulated volume
+    ymax: float
+        upper y coordinate of simulated volume
+    zmin: float
+        lower z coordinate of simulated volume
+    zmax: float
+        upper z coordinate of simulated volume
+    start_event: int
+        default: 1
+        event number of first event
+    flavor: array of ints
+        default: [12, -12, 14, -14, 16, -16]
+        specify which neutrino flavors to generate. A uniform distribution of
+        all specified flavors is assumed.
+        The neutrino flavor (integer) encoded as using PDF numbering scheme,
+        particles have positive sign, anti-particles have negative sign,
+        relevant for us are:
+        * 12: electron neutrino
+        * 14: muon neutrino
+        * 16: tau neutrino
+    n_events_per_file: int or None
+        the maximum number of events per output files. Default is None, which
+        means that all events are saved in one file. If 'n_events_per_file' is
+        smaller than 'n_events' the event list is split up into multiple files.
+        This is useful to split up the computing on multiple cores.
+
+    """
     n_events = int(n_events)
     event_ids = np.arange(n_events) + start_event_id
 
@@ -72,13 +118,48 @@ def generate_eventlist(filename, n_events, Emin, Emax,
     R2 = 0.63212056
     inelasticity = (-np.log(R1 + np.random.uniform(0., 1., n_events) * R2)) ** 2.5
 
-    with open(filename, 'w') as fout:
-        fout.write(HEADER)
-        for i in range(n_events):
-            fout.write("{:08d} {:>+5d}  {:.5e}  {:s}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}\n".format(event_ids[i], flavors[i], energies[i], ccncs[i], xx[i], yy[i], zz[i], zeniths[i], azimuths[i], inelasticity[i]))
+    if(n_events_per_file is None):
+        n_events_per_file = n_events
+    else:
+        n_events_per_file = int(n_events_per_file)
+    for iFile in range(np.int(np.ceil(n_events / n_events_per_file))):
+        filename2 = filename
+        if(iFile > 0):
+            filename2 = filename + ".part{:03}".format(iFile + 1)
+        fout = h5py.File(filename2, 'w')
+        fout.attrs['VERSION_MAJOR'] = VERSION_MAJOR
+        fout.attrs['VERSION_MINOR'] = VERSION_MINOR
+        fout.attrs['header'] = HEADER
+
+        fout.attrs['xmin'] = xmin
+        fout.attrs['xmax'] = xmax
+        fout.attrs['ymin'] = ymin
+        fout.attrs['ymax'] = ymax
+        fout.attrs['zmin'] = zmin
+        fout.attrs['zmax'] = zmax
+        fout.attrs['flavors'] = flavor
+
+        fout['event_ids'] = event_ids[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
+        fout['flavors'] = flavors[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
+        fout['energies'] = energies[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
+        fout['ccncs'] = ccncs[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
+        fout['xx'] = xx[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
+        fout['yy'] = yy[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
+        fout['zz'] = zz[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
+        fout['zeniths'] = zeniths[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
+        fout['azimuths'] = azimuths[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
+        fout['inelasticity'] = inelasticity[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
         fout.close()
 
 
 if __name__ == '__main__':
-    generate_eventlist('test.txt', 1e5, 1e18, 1e18)
+    # define simulation volume
+    xmin = -3 * units.km
+    xmax = 3 * units.km
+    ymin = -3 * units.km
+    ymax = 3 * units.km
+    zmin = -3 * units.km
+    zmax = 0 * units.km
+    generate_eventlist('test.hdf5', 1e5, 1e18 * units.eV, 1e18 * units.eV,
+                       xmin, xmax, ymin, ymax, zmin, zmax)
 
