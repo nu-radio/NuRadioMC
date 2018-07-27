@@ -1,2 +1,2 @@
 to execute the end-to-end simulation execute:
-`python T03end_to_end.py eventlist_test01.txt SPsurfacestation.json `
+`python T03end_to_end.py eventlist_1e19.hdf5 SPsurfacestation_2GHz.json testout.hdf5 test.ari`
