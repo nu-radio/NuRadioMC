@@ -388,6 +388,10 @@ class AntennaPatternBase():
         incoming_direction = hp.spherical_to_cartesian(zenith, azimuth)
         incoming_direction_WIPLD = np.dot(rot, incoming_direction.T).T
         theta, phi = hp.cartesian_to_spherical(*incoming_direction_WIPLD)
+        if(zenith == 180 * units.deg):
+            logger.debug(incoming_direction)
+            logger.debug(rot)
+            logger.debug(incoming_direction_WIPLD)
 #         theta = 0.5 * np.pi - theta  # in wipl D the elevation is defined with 0deg being in the x-y plane
 #         theta = hp.get_normalized_angle(theta)
 #         phi = hp.get_normalized_angle(phi)
