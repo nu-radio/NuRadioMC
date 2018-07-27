@@ -15,11 +15,13 @@ speed_of_light = scipy.constants.c * units.m / units.s
 
 class ray_tracing_2D():
 
-    def __init__(self, medium, log_level=logging.WARNING):
+    def __init__(self, medium, log_level=logging.WARNING,
+                 n_frequencies_integration=6):
         self.medium = medium
         self.__b = 2 * self.medium.n_ice
         self.__logger = logging.getLogger('ray_tracing_2D')
         self.__logger.setLevel(log_level)
+        self.__n_frequencies_integration = n_frequencies_integration
 
     def n(self, z):
         """
@@ -212,7 +214,7 @@ class ray_tracing_2D():
 
         # to speed up things we only calculate the attenuation for a few frequencies
         # and interpolate linearly between them
-        freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), 4)
+        freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), self.__n_frequencies_integration)
         tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in freqs])
         att_func = interpolate.interp1d(freqs, tmp)
         tmp2 = att_func(frequency[mask])
@@ -493,7 +495,8 @@ class ray_tracing:
     ray tracing solutions in 3D for two arbitrary points x1 and x2
     """
 
-    def __init__(self, x1, x2, medium, log_level=logging.WARNING):
+    def __init__(self, x1, x2, medium, log_level=logging.WARNING,
+                 n_frequencies_integration=6):
         """
         class initilization
 
@@ -503,6 +506,17 @@ class ray_tracing:
             start point of the ray
         x2: 3dim np.array
             stop point of the ray
+        log_level: logging object
+            specify the log level of the ray tracing class
+            * logging.ERROR
+            * logging.WARNING
+            * logging.INFO
+            * logging.DEBUG
+            default is WARNING
+        n_frequencies_integration: int
+            the number of frequencies for which the frequency dependent attenuation
+            length is being calculated. The attenuation length for all other frequencies
+            is obtained via linear interpolation.
 
         """
         self.__logger = logging.getLogger('ray_tracing')
@@ -528,7 +542,8 @@ class ray_tracing:
         self.__logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self.__X2 - self.__X1, X1r, X2r))
         self.__x1 = np.array([X1r[0], X1r[2]])
         self.__x2 = np.array([X2r[0], X2r[2]])
-        self.__r2d = ray_tracing_2D(medium, log_level=log_level)
+        self.__r2d = ray_tracing_2D(medium, log_level=log_level,
+                                    n_frequencies_integration=n_frequencies_integration)
         self.__results = self.__r2d.find_solutions(self.__x1, self.__x2)
 
     def has_solution(self):
