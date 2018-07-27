@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 from scipy.optimize import fsolve, minimize, basinhopping, root
-from scipy import optimize, integrate
+from scipy import optimize, integrate, interpolate
 import scipy.constants
 from NuRadioMC.utilities import units
 import logging
@@ -209,9 +209,16 @@ class ray_tracing_2D():
             return self.ds(t, C_0) / self.get_attenuation_length(z, frequency)
 
         mask = frequency > 0
-        tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in frequency[mask]])
+
+        # to speed up things we only calculate the attenuation for a few frequencies
+        # and interpolate linearly between them
+        freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), 4)
+        tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in freqs])
+        att_func = interpolate.interp1d(freqs, tmp)
+        tmp2 = att_func(frequency[mask])
+#         tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in frequency[mask]])
         attenuation = np.ones_like(frequency)
-        attenuation[mask] = np.exp(-1 * tmp)
+        attenuation[mask] = np.exp(-1 * tmp2)
         self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation))
         return attenuation
 
@@ -672,7 +679,7 @@ class ray_tracing:
         -------
         attenuation: array of floats
             the fraction of the signal that reaches the observer
-            (only ice attenuation, 1/R signal falloff not considered here)
+            (only ice attenuation, the 1/R signal falloff not considered here)
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
