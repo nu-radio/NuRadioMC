@@ -101,9 +101,10 @@ class Singleton(type):
 @six.add_metaclass(Singleton)
 class Detector(object):
 
-    def __init__(self, source='json', json_filename='ARIANNA/arianna_detector_db.json',assume_inf=True):
+    def __init__(self, source='json', json_filename='ARIANNA/arianna_detector_db.json',
+                 assume_inf=True):
         """
-        Initialize the stations detector properties. 
+        Initialize the stations detector properties.
 
         Parameters
         ----------
@@ -318,16 +319,14 @@ class Detector(object):
         antenna_model = ""
         if(zenith is not None and (antenna_type == 'createLPDA_100MHz')):
             if(antenna_relative_position[2] > 0):
-                if(zenith < 90 * units.deg):
+                antenna_model = "{}_InfAir".format(antenna_type)
+                if((not self.__assume_inf) and zenith < 90 * units.deg):
                     antenna_model = "{}_z1cm_InAir_RG".format(antenna_type)
-                else:
-                    antenna_model = "{}_InfAir".format(antenna_type)
             else:  # antenna in firn
-                if(zenith > 90 * units.deg):  # signal comes from below
+                antenna_model = "{}_InfFirn".format(antenna_type)
+                if((not self.__assume_inf) and zenith > 90 * units.deg):  # signal comes from below
                     antenna_model = "{}_z1cm_InFirn_RG".format(antenna_type)
                     # we need to add further distinction here
-                else:
-                    antenna_model = "{}_InfFirn".format(antenna_type)
         elif(not antenna_type.startswith('analytic')):
             if(antenna_relative_position[2] > 0):
                 antenna_model = "{}_InfAir".format(antenna_type)
