@@ -52,6 +52,7 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
         * ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information
         * Alvarez2000: what is in shelfmc
         * Alvarez2011: parametrization based on ZHS from Jaime Alvarez-Muñiz, Andrés Romero-Wolf, and Enrique Zas Phys. Rev. D 84, 103003, doi:10.1103/PhysRevD.84.103003. The model is implemented in pyrex and here only a wrapper around the pyrex code is implemented
+        * Hanson2017: analytic model from J. Hanson, A. Connolly Astroparticle Physics 91 (2017) 75-89
 
     Returns
     -------
@@ -112,6 +113,10 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
         trace = np.fft.irfft(tmp * np.exp(0.5j * np.pi)) / dt  # set phases to 90deg
         trace = np.roll(trace, int(2 * units.ns / dt))
         return trace
+
+    elif(model == 'Hanson2017'):
+        from SignalGen.RalstonBuniy import askaryan_module
+        return askaryan_module.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R)
 
 
 def get_frequency_spectrum(energy, theta, N, dt, is_em_shower, n_index, R, model):
