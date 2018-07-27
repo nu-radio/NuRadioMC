@@ -1,18 +1,19 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from radiotools import helper as hp
-from NuRadioMC.EvtGen import readEventList
-from NuRadioMC.SignalGen.RalstonBuniy.askaryan_module import get_frequency_spectrum
+from NuRadioMC.SignalGen import parametrizations as signalgen
 from NuRadioMC.utilities import units
 from NuRadioMC.SignalProp import analyticraytraycing as ray
 from NuRadioMC.utilities import medium
 from NuRadioMC.utilities import fft
 from NuRadioMC.EvtGen.weight import get_weight
 from matplotlib import pyplot as plt
+import h5py
 import argparse
 import json
 import time
 import os
+from scipy import constants
 # import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverterPerChannel
 import NuRadioReco.modules.triggerSimulator
@@ -25,11 +26,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("sim")
 
-# define time and frequency resolution of simulation
-dt = 1 * units.ns
-n_samples = 256
-ff = np.fft.rfftfreq(n_samples, dt)
-tt = np.arange(0, n_samples * dt, dt)
 evt_time = datetime.datetime(2018, 1, 1)
 
 debug = False
@@ -39,6 +35,7 @@ if not os.path.isdir(PLOT_FOLDER):
     PLOT_FOLDER = './'
 
 VERSION = 0.1
+Tnoise = 350.  # define noise temperature, the noise Vrms will be calculated depending on the bandwidth of the detector
 
 # # initialize detector simulation modules
 # det = detector.Detector(json_filename)
@@ -95,6 +92,10 @@ parser.add_argument('inputfilename', type=str,
                     help='path to NuRadioMC input event list')
 parser.add_argument('detectordescription', type=str,
                     help='path to file containing the detector description')
+parser.add_argument('outputfilename', type=str,
+                    help='hdf5 output filename')
+parser.add_argument('outputfilenameNuRadioReco', type=str,
+                    help='outputfilename of NuRadioReco detector sim file')
 # parser.add_argument('outputfilename', type=str,
 #                     help='name of output file storing the electric field traces at detector positions')
 args = parser.parse_args()
@@ -103,21 +104,49 @@ args = parser.parse_args()
 det = detector.Detector(json_filename=args.detectordescription)
 station_id = 101
 
+# read time and frequency resolution from detector (assuming all channels have the same sampling)
+dt = 1. / det.get_sampling_frequency(station_id, 0)
+bandwidth = 0.5 / dt
+n_samples = det.get_number_of_samples(station_id, 0)
+ff = np.fft.rfftfreq(n_samples, dt)
+tt = np.arange(0, n_samples * dt, dt)
+
 # initialize detector sim modules
 efieldToVoltageConverterPerChannel = NuRadioReco.modules.efieldToVoltageConverterPerChannel.efieldToVoltageConverterPerChannel()
 triggerSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-eventWriter.begin("test_01.ari")
+eventWriter.begin(args.outputfilenameNuRadioReco)
 
-eventlist = readEventList.read_eventlist(args.inputfilename)
-weights = np.zeros(len(eventlist))
-triggered = np.zeros(len(eventlist), dtype=np.bool)
-n_events = len(eventlist)
+fin = h5py.File(args.inputfilename, 'r')
+n_events = len(fin['event_ids'])
+n_antennas = det.get_number_of_channels(station_id)
+
+# define arrays that will be saved at the end
+weights = np.zeros(n_events)
+triggered = np.zeros(n_events, dtype=np.bool)
+launch_vectors = np.zeros((n_events, n_antennas, 2, 3))
+receive_vectors = np.zeros((n_events, n_antennas, 2, 3))
+ray_tracing_C0 = np.zeros((n_events, n_antennas, 2))
+ray_tracing_C1 = np.zeros((n_events, n_antennas, 2))
+travel_times = np.zeros((n_events, n_antennas, 2))
+travel_distances = np.zeros((n_events, n_antennas, 2))
+
 n_events = 1000
 
 t_start = time.time()
-for iE, event in enumerate(eventlist[:n_events]):
-    event_id, flavor, energy, ccnc, x, y, z, zenith_nu, azimuth_nu, inelasticity = event
+for iE in range(n_events):
+    print(iE)
+    # read all quantities from hdf5 file and store them in local variables
+    event_id = fin['event_ids'][iE]
+    flavor = fin['flavors'][iE]
+    energy = fin['energies'][iE]
+    ccnc = fin['ccncs'][iE]
+    x = fin['xx'][iE]
+    y = fin['yy'][iE]
+    z = fin['zz'][iE]
+    zenith_nu = fin['zeniths'][iE]
+    azimuth_nu = fin['azimuths'][iE]
+    inelasticity = fin['inelasticity'][iE]
 
     shower_axis = hp.spherical_to_cartesian(zenith_nu, azimuth_nu)
     x1 = np.array([x, y, z])
@@ -129,8 +158,14 @@ for iE, event in enumerate(eventlist[:n_events]):
 
     # create NuRadioReco event structure
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
-    sim_station['zenith'] = zenith_nu
-    sim_station['azimuth'] = azimuth_nu
+    # save relevant neutrino properties
+    sim_station['zenith_nu'] = zenith_nu
+    sim_station['azimuth_nu'] = azimuth_nu
+    sim_station['energy'] = energy
+    sim_station['flavor'] = flavor
+    sim_station['ccnc'] = ccnc
+    sim_station['vertex'] = np.array([x, y, z])
+    sim_station['inelasticity'] = inelasticity
 
     candidate_event = False
 
@@ -146,6 +181,7 @@ for iE, event in enumerate(eventlist[:n_events]):
         viewing_angles = []
         for iS in range(r.get_number_of_solutions()):  # loop through all ray tracing solution
             launch_vector = r.get_launch_vector(iS)
+            launch_vectors[iE, channel_id, iS] = launch_vector
             viewing_angle = hp.get_angle(shower_axis, launch_vector)  # calculates angle between shower axis and launch vector
             viewing_angles.append(viewing_angle)
             dRho = (viewing_angle - rho)
@@ -167,31 +203,40 @@ for iE, event in enumerate(eventlist[:n_events]):
             R = r.get_path_length(iS)  # calculate path length
             Rs[iS] = R
             T = r.get_travel_time(iS)  # calculate travel time
+            travel_distances[iE, channel_id, iS] = R
+            travel_times[iE, channel_id, iS] = T
             Ts[iS] = T
             logger.debug("R = {:.1f} m, t = {:.1f}ns".format(R / units.m, T / units.ns))
 #             eR, eTheta, ePhi = get_frequency_spectrum(energy, viewing_angles[iS], ff, 0, n, R)
 
             fem, fhad = get_em_had_fraction(inelasticity, ccnc, flavor)
             # get neutrino pulse from Askaryan module
-            eR, eTheta, ePhi = get_frequency_spectrum(energy * fhad, viewing_angles[iS], n_samples, dt, 0, n_index, R, a=1.5 * units.m)
+#             eR, eTheta, ePhi = signalgen.get_frequency_spectrum(energy * fhad, viewing_angles[iS], n_samples, dt, 0, n_index, R, 'Alvarez2000')
+            eTheta = signalgen.get_frequency_spectrum(energy * fhad, viewing_angles[iS], n_samples, dt, 0, n_index, R, 'Alvarez2000')
+
             # apply frequency dependent attenuation
             attn = r.get_attenuation(iS, ff)
-            eR *= attn
+#             eR *= attn
             eTheta *= attn
-            ePhi *= attn
+#             ePhi *= attn
 
             if(fem > 0 and 0):
-                eR2, eTheta2, ePhi2 = get_frequency_spectrum(energy * fem, viewing_angles[iS], n_samples, dt, 1, n_index, R, a=1.5 * units.m)
-                eR2 *= attn
+                eTheta2 = signalgen.get_frequency_spectrum(energy * fem, viewing_angles[iS], n_samples, dt, 1, n_index, R, 'Alvarez2000')
+#                 eR2 *= attn
                 eTheta2 *= attn
-                ePhi2 *= attn
+#                 ePhi2 *= attn
                 # add EM signal to had signal in the time domain
-                eR = fft.time2freq(fft.freq2time(eR) + fft.freq2time(eR2))
+#                 eR = fft.time2freq(fft.freq2time(eR) + fft.freq2time(eR2))
                 eTheta = fft.time2freq(fft.freq2time(eTheta) + fft.freq2time(eTheta2))
-                ePhi = fft.time2freq(fft.freq2time(ePhi) + fft.freq2time(ePhi2))
+#                 ePhi = fft.time2freq(fft.freq2time(ePhi) + fft.freq2time(ePhi2))
 
             receive_vector = r.get_receive_vector(iS)
+            receive_vectors[iE, channel_id, iS] = receive_vector  # save receive vector
             zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
+
+            # TODO rotate the signal vector according to its zenith angle
+            eR = np.zeros_like(eTheta)
+            ePhi = np.zeros_like(eTheta)
 
             # in case of a reflected ray we need to account for fresnel reflection at the surface
             if(r.get_solution_type(iS) == 'reflected'):
@@ -200,7 +245,7 @@ for iE, event in enumerate(eventlist[:n_events]):
                 r_perpendicular = geo_utl.get_fresnel_r_perpendicular(zenith, n_2=1., n_1=ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
 
                 eTheta *= r_parallel
-                ePhi *= r_perpendicular
+#                 ePhi *= r_perpendicular
                 logger.debug("reflection coefficient is r_parallel = {:.2f}, r_perpendicular = {:.2f}".format(r_parallel, r_perpendicular))
 
             if(debug):
@@ -223,6 +268,7 @@ for iE, event in enumerate(eventlist[:n_events]):
     if(not candidate_event):
         continue
 
+    logger.info("performing detector simulation")
     # finalize NuRadioReco event structure
     station = NuRadioReco.framework.station.Station(station_id)
     station.set_sim_station(sim_station)
@@ -231,16 +277,19 @@ for iE, event in enumerate(eventlist[:n_events]):
     station.set_station_time(evt_time)
 
     # start detector simulation
-    efieldToVoltageConverterPerChannel.run(evt, station, det) # convolve efield with antenna pattern
-    one_sigma = 11 * units.micro * units.V
+    efieldToVoltageConverterPerChannel.run(evt, station, det)  # convolve efield with antenna pattern
+    Vrms = (Tnoise * 50 * constants.k * bandwidth / units.Hz) ** 0.5
+    logger.info("Vrms= {:.2f}muV".format(Vrms / units.V / units.micro))
+#     one_sigma = 11 * units.micro * units.V
 #     one_sigma = 16 * units.nano * units.V
     triggerSimulator.run(evt, station, det,
-                         threshold=3 * one_sigma,
+                         threshold=3 * Vrms,
                          triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
                          number_concidences=2)
     # save events that trigger the detector
-#     if(station.has_triggered()):
-    eventWriter.run(evt)
+    if(station.has_triggered()):
+        eventWriter.run(evt)
+        logger.info("event triggered")
 
     triggered[iE] = station.has_triggered()
 
@@ -248,6 +297,19 @@ for iE, event in enumerate(eventlist[:n_events]):
     weights[iE] = get_weight(zenith, energy, mode='simple')
 
 eventWriter.end()  # close output file
+
+# save simulation run in hdf5 format
+fout = h5py.File(args.outputfilename, 'w')
+fin.copy(fin['/'], fout['/'], name='/events')
+fout_evts = fout['events']
+fout_evts['launch_vectors'] = launch_vectors
+fout_evts['receive_vectors'] = receive_vectors
+fout_evts['travel_times'] = travel_times
+fout_evts['travel_distances'] = travel_distances
+fout_evts['ray_tracing_C0'] = ray_tracing_C0
+fout_evts['ray_tracing_C1'] = ray_tracing_C1
+fout_evts['triggered'] = triggered
+fout_evts['weights'] = weights
 
 t_total = time.time() - t_start
 logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(n_events, t_total, 1.e3 * t_total / n_events))
@@ -259,12 +321,14 @@ density_water = 997 * units.kg / units.m ** 3
 n_triggered = np.sum(weights[triggered])
 print('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(n_triggered, n_events, n_triggered / n_events))
 
-dX = 2 * units.km
-dY = 2 * units.km
-dZ = 1 * units.km
+dX = fin.attrs['xmax'] - fin.attrs['xmin']
+dY = fin.attrs['ymax'] - fin.attrs['ymin']
+dZ = fin.attrs['zmax'] - fin.attrs['zmin']
 V = dX * dY * dZ
 Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
 
 print("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
 #     a = 1 / 0
+fin.close()
+fout.close()
 
