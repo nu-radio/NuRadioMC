@@ -1,0 +1,52 @@
+{
+    "_default": {},
+    "comment": {
+		"1": "a 10m deep dipole with 1GHz sampling, i.e., the bandwidth is 0-500MHz"
+	},
+	"channels": {
+		"1": {
+			"adc_id": null,
+			"adc_n_samples": 256,
+			"adc_nbits": null,
+			"adc_sampling_frequency": 1.0,
+			"adc_time_delay": null,
+			"amp_reference_measurement": null,
+			"amp_type": "300",
+			"ant_comment": "South Pole Station channel1",
+			"ant_orientation_phi": 0.0,
+			"ant_orientation_theta": 0.0,
+			"ant_position_x": 0.0,
+			"ant_position_y": 0.0,
+			"ant_position_z": -10.0,
+			"ant_rotation_phi": 90.0,
+			"ant_rotation_theta": 90.0,
+			"ant_type": "bicone_v8",
+			"cab_id": "17-09",
+			"cab_length": 5.0,
+			"cab_reference_measurement": null,
+			"cab_time_delay": 19.8,
+			"cab_type": "LMR_400",
+			"channel_id": 0,
+			"commission_time": "{TinyDate}:2017-11-01T00:00:00",
+			"decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+			"station_id": 101
+		}
+	},
+	"stations": {
+		"1": {
+			"MAC_address": "0002F7F2E7B9",
+			"MBED_type": "v1",
+			"board_number": 203,
+			"commission_time": "{TinyDate}:2017-11-04T00:00:00",
+			"decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+			"pos_altitude": 2800.0,
+			"pos_easting": null,
+			"pos_measurement_time": null,
+			"pos_position": "SP1",
+			"pos_site": "southpole",
+			"position": "SP1",
+			"station_id": 101,
+			"station_type": null
+		}
+	}
+}
