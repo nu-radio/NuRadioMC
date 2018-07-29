@@ -4,5 +4,7 @@
 	"createLPDA_100MHz_InfFirn.pkl": "e594b5924a1832df4058eec56d84dfb6242aaeec",
 	"createLPDA_100MHz_z1cm_InAir_RG.pkl": "fd1eecde1d66578f46f0bdf23cc01ca587c648cf",
 	"createLPDA_100MHz_z1cm_InFirn_RG.pkl": "3f7069a0191de9996d3a2c41fb98dc188dd59c22",
-	"dip7cm_z1m_InFirn_RG.pkl": "cb621e6b52ef0261acda32111d5313509cad4ecb"
+	"dip7cm_z1m_InFirn_RG.pkl": "cb621e6b52ef0261acda32111d5313509cad4ecb",
+	"bicone_v8_InfFirn.pkl": "1208a686274160386134b9ad856b00f0ed597258",
+	"bicone_v8_InfAir.pkl": "9ba84a59a0e79fcc5f1e4f9057f9b8e1231ec396"
 }
