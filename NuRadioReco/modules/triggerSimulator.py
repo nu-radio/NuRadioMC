@@ -7,7 +7,7 @@ logger = logging.getLogger('triggerSimulator')
 
 class triggerSimulator:
     """
-    Calculate a very simple amplitude trigger. 
+    Calculate a very simple amplitude trigger.
     """
 
     def __init__(self):
@@ -17,10 +17,10 @@ class triggerSimulator:
     def begin(self, debug=False):
         self.__debug = debug
 
-    def run(self, evt, station, det, 
-                            threshold = 60 * units.mV,
-                            number_concidences=2,
-                            triggered_channels=[0, 1, 2, 3]):
+    def run(self, evt, station, det,
+            threshold=60 * units.mV,
+            number_concidences=1,
+            triggered_channels=None):
         """
         simulate simple trigger logic, no time window, just threshold in all channels
 
@@ -29,18 +29,17 @@ class triggerSimulator:
         number_concidences: int
             number of channels that are requried in coincidence to trigger a station
         threshold: float
-            threshold above (or below) a trigger is issued, absolute amplitude     
-        triggered_channels: array of ints
-            channels ids that are triggered on     
+            threshold above (or below) a trigger is issued, absolute amplitude
+        triggered_channels: array of ints or None
+            channels ids that are triggered on, if None trigger will run on all channels
         """
         t = time.time()
-        
 
         coincidences = 0
 
         for channel in station.get_channels():
             channel_id = channel.get_id()
-            if channel_id not in triggered_channels:
+            if triggered_channels is not None and channel_id not in triggered_channels:
                 continue
             trace = channel.get_trace()
             if np.max(np.abs(trace)) > threshold:
@@ -52,7 +51,7 @@ class triggerSimulator:
                 print np.std(trace)
                 plt.axhline(threshold)
                 plt.show()
-        
+
         if coincidences >= number_concidences:
             station.set_triggered(True)
         else:
