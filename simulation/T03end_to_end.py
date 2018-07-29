@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from radiotools import helper as hp
+from radiotools import coordinatesystems as cstrans
 from NuRadioMC.SignalGen import parametrizations as signalgen
 from NuRadioMC.utilities import units
 from NuRadioMC.SignalProp import analyticraytraycing as ray
@@ -94,7 +95,7 @@ parser.add_argument('detectordescription', type=str,
                     help='path to file containing the detector description')
 parser.add_argument('outputfilename', type=str,
                     help='hdf5 output filename')
-parser.add_argument('outputfilenameNuRadioReco', type=str,
+parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
                     help='outputfilename of NuRadioReco detector sim file')
 # parser.add_argument('outputfilename', type=str,
 #                     help='name of output file storing the electric field traces at detector positions')
@@ -115,7 +116,8 @@ tt = np.arange(0, n_samples * dt, dt)
 efieldToVoltageConverterPerChannel = NuRadioReco.modules.efieldToVoltageConverterPerChannel.efieldToVoltageConverterPerChannel()
 triggerSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-eventWriter.begin(args.outputfilenameNuRadioReco)
+if(args.outputfilenameNuRadioReco is not None):
+    eventWriter.begin(args.outputfilenameNuRadioReco)
 
 fin = h5py.File(args.inputfilename, 'r')
 n_events = len(fin['event_ids'])
@@ -128,14 +130,12 @@ launch_vectors = np.zeros((n_events, n_antennas, 2, 3))
 receive_vectors = np.zeros((n_events, n_antennas, 2, 3))
 ray_tracing_C0 = np.zeros((n_events, n_antennas, 2))
 ray_tracing_C1 = np.zeros((n_events, n_antennas, 2))
+polarization = np.zeros((n_events, n_antennas, 2))
 travel_times = np.zeros((n_events, n_antennas, 2))
 travel_distances = np.zeros((n_events, n_antennas, 2))
 
-n_events = 1000
-
 t_start = time.time()
 for iE in range(n_events):
-    print(iE)
     # read all quantities from hdf5 file and store them in local variables
     event_id = fin['event_ids'][iE]
     flavor = fin['flavors'][iE]
@@ -234,9 +234,14 @@ for iE in range(n_events):
             receive_vectors[iE, channel_id, iS] = receive_vector  # save receive vector
             zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
 
-            # TODO rotate the signal vector according to its zenith angle
-            eR = np.zeros_like(eTheta)
-            ePhi = np.zeros_like(eTheta)
+            # TODO verify that calculation of polarization vector is correct!
+            polarization_direction = np.cross(receive_vector, np.cross(shower_axis, receive_vector))
+            polarization_direction /= np.linalg.norm(polarization_direction)
+            cs = cstrans.cstrafo(zenith, azimuth)
+            polarization_direction_onsky = cs.transform_from_ground_to_onsky(polarization_direction)
+            polarization[iE, channel_id, iS] = np.arctan2(polarization_direction_onsky[1], polarization_direction_onsky[2])
+            eR, eTheta, ePhi = np.outer(polarization_direction_onsky, eTheta)
+#             print("{} {:.2f} {:.0f}".format(polarization_direction_onsky, np.linalg.norm(polarization_direction_onsky), np.arctan2(np.abs(polarization_direction_onsky[1]), np.abs(polarization_direction_onsky[2])) / units.deg))
 
             # in case of a reflected ray we need to account for fresnel reflection at the surface
             if(r.get_solution_type(iS) == 'reflected'):
@@ -245,7 +250,7 @@ for iE in range(n_events):
                 r_perpendicular = geo_utl.get_fresnel_r_perpendicular(zenith, n_2=1., n_1=ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
 
                 eTheta *= r_parallel
-#                 ePhi *= r_perpendicular
+                ePhi *= r_perpendicular
                 logger.debug("reflection coefficient is r_parallel = {:.2f}, r_perpendicular = {:.2f}".format(r_parallel, r_perpendicular))
 
             if(debug):
@@ -284,32 +289,41 @@ for iE in range(n_events):
 #     one_sigma = 16 * units.nano * units.V
     triggerSimulator.run(evt, station, det,
                          threshold=3 * Vrms,
-                         triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
-                         number_concidences=2)
+                         triggered_channels=None,
+#                          triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
+#                          triggered_channels=[0, 1, 2, 3],
+                         number_concidences=1)
     # save events that trigger the detector
     if(station.has_triggered()):
-        eventWriter.run(evt)
+        if(args.outputfilenameNuRadioReco is not None):
+            eventWriter.run(evt)
         logger.info("event triggered")
 
     triggered[iE] = station.has_triggered()
 
     # calculate weight
-    weights[iE] = get_weight(zenith, energy, mode='simple')
+    weights[iE] = get_weight(zenith_nu, energy, mode='simple')
 
-eventWriter.end()  # close output file
+if(args.outputfilenameNuRadioReco is not None):
+    eventWriter.end()  # close output file
 
-# save simulation run in hdf5 format
+# save simulation run in hdf5 format (only triggered events)
 fout = h5py.File(args.outputfilename, 'w')
-fin.copy(fin['/'], fout['/'], name='/events')
-fout_evts = fout['events']
-fout_evts['launch_vectors'] = launch_vectors
-fout_evts['receive_vectors'] = receive_vectors
-fout_evts['travel_times'] = travel_times
-fout_evts['travel_distances'] = travel_distances
-fout_evts['ray_tracing_C0'] = ray_tracing_C0
-fout_evts['ray_tracing_C1'] = ray_tracing_C1
-fout_evts['triggered'] = triggered
-fout_evts['weights'] = weights
+for key in fin.keys():
+    fout[key] = fin[key][triggered]
+for key in fin.attrs.keys():
+    fout.attrs[key] = fin.attrs[key]
+fout.attrs['n_events'] = n_events
+# fin.copy(fin['/'], fout['/'], name='/events')
+fout['launch_vectors'] = launch_vectors[triggered]
+fout['receive_vectors'] = receive_vectors[triggered]
+fout['travel_times'] = travel_times[triggered]
+fout['travel_distances'] = travel_distances[triggered]
+fout['ray_tracing_C0'] = ray_tracing_C0[triggered]
+fout['ray_tracing_C1'] = ray_tracing_C1[triggered]
+fout['triggered'] = triggered[triggered]
+fout['weights'] = weights[triggered]
+fout['polarization'] = polarization[triggered]
 
 t_total = time.time() - t_start
 logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(n_events, t_total, 1.e3 * t_total / n_events))
