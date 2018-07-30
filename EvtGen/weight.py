@@ -28,13 +28,13 @@ def get_simple_weight(theta_nu, pnu):
     Parameters
     ----------
     theta_nu: float or array of floats
-        the zenith angle of the neutrino direction
+        the zenith angle of the neutrino direction (into the direction of propagation)
     pnu: float or array of floats
         the momentum of the neutrino
     """
-    if(theta_nu < 0.5 * np.pi):
+    if(theta_nu >= 0.5 * np.pi):  # coming from below
         return np.ones_like(theta_nu)
     else:
         sigma = (7.84e-40) * units.m2 * (pnu / units.GeV) ** 0.363
-        d = 2 * R_earth * np.sin(theta_nu)
+        d = 2 * R_earth * np.cos(theta_nu)
         return np.exp(-d * sigma * DensityCRUST / AMU)
