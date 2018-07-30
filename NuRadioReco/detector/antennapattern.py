@@ -679,7 +679,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
             return a
 
-    def _get_antenna_response_vectorized_raw(self, freq, theta, phi, group_delay=None):
+    def _get_antenna_response_vectorized_raw(self, freq, theta, phi, group_delay='frontlobe_lpda'):
         if(self._model == 'analytic_LPDA'):
             """
             Dummy LPDA model.
@@ -694,7 +694,6 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             from scipy.signal import hann
             filter = hann(2 * index)
             Gain[:index] = filter[:index]
-#             H_eff = 1. / freq * Gain
 
             # at WIPL-D (1,0,0) Gain max for e_theta (?? I hope)
             # Standard units, deliver H_eff in meters
@@ -705,12 +704,12 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             H_eff_t = np.zeros_like(Gain)
             fmask = freq >= 0
             H_eff_t[fmask] = Gain[fmask] * max_gain_cross * 1 / freq[fmask]
-            H_eff_t *= np.cos(theta) * np.cos(phi)
+            H_eff_t *= np.cos(theta) * np.sin(phi)
             H_eff_t *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
 
             H_eff_p = np.zeros_like(Gain)
             H_eff_p[fmask] = Gain[fmask] * max_gain_co * 1 / freq[fmask]
-            H_eff_p *= np.cos(theta) * np.cos(phi)
+            H_eff_p *= np.cos(phi)
             H_eff_p *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
 
             if group_delay != None:
@@ -722,25 +721,6 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
                 H_eff_p *= np.exp(1j*phase)
                 H_eff_t *= np.exp(1j*phase)
-
-
-#             import matplotlib.pyplot as plt
-#             print theta, phi
-#
-#             print phase[0]
-#             print np.angle(np.exp(1j*phase))[0]
-#
-#             reverse = np.angle(np.exp(1j*phase))
-#
-#             plt.plot(freq,phase-phase[0])
-#             plt.plot(freq,np.angle(np.exp(1j*phase))-reverse[0])
-#
-#
-#             plt.figure()
-#             plt.plot(freq,np.angle(H_eff_t))
-#             plt.plot(freq,np.angle(H_eff_p))
-#             plt.show()
-#             1/0
 
             return H_eff_p, H_eff_t
 
