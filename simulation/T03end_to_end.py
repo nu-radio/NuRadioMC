@@ -183,6 +183,8 @@ for iE in range(n_events):
         dRhos = []
         viewing_angles = []
         for iS in range(r.get_number_of_solutions()):  # loop through all ray tracing solution
+            ray_tracing_C0[iE, channel_id, iS] = r.get_results()[iS]['C0']
+            ray_tracing_C1[iE, channel_id, iS] = r.get_results()[iS]['C1']
             launch_vector = r.get_launch_vector(iS)
             launch_vectors[iE, channel_id, iS] = launch_vector
             viewing_angle = hp.get_angle(shower_axis, launch_vector)  # calculates angle between shower axis and launch vector
