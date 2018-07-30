@@ -1,2 +1,2 @@
 to execute the end-to-end simulation execute:
-`python T03end_to_end.py eventlist_1e19.hdf5 SPsurfacestation_2GHz.json testout.hdf5 test.ari`
+`python T03end_to_end.py event_input/1e18_n1e5.hdf5 detectors/depth/surface_1GHz.json output/surface_1e8eV.hdf5`
