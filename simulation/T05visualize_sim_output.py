@@ -10,7 +10,7 @@ import json
 import time
 import os
 
-parser = argparse.ArgumentParser(description='Parse ARA event list.')
+parser = argparse.ArgumentParser(description='Plot NuRadioMC event list output.')
 parser.add_argument('inputfilename', type=str,
                     help='path to NuRadioMC hdf5 simulation output')
 # parser.add_argument('outputfilename', type=str,
@@ -20,6 +20,23 @@ args = parser.parse_args()
 fin = h5py.File(args.inputfilename, 'r')
 
 weights = np.array(fin['weights'])
+triggered = np.array(fin['triggered'])
+n_events = fin.attrs['n_events']
+
+# calculate effective
+density_ice = 0.9167 * units.g / units.cm ** 3
+density_water = 997 * units.kg / units.m ** 3
+
+n_triggered = np.sum(weights[triggered])
+print('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(n_triggered, n_events, n_triggered / n_events))
+
+dX = fin.attrs['xmax'] - fin.attrs['xmin']
+dY = fin.attrs['ymax'] - fin.attrs['ymin']
+dZ = fin.attrs['zmax'] - fin.attrs['zmin']
+V = dX * dY * dZ
+Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
+
+print("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
 
 # plot vertex distribution
 fig, ax = plt.subplots(1, 1)
@@ -42,6 +59,7 @@ receive_vectors = np.array(fin['receive_vectors'])
 zeniths, azimuths = hp.cartesian_to_spherical_vectorized(receive_vectors[:, :, :, 0].flatten(),
                                                          receive_vectors[:, :, :, 1].flatten(),
                                                          receive_vectors[:, :, :, 2].flatten())
+azimuths = hp.get_normalized_angle(azimuths)
 weights_matrix = np.outer(weights, np.ones(np.prod(receive_vectors.shape[1:-1]))).flatten()
 mask = ~np.isnan(azimuths)  # exclude antennas with not ray tracing solution (or with just one ray tracing solution)
 fig, axs = php.get_histograms([zeniths[mask] / units.deg, azimuths[mask] / units.deg],
@@ -52,18 +70,23 @@ fig.suptitle('incoming signal direction')
 
 # plot polarization
 polarization = np.array(fin['polarization']).flatten()
+polarization = np.abs(polarization)
+polarization[polarization > 90 * units.deg] = 180 * units.deg - polarization[polarization > 90 * units.deg]
+bins = np.arange(0, 90, 10)
 # for all events, antennas and ray tracing solutions
 mask = zeniths > 90 * units.deg  # select rays coming from below
-fig, ax = php.get_histogram(polarization[mask] / units.deg,
-                            bins=np.arange(-180, 181, 45),
+fig, ax = php.get_histogram(polarization / units.deg,
+                            bins=bins,
+                            xlabel='polarization [deg]',
+                            weights=weights_matrix, stats=False)
+maxy = ax.get_ylim()
+php.get_histogram(polarization[mask] / units.deg,
+                            bins=bins,
                             xlabel='polarization [deg]',
                             weights=weights_matrix[mask], stats=False,
-                             kwargs={'facecolor':'C1', 'alpha':1, 'edgecolor':"k"})
-php.get_histogram(polarization[~mask] / units.deg,
-                            bins=np.arange(-180, 181, 45),
-                            xlabel='polarization [deg]',
-                            weights=weights_matrix[~mask], stats=False,
-                            ax=ax)
+                            ax=ax, kwargs={'facecolor':'C0', 'alpha':1, 'edgecolor':"k"})
+ax.set_xticks(bins)
+ax.set_ylim(maxy)
 
 # fig.suptitle('incoming signal direction')
 

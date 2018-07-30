@@ -24,7 +24,7 @@ import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.channel
 import datetime
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("sim")
 
 evt_time = datetime.datetime(2018, 1, 1)
@@ -88,7 +88,7 @@ def get_em_had_fraction(inelasticity, ccnc, flavor):
     return fem, fhad
 
 
-parser = argparse.ArgumentParser(description='Parse ARA event list.')
+parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('inputfilename', type=str,
                     help='path to NuRadioMC input event list')
 parser.add_argument('detectordescription', type=str,
@@ -136,6 +136,9 @@ travel_distances = np.zeros((n_events, n_antennas, 2))
 
 t_start = time.time()
 for iE in range(n_events):
+    if(iE > 0 and iE % 1000 == 0):
+        eta = datetime.timedelta(seconds=(time.time() - t_start) * (n_events - iE) / iE)
+        print("processing event {}/{} = {}%, ETA {}".format(iE, n_events, 100. * iE / n_events, eta))
     # read all quantities from hdf5 file and store them in local variables
     event_id = fin['event_ids'][iE]
     flavor = fin['flavors'][iE]

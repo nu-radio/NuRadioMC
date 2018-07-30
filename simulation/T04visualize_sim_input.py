@@ -10,7 +10,7 @@ import json
 import time
 import os
 
-parser = argparse.ArgumentParser(description='Parse ARA event list.')
+parser = argparse.ArgumentParser(description='Plot NuRadioMC event list input')
 parser.add_argument('inputfilename', type=str,
                     help='path to NuRadioMC hdf5 simulation input')
 # parser.add_argument('outputfilename', type=str,
