@@ -37,12 +37,16 @@ class triggerSimulator:
 
         coincidences = 0
 
+        max_signal = 0
+
         for channel in station.get_channels():
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
                 continue
             trace = channel.get_trace()
-            if np.max(np.abs(trace)) > threshold:
+            maximum = np.max(np.abs(trace))
+            max_signal = max(max_signal, maximum)
+            if maximum > threshold:
                 coincidences += 1
             if self.__debug:
                 import matplotlib.pyplot as plt
@@ -51,6 +55,8 @@ class triggerSimulator:
                 print np.std(trace)
                 plt.axhline(threshold)
                 plt.show()
+
+        station.set_parameter("channels_max_amplitude", max_signal)
 
         if coincidences >= number_concidences:
             station.set_triggered(True)
