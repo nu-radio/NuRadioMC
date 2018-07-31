@@ -4,6 +4,7 @@ from radiotools import helper as hp
 from radiotools import plthelpers as php
 from matplotlib import pyplot as plt
 from NuRadioMC.utilities import units
+from NuRadioMC.utilities import medium
 import h5py
 import argparse
 import json
@@ -16,6 +17,12 @@ parser.add_argument('inputfilename', type=str,
 # parser.add_argument('outputfilename', type=str,
 #                     help='name of output file storing the electric field traces at detector positions')
 args = parser.parse_args()
+
+filename = os.path.splitext(os.path.basename(args.inputfilename))[0]
+dirname = os.path.dirname(args.inputfilename)
+plot_folder = os.path.join(dirname, 'plots', filename)
+if(not os.path.exists(plot_folder)):
+    os.makedirs(plot_folder)
 
 fin = h5py.File(args.inputfilename, 'r')
 
@@ -52,6 +59,7 @@ ax.set_aspect('equal')
 ax.set_xlabel("r [m]")
 ax.set_ylabel("z [m]")
 fig.tight_layout()
+fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'))
 
 # plot incoming direction
 receive_vectors = np.array(fin['receive_vectors'])
@@ -67,27 +75,56 @@ fig, axs = php.get_histograms([zeniths[mask] / units.deg, azimuths[mask] / units
                               xlabels=['zenith [deg]', 'azimuth [deg]'],
                               weights=weights_matrix[mask], stats=False)
 fig.suptitle('incoming signal direction')
+fig.savefig(os.path.join(plot_folder, 'incoming_signal.png'))
 
 # plot polarization
 polarization = np.array(fin['polarization']).flatten()
 polarization = np.abs(polarization)
 polarization[polarization > 90 * units.deg] = 180 * units.deg - polarization[polarization > 90 * units.deg]
-bins = np.arange(0, 90, 10)
+bins = np.linspace(0, 90, 50)
+
 # for all events, antennas and ray tracing solutions
 mask = zeniths > 90 * units.deg  # select rays coming from below
 fig, ax = php.get_histogram(polarization / units.deg,
                             bins=bins,
                             xlabel='polarization [deg]',
-                            weights=weights_matrix, stats=False)
+                            weights=weights_matrix, stats=False,
+                            figsize=(6, 6))
 maxy = ax.get_ylim()
 php.get_histogram(polarization[mask] / units.deg,
-                            bins=bins,
-                            xlabel='polarization [deg]',
-                            weights=weights_matrix[mask], stats=False,
-                            ax=ax, kwargs={'facecolor':'C0', 'alpha':1, 'edgecolor':"k"})
-ax.set_xticks(bins)
+                  bins=bins,
+                  xlabel='polarization [deg]',
+                  weights=weights_matrix[mask], stats=False,
+                  ax=ax, kwargs={'facecolor': 'C0', 'alpha': 1, 'edgecolor': "k"})
+# ax.set_xticks(bins)
 ax.set_ylim(maxy)
+fig.tight_layout()
+fig.savefig(os.path.join(plot_folder, 'polarization.png'))
 
+fig, ax = php.get_histogram(np.array(fin['zeniths']) / units.deg, weights=weights,
+                            ylabel='weighted entries', xlabel='zenith angle [deg]',
+                            bins=np.arange(0, 181, 5), figsize=(6, 6))
+ax.set_xticks(np.arange(0, 181, 45))
+fig.tight_layout()
+fig.savefig(os.path.join(plot_folder, 'neutrino_direction.png'))
+
+shower_axis = hp.spherical_to_cartesian(np.array(fin['zeniths']), np.array(fin['azimuths']))
+launch_vectors = np.array(fin['launch_vectors'])
+viewing_angles = np.array([hp.get_angle(x, y) for x, y in zip(shower_axis, launch_vectors[:, 0, 0])])
+
+# calculate correct chereknov angle for ice density at vertex position
+ice = medium.southpole_simple()
+n_indexs = np.array([ice.get_index_of_refraction(x) for x in np.array([np.array(fin['xx']), np.array(fin['yy']), np.array(fin['zz'])]).T])
+rho = np.arccos(1. / n_indexs)
+
+mask = ~np.isnan(viewing_angles)
+fig, ax = php.get_histogram((viewing_angles[mask] - rho[mask]) / units.deg, weights=weights[mask],
+                            bins=np.arange(-20, 20, 1), xlabel='viewing - cherenkov angle [deg]', figsize=(6, 6))
+fig.savefig(os.path.join(plot_folder, 'dCherenkov.png'))
+
+# plot C0 parameter
+# C0s = np.array(fin['ray_tracing_C0'])
+# php.get_histogram(C0s.flatten())
 # fig.suptitle('incoming signal direction')
 
 plt.show()

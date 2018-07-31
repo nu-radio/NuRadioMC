@@ -43,4 +43,12 @@ fig, axs = php.get_histograms([zeniths / units.deg, azimuths / units.deg],
                               stats=False)
 fig.suptitle('neutrino direction')
 
+# plot inelasticity
+inelasticity = np.array(fin['inelasticity'])
+fig, axs = php.get_histogram(inelasticity,
+                             bins=np.logspace(np.log10(0.0001), np.log10(1.0), 50),
+                             xlabel='inelasticity', figsize=(6, 6),
+                             stats=True)
+axs.semilogx(True)
+
 plt.show()
