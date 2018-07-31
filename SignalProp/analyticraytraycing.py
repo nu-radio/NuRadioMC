@@ -12,6 +12,10 @@ analytic ray tracing solution
 """
 speed_of_light = scipy.constants.c * units.m / units.s
 
+solution_types = {0: 'direct',
+                  1: 'refracted',
+                  2: 'reflected'}
+
 
 class ray_tracing_2D():
 
@@ -379,6 +383,24 @@ class ray_tracing_2D():
             return -1 * diff
 
     def determine_solution_type(self, x1, x2, C_0):
+        """ returns the type of the solution
+
+        Parameters
+        ----------
+        x1: 2dim np.array
+            start position
+        x2: 2dim np.array
+            stop position
+        C_0: float
+            C_0 value of ray tracing solution
+
+        Returns
+        -------
+        solution_type: int
+            * 0: 'direct'
+            * 1: 'refracted'
+            * 2: 'reflected
+        """
         c = self.medium.n_ice ** 2 - C_0 ** -2
         C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
         gamma_turn, z_turn = self.get_turning_point(c)
@@ -388,12 +410,12 @@ class ray_tracing_2D():
             gamma_turn = self.get_gamma(0)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
         if(x2[0] < y_turn):
-            return 'direct'
+            return 0
         else:
             if(z_turn == 0):
-                return 'reflected'
+                return 2
             else:
-                return 'refracted'
+                return 1
 
     def find_solutions(self, x1, x2, plot=False):
         """
@@ -566,11 +588,12 @@ class ray_tracing:
 
         Returns
         -------
-        solution_type: string
-            * 'direct'
-            * 'refracted'
-            * 'reflected
+        solution_type: int
+            * 0: 'direct'
+            * 1: 'refracted'
+            * 2: 'reflected
         """
+        return self.__r2d.determine_solution_type(self.__x1, self.__x2, self.__results[iS]['C_0'])
 
     def get_launch_vector(self, iS):
         """
