@@ -134,6 +134,7 @@ ray_tracing_solution_type = np.zeros((n_events, n_antennas, 2), dtype=np.int)
 polarization = np.zeros((n_events, n_antennas, 2))
 travel_times = np.zeros((n_events, n_antennas, 2))
 travel_distances = np.zeros((n_events, n_antennas, 2))
+SNRs = np.zeros(n_events)
 
 t_start = time.time()
 for iE in range(n_events):
@@ -300,6 +301,9 @@ for iE in range(n_events):
 #                          triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
 #                          triggered_channels=[0, 1, 2, 3],
                          number_concidences=1)
+
+    SNRs[iE] = station.get_parameter("channels_max_amplitude") / Vrms
+
     # save events that trigger the detector
     if(station.has_triggered()):
         if(args.outputfilenameNuRadioReco is not None):
@@ -332,6 +336,7 @@ fout['ray_tracing_solution_type'] = ray_tracing_solution_type[triggered]
 fout['triggered'] = triggered[triggered]
 fout['weights'] = weights[triggered]
 fout['polarization'] = polarization[triggered]
+fout['SNRs'] = SNRs[triggered]
 
 t_total = time.time() - t_start
 logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(n_events, t_total, 1.e3 * t_total / n_events))
