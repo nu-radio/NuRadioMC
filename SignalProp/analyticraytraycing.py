@@ -440,7 +440,7 @@ class ray_tracing_2D():
                 C_0 = self.get_C0_from_log(result.x[0])
                 C0s.append(C_0)
                 solution_type = self.determine_solution_type(x1, x2, C_0)
-                self.__logger.info("found {} solution C0 = {:.2f}".format(solution_type, C_0))
+                self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                 results.append({'type': solution_type,
                                 'C0': C_0,
                                 'C1': self.get_C_1(x1, C_0)})
@@ -460,7 +460,7 @@ class ray_tracing_2D():
                 C_0 = self.get_C0_from_log(result2)
                 C0s.append(C_0)
                 solution_type = self.determine_solution_type(x1, x2, C_0)
-                self.__logger.info("found {} solution C0 = {:.2f}".format(solution_type, C_0))
+                self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                 results.append({'type': solution_type,
                                 'C0': C_0,
                                 'C1': self.get_C_1(x1, C_0)})
@@ -482,7 +482,7 @@ class ray_tracing_2D():
                 C_0 = self.get_C0_from_log(result3)
                 C0s.append(C_0)
                 solution_type = self.determine_solution_type(x1, x2, C_0)
-                self.__logger.info("found {} solution C0 = {:.2f}".format(solution_type, C_0))
+                self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                 results.append({'type': solution_type,
                                 'C0': C_0,
                                 'C1': self.get_C_1(x1, C_0)})
