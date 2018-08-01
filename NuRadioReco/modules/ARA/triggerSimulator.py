@@ -19,12 +19,29 @@ class triggerSimulator:
     def __init__(self):
         self.__t = 0
 
-    def begin(self, power_threshold=4,
-                    antenna_resistance=8.5*units.ohm,
+    def begin(self, antenna_resistance=8.5*units.ohm,
                     power_mean=None,
-                    power_rms=None):
+                    power_rms=None
+                    ):
+        """
+        Calculate a signal as processed by the tunnel diode.
+        The given signal is convolved with the tunnel diodde response as in
+        AraSim.
 
-        self.power_threshold = power_threshold
+        Parameters
+        ----------
+        antenna_resistance : float
+            Value of the resistance of the ARA antennas
+        power_mean : float
+            Parameter extracted in ARA from noise.
+            If not given, it is calculated from generic noise
+        power_rms : float
+            Parameter extracted in ARA from noise.
+            If not given, it is calculated from generic noise
+
+        """
+
+
         self.antenna_resistance = antenna_resistance
         self._power_mean = power_mean
         self._power_rms = power_rms
@@ -68,12 +85,13 @@ np.exp(-(x-cls._td_args['up'][1])/cls._td_args['up'][2]))
         AraSim.
         Parameters
         ----------
-        signal : Signal
+        channel : Channel
             Signal to be processed by the tunnel diode.
+
         Returns
         -------
-        Signal
-            Signal output of the tunnel diode for the input `signal`.
+        trace_after_tunnel_diode: array
+            Signal output of the tunnel diode for the input `channel`.
 
         """
         t_max = 1e-7 * units.s
@@ -84,14 +102,11 @@ np.exp(-(x-cls._td_args['up'][1])/cls._td_args['up'][2]))
         diode_resp[t_slice] += self._td_fup(times[t_slice])
         conv = scipy.signal.convolve(channel.get_trace()**2 / self.antenna_resistance,
                                      diode_resp, mode='full')
-
-        # Signal class will automatically only take the first part of conv,
-        # which is what we want.
         # conv multiplied by dt so that the amplitude stays constant for
         # varying dts (determined emperically, see ARVZAskaryanSignal comments)
-
         #Setting output
         trace_after_tunnel_diode = conv/channel.get_sampling_rate()
+        trace_after_tunnel_diode = trace_after_tunnel_diode[:channel.get_trace().shape[0]]
 
         return trace_after_tunnel_diode
 
@@ -105,12 +120,12 @@ np.exp(-(x-cls._td_args['up'][1])/cls._td_args['up'][2]))
         times the power threshold.
         Parameters
         ----------
-        signal : Signal
-            ``Signal`` object on which to test the trigger condition.
+        channel : Channel
+            ``Channel`` object on which to test the trigger condition.
         Returns
         -------
         boolean
-            Whether or not the antenna triggers on `signal`.
+            Whether or not the antenna triggers on `channel`.
         """
         if self._power_mean is None or self._power_rms is None:
             # Prepare for antenna trigger by finding rms of noise waveform
@@ -119,48 +134,106 @@ np.exp(-(x-cls._td_args['up'][1])/cls._td_args['up'][2]))
             # This is not fully true yet, since we don't have ARA frontend implemeted
             # long_noise is therefore just set to a certain value rather
             # than taken the full ARA signal chain
-
             noise = NuRadioReco.framework.channel.Channel(0)
 
             long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=50*units.MHz,
                                             max_freq=1000*units.MHz,
                                             n_samples=10001,
                                             sampling_rate=channel.get_sampling_rate(),
-                                            amplitude=15*units.mV,
+                                            amplitude=0.001*units.mV,
                                             type='perfect_white')
 
             noise.set_trace(long_noise, channel.get_sampling_rate())
 
-            power_noise = self.tunnel_diode(noise)
+            self.__power_noise = self.tunnel_diode(noise)
 
-            self._power_mean = np.mean(power_noise)
-            self._power_rms = np.sqrt(np.mean(power_noise**2))
+            self._power_mean = np.mean(self.__power_noise)
+            self._power_rms = np.sqrt(np.mean(self.__power_noise**2))
 
 
         # Send signal through tunnel_diode
         after_tunnel_diode = self.tunnel_diode(channel)
-
         low_trigger = (self._power_mean -
                        self._power_rms*np.abs(self.power_threshold))
         high_trigger = (self._power_mean +
                         self._power_rms*np.abs(self.power_threshold))
 
-        return (np.min(after_tunnel_diode)<low_trigger or
-np.max(after_tunnel_diode)>high_trigger)
+
+        t =  channel.get_times()
+
+        trigger_times = np.append(t[after_tunnel_diode < low_trigger], t[after_tunnel_diode > high_trigger])
+        trigger_times = np.unique(trigger_times)
+
+        return trigger_times
 
 
     def run(self, evt, station, det,
+                    power_threshold=6.5,
+                    coinc_window = 110 * units.ns,
+                    number_concidences =  3,
+                    triggered_channels = [0, 1, 2, 3, 4, 5, 6, 7]
                 ):
+        """
+        simulate ARA trigger logic
+
+        Parameters
+        ----------
+        power_threshold: float
+            The factor of sigma that the signal needs to exceed the noise
+        coinc_window: float
+            time window in which number_concidences channels need to trigger
+        number_concidences: int
+            number of channels that are requried in coincidence to trigger a station
+        triggered_channels: array of ints
+            channels ids that are triggered on
+        """
+        self.power_threshold = power_threshold
 
         channels = station.get_channels()
 
         # No coincidence requirement yet
         station.set_triggered(False)
+        trigger = {}
         for channel in channels:
-            trigger = self.has_triggered(channel)
-            if trigger:
-                station.set_triggered(True)
+            channel_id = channel.get_id()
+            if channel_id not in triggered_channels:
+                continue
+            trigger[channel_id] = self.has_triggered(channel)
 
+        has_triggered = False
+        trigger_time_sample = None
+        # loop over the trace with a sliding window of "coinc_window"
+        coinc_window_samples = np.int(np.round(coinc_window * channel.get_sampling_rate()))
+        trace_length = len(station.get_channels()[0].get_trace())
+        sampling_rate=station.get_channels()[0].get_sampling_rate()
+
+        for i in range(0, trace_length - coinc_window_samples):
+            istop = i + coinc_window_samples
+            coinc = 0
+            trigger_times = []
+            for iCh, tr in trigger.items():  # loops through triggers of each channel
+                tr = np.array(tr)
+                mask_trigger_in_coind_window = (tr >= i) & (tr < istop)
+                if(np.sum(mask_trigger_in_coind_window)):
+                    coinc += 1
+                    trigger_times.append(tr[mask_trigger_in_coind_window][0])  # save time/sample of first trigger in
+
+            if coinc >= number_concidences:
+                has_triggered = True
+                trigger_time_sample = min(trigger_times)
+                break
+
+        if not has_triggered:
+            station.set_triggered(False)
+            logger.info("Station has NOT passed trigger")
+            trigger_time_sample = 0
+            station.get_trigger().set_trigger_time(trigger_time_sample / sampling_rate)
+        else:
+            station.set_triggered(True)
+            station.get_trigger().set_trigger_time(trigger_time_sample / sampling_rate)
+            logger.info("Station has passed trigger, trigger time is {:.1f} ns (sample {})".format(station.get_trigger().get_trigger_time() / units.ns, trigger_time_sample))
+
+        logger.info("This module does not contain cutting the trace to ARA specific parameters.")
 
     def end(self):
         from datetime import timedelta
