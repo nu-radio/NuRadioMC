@@ -593,7 +593,7 @@ class ray_tracing:
             * 1: 'refracted'
             * 2: 'reflected
         """
-        return self.__r2d.determine_solution_type(self.__x1, self.__x2, self.__results[iS]['C_0'])
+        return self.__r2d.determine_solution_type(self.__x1, self.__x2, self.__results[iS]['C0'])
 
     def get_launch_vector(self, iS):
         """
