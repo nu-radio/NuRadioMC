@@ -124,7 +124,7 @@ def generate_eventlist(filename, n_events, Emin, Emax,
         n_events_per_file = int(n_events_per_file)
     for iFile in range(np.int(np.ceil(n_events / n_events_per_file))):
         filename2 = filename
-        if(iFile > 0):
+        if((iFile > 0) or (n_events_per_file < n_events)):
             filename2 = filename + ".part{:03}".format(iFile + 1)
         fout = h5py.File(filename2, 'w')
         fout.attrs['VERSION_MAJOR'] = VERSION_MAJOR
@@ -158,8 +158,8 @@ if __name__ == '__main__':
     xmax = 3 * units.km
     ymin = -3 * units.km
     ymax = 3 * units.km
-    zmin = -3 * units.km
+    zmin = -2.7 * units.km
     zmax = 0 * units.km
-    generate_eventlist('test.hdf5', 1e5, 1e18 * units.eV, 1e18 * units.eV,
+    generate_eventlist('1e18.hdf5', 1e6, 1e18 * units.eV, 1e18 * units.eV,
                        xmin, xmax, ymin, ymax, zmin, zmax)
 
