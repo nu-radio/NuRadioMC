@@ -25,7 +25,7 @@ import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.channel
 import datetime
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("sim")
 
 evt_time = datetime.datetime(2018, 1, 1)
@@ -143,7 +143,7 @@ t_start = time.time()
 for iE in range(n_events):
     if(iE > 0 and iE % 1000 == 0):
         eta = datetime.timedelta(seconds=(time.time() - t_start) * (n_events - iE) / iE)
-        print("processing event {}/{} = {}%, ETA {}".format(iE, n_events, 100. * iE / n_events, eta))
+        logger.info("processing event {}/{} = {}%, ETA {}".format(iE, n_events, 100. * iE / n_events, eta))
     # read all quantities from hdf5 file and store them in local variables
     event_id = fin['event_ids'][iE]
     flavor = fin['flavors'][iE]
@@ -285,7 +285,7 @@ for iE in range(n_events):
     if(not candidate_event):
         continue
 
-    logger.info("performing detector simulation")
+    logger.debug("performing detector simulation")
     # finalize NuRadioReco event structure
     station = NuRadioReco.framework.station.Station(station_id)
     station.set_sim_station(sim_station)
@@ -298,7 +298,7 @@ for iE in range(n_events):
     # downsample trace back to detector sampling rate
     channelResampler.run(evt, station, det, sampling_rate=1. / dt)
     Vrms = (Tnoise * 50 * constants.k * bandwidth / units.Hz) ** 0.5
-    logger.info("Vrms= {:.2f}muV".format(Vrms / units.V / units.micro))
+    logger.debug("Vrms= {:.2f}muV".format(Vrms / units.V / units.micro))
 #     one_sigma = 11 * units.micro * units.V
 #     one_sigma = 16 * units.nano * units.V
     triggerSimulator.run(evt, station, det,
@@ -352,7 +352,7 @@ density_ice = 0.9167 * units.g / units.cm ** 3
 density_water = 997 * units.kg / units.m ** 3
 
 n_triggered = np.sum(weights[triggered])
-print('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(n_triggered, n_events, n_triggered / n_events))
+logger.info('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(n_triggered, n_events, n_triggered / n_events))
 
 dX = fin.attrs['xmax'] - fin.attrs['xmin']
 dY = fin.attrs['ymax'] - fin.attrs['ymin']
@@ -360,7 +360,7 @@ dZ = fin.attrs['zmax'] - fin.attrs['zmin']
 V = dX * dY * dZ
 Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
 
-print("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
+logger.info("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
 #     a = 1 / 0
 fin.close()
 fout.close()
