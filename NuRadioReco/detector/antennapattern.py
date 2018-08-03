@@ -536,6 +536,19 @@ class AntennaPattern(AntennaPatternBase):
 
     def __init__(self, antenna_model, path=path_to_antennamodels,
                  interpolation_method='complex'):
+        """
+
+        Parameters
+        ----------
+        antenna_model: string
+            name of antenna model
+        path: string
+            path to folder containing the antenna models
+        interpolation_mode: string
+            specify in which domain the interpolation should be performed, can be either
+            * 'complex' (default) interpolate real and imaginary part of vector effective length
+            * 'magphase' interpolate magnitude and phase of vector effective length
+        """
         self._name = antenna_model
         self._interpolation_method = interpolation_method
         from time import time
