@@ -117,8 +117,8 @@ class channelGenericNoiseAdder:
             if self.__debug:
                 new_trace = trace + noise
 
-                print "imput amplitude", amplitude
-                print "voltage RMS", np.sqrt(np.mean(noise**2))
+                logger.debug("imput amplitude {}".format(amplitude)
+                logger.debug("voltage RMS {}".format(np.sqrt(np.mean(noise**2)))
                 #print "test", amplitude/np.sqrt(2*trace.shape[0])
 
                 import matplotlib.pyplot as plt

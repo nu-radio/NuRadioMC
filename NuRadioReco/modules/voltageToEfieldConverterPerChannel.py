@@ -34,7 +34,7 @@ class voltageToEfieldConverterPerChannel:
 
     def run(self, evt, station, det, pol=0, debug=True):
         """
-        Performs computation for voltage trace to electric field per channel 
+        Performs computation for voltage trace to electric field per channel
 
         Will provide a deconvoluted (electric field) trace for each channel from the stations input voltage traces
 
@@ -47,14 +47,14 @@ class voltageToEfieldConverterPerChannel:
         det: detector object
             the detector object
         pol: polarization
-            0 = eTheta polarized, 1 = ePhi polarized 
+            0 = eTheta polarized, 1 = ePhi polarized
         debug: bool
             if True additional debug plot(s) are displayed - currently unused
         """
         self.__counter += 1
         event_time = station.get_station_time()
         station_id = station.get_id()
-        print("event {}, station {}".format(evt.get_id(), station_id))
+        logger.info("event {}, station {}".format(evt.get_id(), station_id))
         if station.get_sim_station() is not None:
             zenith = station.get_sim_station()['zenith']
             azimuth = station.get_sim_station()['azimuth']

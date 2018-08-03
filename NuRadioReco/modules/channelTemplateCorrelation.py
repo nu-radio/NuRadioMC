@@ -135,7 +135,7 @@ class channelTemplateCorrelation:
                 if self.__debug:
                     if run == 239:
                         if event_id == 6619:
-                            print xcorrs_tmpl
+                            logger.debug(xcorrs_tmpl)
                             plt.figure()
                             plt.hist(np.abs(xcorrs_ch))
                             plt.show()

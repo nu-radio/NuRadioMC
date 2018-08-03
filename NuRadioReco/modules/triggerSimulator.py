@@ -52,7 +52,6 @@ class triggerSimulator:
                 import matplotlib.pyplot as plt
                 plt.figure()
                 plt.plot(trace)
-                print np.std(trace)
                 plt.axhline(threshold)
                 plt.show()
 
