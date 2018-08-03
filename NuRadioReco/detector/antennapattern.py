@@ -20,18 +20,46 @@ import ConfigParser
 path_to_antennamodels = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'AntennaModels')
 
 
-def interpolate_linear(x, x0, x1, y0, y1):
+def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
     if (x0 == x1):
         return y0
-    return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
+    if(interpolation_method == 'complex'):
+        return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
+    elif(interpolation_method == 'magphase'):  # interpolate magnitude and phase
+        mag0 = np.abs(y0)
+        mag1 = np.abs(y1)
+        phase0 = np.angle(y0)
+        phase1 = np.angle(y1)
+        phase0, phase1 = np.unwrap([phase0, phase1])
+        mag = mag0 + (mag1 - mag0) * (x - x0) / (x1 - x0)
+        phase = phase0 + (phase1 - phase0) * (x - x0) / (x1 - x0)
+        y = mag * np.exp(1j * phase)
+        return y
+    else:
+        logger.error("interpolation mode {} not implemented".format(interpolation_method))
+        raise NotImplementedError
 
 
-def interpolate_linear_vectorized(x, x0, x1, y0, y1):
+def interpolate_linear_vectorized(x, x0, x1, y0, y1, interpolation_method='complex'):
     x = np.array(x)
     mask = x0 != x1
     result = np.zeros_like(x, dtype=np.complex)
     denominator = x1 - x0
-    result[mask] = y0[mask] + (y1[mask] - y0[mask]) * (x[mask] - x0[mask]) / denominator[mask]
+    if(interpolation_method == 'complex'):
+        result[mask] = y0[mask] + (y1[mask] - y0[mask]) * (x[mask] - x0[mask]) / denominator[mask]
+    elif(interpolation_method == 'magphase'):  # interpolate magnitude and phase
+        print("magphase")
+        mag0 = np.abs(y0[mask])
+        mag1 = np.abs(y1[mask])
+        phase0 = np.angle(y0[mask])
+        phase1 = np.angle(y1[mask])
+        phase0, phase1 = np.unwrap([phase0, phase1])
+        mag = mag0 + (mag1 - mag0) * (x[mask] - x0[mask]) / denominator[mask]
+        phase = phase0 + (phase1 - phase0) * (x[mask] - x0[mask]) / denominator[mask]
+        result[mask] = mag * np.exp(1j * phase)
+    else:
+        logger.error("interpolation mode {} not implemented".format(interpolation_method))
+        raise NotImplementedError
     result[~mask] = y0[~mask]
     return result
 
@@ -42,7 +70,7 @@ def interpolate_linear_vectorized(x, x0, x1, y0, y1):
 #     return result
 
 
-def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1,1]):
+def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
     """
     reads in WIPLD data
 
@@ -64,8 +92,8 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1,1]):
     zen_ori, azi_ori = hp.cartesian_to_spherical(*tines)
 
     ad1_data = np.loadtxt(ad1, comments='>')
-    S_1 =  ad1_data[:, 1]
-    S_2 =  ad1_data[:, 2]
+    S_1 = ad1_data[:, 1]
+    S_2 = ad1_data[:, 2]
     mask = (S_1 == s_paramateres[0]) & (S_2 == s_paramateres[1])
     ff = ad1_data[:, 0][mask] * units.GHz
     Re_Z = ad1_data[:, 5][mask]
@@ -86,7 +114,7 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1,1]):
                 if int(line.split()[3]) != gen_num:
                     skip = True
                 else:
-                    print(line.split()) 
+                    print(line.split())
                 f = float(line.split()[4])
             else:
                 if skip:
@@ -107,7 +135,7 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1,1]):
         return zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, np.array(ff2), np.deg2rad(np.array(phis)), np.deg2rad(np.array(thetas)), np.array(Ephis), np.array(Ethetas), np.array(gains)
 
 
-def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1,1]):
+def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
     """
     preprocesses WIPLD file and pickles it
 
@@ -155,6 +183,7 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1,1]):
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)
+
 
 def get_WIPLD_antenna_response(path):
 
@@ -505,8 +534,10 @@ class AntennaPatternBase():
 
 class AntennaPattern(AntennaPatternBase):
 
-    def __init__(self, antenna_model, path=path_to_antennamodels):
+    def __init__(self, antenna_model, path=path_to_antennamodels,
+                 interpolation_method='complex'):
         self._name = antenna_model
+        self._interpolation_method = interpolation_method
         from time import time
         t = time()
         filename = os.path.join(path, antenna_model, "{}.pkl".format(antenna_model))
@@ -585,7 +616,7 @@ class AntennaPattern(AntennaPatternBase):
            ((theta < self.theta_lower_bound) or (theta > self.theta_upper_bound))):
             logger.debug(self._name)
             logger.debug("theta bounds {0} ,{1}, {2}".format(self.theta_lower_bound, theta, self.theta_upper_bound))
-            logger.debug("phi bounds {0} ,{1}, {2}".format( self.phi_lower_bound, phi, self.phi_upper_bound))
+            logger.debug("phi bounds {0} ,{1}, {2}".format(self.phi_lower_bound, phi, self.phi_upper_bound))
             logger.warning("theta, phi or frequency out of range, returning (0,0j)")
             logger.debug("{0},{1},{2}".format(freq, self.frequency_lower_bound, self.frequency_upper_bound))
             return (0, 0)
@@ -624,67 +655,81 @@ class AntennaPattern(AntennaPatternBase):
         VELt_freq_low_theta_low = interpolate_linear(
             phi, phi_lower, phi_upper,
             self.VEL_theta[self._get_index(iFrequency_lower, iTheta_lower, iPhi_lower)],
-            self.VEL_theta[self._get_index(iFrequency_lower, iTheta_lower, iPhi_upper)])
+            self.VEL_theta[self._get_index(iFrequency_lower, iTheta_lower, iPhi_upper)],
+            self._interpolation_method)
         VELp_freq_low_theta_low = interpolate_linear(
             phi, phi_lower, phi_upper,
             self.VEL_phi[self._get_index(iFrequency_lower, iTheta_lower, iPhi_lower)],
-            self.VEL_phi[self._get_index(iFrequency_lower, iTheta_lower, iPhi_upper)])
+            self.VEL_phi[self._get_index(iFrequency_lower, iTheta_lower, iPhi_upper)],
+            self._interpolation_method)
 
         # theta up
         VELt_freq_low_theta_up = interpolate_linear(
             phi, phi_lower, phi_upper,
             self.VEL_theta[self._get_index(iFrequency_lower, iTheta_upper, iPhi_lower)],
-            self.VEL_theta[self._get_index(iFrequency_lower, iTheta_upper, iPhi_upper)])
+            self.VEL_theta[self._get_index(iFrequency_lower, iTheta_upper, iPhi_upper)],
+            self._interpolation_method)
         VELp_freq_low_theta_up = interpolate_linear(
             phi, phi_lower, phi_upper,
             self.VEL_phi[self._get_index(iFrequency_lower, iTheta_upper, iPhi_lower)],
-            self.VEL_phi[self._get_index(iFrequency_lower, iTheta_upper, iPhi_upper)])
+            self.VEL_phi[self._get_index(iFrequency_lower, iTheta_upper, iPhi_upper)],
+            self._interpolation_method)
 
         VELt_freq_low = interpolate_linear(theta, theta_lower,
-                                                      theta_upper,
-                                                      VELt_freq_low_theta_low,
-                                                      VELt_freq_low_theta_up)
+                                           theta_upper,
+                                           VELt_freq_low_theta_low,
+                                           VELt_freq_low_theta_up,
+                                           self._interpolation_method)
         VELp_freq_low = interpolate_linear(theta, theta_lower,
-                                                      theta_upper,
-                                                      VELp_freq_low_theta_low,
-                                                      VELp_freq_low_theta_up)
+                                           theta_upper,
+                                           VELp_freq_low_theta_low,
+                                           VELp_freq_low_theta_up,
+                                           self._interpolation_method)
 
         # upper frequency bound
         # theta low
         VELt_freq_up_theta_low = interpolate_linear(
             phi, phi_lower, phi_upper,
             self.VEL_theta[self._get_index(iFrequency_upper, iTheta_lower, iPhi_lower)],
-            self.VEL_theta[self._get_index(iFrequency_upper, iTheta_lower, iPhi_upper)])
+            self.VEL_theta[self._get_index(iFrequency_upper, iTheta_lower, iPhi_upper)],
+            self._interpolation_method)
         VELp_freq_up_theta_low = interpolate_linear(
             phi, phi_lower, phi_upper,
             self.VEL_phi[self._get_index(iFrequency_upper, iTheta_lower, iPhi_lower)],
-            self.VEL_phi[self._get_index(iFrequency_upper, iTheta_lower, iPhi_upper)])
+            self.VEL_phi[self._get_index(iFrequency_upper, iTheta_lower, iPhi_upper)],
+            self._interpolation_method)
 
         # theta up
         VELt_freq_up_theta_up = interpolate_linear(
             phi, phi_lower, phi_upper,
             self.VEL_theta[self._get_index(iFrequency_upper, iTheta_upper, iPhi_lower)],
-            self.VEL_theta[self._get_index(iFrequency_upper, iTheta_upper, iPhi_upper)])
+            self.VEL_theta[self._get_index(iFrequency_upper, iTheta_upper, iPhi_upper)],
+            self._interpolation_method)
         VELp_freq_up_theta_up = interpolate_linear(
             phi, phi_lower, phi_upper,
             self.VEL_phi[self._get_index(iFrequency_upper, iTheta_upper, iPhi_lower)],
-            self.VEL_phi[self._get_index(iFrequency_upper, iTheta_upper, iPhi_upper)])
+            self.VEL_phi[self._get_index(iFrequency_upper, iTheta_upper, iPhi_upper)],
+            self._interpolation_method)
 
         VELt_freq_up = interpolate_linear(theta, theta_lower, theta_upper,
-                                                     VELt_freq_up_theta_low,
-                                                     VELt_freq_up_theta_up)
+                                          VELt_freq_up_theta_low,
+                                          VELt_freq_up_theta_up,
+                                          self._interpolation_method)
         VELp_freq_up = interpolate_linear(theta, theta_lower, theta_upper,
-                                                     VELp_freq_up_theta_low,
-                                                     VELp_freq_up_theta_up)
+                                          VELp_freq_up_theta_low,
+                                          VELp_freq_up_theta_up,
+                                          self._interpolation_method)
 
         interpolated_VELt = interpolate_linear_vectorized(freq, frequency_lower,
                                                           frequency_upper,
                                                           VELt_freq_low,
-                                                          VELt_freq_up)
+                                                          VELt_freq_up,
+                                                          self._interpolation_method)
         interpolated_VELp = interpolate_linear_vectorized(freq, frequency_lower,
                                                           frequency_upper,
                                                           VELp_freq_low,
-                                                          VELp_freq_up)
+                                                          VELp_freq_up,
+                                                          self._interpolation_method)
 
         # set all out of bound frequencies to zero
         interpolated_VELt[out_of_bound_freqs_low] = 0 + 0 * 1j
@@ -708,23 +753,23 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             self._zen_ori = 90 * units.deg
             self._azi_ori = 0 * units.deg
 
-    def parametric_phase(self,freq,type='theoretical'):
+    def parametric_phase(self, freq, type='theoretical'):
             if type == 'frontlobe_lpda':
-                a =  0.0001* (freq - 400*units.MHz) **2 - 20
-                a[np.where(freq>400*units.MHz)] -= 0.00007*(freq[np.where(freq>400*units.MHz)]-400*units.MHz)**2
+                a = 0.0001 * (freq - 400 * units.MHz) ** 2 - 20
+                a[np.where(freq > 400 * units.MHz)] -= 0.00007 * (freq[np.where(freq > 400 * units.MHz)] - 400 * units.MHz) ** 2
 
             elif type == 'side_lpda':
-                a =  0.00004* (freq - 950*units.MHz) **2 - 40
+                a = 0.00004 * (freq - 950 * units.MHz) ** 2 - 40
 
             elif type == 'back_lpda':
-                a =  0.00005* (freq - 950*units.MHz) **2 - 50
+                a = 0.00005 * (freq - 950 * units.MHz) ** 2 - 50
 
             elif type == "theoretical":
                 # ratio of two elements
                 tau = 0.75
                 # maximum frequency
                 f = 1000. * units.MHz
-                a = np.pi/np.log(tau) * np.log(freq/f)
+                a = np.pi / np.log(tau) * np.log(freq / f)
 
             return a
 
@@ -762,14 +807,14 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             H_eff_p *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
 
             if group_delay != None:
-                #add here antenna model with analytic description of typical group delay
-                phase = self.parametric_phase(freq,group_delay)
+                # add here antenna model with analytic description of typical group delay
+                phase = self.parametric_phase(freq, group_delay)
 
                 H_eff_p = H_eff_p.astype(complex)
                 H_eff_t = H_eff_t.astype(complex)
 
-                H_eff_p *= np.exp(1j*phase)
-                H_eff_t *= np.exp(1j*phase)
+                H_eff_p *= np.exp(1j * phase)
+                H_eff_t *= np.exp(1j * phase)
 
             return H_eff_p, H_eff_t
 
