@@ -42,15 +42,36 @@ def interpolate_linear_vectorized(x, x0, x1, y0, y1):
 #     return result
 
 
-def parse_WIPLD_file(ad1, ra1, orientation):
+def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1,1]):
+    """
+    reads in WIPLD data
+
+    Parameters
+    ----------
+    ad1: string
+        path to ad1 file
+    ra1: string
+        path to radiation pattern file
+    orientation: string
+        path to orientation file
+    gen_num: int
+        which antenna (one or two) to pull from
+    s_parameters: list of 2 ints
+        determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
+    """
     boresight, tines = np.loadtxt(orientation, delimiter=',')
     zen_boresight, azi_boresight = hp.cartesian_to_spherical(*boresight)
     zen_ori, azi_ori = hp.cartesian_to_spherical(*tines)
 
     ad1_data = np.loadtxt(ad1, comments='>')
-    ff = ad1_data[:, 0] * units.GHz
-    Re_Z = ad1_data[:, 5]
-    Im_Z = ad1_data[:, 6]
+    print(ad1_data[:, 1])
+    print(type(ad1_data[:, 1][0]))
+    S_1 =  ad1_data[:, 1]
+    S_2 =  ad1_data[:, 2]
+    mask = (S_1 == s_paramateres[0]) & (S_2 == s_paramateres[1])
+    ff = ad1_data[:, 0][mask] * units.GHz
+    Re_Z = ad1_data[:, 5][mask]
+    Im_Z = ad1_data[:, 6][mask]
     Z = Re_Z + 1j * Im_Z
     with open(ra1, 'r') as fin:
         ff2 = []
@@ -60,10 +81,18 @@ def parse_WIPLD_file(ad1, ra1, orientation):
         Ethetas = []
         gains = []
         f = None
+        skip = False
         for line in fin.readlines():
             if(line.strip().startswith('>')):
+                skip = False
+                if int(line.split()[3]) != gen_num:
+                    skip = True
+                else:
+                    print(line.split()) 
                 f = float(line.split()[4])
             else:
+                if skip:
+                    continue
                 ff2.append(f * units.GHz)
                 phi, theta, ReEphi, ImEphi, ReEtheta, ImEtheta, gain, gaindb = line.split()
                 phis.append(float(phi))
@@ -80,7 +109,20 @@ def parse_WIPLD_file(ad1, ra1, orientation):
         return zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, np.array(ff2), np.deg2rad(np.array(phis)), np.deg2rad(np.array(thetas)), np.array(Ephis), np.array(Ethetas), np.array(gains)
 
 
-def preprocess_WIPLD(path):
+def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1,1]):
+    """
+    preprocesses WIPLD file and pickles it
+
+    Parameters
+    ----------
+    path: string
+        path to folder containing ad1, ra1, and orientation files.
+    gen_num: int
+        which antenna (one or two) to pull from
+    s_parameters: list of 2 ints
+        determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
+
+    """
     from scipy import constants
     from scipy.interpolate import interp1d
     c = constants.c * units.m / units.s
@@ -88,9 +130,11 @@ def preprocess_WIPLD(path):
     split = os.path.split(os.path.dirname(path))
     name = split[1]
     path = split[0]
+
     zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, ff2, phi, theta, Ephi, Etheta, gains = parse_WIPLD_file(os.path.join(path, name, '{}.ad1'.format(name)),
                                                                                                                    os.path.join(path, name, '{}.ra1'.format(name)),
-                                                                                                                   os.path.join(path, name, '{}.orientation'.format(name)))
+                                                                                                                   os.path.join(path, name, '{}.orientation'.format(name)),
+                                                                                                                   gen_num=gen_num, s_paramateres=s_paramateres)
 
     theta = 0.5 * np.pi - theta  # 90deg - theta because in WIPL D the theta angle is defined differently
 
