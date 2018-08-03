@@ -152,7 +152,7 @@ class triggerSimulator:
             logger.debug('setting ssim tation start time to {:.1f} + {:.1f}ns'.format(station.get_sim_station().get_trace_start_time(), (rel_station_time_samples / sampling_rate)))
             station.get_sim_station().add_trace_start_time(-rel_station_time_samples / sampling_rate)  # here we assumed that all channels had the same length
         except:
-            logger.warning("No simulation information in event")
+            logger.warning("No simulation information in event, trace start time will not be added")
         self.__t += time.time() - t
 
     def end(self):

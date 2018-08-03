@@ -193,10 +193,10 @@ def covariance(function, vmin, up, fast=False):
                 xmin = 1.0 / (1.0 / b + 1.0 / a)
 
                 if x <= xmin:
-                    print("covariance(...):", xmin, "<", x, "<", xmax, "violated")
+                    logger.warning("covariance(...):", xmin, "<", x, "<", xmax, "violated")
                     x = xmin * 1.01
                 if x >= xmax:
-                    print("covariance(...):", xmin, "<", x, "<", xmax, "violated")
+                    logger.warning("covariance(...):", xmin, "<", x, "<", xmax, "violated")
                     x = xmax * 0.99
 
                 d[i, j] = d[j, i] = x
@@ -216,7 +216,7 @@ def covariance(function, vmin, up, fast=False):
     # first aid, if 1-sigma contour does not look like hyper-ellipsoid
     for i in xrange(n):
         if cov[i, i] < 0:
-            print("covariance(...): error, cov[%i,%i] < 0, returning zero" % (i, i))
+            logger.warning("covariance(...): error, cov[%i,%i] < 0, returning zero" % (i, i))
             for j in xrange(n):
                 cov[i, j] = 0
 
@@ -293,7 +293,7 @@ class voltageToAnalyticEfieldConverter:
         self.__counter += 1
         event_time = station.get_station_time()
         station_id = station.get_id()
-        print("event {}, station {}".format(evt.get_id(), station_id))
+        logger.info("event {}, station {}".format(evt.get_id(), station_id))
         if useMCdirection and (station.get_sim_station() is not None):
             zenith = station.get_sim_station()['zenith']
             azimuth = station.get_sim_station()['azimuth']
@@ -508,11 +508,11 @@ class voltageToAnalyticEfieldConverter:
 
         if 0:  # test first method
             res = opt.minimize(obj, x0=[1, 1, -1, -1, 0, 0], method=method, options=options)
-            print(res)
+            logger.debug(res)
     #         res = opt.minimize(obj, x0=[res.x[0], res.x[1], -1, -1], method=method, options=options)
     #         print(res)
     #         res = opt.minimize(obj, x0=[res.x[0], res.x[1], res.x[2], res.x[3], 0, 0], method=method, options=options)
-            print(res)
+            logger.debug(res)
             analytic_pulse_theta_freq = pulse.get_analytic_pulse_freq(res.x[0], res.x[2], res.x[4], n_samples_time, sampling_rate, bandpass=bandpass)
             analytic_pulse_phi_freq = pulse.get_analytic_pulse_freq(res.x[1], res.x[3], res.x[5], n_samples_time, sampling_rate, bandpass=bandpass)
             analytic_pulse_theta = pulse.get_analytic_pulse(res.x[0], res.x[2], res.x[4], n_samples_time, sampling_rate, bandpass=bandpass)
@@ -709,7 +709,6 @@ class voltageToAnalyticEfieldConverter:
 
             # plot antenna response and channels
             fig, ax = plt.subplots(len(V), 3, sharex='col', sharey='col')
-            print(ax.shape)
             for iCh in range(len(V)):
                 mask = ff > 100
                 ax[iCh, 0].plot(ff[mask], np.abs(efield_antenna_factor[iCh][0])[mask], label="theta, channel {}".format(use_channels[iCh]), lw=lw)

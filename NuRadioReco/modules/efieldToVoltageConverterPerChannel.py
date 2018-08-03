@@ -140,7 +140,7 @@ class efieldToVoltageConverterPerChannel:
                     axes[1].plot(sim_channel2.get_frequencies(), np.abs(sim_channel2.get_frequency_spectrum()[1]))
                     axes[1].plot(sim_channel2.get_frequencies(), np.abs(sim_channel2.get_frequency_spectrum()[2]))
 
-                print(resampled_efield.shape)
+                logger.debug(resampled_efield.shape)
                 new_trace = np.zeros((3, trace_length_samples))
                 # calculate the start bin
                 start_bin = int(round((sim_channel2.get_trace_start_time() - times_min.min()) / self.__time_resolution))
