@@ -1,4 +1,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+import logging
+logging.basicConfig(level=logging.ERROR)
+logger = logging.getLogger('timing')
+
 
 def analyze_timing(module_list, t_tot=None):
     data = []
@@ -7,8 +11,7 @@ def analyze_timing(module_list, t_tot=None):
         dt = module.end()
         data.append([module.__class__.__name__, dt])
         t_tot_int += dt.total_seconds()
-    print("")
-    print("timing information")
+    logger.info("timing information")
     for name, dt in data:
-        print("{:<30} \t{}\t{:>6.1f}%\t{:>6.1f}%".format(name, dt, 100. * dt.total_seconds() / t_tot_int,
+        logger.info("{:<30} \t{}\t{:>6.1f}%\t{:>6.1f}%".format(name, dt, 100. * dt.total_seconds() / t_tot_int,
                                                  100. * dt.total_seconds() / t_tot))
