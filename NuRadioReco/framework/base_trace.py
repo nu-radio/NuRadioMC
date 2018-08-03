@@ -15,6 +15,14 @@ class BaseTrace:
         self._trace_start_time = 0
 
     def get_trace(self):
+        """
+        returns the time trace. If the frequency spectrum was modified before,
+        an ifft is performed automatically to have the time domain representation
+        up to date.
+
+        Returns: 1 or N dimensional np.array of floats
+            the time trace
+        """
         if(not self.__time_domain_up_to_date):
 #             logger.debug("time domain is not up to date, calculating FFT on the fly")
             self._time_trace = np.fft.irfft(self._frequency_spectrum, axis=-1, norm="ortho") / 2 ** 0.5
@@ -31,6 +39,16 @@ class BaseTrace:
         return self._frequency_spectrum
 
     def set_trace(self, trace, sampling_rate):
+        """
+        sets the time trace
+
+        Parameters
+        -----------
+        trace: np.array of floats
+            the time series
+        sampling_rate: float
+            the sampling rage of the trace, i.e., the inverse of the bin width
+        """
         self.__time_domain_up_to_date = True
         self._time_trace = trace
         self._sampling_rate = sampling_rate
@@ -43,10 +61,16 @@ class BaseTrace:
         self._time_trace = None
 
     def get_sampling_rate(self):
+        """
+        returns the sampling rate of the trace
+
+        Return: float
+            sampling rate, i.e., the inverse of the bin width
+        """
         return self._sampling_rate
 
     def get_times(self):
-        length = self.__get_trace_length()
+        length = self.get_number_of_samples()
         return np.arange(0, length / self._sampling_rate, 1. / self._sampling_rate) + self._trace_start_time
 
     def set_trace_start_time(self, start_time):
@@ -59,7 +83,7 @@ class BaseTrace:
         return self._trace_start_time
 
     def get_frequencies(self):
-        length = self.__get_trace_length()
+        length = self.get_number_of_samples()
         return np.fft.rfftfreq(length, d=(1. / self._sampling_rate))
 
     def get_hilbert_envelope(self):
@@ -70,7 +94,13 @@ class BaseTrace:
     def get_hilbert_envelope_mag(self):
         return np.linalg.norm(self.get_hilbert_envelope(), axis=0)
 
-    def __get_trace_length(self):
+    def get_number_of_samples(self):
+        """
+        returns the number of samples in the time domain
+
+        Return: int
+            number of samples in time domain
+        """
         length = 0
         if(self.__time_domain_up_to_date):
             length = self._time_trace.shape[-1]  # returns the correct length independent of the dimension of the array (channels are 1dim, efields are 3dim)
