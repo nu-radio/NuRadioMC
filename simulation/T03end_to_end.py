@@ -18,13 +18,14 @@ from scipy import constants
 # import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverterPerChannel
 import NuRadioReco.modules.triggerSimulator
+import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.channel
 import datetime
 import logging
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("sim")
 
 evt_time = datetime.datetime(2018, 1, 1)
@@ -114,8 +115,10 @@ tt = np.arange(0, n_samples * dt, dt)
 
 # initialize detector sim modules
 efieldToVoltageConverterPerChannel = NuRadioReco.modules.efieldToVoltageConverterPerChannel.efieldToVoltageConverterPerChannel()
+efieldToVoltageConverterPerChannel.begin(debug=False)
 triggerSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
+channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 if(args.outputfilenameNuRadioReco is not None):
     eventWriter.begin(args.outputfilenameNuRadioReco)
 
@@ -273,6 +276,7 @@ for iE in range(n_events):
 
             channel = NuRadioReco.framework.channel.Channel(channel_id)
             channel.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / dt)
+            channel.set_trace_start_time(T)
             channel['azimuth'] = azimuth
             channel['zenith'] = zenith
             sim_station.add_channel(channel)
@@ -291,6 +295,8 @@ for iE in range(n_events):
 
     # start detector simulation
     efieldToVoltageConverterPerChannel.run(evt, station, det)  # convolve efield with antenna pattern
+    # downsample trace back to detector sampling rate
+    channelResampler.run(evt, station, det, sampling_rate=1. / dt)
     Vrms = (Tnoise * 50 * constants.k * bandwidth / units.Hz) ** 0.5
     logger.info("Vrms= {:.2f}muV".format(Vrms / units.V / units.micro))
 #     one_sigma = 11 * units.micro * units.V
