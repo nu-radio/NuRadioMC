@@ -2,7 +2,7 @@ from NuRadioReco.utilities import units
 import numpy as np
 import time
 import logging
-import scipy
+import scipy.signal
 from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
 import NuRadioReco.framework.channel
 
@@ -140,7 +140,7 @@ np.exp(-(x-cls._td_args['up'][1])/cls._td_args['up'][2]))
                                             max_freq=1000*units.MHz,
                                             n_samples=10001,
                                             sampling_rate=channel.get_sampling_rate(),
-                                            amplitude=0.001*units.mV,
+                                            amplitude=20.*units.mV,
                                             type='perfect_white')
 
             noise.set_trace(long_noise, channel.get_sampling_rate())
