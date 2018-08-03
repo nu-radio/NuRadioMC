@@ -64,8 +64,6 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1,1]):
     zen_ori, azi_ori = hp.cartesian_to_spherical(*tines)
 
     ad1_data = np.loadtxt(ad1, comments='>')
-    print(ad1_data[:, 1])
-    print(type(ad1_data[:, 1][0]))
     S_1 =  ad1_data[:, 1]
     S_2 =  ad1_data[:, 2]
     mask = (S_1 == s_paramateres[0]) & (S_2 == s_paramateres[1])
