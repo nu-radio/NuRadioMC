@@ -541,11 +541,11 @@ class AntennaPattern(AntennaPatternBase):
             theta = self.theta_lower_bound
         if(((phi < self.phi_lower_bound) or (phi > self.phi_upper_bound)) or
            ((theta < self.theta_lower_bound) or (theta > self.theta_upper_bound))):
-            print self._name
-            print "theta lower bound", self.theta_lower_bound, theta, self.theta_upper_bound
-            print "phi lower bound", self.phi_lower_bound, phi, self.phi_upper_bound
-            print "theta, phi or frequency out of range, returning (0,0j)"
-            print freq, self.frequency_lower_bound, self.frequency_upper_bound
+            logger.debug(self._name)
+            logger.debug("theta bounds {0} ,{1}, {2}".format(self.theta_lower_bound, theta, self.theta_upper_bound))
+            logger.debug("phi bounds {0} ,{1}, {2}".format( self.phi_lower_bound, phi, self.phi_upper_bound))
+            logger.warning("theta, phi or frequency out of range, returning (0,0j)")
+            logger.debug("{0},{1},{2}".format(freq, self.frequency_lower_bound, self.frequency_upper_bound))
             return (0, 0)
 
         if(self.theta_upper_bound == self.theta_lower_bound):
@@ -660,7 +660,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
         self._cutoff_freq = cutoff_freq
         if(self._model == 'analytic_LPDA'):
             # LPDA dummy model points towards z direction and has its tines in the y-z plane
-            print("setting boresight direction")
+            logger.info("setting boresight direction")
             self._zen_boresight = 0 * units.deg
             self._azi_boresight = 0 * units.deg
             self._zen_ori = 90 * units.deg
