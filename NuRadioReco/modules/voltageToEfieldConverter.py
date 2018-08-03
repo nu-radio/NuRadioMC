@@ -163,12 +163,12 @@ class voltageToEfieldConverter:
         event_time = station.get_station_time()
         station_id = station.get_id()
 
-        if station.get_sim_station() is not None:
+        try:
             zenith = station.get_sim_station()['zenith']
             azimuth = station.get_sim_station()['azimuth']
             sim_present = True
-        else:
-            logger.warning("Using reconstructed angles as no simulation present")
+        except:
+            logger.info("Using reconstructed (or starting) angles as no signal arrival angles are present")
             zenith = station['zenith']
             azimuth = station['azimuth']
             sim_present = False
