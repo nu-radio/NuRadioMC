@@ -111,7 +111,7 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
 
 #         df = np.mean(freqs[1:] - freqs[:-1])
         trace = np.fft.irfft(tmp * np.exp(0.5j * np.pi)) / dt  # set phases to 90deg
-        trace = np.roll(trace, int(2 * units.ns / dt))
+        trace = np.roll(trace, int(50 * units.ns / dt))
         return trace
 
     elif(model == 'Hanson2017'):
