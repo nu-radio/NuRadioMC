@@ -16,6 +16,9 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
     def get_parameter(self, attribute):
         return self._parameters[attribute]
 
+    def get_parameters(self):
+        return self._parameters
+
     def set_parameter(self, key, value):
         self._parameters[key] = value
 
