@@ -148,8 +148,11 @@ class triggerSimulator:
                 # shift trace to be in the correct location for cutting
                 trace = trace[cut_samples_beginning:(number_of_samples + cut_samples_beginning)]
                 channel.set_trace(trace, channel.get_sampling_rate())
-        logger.debug('setting ssim tation start time to {:.1f} + {:.1f}ns'.format(station.get_sim_station().get_trace_start_time(), (rel_station_time_samples / sampling_rate)))
-        station.get_sim_station().add_trace_start_time(-rel_station_time_samples / sampling_rate)  # here we assumed that all channels had the same length
+        try:
+            logger.debug('setting ssim tation start time to {:.1f} + {:.1f}ns'.format(station.get_sim_station().get_trace_start_time(), (rel_station_time_samples / sampling_rate)))
+            station.get_sim_station().add_trace_start_time(-rel_station_time_samples / sampling_rate)  # here we assumed that all channels had the same length
+        except:
+            logger.warning("No simulation information in event")
         self.__t += time.time() - t
 
     def end(self):
