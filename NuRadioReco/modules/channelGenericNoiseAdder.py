@@ -103,6 +103,7 @@ class channelGenericNoiseAdder:
 
         channels = station.get_channels()
         for channel in channels:
+
             trace = channel.get_trace()
             sampling_rate = channel.get_sampling_rate()
 
@@ -132,7 +133,8 @@ class channelGenericNoiseAdder:
 
                 plt.show()
 
-            trace += noise
+            new_trace = trace + noise
+            channel.set_trace(new_trace,sampling_rate)
 
     def end(self):
         pass
