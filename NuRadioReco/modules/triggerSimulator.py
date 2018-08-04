@@ -59,8 +59,10 @@ class triggerSimulator:
 
         if coincidences >= number_concidences:
             station.set_triggered(True)
+            logger.debug("station has triggered")
         else:
             station.set_triggered(False)
+            logger.debug("station has NOT triggered")
 
         self.__t += time.time() - t
 
