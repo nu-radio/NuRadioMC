@@ -209,8 +209,8 @@ def update_time_trace(trigger, evt_counter_json, filename, juser_id, jstation_id
                 # mode='markers',
                 opacity=0.7,
                 marker={
-                    'color': colors[i],
-                    'line': {'color': colors[i]}
+                    'color': colors[i % len(colors)],
+                    'line': {'color': colors[i % len(colors)]}
                 },
                 name=i
             ), 1, 1)
@@ -231,8 +231,8 @@ def update_time_trace(trigger, evt_counter_json, filename, juser_id, jstation_id
                 y=spec / units.mV,
                 opacity=0.7,
                 marker={
-                    'color': colors[i],
-                    'line': {'color': colors[i]}
+                    'color': colors[i % len(colors)],
+                    'line': {'color': colors[i % len(colors)]}
                 },
                 name=i
             ), 1, 2)
@@ -284,8 +284,8 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
                     # mode='markers',
                     opacity=0.7,
                     marker={
-                        'color': colors[i],
-                        'line': {'color': colors[i]}
+                        'color': colors[i % len(colors)],
+                        'line': {'color': colors[i % len(colors)]}
                     },
                     name=i
                 ), i + 1, 1)
@@ -314,8 +314,8 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
                         width=4,
                         dash='dot'),  # dash options include 'dash', 'dot', and 'dashdot'
                     marker={
-                        'color': colors[i],
-                        'line': {'color': colors[i]}
+                        'color': colors[i % len(colors)],
+                        'line': {'color': colors[i % len(colors)]}
                     },
                     name=i
                 ), i + 1, 1)
@@ -351,8 +351,8 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
                         width=4,
                         dash='dot'),  # dash options include 'dash', 'dot', and 'dashdot'
                     marker={
-                        'color': colors[i],
-                        'line': {'color': colors[i]}
+                        'color': colors[i % len(colors)],
+                        'line': {'color': colors[i % len(colors)]}
                     },
                     name=i
                 ), i + 1, 1)
@@ -395,8 +395,8 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
                         width=4,
                         dash='dot'),  # dash options include 'dash', 'dot', and 'dashdot'
                     marker={
-                        'color': colors[i],
-                        'line': {'color': colors[i]}
+                        'color': colors[i % len(colors)],
+                        'line': {'color': colors[i % len(colors)]}
                     },
                     name=i
                 ), i + 1, 1)
@@ -431,8 +431,8 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
                 y=spec / units.mV,
                 opacity=0.7,
                 marker={
-                    'color': colors[i],
-                    'line': {'color': colors[i]}
+                    'color': colors[i % len(colors)],
+                    'line': {'color': colors[i % len(colors)]}
                 },
                 name=i
             ), i + 1, 2)
@@ -482,8 +482,8 @@ def update_time_traces2(evt_counter_json, filename, dropdown_traces, juser_id, j
                     # mode='markers',
                     opacity=0.7,
                     marker={
-                        'color': colors[i],
-                        'line': {'color': colors[i]}
+                        'color': colors[i % len(colors)],
+                        'line': {'color': colors[i % len(colors)]}
                     },
                     name=i
                 ), i + 1, 1)
@@ -509,8 +509,8 @@ def update_time_traces2(evt_counter_json, filename, dropdown_traces, juser_id, j
                         width=4,
                         dash='dot'),  # dash options include 'dash', 'dot', and 'dashdot'
                     marker={
-                        'color': colors[i],
-                        'line': {'color': colors[i]}
+                        'color': colors[i % len(colors)],
+                        'line': {'color': colors[i % len(colors)]}
                     },
                     name=i
                 ), i + 1, 1)
