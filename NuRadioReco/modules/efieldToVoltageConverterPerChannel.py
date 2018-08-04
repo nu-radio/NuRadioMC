@@ -108,6 +108,7 @@ class efieldToVoltageConverterPerChannel:
             # convolve each trace with the antenna response for the given angles
             # and everything up in the time domain
             channel_id = sim_channel[0].get_id()
+            logger.debug('channel id {}'.format(channel_id))
             channel = NuRadioReco.framework.channel.Channel(channel_id)
             channel_spectrum = None
             for sim_channel2 in sim_channel:
@@ -140,10 +141,10 @@ class efieldToVoltageConverterPerChannel:
                     axes[1].plot(sim_channel2.get_frequencies(), np.abs(sim_channel2.get_frequency_spectrum()[1]))
                     axes[1].plot(sim_channel2.get_frequencies(), np.abs(sim_channel2.get_frequency_spectrum()[2]))
 
-                logger.debug(resampled_efield.shape)
                 new_trace = np.zeros((3, trace_length_samples))
                 # calculate the start bin
                 start_bin = int(round((sim_channel2.get_trace_start_time() - times_min.min()) / self.__time_resolution))
+                logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, sim_channel2.get_trace_start_time(), start_bin, sim_channel2['raypath']))
                 new_trace[:, start_bin:(start_bin + len(trace))] = resampled_efield
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
                 trace_object.set_trace(new_trace, 1. / self.__time_resolution)
@@ -163,9 +164,8 @@ class efieldToVoltageConverterPerChannel:
 
                 # get antenna pattern for current channel
                 antenna_model = det.get_antenna_model(sim_station_id, channel_id, zenith)
-                antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model)
+                antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model, interpolation_method='magphase')
                 ori = det.get_antanna_orientation(sim_station_id, channel_id)
-                logger.debug(ori)
                 logger.debug("zen {:.0f}, az {:.0f}".format(zenith / units.deg, azimuth / units.deg))
                 VEL = antenna_pattern.get_antenna_response_vectorized(ff, zenith, azimuth, *ori)
 
