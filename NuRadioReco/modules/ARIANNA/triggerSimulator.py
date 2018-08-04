@@ -2,7 +2,7 @@ from NuRadioReco.utilities import units
 import numpy as np
 import time
 import logging
-logger = logging.getLogger('triggerSimulator')
+logger = logging.getLogger('ARIANNAtriggerSimulator')
 
 
 class triggerSimulator:
@@ -47,8 +47,10 @@ class triggerSimulator:
         t = time.time()
         if threshold_low >= threshold_high:
             logger.error("Impossible trigger configuration, high {0} low {1}.".format(threshold_high, threshold_low))
+            raise NotImplementedError
 
         trigger = {}
+        max_signal = 0
 
         sampling_rate = station.get_channels()[0].get_sampling_rate()
         for channel in station.get_channels():
@@ -57,6 +59,7 @@ class triggerSimulator:
                 continue
             trace = channel.get_trace()
             trigger[channel_id] = []
+            max_signal = max(max_signal, np.max(np.abs(trace)))
 
             low_sample = 0
             high_sample = 0
@@ -70,6 +73,7 @@ class triggerSimulator:
                         trigger[channel_id].append(sm)
                     low_sample = sm
 
+        station.set_parameter("channels_max_amplitude", max_signal)
         has_triggered = False
         trigger_time_sample = None
         # loop over the trace with a sliding window of "coinc_window"
