@@ -17,15 +17,17 @@ import os
 from scipy import constants
 # import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverterPerChannel
+import NuRadioReco.modules.ARIANNA.triggerSimulator
 import NuRadioReco.modules.triggerSimulator
 import NuRadioReco.modules.channelResampler
+import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.channel
 import datetime
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("sim")
 
 evt_time = datetime.datetime(2018, 1, 1)
@@ -113,12 +115,16 @@ n_samples = det.get_number_of_samples(station_id, 0)
 ff = np.fft.rfftfreq(n_samples, dt)
 tt = np.arange(0, n_samples * dt, dt)
 
+Vrms = (Tnoise * 50 * constants.k * bandwidth / units.Hz) ** 0.5
+
 # initialize detector sim modules
 efieldToVoltageConverterPerChannel = NuRadioReco.modules.efieldToVoltageConverterPerChannel.efieldToVoltageConverterPerChannel()
 efieldToVoltageConverterPerChannel.begin(debug=False)
 triggerSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
+triggerSimulatorARIANNA = NuRadioReco.modules.ARIANNA.triggerSimulator.triggerSimulator()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
+channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 if(args.outputfilenameNuRadioReco is not None):
     eventWriter.begin(args.outputfilenameNuRadioReco)
 
@@ -196,15 +202,13 @@ for iE in range(n_events):
             viewing_angle = hp.get_angle(shower_axis, launch_vector)  # calculates angle between shower axis and launch vector
             viewing_angles.append(viewing_angle)
             dRho = (viewing_angle - rho)
-            logger.debug('solution {}: viewing angle {:.1f} = dRho = {:.1f}'.format(iS, viewing_angle / units.deg, (viewing_angle - rho) / units.deg))
+            logger.debug('solution {} {}: viewing angle {:.1f} = dRho = {:.1f}'.format(iS, ray.solution_types[r.get_solution_type(iS)], viewing_angle / units.deg, (viewing_angle - rho) / units.deg))
             dRhos.append(dRho)
         # discard event if dRho (angle off cherenkov cone) is too large
-        if(min(np.abs(dRhos)) > 15 * units.deg):
+        if(min(np.abs(dRhos)) > 30 * units.deg):
             logger.debug('dRho too large, event unlikely to be observed, skipping event')
             add_empty_channel(sim_station, channel_id)
             continue
-
-        candidate_event = True
 
         n = r.get_number_of_solutions()
         Rs = np.zeros(n)
@@ -217,7 +221,10 @@ for iE in range(n_events):
             travel_distances[iE, channel_id, iS] = R
             travel_times[iE, channel_id, iS] = T
             Ts[iS] = T
-            logger.debug("R = {:.1f} m, t = {:.1f}ns".format(R / units.m, T / units.ns))
+            receive_vector = r.get_receive_vector(iS)
+            receive_vectors[iE, channel_id, iS] = receive_vector  # save receive vector
+            zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
+            logger.debug("R = {:.1f} m, t = {:.1f}ns, receive angles {:.0f} {:.0f}".format(R / units.m, T / units.ns, zenith / units.deg, azimuth / units.deg))
 #             eR, eTheta, ePhi = get_frequency_spectrum(energy, viewing_angles[iS], ff, 0, n, R)
 
             fem, fhad = get_em_had_fraction(inelasticity, ccnc, flavor)
@@ -231,7 +238,7 @@ for iE in range(n_events):
             eTheta *= attn
 #             ePhi *= attn
 
-            if(fem > 0 and 0):
+            if(fem > 0):
                 eTheta2 = signalgen.get_frequency_spectrum(energy * fem, viewing_angles[iS], n_samples, dt, 1, n_index, R, 'Alvarez2000')
 #                 eR2 *= attn
                 eTheta2 *= attn
@@ -240,10 +247,6 @@ for iE in range(n_events):
 #                 eR = fft.time2freq(fft.freq2time(eR) + fft.freq2time(eR2))
                 eTheta = fft.time2freq(fft.freq2time(eTheta) + fft.freq2time(eTheta2))
 #                 ePhi = fft.time2freq(fft.freq2time(ePhi) + fft.freq2time(ePhi2))
-
-            receive_vector = r.get_receive_vector(iS)
-            receive_vectors[iE, channel_id, iS] = receive_vector  # save receive vector
-            zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
 
             # TODO verify that calculation of polarization vector is correct!
             polarization_direction = np.cross(receive_vector, np.cross(shower_axis, receive_vector))
@@ -279,7 +282,11 @@ for iE in range(n_events):
             channel.set_trace_start_time(T)
             channel['azimuth'] = azimuth
             channel['zenith'] = zenith
+            channel['raypath'] = ray.solution_types[r.get_solution_type(iS)]
             sim_station.add_channel(channel)
+
+            if(np.max(np.abs(channel.get_trace())) > 3 * Vrms):  # apply a simple threshold cut to speed up the simulation, application of antenna response will just decrease the signal amplitude
+                candidate_event = True
 
     # perform only a detector simulation if event had at least one candidate channel
     if(not candidate_event):
@@ -297,29 +304,37 @@ for iE in range(n_events):
     efieldToVoltageConverterPerChannel.run(evt, station, det)  # convolve efield with antenna pattern
     # downsample trace back to detector sampling rate
     channelResampler.run(evt, station, det, sampling_rate=1. / dt)
-    Vrms = (Tnoise * 50 * constants.k * bandwidth / units.Hz) ** 0.5
+    # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
+    channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.MHz],
+                              filter_type='butter10')
     logger.debug("Vrms= {:.2f}muV".format(Vrms / units.V / units.micro))
 #     one_sigma = 11 * units.micro * units.V
 #     one_sigma = 16 * units.nano * units.V
     triggerSimulator.run(evt, station, det,
-                         threshold=3 * Vrms,
-                         triggered_channels=None,
-#                          triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
+                        threshold=3 * Vrms,
+                        triggered_channels=None,
+#                         triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
 #                          triggered_channels=[0, 1, 2, 3],
                          number_concidences=1)
+    if(station.has_triggered()):  # calculate more time consuming ARIANNA trigger only if station passes simple trigger
+        triggerSimulatorARIANNA.run(evt, station, det,
+                             threshold_high=3 * Vrms,
+                             threshold_low=-3 * Vrms,
+                             triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
+                             number_concidences=3)
 
     SNRs[iE] = station.get_parameter("channels_max_amplitude") / Vrms
 
-    # save events that trigger the detector
-    if(station.has_triggered()):
+    # calculate weight
+    weights[iE] = get_weight(zenith_nu, energy, mode='simple')
+
+    # save events that trigger the detector and have weight > 0
+    if(station.has_triggered() and (weights[iE] > 1e-5)):
         if(args.outputfilenameNuRadioReco is not None):
             eventWriter.run(evt)
         logger.info("event triggered")
 
     triggered[iE] = station.has_triggered()
-
-    # calculate weight
-    weights[iE] = get_weight(zenith_nu, energy, mode='simple')
 
 if(args.outputfilenameNuRadioReco is not None):
     eventWriter.end()  # close output file
@@ -352,7 +367,7 @@ density_ice = 0.9167 * units.g / units.cm ** 3
 density_water = 997 * units.kg / units.m ** 3
 
 n_triggered = np.sum(weights[triggered])
-logger.info('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(n_triggered, n_events, n_triggered / n_events))
+print('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(n_triggered, n_events, n_triggered / n_events))
 
 dX = fin.attrs['xmax'] - fin.attrs['xmin']
 dY = fin.attrs['ymax'] - fin.attrs['ymin']
@@ -360,7 +375,7 @@ dZ = fin.attrs['zmax'] - fin.attrs['zmin']
 V = dX * dY * dZ
 Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
 
-logger.info("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
+print("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
 #     a = 1 / 0
 fin.close()
 fout.close()
