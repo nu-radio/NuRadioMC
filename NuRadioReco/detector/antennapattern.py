@@ -48,7 +48,6 @@ def interpolate_linear_vectorized(x, x0, x1, y0, y1, interpolation_method='compl
     if(interpolation_method == 'complex'):
         result[mask] = y0[mask] + (y1[mask] - y0[mask]) * (x[mask] - x0[mask]) / denominator[mask]
     elif(interpolation_method == 'magphase'):  # interpolate magnitude and phase
-        print("magphase")
         mag0 = np.abs(y0[mask])
         mag1 = np.abs(y1[mask])
         phase0 = np.angle(y0[mask])
