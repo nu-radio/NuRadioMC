@@ -46,7 +46,7 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
     n_index: float
         index of refraction at interaction vertex
     R: float
-        distance from vetex to observer
+        distance from vertex to observer
     model: string
         specifies the signal model
         * ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information
@@ -139,7 +139,7 @@ def get_frequency_spectrum(energy, theta, N, dt, is_em_shower, n_index, R, model
     n_index: float
         index of refraction at interaction vertex
     R: float
-        distance from vetex to observer
+        distance from vertex to observer
     model: string
         specifies the signal model
         * ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information
