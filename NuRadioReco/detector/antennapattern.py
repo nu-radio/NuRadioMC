@@ -767,21 +767,20 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
     def parametric_phase(self, freq, type='theoretical'):
             if type == 'frontlobe_lpda':
-                a = 0.0001 * (freq - 400 * units.MHz) ** 2 - 20
+                a = 100 * (freq  - 400 * units.MHz) ** 2 - 20
                 a[np.where(freq > 400 * units.MHz)] -= 0.00007 * (freq[np.where(freq > 400 * units.MHz)] - 400 * units.MHz) ** 2
-
             elif type == 'side_lpda':
-                a = 0.00004 * (freq - 950 * units.MHz) ** 2 - 40
-
+                print freq
+                print 950 * units.MHz
+                a = 40 * (freq - 950 * units.MHz) ** 2 - 40
             elif type == 'back_lpda':
-                a = 0.00005 * (freq - 950 * units.MHz) ** 2 - 50
-
+                a = 50 * (freq - 950 * units.MHz) ** 2 - 50
             elif type == "theoretical":
                 # ratio of two elements
                 tau = 0.75
                 # maximum frequency
                 f = 1000. * units.MHz
-                a = np.pi / np.log(tau) * np.log(freq / f)
+                a = np.pi / np.log(tau) * np.log(freq / f) - 60
 
             return a
 
