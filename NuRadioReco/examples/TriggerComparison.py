@@ -17,13 +17,6 @@ det = detector.Detector(json_filename='example_data/dummy_detector.json')
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("TriggerComparison")
 
-# Use numpy array with band-pass limited pulse [30-1000] MHz, samples at 10 GHz
-data = np.load("example_data/Test_data_8.npy")
-
-test_pulse = data[2,:]
-# Normalize test pulse to 1
-test_pulse /= np.max(np.abs(test_pulse))
-
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 channelGenericNoiseAdder.begin(debug=False)
 
@@ -42,6 +35,31 @@ channel_ARA = NuRadioReco.framework.channel.Channel(0)
 
 station_ARIANNA = NuRadioReco.framework.station.Station(101)
 channel_ARIANNA = NuRadioReco.framework.channel.Channel(0)
+
+#Switch between cosmic ray pulse (CoREAS) and Askaryan parameterization
+CR = False
+
+if CR:
+    # Use numpy array with band-pass limited pulse [30-1000] MHz, samples at 10 GHz
+    data = np.load("example_data/Test_data_8.npy")
+    test_pulse = data[2,:]
+    # Normalize test pulse to 1
+else:
+    # PARAMEETERS for Askaryan Pulse
+    energy = 1e19*units.eV
+    fhad = 0.5
+    viewing_angle = 54 * units.degree
+    n_samples = 2**12
+    dt = 0.1 *units.ns
+    n_index = 1.5
+    R = 100 * units.m
+
+    from NuRadioMC.SignalGen import parametrizations as signalgen
+    test_pulse = signalgen.get_time_trace(energy* fhad,viewing_angle, n_samples, dt, False, n_index, R, 'Alvarez2000')
+
+
+
+test_pulse /= np.max(np.abs(test_pulse))
 
 def Calc_SNR(trace):
     max = np.max(np.abs(trace))/(17.6*units.mV)
