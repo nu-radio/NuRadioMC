@@ -83,8 +83,8 @@ for E in 10 ** np.linspace(15.5, 17, 10):
             plt.close("all")
 
 fig, (ax, ax2) = plt.subplots(1, 2)
-ax.scatter(SS_LPDA / Vrms ** 2, Vp2p_LPDA / Vrms / 2, label='LPDA')
-ax.scatter(SS_bicone / Vrms ** 2, Vp2p_bicone / Vrms / 2, label='bicone')
+ax.scatter(Vp2p_LPDA / Vrms / 2, SS_LPDA / Vrms ** 2, label='LPDA')
+ax.scatter(Vp2p_bicone / Vrms / 2, SS_bicone / Vrms ** 2, label='bicone')
 ax.set_ylabel(r"$\sum A_i^2 \Delta t / V_\mathrm{RMS}^2 [ns]$")
 ax.set_xlabel(r"$V_\mathrm{p2p}/2/V_\mathrm{RMS}$")
 ax.semilogx(True)
