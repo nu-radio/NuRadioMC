@@ -42,7 +42,7 @@ class hardwareResponseIncorporator:
 
                 trace_after_system_fft = trace_fft * system_response['gain'] * system_response['phase']
                 # zero first bins to avoid DC offset
-                trace_after_cable_fft[0] = 0
+                trace_after_system_fft[0] = 0
                 channel.set_frequency_spectrum(trace_after_system_fft, channel.get_sampling_rate())
 
             else:
