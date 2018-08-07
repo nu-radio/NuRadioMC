@@ -2,6 +2,8 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from NuRadioMC.utilities import units, fft
+import logging
+logger = logging.getLogger("SignalGen.parametrizations")
 
 """
 
@@ -80,7 +82,7 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
         return trace
 
     elif(model == 'Alvarez2000'):
-        freqs = np.fft.rfftfreq(N, dt)
+        freqs = np.fft.rfftfreq(N, dt)[1:]  # exclude zero frequency
         cherenkov_angle = np.arccos(1. / n_index)
 
         Elpm = 2e15 * units.eV
@@ -102,10 +104,15 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
         E *= units.V / units.m / units.MHz
         E *= np.sin(theta) / np.sin(cherenkov_angle)
 
+        tmp = np.zeros(len(freqs) + 1)
         if(is_em_shower):
-            tmp = E * np.exp(-np.log(2) * ((theta - cherenkov_angle) / dThetaEM) ** 2) / R
+            tmp[1:] = E * np.exp(-np.log(2) * ((theta - cherenkov_angle) / dThetaEM) ** 2) / R
         else:
-            tmp = E * np.exp(-np.log(2) * ((theta - cherenkov_angle) / dThetaHad) ** 2) / R
+            if(np.any(dThetaHad != 0)):
+                tmp[1:] = E * np.exp(-np.log(2) * ((theta - cherenkov_angle) / dThetaHad) ** 2) / R
+            else:
+                pass
+                # energy is below a TeV, setting Askaryan pulse to zero
 
         tmp *= 0.5  # the factor 0.5 is introduced to compensate the unusual fourier transform normalization used in the ZHS code
 
