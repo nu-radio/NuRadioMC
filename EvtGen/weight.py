@@ -10,6 +10,16 @@ AMU = 1.66e-27 * units.kg
 
 
 def get_weight(theta_nu, pnu, mode='simple'):
+    """
+    calculates neutrino weight due to Earth absorption for different models
+
+    Parameters
+    ----------
+    theta_nu: float or array of floats
+        the zenith angle of the neutrino direction (where it came from, i.e., opposite to the direction of propagation)
+    pnu: float or array of floats
+        the momentum of the neutrino
+    """
     if(mode == 'simple'):
         return get_simple_weight(theta_nu, pnu)
     else:
@@ -28,13 +38,13 @@ def get_simple_weight(theta_nu, pnu):
     Parameters
     ----------
     theta_nu: float or array of floats
-        the zenith angle of the neutrino direction (into the direction of propagation)
+        the zenith angle of the neutrino direction (where it came from, i.e., opposite to the direction of propagation)
     pnu: float or array of floats
         the momentum of the neutrino
     """
-    if(theta_nu >= 0.5 * np.pi):  # coming from below
+    if(theta_nu <= 0.5 * np.pi):  # coming from above
         return np.ones_like(theta_nu)
-    else:
+    else:  # coming from below
         sigma = (7.84e-40) * units.m2 * (pnu / units.GeV) ** 0.363
-        d = 2 * R_earth * np.cos(theta_nu)
+        d = -2 * R_earth * np.sin(theta_nu)  # minus sign because sin is evaluated for theta > 90deg
         return np.exp(-d * sigma * DensityCRUST / AMU)
