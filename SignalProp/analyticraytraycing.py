@@ -94,7 +94,12 @@ class ray_tracing_2D():
         """
         z = self.get_z_unmirrored(z_raw, C_0)
         c = self.medium.n_ice ** 2 - C_0 ** -2
-        res = (-np.sqrt(c) * np.exp(z / self.medium.z_0) * self.__b * self.medium.delta_n + 0.2e1 * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0) + c) * c + 0.2e1 * c ** (0.3e1 / 0.2e1)) / (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0) + c) - self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + 0.2e1 * c) * (-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0) + c) ** (-0.1e1 / 0.2e1) * ((self.medium.n_ice ** 2 * C_0 ** 2 - 1) ** (-0.1e1 / 0.2e1))
+        B = (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0) + c) - self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + 0.2e1 * c)
+        D = self.medium.n_ice ** 2 * C_0 ** 2 - 1
+        E1 = -self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0)
+        E2 = self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0)
+        E = (E1 + E2 + c)
+        res = (-np.sqrt(c) * np.exp(z / self.medium.z_0) * self.__b * self.medium.delta_n + 0.2e1 * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0) + c) * c + 0.2e1 * c ** 1.5) / B * E ** -0.5 * (D ** (-0.5))
 
         if(z != z_raw):
             res *= -1
@@ -189,7 +194,11 @@ class ray_tracing_2D():
 
     def get_path_length(self, x1, x2, C_0):
         x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
-        path_length = integrate.quad(self.ds, x1[1], x2_mirrored[1], args=(C_0))
+        gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+        points = None
+        if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
+            points = [z_turn]
+        path_length = integrate.quad(self.ds, x1[1], x2_mirrored[1], args=(C_0), points=points)
         self.__logger.info("calculating path length from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} m".format(x1[0], x1[1], x2[0], x2[1],
                                                                                                                              x2_mirrored[0],
                                                                                                                              x2_mirrored[1],
@@ -203,7 +212,11 @@ class ray_tracing_2D():
             z = self.get_z_unmirrored(t, C_0)
             return self.ds(t, C_0) / speed_of_light * self.n(z)
 
-        travel_time = integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0))
+        gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+        points = None
+        if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
+            points = [z_turn]
+        travel_time = integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0), points=points)
         self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} ns".format(x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], travel_time[0] / units.ns))
         return travel_time[0]
 
@@ -219,7 +232,11 @@ class ray_tracing_2D():
         # to speed up things we only calculate the attenuation for a few frequencies
         # and interpolate linearly between them
         freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), self.__n_frequencies_integration)
-        tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in freqs])
+        gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+        points = None
+        if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
+            points = [z_turn]
+        tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05, points=points)[0] for f in freqs])
         att_func = interpolate.interp1d(freqs, tmp)
         tmp2 = att_func(frequency[mask])
 #         tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in frequency[mask]])
