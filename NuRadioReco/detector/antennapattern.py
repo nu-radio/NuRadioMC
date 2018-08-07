@@ -436,13 +436,18 @@ class AntennaPatternBase():
         e2 = hp.spherical_to_cartesian(self._zen_ori, self._azi_ori)  # vector perpendicular to tine plane
         e3 = np.cross(e1, e2)
         E = np.array([e1, e2, e3])
+        if(np.linalg.norm(e3) < 0.9):
+            logger.error("orientation of antenna not properly defined in WIPL-D orientation file")
+            raise StandardError
 
         # get normal vectors for antenne orientation in field (in ARIANNA CS)
         a1 = hp.spherical_to_cartesian(zen_boresight, azi_boresight)
         a2 = hp.spherical_to_cartesian(zen_ori, azi_ori)
         a3 = np.cross(a1, a2)
         A = np.array([a1, a2, a3])
-#         logger.debug("antenna orientation in field = {}".format(A))
+        if(np.linalg.norm(a3) < 0.9):
+            logger.error("orientation of antenna not properly defined detector description")
+            raise StandardError
         from numpy.linalg import inv
 
         return np.matmul(inv(E), A)
