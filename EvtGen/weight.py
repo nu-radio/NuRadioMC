@@ -46,5 +46,5 @@ def get_simple_weight(theta_nu, pnu):
         return np.ones_like(theta_nu)
     else:  # coming from below
         sigma = (7.84e-40) * units.m2 * (pnu / units.GeV) ** 0.363
-        d = -2 * R_earth * np.sin(theta_nu)  # minus sign because sin is evaluated for theta > 90deg
+        d = 2 * R_earth * np.cos(theta_nu)
         return np.exp(-d * sigma * DensityCRUST / AMU)
