@@ -12,7 +12,7 @@ class channelBandPassFilter:
         pass
 
     def run(self, evt, station, det, passband=[55 * units.MHz, 1000 * units.MHz],
-            filter_type='rectangular',):
+            filter_type='rectangular'):
 
         channels = station.get_channels()
         for channel in channels:
