@@ -23,8 +23,8 @@ HEADER = """
 # 3. energy of neutrino (double)
 # 4. charge or neutral current interaction (string, one of ['cc', 'nc']
 # 5./6./7. position of neutrino interaction vertex in cartesian coordinates (x, y, z) (in default NuRadioMC local coordinate system)
-# 8. zenith/theta angle of neutrino direction (pointing into direction of propagation)
-# 9. azimuth/phi angle of neutrino direction (pointing into direction of propagation)
+# 8. zenith/theta angle of neutrino direction (pointing to where it came from, i.e. opposite to the direction of propagation)
+# 9. azimuth/phi angle of neutrino direction (pointing to where it came from, i.e. opposite to the direction of propagation)
 # 10. inelasticity (the fraction of neutrino energy that goes into the hadronic part)
 #
 """
@@ -138,6 +138,8 @@ def generate_eventlist(filename, n_events, Emin, Emax,
         fout.attrs['zmin'] = zmin
         fout.attrs['zmax'] = zmax
         fout.attrs['flavors'] = flavor
+        fout.attrs['Emin'] = Emin
+        fout.attrs['Emax'] = Emax
 
         fout['event_ids'] = event_ids[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
         fout['flavors'] = flavors[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]

@@ -27,7 +27,7 @@ import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.channel
 import datetime
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("sim")
 
 evt_time = datetime.datetime(2018, 1, 1)
@@ -52,6 +52,7 @@ def add_empty_channel(sim_station, channel_id):
     channel.set_frequency_spectrum(np.zeros((3, len(ff)), dtype=np.complex), 1. / dt)
     channel['azimuth'] = 0
     channel['zenith'] = 180 * units.deg
+    channel['raypath'] = 'none'
     sim_station.add_channel(channel)
 
 
@@ -162,7 +163,10 @@ for iE in range(n_events):
     azimuth_nu = fin['azimuths'][iE]
     inelasticity = fin['inelasticity'][iE]
 
-    shower_axis = hp.spherical_to_cartesian(zenith_nu, azimuth_nu)
+    # be careful, zenith/azimuth angle always refer to where the neutrino came from,
+    # i.e., opposite to the direction of propagation. We need the propagation directio nhere,
+    # so we multiply the shower axis with '-1'
+    shower_axis = -1 * hp.spherical_to_cartesian(zenith_nu, azimuth_nu)
     x1 = np.array([x, y, z])
 
     # calculate correct chereknov angle for ice density at vertex position
