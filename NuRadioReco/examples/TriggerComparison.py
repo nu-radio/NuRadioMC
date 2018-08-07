@@ -7,6 +7,8 @@ import NuRadioReco.framework.station
 import NuRadioReco.framework.event
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelGenericNoiseAdder
+import NuRadioReco.modules.channelBandPassFilter
+import NuRadioReco.modules.channelSignalReconstructor
 
 import NuRadioReco.modules.ARA.triggerSimulator
 import NuRadioReco.modules.ARIANNA.triggerSimulator
@@ -19,8 +21,10 @@ logger = logging.getLogger("TriggerComparison")
 
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 channelGenericNoiseAdder.begin(debug=False)
-
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
+channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
+channelSignalReconstructor.begin(debug=False)
+channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 
 triggerSimulator_ARA = NuRadioReco.modules.ARA.triggerSimulator.triggerSimulator()
 triggerSimulator_ARA.begin()
@@ -38,6 +42,9 @@ channel_ARIANNA = NuRadioReco.framework.channel.Channel(0)
 
 #Switch between cosmic ray pulse (CoREAS) and Askaryan parameterization
 CR = False
+
+# TYPE_SNR = 'integrated_power'
+TYPE_SNR = 'peak_amplitude'
 
 if CR:
     # Use numpy array with band-pass limited pulse [30-1000] MHz, samples at 10 GHz
@@ -60,10 +67,6 @@ else:
 
 
 test_pulse /= np.max(np.abs(test_pulse))
-
-def Calc_SNR(trace):
-    max = np.max(np.abs(trace))/(17.6*units.mV)
-    return max
 
 n_scaling = 50
 result_ARA = np.zeros((n_scaling,2))
@@ -91,31 +94,48 @@ for scaling in np.linspace(10*units.mV,200*units.mV,n_scaling):
         channel_ARIANNA.set_trace(test_pulse_sc,10*units.GHz)
         station_ARIANNA.add_channel(channel_ARIANNA)
 
+        channelBandPassFilter.run(event_ARIANNA, station_ARIANNA, det, passband=[50 * units.MHz, 1000 * units.MHz],
+            filter_type='rectangular')
+        channelBandPassFilter.run(event_ARA, station_ARA, det, passband=[50 * units.MHz, 1000 * units.MHz],
+            filter_type='rectangular')
+
+#         channelSignalReconstructor.run(event_ARIANNA, station_ARIANNA, det)
+# #         channelSignalReconstructor.run(event_ARA, station_ARA, det, debug=False, rms_stage='amp')
 
         channelGenericNoiseAdder.run(event_ARA,station_ARA,
-                            det,amplitude=20*units.mV,min_freq=30*units.MHz,max_freq=1000*units.MHz,type='white')
+                            det,amplitude=20*units.mV,min_freq=50*units.MHz,max_freq=1000*units.MHz,type='white')
         channelGenericNoiseAdder.run(event_ARIANNA,station_ARIANNA,
-                            det,amplitude=20*units.mV,min_freq=30*units.MHz,max_freq=1000*units.MHz,type='white')
+                            det,amplitude=20*units.mV,min_freq=50*units.MHz,max_freq=1000*units.MHz,type='white')
+
 
         channelResampler.run(event_ARA, station_ARA, det, sampling_rate=1 * units.GHz)
         channelResampler.run(event_ARIANNA, station_ARIANNA, det, sampling_rate=1 * units.GHz)
+
+        channelSignalReconstructor.run(event_ARIANNA, station_ARIANNA, det)
+        channelSignalReconstructor.run(event_ARA, station_ARA, det)
+
 
         triggerSimulator_ARA.run(event_ARA, station_ARA, det, power_threshold=6.5,
                                         coinc_window = 110 * units.ns,
                                         number_concidences =  1,
                                         triggered_channels = [0, 1, 2, 3, 4, 5, 6, 7])
 
-        triggerSimulator_ARIANNA.run(event_ARIANNA, station_ARIANNA, det,threshold_high=53 * units.mV,
-                threshold_low=-53 * units.mV,
+        triggerSimulator_ARIANNA.run(event_ARIANNA, station_ARIANNA, det,threshold_high=36 * units.mV,
+                threshold_low=-36 * units.mV,
                 high_low_window=20 * units.ns,
                 coinc_window=32 * units.ns,
                 number_concidences=1,
                 triggered_channels=[0, 1, 2, 3])
 
+#
+        SNR_ARA +=  station_ARA.get_channels()[0]['SNR'][TYPE_SNR]
+        SNR_ARIANNA += station_ARIANNA.get_channels()[0]['SNR'][TYPE_SNR]
 
-        SNR_ARA +=  Calc_SNR(station_ARA.get_channels()[0].get_trace())
-        SNR_ARIANNA += Calc_SNR(station_ARIANNA.get_channels()[0].get_trace())
-
+#         print station_ARIANNA.get_channels()[0]['SNR']
+#         plt.show()
+# #         1/0
+#
+#
         max.append(np.max(np.abs(station_ARA.get_channels()[0].get_trace())))
 #         channel_ARA.clear_trace()
 
@@ -139,6 +159,6 @@ plt.figure()
 plt.plot(result_ARA[:,0],result_ARA[:,1], linestyle='None', marker ='o',label="ARA, power_threshold 6.5")
 plt.plot(result_ARIANNA[:,0],result_ARIANNA[:,1], linestyle='None', marker ='s',label="ARIANNA, 3 sigma")
 plt.ylabel("Trigger efficiency on one antenna")
-plt.xlabel("SNR: max(ampl_signal) / RMS(ampl_noise)")
+plt.xlabel(TYPE_SNR)
 plt.legend()
 plt.show()
