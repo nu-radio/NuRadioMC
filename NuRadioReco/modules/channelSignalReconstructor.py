@@ -16,9 +16,8 @@ class channelSignalReconstructor:
         self.__t = 0
         self.__conversion_factor_integrated_signal = 2.65441729 * 1e-3 * 1.e-9 * 6.24150934 * 1e18  # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
 
-
-    def begin(self, debug=False ,signal_start = 20 * units.ns, signal_stop = 100 * units.ns,
-                    noise_start = 150 * units.ns, noise_stop = 350 * units.ns):
+    def begin(self, debug=False , signal_start=20 * units.ns, signal_stop=100 * units.ns,
+                    noise_start=150 * units.ns, noise_stop=350 * units.ns):
         """
         Parameters
         -----------
@@ -39,7 +38,7 @@ class channelSignalReconstructor:
         self.__noise_window_stop = noise_stop
         self.__debug = debug
 
-    def get_SNR(self, channel, det, stored_noise=False, rms_stage=None):
+    def get_SNR(self, station_id, channel, det, stored_noise=False, rms_stage=None):
         """
         Parameters
         -----------
@@ -70,19 +69,19 @@ class channelSignalReconstructor:
 
         # Various definitions
         noise_int = np.sum(np.square(trace[noise_window_mask]))
-        noise_int *= (self.__signal_window_stop - self.__signal_window_start)/float(self.__noise_window_stop - self.__noise_window_start)
+        noise_int *= (self.__signal_window_stop - self.__signal_window_start) / float(self.__noise_window_stop - self.__noise_window_start)
 
         if stored_noise:
             # we use the RMS from forced triggers
-            noise_rms = det.get_noise_RMS(station.get_id(), channel.get_id(), stage=rms_stage)
+            noise_rms = det.get_noise_RMS(station_id, channel.get_id(), stage=rms_stage)
         else:
             noise_rms = np.sqrt(np.mean(np.square(trace[noise_window_mask])))
 
         if self.__debug:
             import matplotlib.pyplot as plt
             plt.figure()
-            plt.plot(times[signal_window_mask],np.square(trace[signal_window_mask]))
-            plt.plot(times[noise_window_mask],np.square(trace[noise_window_mask]),c='k',label='noise')
+            plt.plot(times[signal_window_mask], np.square(trace[signal_window_mask]))
+            plt.plot(times[noise_window_mask], np.square(trace[noise_window_mask]), c='k', label='noise')
             plt.xlabel("Times [ns]")
             plt.ylabel("Power")
             plt.legend()
@@ -92,11 +91,11 @@ class channelSignalReconstructor:
 
         if SNR['integrated_power'] < noise_int:
              logger.info("Intgreated signal {0} smaller than noise {1}, power SNR 0".format(
-                                    SNR['integrated_power'],noise_int))
+                                    SNR['integrated_power'], noise_int))
              SNR['integrated_power'] = 0.
         else:
 
-            SNR['integrated_power'] /= (noise_int /self.__signal_window_start)
+            SNR['integrated_power'] /= (noise_int / self.__signal_window_start)
             SNR['integrated_power'] = np.sqrt(SNR['integrated_power'])
 
         SNR['peak_2_peak_amplitude'] = np.max(trace[signal_window_mask]) - np.min(trace[signal_window_mask])
@@ -111,15 +110,14 @@ class channelSignalReconstructor:
         if self.__debug:
             plt.figure()
             plt.plot(times, trace)
-            plt.axvline(self.__noise_window_start,c='k',label='Noise Window')
-            plt.axvline(self.__noise_window_stop,c='k',linestyle='--')
-            plt.axvline(self.__signal_window_start,c='r',label='Signal Window')
-            plt.axvline(self.__signal_window_stop,c='r',linestyle='--')
+            plt.axvline(self.__noise_window_start, c='k', label='Noise Window')
+            plt.axvline(self.__noise_window_stop, c='k', linestyle='--')
+            plt.axvline(self.__signal_window_start, c='r', label='Signal Window')
+            plt.axvline(self.__signal_window_stop, c='r', linestyle='--')
             plt.legend()
             plt.show()
 
         return SNR
-
 
     def run(self, evt, station, det, stored_noise=False, rms_stage='amp'):
         """
@@ -145,7 +143,7 @@ class channelSignalReconstructor:
             channel['maximum_amplitude'] = max_amplitude
 
             # Use noise precalculated from forced triggers
-            channel['SNR'] = self.get_SNR(channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
+            channel['SNR'] = self.get_SNR(station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
 
         station['channel_max_amplitude'] = max_amplitude
 
