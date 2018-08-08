@@ -12,19 +12,25 @@ logger = logging.getLogger('correlationDirectionFitter')
 
 class correlationDirectionFitter:
     """
+    Fits the direction using correlation of parallel channels.
     """
 
-    def begin(self):
-        pass
+    def begin(self, debug=False):
+        self.__debug = debug
 
-    def run(self, evt, station, det, debug=False, n=None, ZenLim=[0 * units.deg, 90 * units.deg],
+    def run(self, evt, station, det, n=None, ZenLim=[0 * units.deg, 90 * units.deg],
             AziLim=[0 * units.deg, 360 * units.deg],
             channel_pairs=((0, 2), (1, 3))):
 
         use_correlation = True
 
         def ll_regular_station(angles, corr_02, corr_13, sampling_rate, positions):
-            # Using correlation, has no built in wrap around, pulse needs to be in the middle
+             """
+             Likelihood function for a four antenna ARIANNA station, using correction.
+             Using correlation, has no built in wrap around, pulse needs to be in the middle
+
+            """
+
             zenith = angles[0]
             azimuth = angles[1]
             times = []
@@ -56,8 +62,12 @@ class correlationDirectionFitter:
             return likelihood
 
         def ll_regular_station_fft(angles, corr_02_fft, corr_13_fft, sampling_rate, positions):
-            # Using FFT convolution, has built-in wrap around, but ARIANNA signals are too short for it to be accurate
-            # will show problems at zero time delay
+            """
+            Likelihood function for a four antenna ARIANNA station, using FFT convolution
+            Using FFT convolution, has built-in wrap around, but ARIANNA signals are too short for it to be accurate
+            will show problems at zero time delay
+            """
+
             zenith = angles[0]
             azimuth = angles[1]
             times = []
@@ -125,7 +135,7 @@ class correlationDirectionFitter:
                                                            slice(AziLim[0], AziLim[1], 0.05)),
                            args=(corr_02_fft, corr_13_fft, sampling_rate, positions_pairs), full_output=True, finish=opt.fmin)  # slow but does the trick
 
-        if debug:
+        if self.__debug:
             import peakutils
             zenith = ll[0][0]
             azimuth = ll[0][1]
@@ -173,7 +183,7 @@ class correlationDirectionFitter:
         logger.info(output_str)
         # Still have to add fit quality parameter to output
 
-        if debug:
+        if self.__debug:
             import peakutils
             # access simulated efield and high level parameters
             if(station.has_sim_station()):
@@ -183,13 +193,11 @@ class correlationDirectionFitter:
                 sim_present = True
             else:
                 sim_present = False
-#             while azimuth_orig > 2 * np.pi:
-#                 azimuth_orig -= 2 * np.pi
+
             if sim_present:
                 logger.debug("True CoREAS zenith {0}, azimuth {1}".format(zenith_orig, azimuth_orig))
             logger.debug("Result of direction fitting: [zenith, azimuth] {}".format(np.rad2deg(ll[0])))
 
-#             if 1:#(abs(ll[0][0] - zenith_orig) > 0.1) or (abs(ll[0][1] - azimuth_orig) > 0.1):
 
             # Show fit space
             zen = np.arange(ZenLim[0], ZenLim[1], 1 * units.deg)
