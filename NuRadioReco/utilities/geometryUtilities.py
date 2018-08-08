@@ -104,7 +104,7 @@ def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.):
     """ Apply Snell's law for given zenith angle, when a signal travels from n1 to n2 """
     t = n_1 / n_2 * np.sin(zenith_incoming)
     if t > 1:
-        logger.error('Fresnel refraction results in unphysical values, refraction from {n1} to {n2} with incoming angle {zenith:.1f}, returning None'.format(n1=n_1, n2=n_2, zenith=np.rad2deg(zenith_incoming)))
+        logger.warning('Fresnel refraction results in unphysical values, refraction from {n1} to {n2} with incoming angle {zenith:.1f}, returning None'.format(n1=n_1, n2=n_2, zenith=np.rad2deg(zenith_incoming)))
         return None
     else:
         if(zenith_incoming > 0.5 * np.pi):
@@ -150,6 +150,8 @@ def get_fresnel_r_perpendicular(zenith_incoming, n_2=1.3, n_1=1.):
     of the incoming radiation."
     """
     zenith_outgoing = get_fresnel_angle(zenith_incoming, n_2, n_1)
+    if(zenith_outgoing is None):  # we have total internal reflection
+        return 1
     r = (n_2 * np.cos(zenith_incoming) - n_1 * np.cos(zenith_outgoing)) / (n_2 * np.cos(zenith_incoming) + n_1 * np.cos(zenith_outgoing))
     return r
 
@@ -164,6 +166,8 @@ def get_fresnel_r_parallel(zenith_incoming, n_2=1.3, n_1=1.):
     of the incoming radiation."
     """
     zenith_outgoing = get_fresnel_angle(zenith_incoming, n_2, n_1)
+    if(zenith_outgoing is None):  # we have total internal reflection
+        return 1
     r = (n_1 * np.cos(zenith_incoming) - n_2 * np.cos(zenith_outgoing)) / (n_1 * np.cos(zenith_incoming) + n_2 * np.cos(zenith_outgoing))
     return r
 
