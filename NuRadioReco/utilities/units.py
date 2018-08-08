@@ -202,8 +202,6 @@ watt = joule / second  # watt = 6.24150 e+3 * MeV/ns
 newton = joule / meter  # newton = 6.24150 e+9 * MeV/mm
 
 # Pressure [E][L^-3]
-# hep_pascal = newton/m2    # pascal = 6.24150 e+3 * MeV/mm3
-# pascal     = hep_pascal   # pascal = 6.24150 e+3 * MeV/mm3
 pascal = newton / m2  # pascal = 6.24150 e+3 * MeV/mm3
 bar = 100000 * pascal  # bar    = 6.24150 e+8 * MeV/mm3
 atmosphere = 101325 * pascal  # atm    = 6.32420 e+8 * MeV/mm3
