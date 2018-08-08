@@ -8,7 +8,20 @@ logger = logging.getLogger('geometryUtilities')
 
 
 def get_time_delay_from_direction(zenith, azimuth, positions, n=None):
+    """
+    Calculate the time delay between given positions for an arrival direction
 
+    Parameters
+    ---------
+
+    zenith: float [rad]
+        Zenith angle in convention up = 0
+    azimuth: float [rad]
+        Azimuth angle in convention East = 0, counter-clock-wise
+    positions: array[N x 3]
+        Positions on ground
+
+    """
     if(n is None):  # assume propagation through air as default
         n = 1.000293
     shower_axis = np.array([np.sin(zenith) * np.cos(azimuth), np.sin(zenith) * np.sin(azimuth), np.cos(zenith)])
@@ -23,37 +36,6 @@ def get_time_delay_from_direction(zenith, azimuth, positions, n=None):
     return times
 
 
-# def convert_xyz_to_onsky(vec, azimuth, zenith):
-#     """ Rotate the electric field from on site to on sky coordinates """
-#     """ Returns vector in E_theta, E_phi """
-#     ct = np.cos(zenith)
-#     st = np.sin(zenith)
-#     cp = np.cos(azimuth)
-#     sp = np.sin(azimuth)
-#
-#     rotation_xyz2pt = np.array([[   ct * cp, ct * sp, -1 * st],
-#                                 [-1 * sp, cp, 0],
-#                                 [   st * cp, st * sp, ct]])
-#
-#     vec_n = np.dot(rotation_xyz2pt, vec)
-#     return vec_n
-#
-# def convert_onsky_to_xyz(vec, azimuth, zenith):
-#     """ Rotate the electric field from on sky coordinates to on site """
-#
-#     ct = np.cos(zenith)
-#     st = np.sin(zenith)
-#     cp = np.cos(azimuth)
-#     sp = np.sin(azimuth)
-#
-#     rotation_pt2xyz = np.array([[   ct * cp, -1.*sp, st * cp],
-#                                 [   ct * sp, cp, st * sp],
-#                                 [-1 * st, 0    , ct]])
-#
-#     vec_n = np.dot(rotation_pt2xyz, vec)
-#     return vec_n
-#
-#
 def rot_z(angle):
     """Angle helper function"""
     m = np.array([  [np.cos(angle), -1 * np.sin(angle), 0],
