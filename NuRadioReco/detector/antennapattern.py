@@ -113,7 +113,7 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
                 if int(line.split()[3]) != gen_num:
                     skip = True
                 else:
-                    print(line.split())
+                    logger.debug(line.split())
                 f = float(line.split()[4])
             else:
                 if skip:
@@ -282,33 +282,6 @@ def parse_ARA_file(ara, orientation):
                     phases.append(float(phase) * units.deg)
                 tmp_phi0_lines = []
 
-#         # reorganize arrays: f, theta, phi -> f, phi, theta
-#         nf = len(np.unique(ff))
-#         nphi = len(np.unique(np.round(phis, 4)))
-#         ntheta = len(np.unique(np.round(thetas, 4)))
-#         ff2 = np.zeros_like(ff)
-#         phis2 = np.zeros_like(phis)
-#         thetas2 = np.zeros_like(thetas)
-#         gains2 = np.zeros_like(gains)
-#         phases2 = np.zeros_like(phases)
-#         for old_index in range(len(ff)):
-#             iF = old_index // (nphi * ntheta)
-#             iTheta = (old_index - iF * nphi * ntheta) // (nphi)
-#             iPhi = old_index - iF * (nphi * ntheta) - iTheta * nphi
-#             new_index = iF * nphi * ntheta + iPhi * ntheta + iTheta
-#             ff2[new_index] = ff[old_index]
-#             phis2[new_index] = phis[old_index]
-#             thetas2[new_index] = thetas[old_index]
-#             gains2[new_index] = gains[old_index]
-#             phases2[new_index] = phases[old_index]
-# #
-#         iF = 10
-#         iPhi = 0
-#         for iTheta in range(30):
-#             new_index = iF * nphi * ntheta + iPhi * ntheta + iTheta
-#             print(ff2[new_index], np.rad2deg(thetas2[new_index]), np.rad2deg(phis2[new_index]), gains2[new_index])
-
-#         return zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, phis2, thetas2, gains2, phases2
         return zen_boresight, azi_boresight, zen_ori, azi_ori, np.array(ff), np.array(phis), np.array(thetas), np.array(gains), np.array(phases)
 
 
@@ -329,104 +302,6 @@ def preprocess_ARA(path):
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
-# def parse_ROOT_file(f, orientation):
-#     import ROOT
-#     from array import array
-#     import copy
-#     nt = ROOT.TChain("AntTree")
-#     nt.Add(f)
-#
-#     # find how many frequencies were simulated
-#     N = array('i', [0])
-#     nt.SetBranchAddress("N", N)
-#     nt.GetEntry(0)
-#
-#     nfreq = copy.copy(N[0])
-#     print(N)
-#
-#     thetas = array('f', [0])
-#     phis = array('f', [0])
-#     frequencies = array('f', nfreq * [0.])
-#     gains = array('d', nfreq * [0.])
-#     phases = array('d', nfreq * [0.])
-#
-#     nt.SetBranchAddress("thetas", thetas)
-#     nt.SetBranchAddress("phis", phis)
-#     nt.SetBranchAddress("gains", gains)
-#     nt.SetBranchAddress("phases", phases)
-#     nt.SetBranchAddress("frequencies", frequencies)
-#
-#     n = nt.GetEntries()
-#     ntot = n * nfreq
-#     ff2 = np.zeros(ntot)
-#     tphis = np.zeros(ntot)
-#     tthetas = np.zeros(ntot)
-#     Ephis = np.zeros(ntot, dtype=np.complex)
-#     Ethetas = np.zeros(ntot, dtype=np.complex)
-#     for i in range(n):
-#         nt.GetEntry(i)
-#         ff2[i * nfreq: (i + 1) * nfreq] = frequencies
-#         tphis[i * nfreq: (i + 1) * nfreq] = np.ones(nfreq) * np.deg2rad(phis)
-#         tthetas[i * nfreq: (i + 1) * nfreq] = np.ones(nfreq) * np.deg2rad(thetas)
-#         Ethetas[i * nfreq: (i + 1) * nfreq] = np.array(gains) * np.exp(-1j * np.array(phases))
-#
-#     print(ff2[0])
-#     t2 = np.array([np.array(ff2), np.array(tphis), np.array(tthetas)])
-#     tmp = np.array(t2.T,
-#                    dtype=[('freq', '<f8'), ('phi', '<f8'), ('theta', '<f8')])
-#     print(tmp)
-#     index = np.argsort(tmp, order=('freq', 'phi', 'theta'))
-#     print(index.shape)
-#     print(index)
-#     a = 1 / 0
-#     print('bliubb')
-#     for i in range(len(index)):
-#         print(i, ff2[index[:, 0]][i], tphis[index[:, 1]][i], tthetas[index[:, 2]][i])
-#     print(np.min(tphis), np.max(tphis))
-#     print(np.unique(tphis))
-#     print(np.unique(tthetas))
-#     """ Second tree in file contains only Z as function of frequency,
-#     it is the same for all phi and theta."""
-#
-#     ntt = ROOT.TChain("ZTree")
-#     ntt.Add(f)
-#     NN = array('i', [0])
-#     Re_Z = array('d', nfreq * [0.])
-#     ntt.SetBranchAddress("N", NN)
-#     ntt.SetBranchAddress("Re_Z", Re_Z)
-#     ntt.GetEntry(0)
-#     Z = np.array(Re_Z)
-#     ff = np.array(frequencies)
-#
-#     boresight, tines = np.loadtxt(orientation, delimiter=',')
-#     zen_boresight, azi_boresight = hp.cartesian_to_spherical(*boresight)
-#     zen_ori, azi_ori = hp.cartesian_to_spherical(*tines)
-#
-#     return zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, np.array(ff2), np.deg2rad(np.array(tphis)), np.deg2rad(np.array(tthetas)), np.array(Ephis), np.array(Ethetas)
-#
-#
-# def preprocess_ROOT(path):
-#     from scipy import constants
-#     from scipy.interpolate import interp1d
-#     c = constants.c * units.m / units.s
-#     Z_0 = 119.9169 * np.pi
-#     split = os.path.split(os.path.dirname(path))
-#     name = split[1]
-#     path = split[0]
-#     zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, ff2, phi, theta, Ephi, Etheta = parse_ROOT_file(os.path.join(path, name, '{}.root'.format(name)),
-#                                                                                                            os.path.join(path, name, '{}.orientation'.format(name)))
-#
-#     get_Z = interp1d(ff, Z, kind='nearest')
-#     wavelength = c / ff2
-#
-#     H_phi = (2 * wavelength * get_Z(ff2) * Ephi) / (Z_0) / 1j
-#     H_theta = (2 * wavelength * get_Z(ff2) * Etheta) / (Z_0) / 1j
-#     print(H_theta)
-#     output_filename = '{}.pkl2gzip'.format(os.path.join(path, name, name))
-#     with gzip.open(output_filename, 'wb') as fout:
-#         logger.info('saving output to {}'.format(output_filename))
-#         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)
-
 
 class AntennaPatternBase():
 
@@ -516,7 +391,7 @@ class AntennaPatternBase():
         if(isinstance(freq, (float, int))):
             freq = np.array([freq])
         theta, phi = self._get_theta_and_phi(zenith, azimuth, zen_boresight, azi_boresight, zen_ori, azi_ori)
-#         print('get_antenna_response_vectorized', zenith, azimuth, theta, phi)
+
         Vtheta_raw, Vphi_raw = self._get_antenna_response_vectorized_raw(freq, theta, phi)
 
         # now rotate the raw theta and phi component of the VEL into the ARIANNA coordinate system.
@@ -592,7 +467,7 @@ class AntennaPattern(AntennaPatternBase):
             for iPhi, phi in enumerate(self.phi_angles):
                 for iTheta, theta in enumerate(self.theta_angles):
                     index = self._get_index(iFreq, iTheta, iPhi)
-#                     print(index, iFreq, iTheta, iPhi, np.rad2deg(phis[index]), np.rad2deg(thetas[index]))
+
                     if (phi != phis[index]):
                         logger.error("phi angle has changed during theta loop {0}, {1}".format(
                                                 phi / units.deg, phis[index] / units.deg))
@@ -621,10 +496,7 @@ class AntennaPattern(AntennaPatternBase):
             phi += 2 * np.pi
         while phi > self.phi_upper_bound:
             phi -= 2 * np.pi
-#             print('-2pi = ', phi)
-#         phi[phi < self.phi_lower_bound] += 2 * np.pi
-#         phi[phi > self.phi_upper_bound] -= 2 * np.pi
-#         if((np.sum(freq < self.frequency_lower_bound) or np.sum(freq > self.frequency_upper_bound)) or
+
         if(hp.is_equal(theta, self.theta_upper_bound, rel_precision=1e-5)):
             theta = self.theta_upper_bound
         if(hp.is_equal(theta, self.theta_lower_bound, rel_precision=1e-5)):
@@ -775,8 +647,6 @@ class AntennaPatternAnalytic(AntennaPatternBase):
                 a = 100 * (freq  - 400 * units.MHz) ** 2 - 20
                 a[np.where(freq > 400 * units.MHz)] -= 0.00007 * (freq[np.where(freq > 400 * units.MHz)] - 400 * units.MHz) ** 2
             elif type == 'side_lpda':
-                print freq
-                print 950 * units.MHz
                 a = 40 * (freq - 950 * units.MHz) ** 2 - 40
             elif type == 'back_lpda':
                 a = 50 * (freq - 950 * units.MHz) ** 2 - 50
