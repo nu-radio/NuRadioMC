@@ -86,7 +86,7 @@ def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.):
     """ Apply Snell's law for given zenith angle, when a signal travels from n1 to n2 """
     t = n_1 / n_2 * np.sin(zenith_incoming)
     if t > 1:
-        logger.warning('Fresnel refraction results in unphysical values, refraction from {n1} to {n2} with incoming angle {zenith:.1f}, returning None'.format(n1=n_1, n2=n_2, zenith=np.rad2deg(zenith_incoming)))
+        logger.debug('Fresnel refraction results in unphysical values, refraction from {n1} to {n2} with incoming angle {zenith:.1f}, returning None'.format(n1=n_1, n2=n_2, zenith=np.rad2deg(zenith_incoming)))
         return None
     else:
         if(zenith_incoming > 0.5 * np.pi):
