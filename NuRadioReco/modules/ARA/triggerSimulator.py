@@ -19,7 +19,7 @@ class triggerSimulator:
     def __init__(self):
         self.__t = 0
 
-    def begin(self, antenna_resistance=8.5*units.ohm,
+    def begin(self, antenna_resistance=8.5 * units.ohm,
                     power_mean=None,
                     power_rms=None
                     ):
@@ -41,7 +41,6 @@ class triggerSimulator:
 
         """
 
-
         self.antenna_resistance = antenna_resistance
         self._power_mean = power_mean
         self._power_rms = power_rms
@@ -53,30 +52,29 @@ class triggerSimulator:
         'up': (1, 18e-9, 7e-9, 1e9)
     }
     # Set td_args['up'][0] based on the other args, like in arasim
-    _td_args['up'] = (-np.sqrt(2*np.pi) *
-                      (_td_args['down1'][0]*_td_args['down1'][2] +
-                       _td_args['down2'][0]*_td_args['down2'][2]) /
-                      (2e18*_td_args['up'][2]**3),) + _td_args['up'][1:]
+    _td_args['up'] = (-np.sqrt(2 * np.pi) *
+                      (_td_args['down1'][0] * _td_args['down1'][2] +
+                       _td_args['down2'][0] * _td_args['down2'][2]) /
+                      (2e18 * _td_args['up'][2] ** 3),) + _td_args['up'][1:]
 
     # Set "down" and "up" functions as in arasim
     @classmethod
     def _td_fdown1(cls, x):
         return (cls._td_args['down1'][3] + cls._td_args['down1'][0] *
-                np.exp(-(x-cls._td_args['down1'][1])**2 /
-                       (2*cls._td_args['down1'][2]**2)))
+                np.exp(-(x - cls._td_args['down1'][1]) ** 2 /
+                       (2 * cls._td_args['down1'][2] ** 2)))
 
     @classmethod
     def _td_fdown2(cls, x):
         return (cls._td_args['down2'][3] + cls._td_args['down2'][0] *
-                np.exp(-(x-cls._td_args['down2'][1])**2 /
-                       (2*cls._td_args['down2'][2]**2)))
+                np.exp(-(x - cls._td_args['down2'][1]) ** 2 /
+                       (2 * cls._td_args['down2'][2] ** 2)))
 
     @classmethod
     def _td_fup(cls, x):
         return (cls._td_args['up'][0] *
-                (cls._td_args['up'][3] * (x-cls._td_args['up'][1]))**2 *
-np.exp(-(x-cls._td_args['up'][1])/cls._td_args['up'][2]))
-
+                (cls._td_args['up'][3] * (x - cls._td_args['up'][1])) ** 2 *
+                np.exp(-(x - cls._td_args['up'][1]) / cls._td_args['up'][2]))
 
     def tunnel_diode(self, channel):
         """
@@ -96,20 +94,19 @@ np.exp(-(x-cls._td_args['up'][1])/cls._td_args['up'][2]))
         """
         t_max = 1e-7 * units.s
         n_pts = int(t_max * channel.get_sampling_rate())
-        times = np.linspace(0, t_max, n_pts+1)
+        times = np.linspace(0, t_max, n_pts + 1)
         diode_resp = self._td_fdown1(times) + self._td_fdown2(times)
-        t_slice = times>self._td_args['up'][1]
+        t_slice = times > self._td_args['up'][1]
         diode_resp[t_slice] += self._td_fup(times[t_slice])
-        conv = scipy.signal.convolve(channel.get_trace()**2 / self.antenna_resistance,
+        conv = scipy.signal.convolve(channel.get_trace() ** 2 / self.antenna_resistance,
                                      diode_resp, mode='full')
         # conv multiplied by dt so that the amplitude stays constant for
         # varying dts (determined emperically, see ARVZAskaryanSignal comments)
-        #Setting output
-        trace_after_tunnel_diode = conv/channel.get_sampling_rate()
+        # Setting output
+        trace_after_tunnel_diode = conv / channel.get_sampling_rate()
         trace_after_tunnel_diode = trace_after_tunnel_diode[:channel.get_trace().shape[0]]
 
         return trace_after_tunnel_diode
-
 
     def has_triggered(self, channel):
         """
@@ -136,8 +133,8 @@ np.exp(-(x-cls._td_args['up'][1])/cls._td_args['up'][2]))
             # than taken the full ARA signal chain
             noise = NuRadioReco.framework.channel.Channel(0)
 
-            long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=50*units.MHz,
-                                            max_freq=1000*units.MHz,
+            long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=50 * units.MHz,
+                                            max_freq=1000 * units.MHz,
                                             n_samples=10001,
                                             sampling_rate=channel.get_sampling_rate(),
                                             amplitude=20.*units.mV,
@@ -148,31 +145,27 @@ np.exp(-(x-cls._td_args['up'][1])/cls._td_args['up'][2]))
             self.__power_noise = self.tunnel_diode(noise)
 
             self._power_mean = np.mean(self.__power_noise)
-            self._power_rms = np.sqrt(np.mean(self.__power_noise**2))
-
+            self._power_rms = np.sqrt(np.mean(self.__power_noise ** 2))
 
         # Send signal through tunnel_diode
         after_tunnel_diode = self.tunnel_diode(channel)
         low_trigger = (self._power_mean -
-                       self._power_rms*np.abs(self.power_threshold))
+                       self._power_rms * np.abs(self.power_threshold))
         high_trigger = (self._power_mean +
-                        self._power_rms*np.abs(self.power_threshold))
+                        self._power_rms * np.abs(self.power_threshold))
 
-
-        t =  channel.get_times()
+        t = channel.get_times()
 
         trigger_times = np.append(t[after_tunnel_diode < low_trigger], t[after_tunnel_diode > high_trigger])
         trigger_times = np.unique(trigger_times)
 
         return trigger_times
 
-
     def run(self, evt, station, det,
-                    power_threshold=6.5,
-                    coinc_window = 110 * units.ns,
-                    number_concidences =  3,
-                    triggered_channels = [0, 1, 2, 3, 4, 5, 6, 7]
-                ):
+            power_threshold=6.5,
+            coinc_window=110 * units.ns,
+            number_concidences=3,
+            triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7]):
         """
         simulate ARA trigger logic
 
@@ -205,7 +198,7 @@ np.exp(-(x-cls._td_args['up'][1])/cls._td_args['up'][2]))
         # loop over the trace with a sliding window of "coinc_window"
         coinc_window_samples = np.int(np.round(coinc_window * channel.get_sampling_rate()))
         trace_length = len(station.get_channels()[0].get_trace())
-        sampling_rate=station.get_channels()[0].get_sampling_rate()
+        sampling_rate = station.get_channels()[0].get_sampling_rate()
 
         for i in range(0, trace_length - coinc_window_samples):
             istop = i + coinc_window_samples
