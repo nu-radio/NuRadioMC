@@ -25,7 +25,8 @@ class triggerSimulator:
             high_low_window=20 * units.ns,
             coinc_window=32 * units.ns,
             number_concidences=2,
-            triggered_channels=[0, 1, 2, 3]):
+            triggered_channels=[0, 1, 2, 3],
+            cut_trace=True):
         """
         simulate ARIANNA trigger logic
 
@@ -43,6 +44,9 @@ class triggerSimulator:
             number of channels that are requried in coincidence to trigger a station
         triggered_channels: array of ints
             channels ids that are triggered on
+        cut_trace: bool
+            if true, trace is cut to the correct length (50ns before the trigger,
+            max trace length is set according to detector description) 
         """
         t = time.time()
         if threshold_low >= threshold_high:
@@ -101,7 +105,6 @@ class triggerSimulator:
 #                     for tr2 in trigger[ch2]:
 #                         if abs(tr1 - tr2) < coinc_window / sampling_rate:
 #                             coinc += 1
-        second_run = station.get_trigger().get_trigger_time() is not None  # the trigger simulator was called before. This means the that trace is already cut to the correct length. We do not need to do it again
 
         if not has_triggered:
             station.set_triggered(False)
@@ -113,7 +116,7 @@ class triggerSimulator:
             station.get_trigger().set_trigger_time(trigger_time_sample / sampling_rate)
             logger.info("Station has passed trigger, trigger time is {:.1f} ns (sample {})".format(station.get_trigger().get_trigger_time() / units.ns, trigger_time_sample))
 
-        if second_run:
+        if not cut_trace:
             self.__t += time.time() - t
             return
 
