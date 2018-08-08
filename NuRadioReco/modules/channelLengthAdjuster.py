@@ -10,9 +10,19 @@ class channelLengthAdjuster:
     cuts the trace to detector specifications, uses a simple algorithm to determine the location of the pulse
     """
 
-    def begin(self, number_of_samples=256, offset=50):
+    def begin(self, number_of_samples=256, offset=50, debug=False):
         """
-        defines number of samples to cut the data to and how many samples before maximum in trace
+        Defines number of samples to cut the data to and how many samples before maximum in trace
+
+        Parameters
+        -----------
+        number_of_samples: int
+            Number of samples desired in signal
+        offset: int
+            (roughly) How many samples before pulse
+        debug: bool
+            Debug
+
         """
 
         self.number_of_samples = number_of_samples
