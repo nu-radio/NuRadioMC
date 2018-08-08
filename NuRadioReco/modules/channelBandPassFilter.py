@@ -5,7 +5,7 @@ import scipy.signal
 
 class channelBandPassFilter:
     """
-    Band pass filters the channels using a perfect straight line band-pass filter.
+    Band pass filters the channels using different band-pass filters.
     """
 
     def begin(self):
@@ -13,7 +13,22 @@ class channelBandPassFilter:
 
     def run(self, evt, station, det, passband=[55 * units.MHz, 1000 * units.MHz],
             filter_type='rectangular'):
+        """
+        Run the filter
 
+        Parameters
+        ---------
+
+        evt, station, det
+            Event, Station, Detector
+        passband: list
+            passband[0]: lower boundary of filter, passband[1]: upper boundary of filter
+        filter_type: string
+            'rectangular': perfect straight line filter
+            'butter10': butterworth filter from scipy
+            'butter10abs': absolute of butterworth filter from scipy
+
+        """
         channels = station.get_channels()
         for channel in channels:
             frequencies = channel.get_frequencies()
