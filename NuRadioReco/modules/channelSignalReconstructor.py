@@ -15,9 +15,10 @@ class channelSignalReconstructor:
     def __init__(self):
         self.__t = 0
         self.__conversion_factor_integrated_signal = 2.65441729 * 1e-3 * 1.e-9 * 6.24150934 * 1e18  # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
+        self.begin()
 
     def begin(self, debug=False , signal_start=20 * units.ns, signal_stop=100 * units.ns,
-                    noise_start=150 * units.ns, noise_stop=350 * units.ns):
+              noise_start=150 * units.ns, noise_stop=350 * units.ns):
         """
         Parameters
         -----------
@@ -145,7 +146,7 @@ class channelSignalReconstructor:
             # Use noise precalculated from forced triggers
             channel['SNR'] = self.get_SNR(station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
 
-        station['channel_max_amplitude'] = max_amplitude
+        station['channels_max_amplitude'] = max_amplitude
 
         self.__t = time.time() - t
 
