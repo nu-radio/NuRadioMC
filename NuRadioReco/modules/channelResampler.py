@@ -10,7 +10,7 @@ logger = logging.getLogger('channelResampler')
 
 class channelResampler:
     """
-    resamples the trace to a new sampling rate
+    Resamples the trace to a new sampling rate.
     """
 
     def __init__(self):
@@ -19,15 +19,39 @@ class channelResampler:
     def begin(self, debug=False):
         self.__max_upsampling_factor = 5000
         self.__debug = debug
-        pass
+
+        """
+        Begin the channelResampler
+
+        Parameters
+        ---------
+
+        __debug: bool
+            Debug switch
+
+        """
+
 
     def run(self, evt, station, det, sampling_rate):
+        """
+        Run the channelResampler
 
+        Parameters
+        ---------
+
+        evt, station, det
+            Event, Station, Detector
+        sampling_rate: float
+            In units 1/time provides the desired sampling rate of the data.
+
+        """
         channels = station.get_channels()
 
         orig_binning = 1. / channels[0].get_sampling_rate()  # assume that all channels have the same sampling rate
         target_binning = 1. / sampling_rate
         resampling_factor = fractions.Fraction(Decimal(orig_binning / target_binning)).limit_denominator(self.__max_upsampling_factor)
+        if resampling_factor == self.__max_upsampling_factor:
+            logger.warning("Safeguard caught, max upsampling {} factor reached.".format(self.__max_upsampling_factor))
         logger.debug("resampling channel trace by {}. Original binning is {:.3g} ns, target binning is {:.3g} ns".format(resampling_factor,
                                                                                                                          orig_binning / units.ns,
                                                                                                                          target_binning / units.ns))
