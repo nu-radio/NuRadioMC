@@ -6,7 +6,7 @@ import scipy.signal
 from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
 import NuRadioReco.framework.channel
 
-logger = logging.getLogger('triggerSimulator')
+logger = logging.getLogger('ARAtriggerSimulator')
 
 
 class triggerSimulator:
@@ -18,11 +18,10 @@ class triggerSimulator:
 
     def __init__(self):
         self.__t = 0
+        self.begin()
+        logger.warning("This module does not contain cutting the trace to ARA specific parameters.")
 
-    def begin(self, antenna_resistance=8.5 * units.ohm,
-                    power_mean=None,
-                    power_rms=None
-                    ):
+    def begin(self, antenna_resistance=8.5 * units.ohm):
         """
         Calculate a signal as processed by the tunnel diode.
         The given signal is convolved with the tunnel diodde response as in
@@ -32,18 +31,11 @@ class triggerSimulator:
         ----------
         antenna_resistance : float
             Value of the resistance of the ARA antennas
-        power_mean : float
-            Parameter extracted in ARA from noise.
-            If not given, it is calculated from generic noise
-        power_rms : float
-            Parameter extracted in ARA from noise.
-            If not given, it is calculated from generic noise
-
         """
 
         self.antenna_resistance = antenna_resistance
-        self._power_mean = power_mean
-        self._power_rms = power_rms
+        self._power_mean = None
+        self._power_rms = None
 
     # Tunnel diode response functions pulled from arasim
     _td_args = {
@@ -165,7 +157,9 @@ class triggerSimulator:
             power_threshold=6.5,
             coinc_window=110 * units.ns,
             number_concidences=3,
-            triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7]):
+            triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
+            power_mean=None,
+            power_rms=None):
         """
         simulate ARA trigger logic
 
@@ -179,7 +173,20 @@ class triggerSimulator:
             number of channels that are requried in coincidence to trigger a station
         triggered_channels: array of ints
             channels ids that are triggered on
+        power_mean : float
+            Parameter extracted in ARA from noise.
+            If not given, it is calculated from generic noise
+        power_rms : float
+            Parameter extracted in ARA from noise.
+            If not given, it is calculated from generic noise
         """
+        # if the run method specifies power mean and rms we use these values,
+        # if the parameters are None, the power mean and rms gets calculated for
+        # some standard assumptions on the noise RMS and it needs to be done only once
+        if(power_mean is not None and power_rms is not None):
+            self._power_mean = power_mean
+            self._power_rms = power_rms
+
         self.power_threshold = power_threshold
 
         channels = station.get_channels()
@@ -225,8 +232,6 @@ class triggerSimulator:
             station.set_triggered(True)
             station.get_trigger().set_trigger_time(trigger_time_sample / sampling_rate)
             logger.info("Station has passed trigger, trigger time is {:.1f} ns (sample {})".format(station.get_trigger().get_trigger_time() / units.ns, trigger_time_sample))
-
-        logger.info("This module does not contain cutting the trace to ARA specific parameters.")
 
     def end(self):
         from datetime import timedelta
