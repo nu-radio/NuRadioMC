@@ -27,17 +27,9 @@ def detector_simulation(evt, station, det, dt, Vrms):
     channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.MHz],
                               filter_type='butter10')
     triggerSimulator.run(evt, station, det,
-                        threshold=3 * Vrms,
-#                         triggered_channels=None,
-                        triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
-#                          triggered_channels=[0, 1, 2, 3],
+                         threshold=3 * Vrms,
+                         triggered_channels=None,
                          number_concidences=1)
-    if(station.has_triggered()):  # calculate more time consuming ARIANNA trigger only if station passes simple trigger
-        triggerSimulatorARIANNA.run(evt, station, det,
-                                    threshold_high=3 * Vrms,
-                                    threshold_low=-3 * Vrms,
-                                    triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
-                                    number_concidences=3)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
