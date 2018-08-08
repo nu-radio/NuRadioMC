@@ -245,24 +245,13 @@ class Detector(object):
         orientations = np.round(np.rad2deg(orientations))  # round to one degree to overcome rounding errors
         parallel_antennas = []
         for antenna_type in np.unique(antenna_types):
-#             print(antenna_type)
             for u_zen_ori in np.unique(orientations[:, 0]):
-#                 print(u_zen_ori)
                 for u_az_ori in np.unique(orientations[:, 1]):
-#                     print("\t {}".format(u_az_ori))
                     for u_zen_rot in np.unique(orientations[:, 2]):
-#                         print("\t\t{}".format(u_zen_rot))
                         for u_az_rot in np.unique(orientations[:, 3]):
-#                             print("\t\t\t{}".format(u_az_rot))
-#                             print("\t\t\t\t{}".format(antenna_types == antenna_type))
-#                             print("\t\t\t\t{}".format(orientations[:, 0] == u_zen_ori))
-#                             print("\t\t\t\t{}".format(orientations[:, 1] == u_az_ori))
-#                             print("\t\t\t\t{}".format(orientations[:, 2] == u_zen_rot))
-#                             print("\t\t\t\t{}".format(orientations[:, 3] == u_az_rot))
                             mask = (antenna_types == antenna_type) \
                                      & (orientations[:, 0] == u_zen_ori) & (orientations[:, 1] == u_az_ori) \
                                      & (orientations[:, 2] == u_zen_rot) & (orientations[:, 3] == u_az_rot)
-#                             print("\t\t\t\t\t{}".format(mask))
                             if(np.sum(mask)):
                                 parallel_antennas.append(channel_ids[mask])
         return np.array(parallel_antennas)
