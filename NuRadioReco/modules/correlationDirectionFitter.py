@@ -123,7 +123,6 @@ class correlationDirectionFitter:
 #             ll = opt.basinhopping(ll_regular_station,(zenith_orig-np.deg2rad(15) ,azimuth_orig-np.deg2rad(25)),
 #                 minimizer_kwargs={'args':(corr_02, corr_13,sampling_rate)}) # does not accept range
 #
-#             print "result", ll.x
 
         if use_correlation:
         # Using correlation
