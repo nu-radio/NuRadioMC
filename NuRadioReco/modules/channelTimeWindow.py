@@ -6,10 +6,19 @@ class channelTimeWindow:
     """
     Set trace outside time window to zero.
     """
-    def begin(self):
-        pass
+    def begin(self, debug=False):
+        self.__debug = debug
 
-    def run(self, evt, station, det, window=[0 * units.ns, 100 * units.ns], debug=False):
+    def run(self, evt, station, det, window=[0 * units.ns, 100 * units.ns]):
+        """
+        Parameters
+        -----------
+        evt, station, det
+            Event, Station, Detector
+        window: list
+            [time_window_start, time_window_end] in which the signal should be kept
+        """
+
 
         channels = station.get_channels()
         for channel in channels:
