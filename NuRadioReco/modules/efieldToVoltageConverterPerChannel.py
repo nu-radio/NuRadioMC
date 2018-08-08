@@ -111,11 +111,11 @@ class efieldToVoltageConverterPerChannel:
             logger.debug('channel id {}'.format(channel_id))
             channel = NuRadioReco.framework.channel.Channel(channel_id)
             channel_spectrum = None
+            if(self.__debug):
+                from matplotlib import pyplot as plt
+                fig, axes = plt.subplots(2, 1)
             for sim_channel2 in sim_channel:
                 channel_id = sim_channel2.get_id()
-                if(self.__debug):
-                    from matplotlib import pyplot as plt
-                    fig, axes = plt.subplots(4, 1)
 
                 # all simulated channels have a different trace start time
                 # in a measurement, all channels have the same physical start time
@@ -129,17 +129,11 @@ class efieldToVoltageConverterPerChannel:
                 resampled_efield = np.zeros((3, new_length))  # create new data structure with new efield length
                 for iE in range(len(efield)):
                     trace = efield[iE]
-                    if(self.__debug):
-                        axes[0].plot(sim_channel2.get_times(), trace)
                     if(resampling_factor.numerator != 1):
                         trace = signal.resample(trace, resampling_factor.numerator * len(trace))
                     if(resampling_factor.denominator != 1):
                         trace = signal.resample(trace, len(trace) / resampling_factor.denominator)
                     resampled_efield[iE] = trace
-
-                if(self.__debug):
-                    axes[1].plot(sim_channel2.get_frequencies(), np.abs(sim_channel2.get_frequency_spectrum()[1]))
-                    axes[1].plot(sim_channel2.get_frequencies(), np.abs(sim_channel2.get_frequency_spectrum()[2]))
 
                 new_trace = np.zeros((3, trace_length_samples))
                 # calculate the start bin
@@ -150,21 +144,18 @@ class efieldToVoltageConverterPerChannel:
                 trace_object.set_trace(new_trace, 1. / self.__time_resolution)
                 trace_object.set_trace_start_time(times_min.min())
                 if(self.__debug):
-                    axes[0].plot(trace_object.get_times(), new_trace[1], "--")
-                    axes[0].plot(trace_object.get_times(), new_trace[2], "--")
+                    axes[0].plot(trace_object.get_times(), new_trace[1], label="eTheta {}".format(sim_channel2['raypath']))
+                    axes[0].plot(trace_object.get_times(), new_trace[2], label="ePhi {}".format(sim_channel2['raypath']))
 
                 ff = trace_object.get_frequencies()
                 efield_fft = trace_object.get_frequency_spectrum()
-                if(self.__debug):
-                    axes[1].plot(ff, np.abs(efield_fft[1]))
-                    axes[1].plot(ff, np.abs(efield_fft[2]))
 
                 zenith = sim_channel2['zenith']
                 azimuth = sim_channel2['azimuth']
 
                 # get antenna pattern for current channel
                 antenna_model = det.get_antenna_model(sim_station_id, channel_id, zenith)
-                antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model, interpolation_method='magphase')
+                antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model, interpolation_method='complex')
                 ori = det.get_antanna_orientation(sim_station_id, channel_id)
                 logger.debug("zen {:.0f}, az {:.0f}".format(zenith / units.deg, azimuth / units.deg))
                 VEL = antenna_pattern.get_antenna_response_vectorized(ff, zenith, azimuth, *ori)
@@ -174,6 +165,10 @@ class efieldToVoltageConverterPerChannel:
 
                 # Remove DC offset
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
+
+                if(self.__debug):
+                    axes[1].plot(trace_object.get_times(), np.fft.irfft(voltage_fft), label="{}, zen = {:.0f}deg".format(sim_channel2['raypath'], zenith / units.deg))
+
                 if('amp' in self.__uncertainty):
                     voltage_fft *= np.random.normal(1, self.__uncertainty['amp'][channel_id])
                 if('sys_amp' in self.__uncertainty):
@@ -184,13 +179,10 @@ class efieldToVoltageConverterPerChannel:
                 else:
                     channel_spectrum += voltage_fft
 
-                if(self.__debug):
-                    axes[2].plot(np.abs(voltage_fft))
-                    axes[3].plot(np.abs(VEL['phi']))
-                    axes[3].plot(np.abs(VEL['theta']))
-
-                if(self.__debug):
-                    plt.show()
+            if(self.__debug):
+                axes[0].legend(loc='upper left')
+                axes[1].legend(loc='upper left')
+                plt.show()
             channel.set_frequency_spectrum(channel_spectrum, trace_object.get_sampling_rate())
 
             station.add_channel(channel)
