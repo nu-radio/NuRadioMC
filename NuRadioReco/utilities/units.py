@@ -176,9 +176,9 @@ zettaelectronvolt = zetta * electronvolt
 joule = electronvolt / eSI  # joule = 6.24150 e+12 * MeV
 
 # symbols
-MeV = megaelectronvolt
 eV = electronvolt
 keV = kiloelectronvolt
+MeV = megaelectronvolt
 GeV = gigaelectronvolt
 TeV = teraelectronvolt
 PeV = petaelectronvolt
