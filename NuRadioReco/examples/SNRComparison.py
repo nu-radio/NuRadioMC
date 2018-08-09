@@ -8,6 +8,7 @@ import NuRadioReco.framework.event
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.efieldToVoltageConverter
+from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
 
 import NuRadioReco.modules.ARA.triggerSimulator
 import NuRadioReco.modules.ARIANNA.triggerSimulator
@@ -31,7 +32,59 @@ N = 2 ** 8
 
 Vrms = 11 * units.micro * units.V
 
-NN = 100
+NN = 1000
+# now calculate the relation between the ARA SNR (integrated power ratio) and the ARIANNA SNR (Vp2p/2/Vrms)
+from NuRadioMC.simulation.E03RunARAsimulation import get_ARA_power_mean_rms
+import NuRadioReco.modules.ARA.triggerSimulator
+triggerSimulator = NuRadioReco.modules.ARA.triggerSimulator.triggerSimulator()
+min_freq, max_freq = 100 * units.MHz, .5 * units.GHz
+power_mean, power_rms = get_ARA_power_mean_rms(1. / dt, Vrms, min_freq, max_freq)
+counter = -1
+SNRp2p_bicone = np.zeros(NN)
+SNRara_bicone = np.zeros(NN)
+for E in 10 ** np.linspace(15.5, 17, 100):
+    for theta in np.linspace(cherenkov_angle - 5 * units.deg, cherenkov_angle + 5 * units.deg, 10):
+        counter += 1
+        pulse = signalgen.get_time_trace(E, theta, N, dt, 0, n_index, 1000 * units.m, 'Alvarez2000')
+        event = NuRadioReco.framework.event.Event(1, 1)
+        station = NuRadioReco.framework.station.Station(101)
+        trace = np.zeros((3, N))
+        trace[1] = pulse
+        trace[2] = pulse
+        sim_station = NuRadioReco.framework.sim_station.SimStation(101, sampling_rate=1. / dt, trace=trace)
+        sim_station['zenith'] = (90 + 45) * units.deg
+        sim_station['azimuth'] = 0
+        station.set_sim_station(sim_station)
+        event.set_station(station)
+
+        efieldToVoltageConverter.run(event, station, det)
+        channelBandPassFilter.run(event, station, det, passband=[min_freq, max_freq])
+
+        trace_bicone = station.get_channel(2).get_trace()
+
+        SNRp2p_bicone[counter] = (trace_bicone.max() - trace_bicone.min()) / 2. / Vrms
+
+        after_tunnel_diode = np.abs(triggerSimulator.tunnel_diode(station.get_channel(2)))
+        power_mean = 0
+        SNRara_bicone[counter] = np.max((after_tunnel_diode - power_mean) / power_rms)
+
+fig, ax = plt.subplots(1, 1)
+ax.scatter(SNRara_bicone, SNRp2p_bicone, s=20, alpha=0.5)
+ax.set_xlabel("ARIANNA SNR (Vp2p/2/Vrms")
+ax.set_ylabel("ARA SNR (tunnel diode output/noise power RMS)")
+ax.set_title("for ARA bicone response")
+fig.tight_layout()
+fig.savefig('plots/SNR_ARA_ARIANNA.png')
+plt.show()
+
+long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=min_freq,
+                                            max_freq=max_freq,
+                                            n_samples=2**20,
+                                            sampling_rate=1 / dt,
+                                            amplitude=Vrms,
+                                            type='perfect_white')
+a = 1 / 0
+
 SS_LPDA = np.zeros(NN)
 Vp2p_LPDA = np.zeros(NN)
 SS_bicone = np.zeros(NN)
@@ -64,7 +117,7 @@ for E in 10 ** np.linspace(15.5, 17, 10):
         SS_LPDA[counter] = np.sum(trace_LPDA ** 2) * dt
         SS_bicone[counter] = np.sum(trace_bicone ** 2) * dt
 
-        if(counter < 0):
+        if(counter < 0):  # plot some example traces
             fig, ax = plt.subplots(1, 2, sharey=True)
             ax = np.array(ax).flatten()
             tt = station.get_channel(3).get_times()
@@ -108,4 +161,5 @@ ax2.set_xlim(0, 150 / 10)
 ax2.legend()
 fig.tight_layout()
 fig.savefig("plots/SNRcomparison.png".format(counter))
-plt.show()
+plt.close("all")
+
