@@ -44,6 +44,9 @@ def get_ARA_power_mean_rms(sampling_rate, Vrms, min_freq, max_freq):
                                                             sampling_rate=sampling_rate,
                                                             amplitude=Vrms,
                                                             type='perfect_white')
+    long_noise *= Vrms / long_noise.std()
+    
+    print(long_noise.std())
 
     noise.set_trace(long_noise, sampling_rate)
 
@@ -53,55 +56,54 @@ def get_ARA_power_mean_rms(sampling_rate, Vrms, min_freq, max_freq):
     power_rms = np.sqrt(np.mean(power_noise ** 2))
     return power_mean, power_rms
 
+if __name__ == "__main__":
 
-parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
-parser.add_argument('inputfilename', type=str,
-                    help='path to NuRadioMC input event list')
-parser.add_argument('detectordescription', type=str,
-                    help='path to file containing the detector description')
-parser.add_argument('outputfilename', type=str,
-                    help='hdf5 output filename')
-parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
-                    help='outputfilename of NuRadioReco detector sim file')
-args = parser.parse_args()
+    parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
+    parser.add_argument('inputfilename', type=str,
+                        help='path to NuRadioMC input event list')
+    parser.add_argument('detectordescription', type=str,
+                        help='path to file containing the detector description')
+    parser.add_argument('outputfilename', type=str,
+                        help='hdf5 output filename')
+    parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
+                        help='outputfilename of NuRadioReco detector sim file')
+    args = parser.parse_args()
 
-sim = simulation.simulation(eventlist=args.inputfilename,
-                            outputfilename=args.outputfilename,
-                            detectorfile=args.detectordescription,
-                            station_id=101,
-                            Tnoise=350.,
-                            outputfilenameNuRadioReco=args.outputfilenameNuRadioReco)
-Vrms = sim.get_Vrms()
-max_freq = sim.get_bandwidth()
-sampling_rate = sim.get_sampling_rate()
-min_freq = 80 * units.MHz
-power_mean, power_rms = get_ARA_power_mean_rms(sampling_rate, Vrms, min_freq, max_freq)
+    sim = simulation.simulation(eventlist=args.inputfilename,
+                                outputfilename=args.outputfilename,
+                                detectorfile=args.detectordescription,
+                                station_id=101,
+                                Tnoise=350.,
+                                outputfilenameNuRadioReco=args.outputfilenameNuRadioReco)
+    Vrms = sim.get_Vrms()
+    max_freq = sim.get_bandwidth()
+    sampling_rate = sim.get_sampling_rate()
+    min_freq = 80 * units.MHz
+    power_mean, power_rms = get_ARA_power_mean_rms(sampling_rate, Vrms, min_freq, max_freq)
 
-# initialize detector sim modules
-efieldToVoltageConverterPerChannel = NuRadioReco.modules.efieldToVoltageConverterPerChannel.efieldToVoltageConverterPerChannel()
-efieldToVoltageConverterPerChannel.begin(debug=False)
-triggerSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
-triggerSimulatorARIANNA = NuRadioReco.modules.ARIANNA.triggerSimulator.triggerSimulator()
-triggerSimulatorARA = NuRadioReco.modules.ARA.triggerSimulator.triggerSimulator()
-channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
-channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
+    # initialize detector sim modules
+    efieldToVoltageConverterPerChannel = NuRadioReco.modules.efieldToVoltageConverterPerChannel.efieldToVoltageConverterPerChannel()
+    efieldToVoltageConverterPerChannel.begin(debug=False)
+    triggerSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
+    triggerSimulatorARIANNA = NuRadioReco.modules.ARIANNA.triggerSimulator.triggerSimulator()
+    triggerSimulatorARA = NuRadioReco.modules.ARA.triggerSimulator.triggerSimulator()
+    channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
+    channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 
+    def detector_simulation_ARA(evt, station, det, dt, Vrms):
+        # start detector simulation
+        efieldToVoltageConverterPerChannel.run(evt, station, det)  # convolve efield with antenna pattern
+        # downsample trace back to detector sampling rate
+        channelResampler.run(evt, station, det, sampling_rate=1. / dt)
+        # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
+        channelBandPassFilter.run(evt, station, det, passband=[min_freq, 2 * units.GHz],
+                                  filter_type='butter10')
+        triggerSimulatorARA.run(evt, station, det,
+                                power_threshold=6.5,
+                                coinc_window=110 * units.ns,
+                                number_concidences=3,
+                                triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
+                                power_mean=power_mean, power_rms=power_rms)
 
-def detector_simulation_ARA(evt, station, det, dt, Vrms):
-    # start detector simulation
-    efieldToVoltageConverterPerChannel.run(evt, station, det)  # convolve efield with antenna pattern
-    # downsample trace back to detector sampling rate
-    channelResampler.run(evt, station, det, sampling_rate=1. / dt)
-    # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
-    channelBandPassFilter.run(evt, station, det, passband=[min_freq, 2 * units.GHz],
-                              filter_type='butter10')
-    triggerSimulatorARA.run(evt, station, det,
-                            power_threshold=6.5,
-                            coinc_window=110 * units.ns,
-                            number_concidences=3,
-                            triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
-                            power_mean=power_mean, power_rms=power_rms)
-
-
-sim.run(detector_simulation=detector_simulation_ARA)
+    sim.run(detector_simulation=detector_simulation_ARA)
 
