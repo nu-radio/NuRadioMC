@@ -17,6 +17,48 @@ from NuRadioMC.SignalGen import parametrizations as signalgen
 from numpy.polynomial import polynomial as pol
 
 from NuRadioReco.detector import detector
+
+
+def get_ARA_power_mean_rms(sampling_rate, Vrms, min_freq, max_freq):
+    """
+    helper function to calculate the mean and rms power of the ARA tunnel diode
+    for a given Vrms, sampling rate and frequency content
+
+    Parameters
+    ----------
+    sampling_rate: float
+        the sampling rate e.g. 1GHz
+    Vrms: float
+        the RMS of noise in the time domain
+    min_freq: float
+        the lower bandpass frequency
+    max_freq: float
+        the upper bandpass frequency
+    """
+    triggerSimulator = NuRadioReco.modules.ARA.triggerSimulator.triggerSimulator()
+    channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+
+    noise = NuRadioReco.framework.channel.Channel(0)
+
+    long_noise = channelGenericNoiseAdder.bandlimited_noise(min_freq=min_freq,
+                                                            max_freq=max_freq,
+                                                            n_samples=2 ** 20,
+                                                            sampling_rate=sampling_rate,
+                                                            amplitude=Vrms,
+                                                            type='perfect_white')
+    long_noise *= Vrms / long_noise.std()
+
+    print(long_noise.std())
+
+    noise.set_trace(long_noise, sampling_rate)
+
+    power_noise = triggerSimulator.tunnel_diode(noise)
+
+    power_mean = np.mean(power_noise)
+    power_rms = np.sqrt(np.mean(power_noise ** 2))
+    return power_mean, power_rms
+
+
 det = detector.Detector(json_filename='example_data/dummy_detector.json')
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin()
@@ -27,23 +69,23 @@ logger = logging.getLogger("TriggerComparison")
 
 n_index = 1.78
 cherenkov_angle = np.arccos(1. / n_index)
-dt = .5 * units.ns
+dt = 1. * units.ns
 N = 2 ** 8
 
 Vrms = 11 * units.micro * units.V
 
 NN = 1000
 # now calculate the relation between the ARA SNR (integrated power ratio) and the ARIANNA SNR (Vp2p/2/Vrms)
-from NuRadioMC.simulation.E03RunARAsimulation import get_ARA_power_mean_rms
 import NuRadioReco.modules.ARA.triggerSimulator
 triggerSimulator = NuRadioReco.modules.ARA.triggerSimulator.triggerSimulator()
 min_freq, max_freq = 100 * units.MHz, .5 * units.GHz
 power_mean, power_rms = get_ARA_power_mean_rms(1. / dt, Vrms, min_freq, max_freq)
+print("power mean/rms = {:.4g}/{:.4g}".format(power_mean, power_rms))
 counter = -1
 SNRp2p_bicone = np.zeros(NN)
 SNRara_bicone = np.zeros(NN)
 for E in 10 ** np.linspace(15.5, 17, 100):
-    for theta in np.linspace(cherenkov_angle - 5 * units.deg, cherenkov_angle + 5 * units.deg, 10):
+    for theta in np.linspace(cherenkov_angle - 0.1 * units.deg, cherenkov_angle + 0.1 * units.deg, 10):
         counter += 1
         pulse = signalgen.get_time_trace(E, theta, N, dt, 0, n_index, 1000 * units.m, 'Alvarez2000')
         event = NuRadioReco.framework.event.Event(1, 1)
@@ -70,7 +112,7 @@ for E in 10 ** np.linspace(15.5, 17, 100):
 
 fig, ax = plt.subplots(1, 1)
 ax.scatter(SNRara_bicone, SNRp2p_bicone, s=20, alpha=0.5)
-ax.set_xlabel("ARIANNA SNR (Vp2p/2/Vrms")
+ax.set_xlabel("ARIANNA SNR (Vp2p/2/Vrms)")
 ax.set_ylabel("ARA SNR (tunnel diode output/noise power RMS)")
 ax.set_title("for ARA bicone response")
 fig.tight_layout()
@@ -79,7 +121,7 @@ plt.show()
 
 long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=min_freq,
                                             max_freq=max_freq,
-                                            n_samples=2**20,
+                                            n_samples=2 ** 20,
                                             sampling_rate=1 / dt,
                                             amplitude=Vrms,
                                             type='perfect_white')
