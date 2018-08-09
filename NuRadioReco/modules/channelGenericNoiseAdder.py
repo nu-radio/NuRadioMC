@@ -54,15 +54,20 @@ class channelGenericNoiseAdder:
         frequencies = np.abs(np.fft.fftfreq(n_samples, 1/sampling_rate))
         f = np.zeros(n_samples)
         selection = np.where((frequencies>=min_freq)& (frequencies<=max_freq))
+        npise = None
         if type == 'perfect_white':
             f[selection] = amplitude*np.sqrt(2.*n_samples*2)
+            noise = self.fftnoise(f)
         elif type == 'white':
             jitter = np.random.rand(n_samples)*0.05*amplitude + amplitude*np.sqrt(2.*n_samples*2)
             f[selection] = jitter[selection]
+            noise = self.fftnoise(f)
+        elif type == "narrowband":
+            noise = None
         else:
             logger.error("Other types of noise not yet implemented.")
 
-        return self.fftnoise(f)
+        return noise
 
     def __init__(self):
         pass
