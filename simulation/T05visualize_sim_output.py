@@ -67,7 +67,8 @@ receive_vectors = np.array(fin['receive_vectors'])
 zeniths, azimuths = hp.cartesian_to_spherical_vectorized(receive_vectors[:, :, :, 0].flatten(),
                                                          receive_vectors[:, :, :, 1].flatten(),
                                                          receive_vectors[:, :, :, 2].flatten())
-azimuths = hp.get_normalized_angle(azimuths)
+for i in range(len(azimuths)):
+    azimuths[i] = hp.get_normalized_angle(azimuths[i])
 weights_matrix = np.outer(weights, np.ones(np.prod(receive_vectors.shape[1:-1]))).flatten()
 mask = ~np.isnan(azimuths)  # exclude antennas with not ray tracing solution (or with just one ray tracing solution)
 fig, axs = php.get_histograms([zeniths[mask] / units.deg, azimuths[mask] / units.deg],

@@ -18,7 +18,6 @@ parser.add_argument('inputfilename', type=str,
 args = parser.parse_args()
 
 fin = h5py.File(args.inputfilename, 'r')
-
 # plot vertex distribution
 fig, ax = plt.subplots(1, 1)
 xx = np.array(fin['xx'])
@@ -33,6 +32,8 @@ ax.set_aspect('equal')
 ax.set_xlabel("r [m]")
 ax.set_ylabel("z [m]")
 fig.tight_layout()
+plt.title('vertex distribution')
+plt.savefig("output/simInputVertex.pdf")
 
 # plot incoming direction
 zeniths = np.array(fin['zeniths'])
@@ -42,6 +43,8 @@ fig, axs = php.get_histograms([zeniths / units.deg, azimuths / units.deg],
                               xlabels=['zenith [deg]', 'azimuth [deg]'],
                               stats=False)
 fig.suptitle('neutrino direction')
+plt.title('incoming direction')
+plt.savefig("output/simInputIncoming.pdf")
 
 # plot inelasticity
 inelasticity = np.array(fin['inelasticity'])
@@ -50,5 +53,5 @@ fig, axs = php.get_histogram(inelasticity,
                              xlabel='inelasticity', figsize=(6, 6),
                              stats=True)
 axs.semilogx(True)
-
-plt.show()
+plt.title('inelasticity')
+plt.savefig("output/simInputInelasticity.pdf")

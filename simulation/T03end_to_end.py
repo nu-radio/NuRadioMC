@@ -147,7 +147,8 @@ travel_distances = np.zeros((n_events, n_antennas, 2))
 SNRs = np.zeros(n_events)
 
 t_start = time.time()
-for iE in range(n_events):
+#for iE in range(n_events):
+for iE in range(10000):
     if(iE > 0 and iE % 1000 == 0):
         eta = datetime.timedelta(seconds=(time.time() - t_start) * (n_events - iE) / iE)
         logger.info("processing event {}/{} = {}%, ETA {}".format(iE, n_events, 100. * iE / n_events, eta))
