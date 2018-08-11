@@ -15,20 +15,39 @@ class correlationDirectionFitter:
     Fits the direction using correlation of parallel channels.
     """
 
+    def __init__(self):
+        self.begin()
+
     def begin(self, debug=False):
         self.__debug = debug
 
-    def run(self, evt, station, det, n=None, ZenLim=[0 * units.deg, 90 * units.deg],
+    def run(self, evt, station, det, n_index=None, ZenLim=[0 * units.deg, 90 * units.deg],
             AziLim=[0 * units.deg, 360 * units.deg],
             channel_pairs=((0, 2), (1, 3))):
+        """
+        reconstruct signal arrival direction for all events
+
+        Parameters
+        ----------
+        n_index: float
+            the index of refraction
+
+        ZenLim: 2-dim array/list of floats
+            the zenith angle limits for the fit
+            default if 0-90deg (upward coming signal)
+        AziLim: 2-dim array/list of floats
+            the azimuth angle limits for the fit
+            default is 0-360deg
+        channel_pairs: pair of pair of integers
+            specify the two channel pairs to use, default ((0, 2), (1, 3))
+        """
 
         use_correlation = True
 
         def ll_regular_station(angles, corr_02, corr_13, sampling_rate, positions):
-             """
-             Likelihood function for a four antenna ARIANNA station, using correction.
-             Using correlation, has no built in wrap around, pulse needs to be in the middle
-
+            """
+            Likelihood function for a four antenna ARIANNA station, using correction.
+            Using correlation, has no built in wrap around, pulse needs to be in the middle
             """
 
             zenith = angles[0]
@@ -37,8 +56,8 @@ class correlationDirectionFitter:
 
             for pos in positions:
                 tmp = []
-                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[0], n=n) * sampling_rate)
-                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n) * sampling_rate)
+                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[0], n=n_index) * sampling_rate)
+                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n_index) * sampling_rate)
                 times.append(tmp)
 
             delta_t_02 = times[0][1] - times[0][0]
@@ -74,8 +93,8 @@ class correlationDirectionFitter:
 
             for pos in positions:
                 tmp = []
-                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[0], n=n) * sampling_rate)
-                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n) * sampling_rate)
+                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[0], n=n_index) * sampling_rate)
+                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n_index) * sampling_rate)
                 times.append(tmp)
 
             delta_t_02 = times[0][1] - times[0][0]
@@ -104,12 +123,22 @@ class correlationDirectionFitter:
                            [positions[channel_pairs[1][0]], positions[channel_pairs[1][1]]]]
         sampling_rate = channels[0].get_sampling_rate()  # assume that channels have the same sampling rate
 
+        # determine automatically if one channel has an inverted waveform with respect to the other
+        signs = [1., 1.]
+        for iPair, pair in enumerate(channel_pairs):
+            antenna_type = det.get_antenna_type(station_id, pair[0])
+            if("LPDA" in antenna_type):
+                otheta, ophi, rot_theta, rot_azimuth = det.get_antanna_orientation(station_id, pair[0])
+                otheta2, ophi2, rot_theta2, rot_azimuth2 = det.get_antanna_orientation(station_id, pair[1])
+                if(np.isclose(np.abs(rot_azimuth - rot_azimuth2), 180 * units.deg, atol=1 * units.deg)):
+                    signs[iPair] = -1
+
         if use_correlation:
             # Correlation
             corr_02 = signal.correlate(channels[channel_pairs[0][0]].get_trace(),
-                                       - 1 * channels[channel_pairs[0][1]].get_trace())
+                                       signs[0] * channels[channel_pairs[0][1]].get_trace())
             corr_13 = signal.correlate(channels[channel_pairs[1][0]].get_trace(),
-                                       - 1 * channels[channel_pairs[1][1]].get_trace())
+                                       signs[1] * channels[channel_pairs[1][1]].get_trace())
 
         else:
             # FFT convolution
@@ -142,8 +171,8 @@ class correlationDirectionFitter:
 
             for pos in positions_pairs:
                 tmp = []
-                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[0], n=n) * sampling_rate)
-                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n) * sampling_rate)
+                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[0], n=n_index) * sampling_rate)
+                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n_index) * sampling_rate)
                 times.append(tmp)
 
             delta_t_02 = times[0][1] - times[0][0]
@@ -175,28 +204,28 @@ class correlationDirectionFitter:
         station['azimuth'] = ll[0][1]
         output_str = "reconstucted angles theta = {:.1f}, phi = {:.1f}".format(station['zenith'] / units.deg, station['azimuth'] / units.deg)
         if station.has_sim_station():
-            sim_zen = station.get_sim_station()['zenith']
-            sim_az = station.get_sim_station()['azimuth']
-            dOmega = hp.get_angle(hp.spherical_to_cartesian(sim_zen, sim_az), hp.spherical_to_cartesian(station['zenith'], station['azimuth']))
-            output_str += "  MC theta = {:.1f}, phi = {:.1f},  dOmega = {:.2f}".format(sim_zen / units.deg, sim_az / units.deg, dOmega / units.deg)
+            if(station.get_sim_station().has_parameter('zenith')):
+                sim_zen = station.get_sim_station()['zenith']
+                sim_az = station.get_sim_station()['azimuth']
+                dOmega = hp.get_angle(hp.spherical_to_cartesian(sim_zen, sim_az), hp.spherical_to_cartesian(station['zenith'], station['azimuth']))
+                output_str += "  MC theta = {:.1f}, phi = {:.1f},  dOmega = {:.2f}".format(sim_zen / units.deg, sim_az / units.deg, dOmega / units.deg)
         logger.info(output_str)
         # Still have to add fit quality parameter to output
 
         if self.__debug:
             import peakutils
             # access simulated efield and high level parameters
+            sim_present = False
             if(station.has_sim_station()):
-                sim_station = station.get_sim_station()
-                azimuth_orig = sim_station['azimuth']
-                zenith_orig = sim_station['zenith']
-                sim_present = True
-            else:
-                sim_present = False
+                if(station.get_sim_station().has_parameter('zenith')):
+                    sim_station = station.get_sim_station()
+                    azimuth_orig = sim_station['azimuth']
+                    zenith_orig = sim_station['zenith']
+                    sim_present = True
 
             if sim_present:
                 logger.debug("True CoREAS zenith {0}, azimuth {1}".format(zenith_orig, azimuth_orig))
             logger.debug("Result of direction fitting: [zenith, azimuth] {}".format(np.rad2deg(ll[0])))
-
 
             # Show fit space
             zen = np.arange(ZenLim[0], ZenLim[1], 1 * units.deg)
@@ -240,18 +269,18 @@ class correlationDirectionFitter:
             dx = -6 * units.m
 
             def get_deltat13(dt, phi):
-                t = -1. * dt * c / (dx * np.cos(phi) * n)
+                t = -1. * dt * c / (dx * np.cos(phi) * n_index)
                 t[t < 0] = np.nan
                 return np.arcsin(t)
 
             def get_deltat02(dt, phi):
-                t = -1 * dt * c / (dx * np.sin(phi) * n)
+                t = -1 * dt * c / (dx * np.sin(phi) * n_index)
                 t[t < 0] = np.nan
                 return np.arcsin(t)
 
             def getDeltaTCone(r, dt):
                 dist = np.linalg.norm(r)
-                t0 = -dist * n / c
+                t0 = -dist * n_index / c
                 Phic = np.arccos(dt / t0)  # cone angle for allowable solutions
                 logger.debug('dist = {}, dt = {}, t0 = {}, phic = {}'.format(dist, dt, t0, Phic))
                 nr = r / dist  # normalize
