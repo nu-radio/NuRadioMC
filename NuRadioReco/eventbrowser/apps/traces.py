@@ -273,7 +273,11 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
     fig = tools.make_subplots(rows=len(station.get_channels()), cols=2,
                               shared_xaxes=True, shared_yaxes=False,
                               vertical_spacing=0.01)
+    ymax = 0
     if 'trace' in dropdown_traces:
+        for i, channel in enumerate(station.get_channels()):
+            trace = channel.get_trace() / units.mV
+            ymax = max(ymax, np.max(np.abs(trace)))
         for i, channel in enumerate(station.get_channels()):
             tt = channel.get_times() / units.ns
             trace = channel.get_trace() / units.mV
@@ -421,6 +425,8 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
     fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['yaxis1'].update(title='voltage [mV]')
     for i, channel in enumerate(station.get_channels()):
+        fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(range=[-ymax, ymax])
+
         tt = channel.get_times()
         dt = tt[1] - tt[0]
         trace = channel.get_trace()
