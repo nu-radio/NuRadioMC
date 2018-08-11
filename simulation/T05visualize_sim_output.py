@@ -14,8 +14,8 @@ import os
 parser = argparse.ArgumentParser(description='Plot NuRadioMC event list output.')
 parser.add_argument('inputfilename', type=str,
                     help='path to NuRadioMC hdf5 simulation output')
-# parser.add_argument('outputfilename', type=str,
-#                     help='name of output file storing the electric field traces at detector positions')
+parser.add_argument('--Veff', type=str,
+                    help='specify json file where effective volume is saved as a function of energy')
 args = parser.parse_args()
 
 filename = os.path.splitext(os.path.basename(args.inputfilename))[0]
@@ -43,7 +43,7 @@ dZ = fin.attrs['zmax'] - fin.attrs['zmin']
 V = dX * dY * dZ
 Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
 
-print("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
+print("Veff = {:.6g} km^3 sr".format(Veff / units.km ** 3))
 
 # plot vertex distribution
 fig, ax = plt.subplots(1, 1)
@@ -122,6 +122,10 @@ mask = ~np.isnan(viewing_angles)
 fig, ax = php.get_histogram((viewing_angles[mask] - rho[mask]) / units.deg, weights=weights[mask],
                             bins=np.arange(-20, 20, 1), xlabel='viewing - cherenkov angle [deg]', figsize=(6, 6))
 fig.savefig(os.path.join(plot_folder, 'dCherenkov.png'))
+
+# SNR
+
+# solution type
 
 # plot C0 parameter
 # C0s = np.array(fin['ray_tracing_C0'])
