@@ -21,7 +21,9 @@ class triggerSimulator:
         self.begin()
         logger.warning("This module does not contain cutting the trace to ARA specific parameters.")
 
-    def begin(self, antenna_resistance=8.5 * units.ohm):
+    def begin(self, antenna_resistance=8.5 * units.ohm,
+              power_mean=None,
+              power_rms=None):
         """
         Calculate a signal as processed by the tunnel diode.
         The given signal is convolved with the tunnel diodde response as in
@@ -34,8 +36,8 @@ class triggerSimulator:
         """
 
         self.antenna_resistance = antenna_resistance
-        self._power_mean = None
-        self._power_rms = None
+        self._power_mean = power_mean
+        self._power_rms = power_rms
 
     # Tunnel diode response functions pulled from arasim
     _td_args = {
@@ -77,6 +79,12 @@ class triggerSimulator:
         ----------
         channel : Channel
             Signal to be processed by the tunnel diode.
+        power_mean : float
+            Parameter extracted in ARA from noise.
+            If not given, it is calculated from generic noise
+        power_rms : float
+            Parameter extracted in ARA from noise.
+            If not given, it is calculated from generic noise
 
         Returns
         -------
