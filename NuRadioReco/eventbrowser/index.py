@@ -10,6 +10,7 @@ import uuid
 import glob
 from NuRadioReco.utilities import units
 from flask import Flask, send_from_directory
+from app import app
 from apps import traces
 import os
 import sys
@@ -18,18 +19,6 @@ import dataprovider
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('index')
-
-server = Flask(__name__, static_folder='static')
-app = dash.Dash(server=server)
-
-
-# @server.route('/favicon.ico')
-# def favicon():
-#     return send_from_directory(os.path.join(server.root_path, 'static'),
-#                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
-
-app.config.suppress_callback_exceptions = True
 
 data_folder = os.path.dirname(sys.argv[1])
 
