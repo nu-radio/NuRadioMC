@@ -177,14 +177,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     Emax: float
         the maximum neutrino energy (energies are randomly chosen assuming a
         uniform distribution in the logarithm of the energy)
-    xmin: float
-        lower x coordinate of simulated volume
-    xmax: float
-        upper x coordinate of simulated volume
-    ymin: float
-        lower y coordinate of simulated volume
-    ymax: float
-        upper y coordinate of simulated volume
+    rmin: float
+        lower r coordinate of simulated volume
+    rmax: float
+        upper r coordinate of simulated volume
     zmin: float
         lower z coordinate of simulated volume
     zmax: float

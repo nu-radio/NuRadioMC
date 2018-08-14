@@ -30,16 +30,22 @@ weights = np.array(fin['weights'])
 triggered = np.array(fin['triggered'])
 n_events = fin.attrs['n_events']
 
-# calculate effective
+# calculate effective volume
 density_ice = 0.9167 * units.g / units.cm ** 3
 density_water = 997 * units.kg / units.m ** 3
 n_triggered = np.sum(weights[triggered])
 print('total number of triggered events = ' + str(len(fin['weights'])))
 print('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(n_triggered, n_events, n_triggered / n_events))
-dX = fin.attrs['xmax'] - fin.attrs['xmin']
-dY = fin.attrs['ymax'] - fin.attrs['ymin']
+#if generate_eventlist_cuboid used
+#dX = fin.attrs['xmax'] - fin.attrs['xmin']
+#dY = fin.attrs['ymax'] - fin.attrs['ymin']
+#dZ = fin.attrs['zmax'] - fin.attrs['zmin']
+#V = dX * dY * dZ
+#if generate_eventlist_cylinder used
+RMax = fin.attrs['ymax']
+RMin = fin.attrs['ymin']
 dZ = fin.attrs['zmax'] - fin.attrs['zmin']
-V = dX * dY * dZ
+V = np.pi * (RMax ** 2 - RMin ** 2) * dZ
 Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
 print("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
 
@@ -51,13 +57,13 @@ rr = (xx ** 2 + yy ** 2) ** 0.5
 zz = np.array(fin['zz'])
 #h = ax.hist2d(rr / units.m, zz / units.m, bins=[np.arange(0, 4000, 100), np.arange(-3000, 0, 100)],
 #              cmap=plt.get_cmap('Blues'), weights=weights)
-plt.hist2d(rr / units.m, zz / units.m, bins=[np.arange(0, 9001, 100), np.arange(-3501, 0, 100)], cmap=plt.get_cmap('Blues'), weights=weights)
+plt.hist2d(rr / units.m, zz / units.m, bins=[np.arange(0, 9001, 100), np.arange(-3501, 0, 100)], cmap=plt.get_cmap('Blues'), weights=weights/n_events)
 cb = plt.colorbar()
 cb.set_label("weighted number of events")
 plt.xlabel("r [m]")
 plt.ylabel("z [m]")
 plt.subplot(2, 1, 2)
-plt.hist2d(rr / units.m, zz / units.m, bins=[np.arange(0, 9001, 100), np.arange(-3501, 0, 100)], cmap=plt.get_cmap('Blues'))
+plt.hist2d(rr / units.m, zz / units.m, bins=[np.arange(0, 9001, 100), np.arange(-3501, 0, 100)], cmap=plt.get_cmap('Blues'), weights = np.ones(len(rr))/n_events)
 cb = plt.colorbar()
 cb.set_label("number of events")
 plt.xlabel("r [m]")
@@ -90,13 +96,13 @@ plt.clf()
 theta = np.array(fin['zeniths'])
 phi = np.array(fin['azimuths'])
 plt.subplot(2, 1, 1)
-plt.hist2d(phi / units.deg, theta / units.deg, bins=[np.arange(0, 361, 5), np.arange(0, 181, 5)], cmap=plt.get_cmap('Blues'), weights=weights)
+plt.hist2d(phi / units.deg, theta / units.deg, bins=[np.arange(0, 361, 5), np.arange(0, 181, 5)], cmap=plt.get_cmap('Blues'), weights=weights/n_events)
 cb = plt.colorbar()
 cb.set_label("weighted number of events")
 plt.xlabel("azimuth [deg]")
 plt.ylabel("zenith [deg]")
 plt.subplot(2, 1, 2)
-plt.hist2d(phi / units.deg, theta / units.deg, bins=[np.arange(0, 361, 5), np.arange(0, 181, 5)], cmap=plt.get_cmap('Blues'))
+plt.hist2d(phi / units.deg, theta / units.deg, bins=[np.arange(0, 361, 5), np.arange(0, 181, 5)], cmap=plt.get_cmap('Blues'), weights = np.ones(len(phi))/n_events)
 cb = plt.colorbar()
 cb.set_label("number of events")
 plt.xlabel("azimuth [deg]")
@@ -115,22 +121,31 @@ mask = zeniths > 90 * units.deg  # select rays coming from below
 plt.hist(polarization / units.deg, bins=bins, weights=weights_matrix)
 plt.xlabel('weighted polarization [deg]')
 plt.hist(polarization[mask] / units.deg, bins=bins, weights=weights_matrix[mask], color = 'r')
-plt.figtext(1.0, 0.5, "red: rays coming from below\nblue: all")
+plt.figtext(1.0, 0.5, "red: rays coming from below; N: " + str(len(polarization[mask])) + "\nblue: all; N: " + str(len(polarization)))
 plt.savefig(os.path.join(plot_folder, 'polarization.pdf'), bbox_inches="tight")
 plt.clf()
 
 #plot neutrino direction
 zeniths = np.array(fin['zeniths']) / units.deg
+plt.subplot(2, 1, 1)
 plt.hist(zeniths, weights=weights, bins=np.arange(0, 181, 5))
 plt.xlabel('zenith angle [deg]')
 plt.ylabel('weighted entries')
-plt.figtext(1.0, 0.5, "N: " + str(len(zeniths)) + "\nmean: " + str(np.average(zeniths, weights=weights)) + "\nstd: " + str(np.std(zeniths)))
-plt.title("neutrino direction")
+avgZen = np.average(zeniths, weights=weights)
+varZen = np.average((zeniths-avgZen)**2, weights=weights)
+plt.figtext(1.0, 0.8, "N: " + str(len(zeniths)) + "\nmean: " + str(np.average(zeniths, weights=weights)) + "\nstd: " + str(varZen**0.5))
+plt.subplot(2, 1, 2)
+plt.hist(zeniths, bins=np.arange(0, 181, 5))
+plt.xlabel('zenith angle [deg]')
+plt.ylabel('unweighted entries')
+plt.figtext(1.0, 0.2, "N: " + str(len(zeniths)) + "\nmean: " + str(np.average(zeniths)) + "\nstd: " + str(np.std(zeniths)))
+plt.suptitle("neutrino direction")
 plt.savefig(os.path.join(plot_folder, 'neutrino_direction.pdf'), bbox_inches="tight")
 plt.clf()
 
 #plot difference between cherenkov angle and viewing angle
-shower_axis = hp.spherical_to_cartesian(np.array(fin['zeniths']), np.array(fin['azimuths']))
+# i.e., opposite to the direction of propagation. We need the propagation direction here, so we multiply the shower axis with '-1'
+shower_axis = -1.0 * hp.spherical_to_cartesian(np.array(fin['zeniths']), np.array(fin['azimuths']))
 launch_vectors = np.array(fin['launch_vectors'])
 viewing_angles = np.array([hp.get_angle(x, y) for x, y in zip(shower_axis, launch_vectors[:, 0, 0])])
 # calculate correct chereknov angle for ice density at vertex position
@@ -139,9 +154,16 @@ n_indexs = np.array([ice.get_index_of_refraction(x) for x in np.array([np.array(
 rho = np.arccos(1. / n_indexs)
 mask = ~np.isnan(viewing_angles)
 dCherenkov = (viewing_angles - rho) / units.deg
+plt.subplot(2, 1, 1)
 plt.hist(dCherenkov[mask], weights=weights[mask], bins=np.arange(-20, 20, 1))
 plt.xlabel('weighted viewing - cherenkov angle [deg]')
-plt.figtext(1.0, 0.5, "N: " + str(len(dCherenkov[mask])) + "\nmean: " + str(np.average(dCherenkov[mask], weights=weights[mask])) + "\nstd: " + str(np.std(dCherenkov[mask])))
+avgChe = np.average(dCherenkov[mask], weights=weights[mask])
+varChe = np.average((dCherenkov[mask]-avgChe)**2, weights=weights[mask])
+plt.figtext(1.0, 0.8, "N: " + str(len(dCherenkov[mask])) + "\nmean: " + str(np.average(dCherenkov[mask], weights=weights[mask])) + "\nstd: " + str(varChe**0.5))
+plt.subplot(2, 1, 2)
+plt.hist(dCherenkov[mask], bins=np.arange(-20, 20, 1))
+plt.xlabel('unweighted viewing - cherenkov angle [deg]')
+plt.figtext(1.0, 0.2, "N: " + str(len(dCherenkov[mask])) + "\nmean: " + str(np.average(dCherenkov[mask])) + "\nstd: " + str(np.std(dCherenkov[mask])))
 plt.savefig(os.path.join(plot_folder, 'dCherenkov.pdf'), bbox_inches="tight")
 
 # plot C0 parameter
