@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 import matplotlib.pyplot as plt
 import logging
 from NuRadioReco.utilities import units
@@ -8,6 +9,7 @@ import NuRadioReco.framework.event
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.efieldToVoltageConverter
+import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
 
 import NuRadioReco.modules.ARA.triggerSimulator
@@ -63,6 +65,7 @@ det = detector.Detector(json_filename='example_data/dummy_detector.json')
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
+hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("TriggerComparison")
@@ -75,49 +78,50 @@ N = 2 ** 8
 Vrms = 11 * units.micro * units.V
 
 NN = 1000
-# now calculate the relation between the ARA SNR (integrated power ratio) and the ARIANNA SNR (Vp2p/2/Vrms)
-import NuRadioReco.modules.ARA.triggerSimulator
-triggerSimulator = NuRadioReco.modules.ARA.triggerSimulator.triggerSimulator()
 min_freq, max_freq = 100 * units.MHz, .5 * units.GHz
-power_mean, power_rms = get_ARA_power_mean_rms(1. / dt, Vrms, min_freq, max_freq)
-print("power mean/rms = {:.4g}/{:.4g}".format(power_mean, power_rms))
-counter = -1
-SNRp2p_bicone = np.zeros(NN)
-SNRara_bicone = np.zeros(NN)
-for E in 10 ** np.linspace(15.5, 17, 100):
-    for theta in np.linspace(cherenkov_angle - 0.1 * units.deg, cherenkov_angle + 0.1 * units.deg, 10):
-        counter += 1
-        pulse = signalgen.get_time_trace(E, theta, N, dt, 0, n_index, 1000 * units.m, 'Alvarez2000')
-        event = NuRadioReco.framework.event.Event(1, 1)
-        station = NuRadioReco.framework.station.Station(101)
-        trace = np.zeros((3, N))
-        trace[1] = pulse
-        trace[2] = pulse
-        sim_station = NuRadioReco.framework.sim_station.SimStation(101, sampling_rate=1. / dt, trace=trace)
-        sim_station['zenith'] = (90 + 45) * units.deg
-        sim_station['azimuth'] = 0
-        station.set_sim_station(sim_station)
-        event.set_station(station)
+if 0:
+    # now calculate the relation between the ARA SNR (integrated power ratio) and the ARIANNA SNR (Vp2p/2/Vrms)
+    import NuRadioReco.modules.ARA.triggerSimulator
+    triggerSimulator = NuRadioReco.modules.ARA.triggerSimulator.triggerSimulator()
+    power_mean, power_rms = get_ARA_power_mean_rms(1. / dt, Vrms, min_freq, max_freq)
+    print("power mean/rms = {:.4g}/{:.4g}".format(power_mean, power_rms))
+    counter = -1
+    SNRp2p_bicone = np.zeros(NN)
+    SNRara_bicone = np.zeros(NN)
+    for E in 10 ** np.linspace(15.5, 17, 100):
+        for theta in np.linspace(cherenkov_angle - 0.1 * units.deg, cherenkov_angle + 0.1 * units.deg, 10):
+            counter += 1
+            pulse = signalgen.get_time_trace(E, theta, N, dt, 0, n_index, 1000 * units.m, 'Alvarez2000')
+            event = NuRadioReco.framework.event.Event(1, 1)
+            station = NuRadioReco.framework.station.Station(101)
+            trace = np.zeros((3, N))
+            trace[1] = pulse
+            trace[2] = pulse
+            sim_station = NuRadioReco.framework.sim_station.SimStation(101, sampling_rate=1. / dt, trace=trace)
+            sim_station['zenith'] = (90 + 45) * units.deg
+            sim_station['azimuth'] = 0
+            station.set_sim_station(sim_station)
+            event.set_station(station)
 
-        efieldToVoltageConverter.run(event, station, det)
-        channelBandPassFilter.run(event, station, det, passband=[min_freq, max_freq])
+            efieldToVoltageConverter.run(event, station, det)
+            channelBandPassFilter.run(event, station, det, passband=[min_freq, max_freq])
 
-        trace_bicone = station.get_channel(2).get_trace()
+            trace_bicone = station.get_channel(2).get_trace()
 
-        SNRp2p_bicone[counter] = (trace_bicone.max() - trace_bicone.min()) / 2. / Vrms
+            SNRp2p_bicone[counter] = (trace_bicone.max() - trace_bicone.min()) / 2. / Vrms
 
-        after_tunnel_diode = np.abs(triggerSimulator.tunnel_diode(station.get_channel(2)))
-        power_mean = 0
-        SNRara_bicone[counter] = np.max((after_tunnel_diode - power_mean) / power_rms)
+            after_tunnel_diode = np.abs(triggerSimulator.tunnel_diode(station.get_channel(2)))
+            power_mean = 0
+            SNRara_bicone[counter] = np.max((after_tunnel_diode - power_mean) / power_rms)
 
-fig, ax = plt.subplots(1, 1)
-ax.scatter(SNRara_bicone, SNRp2p_bicone, s=20, alpha=0.5)
-ax.set_xlabel("ARIANNA SNR (Vp2p/2/Vrms)")
-ax.set_ylabel("ARA SNR (tunnel diode output/noise power RMS)")
-ax.set_title("for ARA bicone response")
-fig.tight_layout()
-fig.savefig('plots/SNR_ARA_ARIANNA.png')
-plt.show()
+    fig, ax = plt.subplots(1, 1)
+    ax.scatter(SNRara_bicone, SNRp2p_bicone, s=20, alpha=0.5)
+    ax.set_xlabel("ARIANNA SNR (Vp2p/2/Vrms)")
+    ax.set_ylabel("ARA SNR (tunnel diode output/noise power RMS)")
+    ax.set_title("for ARA bicone response")
+    fig.tight_layout()
+    fig.savefig('plots/SNR_ARA_ARIANNA.png')
+    plt.show()
 
 long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=min_freq,
                                             max_freq=max_freq,
@@ -125,15 +129,16 @@ long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=min_freq,
                                             sampling_rate=1 / dt,
                                             amplitude=Vrms,
                                             type='perfect_white')
-a = 1 / 0
 
 SS_LPDA = np.zeros(NN)
+SS_LPDA_amp = np.zeros(NN)
 Vp2p_LPDA = np.zeros(NN)
+Vp2p_LPDA_amp = np.zeros(NN)
 SS_bicone = np.zeros(NN)
 Vp2p_bicone = np.zeros(NN)
 counter = -1
-for E in 10 ** np.linspace(15.5, 17, 10):
-    for theta in np.linspace(cherenkov_angle - 5 * units.deg, cherenkov_angle + 5 * units.deg, 10):
+for E in 10 ** np.linspace(15.5, 17, 1000):
+    for theta in np.linspace(cherenkov_angle - 0 * units.deg, cherenkov_angle + 0 * units.deg, 1):
         counter += 1
         pulse = signalgen.get_time_trace(E, theta, N, dt, 0, n_index, 1000 * units.m, 'Alvarez2000')
         event = NuRadioReco.framework.event.Event(1, 1)
@@ -150,7 +155,7 @@ for E in 10 ** np.linspace(15.5, 17, 10):
         efieldToVoltageConverter.run(event, station, det)
         channelBandPassFilter.run(event, station, det, passband=[100 * units.MHz, 500 * units.MHz])
 
-        trace_LPDA = station.get_channel(3).get_trace()
+        trace_LPDA = copy.copy(station.get_channel(3).get_trace())
         trace_bicone = station.get_channel(2).get_trace()
 
         Vp2p_LPDA[counter] = (trace_LPDA.max() - trace_LPDA.min())
@@ -159,22 +164,31 @@ for E in 10 ** np.linspace(15.5, 17, 10):
         SS_LPDA[counter] = np.sum(trace_LPDA ** 2) * dt
         SS_bicone[counter] = np.sum(trace_bicone ** 2) * dt
 
+        hardwareResponseIncorporator.run(event, station, det, sim_to_data=True)
+        trace_LPDA_amp = station.get_channel(3).get_trace()
+        Vp2p_LPDA_amp[counter] = (trace_LPDA_amp.max() - trace_LPDA_amp.min())
+        SS_LPDA_amp[counter] = np.sum(trace_LPDA_amp ** 2) * dt
+
         if(counter < 0):  # plot some example traces
-            fig, ax = plt.subplots(1, 2, sharey=True)
+            fig, ax = plt.subplots(1, 3, sharey=True, figsize=(20, 7))
             ax = np.array(ax).flatten()
             tt = station.get_channel(3).get_times()
-            ax[0].plot(tt / units.ns, trace_LPDA / units.micro / units.V)
-            ax[1].plot(tt / units.ns, trace_bicone / units.micro / units.V)
+            ax[0].plot(tt / units.ns, trace_bicone / units.micro / units.V)
+            ax[1].plot(tt / units.ns, trace_LPDA / units.micro / units.V)
+            ax[2].plot(tt / units.ns, trace_LPDA_amp / units.milli / units.V)
             ax[0].set_ylabel('voltage [$\mu$V]')
-            ax[0].set_title("LPDA")
-            ax[1].set_title("bicone")
+            ax[2].set_ylabel('voltage [mV]')
+            ax[0].set_title("bicone")
+            ax[1].set_title("LPDA")
+            ax[2].set_title("LPDA + AMP")
             ax[0].set_xlabel("time [ns]")
             ax[1].set_xlabel("time [ns]")
+            ax[2].set_xlabel("time [ns]")
             fig.tight_layout()
             fig.suptitle(r"$\theta$ = {:.0f}, dCherenkov = {:.0f}".format(135, (theta - cherenkov_angle) / units.deg))
             fig.subplots_adjust(top=0.9)
             fig.savefig("plots/trace_LPDA_bicone_{:d}.png".format(counter))
-#         plt.show()
+            plt.show()
             plt.close("all")
 
 fig, (ax, ax2) = plt.subplots(1, 2)
@@ -203,5 +217,45 @@ ax2.set_xlim(0, 150 / 10)
 ax2.legend()
 fig.tight_layout()
 fig.savefig("plots/SNRcomparison.png".format(counter))
-plt.close("all")
+# plt.show()
+
+# calculate trigger efficiency of ARIANNA Vp2p trigger
+bins = np.arange(0, 150, 1)
+bins_center = 0.5 * (bins[1:] + bins[:-1])
+
+SNR_bicone = SS_bicone / Vrms ** 2 / units.ns
+SNR_ARIANNA_bicone = Vp2p_bicone / Vrms / 2.
+weights = (SNR_ARIANNA_bicone >= 3) * np.ones(len(SNR_ARIANNA_bicone))
+Hcount, edges = np.histogram(SNR_bicone, bins=bins)
+Hweight, edges = np.histogram(SNR_bicone, bins=bins, weights=weights)
+trigger_efficiency_bicone = Hweight / Hcount
+
+SNR_ARIANNA_LPDA = Vp2p_LPDA / Vrms / 2.
+SNR_LPDA = SS_LPDA / Vrms ** 2 / units.ns
+weights = (SNR_ARIANNA_LPDA >= 3) * np.ones(len(SNR_ARIANNA_LPDA))
+Hcount, edges = np.histogram(SNR_LPDA, bins=bins)
+Hweight, edges = np.histogram(SNR_LPDA, bins=bins, weights=weights)
+trigger_efficiency_LPDA = Hweight / Hcount
+
+Vrms_amp = (SS_LPDA_amp / SS_LPDA).mean() ** 0.5 * Vrms  # quick and dirty hack to get the Vrms after the amp response
+SNR_ARIANNA_LPDA_amp = Vp2p_LPDA_amp / Vrms_amp / 2.
+SNR_LPDA_amp = SS_LPDA_amp / Vrms_amp ** 2 / units.ns
+weights = (SNR_ARIANNA_LPDA_amp >= 3) * np.ones(len(SNR_ARIANNA_LPDA_amp))
+Hcount, edges = np.histogram(SNR_LPDA_amp, bins=bins)
+Hweight, edges = np.histogram(SNR_LPDA_amp, bins=bins, weights=weights)
+trigger_efficiency_LPDA_amp = Hweight / Hcount
+
+fig, ax = plt.subplots(1, 1)
+ax.plot(bins_center, trigger_efficiency_bicone, 'o-', label='bicone')
+ax.plot(bins_center, trigger_efficiency_LPDA, 's-', label='LPDA')
+ax.plot(bins_center, trigger_efficiency_LPDA_amp, 'd--', label='LPDA + amp')
+ax.set_xticks(np.arange(0, 180, 20))
+ax.set_xlim(0, 140)
+ax.set_xlabel("new SNR")
+ax.set_ylabel("trigger efficiency")
+ax.set_title("trigger settings: Vp2p/Vrms/2 > 3, (3/8 trigger rate ~10mHz)")
+ax.legend()
+fig.tight_layout()
+fig.savefig("plots/ARIANNAtriggerefficiency.png".format(counter))
+plt.show()
 
