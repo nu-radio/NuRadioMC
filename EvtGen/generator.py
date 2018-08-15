@@ -91,6 +91,24 @@ def generate_eventlist_cuboid(filename, n_events, Emin, Emax,
 
     # generate neutrino flavors randomly
     flavors = np.array([flavor[i] for i in np.random.randint(0, high=len(flavor), size=n_events)])
+    """
+    #from AraSim nue:nueb:numu:numub:nutau:nutaub = 0.78: 0.22: 0.61: 0.39: 0.61: 0.39
+    flaRnd = np.random.uniform(0., 3., n_events)
+    flavors = np.ones(n_events, dtype = np.int64)
+    for i, r in enumerate(flaRnd):
+        if (r <= 0.78):
+            flavors[i] = flavor[0]
+        elif (r <= 1.0):
+            flavors[i] = flavor[1]
+        elif (r <= 1.61):
+            flavors[i] = flavor[2]
+        elif (r <= 2.0):
+            flavors[i] = flavor[3]
+        elif (r <= 2.61):
+            flavors[i] = flavor[4]
+        else:
+            flavors[i] = flavor[5]
+    """
     # generate energies randomly
     energies = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_events)
 
@@ -98,6 +116,7 @@ def generate_eventlist_cuboid(filename, n_events, Emin, Emax,
     rnd = np.random.uniform(0., 1., n_events)
     ccncs = np.ones(n_events, dtype='S2')
     for i, r in enumerate(rnd):
+#        if (r <= 0.6865254):#from AraSim
         if(r <= 0.7064):
             ccncs[i] = 'cc'
         else:
@@ -210,6 +229,24 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     # generate neutrino flavors randomly
     flavors = np.array([flavor[i] for i in np.random.randint(0, high=len(flavor), size=n_events)])
+    """
+    #from AraSim nue:nueb:numu:numub:nutau:nutaub = 0.78: 0.22: 0.61: 0.39: 0.61: 0.39
+    flaRnd = np.random.uniform(0., 3., n_events)
+    flavors = np.ones(n_events, dtype = np.int64)
+    for i, r in enumerate(flaRnd):
+        if (r <= 0.78):
+            flavors[i] = flavor[0]
+        elif (r <= 1.0):
+            flavors[i] = flavor[1]
+        elif (r <= 1.61):
+            flavors[i] = flavor[2]
+        elif (r <= 2.0):
+            flavors[i] = flavor[3]
+        elif (r <= 2.61):
+            flavors[i] = flavor[4]
+        else:
+            flavors[i] = flavor[5]
+    """
     # generate energies randomly
     energies = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_events)
 
@@ -217,6 +254,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     rnd = np.random.uniform(0., 1., n_events)
     ccncs = np.ones(n_events, dtype='S2')
     for i, r in enumerate(rnd):
+    #    if (r <= 0.6865254):#from AraSim
         if(r <= 0.7064):
             ccncs[i] = 'cc'
         else:
@@ -238,7 +276,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     R1 = 0.36787944
     R2 = 0.63212056
     inelasticity = (-np.log(R1 + np.random.uniform(0., 1., n_events) * R2)) ** 2.5
-
+    """    
+    #from AraSim
+    epsilon = np.log10(energies / 1e9)
+    inelasticity = pickY(flavors, ccncs, epsilon)
+   """ 
     if(n_events_per_file is None):
         n_events_per_file = n_events
     else:
