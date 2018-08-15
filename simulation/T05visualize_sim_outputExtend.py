@@ -118,7 +118,7 @@ polarization[polarization > 90 * units.deg] = 180 * units.deg - polarization[pol
 bins = np.linspace(0, 90, 50)
 # for all events, antennas and ray tracing solutions
 mask = zeniths > 90 * units.deg  # select rays coming from below
-plt.hist(polarization / units.deg, bins=bins, weights=weights_matrix)
+plt.hist(polarization / units.deg, bins=bins, weights=weights_matrix, color = 'b')
 plt.xlabel('weighted polarization [deg]')
 plt.hist(polarization[mask] / units.deg, bins=bins, weights=weights_matrix[mask], color = 'r')
 plt.figtext(1.0, 0.5, "red: rays coming from below; N: " + str(len(polarization[mask])) + "\nblue: all; N: " + str(len(polarization)))
@@ -133,7 +133,7 @@ plt.xlabel('zenith angle [deg]')
 plt.ylabel('weighted entries')
 avgZen = np.average(zeniths, weights=weights)
 varZen = np.average((zeniths-avgZen)**2, weights=weights)
-plt.figtext(1.0, 0.8, "N: " + str(len(zeniths)) + "\nmean: " + str(np.average(zeniths, weights=weights)) + "\nstd: " + str(varZen**0.5))
+plt.figtext(1.0, 0.6, "N: " + str(len(zeniths)) + "\nmean: " + str(np.average(zeniths, weights=weights)) + "\nstd: " + str(varZen**0.5))
 plt.subplot(2, 1, 2)
 plt.hist(zeniths, bins=np.arange(0, 181, 5))
 plt.xlabel('zenith angle [deg]')
@@ -147,24 +147,36 @@ plt.clf()
 # i.e., opposite to the direction of propagation. We need the propagation direction here, so we multiply the shower axis with '-1'
 shower_axis = -1.0 * hp.spherical_to_cartesian(np.array(fin['zeniths']), np.array(fin['azimuths']))
 launch_vectors = np.array(fin['launch_vectors'])
-viewing_angles = np.array([hp.get_angle(x, y) for x, y in zip(shower_axis, launch_vectors[:, 0, 0])])
+viewing_angles_d = np.array([hp.get_angle(x, y) for x, y in zip(shower_axis, launch_vectors[:, 0, 0])])
+viewing_angles_r = np.array([hp.get_angle(x, y) for x, y in zip(shower_axis, launch_vectors[:, 0, 1])])
 # calculate correct chereknov angle for ice density at vertex position
 ice = medium.southpole_simple()
 n_indexs = np.array([ice.get_index_of_refraction(x) for x in np.array([np.array(fin['xx']), np.array(fin['yy']), np.array(fin['zz'])]).T])
 rho = np.arccos(1. / n_indexs)
-mask = ~np.isnan(viewing_angles)
-dCherenkov = (viewing_angles - rho) / units.deg
+dCherenkov_d = (viewing_angles_d - rho) / units.deg
+dCherenkov_r = (viewing_angles_r - rho) / units.deg
+mask_d = ~np.isnan(viewing_angles_d)
+mask_r = ~np.isnan(viewing_angles_r)
 plt.subplot(2, 1, 1)
-plt.hist(dCherenkov[mask], weights=weights[mask], bins=np.arange(-20, 20, 1))
+plt.hist([dCherenkov_d[mask_d], dCherenkov_r[mask_r]], weights = [weights[mask_d],  weights[mask_r]], bins = np.arange(-20, 20, 1))
 plt.xlabel('weighted viewing - cherenkov angle [deg]')
-avgChe = np.average(dCherenkov[mask], weights=weights[mask])
-varChe = np.average((dCherenkov[mask]-avgChe)**2, weights=weights[mask])
-plt.figtext(1.0, 0.8, "N: " + str(len(dCherenkov[mask])) + "\nmean: " + str(np.average(dCherenkov[mask], weights=weights[mask])) + "\nstd: " + str(varChe**0.5))
+avgChe_d = np.average(dCherenkov_d[mask_d], weights = weights[mask_d])
+varChe_d = np.average((dCherenkov_d[mask_d] - avgChe_d)**2, weights = weights[mask_d])
+avgChe_r = np.average(dCherenkov_r[mask_r], weights = weights[mask_r])
+varChe_r = np.average((dCherenkov_r[mask_r] - avgChe_r)**2, weights = weights[mask_r])
+plt.figtext(1.0, 0.6, "N: " + str(len(dCherenkov_d[mask_d])) + "; Blue: direct ray\nmean: " + str(np.average(dCherenkov_d[mask_d], weights=weights[mask_d])) + "\nstd: " + str(varChe_d**0.5) + "\nN: " + str(len(dCherenkov_r[mask_r])) + "; Red: refracted ray\nmean: " + str(np.average(dCherenkov_r[mask_r], weights=weights[mask_r])) + "\nstd: " + str(varChe_r**0.5))
 plt.subplot(2, 1, 2)
-plt.hist(dCherenkov[mask], bins=np.arange(-20, 20, 1))
+plt.hist([dCherenkov_d[mask_d], dCherenkov_r[mask_r]], bins = np.arange(-20, 20, 1))
 plt.xlabel('unweighted viewing - cherenkov angle [deg]')
-plt.figtext(1.0, 0.2, "N: " + str(len(dCherenkov[mask])) + "\nmean: " + str(np.average(dCherenkov[mask])) + "\nstd: " + str(np.std(dCherenkov[mask])))
+plt.figtext(1.0, 0.2, "N: " + str(len(dCherenkov_d[mask_d])) + "; Blue: direct ray\nmean: " + str(np.average(dCherenkov_d[mask_d])) + "\nstd: " + str(np.std(dCherenkov_d[mask_d])) + "\nN: " + str(len(dCherenkov_r[mask_r])) + "; Red: refracted ray\nmean: " + str(np.average(dCherenkov_r[mask_r])) + "\nstd: " + str(np.std(dCherenkov_r[mask_r])))
 plt.savefig(os.path.join(plot_folder, 'dCherenkov.pdf'), bbox_inches="tight")
+plt.clf()
+
+#plot viewing_refracted vs viewing_direct
+plt.scatter(viewing_angles_d / units.deg, viewing_angles_r / units.deg)
+plt.xlabel("direct viewing angle")
+plt.ylabel("refracted viewing angle")
+plt.savefig(os.path.join(plot_folder, 'viewDvsviewR.pdf'), bbox_inches="tight")
 
 # plot C0 parameter
 # C0s = np.array(fin['ray_tracing_C0'])
