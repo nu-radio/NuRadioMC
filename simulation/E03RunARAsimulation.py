@@ -14,6 +14,7 @@ from scipy import constants
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
+import time
 logging.basicConfig(level=logging.WARNING)
 
 
@@ -68,6 +69,7 @@ if __name__ == "__main__":
     parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
                         help='outputfilename of NuRadioReco detector sim file')
     args = parser.parse_args()
+    t0 = time.time()
 
     sim = simulation.simulation(eventlist=args.inputfilename,
                                 outputfilename=args.outputfilename,
@@ -89,6 +91,7 @@ if __name__ == "__main__":
     triggerSimulatorARA = NuRadioReco.modules.ARA.triggerSimulator.triggerSimulator()
     channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
     channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
+    setupTime = time.time() - t0
 
     def detector_simulation_ARA(evt, station, det, dt, Vrms):
         # start detector simulation
@@ -106,4 +109,4 @@ if __name__ == "__main__":
                                 power_mean=power_mean, power_rms=power_rms)
 
     sim.run(detector_simulation=detector_simulation_ARA)
-
+    print("setupTime = " + str(setupTime))
