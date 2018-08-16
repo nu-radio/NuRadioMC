@@ -169,8 +169,14 @@ class simulation():
         travel_distances = np.zeros((n_events, n_antennas, 2))
         SNRs = np.zeros(n_events)
 
+        inputTime = 0.0
+        rayTracingTime = 0.0
+        detSimTime = 0.0
+        outputTime = 0.0
         t_start = time.time()
         for iE in range(n_events):
+            #print("start event. time: " + str(time.time()))
+            t1 = time.time()
             if(iE > 0 and iE % 1000 == 0):
                 eta = datetime.timedelta(seconds=(time.time() - t_start) * (n_events - iE) / iE)
                 logger.warning("processing event {}/{} = {}%, ETA {}".format(iE, n_events, 100. * iE / n_events, eta))
@@ -217,6 +223,9 @@ class simulation():
             candidate_event = False
 
             # first step: peorform raytracing to see if solution exists
+            #print("start raytracing. time: " + str(time.time()))
+            t2 = time.time()
+            inputTime += (t2 - t1)
             for channel_id in range(self.__det.get_number_of_channels(self.__station_id)):
                 x2 = self.__det.get_relative_position(self.__station_id, channel_id)
                 r = ray.ray_tracing(x1, x2, ice, log_level=logging.WARNING)
@@ -322,10 +331,12 @@ class simulation():
                     if(np.max(np.abs(channel.get_trace())) > 3 * self.__Vrms):  # apply a simple threshold cut to speed up the simulation, application of antenna response will just decrease the signal amplitude
                         candidate_event = True
 
+            #print("start detector simulation. time: " + str(time.time()))
+            t3 = time.time()
+            rayTracingTime += (t3 - t2)
             # perform only a detector simulation if event had at least one candidate channel
             if(not candidate_event):
                 continue
-
             logger.debug("performing detector simulation")
             # finalize NuRadioReco event structure
             station = NuRadioReco.framework.station.Station(self.__station_id)
@@ -344,11 +355,14 @@ class simulation():
                 if(self.__outputfilenameNuRadioReco is not None):
                     eventWriter.run(evt)
                 logger.info("event triggered")
+            t4 = time.time()
+            detSimTime += (t4 - t3)
 
         if(self.__outputfilenameNuRadioReco is not None):
             eventWriter.end()  # close output file
 
         # save simulation run in hdf5 format (only triggered events)
+        t5 = time.time()
         for key in fin.keys():
             fout[key] = fin[key][triggered]
         for key in fin.attrs.keys():
@@ -382,8 +396,10 @@ class simulation():
         dZ = fin.attrs['zmax'] - fin.attrs['zmin']
         V = dX * dY * dZ
         Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
-
         logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
         fin.close()
         fout.close()
+
+        outputTime = time.time() - t5
+        print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) + "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
 
