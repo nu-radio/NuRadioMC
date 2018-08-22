@@ -23,7 +23,7 @@ class triggerSimulator:
 
     def begin(self, antenna_resistance=8.5 * units.ohm,
               power_mean=None,
-              power_rms=None):
+              power_std=None):
         """
         Calculate a signal as processed by the tunnel diode.
         The given signal is convolved with the tunnel diodde response as in
@@ -37,7 +37,7 @@ class triggerSimulator:
 
         self.antenna_resistance = antenna_resistance
         self._power_mean = power_mean
-        self._power_rms = power_rms
+        self._power_std = power_std
 
     # Tunnel diode response functions pulled from arasim
     _td_args = {
@@ -82,7 +82,7 @@ class triggerSimulator:
         power_mean : float
             Parameter extracted in ARA from noise.
             If not given, it is calculated from generic noise
-        power_rms : float
+        power_std : float
             Parameter extracted in ARA from noise.
             If not given, it is calculated from generic noise
 
@@ -124,7 +124,7 @@ class triggerSimulator:
         boolean
             Whether or not the antenna triggers on `channel`.
         """
-        if self._power_mean is None or self._power_rms is None:
+        if self._power_mean is None or self._power_std is None:
             # Prepare for antenna trigger by finding rms of noise waveform
             # (1 microsecond) convolved with tunnel diode response
 
@@ -145,21 +145,13 @@ class triggerSimulator:
             self.__power_noise = self.tunnel_diode(noise)
 
             self._power_mean = np.mean(self.__power_noise)
-            self._power_rms = np.sqrt(np.mean(self.__power_noise ** 2))
+            self._power_std = np.std(self.__power_noise)
 
         # Send signal through tunnel_diode
         after_tunnel_diode = self.tunnel_diode(channel)
         low_trigger = (self._power_mean -
-                       self._power_rms * np.abs(self.power_threshold))
-        high_trigger = (self._power_mean +
-                        self._power_rms * np.abs(self.power_threshold))
-
-        t = channel.get_times()
-
-        trigger_times = np.append(t[after_tunnel_diode < low_trigger], t[after_tunnel_diode > high_trigger])
-        trigger_times = np.unique(trigger_times)
-
-        return trigger_times
+                       self._power_std * np.abs(self.power_threshold))
+        return np.min(after_tunnel_diode)<low_trigger
 
     def run(self, evt, station, det,
             power_threshold=6.5,
@@ -167,7 +159,7 @@ class triggerSimulator:
             number_concidences=3,
             triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
             power_mean=None,
-            power_rms=None):
+            power_std=None):
         """
         simulate ARA trigger logic
 
@@ -184,16 +176,16 @@ class triggerSimulator:
         power_mean : float
             Parameter extracted in ARA from noise.
             If not given, it is calculated from generic noise
-        power_rms : float
+        power_std : float
             Parameter extracted in ARA from noise.
             If not given, it is calculated from generic noise
         """
         # if the run method specifies power mean and rms we use these values,
         # if the parameters are None, the power mean and rms gets calculated for
         # some standard assumptions on the noise RMS and it needs to be done only once
-        if(power_mean is not None and power_rms is not None):
+        if(power_mean is not None and power_std is not None):
             self._power_mean = power_mean
-            self._power_rms = power_rms
+            self._power_std = power_std
 
         self.power_threshold = power_threshold
 
