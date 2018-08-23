@@ -11,7 +11,7 @@ class channelGenericNoiseAdder:
 
     """
 
-    def fftnoise(self,f):
+    def fftnoise(self, f):
         """
         Adding random phase information to given amplitude spectrum.
 
@@ -25,11 +25,11 @@ class channelGenericNoiseAdder:
         Np = (len(f) - 1) // 2
         phases = np.random.rand(Np) * 2 * np.pi
         phases = np.cos(phases) + 1j * np.sin(phases)
-        f[1:Np+1] *= phases
-        f[-1:-1-Np:-1] = np.conj(f[1:Np+1])
+        f[1:Np + 1] *= phases
+        f[-1:-1 - Np:-1] = np.conj(f[1:Np + 1])
         return np.fft.ifft(f).real
 
-    def bandlimited_noise(self,min_freq, max_freq, n_samples, sampling_rate,amplitude, type='perfect_white'):
+    def bandlimited_noise(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type='perfect_white'):
         """
         Generating noise of n_samples in a bandwidth [min_freq,max_freq].
 
@@ -51,15 +51,15 @@ class channelGenericNoiseAdder:
             white: flat frequency spectrum with random jitter
 
         """
-        frequencies = np.abs(np.fft.fftfreq(n_samples, 1/sampling_rate))
+        frequencies = np.abs(np.fft.fftfreq(n_samples, 1 / sampling_rate))
         f = np.zeros(n_samples)
-        selection = np.where((frequencies>=min_freq)& (frequencies<=max_freq))
+        selection = np.where((frequencies >= min_freq) & (frequencies <= max_freq))
         npise = None
         if type == 'perfect_white':
-            f[selection] = amplitude*np.sqrt(2.*n_samples*2)
+            f[selection] = amplitude * np.sqrt(2.*n_samples * 2)
             noise = self.fftnoise(f)
         elif type == 'white':
-            jitter = np.random.rand(n_samples)*0.05*amplitude + amplitude*np.sqrt(2.*n_samples*2)
+            jitter = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
             f[selection] = jitter[selection]
             noise = self.fftnoise(f)
         elif type == "narrowband":
@@ -67,18 +67,21 @@ class channelGenericNoiseAdder:
         else:
             logger.error("Other types of noise not yet implemented.")
 
+        # quick hack to normalize the Vrms to the correct value
+        noise *= amplitude / noise.std()
+
         return noise
 
     def __init__(self):
-        pass
+        self.begin()
 
     def begin(self, debug=False):
         self.__debug = debug
 
     def run(self, event, station, detector,
-                            amplitude=1*units.mV,
-                            min_freq=50*units.MHz,
-                            max_freq=2000*units.MHz,
+                            amplitude=1 * units.mV,
+                            min_freq=50 * units.MHz,
+                            max_freq=2000 * units.MHz,
                             type='white'):
 
         """
@@ -105,7 +108,6 @@ class channelGenericNoiseAdder:
 
         """
 
-
         channels = station.get_channels()
         for channel in channels:
 
@@ -123,7 +125,7 @@ class channelGenericNoiseAdder:
                 new_trace = trace + noise
 
                 logger.debug("imput amplitude {}".format(amplitude))
-                logger.debug("voltage RMS {}".format(np.sqrt(np.mean(noise**2))))
+                logger.debug("voltage RMS {}".format(np.sqrt(np.mean(noise ** 2))))
 
                 import matplotlib.pyplot as plt
                 plt.plot(trace)
@@ -138,7 +140,7 @@ class channelGenericNoiseAdder:
                 plt.show()
 
             new_trace = trace + noise
-            channel.set_trace(new_trace,sampling_rate)
+            channel.set_trace(new_trace, sampling_rate)
 
     def end(self):
         pass
