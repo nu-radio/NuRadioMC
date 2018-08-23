@@ -17,6 +17,9 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
     def get_channels(self):
         return self.__channels.values()
 
+    def has_channels(self):
+        return self.__channels is not {}
+
     def iter_channels(self, use_channels=None):
         for channel_id, channel in self.__channels.iteritems():
             if(use_channels is None):
