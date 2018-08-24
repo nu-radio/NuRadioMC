@@ -294,10 +294,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         fout.attrs['VERSION_MINOR'] = VERSION_MINOR
         fout.attrs['header'] = HEADER
 
-        fout.attrs['xmin'] = rmin
-        fout.attrs['xmax'] = rmax
-        fout.attrs['ymin'] = rmin
-        fout.attrs['ymax'] = rmax
+        fout.attrs['rmin'] = rmin
+        fout.attrs['rmax'] = rmax
         fout.attrs['zmin'] = zmin
         fout.attrs['zmax'] = zmax
         fout.attrs['flavors'] = flavor
