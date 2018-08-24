@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.trigger
+import NuRadioReco.framework.parameters as parameters
 import cPickle as pickle
 import logging
 logger = logging.getLogger('BaseStation')
@@ -15,14 +16,6 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         self._station_id = station_id
         self._station_time = None
         self._trigger = NuRadioReco.framework.trigger.Trigger()
-        self._parameter_names = ['cr_energy',
-                                 'zenith',
-                                 'azimuth',
-                                 'signal_time',
-                                 'triggered',
-                                 'signal_energy_fluence_mag',
-                                 'noise_energy_fluence_mag',
-                                 'maximum_amplitude']
 
     def __setitem__(self, key, value):
         self.set_parameter(key, value)
@@ -30,29 +23,43 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
     def __getitem__(self, key):
         return self.get_parameter(key)
 
-    def get_parameter(self, attribute):
-        return self._parameters[attribute]
+    def get_parameter(self, key):
+        if not isinstance(key, parameters.stationParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
+        return self._parameters[key]
 
     def get_parameters(self):
         return self._parameters
 
-    def has_parameter(self, attribute):
-        return attribute in self._parameters.keys()
+    def has_parameter(self, key):
+        if not isinstance(key, parameters.stationParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
+        return key in self._parameters.keys()
 
     def set_parameter(self, key, value):
-#         if key not in self._parameter_names:
-#             logger.error("parameter {} does not exist in list of parameters".format(key))
-#             import sys
-#             sys.exit(-1)
+        if not isinstance(key, parameters.stationParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
         self._parameters[key] = value
 
     def set_parameter_error(self, key, value):
+        if not isinstance(key, parameters.stationParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
         self._parameter_covariances[(key, key)] = value ** 2
 
     def get_parameter_error(self, key):
+        if not isinstance(key, parameters.stationParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
         return self._parameter_covariances[(key, key)] ** 0.5
 
     def remove_parameter(self, key):
+        if not isinstance(key, parameters.stationParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
         self._parameters.pop(key, None)
 
     def set_station_time(self, time):

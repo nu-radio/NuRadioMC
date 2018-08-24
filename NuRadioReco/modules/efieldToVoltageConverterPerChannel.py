@@ -2,6 +2,7 @@ import numpy as np
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import ice
+from NuRadioReco.framework.parameters import channelParameters as chp
 # from detector import antennamodel
 from NuRadioReco.detector import antennapattern
 from radiotools import coordinatesystems
@@ -140,20 +141,20 @@ class efieldToVoltageConverterPerChannel:
                 # calculate the start bin
                 if(not np.isnan(sim_channel2.get_trace_start_time())):
                     start_bin = int(round((sim_channel2.get_trace_start_time() - times_min.min()) / self.__time_resolution))
-                    logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, sim_channel2.get_trace_start_time(), start_bin, sim_channel2['raypath']))
+                    logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, sim_channel2.get_trace_start_time(), start_bin, sim_channel2[chp.ray_path_type]))
                     new_trace[:, start_bin:(start_bin + len(trace))] = resampled_efield
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
                 trace_object.set_trace(new_trace, 1. / self.__time_resolution)
                 trace_object.set_trace_start_time(times_min.min())
                 if(self.__debug):
-                    axes[0].plot(trace_object.get_times(), new_trace[1], label="eTheta {}".format(sim_channel2['raypath']))
-                    axes[0].plot(trace_object.get_times(), new_trace[2], label="ePhi {}".format(sim_channel2['raypath']))
+                    axes[0].plot(trace_object.get_times(), new_trace[1], label="eTheta {}".format(sim_channel2[chp.ray_path_type]))
+                    axes[0].plot(trace_object.get_times(), new_trace[2], label="ePhi {}".format(sim_channel2[chp.ray_path_type]))
 
                 ff = trace_object.get_frequencies()
                 efield_fft = trace_object.get_frequency_spectrum()
 
-                zenith = sim_channel2['zenith']
-                azimuth = sim_channel2['azimuth']
+                zenith = sim_channel2[chp.zenith]
+                azimuth = sim_channel2[chp.azimuth]
 
                 # get antenna pattern for current channel
                 antenna_model = det.get_antenna_model(sim_station_id, channel_id, zenith)
@@ -169,7 +170,7 @@ class efieldToVoltageConverterPerChannel:
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
 
                 if(self.__debug):
-                    axes[1].plot(trace_object.get_times(), np.fft.irfft(voltage_fft), label="{}, zen = {:.0f}deg".format(sim_channel2['raypath'], zenith / units.deg))
+                    axes[1].plot(trace_object.get_times(), np.fft.irfft(voltage_fft), label="{}, zen = {:.0f}deg".format(sim_channel2[chp.ray_path_type], zenith / units.deg))
 
                 if('amp' in self.__uncertainty):
                     voltage_fft *= np.random.normal(1, self.__uncertainty['amp'][channel_id])

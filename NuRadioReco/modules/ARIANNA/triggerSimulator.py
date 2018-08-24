@@ -1,4 +1,5 @@
 from NuRadioReco.utilities import units
+from NuRadioReco.framework.parameters import stationParameters as stnp
 import numpy as np
 import time
 import logging
@@ -77,7 +78,7 @@ class triggerSimulator:
                         trigger[channel_id].append(sm)
                     low_sample = sm
 
-        station.set_parameter("channels_max_amplitude", max_signal)
+        station.set_parameter(stnp.channels_max_amplitude, max_signal)
         has_triggered = False
         trigger_time_sample = None
         # loop over the trace with a sliding window of "coinc_window"

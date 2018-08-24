@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_trace
+import NuRadioReco.framework.parameters as parameters
 import cPickle as pickle
 import logging
 logger = logging.getLogger('channel')
@@ -13,16 +14,25 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         self._id = channel_id
         self.__electric_field = None
 
-    def get_parameter(self, attribute):
-        return self._parameters[attribute]
+    def get_parameter(self, key):
+        if not isinstance(key, parameters.channelParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.channelParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.channelParameters")
+        return self._parameters[key]
 
     def get_parameters(self):
         return self._parameters
 
     def set_parameter(self, key, value):
+        if not isinstance(key, parameters.channelParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.channelParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.channelParameters")
         self._parameters[key] = value
 
     def has_parameter(self, key):
+        if not isinstance(key, parameters.channelParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.channelParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.channelParameters")
         return key in self._parameters
 
     def __setitem__(self, key, value):

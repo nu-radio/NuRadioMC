@@ -1,4 +1,5 @@
 from NuRadioReco.utilities import units
+from NuRadioReco.framework.parameters import stationParameters as stnp
 import numpy as np
 import time
 import logging
@@ -55,7 +56,7 @@ class triggerSimulator:
                 plt.axhline(threshold)
                 plt.show()
 
-        station.set_parameter("channels_max_amplitude", max_signal)
+        station.set_parameter(stnp.channels_max_amplitude, max_signal)
 
         if coincidences >= number_concidences:
             station.set_triggered(True)
