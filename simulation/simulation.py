@@ -85,7 +85,7 @@ class simulation():
         station_id: int
             the station id for which the simulation is performed. Must match a station
             defined in the detector description
-        Tnoies: float
+        Tnoise: float
             noise temperature in Kelvin (assuming white noise)
         outputfilenameNuRadioReco: string or None
             outputfilename of NuRadioReco detector sim file, this file contains all
@@ -390,11 +390,18 @@ class simulation():
 
         n_triggered = np.sum(weights[triggered])
         logger.warning('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(n_triggered, n_events, n_triggered / n_events))
-
-        dX = fin.attrs['xmax'] - fin.attrs['xmin']
-        dY = fin.attrs['ymax'] - fin.attrs['ymin']
-        dZ = fin.attrs['zmax'] - fin.attrs['zmin']
-        V = dX * dY * dZ
+        
+        V = None
+        if('xmax' in fin.attrs):
+            dX = fin.attrs['xmax'] - fin.attrs['xmin']
+            dY = fin.attrs['ymax'] - fin.attrs['ymin']
+            dZ = fin.attrs['zmax'] - fin.attrs['zmin']
+            V = dX * dY * dZ
+        elif('rmin' in fin.attrs):
+            rmin = fin.attrs['rmin']
+            rmax = fin.attrs['rmax']
+            dZ = fin.attrs['zmax'] - fin.attrs['zmin']
+            V = np.pi * (rmax**2 - rmin**2) * dZ
         Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
         logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
         fin.close()
