@@ -99,5 +99,5 @@ sim = simulation.simulation(eventlist=args.inputfilename,
                             station_id=101,
                             Tnoise=350.,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco)
-sim.run(detector_simulation=detector_simulation, number_of_triggers=5)
+sim.run(detector_simulation=detector_simulation, number_of_triggers=7)
 
