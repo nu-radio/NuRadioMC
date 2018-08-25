@@ -1,5 +1,7 @@
 import numpy as np
 from NuRadioReco.utilities import units
+from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import stationParameters as stnp
 from scipy import signal
 import time
 import logging
@@ -14,10 +16,11 @@ class channelSignalReconstructor:
 
     def __init__(self):
         self.__t = 0
-        self.__conversion_factor_integrated_signal = 2.65441729 * 1e-3 * 1.e-9 * 6.24150934 * 1e18  # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
+        self.__conversion_factor_integrated_signal = 2.65441729 * 1e-3 * 1.e-9 * \
+            6.24150934 * 1e18  # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
         self.begin()
 
-    def begin(self, debug=False , signal_start=20 * units.ns, signal_stop=100 * units.ns,
+    def begin(self, debug=False, signal_start=20 * units.ns, signal_stop=100 * units.ns,
               noise_start=150 * units.ns, noise_stop=350 * units.ns):
         """
         Parameters
@@ -70,7 +73,8 @@ class channelSignalReconstructor:
 
         # Various definitions
         noise_int = np.sum(np.square(trace[noise_window_mask]))
-        noise_int *= (self.__signal_window_stop - self.__signal_window_start) / float(self.__noise_window_stop - self.__noise_window_start)
+        noise_int *= (self.__signal_window_stop - self.__signal_window_start) / \
+            float(self.__noise_window_stop - self.__noise_window_start)
 
         if stored_noise:
             # we use the RMS from forced triggers
@@ -91,9 +95,9 @@ class channelSignalReconstructor:
         SNR['integrated_power'] = (np.sum(np.square(trace[signal_window_mask])) - noise_int)
 
         if SNR['integrated_power'] < noise_int:
-             logger.info("Intgreated signal {0} smaller than noise {1}, power SNR 0".format(
-                                    SNR['integrated_power'], noise_int))
-             SNR['integrated_power'] = 0.
+            logger.info("Intgreated signal {0} smaller than noise {1}, power SNR 0".format(
+                SNR['integrated_power'], noise_int))
+            SNR['integrated_power'] = 0.
         else:
 
             SNR['integrated_power'] /= (noise_int / self.__signal_window_start)
@@ -141,12 +145,13 @@ class channelSignalReconstructor:
             h = np.abs(signal.hilbert(trace))
             max_amplitude = h.max()
             max_amplitude_station = max(max_amplitude_station, max_amplitude)
-            channel['maximum_amplitude'] = max_amplitude
+            channel[chp.maximum_amplitude] = max_amplitude
 
             # Use noise precalculated from forced triggers
-            channel['SNR'] = self.get_SNR(station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
+            channel[chp.SNR] = self.get_SNR(station.get_id(), channel, det,
+                                            stored_noise=stored_noise, rms_stage=rms_stage)
 
-        station['channels_max_amplitude'] = max_amplitude
+        station[stnp.channels_max_amplitude] = max_amplitude
 
         self.__t = time.time() - t
 
