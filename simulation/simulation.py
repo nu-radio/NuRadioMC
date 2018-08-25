@@ -132,7 +132,7 @@ class simulation():
     def get_bandwidth(self):
         return self.__bandwidth
 
-    def run(self, detector_simulation):
+    def run(self, detector_simulation, number_of_triggers=1):
         """
         run the NuRadioMC simulation
 
@@ -140,6 +140,8 @@ class simulation():
         ----------
         detector_simulation: function
             a function that containes the detector simulation
+        number_of_triggers: int
+            the number of different triggers
         """
 
         def add_empty_channel(sim_station, channel_id):
@@ -165,6 +167,8 @@ class simulation():
         # define arrays that will be saved at the end
         weights = np.zeros(n_events)
         triggered = np.zeros(n_events, dtype=np.bool)
+        multiple_triggers = np.zeros((n_events, number_of_triggers), dtype=np.bool)
+        trigger_names = None
         launch_vectors = np.zeros((n_events, n_antennas, 2, 3)) * np.nan
         receive_vectors = np.zeros((n_events, n_antennas, 2, 3)) * np.nan
         ray_tracing_C0 = np.zeros((n_events, n_antennas, 2)) * np.nan
@@ -383,9 +387,17 @@ class simulation():
 
             detector_simulation(evt, station, self.__det, self.__dt, self.__Vrms)
 
+            if(trigger_names is None):
+                trigger_names = []
+                for trigger in station.get_triggers():
+                    trigger_names.append(trigger.get_name())
+            for iT, trigger_name in enumerate(trigger_names):
+                multiple_triggers[iE, iT] = station.get_trigger(trigger_name).has_triggered()
+
+            triggered[iE] = np.any(multiple_triggers[iE])
+                
             # save events that trigger the detector and have weight > 0
-            triggered[iE] = station.has_triggered()
-            if(station.has_triggered() and (weights[iE] > 1e-5)):
+            if(triggered[iE] and (weights[iE] > 1e-5)):
                 channelSignalReconstructor.run(evt, station, self.__det)
                 SNRs[iE] = station.get_parameter(stnp.channels_max_amplitude) / self.__Vrms
                 if(self.__outputfilenameNuRadioReco is not None):
@@ -416,6 +428,8 @@ class simulation():
         fout['weights'] = weights[triggered]
         fout['polarization'] = polarization[triggered]
         fout['SNRs'] = SNRs[triggered]
+        fout['multiple_triggers'] = multiple_triggers
+        fout.attrs['trigger_names'] = trigger_names
 
         t_total = time.time() - t_start
         logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(
