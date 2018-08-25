@@ -38,7 +38,7 @@ def detector_simulation(evt, station, det, dt, Vrms):
                                 threshold_low=-3 * Vrms,
                                 triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
                                 number_concidences=3,
-                                cut_trace=None,
+                                cut_trace=False,
                                 trigger_name='high_low_3of8',
                                 set_not_triggered=station.has_triggered("simple_threshold")) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
     triggerSimulatorARIANNA.run(evt, station, det,
@@ -46,15 +46,23 @@ def detector_simulation(evt, station, det, dt, Vrms):
                                 threshold_low=-3 * Vrms,
                                 triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
                                 number_concidences=2,
-                                cut_trace=None,
+                                cut_trace=False,
                                 trigger_name='high_low_2of8',
+                                set_not_triggered=station.has_triggered("simple_threshold")) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
+    triggerSimulatorARIANNA.run(evt, station, det,
+                                threshold_high=3 * Vrms,
+                                threshold_low=-3 * Vrms,
+                                triggered_channels=[0, 1, 2, 3, 12, 13, 14, 15],
+                                number_concidences=3,
+                                cut_trace=False,
+                                trigger_name='high_low_2of8_LPDAs',
                                 set_not_triggered=station.has_triggered("simple_threshold")) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
     triggerSimulatorARIANNA.run(evt, station, det,
                                 threshold_high=3 * Vrms,
                                 threshold_low=-3 * Vrms,
                                 triggered_channels=[0, 1, 2, 3],
                                 number_concidences=2,
-                                cut_trace=None,
+                                cut_trace=False,
                                 trigger_name='high_low_2of4_LPDA',
                                 set_not_triggered=station.has_triggered("simple_threshold")) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
     triggerSimulatorARIANNA.run(evt, station, det,
@@ -62,9 +70,16 @@ def detector_simulation(evt, station, det, dt, Vrms):
                                 threshold_low=-3 * Vrms,
                                 triggered_channels=[4, 5, 6, 7],
                                 number_concidences=4,
-                                cut_trace=None,
+                                cut_trace=False,
                                 trigger_name='high_low_4of4_dipoles',
                                 set_not_triggered=station.has_triggered("simple_threshold")) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
+    triggerSimulatorARIANNA.run(evt, station, det,
+                                threshold_high=3 * Vrms,
+                                threshold_low=-3 * Vrms,
+                                triggered_channels=[8, 9, 10, 11],
+                                number_concidences=2,
+                                cut_trace=False,
+                                trigger_name='high_low_2of4_deep_dipoles')
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
