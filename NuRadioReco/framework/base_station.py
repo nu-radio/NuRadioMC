@@ -4,6 +4,7 @@ import NuRadioReco.framework.trigger
 import NuRadioReco.framework.parameters as parameters
 import cPickle as pickle
 import logging
+from ctypes.macholib.dyld import framework_find
 logger = logging.getLogger('BaseStation')
 
 
@@ -15,7 +16,8 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         self._parameter_covariances = {}
         self._station_id = station_id
         self._station_time = None
-        self._trigger = NuRadioReco.framework.trigger.Trigger()
+        self._has_triggerd = False
+        self._triggers = {}
 
     def __setitem__(self, key, value):
         self.set_parameter(key, value)
@@ -84,17 +86,36 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
     def get_id(self):
         return self._station_id
 
-    def get_trigger(self):
-        return self._trigger
+    def get_trigger(self, name):
+        if(name not in self._triggers):
+            raise ValueError("trigger with name {} not present".format(name))
+        return self._trigger[name]
 
     def set_trigger(self, trigger):
-        self._trigger = trigger
+        if(trigger.get_name() in self._triggers):
+            logger.warning(
+                "station has already a trigger with name {}. The previous trigger will be overridden!".format(trigger.get_name()))
+        self._triggers[trigger.get_name()] = trigger
+        self._triggered = trigger.has_triggered()
 
     def has_triggered(self):
-        return self._trigger.has_triggered()
+        """
+        convenience function. The function returns False if not trigger was set. If one or multiple triggers were set,
+        it returns the result of the last trigger
+        """
+        return self._triggered
 
     def set_triggered(self, triggered=True):
-        self._trigger.set_triggered(triggered)
+        """
+        convenience function to set a simple trigger. The recommended interface is to set triggers through the 
+        set_trigger() interface.
+        """
+        if(len(self._triggers) > 1):
+            raise ValueError("more then one trigger were set. Request is ambiguous")
+        trigger = NuRadioReco.framework.trigger.Trigger('default')
+        trigger.set_triggered(triggered)
+        self.set_trigger(trigger)
+
 
 #     def get_frequencies(self):
 #         return np.fft.rfftfreq(len(self._time_trace), d=(1. / self._sampling_rate))
@@ -107,12 +128,15 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
             base_trace_pkl = None
         else:
             base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
-        trigger_pkl = self._trigger.serialize()
+        trigger_pkls = []
+        for trigger in self._triggers.values():
+            trigger_pkls.append(trigger.serialize())
         data = {'_parameters': self._parameters,
                 '_parameter_covariances': self._parameter_covariances,
                 '_station_id': self._station_id,
                 '_station_time': self._station_time,
-                'trigger': trigger_pkl,
+                'triggers': trigger_pkls,
+                '_triggered': self._triggered,
                 'base_trace': base_trace_pkl}
         return pickle.dumps(data, protocol=2)
 
@@ -120,8 +144,9 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         data = pickle.loads(data_pkl)
         if(data['base_trace'] is not None):
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
-        self._trigger.deserialize(data['trigger'])
+        self._triggers = NuRadioReco.framework.trigger.deserialize(data['triggers'])
         self._parameters = data['_parameters']
         self._parameter_covariances = data['_parameter_covariances']
         self._station_id = data['_station_id']
         self._station_time = data['_station_time']
+        self._triggered = data['_triggered']

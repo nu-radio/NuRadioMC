@@ -1,5 +1,6 @@
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.trigger import SimpleThresholdTrigger
 import numpy as np
 import time
 import logging
@@ -21,7 +22,8 @@ class triggerSimulator:
     def run(self, evt, station, det,
             threshold=60 * units.mV,
             number_concidences=1,
-            triggered_channels=None):
+            triggered_channels=None,
+            trigger_name='default_simple_threshold'):
         """
         simulate simple trigger logic, no time window, just threshold in all channels
 
@@ -33,6 +35,8 @@ class triggerSimulator:
             threshold above (or below) a trigger is issued, absolute amplitude
         triggered_channels: array of ints or None
             channels ids that are triggered on, if None trigger will run on all channels
+        trigger_name: string
+            a unique name of this particular trigger
         """
         t = time.time()
 
@@ -58,12 +62,14 @@ class triggerSimulator:
 
         station.set_parameter(stnp.channels_max_amplitude, max_signal)
 
+        trigger = SimpleThresholdTrigger(trigger_name, threshold, triggered_channels, number_concidences)
         if coincidences >= number_concidences:
-            station.set_triggered(True)
+            trigger.set_triggered(True)
             logger.debug("station has triggered")
         else:
-            station.set_triggered(False)
+            trigger.set_triggered(False)
             logger.debug("station has NOT triggered")
+        station.set_trigger(trigger)
 
         self.__t += time.time() - t
 
