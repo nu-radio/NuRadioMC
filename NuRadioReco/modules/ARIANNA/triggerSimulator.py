@@ -29,7 +29,8 @@ class triggerSimulator:
             number_concidences=2,
             triggered_channels=[0, 1, 2, 3],
             cut_trace=True,
-            trigger_name="default_high_low"):
+            trigger_name="default_high_low",
+            set_not_triggered=False):
         """
         simulate ARIANNA trigger logic
 
@@ -52,65 +53,71 @@ class triggerSimulator:
             max trace length is set according to detector description) 
         trigger_name: string
             a unique name of this particular trigger
+        set_not_triggered: bool (default: False)
+            if True not trigger simulation will be performed and this trigger will be set to not_triggered
+            
         """
         t = time.time()
         if threshold_low >= threshold_high:
             logger.error("Impossible trigger configuration, high {0} low {1}.".format(threshold_high, threshold_low))
             raise NotImplementedError
 
-        trigger = {}
-        max_signal = 0
-
         sampling_rate = station.get_channels()[0].get_sampling_rate()
-        for channel in station.get_channels():
-            channel_id = channel.get_id()
-            if channel_id not in triggered_channels:
-                continue
-            trace = channel.get_trace()
-            trigger[channel_id] = []
-            max_signal = max(max_signal, np.max(np.abs(trace)))
-
-            low_sample = 0
-            high_sample = 0
-            for sm in xrange(trace.shape[0]):
-                if ((trace[sm] > threshold_high)):
-                    if (((sm - low_sample) < (high_low_window * sampling_rate)) and (low_sample != 0)):
-                        trigger[channel_id].append(sm)
-                    high_sample = sm
-                if (trace[sm] < threshold_low):
-                    if (((sm - high_sample) < (high_low_window * sampling_rate)) and (high_sample != 0)):
-                        trigger[channel_id].append(sm)
-                    low_sample = sm
-
-        station.set_parameter(stnp.channels_max_amplitude, max_signal)
-        has_triggered = False
-        trigger_time_sample = None
-        # loop over the trace with a sliding window of "coinc_window"
-        coinc_window_samples = np.int(np.round(coinc_window * sampling_rate))
-        trace_length = len(station.get_channels()[0].get_trace())
-        for i in range(0, trace_length - coinc_window_samples):
-            istop = i + coinc_window_samples
-            coinc = 0
-            trigger_times = []
-            for iCh, tr in trigger.items():  # loops through triggers of each channel
-                tr = np.array(tr)
-                mask_trigger_in_coind_window = (tr >= i) & (tr < istop)
-                if(np.sum(mask_trigger_in_coind_window)):
-                    coinc += 1
-                    # save time/sample of first trigger in coincidence window
-                    trigger_times.append(tr[mask_trigger_in_coind_window][0])
-            if coinc >= number_concidences:
-                has_triggered = True
-                trigger_time_sample = min(trigger_times)
-                break
-
-#         coinc = 0
-#         for ch1 in trigger.keys()[:-1]:
-#             for ch2 in range(ch1 + 1, n_channels):
-#                 for tr1 in trigger[ch1]:
-#                     for tr2 in trigger[ch2]:
-#                         if abs(tr1 - tr2) < coinc_window / sampling_rate:
-#                             coinc += 1
+        if not set_not_triggered:
+            trigger = {}
+            max_signal = 0
+    
+            for channel in station.get_channels():
+                channel_id = channel.get_id()
+                if channel_id not in triggered_channels:
+                    continue
+                trace = channel.get_trace()
+                trigger[channel_id] = []
+                max_signal = max(max_signal, np.max(np.abs(trace)))
+    
+                low_sample = 0
+                high_sample = 0
+                for sm in range(trace.shape[0]):
+                    if ((trace[sm] > threshold_high)):
+                        if (((sm - low_sample) < (high_low_window * sampling_rate)) and (low_sample != 0)):
+                            trigger[channel_id].append(sm)
+                        high_sample = sm
+                    if (trace[sm] < threshold_low):
+                        if (((sm - high_sample) < (high_low_window * sampling_rate)) and (high_sample != 0)):
+                            trigger[channel_id].append(sm)
+                        low_sample = sm
+    
+            station.set_parameter(stnp.channels_max_amplitude, max_signal)
+            has_triggered = False
+            trigger_time_sample = None
+            # loop over the trace with a sliding window of "coinc_window"
+            coinc_window_samples = np.int(np.round(coinc_window * sampling_rate))
+            trace_length = len(station.get_channels()[0].get_trace())
+            for i in range(0, trace_length - coinc_window_samples):
+                istop = i + coinc_window_samples
+                coinc = 0
+                trigger_times = []
+                for iCh, tr in trigger.items():  # loops through triggers of each channel
+                    tr = np.array(tr)
+                    mask_trigger_in_coind_window = (tr >= i) & (tr < istop)
+                    if(np.sum(mask_trigger_in_coind_window)):
+                        coinc += 1
+                        # save time/sample of first trigger in coincidence window
+                        trigger_times.append(tr[mask_trigger_in_coind_window][0])
+                if coinc >= number_concidences:
+                    has_triggered = True
+                    trigger_time_sample = min(trigger_times)
+                    break
+        else:
+            has_triggered = False
+    
+    #         coinc = 0
+    #         for ch1 in trigger.keys()[:-1]:
+    #             for ch2 in range(ch1 + 1, n_channels):
+    #                 for tr1 in trigger[ch1]:
+    #                     for tr2 in trigger[ch2]:
+    #                         if abs(tr1 - tr2) < coinc_window / sampling_rate:
+    #                             coinc += 1
 
         trigger = HighLowTrigger(trigger_name, threshold_high, threshold_low, high_low_window,
                                  coinc_window, channels=triggered_channels,  number_of_coincidences=number_concidences)

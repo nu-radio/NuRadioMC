@@ -89,7 +89,10 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
     def get_trigger(self, name):
         if(name not in self._triggers):
             raise ValueError("trigger with name {} not present".format(name))
-        return self._trigger[name]
+        return self._triggers[name]
+    
+    def get_triggers(self):
+        return self._triggers.values()
 
     def set_trigger(self, trigger):
         if(trigger.get_name() in self._triggers):
@@ -98,12 +101,21 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         self._triggers[trigger.get_name()] = trigger
         self._triggered = trigger.has_triggered()
 
-    def has_triggered(self):
+    def has_triggered(self, trigger_name=None):
         """
-        convenience function. The function returns False if not trigger was set. If one or multiple triggers were set,
-        it returns the result of the last trigger
+        convenience function. 
+        
+        Parameters
+        ---------- 
+        trigger_name: string or None (default None)
+            * if None: The function returns False if not trigger was set. If one or multiple triggers were set,
+                       it returns the result of the last trigger
+            * if trigger name is set: return if the trigger with name 'trigger_name' has a trigger
         """
-        return self._triggered
+        if(trigger_name is None):
+            return self._triggered
+        else:
+            return self.get_trigger(trigger_name).has_triggered()
 
     def set_triggered(self, triggered=True):
         """
