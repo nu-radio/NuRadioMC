@@ -37,10 +37,17 @@ density_water = 997 * units.kg / units.m ** 3
 n_triggered = np.sum(weights[triggered])
 print('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(n_triggered, n_events, n_triggered / n_events))
 
-dX = fin.attrs['xmax'] - fin.attrs['xmin']
-dY = fin.attrs['ymax'] - fin.attrs['ymin']
-dZ = fin.attrs['zmax'] - fin.attrs['zmin']
-V = dX * dY * dZ
+V = None
+if('xmax' in fin.attrs):
+    dX = fin.attrs['xmax'] - fin.attrs['xmin']
+    dY = fin.attrs['ymax'] - fin.attrs['ymin']
+    dZ = fin.attrs['zmax'] - fin.attrs['zmin']
+    V = dX * dY * dZ
+elif('rmin' in fin.attrs):
+    rmin = fin.attrs['rmin']
+    rmax = fin.attrs['rmax']
+    dZ = fin.attrs['zmax'] - fin.attrs['zmin']
+    V = np.pi * (rmax**2 - rmin**2) * dZ
 Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
 
 print("Veff = {:.6g} km^3 sr".format(Veff / units.km ** 3))
@@ -102,6 +109,23 @@ ax.set_ylim(maxy)
 fig.tight_layout()
 fig.savefig(os.path.join(plot_folder, 'polarization.png'))
 
+
+fig, ax = php.get_histogram(polarization / units.deg,
+                            bins=bins,
+                            xlabel='polarization [deg]',
+                            weights=weights_matrix, stats=False,
+                            figsize=(6, 6))
+maxy = ax.get_ylim()
+php.get_histogram(polarization[mask] / units.deg,
+                  bins=bins,
+                  xlabel='polarization [deg]',
+                  stats=False,
+                  ax=ax, kwargs={'facecolor': 'C0', 'alpha': 1, 'edgecolor': "k"})
+# ax.set_xticks(bins)
+ax.set_ylim(maxy)
+fig.tight_layout()
+fig.savefig(os.path.join(plot_folder, 'polarization_unweighted.png'))
+
 fig, ax = php.get_histogram(np.array(fin['zeniths']) / units.deg, weights=weights,
                             ylabel='weighted entries', xlabel='zenith angle [deg]',
                             bins=np.arange(0, 181, 5), figsize=(6, 6))
@@ -109,7 +133,7 @@ ax.set_xticks(np.arange(0, 181, 45))
 fig.tight_layout()
 fig.savefig(os.path.join(plot_folder, 'neutrino_direction.png'))
 
-shower_axis = hp.spherical_to_cartesian(np.array(fin['zeniths']), np.array(fin['azimuths']))
+shower_axis = -1 * hp.spherical_to_cartesian(np.array(fin['zeniths']), np.array(fin['azimuths']))
 launch_vectors = np.array(fin['launch_vectors'])
 viewing_angles = np.array([hp.get_angle(x, y) for x, y in zip(shower_axis, launch_vectors[:, 0, 0])])
 
