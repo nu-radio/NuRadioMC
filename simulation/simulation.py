@@ -163,6 +163,7 @@ class simulation():
         fout = h5py.File(self.__outputfilename, 'w')
         n_events = len(fin['event_ids'])
         n_antennas = self.__det.get_number_of_channels(self.__station_id)
+        print("processing {} events".format(n_events))
 
         # define arrays that will be saved at the end
         weights = np.zeros(n_events)
@@ -406,17 +407,9 @@ class simulation():
             t4 = time.time()
             detSimTime += (t4 - t3)
 
-        if(self.__outputfilenameNuRadioReco is not None):
-            eventWriter.end()  # close output file
-
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
-        for key in fin.keys():
-            fout[key] = fin[key][triggered]
-        for key in fin.attrs.keys():
-            fout.attrs[key] = fin.attrs[key]
         fout.attrs['n_events'] = n_events
-        # fin.copy(fin['/'], fout['/'], name='/events')
         fout['launch_vectors'] = launch_vectors[triggered]
         fout['receive_vectors'] = receive_vectors[triggered]
         fout['travel_times'] = travel_times[triggered]
@@ -430,6 +423,13 @@ class simulation():
         fout['SNRs'] = SNRs[triggered]
         fout['multiple_triggers'] = multiple_triggers[triggered]
         fout.attrs['trigger_names'] = trigger_names
+        
+        # now we also save all input parameters back into the out file
+        for key in fin.keys():
+            if(not key in fout.keys()): # only save data sets that havn't been recomputed and saved already
+                fout[key] = np.array(fin[key])[triggered]
+        for key in fin.attrs.keys():
+            fout.attrs[key] = fin.attrs[key]
 
         t_total = time.time() - t_start
         logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(
