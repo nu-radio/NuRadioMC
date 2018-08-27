@@ -428,7 +428,7 @@ class simulation():
         fout['weights'] = weights[triggered]
         fout['polarization'] = polarization[triggered]
         fout['SNRs'] = SNRs[triggered]
-        fout['multiple_triggers'] = multiple_triggers
+        fout['multiple_triggers'] = multiple_triggers[triggered]
         fout.attrs['trigger_names'] = trigger_names
 
         t_total = time.time() - t_start
