@@ -18,6 +18,7 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         self._station_time = None
         self._has_triggerd = False
         self._triggers = {}
+        self._triggered = False
 
     def __setitem__(self, key, value):
         self.set_parameter(key, value)
@@ -156,9 +157,11 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         data = pickle.loads(data_pkl)
         if(data['base_trace'] is not None):
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
-        self._triggers = NuRadioReco.framework.trigger.deserialize(data['triggers'])
+        if ('triggers' in data):
+            self._triggers = NuRadioReco.framework.trigger.deserialize(data['triggers'])
+        if ('triggers' in data):
+            self._triggered = data['_triggered']
         self._parameters = data['_parameters']
         self._parameter_covariances = data['_parameter_covariances']
         self._station_id = data['_station_id']
         self._station_time = data['_station_time']
-        self._triggered = data['_triggered']
