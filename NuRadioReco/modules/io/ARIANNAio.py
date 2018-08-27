@@ -7,7 +7,7 @@ import time
 logger = logging.getLogger('ARIANNAio')
 
 VERSION = 1
-VERSION_MINOR = 0
+VERSION_MINOR = 1
 
 
 class ARIANNAio(object):
