@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
+from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import channelParameters as chp
 import scipy.optimize as opt
 from radiotools import helper as hp
 import logging
@@ -16,6 +18,10 @@ class correlationDirectionFitter:
     """
 
     def __init__(self):
+        self.__zenith = []
+        self.__azimuth = []
+        self.__delta_zenith = []
+        self.__delta_azimuth = []
         self.begin()
 
     def begin(self, debug=False):
@@ -200,15 +206,34 @@ class correlationDirectionFitter:
             ax.set_ylabel("Correlation Ch 0/ Ch2", fontsize='small')
             plt.tight_layout()
 
-        station['zenith'] = max(ZenLim[0], min(ZenLim[1], ll[0][0]))
-        station['azimuth'] = ll[0][1]
-        output_str = "reconstucted angles theta = {:.1f}, phi = {:.1f}".format(station['zenith'] / units.deg, station['azimuth'] / units.deg)
+        station[stnp.zenith] = max(ZenLim[0], min(ZenLim[1], ll[0][0]))
+        station[stnp.azimuth] = ll[0][1]
+        output_str = "reconstucted angles theta = {:.1f}, phi = {:.1f}".format(station[stnp.zenith] / units.deg, station[stnp.azimuth] / units.deg)
         if station.has_sim_station():
-            if(station.get_sim_station().has_parameter('zenith')):
-                sim_zen = station.get_sim_station()['zenith']
-                sim_az = station.get_sim_station()['azimuth']
-                dOmega = hp.get_angle(hp.spherical_to_cartesian(sim_zen, sim_az), hp.spherical_to_cartesian(station['zenith'], station['azimuth']))
-                output_str += "  MC theta = {:.1f}, phi = {:.1f},  dOmega = {:.2f}".format(sim_zen / units.deg, sim_az / units.deg, dOmega / units.deg)
+            sim_zen = None
+            sim_az = None
+            if(station.get_sim_station().has_parameter(stnp.zenith)):
+                sim_zen = station.get_sim_station()[stnp.zenith]
+                sim_az = station.get_sim_station()[stnp.azimuth]
+            elif(station.get_sim_station().has_channels()):  # in case of a neutrino simulation, each channel has a slightly different arrival direction -> compute the average
+                sim_zen = []
+                sim_az = []
+                for sim_channels in station.get_sim_station().iter_channels(use_channels=np.array(channel_pairs).flatten()):
+                    for sim_channel in sim_channels:
+                        if(sim_channel[chp.ray_path_type] == 'direct' or sim_channel[chp.ray_path_type] == 'refracted'):
+                            sim_zen.append(sim_channel[chp.zenith])
+                            sim_az.append(sim_channel[chp.azimuth])
+                sim_zen = np.mean(np.array(sim_zen))
+                sim_az = np.mean(np.array(sim_az))
+
+            if(sim_zen is not None):
+                dOmega = hp.get_angle(hp.spherical_to_cartesian(sim_zen, sim_az), hp.spherical_to_cartesian(station[stnp.zenith], station[stnp.azimuth]))
+                output_str += "  MC theta = {:.1f}, phi = {:.1f},  dOmega = {:.2f}, dZen = {:.01f}, dAz = {:.1f}".format(sim_zen / units.deg, sim_az / units.deg, dOmega / units.deg, (station[stnp.zenith] - sim_zen) / units.deg, (station[stnp.azimuth] - hp.get_normalized_angle(sim_az)) / units.deg)
+                self.__zenith.append(sim_zen)
+                self.__azimuth.append(sim_az)
+                self.__delta_zenith.append(station[stnp.zenith] - sim_zen)
+                self.__delta_azimuth.append(station[stnp.azimuth] - hp.get_normalized_angle(sim_az))
+
         logger.info(output_str)
         # Still have to add fit quality parameter to output
 
@@ -217,10 +242,10 @@ class correlationDirectionFitter:
             # access simulated efield and high level parameters
             sim_present = False
             if(station.has_sim_station()):
-                if(station.get_sim_station().has_parameter('zenith')):
+                if(station.get_sim_station().has_parameter(stnp.zenith)):
                     sim_station = station.get_sim_station()
-                    azimuth_orig = sim_station['azimuth']
-                    zenith_orig = sim_station['zenith']
+                    azimuth_orig = sim_station[stnp.azimuth]
+                    zenith_orig = sim_station[stnp.zenith]
                     sim_present = True
 
             if sim_present:
@@ -342,4 +367,17 @@ class correlationDirectionFitter:
 #             plt.legend()
 
     def end(self):
+        fig, ax = plt.subplots(1, 1)
+        mask = np.abs(self.__delta_azimuth) < (1 * units.deg)
+        ax.scatter(np.array(self.__zenith)[mask] / units.deg, np.array(self.__delta_zenith)[mask] / units.deg, s=20)
+        ax.set_xlabel("zenith angle (MC) [deg]")
+        ax.set_ylabel("(zenith_rec - zenith_MC) [deg]")
+        fig.tight_layout()
+        fig.savefig("zenith_bias.png")
+
+        from radiotools import plthelpers as php
+        bins = np.arange(-10, 10, .1)
+        fig, ax = php.get_histogram(np.array(self.__delta_azimuth) / units.deg, bins=bins, xlabel="delta azimuth [deg]")
+        fig.savefig("azimuth.png")
+        plt.show()
         pass
