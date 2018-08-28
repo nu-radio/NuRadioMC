@@ -5,7 +5,6 @@ def deserialize(triggers_pkl):
     triggers = {}
     for data_pkl in triggers_pkl:
         trigger_type = pickle.loads(data_pkl)['_trigger_type']
-        print(trigger_type)
         if(trigger_type == 'default'):
             trigger = Trigger(None)
             trigger.deserialize(data_pkl)
