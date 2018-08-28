@@ -14,6 +14,8 @@ class stationParameters(Enum):
     cr_zenith = 10  # zenith angle of the cosmic-ray incoming direction 
     cr_azimuth = 11  # azimuth angle of the cosmic-ray incoming direction
     channels_max_amplitude = 12  # the maximum amplitude of all channels (considered in the trigger module)
+    zenith = 13  # the zenith angle of the incoming signal direction (WARNING: this parameter is not well defined as the incoming signal direction might be different for different channels)
+    azimuth = 14  # the azimuth angle of the incoming signal direction (WARNING: this parameter is not well defined as the incoming signal direction might be different for different channels)
 
 
 class channelParameters(Enum):
