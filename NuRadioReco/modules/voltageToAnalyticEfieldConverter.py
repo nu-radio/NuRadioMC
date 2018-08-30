@@ -1,20 +1,25 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+import os
+import time
 import numpy as np
-from NuRadioReco.detector import detector
-from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units
-from scipy import signal
-from NuRadioReco.detector import antennapattern
-from radiotools import plthelpers as php
 from numpy.polynomial import polynomial as poly
+from scipy import signal
 from scipy.signal import correlate
 from scipy import optimize as opt
-import os
+import matplotlib.pyplot as plt
+
+from radiotools import plthelpers as php
+from radiotools import helper as hp
+
+from NuRadioReco.detector import detector
+from NuRadioReco.detector import antennapattern
+from NuRadioReco.utilities import geometryUtilities as geo_utl
+from NuRadioReco.utilities import units
 from NuRadioReco.utilities import analytic_pulse as pulse
 from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
-import time
-import matplotlib.pyplot as plt
-from radiotools import helper as hp
+
+from NuRadioReco.framework.parameters import stationParameters as stnp
+
 import logging
 logger = logging.getLogger('voltageToAnalyticEfieldConverter')
 
@@ -295,13 +300,13 @@ class voltageToAnalyticEfieldConverter:
         station_id = station.get_id()
         logger.info("event {}, station {}".format(evt.get_id(), station_id))
         if useMCdirection and (station.get_sim_station() is not None):
-            zenith = station.get_sim_station()['zenith']
-            azimuth = station.get_sim_station()['azimuth']
+            zenith = station.get_sim_station()[stnp.zenith]
+            azimuth = station.get_sim_station()[stnp.azimuth]
             sim_present = True
         else:
             logger.warning("Using reconstructed angles as no simulation present")
-            zenith = station['zenith']
-            azimuth = station['azimuth']
+            zenith = station[stnp.zenith]
+            azimuth = station[stnp.azimuth]
             sim_present = False
 
         channels = station.get_channels()
@@ -698,7 +703,7 @@ class voltageToAnalyticEfieldConverter:
             ax2f.semilogy(True)
             if sim_present:
                 sim = station.get_sim_station()
-                fig.suptitle("Simulation: Zenith {:.1f}, Azimuth {:.1f}".format(np.rad2deg(sim["zenith"]), np.rad2deg(sim["azimuth"])))
+                fig.suptitle("Simulation: Zenith {:.1f}, Azimuth {:.1f}".format(np.rad2deg(sim[stnp.zenith]), np.rad2deg(sim[stnp.azimuth])))
             else:
                 fig.suptitle("Data: reconstructed zenith {:.1f}, azimuth {:.1f}".format(np.rad2deg(zenith), np.rad2deg(azimuth)))
             fig.tight_layout()
