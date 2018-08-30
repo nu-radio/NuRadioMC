@@ -1,18 +1,23 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
-from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units
-from scipy import signal
-from NuRadioReco.detector import antennapattern
-from radiotools import plthelpers as php
 from numpy.polynomial import polynomial as poly
+from scipy import signal
 from scipy.signal import correlate
 from scipy import optimize as opt
+import matplotlib.pyplot as plt
+import time
+
+from radiotools import helper as hp
+from radiotools import plthelpers as php
+
+from NuRadioReco.utilities import geometryUtilities as geo_utl
+from NuRadioReco.utilities import units
+from NuRadioReco.detector import antennapattern
 from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
 import NuRadioReco.framework.base_trace
-import time
-import matplotlib.pyplot as plt
-from radiotools import helper as hp
+
+from NuRadioReco.framework.parameters import stationParameters as stnp
+
 import logging
 logger = logging.getLogger('voltageToEfieldConverterPerChannel')
 
@@ -56,13 +61,13 @@ class voltageToEfieldConverterPerChannel:
         station_id = station.get_id()
         logger.info("event {}, station {}".format(evt.get_id(), station_id))
         if station.get_sim_station() is not None:
-            zenith = station.get_sim_station()['zenith']
-            azimuth = station.get_sim_station()['azimuth']
+            zenith = station.get_sim_station()[stnp.zenith]
+            azimuth = station.get_sim_station()[stnp.azimuth]
             sim_present = True
         else:
             logger.warning("Using reconstructed angles as no simulation present")
-            zenith = station['zenith']
-            azimuth = station['azimuth']
+            zenith = station[stnp.zenith]
+            azimuth = station[stnp.azimuth]
             sim_present = False
 
         channels = station.get_channels()
