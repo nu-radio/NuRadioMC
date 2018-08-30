@@ -11,7 +11,7 @@ from NuRadioMC.simulation import simulation
 
 # initialize detector sim modules
 efieldToVoltageConverterPerChannel = NuRadioReco.modules.efieldToVoltageConverterPerChannel.efieldToVoltageConverterPerChannel()
-efieldToVoltageConverterPerChannel.begin(debug=False)
+efieldToVoltageConverterPerChannel.begin(debug=False, time_resolution=0.01*units.ns)
 triggerSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
 triggerSimulatorARIANNA = NuRadioReco.modules.ARIANNA.triggerSimulator.triggerSimulator()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
@@ -80,6 +80,40 @@ def detector_simulation(evt, station, det, dt, Vrms):
                                 number_concidences=2,
                                 cut_trace=False,
                                 trigger_name='high_low_2of4_deep_dipoles')
+    triggerSimulatorARIANNA.run(evt, station, det,
+                                threshold_high=3 * Vrms,
+                                threshold_low=-3 * Vrms,
+                                triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
+                                number_concidences=6,
+                                cut_trace=False,
+                                trigger_name='high_low_6of8_3sigma',
+                                set_not_triggered=(not station.has_triggered("simple_threshold"))) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
+    triggerSimulatorARIANNA.run(evt, station, det,
+                                threshold_high=4 * Vrms,
+                                threshold_low=-4 * Vrms,
+                                triggered_channels=[0, 1, 2, 3],
+                                number_concidences=2,
+                                cut_trace=False,
+                                trigger_name='high_low_2of4_LPDA_4sigma',
+                                set_not_triggered=(not station.has_triggered("simple_threshold"))) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
+    triggerSimulatorARIANNA.run(evt, station, det,
+                                threshold_high=3.3 * Vrms,
+                                threshold_low=-3.3 * Vrms,
+                                triggered_channels=[0, 1, 2, 3],
+                                number_concidences=4,
+                                cut_trace=False,
+                                trigger_name='high_low_4of4_LPDA_3.3sigma',
+                                set_not_triggered=(not station.has_triggered("simple_threshold"))) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
+    triggerSimulatorARIANNA.run(evt, station, det,
+                                threshold_high=3.3 * Vrms,
+                                threshold_low=-3.3 * Vrms,
+                                triggered_channels=[4, 5, 6, 7],
+                                number_concidences=4,
+                                cut_trace=False,
+                                trigger_name='high_low_4of4_3.3sigma',
+                                set_not_triggered=(not station.has_triggered("simple_threshold"))) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
+
+
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
@@ -99,5 +133,5 @@ sim = simulation.simulation(eventlist=args.inputfilename,
                             station_id=101,
                             Tnoise=350.,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco)
-sim.run(detector_simulation=detector_simulation, number_of_triggers=7)
+sim.run(detector_simulation=detector_simulation, number_of_triggers=11)
 
