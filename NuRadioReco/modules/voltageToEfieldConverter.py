@@ -3,13 +3,16 @@ import os
 import copy
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities import ice
 from NuRadioReco.detector import antennapattern
 import NuRadioReco.framework.base_trace
 import matplotlib.pyplot as plt
+
 import logging
-from NuRadioReco.utilities import ice
 logger = logging.getLogger('voltageToEfieldConverter')
 
+from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import channelParameters as chp
 
 def get_array_of_channels(station, use_channels, det, zenith, azimuth,
                           antenna_pattern_provider, time_domain=False):
@@ -164,22 +167,16 @@ class voltageToEfieldConverter:
         station_id = station.get_id()
 
         try:
-            zenith = station.get_sim_station()['zenith']
-            azimuth = station.get_sim_station()['azimuth']
+            zenith = station.get_sim_station()[stnp.zenith]
+            azimuth = station.get_sim_station()[stnp.azimuth]
             sim_present = True
         except:
             logger.info("Using reconstructed (or starting) angles as no signal arrival angles are present")
-            zenith = station['zenith']
-            azimuth = station['azimuth']
+            zenith = station[stnp.zenith]
+            azimuth = station[stnp.azimuth]
             sim_present = False
 
         channels = station.get_channels()
-
-#         if debug:
-#             ax.plot(channel.get_times() / units.ns, trace / units.mV, label="Ch {}".format(channel_id))
-#
-#             axf.plot(ff[ff < 500 * units.MHz], np.abs(channel.get_frequency_spectrum())[ff < 500 * units.MHz] / units.mV, label="Ch {}".format(channel_id))
-#             ax.legend()
 
         efield_antenna_factor, V = get_array_of_channels(station, use_channels, det, zenith, azimuth, self.antenna_provider)
         n_frequencies = len(V[0])
@@ -283,7 +280,7 @@ class voltageToEfieldConverter:
             ax2f.semilogy(True)
             if sim_present:
                 sim = station.get_sim_station()
-                fig.suptitle("Simulation: Zenith {:.1f}, Azimuth {:.1f}".format(np.rad2deg(sim["zenith"]), np.rad2deg(sim["azimuth"])))
+                fig.suptitle("Simulation: Zenith {:.1f}, Azimuth {:.1f}".format(np.rad2deg(sim[stnp.zenith]), np.rad2deg(sim[stnp.azimuth])))
             else:
                 fig.suptitle("Data: reconstructed zenith {:.1f}, azimuth {:.1f}".format(np.rad2deg(zenith), np.rad2deg(azimuth)))
             fig.tight_layout()
