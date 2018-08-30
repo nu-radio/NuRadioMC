@@ -162,6 +162,7 @@ class simulation():
         fin = h5py.File(self.__eventlist, 'r')
         fout = h5py.File(self.__outputfilename, 'w')
         n_events = len(fin['event_ids'])
+#        n_events = 1000
         n_antennas = self.__det.get_number_of_channels(self.__station_id)
         print("processing {} events".format(n_events))
 
@@ -192,6 +193,8 @@ class simulation():
                 eta = datetime.timedelta(
                     seconds=(time.time() - t_start) * (n_events - iE) / iE)
                 logger.warning("processing event {}/{} = {}%, ETA {}".format(iE, n_events, 100. * iE / n_events, eta))
+            if(iE > 0 and iE % 100 == 0):
+                print("*", end = '')
             # read all quantities from hdf5 file and store them in local
             # variables
             event_id = fin['event_ids'][iE]

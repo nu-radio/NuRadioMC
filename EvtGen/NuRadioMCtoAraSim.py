@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 fin = h5py.File(args.hdf5input, 'r')
 
-AraStationDep = 200.0 / units.m
+AraStationDep = 178.5598 / units.m
 event_ids = fin['event_ids']
 flavors = np.array(fin['flavors'])
 energies = np.array(fin['energies'])
@@ -48,7 +48,7 @@ for i in range(n_events):
         posnu_theta[i] = np.arccos(np.sqrt(xx[i] ** 2 + yy[i] ** 2) / posnu_r[i])
 
 with open(args.AraSiminput, 'w') as fout:
-    fout.write("VERSION=0.1\nEVENT_NUM=10000\n//evid nuflavorint nu_nubar pnu currentint posnu_r posnu_theta posnu_phi nnu_theta nnu_phi elast_y\n")
+    fout.write("VERSION=0.1\nEVENT_NUM=" + str(n_events) + "\n//evid nuflavorint nu_nubar pnu currentint posnu_r posnu_theta posnu_phi nnu_theta nnu_phi elast_y\n")
     for i in range(n_events):
 #        fout.write("{:08d} {:>+5d}  {:.5e}  {:s}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}\n".format(event_ids[i], flavors[i], energies[i], ccncs[i], xx[i], yy[i], zz[i], zeniths[i], azimuths[i], inelasticity[i]))
         fout.write("{:08d} {:01d} {:01d} {:.3f} {:01d} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f}\n".format(event_ids[i], int(nuflavorint[i]), int(nu_nubar[i]), pnu[i], int(currentint[i]), posnu_r[i], posnu_theta[i], posnu_phi[i], np.pi - zeniths[i], np.pi + azimuths[i], inelasticity[i]))
