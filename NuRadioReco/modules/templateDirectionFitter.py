@@ -1,7 +1,12 @@
 import numpy as np
-from NuRadioReco.utilities import units, ice
 from scipy import constants
+
 from radiotools import helper as hp
+
+from NuRadioReco.utilities import units, ice
+
+from NuRadioReco.framework.parameters import stationParameters as stnp
+
 import logging
 logger = logging.getLogger('templateDirectionFitter')
 
@@ -69,21 +74,21 @@ class templateDirectionFitter:
 
         output_str = "reconstucted angles theta = {:.1f}, phi = {:.1f}".format(res.x[0] / units.deg, hp.get_normalized_angle(res.x[1]) / units.deg)
         if station.has_sim_station():
-            sim_zen = station.get_sim_station()['zenith']
-            sim_az = station.get_sim_station()['azimuth']
+            sim_zen = station.get_sim_station()[stnp.zenith]
+            sim_az = station.get_sim_station()[stnp.azimuth]
             dOmega = hp.get_angle(hp.spherical_to_cartesian(sim_zen, sim_az), hp.spherical_to_cartesian(res.x[0], res.x[1]))
             output_str += "  MC theta = {:.1f}, phi = {:.1f},  dOmega = {:.2f}".format(sim_zen / units.deg, sim_az / units.deg, dOmega / units.deg)
         logger.info(output_str)
-        station['zenith'] = res.x[0]
-        station['azimuth'] = hp.get_normalized_angle(res.x[1])
+        station[stnp.zenith] = res.x[0]
+        station[stnp.azimuth] = hp.get_normalized_angle(res.x[1])
         if(cosmic_ray):
-            station['zenith_cr_templatefit'] = res.x[0]
-            station['azimuth_cr_templatefit'] = hp.get_normalized_angle(res.x[1])
-            station['chi2_cr_templatefit'] = res.fun
+            station[stnp.cr_zenith] = res.x[0]
+            station[stnp.cr_azimuth] = hp.get_normalized_angle(res.x[1])
+            #station['chi2_cr_templatefit'] = res.fun
         else:
-            station['zenith_nu_templatefit'] = res.x[0]
-            station['azimuth_nu_templatefit'] = hp.get_normalized_angle(res.x[1])
-            station['chi2_nu_templatefit'] = res.fun
+            station[stnp.nu_zenith] = res.x[0]
+            station[stnp.nu_azimuth] = hp.get_normalized_angle(res.x[1])
+            #station['chi2_nu_templatefit'] = res.fun
 
     def end(self):
         pass
