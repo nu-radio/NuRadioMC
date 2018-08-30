@@ -11,6 +11,7 @@ import NuRadioReco.modules.channelTemplateCorrelation
 import NuRadioReco.modules.voltageToEfieldConverter
 import NuRadioReco.modules.io.eventWriter
 
+from NuRadioReco.framework.parameters import stationParameters as stnp
 
 
 # Logging level
@@ -53,8 +54,11 @@ for iE, event in enumerate(eventReader.run()):
     stations = event.get_stations()
     for st, station in enumerate(stations):
         logger.info("Station ID {}".format(station.get_id()))
-        station['zenith'] = starting_zenith
-        station['azimuth'] = starting_azimuth
+        station.set_parameter(stnp.zenith, starting_zenith)
+        station.set_parameter(stnp.azimuth, starting_azimuth)
+
+        voltageToEfieldConverter.run(event, station, det)
+
 #         for ch, channel in enumerate(station.get_channels()):
 #             logger.info("Channel ID {}".format(channel.get_id()))
 #         channelTemplateCorrelation.run(event, station, det, channels_to_use=[0, 1, 2], cosmic_ray=False,
@@ -70,9 +74,6 @@ for iE, event in enumerate(eventReader.run()):
 #             print "Channel {0}, corr {1} at {2}".format(ch,channel['nu_ref_xcorr'],channel['nu_ref_xcorr_time'])
 #         plt.legend()
 #         plt.show()
-
-
-        voltageToEfieldConverter.run(event, station, det)
 
     eventWriter.run(event)
 
