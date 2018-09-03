@@ -4,6 +4,7 @@ import time
 import logging
 import scipy.signal
 from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
+from NuRadioReco.framework.trigger import IntegratedPowerTrigger
 import NuRadioReco.framework.channel
 
 logger = logging.getLogger('ARAtriggerSimulator')
@@ -159,7 +160,8 @@ class triggerSimulator:
             number_concidences=3,
             triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
             power_mean=None,
-            power_std=None):
+            power_std=None,
+            trigger_name='default_integrated_power'):
         """
         simulate ARA trigger logic
 
@@ -179,6 +181,8 @@ class triggerSimulator:
         power_std : float
             Parameter extracted in ARA from noise.
             If not given, it is calculated from generic noise
+        trigger_name: string
+            a unique name of this particular trigger
         """
         # if the run method specifies power mean and rms we use these values,
         # if the parameters are None, the power mean and rms gets calculated for
@@ -223,15 +227,22 @@ class triggerSimulator:
                 trigger_time_sample = min(trigger_times)
                 break
 
+        trigger = IntegratedPowerTrigger(trigger_name, power_threshold,
+                                         coinc_window, channels=triggered_channels,
+                                         number_of_coincidences=number_concidences,
+                                         power_mean=self._power_mean, power_std=self._power_std)
         if not has_triggered:
-            station.set_triggered(False)
+            trigger.set_triggered(False)
             logger.info("Station has NOT passed trigger")
             trigger_time_sample = 0
             station.get_trigger().set_trigger_time(trigger_time_sample / sampling_rate)
         else:
-            station.set_triggered(True)
-            station.get_trigger().set_trigger_time(trigger_time_sample / sampling_rate)
-            logger.info("Station has passed trigger, trigger time is {:.1f} ns (sample {})".format(station.get_trigger().get_trigger_time() / units.ns, trigger_time_sample))
+            trigger.set_triggered(True)
+            trigger.set_trigger_time(trigger_time_sample / sampling_rate)
+            logger.info("Station has passed trigger, trigger time is {:.1f} ns (sample {})".format(
+                trigger.get_trigger_time() / units.ns, trigger_time_sample))
+            
+        station.set_trigger(trigger)
 
     def end(self):
         from datetime import timedelta
