@@ -196,7 +196,6 @@ class triggerSimulator:
         channels = station.get_channels()
 
         # No coincidence requirement yet
-        station.set_triggered(False)
         trigger = {}
         for channel in channels:
             channel_id = channel.get_id()
