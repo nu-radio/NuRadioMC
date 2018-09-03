@@ -138,7 +138,7 @@ class HighLowTrigger(Trigger):
             the low threshold
         high_low_window: float
             the coincidence time between a high and low per channel
-        channel_coincidence_time: float
+        channel_coincidence_window: float
             the coincidence time between triggers of different channels
         channels: array of ints or None
             the channels that are involved in the trigger
@@ -156,3 +156,31 @@ class HighLowTrigger(Trigger):
 
 
 
+class IntegratedPowerTrigger(Trigger):
+
+    def __init__(self, name, threshold, channel_coincidence_window, channels=None, number_of_coincidences=1,
+                 power_mean=None, power_std=None):
+        """
+        initialize trigger class
+
+        Parameters 
+        -----------
+        name: string
+            unique name of the trigger 
+        threshold: float
+            the threshold
+        channel_coincidence_window: float
+            the coincidence time between triggers of different channels
+        channels: array of ints or None
+            the channels that are involved in the trigger
+            default: None, i.e. all channels
+        number_of_coincidences: int
+            the number of channels that need to fulfill the trigger condition
+            default: 1
+        """
+        Trigger.__init__(self, name, channels, 'int_power')
+        self._number_of_coincidences = number_of_coincidences
+        self._threshold = threshold
+        self._coinc_window = channel_coincidence_window
+        self._power_mean = power_mean
+        self._power_std = power_std
