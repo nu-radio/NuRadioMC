@@ -109,6 +109,7 @@ class triggerSimulator:
                     trigger_time_sample = min(trigger_times)
                     break
         else:
+            logger.info("set_not_triggered flag True, setting triggered to False.")
             has_triggered = False
     
     #         coinc = 0
