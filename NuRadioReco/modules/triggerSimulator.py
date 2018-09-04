@@ -39,14 +39,13 @@ class triggerSimulator:
             a unique name of this particular trigger
         """
         t = time.time()
-
         coincidences = 0
-
         max_signal = 0
 
         for channel in station.get_channels():
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
+                logger.debug("skipping channel {}".format(channel_id))
                 continue
             trace = channel.get_trace()
             maximum = np.max(np.abs(trace))
