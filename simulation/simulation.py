@@ -190,11 +190,13 @@ class simulation():
         for iE in range(n_events):
             #print("start event. time: " + str(time.time()))
             t1 = time.time()
-            if(iE > 0 and iE % int(n_events / 100.) == 0):
+            if(iE > 0 and iE % int(n_events / 1000.) == 0):
                 eta = datetime.timedelta(seconds=(time.time() - t_start) * (n_events - iE) / iE)
-                logger.warning("processing event {}/{} = {:.1f}%, ETA {}".format(iE, n_events, 100. * iE / n_events, eta))
-            if(iE > 0 and iE % max(1, int(n_events / 1000.)) == 0):
-                print("*", end='')
+                total_time = inputTime + rayTracingTime + detSimTime + outputTime
+                logger.warning("processing event {}/{} = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}%, detector simulation = {:.0f}% ".format(
+                    iE, n_events, 100. * iE / n_events, eta, 100. * rayTracingTime / total_time, 100. * detSimTime / total_time))
+#             if(iE > 0 and iE % max(1, int(n_events / 10000.)) == 0):
+#                 print("*", end='')
             # read all quantities from hdf5 file and store them in local
             # variables
             event_id = fin['event_ids'][iE]
