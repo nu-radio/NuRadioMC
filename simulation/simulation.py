@@ -26,6 +26,8 @@ import logging
 logger = logging.getLogger("sim")
 
 VERSION = 0.1
+delta_C_cut = 40 * units.deg
+minimum_weight_cut = 1e-5
 
 
 def get_em_had_fraction(inelasticity, ccnc, flavor):
@@ -146,8 +148,7 @@ class simulation():
 
         def add_empty_channel(sim_station, channel_id):
             channel = NuRadioReco.framework.channel.Channel(channel_id)
-            channel.set_frequency_spectrum(
-                np.zeros((3, len(self.__ff)), dtype=np.complex), 1. / self.__dt)
+            channel.set_frequency_spectrum(np.zeros((3, len(self.__ff)), dtype=np.complex), 1. / self.__dt)
             channel[chp.azimuth] = 0
             channel[chp.zenith] = 180 * units.deg
             channel[chp.ray_path_type] = 'none'
@@ -189,11 +190,10 @@ class simulation():
         for iE in range(n_events):
             #print("start event. time: " + str(time.time()))
             t1 = time.time()
-            if(iE > 0 and iE % 1000 == 0):
-                eta = datetime.timedelta(
-                    seconds=(time.time() - t_start) * (n_events - iE) / iE)
-                logger.warning("processing event {}/{} = {}%, ETA {}".format(iE, n_events, 100. * iE / n_events, eta))
-            if(iE > 0 and iE % 100 == 0):
+            if(iE > 0 and iE % int(n_events / 100.) == 0):
+                eta = datetime.timedelta(seconds=(time.time() - t_start) * (n_events - iE) / iE)
+                logger.warning("processing event {}/{} = {:.1f}%, ETA {}".format(iE, n_events, 100. * iE / n_events, eta))
+            if(iE > 0 and iE % max(1, int(n_events / 1000.)) == 0):
                 print("*", end='')
             # read all quantities from hdf5 file and store them in local
             # variables
@@ -212,9 +212,8 @@ class simulation():
             weights[iE] = get_weight(zenith_nu, energy, mode='simple')
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
-            if(weights[iE] < 1e-10):
-                logger.debug(
-                    "neutrino weight is smaller than 1e-10, skipping event")
+            if(weights[iE] < minimum_weight_cut):
+                logger.debug("neutrino weight is smaller than {}, skipping event".format(minimum_weight_cut))
                 continue
 
             # be careful, zenith/azimuth angle always refer to where the neutrino came from,
@@ -227,11 +226,10 @@ class simulation():
             # position
             ice = medium.southpole_simple()
             n_index = ice.get_index_of_refraction(x1)
-            rho = np.arccos(1. / n_index)
+            cherenkov_angle = np.arccos(1. / n_index)
 
             # create NuRadioReco event structure
-            sim_station = NuRadioReco.framework.sim_station.SimStation(
-                self.__station_id)
+            sim_station = NuRadioReco.framework.sim_station.SimStation(self.__station_id)
             # save relevant neutrino properties
             sim_station[stnp.nu_zenith] = zenith_nu
             sim_station[stnp.nu_azimuth] = azimuth_nu
@@ -247,16 +245,22 @@ class simulation():
             #print("start raytracing. time: " + str(time.time()))
             t2 = time.time()
             inputTime += (t2 - t1)
+            ray_tracing_performed = 'ray_tracing_C0' in fin
             for channel_id in range(self.__det.get_number_of_channels(self.__station_id)):
-                x2 = self.__det.get_relative_position(
-                    self.__station_id, channel_id)
+                x2 = self.__det.get_relative_position(self.__station_id, channel_id)
                 r = ray.ray_tracing(x1, x2, ice, log_level=logging.WARNING)
+
+                if(ray_tracing_performed):  # check if raytracing was already performed
+                    r.set_solution(fin['ray_tracing_C0'][iE, channel_id], fin['ray_tracing_C1'][iE, channel_id],
+                                   fin['ray_tracing_solution_type'][iE, channel_id])
+                else:
+                    r.find_solutions()
                 if(not r.has_solution()):
                     logger.debug("event {} and station {}, channel {} does not have any ray tracing solution".format(
                         event_id, self.__station_id, channel_id))
                     add_empty_channel(sim_station, channel_id)
                     continue
-                dRhos = []
+                delta_Cs = []
                 viewing_angles = []
                 # loop through all ray tracing solution
                 for iS in range(r.get_number_of_solutions()):
@@ -268,13 +272,14 @@ class simulation():
                     # calculates angle between shower axis and launch vector
                     viewing_angle = hp.get_angle(shower_axis, launch_vector)
                     viewing_angles.append(viewing_angle)
-                    dRho = (viewing_angle - rho)
-                    logger.debug('solution {} {}: viewing angle {:.1f} = dRho = {:.1f}'.format(
-                        iS, ray.solution_types[r.get_solution_type(iS)], viewing_angle / units.deg, (viewing_angle - rho) / units.deg))
-                    dRhos.append(dRho)
-                # discard event if dRho (angle off cherenkov cone) is too large
-                if(min(np.abs(dRhos)) > 30 * units.deg):
-                    logger.debug('dRho too large, event unlikely to be observed, skipping event')
+                    delta_C = (viewing_angle - cherenkov_angle)
+                    logger.debug('solution {} {}: viewing angle {:.1f} = delta_C = {:.1f}'.format(
+                        iS, ray.solution_types[r.get_solution_type(iS)], viewing_angle / units.deg, (viewing_angle - cherenkov_angle) / units.deg))
+                    delta_Cs.append(delta_C)
+
+                # discard event if delta_C (angle off cherenkov cone) is too large
+                if(min(np.abs(delta_Cs)) > delta_C_cut):
+                    logger.debug('delta_C too large, event unlikely to be observed, skipping event')
                     add_empty_channel(sim_station, channel_id)
                     continue
 
@@ -283,11 +288,15 @@ class simulation():
                 Ts = np.zeros(n)
                 tts = np.zeros((n, self.__n_samples))
                 for iS in range(n):  # loop through all ray tracing solution
-                    R = r.get_path_length(iS)  # calculate path length
-                    Rs[iS] = R
-                    T = r.get_travel_time(iS)  # calculate travel time
+                    if(ray_tracing_performed):
+                        R = fin['travel_distances'][iE, channel_id, iS]
+                        T = fin['travel_times'][iE, channel_id, iS]
+                    else:
+                        R = r.get_path_length(iS)  # calculate path length
+                        T = r.get_travel_time(iS)  # calculate travel time
                     travel_distances[iE, channel_id, iS] = R
                     travel_times[iE, channel_id, iS] = T
+                    Rs[iS] = R
                     Ts[iS] = T
                     receive_vector = r.get_receive_vector(iS)
                     # save receive vector
@@ -320,16 +329,15 @@ class simulation():
                         eTheta = fft.time2freq(fft.freq2time(eTheta) + fft.freq2time(eTheta2))
         #                 ePhi = fft.time2freq(fft.freq2time(ePhi) + fft.freq2time(ePhi2))
 
-                    # TODO verify that calculation of polarization vector is
-                    # correct!
-                    polarization_direction = np.cross(
-                        launch_vector, np.cross(shower_axis, launch_vector))
+                    # TODO verify that calculation of polarization vector is correct!
+                    polarization_direction = np.cross(launch_vector, np.cross(shower_axis, launch_vector))
                     polarization_direction /= np.linalg.norm(polarization_direction)
                     cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*launch_vector))
                     polarization_direction_onsky = cs.transform_from_ground_to_onsky(polarization_direction)
                     logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}'.format(
                         zenith / units.deg, azimuth / units.deg, polarization_direction_onsky[0], polarization_direction_onsky[1], polarization_direction_onsky[2]))
-                    polarization[iE, channel_id, iS] = np.arctan2(polarization_direction_onsky[1], polarization_direction_onsky[2])
+                    polarization[iE, channel_id, iS] = np.arctan2(
+                        polarization_direction_onsky[1], polarization_direction_onsky[2])
                     eR, eTheta, ePhi = np.outer(polarization_direction_onsky, eTheta)
         #             print("{} {:.2f} {:.0f}".format(polarization_direction_onsky, np.linalg.norm(polarization_direction_onsky), np.arctan2(np.abs(polarization_direction_onsky[1]), np.abs(polarization_direction_onsky[2])) / units.deg))
 
@@ -369,7 +377,7 @@ class simulation():
                     # apply a simple threshold cut to speed up the simulation,
                     # application of antenna response will just decrease the
                     # signal amplitude
-                    if(np.max(np.abs(channel.get_trace())) > 3 * self.__Vrms):
+                    if(np.max(np.abs(channel.get_trace())) > 2 * self.__Vrms):
                         candidate_event = True
 
             #print("start detector simulation. time: " + str(time.time()))
@@ -397,20 +405,20 @@ class simulation():
                 multiple_triggers[iE, iT] = station.get_trigger(trigger_name).has_triggered()
 
             triggered[iE] = np.any(multiple_triggers[iE])
+            if(triggered[iE]):
+                logger.info("event triggered")
 
             # save events that trigger the detector and have weight > 0
-            if(triggered[iE] and (weights[iE] > 1e-5)):
-#                 channelSignalReconstructor.run(evt, station, self.__det)
-#                 SNRs[iE] = station.get_parameter(stnp.channels_max_amplitude) / self.__Vrms
+            if(triggered[iE] and (weights[iE] > minimum_weight_cut)):
+                #                 channelSignalReconstructor.run(evt, station, self.__det)
+                #                 SNRs[iE] = station.get_parameter(stnp.channels_max_amplitude) / self.__Vrms
                 if(self.__outputfilenameNuRadioReco is not None):
                     eventWriter.run(evt)
-                logger.info("event triggered")
             t4 = time.time()
             detSimTime += (t4 - t3)
 
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
-        fout.attrs['n_events'] = n_events
         fout['launch_vectors'] = launch_vectors[triggered]
         fout['receive_vectors'] = receive_vectors[triggered]
         fout['travel_times'] = travel_times[triggered]
@@ -434,8 +442,8 @@ class simulation():
                 fout.attrs[key] = fin.attrs[key]
 
         t_total = time.time() - t_start
-        logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(
-            n_events, t_total, 1.e3 * t_total / n_events))
+        logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(n_events,
+                                                                                         t_total, 1.e3 * t_total / n_events))
 
         # calculate effective
         density_ice = 0.9167 * units.g / units.cm ** 3
