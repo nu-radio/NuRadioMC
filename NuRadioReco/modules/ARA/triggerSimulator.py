@@ -41,10 +41,13 @@ class triggerSimulator:
         self._power_std = power_std
 
     # Tunnel diode response functions pulled from arasim
+    # RL (Robert Lahmann) Sept 3, 2018: this is not documented in the arasim code, but it seems most
+    # logical to assume that the units of the two middle parameters are seconds and that the
+    # other parameters are unitless
     _td_args = {
-        'down1': (-0.8, 15e-9, 2.3e-9, 0),
-        'down2': (-0.2, 15e-9, 4e-9, 0),
-        'up': (1, 18e-9, 7e-9, 1e9)
+        'down1': (-0.8, 15e-9*units.s, 2.3e-9*units.s, 0),
+        'down2': (-0.2, 15e-9*units.s, 4e-9*units.s, 0),
+        'up': (1, 18e-9*units.s, 7e-9*units.s, 1e9)
     }
     # Set td_args['up'][0] based on the other args, like in arasim
     _td_args['up'] = (-np.sqrt(2 * np.pi) *
