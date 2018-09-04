@@ -560,6 +560,8 @@ class ray_tracing:
         """
         self.__logger = logging.getLogger('ray_tracing')
         self.__logger.setLevel(log_level)
+        self.__medium = medium
+        self.__n_frequencies_integration = n_frequencies_integration
 
         self.__swap = False
         self.__X1 = x1
@@ -581,8 +583,19 @@ class ray_tracing:
         self.__logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self.__X2 - self.__X1, X1r, X2r))
         self.__x1 = np.array([X1r[0], X1r[2]])
         self.__x2 = np.array([X2r[0], X2r[2]])
-        self.__r2d = ray_tracing_2D(medium, log_level=log_level,
-                                    n_frequencies_integration=n_frequencies_integration)
+        self.__r2d = ray_tracing_2D(self.__medium, log_level=log_level,
+                                    n_frequencies_integration=self.__n_frequencies_integration)
+        
+    def set_solution(self, C0s, C1s, solution_types):
+        results = []
+        for i in range(len(C0s)):
+            if(not np.isnan(C0s[i])):
+                results.append({'type': solution_types[i],
+                           'C0': C0s[i],
+                           'C1': C1s[i]})
+        self.__results = results
+        
+    def find_solutions(self):
         self.__results = self.__r2d.find_solutions(self.__x1, self.__x2)
 
     def has_solution(self):
