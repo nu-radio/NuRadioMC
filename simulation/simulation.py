@@ -22,7 +22,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 import datetime
 import logging
-logging.basicConfig()
+# logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("sim")
 
 VERSION = 0.1
@@ -194,7 +194,7 @@ class simulation():
                     seconds=(time.time() - t_start) * (n_events - iE) / iE)
                 logger.warning("processing event {}/{} = {}%, ETA {}".format(iE, n_events, 100. * iE / n_events, eta))
             if(iE > 0 and iE % 100 == 0):
-                print("*", end = '')
+                print("*", end='')
             # read all quantities from hdf5 file and store them in local
             # variables
             event_id = fin['event_ids'][iE]
@@ -317,8 +317,7 @@ class simulation():
         #                 ePhi2 *= attn
                         # add EM signal to had signal in the time domain
         #                 eR = fft.time2freq(fft.freq2time(eR) + fft.freq2time(eR2))
-                        eTheta = fft.time2freq(fft.freq2time(
-                            eTheta) + fft.freq2time(eTheta2))
+                        eTheta = fft.time2freq(fft.freq2time(eTheta) + fft.freq2time(eTheta2))
         #                 ePhi = fft.time2freq(fft.freq2time(ePhi) + fft.freq2time(ePhi2))
 
                     # TODO verify that calculation of polarization vector is
@@ -330,8 +329,7 @@ class simulation():
                     polarization_direction_onsky = cs.transform_from_ground_to_onsky(polarization_direction)
                     logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}'.format(
                         zenith / units.deg, azimuth / units.deg, polarization_direction_onsky[0], polarization_direction_onsky[1], polarization_direction_onsky[2]))
-                    polarization[iE, channel_id, iS] = np.arctan2(
-                        polarization_direction_onsky[1], polarization_direction_onsky[2])
+                    polarization[iE, channel_id, iS] = np.arctan2(polarization_direction_onsky[1], polarization_direction_onsky[2])
                     eR, eTheta, ePhi = np.outer(polarization_direction_onsky, eTheta)
         #             print("{} {:.2f} {:.0f}".format(polarization_direction_onsky, np.linalg.norm(polarization_direction_onsky), np.arctan2(np.abs(polarization_direction_onsky[1]), np.abs(polarization_direction_onsky[2])) / units.deg))
 
@@ -399,11 +397,11 @@ class simulation():
                 multiple_triggers[iE, iT] = station.get_trigger(trigger_name).has_triggered()
 
             triggered[iE] = np.any(multiple_triggers[iE])
-                
+
             # save events that trigger the detector and have weight > 0
             if(triggered[iE] and (weights[iE] > 1e-5)):
-                channelSignalReconstructor.run(evt, station, self.__det)
-                SNRs[iE] = station.get_parameter(stnp.channels_max_amplitude) / self.__Vrms
+#                 channelSignalReconstructor.run(evt, station, self.__det)
+#                 SNRs[iE] = station.get_parameter(stnp.channels_max_amplitude) / self.__Vrms
                 if(self.__outputfilenameNuRadioReco is not None):
                     eventWriter.run(evt)
                 logger.info("event triggered")
@@ -426,13 +424,14 @@ class simulation():
         fout['SNRs'] = SNRs[triggered]
         fout['multiple_triggers'] = multiple_triggers[triggered]
         fout.attrs['trigger_names'] = trigger_names
-        
+
         # now we also save all input parameters back into the out file
         for key in fin.keys():
-            if(not key in fout.keys()): # only save data sets that havn't been recomputed and saved already
+            if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
                 fout[key] = np.array(fin[key])[triggered]
         for key in fin.attrs.keys():
-            fout.attrs[key] = fin.attrs[key]
+            if(not key in fout.attrs.keys()):  # only save atrributes sets that havn't been recomputed and saved already
+                fout.attrs[key] = fin.attrs[key]
 
         t_total = time.time() - t_start
         logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(
@@ -440,7 +439,7 @@ class simulation():
 
         # calculate effective
         density_ice = 0.9167 * units.g / units.cm ** 3
-        density_water = 997 * units.kg / units.m ** 3
+        density_water = 1 * units.kg / units.m ** 3
 
         n_triggered = np.sum(weights[triggered])
         logger.warning('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(
