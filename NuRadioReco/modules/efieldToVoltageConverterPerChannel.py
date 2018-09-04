@@ -94,13 +94,14 @@ class efieldToVoltageConverterPerChannel:
                 if(not np.isnan(t0)):  # trace start time is None if no ray tracing solution was found and channel contains only zeros
                     times_min.append(t0)
                     times_max.append(t0 + sim_channel2.get_number_of_samples() / sim_channel2.get_sampling_rate())
+                    logger.debug("trace start time {}, cab_delty {}, tracelength {}".format(sim_channel2.get_trace_start_time(), cab_delay, sim_channel2.get_number_of_samples() / sim_channel2.get_sampling_rate()))
         times_min = np.array(times_min) - self.__pre_pulse_time
         times_max = np.array(times_max) + self.__post_pulse_time
         trace_length = times_max.max() - times_min.min()
         trace_length_samples = int(round(trace_length / self.__time_resolution))
         if trace_length_samples % 2 != 0:
             trace_length_samples += 1
-        logger.debug("smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d}".format(times_min.min(), times_max.max(), trace_length_samples))
+        logger.debug("smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d} {:.0f}ns)".format(times_min.min(), times_max.max(), trace_length_samples,trace_length/units.ns))
 
         # loop over all channels
         for sim_channel in sim_station.iter_channels():
