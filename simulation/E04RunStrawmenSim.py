@@ -11,7 +11,7 @@ from NuRadioMC.simulation import simulation
 
 # initialize detector sim modules
 efieldToVoltageConverterPerChannel = NuRadioReco.modules.efieldToVoltageConverterPerChannel.efieldToVoltageConverterPerChannel()
-efieldToVoltageConverterPerChannel.begin(debug=False, time_resolution=0.01*units.ns)
+efieldToVoltageConverterPerChannel.begin(debug=False, time_resolution=1*units.ns)
 triggerSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
 triggerSimulatorARIANNA = NuRadioReco.modules.ARIANNA.triggerSimulator.triggerSimulator()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
