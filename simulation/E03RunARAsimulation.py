@@ -46,7 +46,7 @@ def get_ARA_power_mean_rms(sampling_rate, Vrms, min_freq, max_freq):
                                                             amplitude=Vrms,
                                                             type='perfect_white')
     long_noise *= Vrms / long_noise.std()
-    
+
     print(long_noise.std())
 
     noise.set_trace(long_noise, sampling_rate)
@@ -56,6 +56,7 @@ def get_ARA_power_mean_rms(sampling_rate, Vrms, min_freq, max_freq):
     power_mean = np.mean(power_noise)
     power_rms = np.sqrt(np.mean(power_noise ** 2))
     return power_mean, power_rms
+
 
 if __name__ == "__main__":
 
@@ -82,6 +83,7 @@ if __name__ == "__main__":
     sampling_rate = sim.get_sampling_rate()
     min_freq = 80 * units.MHz
     power_mean, power_rms = get_ARA_power_mean_rms(sampling_rate, Vrms, min_freq, max_freq)
+    power_mean = 0  # we don't add noise in this simulation, so we don't need to subtract the mean power from the signal
 
     # initialize detector sim modules
     efieldToVoltageConverterPerChannel = NuRadioReco.modules.efieldToVoltageConverterPerChannel.efieldToVoltageConverterPerChannel()
