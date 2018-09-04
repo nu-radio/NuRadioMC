@@ -141,8 +141,9 @@ class efieldToVoltageConverterPerChannel:
                 new_trace = np.zeros((3, trace_length_samples))
                 # calculate the start bin
                 if(not np.isnan(sim_channel2.get_trace_start_time())):
-                    start_bin = int(round((sim_channel2.get_trace_start_time() - times_min.min()) / self.__time_resolution))
-                    logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, sim_channel2.get_trace_start_time(), start_bin, sim_channel2[chp.ray_path_type]))
+                    cab_delay = det.get_cable_delay(sim_station_id, sim_channel2.get_id())
+                    start_bin = int(round((sim_channel2.get_trace_start_time() + cab_delay - times_min.min()) / self.__time_resolution))
+                    logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, sim_channel2.get_trace_start_time() + cab_delay, start_bin, sim_channel2[chp.ray_path_type]))
                     new_trace[:, start_bin:(start_bin + len(trace))] = resampled_efield
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
                 trace_object.set_trace(new_trace, 1. / self.__time_resolution)
