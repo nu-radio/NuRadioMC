@@ -34,6 +34,22 @@ HEADER = """
 
 
 def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None):
+    """
+    writes NuRadioMC input parameters to hdf5 file
+    
+    this function can automatically split the dataset up into multiple files for easy multiprocessing
+    
+    Parameters
+    ----------
+    filename: string
+        the desired output filename (if multiple files are generated, a 'part000x' is appended to the filename
+    data_sets: dict
+        a dictionary with the data sets
+    attributes: dict
+        a dictionary containing the meta attributes
+    n_events_per_file: int (optional, default None)
+        the number of events per file
+    """
     n_events = len(data_sets.values()[0])
     if(n_events_per_file is None):
         n_events_per_file = n_events
@@ -43,6 +59,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         filename2 = filename
         if((iFile > 0) or (n_events_per_file < n_events)):
             filename2 = filename + ".part{:04}".format(iFile + 1)
+        print('writing file {}'.format(filename2))
         fout = h5py.File(filename2, 'w')
         fout.attrs['VERSION_MAJOR'] = VERSION_MAJOR
         fout.attrs['VERSION_MINOR'] = VERSION_MINOR
@@ -61,7 +78,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 rmin, rmax, zmin, zmax,
                                 start_event_id=1,
                                 flavor=[12, -12, 14, -14, 16, -16],
-                                n_events_per_file=None):
+                                n_events_per_file=None,
+                                spectrum='log_uniform'):
     """
     Event generator
 
@@ -107,6 +125,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         means that all events are saved in one file. If 'n_events_per_file' is
         smaller than 'n_events' the event list is split up into multiple files.
         This is useful to split up the computing on multiple cores.
+    spectrum: string
+        defines the probability distribution for which the neutrino energies are generated
+        * 'log_uniform': uniformly distributed in the logarithm of energy
+        * 'E-1': 1 over E spectrum
 
     """
     attributes = {}
@@ -143,7 +165,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             flavors[i] = flavor[5]
     """
     # generate energies randomly
-    data_sets["energies"] = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_events)
+    if(spectrum == 'log_uniform'):
+        data_sets["energies"] = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_events)
+    elif(spectrum == 'E-1'):
+        pass
+    else:
+#         logger.error("spectrum {} not implemented".format(spectrum))
+        raise NotImplementedError("spectrum {} not implemented".format(spectrum))
 
     # generate charged/neutral current randomly (ported from ShelfMC)
     rnd = np.random.uniform(0., 1., n_events)
@@ -179,6 +207,32 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     """
     write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=n_events_per_file)
 
+
+def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_file):
+    """
+    splits up an existing hdf5 file into multiple subfiles
+    
+    Parameters
+    ----------
+    input_filename: string
+        the input filename
+    output_filename: string
+        the desired output filename (if multiple files are generated, a 'part000x' is appended to the filename
+    n_events_per_file: int (optional, default None)
+        the number of events per file
+    """
+    fin = h5py.File(input_filename, 'r')
+    data_sets = {}
+    attributes = {}
+    for key, value in fin.items():
+        data_sets[key] = np.array(value)
+    for key, value in fin.attrs.items():
+        attributes[key] = value
+    fin.close()
+
+    write_events_to_hdf5(output_filename, data_sets, attributes, n_events_per_file=number_of_events_per_file)
+    
+    
 
 if __name__ == '__main__':
     # define simulation volume
