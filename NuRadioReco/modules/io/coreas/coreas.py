@@ -4,6 +4,8 @@ from radiotools import helper as hp
 from radiotools import coordinatesystems
 import NuRadioReco.framework.sim_station
 
+from NuRadioReco.framework.parameters import stationParameters as stnp
+
 # conversion_fieldstrength_cgs_to_SI = 2.99792458e4 * 1e-6
 conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
 
@@ -84,10 +86,10 @@ def make_sim_station(station_id, corsika, observer, weight=None):
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id, sampling_rate, efield2, antenna_position)
 
-    sim_station['azimuth'] = azimuth
-    sim_station['zenith'] = zenith
+    sim_station.set_parameter(stp.azimuth, azimuth)
+    sim_station.set_parameter(stp.zenith, zenith)
     energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV
-    sim_station['cr_energy'] = energy
+    sim_station.set_parameter(stp.cr_energy, energy)
     sim_station.set_magnetic_field_vector(magnetic_field_vector)
 
     sim_station.set_simulation_weight(weight)
