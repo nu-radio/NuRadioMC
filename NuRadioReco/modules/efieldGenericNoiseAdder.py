@@ -78,8 +78,8 @@ class efieldGenericNoiseAdder:
             
             S = np.zeros(efield_fft.shape[1])
             S[noise_idx:] = 4*np.pi * ((2*sp.constants.Boltzmann)/(sp.constants.speed_of_light**2)) * (freq_range/units.MHz)**2 * GalTemp(freq_range/units.MHz) * 50*units.ohm
-
             S = S*sampling_rate
+            
             for i,x in enumerate(S):
                 if x != 0.: S[i] = np.sqrt(x)
             
@@ -92,7 +92,7 @@ class efieldGenericNoiseAdder:
             logger.warning('You are now changing dataelements in sim. station')
                 
             station.set_frequency_spectrum(efield_fft, sampling_rate)
-            sim_station.set_frequency_spectrum(efield_fft, sampling_rate) # To be removed once genericnoiseAdder module is corrected to account for already configured stations
+            sim_station.set_frequency_spectrum(efield_fft, sampling_rate)
 
         else:
             logger.error("Other types of noise not yet implemented.")
