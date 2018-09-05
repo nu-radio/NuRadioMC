@@ -182,6 +182,7 @@ class simulation():
         travel_distances = np.zeros((n_events, n_antennas, 2)) * np.nan
         SNRs = np.zeros(n_events) * np.nan
         maximum_amplitudes = np.zeros((n_events, n_antennas)) * np.nan
+        maximum_amplitudes_envelope = np.zeros((n_events, n_antennas)) * np.nan
 
         inputTime = 0.0
         rayTracingTime = 0.0
@@ -419,6 +420,7 @@ class simulation():
                 channelSignalReconstructor.run(evt, station, self.__det)
                 for channel in station.get_channels():
                     maximum_amplitudes[iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
+                    maximum_amplitudes_envelope[iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
                 
                 SNRs[iE] = station.get_parameter(stnp.channels_max_amplitude) / self.__Vrms
                 if(self.__outputfilenameNuRadioReco is not None):
@@ -440,9 +442,17 @@ class simulation():
         fout['polarization'] = polarization[triggered]
         fout['SNRs'] = SNRs[triggered]
         fout['maximum_amplitudes'] = maximum_amplitudes[triggered]
+        fout['maximum_amplitudes_envelope'] = maximum_amplitudes_envelope[triggered]
         fout['multiple_triggers'] = multiple_triggers[triggered]
         fout.attrs['trigger_names'] = trigger_names
-
+        with open(self.__detectorfile) as fdet:
+            fout.attrs['detector'] = fdet.read()
+        fout.attrs['Tnoise'] = self.__Tnoise
+        fout.attrs['Vrms'] = self.__Vrms
+        fout.attrs['dt'] = self.__dt
+        fout.attrs['bandwidth'] = self.__bandwidth
+        fout.attrs['n_samples'] = self.__n_samples
+        
         # now we also save all input parameters back into the out file
         for key in fin.keys():
             if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
