@@ -193,7 +193,7 @@ class simulation():
         for iE in range(n_events):
             #print("start event. time: " + str(time.time()))
             t1 = time.time()
-            if(iE > 0 and iE % int(n_events / 1000.) == 0):
+            if(iE > 0 and iE % min(1, int(n_events / 1000.)) == 0):
                 eta = datetime.timedelta(seconds=(time.time() - t_start) * (n_events - iE) / iE)
                 total_time = inputTime + rayTracingTime + detSimTime + outputTime
                 logger.warning("processing event {}/{} = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), detector simulation = {:.0f}% ".format(
