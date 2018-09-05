@@ -86,10 +86,10 @@ def make_sim_station(station_id, corsika, observer, weight=None):
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id, sampling_rate, efield2, antenna_position)
 
-    sim_station.set_parameter(stp.azimuth, azimuth)
-    sim_station.set_parameter(stp.zenith, zenith)
+    sim_station.set_parameter(stnp.azimuth, azimuth)
+    sim_station.set_parameter(stnp.zenith, zenith)
     energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV
-    sim_station.set_parameter(stp.cr_energy, energy)
+    sim_station.set_parameter(stnp.cr_energy, energy)
     sim_station.set_magnetic_field_vector(magnetic_field_vector)
 
     sim_station.set_simulation_weight(weight)
