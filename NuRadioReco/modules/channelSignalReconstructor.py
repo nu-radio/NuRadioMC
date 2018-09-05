@@ -95,8 +95,7 @@ class channelSignalReconstructor:
         SNR['integrated_power'] = (np.sum(np.square(trace[signal_window_mask])) - noise_int)
 
         if SNR['integrated_power'] < noise_int:
-            logger.info("Intgreated signal {0} smaller than noise {1}, power SNR 0".format(
-                SNR['integrated_power'], noise_int))
+            logger.debug("Intgreated signal {0} smaller than noise {1}, power SNR 0".format(SNR['integrated_power'], noise_int))
             SNR['integrated_power'] = 0.
         else:
 
