@@ -11,25 +11,37 @@ import time
 import os
 
 parser = argparse.ArgumentParser(description='Plot NuRadioMC event list input')
-parser.add_argument('inputfilename', type=str,
-                    help='path to NuRadioMC hdf5 simulation input')
+parser.add_argument('inputfilename', type=str, nargs = '+', help='path to NuRadioMC hdf5 simulation input')
 # parser.add_argument('outputfilename', type=str,
 #                     help='name of output file storing the electric field traces at detector positions')
 args = parser.parse_args()
 
-filename = os.path.splitext(os.path.basename(args.inputfilename))[0]
-dirname = os.path.dirname(args.inputfilename)
+filename = os.path.splitext(os.path.basename(args.inputfilename[0]))[0]
+dirname = os.path.dirname(args.inputfilename[0])
 plot_folder = os.path.join(dirname, 'plots', filename)
 if(not os.path.exists(plot_folder)):
     os.makedirs(plot_folder)
-fin = h5py.File(args.inputfilename, 'r')
+
+fin = h5py.File(args.inputfilename[0], 'r')
+xx = np.array(fin['xx'])
+yy = np.array(fin['yy'])
+zz = np.array(fin['zz'])
+zeniths = np.array(fin['zeniths'])
+azimuths = np.array(fin['azimuths'])
+inelasticity = np.array(fin['inelasticity'])
+
+for i in range(len((args.inputfilename)) - 1):
+    fin = h5py.File(args.inputfilename[i + 1], 'r')
+    xx = np.append(xx, np.array(fin['xx']))
+    yy = np.append(yy, np.array(fin['yy']))
+    zz = np.append(zz, np.array(fin['zz']))
+    zeniths = np.append(zeniths, np.array(fin['zeniths']))
+    azimuths = np.append(azimuths, np.array(fin['azimuths']))
+    inelasticity = np.append(inelasticity, np.array(fin['inelasticity']))
 
 # plot vertex distribution
 fig, ax = plt.subplots(1, 1)
-xx = np.array(fin['xx'])
-yy = np.array(fin['yy'])
 rr = (xx ** 2 + yy ** 2) ** 0.5
-zz = np.array(fin['zz'])
 plt.hist2d(rr / units.m, zz / units.m, bins=[np.arange(0, 9001, 100), np.arange(-3501, 0, 100)], cmap=plt.get_cmap('Blues'))
 cb = plt.colorbar()
 cb.set_label("number of events")
@@ -43,8 +55,6 @@ plt.savefig(os.path.join(plot_folder, 'simInputVertex.pdf'), bbox_inches="tight"
 plt.clf()
 
 # plot incoming direction
-zeniths = np.array(fin['zeniths'])
-azimuths = np.array(fin['azimuths'])
 plt.subplot(1, 2, 1)
 #plt.hist(zeniths / units.deg, bins = np.arange(0, 181, 10))
 plt.hist(np.cos(zeniths / units.radian), bins = np.arange(-1.0, 1.001, 0.2))
@@ -69,7 +79,6 @@ plt.savefig(os.path.join(plot_folder, 'simInputDirection.pdf'), bbox_inches="tig
 plt.clf()
 
 # plot inelasticity
-inelasticity = np.array(fin['inelasticity'])
 plt.hist(inelasticity, bins=np.logspace(np.log10(0.0001), np.log10(1.0), 50))
 plt.xlabel('inelasticity')
 plt.semilogx(True)
