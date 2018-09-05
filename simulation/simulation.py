@@ -166,6 +166,14 @@ class simulation():
 #        n_events = 1000
         n_antennas = self.__det.get_number_of_channels(self.__station_id)
         print("processing {} events".format(n_events))
+        
+        # check if the same detector was simulated before (then we can save the ray tracing part)
+        same_detector = False
+        if('detector' in fin.attrs):
+            with open(self.__detectorfile) as fdet:
+                if(fdet.read() == fin.attrs['detector']):
+                    same_detector = True
+                    print("the simulation was already performed with the same detector")
 
         # define arrays that will be saved at the end
         weights = np.zeros(n_events)
@@ -250,7 +258,7 @@ class simulation():
             #print("start raytracing. time: " + str(time.time()))
             t2 = time.time()
             inputTime += (t2 - t1)
-            ray_tracing_performed = 'ray_tracing_C0' in fin
+            ray_tracing_performed = ('ray_tracing_C0' in fin) and (same_detector)
             for channel_id in range(self.__det.get_number_of_channels(self.__station_id)):
                 x2 = self.__det.get_relative_position(self.__station_id, channel_id)
                 r = ray.ray_tracing(x1, x2, ice, log_level=logging.WARNING)
