@@ -22,6 +22,7 @@ class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
     azimuth = 2  # azimuth angle of the incoming signal direction
     ray_path_type = 3  # the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
-    maximum_amplitude = 4  # the maximum ampliude of the absolute number of trace
+    maximum_amplitude = 4  # the maximum ampliude of the magnitude of the trace
     SNR = 5  # an dictionary of various signal-to-noise ratio definitions
+    maximum_amplitude_envelope = 6  # the maximum ampliude of the hilbert envelope of the trace
      
