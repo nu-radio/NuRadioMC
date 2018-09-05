@@ -181,6 +181,7 @@ class simulation():
         travel_times = np.zeros((n_events, n_antennas, 2)) * np.nan
         travel_distances = np.zeros((n_events, n_antennas, 2)) * np.nan
         SNRs = np.zeros(n_events) * np.nan
+        maximum_amplitudes = np.zeros((n_events, n_antennas)) * np.nan
 
         inputTime = 0.0
         rayTracingTime = 0.0
@@ -416,6 +417,9 @@ class simulation():
             # save events that trigger the detector and have weight > 0
             if(triggered[iE] and (weights[iE] > minimum_weight_cut)):
                 channelSignalReconstructor.run(evt, station, self.__det)
+                for channel in station.get_channels():
+                    maximum_amplitudes[iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
+                
                 SNRs[iE] = station.get_parameter(stnp.channels_max_amplitude) / self.__Vrms
                 if(self.__outputfilenameNuRadioReco is not None):
                     eventWriter.run(evt)
@@ -435,6 +439,7 @@ class simulation():
         fout['weights'] = weights[triggered]
         fout['polarization'] = polarization[triggered]
         fout['SNRs'] = SNRs[triggered]
+        fout['maximum_amplitudes'] = maximum_amplitudes[triggered]
         fout['multiple_triggers'] = multiple_triggers[triggered]
         fout.attrs['trigger_names'] = trigger_names
 
