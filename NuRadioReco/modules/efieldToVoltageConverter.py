@@ -9,6 +9,8 @@ import copy
 import time
 import logging
 import NuRadioReco.framework.channel
+
+from NuRadioReco.framework.parameters import stationParameters as stnp
 logger = logging.getLogger('efieldToVoltageConverter')
 
 
@@ -48,8 +50,8 @@ class efieldToVoltageConverter:
         # access simulated efield and high level parameters
         sim_station = station.get_sim_station()
         sim_station_id = sim_station.get_id()
-        azimuth = sim_station['azimuth']
-        zenith = sim_station['zenith']
+        azimuth = sim_station.get_parameter(stnp.azimuth)
+        zenith = sim_station.get_parameter(stnp.zenith)
         event_time = sim_station.get_station_time()
 
         nChannels = det.get_number_of_channels(sim_station_id)
