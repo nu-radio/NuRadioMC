@@ -144,7 +144,8 @@ class channelSignalReconstructor:
             h = np.abs(signal.hilbert(trace))
             max_amplitude = h.max()
             max_amplitude_station = max(max_amplitude_station, max_amplitude)
-            channel[chp.maximum_amplitude] = max_amplitude
+            channel[chp.maximum_amplitude] = np.max(np.abs(trace))
+            channel[chp.maximum_amplitude_envelope] = max_amplitude
 
             # Use noise precalculated from forced triggers
             channel[chp.SNR] = self.get_SNR(station.get_id(), channel, det,
