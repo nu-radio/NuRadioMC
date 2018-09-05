@@ -51,6 +51,9 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         the number of events per file
     """
     n_events = len(data_sets.values()[0])
+    total_number_of_events = n_events
+    if('n_events' in attributes):
+        total_number_of_events = attributes['n_events']
     if(n_events_per_file is None):
         n_events_per_file = n_events
     else:
@@ -66,6 +69,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         fout.attrs['header'] = HEADER
         for key, value in attributes.iteritems():
             fout.attrs[key] = value
+        fout.attrs['total_number_of_events'] = total_number_of_events
 
         for key, value in data_sets.iteritems():
             fout[key] = value[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
