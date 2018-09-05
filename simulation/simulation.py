@@ -412,8 +412,8 @@ class simulation():
 
             # save events that trigger the detector and have weight > 0
             if(triggered[iE] and (weights[iE] > minimum_weight_cut)):
-                #                 channelSignalReconstructor.run(evt, station, self.__det)
-                #                 SNRs[iE] = station.get_parameter(stnp.channels_max_amplitude) / self.__Vrms
+                channelSignalReconstructor.run(evt, station, self.__det)
+                SNRs[iE] = station.get_parameter(stnp.channels_max_amplitude) / self.__Vrms
                 if(self.__outputfilenameNuRadioReco is not None):
                     eventWriter.run(evt)
             t4 = time.time()
