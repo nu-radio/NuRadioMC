@@ -69,7 +69,7 @@ class triggerSimulator:
     
             for channel in station.get_channels():
                 channel_id = channel.get_id()
-                if channel_id not in triggered_channels:
+                if triggered_channels is not None and channel_id not in triggered_channels:
                     continue
                 trace = channel.get_trace()
                 trigger[channel_id] = []
