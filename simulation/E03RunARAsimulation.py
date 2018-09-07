@@ -108,7 +108,7 @@ if __name__ == "__main__":
                                 coinc_window=110 * units.ns,
                                 number_concidences=3,
                                 triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
-                                power_mean=power_mean, power_rms=power_rms)
+                                power_mean=power_mean, power_std=power_rms)
 
     sim.run(detector_simulation=detector_simulation_ARA)
     print("setupTime = " + str(setupTime))
