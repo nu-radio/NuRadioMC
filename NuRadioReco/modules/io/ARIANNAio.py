@@ -68,11 +68,12 @@ class ARIANNAio(object):
             for key, value in station.iteritems():
                 # treat sim_station differently
                 if(key == 'sim_station'):
-                    for skey, svalue in station['sim_station'].iteritems():
-                        skey = "sim_" + skey
-                        if skey not in self.__event_headers[station_id]:
-                            self.__event_headers[station_id][skey] = []
-                        self.__event_headers[station_id][skey].append(svalue)
+                    pass
+#                     for skey, svalue in station['sim_station'].iteritems():
+#                         skey = "sim_" + skey
+#                         if skey not in self.__event_headers[station_id]:
+#                             self.__event_headers[station_id][skey] = []
+#                         self.__event_headers[station_id][skey].append(svalue)
                 else:
                     if key not in self.__event_headers[station_id]:
                         self.__event_headers[station_id][key] = []
