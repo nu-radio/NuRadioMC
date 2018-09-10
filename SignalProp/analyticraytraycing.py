@@ -245,8 +245,16 @@ class ray_tracing_2D():
         self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation))
         return attenuation
 
+#     def get_temperature(self, z):
+#         return (-51.5 + z * (-4.5319e-3 + 5.822e-6 * z))
+    
     def get_temperature(self, z):
-        return (-51.5 + z * (-4.5319e-3 + 5.822e-6 * z))
+        """
+        returns the temperature in Celsius as a function of depth
+        """
+        # from https://icecube.wisc.edu/~mnewcomb/radio/#iceabsorbtion
+        z2 = np.abs(z/units.km)
+        return 1.83415e-09*z2**3 + (-1.59061e-08*z2**2) + 0.00267687*z2 + (-51.0696 )
 
     def get_attenuation_length(self, z, frequency):
         t = self.get_temperature(z)
