@@ -29,6 +29,14 @@ class southpole_simple(medium):
         self.n_ice = 1.78
         self.z_0 = 71. * units.m
         self.delta_n = 0.427
+        
+class ARAsim_southpole(medium):
+
+    def __init__(self):
+        # define model parameters (SPICE 2015/southpole)
+        self.n_ice = 1.78
+        self.z_0 = 75.75757575757576 * units.m
+        self.delta_n = 0.43
 
 
 class mooresbay_simple(medium):

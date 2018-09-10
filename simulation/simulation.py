@@ -237,7 +237,7 @@ class simulation():
 
             # calculate correct chereknov angle for ice density at vertex
             # position
-            ice = medium.southpole_simple()
+            ice = medium.ARAsim_southpole()
             n_index = ice.get_index_of_refraction(x1)
             cherenkov_angle = np.arccos(1. / n_index)
 
