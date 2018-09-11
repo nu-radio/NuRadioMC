@@ -475,7 +475,7 @@ class simulation():
 
         # calculate effective
         density_ice = 0.9167 * units.g / units.cm ** 3
-        density_water = 1 * units.kg / units.m ** 3
+        density_water = 1000 * units.kg / units.m ** 3
 
         n_triggered = np.sum(weights[triggered])
         logger.warning('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(
