@@ -30,9 +30,8 @@
 	    "commission_time": "{TinyDate}:2017-11-01T00:00:00",
 	    "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
 	    "station_id": 101
-	}
-    },
-    "channels": {
+	    
+	},
 	"2": {
 	    "adc_id": null,
 	    "adc_n_samples": 256,
@@ -59,12 +58,10 @@
 	    "commission_time": "{TinyDate}:2017-11-01T00:00:00",
 	    "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
 	    "station_id": 101
-	}
-    },
-    "channels": {
+	},
 	"3": {
 	    "adc_id": null,
-			"adc_n_samples": 256,
+	    "adc_n_samples": 256,
 	    "adc_nbits": null,
 	    "adc_sampling_frequency": 1.0,
 	    "adc_time_delay": null,
@@ -88,9 +85,7 @@
 	    "commission_time": "{TinyDate}:2017-11-01T00:00:00",
 	    "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
 	    "station_id": 101
-	}
-    },
-    "channels": {
+	},
 	"4": {
 	    "adc_id": null,
 	    "adc_n_samples": 256,
@@ -117,9 +112,7 @@
 	    "commission_time": "{TinyDate}:2017-11-01T00:00:00",
 	    "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
 	    "station_id": 101
-	}
-    },
-    "channels": {
+	},
 	"5": {
 	    "adc_id": null,
 	    "adc_n_samples": 256,
@@ -146,9 +139,7 @@
 	    "commission_time": "{TinyDate}:2017-11-01T00:00:00",
 	    "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
 	    "station_id": 101
-	}
-    },
-    "channels": {
+	},
 	"6": {
 	    "adc_id": null,
 	    "adc_n_samples": 256,
@@ -175,9 +166,7 @@
 	    "commission_time": "{TinyDate}:2017-11-01T00:00:00",
 	    "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
 	    "station_id": 101
-	}
-    },
-    "channels": {
+	},
 	"7": {
 	    "adc_id": null,
 	    "adc_n_samples": 256,
@@ -204,9 +193,7 @@
 	    "commission_time": "{TinyDate}:2017-11-01T00:00:00",
 	    "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
 	    "station_id": 101
-	}
-    },
-    "channels": {
+	},
 	"8": {
 	    "adc_id": null,
 	    "adc_n_samples": 256,
@@ -233,9 +220,7 @@
 	    "commission_time": "{TinyDate}:2017-11-01T00:00:00",
 	    "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
 	    "station_id": 101
-	}
-    },
-    "channels": {
+	},
 	"9": {
 	    "adc_id": null,
 	    "adc_n_samples": 256,
@@ -262,9 +247,7 @@
 	    "commission_time": "{TinyDate}:2017-11-01T00:00:00",
 	    "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
 	    "station_id": 101
-	}
-    },
-    "channels": {
+	},
 	"10": {
 	    "adc_id": null,
 	    "adc_n_samples": 256,
