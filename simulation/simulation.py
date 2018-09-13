@@ -112,7 +112,7 @@ class simulation():
         self.__evt_time = evt_time
 
         # read in detector positions
-        print(self.__detectorfile)
+        logger.info("Detectorfile {}".format(self.__detectorfile))
         self.__det = detector.Detector(json_filename=self.__detectorfile)
 
         # read time and frequency resolution from detector (assuming all
@@ -165,15 +165,15 @@ class simulation():
         n_events = len(fin['event_ids'])
 #        n_events = 1000
         n_antennas = self.__det.get_number_of_channels(self.__station_id)
-        print("processing {} events".format(n_events))
-        
+        logger.info("processing {} events".format(n_events))
+
         # check if the same detector was simulated before (then we can save the ray tracing part)
         same_detector = False
         if('detector' in fin.attrs):
             with open(self.__detectorfile) as fdet:
                 if(fdet.read() == fin.attrs['detector']):
                     same_detector = True
-                    print("the simulation was already performed with the same detector")
+                    logger.info("the simulation was already performed with the same detector")
 
         # define arrays that will be saved at the end
         weights = np.zeros(n_events)
@@ -429,7 +429,7 @@ class simulation():
                 for channel in station.get_channels():
                     maximum_amplitudes[iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
                     maximum_amplitudes_envelope[iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
-                
+
                 SNRs[iE] = station.get_parameter(stnp.channels_max_amplitude) / self.__Vrms
                 if(self.__outputfilenameNuRadioReco is not None):
                     eventWriter.run(evt)
@@ -460,7 +460,7 @@ class simulation():
         fout.attrs['dt'] = self.__dt
         fout.attrs['bandwidth'] = self.__bandwidth
         fout.attrs['n_samples'] = self.__n_samples
-        
+
         # now we also save all input parameters back into the out file
         for key in fin.keys():
             if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
@@ -498,5 +498,5 @@ class simulation():
         fout.close()
 
         outputTime = time.time() - t5
-        print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
+        logger.info("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
               "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
