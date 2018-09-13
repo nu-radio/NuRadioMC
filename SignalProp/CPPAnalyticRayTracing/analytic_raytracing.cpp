@@ -8,6 +8,9 @@
 #include <vector>
 #include <stdio.h>
 
+#include <fstream>
+#include <sstream>
+
 //for gsl numerical integration
 #include <gsl/gsl_integration.h>
 
@@ -679,13 +682,64 @@ void get_path(double x1[2], double x2[2], double C0, vector<double> &res, vector
 int main(int argc, char **argv){
 	
 	//okay, now let's try and get a ray
-	double x1[2] = {478., -149.};
-	double x2[2] = {635., -5.}; //this target has both a direct and reflected ray solution
+	// double x1[2] = {478., -149.};
+	// double x2[2] = {635., -5.}; //this target has both a direct and reflected ray solution
+	// vector<vector<double> > solutions = find_solutions(x1,x2);
+	// vector <double> sol1_res;
+	// vector <double> sol1_zs;
+	// get_path(x1,x2,solutions[0][1],sol1_res,sol1_zs,10);
+	// for(int i=0; i<int(sol1_res.size());i++) printf("Element num, z, y: [%d, %f, %f]\n",i,sol1_res[i],sol1_zs[i]);
+	
+	// return 0;
+
+		//okay, now let's try and get a ray
+	// double x1[2] = {0., -500.};
+	// double x2[2] = {300., -5.}; //this target has both a direct and reflected ray solution
+	// double x1[2] = {0., -1401.03};
+	// double x2[2] = {5232.3, -171.023}; //this target has both a direct and reflected ray solution
+
+	double x1[2] = {0., -100.0};
+	double x2[2] = {100.0, -5}; //this target has both a direct and reflected ray solution
+
+	
 	vector<vector<double> > solutions = find_solutions(x1,x2);
+	cout<<solutions[0][1]<<" "<<solutions[1][1]<<endl;
+	cout<<x1[0]<<" "<<x1[1]<<" "<<x2[0]<<" "<<x2[1]<<" "<<(get_travel_time(x1, x2,solutions[0][1])-get_travel_time(x1, x2,solutions[1][1]))*1*pow(10,9)<<" "<<(get_angle(x1, x2,solutions[0][1])-get_angle(x1, x2,solutions[1][1]))*(180.0/3.142)<<" "<<get_angle(x1, x2,solutions[0][1])*(180.0/3.142)<<" "<<get_angle(x1, x2,solutions[1][1])*(180.0/3.142)<<endl;
+	
+	
+	
+	// ofstream aout("ch_output.txt");
+	// for(int i=1;i<20;i++){
+	//   //cout<<get_travel_time(x1, x2,solutions[0][1])<<" "<<get_travel_time(x1, x2,solutions[1][1])<<" "<<get_travel_time(x1, x2,solutions[0][1])-get_travel_time(x1, x2,solutions[1][1])<<endl;
+	//   x2[1]=-i;
+	//   solutions = find_solutions(x1,x2);
+	//   cout<<solutions[0][1]<<" "<<solutions[1][1]<<endl;
+	//   cout<<x1[0]<<" "<<x1[1]<<" "<<x2[0]<<" "<<x2[1]<<" "<<get_travel_time(x1, x2,solutions[0][1])-get_travel_time(x1, x2,solutions[1][1])<<endl;
+
+	//   aout<<x1[0]<<" "<<x1[1]<<" "<<x2[0]<<" "<<x2[1]<<" "<<(get_travel_time(x1, x2,solutions[0][1])-get_travel_time(x1, x2,solutions[1][1]))*1*pow(10,9)<<" "<<(get_angle(x1, x2,solutions[0][1])-get_angle(x1, x2,solutions[1][1]))*(180.0/3.142)<<" "<<get_angle(x1, x2,solutions[0][1])*(180.0/3.142)<<" "<<get_angle(x1, x2,solutions[1][1])*(180.0/3.142)<<endl;
+	// }
+
+	ofstream aout1("sol1_output.txt");
 	vector <double> sol1_res;
 	vector <double> sol1_zs;
-	get_path(x1,x2,solutions[0][1],sol1_res,sol1_zs,10);
-	for(int i=0; i<int(sol1_res.size());i++) printf("Element num, z, y: [%d, %f, %f]\n",i,sol1_res[i],sol1_zs[i]);
+	get_path(x1,x2,solutions[0][1],sol1_res,sol1_zs,500);
+
+	ofstream aout2("sol2_output.txt");
+	vector <double> sol2_res;
+	vector <double> sol2_zs;
+	get_path(x1,x2,solutions[1][1],sol2_res,sol2_zs,500);
+
+	aout1<<0<<" "<<0<<" "<<0<<endl;
+	for(int i=0; i<int(sol1_res.size());i++){
+	  //printf("Element num, z, y: [%d, %f, %f]\n",i,sol1_res[i],sol1_zs[i]);
+	  aout1<<i<<" "<<sol1_res[i]<<" "<<sol1_zs[i]<<endl;
+	}
+	aout2<<0<<" "<<0<<" "<<0<<endl;
+	for(int i=0; i<int(sol2_res.size());i++){
+	  //printf("Element num, z, y: [%d, %f, %f]\n",i,sol2_res[i],sol2_zs[i]);
+	  aout2<<i<<" "<<sol2_res[i]<<" "<<sol2_zs[i]<<endl;
+	}
 	
 	return 0;
+
 }
