@@ -4,7 +4,6 @@ import NuRadioReco.framework.trigger
 import NuRadioReco.framework.parameters as parameters
 import cPickle as pickle
 import logging
-from ctypes.macholib.dyld import framework_find
 logger = logging.getLogger('BaseStation')
 
 
