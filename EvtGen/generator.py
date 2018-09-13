@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from NuRadioMC.utilities import units
 import h5py
-from nose.plugins.attrib import attr
 
 VERSION_MAJOR = 1
 VERSION_MINOR = 1
