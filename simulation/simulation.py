@@ -112,7 +112,7 @@ class simulation():
         self.__evt_time = evt_time
 
         # read in detector positions
-        logger.info("Detectorfile {}".format(self.__detectorfile))
+        logger.debug("Detectorfile {}".format(self.__detectorfile))
         self.__det = detector.Detector(json_filename=self.__detectorfile)
 
         # read time and frequency resolution from detector (assuming all
@@ -165,7 +165,7 @@ class simulation():
         n_events = len(fin['event_ids'])
 #        n_events = 1000
         n_antennas = self.__det.get_number_of_channels(self.__station_id)
-        logger.info("processing {} events".format(n_events))
+        print("processing {} events".format(n_events))
 
         # check if the same detector was simulated before (then we can save the ray tracing part)
         same_detector = False
@@ -173,7 +173,7 @@ class simulation():
             with open(self.__detectorfile) as fdet:
                 if(fdet.read() == fin.attrs['detector']):
                     same_detector = True
-                    logger.info("the simulation was already performed with the same detector")
+                    print("the simulation was already performed with the same detector")
 
         # define arrays that will be saved at the end
         weights = np.zeros(n_events)
@@ -498,5 +498,5 @@ class simulation():
         fout.close()
 
         outputTime = time.time() - t5
-        logger.info("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
+        print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
               "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
