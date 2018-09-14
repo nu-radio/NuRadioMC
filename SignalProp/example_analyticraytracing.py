@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-import analyticraytraycing as ray
-import units
+from NuRadioMC.SignalProp import analyticraytraycing as ray
+from NuRadioMC.utilities import units
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('raytracing')
