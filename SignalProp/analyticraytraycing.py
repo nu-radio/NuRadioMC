@@ -253,7 +253,7 @@ class ray_tracing_2D():
         returns the temperature in Celsius as a function of depth
         """
         # from https://icecube.wisc.edu/~mnewcomb/radio/#iceabsorbtion
-        z2 = np.abs(z/units.km)
+        z2 = np.abs(z/units.m)
         return 1.83415e-09*z2**3 + (-1.59061e-08*z2**2) + 0.00267687*z2 + (-51.0696 )
 
     def get_attenuation_length(self, z, frequency):
