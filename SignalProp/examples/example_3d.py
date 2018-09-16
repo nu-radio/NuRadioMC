@@ -8,11 +8,11 @@ from radiotools import helper as hp
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('raytracing')
 
-x1 = np.array([478., 0., -149.])
-x2 = np.array([635., 0., -5.])  # direct ray solution
-x3 = np.array([1000., 0., -90.])  # refracted/reflected ray solution
-x4 = np.array([700., 0., -149.])  # refracted/reflected ray solution
-x5 = np.array([1000., 0., -5.])  # no solution
+x1 = np.array([478., 0., -149.])*units.m
+x2 = np.array([635., 0., -5.])*units.m  # direct ray solution
+x3 = np.array([1000., 0., -90.])*units.m  # refracted/reflected ray solution
+x4 = np.array([700., 0., -149.])*units.m  # refracted/reflected ray solution
+x5 = np.array([1000., 0., -5.])*units.m  # no solution
 
 receive_vectors = np.zeros((4, 2, 3)) * np.nan
 ray_tracing_C0 = np.zeros((4, 2)) * np.nan
