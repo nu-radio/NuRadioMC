@@ -764,3 +764,7 @@ class ray_tracing:
 
         result = self.__results[iS]
         return self.__r2d.get_attenuation_along_path(self.__x1, self.__x2, result['C0'], frequency)
+    
+    def get_ray_path(self, iS):
+        return self.__r2d.get_path(self.__x1, self.__x2, self.__results[iS]['C0'], 10000)
+        
