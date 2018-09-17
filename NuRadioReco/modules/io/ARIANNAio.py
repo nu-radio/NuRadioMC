@@ -2,7 +2,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import NuRadioReco.framework.event
 import numpy as np
 import logging
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import time
 logger = logging.getLogger('ARIANNAio')
 

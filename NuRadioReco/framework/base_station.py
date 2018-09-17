@@ -2,7 +2,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.trigger
 import NuRadioReco.framework.parameters as parameters
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import logging
 logger = logging.getLogger('BaseStation')
 

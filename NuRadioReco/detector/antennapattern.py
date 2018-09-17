@@ -3,13 +3,15 @@ import json
 import os
 from NuRadioReco.utilities import units
 import gzip
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 from radiotools import helper as hp
 from radiotools import coordinatesystems as cs
 from scipy import constants
 import logging
 logger = logging.getLogger('antennapattern')
-import ConfigParser
 
 # config = ConfigParser.RawConfigParser()
 # config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'antennamodels.cfg')

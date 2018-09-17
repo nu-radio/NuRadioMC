@@ -1,7 +1,10 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import logging
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 logger = logging.getLogger("BaseTrace")
 
 
