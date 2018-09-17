@@ -5,6 +5,11 @@ from NuRadioMC.utilities import units, fft
 import logging
 logger = logging.getLogger("SignalGen.parametrizations")
 
+
+def set_log_level(level):
+    logger.setLevel(level)
+
+
 """
 
 Analytic parametrizations of the radio pulse produced by an in-ice particle shower.
@@ -69,15 +74,18 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
         cherenkov_angle = np.arccos(1. / n_index)
         domega = (theta - cherenkov_angle)
         tmp = np.exp(+0.5j * np.pi)  # set phases to 90deg
-        tmp *= 1.1e-7 * energy / units.TeV * vv0 * 1. / (1 + 0.4 * (vv0) ** 2) * np.exp(-0.5 * (domega / (2.4 * units.deg / vv0)) ** 2) * units.V / units.m / (R / units.m) / units.MHz
-        trace = 0.5 * np.fft.irfft(tmp) / dt  # the factor 0.5 is introduced to compensate the unusual fourier transform normalization used in the ZHS code
+        tmp *= 1.1e-7 * energy / units.TeV * vv0 * 1. / \
+            (1 + 0.4 * (vv0) ** 2) * np.exp(-0.5 * (domega / (2.4 * units.deg / vv0)) ** 2) * \
+            units.V / units.m / (R / units.m) / units.MHz
+        # the factor 0.5 is introduced to compensate the unusual fourier transform normalization used in the ZHS code
+        trace = 0.5 * np.fft.irfft(tmp) / dt
         trace = np.roll(trace, int(2 * units.ns / dt))
         return trace
 
     elif(model == 'Alvarez2012'):
         import pyrex.signals
         tt = np.arange(0, N * dt, dt)
-        ask = pyrex.signals.AskaryanSignal(tt / units.s, energy / units.GeV, theta, n_index)
+        ask = pyrex.signals.AskaryanSignal(tt / units.s, energy / units.GeV, theta, n_index, t0=20 * units.ns / units.s)
         trace = ask.values * units.V / units.m * (1. * units.m / R)  # rescale to distance R, pyrex output is for 1m
         return trace
 
@@ -86,7 +94,8 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
         cherenkov_angle = np.arccos(1. / n_index)
 
         Elpm = 2e15 * units.eV
-        dThetaEM = np.deg2rad(2.7) * 500 * units.MHz / freqs * (Elpm / (0.14 * energy + Elpm)) ** 0.3
+        dThetaEM = 2.7 * units.deg * 500 * units.MHz / freqs * (Elpm / (0.14 * energy + Elpm)) ** 0.3
+#         logger.debug("dThetaEM = {}".format(dThetaEM))
 
         epsilon = np.log10(energy / units.TeV)
         dThetaHad = 0
@@ -97,7 +106,8 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
         elif(epsilon > 5 and epsilon <= 7):
             dThetaHad = 500 * units.MHz / freqs * (4.23 - 0.785 * epsilon + 5.5e-2 * epsilon ** 2) * units.deg
         elif(epsilon > 7):
-            dThetaHad = 500 * units.MHz / freqs * (4.23 - 0.785 * 7 + 5.5e-2 * 7 ** 2) * (1 + (epsilon - 7) * 0.075) * units.deg
+            dThetaHad = 500 * units.MHz / freqs * (4.23 - 0.785 * 7 + 5.5e-2 * 7 ** 2) * \
+                (1 + (epsilon - 7) * 0.075) * units.deg
 
         f0 = 1.15 * units.GHz
         E = 2.53e-7 * energy / units.TeV * freqs / f0 / (1 + (freqs / f0) ** 1.44)
