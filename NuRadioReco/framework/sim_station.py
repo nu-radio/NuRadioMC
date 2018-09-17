@@ -1,6 +1,9 @@
 from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_station
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 
 class SimStation(NuRadioReco.framework.base_station.BaseStation):

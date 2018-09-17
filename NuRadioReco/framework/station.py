@@ -2,7 +2,10 @@ from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_station
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.channel
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import logging
 logger = logging.getLogger('Station')
 
