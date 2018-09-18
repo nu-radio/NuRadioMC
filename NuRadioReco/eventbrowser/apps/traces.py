@@ -242,7 +242,7 @@ def update_time_trace(trigger, evt_counter_json, filename, juser_id, jstation_id
                 y=[0.8 * maxY / units.mV],
                 mode='text',
                 text=['max L1 = {:.2f}'.format(maxL1)],
-                textposition='top'
+                textposition='top center'
             ),
         1, 2)
     fig['layout']['xaxis2'].update(title='frequency [MHz]')
@@ -300,7 +300,7 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
                             y=[0.98 * trace.max()],
                             mode='text',
                             text=[r'mu = {:.2f}, STD={:.2f}'.format(np.mean(trace), np.std(trace))],
-                            textposition='bottomleft'
+                            textposition='bottom left'
                         ),
                     i + 1, 1)
     if 'envelope' in dropdown_traces:
@@ -366,7 +366,7 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
                     y=[0.8 * trace.max() / units.mV],
                     mode='text',
                     text=['cr xcorr= {:.2f}, {:.02f}'.format(xcorr, xcorr_max)],
-                    textposition='top'
+                    textposition='top center'
                 ),
             i + 1, 1)
             fig.append_trace(
@@ -375,7 +375,7 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
                     y=[0.5 * trace.max() / units.mV],
                     mode='text',
                     text=['t = {:.0f}ns'.format(xcorrpos)],
-                    textposition='top'
+                    textposition='top center'
                 ),
             i + 1, 1)
     if 'nutemplate' in dropdown_traces:
@@ -410,7 +410,7 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
                     y=[0.8 * trace.max() / units.mV],
                     mode='text',
                     text=['nu xcorr= {:.2f}'.format(xcorr)],
-                    textposition='top'
+                    textposition='top center'
                 ),
             i + 1, 1)
             fig.append_trace(
@@ -419,7 +419,7 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
                     y=[0.5 * trace.max() / units.mV],
                     mode='text',
                     text=['t = {:.0f}ns'.format(xcorrpos)],
-                    textposition='top'
+                    textposition='top center'
                 ),
             i + 1, 1)
     fig['layout']['xaxis1'].update(title='time [ns]')
@@ -449,7 +449,7 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
                         y=[0.8 * spec.max() / units.mV],
                         mode='text',
                         text=['max L1 = {:.2f}'.format(get_L1(spec))],
-                        textposition='top'
+                        textposition='top center'
                     ),
                 i + 1, 2)
     fig['layout'].update(height=1000)
