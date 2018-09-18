@@ -25,4 +25,5 @@ class channelParameters(Enum):
     maximum_amplitude = 4  # the maximum ampliude of the magnitude of the trace
     SNR = 5  # an dictionary of various signal-to-noise ratio definitions
     maximum_amplitude_envelope = 6  # the maximum ampliude of the hilbert envelope of the trace
+    P2P_amplitude = 7  # the peak to peak amplitude
      
