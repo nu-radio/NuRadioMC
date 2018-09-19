@@ -28,7 +28,11 @@ points = np.array([xx, yy, zz]).T
 x_receiver = np.array([0., 0., -5.])
 
 results_C0s_cpp = np.zeros((n_events, 2))
+n_freqs = 256/2 + 1
+n_freqs = 5
+results_A_cpp = np.zeros((n_events, 2, n_freqs))
 t_start = time.time()
+ff = np.linspace(0, 500*units.MHz, n_freqs)
 # tt = 0
 for iX, x in enumerate(points):
 #     t_start2 = time.time()
@@ -38,12 +42,14 @@ for iX, x in enumerate(points):
     if(r.has_solution()):
         for iS in range(r.get_number_of_solutions()):
             results_C0s_cpp[iX, iS] = r.get_results()[iS]['C0']
+            results_A_cpp[iX, iS] = r.get_attenuation(iS, ff)
 t_cpp = time.time() - t_start
 print("CPP time = {:.1f} seconds = {:.2f}ms/event".format(t_cpp, 1000. * t_cpp / n_events))
 # print("CPP time = {:.1f} seconds = {:.2f}ms/event".format(tt, 1000. * tt / n_events))
 
 
 results_C0s_python = np.zeros((n_events, 2))
+results_A_python = np.zeros((n_events, 2, n_freqs))
 ray.cpp_available = False
 t_start = time.time()
 for iX, x in enumerate(points):
@@ -52,7 +58,10 @@ for iX, x in enumerate(points):
     if(r.has_solution()):
         for iS in range(r.get_number_of_solutions()):
             results_C0s_python[iX, iS] = r.get_results()[iS]['C0']
+            results_A_python[iX, iS] = r.get_attenuation(iS, ff)
 t_python = time.time() - t_start
 print("Python time = {:.1f} seconds = {:.2f}ms/event".format(t_python, 1000. * t_python / n_events))
 
-print("consistent results: {}".format(np.allclose(results_C0s_cpp, results_C0s_python)))
+print("consistent results for C0: {}".format(np.allclose(results_C0s_cpp, results_C0s_python)))
+print("consistent results for attenuation length: {}".format(np.allclose(results_A_cpp, results_A_python)))
+print("consistent results for attenuation length rtol=1e-2, atol=1e-3: {}".format(np.allclose(results_A_cpp, results_A_python, rtol=1e-2, atol=1e-3)))
