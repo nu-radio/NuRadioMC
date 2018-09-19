@@ -23,35 +23,34 @@
 
 using namespace std;
 
-double n_ice = 1.78;
-double b = 2.*n_ice;
-double z_0 = 71. * utl::m; //meters
-double delta_n = 0.427;
+//some global constants
 double speed_of_light = 299792458 * utl::m/utl::s; //meters/second
 double pi = atan(1.)*4.; //compute and store pi
 double inf = 1e130; //infinity for all practical purposes...
 
-double index_vs_depth(double z){
+double index_vs_depth(double z, double n_ice, double delta_n, double z_0){
 	//return the index of refraction at a given depth
 	double index = n_ice - (delta_n*exp(z/z_0));
 	return index;
 }
 
-double get_gamma(double z){
+double get_gamma(double z, double n_ice, double delta_n, double z_0){
 	return delta_n * exp(z/z_0);
 }
 
-void get_turning_point(double c, double &gamma2, double &z2){
+void get_turning_point(double c, double &gamma2, double &z2, double n_ice, double delta_n, double z_0){
 	//calculate the turning point (the maximum of the ray tracing path)
+	double b = 2. * n_ice;
 	gamma2 = b*0.5 - sqrt(0.25 * pow(b,2.) - c);
 	z2 = log(gamma2/delta_n) * z_0;
 }
 
-double get_y(double gamma, double C0, double C1){
+double get_y(double gamma, double C0, double C1, double n_ice, double delta_n, double z_0){
 	//parameters
 	//gamma: gamma is a function of the depth z
 	//c0: first parameter
 	//c1: second paramter
+	double b = 2. * n_ice;
 	double c = pow(n_ice,2.) - pow(C0,-2.);
 	double root = abs( pow(gamma,2.) - gamma*b + c);
 	double logargument = gamma / ( 2.*sqrt(c) * sqrt(root) - b*gamma + 2.*c);
@@ -59,62 +58,63 @@ double get_y(double gamma, double C0, double C1){
 	return result;
 }
 
-double get_y_with_z_mirror(double z, double C0, double C1=0.){
+double get_y_with_z_mirror(double n_ice, double delta_n, double z_0, double z, double C0, double C1=0.){
 	//parameters
 	//z: arrays of depths
 	//c0: first parameter
 	//c1: second parameter
 	double c = pow(n_ice,2.) - pow(C0,-2.);
 	double gamma_turn, z_turn;
-	get_turning_point(c, gamma_turn, z_turn);
+	get_turning_point(c, gamma_turn, z_turn, n_ice, delta_n, z_0);
 	if(z_turn >=0.){ //signal is reflected at surface
 		z_turn=0.; //we've hit the surface
-		gamma_turn=get_gamma(0.); //get gamma at the surface
+		gamma_turn=get_gamma(0.,n_ice, delta_n, z_0); //get gamma at the surface
 	}
-	double y_turn = get_y(gamma_turn,C0,C1);
+	double y_turn = get_y(gamma_turn,C0,C1,n_ice, delta_n, z_0);
 	double result=0.;
 	if(z < z_turn){
-		double gamma = get_gamma(z);
-		result=get_y(gamma,C0,C1);
+		double gamma = get_gamma(z,n_ice, delta_n, z_0);
+		result=get_y(gamma,C0,C1,n_ice, delta_n, z_0);
 	}
 	else{
-		double gamma = get_gamma(2*z_turn - z);
-		result = 2*y_turn - get_y(gamma,C0,C1);
+		double gamma = get_gamma(2*z_turn - z,n_ice, delta_n, z_0);
+		result = 2*y_turn - get_y(gamma,C0,C1,n_ice, delta_n, z_0);
 	}
 	return result;
 }
 
-double get_C1(double pos[2], double C0){
+double get_C1(double pos[2], double C0, double n_ice, double delta_n, double z_0){
 	//calculates C1 for a given C0 and starting point X1
-	return pos[0] - get_y_with_z_mirror(pos[1],C0);
+	return pos[0] - get_y_with_z_mirror(n_ice, delta_n, z_0, pos[1],C0);
 }
 
-double get_c(double C0){
+double get_c(double C0, double n_ice, double delta_n, double z_0){
 	return pow(n_ice,2.)-pow(C0,-2.);
 }
 
-double get_C0_from_log(double logC0){
+double get_C0_from_log(double logC0, double n_ice, double delta_n, double z_0){
 	//transforms fit parameter C0 so that the likelihood looks better
 	return exp(logC0) + 1./n_ice;
 }
 
-double get_z_unmirrored(double z, double C0){
+double get_z_unmirrored(double z, double C0, double n_ice, double delta_n, double z_0){
 	//calculates the unmirrored z position
 	double c = pow(n_ice,2.) - pow(C0,-2.);
 	double gamma_turn, z_turn;
-	get_turning_point(c, gamma_turn, z_turn);
+	get_turning_point(c, gamma_turn, z_turn,n_ice, delta_n, z_0);
 	if(z_turn >=0.){ //signal is reflected at surface
 		z_turn=0.; //we've hit the surface
-		gamma_turn=get_gamma(0.); //get gamma at the surface
+		gamma_turn=get_gamma(0.,n_ice, delta_n, z_0); //get gamma at the surface
 	}
 	double z_unmirrored = z;
 	if(z > z_turn) z_unmirrored = 2*z_turn - z;
 	return z_unmirrored;
 }
 
-double get_y_diff(double z_raw, double C0){
+double get_y_diff(double z_raw, double C0, double n_ice, double delta_n, double z_0){
 	//derivative dy(z)/dz
-	double z = get_z_unmirrored(z_raw, C0);
+	double b = 2. * n_ice;
+	double z = get_z_unmirrored(z_raw, C0,n_ice, delta_n, z_0);
 	double c = pow(n_ice,2.) - pow(C0,-2.);
 	double term1 = 
 			-sqrt(c) * exp(z/z_0) * b * delta_n
@@ -135,17 +135,17 @@ double get_y_diff(double z_raw, double C0){
 	return res;
 }
 
-void get_z_mirrored(double pos[2], double pos2[2], double C0, double (&x2_mirrored)[2]){
+void get_z_mirrored(double pos[2], double pos2[2], double C0, double (&x2_mirrored)[2], double n_ice, double delta_n, double z_0){
 	//calculates the mirrored x2 position so that y(z) can be used as a continuous function
 	double c = pow(n_ice,2.) - pow(C0,-2.);
-	double C1 = pos[0] - get_y_with_z_mirror(pos[1],C0);
+	double C1 = pos[0] - get_y_with_z_mirror(n_ice, delta_n, z_0, pos[1],C0);
 	double gamma_turn, z_turn;
-	get_turning_point(c, gamma_turn, z_turn);
+	get_turning_point(c, gamma_turn, z_turn,n_ice, delta_n, z_0);
 	if(z_turn >=0.){ //signal is reflected at surface
 		z_turn=0.; //we've hit the surface
-		gamma_turn=get_gamma(0.); //get gamma at the surface
+		gamma_turn=get_gamma(0.,n_ice, delta_n, z_0); //get gamma at the surface
 	}
-	double y_turn = get_y(gamma_turn,C0,C1);
+	double y_turn = get_y(gamma_turn,C0,C1,n_ice, delta_n, z_0);
 	double z_start = pos[1];
 	double z_stop = pos2[1];
 	if(y_turn <pos2[0]){
@@ -156,43 +156,55 @@ void get_z_mirrored(double pos[2], double pos2[2], double C0, double (&x2_mirror
 }
 
 //this function is explicity prepared for gsl integration in get_path_length
-double ds (double t, void *params){
+struct ds_params{ double a; double b; double c; double d;}; //a=C0, b=n_ice, c=delta_n, d = z_0
+double ds (double t, void *p){
 	//helper to calculate line integral
-	double C0 = *(double *) params;
-	return sqrt((pow(get_y_diff(t,C0),2.)+1));
+	struct ds_params *params = (struct ds_params *) p;
+	double C0 = (params->a);
+	double n_ice = (params->b);
+	double delta_n = (params->a);
+	double z_0 = (params->d);
+	return sqrt((pow(get_y_diff(t,C0, n_ice, delta_n, z_0),2.)+1));
 }
 
-double get_path_length(double pos[2], double pos2[2], double C0){
+double get_path_length(double pos[2], double pos2[2], double C0, double n_ice, double delta_n, double z_0){
 	double x2_mirrored[2]={0.};
-	get_z_mirrored(pos,pos2,C0,x2_mirrored);
+	get_z_mirrored(pos,pos2,C0,x2_mirrored,n_ice, delta_n, z_0);
 	
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc(1000);
 	gsl_function F;
 	F.function = &ds;
-	F.params=&C0;
-	
+	struct ds_params params = {C0,n_ice, delta_n, z_0};
+	F.params=&params;
+
 	double result, error;
-	
 	gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,1e-7,1000,w,&result,&error);
 	gsl_integration_workspace_free(w);
 	return result;
 }
 
 //this function is explicitly prepared for gsl integration in get_travel_time
-double dt (double t, void *params){
-	double C0 = *(double *) params;
-	double z = get_z_unmirrored(t,C0);
-	return sqrt((pow(get_y_diff(t,C0),2.)+1)) / speed_of_light * index_vs_depth(z);
+struct dt_params{ double a; double b; double c; double d;}; //a=C0, b=n_ice, c=delta_n, d = z_0
+double dt (double t, void *p){
+	struct dt_params *params = (struct dt_params *) p;	
+	double C0 = (params->a);
+	double n_ice = (params->b);
+	double delta_n = (params->a);
+	double z_0 = (params->d);	
+	
+	double z = get_z_unmirrored(t,C0,n_ice, delta_n, z_0);
+	return sqrt((pow(get_y_diff(t,C0,n_ice, delta_n, z_0),2.)+1)) / speed_of_light * index_vs_depth(z, n_ice, delta_n, z_0);
 }
 
-double get_travel_time(double pos[2], double pos2[2], double C0){
+double get_travel_time(double pos[2], double pos2[2], double C0, double n_ice, double delta_n, double z_0){
 	double x2_mirrored[2]={0.};
-	get_z_mirrored(pos,pos2,C0,x2_mirrored);
+	get_z_mirrored(pos,pos2,C0,x2_mirrored, n_ice, delta_n, z_0);
 	
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc(1000);
 	gsl_function F;
 	F.function = &dt;
-	F.params=&C0;
+	struct dt_params params = {C0, n_ice, delta_n, z_0};
+	F.params=&params;
 	
 	double result, error;
 	
@@ -232,23 +244,27 @@ double get_attenuation_length(double z, double frequency){
 }
 
 //this function is explicitly prepared for gsl integration in get_attenuation_along_path
-struct dt_freq_params{ double a; double c;}; //a=C0, c=freq
+struct dt_freq_params{ double a; double c; double d; double e; double f;}; //a=C0, c=freq, d=n_ice, e=delta_n, f=z_0
 double dt_freq (double t, void *p){
 	struct dt_freq_params *params = (struct dt_freq_params *)p;
 	double C0 = (params->a);
 	double freq = (params->c);
-	double z = get_z_unmirrored(t,C0);
-	return sqrt((pow(get_y_diff(t,C0),2.)+1)) / get_attenuation_length(z,freq);
+	double n_ice = (params->d);
+	double delta_n = (params->e);
+	double z_0 = (params->f);		
+	
+	double z = get_z_unmirrored(t,C0,n_ice, delta_n, z_0);
+	return sqrt((pow(get_y_diff(t,C0,n_ice, delta_n, z_0),2.)+1)) / get_attenuation_length(z,freq);
 }
 
-double get_attenuation_along_path(double pos[2], double pos2[2], double C0, double frequency){
+double get_attenuation_along_path(double pos[2], double pos2[2], double C0, double frequency, double n_ice, double delta_n, double z_0){
 	double x2_mirrored[2]={0.};
-	get_z_mirrored(pos,pos2,C0,x2_mirrored);
+	get_z_mirrored(pos,pos2,C0,x2_mirrored, n_ice, delta_n, z_0);
 	
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc(1000);
 	gsl_function F;
 	F.function = &dt_freq;
-	struct dt_freq_params params = {C0,frequency};
+	struct dt_freq_params params = {C0,frequency, n_ice, delta_n, z_0};
 	F.params=&params;
 
 	double result, error;
@@ -259,25 +275,25 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0, doub
 	return attenuation;
 }
 
-double get_angle(double x[2], double x_start[2], double C0){
+double get_angle(double x[2], double x_start[2], double C0, double n_ice, double delta_n, double z_0){
 	double result[2]={0.};
-	get_z_mirrored(x_start,x,C0,result);
+	get_z_mirrored(x_start,x,C0,result, n_ice, delta_n, z_0);
 	double z = result[1];
-	double dy = get_y_diff(z,C0);
+	double dy = get_y_diff(z,C0, n_ice, delta_n, z_0);
 	double angle = atan(dy);
 	if(angle < 0.) angle += pi;
 	return angle;
 }
 
-double get_launch_angle(double x1[2], double C0){
-	return get_angle(x1,x1,C0);
+double get_launch_angle(double x1[2], double C0, double n_ice, double delta_n, double z_0){
+	return get_angle(x1,x1,C0, n_ice, delta_n, z_0);
 }
 
-double get_receive_angle(double x1[2], double x2[2], double C0){
-	return pi - get_angle(x2,x1,C0);
+double get_receive_angle(double x1[2], double x2[2], double C0, double n_ice, double delta_n, double z_0){
+	return pi - get_angle(x2,x1,C0, n_ice, delta_n, z_0);
 }
 
-double get_delta_y(double C0, double x1[2], double x2[2]){
+double get_delta_y(double C0, double x1[2], double x2[2], double n_ice, double delta_n, double z_0){
 	//calculates the difference in the y position between the analytic ray tracing path
 	//specified by C0 at the position x2
 	
@@ -286,7 +302,7 @@ double get_delta_y(double C0, double x1[2], double x2[2]){
 	if(C0<lower_bound || C0>upper_bound) {return inf;}
 	double c = pow(n_ice,2.) - pow(C0,-2.);
 	//determine y translation
-	double C1 = x1[0] - get_y_with_z_mirror(x1[1],C0);
+	double C1 = x1[0] - get_y_with_z_mirror( n_ice, delta_n, z_0, x1[1],C0);
 	
 	//for a given C0, 3 cases are possible to reach the position of x2
 	//1: Direct ray--before the turning point
@@ -294,48 +310,48 @@ double get_delta_y(double C0, double x1[2], double x2[2]){
 	//3: Reflected ray--after the ray reaches the surface
 	
 	double gamma_turn, z_turn;
-	get_turning_point(c, gamma_turn, z_turn);
+	get_turning_point(c, gamma_turn, z_turn, n_ice, delta_n, z_0);
 	if(z_turn > 0.){
 		z_turn = 0.; //a reflection is just a turning point at z=0, ie case 2 and 3 are the same
-		gamma_turn = get_gamma(z_turn);
+		gamma_turn = get_gamma(z_turn, n_ice, delta_n, z_0);
 	}
-	double y_turn = get_y(gamma_turn,C0,C1);
+	double y_turn = get_y(gamma_turn,C0,C1, n_ice, delta_n, z_0);
 	if(z_turn < x2[1]){ //turning points is deeper than x2 positions, can't reach target
 		return -inf;
 	}
 	if(y_turn > x2[0]){//always propagate from left to right
 		//direct ray
-		double y2_fit = get_y(get_gamma(x2[1]),C0,C1); //calculate the y position at get_path position
+		double y2_fit = get_y(get_gamma(x2[1], n_ice, delta_n, z_0),C0,C1, n_ice, delta_n, z_0); //calculate the y position at get_path position
 		double diff = (x2[0] - y2_fit);
 		return diff;
 	}
 	else{
 		//now it's a bit more complicated; we need to transform the coordinates to be on the mirrored part of the function
 		double z_mirrored = x2[1];
-		double gamma = get_gamma(z_mirrored);
-		double y2_raw = get_y(gamma, C0, C1);
+		double gamma = get_gamma(z_mirrored, n_ice, delta_n, z_0);
+		double y2_raw = get_y(gamma, C0, C1, n_ice, delta_n, z_0);
 		double y2_fit = 2 * y_turn-y2_raw;
 		double diff = x2[0] - y2_fit;
 		return -1*diff;
 	}
 }
 
-int determine_solution_type(double x1[2], double x2[2], double C0){
+int determine_solution_type(double x1[2], double x2[2], double C0, double n_ice, double delta_n, double z_0){
 	//return 1 for direct solution
 	//return 2 for refracted
 	//return 3 for reflected
 	
 	double c = pow(n_ice,2.) - pow(C0,-2.);
-	double C1 = x1[0] - get_y_with_z_mirror(x1[1],C0);
+	double C1 = x1[0] - get_y_with_z_mirror(n_ice, delta_n, z_0, x1[1],C0);
 	
 	double gamma_turn, z_turn;
-	get_turning_point(c, gamma_turn, z_turn);
+	get_turning_point(c, gamma_turn, z_turn, n_ice, delta_n, z_0);
 	
 	if(z_turn >= 0.){
 		z_turn=0.;
-		gamma_turn = get_gamma(0);
+		gamma_turn = get_gamma(0, n_ice, delta_n, z_0);
 	}
-	double y_turn = get_y(gamma_turn,C0,C1);
+	double y_turn = get_y(gamma_turn,C0,C1, n_ice, delta_n, z_0);
 	if(x2[0] < y_turn) return 1; //direct
 	else{
 		if(abs(z_turn-0.0)<1e-6) return 3; // reflected, trying to do z_turn==0, but == is bad with doubles
@@ -353,7 +369,7 @@ double obj_delta_y_square(double logC0, double x1[2], double x2[2]){
 */
 
 //this function is explicitly prepared for gsl root finding in find_solutions
-struct obj_delta_y_square_params{double x1_x; double x1_z; double x2_x; double x2_z;}; //x1_x=x1[0] and so forth
+struct obj_delta_y_square_params{double x1_x; double x1_z; double x2_x; double x2_z; double a; double b; double c;}; //x1_x=x1[0] and so forth, a=n_ice, b=delta_n, c=z_0
 double obj_delta_y_square(double logC0, void *p){
 	struct obj_delta_y_square_params *params = (struct obj_delta_y_square_params *)p;
 	double x1[2], x2[2];
@@ -361,8 +377,11 @@ double obj_delta_y_square(double logC0, void *p){
 	x1[1] = (params->x1_z);
 	x2[0] = (params->x2_x);
 	x2[1] = (params->x2_z);
-	double C0 = get_C0_from_log(logC0);
-	return pow(get_delta_y(C0,x1,x2),2.);
+	double n_ice = (params->a);
+	double delta_n = (params->b);
+	double z_0 = (params->c);	
+	double C0 = get_C0_from_log(logC0, n_ice, delta_n, z_0);
+	return pow(get_delta_y(C0,x1,x2, n_ice, delta_n, z_0),2.);
 }
 
 //this function is explicity prepared for gsl root finding in find_solutions
@@ -376,9 +395,12 @@ double obj_delta_y_square_df(double logC0, void *p){
 	x1[1] = (params->x1_z);
 	x2[0] = (params->x2_x);
 	x2[1] = (params->x2_z);
-	double C0 = get_C0_from_log(logC0);
+	double n_ice = (params->a);
+	double delta_n = (params->b);
+	double z_0 = (params->c);	
+	double C0 = get_C0_from_log(logC0, n_ice, delta_n, z_0);
 	double increment_size = C0/10000.;	//our small h
-	return (pow(get_delta_y(C0+increment_size,x1,x2),2.)-pow(get_delta_y(C0,x1,x2),2.))/increment_size; //definition of derivative
+	return (pow(get_delta_y(C0+increment_size,x1,x2, n_ice, delta_n, z_0),2.)-pow(get_delta_y(C0,x1,x2, n_ice, delta_n, z_0),2.))/increment_size; //definition of derivative
 }
 
 //this function is explicity prepared for gsl root finding in find_solutions
@@ -390,10 +412,13 @@ void obj_delta_y_square_fdf(double logC0, void *p, double *y, double *dy){
 	x1[1] = (params->x1_z);
 	x2[0] = (params->x2_x);
 	x2[1] = (params->x2_z);
-	double C0 = get_C0_from_log(logC0);
+	double n_ice = (params->a);
+	double delta_n = (params->b);
+	double z_0 = (params->c);	
+	double C0 = get_C0_from_log(logC0, n_ice, delta_n, z_0);
 	double increment_size = C0/10000.;	//our small h
-	*y = pow(get_delta_y(C0,x1,x2),2.);
-	*dy = (pow(get_delta_y(C0+increment_size,x1,x2),2.)-pow(get_delta_y(C0,x1,x2),2.))/increment_size; //definition of derivative
+	*y = pow(get_delta_y(C0,x1,x2, n_ice, delta_n, z_0),2.);
+	*dy = (pow(get_delta_y(C0+increment_size,x1,x2, n_ice, delta_n, z_0),2.)-pow(get_delta_y(C0,x1,x2, n_ice, delta_n, z_0),2.))/increment_size; //definition of derivative
 }
 /*
 double obj_delta_y(double logC0, double x1[2], double x2[2]){
@@ -413,14 +438,17 @@ double obj_delta_y(double logC0, void *p){
 	x1[1] = (params->x1_z);
 	x2[0] = (params->x2_x);
 	x2[1] = (params->x2_z);
-	double C0 = get_C0_from_log(logC0);
-	return get_delta_y(C0,x1,x2);
+	double n_ice = (params->a);
+	double delta_n = (params->b);
+	double z_0 = (params->c);	
+	double C0 = get_C0_from_log(logC0, n_ice, delta_n, z_0);
+	return get_delta_y(C0,x1,x2, n_ice, delta_n, z_0);
 }
 
 
 
 
-vector <vector <double> > find_solutions(double x1[2], double x2[2]){
+vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ice, double delta_n, double z_0){
 	//function finds all ray tracing solutions
 	//we assume that x2 is above and to the right of x2_mirrored
 	//this is perfectly general, as a coordinate transform can put any system in this configuration
@@ -432,7 +460,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2]){
 	//entry 3 will be type
 	vector < vector <double> > results;
 	
-	struct obj_delta_y_square_params params = {x1[0],x1[1],x2[0],x2[1]};
+	struct obj_delta_y_square_params params = {x1[0],x1[1],x2[0],x2[1], n_ice, delta_n, z_0};
 	
 	
 	/////////
@@ -444,8 +472,6 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2]){
 	double x_guess = -1;
 	bool found_root_1=false;
 	double root_1=-10000000; //some insane value we'd never believe
-	
-
 		
 	const gsl_root_fdfsolver_type *Tfdf;
 	gsl_root_fdfsolver *sfdf;
@@ -472,7 +498,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2]){
 			status = gsl_root_test_residual(GSL_FN_FDF_EVAL_F(&FDF,root_1),0.0000001);
 			if(status == GSL_SUCCESS){
 				printf("Converged on root 1! Iteration %d\n",iter);
-				printf("minima =  %f\n",pow(get_delta_y(get_C0_from_log(root_1), x1, x2), 2));
+				printf("minima =  %f\n",pow(get_delta_y(get_C0_from_log(root_1, n_ice, delta_n, z_0), x1, x2, n_ice, delta_n, z_0), 2));
 				found_root_1=true;
 			}
 		} while (status == GSL_CONTINUE && iter < max_iter && num_badfunc_tries<max_badfunc_tries);
@@ -482,10 +508,10 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2]){
 	if(found_root_1){
 		vector <double> sol1;
 		sol1.push_back(root_1);
-		double C0 = get_C0_from_log(root_1);
+		double C0 = get_C0_from_log(root_1, n_ice, delta_n, z_0);
 		sol1.push_back(C0);
-		sol1.push_back(get_C1(x1,C0));
-		sol1.push_back(ceil(double(determine_solution_type(x1,x2,C0))));
+		sol1.push_back(get_C1(x1,C0, n_ice, delta_n, z_0));
+		sol1.push_back(ceil(double(determine_solution_type(x1,x2,C0, n_ice, delta_n, z_0))));
 		
 		printf("Solution 1 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol1[0],sol1[1],sol1[2],sol1[3]);
 		
@@ -549,10 +575,10 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2]){
 			if(found_root_2){
 				vector <double> sol2;
 				sol2.push_back(root_2);
-				double C0 = get_C0_from_log(root_2);
+				double C0 = get_C0_from_log(root_2, n_ice, delta_n, z_0);
 				sol2.push_back(C0);
-				sol2.push_back(get_C1(x1,C0));
-				sol2.push_back(ceil(double(determine_solution_type(x1,x2,C0))));
+				sol2.push_back(get_C1(x1,C0, n_ice, delta_n, z_0));
+				sol2.push_back(ceil(double(determine_solution_type(x1,x2,C0, n_ice, delta_n, z_0))));
 
 				printf("Solution 2 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol2[0],sol2[1],sol2[2],sol2[3]);
 
@@ -616,10 +642,10 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2]){
 			if(found_root_3){
 				vector <double> sol3;
 				sol3.push_back(root_3);
-				double C0 = get_C0_from_log(root_3);
+				double C0 = get_C0_from_log(root_3, n_ice, delta_n, z_0);
 				sol3.push_back(C0);
-				sol3.push_back(get_C1(x1,C0));
-				sol3.push_back(ceil(double(determine_solution_type(x1,x2,C0))));
+				sol3.push_back(get_C1(x1,C0, n_ice, delta_n, z_0));
+				sol3.push_back(ceil(double(determine_solution_type(x1,x2,C0, n_ice, delta_n, z_0))));
 
 				printf("Solution 3 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol3[0],sol3[1],sol3[2],sol3[3]);
 
@@ -628,26 +654,29 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2]){
 		}
 		else printf("No solution with logc0 < %.3f exist\n",logC0_stop);
 	}
+	else{
+		printf("No solution exist anywhere!\n");
+	}
 	
 	return results;
 }
 
-void find_solutions2(double*& C0s, double*& C1s, int*& types, int& nSolutions, double y1, double z1, double y2, double z2) {
-	double x1[2] = {y1, z1};
-	double x2[2] = {y2, z2};
-	vector < vector<double> > solutions2 = find_solutions(x1, x2);
-	nSolutions = solutions2.size();
-	C0s = new double[nSolutions];
-	C1s = new double[nSolutions];
-	types = new int[nSolutions];
-	for (int i = 0; i < nSolutions; ++i) {
-		C0s[i] = solutions2[i][1];
-		C1s[i] = solutions2[i][2];
-		types[i] = solutions2[i][3];
-	}
-}
+// void find_solutions2(double*& C0s, double*& C1s, int*& types, int& nSolutions, double y1, double z1, double y2, double z2) {
+// 	double x1[2] = {y1, z1};
+// 	double x2[2] = {y2, z2};
+// 	vector < vector<double> > solutions2 = find_solutions(x1, x2);
+// 	nSolutions = solutions2.size();
+// 	C0s = new double[nSolutions];
+// 	C1s = new double[nSolutions];
+// 	types = new int[nSolutions];
+// 	for (int i = 0; i < nSolutions; ++i) {
+// 		C0s[i] = solutions2[i][1];
+// 		C1s[i] = solutions2[i][2];
+// 		types[i] = solutions2[i][3];
+// 	}
+// }
 
-void get_path(double x1[2], double x2[2], double C0, vector<double> &res, vector<double> &zs, int n_points=100){
+void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[2], double C0, vector<double> &res, vector<double> &zs, int n_points=100){
 	
 	//will return the ray tracing path between x1 and x2
 	//this is only true if C0 is a solution to the ray tracing problem
@@ -664,18 +693,18 @@ void get_path(double x1[2], double x2[2], double C0, vector<double> &res, vector
 	
 	
 	double c = pow(n_ice,2.) - pow(C0,-.2);
-	double C1 = x1[0] - get_y_with_z_mirror(x1[1],C0);
+	double C1 = x1[0] - get_y_with_z_mirror(n_ice, delta_n, z_0, x1[1],C0);
 	double gamma_turn, z_turn;
-	get_turning_point(c, gamma_turn, z_turn);
+	get_turning_point(c, gamma_turn, z_turn, n_ice, delta_n, z_0);
 	if(z_turn >=0.){
 		//signal reflects at surface
 		z_turn=0.;
-		gamma_turn = get_gamma(0);
+		gamma_turn = get_gamma(0, n_ice, delta_n, z_0);
 	}
-	double y_turn = get_y(gamma_turn, C0, C1);
+	double y_turn = get_y(gamma_turn, C0, C1, n_ice, delta_n, z_0);
 	double zstart = x1[1];
 	double result[2];
-	get_z_mirrored(x1,x2,C0,result);
+	get_z_mirrored(x1,x2,C0,result, n_ice, delta_n, z_0);
 	double zstop = result[1];
 	double step_size = (zstop-zstart)/double(n_points-1); //do n-1 so that the bounds are actually the bounds
 	vector<double> z; //vector to hold z's
@@ -690,13 +719,13 @@ void get_path(double x1[2], double x2[2], double C0, vector<double> &res, vector
 	for(int i=0; i<n_points; i++){
 		double gamma_temp;
 		if(z[i]<z_turn){
-			gamma_temp = get_gamma(z[i]);
-			res.push_back(get_y(gamma_temp,C0,C1));
+			gamma_temp = get_gamma(z[i], n_ice, delta_n, z_0);
+			res.push_back(get_y(gamma_temp,C0,C1, n_ice, delta_n, z_0));
 			zs.push_back(z[i]);
 		}
 		else{
-			gamma_temp = get_gamma(2 * z_turn - z[i]);
-			res.push_back(2*y_turn - get_y(gamma_temp,C0,C1));
+			gamma_temp = get_gamma(2 * z_turn - z[i], n_ice, delta_n, z_0);
+			res.push_back(2*y_turn - get_y(gamma_temp,C0,C1, n_ice, delta_n, z_0));
 			zs.push_back(2*z_turn - z[i]);
 		}
 	}
@@ -704,63 +733,15 @@ void get_path(double x1[2], double x2[2], double C0, vector<double> &res, vector
 	
 int main(int argc, char **argv){
 	
-	//okay, now let's try and get a ray
-	// double x1[2] = {478., -149.};
-	// double x2[2] = {635., -5.}; //this target has both a direct and reflected ray solution
-	// vector<vector<double> > solutions = find_solutions(x1,x2);
-	// vector <double> sol1_res;
-	// vector <double> sol1_zs;
-	// get_path(x1,x2,solutions[0][1],sol1_res,sol1_zs,10);
-	// for(int i=0; i<int(sol1_res.size());i++) printf("Element num, z, y: [%d, %f, %f]\n",i,sol1_res[i],sol1_zs[i]);
-	
-	// return 0;
+	double x1[2] = {478., -149.};
+	double x2[2] = {635., -5.}; //this target has both a direct and reflected ray solution
 
-		//okay, now let's try and get a ray
-	// double x1[2] = {0., -500.};
-	// double x2[2] = {300., -5.}; //this target has both a direct and reflected ray solution
-	// double x1[2] = {0., -1401.03};
-	// double x2[2] = {5232.3, -171.023}; //this target has both a direct and reflected ray solution
-
-	double x1[2] = {0., -100.0};
-	double x2[2] = {100.0, -5}; //this target has both a direct and reflected ray solution
-
-	
-	vector<vector<double> > solutions = find_solutions(x1,x2);
-	cout<<solutions[0][1]<<" "<<solutions[1][1]<<endl;
-	cout<<x1[0]<<" "<<x1[1]<<" "<<x2[0]<<" "<<x2[1]<<" "<<(get_travel_time(x1, x2,solutions[0][1])-get_travel_time(x1, x2,solutions[1][1]))*1*pow(10,9)<<" "<<(get_angle(x1, x2,solutions[0][1])-get_angle(x1, x2,solutions[1][1]))*(180.0/3.142)<<" "<<get_angle(x1, x2,solutions[0][1])*(180.0/3.142)<<" "<<get_angle(x1, x2,solutions[1][1])*(180.0/3.142)<<endl;
-	
-	
-	
-	// ofstream aout("ch_output.txt");
-	// for(int i=1;i<20;i++){
-	//   //cout<<get_travel_time(x1, x2,solutions[0][1])<<" "<<get_travel_time(x1, x2,solutions[1][1])<<" "<<get_travel_time(x1, x2,solutions[0][1])-get_travel_time(x1, x2,solutions[1][1])<<endl;
-	//   x2[1]=-i;
-	//   solutions = find_solutions(x1,x2);
-	//   cout<<solutions[0][1]<<" "<<solutions[1][1]<<endl;
-	//   cout<<x1[0]<<" "<<x1[1]<<" "<<x2[0]<<" "<<x2[1]<<" "<<get_travel_time(x1, x2,solutions[0][1])-get_travel_time(x1, x2,solutions[1][1])<<endl;
-
-	//   aout<<x1[0]<<" "<<x1[1]<<" "<<x2[0]<<" "<<x2[1]<<" "<<(get_travel_time(x1, x2,solutions[0][1])-get_travel_time(x1, x2,solutions[1][1]))*1*pow(10,9)<<" "<<(get_angle(x1, x2,solutions[0][1])-get_angle(x1, x2,solutions[1][1]))*(180.0/3.142)<<" "<<get_angle(x1, x2,solutions[0][1])*(180.0/3.142)<<" "<<get_angle(x1, x2,solutions[1][1])*(180.0/3.142)<<endl;
-	// }
-
-	ofstream aout1("sol1_output.txt");
-	vector <double> sol1_res;
-	vector <double> sol1_zs;
-	get_path(x1,x2,solutions[0][1],sol1_res,sol1_zs,500);
-
-	ofstream aout2("sol2_output.txt");
-	vector <double> sol2_res;
-	vector <double> sol2_zs;
-	get_path(x1,x2,solutions[1][1],sol2_res,sol2_zs,500);
-
-	aout1<<0<<" "<<0<<" "<<0<<endl;
-	for(int i=0; i<int(sol1_res.size());i++){
-	  //printf("Element num, z, y: [%d, %f, %f]\n",i,sol1_res[i],sol1_zs[i]);
-	  aout1<<i<<" "<<sol1_res[i]<<" "<<sol1_zs[i]<<endl;
-	}
-	aout2<<0<<" "<<0<<" "<<0<<endl;
-	for(int i=0; i<int(sol2_res.size());i++){
-	  //printf("Element num, z, y: [%d, %f, %f]\n",i,sol2_res[i],sol2_zs[i]);
-	  aout2<<i<<" "<<sol2_res[i]<<" "<<sol2_zs[i]<<endl;
+	double n_ice = 1.78;
+	double delta_n = 0.427;
+	double z_0 = 71. * utl::m; //meters
+	vector<vector<double> > solutions = find_solutions(x1,x2, n_ice, delta_n, z_0);
+	if(solutions.size()>0){
+		cout<<solutions[0][1]<<" "<<solutions[1][1]<<endl;
 	}
 	
 	return 0;
