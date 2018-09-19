@@ -18,15 +18,16 @@
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_roots.h>
+#include <units.h>
 
 
 using namespace std;
 
 double n_ice = 1.78;
 double b = 2.*n_ice;
-double z_0 = 71.; //meters
+double z_0 = 71. * utl::m; //meters
 double delta_n = 0.427;
-double speed_of_light = 299792458; //meters/second
+double speed_of_light = 299792458 * utl::m/utl::s; //meters/second
 double pi = atan(1.)*4.; //compute and store pi
 double inf = 1e130; //infinity for all practical purposes...
 
@@ -202,7 +203,9 @@ double get_travel_time(double pos[2], double pos2[2], double C0){
 
 double get_temperature(double z){
 	//return temperature as a function of depth
-	return (-51.5 + z * (-4.5319e-3 + 5.822e-6 * z));
+	// from https://icecube.wisc.edu/~mnewcomb/radio/#iceabsorbtion
+	double z2 = abs(z/utl::m);
+	return 1.83415e-09*pow(z2,3) + (-1.59061e-08*z2*z2) + 0.00267687*z2 + (-51.0696 );
 }
 
 double get_attenuation_length(double z, double frequency){
@@ -212,12 +215,12 @@ double get_attenuation_length(double z, double frequency){
 	double w0 = log(f0);
 	double w1 = 0.0;
 	double w2 = log(f2); 
-	double w = log(frequency); //units of GHz
+	double w = log(frequency / utl::GHz);
 	double b0 = -6.74890 + t * (0.026709 - t * 0.000884);
 	double b1 = -6.22121 - t * (0.070927 + t * 0.001773);
 	double b2 = -4.09468 - t * (0.002213 + t * 0.000332);
 	double a, bb;
-	if(frequency<1.){
+	if(frequency<1. * utl::GHz){
 		a = (b1 * w0 - b0 * w1) / (w0 - w1);
 		bb = (b1 - b0) / (w1 - w0);
 	}
@@ -319,8 +322,8 @@ double get_delta_y(double C0, double x1[2], double x2[2]){
 
 int determine_solution_type(double x1[2], double x2[2], double C0){
 	//return 1 for direct solution
-	//return 2 for reflected
-	//return 3 for refraced
+	//return 2 for refracted
+	//return 3 for reflected
 	
 	double c = pow(n_ice,2.) - pow(C0,-2.);
 	double C1 = x1[0] - get_y_with_z_mirror(x1[1],C0);
@@ -335,8 +338,8 @@ int determine_solution_type(double x1[2], double x2[2], double C0){
 	double y_turn = get_y(gamma_turn,C0,C1);
 	if(x2[0] < y_turn) return 1; //direct
 	else{
-		if(abs(z_turn-0.0)<1e-6) return 2; //reflected, trying to do z_turn==0, but == is bad with doubles
-		else return 3; //refracted
+		if(abs(z_turn-0.0)<1e-6) return 3; // reflected, trying to do z_turn==0, but == is bad with doubles
+		else return 2; //refracted
 	}
 }
 
@@ -414,6 +417,9 @@ double obj_delta_y(double logC0, void *p){
 	return get_delta_y(C0,x1,x2);
 }
 
+
+
+
 vector <vector <double> > find_solutions(double x1[2], double x2[2]){
 	//function finds all ray tracing solutions
 	//we assume that x2 is above and to the right of x2_mirrored
@@ -465,7 +471,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2]){
 			x_guess = gsl_root_fdfsolver_root(sfdf);
 			status = gsl_root_test_delta(x_guess,root_1,0,0.0000001);
 			if(status == GSL_SUCCESS){
-				//printf("Converged on root 1! Iteration %d\n",iter);
+				printf("Converged on root 1! Iteration %d\n",iter);
 				found_root_1=true;
 			}
 		} while (status == GSL_CONTINUE && iter < max_iter && num_badfunc_tries<max_badfunc_tries);
@@ -531,7 +537,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2]){
 				status2 = gsl_root_test_interval(logC0_start,logC0_stop,0,0.000001);
 				if(status2==GSL_EBADFUNC) {status2=GSL_CONTINUE; num_badfunc_tries++; continue;} 
 				if(status2 == GSL_SUCCESS){
-					//printf("Converged on root 2! Iteration %d\n",iter);
+					printf("Converged on root 2! Iteration %d\n",iter);
 					found_root_2=true;
 					root_2 = gsl_root_fsolver_root(s);
 				}
@@ -598,7 +604,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2]){
 				status3 = gsl_root_test_interval(logC0_start,logC0_stop,0,0.000001);
 				if(status3==GSL_EBADFUNC) {status3=GSL_CONTINUE; num_badfunc_tries++; continue;} 
 				if(status3 == GSL_SUCCESS){
-					//printf("Converged on root 3! Iteration %d\n",iter);
+					printf("Converged on root 3! Iteration %d\n",iter);
 					found_root_3=true;
 					root_3 = gsl_root_fsolver_root(s);
 				}
@@ -622,6 +628,21 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2]){
 	else printf("No solution with logc0 < %.3f exist\n",logC0_stop);
 	
 	return results;
+}
+
+void find_solutions2(double*& C0s, double*& C1s, int*& types, int& nSolutions, double y1, double z1, double y2, double z2) {
+	double x1[2] = {y1, z1};
+	double x2[2] = {y2, z2};
+	vector < vector<double> > solutions2 = find_solutions(x1, x2);
+	nSolutions = solutions2.size();
+	C0s = new double[nSolutions];
+	C1s = new double[nSolutions];
+	types = new int[nSolutions];
+	for (int i = 0; i < nSolutions; ++i) {
+		C0s[i] = solutions2[i][1];
+		C1s[i] = solutions2[i][2];
+		types[i] = solutions2[i][3];
+	}
 }
 
 void get_path(double x1[2], double x2[2], double C0, vector<double> &res, vector<double> &zs, int n_points=100){
