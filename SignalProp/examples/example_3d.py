@@ -5,8 +5,10 @@ from NuRadioMC.SignalProp import analyticraytraycing as ray
 from NuRadioMC.utilities import units, medium
 import logging
 from radiotools import helper as hp
+from radiotools import plthelpers as php
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('raytracing')
+# ray.cpp_available=False
 
 x1 = np.array([478., 0., -149.])*units.m
 x2 = np.array([635., 0., -5.])*units.m  # direct ray solution
@@ -28,6 +30,7 @@ colors = ['b','g','r']
 fig, ax = plt.subplots(1, 1)
 ax.plot(x1[0], x1[2], 'ko')
 for i, x in enumerate([x2, x3, x4, x5]):
+    print('finding solutions for ', x)
     r = ray.ray_tracing(x1,x,ice)
     r.find_solutions()
     if(r.has_solution()):
@@ -54,8 +57,8 @@ for i, x in enumerate([x2, x3, x4, x5]):
             x2_2d = np.array([X2r[0],X2r[2]])
             r_2d = ray.ray_tracing_2D(ice)
             yy,zz = r_2d.get_path(x1_2d,x2_2d,ray_tracing_C0[i, iS])
-            ax.plot(yy, zz, '{}{}'.format(colors[i],lss[i]), label='{} C0 = {:.4f}'.format(ray_tracing_solution_type[i,iS], ray_tracing_C0[i,iS]))
-            ax.plot(x2_2d[0], x2_2d[1], '{}{}-'.format('d',colors[i]))
+            ax.plot(yy, zz, '{}'.format(php.get_color_linestyle(i)), label='{} C0 = {:.4f}'.format(ray_tracing_solution_type[i,iS], ray_tracing_C0[i,iS]))
+            ax.plot(x2_2d[0], x2_2d[1], '{}{}-'.format('d',php.get_color(i)))
 
 ax.legend()
 ax.set_xlabel("y [m]")
