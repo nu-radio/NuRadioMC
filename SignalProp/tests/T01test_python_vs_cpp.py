@@ -49,3 +49,5 @@ for iX, x in enumerate(points):
             results_C0s_python[iX, iS] = r.get_results()[iS]['C0']
 t_python = time.time() - t_start
 print("Python time = {:.1f} seconds = {:.2f}ms/event".format(t_python, 1000. * t_python / n_events))
+
+print("consistent results: {}".format(np.allclose(results_C0s_cpp, results_C0s_python)))
