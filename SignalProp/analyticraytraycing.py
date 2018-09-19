@@ -14,7 +14,9 @@ cpp_available = False
 try:
     from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
     cpp_available = True
+    print("using CPP version of ray tracer")
 except:
+    print("using python version of ray tracer")
     cpp_available = False
 
 
@@ -464,7 +466,10 @@ class ray_tracing_2D():
         """
         
         if(cpp_available):
-            return wrapper.find_solutions(x1, x2)
+#             t = time.time()
+            solutions = wrapper.find_solutions(x1, x2, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
+#             print((time.time() -t)*1000.)
+            return solutions
         else:
             
             tol = 1e-6

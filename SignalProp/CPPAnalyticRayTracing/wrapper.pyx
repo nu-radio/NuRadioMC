@@ -1,6 +1,7 @@
 import numpy as np
 cimport numpy as np
 from operator import itemgetter
+import time
 
 # Numpy must be initialized. When using numpy from C or Cython you must
 # _always_ do that, or you will have segfaults
@@ -10,7 +11,7 @@ cdef extern from "numpy/arrayobject.h":
     void PyArray_ENABLEFLAGS(np.ndarray arr, int flags)
 
 cdef extern from "analytic_raytracing.cpp":
-    void find_solutions2(double *&, double *&, int *& , int & , double, double, double, double, double, double, double)
+    void find_solutions2(double * &, double * &, int * &, int & , double, double, double, double, double, double, double)
 
 cpdef find_solutions(x1, x2, n_ice, delta_n, z_0):
     cdef:
@@ -20,7 +21,9 @@ cpdef find_solutions(x1, x2, n_ice, delta_n, z_0):
         int size
         np.npy_intp shape[1]
 
+#     t = time.time()
     find_solutions2(C0s, C1s, types, size, x1[0], x1[1], x2[0], x2[1], n_ice, delta_n, z_0)
+#     print((time.time() - t) * 1000)
 
     # 1. Make sure that you have called np.import_array()
     # http://gael-varoquaux.info/programming/
@@ -35,7 +38,7 @@ cpdef find_solutions(x1, x2, n_ice, delta_n, z_0):
     PyArray_ENABLEFLAGS(C1ss, np.NPY_OWNDATA)
     cdef np.ndarray[int, ndim = 1] typess = np.PyArray_SimpleNewFromData(1, shape, np.NPY_INT, types)
     PyArray_ENABLEFLAGS(typess, np.NPY_OWNDATA)
-    
+
     solutions = []
     for i in range(len(C0ss)):
         solutions.append({'type': typess[i],
@@ -43,6 +46,5 @@ cpdef find_solutions(x1, x2, n_ice, delta_n, z_0):
                           'C1': C1ss[i]})
 
     s = sorted(solutions, key=itemgetter('type'))
+#     print((time.time() - t) * 1000)
     return s
-
-
