@@ -469,9 +469,10 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2]){
 			if(status==GSL_EBADFUNC) {status=GSL_CONTINUE; num_badfunc_tries++; continue;} 
 			root_1 = x_guess;
 			x_guess = gsl_root_fdfsolver_root(sfdf);
-			status = gsl_root_test_delta(x_guess,root_1,0,0.0000001);
+			status = gsl_root_test_residual(GSL_FN_FDF_EVAL_F(&FDF,root_1),0.0000001);
 			if(status == GSL_SUCCESS){
 				printf("Converged on root 1! Iteration %d\n",iter);
+				printf("minima =  %f\n",pow(get_delta_y(get_C0_from_log(root_1), x1, x2), 2));
 				found_root_1=true;
 			}
 		} while (status == GSL_CONTINUE && iter < max_iter && num_badfunc_tries<max_badfunc_tries);
@@ -489,143 +490,144 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2]){
 		printf("Solution 1 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol1[0],sol1[1],sol1[2],sol1[3]);
 		
 		results.push_back(sol1);
-	}
 	
-	//reset this counter
-	num_badfunc_tries = 0;
 	
-	/////////
-	////Find root 2: a second solution
-	/////////
-	
-	//now to check if another solution with higher logC0 exists
-	//if the above algorithm failed, then we have to be more brute-forcy in the next go around
-	double logC0_start;
-	if(!found_root_1)  logC0_start=0.;
-	else logC0_start = root_1+0.0001;
-	
-	gsl_function F;
-	F.function = &obj_delta_y;
-	F.params = &params;
+		//reset this counter
+		num_badfunc_tries = 0;
 		
-	double logC0_stop = 100.;
-	double delta_start = GSL_FN_EVAL(&F,logC0_start);
-	double delta_stop = GSL_FN_EVAL(&F,logC0_stop);
-	bool found_root_2 = false;
-	double root_2 = -10000000;
-	if(signbit(delta_start)!=signbit(delta_stop)){
-		//printf("Solutions with logc0 > %.3f exist\n",root_1);
+		/////////
+		////Find root 2: a second solution
+		/////////
 		
-		//now we must solve again
-		//let's use Brent's method, which should be faster
-		//now that we know there is a y=0 (x-axis) crossing
-		int status2;
-		const gsl_root_fsolver_type *T;
-		gsl_root_fsolver *s;
-
-		T = gsl_root_fsolver_brent;
-		s = gsl_root_fsolver_alloc(T);
-		gsl_root_fsolver_set(s, &F, logC0_start, logC0_stop);
-			gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
-			iter=0;
-			do{
-				iter++;
-				status2 = gsl_root_fsolver_iterate(s);
-				logC0_start = gsl_root_fsolver_x_lower(s);
-				logC0_stop = gsl_root_fsolver_x_upper(s);
-				//printf("[Iter, Xlo, Xhi]: [%d, %.8f, %.8f] \n",iter,logC0_start,logC0_stop);
-				status2 = gsl_root_test_interval(logC0_start,logC0_stop,0,0.000001);
-				if(status2==GSL_EBADFUNC) {status2=GSL_CONTINUE; num_badfunc_tries++; continue;} 
-				if(status2 == GSL_SUCCESS){
-					printf("Converged on root 2! Iteration %d\n",iter);
-					found_root_2=true;
-					root_2 = gsl_root_fsolver_root(s);
-				}
-			} while (status2 == GSL_CONTINUE && iter < max_iter && num_badfunc_tries<max_badfunc_tries);
-			gsl_set_error_handler (myhandler); //restore original error handler
-		gsl_root_fsolver_free (s);
+		//now to check if another solution with higher logC0 exists
+		//if the above algorithm failed, then we have to be more brute-forcy in the next go around
+		double logC0_start;
+		if(!found_root_1)  logC0_start=0.;
+		else logC0_start = root_1+0.0001;
 		
-		if(found_root_2){
-			vector <double> sol2;
-			sol2.push_back(root_2);
-			double C0 = get_C0_from_log(root_2);
-			sol2.push_back(C0);
-			sol2.push_back(get_C1(x1,C0));
-			sol2.push_back(ceil(double(determine_solution_type(x1,x2,C0))));
-		
-			printf("Solution 2 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol2[0],sol2[1],sol2[2],sol2[3]);
-		
-			results.push_back(sol2);
-		}
-	}
-	else printf("No solution with logc0 > %.3f exist\n",logC0_start);
-	
-	//reset this counter
-	num_badfunc_tries = 0;
-	
-	/////////
-	////Find root 3: a third solution
-	/////////
-	
-	//now to check if another solution with lower logC0 exists
-	//if the above algorithm failed, then we have to be more brute-forcy in the next go around
-	
-	if(!found_root_1)  logC0_stop=0.0001;
-	else logC0_stop = root_1-0.0001;
-		
-	logC0_start = -100.;
-	delta_start = GSL_FN_EVAL(&F,logC0_start);
-	delta_stop = GSL_FN_EVAL(&F,logC0_stop);
-	bool found_root_3 = false;
-	double root_3 = -10000000;
-	if(signbit(delta_start)!=signbit(delta_stop)){
-		//printf("Solutions with logc0 > %.3f exist\n",root_1);
-		
-		//now we must solve again
-		//let's use Brent's method, which should be faster
-		//now that we know there is a y=0 (x-axis) crossing
-		int status3;
-		const gsl_root_fsolver_type *T;
-		gsl_root_fsolver *s;
 		gsl_function F;
 		F.function = &obj_delta_y;
 		F.params = &params;
-		T = gsl_root_fsolver_brent;
-		s = gsl_root_fsolver_alloc(T);
+
+		double logC0_stop = 100.;
+		double delta_start = GSL_FN_EVAL(&F,logC0_start);
+		double delta_stop = GSL_FN_EVAL(&F,logC0_stop);
+		bool found_root_2 = false;
+		double root_2 = -10000000;
+		if(signbit(delta_start)!=signbit(delta_stop)){
+			//printf("Solutions with logc0 > %.3f exist\n",root_1);
+
+			//now we must solve again
+			//let's use Brent's method, which should be faster
+			//now that we know there is a y=0 (x-axis) crossing
+			int status2;
+			const gsl_root_fsolver_type *T;
+			gsl_root_fsolver *s;
+
+			T = gsl_root_fsolver_brent;
+			s = gsl_root_fsolver_alloc(T);
 			gsl_root_fsolver_set(s, &F, logC0_start, logC0_stop);
-			gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
-			iter=0;
-			do{
-				iter++;
-				status3 = gsl_root_fsolver_iterate(s);
-				logC0_start = gsl_root_fsolver_x_lower(s);
-				logC0_stop = gsl_root_fsolver_x_upper(s);
-				//printf("[Iter, Xlo, Xhi]: [%d, %.8f, %.8f] \n",iter,logC0_start,logC0_stop);
-				status3 = gsl_root_test_interval(logC0_start,logC0_stop,0,0.000001);
-				if(status3==GSL_EBADFUNC) {status3=GSL_CONTINUE; num_badfunc_tries++; continue;} 
-				if(status3 == GSL_SUCCESS){
-					printf("Converged on root 3! Iteration %d\n",iter);
-					found_root_3=true;
-					root_3 = gsl_root_fsolver_root(s);
-				}
-			} while (status3 == GSL_CONTINUE && iter < max_iter && num_badfunc_tries<max_badfunc_tries);
-			gsl_set_error_handler (myhandler); //restore original error handler
-		gsl_root_fsolver_free (s);
-		
-		if(found_root_3){
-			vector <double> sol3;
-			sol3.push_back(root_3);
-			double C0 = get_C0_from_log(root_3);
-			sol3.push_back(C0);
-			sol3.push_back(get_C1(x1,C0));
-			sol3.push_back(ceil(double(determine_solution_type(x1,x2,C0))));
-		
-			printf("Solution 3 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol3[0],sol3[1],sol3[2],sol3[3]);
-		
-			results.push_back(sol3);
+				gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
+				iter=0;
+				do{
+					iter++;
+					status2 = gsl_root_fsolver_iterate(s);
+					logC0_start = gsl_root_fsolver_x_lower(s);
+					logC0_stop = gsl_root_fsolver_x_upper(s);
+					//printf("[Iter, Xlo, Xhi]: [%d, %.8f, %.8f] \n",iter,logC0_start,logC0_stop);
+					status2 = gsl_root_test_interval(logC0_start,logC0_stop,0,0.000001);
+					if(status2==GSL_EBADFUNC) {status2=GSL_CONTINUE; num_badfunc_tries++; continue;}
+					if(status2 == GSL_SUCCESS){
+						printf("Converged on root 2! Iteration %d\n",iter);
+						found_root_2=true;
+						root_2 = gsl_root_fsolver_root(s);
+					}
+				} while (status2 == GSL_CONTINUE && iter < max_iter && num_badfunc_tries<max_badfunc_tries);
+				gsl_set_error_handler (myhandler); //restore original error handler
+			gsl_root_fsolver_free (s);
+
+			if(found_root_2){
+				vector <double> sol2;
+				sol2.push_back(root_2);
+				double C0 = get_C0_from_log(root_2);
+				sol2.push_back(C0);
+				sol2.push_back(get_C1(x1,C0));
+				sol2.push_back(ceil(double(determine_solution_type(x1,x2,C0))));
+
+				printf("Solution 2 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol2[0],sol2[1],sol2[2],sol2[3]);
+
+				results.push_back(sol2);
+			}
 		}
+		else printf("No solution with logc0 > %.3f exist\n",logC0_start);
+
+		//reset this counter
+		num_badfunc_tries = 0;
+		
+		/////////
+		////Find root 3: a third solution
+		/////////
+		
+		//now to check if another solution with lower logC0 exists
+		//if the above algorithm failed, then we have to be more brute-forcy in the next go around
+		
+		if(!found_root_1)  logC0_stop=0.0001;
+		else logC0_stop = root_1-0.0001;
+
+		logC0_start = -100.;
+		delta_start = GSL_FN_EVAL(&F,logC0_start);
+		delta_stop = GSL_FN_EVAL(&F,logC0_stop);
+		bool found_root_3 = false;
+		double root_3 = -10000000;
+		if(signbit(delta_start)!=signbit(delta_stop)){
+			//printf("Solutions with logc0 > %.3f exist\n",root_1);
+
+			//now we must solve again
+			//let's use Brent's method, which should be faster
+			//now that we know there is a y=0 (x-axis) crossing
+			int status3;
+			const gsl_root_fsolver_type *T;
+			gsl_root_fsolver *s;
+			gsl_function F;
+			F.function = &obj_delta_y;
+			F.params = &params;
+			T = gsl_root_fsolver_brent;
+			s = gsl_root_fsolver_alloc(T);
+				gsl_root_fsolver_set(s, &F, logC0_start, logC0_stop);
+				gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
+				iter=0;
+				do{
+					iter++;
+					status3 = gsl_root_fsolver_iterate(s);
+					logC0_start = gsl_root_fsolver_x_lower(s);
+					logC0_stop = gsl_root_fsolver_x_upper(s);
+					//printf("[Iter, Xlo, Xhi]: [%d, %.8f, %.8f] \n",iter,logC0_start,logC0_stop);
+					status3 = gsl_root_test_interval(logC0_start,logC0_stop,0,0.000001);
+					if(status3==GSL_EBADFUNC) {status3=GSL_CONTINUE; num_badfunc_tries++; continue;}
+					if(status3 == GSL_SUCCESS){
+						printf("Converged on root 3! Iteration %d\n",iter);
+						found_root_3=true;
+						root_3 = gsl_root_fsolver_root(s);
+					}
+				} while (status3 == GSL_CONTINUE && iter < max_iter && num_badfunc_tries<max_badfunc_tries);
+				gsl_set_error_handler (myhandler); //restore original error handler
+			gsl_root_fsolver_free (s);
+
+			if(found_root_3){
+				vector <double> sol3;
+				sol3.push_back(root_3);
+				double C0 = get_C0_from_log(root_3);
+				sol3.push_back(C0);
+				sol3.push_back(get_C1(x1,C0));
+				sol3.push_back(ceil(double(determine_solution_type(x1,x2,C0))));
+
+				printf("Solution 3 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol3[0],sol3[1],sol3[2],sol3[3]);
+
+				results.push_back(sol3);
+			}
+		}
+		else printf("No solution with logc0 < %.3f exist\n",logC0_stop);
 	}
-	else printf("No solution with logc0 < %.3f exist\n",logC0_stop);
 	
 	return results;
 }
