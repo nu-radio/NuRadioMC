@@ -661,20 +661,21 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	return results;
 }
 
-// void find_solutions2(double*& C0s, double*& C1s, int*& types, int& nSolutions, double y1, double z1, double y2, double z2) {
-// 	double x1[2] = {y1, z1};
-// 	double x2[2] = {y2, z2};
-// 	vector < vector<double> > solutions2 = find_solutions(x1, x2);
-// 	nSolutions = solutions2.size();
-// 	C0s = new double[nSolutions];
-// 	C1s = new double[nSolutions];
-// 	types = new int[nSolutions];
-// 	for (int i = 0; i < nSolutions; ++i) {
-// 		C0s[i] = solutions2[i][1];
-// 		C1s[i] = solutions2[i][2];
-// 		types[i] = solutions2[i][3];
-// 	}
-// }
+ void find_solutions2(double*& C0s, double*& C1s, int*& types, int& nSolutions, double y1, double z1, double y2, double z2,  double n_ice, double delta_n, double z_0) {
+ 	double x1[2] = {y1, z1};
+ 	double x2[2] = {y2, z2};
+ 	printf("%f %f %f", n_ice, delta_n, z_0);
+ 	vector < vector<double> > solutions2 = find_solutions(x1, x2, n_ice, delta_n, z_0);
+ 	nSolutions = solutions2.size();
+ 	C0s = new double[nSolutions];
+ 	C1s = new double[nSolutions];
+ 	types = new int[nSolutions];
+ 	for (int i = 0; i < nSolutions; ++i) {
+ 		C0s[i] = solutions2[i][1];
+ 		C1s[i] = solutions2[i][2];
+ 		types[i] = solutions2[i][3];
+ 	}
+ }
 
 void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[2], double C0, vector<double> &res, vector<double> &zs, int n_points=100){
 	
