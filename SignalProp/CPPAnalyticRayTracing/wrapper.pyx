@@ -10,9 +10,9 @@ cdef extern from "numpy/arrayobject.h":
     void PyArray_ENABLEFLAGS(np.ndarray arr, int flags)
 
 cdef extern from "analytic_raytracing.cpp":
-    void find_solutions2(double *&, double *&, int *& , int & , double, double, double, double)
+    void find_solutions2(double *&, double *&, int *& , int & , double, double, double, double, double, double, double)
 
-cpdef find_solutions(x1, x2):
+cpdef find_solutions(x1, x2, n_ice, delta_n, z_0):
     cdef:
         double * C0s
         double * C1s
@@ -20,7 +20,7 @@ cpdef find_solutions(x1, x2):
         int size
         np.npy_intp shape[1]
 
-    find_solutions2(C0s, C1s, types, size, x1[0], x1[1], x2[0], x2[1])
+    find_solutions2(C0s, C1s, types, size, x1[0], x1[1], x2[0], x2[1], n_ice, delta_n, z_0)
 
     # 1. Make sure that you have called np.import_array()
     # http://gael-varoquaux.info/programming/
