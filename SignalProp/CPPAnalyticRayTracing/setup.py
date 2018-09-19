@@ -8,7 +8,7 @@ import numpy
 extensions = [
     Extension('wrapper', ['wrapper.pyx'],
               include_dirs=[numpy.get_include(), '../../utilities/'],
-#               extra_compile_args=['-std=c++11'],
+            extra_compile_args=['-O3'],
             libraries=['gsl', 'gslcblas'],
               language='c++'
               ),

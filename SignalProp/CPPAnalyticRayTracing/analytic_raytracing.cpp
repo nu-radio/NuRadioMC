@@ -7,6 +7,7 @@
 #include <math.h>
 #include <vector>
 #include <stdio.h>
+#include <time.h>
 
 #include <fstream>
 #include <sstream>
@@ -469,7 +470,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	/////////
 	
 	int status;
-	int iter=0, max_iter=20000;
+	int iter=0, max_iter=200;
 	double x_guess = -1;
 	bool found_root_1=false;
 	double root_1=-10000000; //some insane value we'd never believe
@@ -484,7 +485,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	Tfdf = gsl_root_fdfsolver_secant;
 	sfdf = gsl_root_fdfsolver_alloc(Tfdf);
 	int num_badfunc_tries = 0;
-	int max_badfunc_tries = 50;
+	int max_badfunc_tries = 100;
 	gsl_root_fdfsolver_set(sfdf,&FDF,x_guess);
 		gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
 		do{
@@ -496,7 +497,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 			if(status==GSL_EBADFUNC) {status=GSL_CONTINUE; num_badfunc_tries++; continue;} 
 			root_1 = x_guess;
 			x_guess = gsl_root_fdfsolver_root(sfdf);
-			status = gsl_root_test_residual(GSL_FN_FDF_EVAL_F(&FDF,root_1),0.0000001);
+			status = gsl_root_test_residual(GSL_FN_FDF_EVAL_F(&FDF,root_1),1e-7);
 			if(status == GSL_SUCCESS){
 //				printf("Converged on root 1! Iteration %d\n",iter);
 //				printf("minima =  %f\n",pow(get_delta_y(get_C0_from_log(root_1, n_ice, delta_n, z_0), x1, x2, n_ice, delta_n, z_0), 2));
@@ -506,6 +507,10 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 		gsl_set_error_handler (myhandler); //restore original error handler
 	gsl_root_fdfsolver_free (sfdf);
 	
+	if(!found_root_1) {
+//		printf("NOT converged on root 1! Iteration %d\n",iter);
+	}
+
 	if(found_root_1){
 		vector <double> sol1;
 		sol1.push_back(root_1);
@@ -663,6 +668,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 }
 
  void find_solutions2(double*& C0s, double*& C1s, int*& types, int& nSolutions, double y1, double z1, double y2, double z2,  double n_ice, double delta_n, double z_0) {
+// 	clock_t begin = clock();
  	double x1[2] = {y1, z1};
  	double x2[2] = {y2, z2};
  	vector < vector<double> > solutions2 = find_solutions(x1, x2, n_ice, delta_n, z_0);
@@ -675,6 +681,9 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
  		C1s[i] = solutions2[i][2];
  		types[i] = solutions2[i][3];
  	}
+// 	clock_t end = clock();
+//    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+// 	printf("%f (%d solutions)\n", 1000* elapsed_secs, nSolutions);
  }
 
 void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[2], double C0, vector<double> &res, vector<double> &zs, int n_points=100){

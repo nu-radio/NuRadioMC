@@ -4,6 +4,7 @@ import time
 from NuRadioMC.SignalProp import analyticraytraycing as ray
 from NuRadioMC.utilities import units, medium
 import logging
+import time
 from radiotools import helper as hp
 from radiotools import plthelpers as php
 logging.basicConfig(level=logging.INFO)
@@ -28,14 +29,18 @@ x_receiver = np.array([0., 0., -5.])
 
 results_C0s_cpp = np.zeros((n_events, 2))
 t_start = time.time()
+# tt = 0
 for iX, x in enumerate(points):
+#     t_start2 = time.time()
     r = ray.ray_tracing(x, x_receiver, ice)
+#     tt += (time.time() - t_start2)
     r.find_solutions()
     if(r.has_solution()):
         for iS in range(r.get_number_of_solutions()):
             results_C0s_cpp[iX, iS] = r.get_results()[iS]['C0']
 t_cpp = time.time() - t_start
 print("CPP time = {:.1f} seconds = {:.2f}ms/event".format(t_cpp, 1000. * t_cpp / n_events))
+# print("CPP time = {:.1f} seconds = {:.2f}ms/event".format(tt, 1000. * tt / n_events))
 
 
 results_C0s_python = np.zeros((n_events, 2))
