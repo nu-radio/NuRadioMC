@@ -218,7 +218,7 @@ double get_temperature(double z){
 	//return temperature as a function of depth
 	// from https://icecube.wisc.edu/~mnewcomb/radio/#iceabsorbtion
 	double z2 = abs(z/utl::m);
-	return 1.83415e-09*pow(z2,3) + (-1.59061e-08*z2*z2) + 0.00267687*z2 + (-51.0696 );
+	return 1.83415e-09*z2*z2*z2 + (-1.59061e-08*z2*z2) + 0.00267687*z2 + (-51.0696 );
 }
 
 double get_attenuation_length(double z, double frequency){
@@ -258,7 +258,8 @@ double dt_freq (double t, void *p){
 	return sqrt((pow(get_y_diff(t,C0,n_ice, delta_n, z_0),2.)+1)) / get_attenuation_length(z,freq);
 }
 
-double get_attenuation_along_path(double pos[2], double pos2[2], double C0, double frequency, double n_ice, double delta_n, double z_0){
+double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
+		double frequency, double n_ice, double delta_n, double z_0){
 	double x2_mirrored[2]={0.};
 	get_z_mirrored(pos,pos2,C0,x2_mirrored, n_ice, delta_n, z_0);
 	
@@ -274,6 +275,13 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0, doub
 	gsl_integration_workspace_free(w);
 	double attenuation = exp(-1 * result);
 	return attenuation;
+}
+
+double get_attenuation_along_path2(double pos_y, double pos_z, double pos2_y, double pos2_z,
+		double C0, double frequency, double n_ice, double delta_n, double z_0) {
+	double pos[2] = {pos_y, pos_z};
+	double pos2[2] = {pos2_y, pos2_z};
+	return get_attenuation_along_path(pos, pos2, C0, frequency, n_ice, delta_n, z_0);
 }
 
 double get_angle(double x[2], double x_start[2], double C0, double n_ice, double delta_n, double z_0){
