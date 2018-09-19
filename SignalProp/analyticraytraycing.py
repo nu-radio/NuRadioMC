@@ -234,29 +234,42 @@ class ray_tracing_2D():
         return travel_time[0]
 
     def get_attenuation_along_path(self, x1, x2, C_0, frequency):
-        x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
-
-        def dt(t, C_0, frequency):
-            z = self.get_z_unmirrored(t, C_0)
-            return self.ds(t, C_0) / self.get_attenuation_length(z, frequency)
-
-        mask = frequency > 0
-
-        # to speed up things we only calculate the attenuation for a few frequencies
-        # and interpolate linearly between them
-        freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), self.__n_frequencies_integration)
-        gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-        points = None
-        if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
-            points = [z_turn]
-        tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05, points=points)[0] for f in freqs])
-        att_func = interpolate.interp1d(freqs, tmp)
-        tmp2 = att_func(frequency[mask])
-#         tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in frequency[mask]])
-        attenuation = np.ones_like(frequency)
-        attenuation[mask] = np.exp(-1 * tmp2)
-        self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation))
-        return attenuation
+        if(cpp_available):
+            mask = frequency > 0
+            freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), self.__n_frequencies_integration)
+            tmp = np.zeros(self.__n_frequencies_integration)
+            for i, f in enumerate(freqs):
+                tmp[i] =  wrapper.get_attenuation_along_path(x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
+                
+            att_func = interpolate.interp1d(freqs, tmp)
+            attenuation = np.ones_like(frequency)
+            attenuation[mask] = att_func(frequency[mask])
+            return attenuation
+        else:
+        
+            x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
+    
+            def dt(t, C_0, frequency):
+                z = self.get_z_unmirrored(t, C_0)
+                return self.ds(t, C_0) / self.get_attenuation_length(z, frequency)
+    
+            mask = frequency > 0
+    
+            # to speed up things we only calculate the attenuation for a few frequencies
+            # and interpolate linearly between them
+            freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), self.__n_frequencies_integration)
+            gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+            points = None
+            if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
+                points = [z_turn]
+            tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=5e-2, points=points)[0] for f in freqs])
+            att_func = interpolate.interp1d(freqs, tmp)
+            tmp2 = att_func(frequency[mask])
+    #         tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in frequency[mask]])
+            attenuation = np.ones_like(frequency)
+            attenuation[mask] = np.exp(-1 * tmp2)
+            self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation))
+            return attenuation
 
 #     def get_temperature(self, z):
 #         return (-51.5 + z * (-4.5319e-3 + 5.822e-6 * z))
