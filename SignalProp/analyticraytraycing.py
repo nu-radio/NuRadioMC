@@ -8,6 +8,16 @@ import scipy.constants
 from NuRadioMC.utilities import units
 from operator import itemgetter
 import logging
+
+# check if CPP implementation is available
+cpp_available = False
+try:
+    from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
+    cpp_available = True
+except:
+    cpp_available = False
+
+
 """
 analytic ray tracing solution
 """
@@ -452,73 +462,78 @@ class ray_tracing_2D():
 
         returns an array of the C_0 paramters of the solutions (the array might be empty)
         """
-        tol = 1e-4
-        results = []
-        C0s = []  # intermediate storage of results
-        self.__logger.debug('starting optimization with x0 = {:.2f} -> C0 = {:.3f}'.format(-1, self.get_C0_from_log(-1)))
-        result = optimize.root(self.obj_delta_y_square, x0=-1, args=(x1, x2), tol=tol)
-        if(plot):
-            fig, ax = plt.subplots(1, 1)
-        if(result.fun < 1e-5):
-            if(plot):
-                self.plot_result(x1, x2, self.get_C0_from_log(result.x[0]), ax)
-            if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
-                C_0 = self.get_C0_from_log(result.x[0])
-                C0s.append(C_0)
-                solution_type = self.determine_solution_type(x1, x2, C_0)
-                self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
-                results.append({'type': solution_type,
-                                'C0': C_0,
-                                'C1': self.get_C_1(x1, C_0)})
-
-        # check if another solution with higher logC0 exists
-        logC0_start = result.x[0] + 0.0001
-        logC0_stop = 100
-        delta_start = self.obj_delta_y(logC0_start, x1, x2)
-        delta_stop = self.obj_delta_y(logC0_stop, x1, x2)
-    #     print(logC0_start, logC0_stop, delta_start, delta_stop, np.sign(delta_start), np.sign(delta_stop))
-        if(np.sign(delta_start) != np.sign(delta_stop)):
-            self.__logger.info("solution with logC0 > {:.3f} exists".format(result.x[0]))
-            result2 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2))
-            if(plot):
-                self.plot_result(x1, x2, self.get_C0_from_log(result2), ax)
-            if(np.round(result2, 3) not in np.round(C0s, 3)):
-                C_0 = self.get_C0_from_log(result2)
-                C0s.append(C_0)
-                solution_type = self.determine_solution_type(x1, x2, C_0)
-                self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
-                results.append({'type': solution_type,
-                                'C0': C_0,
-                                'C1': self.get_C_1(x1, C_0)})
+        
+        if(cpp_available):
+            return wrapper.find_solutions(x1, x2)
         else:
-            self.__logger.info("no solution with logC0 > {:.3f} exists".format(result.x[0]))
-
-        logC0_start = -100
-        logC0_stop = result.x[0] - 0.0001
-        delta_start = self.obj_delta_y(logC0_start, x1, x2)
-        delta_stop = self.obj_delta_y(logC0_stop, x1, x2)
-    #     print(logC0_start, logC0_stop, delta_start, delta_stop, np.sign(delta_start), np.sign(delta_stop))
-        if(np.sign(delta_start) != np.sign(delta_stop)):
-            self.__logger.info("solution with logC0 < {:.3f} exists".format(result.x[0]))
-            result3 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2))
-
-            if(plot):
-                self.plot_result(x1, x2, self.get_C0_from_log(result3), ax)
-            if(np.round(result3, 3) not in np.round(C0s, 3)):
-                C_0 = self.get_C0_from_log(result3)
-                C0s.append(C_0)
-                solution_type = self.determine_solution_type(x1, x2, C_0)
-                self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
-                results.append({'type': solution_type,
-                                'C0': C_0,
-                                'C1': self.get_C_1(x1, C_0)})
-        else:
-            self.__logger.info("no solution with logC0 < {:.3f} exists".format(result.x[0]))
-
-        if(plot):
-            plt.show()
             
-        return sorted(results, key=itemgetter('type'))
+            tol = 1e-6
+            results = []
+            C0s = []  # intermediate storage of results
+            self.__logger.debug('starting optimization with x0 = {:.2f} -> C0 = {:.3f}'.format(-1, self.get_C0_from_log(-1)))
+            result = optimize.root(self.obj_delta_y_square, x0=-1, args=(x1, x2), tol=tol)
+            if(plot):
+                fig, ax = plt.subplots(1, 1)
+            if(result.fun < 1e-7):
+                if(plot):
+                    self.plot_result(x1, x2, self.get_C0_from_log(result.x[0]), ax)
+                if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
+                    C_0 = self.get_C0_from_log(result.x[0])
+                    C0s.append(C_0)
+                    solution_type = self.determine_solution_type(x1, x2, C_0)
+                    self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
+                    results.append({'type': solution_type,
+                                    'C0': C_0,
+                                    'C1': self.get_C_1(x1, C_0)})
+    
+            # check if another solution with higher logC0 exists
+            logC0_start = result.x[0] + 0.0001
+            logC0_stop = 100
+            delta_start = self.obj_delta_y(logC0_start, x1, x2)
+            delta_stop = self.obj_delta_y(logC0_stop, x1, x2)
+        #     print(logC0_start, logC0_stop, delta_start, delta_stop, np.sign(delta_start), np.sign(delta_stop))
+            if(np.sign(delta_start) != np.sign(delta_stop)):
+                self.__logger.info("solution with logC0 > {:.3f} exists".format(result.x[0]))
+                result2 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2))
+                if(plot):
+                    self.plot_result(x1, x2, self.get_C0_from_log(result2), ax)
+                if(np.round(result2, 3) not in np.round(C0s, 3)):
+                    C_0 = self.get_C0_from_log(result2)
+                    C0s.append(C_0)
+                    solution_type = self.determine_solution_type(x1, x2, C_0)
+                    self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
+                    results.append({'type': solution_type,
+                                    'C0': C_0,
+                                    'C1': self.get_C_1(x1, C_0)})
+            else:
+                self.__logger.info("no solution with logC0 > {:.3f} exists".format(result.x[0]))
+    
+            logC0_start = -100
+            logC0_stop = result.x[0] - 0.0001
+            delta_start = self.obj_delta_y(logC0_start, x1, x2)
+            delta_stop = self.obj_delta_y(logC0_stop, x1, x2)
+        #     print(logC0_start, logC0_stop, delta_start, delta_stop, np.sign(delta_start), np.sign(delta_stop))
+            if(np.sign(delta_start) != np.sign(delta_stop)):
+                self.__logger.info("solution with logC0 < {:.3f} exists".format(result.x[0]))
+                result3 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2))
+    
+                if(plot):
+                    self.plot_result(x1, x2, self.get_C0_from_log(result3), ax)
+                if(np.round(result3, 3) not in np.round(C0s, 3)):
+                    C_0 = self.get_C0_from_log(result3)
+                    C0s.append(C_0)
+                    solution_type = self.determine_solution_type(x1, x2, C_0)
+                    self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
+                    results.append({'type': solution_type,
+                                    'C0': C_0,
+                                    'C1': self.get_C_1(x1, C_0)})
+            else:
+                self.__logger.info("no solution with logC0 < {:.3f} exists".format(result.x[0]))
+    
+            if(plot):
+                plt.show()
+                
+            return sorted(results, key=itemgetter('type'))
 
     def plot_result(self, x1, x2, C_0, ax):
         """
