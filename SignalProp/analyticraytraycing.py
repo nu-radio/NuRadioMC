@@ -6,15 +6,16 @@ from scipy.optimize import fsolve, minimize, basinhopping, root
 from scipy import optimize, integrate, interpolate
 import scipy.constants
 from NuRadioMC.utilities import units
+from operator import itemgetter
 import logging
 """
 analytic ray tracing solution
 """
 speed_of_light = scipy.constants.c * units.m / units.s
 
-solution_types = {0: 'direct',
-                  1: 'refracted',
-                  2: 'reflected'}
+solution_types = {1: 'direct',
+                  2: 'refracted',
+                  3: 'reflected'}
 
 
 class ray_tracing_2D():
@@ -422,9 +423,9 @@ class ray_tracing_2D():
         Returns
         -------
         solution_type: int
-            * 0: 'direct'
-            * 1: 'refracted'
-            * 2: 'reflected
+            * 1: 'direct'
+            * 2: 'refracted'
+            * 3: 'reflected
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
         C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
@@ -435,12 +436,12 @@ class ray_tracing_2D():
             gamma_turn = self.get_gamma(0)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
         if(x2[0] < y_turn):
-            return 0
+            return 1
         else:
             if(z_turn == 0):
-                return 2
+                return 3
             else:
-                return 1
+                return 2
 
     def find_solutions(self, x1, x2, plot=False):
         """
@@ -516,7 +517,8 @@ class ray_tracing_2D():
 
         if(plot):
             plt.show()
-        return results
+            
+        return sorted(results, key=itemgetter('type'))
 
     def plot_result(self, x1, x2, C_0, ax):
         """
@@ -627,9 +629,9 @@ class ray_tracing:
         Returns
         -------
         solution_type: int
-            * 0: 'direct'
-            * 1: 'refracted'
-            * 2: 'reflected
+            * 1: 'direct'
+            * 2: 'refracted'
+            * 3: 'reflected
         """
         return self.__r2d.determine_solution_type(self.__x1, self.__x2, self.__results[iS]['C0'])
 
