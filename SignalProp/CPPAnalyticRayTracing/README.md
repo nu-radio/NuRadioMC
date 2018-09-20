@@ -6,7 +6,14 @@ You will need to have a functioning installation of [GSL](https://www.gnu.org/so
 - You will need to set the enviromnent variable `GSLDIR` to your local installation of GSL.
 - You will also need to have `GSLDIR` in your `LD_LIBRARY_PATH`.
 
-## Getting Going
+## Install instructions
+
+### As part of NuRadioMC
+To create python wrapper around the relevant C function, so that the C code can be used directly from the ray tracer
+class of NuRadioMC just execute
+`python setup.py build_ext --inplace` 
+
+### As standalone package
 Getting going is easy. Just:
 - Make it: `make analytic_raytracing`
 - Run it: `./analytic_raytracing`
@@ -15,5 +22,3 @@ Getting going is easy. Just:
   - Find the ray tracing path, path length, time of flight, and attenuation factor of the ray.
   - Find the launch and receive angles for the ray.
 
-## Credit
-- This is largely a C++ transcription of the **fantastic** work done by Christian Glaser
