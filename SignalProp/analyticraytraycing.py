@@ -360,6 +360,62 @@ class ray_tracing_2D():
 #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
             return get_ToF_direct(x1[1], z_turn) + get_ToF_direct(x2[1], z_turn)
 
+        def get_travel_time_analytic_2(self, x1, x2, C_0):
+        """
+        analytic solution to calculate the time of flight. This code is based on the analytic solution found
+        by Uzair Latif
+        """
+        solution_type = self.determine_solution_type(x1, x2, C_0)
+
+        launch_angle = self.get_launch_angle(x1, C_0)
+        A=self.medium.n_ice
+        B=-self.medium.delta_n
+        C=np.fabs(1.0/self.medium.z_0)
+        lval=(A+B*np.exp(C*x1[1]))*np.sin((launch_angle/units.rad))
+
+        time=0
+        if(solution_type==1):
+            p1=A
+            p2=B
+            p3=-C
+            p4=299792458.0
+            p5=lval
+            def tD(z):
+                return (1.0/(p4*p3*np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5)))*(np.power(p1+p2*np.exp(z*p3),2)-p5*p5+(p3*z-np.log(p1*(p1+p2*np.exp(p3*z))-p5*p5+np.sqrt(p1*p1-p5*p5)*np.sqrt(np.power(p1+p2*np.exp(p3*z),2)-p5*p5)))*(p1*p1*np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5))/np.sqrt(p1*p1-p5*p5) +p1*np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5)*np.log(p1+p2*np.exp(z*p3)+np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5)) )
+
+            time=tD(-x1[1])-tD(-x2[1])
+            
+        return time
+        
+        if(solution_type==2):
+            p1=A
+            p2=B
+            p3=C
+            p4=299792458.0
+            p5=lval
+            def tR(z):
+                return (1.0/(p4*p3*np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5)))*(np.power(p1+p2*np.exp(z*p3),2)-p5*p5+(p3*z-np.log(p1*(p1+p2*np.exp(p3*z))-p5*p5+np.sqrt(p1*p1-p5*p5)*np.sqrt(np.power(p1+p2*np.exp(p3*z),2)-p5*p5)))*(p1*p1*np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5))/np.sqrt(p1*p1-p5*p5) +p1*np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5)*np.log(p1+p2*np.exp(z*p3)+np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5)) )
+
+            time=tR(-0.0000001)-tR(x1[1])+tR(-0.0000001)-tR(x2[1])
+            
+        return time
+
+    if(solution_type==3):
+            p1=A
+            p2=B
+            p3=C
+            p4=299792458.0
+            p5=lval
+            def tRa(z):
+                return (1.0/(p4*p3*np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5)))*(np.power(p1+p2*np.exp(z*p3),2)-p5*p5+(p3*z-np.log(p1*(p1+p2*np.exp(p3*z))-p5*p5+np.sqrt(p1*p1-p5*p5)*np.sqrt(np.power(p1+p2*np.exp(p3*z),2)-p5*p5)))*(p1*p1*np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5))/np.sqrt(p1*p1-p5*p5) +p1*np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5)*np.log(p1+p2*np.exp(z*p3)+np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5)) )
+
+            zRa=(1.0/C)*np.log(np.fabs((lval-A)/B))
+            time=tRa(-zRa)-tRa(x1[1])+tRa(-zRa)-tRa(x2[1])
+            
+        return time
+    
+    return time
+        
     def get_attenuation_along_path(self, x1, x2, C_0, frequency):
         if(cpp_available):
             mask = frequency > 0
