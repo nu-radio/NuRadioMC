@@ -33,7 +33,7 @@ VERSION = 0.1
 
 def merge_config(user, default):
     if isinstance(user,dict) and isinstance(default,dict):
-        for k,v in default.iteritems():
+        for k,v in iteritems(default):
             if k not in user:
                 user[k] = v
             else:
@@ -43,40 +43,7 @@ def merge_config(user, default):
 
 
 
-def get_em_had_fraction(inelasticity, ccnc, flavor):
-    """
-    calculates the fraction of the neutrino energy that goes into the
-    electromagnetic cascade (em) and the hadronic cascade (had)
 
-    Parameters
-    ----------
-    inelasticity: float
-        the inelasticity (fraction of energy that goes into had. cascade)
-    ccnc: string ['nc', 'cc']
-        neutral current (nc) or carged currend (cc) interaction
-    flavor: int
-        flavor id
-
-    returns
-    --------
-    fem: float
-        electrogmatnetic fraction
-    fhad: float
-        hadroninc fraction
-    """
-    fem = 0  # electrogmatnetic fraction
-    fhad = 0  # hadroninc fraction
-    if(ccnc == 'nc'):
-        fhad = inelasticity
-    else:
-        if(np.abs(flavor) == 12):
-            fem = (1 - inelasticity)
-            fhad = inelasticity
-        elif(np.abs(flavor) == 14):
-            fhad = inelasticity
-        elif(np.abs(flavor) == 16):
-            fhad = inelasticity
-    return fem, fhad
 
 
 class simulation():
@@ -129,14 +96,14 @@ class simulation():
                 new_cfg = merge_config(local_config, self._cfg)
                 self._cfg = new_cfg
         
-        self.__eventlist = eventlist
-        self.__outputfilename = outputfilename
+        self._eventlist = eventlist
+        self._outputfilename = outputfilename
         self._detectorfile = detectorfile
-        self.__station_id = station_id
-        self.__Tnoise = Tnoise
-        self.__outputfilenameNuRadioReco = outputfilenameNuRadioReco
-        self.__debug = debug
-        self.__evt_time = evt_time
+        self._station_id = station_id
+        self._Tnoise = Tnoise
+        self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
+        self._debug = debug
+        self._evt_time = evt_time
         
         self._ice = medium.get_ice_model(self._cfg['propagation']['ice_model'])
         
@@ -168,12 +135,12 @@ class simulation():
 
         self._channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
         self._eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-        if(self.__outputfilenameNuRadioReco is not None):
-            self._eventWriter.begin(self.__outputfilenameNuRadioReco)
+        if(self._outputfilenameNuRadioReco is not None):
+            self._eventWriter.begin(self._outputfilenameNuRadioReco)
 
-        self._fin = h5py.File(self.__eventlist, 'r')
+        self._fin = h5py.File(self._eventlist, 'r')
         self._n_events = len(self._fin['event_ids'])
-        self._n_antennas = self._det.get_number_of_channels(self.__station_id)
+        self._n_antennas = self._det.get_number_of_channels(self._station_id)
         
         self._create_meta_output_datastructures()
         
@@ -227,8 +194,8 @@ class simulation():
             t2 = time.time()
             inputTime += (t2 - t1)
             ray_tracing_performed = ('ray_tracing_C0' in self._fin) and (self._was_pre_simulated)
-            for channel_id in range(self._det.get_number_of_channels(self.__station_id)):
-                x2 = self._det.get_relative_position(self.__station_id, channel_id)
+            for channel_id in range(self._det.get_number_of_channels(self._station_id)):
+                x2 = self._det.get_relative_position(self._station_id, channel_id)
                 r = ray.ray_tracing(x1, x2, self._ice, log_level=logging.WARNING)
 
                 if(ray_tracing_performed):  # check if raytracing was already performed
@@ -238,7 +205,7 @@ class simulation():
                     r.find_solutions()
                 if(not r.has_solution()):
                     logger.debug("event {} and station {}, channel {} does not have any ray tracing solution".format(
-                        self._event_id, self.__station_id, channel_id))
+                        self._event_id, self._station_id, channel_id))
                     self._add_empty_channel(channel_id)
                     continue
                 delta_Cs = []
@@ -286,7 +253,7 @@ class simulation():
                     logger.debug("ch {}, s {} R = {:.1f} m, t = {:.1f}ns, receive angles {:.0f} {:.0f}".format(
                         channel_id, iS, R / units.m, T / units.ns, zenith / units.deg, azimuth / units.deg))
 
-                    fem, fhad = get_em_had_fraction(self._inelasticity, self._ccnc, self._flavor)
+                    fem, fhad = self._get_em_had_fraction(self._inelasticity, self._ccnc, self._flavor)
                     # get neutrino pulse from Askaryan module
                     spectrum = signalgen.get_frequency_spectrum(
                         self._energy * fhad, viewing_angles[iS], self._n_samples, self._dt, 0, n_index, R, self._cfg['signal']['model'])
@@ -333,7 +300,7 @@ class simulation():
                         logger.debug("reflection coefficient is r_parallel = {:.2f}, r_perpendicular = {:.2f}".format(
                             r_parallel, r_perpendicular))
 
-                    if(self.__debug):
+                    if(self._debug):
                         fig, (ax, ax2) = plt.subplots(1, 2)
                         ax.plot(self._ff, np.abs(eTheta) / units.micro / units.V * units.m)
                         ax2.plot(self._tt, fft.freq2time(eTheta) / units.micro / units.V * units.m)
@@ -367,11 +334,11 @@ class simulation():
                 continue
             logger.debug("performing detector simulation")
             # self._finalize NuRadioReco event structure
-            self._station = NuRadioReco.framework.station.Station(self.__station_id)
+            self._station = NuRadioReco.framework.station.Station(self._station_id)
             self._station.set_sim_station(self._sim_station)
             self._evt = NuRadioReco.framework.event.Event(0, self._event_id)
             self._evt.set_station(self._station)
-            self._station.set_station_time(self.__evt_time)
+            self._station.set_station_time(self._evt_time)
 
             self._detector_simulation()
             self._save_triggers_to_hdf5(iE)
@@ -404,7 +371,7 @@ class simulation():
                 self._mout['maximum_amplitudes_envelope'][iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
 
             self._mout['SNRs'][iE] = self._station.get_parameter(stnp.channels_max_amplitude) / self._Vrms
-            if(self.__outputfilenameNuRadioReco is not None):
+            if(self._outputfilenameNuRadioReco is not None):
                 self._eventWriter.run(self._evt)
 
     def _save_triggers_to_hdf5(self, iE):
@@ -487,7 +454,7 @@ class simulation():
         created an empyt sim_station object and saves the meta arguments such as neutrino direction, self._energy and self._flavor
         """
         # create NuRadioReco event structure
-        self._sim_station = NuRadioReco.framework.sim_station.SimStation(self.__station_id)
+        self._sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
         # save relevant neutrino properties
         self._sim_station[stnp.nu_zenith] = self._zenith_nu
         self._sim_station[stnp.nu_azimuth] = self._azimuth_nu
@@ -508,7 +475,7 @@ class simulation():
         self._sim_station.add_channel(channel)
 
     def _write_ouput_file(self):
-        fout = h5py.File(self.__outputfilename, 'w')
+        fout = h5py.File(self._outputfilename, 'w')
         for (key, value) in iteritems(self._mout):
             fout[key] = value[self._mout['triggered']]
             
@@ -517,7 +484,7 @@ class simulation():
 
         with open(self._detectorfile) as fdet:
             fout.attrs['detector'] = fdet.read()
-        fout.attrs['Tnoise'] = self.__Tnoise
+        fout.attrs['Tnoise'] = self._Tnoise
         fout.attrs['Vrms'] = self._Vrms
         fout.attrs['dt'] = self._dt
         fout.attrs['bandwidth'] = self._bandwidth
@@ -555,3 +522,38 @@ class simulation():
             V = np.pi * (rmax**2 - rmin**2) * dZ
         Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
         logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
+        
+    def _get_em_had_fraction(self, inelasticity, ccnc, flavor):
+        """
+        calculates the fraction of the neutrino energy that goes into the
+        electromagnetic cascade (em) and the hadronic cascade (had)
+    
+        Parameters
+        ----------
+        inelasticity: float
+            the inelasticity (fraction of energy that goes into had. cascade)
+        ccnc: string ['nc', 'cc']
+            neutral current (nc) or carged currend (cc) interaction
+        flavor: int
+            flavor id
+    
+        returns
+        --------
+        fem: float
+            electrogmatnetic fraction
+        fhad: float
+            hadroninc fraction
+        """
+        fem = 0  # electrogmatnetic fraction
+        fhad = 0  # hadroninc fraction
+        if(ccnc == 'nc'):
+            fhad = inelasticity
+        else:
+            if(np.abs(flavor) == 12):
+                fem = (1 - inelasticity)
+                fhad = inelasticity
+            elif(np.abs(flavor) == 14):
+                fhad = inelasticity
+            elif(np.abs(flavor) == 16):
+                fhad = inelasticity
+        return fem, fhad
