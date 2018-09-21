@@ -2,8 +2,6 @@ from NuRadioMC.SignalGen.RalstonBuniy import create_askaryan
 from NuRadioMC.utilities import units, fft
 import numpy as np
 
-#Testing.
-
 def get_time_trace(energy, theta, N, dt, is_em_shower, n, R, LPM=True, a=None):
     if(a is None):
         a = 0
