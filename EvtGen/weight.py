@@ -23,7 +23,7 @@ def get_weight(theta_nu, pnu, mode='simple'):
     if(mode == 'simple'):
         return get_simple_weight(theta_nu, pnu)
     else:
-        logger.error('mode {} not supported')
+        logger.error('mode {} not supported'.format(mode))
         raise NotImplementedError
 
 
