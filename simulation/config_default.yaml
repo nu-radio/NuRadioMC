@@ -1,0 +1,13 @@
+weights:
+  weight_mode: simple
+  
+speedup:
+  minimum_weight_cut: 1.e-5
+  delta_C_cut: 0.698  # 40 degree
+
+propagation:
+  ice_model: ARAsim_southpole
+  
+signal:
+  model: Alvarez2000
+  
