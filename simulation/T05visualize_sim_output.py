@@ -10,10 +10,13 @@ import argparse
 import json
 import time
 import os
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 
 parser = argparse.ArgumentParser(description='Plot NuRadioMC event list output.')
 parser.add_argument('inputfilename', type=str,
                     help='path to NuRadioMC hdf5 simulation output')
+parser.add_argument('--trigger_name', type=str, default=None,
+                    help='the name of the trigger that should be used for the plots')
 parser.add_argument('--Veff', type=str,
                     help='specify json file where effective volume is saved as a function of energy')
 args = parser.parse_args()
@@ -25,9 +28,19 @@ if(not os.path.exists(plot_folder)):
     os.makedirs(plot_folder)
 
 fin = h5py.File(args.inputfilename, 'r')
+print('the following triggeres where simulated: {}'.format(fin.attrs['trigger_names']))
+if(args.trigger_name is None):
+    triggered = np.array(fin['triggered'])
+    print("\tyou selected any trigger")
+else:
+    iTrigger = np.argwhere(fin.attrs['trigger_names'] == args.trigger_name)
+    triggered = fin['multiple_triggers'][:, iTrigger]
+    print("\tyou selected '{}'".format(args.trigger_name))
+    plot_folder = os.path.join(dirname, 'plots', filename, args.trigger_name)
+    if(not os.path.exists(plot_folder)):
+        os.makedirs(plot_folder)
 
 weights = np.array(fin['weights'])
-triggered = np.array(fin['triggered'])
 n_events = fin.attrs['n_events']
 
 # calculate effective
@@ -58,7 +71,11 @@ xx = np.array(fin['xx'])
 yy = np.array(fin['yy'])
 rr = (xx ** 2 + yy ** 2) ** 0.5
 zz = np.array(fin['zz'])
-h = ax.hist2d(rr / units.m, zz / units.m, bins=[np.arange(0, 4000, 100), np.arange(-3000, 0, 100)],
+
+mask_weight = weights > 1e-2
+max_r = max(np.abs(xx[mask_weight]).max(), np.abs(yy[mask_weight]).max())
+max_z = np.abs(zz[mask_weight]).max()
+h = ax.hist2d(rr / units.m, zz / units.m, bins=[np.linspace(0, max_r, 50), np.linspace(-max_z, 0, 50)],
               cmap=plt.get_cmap('Blues'), weights=weights)
 cb = plt.colorbar(h[3], ax=ax)
 cb.set_label("weighted number of events")
@@ -67,7 +84,6 @@ ax.set_xlabel("r [m]")
 ax.set_ylabel("z [m]")
 fig.tight_layout()
 fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'))
-
 # plot incoming direction
 receive_vectors = np.array(fin['receive_vectors'])
 # for all events, antennas and ray tracing solutions
@@ -79,9 +95,18 @@ for i in range(len(azimuths)):
 weights_matrix = np.outer(weights, np.ones(np.prod(receive_vectors.shape[1:-1]))).flatten()
 mask = ~np.isnan(azimuths)  # exclude antennas with not ray tracing solution (or with just one ray tracing solution)
 fig, axs = php.get_histograms([zeniths[mask] / units.deg, azimuths[mask] / units.deg],
-                              bins=[np.arange(0, 181, 10), np.arange(0, 361, 45)],
+                              bins=[np.arange(0, 181, 5), np.arange(0, 361, 45)],
                               xlabels=['zenith [deg]', 'azimuth [deg]'],
                               weights=weights_matrix[mask], stats=False)
+# axs[0].xaxis.set_ticks(np.arange(0, 181, 45))
+majorLocator = MultipleLocator(45)
+majorFormatter = FormatStrFormatter('%d')
+minorLocator = MultipleLocator(5)
+axs[0].xaxis.set_major_locator(majorLocator)
+axs[0].xaxis.set_major_formatter(majorFormatter)
+# for the minor ticks, use no labels; default NullFormatter
+axs[0].xaxis.set_minor_locator(minorLocator)
+
 fig.suptitle('incoming signal direction')
 fig.savefig(os.path.join(plot_folder, 'incoming_signal.png'))
 
@@ -122,7 +147,7 @@ php.get_histogram(polarization[mask] / units.deg,
                   stats=False,
                   ax=ax, kwargs={'facecolor': 'C0', 'alpha': 1, 'edgecolor': "k"})
 # ax.set_xticks(bins)
-ax.set_ylim(maxy)
+ax.set_ylim(max(ax.get_ylim(), maxy))
 fig.tight_layout()
 fig.savefig(os.path.join(plot_folder, 'polarization_unweighted.png'))
 
@@ -144,16 +169,43 @@ rho = np.arccos(1. / n_indexs)
 
 mask = ~np.isnan(viewing_angles)
 fig, ax = php.get_histogram((viewing_angles[mask] - rho[mask]) / units.deg, weights=weights[mask],
-                            bins=np.arange(-20, 20, 1), xlabel='viewing - cherenkov angle [deg]', figsize=(6, 6))
+                            bins=np.arange(-30, 30, 1), xlabel='viewing - cherenkov angle [deg]', figsize=(6, 6))
 fig.savefig(os.path.join(plot_folder, 'dCherenkov.png'))
 
 # SNR
+flavor_labels = ['e cc', r'$\bar{e}$ cc', 'e nc', r'$\bar{e}$ nc', 
+           '$\mu$ cc', r'$\bar{\mu}$ cc', '$\mu$ nc', r'$\bar{\mu}$ nc',
+           r'$\tau$ cc', r'$\bar{\tau}$ cc', r'$\tau$ nc', r'$\bar{\tau}$ nc']
+yy = np.zeros(len(flavor_labels))
+yy[0] = np.sum(weights[triggered][(fin['flavors'][triggered] == 12) & (fin['ccncs'][triggered] == 'cc')])
+yy[1] = np.sum(weights[triggered][(fin['flavors'][triggered] == -12) & (fin['ccncs'][triggered] == 'cc')])
+yy[2] = np.sum(weights[triggered][(fin['flavors'][triggered] == 12) & (fin['ccncs'][triggered] == 'nc')])
+yy[3] = np.sum(weights[triggered][(fin['flavors'][triggered] == -12) & (fin['ccncs'][triggered] == 'nc')])
 
-# solution type
+yy[4] = np.sum(weights[triggered][(fin['flavors'][triggered] == 14) & (fin['ccncs'][triggered] == 'cc')])
+yy[5] = np.sum(weights[triggered][(fin['flavors'][triggered] == -14) & (fin['ccncs'][triggered] == 'cc')])
+yy[6] = np.sum(weights[triggered][(fin['flavors'][triggered] == 14) & (fin['ccncs'][triggered] == 'nc')])
+yy[7] = np.sum(weights[triggered][(fin['flavors'][triggered] == -14) & (fin['ccncs'][triggered] == 'nc')])
+
+yy[8] = np.sum(weights[triggered][(fin['flavors'][triggered] == 16) & (fin['ccncs'][triggered] == 'cc')])
+yy[9] = np.sum(weights[triggered][(fin['flavors'][triggered] == -16) & (fin['ccncs'][triggered] == 'cc')])
+yy[10] = np.sum(weights[triggered][(fin['flavors'][triggered] == 16) & (fin['ccncs'][triggered] == 'nc')])
+yy[11] = np.sum(weights[triggered][(fin['flavors'][triggered] == -16) & (fin['ccncs'][triggered] == 'nc')])
+
+fig, ax = plt.subplots(1, 1)
+ax.bar(range(len(flavor_labels)), yy)
+ax.set_xticks(range(len(flavor_labels)))
+ax.set_xticklabels(flavor_labels)
+ax.set_ylabel('weighted number of triggers')
+fig.tight_layout()
+fig.savefig(os.path.join(plot_folder, 'flavor.png'))
+plt.show()
+
+# flavor
 
 # plot C0 parameter
 # C0s = np.array(fin['ray_tracing_C0'])
 # php.get_histogram(C0s.flatten())
 # fig.suptitle('incoming signal direction')
 
-plt.show()
+# plt.show()
