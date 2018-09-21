@@ -3,6 +3,14 @@ import numpy as np
 from NuRadioMC.utilities import units
 
 
+def get_ice_model(name):
+    if(name == "ARAsim_southpole"):
+        return ARAsim_southpole()
+    elif(name == "southpole_simple"):
+        return southpole_simple()
+    elif(name == "mooresbay_simple"):
+        return mooresbay_simple()
+
 class medium():
 
     def get_index_of_refraction(self, x):
