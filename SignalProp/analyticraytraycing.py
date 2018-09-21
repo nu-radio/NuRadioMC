@@ -360,7 +360,7 @@ class ray_tracing_2D():
 #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
             return get_ToF_direct(x1[1], z_turn) + get_ToF_direct(x2[1], z_turn)
 
-        def get_travel_time_analytic_2(self, x1, x2, C_0):
+    def get_travel_time_analytic_2(self, x1, x2, C_0):
         """
         analytic solution to calculate the time of flight. This code is based on the analytic solution found
         by Uzair Latif
@@ -385,7 +385,7 @@ class ray_tracing_2D():
 
             time=tD(-x1[1])-tD(-x2[1])
             
-        return time
+            return time
         
         if(solution_type==3):
             p1=A
@@ -398,9 +398,9 @@ class ray_tracing_2D():
 
             time=tR(-0.0000001)-tR(x1[1])+tR(-0.0000001)-tR(x2[1])
             
-        return time
+            return time
 
-    if(solution_type==2):
+        if(solution_type==2):
             p1=A
             p2=B
             p3=C
@@ -411,10 +411,9 @@ class ray_tracing_2D():
 
             zRa=(1.0/C)*np.log(np.fabs((lval-A)/B))
             time=tRa(-zRa)-tRa(x1[1])+tRa(-zRa)-tRa(x2[1])
-            
-        return time
-    
-    return time
+                
+            return time
+
         
     def get_attenuation_along_path(self, x1, x2, C_0, frequency):
         if(cpp_available):
