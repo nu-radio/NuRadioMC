@@ -24,11 +24,21 @@ import datetime
 import logging
 from six import iteritems
 import yaml
+import os
 # import confuse
 # logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("sim")
 
 VERSION = 0.1
+
+def merge_config(user, default):
+    if isinstance(user,dict) and isinstance(default,dict):
+        for k,v in default.iteritems():
+            if k not in user:
+                user[k] = v
+            else:
+                user[k] = merge_config(user[k],v)
+    return user
 
 
 
@@ -80,7 +90,7 @@ class simulation():
                  debug=False,
                  evt_time=datetime.datetime(2018, 1, 1),
                  number_of_triggers=1,
-                 config_file="config_default.yaml"):
+                 config_file=None):
         """
         initialize the NuRadioMC end-to-end simulation
 
@@ -108,8 +118,17 @@ class simulation():
             the time of the events, default 1/1/2018
         """
         
-        with open(config_file, 'r') as ymlfile:
+        config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
+        print('reading default config from {}'.format(config_file_default))
+        with open(config_file_default, 'r') as ymlfile:
             self._cfg = yaml.load(ymlfile)
+        if(config_file is not None):
+            print('reading local config overrides from {}'.format(config_file))
+            with open(config_file, 'r') as ymlfile:
+                local_config=yaml.load(ymlfile)
+                new_cfg = merge_config(local_config, self._cfg)
+                self._cfg = new_cfg
+        
         self.__eventlist = eventlist
         self.__outputfilename = outputfilename
         self._detectorfile = detectorfile
@@ -139,135 +158,7 @@ class simulation():
         self._Vrms = (Tnoise * 50 * constants.k *
                        self._bandwidth / units.Hz) ** 0.5
 
-    def get_Vrms(self):
-        return self._Vrms
-
-    def get_sampling_rate(self):
-        return 1. / self._dt
-
-    def get_bandwidth(self):
-        return self._bandwidth
-    
-    def _check_if_was_pre_simulated(self):
-        """
-        checks if the same detector was simulated before (then we can save the ray tracing part)
-        """
-        self._was_pre_simulated = False
-        if('detector' in self._fin.attrs):
-            with open(self._detectorfile) as fdet:
-                if(fdet.read() == self._fin.attrs['detector']):
-                    self._was_pre_simulated = True
-                    print("the simulation was already performed with the same detector")
-        return self._was_pre_simulated
-
-    
-    def _create_meta_output_datastructures(self):
-        """
-        creates the data structures of the parameters that will be saved into the hdf5 output file
-        """
-        self._mout = {}
-        self._mout_attributes = {}
-        self._mout['weights'] = np.zeros(self._n_events)
-        self._mout['triggered'] = np.zeros(self._n_events, dtype=np.bool)
-#         self._mout['multiple_triggers'] = np.zeros((self._n_events, self._number_of_triggers), dtype=np.bool)
-        self._mout_attributes['trigger_names'] = None
-        self._mout['launch_vectors'] = np.zeros((self._n_events, self._n_antennas, 2, 3)) * np.nan
-        self._mout['receive_vectors'] = np.zeros((self._n_events, self._n_antennas, 2, 3)) * np.nan
-        self._mout['ray_tracing_C0'] = np.zeros((self._n_events, self._n_antennas, 2)) * np.nan
-        self._mout['ray_tracing_C1'] = np.zeros((self._n_events, self._n_antennas, 2)) * np.nan
-        self._mout['ray_tracing_solution_type'] = np.zeros((self._n_events, self._n_antennas, 2), dtype=np.int) * np.nan
-        self._mout['polarization'] = np.zeros((self._n_events, self._n_antennas, 2, 3)) * np.nan
-        self._mout['travel_times'] = np.zeros((self._n_events, self._n_antennas, 2)) * np.nan
-        self._mout['travel_distances'] = np.zeros((self._n_events, self._n_antennas, 2)) * np.nan
-        self._mout['SNRs'] = np.zeros(self._n_events) * np.nan
-        self._mout['maximum_amplitudes'] = np.zeros((self._n_events, self._n_antennas)) * np.nan
-        self._mout['maximum_amplitudes_envelope'] = np.zeros((self._n_events, self._n_antennas)) * np.nan
-        
-    def _read_input_neutrino_properties(self, iE):
-        self._event_id = self._fin['event_ids'][iE]
-        self._flavor = self._fin['flavors'][iE]
-        self._energy = self._fin['energies'][iE]
-        self._ccnc = self._fin['ccncs'][iE]
-        self._x = self._fin['xx'][iE]
-        self._y = self._fin['yy'][iE]
-        self._z = self._fin['zz'][iE]
-        self._zenith_nu = self._fin['zeniths'][iE]
-        self._azimuth_nu = self._fin['azimuths'][iE]
-        self._inelasticity = self._fin['inelasticity'][iE]
-        
-    def _create_sim_station(self):
-        """
-        created an empyt sim_station object and saves the meta arguments such as neutrino direction, self._energy and self._flavor
-        """
-        # create NuRadioReco event structure
-        self._sim_station = NuRadioReco.framework.sim_station.SimStation(self.__station_id)
-        # save relevant neutrino properties
-        self._sim_station[stnp.nu_zenith] = self._zenith_nu
-        self._sim_station[stnp.nu_azimuth] = self._azimuth_nu
-        self._sim_station[stnp.nu_energy] = self._energy
-        self._sim_station[stnp.nu_flavor] = self._flavor
-        self._sim_station[stnp.ccnc] = self._ccnc
-        self._sim_station[stnp.nu_vertex] = np.array([self._x, self._y, self._z])
-        self._sim_station[stnp.inelasticity] = self._inelasticity
-
-
-    def _add_empty_channel(self, channel_id):
-        channel = NuRadioReco.framework.channel.Channel(channel_id)
-        channel.set_frequency_spectrum(np.zeros((3, len(self._ff)), dtype=np.complex), 1. / self._dt)
-        channel[chp.azimuth] = 0
-        channel[chp.zenith] = 180 * units.deg
-        channel[chp.ray_path_type] = 'none'
-        channel.set_trace_start_time(np.nan)
-        self._sim_station.add_channel(channel)
-
-    def _write_ouput_file(self):
-        fout = h5py.File(self.__outputfilename, 'w')
-        for (key, value) in iteritems(self._mout):
-            fout[key] = value[self._mout['triggered']]
-            
-        for (key, value) in iteritems(self._mout_attrs):
-            fout.attrs[key] = value
-
-        with open(self._detectorfile) as fdet:
-            fout.attrs['detector'] = fdet.read()
-        fout.attrs['Tnoise'] = self.__Tnoise
-        fout.attrs['Vrms'] = self._Vrms
-        fout.attrs['dt'] = self._dt
-        fout.attrs['bandwidth'] = self._bandwidth
-        fout.attrs['n_samples'] = self._n_samples
-
-        # now we also save all input parameters back into the out file
-        for key in self._fin.keys():
-            if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
-                fout[key] = np.array(self._fin[key])[self._mout['triggered']]
-        for key in self._fin.attrs.keys():
-            if(not key in fout.attrs.keys()):  # only save atrributes sets that havn't been recomputed and saved already
-                fout.attrs[key] = self._fin.attrs[key]
-        fout.close()
-        
-    def calculate_Veff(self):
-        # calculate effective
-        density_ice = 0.9167 * units.g / units.cm ** 3
-        density_water = 1000 * units.kg / units.m ** 3
-
-        n_triggered = np.sum(self._mout['triggered'])
-        n_triggered_weighted = np.sum(self._mout['weights'][self._mout['triggered']])
-        logger.warning('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(
-            n_triggered, self._n_events, n_triggered / self._n_events))
-
-        V = None
-        if('xmax' in self._fin.attrs):
-            dX = self._fin.attrs['xmax'] - self._fin.attrs['xmin']
-            dY = self._fin.attrs['ymax'] - self._fin.attrs['ymin']
-            dZ = self._fin.attrs['zmax'] - self._fin.attrs['zmin']
-            V = dX * dY * dZ
-        elif('rmin' in self._fin.attrs):
-            rmin = self._fin.attrs['rmin']
-            rmax = self._fin.attrs['rmax']
-            dZ = self._fin.attrs['zmax'] - self._fin.attrs['zmin']
-            V = np.pi * (rmax**2 - rmin**2) * dZ
-        Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
-        logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
+   
 
 
     def run(self):
@@ -275,10 +166,10 @@ class simulation():
         run the NuRadioMC simulation
         """
 
-        channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
-        eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
+        self._channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
+        self._eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
         if(self.__outputfilenameNuRadioReco is not None):
-            eventWriter.begin(self.__outputfilenameNuRadioReco)
+            self._eventWriter.begin(self.__outputfilenameNuRadioReco)
 
         self._fin = h5py.File(self.__eventlist, 'r')
         self._n_events = len(self._fin['event_ids'])
@@ -483,33 +374,7 @@ class simulation():
             self._station.set_station_time(self.__evt_time)
 
             self._detector_simulation()
-
-            if('trigger_names' not in self._mout_attrs):
-                self._mout_attrs['trigger_names'] = []
-                for trigger in self._station.get_triggers():
-                    self._mout_attrs['trigger_names'].append(trigger.get_name())
-            # the 'multiple_triggers' output array is not initialized in the constructor because the number of 
-            # simulated triggers is unknown at the beginning. So we check if the key already exists and if not, 
-            # we first create this data structure
-            if('multiple_triggers' not in self._mout):
-                self._mout['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])))
-            for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
-                self._mout['multiple_triggers'][iE, iT] = self._station.get_trigger(trigger_name).has_triggered()
-
-            self._mout['triggered'][iE] = np.any(self._mout['multiple_triggers'][iE])
-            if(self._mout['triggered'][iE]):
-                logger.info("event triggered")
-
-            # save events that trigger the detector and have weight > 0
-            if(self._mout['triggered'][iE]):
-                channelSignalReconstructor.run(self._evt, self._station, self._det)
-                for channel in self._station.get_channels():
-                    self._mout['maximum_amplitudes'][iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
-                    self._mout['maximum_amplitudes_envelope'][iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
-
-                self._mout['SNRs'][iE] = self._station.get_parameter(stnp.channels_max_amplitude) / self._Vrms
-                if(self.__outputfilenameNuRadioReco is not None):
-                    eventWriter.run(self._evt)
+            self._save_triggers_to_hdf5(iE)
             t4 = time.time()
             detSimTime += (t4 - t3)
 
@@ -524,8 +389,169 @@ class simulation():
         self.calculate_Veff()
         
         self._fin.close()
-        
 
         outputTime = time.time() - t5
         print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
               "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
+        
+    
+    def _save_ari_events(self, iE):
+        # save events that trigger the detector and have weight > 0
+        if(self._mout['triggered'][iE]):
+            self._channelSignalReconstructor.run(self._evt, self._station, self._det)
+            for channel in self._station.get_channels():
+                self._mout['maximum_amplitudes'][iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
+                self._mout['maximum_amplitudes_envelope'][iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
+
+            self._mout['SNRs'][iE] = self._station.get_parameter(stnp.channels_max_amplitude) / self._Vrms
+            if(self.__outputfilenameNuRadioReco is not None):
+                self._eventWriter.run(self._evt)
+
+    def _save_triggers_to_hdf5(self, iE):
+
+        if('trigger_names' not in self._mout_attrs):
+            self._mout_attrs['trigger_names'] = []
+            for trigger in self._station.get_triggers():
+                self._mout_attrs['trigger_names'].append(trigger.get_name())
+        # the 'multiple_triggers' output array is not initialized in the constructor because the number of 
+        # simulated triggers is unknown at the beginning. So we check if the key already exists and if not, 
+        # we first create this data structure
+        if('multiple_triggers' not in self._mout):
+            self._mout['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])))
+        for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
+            self._mout['multiple_triggers'][iE, iT] = self._station.get_trigger(trigger_name).has_triggered()
+
+        self._mout['triggered'][iE] = np.any(self._mout['multiple_triggers'][iE])
+        if(self._mout['triggered'][iE]):
+            logger.info("event triggered")
+
+    
+    def get_Vrms(self):
+        return self._Vrms
+
+    def get_sampling_rate(self):
+        return 1. / self._dt
+
+    def get_bandwidth(self):
+        return self._bandwidth
+    
+    def _check_if_was_pre_simulated(self):
+        """
+        checks if the same detector was simulated before (then we can save the ray tracing part)
+        """
+        self._was_pre_simulated = False
+        if('detector' in self._fin.attrs):
+            with open(self._detectorfile) as fdet:
+                if(fdet.read() == self._fin.attrs['detector']):
+                    self._was_pre_simulated = True
+                    print("the simulation was already performed with the same detector")
+        return self._was_pre_simulated
+
+    
+    def _create_meta_output_datastructures(self):
+        """
+        creates the data structures of the parameters that will be saved into the hdf5 output file
+        """
+        self._mout = {}
+        self._mout_attributes = {}
+        self._mout['weights'] = np.zeros(self._n_events)
+        self._mout['triggered'] = np.zeros(self._n_events, dtype=np.bool)
+#         self._mout['multiple_triggers'] = np.zeros((self._n_events, self._number_of_triggers), dtype=np.bool)
+        self._mout_attributes['trigger_names'] = None
+        self._mout['launch_vectors'] = np.zeros((self._n_events, self._n_antennas, 2, 3)) * np.nan
+        self._mout['receive_vectors'] = np.zeros((self._n_events, self._n_antennas, 2, 3)) * np.nan
+        self._mout['ray_tracing_C0'] = np.zeros((self._n_events, self._n_antennas, 2)) * np.nan
+        self._mout['ray_tracing_C1'] = np.zeros((self._n_events, self._n_antennas, 2)) * np.nan
+        self._mout['ray_tracing_solution_type'] = np.zeros((self._n_events, self._n_antennas, 2), dtype=np.int) * np.nan
+        self._mout['polarization'] = np.zeros((self._n_events, self._n_antennas, 2, 3)) * np.nan
+        self._mout['travel_times'] = np.zeros((self._n_events, self._n_antennas, 2)) * np.nan
+        self._mout['travel_distances'] = np.zeros((self._n_events, self._n_antennas, 2)) * np.nan
+        self._mout['SNRs'] = np.zeros(self._n_events) * np.nan
+        self._mout['maximum_amplitudes'] = np.zeros((self._n_events, self._n_antennas)) * np.nan
+        self._mout['maximum_amplitudes_envelope'] = np.zeros((self._n_events, self._n_antennas)) * np.nan
+        
+    def _read_input_neutrino_properties(self, iE):
+        self._event_id = self._fin['event_ids'][iE]
+        self._flavor = self._fin['flavors'][iE]
+        self._energy = self._fin['energies'][iE]
+        self._ccnc = self._fin['ccncs'][iE]
+        self._x = self._fin['xx'][iE]
+        self._y = self._fin['yy'][iE]
+        self._z = self._fin['zz'][iE]
+        self._zenith_nu = self._fin['zeniths'][iE]
+        self._azimuth_nu = self._fin['azimuths'][iE]
+        self._inelasticity = self._fin['inelasticity'][iE]
+        
+    def _create_sim_station(self):
+        """
+        created an empyt sim_station object and saves the meta arguments such as neutrino direction, self._energy and self._flavor
+        """
+        # create NuRadioReco event structure
+        self._sim_station = NuRadioReco.framework.sim_station.SimStation(self.__station_id)
+        # save relevant neutrino properties
+        self._sim_station[stnp.nu_zenith] = self._zenith_nu
+        self._sim_station[stnp.nu_azimuth] = self._azimuth_nu
+        self._sim_station[stnp.nu_energy] = self._energy
+        self._sim_station[stnp.nu_flavor] = self._flavor
+        self._sim_station[stnp.ccnc] = self._ccnc
+        self._sim_station[stnp.nu_vertex] = np.array([self._x, self._y, self._z])
+        self._sim_station[stnp.inelasticity] = self._inelasticity
+
+
+    def _add_empty_channel(self, channel_id):
+        channel = NuRadioReco.framework.channel.Channel(channel_id)
+        channel.set_frequency_spectrum(np.zeros((3, len(self._ff)), dtype=np.complex), 1. / self._dt)
+        channel[chp.azimuth] = 0
+        channel[chp.zenith] = 180 * units.deg
+        channel[chp.ray_path_type] = 'none'
+        channel.set_trace_start_time(np.nan)
+        self._sim_station.add_channel(channel)
+
+    def _write_ouput_file(self):
+        fout = h5py.File(self.__outputfilename, 'w')
+        for (key, value) in iteritems(self._mout):
+            fout[key] = value[self._mout['triggered']]
+            
+        for (key, value) in iteritems(self._mout_attrs):
+            fout.attrs[key] = value
+
+        with open(self._detectorfile) as fdet:
+            fout.attrs['detector'] = fdet.read()
+        fout.attrs['Tnoise'] = self.__Tnoise
+        fout.attrs['Vrms'] = self._Vrms
+        fout.attrs['dt'] = self._dt
+        fout.attrs['bandwidth'] = self._bandwidth
+        fout.attrs['n_samples'] = self._n_samples
+
+        # now we also save all input parameters back into the out file
+        for key in self._fin.keys():
+            if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
+                fout[key] = np.array(self._fin[key])[self._mout['triggered']]
+        for key in self._fin.attrs.keys():
+            if(not key in fout.attrs.keys()):  # only save atrributes sets that havn't been recomputed and saved already
+                fout.attrs[key] = self._fin.attrs[key]
+        fout.close()
+        
+    def calculate_Veff(self):
+        # calculate effective
+        density_ice = 0.9167 * units.g / units.cm ** 3
+        density_water = 1000 * units.kg / units.m ** 3
+
+        n_triggered = np.sum(self._mout['triggered'])
+        n_triggered_weighted = np.sum(self._mout['weights'][self._mout['triggered']])
+        logger.warning('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(
+            n_triggered, self._n_events, n_triggered / self._n_events))
+
+        V = None
+        if('xmax' in self._fin.attrs):
+            dX = self._fin.attrs['xmax'] - self._fin.attrs['xmin']
+            dY = self._fin.attrs['ymax'] - self._fin.attrs['ymin']
+            dZ = self._fin.attrs['zmax'] - self._fin.attrs['zmin']
+            V = dX * dY * dZ
+        elif('rmin' in self._fin.attrs):
+            rmin = self._fin.attrs['rmin']
+            rmax = self._fin.attrs['rmax']
+            dZ = self._fin.attrs['zmax'] - self._fin.attrs['zmin']
+            V = np.pi * (rmax**2 - rmin**2) * dZ
+        Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
+        logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
