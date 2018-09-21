@@ -409,7 +409,7 @@ class ray_tracing_2D():
             def tRa(z):
                 return (1.0/(p4*p3*np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5)))*(np.power(p1+p2*np.exp(z*p3),2)-p5*p5+(p3*z-np.log(p1*(p1+p2*np.exp(p3*z))-p5*p5+np.sqrt(p1*p1-p5*p5)*np.sqrt(np.power(p1+p2*np.exp(p3*z),2)-p5*p5)))*(p1*p1*np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5))/np.sqrt(p1*p1-p5*p5) +p1*np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5)*np.log(p1+p2*np.exp(z*p3)+np.sqrt(np.power(p1+p2*np.exp(z*p3),2)-p5*p5)) )
 
-            zRa=(1.0/C)*np.log(np.fabs((lval-A)/B))
+            zRa=(1.0/C)*np.log(np.fabs((lval-A)/B))-0.00001
             time=tRa(-zRa)-tRa(x1[1])+tRa(-zRa)-tRa(x2[1])
                 
             return time
