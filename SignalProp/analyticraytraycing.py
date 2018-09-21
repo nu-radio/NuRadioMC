@@ -387,7 +387,7 @@ class ray_tracing_2D():
             
         return time
         
-        if(solution_type==2):
+        if(solution_type==3):
             p1=A
             p2=B
             p3=C
@@ -400,7 +400,7 @@ class ray_tracing_2D():
             
         return time
 
-    if(solution_type==3):
+    if(solution_type==2):
             p1=A
             p2=B
             p3=C
