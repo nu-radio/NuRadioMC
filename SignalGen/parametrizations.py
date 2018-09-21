@@ -83,10 +83,26 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
         return trace
 
     elif(model == 'Alvarez2012'):
-        import pyrex.signals
+        from pyrex.signals import AskaryanSignal
+        from pyrex.ice_model import IceModel
+        from pyrex.particle import Particle
         tt = np.arange(0, N * dt, dt)
-        ask = pyrex.signals.AskaryanSignal(tt / units.s, energy / units.GeV, theta, n_index, t0=20 * units.ns / units.s)
-        trace = ask.values * units.V / units.m * (1. * units.m / R)  # rescale to distance R, pyrex output is for 1m
+        ice = IceModel()
+        p = Particle(particle_id="nu_e", # irrelevant
+                     vertex=(0, 0, ice.depth_with_index(n_index)),
+                     direction=(0, 0, -1), # irrelevant
+                     energy=energy/units.GeV)
+        p.interaction.em_frac = int(is_em_shower)
+        p.interaction.had_frac = 1 - p.interaction.em_frac
+        print(energy, is_em_shower)
+        ask = AskaryanSignal(times=tt / units.s, 
+                            particle=p,
+                            viewing_angle=theta,
+                            viewing_distance=R,
+                            ice_model=ice,
+                            t0=20 * units.ns / units.s)
+        
+        trace = ask.values * units.V / units.m
         return trace
 
     elif(model == 'Alvarez2000'):
