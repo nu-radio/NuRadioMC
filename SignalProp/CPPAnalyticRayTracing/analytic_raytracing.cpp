@@ -179,7 +179,7 @@ double get_path_length(double pos[2], double pos2[2], double C0, double n_ice, d
 	F.params=&params;
 
 	double result, error;
-	gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,5.e-7,1000,w,&result,&error);
+	gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,10.e-7,1000,w,&result,&error);
 	gsl_integration_workspace_free(w);
 	return result;
 }
@@ -209,7 +209,7 @@ double get_travel_time(double pos[2], double pos2[2], double C0, double n_ice, d
 	
 	double result, error;
 	
-	gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,5.e-7,1000,w,&result,&error);
+	gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,10.e-7,1000,w,&result,&error);
 	gsl_integration_workspace_free(w);
 	return result;
 }
@@ -271,7 +271,7 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 
 	double result, error;
 	
-	gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,5.e-7,1000,w,&result,&error);
+	gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,10.e-7,1000,w,&result,&error);
 	gsl_integration_workspace_free(w);
 	double attenuation = exp(-1 * result);
 	return attenuation;
