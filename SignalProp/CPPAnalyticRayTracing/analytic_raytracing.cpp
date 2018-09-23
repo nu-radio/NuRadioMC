@@ -271,7 +271,7 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 
 	double result, error;
 	double epsrel = 1.e-7; //small initial absolute error
-	int max_badfunc_tries=7;
+	int max_badfunc_tries=6;
 	int num_badfunc_tries=0;
 	int status;
 
