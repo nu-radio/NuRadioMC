@@ -270,10 +270,33 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 	F.params=&params;
 
 	double result, error;
-	
-	gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,10.e-7,1000,w,&result,&error);
+	double epsrel = 1.e-7; //small initial absolute error
+	int max_badfunc_tries=7;
+	int num_badfunc_tries=0;
+	int status;
+
+	/*
+	This structuring allows for adaptive relative errors in the integral
+	In many cases, the integral can be achieved with relative error between solutions of 1.e-7
+	But there are several cases were the error bound needs to be as high as 30e-7
+	So this raises the erorr bound by a factor of two, up to six times
+	This means the largest relative error we're going to tolerate is 6.4e-6 (64e-7)
+	If this relative error cannot be achieved, we will return an attenuation of zero
+	*/
+	gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
+	do{
+		status = gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,epsrel,2000,w,&result,&error);
+		if(status!=GSL_SUCCESS){
+			status=GSL_CONTINUE;
+			num_badfunc_tries++;
+			epsrel*=2.; //double the size of the relative error
+		}
+	}while(status == GSL_CONTINUE && num_badfunc_tries<max_badfunc_tries);
+	gsl_set_error_handler (myhandler); //restore original error handler
 	gsl_integration_workspace_free(w);
-	double attenuation = exp(-1 * result);
+	double attenuation;
+	if(status==GSL_SUCCESS) attenuation = exp(-1 * result);
+	else attenuation=0.;
 	return attenuation;
 }
 
@@ -461,7 +484,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	//function finds all ray tracing solutions
 	//we assume that x2 is above and to the right of x2_mirrored
 	//this is perfectly general, as a coordinate transform can put any system in this configuration
-//	printf("finding solution from %f %f to %f %f with %f %f %f", x1[0], x1[1], x2[0], x2[1], n_ice, delta_n, z_0);
+	// printf("finding solution from %f %f to %f %f with %f %f %f", x1[0], x1[1], x2[0], x2[1], n_ice, delta_n, z_0);
 	
 	//returns a vector of vectors of the C0 solutions
 	//entry 0 will be logC0
@@ -507,8 +530,8 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 			x_guess = gsl_root_fdfsolver_root(sfdf);
 			status = gsl_root_test_residual(GSL_FN_FDF_EVAL_F(&FDF,root_1),1e-7);
 			if(status == GSL_SUCCESS){
-//				printf("Converged on root 1! Iteration %d\n",iter);
-//				printf("minima =  %f\n",pow(get_delta_y(get_C0_from_log(root_1, n_ice, delta_n, z_0), x1, x2, n_ice, delta_n, z_0), 2));
+				// printf("Converged on root 1! Iteration %d\n",iter);
+				// printf("minima =  %f\n",pow(get_delta_y(get_C0_from_log(root_1, n_ice, delta_n, z_0), x1, x2, n_ice, delta_n, z_0), 2));
 				found_root_1=true;
 			}
 		} while (status == GSL_CONTINUE && iter < max_iter && num_badfunc_tries<max_badfunc_tries);
@@ -516,7 +539,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	gsl_root_fdfsolver_free (sfdf);
 	
 	if(!found_root_1) {
-//		printf("NOT converged on root 1! Iteration %d\n",iter);
+		// printf("NOT converged on root 1! Iteration %d\n",iter);
 	}
 
 	if(found_root_1){
@@ -527,7 +550,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 		sol1.push_back(get_C1(x1,C0, n_ice, delta_n, z_0));
 		sol1.push_back(ceil(double(determine_solution_type(x1,x2,C0, n_ice, delta_n, z_0))));
 		
-//		printf("Solution 1 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol1[0],sol1[1],sol1[2],sol1[3]);
+		// printf("Solution 1 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol1[0],sol1[1],sol1[2],sol1[3]);
 		
 		results.push_back(sol1);
 	
@@ -578,7 +601,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 					status2 = gsl_root_test_interval(logC0_start,logC0_stop,0,0.000001);
 					if(status2==GSL_EBADFUNC) {status2=GSL_CONTINUE; num_badfunc_tries++; continue;}
 					if(status2 == GSL_SUCCESS){
-//						printf("Converged on root 2! Iteration %d\n",iter);
+						// printf("Converged on root 2! Iteration %d\n",iter);
 						found_root_2=true;
 						root_2 = gsl_root_fsolver_root(s);
 					}
@@ -594,12 +617,12 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 				sol2.push_back(get_C1(x1,C0, n_ice, delta_n, z_0));
 				sol2.push_back(ceil(double(determine_solution_type(x1,x2,C0, n_ice, delta_n, z_0))));
 
-//				printf("Solution 2 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol2[0],sol2[1],sol2[2],sol2[3]);
+				// printf("Solution 2 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol2[0],sol2[1],sol2[2],sol2[3]);
 
 				results.push_back(sol2);
 			}
 		}
-//		else printf("No solution with logc0 > %.3f exist\n",logC0_start);
+		// else printf("No solution with logc0 > %.3f exist\n",logC0_start);
 
 		//reset this counter
 		num_badfunc_tries = 0;
@@ -641,11 +664,11 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 					status3 = gsl_root_fsolver_iterate(s);
 					logC0_start = gsl_root_fsolver_x_lower(s);
 					logC0_stop = gsl_root_fsolver_x_upper(s);
-					//printf("[Iter, Xlo, Xhi]: [%d, %.8f, %.8f] \n",iter,logC0_start,logC0_stop);
+					// printf("[Iter, Xlo, Xhi]: [%d, %.8f, %.8f] \n",iter,logC0_start,logC0_stop);
 					status3 = gsl_root_test_interval(logC0_start,logC0_stop,0,0.000001);
 					if(status3==GSL_EBADFUNC) {status3=GSL_CONTINUE; num_badfunc_tries++; continue;}
 					if(status3 == GSL_SUCCESS){
-//						printf("Converged on root 3! Iteration %d\n",iter);
+						// printf("Converged on root 3! Iteration %d\n",iter);
 						found_root_3=true;
 						root_3 = gsl_root_fsolver_root(s);
 					}
@@ -661,22 +684,22 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 				sol3.push_back(get_C1(x1,C0, n_ice, delta_n, z_0));
 				sol3.push_back(ceil(double(determine_solution_type(x1,x2,C0, n_ice, delta_n, z_0))));
 
-//				printf("Solution 3 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol3[0],sol3[1],sol3[2],sol3[3]);
+				// printf("Solution 3 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol3[0],sol3[1],sol3[2],sol3[3]);
 
 				results.push_back(sol3);
 			}
 		}
-//		else printf("No solution with logc0 < %.3f exist\n",logC0_stop);
+		// else printf("No solution with logc0 < %.3f exist\n",logC0_stop);
 	}
 	else{
-//		printf("No solution exist anywhere!\n");
+		// printf("No solution exist anywhere!\n");
 	}
 	
 	return results;
 }
 
  void find_solutions2(double*& C0s, double*& C1s, int*& types, int& nSolutions, double y1, double z1, double y2, double z2,  double n_ice, double delta_n, double z_0) {
-// 	clock_t begin = clock();
+	// clock_t begin = clock();
  	double x1[2] = {y1, z1};
  	double x2[2] = {y2, z2};
  	vector < vector<double> > solutions2 = find_solutions(x1, x2, n_ice, delta_n, z_0);
@@ -689,9 +712,9 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
  		C1s[i] = solutions2[i][2];
  		types[i] = solutions2[i][3];
  	}
-// 	clock_t end = clock();
-//    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-// 	printf("%f (%d solutions)\n", 1000* elapsed_secs, nSolutions);
+	// clock_t end = clock();
+ 	// double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+	// printf("%f (%d solutions)\n", 1000* elapsed_secs, nSolutions);
  }
 
 void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[2], double C0, vector<double> &res, vector<double> &zs, int n_points=100){
