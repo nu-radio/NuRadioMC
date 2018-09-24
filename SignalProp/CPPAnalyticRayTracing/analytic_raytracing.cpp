@@ -263,7 +263,7 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 	double x2_mirrored[2]={0.};
 	get_z_mirrored(pos,pos2,C0,x2_mirrored, n_ice, delta_n, z_0);
 	
-	gsl_integration_workspace *w = gsl_integration_workspace_alloc(1000);
+	gsl_integration_workspace *w = gsl_integration_workspace_alloc(2000);
 	gsl_function F;
 	F.function = &dt_freq;
 	struct dt_freq_params params = {C0,frequency, n_ice, delta_n, z_0};
@@ -295,8 +295,12 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 	gsl_set_error_handler (myhandler); //restore original error handler
 	gsl_integration_workspace_free(w);
 	double attenuation;
-	if(status==GSL_SUCCESS) attenuation = exp(-1 * result);
-	else attenuation=0.;
+	if(status==GSL_SUCCESS){
+		attenuation = exp(-1 * result);
+	}
+	else{
+		attenuation=0.;
+	}
 	return attenuation;
 }
 
@@ -782,9 +786,11 @@ int main(int argc, char **argv){
 	double z_0 = 71. * utl::m; //meters
 	vector<vector<double> > solutions = find_solutions(x1,x2, n_ice, delta_n, z_0);
 	if(solutions.size()>0){
-		cout<<solutions[0][1]<<" "<<solutions[1][1]<<endl;
+		printf("C0 %.6f \n ",solutions[0][1]);
+		double att = get_attenuation_along_path(x1, x2, solutions[0][1], 0.00390625*utl::GHz,n_ice, delta_n, z_0);
+		printf("Att %.3f \n ", att);
 	}
-	
+
 	return 0;
 
 }
