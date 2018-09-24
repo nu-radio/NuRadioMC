@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import cPickle as pickle
 import numpy as np
 import logging
+import os
 logger = logging.getLogger("Templates")
 
 
@@ -20,11 +21,16 @@ class Templates(object):
         self.__cr_template_set_full = {}
         self.__ref_nu_templates = {}
         self.__nu_templates = {}
+        self.__path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            '../analysis/templateGeneration/') 
+        
+    
+    def set_template_directory(self, path):
+        self.__path = path
+    
 
     def __load_cr_template(self, station_id):
-        import os
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            '../analysis/templateGeneration/templates_cr_station_{}.pickle'.format(station_id))
+        path= os.path.join(self.__path, 'templates_cr_station_{}.pickle'.format(station_id))
         if(os.path.exists(path)):
             with open(path, 'r') as fin:
                 self.__cr_templates[station_id] = pickle.load(fin)
