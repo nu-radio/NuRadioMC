@@ -336,7 +336,7 @@ class simulation():
             self._station.set_station_time(self._evt_time)
 
             self._detector_simulation()
-            self._save_triggers_to_hdf5(self._iE)
+            self._save_triggers_to_hdf5()
             t4 = time.time()
             detSimTime += (t4 - t3)
 
