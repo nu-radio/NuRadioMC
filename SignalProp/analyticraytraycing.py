@@ -148,7 +148,7 @@ class ray_tracing_2D():
             z_turn = 0
             gamma_turn = self.get_gamma(0)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
-        if(type(z) == float or (type(z) == int) or (type(z) == np.float64)):
+        if(not hasattr(z, '__len__')):
             if(z < z_turn):
                 gamma = self.get_gamma(z)
                 return self.get_y(gamma, C_0, C_1)
@@ -478,7 +478,7 @@ class ray_tracing_2D():
         b0 = -6.74890 + t * (0.026709 - t * 0.000884)
         b1 = -6.22121 - t * (0.070927 + t * 0.001773)
         b2 = -4.09468 - t * (0.002213 + t * 0.000332)
-        if((type(frequency) == float) or (type(frequency) == np.float64)):
+        if(not hasattr(frequency, '__len__')):
             if (frequency < 1. * units.GHz):
                 a = (b1 * w0 - b0 * w1) / (w0 - w1)
                 bb = (b1 - b0) / (w1 - w0)
@@ -579,7 +579,7 @@ class ray_tracing_2D():
         """
         if(C0range is None):
             C0range = [1. / self.medium.n_ice, np.inf]
-        if(not(type(C_0) == np.float64 or type(C_0) == float)):
+        if(hasattr(C_0, '__len__')):
             C_0 = C_0[0]
         if((C_0 < C0range[0]) or(C_0 > C0range[1])):
             self.__logger.debug('C0 = {:.4f} out of range {:.0f} - {:.2f}'.format(C_0, C0range[0], C0range[1]))
@@ -644,12 +644,14 @@ class ray_tracing_2D():
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
         C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
+        print(C_0, C_1)
         gamma_turn, z_turn = self.get_turning_point(c)
 
         if(z_turn >= 0):
             z_turn = 0
             gamma_turn = self.get_gamma(0)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
+        print(x2, y_turn)
         if(x2[0] < y_turn):
             return 1
         else:
