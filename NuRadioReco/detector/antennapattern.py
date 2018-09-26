@@ -158,7 +158,7 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
     name = split[1]
     path = split[0]
 
-    zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, ff2, phi, theta, Ephi, Etheta, gains = parse_WIPLD_file(os.path.join(path, name, '{}.ad1'.format(name)),
+    zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, ff2, phi, theta, Iphi, Itheta, gains = parse_WIPLD_file(os.path.join(path, name, '{}.ad1'.format(name)),
                                                                                                                    os.path.join(path, name, '{}.ra1'.format(name)),
                                                                                                                    os.path.join(path, name, '{}.orientation'.format(name)),
                                                                                                                    gen_num=gen_num, s_paramateres=s_paramateres)
@@ -170,13 +170,13 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
     ff2 = ff2[index]
     phi = phi[index]
     theta = theta[index]
-    Ephi = Ephi[index]
-    Etheta = Etheta[index]
+    Iphi = Iphi[index]
+    Itheta = Itheta[index]
 
     get_Z = interp1d(ff, Z, kind='nearest')
     wavelength = c / ff2
-    H_phi = (2 * wavelength * get_Z(ff2) * Ephi) / (Z_0) / 1j
-    H_theta = (2 * wavelength * get_Z(ff2) * Etheta) / (Z_0) / 1j
+    H_phi = (2 * wavelength * get_Z(ff2) * Iphi) / (Z_0) / 1j
+    H_theta = (2 * wavelength * get_Z(ff2) * Itheta) / (Z_0) / 1j
 
 #     H = wavelength * (np.real(get_Z(ff2)) / (np.pi * Z_0)) ** 0.5 * gains ** 0.5
 
