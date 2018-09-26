@@ -123,6 +123,7 @@ class simulation():
         self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
         self._Vrms = (self._Tnoise * 50 * constants.k *
                        self._bandwidth / units.Hz) ** 0.5
+        print('noise temperature = {}, bandwidth = {:.0f} MHz, Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth/units.MHz, self._Vrms/units.V/units.micro))
 
 
     def run(self):
@@ -479,6 +480,13 @@ class simulation():
 
         with open(self._detectorfile) as fdet:
             fout.attrs['detector'] = fdet.read()
+        # save antenna position separately to hdf5 output
+        n_channels = self._det.get_number_of_channels(self._station_id)
+        positions = np.zeros((n_channels, 3))
+        for channel_id in range(n_channels):
+            positions[channel_id] = self._det.get_relative_position(self._station_id, channel_id)
+        fout.attrs['antenna_positions'] = positions    
+        
         fout.attrs['Tnoise'] = self._Tnoise
         fout.attrs['Vrms'] = self._Vrms
         fout.attrs['dt'] = self._dt
