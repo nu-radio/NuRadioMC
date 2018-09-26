@@ -40,13 +40,15 @@ class channelBandPassFilter:
                 trace_fft[np.where(frequencies < passband[0])] = 0.
                 trace_fft[np.where(frequencies > passband[1])] = 0.
             elif(filter_type == 'butter'):
+                mask = frequencies > 0
                 b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
-                w, h = scipy.signal.freqs(b, a, frequencies)
-                trace_fft *= h
+                w, h = scipy.signal.freqs(b, a, frequencies[mask])
+                trace_fft[mask] *= h
             elif(filter_type == 'butterabs'):
+                mask = frequencies > 0
                 b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
-                w, h = scipy.signal.freqs(b, a, frequencies)
-                trace_fft *= np.abs(h)
+                w, h = scipy.signal.freqs(b, a, frequencies[mask])
+                trace_fft[mask] *= h
             channel.set_frequency_spectrum(trace_fft, channel.get_sampling_rate())
 
     def end(self):
