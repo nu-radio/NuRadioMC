@@ -52,11 +52,9 @@ class simulation():
                  outputfilename,
                  detectorfile,
                  station_id,
-                 Tnoise,
                  outputfilenameNuRadioReco=None,
                  debug=False,
                  evt_time=datetime.datetime(2018, 1, 1),
-                 number_of_triggers=1,
                  config_file=None):
         """
         initialize the NuRadioMC end-to-end simulation
@@ -72,8 +70,6 @@ class simulation():
         station_id: int
             the station id for which the simulation is performed. Must match a station
             deself._fined in the detector description
-        Tnoise: float
-            noise temperature in Kelvin (assuming white noise)
         outputfilenameNuRadioReco: string or None
             outputfilename of NuRadioReco detector sim file, this file contains all
             waveforms of the triggered events
@@ -100,7 +96,7 @@ class simulation():
         self._outputfilename = outputfilename
         self._detectorfile = detectorfile
         self._station_id = station_id
-        self._Tnoise = Tnoise
+        self._Tnoise = float(self._cfg['trigger']['noise_temperature'])
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._debug = debug
         self._evt_time = evt_time
@@ -109,7 +105,6 @@ class simulation():
         
         self._mout = {}
         self._mout_attrs = {}
-        self._number_of_triggers = number_of_triggers
 
         # read in detector positions
         logger.debug("Detectorfile {}".format(self._detectorfile))
@@ -118,14 +113,16 @@ class simulation():
         # read time and frequency resolution from detector (assuming all
         # channels have the same sampling)
         self._dt = 1. / self._det.get_sampling_frequency(station_id, 0)
-        self._bandwidth = 0.5 / self._dt
+        bandwidth = self._cfg['trigger']['bandwidth']
+        if(bandwidth is None):
+            self._bandwidth = 0.5 / self._dt
+        else:
+            self._bandwidth = bandwidth
         self._n_samples = self._det.get_number_of_samples(station_id, 0)
         self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
         self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
-        self._Vrms = (Tnoise * 50 * constants.k *
+        self._Vrms = (self._Tnoise * 50 * constants.k *
                        self._bandwidth / units.Hz) ** 0.5
-
-   
 
 
     def run(self):
@@ -155,31 +152,31 @@ class simulation():
         time_attenuation_length = 0.
         t_start = time.time()
         
-        for iE in range(self._n_events):
+        for self._iE in range(self._n_events):
             t1 = time.time()
-            if(iE > 0 and iE % max(1, int(self._n_events / 100.)) == 0):
-                eta = datetime.timedelta(seconds=(time.time() - t_start) * (self._n_events - iE) / iE)
+            if(self._iE > 0 and self._iE % max(1, int(self._n_events / 100.)) == 0):
+                eta = datetime.timedelta(seconds=(time.time() - t_start) * (self._n_events - self._iE) / self._iE)
                 total_time = inputTime + rayTracingTime + detSimTime + outputTime
                 logger.warning("processing event {}/{} = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), detector simulation = {:.0f}% ".format(
-                    iE, self._n_events, 100. * iE / self._n_events, eta, 100. * rayTracingTime / total_time, 100. * time_attenuation_length / rayTracingTime, 100. * detSimTime / total_time))
-#             if(iE > 0 and iE % max(1, int(self._n_events / 10000.)) == 0):
+                    self._iE, self._n_events, 100. * self._iE / self._n_events, eta, 100. * rayTracingTime / total_time, 100. * time_attenuation_length / rayTracingTime, 100. * detSimTime / total_time))
+#             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 10000.)) == 0):
 #                 print("*", end='')
 
             # read all quantities from hdf5 file and store them in local variables
-            self._read_input_neutrino_properties(iE)
+            self._read_input_neutrino_properties(self._iE)
 
             # calculate weight
-            self._mout['weights'][iE] = get_weight(self._zenith_nu, self._energy, mode=self._cfg['weights']['weight_mode'])
+            self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, mode=self._cfg['weights']['weight_mode'])
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
-            if(self._mout['weights'][iE] < self._cfg['speedup']['minimum_weight_cut']):
+            if(self._mout['weights'][self._iE] < self._cfg['speedup']['minimum_weight_cut']):
                 logger.debug("neutrino weight is smaller than {}, skipping event".format(self._cfg['speedup']['minimum_weight_cut']))
                 continue
 
             # be careful, zenith/azimuth angle always refer to where the neutrino came from,
             # i.e., opposite to the direction of propagation. We need the propagation directio nhere,
             # so we multiply the shower axis with '-1'
-            shower_axis = -1 * hp.spherical_to_cartesian(self._zenith_nu, self._azimuth_nu)
+            self._shower_axis = -1 * hp.spherical_to_cartesian(self._zenith_nu, self._azimuth_nu)
             x1 = np.array([self._x, self._y, self._z])
 
             # calculate correct chereknov angle for ice density at vertex position
@@ -199,8 +196,8 @@ class simulation():
                 r = ray.ray_tracing(x1, x2, self._ice, log_level=logging.WARNING)
 
                 if(ray_tracing_performed):  # check if raytracing was already performed
-                    r.set_solution(self._fin['ray_tracing_C0'][iE, channel_id], self._fin['ray_tracing_C1'][iE, channel_id],
-                                   self._fin['ray_tracing_solution_type'][iE, channel_id])
+                    r.set_solution(self._fin['ray_tracing_C0'][self._iE, channel_id], self._fin['ray_tracing_C1'][self._iE, channel_id],
+                                   self._fin['ray_tracing_solution_type'][self._iE, channel_id])
                 else:
                     r.find_solutions()
                 if(not r.has_solution()):
@@ -212,13 +209,13 @@ class simulation():
                 viewing_angles = []
                 # loop through all ray tracing solution
                 for iS in range(r.get_number_of_solutions()):
-                    self._mout['ray_tracing_C0'][iE, channel_id, iS] = r.get_results()[iS]['C0']
-                    self._mout['ray_tracing_C1'][iE, channel_id, iS] = r.get_results()[iS]['C1']
-                    self._mout['ray_tracing_solution_type'][iE, channel_id, iS] = r.get_solution_type(iS)
-                    launch_vector = r.get_launch_vector(iS)
-                    self._mout['launch_vectors'][iE, channel_id, iS] = launch_vector
+                    self._mout['ray_tracing_C0'][self._iE, channel_id, iS] = r.get_results()[iS]['C0']
+                    self._mout['ray_tracing_C1'][self._iE, channel_id, iS] = r.get_results()[iS]['C1']
+                    self._mout['ray_tracing_solution_type'][self._iE, channel_id, iS] = r.get_solution_type(iS)
+                    self._launch_vector = r.get_launch_vector(iS)
+                    self._mout['launch_vectors'][self._iE, channel_id, iS] = self._launch_vector
                     # calculates angle between shower axis and launch vector
-                    viewing_angle = hp.get_angle(shower_axis, launch_vector)
+                    viewing_angle = hp.get_angle(self._shower_axis, self._launch_vector)
                     viewing_angles.append(viewing_angle)
                     delta_C = (viewing_angle - cherenkov_angle)
                     logger.debug('solution {} {}: viewing angle {:.1f} = delta_C = {:.1f}'.format(
@@ -237,18 +234,19 @@ class simulation():
                 tts = np.zeros((n, self._n_samples))
                 for iS in range(n):  # loop through all ray tracing solution
                     if(ray_tracing_performed):
-                        R = self._fin['travel_distances'][iE, channel_id, iS]
-                        T = self._fin['travel_times'][iE, channel_id, iS]
+                        R = self._fin['travel_distances'][self._iE, channel_id, iS]
+                        T = self._fin['travel_times'][self._iE, channel_id, iS]
                     else:
                         R = r.get_path_length(iS)  # calculate path length
                         T = r.get_travel_time(iS)  # calculate travel time
-                    self._mout['travel_distances'][iE, channel_id, iS] = R
-                    self._mout['travel_times'][iE, channel_id, iS] = T
+                    self._mout['travel_distances'][self._iE, channel_id, iS] = R
+                    self._mout['travel_times'][self._iE, channel_id, iS] = T
                     Rs[iS] = R
                     Ts[iS] = T
+                    self._launch_vector = r.get_launch_vector(iS)
                     receive_vector = r.get_receive_vector(iS)
                     # save receive vector
-                    self._mout['receive_vectors'][iE, channel_id, iS] = receive_vector
+                    self._mout['receive_vectors'][self._iE, channel_id, iS] = receive_vector
                     zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
                     logger.debug("ch {}, s {} R = {:.1f} m, t = {:.1f}ns, receive angles {:.0f} {:.0f}".format(
                         channel_id, iS, R / units.m, T / units.ns, zenith / units.deg, azimuth / units.deg))
@@ -271,18 +269,15 @@ class simulation():
                         # add EM signal to had signal in the time domain
                         spectrum = fft.time2freq(fft.freq2time(spectrum) + fft.freq2time(spectrum_em))
 
-                    # TODO verify that calculation of polarization vector is correct!
-                    polarization_direction = np.cross(launch_vector, np.cross(shower_axis, launch_vector))
-                    polarization_direction /= np.linalg.norm(polarization_direction)
-                    cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*launch_vector))
+                    
+                    polarization_direction_onsky = self._calculate_polarization_vector()
                     cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
-                    polarization_direction_onsky = cs.transform_from_ground_to_onsky(polarization_direction)
                     polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
                     logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
                         zenith / units.deg, azimuth / units.deg, polarization_direction_onsky[0],
                         polarization_direction_onsky[1], polarization_direction_onsky[2],
                         *polarization_direction_at_antenna))
-                    self._mout['polarization'][iE, channel_id, iS] = polarization_direction_at_antenna
+                    self._mout['polarization'][self._iE, channel_id, iS] = polarization_direction_at_antenna
                     eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
         #             print("{} {:.2f} {:.0f}".format(polarization_direction_onsky, np.linalg.norm(polarization_direction_onsky), np.arctan2(np.abs(polarization_direction_onsky[1]), np.abs(polarization_direction_onsky[2])) / units.deg))
 
@@ -341,7 +336,7 @@ class simulation():
             self._station.set_station_time(self._evt_time)
 
             self._detector_simulation()
-            self._save_triggers_to_hdf5(iE)
+            self._save_triggers_to_hdf5(self._iE)
             t4 = time.time()
             detSimTime += (t4 - t3)
 
@@ -362,19 +357,19 @@ class simulation():
               "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
         
     
-    def _save_ari_events(self, iE):
+    def _save_ari_events(self):
         # save events that trigger the detector and have weight > 0
-        if(self._mout['triggered'][iE]):
+        if(self._mout['triggered'][self._iE]):
             self._channelSignalReconstructor.run(self._evt, self._station, self._det)
             for channel in self._station.get_channels():
-                self._mout['maximum_amplitudes'][iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
-                self._mout['maximum_amplitudes_envelope'][iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
+                self._mout['maximum_amplitudes'][self._iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
+                self._mout['maximum_amplitudes_envelope'][self._iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
 
-            self._mout['SNRs'][iE] = self._station.get_parameter(stnp.channels_max_amplitude) / self._Vrms
+            self._mout['SNRs'][self._iE] = self._station.get_parameter(stnp.channels_max_amplitude) / self._Vrms
             if(self._outputfilenameNuRadioReco is not None):
                 self._eventWriter.run(self._evt)
 
-    def _save_triggers_to_hdf5(self, iE):
+    def _save_triggers_to_hdf5(self):
 
         if('trigger_names' not in self._mout_attrs):
             self._mout_attrs['trigger_names'] = []
@@ -386,10 +381,10 @@ class simulation():
         if('multiple_triggers' not in self._mout):
             self._mout['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])))
         for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
-            self._mout['multiple_triggers'][iE, iT] = self._station.get_trigger(trigger_name).has_triggered()
+            self._mout['multiple_triggers'][self._iE, iT] = self._station.get_trigger(trigger_name).has_triggered()
 
-        self._mout['triggered'][iE] = np.any(self._mout['multiple_triggers'][iE])
-        if(self._mout['triggered'][iE]):
+        self._mout['triggered'][self._iE] = np.any(self._mout['multiple_triggers'][self._iE])
+        if(self._mout['triggered'][self._iE]):
             logger.info("event triggered")
 
     
@@ -437,17 +432,17 @@ class simulation():
         self._mout['maximum_amplitudes'] = np.zeros((self._n_events, self._n_antennas)) * np.nan
         self._mout['maximum_amplitudes_envelope'] = np.zeros((self._n_events, self._n_antennas)) * np.nan
         
-    def _read_input_neutrino_properties(self, iE):
-        self._event_id = self._fin['event_ids'][iE]
-        self._flavor = self._fin['flavors'][iE]
-        self._energy = self._fin['energies'][iE]
-        self._ccnc = self._fin['ccncs'][iE]
-        self._x = self._fin['xx'][iE]
-        self._y = self._fin['yy'][iE]
-        self._z = self._fin['zz'][iE]
-        self._zenith_nu = self._fin['zeniths'][iE]
-        self._azimuth_nu = self._fin['azimuths'][iE]
-        self._inelasticity = self._fin['inelasticity'][iE]
+    def _read_input_neutrino_properties(self):
+        self._event_id = self._fin['event_ids'][self._iE]
+        self._flavor = self._fin['flavors'][self._iE]
+        self._energy = self._fin['energies'][self._iE]
+        self._ccnc = self._fin['ccncs'][self._iE]
+        self._x = self._fin['xx'][self._iE]
+        self._y = self._fin['yy'][self._iE]
+        self._z = self._fin['zz'][self._iE]
+        self._zenith_nu = self._fin['zeniths'][self._iE]
+        self._azimuth_nu = self._fin['azimuths'][self._iE]
+        self._inelasticity = self._fin['inelasticity'][self._iE]
         
     def _create_sim_station(self):
         """
@@ -489,6 +484,7 @@ class simulation():
         fout.attrs['dt'] = self._dt
         fout.attrs['bandwidth'] = self._bandwidth
         fout.attrs['n_samples'] = self._n_samples
+        fout.attrs['config'] = self._cfg
 
         # now we also save all input parameters back into the out file
         for key in self._fin.keys():
@@ -557,3 +553,12 @@ class simulation():
             elif(np.abs(flavor) == 16):
                 fhad = inelasticity
         return fem, fhad
+    
+    # TODO verify that calculation of polarization vector is correct!
+    def _calculate_polarization_vector(self):
+        """ calculates the polarization vector in spherical coordinates (eR, eTheta, ePhi)
+        """ 
+        polarization_direction = np.cross(self._launch_vector, np.cross(self._shower_axis, self._launch_vector))
+        polarization_direction /= np.linalg.norm(polarization_direction)
+        cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*self._launch_vector))
+        return cs.transform_from_ground_to_onsky(polarization_direction)
