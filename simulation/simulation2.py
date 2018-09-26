@@ -484,7 +484,7 @@ class simulation():
         fout.attrs['dt'] = self._dt
         fout.attrs['bandwidth'] = self._bandwidth
         fout.attrs['n_samples'] = self._n_samples
-        fout.attrs['config'] = self._cfg
+        fout.attrs['config'] = yaml.dump(self._cfg)
 
         # now we also save all input parameters back into the out file
         for key in self._fin.keys():
