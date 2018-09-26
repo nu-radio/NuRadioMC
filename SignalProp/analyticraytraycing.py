@@ -644,14 +644,12 @@ class ray_tracing_2D():
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
         C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
-        print(C_0, C_1)
         gamma_turn, z_turn = self.get_turning_point(c)
 
         if(z_turn >= 0):
             z_turn = 0
             gamma_turn = self.get_gamma(0)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
-        print(x2, y_turn)
         if(x2[0] < y_turn):
             return 1
         else:
