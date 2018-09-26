@@ -163,7 +163,7 @@ class simulation():
 #                 print("*", end='')
 
             # read all quantities from hdf5 file and store them in local variables
-            self._read_input_neutrino_properties(self._iE)
+            self._read_input_neutrino_properties()
 
             # calculate weight
             self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, mode=self._cfg['weights']['weight_mode'])
