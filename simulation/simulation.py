@@ -311,6 +311,7 @@ class simulation():
                     travel_times[iE, channel_id, iS] = T
                     Rs[iS] = R
                     Ts[iS] = T
+                    launch_vector = r.get_launch_vector(iS)
                     receive_vector = r.get_receive_vector(iS)
                     # save receive vector
                     receive_vectors[iE, channel_id, iS] = receive_vector
