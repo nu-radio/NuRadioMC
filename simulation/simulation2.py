@@ -158,8 +158,8 @@ class simulation():
             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 100.)) == 0):
                 eta = datetime.timedelta(seconds=(time.time() - t_start) * (self._n_events - self._iE) / self._iE)
                 total_time = inputTime + rayTracingTime + detSimTime + outputTime
-                logger.warning("processing event {}/{} = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), detector simulation = {:.0f}% ".format(
-                    self._iE, self._n_events, 100. * self._iE / self._n_events, eta, 100. * rayTracingTime / total_time, 100. * time_attenuation_length / rayTracingTime, 100. * detSimTime / total_time))
+                logger.warning("processing event {}/{} = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), detector simulation = {:.0f}% reading input = {:.0f}\%".format(
+                    self._iE, self._n_events, 100. * self._iE / self._n_events, eta, 100. * rayTracingTime / total_time, 100. * time_attenuation_length / rayTracingTime, 100. * detSimTime / total_time, 100.*inputTime/total_time))
 #             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 10000.)) == 0):
 #                 print("*", end='')
 
