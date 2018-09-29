@@ -94,7 +94,6 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
                      energy=energy/units.GeV)
         p.interaction.em_frac = int(is_em_shower)
         p.interaction.had_frac = 1 - p.interaction.em_frac
-        print(energy, is_em_shower)
         ask = AskaryanSignal(times=tt / units.s, 
                             particle=p,
                             viewing_angle=theta,
@@ -148,8 +147,11 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
         return trace
 
     elif(model == 'Hanson2017'):
-        from SignalGen.RalstonBuniy import askaryan_module
+        from NuRadioMC.SignalGen.RalstonBuniy import askaryan_module
         return askaryan_module.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R)
+    
+    else:
+        raise NotImplementedError("model {} unknown".format(model))
 
 
 def get_frequency_spectrum(energy, theta, N, dt, is_em_shower, n_index, R, model):
