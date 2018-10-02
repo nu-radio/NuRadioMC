@@ -136,7 +136,7 @@ class simulation():
         if(self._outputfilenameNuRadioReco is not None):
             self._eventWriter.begin(self._outputfilenameNuRadioReco)
 
-        self._fin = h5py.File(self._eventlist, 'r')
+        self._read_input_hdf5() # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
         self._n_events = len(self._fin['event_ids'])
         self._n_antennas = self._det.get_number_of_channels(self._station_id)
         
@@ -158,7 +158,7 @@ class simulation():
             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 100.)) == 0):
                 eta = datetime.timedelta(seconds=(time.time() - t_start) * (self._n_events - self._iE) / self._iE)
                 total_time = inputTime + rayTracingTime + detSimTime + outputTime
-                logger.warning("processing event {}/{} = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), detector simulation = {:.0f}% reading input = {:.0f}\%".format(
+                logger.warning("processing event {}/{} = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), detector simulation = {:.0f}% reading input = {:.0f}%".format(
                     self._iE, self._n_events, 100. * self._iE / self._n_events, eta, 100. * rayTracingTime / total_time, 100. * time_attenuation_length / rayTracingTime, 100. * detSimTime / total_time, 100.*inputTime/total_time))
 #             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 10000.)) == 0):
 #                 print("*", end='')
@@ -337,9 +337,13 @@ class simulation():
             self._station.set_station_time(self._evt_time)
 
             self._detector_simulation()
+            self._calculate_signal_properties()
             self._save_triggers_to_hdf5()
+            if(self._outputfilenameNuRadioReco is not None):
+                self._eventWriter.run(self._evt)
             t4 = time.time()
             detSimTime += (t4 - t3)
+            
 
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
@@ -350,15 +354,26 @@ class simulation():
                                                                                          t_total, 1.e3 * t_total / self._n_events))
 
         self.calculate_Veff()
-        
-        self._fin.close()
 
         outputTime = time.time() - t5
         print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
               "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
         
     
-    def _save_ari_events(self):
+    def _read_input_hdf5(self):
+        """
+        reads input file into memory
+        """
+        fin = h5py.File(self._eventlist, 'r')
+        self._fin = {}
+        self._fin_attrs = {}
+        for key, value in iteritems(fin):
+            self._fin[key] = np.array(value)
+        for key, value in iteritems(fin.attrs):
+            self._fin_attrs[key] = value
+        fin.close()
+    
+    def _calculate_signal_properties(self):
         # save events that trigger the detector and have weight > 0
         if(self._mout['triggered'][self._iE]):
             self._channelSignalReconstructor.run(self._evt, self._station, self._det)
@@ -367,8 +382,6 @@ class simulation():
                 self._mout['maximum_amplitudes_envelope'][self._iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
 
             self._mout['SNRs'][self._iE] = self._station.get_parameter(stnp.channels_max_amplitude) / self._Vrms
-            if(self._outputfilenameNuRadioReco is not None):
-                self._eventWriter.run(self._evt)
 
     def _save_triggers_to_hdf5(self):
 
@@ -403,9 +416,9 @@ class simulation():
         checks if the same detector was simulated before (then we can save the ray tracing part)
         """
         self._was_pre_simulated = False
-        if('detector' in self._fin.attrs):
+        if('detector' in self._fin_attrs):
             with open(self._detectorfile) as fdet:
-                if(fdet.read() == self._fin.attrs['detector']):
+                if(fdet.read() == self._fin_attrs['detector']):
                     self._was_pre_simulated = True
                     print("the simulation was already performed with the same detector")
         return self._was_pre_simulated
@@ -498,9 +511,9 @@ class simulation():
         for key in self._fin.keys():
             if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
                 fout[key] = np.array(self._fin[key])[self._mout['triggered']]
-        for key in self._fin.attrs.keys():
+        for key in self._fin_attrs.keys():
             if(not key in fout.attrs.keys()):  # only save atrributes sets that havn't been recomputed and saved already
-                fout.attrs[key] = self._fin.attrs[key]
+                fout.attrs[key] = self._fin_attrs[key]
         fout.close()
         
     def calculate_Veff(self):
@@ -514,15 +527,15 @@ class simulation():
             n_triggered, self._n_events, n_triggered / self._n_events))
 
         V = None
-        if('xmax' in self._fin.attrs):
-            dX = self._fin.attrs['xmax'] - self._fin.attrs['xmin']
-            dY = self._fin.attrs['ymax'] - self._fin.attrs['ymin']
-            dZ = self._fin.attrs['zmax'] - self._fin.attrs['zmin']
+        if('xmax' in self._fin_attrs):
+            dX = self._fin_attrs['xmax'] - self._fin_attrs['xmin']
+            dY = self._fin_attrs['ymax'] - self._fin_attrs['ymin']
+            dZ = self._fin_attrs['zmax'] - self._fin_attrs['zmin']
             V = dX * dY * dZ
-        elif('rmin' in self._fin.attrs):
-            rmin = self._fin.attrs['rmin']
-            rmax = self._fin.attrs['rmax']
-            dZ = self._fin.attrs['zmax'] - self._fin.attrs['zmin']
+        elif('rmin' in self._fin_attrs):
+            rmin = self._fin_attrs['rmin']
+            rmax = self._fin_attrs['rmax']
+            dZ = self._fin_attrs['zmax'] - self._fin_attrs['zmin']
             V = np.pi * (rmax**2 - rmin**2) * dZ
         Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
         logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
