@@ -44,7 +44,15 @@ class efieldToVoltageConverter:
                 self.__uncertainty['sys_amp'][iCh] = np.random.normal(1, self.__uncertainty['sys_amp'][iCh])
         self.antenna_provider = antennapattern.AntennaPatternProvider()
 
-    def run(self, evt, station, det):
+    def run(self, evt, station, det, cosmic_ray_mode=False):
+        """
+        Parameters
+        -----------
+        cosmic_ray_mode: bool (default False)
+            if True and if signal comes from above and antenna is below surface, the refraction into the ice is automatically
+            taken into account. The user needs to explicitly activate this method to differentiate from neutrino signals 
+            that get bended or reflected off the surface and hit the antenna from above. 
+        """
         t = time.time()
 
         # access simulated efield and high level parameters
@@ -76,8 +84,8 @@ class efieldToVoltageConverter:
             efield_fft = copy.copy(sim_station.get_frequency_spectrum())  # we make a copy to not alter the original efield if reflectios off the boundary are taken into account
             # we first check if we have a fresnel refraction at air-firn boundary
             zenith_antenna = zenith
-            # first check case if signal comes from above
-            if(zenith <= 0.5 * np.pi):
+            # first check case if signal originates from air
+            if((zenith < 0.5 * np.pi) and cosmic_ray_mode):
                 # is antenna below surface?
                 position = det.get_relative_position(sim_station_id, iCh)
                 if(position[2] <= 0):
@@ -130,7 +138,7 @@ class efieldToVoltageConverter:
                             ax[0].plot(ff / units.MHz, np.abs(efield_fft[2]), 'C2--')
                             plt.show()
 
-            else:
+            elif(zenith <= 0.5 * np.pi):
                 # now the signal is coming from below, do we have an antenna above the surface?
                 position = det.get_relative_position(sim_station_id, iCh)
                 if(position[2] > 0):
