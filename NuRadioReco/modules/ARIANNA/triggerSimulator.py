@@ -6,6 +6,95 @@ import time
 import logging
 logger = logging.getLogger('ARIANNAtriggerSimulator')
 
+def get_high_low_triggers(trace, high_threshold, low_threshold,
+                          time_coincidence=5 * units.ns, dt=1 * units.ns):
+    """
+    calculats a high low trigger in a time coincidence window
+
+    Parameters
+    ----------
+    trace: array of floats
+        the signal trace
+    high_threshold: float
+        the high threshold
+    low_threshold: float
+        the low threshold
+    time_coincidence: float
+        the time coincidence window between a high + low
+    dt: float
+        the width of a time bin (inverse of sampling rate)
+
+    Returns
+    -------
+    triggered bins: array of bools
+        the bins where the trigger condition is satisfied
+    """
+    triggered_bins = []
+
+    low_sample = 0
+    high_sample = 0
+    for sm in range(trace.shape[0]):
+        if ((trace[sm] > high_threshold)):
+            if (((sm - low_sample) < (time_coincidence / dt)) and (low_sample != 0)):
+                triggered_bins.append(sm)
+            high_sample = sm
+        if (trace[sm] < low_threshold):
+            if (((sm - high_sample) < (time_coincidence / dt)) and (high_sample != 0)):
+                triggered_bins.append(sm)
+            low_sample = sm
+    return triggered_bins
+
+
+def get_majority_logic(tts, trace_length_samples, number_of_coincidences=2, time_coincidence=32 * units.ns, dt=1 * units.ns):
+    """
+    calculates a majority logic trigger
+
+    Parameters
+    ----------
+    tts: array/list of array of bools
+        an array of bools that indicate a single channel trigger per channel
+    number_of_coincidences: int (default: 2)
+        the number of coincidences between channels
+    time_coincidence: float
+        the time coincidence window between channels
+    dt: float
+        the width of a time bin (inverse of sampling rate)
+
+    Retruns:
+    --------
+    triggerd: bool
+        returns True if majority logic is fulfilled
+    trace_length_samples: int
+        the number of samples of the trace
+    triggerd_bins: array of ints
+        the bins that fulfilled the trigger
+    triggered_times: array of floats
+        the trigger times
+    """
+    has_triggered = False
+    trigger_time_sample = None
+    # loop over the trace with a sliding window of "coinc_window"
+    coinc_window_samples = np.int(np.round(time_coincidence /dt))
+    for i in range(0, trace_length_samples - coinc_window_samples):
+        istop = i + coinc_window_samples
+        coinc = 0
+        trigger_times = []
+        for tr in tts:  # loops through triggers of each channel
+            tr = np.array(tr)
+            mask_trigger_in_coind_window = (tr >= i) & (tr < istop)
+            if(np.sum(mask_trigger_in_coind_window)):
+                coinc += 1
+                # save time/sample of first trigger in coincidence window
+                trigger_times.append(tr[mask_trigger_in_coind_window][0])
+        if coinc >= number_of_coincidences:
+            has_triggered = True
+            trigger_time_sample = min(trigger_times)
+            break
+    trigger_time = None
+    if(has_triggered):
+        trigger_time = trigger_time_sample * dt
+    return has_triggered, trigger_time_sample, trigger_time
+
 
 class triggerSimulator:
     """
@@ -64,50 +153,56 @@ class triggerSimulator:
 
         sampling_rate = station.get_channels()[0].get_sampling_rate()
         if not set_not_triggered:
-            trigger = {}
+            triggerd_bins_channels = []
             max_signal = 0
     
             for channel in station.get_channels():
+                sampling_rate = channel.get_sampling_rate()
+                dt = 1. / sampling_rate
                 channel_id = channel.get_id()
                 if triggered_channels is not None and channel_id not in triggered_channels:
                     continue
                 trace = channel.get_trace()
-                trigger[channel_id] = []
                 max_signal = max(max_signal, np.max(np.abs(trace)))
+                triggerd_bins_channels.append(get_high_low_triggers(trace, threshold_high, threshold_low, high_low_window, dt))
     
-                low_sample = 0
-                high_sample = 0
-                for sm in range(trace.shape[0]):
-                    if ((trace[sm] > threshold_high)):
-                        if (((sm - low_sample) < (high_low_window * sampling_rate)) and (low_sample != 0)):
-                            trigger[channel_id].append(sm)
-                        high_sample = sm
-                    if (trace[sm] < threshold_low):
-                        if (((sm - high_sample) < (high_low_window * sampling_rate)) and (high_sample != 0)):
-                            trigger[channel_id].append(sm)
-                        low_sample = sm
+#                 low_sample = 0
+#                 high_sample = 0
+#                 for sm in range(trace.shape[0]):
+#                     if ((trace[sm] > threshold_high)):
+#                         if (((sm - low_sample) < (high_low_window * sampling_rate)) and (low_sample != 0)):
+#                             trigger[channel_id].append(sm)
+#                         high_sample = sm
+#                     if (trace[sm] < threshold_low):
+#                         if (((sm - high_sample) < (high_low_window * sampling_rate)) and (high_sample != 0)):
+#                             trigger[channel_id].append(sm)
+#                         low_sample = sm
     
-            station.set_parameter(stnp.channels_max_amplitude, max_signal)
-            has_triggered = False
-            trigger_time_sample = None
-            # loop over the trace with a sliding window of "coinc_window"
-            coinc_window_samples = np.int(np.round(coinc_window * sampling_rate))
-            trace_length = len(station.get_channels()[0].get_trace())
-            for i in range(0, trace_length - coinc_window_samples):
-                istop = i + coinc_window_samples
-                coinc = 0
-                trigger_times = []
-                for iCh, tr in trigger.items():  # loops through triggers of each channel
-                    tr = np.array(tr)
-                    mask_trigger_in_coind_window = (tr >= i) & (tr < istop)
-                    if(np.sum(mask_trigger_in_coind_window)):
-                        coinc += 1
-                        # save time/sample of first trigger in coincidence window
-                        trigger_times.append(tr[mask_trigger_in_coind_window][0])
-                if coinc >= number_concidences:
-                    has_triggered = True
-                    trigger_time_sample = min(trigger_times)
-                    break
+            has_triggered, trigger_time_sample, triggered_time = get_majority_logic(
+                triggerd_bins_channels, len(station.get_channels()[0].get_trace()), 
+                number_concidences, coinc_window, dt)
+            
+#             station.set_parameter(stnp.channels_max_amplitude, max_signal)
+#             has_triggered = False
+#             trigger_time_sample = None
+#             # loop over the trace with a sliding window of "coinc_window"
+#             coinc_window_samples = np.int(np.round(coinc_window * sampling_rate))
+#             trace_length = len(station.get_channels()[0].get_trace())
+#             for i in range(0, trace_length - coinc_window_samples):
+#                 istop = i + coinc_window_samples
+#                 coinc = 0
+#                 trigger_times = []
+#                 for tr in triggerd_bins_channels:  # loops through triggers of each channel
+#                     tr = np.array(tr)
+#                     mask_trigger_in_coind_window = (tr >= i) & (tr < istop)
+#                     if(np.sum(mask_trigger_in_coind_window)):
+#                         coinc += 1
+#                         # save time/sample of first trigger in coincidence window
+#                         trigger_times.append(tr[mask_trigger_in_coind_window][0])
+#                 if coinc >= number_concidences:
+#                     has_triggered = True
+#                     trigger_time_sample = min(trigger_times)
+#                     break
         else:
             logger.info("set_not_triggered flag True, setting triggered to False.")
             has_triggered = False
@@ -130,7 +225,7 @@ class triggerSimulator:
             trigger.set_trigger_time(trigger_time_sample / sampling_rate)
         else:
             trigger.set_triggered(True)
-            trigger.set_trigger_time(trigger_time_sample / sampling_rate)
+            trigger.set_trigger_time(trigger_time_sample/ sampling_rate)
             logger.info("Station has passed trigger, trigger time is {:.1f} ns (sample {})".format(
                 trigger.get_trigger_time() / units.ns, trigger_time_sample))
 
