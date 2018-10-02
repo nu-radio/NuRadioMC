@@ -126,6 +126,8 @@ parser.add_argument('inputfilename', type=str,
                     help='path to NuRadioMC input event list')
 parser.add_argument('detectordescription', type=str,
                     help='path to file containing the detector description')
+parser.add_argument('config', type=str,
+                    help='NuRadioMC yaml config file')
 parser.add_argument('outputfilename', type=str,
                     help='hdf5 output filename')
 parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
@@ -136,7 +138,7 @@ sim = mySimulation(eventlist=args.inputfilename,
                             outputfilename=args.outputfilename,
                             detectorfile=args.detectordescription,
                             station_id=101,
-                            Tnoise=350.,
-                            outputfilenameNuRadioReco=args.outputfilenameNuRadioReco)
+                            outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
+                            config_file=args.config)
 sim.run()
 
