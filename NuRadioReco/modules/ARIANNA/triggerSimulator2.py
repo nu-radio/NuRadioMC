@@ -21,7 +21,7 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     low_threshold: float
         the low threshold
     time_coincidence: float
-        the time coincidence window between a high + low 
+        the time coincidence window between a high + low
     dt: float
         the width of a time bin (inverse of sampling rate)
 
@@ -32,16 +32,13 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     """
     n = len(trace)
     n_bins_coincidence = np.int(np.round(time_coincidence / dt))
-    c = np.zeros(n, dtype=np.bool)
-    c[:n_bins_coincidence] = True
+    c = np.ones(n_bins_coincidence, dtype=np.bool)
 
-    c2 = np.zeros(n)
-    c2[0] = 1
-    c2[1] = -1
+    c2 = np.array([1,-1])
 
-    m1 = np.convolve(trace > high_threshold, c)
-    m2 = np.convolve(trace < low_threshold, c)
-    return np.convolve(m1 & m2, c2) > 0
+    m1 = np.convolve(trace > high_threshold, c, mode='same')
+    m2 = np.convolve(trace < low_threshold, c, mode='same')
+    return np.convolve(m1 & m2, c2,mode='same') > 0
 
 
 def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * units.ns, dt=1 * units.ns):
@@ -70,14 +67,10 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     """
     n = len(tts[0])
     n_bins_coincidence = np.int(np.round(time_coincidence / dt))
-    c = np.zeros(n, dtype=np.bool)
-    c[:n_bins_coincidence] = True
+    c = np.ones(n_bins_coincidence, dtype=np.bool)
 
-    c2 = np.zeros(n)
-    c2[0] = 1
-    c2[1] = -1
     for i in range(len(tts)):
-        tts[i] = np.convolve(tts[i],  c)
+        tts[i] = np.convolve(tts[i],  c, mode='same')
     tts = np.sum(tts, axis=0)
     ttt = tts >= number_of_coincidences
     triggered_bins = np.squeeze(np.argwhere(tts >= number_of_coincidences))
@@ -127,7 +120,7 @@ class triggerSimulator:
             channels ids that are triggered on
         cut_trace: bool
             if true, trace is cut to the correct length (50ns before the trigger,
-            max trace length is set according to detector description) 
+            max trace length is set according to detector description)
         trigger_name: string
             a unique name of this particular trigger
         set_not_triggered: bool (default: False)
