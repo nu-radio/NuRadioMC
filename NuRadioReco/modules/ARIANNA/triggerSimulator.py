@@ -31,15 +31,15 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     """
     triggered_bins = []
 
-    low_sample = 0
-    high_sample = 0
+    low_sample = -1
+    high_sample = -1
     for sm in range(trace.shape[0]):
         if ((trace[sm] > high_threshold)):
-            if (((sm - low_sample) < (time_coincidence / dt)) and (low_sample != 0)):
+            if (((sm - low_sample) < (time_coincidence / dt)) and (low_sample != -1)):
                 triggered_bins.append(sm)
             high_sample = sm
         if (trace[sm] < low_threshold):
-            if (((sm - high_sample) < (time_coincidence / dt)) and (high_sample != 0)):
+            if (((sm - high_sample) < (time_coincidence / dt)) and (high_sample != -1)):
                 triggered_bins.append(sm)
             low_sample = sm
     return triggered_bins
@@ -164,20 +164,9 @@ class triggerSimulator:
                     continue
                 trace = channel.get_trace()
                 max_signal = max(max_signal, np.max(np.abs(trace)))
-                triggerd_bins_channels.append(get_high_low_triggers(trace, threshold_high, threshold_low, high_low_window, dt))
-    
-#                 low_sample = 0
-#                 high_sample = 0
-#                 for sm in range(trace.shape[0]):
-#                     if ((trace[sm] > threshold_high)):
-#                         if (((sm - low_sample) < (high_low_window * sampling_rate)) and (low_sample != 0)):
-#                             trigger[channel_id].append(sm)
-#                         high_sample = sm
-#                     if (trace[sm] < threshold_low):
-#                         if (((sm - high_sample) < (high_low_window * sampling_rate)) and (high_sample != 0)):
-#                             trigger[channel_id].append(sm)
-#                         low_sample = sm
-    
+                tmp1 = get_high_low_triggers(trace, threshold_high, threshold_low, high_low_window, dt)
+                triggerd_bins_channels.append(tmp1)
+
             has_triggered, trigger_time_sample, triggered_time = get_majority_logic(
                 triggerd_bins_channels, len(station.get_channels()[0].get_trace()), 
                 number_concidences, coinc_window, dt)

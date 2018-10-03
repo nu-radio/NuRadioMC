@@ -94,8 +94,8 @@ class triggerSimulator:
     def run(self, evt, station, det,
             threshold_high=60 * units.mV,
             threshold_low=-60 * units.mV,
-            high_low_window=20 * units.ns,
-            coinc_window=32 * units.ns,
+            high_low_window=5 * units.ns,
+            coinc_window=200 * units.ns,
             number_concidences=2,
             triggered_channels=[0, 1, 2, 3],
             cut_trace=True,
@@ -134,7 +134,6 @@ class triggerSimulator:
 
         sampling_rate = station.get_channels()[0].get_sampling_rate()
         if not set_not_triggered:
-            trigger = {}
             max_signal = 0
 
             triggerd_bins_channels = []
@@ -157,7 +156,6 @@ class triggerSimulator:
                 for channel in station.get_channels():
                     max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
                 station.set_parameter(stnp.channels_max_amplitude, max_signal)
-
         else:
             logger.info("set_not_triggered flag True, setting triggered to False.")
             has_triggered = False
