@@ -30,8 +30,7 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     triggered bins: array of bools
         the bins where the trigger condition is satisfied
     """
-    n = len(trace)
-    n_bins_coincidence = np.int(np.round(time_coincidence / dt))
+    n_bins_coincidence = np.int(np.round(time_coincidence / dt)) + 1
     c = np.ones(n_bins_coincidence, dtype=np.bool)
 
     c2 = np.array([1,-1])
@@ -66,7 +65,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         the trigger times
     """
     n = len(tts[0])
-    n_bins_coincidence = np.int(np.round(time_coincidence / dt))
+    n_bins_coincidence = np.int(np.round(time_coincidence / dt)) + 1
     c = np.ones(n_bins_coincidence, dtype=np.bool)
 
     for i in range(len(tts)):
