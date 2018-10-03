@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+from six import iteritems
 try:
     import cPickle as pickle
 except ImportError:
@@ -84,18 +85,18 @@ class Trigger:
         return pickle.dumps(self.__dict__, protocol=2)
     
     def deserialize(self, data_pkl):
-        for key, value in pickle.loads(data_pkl).iteritems():
+        for key, value in iteritems(pickle.loads(data_pkl)):
             setattr(self, key, value)
 
     def __str__(self):
         output = ""
-        for key, value in self.__dict__.iteritems():
+        for key, value in iteritems(self.__dict__):
             output +="{}: {}\n".format(key[1:], value)
         return output
     
     def get_trigger_settings(self):
         output = {}
-        for key, value in self.__dict__.iteritems():
+        for key, value in iteritems(self.__dict__):
             output[key[1:]] = value
         return output
 

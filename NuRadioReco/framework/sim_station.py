@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_station
+from six import iteritems
 try:
     import cPickle as pickle
 except ImportError:
@@ -24,7 +25,7 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
         return self.__channels is not {}
 
     def iter_channels(self, use_channels=None):
-        for channel_id, channel in self.__channels.iteritems():
+        for channel_id, channel in iteritems(self.__channels):
             if(use_channels is None):
                 yield channel
             else:
