@@ -100,6 +100,10 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
     Re_Z = ad1_data[:, 5][mask]
     Im_Z = ad1_data[:, 6][mask]
     Z = Re_Z + 1j * Im_Z
+    
+    Re_S = ad1_data[:, 7][mask]
+    Im_S = ad1_data[:, 8][mask]
+    S = Re_S + 1j * Im_S
     with open(ra1, 'r') as fin:
         ff2 = []
         phis = []
@@ -133,7 +137,7 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
             return None
         logger.debug(np.unique(np.array(phis)))
         logger.debug(np.unique(np.array(thetas)))
-        return zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, np.array(ff2), np.deg2rad(np.array(phis)), np.deg2rad(np.array(thetas)), np.array(Ephis), np.array(Ethetas), np.array(gains)
+        return zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, S, np.array(ff2), np.deg2rad(np.array(phis)), np.deg2rad(np.array(thetas)), np.array(Ephis), np.array(Ethetas), np.array(gains)
 
 
 def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
@@ -158,7 +162,7 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
     name = split[1]
     path = split[0]
 
-    zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, ff2, phi, theta, Iphi, Itheta, gains = parse_WIPLD_file(os.path.join(path, name, '{}.ad1'.format(name)),
+    zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, S, ff2, phi, theta, Iphi, Itheta, gains = parse_WIPLD_file(os.path.join(path, name, '{}.ad1'.format(name)),
                                                                                                                    os.path.join(path, name, '{}.ra1'.format(name)),
                                                                                                                    os.path.join(path, name, '{}.orientation'.format(name)),
                                                                                                                    gen_num=gen_num, s_paramateres=s_paramateres)
