@@ -15,7 +15,7 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 parser = argparse.ArgumentParser(description='Plot NuRadioMC event list output.')
 parser.add_argument('inputfilename', type=str,
                     help='path to NuRadioMC hdf5 simulation output')
-parser.add_argument('--trigger_name', type=str, default=None,
+parser.add_argument('--trigger_name', type=str, default=None, nargs='+',
                     help='the name of the trigger that should be used for the plots')
 parser.add_argument('--Veff', type=str,
                     help='specify json file where effective volume is saved as a function of energy')
@@ -31,23 +31,36 @@ fin = h5py.File(args.inputfilename, 'r')
 print('the following triggeres where simulated: {}'.format(fin.attrs['trigger_names']))
 if(args.trigger_name is None):
     triggered = np.array(fin['triggered'])
-    print("\tyou selected any trigger")
+    print("you selected any trigger")
+    trigger_name = 'all'
 else:
-    iTrigger = np.argwhere(fin.attrs['trigger_names'] == args.trigger_name)
-    triggered = fin['multiple_triggers'][:, iTrigger]
-    print("\tyou selected '{}'".format(args.trigger_name))
-    plot_folder = os.path.join(dirname, 'plots', filename, args.trigger_name)
-    if(not os.path.exists(plot_folder)):
-        os.makedirs(plot_folder)
+    if(len(args.trigger_name) > 1):
+        print("trigger {} selected which is a combination of {}".format(args.trigger_name[0], args.trigger_name[1:]))
+        trigger_name = args.trigger_name[0]
+        plot_folder = os.path.join(dirname, 'plots', filename, args.trigger_name[0])
+        if(not os.path.exists(plot_folder)):
+            os.makedirs(plot_folder)
+        triggered = np.zeros(len(fin['multiple_triggers'][:, 0]), dtype=np.bool)
+        for trigger in args.trigger_name[1:]:
+            iTrigger = np.squeeze(np.argwhere(fin.attrs['trigger_names'] == trigger))
+            triggered = triggered | np.array(fin['multiple_triggers'][:, iTrigger], dtype=np.bool)
+    else:
+        trigger_name = args.trigger_name[0]
+        iTrigger = np.argwhere(fin.attrs['trigger_names'] == trigger_name)
+        triggered = np.array(fin['multiple_triggers'][:, iTrigger], dtype=np.bool)
+        print("\tyou selected '{}'".format(trigger_name))
+        plot_folder = os.path.join(dirname, 'plots', filename, trigger_name)
+        if(not os.path.exists(plot_folder)):
+            os.makedirs(plot_folder)
 
-weights = np.array(fin['weights'])
+weights = np.array(fin['weights'])[triggered]
 n_events = fin.attrs['n_events']
 
 # calculate effective
 density_ice = 0.9167 * units.g / units.cm ** 3
 density_water = 997 * units.kg / units.m ** 3
 
-n_triggered = np.sum(weights[triggered])
+n_triggered = np.sum(weights)
 print('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(n_triggered, n_events, n_triggered / n_events))
 
 V = None
@@ -61,16 +74,16 @@ elif('rmin' in fin.attrs):
     rmax = fin.attrs['rmax']
     dZ = fin.attrs['zmax'] - fin.attrs['zmin']
     V = np.pi * (rmax**2 - rmin**2) * dZ
-Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
+Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights) / n_events
 
 print("Veff = {:.6g} km^3 sr".format(Veff / units.km ** 3))
 
 # plot vertex distribution
 fig, ax = plt.subplots(1, 1)
-xx = np.array(fin['xx'])
-yy = np.array(fin['yy'])
+xx = np.array(fin['xx'])[triggered]
+yy = np.array(fin['yy'])[triggered]
 rr = (xx ** 2 + yy ** 2) ** 0.5
-zz = np.array(fin['zz'])
+zz = np.array(fin['zz'])[triggered]
 
 mask_weight = weights > 1e-2
 max_r = max(np.abs(xx[mask_weight]).max(), np.abs(yy[mask_weight]).max())
@@ -82,10 +95,13 @@ cb.set_label("weighted number of events")
 ax.set_aspect('equal')
 ax.set_xlabel("r [m]")
 ax.set_ylabel("z [m]")
+ax.set_xlim(0, rmax)
+ax.set_ylim(fin.attrs['zmin'], 0)
+ax.set_title(trigger_name)
 fig.tight_layout()
 fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'))
 # plot incoming direction
-receive_vectors = np.array(fin['receive_vectors'])
+receive_vectors = np.array(fin['receive_vectors'])[triggered]
 # for all events, antennas and ray tracing solutions
 zeniths, azimuths = hp.cartesian_to_spherical_vectorized(receive_vectors[:, :, :, 0].flatten(),
                                                          receive_vectors[:, :, :, 1].flatten(),
@@ -111,60 +127,61 @@ fig.suptitle('incoming signal direction')
 fig.savefig(os.path.join(plot_folder, 'incoming_signal.png'))
 
 # plot polarization
-polarization = np.array(fin['polarization']).flatten()
+polarization = np.array(fin['polarization'])[triggered].flatten()
 polarization = np.abs(polarization)
 polarization[polarization > 90 * units.deg] = 180 * units.deg - polarization[polarization > 90 * units.deg]
 bins = np.linspace(0, 90, 50)
 
 # for all events, antennas and ray tracing solutions
-mask = zeniths > 90 * units.deg  # select rays coming from below
-fig, ax = php.get_histogram(polarization / units.deg,
-                            bins=bins,
-                            xlabel='polarization [deg]',
-                            weights=weights_matrix, stats=False,
-                            figsize=(6, 6))
-maxy = ax.get_ylim()
-php.get_histogram(polarization[mask] / units.deg,
-                  bins=bins,
-                  xlabel='polarization [deg]',
-                  weights=weights_matrix[mask], stats=False,
-                  ax=ax, kwargs={'facecolor': 'C0', 'alpha': 1, 'edgecolor': "k"})
-# ax.set_xticks(bins)
-ax.set_ylim(maxy)
-fig.tight_layout()
-fig.savefig(os.path.join(plot_folder, 'polarization.png'))
+# mask = zeniths > 90 * units.deg  # select rays coming from below
+# fig, ax = php.get_histogram(polarization / units.deg,
+#                             bins=bins,
+#                             xlabel='polarization [deg]',
+#                             weights=weights_matrix, stats=False,
+#                             figsize=(6, 6))
+# maxy = ax.get_ylim()
+# php.get_histogram(polarization[mask] / units.deg,
+#                   bins=bins,
+#                   xlabel='polarization [deg]',
+#                   weights=weights_matrix[mask], stats=False,
+#                   ax=ax, kwargs={'facecolor': 'C0', 'alpha': 1, 'edgecolor': "k"})
+# # ax.set_xticks(bins)
+# ax.set_ylim(maxy)
+# fig.tight_layout()
+# fig.savefig(os.path.join(plot_folder, 'polarization.png'))
 
 
-fig, ax = php.get_histogram(polarization / units.deg,
-                            bins=bins,
-                            xlabel='polarization [deg]',
-                            weights=weights_matrix, stats=False,
-                            figsize=(6, 6))
-maxy = ax.get_ylim()
-php.get_histogram(polarization[mask] / units.deg,
-                  bins=bins,
-                  xlabel='polarization [deg]',
-                  stats=False,
-                  ax=ax, kwargs={'facecolor': 'C0', 'alpha': 1, 'edgecolor': "k"})
-# ax.set_xticks(bins)
-ax.set_ylim(max(ax.get_ylim(), maxy))
-fig.tight_layout()
-fig.savefig(os.path.join(plot_folder, 'polarization_unweighted.png'))
+# fig, ax = php.get_histogram(polarization / units.deg,
+#                             bins=bins,
+#                             xlabel='polarization [deg]',
+#                             weights=weights_matrix, stats=False,
+#                             figsize=(6, 6))
+# maxy = ax.get_ylim()
+# php.get_histogram(polarization[mask] / units.deg,
+#                   bins=bins,
+#                   xlabel='polarization [deg]',
+#                   stats=False,
+#                   ax=ax, kwargs={'facecolor': 'C0', 'alpha': 1, 'edgecolor': "k"})
+# # ax.set_xticks(bins)
+# ax.set_ylim(max(ax.get_ylim(), maxy))
+# fig.tight_layout()
+# fig.savefig(os.path.join(plot_folder, 'polarization_unweighted.png'))
 
-fig, ax = php.get_histogram(np.array(fin['zeniths']) / units.deg, weights=weights,
+fig, ax = php.get_histogram(np.array(fin['zeniths'])[triggered] / units.deg, weights=weights,
                             ylabel='weighted entries', xlabel='zenith angle [deg]',
                             bins=np.arange(0, 181, 5), figsize=(6, 6))
 ax.set_xticks(np.arange(0, 181, 45))
+ax.set_title(trigger_name)
 fig.tight_layout()
 fig.savefig(os.path.join(plot_folder, 'neutrino_direction.png'))
 
-shower_axis = -1 * hp.spherical_to_cartesian(np.array(fin['zeniths']), np.array(fin['azimuths']))
-launch_vectors = np.array(fin['launch_vectors'])
+shower_axis = -1 * hp.spherical_to_cartesian(np.array(fin['zeniths'])[triggered], np.array(fin['azimuths'])[triggered])
+launch_vectors = np.array(fin['launch_vectors'])[triggered]
 viewing_angles = np.array([hp.get_angle(x, y) for x, y in zip(shower_axis, launch_vectors[:, 0, 0])])
 
 # calculate correct chereknov angle for ice density at vertex position
 ice = medium.southpole_simple()
-n_indexs = np.array([ice.get_index_of_refraction(x) for x in np.array([np.array(fin['xx']), np.array(fin['yy']), np.array(fin['zz'])]).T])
+n_indexs = np.array([ice.get_index_of_refraction(x) for x in np.array([np.array(fin['xx'])[triggered], np.array(fin['yy'])[triggered], np.array(fin['zz'])[triggered]]).T])
 rho = np.arccos(1. / n_indexs)
 
 mask = ~np.isnan(viewing_angles)
@@ -177,25 +194,26 @@ flavor_labels = ['e cc', r'$\bar{e}$ cc', 'e nc', r'$\bar{e}$ nc',
            '$\mu$ cc', r'$\bar{\mu}$ cc', '$\mu$ nc', r'$\bar{\mu}$ nc',
            r'$\tau$ cc', r'$\bar{\tau}$ cc', r'$\tau$ nc', r'$\bar{\tau}$ nc']
 yy = np.zeros(len(flavor_labels))
-yy[0] = np.sum(weights[triggered][(fin['flavors'][triggered] == 12) & (fin['ccncs'][triggered] == 'cc')])
-yy[1] = np.sum(weights[triggered][(fin['flavors'][triggered] == -12) & (fin['ccncs'][triggered] == 'cc')])
-yy[2] = np.sum(weights[triggered][(fin['flavors'][triggered] == 12) & (fin['ccncs'][triggered] == 'nc')])
-yy[3] = np.sum(weights[triggered][(fin['flavors'][triggered] == -12) & (fin['ccncs'][triggered] == 'nc')])
+yy[0] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['ccncs'][triggered] == 'cc')])
+yy[1] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['ccncs'][triggered] == 'cc')])
+yy[2] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['ccncs'][triggered] == 'nc')])
+yy[3] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['ccncs'][triggered] == 'nc')])
 
-yy[4] = np.sum(weights[triggered][(fin['flavors'][triggered] == 14) & (fin['ccncs'][triggered] == 'cc')])
-yy[5] = np.sum(weights[triggered][(fin['flavors'][triggered] == -14) & (fin['ccncs'][triggered] == 'cc')])
-yy[6] = np.sum(weights[triggered][(fin['flavors'][triggered] == 14) & (fin['ccncs'][triggered] == 'nc')])
-yy[7] = np.sum(weights[triggered][(fin['flavors'][triggered] == -14) & (fin['ccncs'][triggered] == 'nc')])
+yy[4] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['ccncs'][triggered] == 'cc')])
+yy[5] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['ccncs'][triggered] == 'cc')])
+yy[6] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['ccncs'][triggered] == 'nc')])
+yy[7] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['ccncs'][triggered] == 'nc')])
 
-yy[8] = np.sum(weights[triggered][(fin['flavors'][triggered] == 16) & (fin['ccncs'][triggered] == 'cc')])
-yy[9] = np.sum(weights[triggered][(fin['flavors'][triggered] == -16) & (fin['ccncs'][triggered] == 'cc')])
-yy[10] = np.sum(weights[triggered][(fin['flavors'][triggered] == 16) & (fin['ccncs'][triggered] == 'nc')])
-yy[11] = np.sum(weights[triggered][(fin['flavors'][triggered] == -16) & (fin['ccncs'][triggered] == 'nc')])
+yy[8] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['ccncs'][triggered] == 'cc')])
+yy[9] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['ccncs'][triggered] == 'cc')])
+yy[10] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['ccncs'][triggered] == 'nc')])
+yy[11] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['ccncs'][triggered] == 'nc')])
 
 fig, ax = plt.subplots(1, 1)
 ax.bar(range(len(flavor_labels)), yy)
 ax.set_xticks(range(len(flavor_labels)))
 ax.set_xticklabels(flavor_labels)
+ax.set_title(trigger_name)
 ax.set_ylabel('weighted number of triggers')
 fig.tight_layout()
 fig.savefig(os.path.join(plot_folder, 'flavor.png'))
