@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from radiotools import plthelpers as php
 
-model = 'AskaryanModule'
+model = 'Alvarez2000'
 
 dt = .1 * units.ns
 n_samples = 2048
@@ -13,33 +13,34 @@ ff = np.fft.rfftfreq(n_samples, dt)
 tt = np.arange(0, n_samples * dt, dt)
 df = ff[1]  # width of a frequency bin
 
-if(model == 'AskaryanModule'):
+if(model == 'Alvarez2000'):
     from NuRadioMC.SignalGen.RalstonBuniy.askaryan_module import get_frequency_spectrum
 
 # plot dependence on cherenkov cone
-E = 1e16 * units.eV
+E = 1e18 * units.eV
 n_index = 1.78
 R = 1 * units.km
 domegas = np.array([0, 1, 2, 3, 4, 5, 7.5, 10]) * units.deg
-emstr = ['EM', 'EM + LPM', 'had.']
-em = np.array([True, True, False])
-lpm = np.array([False, True, False])
-for i in range(3):  # loop over EM/EM+LPM/HAD
+emstr = ['EM', 'had.']
+em = np.array([True, False])
+# lpm = np.array([False, True, False])
+for i in range(2):  # loop over EM/EM+LPM/HAD
     fig, ax = plt.subplots(1, 1)
     for iOmega, domega in enumerate(domegas):
         theta = np.arccos(1. / n_index) + domega
-        spec1 = get_frequency_spectrum(E, theta, ff, em[i], n_index, R, lpm[i])
-        ax.plot(ff / units.MHz, np.abs(spec1[1]) / units.V * units.m, php.get_color_linestyle(iOmega), label='$\Delta \Omega$ = {:.1f}deg'.format(domega / units.deg))
+        spec1 = param.get_frequency_spectrum(E, theta, n_samples, dt, em[i], n_index, R, model=model)
+        ax.plot(ff / units.MHz, np.abs(spec1) / units.V * units.m, php.get_color_linestyle(iOmega), label='$\Delta \Omega$ = {:.1f}deg'.format(domega / units.deg))
     ax.semilogx(True)
     ax.semilogy(True)
     ax.set_xlim(10, 2e3)
-    ax.set_ylim(1e-9, 1e-3)
+    ax.set_ylim(1e-7, 1e-1)
     ax.set_xlabel("frequency [MHz]")
     ax.set_ylabel("amplitude [V/m] per {:.1f}MHz".format(df / units.MHz))
     ax.legend(fontsize='small')
     ax.set_title("{} E = {:.1e}eV, R = {:.1f}km, {}".format(model, E / units.eV, R / units.km, emstr[i]))
     fig.tight_layout()
-    fig.savefig("plots/{}_E{:.1e}eV_R{:.0f}m_EM{}_LPM{}.png".format(model, E / units.eV, R / units.m, em[i], lpm[i]))
+    fig.savefig("plots/{}_E{:.1e}eV_R{:.0f}m_EM{}.png".format(model, E / units.eV, R / units.m, em[i]))
+    plt.show()
     plt.close('all')
 
 # plot distance dependence for domegas
