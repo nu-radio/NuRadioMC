@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import argparse
 # import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverterPerChannel
-import NuRadioReco.modules.ARIANNA.triggerSimulator
+import NuRadioReco.modules.ARIANNA.triggerSimulator2
 import NuRadioReco.modules.triggerSimulator
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
@@ -16,7 +16,7 @@ logger = logging.getLogger("runstrawman")
 efieldToVoltageConverterPerChannel = NuRadioReco.modules.efieldToVoltageConverterPerChannel.efieldToVoltageConverterPerChannel()
 efieldToVoltageConverterPerChannel.begin(debug=False, time_resolution=1*units.ns)
 triggerSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
-triggerSimulatorARIANNA = NuRadioReco.modules.ARIANNA.triggerSimulator.triggerSimulator()
+triggerSimulatorARIANNA = NuRadioReco.modules.ARIANNA.triggerSimulator2.triggerSimulator()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 
