@@ -13,8 +13,8 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 import logging
 import numpy as np
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("runstrawman")
+logging.basicConfig(level=logging.WARNING)
+logger = logging.getLogger("runDeltaTStudy")
 
 # initialize detector sim modules
 efieldToVoltageConverterPerChannel = NuRadioReco.modules.efieldToVoltageConverterPerChannel.efieldToVoltageConverterPerChannel()
