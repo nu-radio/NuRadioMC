@@ -54,19 +54,24 @@ def get_filter_response_mini_circuits2(frequencies, filter_name):
 
 
 def get_filter_response(frequencies, filter_name):
-    # parse input file and convert to default units
     directory = os.path.dirname(os.path.abspath(__file__))
-    ff2, phase, t = np.loadtxt(os.path.join(
-        directory, 'filter/measurement/{}_PHASE.CSV'.format(filter_name)), unpack=True, skiprows=3, delimiter=',')
-    ff, insertion_loss, t = np.loadtxt(os.path.join(
-        directory, 'filter/measurement/{}_LINMAG.CSV'.format(filter_name)), unpack=True, skiprows=3, delimiter=',')
-    ff *= units.Hz
-    ff2 *= units.Hz
-    phase *= units.deg
-    print(phase)
-
-    get_phase = intp.interp1d(ff2, np.unwrap(phase))
-    get_insertion_loss = intp.interp1d(ff, insertion_loss)
+    if(filter_name =='NTU+cheb'):
+        ff, mag, phase = np.loadtxt(os.path.join(directory, 'filter/NTU+cheb_filter_mag_phase.txt'), unpack=True)
+        get_phase = intp.interp1d(ff, np.unwrap(phase))
+        get_insertion_loss = intp.interp1d(ff, mag)
+        ff2 = ff
+    else:
+        # parse input file and convert to default units
+        ff2, phase, t = np.loadtxt(os.path.join(
+            directory, 'filter/measurement/{}_PHASE.CSV'.format(filter_name)), unpack=True, skiprows=3, delimiter=',')
+        ff, insertion_loss, t = np.loadtxt(os.path.join(
+            directory, 'filter/measurement/{}_LINMAG.CSV'.format(filter_name)), unpack=True, skiprows=3, delimiter=',')
+        ff *= units.Hz
+        ff2 *= units.Hz
+        phase *= units.deg
+    
+        get_phase = intp.interp1d(ff2, np.unwrap(phase))
+        get_insertion_loss = intp.interp1d(ff, insertion_loss)
 
     response = np.zeros_like(frequencies, dtype=np.complex)
     mask = (frequencies > max(ff.min(), ff2.min())) & (frequencies < min(ff.max(), ff2.max()))
