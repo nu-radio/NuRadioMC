@@ -377,8 +377,7 @@ class simulation():
         fin.close()
     
     def _calculate_signal_properties(self):
-        # save events that trigger the detector and have weight > 0
-        if(self._mout['triggered'][self._iE]):
+        if(self._station.has_triggered()):
             self._channelSignalReconstructor.run(self._evt, self._station, self._det)
             for channel in self._station.get_channels():
                 self._mout['maximum_amplitudes'][self._iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
