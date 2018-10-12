@@ -138,7 +138,7 @@ class efieldToVoltageConverter:
                             ax[0].plot(ff / units.MHz, np.abs(efield_fft[2]), 'C2--')
                             plt.show()
 
-            elif(zenith <= 0.5 * np.pi):
+            elif(zenith >= 0.5 * np.pi):
                 # now the signal is coming from below, do we have an antenna above the surface?
                 position = det.get_relative_position(sim_station_id, iCh)
                 if(position[2] > 0):
