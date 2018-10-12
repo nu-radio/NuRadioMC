@@ -132,12 +132,6 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         self.set_trigger(trigger)
 
 
-#     def get_frequencies(self):
-#         return np.fft.rfftfreq(len(self._time_trace), d=(1. / self._sampling_rate))
-#
-#     def get_frequency_spectrum(self):
-#         return np.fft.rfft(self._time_trace, axis=0, norm="ortho")
-
     def serialize(self, mode):
         if(mode == 'micro'):
             base_trace_pkl = None
