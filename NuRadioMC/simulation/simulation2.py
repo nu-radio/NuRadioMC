@@ -110,15 +110,18 @@ class simulation():
         logger.debug("Detectorfile {}".format(self._detectorfile))
         self._det = detector.Detector(json_filename=self._detectorfile)
 
-        # read time and frequency resolution from detector (assuming all
-        # channels have the same sampling)
-        self._dt = 1. / self._det.get_sampling_frequency(station_id, 0)
+        # read sampling rate from config (this sampling rate will be used internally)
+        self._dt = 1. / (self._cfg['sampling_rate'] * units.GHz)
+        
+        self._sampling_rate_detector = self._det.get_sampling_frequency(station_id, 0)
+        
         bandwidth = self._cfg['trigger']['bandwidth']
         if(bandwidth is None):
             self._bandwidth = 0.5 / self._dt
         else:
             self._bandwidth = bandwidth
-        self._n_samples = self._det.get_number_of_samples(station_id, 0)
+        self._n_samples = self._det.get_number_of_samples(station_id, 0) / self._sampling_rate_detector / self._dt
+        self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to nearest even integer
         self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
         self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
         self._Vrms = (self._Tnoise * 50 * constants.k *
