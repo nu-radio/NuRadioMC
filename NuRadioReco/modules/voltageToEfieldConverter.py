@@ -2,7 +2,7 @@ import numpy as np
 import os
 import copy
 from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, fft
 from NuRadioReco.utilities import ice
 from NuRadioReco.detector import antennapattern
 import NuRadioReco.framework.base_trace
@@ -297,11 +297,11 @@ class voltageToEfieldConverter:
                 ax[iCh, 0].legend(fontsize='xx-small')
                 ax[iCh, 0].set_xlim(0, 500)
                 ax[iCh, 1].set_xlim(400, 600)
-                ax[iCh, 1].plot(times, np.fft.irfft(V[iCh], norm='ortho') / 2 ** 0.5 / units.micro / units.V, lw=lw)
+                ax[iCh, 1].plot(times, fft.freq2time(V[iCh]) / units.micro / units.V, lw=lw)
                 ax[iCh, 0].set_ylabel("H [m]")
                 ax[iCh, 1].set_ylabel(r"V [$\mu$V]")
                 RMS = det.get_noise_RMS(station.get_id(), 0)
-                ax[iCh, 1].text(0.6, 0.8, 'S/N={:.1f}'.format(np.max(np.abs(np.fft.irfft(V[iCh], norm='ortho') / 2 ** 0.5)) / RMS), transform=ax[iCh, 1].transAxes)
+                ax[iCh, 1].text(0.6, 0.8, 'S/N={:.1f}'.format(np.max(np.abs(fft.freq2time(V[iCh])) / RMS)), transform=ax[iCh, 1].transAxes)
             ax[-1, 1].set_xlabel("time [ns]")
             ax[-1, 0].set_xlabel("frequency [MHz]")
             fig.tight_layout()

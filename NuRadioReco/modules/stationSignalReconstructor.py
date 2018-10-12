@@ -7,6 +7,7 @@ from numpy.polynomial import polynomial as poly
 import matplotlib.pyplot as plt
 from radiotools import helper as hp
 from radiotools import coordinatesystems
+from NuRadioReco.utilities import fft
 import logging
 logger = logging.getLogger('stationSignalReconstructor')
 
@@ -155,7 +156,7 @@ class stationSignalReconstructor:
             xx = amps * np.exp(phases * 1j)
             mask = (frequencies < 30) | (frequencies > 80)
             xx[mask] = 0
-            return fft.irfft(xx)
+            return fft.freq2time(xx)
 
         # rotate into vB frame
         trace_vB = station.get_trace_vBvvB()[0]
@@ -164,11 +165,11 @@ class stationSignalReconstructor:
         envelope_vB = np.abs(signal.hilbert(trace_vB_signal))
         maxpos = np.argmax(envelope_vB)
         trace_vB_signal = np.roll(trace_vB_signal, -maxpos)
-        fft = np.fft.rfft(trace_vB_signal, norm="ortho") * 2 ** 0.5
-        spec_signal = np.abs(fft)
-        spec_signal_phase = np.unwrap(np.angle(fft))
+        spec2 = fft.time2freq(trace_vB_signal)
+        spec_signal = np.abs(spec2)
+        spec_signal_phase = np.unwrap(np.angle(spec2))
         ff_signal = np.fft.rfftfreq(np.sum(mask_signal_window), dt)
-        spec_noise = np.abs(np.fft.rfft(trace_vB[mask_noise_window], norm="ortho") * 2 ** 0.5)
+        spec_noise = np.abs(fft.time2freq(trace_vB[mask_noise_window]))
         ff_noise = np.fft.rfftfreq(np.sum(mask_noise_window), dt)
 
         if debug:

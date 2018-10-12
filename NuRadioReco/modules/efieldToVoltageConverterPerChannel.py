@@ -1,6 +1,6 @@
 import numpy as np
 from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, fft
 from NuRadioReco.utilities import ice
 from NuRadioReco.framework.parameters import channelParameters as chp
 # from detector import antennamodel
@@ -172,7 +172,7 @@ class efieldToVoltageConverterPerChannel:
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
 
                 if(self.__debug):
-                    axes[1].plot(trace_object.get_times(), np.fft.irfft(voltage_fft), label="{}, zen = {:.0f}deg".format(sim_channel2[chp.ray_path_type], zenith / units.deg))
+                    axes[1].plot(trace_object.get_times(), fft.freq2time(voltage_fft), label="{}, zen = {:.0f}deg".format(sim_channel2[chp.ray_path_type], zenith / units.deg))
 
                 if('amp' in self.__uncertainty):
                     voltage_fft *= np.random.normal(1, self.__uncertainty['amp'][channel_id])

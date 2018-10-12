@@ -3,7 +3,7 @@ import fractions
 from scipy import signal
 from decimal import Decimal
 import copy
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, fft
 import logging
 logger = logging.getLogger('channelResampler')
 
@@ -59,9 +59,9 @@ class channelResampler:
             trace = channel.get_trace()
             if(self.__debug):
                 ff = np.fft.rfftfreq(len(trace), orig_binning)
-                spec = np.fft.rfft(trace, norm="ortho")
+                spec = fft.time2freq(trace)
                 spec[ff >= 500 * units.MHz] = 0
-                trace = np.fft.irfft(spec)
+                trace = fft.freq2time(spec)
                 trace_old = copy.copy(trace)
 
             if(resampling_factor.numerator != 1):
@@ -77,8 +77,8 @@ class channelResampler:
                     trace2 = signal.resample(trace, len(trace) / resampling_factor.numerator)  # , window='hann')
 
                 import matplotlib.pyplot as plt
-                plt.plot(np.fft.rfftfreq(len(trace_old), orig_binning), np.abs(np.fft.rfft(trace_old, norm="ortho")))
-                plt.plot(np.fft.rfftfreq(len(trace2), orig_binning), np.abs(np.fft.rfft(trace2, norm="ortho")))
+                plt.plot(np.fft.rfftfreq(len(trace_old), orig_binning), np.abs(fft.time2freq(trace_old)))
+                plt.plot(np.fft.rfftfreq(len(trace2), orig_binning), np.abs(fft.time2freq(trace2)))
                 plt.show()
 
                 tt = np.arange(0, len(trace_old) * orig_binning, orig_binning)
