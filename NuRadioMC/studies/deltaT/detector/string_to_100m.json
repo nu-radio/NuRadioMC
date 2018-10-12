@@ -315,7 +315,7 @@
 	    "ant_orientation_theta": 0.0,
 	    "ant_position_x": 0.0,
 	    "ant_position_y": 0.0,
-	    "ant_position_z": -100.0,
+	    "ant_position_z": -1.0,
 	    "ant_rotation_phi": 90.0,
 	    "ant_rotation_theta": 90.0,
 	    "ant_type": "bicone_v8",

@@ -25,6 +25,7 @@ n_events = fin.attrs['n_events']
 Vrms = fin.attrs['Vrms']
 
 depths = np.array(fin.attrs['antenna_positions'])[:, 2]
+print("simulated depths ", depths)
 
 eff1 = np.zeros_like(depths)
 eff2 = np.zeros_like(depths)
@@ -45,12 +46,14 @@ for iD, depth in enumerate(depths):
     
      
 fig, (ax) = plt.subplots(1, 1)
-ax.plot(depths, eff1, 'o-', label='one pulse > 3 sigma, one pulse > 2 sigma')
-ax.plot(depths, eff2, "d--", label="both pulses > 3 sigma")
+sort_mask = np.argsort(depths)
+ax.plot(depths[sort_mask], eff1[sort_mask], 'o-', label='one pulse > 3 sigma, one pulse > 2 sigma')
+ax.plot(depths[sort_mask], eff2[sort_mask], "d--", label="both pulses > 3 sigma")
 ax.set_xlim(0, -100)
 ax.set_ylim(0, 1)
 ax.set_xlabel("depth [m]")
 ax.set_ylabel("efficiency")
+ax.set_title("neutrino energy {:.2g}eV".format(np.array(fin['energies']).mean()))
 ax.legend()
 fig.tight_layout()
 fig.savefig("{}.png".format(os.path.basename(args.inputfilename)))
