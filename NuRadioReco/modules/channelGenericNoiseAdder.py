@@ -1,7 +1,7 @@
 from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, fft
 import logging
 logger = logging.getLogger('channelGenericNoiseAdder')
 logging.basicConfig() # basicConfig adds a StreamHandler to the root logger.
@@ -14,7 +14,28 @@ class channelGenericNoiseAdder:
 
     """
 
-    def fftnoise(self, f):
+    def add_random_phases(self, amps, n_samples_time_domain):
+        """
+        Adding random phase information to given amplitude spectrum.
+
+        Parameters
+        ---------
+
+        amps: array of floats
+            Data that random phase is added to.
+        n_samples_time_domain: int
+            number of samples in the time domain to differentiate between odd and even number of samples
+        """
+        amps = np.array(amps, dtype='complex')
+        Np = (n_samples_time_domain - 1) // 2
+        phases = np.random.rand(Np) * 2 * np.pi
+        phases = np.cos(phases) + 1j * np.sin(phases)
+        amps[1:Np + 1] *= phases # Note that the last entry of the index slice is f[Np] !
+        
+        return amps
+    
+    
+    def fftnoise_fullfft(self, f):
         """
         Adding random phase information to given amplitude spectrum.
 
@@ -45,7 +66,7 @@ class channelGenericNoiseAdder:
         
         return np.fft.ifft(f).real
 
-    def bandlimited_noise(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type='perfect_white'):
+    def bandlimited_noise(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type='perfect_white', time_domain=True):
         """
         Generating noise of n_samples in a bandwidth [min_freq,max_freq].
 
@@ -60,18 +81,16 @@ class channelGenericNoiseAdder:
             Maximum frequency of passband for noise generation
             max_freq = None: Frequencies up to Nyquist freq are used.
         n_samples: int
-            how many samples of noise should be generated
+            number of samples in the time domain
         sampling_rate: float
             desired sampling rate of data
         amplitude: float
             desired voltage of noise as V_rms (only roughly, since bandpass limited)
         type: string
             perfect_white: flat frequency spectrum
-            white: flat frequency spectrum with random jitter
-            multi_white: Allows for the specifications of a amplitude distribution by providing the argument
-                'multi_white <ampdist>' with the possible strings for <ampdist>:
-                    'flat' : same as type='perfect_white'
-                    'rayleigh': Amplitude of each frequency bin is drawn from a Rayleigh distribution
+            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
+            # white: flat frequency spectrum with random jitter
+
         Comments
         --------
         *   Note that by design the max frequency is the Nyquist frequency, even if a bigger max_freq
@@ -80,23 +99,9 @@ class channelGenericNoiseAdder:
         *   Add 'multi_white' noise option on 20-Sept-2018 (RL)
 
         """
-        # for noise type 'multi_white', the character string also contains the type of amplitude distribution
-        # that shall be assumed, e.g. 'multi_white flat', where 'flat is the default'
-        typearray = type.split()
-        if typearray[0]=='multi_white':
-            type = typearray[0]
-            ntypewords = len(typearray)
-            logger.debug(' Noise type *** {} *** provided with *** {} *** arguments'.format(typearray[0],ntypewords-1))
-            if ntypewords > 1:
-                ampdist = typearray[1]
-                logger.debug(' Amplitude distribution is: {} '.format(ampdist))
-            else:
-                ampdist = 'flat'
-                logger.debug(' Amplitude distribution set to default: {} '.format(ampdist))
-                
-        frequencies = np.abs(np.fft.fftfreq(n_samples, 1 / sampling_rate))
+        frequencies = np.fft.rfftfreq(n_samples)
+        n_samples_freq = len(frequencies)
         
-        f = np.zeros(n_samples)
         if min_freq == None:
             # remove DC component; fftfreq returns the DC component as 0-th element and the negative
             # frequencies at the end, so frequencies[1] should be the lowest frequency; it seems safer,
@@ -108,12 +113,10 @@ class channelGenericNoiseAdder:
             # sample up to Nyquist frequency
             max_freq = max(frequencies)
             logger.info(' Set max_freq from None to {} GHz!'.format(max_freq/units.GHz))
-        selection = np.where((frequencies >= min_freq) & (frequencies <= max_freq))
+        selection = (frequencies >= min_freq) & (frequencies <= max_freq)
+        print(selection)
         
-        fbinsactive = np.zeros(n_samples)
-        fbinsactive[selection]=1
-        
-        nbinsactive = sum(fbinsactive)
+        nbinsactive = sum(selection)
         logger.debug('Total number of frequency bins (bilateral spectrum) : {} , of those active: {} '.format(n_samples,nbinsactive))
         
         # Debug plots
@@ -121,42 +124,25 @@ class channelGenericNoiseAdder:
 #         plt.plot (frequencies/max(frequencies))
 #         plt.plot(fbinsactive,'kx')
         
+        ampl = np.zeros(n_samples_freq)
+        sigscale = (1.*n_samples)/np.sqrt(nbinsactive)
         if type == 'perfect_white':
-            f[selection] = amplitude * np.sqrt(2.*n_samples * 2)
-            noise = self.fftnoise(f)
-            # quick hack to normalize the Vrms to the correct value
-            noise *= amplitude / noise.std()
-        elif type == 'white':
-            jitter = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
-            f[selection] = jitter[selection]
-            noise = self.fftnoise(f)
-            # quick hack to normalize the Vrms to the correct value
-            noise *= amplitude / noise.std()
-        elif type == 'multi_white':
-            # get amplitude distribution
-            ampl = np.ones(len(f))
-            sigscale = (1.*n_samples)/np.sqrt(nbinsactive)
-            if ampdist=='flat':
-                ampl *= amplitude * sigscale
-            elif ampdist=='rayleigh':
-                fsigma=amplitude*sigscale/np.sqrt(2.)
-                ampl = np.random.rayleigh(fsigma, n_samples)
-            else:
-                logger.error(" 'multi_white' has no amplitude distribution '{}' !".format(ampdist))
-                ampl *=0;
-                
-            # multiply each frequency with random phase to get noise
-            f[selection] = ampl[selection]
-            noise = self.fftnoise(f)
-        elif type == "narrowband":
-            noise = None
+            ampl[selection] = amplitude * sigscale
+        elif type == 'rayleigh':
+            fsigma=amplitude*sigscale/np.sqrt(2.)
+            ampl[selection] = np.random.rayleigh(fsigma, nbinsactive)
+#         elif type == 'white':
+# FIXME: amplitude normalization is not correct for 'white'
+#             ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
         else:
             logger.error("Other types of noise not yet implemented.")
+            raise NotImplementedError("Other types of noise not yet implemented.")
 
-        # quick hack to normalize the Vrms to the correct value
-        #noise *= amplitude / noise.std()
-        
-        return noise
+        noise = self.add_random_phases(ampl, n_samples)
+        if(time_domain):
+            return fft.freq2time(noise, n=n_samples)
+        else:
+            return noise
 
     def __init__(self):
         self.begin()
@@ -222,9 +208,9 @@ class channelGenericNoiseAdder:
                 plt.plot(new_trace)
 
                 plt.figure()
-                plt.plot(np.abs(np.fft.rfft(trace)))
-                plt.plot(np.abs(np.fft.rfft(noise)))
-                plt.plot(np.abs(np.fft.rfft(new_trace)))
+                plt.plot(np.abs(fft.time2freq(trace)))
+                plt.plot(np.abs(fft.time2freq(noise)))
+                plt.plot(np.abs(fft.time2freq(new_trace)))
 
                 plt.show()
 
