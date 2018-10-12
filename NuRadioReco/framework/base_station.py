@@ -18,7 +18,6 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         self._parameter_covariances = {}
         self._station_id = station_id
         self._station_time = None
-        self._has_triggerd = False
         self._triggers = {}
         self._triggered = False
 
@@ -95,14 +94,17 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         return self._triggers[name]
     
     def get_triggers(self):
-        return self._triggers.values()
+        """
+        returns a dictionary of the triggers. key is the trigger name, value is a trigger object
+        """
+        return self._triggers
 
     def set_trigger(self, trigger):
         if(trigger.get_name() in self._triggers):
             logger.warning(
                 "station has already a trigger with name {}. The previous trigger will be overridden!".format(trigger.get_name()))
         self._triggers[trigger.get_name()] = trigger
-        self._triggered = trigger.has_triggered()
+        self._triggered = trigger.has_triggered() or self._triggered
 
     def has_triggered(self, trigger_name=None):
         """
@@ -112,7 +114,7 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         ---------- 
         trigger_name: string or None (default None)
             * if None: The function returns False if not trigger was set. If one or multiple triggers were set,
-                       it returns the result of the last trigger
+                       it returns True if any of those triggers triggered
             * if trigger name is set: return if the trigger with name 'trigger_name' has a trigger
         """
         if(trigger_name is None):
