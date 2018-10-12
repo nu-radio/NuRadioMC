@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import logging
+from NuRadioReco.utilities import fft
 try:
     import cPickle as pickle
 except ImportError:
@@ -28,7 +29,7 @@ class BaseTrace:
         """
         if(not self.__time_domain_up_to_date):
 #             logger.debug("time domain is not up to date, calculating FFT on the fly")
-            self._time_trace = np.fft.irfft(self._frequency_spectrum, axis=-1, norm="ortho") / 2 ** 0.5
+            self._time_trace = fft.freq2time(self._frequency_spectrum)
             self.__time_domain_up_to_date = True
         return self._time_trace
 
@@ -36,7 +37,7 @@ class BaseTrace:
         if(self.__time_domain_up_to_date):
 #             logger.debug("frequency domain is not up to date, calculating FFT on the fly")
 #             logger.debug("time trace has shape {}".format(self._time_trace.shape))
-            self._frequency_spectrum = np.fft.rfft(self._time_trace, axis=-1, norm="ortho") * 2 ** 0.5  # an additional sqrt(2) is added because negative frequencies are omitted.
+            self._frequency_spectrum = fft.time2freq(self._time_trace)
 #             logger.debug("frequency spectrum has shape {}".format(self._frequency_spectrum.shape))
             self.__time_domain_up_to_date = False
         return self._frequency_spectrum
