@@ -21,10 +21,12 @@ class channelTemplateCorrelation:
         self.__templates = templates.Templates()
         self.begin()
 
-    def begin(self, debug=False):
+    def begin(self, debug=False, template_directory=None):
         self.__cr_templates = {}
         self.__ref_cr_template = {}
         self.__debug = debug
+        if(template_directory is not None):
+            self.__templates.set_template_directory(template_directory)
 
     def match_sampling(self, ref_template, resampling_factor):
         if(resampling_factor.numerator != 1):
