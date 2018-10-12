@@ -178,7 +178,7 @@ class channelGenericNoiseAdder:
             Maximum frequency of passband for noise generation
         type: string
             perfect_white: flat frequency spectrum
-            white: flat frequency spectrum with random jitter
+            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
 
         """
 
