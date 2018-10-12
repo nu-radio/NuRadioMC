@@ -99,7 +99,7 @@ class channelGenericNoiseAdder:
         *   Add 'multi_white' noise option on 20-Sept-2018 (RL)
 
         """
-        frequencies = np.fft.rfftfreq(n_samples)
+        frequencies = np.fft.rfftfreq(n_samples, 1./sampling_rate)
         n_samples_freq = len(frequencies)
         
         if min_freq == None:
@@ -114,9 +114,8 @@ class channelGenericNoiseAdder:
             max_freq = max(frequencies)
             logger.info(' Set max_freq from None to {} GHz!'.format(max_freq/units.GHz))
         selection = (frequencies >= min_freq) & (frequencies <= max_freq)
-        print(selection)
         
-        nbinsactive = sum(selection)
+        nbinsactive = np.sum(selection)
         logger.debug('Total number of frequency bins (bilateral spectrum) : {} , of those active: {} '.format(n_samples,nbinsactive))
         
         # Debug plots
