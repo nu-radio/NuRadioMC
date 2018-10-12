@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import scipy.signal
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, fft
 
 conversion_factor_integrated_signal = 2.65441729 * 1e-3 * 1.e-9 * 6.24150934 * 1e18
 
@@ -46,4 +46,4 @@ def get_analytic_pulse(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_rate,
                        phase_p1=0, bandpass=None):
     xx = get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_rate,
                                  phase_p1=phase_p1, bandpass=bandpass)
-    return np.fft.irfft(xx, norm='ortho') / 2 ** 0.5
+    return fft.freq2time(xx)
