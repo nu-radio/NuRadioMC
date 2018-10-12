@@ -14,7 +14,7 @@ from radiotools import helper as hp
 from NuRadioReco.detector import detector
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, fft
 from NuRadioReco.utilities import analytic_pulse as pulse
 from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
 
@@ -350,7 +350,7 @@ class voltageToAnalyticEfieldConverter:
             max_xcorrs = np.zeros(n_channels)
             for iCh, trace in enumerate(V_timedomain):
                 analytic_trace_fft = np.sum(efield_antenna_factor[iCh] * np.array([analytic_pulse_theta, analytic_pulse_phi]), axis=0)
-                analytic_traces[iCh] = np.fft.irfft(analytic_trace_fft, norm='ortho') / 2 ** 0.5
+                analytic_traces[iCh] = fft.freq2time(analytic_trace_fft)
                 xcorr = np.abs(hp.get_normalized_xcorr(trace, analytic_traces[iCh]))
                 positions[iCh] = np.argmax(np.abs(xcorr)) + 1
                 max_xcorrs[iCh] = xcorr.max()
@@ -407,7 +407,7 @@ class voltageToAnalyticEfieldConverter:
             # first determine the position with the larges xcorr
             for iCh, trace in enumerate(V_timedomain):
                 analytic_trace_fft = np.sum(efield_antenna_factor[iCh] * np.array([analytic_pulse_theta, analytic_pulse_phi]), axis=0)
-                analytic_traces[iCh] = np.fft.irfft(analytic_trace_fft, norm='ortho') / 2 ** 0.5
+                analytic_traces[iCh] = fft.freq2time(analytic_trace_fft)
                 xcorr = np.abs(hp.get_normalized_xcorr(trace, analytic_traces[iCh]))
 #                 pos = np.argmax(np.abs(xcorr)) + 1
                 positions[iCh] = np.argmax(np.abs(xcorr)) + 1
@@ -453,7 +453,7 @@ class voltageToAnalyticEfieldConverter:
             # first determine the position with the larges xcorr
             for iCh, trace in enumerate(V_timedomain):
                 analytic_trace_fft = np.sum(efield_antenna_factor[iCh] * np.array([analytic_pulse_theta, analytic_pulse_phi]), axis=0)
-                analytic_traces[iCh] = np.fft.irfft(analytic_trace_fft, norm='ortho') / 2 ** 0.5
+                analytic_traces[iCh] = fft.freq2time(analytic_trace_fft)
 
                 argmax = np.argmax(np.abs(trace))
                 imin = np.int(argmax - 30 * sampling_rate)
@@ -492,7 +492,7 @@ class voltageToAnalyticEfieldConverter:
                 imax = np.int(argmax + 50 * sampling_rate)
 
                 analytic_trace_fft = np.sum(efield_antenna_factor[iCh] * np.array([analytic_pulse_theta, analytic_pulse_phi]), axis=0)
-                analytic_traces[iCh] = np.fft.irfft(analytic_trace_fft, norm='ortho') / 2 ** 0.5
+                analytic_traces[iCh] = fft.freq2time(analytic_trace_fft)
                 tmp = np.sum(np.abs(trace[imin:imax] - np.roll(analytic_traces[iCh], pos)[imin:imax]) / noise_RMS)
                 chi2 += tmp ** 2
                 if(debug_obj):
@@ -556,7 +556,7 @@ class voltageToAnalyticEfieldConverter:
         max_xcorrs = np.zeros(n_channels)
         for iCh, trace in enumerate(V_timedomain):
             analytic_trace_fft = np.sum(efield_antenna_factor[iCh] * np.array([analytic_pulse_theta_freq, analytic_pulse_phi_freq]), axis=0)
-            analytic_traces[iCh] = np.fft.irfft(analytic_trace_fft, norm='ortho') / 2 ** 0.5
+            analytic_traces[iCh] = fft.freq2time(analytic_trace_fft)
             xcorr = np.abs(hp.get_normalized_xcorr(trace, analytic_traces[iCh]))
             positions[iCh] = np.argmax(np.abs(xcorr)) + 1
             max_xcorrs[iCh] = xcorr.max()
@@ -658,7 +658,7 @@ class voltageToAnalyticEfieldConverter:
             analytic_traces = np.zeros((n_channels, n_samples_time))
             for iCh, trace in enumerate(V_timedomain):
                 analytic_trace_fft = np.sum(efield_antenna_factor[iCh] * np.array([analytic_pulse_theta_freq, analytic_pulse_phi_freq]), axis=0)
-                analytic_traces[iCh] = np.fft.irfft(analytic_trace_fft, norm='ortho') / 2 ** 0.5
+                analytic_traces[iCh] = fft.freq2time(analytic_trace_fft)
                 analytic_traces[iCh] = np.roll(analytic_traces[iCh], pos)
             fig, (ax2, ax2f) = plt.subplots(2, 1, figsize=(10, 8))
             lw = 2

@@ -1,6 +1,6 @@
 from NuRadioReco.detector.ARIANNA import analog_components
 import numpy as np
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, fft
 import time
 import logging
 
@@ -137,12 +137,12 @@ class hardwareResponseIncorporator:
         trace = np.zeros(n)
         trace[n // 2] = 1
         max_time = trace.argmax() / sampling_rate
-        spec = np.fft.rfft(trace)
+        spec = fft.time2freq(trace)
         ff = np.fft.rfftfreq(n, 1. / sampling_rate)
         response = analog_components.get_cable_response(ff)
         response_gain = response['gain']
         response_phase = response['phase']
-        trace2 = np.fft.irfft(spec * response_gain * response_phase)
+        trace2 = fft.freq2time(spec * response_gain * response_phase)
 #         import matplotlib.pyplot as plt
 #         fig, ax = plt.subplots(1, 1)
 #         ax.plot(trace)
@@ -161,13 +161,13 @@ class hardwareResponseIncorporator:
         trace = np.zeros(n)
         trace[n // 2] = 1
         max_time = trace.argmax() / sampling_rate
-        spec = np.fft.rfft(trace)
+        spec = fft.time2freq(trace)
         ff = np.fft.rfftfreq(n, 1. / sampling_rate)
         amp_response_gain = amp_response_f['gain'](ff)
         amp_response_phase = amp_response_f['phase'](ff)
         mask = (ff < 70 * units.MHz) & (ff > 40 * units.MHz)
         spec[~mask] = 0
-        trace2 = np.fft.irfft(spec * amp_response_gain * amp_response_phase)
+        trace2 = fft.freq2time(spec * amp_response_gain * amp_response_phase)
 #         import matplotlib.pyplot as plt
 #         fig, ax = plt.subplots(1, 1)
 #         ax.plot(trace)
