@@ -20,7 +20,7 @@ class readARIANNAData:
     """
 
     def begin(self, input_files, trigger_types=None, time_interval=None,
-              tree='AmpOutData', run_number=None, event_id=None):
+              tree='AmpOutData', run_number=None, event_ids=None):
         """
         read FPN and gain calibrated ARIANNA data (snowshovel data format)
 
@@ -43,14 +43,15 @@ class readARIANNAData:
         run_number: int or None
             run number, all events with a different run number will be skipped.
             Default is None which means that all events are read in
-        event_id: int or None
-            event id, all events with a different event id will be skipped.
+        event_ids: dictionary or None 
+            specify any combination of run and event ids, all other events will be skipped.
+            key is the run id, values are the event ids
             Default is None which means that all events are read in
         """
         self.__trigger_types = trigger_types
         self.__time_interval = time_interval
         self.__run_number = run_number
-        self.__event_id = event_id
+        self.__event_ids = event_ids
         self.data_tree = ROOT.TChain("CalibTree")
         self.config_tree = ROOT.TChain("ConfigTree")
 
@@ -87,7 +88,7 @@ class readARIANNAData:
                     eta = (time.time() - self.__t) / self.__id_current_event * (self.n_events - self.__id_current_event) / 60.
                 logger.warning("reading in event {}/{} ({:.0f}%) ETA: {:.1f} minutes".format(self.__id_current_event, self.n_events,
                                                                          100 * progress, eta))
-            try:
+            if 1:
                 self.data_tree.GetEntry(self.__id_current_event)
                 self.config_tree.GetEntry(self.__id_current_event)
 
@@ -118,8 +119,10 @@ class readARIANNAData:
                 if(self.__run_number is not None):
                     if(run_number != self.__run_number):
                         continue
-                if(self.__event_id is not None):
-                    if(evt_number != self.__event_id):
+                if(self.__event_ids is not None):
+                    if(run_number not in self.__event_ids):
+                        continue
+                    if(evt_number not in self.__event_ids[run_number]):
                         continue
 
                 evt_triggered = self.data_tree.EventHeader.IsThermal()
@@ -152,11 +155,11 @@ class readARIANNAData:
 
                 evt.set_station(station)
                 yield evt
-            except:
-                logger.error("error in reading in event station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id,
-                                                                                                         run_number=run_number,
-                                                                                                         evt_number=evt_number,
-                                                                                                         time=evt_time))
+#             except:
+#                 logger.error("error in reading in event station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id,
+#                                                                                                          run_number=run_number,
+#                                                                                                          evt_number=evt_number,
+#                                                                                                          time=evt_time))
                 continue
 
     def end(self):
