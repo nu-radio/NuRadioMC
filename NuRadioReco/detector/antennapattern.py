@@ -465,8 +465,8 @@ class AntennaPattern(AntennaPatternBase):
         self.n_theta = len(self.theta_angles)
         self.n_phi = len(self.phi_angles)
 
-        self.VEL_phi = H_phi
-        self.VEL_theta = H_theta
+        self.VEL_phi = H_phi * 0.5  # temporary fix to account for voltage drop in 50 Ohm readout
+        self.VEL_theta = H_theta * 0.5  # temporary fix to account for voltage drop in 50 Ohm readout
 
         # additional consistency check
         for iFreq, freq in enumerate(self.frequencies):
