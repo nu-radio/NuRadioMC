@@ -89,16 +89,18 @@ class efieldToVoltageConverterPerChannel:
         times_max = []
         for iCh, sim_channel in enumerate(sim_station.iter_channels()):
             for sim_channel2 in sim_channel:
+                original_binning = 1./ sim_channel2.get_sampling_rate()
                 cab_delay = det.get_cable_delay(sim_station_id, sim_channel2.get_id())
                 t0 = sim_channel2.get_trace_start_time() + cab_delay
                 if(not np.isnan(t0)):  # trace start time is None if no ray tracing solution was found and channel contains only zeros
                     times_min.append(t0)
                     times_max.append(t0 + sim_channel2.get_number_of_samples() / sim_channel2.get_sampling_rate())
                     logger.debug("trace start time {}, cab_delty {}, tracelength {}".format(sim_channel2.get_trace_start_time(), cab_delay, sim_channel2.get_number_of_samples() / sim_channel2.get_sampling_rate()))
+        time_resolution = min(self.__time_resolution, original_binning)
         times_min = np.array(times_min) - self.__pre_pulse_time
         times_max = np.array(times_max) + self.__post_pulse_time
         trace_length = times_max.max() - times_min.min()
-        trace_length_samples = int(round(trace_length / self.__time_resolution))
+        trace_length_samples = int(round(trace_length / time_resolution))
         if trace_length_samples % 2 != 0:
             trace_length_samples += 1
         logger.debug("smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d} {:.0f}ns)".format(times_min.min(), times_max.max(), trace_length_samples,trace_length/units.ns))
@@ -125,7 +127,7 @@ class efieldToVoltageConverterPerChannel:
                 # so we need to create one long trace that can hold all the different channel times
                 # to achieve a good time resolution, we upsample the trace first.
                 orig_binning = 1. / sim_channel2.get_sampling_rate()  # assume that all channels have the same sampling rate
-                target_binning = self.__time_resolution
+                target_binning = time_resolution
                 resampling_factor = fractions.Fraction(Decimal(orig_binning / target_binning)).limit_denominator(self.__max_upsampling_factor)
                 efield = sim_channel2.get_trace()
                 new_length = int(efield.shape[1] * resampling_factor)
@@ -142,11 +144,11 @@ class efieldToVoltageConverterPerChannel:
                 # calculate the start bin
                 if(not np.isnan(sim_channel2.get_trace_start_time())):
                     cab_delay = det.get_cable_delay(sim_station_id, sim_channel2.get_id())
-                    start_bin = int(round((sim_channel2.get_trace_start_time() + cab_delay - times_min.min()) / self.__time_resolution))
+                    start_bin = int(round((sim_channel2.get_trace_start_time() + cab_delay - times_min.min()) / time_resolution))
                     logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, sim_channel2.get_trace_start_time() + cab_delay, start_bin, sim_channel2[chp.ray_path_type]))
                     new_trace[:, start_bin:(start_bin + len(trace))] = resampled_efield
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
-                trace_object.set_trace(new_trace, 1. / self.__time_resolution)
+                trace_object.set_trace(new_trace, 1. / time_resolution)
                 trace_object.set_trace_start_time(times_min.min())
                 if(self.__debug):
                     axes[0].plot(trace_object.get_times(), new_trace[1], label="eTheta {}".format(sim_channel2[chp.ray_path_type]))
