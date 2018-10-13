@@ -71,7 +71,7 @@ class channelResampler:
                 
             # make sure that trace has even number of samples
             if(len(trace) % 2 != 0):
-                logger.warning("channel trace has a odd number of samples after resampling. The last bin of the trace is discarded to maintain a even number of samples")
+                logger.info("channel trace has a odd number of samples after resampling. The last bin of the trace is discarded to maintain a even number of samples")
                 trace = trace[:-1]
 
             if(self.__debug):
