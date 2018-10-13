@@ -115,6 +115,7 @@ class simulation():
         self._dt = 1. / (self._cfg['sampling_rate'] * units.GHz)
         
         self._sampling_rate_detector = self._det.get_sampling_frequency(station_id, 0)
+        print('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
         
         bandwidth = self._cfg['trigger']['bandwidth']
         if(bandwidth is None):
