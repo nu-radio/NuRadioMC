@@ -77,7 +77,7 @@ class BaseTrace:
         length = self.get_number_of_samples()
         times = np.arange(0, length / self._sampling_rate, 1. / self._sampling_rate) + self._trace_start_time
         if(len(times) != length):
-            logger.error("time array does not have the same length as the trace")
+            logger.error("time array does not have the same length as the trace. n_samples = {:d}, sampling rate = {:.5g}".format(length, self._sampling_rate))
             raise ValueError("time array does not have the same length as the trace")
         return times
 
