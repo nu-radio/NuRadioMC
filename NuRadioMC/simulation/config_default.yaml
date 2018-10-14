@@ -13,6 +13,7 @@ propagation:
   
 signal:
   model: Alvarez2000
+  zerosignal: False  # if True, the signal is set to zero. This is useful to study 'noise' only simulations
   
 trigger:
   noise_temperature: 300  # in Kelvin

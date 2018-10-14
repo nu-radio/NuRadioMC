@@ -83,11 +83,11 @@ class simulation():
         """
         
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
-        print('reading default config from {}'.format(config_file_default))
+        logger.warning('reading default config from {}'.format(config_file_default))
         with open(config_file_default, 'r') as ymlfile:
             self._cfg = yaml.load(ymlfile)
         if(config_file is not None):
-            print('reading local config overrides from {}'.format(config_file))
+            logger.warning('reading local config overrides from {}'.format(config_file))
             with open(config_file, 'r') as ymlfile:
                 local_config=yaml.load(ymlfile)
                 new_cfg = merge_config(local_config, self._cfg)
@@ -110,12 +110,16 @@ class simulation():
         # read in detector positions
         logger.debug("Detectorfile {}".format(self._detectorfile))
         self._det = detector.Detector(json_filename=self._detectorfile)
+        
+        # print noise information
+        logger.warning("running with noise {}".format(bool(self._cfg['noise'])))
+        logger.warning("setting signal to zero {}".format(bool(self._cfg['signal']['zerosignal'])))
 
         # read sampling rate from config (this sampling rate will be used internally)
         self._dt = 1. / (self._cfg['sampling_rate'] * units.GHz)
         
         self._sampling_rate_detector = self._det.get_sampling_frequency(station_id, 0)
-        print('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
+        logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
         
         bandwidth = self._cfg['trigger']['bandwidth']
         if(bandwidth is None):
@@ -128,7 +132,7 @@ class simulation():
         self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
         self._Vrms = (self._Tnoise * 50 * constants.k *
                        self._bandwidth / units.Hz) ** 0.5
-        print('noise temperature = {}, bandwidth = {:.0f} MHz, Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth/units.MHz, self._Vrms/units.V/units.micro))
+        logger.warning('noise temperature = {}, bandwidth = {:.0f} MHz, Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth/units.MHz, self._Vrms/units.V/units.micro))
 
 
     def run(self):
@@ -365,6 +369,26 @@ class simulation():
               "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
         
     
+    def _increase_signal(self, channel_id, factor):
+        """
+        increase the signal of a simulated station by a factor of x
+        this is e.g. used to approximate a phased array concept with a single antenna
+        
+        Parameters
+        ----------
+        channel_id: int or None
+            if None, all available channels will be modified
+        """
+        if(channel_id is None):
+            for sim_channels in self._station.iter_channels():
+                for sim_channel in sim_channels:
+                    sim_channel.set_trace(sim_channel.get_trace() * factor, sampling_rate=sim_channel.get_sampling_rate())
+                
+        else:
+            sim_channels = self._station.get_sim_station().get_channel(channel_id)
+            for sim_channel in sim_channels:
+                sim_channel.set_trace(sim_channel.get_trace() * factor, sampling_rate=sim_channel.get_sampling_rate())
+        
     def _read_input_hdf5(self):
         """
         reads input file into memory
