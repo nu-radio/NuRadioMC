@@ -380,7 +380,7 @@ class simulation():
             if None, all available channels will be modified
         """
         if(channel_id is None):
-            for sim_channels in self._station.iter_channels():
+            for sim_channels in self._station.get_sim_station().iter_channels():
                 for sim_channel in sim_channels:
                     sim_channel.set_trace(sim_channel.get_trace() * factor, sampling_rate=sim_channel.get_sampling_rate())
                 
