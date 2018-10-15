@@ -60,6 +60,8 @@ def get_L1(a):
       State('station_id', 'children')])
 def update_event_info(evt_counter_json, filename, juser_id, jstation_id):
     print("update event info")
+    if filename is None:
+        return ""
 #     filename = json.loads(jfilename)
     user_id = json.loads(juser_id)
     station_id = json.loads(jstation_id)
@@ -105,6 +107,8 @@ def update_event_info(evt_counter_json, filename, juser_id, jstation_id):
      [State('user_id', 'children'),
       State('station_id', 'children')])
 def update_time_efieldtrace(trigger, evt_counter_json, filename, juser_id, jstation_id):
+    if filename is None:
+        return {}
     print("update efield trace")
 #     filename = json.loads(jfilename)
     user_id = json.loads(juser_id)
@@ -189,6 +193,8 @@ def update_time_efieldtrace(trigger, evt_counter_json, filename, juser_id, jstat
      [State('user_id', 'children'),
       State('station_id', 'children')])
 def update_time_trace(trigger, evt_counter_json, filename, juser_id, jstation_id):
+    if filename is None:
+        return {}
     print("update time trace")
 #     filename = json.loads(jfilename)
     user_id = json.loads(juser_id)
@@ -261,6 +267,8 @@ def update_time_trace(trigger, evt_counter_json, filename, juser_id, jstation_id
       State('station_id', 'children')])
 def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_info, juser_id, jstation_id):
 #     filename = json.loads(jfilename)
+    if filename is None:
+        return {}
     user_id = json.loads(juser_id)
     station_id = json.loads(jstation_id)
 
@@ -465,6 +473,8 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
      [State('user_id', 'children'),
       State('station_id', 'children')])
 def update_time_traces2(evt_counter_json, filename, dropdown_traces, juser_id, jstation_id):
+    if filename is None:
+        return {}
 #     filename = json.loads(jfilename)
     user_id = json.loads(juser_id)
     station_id = json.loads(jstation_id)

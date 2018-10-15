@@ -150,56 +150,62 @@ def next_event(n_clicks_next, n_clicks_previous, evt_counter_slider, click1, cli
     tmp = json.loads(evt_counter_json)
     evt_counter = tmp['evt_counter']
     current_selection = json.loads(jevent_ids)
-    print("current evt_counter is {}".format(evt_counter))
-    ariio = provider.get_arianna_io(user_id, filename)
-    number_of_events = ariio.get_n_events()
-    event_ids = ariio.get_event_ids()
     was_clicked = False
-
-    # first check if new event selection has fired callback
-    # we do this by checking if current event is in event selection
-    if((current_selection is not None) and (current_selection != []) and (str(event_ids[evt_counter]) not in current_selection)):
-        print('not in current selection')
-        evt_counter = get_point_index(event_ids, [current_selection[0]])[0]
-    else:
-        if(n_clicks_next != tmp['next']):
-            if(current_selection != [] and current_selection is not None):  # do we have an active selection? then loop only through the selection
-                for event_index in range(evt_counter + 1, number_of_events):
-                    if(str(event_ids[event_index]) in current_selection):
-                        evt_counter = event_index
-                        break
-            else:
-                if(evt_counter < number_of_events - 1):
-                    evt_counter += 1
-        elif(n_clicks_previous != tmp['prev']):
-            if(current_selection != [] and current_selection is not None):  # do we have an active selection? then loop only through the selection
-                for event_index in range(0, evt_counter)[::-1]:
-                    if(str(event_ids[event_index]) in current_selection):
-                        evt_counter = event_index
-                        break
-            else:
-                if(evt_counter > 0):
-                    evt_counter -= 1
-        else:  # then callback was fired by click on plot
-            for click in [click1, click2, click3, click4, click5]:
-                if click is not None:
-                    was_clicked = True
-                    event_id = click['points'][0]['text']
-                    event_index = get_point_index(event_ids, [event_id])[0]
-                    if(event_index != tmp['evt_counter']):
-                        evt_counter = event_index
-                        was_clicked = True
-            if not was_clicked:
+    print("current evt_counter is {}".format(evt_counter))
+    if filename is not None:
+        ariio = provider.get_arianna_io(user_id, filename)
+        number_of_events = ariio.get_n_events()
+        event_ids = ariio.get_event_ids()
+        # first check if new event selection has fired callback
+        # we do this by checking if current event is in event selection
+        if((current_selection is not None) and (current_selection != []) and (str(event_ids[evt_counter]) not in current_selection)):
+            print('not in current selection')
+            evt_counter = get_point_index(event_ids, [current_selection[0]])[0]
+        else:
+            if(n_clicks_next != tmp['next']):
                 if(current_selection != [] and current_selection is not None):  # do we have an active selection? then loop only through the selection
-                    event_index = get_point_index(event_ids, [current_selection[evt_counter_slider]])[0]
-                    if(event_index != tmp['evt_counter']):
-                        evt_counter = event_index
+                    for event_index in range(evt_counter + 1, number_of_events):
+                        if(str(event_ids[event_index]) in current_selection):
+                            evt_counter = event_index
+                            break
                 else:
-                    if(evt_counter_slider != tmp['evt_counter']):
-                        print("evt_counter_slider is {}".format(evt_counter_slider))
-                        evt_counter = evt_counter_slider  # set event counter to current slider value
+                    if(evt_counter < number_of_events - 1):
+                        evt_counter += 1
+            elif(n_clicks_previous != tmp['prev']):
+                if(current_selection != [] and current_selection is not None):  # do we have an active selection? then loop only through the selection
+                    for event_index in range(0, evt_counter)[::-1]:
+                        if(str(event_ids[event_index]) in current_selection):
+                            evt_counter = event_index
+                            break
+                else:
+                    if(evt_counter > 0):
+                        evt_counter -= 1
+            else:  # then callback was fired by click on plot
+                for click in [click1, click2, click3, click4, click5]:
+                    if click is not None:
+                        was_clicked = True
+                        event_id = click['points'][0]['text']
+                        event_index = get_point_index(event_ids, [event_id])[0]
+                        if(event_index != tmp['evt_counter']):
+                            evt_counter = event_index
+                            was_clicked = True
+                if not was_clicked:
+                    if(current_selection != [] and current_selection is not None):  # do we have an active selection? then loop only through the selection
+                        event_index = get_point_index(event_ids, [current_selection[evt_counter_slider]])[0]
+                        if(event_index != tmp['evt_counter']):
+                            evt_counter = event_index
+                    else:
+                        if(evt_counter_slider != tmp['evt_counter']):
+                            print("evt_counter_slider is {}".format(evt_counter_slider))
+                            evt_counter = evt_counter_slider  # set event counter to current slider value
 
-    print("setting evt_counter to {}".format(evt_counter))
+        print("setting evt_counter to {}".format(evt_counter))
+    else:
+        number_of_events = 0
+        event_ids = []
+        event_counter = 0
+        n_clicks_next = 0
+        n_clicks_previous = 0
     tmp['evt_counter'] = evt_counter
     tmp['next'] = n_clicks_next
     tmp['prev'] = n_clicks_previous
@@ -215,6 +221,8 @@ def next_event(n_clicks_next, n_clicks_previous, evt_counter_slider, click1, cli
      Input('event-ids', 'children')],
     [State('user_id', 'children')])
 def update_slider_options(filename, jevent_ids, juser_id):
+    if filename is None:
+        return 0
 #     filename = json.loads(jfilename)
     current_selection = json.loads(jevent_ids)
     if(current_selection != [] and current_selection is not None):
@@ -261,7 +269,7 @@ def set_filename_dropdown(folder):
                State('station_id', 'children')])
 def set_station_id(filename, juser_id, jstation_id):
     station_id = json.loads(jstation_id)
-    if(station_id is None):
+    if(station_id is None and filename is not None):
         user_id = json.loads(juser_id)
 #         filename = json.loads(jfilename)
         ariio = provider.get_arianna_io(user_id, filename)
@@ -311,6 +319,8 @@ def display_page2(pathname):
               [State('user_id', 'children'),
                State('station_id', 'children')])
 def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, juser_id, jstation_id):
+    if filename is None:
+        return {}
     print("plotting x correlation")
     user_id = json.loads(juser_id)
 #     filename = json.loads(jfilename)
@@ -350,6 +360,8 @@ def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, juser_id, jstation_i
               [State('user_id', 'children'),
                State('station_id', 'children')])
 def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, juser_id, jstation_id):
+    if filename is None:
+        return {}
     print("plotting x correlation")
     user_id = json.loads(juser_id)
 #     filename = json.loads(jfilename)
@@ -389,6 +401,8 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, juser_id, 
               [State('user_id', 'children'),
                State('station_id', 'children')])
 def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, juser_id, jstation_id):
+    if filename is None:
+        return {}
     print("plot_cr_polarization_zenith")
     user_id = json.loads(juser_id)
 #     filename = json.loads(jfilename)
@@ -437,6 +451,8 @@ def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, juser_id, jst
               [State('user_id', 'children'),
                State('station_id', 'children')])
 def plot_skyplot(filename, trigger, jcurrent_selection, xcorrcut, btn, juser_id, jstation_id):
+    if filename is None:
+        return {}
     print('xcorr cut is {:.2f}'.format(xcorrcut))
     user_id = json.loads(juser_id)
 #     filename = json.loads(jfilename)
@@ -509,6 +525,8 @@ def plot_skyplot(filename, trigger, jcurrent_selection, xcorrcut, btn, juser_id,
               [State('user_id', 'children'),
                State('station_id', 'children')])
 def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, juser_id, jstation_id):
+    if filename is None:
+        return {}
     user_id = json.loads(juser_id)
     station_id = json.loads(jstation_id)
     current_selection = json.loads(jcurrent_selection)
