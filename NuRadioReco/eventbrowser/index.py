@@ -63,16 +63,31 @@ app.layout = html.Div([
     html.Button('open file', id='btn-open-file'),
     html.Br(),
     html.Div([
-            html.Button('previous event', id='btn-previous-event'),
-            html.Button('next event', id='btn-next-event')
-        ], className=''),
-    html.Div([
-         dcc.Slider(
-            id='event-counter-slider',
-            step=1,
-            value=0
-        ),
-    ]),
+        html.Div([
+                html.Button('<-', id='btn-previous-event', className='standard-button'),
+                html.Div(id = 'event-number-display', style={'padding': '10px'}, children = ''''''),
+                html.Button('->', id='btn-next-event', className='standard-button')
+            ],
+            style={
+            'flex': 'none',
+            'display': 'flex'
+            }),
+        html.Div([
+             dcc.Slider(
+                id='event-counter-slider',
+                step=1,
+                value=0,
+                marks={}
+            ),
+        ],
+        style={
+        'margin': '10px 10px 20px 10px',
+        'flex': '1'}
+        )
+    ],
+    style={
+    'display': 'flex'
+    }),
 
     html.Div([
         html.H3('summary plots'),
@@ -211,6 +226,16 @@ def next_event(n_clicks_next, n_clicks_previous, evt_counter_slider, click1, cli
     tmp['prev'] = n_clicks_previous
     return json.dumps(tmp)
 
+@app.callback(
+Output('event-number-display', 'children'),
+[Input('filename', 'value'),
+Input('event-counter', 'children')]
+)
+def set_event_number_display(filename, event_json):
+    if filename is None:
+        return 'No file selected'
+    i_event = json.loads(event_json)['evt_counter']
+    return 'Event {}'.format(i_event)
 
 # slider functions
 ###############
@@ -232,6 +257,26 @@ def update_slider_options(filename, jevent_ids, juser_id):
     number_of_events = ariio.get_n_events()
     return number_of_events - 1
 
+@app.callback(
+Output('event-counter-slider', 'marks'),
+[Input('filename', 'value')],
+[State('user_id', 'children')]
+)
+def update_slider_marks(filename, juser_id):
+    if filename is None:
+        return {}
+    user_id = json.loads(juser_id)
+    ariio = provider.get_arianna_io(user_id, filename)
+    n_events = ariio.get_n_events()
+    step_size = int(np.power(10., int(np.log10(n_events))))
+    marks = {}
+    for i in range(0, n_events, step_size):
+        print (marks)
+        marks[i] = str(i)
+    if n_events%step_size != 0:
+        marks[n_events] = str(n_events)
+    return marks
+    
 
 @app.callback(Output('user_id', 'children'),
               [Input('url', 'pathname')],
