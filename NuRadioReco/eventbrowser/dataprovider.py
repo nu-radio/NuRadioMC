@@ -14,6 +14,8 @@ class DataProvider(object):
         self.__user_instances = {}
 
     def get_arianna_io(self, user_id, filename):
+        if filename is None:
+            return
         if user_id not in self.__user_instances:
             self.__user_instances[user_id] = ARIANNAio.ARIANNAio(filename)
         if filename != self.__user_instances[user_id].get_filename():
