@@ -23,8 +23,6 @@ class stationParameters(Enum):
     cr_xcorrelations = 19 # dict of result of crosscorrelations with cr templates
     nu_xcorrelations = 20 #  dict of result of crosscorrelations with nu templates
 
->>>>>>> Adding parameters for signal correlation. Adding to new changes.
-
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
     azimuth = 2  # azimuth angle of the incoming signal direction
