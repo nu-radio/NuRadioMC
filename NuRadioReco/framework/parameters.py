@@ -24,6 +24,9 @@ class stationParameters(Enum):
     nu_xcorrelations = 20 #  dict of result of crosscorrelations with nu templates
     signal_energy_fluence = 21
     polarization_angle = 22
+    signal_time = 23
+    efield_vector = 24
+    efield_vector_polarization = 25
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
