@@ -4,8 +4,8 @@ from scipy import constants
 from radiotools import helper as hp
 
 from NuRadioReco.utilities import units, ice
-
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import channelParameters as chp
 
 import logging
 logger = logging.getLogger('templateDirectionFitter')
@@ -23,9 +23,13 @@ class templateDirectionFitter:
         pass
 
     def run(self, evt, station, det, debug=True, channels_to_use=[0, 1, 2, 3], cosmic_ray=False):
-        type_str = 'nu'
         if(cosmic_ray):
             type_str = 'cr'
+            xcorrelations = chp.cr_xcorrelations
+        else:
+            type_str = 'nu'
+            xcorrelations = chp.nu_xcorrelations
+
         station_id = station.get_id()
         channels = station.iter_channels(channels_to_use)
 
@@ -34,7 +38,7 @@ class templateDirectionFitter:
 
         for iCh, channel in enumerate(channels):
             channel_id = channel.get_id()
-            times.append(channel['{}_ref_xcorr_time'.format(type_str)])
+            times.append(channel[xcorrelations]['{}_ref_xcorr_time'.format(type_str)])
             positions.append(det.get_relative_position(station_id, channel_id))
 
         times = np.array(times)
