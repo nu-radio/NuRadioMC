@@ -29,7 +29,8 @@ data_folder = os.path.dirname(sys.argv[1])
 # app.css.append_css({
 #     'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
 # })
-
+app.css.append_css({"external_url": "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"})
+app.css.append_css({"external_url": "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"})
 provider = dataprovider.DataProvider()
 
 xcorr_states = {'cr_max_xcorr': 'maximum cr x-corr all channels',
@@ -66,14 +67,16 @@ app.layout = html.Div([
     html.Br(),
     html.Div([
         html.Div([
-                html.Button('<-', id='btn-previous-event', className='standard-button'),
-                html.Div(id = 'event-number-display', style={'padding': '10px'}, children = ''''''),
-                html.Button('->', id='btn-next-event', className='standard-button')
+                html.Button([
+                html.Div(className='fa fa-arrow-left')
+                ], id='btn-previous-event', className='btn btn-secondary'),
+                html.Button(id = 'event-number-display', style={'padding': '10px'}, children = '''''', className='btn btn-secondary'),
+                html.Button([
+                html.Div(className='fa fa-arrow-right')
+                ], id='btn-next-event', className='btn btn-secondary')
             ],
-            style={
-            'flex': 'none',
-            'display': 'flex'
-            }),
+            className='btn-group'
+            ),
         html.Div([
              dcc.Slider(
                 id='event-counter-slider',
