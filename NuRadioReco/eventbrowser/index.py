@@ -374,7 +374,8 @@ def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, jstation_id, juser_i
     station_id = json.loads(jstation_id)
     ariio = provider.get_arianna_io(user_id, filename)
     traces = []
-    try:
+    keys = ariio.get_header()[station_id].keys()
+    if stnp.station_time in keys and stnp.xcorr_type in keys:
         traces.append(go.Scatter(
             x=ariio.get_header()[station_id][stnp.station_time],
             y=ariio.get_header()[station_id][stnp.xcorr_type],
@@ -382,7 +383,7 @@ def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, jstation_id, juser_i
             mode='markers',
             opacity=1
         ))
-    except:
+    else:
         return {}
     # update with current selection
     current_selection = json.loads(jcurrent_selection)
@@ -417,7 +418,8 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, jstation_i
     station_id = json.loads(jstation_id)
     ariio = provider.get_arianna_io(user_id, filename)
     traces = []
-    try:
+    keys = ariio.get_header()[station_id].keys()
+    if stnp.channels_max_amplitude in keys and stnp.xcorr_type in keys:
         traces.append(go.Scatter(
             x=ariio.get_header()[station_id][stnp.channels_max_amplitude] / units.mV,
             y=ariio.get_header()[station_id][stnp.xcorr_type],
@@ -425,7 +427,7 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, jstation_i
             mode='markers',
             opacity=1
         ))
-    except:
+    else:
         return {}
     # update with current selection
     current_selection = json.loads(jcurrent_selection)
@@ -448,11 +450,11 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, jstation_i
 @app.callback(Output('cr-polarization-zenith', 'figure'),
               [Input('filename', 'value'),
                Input('btn-open-file', 'value'),
-               Input('event-ids', 'children')],
-              [State('user_id', 'children'),
-               State('station_id', 'children')])
-def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, juser_id, jstation_id):
-    if filename is None:
+               Input('event-ids', 'children'),
+               Input('station_id', 'children')],
+              [State('user_id', 'children')])
+def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, jstation_id, juser_id):
+    if filename is None or jstation_id is None:
         return {}
     print("plot_cr_polarization_zenith")
     user_id = json.loads(juser_id)
@@ -460,15 +462,17 @@ def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, juser_id, jst
     station_id = json.loads(jstation_id)
     ariio = provider.get_arianna_io(user_id, filename)
     traces = []
-    print(ariio.get_header()[station_id].keys())
-    pol = ariio.get_header()[station_id]['polarization_angle']
+    keys = ariio.get_header()[station_id].keys()
+    if stnp.polarization_angle not in keys or stnp.polarization_angle_expectation not in keys or stnp.zenith not in keys:
+        return {}
+    pol = ariio.get_header()[station_id][stnp.polarization_angle]
     pol = np.abs(pol)
     pol[pol > 0.5 * np.pi] = np.pi - pol[pol > 0.5 * np.pi]
-    pol_exp = ariio.get_header()[station_id]['polarization_angle_expectation']
+    pol_exp = ariio.get_header()[station_id][stnp.polarization_angle_expectation]
     pol_exp = np.abs(pol_exp)
     pol_exp[pol_exp > 0.5 * np.pi] = np.pi - pol_exp[pol_exp > 0.5 * np.pi]
     traces.append(go.Scatter(
-        x=ariio.get_header()[station_id]['zenith'] / units.deg,
+        x=ariio.get_header()[station_id][stnp.zenith] / units.deg,
         y=np.abs(pol - pol_exp) / units.deg,
         text=[str(x) for x in ariio.get_event_ids()],
         mode='markers',
@@ -511,7 +515,8 @@ def plot_skyplot(filename, trigger, jcurrent_selection, xcorrcut, btn, jstation_
     current_selection = json.loads(jcurrent_selection)
     ariio = provider.get_arianna_io(user_id, filename)
     traces = []
-    try:
+    keys = ariio.get_header()[station_id].keys()
+    if stnp.zenith_cr_templatefit in keys and stno.azimuth_cr_templatefit in keys and stnp.chi2_cr_templatefit:
         traces.append(go.Scatterpolar(
             r=np.rad2deg(ariio.get_header()[station_id][stnp.zenith_cr_templatefit]),
             theta=np.rad2deg(ariio.get_header()[station_id][stnp.azimuth_cr_templatefit]),
@@ -525,9 +530,7 @@ def plot_skyplot(filename, trigger, jcurrent_selection, xcorrcut, btn, jstation_
         ))
         mask = np.array(ariio.get_header()[station_id][stnp.chi2_cr_templatefit]) < .1
         print('mask: ', np.sum(mask))
-    except:
-        pass
-    try:
+    if stnp.zenith_cr_templatefit in keys and stnp.azimuth_cr_templatefit in keys:
         traces.append(go.Scatterpolar(
             r=np.rad2deg(ariio.get_header()[station_id][stnp.zenith_cr_templatefit])[mask],
             theta=np.rad2deg(ariio.get_header()[station_id][stnp.azimuth_cr_templatefit])[mask],
@@ -539,9 +542,7 @@ def plot_skyplot(filename, trigger, jcurrent_selection, xcorrcut, btn, jstation_
                 color='blue'
             )
         ))
-    except:
-        pass
-    try:
+    if stnp.cr_avg_xcorr_crchannels in keys and stno.zenith_cr_templatefit in keys and stnp.azimuth_cr_templatefit in keys:
         if(stnp.cr_avg_xcorr_crchannels in ariio.get_header()[station_id]):
             mask = mask & (np.array(ariio.get_header()[station_id][stnp.cr_avg_xcorr_crchannels]) > xcorrcut)
             print('mask: ', np.sum(mask))
@@ -556,8 +557,6 @@ def plot_skyplot(filename, trigger, jcurrent_selection, xcorrcut, btn, jstation_
                     color='red'
                 )
             ))
-    except:
-        pass
     # update with current selection
     if current_selection != []:
         for trace in traces:
@@ -580,28 +579,32 @@ def plot_skyplot(filename, trigger, jcurrent_selection, xcorrcut, btn, jstation_
 @app.callback(Output('skyplot-xcorr', 'figure'),
               [Input('filename', 'value'),
                Input('trigger', 'children'),
-               Input('event-ids', 'children')],
-              [State('user_id', 'children'),
-               State('station_id', 'children')])
-def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, juser_id, jstation_id):
-    if filename is None:
+               Input('event-ids', 'children'),
+               Input('station_id', 'children')],
+              [State('user_id', 'children')])
+def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, jstation_id, juser_id):
+    if filename is None or jstation_id is None:
         return {}
     user_id = json.loads(juser_id)
     station_id = json.loads(jstation_id)
     current_selection = json.loads(jcurrent_selection)
     ariio = provider.get_arianna_io(user_id, filename)
     traces = []
-    traces.append(go.Scatterpolar(
-        r=np.rad2deg(ariio.get_header()[station_id]['zenith']),
-        theta=np.rad2deg(ariio.get_header()[station_id]['azimuth']),
-        text=[str(x) for x in ariio.get_event_ids()],
-        mode='markers',
-        name='all events',
-        opacity=1,
-        marker=dict(
-            color='blue'
-        )
-    ))
+    keys = ariio.get_header()[station_id].keys()
+    if stnp.zenith in keys and stnp.azimuth in keys:
+        traces.append(go.Scatterpolar(
+            r=np.rad2deg(ariio.get_header()[station_id][stnp.zenith]),
+            theta=np.rad2deg(ariio.get_header()[station_id][stnp.azimuth]),
+            text=[str(x) for x in ariio.get_event_ids()],
+            mode='markers',
+            name='all events',
+            opacity=1,
+            marker=dict(
+                color='blue'
+            )
+        ))
+    else:
+        return {}
 
     # update with current selection
     print('current selection is ', current_selection)

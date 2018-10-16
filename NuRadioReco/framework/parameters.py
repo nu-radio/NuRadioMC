@@ -21,6 +21,8 @@ class stationParameters(Enum):
     polarization_angle = 17
     polarization_angle_expectation = 18
     xcorr_type = 19
+    cr_avg_xcorr_crchannels = 20
+    station_time = 21
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
