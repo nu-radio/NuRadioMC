@@ -491,7 +491,7 @@ def update_time_traces2(evt_counter_json, filename, dropdown_traces, juser_id, j
                               shared_xaxes=True, shared_yaxes=True,
                               vertical_spacing=0.05)
     if 'trace' in dropdown_traces:
-        for i, iCh in enumerate(range(4, 8)):
+        for i, iCh in enumerate(range(4, min([8, len(station.get_channels())]))):
             channel = station.get_channels()[iCh]
             fig.append_trace(go.Scatter(
                     x=channel.get_times() / units.ns,
