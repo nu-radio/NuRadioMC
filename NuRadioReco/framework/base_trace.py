@@ -74,6 +74,8 @@ class BaseTrace:
         return self._sampling_rate
 
     def get_times(self):
+        if self._time_trace is None:
+            return []
         length = self.get_number_of_samples()
         times = np.arange(0, length / self._sampling_rate - 0.1/self._sampling_rate, 1. / self._sampling_rate) + self._trace_start_time
         if(len(times) != length):
