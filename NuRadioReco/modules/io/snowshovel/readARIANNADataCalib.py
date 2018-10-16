@@ -136,7 +136,7 @@ class readARIANNAData:
                 nChan = ord(self.readout_config.GetNchans())  # convert char to int
                 name = self.readout_config.GetTypeName()
                 if name == 'Custom':
-                    logger.warning("Event {event} is skipped, as ReadoutConfig is not present".format(event=evt_number))
+                    logger.warning("Event {event} of run {run} is skipped, as ReadoutConfig seems empty".format(event=evt_number,run=run_number))
                     continue
 
                 self.sampling_rate = self.readout_config.GetSamplingRate() * units.GHz
