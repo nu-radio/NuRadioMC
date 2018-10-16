@@ -11,6 +11,8 @@ from app import app
 import dataprovider
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import templates
+from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import channelParameters as chp
 import numpy as np
 import logging
 logger = logging.getLogger('traces')
@@ -73,24 +75,24 @@ def update_event_info(evt_counter_json, filename, juser_id, jstation_id):
     station = evt.get_stations()[0]
     event_info = ""
     event_info += "{}/{} run {:d} event {:d} {}".format(evt_counter + 1, number_of_events, evt.get_run_number(), evt.get_id(), station.get_station_time())
-    if(station.has_parameter('zenith_cr_templatefit')):
-        event_info += "\n cr template fit: {:.1f}, {:.1f}, chi2 = {:.1f}".format(station['zenith_cr_templatefit'] / units.deg,
-                                                                                 station['azimuth_cr_templatefit'] / units.deg,
-                                                                                 station['chi2_cr_templatefit'])
-    if(station.has_parameter('zenith_nu_templatefit')):
-        event_info += "   nu template fit: {:.1f}, {:.1f}, chi2 = {:.1f}".format(station['zenith_nu_templatefit'] / units.deg,
-                                                                                 station['azimuth_nu_templatefit'] / units.deg,
-                                                                                 station['chi2_nu_templatefit'])
-    if(station.has_parameter('zenith')):
-        event_info += "   x-corr fit fit: {:.1f}, {:.1f}".format(station['zenith'] / units.deg,
-                                                                 station['azimuth'] / units.deg)
-    if(station.has_parameter("polarization_angle")):
-        pol = station['polarization_angle']
+    if(station.has_parameter(stnp.zenith_cr_templatefit)):
+        event_info += "\n cr template fit: {:.1f}, {:.1f}, chi2 = {:.1f}".format(station[stnp.zenith_cr_templatefit] / units.deg,
+                                                                                 station[stnp.azimuth_cr_templatefit] / units.deg,
+                                                                                 station[stnp.chi2_cr_templatefit])
+    if(station.has_parameter(stnp.zenith_nu_templatefit)):
+        event_info += "   nu template fit: {:.1f}, {:.1f}, chi2 = {:.1f}".format(station[stnp.zenith_nu_templatefit] / units.deg,
+                                                                                 station[stnp.azimuth_nu_templatefit] / units.deg,
+                                                                                 station[stnp.chi2_nu_templatefit])
+    if(station.has_parameter(stnp.zenith)):
+        event_info += "   x-corr fit fit: {:.1f}, {:.1f}".format(station[stnp.zenith] / units.deg,
+                                                                 station[stnp.azimuth] / units.deg)
+    if(station.has_parameter(stnp.polarization_angle)):
+        pol = station[stnp.polarization_angle]
         event_info += "\n pol = {:.1f}".format(pol / units.deg)
         pol = np.abs(pol)
         if(pol > 0.5 * np.pi):
             pol = np.pi - pol
-        pol_exp = station['polarization_angle_expectation']
+        pol_exp = station[stnp.polarization_angle_expectation]
         event_info += " pol exp = {:.1f}".format(pol_exp / units.deg)
         pol_exp = np.abs(pol_exp)
         if(pol_exp > 0.5 * np.pi):

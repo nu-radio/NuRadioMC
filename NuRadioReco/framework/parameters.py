@@ -16,7 +16,10 @@ class stationParameters(Enum):
     channels_max_amplitude = 12  # the maximum amplitude of all channels (considered in the trigger module)
     zenith = 13  # the zenith angle of the incoming signal direction (WARNING: this parameter is not well defined as the incoming signal direction might be different for different channels)
     azimuth = 14  # the azimuth angle of the incoming signal direction (WARNING: this parameter is not well defined as the incoming signal direction might be different for different channels)
-
+    zenith_cr_templatefit = 15
+    zenith_nu_templatefit = 16
+    polarization_angle = 17
+    polarization_angle_expectation = 18
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
