@@ -19,6 +19,7 @@ from NuRadioReco.utilities import analytic_pulse as pulse
 from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
 
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import channelParameters as chp
 
 import logging
 logger = logging.getLogger('voltageToAnalyticEfieldConverter')
@@ -597,8 +598,8 @@ class voltageToAnalyticEfieldConverter:
         Aphi_error = cov[0, 0] ** 0.5
         Atheta_error = cov[1, 1] ** 0.5
         slope_error = cov[2, 2] ** 0.5
-        station.set_parameter("signal_energy_fluence", np.array([0, Atheta, Aphi]))
-        station.set_parameter_error("signal_energy_fluence", np.array([0, Atheta_error, Aphi_error]))
+        station.set_parameter(stnp.signal_energy_fluence, np.array([0, Atheta, Aphi]))
+        station.set_parameter_error(stnp.signal_energy_fluence, np.array([0, Atheta_error, Aphi_error]))
 
 #         cov = covariance(Wrapper, res_amp_slope.x, 0.5, fast=False)
 #         print(cov)
@@ -651,8 +652,8 @@ class voltageToAnalyticEfieldConverter:
         pol_angle = np.arctan2(y, x)
         pol_angle_error = 1. / (x ** 2 + y ** 2) * (y ** 2 * sx ** 2 + x ** 2 + sy ** 2) ** 0.5  # gaussian error propagation
         logger.info("polarization angle = {:.1f} +- {:.1f}".format(pol_angle / units.deg, pol_angle_error / units.deg))
-        station.set_parameter('polarization_angle', pol_angle)
-        station.set_parameter_error('polarization_angle', pol_angle_error)
+        station.set_parameter(stnp.polarization_angle, pol_angle)
+        station.set_parameter_error(stnp.polarization_angle, pol_angle_error)
 
         if debug:
             analytic_traces = np.zeros((n_channels, n_samples_time))

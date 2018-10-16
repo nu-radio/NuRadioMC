@@ -11,7 +11,7 @@ class stationParameters(Enum):
     inelasticity = 7  # inelasiticy ot neutrino interaction
     triggered = 8  # flag if station was triggered or not
     cr_energy = 9  # the cosmic-ray energy
-    cr_zenith = 10  # zenith angle of the cosmic-ray incoming direction 
+    cr_zenith = 10  # zenith angle of the cosmic-ray incoming direction
     cr_azimuth = 11  # azimuth angle of the cosmic-ray incoming direction
     channels_max_amplitude = 12  # the maximum amplitude of all channels (considered in the trigger module)
     zenith = 13  # the zenith angle of the incoming signal direction (WARNING: this parameter is not well defined as the incoming signal direction might be different for different channels)
@@ -21,8 +21,14 @@ class stationParameters(Enum):
     polarization_angle = 17
     polarization_angle_expectation = 18
     xcorr_type = 19
-    cr_avg_xcorr_crchannels = 20
-    station_time = 21
+    cr_xcorrelations = 20 # dict of result of crosscorrelations with cr templates
+    cr_avg_xcorr_crchannels = 21
+    nu_xcorrelations = 22 #  dict of result of crosscorrelations with nu templates
+    station_time = 23
+    signal_energy_fluence = 24
+    signal_time = 25
+    efield_vector = 26
+    efield_vector_polarization = 27
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
@@ -32,4 +38,5 @@ class channelParameters(Enum):
     SNR = 5  # an dictionary of various signal-to-noise ratio definitions
     maximum_amplitude_envelope = 6  # the maximum ampliude of the hilbert envelope of the trace
     P2P_amplitude = 7  # the peak to peak amplitude
-     
+    cr_xcorrelations = 8 # dict of result of crosscorrelations with cr templates
+    nu_xcorrelations = 9 #  dict of result of crosscorrelations with nu templates

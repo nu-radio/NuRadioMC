@@ -10,7 +10,7 @@ from radiotools import coordinatesystems
 from NuRadioReco.utilities import fft
 import logging
 logger = logging.getLogger('stationSignalReconstructor')
-
+from NuRadioReco.framework.parameters import stationParameters as stnp
 
 class stationSignalReconstructor:
     """
@@ -35,7 +35,7 @@ class stationSignalReconstructor:
         envelope_mag = np.linalg.norm(envelope, axis=0)
         signal_time_bin = np.argmax(envelope_mag)
         signal_time = signal_time_bin / station.get_sampling_rate()
-        station['signal_time'] = signal_time
+        station[stnp.signal_time] = signal_time
 
 #
         low_pos = np.int(130 * units.ns * station.get_sampling_rate())
@@ -59,13 +59,13 @@ class stationSignalReconstructor:
             if(alpha > 0.5 * np.pi):
                 v *= -1
             v_avg += v
-        station['efield_vector'] = v_avg
+        station[stnp.efield_vector] = v_avg
         pole = np.arctan2(np.abs(v_avg[2]), np.abs(v_avg[1]))
 #         if(pole > 180 * units.deg):
 #             pole -= 360 * units.deg
 #         if(pole > 90 * units.deg):
 #             pole = 180 * units.deg - pole
-        station['efield_vector_polarization'] = pole
+        station[stnp.efield_vector_polarization] = pole
         logger.info("average e-field vector = {:.4g}, {:.4g}, {:.4g} -> polarization = {:.1f}deg".format(v_avg[0], v_avg[1], v_avg[2], pole / units.deg))
         trace = station.get_trace()
 
@@ -102,8 +102,8 @@ class stationSignalReconstructor:
 
         signal_energy_fluence *= self.__conversion_factor_integrated_signal
         signal_energy_fluence_error *= self.__conversion_factor_integrated_signal
-        station.set_parameter("signal_energy_fluence", signal_energy_fluence)
-        station.set_parameter_error("signal_energy_fluence", signal_energy_fluence_error)
+        station.set_parameter(stnp.signal_energy_fluence, signal_energy_fluence)
+        station.set_parameter_error(stnp.signal_energy_fluence, signal_energy_fluence_error)
 
         logger.info("f = {} +- {}".format(signal_energy_fluence / units.eV * units.m2, signal_energy_fluence_error / units.eV * units.m2))
 
@@ -115,17 +115,17 @@ class stationSignalReconstructor:
         pol_angle = np.arctan2(y, x)
         pol_angle_error = 1. / (x ** 2 + y ** 2) * (y ** 2 * sx ** 2 + x ** 2 * sy ** 2) ** 0.5  # gaussian error propagation
         logger.info("polarization angle = {:.1f} +- {:.1f}".format(pol_angle / units.deg, pol_angle_error / units.deg))
-        station.set_parameter('polarization_angle', pol_angle)
-        station.set_parameter_error('polarization_angle', pol_angle_error)
+        station.set_parameter(stnp.polarization_angle, pol_angle)
+        station.set_parameter_error(stnp.polarization_angle, pol_angle_error)
 
         # compute expeted polarization
         site = det.get_site(station.get_id())
-        exp_efield = hp.get_lorentzforce_vector(station['zenith'], station['azimuth'], hp.get_magnetic_field_vector(site))
-        cs = coordinatesystems.cstrafo(station['zenith'], station['azimuth'], site=site)
+        exp_efield = hp.get_lorentzforce_vector(station[stnp.zenith], station[stnp.azimuth], hp.get_magnetic_field_vector(site))
+        cs = coordinatesystems.cstrafo(station[stnp.zenith], station[stnp.azimuth], site=site)
         exp_efield_onsky = cs.transform_from_ground_to_onsky(exp_efield)
         exp_pol_angle = np.arctan2(np.abs(exp_efield_onsky[2]), np.abs(exp_efield_onsky[1]))
         logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
-        station.set_parameter('polarization_angle_expectation', exp_pol_angle)
+        station.set_parameter(stnp.polarization_angle_expectation, exp_pol_angle)
 
         return
 
