@@ -22,6 +22,8 @@ class stationParameters(Enum):
     polarization_angle_expectation = 18
     cr_xcorrelations = 19 # dict of result of crosscorrelations with cr templates
     nu_xcorrelations = 20 #  dict of result of crosscorrelations with nu templates
+    signal_energy_fluence = 21
+    polarization_angle = 22
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
