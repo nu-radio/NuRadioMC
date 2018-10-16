@@ -60,11 +60,21 @@ app.layout = html.Div([
 
     dcc.Link('summary', href='/apps/summary'),
     dcc.Link('traces', href='/apps/traces'),
-    dcc.Input(id='datafolder', placeholder='filename', type='text', value=data_folder),
-    dcc.Dropdown(id='filename',
-                 options=[{'label': l, 'value': l} for l in sorted(glob.glob(data_folder + '/*.ar*'))]),
-    html.Button('open file', id='btn-open-file'),
-    html.Br(),
+    html.Div([
+        html.Div([
+        html.Div('File location:', className='input-group-text')
+        ], className='input-group-prepend'),
+        dcc.Input(id='datafolder', placeholder='filename', type='text', value=data_folder, className='form-control')
+        ], className='input-group mb-2'),
+    html.Div([
+        dcc.Dropdown(id='filename',
+                     options=[{'label': l, 'value': l} for l in sorted(glob.glob(data_folder + '/*.ar*'))],
+                     className='form-control',
+                     style={'flex': '1'}),
+         html.Div([
+            html.Button('open file', id='btn-open-file', className='btn btn-outline-secondary', style={'flex': 'none'})
+            ], className='input-group-append'),
+    ], style={'width': '100%'}, className='input-group mb-2'),
     html.Div([
         html.Div([
                 html.Button([
