@@ -16,7 +16,8 @@ logger = logging.getLogger("readARIANNAData")
 
 class readARIANNAData:
     """
-    Assumes a tree with calibrated data, shifted by the stop. Very basic module for now.
+    Reads ARIANNA data as preprocessed in snowShovel. Can read RawData, FPNCorrectedData
+    and CalibratedData.
     """
 
     def begin(self, input_files, trigger_types=None, time_interval=None,
@@ -43,7 +44,7 @@ class readARIANNAData:
         run_number: int or None
             run number, all events with a different run number will be skipped.
             Default is None which means that all events are read in
-        event_ids: dictionary or None 
+        event_ids: dictionary or None
             specify any combination of run and event ids, all other events will be skipped.
             key is the run id, values are the event ids
             Default is None which means that all events are read in
@@ -129,16 +130,15 @@ class readARIANNAData:
                 evt = NuRadioReco.framework.event.Event(run_number, evt_number)
 
                 if(self.__id_current_event % 1000 == 0):
-                    logger.info("reading in station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id,
-                                                                                                         run_number=run_number,
-                                                                                                         evt_number=evt_number,
-                                                                                                         time=evt_time))
-                logger.debug("reading in station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id,
-                                                                                                         run_number=run_number,
-                                                                                                         evt_number=evt_number,
-                                                                                                         time=evt_time))
+                    logger.info("reading in station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id,run_number=run_number, evt_number=evt_number, time=evt_time))
+                logger.debug("reading in station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id,run_number=run_number,evt_number=evt_number,time=evt_time))
 
                 nChan = ord(self.readout_config.GetNchans())  # convert char to int
+                name = self.readout_config.GetTypeName()
+                if name == 'Custom':
+                    logger.warning("Event {event} is skipped, as ReadoutConfig is not present".format(event=evt_number))
+                    continue
+
                 self.sampling_rate = self.readout_config.GetSamplingRate() * units.GHz
 
                 station = NuRadioReco.framework.station.Station(self._station_id)
@@ -157,10 +157,10 @@ class readARIANNAData:
                 yield evt
 #             except:
 #                 logger.error("error in reading in event station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id,
-#                                                                                                          run_number=run_number,
-#                                                                                                          evt_number=evt_number,
-#                                                                                                          time=evt_time))
-                continue
+#                 run_number=run_number,
+#                 evt_number=evt_number,
+#                 time=evt_time))
+#                 continue
 
     def end(self):
         pass
