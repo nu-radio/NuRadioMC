@@ -29,8 +29,9 @@ class efieldToVoltageConverter:
         self.__t = 0
         self.begin()
 
-    def begin(self, debug=False, uncertainty={}):
+    def begin(self, debug=logging.WARNING, uncertainty={}):
         self.__debug = debug
+        logger.setLevel(self.__debug)
         self.__uncertainty = uncertainty
         # some uncertainties are systematic, fix them here
         if('sys_dx' in self.__uncertainty):
@@ -65,7 +66,7 @@ class efieldToVoltageConverter:
         nChannels = det.get_number_of_channels(sim_station_id)
         sampling = 1. / sim_station.get_sampling_rate()
 
-        if(self.__debug):
+        if (self.__debug == logging.DEBUG):
             efield = sim_station.get_trace()  # in on-sky coordinates, times, e_r, e_phi, e_theta
             import matplotlib.pyplot as plt
             fig, ax = plt.subplots(1, 1)
@@ -102,14 +103,14 @@ class efieldToVoltageConverter:
                         # correct for reflected signal
                         cs = coordinatesystems.cstrafo(zenith, azimuth)
                         efield_fft[0] = np.zeros_like(efield_fft[0])
-                        if(self.__debug):
+                        if(self.__debug == logging.DEBUG):
                             fig, ax = plt.subplots(2, 1, sharex=True, sharey=True)
                             ax[0].plot(ff / units.MHz, np.abs(efield_fft[0]), label='eR')
                             ax[0].plot(ff / units.MHz, np.abs(efield_fft[1]), label='eTheta')
                             ax[0].plot(ff / units.MHz, np.abs(efield_fft[2]), label='ePhi')
                             ax[0].set_title("theta = {:.0f} -> {:.0f} , phi = {:.0f}".format(zenith / units.deg, zenith_antenna / units.deg, azimuth / units.deg))
     #                     efield_fft = cs.transform_from_onsky_to_ground(efield_fft)
-                        if(self.__debug):
+                        if(self.__debug == logging.DEBUG):
                             ax[1].plot(ff / units.MHz, np.abs(efield_fft[0]), 'C0-', label='x')
                             ax[1].plot(ff / units.MHz, np.abs(efield_fft[1]), 'C1-', label='y')
                             ax[1].plot(ff / units.MHz, np.abs(efield_fft[2]), 'C2-', label='z')
@@ -124,7 +125,7 @@ class efieldToVoltageConverter:
                         # parallel and perpendicular are with respect to the plane of incident and NOT the surface!
                         efield_fft[1] *= t_parallel
                         efield_fft[2] *= t_perpendicular
-                        if(self.__debug):
+                        if(self.__debug == logging.DEBUG):
                             ax[1].plot(ff / units.MHz, np.abs(efield_fft[0]), 'C0--')
                             ax[1].plot(ff / units.MHz, np.abs(efield_fft[1]), 'C1--')
                             ax[1].plot(ff / units.MHz, np.abs(efield_fft[2]), 'C2--')
@@ -132,7 +133,7 @@ class efieldToVoltageConverter:
                         efield_fft = cs.transform_from_onsky_to_ground(efield_fft)
                         cs2 = coordinatesystems.cstrafo(zenith_antenna, azimuth)
                         efield_fft = cs2.transform_from_ground_to_onsky(efield_fft)  # backtransformation with refracted zenith angle
-                        if(self.__debug):
+                        if(self.__debug == logging.DEBUG):
                             ax[0].plot(ff / units.MHz, np.abs(efield_fft[0]), 'C0--')
                             ax[0].plot(ff / units.MHz, np.abs(efield_fft[1]), 'C1--')
                             ax[0].plot(ff / units.MHz, np.abs(efield_fft[2]), 'C2--')
@@ -165,7 +166,7 @@ class efieldToVoltageConverter:
 #                 w, h = scipy.signal.freqs(b, a, ff)
                 # Apply antenna response to electric field
                 voltage_fft = efield_fft[2] * VEL['phi'] + efield_fft[1] * VEL['theta']
-                if(self.__debug):
+                if(self.__debug == logging.DEBUG):
                     fig, ax = plt.subplots(1, 1)
                     ax.plot(ff, np.abs(VEL['phi']), label='phi')
                     ax.plot(ff, np.abs(VEL['theta']), label='theta')
@@ -211,7 +212,7 @@ class efieldToVoltageConverter:
                 voltage = np.roll(voltage, time_shift_samples)
                 channel.set_trace(voltage, channel.get_sampling_rate())
 
-                if(self.__debug):
+                if(self.__debug == logging.DEBUG):
                     fig, ax = plt.subplots(1, 1)
                     ax.plot(voltage)
                     ax.set_title("voltage trace channel {}".format(iCh))
@@ -223,7 +224,7 @@ class efieldToVoltageConverter:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
+        #logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt
