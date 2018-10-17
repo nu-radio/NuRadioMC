@@ -1,0 +1,7 @@
+.sim-trace-options {
+  flex: none;
+}
+.sim-trace-option {
+  font-weight: 200;
+  padding: 5px;
+}

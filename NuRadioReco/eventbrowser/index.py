@@ -14,6 +14,7 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 from flask import Flask, send_from_directory
 from app import app
 from apps import traces
+import apps.simulation
 import os
 import sys
 # from apps import summary
@@ -146,7 +147,10 @@ app.layout = html.Div([
         ], id='summary-tab', label='Summary'),
         dcc.Tab([
         traces.layout
-        ], label='Traces')
+        ], label='Traces'),
+        dcc.Tab([
+        apps.simulation.layout
+        ], label='Simulation')
     ])
 ])
 
