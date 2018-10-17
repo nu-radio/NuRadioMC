@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 from radiotools import plthelpers as php
 from radiotools import helper as hp
+from radiotools import coordinatesystems
 
 from NuRadioReco.detector import detector
 from NuRadioReco.detector import antennapattern
@@ -654,6 +655,15 @@ class voltageToAnalyticEfieldConverter:
         logger.info("polarization angle = {:.1f} +- {:.1f}".format(pol_angle / units.deg, pol_angle_error / units.deg))
         station.set_parameter(stnp.polarization_angle, pol_angle)
         station.set_parameter_error(stnp.polarization_angle, pol_angle_error)
+
+        # compute expeted polarization
+        site = det.get_site(station.get_id())
+        exp_efield = hp.get_lorentzforce_vector(station[stnp.zenith], station[stnp.azimuth], hp.get_magnetic_field_vector(site))
+        cs = coordinatesystems.cstrafo(station[stnp.zenith], station[stnp.azimuth], site=site)
+        exp_efield_onsky = cs.transform_from_ground_to_onsky(exp_efield)
+        exp_pol_angle = np.arctan2(np.abs(exp_efield_onsky[2]), np.abs(exp_efield_onsky[1]))
+        logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
+        station.set_parameter(stnp.polarization_angle_expectation, exp_pol_angle)
 
         if debug:
             analytic_traces = np.zeros((n_channels, n_samples_time))
