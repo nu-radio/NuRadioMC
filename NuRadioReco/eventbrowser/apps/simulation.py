@@ -164,10 +164,6 @@ def update_sim_trace_plot(i_event, filename, signal_types, polarization, juser_i
                 ), 1, 1
             )
     fig['layout'].update(
-        legend = {
-            'orientation': 'h',
-            'y': 1.2
-            },
         xaxis={'title': 't [ns]'},
         yaxis={'title': 'voltage [mV]'}
     )
@@ -234,10 +230,6 @@ def update_sim_spectrum_plot(i_event, filename, signal_types, polarization, juse
                 ), 1, 1
             )
     fig['layout'].update(
-        legend = {
-            'orientation': 'h',
-            'y': 1.2
-            },
         xaxis={'title': 'f [MHz]'},
         yaxis={'title': 'voltage [mV]'}
     )
