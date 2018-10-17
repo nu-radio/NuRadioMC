@@ -58,8 +58,6 @@ app.layout = html.Div([
     html.Div(id='event-ids',  style={'display': 'none'},
              children=json.dumps([])),
 
-    dcc.Link('summary', href='/apps/summary'),
-    dcc.Link('traces', href='/apps/traces'),
     html.Div([
         html.Div([
         html.Div('File location:', className='input-group-text')
@@ -103,43 +101,45 @@ app.layout = html.Div([
     style={
     'display': 'flex'
     }),
-
-    html.Div([
-        html.H3('summary plots'),
-        html.Div(id='trigger', style={'display': 'none'},
-                 children=json.dumps(None)),
-        dcc.Dropdown(
-            id='cr-xcorrelation-dropdown',
-            options=[{'label': l, 'value': v} for v, l in xcorr_states.iteritems()],
-            value=xcorr_states.keys()[1]
-        ),
-        html.Div([
-            html.Div([dcc.Graph(id='cr-xcorrelation')], className="four columns"),
-            html.Div([dcc.Graph(id='cr-xcorrelation-amplitude')], className="four columns"),
-            html.Div([dcc.Graph(id='cr-polarization-zenith')], className="four columns")
-        ], className="row"),
-        html.Div([
+    dcc.Tabs([
+        dcc.Tab([
+            html.H3('summary plots'),
+            html.Div(id='trigger', style={'display': 'none'},
+                     children=json.dumps(None)),
+            dcc.Dropdown(
+                id='cr-xcorrelation-dropdown',
+                options=[{'label': l, 'value': v} for v, l in xcorr_states.iteritems()],
+                value=xcorr_states.keys()[1]
+            ),
             html.Div([
-                html.H5("template time fit"),
-                dcc.Slider(
-                    id='skyplot-slider',
-                    step=0.01,
-                    value=0.75,
-                    min=0,
-                    max=1,
-                    marks={np.round(i, 1): '{:.1f}'.format(i) for i in np.arange(0, 1.001, 0.1)},
-                ),
-                dcc.Graph(id='skyplot')
-            ], className="six columns"),
+                html.Div([dcc.Graph(id='cr-xcorrelation')], className="four columns"),
+                html.Div([dcc.Graph(id='cr-xcorrelation-amplitude')], className="four columns"),
+                html.Div([dcc.Graph(id='cr-polarization-zenith')], className="four columns")
+            ], className="row"),
             html.Div([
-                html.H5("cross correlation fitter"),
-                dcc.Graph(id='skyplot-xcorr')
-            ], className="six columns")
-        ], className='row'),
-        html.Div(id='output')
-    ], id='summary', style={'display': 'none'}),
-
-    html.Div(id='page-content')
+                html.Div([
+                    html.H5("template time fit"),
+                    dcc.Slider(
+                        id='skyplot-slider',
+                        step=0.01,
+                        value=0.75,
+                        min=0,
+                        max=1,
+                        marks={np.round(i, 1): '{:.1f}'.format(i) for i in np.arange(0, 1.001, 0.1)},
+                    ),
+                    dcc.Graph(id='skyplot')
+                ], className="six columns"),
+                html.Div([
+                    html.H5("cross correlation fitter"),
+                    dcc.Graph(id='skyplot-xcorr')
+                ], className="six columns")
+            ], className='row'),
+            html.Div(id='output')
+        ], id='summary-tab', label='Summary'),
+        dcc.Tab([
+        traces.layout
+        ], label='Traces')
+    ])
 ])
 
 
@@ -344,19 +344,6 @@ def set_station_id(filename, juser_id, jstation_id):
 #     eventcounter = json.loads(jeventcounter)
 #     eventcounter['evt_counter'] = 0
 #     return json.dumps(eventcounter)
-
-
-@app.callback(Output('page-content', 'children'),
-              [Input('url', 'pathname')])
-def display_page(pathname):
-    if pathname == '/apps/traces':
-        return traces.layout
-    if pathname == '/apps/summary':
-        return ""
-#     elif pathname == '/apps/app2':
-#         return app2.layout
-    else:
-        return '404'
 
 
 @app.callback(Output('summary', 'style'),
