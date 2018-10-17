@@ -56,11 +56,11 @@ def get_L1(a):
 
 @app.callback(
     dash.dependencies.Output('event-info', 'children'),
-    [dash.dependencies.Input('event-counter', 'children'),
+    [dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value')],
      [State('user_id', 'children'),
       State('station_id', 'children')])
-def update_event_info(evt_counter_json, filename, juser_id, jstation_id):
+def update_event_info(evt_counter, filename, juser_id, jstation_id):
     print("update event info")
     if filename is None:
         return ""
@@ -68,7 +68,6 @@ def update_event_info(evt_counter_json, filename, juser_id, jstation_id):
     user_id = json.loads(juser_id)
     station_id = json.loads(jstation_id)
 
-    evt_counter = json.loads(evt_counter_json)['evt_counter']
     ariio = provider.get_arianna_io(user_id, filename)
     number_of_events = ariio.get_n_events()
     evt = ariio.get_event_i(evt_counter)
@@ -104,11 +103,11 @@ def update_event_info(evt_counter_json, filename, juser_id, jstation_id):
 @app.callback(
     dash.dependencies.Output('efield-trace', 'figure'),
     [dash.dependencies.Input('trigger-trace', 'children'),
-     dash.dependencies.Input('event-counter', 'children'),
+     dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value')],
      [State('user_id', 'children'),
       State('station_id', 'children')])
-def update_time_efieldtrace(trigger, evt_counter_json, filename, juser_id, jstation_id):
+def update_time_efieldtrace(trigger, evt_counter, filename, juser_id, jstation_id):
     if filename is None:
         return {}
     print("update efield trace")
@@ -117,14 +116,17 @@ def update_time_efieldtrace(trigger, evt_counter_json, filename, juser_id, jstat
     station_id = json.loads(jstation_id)
 
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
-    evt_counter = json.loads(evt_counter_json)['evt_counter']
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_stations()[0]
     fig = tools.make_subplots(rows=1, cols=2)
+    if station.get_trace() is None:
+        trace = np.array([[],[],[]])
+    else:
+        trace = station.get_trace()
     fig.append_trace(go.Scatter(
             x=station.get_times() / units.ns,
-            y=station.get_trace()[0] / units.mV * units.m,
+            y=trace[0] / units.mV * units.m,
             # text=df_by_continent['country'],
             # mode='markers',
             opacity=0.7,
@@ -136,7 +138,7 @@ def update_time_efieldtrace(trigger, evt_counter_json, filename, juser_id, jstat
         ), 1, 1)
     fig.append_trace(go.Scatter(
             x=station.get_times() / units.ns,
-            y=station.get_trace()[1] / units.mV * units.m,
+            y=trace[1] / units.mV * units.m,
             # text=df_by_continent['country'],
             # mode='markers',
             opacity=0.7,
@@ -148,7 +150,7 @@ def update_time_efieldtrace(trigger, evt_counter_json, filename, juser_id, jstat
         ), 1, 1)
     fig.append_trace(go.Scatter(
             x=station.get_times() / units.ns,
-            y=station.get_trace()[2] / units.mV * units.m,
+            y=trace[2] / units.mV * units.m,
             # text=df_by_continent['country'],
             # mode='markers',
             opacity=0.7,
@@ -190,11 +192,11 @@ def update_time_efieldtrace(trigger, evt_counter_json, filename, juser_id, jstat
 @app.callback(
     dash.dependencies.Output('time-trace', 'figure'),
     [dash.dependencies.Input('trigger-trace', 'children'),
-     dash.dependencies.Input('event-counter', 'children'),
+     dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value')],
      [State('user_id', 'children'),
       State('station_id', 'children')])
-def update_time_trace(trigger, evt_counter_json, filename, juser_id, jstation_id):
+def update_time_trace(trigger, evt_counter, filename, juser_id, jstation_id):
     if filename is None:
         return {}
     print("update time trace")
@@ -203,7 +205,6 @@ def update_time_trace(trigger, evt_counter_json, filename, juser_id, jstation_id
     station_id = json.loads(jstation_id)
 
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
-    evt_counter = json.loads(evt_counter_json)['evt_counter']
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_stations()[0]
@@ -261,13 +262,13 @@ def update_time_trace(trigger, evt_counter_json, filename, juser_id, jstation_id
 
 @app.callback(
     dash.dependencies.Output('time-traces', 'figure'),
-    [dash.dependencies.Input('event-counter', 'children'),
+    [dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
      dash.dependencies.Input('dropdown-traces', 'value'),
      dash.dependencies.Input('dropdown-trace-info', 'value')],
      [State('user_id', 'children'),
       State('station_id', 'children')])
-def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_info, juser_id, jstation_id):
+def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, juser_id, jstation_id):
 #     filename = json.loads(jfilename)
     if filename is None:
         return {}
@@ -275,7 +276,6 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
     station_id = json.loads(jstation_id)
 
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
-    evt_counter = json.loads(evt_counter_json)['evt_counter']
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_stations()[0]
@@ -469,12 +469,12 @@ def update_time_traces(evt_counter_json, filename, dropdown_traces, dropdown_inf
 
 @app.callback(
     dash.dependencies.Output('time-traces2', 'figure'),
-    [dash.dependencies.Input('event-counter', 'children'),
+    [dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
      dash.dependencies.Input('dropdown-traces', 'value')],
      [State('user_id', 'children'),
       State('station_id', 'children')])
-def update_time_traces2(evt_counter_json, filename, dropdown_traces, juser_id, jstation_id):
+def update_time_traces2(evt_counter, filename, dropdown_traces, juser_id, jstation_id):
     if filename is None:
         return {}
 #     filename = json.loads(jfilename)
@@ -482,7 +482,6 @@ def update_time_traces2(evt_counter_json, filename, dropdown_traces, juser_id, j
     station_id = json.loads(jstation_id)
 
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
-    evt_counter = json.loads(evt_counter_json)['evt_counter']
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_stations()[0]
