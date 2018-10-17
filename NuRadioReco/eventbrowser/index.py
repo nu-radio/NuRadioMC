@@ -53,8 +53,6 @@ app.layout = html.Div([
 #              children=json.dumps(None)),
     html.Div(id='station_id', style={'display': 'none'},
              children=json.dumps(None)),
-    html.Div(id='event-counter',  # style={'display': 'none'},
-             children=json.dumps({'next': None, 'prev': None, 'evt_counter': 0})),
     html.Div(id='event-ids',  style={'display': 'none'},
              children=json.dumps([])),
 
@@ -76,12 +74,25 @@ app.layout = html.Div([
     html.Div([
         html.Div([
                 html.Button([
-                html.Div(className='fa fa-arrow-left')
-                ], id='btn-previous-event', className='btn btn-secondary'),
-                html.Button(id = 'event-number-display', style={'padding': '10px'}, children = '''''', className='btn btn-secondary'),
+                        html.Div(className='fa fa-arrow-left')
+                    ],
+                    id='btn-previous-event',
+                    className='btn btn-secondary',
+                    n_clicks_timestamp = 0
+                ),
+                html.Button(
+                    id = 'event-number-display',
+                    style={'padding': '10px'},
+                    children = '''''',
+                    className='btn btn-secondary'
+                ),
                 html.Button([
-                html.Div(className='fa fa-arrow-right')
-                ], id='btn-next-event', className='btn btn-secondary')
+                        html.Div(className='fa fa-arrow-right')
+                    ],
+                    id='btn-next-event',
+                    className='btn btn-secondary',
+                    n_clicks_timestamp=0
+                    )
             ],
             className='btn-group'
             ),
@@ -159,6 +170,22 @@ def get_point_index(event_ids, selection):
 
 
 # next/previous buttons
+@app.callback(
+Output('event-counter-slider', 'value'),
+[Input('btn-next-event', 'n_clicks_timestamp'),
+Input('btn-previous-event', 'n_clicks_timestamp')],
+[State('event-counter-slider', 'value')]
+)
+def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, i_event):
+    print(i_event)
+    if prev_evt_click_timestamp == 0 and next_evt_click_timestamp == 0:
+        return 0
+    if prev_evt_click_timestamp > next_evt_click_timestamp:
+        return i_event - 1
+    else:
+        return i_event + 1
+
+'''
 @app.callback(
     Output('event-counter', 'children'),
     [Input('btn-next-event', 'n_clicks'),
@@ -240,17 +267,17 @@ def next_event(n_clicks_next, n_clicks_previous, evt_counter_slider, click1, cli
     tmp['next'] = n_clicks_next
     tmp['prev'] = n_clicks_previous
     return json.dumps(tmp)
+'''
 
 @app.callback(
 Output('event-number-display', 'children'),
 [Input('filename', 'value'),
-Input('event-counter', 'children')]
+Input('event-counter-slider', 'value')]
 )
-def set_event_number_display(filename, event_json):
+def set_event_number_display(filename, event_number):
     if filename is None:
         return 'No file selected'
-    i_event = json.loads(event_json)['evt_counter']
-    return 'Event {}'.format(i_event)
+    return 'Event {}'.format(event_number)
 
 # slider functions
 ###############
