@@ -30,7 +30,6 @@ data_folder = os.path.dirname(sys.argv[1])
 #     'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
 # })
 app.css.append_css({"external_url": "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"})
-app.css.append_css({"external_url": "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"})
 provider = dataprovider.DataProvider()
 
 xcorr_states = {'cr_max_xcorr': 'maximum cr x-corr all channels',
@@ -59,38 +58,36 @@ app.layout = html.Div([
     html.Div([
         html.Div([
         html.Div('File location:', className='input-group-text')
-        ], className='input-group-prepend'),
+        ], className='input-group-addon'),
         dcc.Input(id='datafolder', placeholder='filename', type='text', value=data_folder, className='form-control')
-        ], className='input-group mb-2'),
+        ], className='input-group'),
     html.Div([
         dcc.Dropdown(id='filename',
                      options=[{'label': l, 'value': l} for l in sorted(glob.glob(data_folder + '/*.ar*'))],
-                     className='form-control',
-                     style={'flex': '1'}),
+                     className='custom-dropdown'),
          html.Div([
-            html.Button('open file', id='btn-open-file', className='btn btn-outline-secondary', style={'flex': 'none'})
-            ], className='input-group-append'),
-    ], style={'width': '100%'}, className='input-group mb-2'),
+            html.Button('open file', id='btn-open-file', className='btn btn-default')
+            ], className='input-group-btn'),
+    ], className='input-group'),
     html.Div([
         html.Div([
                 html.Button([
                         html.Div(className='fa fa-arrow-left')
                     ],
                     id='btn-previous-event',
-                    className='btn btn-secondary',
+                    className='btn btn-primary',
                     n_clicks_timestamp = 0
                 ),
                 html.Button(
                     id = 'event-number-display',
-                    style={'padding': '10px'},
                     children = '''''',
-                    className='btn btn-secondary'
+                    className='btn btn-primary'
                 ),
                 html.Button([
                         html.Div(className='fa fa-arrow-right')
                     ],
                     id='btn-next-event',
-                    className='btn btn-secondary',
+                    className='btn btn-primary',
                     n_clicks_timestamp=0
                     )
             ],
