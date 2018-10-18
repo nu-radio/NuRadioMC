@@ -14,6 +14,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.utilities import templates
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.eventbrowser.apps.common import get_point_index
 import numpy as np
 import logging
 logger = logging.getLogger('traces')
@@ -41,7 +42,14 @@ layout = html.Div([
                     options=xcorr_options,
                     value=xcorr_options[0]['value']
                 ),
-                html.Div([dcc.Graph(id='cr-xcorrelation')]),
+                html.Div([
+                    html.Div([
+                        dcc.Graph(id='cr-xcorrelation')
+                    ], style={'flex': '1'}),
+                    html.Div([
+                        dcc.Graph(id='cr-xcorrelation-amplitude')
+                    ], style={'flex': '1'})
+                ], style={'display': 'flex'})
             ], className='panel-body')
         ], className = 'panel panel-default')
     ])
@@ -91,3 +99,50 @@ def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, jstation_id, juser_i
             hovermode='closest'
         )
     }
+
+@app.callback(Output('cr-xcorrelation-amplitude', 'figure'),
+              [Input('cr-xcorrelation-dropdown', 'value'),
+               Input('filename', 'value'),
+               Input('event-ids', 'children'),
+               Input('station_id', 'children')],
+              [State('user_id', 'children')])
+def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, jstation_id, juser_id):
+    if filename is None:
+        return {}
+    print("plotting x correlation")
+    user_id = json.loads(juser_id)
+#     filename = json.loads(jfilename)
+    station_id = json.loads(jstation_id)
+    print('!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    ariio = provider.get_arianna_io(user_id, filename)
+    traces = []
+    keys = ariio.get_header()[station_id].keys()
+    xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
+    if stnp.channels_max_amplitude in keys:
+        print('###############################')
+        traces.append(go.Scatter(
+            x=ariio.get_header()[station_id][stnp.channels_max_amplitude] / units.mV,
+            y=[xcorrs[i][xcorr_type] for i in range(len(xcorrs))],
+            text=[str(x) for x in ariio.get_event_ids()],
+            mode='markers',
+            opacity=1
+        ))
+    else:
+        return {}
+    # update with current selection
+    current_selection = json.loads(jcurrent_selection)
+    if current_selection != []:
+        for trace in traces:
+            trace['selectedpoints'] = get_point_index(trace['text'], current_selection)
+
+    return {
+        'data': traces,
+        'layout': go.Layout(
+            xaxis={'type': 'log', 'title': 'maximum amplitude [mV]'},
+            yaxis={'title': xcorr_type, 'range': [0, 1]},
+#             margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
+#             legend={'x': 0, 'y': 1},
+            hovermode='closest'
+        )
+    }
+
