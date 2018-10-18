@@ -14,6 +14,7 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 from flask import Flask, send_from_directory
 from app import app
 from apps import traces
+from apps import cosmic_rays
 import apps.simulation
 import os
 import sys
@@ -115,13 +116,7 @@ app.layout = html.Div([
             html.H3('summary plots'),
             html.Div(id='trigger', style={'display': 'none'},
                      children=json.dumps(None)),
-            dcc.Dropdown(
-                id='cr-xcorrelation-dropdown',
-                options=[{'label': l, 'value': v} for v, l in xcorr_states.iteritems()],
-                value=xcorr_states.keys()[1]
-            ),
             html.Div([
-                html.Div([dcc.Graph(id='cr-xcorrelation')], className="four columns"),
                 html.Div([dcc.Graph(id='cr-xcorrelation-amplitude')], className="four columns"),
                 html.Div([dcc.Graph(id='cr-polarization-zenith')], className="four columns")
             ], className="row"),
@@ -146,11 +141,14 @@ app.layout = html.Div([
             html.Div(id='output')
         ], id='summary-tab', label='Summary'),
         dcc.Tab([
-        traces.layout
+            traces.layout
         ], label='Traces'),
         dcc.Tab([
-        apps.simulation.layout
-        ], label='Simulation')
+            apps.simulation.layout
+        ], label='Simulation'),
+        dcc.Tab([
+            cosmic_rays.layout
+        ], label='Cosmic Rays')
     ])
 ])
 
@@ -385,51 +383,6 @@ def display_page2(pathname):
 #         return app2.layout
     else:
         return '404'
-
-
-@app.callback(Output('cr-xcorrelation', 'figure'),
-              [Input('cr-xcorrelation-dropdown', 'value'),
-               Input('filename', 'value'),
-               Input('event-ids', 'children'),
-               Input('station_id', 'children')],
-              [State('user_id', 'children')])
-def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, jstation_id, juser_id):
-    if filename is None or jstation_id is None:
-        return {}
-    print("plotting x correlation")
-    user_id = json.loads(juser_id)
-#     filename = json.loads(jfilename)
-    station_id = json.loads(jstation_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    traces = []
-    keys = ariio.get_header()[station_id].keys()
-    if stnp.station_time in keys and stnp.xcorr_type in keys:
-        traces.append(go.Scatter(
-            x=ariio.get_header()[station_id][stnp.station_time],
-            y=ariio.get_header()[station_id][stnp.xcorr_type],
-            text=[str(x) for x in ariio.get_event_ids()],
-            mode='markers',
-            opacity=1
-        ))
-    else:
-        return {}
-    # update with current selection
-    current_selection = json.loads(jcurrent_selection)
-    if current_selection != []:
-        for trace in traces:
-            trace['selectedpoints'] = get_point_index(trace['text'], current_selection)
-
-    return {
-        'data': traces,
-        'layout': go.Layout(
-#             xaxis={'type': 'linear', 'title': ''},
-            yaxis={'title': xcorr_states[xcorr_type], 'range': [0, 1]},
-#             margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-#             legend={'x': 0, 'y': 1},
-            hovermode='closest'
-        )
-    }
-
 
 @app.callback(Output('cr-xcorrelation-amplitude', 'figure'),
               [Input('cr-xcorrelation-dropdown', 'value'),
