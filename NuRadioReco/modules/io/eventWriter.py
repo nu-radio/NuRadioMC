@@ -5,6 +5,7 @@ except ImportError:
     import pickle
 from NuRadioReco.modules.io.ARIANNAio import VERSION, VERSION_MINOR
 import logging
+from NuRadioReco.framework.parameters import stationParameters as stnp
 logger = logging.getLogger("eventWriter")
 
 
@@ -16,7 +17,7 @@ def get_header(evt):
         if(station.has_sim_station()):
             header['stations'][station.get_id()]['sim_station'] = {}
             header['stations'][station.get_id()]['sim_station'] = station.get_sim_station().get_parameters()
-    header['stations'][station.get_id()]['station_time'] = station.get_station_time()
+    header['stations'][station.get_id()][stnp.station_time] = station.get_station_time()
     header['event_id'] = (evt.get_run_number(), evt.get_id())
     return header
 
