@@ -110,9 +110,6 @@ app.layout = html.Div([
             html.Div(id='trigger', style={'display': 'none'},
                      children=json.dumps(None)),
             html.Div([
-                html.Div([dcc.Graph(id='cr-polarization-zenith')], className="four columns")
-            ], className="row"),
-            html.Div([
                 html.Div([
                     html.H5("template time fit"),
                     dcc.Slider(
@@ -360,56 +357,6 @@ def display_page2(pathname):
 #         return app2.layout
     else:
         return '404'
-
-@app.callback(Output('cr-polarization-zenith', 'figure'),
-              [Input('filename', 'value'),
-               Input('btn-open-file', 'value'),
-               Input('event-ids', 'children'),
-               Input('station_id', 'children')],
-              [State('user_id', 'children')])
-def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, jstation_id, juser_id):
-    if filename is None or jstation_id is None:
-        return {}
-    print("plot_cr_polarization_zenith")
-    user_id = json.loads(juser_id)
-#     filename = json.loads(jfilename)
-    station_id = json.loads(jstation_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    traces = []
-    keys = ariio.get_header()[station_id].keys()
-    if stnp.polarization_angle not in keys or stnp.polarization_angle_expectation not in keys or stnp.zenith not in keys:
-        return {}
-    pol = ariio.get_header()[station_id][stnp.polarization_angle]
-    pol = np.abs(pol)
-    pol[pol > 0.5 * np.pi] = np.pi - pol[pol > 0.5 * np.pi]
-    pol_exp = ariio.get_header()[station_id][stnp.polarization_angle_expectation]
-    pol_exp = np.abs(pol_exp)
-    pol_exp[pol_exp > 0.5 * np.pi] = np.pi - pol_exp[pol_exp > 0.5 * np.pi]
-    traces.append(go.Scatter(
-        x=ariio.get_header()[station_id][stnp.zenith] / units.deg,
-        y=np.abs(pol - pol_exp) / units.deg,
-        text=[str(x) for x in ariio.get_event_ids()],
-        mode='markers',
-        opacity=1
-    ))
-
-    # update with current selection
-    current_selection = json.loads(jcurrent_selection)
-    if current_selection != []:
-        for trace in traces:
-            trace['selectedpoints'] = get_point_index(trace['text'], current_selection)
-
-    return {
-        'data': traces,
-        'layout': go.Layout(
-            xaxis={'type': 'linear', 'title': 'zenith angle [deg]'},
-            yaxis={'title': 'polarization angle [deg]', 'range': [0, 90]},
-#             margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-#             legend={'x': 0, 'y': 1},
-            hovermode='closest'
-        )
-    }
-
 
 @app.callback(Output('skyplot', 'figure'),
               [Input('filename', 'value'),
