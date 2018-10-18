@@ -643,7 +643,7 @@ def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, jstation_id, juser
     return {
         'data': traces,
         'layout': go.Layout(
-            showlegend='true',
+            showlegend= True,
 #             xaxis={'type': 'linear', 'title': ''},
 #             yaxis={'title': xcorr_states[xcorr_type], 'range': [0, 1]},
 #             margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
