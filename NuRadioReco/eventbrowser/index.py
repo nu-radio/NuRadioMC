@@ -15,6 +15,7 @@ from flask import Flask, send_from_directory
 from app import app
 from apps import traces
 from apps import cosmic_rays
+from apps.common import get_point_index
 import apps.simulation
 import os
 import sys
@@ -34,14 +35,6 @@ data_folder = os.path.dirname(sys.argv[1])
 app.css.append_css({"external_url": "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"})
 provider = dataprovider.DataProvider()
 
-xcorr_states = {'cr_max_xcorr': 'maximum cr x-corr all channels',
-                'cr_avg_xcorr_parallel_crchannels': 'maximum of avg cr x-corr in parallel cr channels',
-                'cr_max_xcorr_crchannels': 'maximum cr x-corr cr channels',
-                'cr_avg_xcorr_crchannels': 'average cr x-corr cr channels',
-                'nu_max_xcorr': 'maximum nu x-corr all channels',
-                'nu_avg_xcorr_parallel_nuchannels': 'maximum of avg nu x-corr in parallel nu channels',
-                'nu_max_xcorr_nuchannels': 'maximum nu x-corr nu channels',
-                'nu_avg_xcorr_nuchannels': 'average nu x-corr nu channels'}
 
 app.title = 'ARIANNA viewer'
 
@@ -117,7 +110,6 @@ app.layout = html.Div([
             html.Div(id='trigger', style={'display': 'none'},
                      children=json.dumps(None)),
             html.Div([
-                html.Div([dcc.Graph(id='cr-xcorrelation-amplitude')], className="four columns"),
                 html.Div([dcc.Graph(id='cr-polarization-zenith')], className="four columns")
             ], className="row"),
             html.Div([
@@ -151,21 +143,6 @@ app.layout = html.Div([
         ], label='Cosmic Rays')
     ])
 ])
-
-
-def get_point_index(event_ids, selection):
-    index = {}
-    for i, event_id in enumerate(event_ids):
-        if(not isinstance(event_id, basestring)):
-            event_id = str(event_id)
-        index[event_id] = i
-    event_index = []
-    for event_id in selection:
-        if event_id in index.keys():
-            print('event id {} is in index'.format(event_id))
-            event_index.append(index[event_id])
-    print('returning event index ', event_index)
-    return event_index
 
 
 # next/previous buttons
@@ -383,50 +360,6 @@ def display_page2(pathname):
 #         return app2.layout
     else:
         return '404'
-
-@app.callback(Output('cr-xcorrelation-amplitude', 'figure'),
-              [Input('cr-xcorrelation-dropdown', 'value'),
-               Input('filename', 'value'),
-               Input('event-ids', 'children'),
-               Input('station_id', 'children')],
-              [State('user_id', 'children')])
-def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, jstation_id, juser_id):
-    if filename is None:
-        return {}
-    print("plotting x correlation")
-    user_id = json.loads(juser_id)
-#     filename = json.loads(jfilename)
-    station_id = json.loads(jstation_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    traces = []
-    keys = ariio.get_header()[station_id].keys()
-    if stnp.channels_max_amplitude in keys and stnp.xcorr_type in keys:
-        traces.append(go.Scatter(
-            x=ariio.get_header()[station_id][stnp.channels_max_amplitude] / units.mV,
-            y=ariio.get_header()[station_id][stnp.xcorr_type],
-            text=[str(x) for x in ariio.get_event_ids()],
-            mode='markers',
-            opacity=1
-        ))
-    else:
-        return {}
-    # update with current selection
-    current_selection = json.loads(jcurrent_selection)
-    if current_selection != []:
-        for trace in traces:
-            trace['selectedpoints'] = get_point_index(trace['text'], current_selection)
-
-    return {
-        'data': traces,
-        'layout': go.Layout(
-            xaxis={'type': 'log', 'title': 'maximum amplitude [mV]'},
-            yaxis={'title': xcorr_states[xcorr_type], 'range': [0, 1]},
-#             margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-#             legend={'x': 0, 'y': 1},
-            hovermode='closest'
-        )
-    }
-
 
 @app.callback(Output('cr-polarization-zenith', 'figure'),
               [Input('filename', 'value'),
