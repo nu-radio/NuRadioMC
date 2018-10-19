@@ -111,16 +111,7 @@ app.layout = html.Div([
                      children=json.dumps(None)),
             html.Div([
                 html.Div([
-                    html.H5("template time fit"),
-                    dcc.Slider(
-                        id='skyplot-slider',
-                        step=0.01,
-                        value=0.75,
-                        min=0,
-                        max=1,
-                        marks={np.round(i, 1): '{:.1f}'.format(i) for i in np.arange(0, 1.001, 0.1)},
-                    ),
-                    dcc.Graph(id='skyplot')
+                    html.H5("template time fit")
                 ], className="six columns"),
                 html.Div([
                     html.H5("cross correlation fitter"),
@@ -358,84 +349,6 @@ def display_page2(pathname):
     else:
         return '404'
 
-@app.callback(Output('skyplot', 'figure'),
-              [Input('filename', 'value'),
-               Input('trigger', 'children'),
-               Input('event-ids', 'children'),
-               Input('skyplot-slider', 'value'),
-               Input('btn-open-file', 'value'),
-               Input('station_id', 'children')],
-              [State('user_id', 'children')])
-def plot_skyplot(filename, trigger, jcurrent_selection, xcorrcut, btn, jstation_id, juser_id):
-    if filename is None:
-        return {}
-    print('xcorr cut is {:.2f}'.format(xcorrcut))
-    user_id = json.loads(juser_id)
-#     filename = json.loads(jfilename)
-    station_id = json.loads(jstation_id)
-    current_selection = json.loads(jcurrent_selection)
-    ariio = provider.get_arianna_io(user_id, filename)
-    traces = []
-    keys = ariio.get_header()[station_id].keys()
-    if stnp.zenith_cr_templatefit in keys and stno.azimuth_cr_templatefit in keys and stnp.chi2_cr_templatefit:
-        traces.append(go.Scatterpolar(
-            r=np.rad2deg(ariio.get_header()[station_id][stnp.zenith_cr_templatefit]),
-            theta=np.rad2deg(ariio.get_header()[station_id][stnp.azimuth_cr_templatefit]),
-            text=[str(x) for x in ariio.get_event_ids()],
-            mode='markers',
-            name='all events',
-            opacity=1,
-            marker=dict(
-                color='gray'
-            )
-        ))
-        mask = np.array(ariio.get_header()[station_id][stnp.chi2_cr_templatefit]) < .1
-        print('mask: ', np.sum(mask))
-    if stnp.zenith_cr_templatefit in keys and stnp.azimuth_cr_templatefit in keys:
-        traces.append(go.Scatterpolar(
-            r=np.rad2deg(ariio.get_header()[station_id][stnp.zenith_cr_templatefit])[mask],
-            theta=np.rad2deg(ariio.get_header()[station_id][stnp.azimuth_cr_templatefit])[mask],
-            text=[str(x) for x in ariio.get_event_ids()[mask]],
-            mode='markers',
-            name='chi2 < 0.1',
-            opacity=1,
-            marker=dict(
-                color='blue'
-            )
-        ))
-    if stnp.cr_avg_xcorr_crchannels in keys and stno.zenith_cr_templatefit in keys and stnp.azimuth_cr_templatefit in keys:
-        if(stnp.cr_avg_xcorr_crchannels in ariio.get_header()[station_id]):
-            mask = mask & (np.array(ariio.get_header()[station_id][stnp.cr_avg_xcorr_crchannels]) > xcorrcut)
-            print('mask: ', np.sum(mask))
-            traces.append(go.Scatterpolar(
-                r=np.rad2deg(ariio.get_header()[station_id][stnp.zenith_cr_templatefit])[mask],
-                theta=np.rad2deg(ariio.get_header()[station_id][stnp.azimuth_cr_templatefit])[mask],
-                text=[str(x) for x in ariio.get_event_ids()[mask]],
-                mode='markers',
-                name='chi2 < 0.1 + avg. cr xcorr > {:.2f}'.format(xcorrcut),
-                opacity=1,
-                marker=dict(
-                    color='red'
-                )
-            ))
-    # update with current selection
-    if current_selection != []:
-        for trace in traces:
-            trace['selectedpoints'] = get_point_index(trace['text'], current_selection)
-
-    return {
-        'data': traces,
-        'layout': go.Layout(
-            showlegend=True,
-#             xaxis={'type': 'linear', 'title': ''},
-#             yaxis={'title': xcorr_states[xcorr_type], 'range': [0, 1]},
-#             margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-#             legend={'x': 0, 'y': 1},
-            hovermode='closest',
-            height=500
-        )
-    }
-
 
 @app.callback(Output('skyplot-xcorr', 'figure'),
               [Input('filename', 'value'),
@@ -489,7 +402,7 @@ def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, jstation_id, juser
 
 # update event ids list from plot selection
 @app.callback(Output('event-ids', 'children'),
-              [Input('skyplot', 'selectedData'),
+              [Input('cr-skyplot', 'selectedData'),
                Input('cr-xcorrelation', 'selectedData'),
                Input('cr-xcorrelation-amplitude', 'selectedData'),
                Input('skyplot-xcorr', 'selectedData'),

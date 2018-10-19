@@ -53,16 +53,23 @@ layout = html.Div([
             ], className='panel-body')
         ], className = 'panel panel-default'),
         html.Div([
-            html.Div('Polarization', className='panel-heading'),
             html.Div([
+                html.Div('Polarization', className='panel-heading'),
                 html.Div([
                     html.Div([
-                        dcc.Graph(id='cr-polarization-zenith')
-                    ], style={'flex': '1'}),
-                    html.Div([], style={'flex': '1'})
-                ], style={'display': 'flex'})
-            ], className='panel-body')
-        ], className='panel panel-default')
+                        html.Div([
+                            dcc.Graph(id='cr-polarization-zenith')
+                        ], style={'flex': '1'})
+                    ], style={'display': 'flex'})
+                ], className='panel-body')
+            ], className='panel panel-default', style={'flex': '1'}),
+            html.Div([
+                html.Div('Direction Reconstruction', className='panel-heading', style={'display': 'flex'}),
+                html.Div([
+                    dcc.Graph(id='cr-skyplot')
+                ], className='panel-body')
+            ], className='panel panel-default', style={'flex': '1'})
+        ], style={'display': 'flex'})
     ])
 ])
 
@@ -201,3 +208,49 @@ def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, jstation_id, 
             hovermode='closest'
         )
     }
+    
+
+@app.callback(Output('cr-skyplot', 'figure'),
+              [Input('filename', 'value'),
+               Input('trigger', 'children'),
+               Input('event-ids', 'children'),
+               Input('btn-open-file', 'value'),
+               Input('station_id', 'children')],
+              [State('user_id', 'children')])
+def plot_skyplot(filename, trigger, jcurrent_selection, btn, jstation_id, juser_id):
+    if filename is None:
+        return {}
+    user_id = json.loads(juser_id)
+#     filename = json.loads(jfilename)
+    station_id = json.loads(jstation_id)
+    current_selection = json.loads(jcurrent_selection)
+    ariio = provider.get_arianna_io(user_id, filename)
+    traces = []
+    keys = ariio.get_header()[station_id].keys()
+    xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
+    if stnp.cr_zenith in keys and stnp.cr_azimuth in keys:
+        traces.append(go.Scatterpolar(
+            r=np.rad2deg(ariio.get_header()[station_id][stnp.cr_zenith]),
+            theta=np.rad2deg(ariio.get_header()[station_id][stnp.cr_azimuth]),
+            text=[str(x) for x in ariio.get_event_ids()],
+            mode='markers',
+            name='cosmic ray events',
+            opacity=1,
+            marker=dict(
+                color='blue'
+            )
+        ))
+    # update with current selection
+    if current_selection != []:
+        for trace in traces:
+            trace['selectedpoints'] = get_point_index(trace['text'], current_selection)
+
+    return {
+        'data': traces,
+        'layout': go.Layout(
+            showlegend=True,
+            hovermode='closest',
+            height=500
+        )
+    }
+
