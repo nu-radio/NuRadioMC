@@ -26,6 +26,7 @@ import logging
 from six import iteritems
 import yaml
 import os
+from numpy.lib.recfunctions import repack_fields
 # import confuse
 # logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("sim")
@@ -144,7 +145,6 @@ class simulation():
         self._eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
         if(self._outputfilenameNuRadioReco is not None):
             self._eventWriter.begin(self._outputfilenameNuRadioReco)
-
         self._read_input_hdf5() # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
         self._n_events = len(self._fin['event_ids'])
         self._n_antennas = self._det.get_number_of_channels(self._station_id)
@@ -401,6 +401,20 @@ class simulation():
         for key, value in iteritems(fin.attrs):
             self._fin_attrs[key] = value
         fin.close()
+
+    def _read_input_hdf5_new(self):
+        """
+        read new style input file into memory
+        """
+        fin = h5py.File(self._eventlist, 'r')
+        self._fin = {}
+        self._fin_attrs = {}
+        dataset = fin["Event_input"]
+        for key in dataset.dtype.names:
+            self._fin[key] = np.array(dataset[key])
+        for key, value in iteritems(fin.attrs):
+            self._fin_attrs[key] = value
+        fin.close()
     
     def _calculate_signal_properties(self):
         if(self._station.has_triggered()):
@@ -513,8 +527,15 @@ class simulation():
 
     def _write_ouput_file(self):
         fout = h5py.File(self._outputfilename, 'w')
-        for (key, value) in iteritems(self._mout):
-            fout[key] = value[self._mout['triggered']]
+
+        if (self._cfg['save_all'] == False):
+            print("Saving only triggered events")
+            for (key, value) in iteritems(self._mout):
+                fout[key] = value[self._mout['triggered']]
+        else:
+            print("Saving all events")
+            for (key, value) in iteritems(self._mout):
+                fout[key] = value
             
         for (key, value) in iteritems(self._mout_attrs):
             fout.attrs[key] = value
@@ -536,13 +557,20 @@ class simulation():
         fout.attrs['config'] = yaml.dump(self._cfg)
 
         # now we also save all input parameters back into the out file
-        for key in self._fin.keys():
-            if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
-                fout[key] = np.array(self._fin[key])[self._mout['triggered']]
+        if (self._cfg['save_all'] == False):
+            for key in self._fin.keys():
+                if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
+                    fout[key] = np.array(self._fin[key])[self._mout['triggered']]
+        else:
+            for key in self._fin.keys():
+                if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
+                    fout[key] = np.array(self._fin[key])
+
         for key in self._fin_attrs.keys():
             if(not key in fout.attrs.keys()):  # only save atrributes sets that havn't been recomputed and saved already
                 fout.attrs[key] = self._fin_attrs[key]
         fout.close()
+
         
     def calculate_Veff(self):
         # calculate effective
