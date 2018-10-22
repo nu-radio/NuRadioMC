@@ -254,32 +254,34 @@ def update_sim_event_3d(i_event, filename, juser_id, jstation_id):
     sim_station = station.get_sim_station()
     if sim_station is None:
         return {}
-    vertex = sim_station.get_parameter(stnp.nu_vertex)
-    neutrino_path = hp.spherical_to_cartesian(sim_station.get_parameter(stnp.nu_zenith), sim_station.get_parameter(stnp.nu_azimuth))
-    fig = go.Figure(
-        data = [
-            go.Scatter3d(
-                x = [vertex[0]],
-                y = [vertex[1]],
-                z = [vertex[2]],
-                mode = 'markers',
-                name = 'Interaction Vertex'
-                ),
-            go.Scatter3d(
-                x = [0],
-                y = [0],
-                z = [0],
-                mode = 'markers',
-                name = 'Station'
-                ),
-            go.Scatter3d(
+    keys = sim_station.keys()
+    data = [go.Scatter3d(
+        x = [0],
+        y = [0],
+        z = [0],
+        mode = 'markers',
+        name = 'Station'
+        )]
+    if stnp.nu_vertex in keys:
+        vertex = sim_station.get_parameter(stnp.nu_vertex)
+        data.append(go.Scatter3d(
+            x = [vertex[0]],
+            y = [vertex[1]],
+            z = [vertex[2]],
+            mode = 'markers',
+            name = 'Interaction Vertex'
+            ))
+        if stnp.nu_zenith in keys and stnp.nu_azimuth in keys: 
+            neutrino_path = hp.spherical_to_cartesian(sim_station.get_parameter(stnp.nu_zenith), sim_station.get_parameter(stnp.nu_azimuth))
+            data.append(go.Scatter3d(
                 x = [vertex[0], vertex[0] + 500*neutrino_path[0]],
                 y = [vertex[1], vertex[1] + 500*neutrino_path[1]],
                 z = [vertex[2], vertex[2] + 500*neutrino_path[2]],
                 name = 'Neutrino Direction',
                 mode = 'lines'
-                )
-            ],
+                ))
+    fig = go.Figure(
+        data = data,
             layout = go.Layout(
                 width = 500,
                 height = 500,
