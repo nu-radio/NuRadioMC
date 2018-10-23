@@ -254,7 +254,6 @@ def update_sim_event_3d(i_event, filename, juser_id, jstation_id):
     sim_station = station.get_sim_station()
     if sim_station is None:
         return {}
-    keys = sim_station.keys()
     data = [go.Scatter3d(
         x = [0],
         y = [0],
@@ -262,7 +261,7 @@ def update_sim_event_3d(i_event, filename, juser_id, jstation_id):
         mode = 'markers',
         name = 'Station'
         )]
-    if stnp.nu_vertex in keys:
+    if sim_station.has_parameter(stnp.nu_vertex):
         vertex = sim_station.get_parameter(stnp.nu_vertex)
         data.append(go.Scatter3d(
             x = [vertex[0]],
@@ -271,7 +270,7 @@ def update_sim_event_3d(i_event, filename, juser_id, jstation_id):
             mode = 'markers',
             name = 'Interaction Vertex'
             ))
-        if stnp.nu_zenith in keys and stnp.nu_azimuth in keys: 
+        if sim_station.has_parameter(stnp.nu_zenith) and sim_station.has_parameter(stnp.nu_azimuth): 
             neutrino_path = hp.spherical_to_cartesian(sim_station.get_parameter(stnp.nu_zenith), sim_station.get_parameter(stnp.nu_azimuth))
             data.append(go.Scatter3d(
                 x = [vertex[0], vertex[0] + 500*neutrino_path[0]],
