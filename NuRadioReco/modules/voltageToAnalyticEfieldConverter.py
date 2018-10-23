@@ -477,7 +477,6 @@ class voltageToAnalyticEfieldConverter:
 
         def obj_amplitude_slope(params, phase, pos, debug_obj=0):
             ampPhi, ampTheta, slope = params
-
             analytic_pulse_theta = pulse.get_analytic_pulse_freq(ampTheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
             analytic_pulse_phi = pulse.get_analytic_pulse_freq(ampPhi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
             chi2 = 0
@@ -661,7 +660,7 @@ class voltageToAnalyticEfieldConverter:
         exp_efield = hp.get_lorentzforce_vector(station[stnp.zenith], station[stnp.azimuth], hp.get_magnetic_field_vector(site))
         cs = coordinatesystems.cstrafo(station[stnp.zenith], station[stnp.azimuth], site=site)
         exp_efield_onsky = cs.transform_from_ground_to_onsky(exp_efield)
-        exp_pol_angle = np.arctan2(np.abs(exp_efield_onsky[2]), np.abs(exp_efield_onsky[1]))
+        exp_pol_angle = np.arctan2(exp_efield_onsky[2], exp_efield_onsky[1])
         logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
         station.set_parameter(stnp.polarization_angle_expectation, exp_pol_angle)
 
