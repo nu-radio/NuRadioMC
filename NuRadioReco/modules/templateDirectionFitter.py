@@ -74,7 +74,11 @@ class templateDirectionFitter:
         zenith_start = 135 * units.deg
         if cosmic_ray:
             zenith_start = 45 * units.deg
-        res = opt.minimize(obj_plane, x0=[zenith_start, 270 * units.deg], args=(positions, times), method=method, options=options)
+        starting_chi2 = {}
+        for starting_az in np.array([0, 90, 180, 270])*units.degree:
+            starting_chi2[starting_az] = obj_plane((zenith_start, starting_az), positions, times)
+        azimuth_start = min(starting_chi2, key=starting_chi2.get)
+        res = opt.minimize(obj_plane, x0=[zenith_start, azimuth_start], args=(positions, times), method=method, options=options)
 
         output_str = "reconstucted angles theta = {:.1f}, phi = {:.1f}".format(res.x[0] / units.deg, hp.get_normalized_angle(res.x[1]) / units.deg)
         if station.has_sim_station():
