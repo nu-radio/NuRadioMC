@@ -55,14 +55,14 @@ layout = html.Div([
                         ], className='', id='sim-traces-signal-types-container'),
                         html.Div([
                             html.Div('Polarization', className=''),
-                            dcc.RadioItems(
+                            dcc.Checklist(
                                 id='sim-traces-polarization',
                                 options = [
-                                    {'label': '0', 'value': 0},
-                                    {'label': '1', 'value': 1},
-                                    {'label': '2', 'value': 2}
+                                    {'label': 'E_r', 'value': 0},
+                                    {'label': 'E_theta', 'value': 1},
+                                    {'label': 'E_phi', 'value': 2}
                                 ],
-                                value = 0,
+                                values = [2],
                                 className=''
                             )
                         ], className='sim-trace-option')
@@ -103,14 +103,14 @@ layout = html.Div([
                         ], className='', id='sim-spectrum-signal-types-container'),
                         html.Div([
                             html.Div('Polarization', className=''),
-                            dcc.RadioItems(
+                            dcc.Checklist(
                                 id='sim-spectrum-polarization',
                                 options = [
-                                    {'label': '0', 'value': 0},
-                                    {'label': '1', 'value': 1},
-                                    {'label': '2', 'value': 2}
+                                    {'label': 'E_r', 'value': 0},
+                                    {'label': 'E_theta', 'value': 1},
+                                    {'label': 'E_phi', 'value': 2}
                                 ],
-                                value = 0,
+                                values = [2],
                                 className=''
                             )
                         ], className='sim-trace-option')
@@ -160,11 +160,11 @@ def show_signal_spectrum_signal_types(event_type):
     Input('filename', 'value'),
     Input('sim-traces-event-types', 'value'),
     Input('sim-traces-signal-types', 'values'),
-    Input('sim-traces-polarization', 'value')],
+    Input('sim-traces-polarization', 'values')],
     [State('user_id', 'children'),
      State('station_id', 'children')]
 )
-def update_sim_trace_plot(i_event, filename, event_type, signal_types, polarization, juser_id, jstation_id):
+def update_sim_trace_plot(i_event, filename, event_type, signal_types, polarizations, juser_id, jstation_id):
     if filename is None:
         return {}
     user_id = json.loads(juser_id)
@@ -180,48 +180,51 @@ def update_sim_trace_plot(i_event, filename, event_type, signal_types, polarizat
     if event_type == 'nu':
         for i_channel, channel in enumerate(sim_station.get_channels()):
             if 'direct' in signal_types:
-                fig.append_trace(
-                    go.Scatter(
-                        x=channel[0].get_times()/units.ns,
-                        y=channel[0].get_trace()[polarization]/units.mV,
-                        opacity=0.7,
-                        line = {
-                            'color': colors[i_channel % len(colors)]
-                        },
-                        name = 'Channel {}'.format(i_channel),
-                        legendgroup=str(i_channel)
-                    ), 1, 1
-                )
+                for polarization in polarizations:
+                    fig.append_trace(
+                        go.Scatter(
+                            x=channel[0].get_times()/units.ns,
+                            y=channel[0].get_trace()[polarization]/units.mV,
+                            opacity=0.7,
+                            line = {
+                                'color': colors[i_channel % len(colors)]
+                            },
+                            name = 'Channel {}'.format(i_channel),
+                            legendgroup=str(i_channel)
+                        ), 1, 1
+                    )
             if 'indirect' in signal_types:
                 if 'direct' in signal_types:
                     name = ''
                 else:
                     name = 'Channel {}'.format(i_channel)
-                fig.append_trace(
-                    go.Scatter(
-                        x=channel[1].get_times()/units.ns,
-                        y=channel[1].get_trace()[polarization]/units.mV,
-                        opacity=0.7,
-                        legendgroup=str(i_channel),
-                        name = name,
-                        line = {
-                            'dash': 'dot',
-                            'color': colors[i_channel % len(colors)]
-                            }
-                    ), 1, 1
-                )
+                for polarization in polarizations:
+                    fig.append_trace(
+                        go.Scatter(
+                            x=channel[1].get_times()/units.ns,
+                            y=channel[1].get_trace()[polarization]/units.mV,
+                            opacity=0.7,
+                            legendgroup=str(i_channel),
+                            name = name,
+                            line = {
+                                'dash': 'dot',
+                                'color': colors[i_channel % len(colors)]
+                                }
+                        ), 1, 1
+                    )
     else:
-        fig.append_trace(
-            go.Scatter(
-                x=sim_station.get_times()/units.ns,
-                y=sim_station.get_trace()[polarization]/units.mV,
-                opacity=0.7,
-                line = {
-                    'color': colors[polarization % len(colors)]
-                },
-                name = str(polarizaiton_names[polarization])
-            ), 1, 1
-        )
+        for polarization in polarizations:
+            fig.append_trace(
+                go.Scatter(
+                    x=sim_station.get_times()/units.ns,
+                    y=sim_station.get_trace()[polarization]/units.mV,
+                    opacity=0.7,
+                    line = {
+                        'color': colors[polarization % len(colors)]
+                    },
+                    name = str(polarizaiton_names[polarization])
+                ), 1, 1
+            )
     fig['layout'].update(
         xaxis={'title': 't [ns]'},
         yaxis={'title': 'voltage [mV]'}
@@ -234,11 +237,11 @@ def update_sim_trace_plot(i_event, filename, event_type, signal_types, polarizat
     Input('filename', 'value'),
     Input('sim-spectrum-event-types', 'value'),
     Input('sim-spectrum-signal-types', 'values'),
-    Input('sim-spectrum-polarization', 'value')],
+    Input('sim-spectrum-polarization', 'values')],
     [State('user_id', 'children'),
      State('station_id', 'children')]
 )
-def update_sim_spectrum_plot(i_event, filename, event_type, signal_types, polarization, juser_id, jstation_id):
+def update_sim_spectrum_plot(i_event, filename, event_type, signal_types, polarizations, juser_id, jstation_id):
     if filename is None:
         return {}
     user_id = json.loads(juser_id)
@@ -254,18 +257,19 @@ def update_sim_spectrum_plot(i_event, filename, event_type, signal_types, polari
     if event_type == 'nu':
         for i_channel, channel in enumerate(sim_station.get_channels()):
             if 'direct' in signal_types:
-                fig.append_trace(
-                    go.Scatter(
-                        x=channel[0].get_frequencies()/units.MHz,
-                        y=np.abs(channel[0].get_frequency_spectrum()[polarization])/units.mV,
-                        opacity=0.7,
-                        line = {
-                            'color': colors[i_channel % len(colors)]
-                        },
-                        name = 'Channel {}'.format(i_channel),
-                        legendgroup=str(i_channel)
-                    ), 1, 1
-                )
+                for polarization in polarizations:
+                    fig.append_trace(
+                        go.Scatter(
+                            x=channel[0].get_frequencies()/units.MHz,
+                            y=np.abs(channel[0].get_frequency_spectrum()[polarization])/units.mV,
+                            opacity=0.7,
+                            line = {
+                                'color': colors[i_channel % len(colors)]
+                            },
+                            name = 'Channel {}'.format(i_channel),
+                            legendgroup=str(i_channel)
+                        ), 1, 1
+                    )
             if 'indirect' in signal_types:
                 if 'direct' in signal_types:
                     name = ''
@@ -277,31 +281,33 @@ def update_sim_spectrum_plot(i_event, filename, event_type, signal_types, polari
                 else:
                     freqs = channel[0].get_frequencies()/units.MHz
                     spec = np.zeros(len(freqs))
-                fig.append_trace(
-                    go.Scatter(
-                        x=freqs,
-                        y=spec,
-                        opacity=0.7,
-                        legendgroup=str(i_channel),
-                        name = name,
-                        line = {
-                            'dash': 'dot',
-                            'color': colors[i_channel % len(colors)]
-                            }
-                    ), 1, 1
-                )
+                for polarization in polarizations:
+                    fig.append_trace(
+                        go.Scatter(
+                            x=freqs,
+                            y=spec,
+                            opacity=0.7,
+                            legendgroup=str(i_channel),
+                            name = name,
+                            line = {
+                                'dash': 'dot',
+                                'color': colors[i_channel % len(colors)]
+                                }
+                        ), 1, 1
+                    )
     else:
-        fig.append_trace(
-            go.Scatter(
-                x=sim_station.get_frequencies()/units.MHz,
-                y=np.abs(sim_station.get_frequency_spectrum()[polarization])/units.mV,
-                opacity=0.7,
-                line = {
-                    'color': colors[polarization % len(colors)]
-                },
-                name = str(polarizaiton_names[polarization])
-            ), 1, 1
-        )
+        for polarization in polarizations:
+            fig.append_trace(
+                go.Scatter(
+                    x=sim_station.get_frequencies()/units.MHz,
+                    y=np.abs(sim_station.get_frequency_spectrum()[polarization])/units.mV,
+                    opacity=0.7,
+                    line = {
+                        'color': colors[polarization % len(colors)]
+                    },
+                    name = str(polarizaiton_names[polarization])
+                ), 1, 1
+            )
     fig['layout'].update(
         xaxis={'title': 'f [MHz]'},
         yaxis={'title': 'voltage [mV]'}
