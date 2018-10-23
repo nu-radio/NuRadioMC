@@ -97,8 +97,8 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
     S_2 = ad1_data[:, 2]
     mask = (S_1 == s_paramateres[0]) & (S_2 == s_paramateres[1])
     ff = ad1_data[:, 0][mask] * units.GHz
-    Re_Z = ad1_data[:, 5][mask]
-    Im_Z = ad1_data[:, 6][mask]
+    Re_Z = ad1_data[:, 5][mask] * units.ohm
+    Im_Z = ad1_data[:, 6][mask] * units.ohm
     Z = Re_Z + 1j * Im_Z
     
     Re_S = ad1_data[:, 7][mask]
@@ -140,9 +140,12 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
         return zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, S, np.array(ff2), np.deg2rad(np.array(phis)), np.deg2rad(np.array(thetas)), np.array(Ephis), np.array(Ethetas), np.array(gains)
 
 
-def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
+def preprocess_WIPLD_old(path, gen_num=1, s_paramateres=[1, 1]):
     """
     preprocesses WIPLD file and pickles it
+    
+    this function implements the older insufficient calculation of the vector effective length. This VEL only 
+    relates the incident electric field to the open circuit voltage and not the voltage in a 50 Ohm system.  
 
     Parameters
     ----------
@@ -157,7 +160,7 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
     from scipy import constants
     from scipy.interpolate import interp1d
     c = constants.c * units.m / units.s
-    Z_0 = 119.9169 * np.pi
+    Z_0 = 119.9169 * np.pi * units.ohm
     split = os.path.split(os.path.dirname(path))
     name = split[1]
     path = split[0]
@@ -181,14 +184,83 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
     wavelength = c / ff2
     H_phi = (2 * wavelength * get_Z(ff2) * Iphi) / (Z_0) / 1j
     H_theta = (2 * wavelength * get_Z(ff2) * Itheta) / (Z_0) / 1j
+    
+    return zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta
 
 #     H = wavelength * (np.real(get_Z(ff2)) / (np.pi * Z_0)) ** 0.5 * gains ** 0.5
 
+def save_preprocessed_WIPLD_old(path):
+    zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta = preprocess_WIPLD_old(path)
+    split = os.path.split(os.path.dirname(path))
+    name = split[1]
+    path = split[0]
     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)
+        
+def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
+    """
+    preprocesses WIPLD file and pickles it
 
+    Parameters
+    ----------
+    path: string
+        path to folder containing ad1, ra1, and orientation files.
+    gen_num: int
+        which antenna (one or two) to pull from
+    s_parameters: list of 2 ints
+        determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
+
+    """
+    from scipy import constants
+    from scipy.interpolate import interp1d
+    c = constants.c * units.m / units.s
+    Z_0 = 119.9169 * np.pi * units.ohm
+    split = os.path.split(os.path.dirname(path))
+    name = split[1]
+    path = split[0]
+
+    zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, S, ff2, phi, theta, Iphi, Itheta, gains = parse_WIPLD_file(os.path.join(path, name, '{}.ad1'.format(name)),
+                                                                                                                   os.path.join(path, name, '{}.ra1'.format(name)),
+                                                                                                                   os.path.join(path, name, '{}.orientation'.format(name)),
+                                                                                                                   gen_num=gen_num, s_paramateres=s_paramateres)
+
+    theta = 0.5 * np.pi - theta  # 90deg - theta because in WIPL D the theta angle is defined differently
+
+    # sort with increasing frequency, increasing phi, and increasing theta
+    index = np.lexsort((theta, phi, ff2))
+    ff2 = ff2[index]
+    phi = phi[index]
+    theta = theta[index]
+    Iphi = Iphi[index]
+    Itheta = Itheta[index]
+
+#     get_Z = interp1d(ff, Z, kind='nearest')
+    get_S = interp1d(ff, S, kind='nearest')
+    wavelength = c / ff2
+    V = 1 * units.V
+    Z_L = 50 * units.ohm
+    H_phi = wavelength * (1 + get_S(ff2)) * Iphi * Z_L / (Z_0) / 1j / V
+    H_theta = wavelength * (1 + get_S(ff2)) * Itheta * Z_L / (Z_0) / 1j / V 
+
+#     H = wavelength * (np.real(get_Z(ff2)) / (np.pi * Z_0)) ** 0.5 * gains ** 0.5
+    return zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta
+
+#     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
+#     with open(output_filename, 'wb') as fout:
+#         logger.info('saving output to {}'.format(output_filename))
+#         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)        
+
+def save_preprocessed_WIPLD(path):
+    zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta = preprocess_WIPLD(path)
+    split = os.path.split(os.path.dirname(path))
+    name = split[1]
+    path = split[0]
+    output_filename = '{}.pkl'.format(os.path.join(path, name, name))
+    with open(output_filename, 'wb') as fout:
+        logger.info('saving output to {}'.format(output_filename))
+        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)
 
 def get_WIPLD_antenna_response(path):
 
@@ -465,8 +537,8 @@ class AntennaPattern(AntennaPatternBase):
         self.n_theta = len(self.theta_angles)
         self.n_phi = len(self.phi_angles)
 
-        self.VEL_phi = H_phi * 0.5  # temporary fix to account for voltage drop in 50 Ohm readout
-        self.VEL_theta = H_theta * 0.5  # temporary fix to account for voltage drop in 50 Ohm readout
+        self.VEL_phi = H_phi
+        self.VEL_theta = H_theta
 
         # additional consistency check
         for iFreq, freq in enumerate(self.frequencies):
