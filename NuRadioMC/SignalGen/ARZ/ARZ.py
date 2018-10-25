@@ -7,6 +7,15 @@ from matplotlib import pyplot as plt
 import os
 
 
+######################
+######################
+# This code is based on "J. Alvarez-Muniz, P. Hansen, A. Romero-Wolf, E. Zas in preparation" which is an extension of
+# Alvarez-Muñiz, J., Romero-Wolf, A., & Zas, E. (2011). Practical and accurate calculations of Askaryan radiation. Physical Review D - Particles, Fields, Gravitation and Cosmology, 84(10). https://doi.org/10.1103/PhysRevD.84.103003
+# to hadronic showers. Thanks a lot to Jaime Alvarez-Muñiz to provide us with this unpublished work!
+#####################
+##################### 
+
+
 
 def get_time_trace(energy, theta, N, dt, y=1., ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m):
     vp = get_vector_potential(energy, theta, N, dt, y=y, ccnc=ccnc, flavor=flavor, n_index=n_index, R=R)
