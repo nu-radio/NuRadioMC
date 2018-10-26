@@ -138,16 +138,27 @@ app.layout = html.Div([
 Output('event-counter-slider', 'value'),
 [Input('btn-next-event', 'n_clicks_timestamp'),
 Input('btn-previous-event', 'n_clicks_timestamp')],
-[State('event-counter-slider', 'value')]
+[State('event-counter-slider', 'value'),
+State('user_id', 'children'),
+State('filename', 'value')]
 )
-def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, i_event):
+def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, i_event, juser_id, filename):
     print(i_event)
     if prev_evt_click_timestamp == 0 and next_evt_click_timestamp == 0:
         return 0
     if prev_evt_click_timestamp > next_evt_click_timestamp:
-        return i_event - 1
+        if i_event == 0:
+            return 0
+        else:
+            return i_event - 1
     else:
-        return i_event + 1
+        user_id = json.loads(juser_id)
+        
+        number_of_events = provider.get_arianna_io(user_id, filename).get_n_events()    
+        if number_of_events == i_event + 1:
+            return number_of_events -1
+        else:
+            return i_event + 1
 
 '''
 @app.callback(
