@@ -41,7 +41,20 @@ layout = html.Div([
         value=["RMS", "L1"]
     ),
     html.Div(id='event-info'),
-    dcc.Graph(id='efield-trace'),
+    html.Div([
+        html.Div([
+            html.Div('Electric Field Traces', className='panel-heading'),
+            html.Div([
+            dcc.Graph(id='efield-trace')
+            ], className='panel-body')
+        ], className='panel panel-default', style={'flex': '1'}),
+        html.Div([
+            html.Div('Electric Field Spectrum', className='panel-heading'),
+            html.Div([
+            dcc.Graph(id='efield-spectrum')
+            ], className='panel-body')
+        ], className='panel panel-default', style={'flex': '1'})
+    ], style={'display': 'flex'}),
     dcc.Graph(id='time-trace'),
     dcc.Graph(id='time-traces'),
     dcc.Graph(id='time-traces2')
@@ -119,7 +132,7 @@ def update_time_efieldtrace(trigger, evt_counter, filename, juser_id, jstation_i
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_stations()[0]
-    fig = tools.make_subplots(rows=1, cols=2)
+    fig = tools.make_subplots(rows=1, cols=1)
     if station.get_trace() is None:
         trace = np.array([[],[],[]])
     else:
@@ -162,7 +175,32 @@ def update_time_efieldtrace(trigger, evt_counter, filename, juser_id, jstation_i
         ), 1, 1)
     fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['yaxis1'].update(title='efield [mV/m]')
+    fig['layout'].showlegend = True
+    return fig
+@app.callback(
+    dash.dependencies.Output('efield-spectrum', 'figure'),
+    [dash.dependencies.Input('trigger-trace', 'children'),
+     dash.dependencies.Input('event-counter-slider', 'value'),
+     dash.dependencies.Input('filename', 'value')],
+     [State('user_id', 'children'),
+      State('station_id', 'children')])
+def update_efield_spectrum(trigger, evt_counter, filename, juser_id, jstation_id):
+    if filename is None:
+        return {}
+    print("update efield trace")
+    #     filename = json.loads(jfilename)
+    user_id = json.loads(juser_id)
+    station_id = json.loads(jstation_id)
 
+    colors = plotly.colors.DEFAULT_PLOTLY_COLORS
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(evt_counter)
+    station = evt.get_stations()[0]
+    fig = tools.make_subplots(rows=1, cols=1)
+    if station.get_trace() is None:
+        trace = np.array([[],[],[]])
+    else:
+        trace = station.get_trace()
     fig.append_trace(go.Scatter(
             x=station.get_frequencies() / units.MHz,
             y=np.abs(station.get_frequency_spectrum()[1]) / units.mV,
@@ -172,7 +210,7 @@ def update_time_efieldtrace(trigger, evt_counter, filename, juser_id, jstation_i
                 'line': {'color': colors[1]}
             },
             name='eTheta'
-        ), 1, 2)
+        ), 1, 1)
     fig.append_trace(go.Scatter(
             x=station.get_frequencies() / units.MHz,
             y=np.abs(station.get_frequency_spectrum()[2]) / units.mV,
@@ -182,13 +220,12 @@ def update_time_efieldtrace(trigger, evt_counter, filename, juser_id, jstation_i
                 'line': {'color': colors[2]}
             },
             name='ePhi'
-        ), 1, 2)
-    fig['layout']['xaxis2'].update(title='frequency [MHz]')
-    fig['layout']['yaxis2'].update(title='amplitude [mV/m]')
+        ), 1, 1)
+    fig['layout']['xaxis1'].update(title='frequency [MHz]')
+    fig['layout']['yaxis1'].update(title='amplitude [mV/m]')
     fig['layout'].showlegend = True
     return fig
-
-
+        
 @app.callback(
     dash.dependencies.Output('time-trace', 'figure'),
     [dash.dependencies.Input('trigger-trace', 'children'),
