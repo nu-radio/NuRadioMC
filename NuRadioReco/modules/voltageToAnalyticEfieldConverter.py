@@ -474,37 +474,55 @@ class voltageToAnalyticEfieldConverter:
                 fig.tight_layout()
                 plt.show()
             return chi2
-
-        def obj_amplitude_slope(params, phase, pos, debug_obj=0):
+        def obj_amplitude_slope(params, phase, pos, compare='trace', debug_obj=0):
             ampPhi, ampTheta, slope = params
             analytic_pulse_theta = pulse.get_analytic_pulse_freq(ampTheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
             analytic_pulse_phi = pulse.get_analytic_pulse_freq(ampPhi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
             chi2 = 0
-
-            if(debug_obj):
-                fig, ax = plt.subplots(4, 2, sharex=True)
+            if(debug_obj and self.i_slope_fit_iterations%25 == 0):
+                fig, ax = plt.subplots(4, 2, sharex=False, figsize=(20,10))
 
             n_channels = len(V_timedomain)
             analytic_traces = np.zeros((n_channels, n_samples_time))
             # first determine the position with the larges xcorr
+            channel_max = 0
+            for trace in V_timedomain:
+                if np.max(np.abs(trace))>channel_max:
+                    channel_max = np.max(np.abs(trace))
+                    argmax = np.argmax(np.abs(trace))
+                    imin = np.int(max(argmax - 50 * sampling_rate, 0))
+                    imax = np.int(argmax + 50 * sampling_rate)
             for iCh, trace in enumerate(V_timedomain):
-                argmax = np.argmax(np.abs(trace))
-                imin = np.int(argmax - 50 * sampling_rate)
-                imax = np.int(argmax + 50 * sampling_rate)
-
                 analytic_trace_fft = np.sum(efield_antenna_factor[iCh] * np.array([analytic_pulse_theta, analytic_pulse_phi]), axis=0)
                 analytic_traces[iCh] = fft.freq2time(analytic_trace_fft)
-                tmp = np.sum(np.abs(trace[imin:imax] - np.roll(analytic_traces[iCh], pos)[imin:imax]) / noise_RMS)
-                chi2 += tmp ** 2
-                if(debug_obj):
-                    ax[iCh][0].plot(trace, label='measurement')
-                    ax[iCh][0].plot(np.roll(analytic_traces[iCh], pos), '--', label='fit')
-                    ax[iCh][1].plot(trace - np.roll(analytic_traces[iCh], pos), label='delta')
+                if compare == 'trace':
+                    tmp = np.sum(np.abs(trace[imin:imax] - np.roll(analytic_traces[iCh], pos)[imin:imax])**2) / noise_RMS**2
+                elif compare == 'abs':
+                    tmp = np.sum(np.abs(np.abs(trace[imin:imax]) - np.abs(np.roll(analytic_traces[iCh], pos)[imin:imax]))**2) / noise_RMS**2
+                elif compare == 'hilbert':
+                    tmp = np.sum(np.abs(np.abs(signal.hilbert(trace[imin:imax])) - np.abs(signal.hilbert(np.roll(analytic_traces[iCh], pos)[imin:imax])))**2) / noise_RMS**2
+                else:
+                    raise NameError('Unsupported value for parameter "compare": {}. Value must be "trace", "abs" or "hilbert".'.format(compare))
+                chi2 += tmp
+                if(debug_obj and self.i_slope_fit_iterations%25==0):
+                    ax[iCh][1].plot(np.array(trace)/units.mV, label='measurement', color='blue')
+                    ax[iCh][1].plot(np.roll(analytic_traces[iCh], pos)/units.mV, '--', label='fit', color='orange')
+                    ax[iCh][1].plot(np.abs(signal.hilbert(trace))/units.mV, linestyle=':', color='blue')
+                    ax[iCh][1].plot(np.abs(signal.hilbert(np.roll(analytic_traces[iCh], pos)))/units.mV, ':', label='fit', color='orange')
+                    #ax[iCh][1].plot(trace - np.roll(analytic_traces[iCh], pos), label='delta')
+                    ax[iCh][0].plot(np.abs(fft.time2freq(trace))/units.mV, label='measurement')
+                    ax[iCh][0].plot(np.abs(fft.time2freq(np.roll(analytic_traces[iCh], pos)))/units.mV, '--', label='fit')
+                    ax[iCh][0].set_xlim([0, 600])
+                    ax[iCh][1].set_xlim([imin-500,imax+500])
+                    ax[iCh][1].axvline(imin, linestyle='--', alpha=.8)
+                    ax[iCh][1].axvline(imax, linestyle='--', alpha=.8)
             logger.debug("amp phi = {:.4g}, amp theta = {:.4g}, slope = {:.4g} chi2 = {:.8g}".format(ampPhi, ampTheta, slope, chi2))
-            if(debug_obj):
+            if(debug_obj and self.i_slope_fit_iterations%25==0):
 #                 ax[0][0].set_title("ratio = {:.2f} ({:.2f}), slope = {:.2g}, phase = {:.0f} ({:.2f}), chi2 = {:.2g}".format(ratio, ratio2, slope, phase / units.deg, phase2, chi2))
                 fig.tight_layout()
                 plt.show()
+                self.i_slope_fit_iterations = 0
+            self.i_slope_fit_iterations += 1
             return chi2
 
         method = "Nelder-Mead"
@@ -573,7 +591,8 @@ class voltageToAnalyticEfieldConverter:
         logger.info("amplitude fit, Aphi = {:.3g} Atheta = {:.3g} with fmin = {:.5e}".format(res_amp.x[0], res_amp.x[1], res_amp.fun))
         Aphi = res_amp.x[0]
         Atheta = res_amp.x[1]
-
+        #counts number of iterations in the slope fit. Used so we do not need to show the plots every iteration
+        self.i_slope_fit_iterations = 0
         res_amp_slope = opt.minimize(obj_amplitude_slope, x0=[res_amp.x[0], res_amp.x[1], -1.9], args=(phase, pos),
                                      method=method, options=options)
 
@@ -629,7 +648,6 @@ class voltageToAnalyticEfieldConverter:
             ax.pcolor(X, Y, Z, cmap='viridis_r', vmin=res_amp_slope.fun, vmax=res_amp_slope.fun * 2)
 
 #             plt.show()
-
         analytic_pulse_theta = pulse.get_analytic_pulse(Atheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
         analytic_pulse_phi = pulse.get_analytic_pulse(Aphi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
         analytic_pulse_theta_freq = pulse.get_analytic_pulse_freq(Atheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
@@ -638,7 +656,6 @@ class voltageToAnalyticEfieldConverter:
 #         print("Aphi = {:.4g}".format(Aphi * conversion_factor_integrated_signal * 1e-12))
 #         print('fphi spec {:.4e}'.format(np.sum(np.abs(analytic_pulse_phi_freq) ** 2) / sampling_rate * conversion_factor_integrated_signal * 1e-12))
 #         print('fphi time {:.4e}'.format(np.sum(np.abs(analytic_pulse_phi) ** 2) / sampling_rate * conversion_factor_integrated_signal * 1e-12))
-
         analytic_pulse_theta = np.roll(analytic_pulse_theta, pos)
         analytic_pulse_phi = np.roll(analytic_pulse_phi, pos)
         station_trace = np.array([np.zeros_like(analytic_pulse_theta), analytic_pulse_theta, analytic_pulse_phi])
