@@ -418,15 +418,19 @@ class ray_tracing_2D():
     def get_attenuation_along_path(self, x1, x2, C_0, frequency):
         if(cpp_available):
             mask = frequency > 0
-            freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), self.__n_frequencies_integration)
-            tmp = np.zeros(self.__n_frequencies_integration)
+            nfreqs = min(self.__n_frequencies_integration, np.sum(mask))
+            freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), nfreqs)
+            tmp = np.zeros(nfreqs)
             for i, f in enumerate(freqs):
                 tmp[i] = wrapper.get_attenuation_along_path(
                     x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
 
-            att_func = interpolate.interp1d(freqs, tmp)
             attenuation = np.ones_like(frequency)
-            attenuation[mask] = att_func(frequency[mask])
+            if(nfreqs == np.sum(mask)):
+                attenuation[mask] = tmp
+            else:
+                att_func = interpolate.interp1d(freqs, tmp)
+                attenuation[mask] = att_func(frequency[mask])
             return attenuation
         else:
 
