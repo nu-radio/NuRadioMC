@@ -55,7 +55,20 @@ layout = html.Div([
             ], className='panel-body')
         ], className='panel panel-default', style={'flex': '1'})
     ], style={'display': 'flex'}),
-    dcc.Graph(id='time-trace'),
+    html.Div([
+        html.Div([
+            html.Div('Channel Traces', className='panel-heading'),
+            html.Div([
+                dcc.Graph(id='time-trace')
+            ], className='panel-body')
+        ], className='panel panel-default', style={'flex': '1'}),
+        html.Div([
+            html.Div('Channel Spectrum', className='panel-heading'),
+            html.Div([
+                dcc.Graph(id='channel-spectrum')
+            ], className='panel-body')
+        ], className='panel panel-default', style={'flex': '1'})
+    ], style={'display': 'flex'}),
     dcc.Graph(id='time-traces'),
     dcc.Graph(id='time-traces2')
 ])
@@ -246,7 +259,7 @@ def update_time_trace(trigger, evt_counter, filename, juser_id, jstation_id):
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_stations()[0]
     traces = []
-    fig = tools.make_subplots(rows=1, cols=2)
+    fig = tools.make_subplots(rows=1, cols=1)
     for i, channel in enumerate(station.get_channels()):
         fig.append_trace(go.Scatter(
                 x=channel.get_times() / units.ns,
@@ -258,10 +271,33 @@ def update_time_trace(trigger, evt_counter, filename, juser_id, jstation_id):
                     'color': colors[i % len(colors)],
                     'line': {'color': colors[i % len(colors)]}
                 },
-                name=i
+                name='Channel {}'.format(i)
             ), 1, 1)
     fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['yaxis1'].update(title='voltage [mV]')
+    fig['layout'].showlegend = True
+    return fig
+    
+@app.callback(
+    dash.dependencies.Output('channel-spectrum', 'figure'),
+    [dash.dependencies.Input('trigger-trace', 'children'),
+     dash.dependencies.Input('event-counter-slider', 'value'),
+     dash.dependencies.Input('filename', 'value')],
+     [State('user_id', 'children'),
+      State('station_id', 'children')])
+def update_channel_spectrum(trigger, evt_counter, filename, juser_id, jstation_id):
+    if filename is None:
+        return {}
+#     filename = json.loads(jfilename)
+    user_id = json.loads(juser_id)
+    station_id = json.loads(jstation_id)
+
+    colors = plotly.colors.DEFAULT_PLOTLY_COLORS
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(evt_counter)
+    station = evt.get_stations()[0]
+    traces = []
+    fig = tools.make_subplots(rows=1, cols=1)
     maxL1 = 0
     maxY = 0
     for i, channel in enumerate(station.get_channels()):
@@ -280,8 +316,8 @@ def update_time_trace(trigger, evt_counter, filename, juser_id, jstation_id):
                     'color': colors[i % len(colors)],
                     'line': {'color': colors[i % len(colors)]}
                 },
-                name=i
-            ), 1, 2)
+                name='Channel {}'.format(i)
+            ), 1, 1)
     fig.append_trace(
            go.Scatter(
                 x=[0.9 * ff.max() / units.MHz],
@@ -290,12 +326,11 @@ def update_time_trace(trigger, evt_counter, filename, juser_id, jstation_id):
                 text=['max L1 = {:.2f}'.format(maxL1)],
                 textposition='top center'
             ),
-        1, 2)
-    fig['layout']['xaxis2'].update(title='frequency [MHz]')
-    fig['layout']['yaxis2'].update(title='amplitude [mV]')
-    fig['layout'].showlegend = False
+        1, 1)
+    fig['layout']['xaxis1'].update(title='frequency [MHz]')
+    fig['layout']['yaxis1'].update(title='amplitude [mV]')
+    fig['layout'].showlegend = True
     return fig
-
 
 @app.callback(
     dash.dependencies.Output('time-traces', 'figure'),
