@@ -133,6 +133,8 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, jstation_i
     ariio = provider.get_arianna_io(user_id, filename)
     traces = []
     keys = ariio.get_header()[station_id].keys()
+    if stnp.cr_xcorrelations not in ariio.get_header()[station_id]:
+        return {}
     xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
     if stnp.channels_max_amplitude in keys:
         traces.append(go.Scatter(
@@ -227,6 +229,8 @@ def plot_skyplot(filename, trigger, jcurrent_selection, btn, jstation_id, juser_
     ariio = provider.get_arianna_io(user_id, filename)
     traces = []
     keys = ariio.get_header()[station_id].keys()
+    if stnp.cr_xcorrelations not in ariio.get_header()[station_id]:
+        return {}
     xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
     if stnp.cr_zenith in keys and stnp.cr_azimuth in keys:
         traces.append(go.Scatterpolar(
