@@ -28,7 +28,8 @@ class stationParameters(Enum):
     signal_energy_fluence = 24
     signal_time = 25
     efield_vector = 26
-    efield_vector_polarization = 27
+    efield_vector_polarization = 27,
+    spectrum_slope = 28
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction

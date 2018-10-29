@@ -619,6 +619,7 @@ class voltageToAnalyticEfieldConverter:
         slope_error = cov[2, 2] ** 0.5
         station.set_parameter(stnp.signal_energy_fluence, np.array([0, Atheta, Aphi]))
         station.set_parameter_error(stnp.signal_energy_fluence, np.array([0, Atheta_error, Aphi_error]))
+        station.set_parameter(stnp.spectrum_slope, slope)
 
 #         cov = covariance(Wrapper, res_amp_slope.x, 0.5, fast=False)
 #         print(cov)
