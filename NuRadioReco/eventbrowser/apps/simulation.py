@@ -96,16 +96,17 @@ layout = html.Div([
             ], className='panel panel-default mb-2', style={'flex': '1'})
         ], style={'display': 'flex'}),
         html.Div([
-            html.Div('Simulated Event', className='panel-heading'),
             html.Div([
-                dcc.Graph(id='sim-event-3d')
-            ],
-            className='panel-body'
-            )
-        ],
-        className='panel panel-default',
-        style = {'width': '50%'}
-        )
+                html.Div('Simulated Event', className='panel-heading'),
+                html.Div([
+                    dcc.Graph(id='sim-event-3d', style={'flex': '1'}),
+                    html.Div([
+                        dcc.Dropdown(id='sim-station-properties-dropdown', options=[], multi=True, value=[]),
+                        html.Div(id='sim-station-properties-table', className='table table-striped')
+                    ], style={'flex': '1', 'min-height': '500px'})
+                ], className='panel-body', style={'display': 'flex'})
+            ], className='panel panel-default', style = {'flex': 'none', 'width': '50%'}),
+        ], style={'display': 'flex'})
     ])
     
 @app.callback(
@@ -378,5 +379,46 @@ def update_sim_event_3d(i_event, filename, juser_id, jstation_id):
             )
         )
     return fig
-
+    
+@app.callback(Output('sim-station-properties-dropdown', 'options'), 
+    [Input('event-counter-slider', 'value'),
+    Input('filename', 'value')],
+    [State('user_id', 'children'),
+     State('station_id', 'children')])
+def get_sim_station_property_options(i_event, filename, juser_id, jstation_id):
+    if filename is None:
+        return []
+    user_id = json.loads(juser_id)
+    station_id = json.loads(jstation_id)
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(i_event)
+    station = evt.get_stations()[0]
+    options = []
+    for parameter in stnp:
+        if station.has_parameter(parameter):
+            options.append({'label': parameter.name, 'value': parameter.value})
+    return options
+@app.callback(Output('sim-station-properties-table', 'children'),
+    [Input('event-counter-slider', 'value'),
+    Input('filename', 'value'),
+    Input('sim-station-properties-dropdown', 'value')],
+    [State('user_id', 'children'),
+     State('station_id', 'children')])
+def get_sim_station_property_table(i_event, filename, properties, juser_id, jstation_id):
+    if filename is None:
+         return []
+    user_id = json.loads(juser_id)
+    station_id = json.loads(jstation_id)
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(i_event)
+    station = evt.get_stations()[0]
+    reply = []
+    for property in properties:
+        reply.append(
+            html.Div([
+                html.Div(str(stnp(property).name), className='custom-table-td'),
+                html.Div(str(station.get_parameter(stnp(property))), className='custom-table-td custom-table-td-last')
+            ],className='custom-table-row')
+        )
+    return reply
     
