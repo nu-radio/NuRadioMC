@@ -61,7 +61,7 @@ def get_interaction_length(energy, type = 'ctw'):
     return L
 
 
-def get_limit_e2_flux(energy, V_eff,
+def get_limit_e2_flux(energy, veff,
                     livetime,
                     signalEff = 1.00,
                     energyBinsPerDecade=1.000,
@@ -75,7 +75,7 @@ def get_limit_e2_flux(energy, V_eff,
         --------------
     energy: array of floats
         neutrino energy
-    V_eff: array of floats
+    veff: array of floats
         effective volumes
     livetime: float
         time used
@@ -92,7 +92,8 @@ def get_limit_e2_flux(energy, V_eff,
 
     """
 
-    evtsPerFluxPerEnergy = V_eff * signalEff
+    evtsPerFluxPerEnergy = veff * signalEff
+    print "Veff", evtsPerFluxPerEnergy
     evtsPerFluxPerEnergy *= livetime
     evtsPerFluxPerEnergy /= get_interaction_length(energy, type = nuCrsScn)
 
@@ -105,20 +106,20 @@ def get_limit_e2_flux(energy, V_eff,
 
 
 
-debug = True
+debug = False
 
 if debug:
 
     energy = 10**18 * units.eV
-    V_eff = 2150 * units.km**3 * units.sr
+    veff = 2150 * units.km**3 * units.sr
     livetime = 5 *units.year
 
     print "Cross section", get_nu_cross_section(energy, type = 'ctw')
 
     print "interaction length", get_interaction_length(energy, type = 'ctw')/units.km
 
-    print "calculating flux limit for {time} years and Veff of {V_eff} km^3 sr".format(time=livetime/units.year,
-                            V_eff = V_eff/ (units.km**3 * units.sr))
-    print "Flux limit: {} GeV/(cm^2 s sr)".format(get_limit_e2_flux(energy,V_eff, livetime) / (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1))
+    print "calculating flux limit for {time} years and Veff of {veff} km^3 sr".format(time=livetime/units.year,
+                            veff = veff/ (units.km**3 * units.sr))
+    print "Flux limit: {} GeV/(cm^2 s sr)".format(get_limit_e2_flux(energy,veff, livetime) / (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1))
 
 
