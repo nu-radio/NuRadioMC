@@ -1,0 +1,11 @@
+.custom-table-row {
+  display: flex;
+  margin: 5px 0;
+}
+.custom-table-td {
+  flex: 1;
+  margin: 0 2px;
+}
+.custom-table-td-last {
+  text-align: right;
+}
