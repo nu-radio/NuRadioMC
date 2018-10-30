@@ -5,6 +5,8 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
+    import logging
+logger = logging.getLogger('SimStation')
 
 
 class SimStation(NuRadioReco.framework.base_station.BaseStation):
@@ -19,6 +21,7 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
             self.set_trace(trace, sampling_rate)
 
     def get_channels(self):
+        logger.warning("This function is deprecated and will be removed soon. Use station.get_channel(channel_id) or station.iter_channels() instead.")
         return self.__channels.values()
 
     def has_channels(self):
