@@ -261,6 +261,60 @@ def save_preprocessed_WIPLD(path):
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)
+        
+def save_preprocessed_WIPLD_forARA(path):
+    """
+    this function saves the realized gain in an ARASim readable format
+    """
+    from scipy import constants
+    from scipy.interpolate import interp1d
+    c = constants.c * units.m / units.s
+    Z_0 = 119.9169 * np.pi * units.ohm
+    split = os.path.split(os.path.dirname(path))
+    name = split[1]
+    path = split[0]
+
+    zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, S, ff2, phi, theta, Iphi, Itheta, gains = parse_WIPLD_file(os.path.join(path, name, '{}.ad1'.format(name)),
+                                                                                                                   os.path.join(path, name, '{}.ra1'.format(name)),
+                                                                                                                   os.path.join(path, name, '{}.orientation'.format(name)))
+
+    theta = 0.5 * np.pi - theta  # 90deg - theta because in WIPL D the theta angle is defined differently
+
+    # sort with increasing frequency, increasing phi, and increasing theta
+    index = np.lexsort((theta, phi, ff2))
+    ff2 = ff2[index]
+    phi = phi[index]
+    theta = theta[index]
+    Iphi = Iphi[index]
+    Itheta = Itheta[index]
+    
+    wavelength = c / ff2
+    V = 1 * units.V
+    Z_L = 50 * units.ohm
+
+    get_S = interp1d(ff, S, kind='nearest')
+    Gr = gains * (1-np.abs(get_S(ff2))**2)
+    H_phi = wavelength * (1 + get_S(ff2)) * Iphi * Z_L / (Z_0) / 1j / V
+    H_theta = wavelength * (1 + get_S(ff2)) * Itheta * Z_L / (Z_0) / 1j / V
+
+    output_filename = '{}.ara'.format(os.path.join(path, name, name))
+    with open(output_filename,'w') as fout:
+        for f in sorted(np.unique(ff2)):
+            fout.write("freq : {} MHz\n".format(f/units.MHz))
+            fout.write("SWR : ???\n")
+            fout.write("Theta   Phi      Gain(dB)          Gain          Phase(deg)\n")
+            mask = ff2 == f
+            for i in range(np.sum(mask)):
+                fout.write("{:.4f} {:.4f} {:.4g} {:.4g} {:.2f} {:.2f}\n".format(theta[mask][i]/units.deg, 
+                                                                       phi[mask][i]/units.deg,
+                                                                       0,
+                                                                       Gr[mask][i],
+                                                                       np.angle(H_theta[mask][i])/units.deg,
+                                                                       np.angle(H_phi[mask][i])/units.deg))
+            
+        
+    
+    
 
 def get_WIPLD_antenna_response(path):
 
@@ -318,10 +372,7 @@ def get_WIPLD_antenna_response(path):
         return res
 
 
-def parse_ARA_file(ara, orientation):
-    boresight, tines = np.loadtxt(orientation, delimiter=',')
-    zen_boresight, azi_boresight = hp.cartesian_to_spherical(*boresight)
-    zen_ori, azi_ori = hp.cartesian_to_spherical(*tines)
+def parse_ARA_file(ara):
 
     with open(ara, 'r') as fin:
         ff = []
@@ -353,18 +404,17 @@ def parse_ARA_file(ara, orientation):
                     ff.append(f * units.MHz)
                     theta, phi, gaindB, gain, phase = tline.split()
                     if(i == 0):
-                        logger.debug(f, theta, phi, gaindB, gain, phase)
+                        logger.debug("{} {} {} {} {} {}".format(f, theta, phi, gaindB, gain, phase))
                     phis.append(360. * units.deg)
                     thetas.append(float(theta) * units.deg)
                     gains.append(float(gain))
                     phases.append(float(phase) * units.deg)
                 tmp_phi0_lines = []
 
-        return zen_boresight, azi_boresight, zen_ori, azi_ori, np.array(ff), np.array(phis), np.array(thetas), np.array(gains), np.array(phases)
+        return np.array(ff), np.array(phis), np.array(thetas), np.array(gains), np.array(phases)
 
 
 def preprocess_ARA(path):
-    from scipy import constants
     c = constants.c * units.m / units.s
     Z_0 = 119.9169 * np.pi
     split = os.path.split(os.path.dirname(path))
@@ -380,6 +430,39 @@ def preprocess_ARA(path):
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
+        
+def preprocess_XFDTD(path):
+    split = os.path.split(os.path.dirname(path))
+    name = split[1]
+    path = split[0]
+    
+    import yaml
+    with open(os.path.join(path, name, '{}.yaml'.format(name))) as fin:
+        info = yaml.load(fin)
+        zen_boresight, azi_boresight = hp.cartesian_to_spherical(*info['boresight_direction'])
+        zen_ori, azi_ori = hp.cartesian_to_spherical(*info['orientation'])
+        n_index = info['n']
+    
+        c = constants.c * units.m / units.s
+        Z_0 = 119.9169 * np.pi
+        ff, phi, theta, gain, phase = parse_ARA_file(os.path.join(path, name, '{}.txt'.format(name)))
+        wavelength = c / ff
+        H = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain ** 0.5 * np.exp(1j * phase)
+        if(info['type'] == 'Vpol'):
+            H_theta = H
+            H_phi = H * 1e-6
+        elif(info['type'] == 'Hpol'):
+            H_theta = H * 1e-6
+            H_phi = H
+        else:
+            logger.error("antenna type {} not understood".format(info['type']))
+            raise NotImplementedError("antenna type {} not understood".format(info['type']))
+
+        output_filename = '{}.pkl'.format(os.path.join(path, name, name))
+        with open(output_filename, 'wb') as fout:
+            logger.info('saving output to {}'.format(output_filename))
+            pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
+
 
 class AntennaPatternBase():
 
