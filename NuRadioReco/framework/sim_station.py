@@ -5,7 +5,7 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
-    import logging
+import logging
 logger = logging.getLogger('SimStation')
 
 
