@@ -1,5 +1,10 @@
 {
 	"createLPDA_100MHz_InfAir.pkl": "380f3c36e46bfeacf337bf68923c42cb435712d6",
 	"createLPDA_100MHz_InfFirn.pkl": "75539869378cf145b0735159fb59e1cb86206b6f",
-	"bicone_v8_InfFirn.pkl": "46880b8026a0d7dfccf57c1078a87761a76581fe"
+	"bicone_v8_InfFirn.pkl": "46880b8026a0d7dfccf57c1078a87761a76581fe",
+	"XFDTD_Hpol_150mmHole_n1.78.pkl": "cfa1e1d1ddbd146ca3b89c580e137e22300551c4",
+	"XFDTD_Vpol_CrossFeed_150mmHole_n1.78.pkl": "5d87513779cf2cb5d3309a9bb89dbb163d656114",
+	"bicone_v8_inf_n1.4.pkl": "cd96e73494f08efbf54d74829e51e8699c1a64a4",
+	"bicone_v8_inf_n1.78.pkl": "ac943ccd7b6a47117f6e4c6d74c108402c510008",
+	"bicone_v8_InfAir.pkl": "5bff9f1ce43360d7c5370c0c4fb6a72616b6009d"
 }
