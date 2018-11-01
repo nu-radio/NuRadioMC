@@ -45,9 +45,8 @@ class channelResampler:
             In units 1/time provides the desired sampling rate of the data.
 
         """
-        channels = station.get_channels()
 
-        orig_binning = 1. / channels[0].get_sampling_rate()  # assume that all channels have the same sampling rate
+        orig_binning = 1. / station.get_channel(0).get_sampling_rate()  # assume that all channels have the same sampling rate
         target_binning = 1. / sampling_rate
         resampling_factor = fractions.Fraction(Decimal(orig_binning / target_binning)).limit_denominator(self.__max_upsampling_factor)
         if resampling_factor == self.__max_upsampling_factor:
@@ -55,7 +54,7 @@ class channelResampler:
         logger.debug("resampling channel trace by {}. Original binning is {:.3g} ns, target binning is {:.3g} ns".format(resampling_factor,
                                                                                                                          orig_binning / units.ns,
                                                                                                                          target_binning / units.ns))
-        for channel in channels:
+        for channel in station.iter_channels():
             trace = channel.get_trace()
             if(self.__debug):
                 ff = np.fft.rfftfreq(len(trace), orig_binning)

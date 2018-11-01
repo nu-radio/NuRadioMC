@@ -30,12 +30,12 @@ class channelLengthAdjuster:
 
     def run(self, evt, station, det):
         max_pos = []
-        for channel in station.get_channels():
+        for channel in station.iter_channels():
             max_pos.append(np.argmax(np.abs(channel.get_trace())))
 
         pulse_start = min(max_pos) - self.offset
         change_time = -1
-        for channel in station.get_channels():
+        for channel in station.iter_channels():
             trace = channel.get_trace()
             if self.number_of_samples > trace.shape[0]:
                 logger.warning("Input has fewer samples than desired output. Channels has only {} samples but {} samples are requested.".format(trace.shape[0], self.number_of_samples))
@@ -52,7 +52,7 @@ class channelLengthAdjuster:
 
             channel.set_trace(new_trace, channel.get_sampling_rate())
         if(change_time):
-            station.set_relative_station_time(station.get_relative_station_time() + (-1. * pulse_start / station.get_channels()[0].get_sampling_rate()))
+            station.set_relative_station_time(station.get_relative_station_time() + (-1. * pulse_start / station.get_channel(0).get_sampling_rate()))
 
     def end(self):
         pass

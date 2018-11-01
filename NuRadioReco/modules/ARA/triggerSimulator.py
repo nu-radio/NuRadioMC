@@ -196,11 +196,9 @@ class triggerSimulator:
 
         self.power_threshold = power_threshold
 
-        channels = station.get_channels()
-
         # No coincidence requirement yet
         trigger = {}
-        for channel in channels:
+        for channel in station.iter_channels():
             channel_id = channel.get_id()
             if channel_id not in triggered_channels:
                 continue
@@ -210,8 +208,8 @@ class triggerSimulator:
         trigger_time_sample = None
         # loop over the trace with a sliding window of "coinc_window"
         coinc_window_samples = np.int(np.round(coinc_window * channel.get_sampling_rate()))
-        trace_length = len(station.get_channels()[0].get_trace())
-        sampling_rate = station.get_channels()[0].get_sampling_rate()
+        trace_length = len(station.get_number_of_channels().get_trace())
+        sampling_rate = station.get_channel(0).get_sampling_rate()
 
         for i in range(0, trace_length - coinc_window_samples):
             istop = i + coinc_window_samples

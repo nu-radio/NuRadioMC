@@ -182,7 +182,7 @@ class channelGenericNoiseAdder:
 
         """
 
-        channels = station.get_channels()
+        channels = station.iter_channels()
         for channel in channels:
 
             trace = channel.get_trace()

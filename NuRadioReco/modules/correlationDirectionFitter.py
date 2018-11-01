@@ -122,12 +122,11 @@ class correlationDirectionFitter:
             likelihood = -1 * (np.abs(corr_02_fft[pos_02]) ** 2 / weight_02 + np.abs(corr_13[pos_13]) ** 2 / weight_13)
             return likelihood
 
-        channels = station.get_channels()
         station_id = station.get_id()
         positions = det.get_relative_positions(station_id)
         positions_pairs = [[positions[channel_pairs[0][0]], positions[channel_pairs[0][1]]],
                            [positions[channel_pairs[1][0]], positions[channel_pairs[1][1]]]]
-        sampling_rate = channels[0].get_sampling_rate()  # assume that channels have the same sampling rate
+        sampling_rate = station.get_channel(0).get_sampling_rate()  # assume that channels have the same sampling rate
 
         # determine automatically if one channel has an inverted waveform with respect to the other
         signs = [1., 1.]
@@ -141,15 +140,15 @@ class correlationDirectionFitter:
 
         if use_correlation:
             # Correlation
-            corr_02 = signal.correlate(channels[channel_pairs[0][0]].get_trace(),
-                                       signs[0] * channels[channel_pairs[0][1]].get_trace())
-            corr_13 = signal.correlate(channels[channel_pairs[1][0]].get_trace(),
-                                       signs[1] * channels[channel_pairs[1][1]].get_trace())
+            corr_02 = signal.correlate(station.get_channel(channel_pairs[0][0]).get_trace(),
+                                       signs[0] * station.get_channel(channel_pairs[0][1]).get_trace())
+            corr_13 = signal.correlate(station.get_channel(channel_pairs[1][0]).get_trace(),
+                                       signs[1] * station.get_channel(channel_pairs[1][1]).get_trace())
 
         else:
             # FFT convolution
-            corr_02_fft = fftpack.ifft(-1 * fftpack.fft(channels[channel_pairs[0][0]].get_trace()).conjugate() * fftpack.fft(channels[channel_pairs[0][1]].get_trace()))
-            corr_13_fft = fftpack.ifft(-1 * fftpack.fft(channels[channel_pairs[1][0]].get_trace()).conjugate() * fftpack.fft(channels[channel_pairs[1][1]].get_trace()))
+            corr_02_fft = fftpack.ifft(-1 * fftpack.fft(station.get_channel(channel_pairs[0][0]).get_trace()).conjugate() * fftpack.fft(station.get_channel(channel_pairs[0][1]).get_trace()))
+            corr_13_fft = fftpack.ifft(-1 * fftpack.fft(station.get_channel(channel_pairs[1][0]).get_trace()).conjugate() * fftpack.fft(station.get_channel(channel_pairs[1][1]).get_trace()))
 
         # Alternative fitters:
 #             ll = opt.minimize(ll_regular_station,(zenith_orig-np.deg2rad(15) ,azimuth_orig-np.deg2rad(25)),

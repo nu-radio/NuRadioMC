@@ -151,12 +151,12 @@ class triggerSimulator:
             logger.error("Impossible trigger configuration, high {0} low {1}.".format(threshold_high, threshold_low))
             raise NotImplementedError
 
-        sampling_rate = station.get_channels()[0].get_sampling_rate()
+        sampling_rate = station.get_channel(0).get_sampling_rate()
         if not set_not_triggered:
             triggerd_bins_channels = []
             max_signal = 0
     
-            for channel in station.get_channels():
+            for channel in station.iter_channels():
                 sampling_rate = channel.get_sampling_rate()
                 dt = 1. / sampling_rate
                 channel_id = channel.get_id()
@@ -168,7 +168,7 @@ class triggerSimulator:
                 triggerd_bins_channels.append(tmp1)
 
             has_triggered, trigger_time_sample, triggered_time = get_majority_logic(
-                triggerd_bins_channels, len(station.get_channels()[0].get_trace()), 
+                triggerd_bins_channels, len(station.get_channel(0).get_trace()), 
                 number_concidences, coinc_window, dt)
             
 #             station.set_parameter(stnp.channels_max_amplitude, max_signal)
@@ -176,7 +176,7 @@ class triggerSimulator:
 #             trigger_time_sample = None
 #             # loop over the trace with a sliding window of "coinc_window"
 #             coinc_window_samples = np.int(np.round(coinc_window * sampling_rate))
-#             trace_length = len(station.get_channels()[0].get_trace())
+#             trace_length = len(station.get_channel(0).get_trace())
 #             for i in range(0, trace_length - coinc_window_samples):
 #                 istop = i + coinc_window_samples
 #                 coinc = 0
@@ -226,7 +226,7 @@ class triggerSimulator:
 
         # now cut trace to the correct number of samples
         # assuming that all channels have the same trace length
-        for channel in station.get_channels():
+        for channel in station.iter_channels():
             trace = channel.get_trace()
             trace_length = len(trace)
             number_of_samples = det.get_number_of_samples(station.get_id(), channel.get_id())

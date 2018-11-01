@@ -82,7 +82,7 @@ class noiseImporter:
         noise_station = noise_event.get_stations()[0]
         logger.info("choosing noise event {} ({}) randomly".format(i_noise, noise_station.get_station_time()))
 
-        for channel in station.get_channels():
+        for channel in station.iter_channels():
             channel_id = channel.get_id()
 
             trace = channel.get_trace()

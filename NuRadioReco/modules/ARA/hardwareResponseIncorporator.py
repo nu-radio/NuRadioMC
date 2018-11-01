@@ -29,7 +29,7 @@ class hardwareResponseIncorporator:
         """
         t = time.time()
         station_id = station.get_id()
-        channels = station.get_channels()
+        channels = station.iter_channels()
         frequencies = channels[0].get_frequencies()  #the sampling rate is assumed to be the same for all channels
         # very basic, only one system response for the whole ARA system
         system_response = analog_components.get_system_response(frequencies)

@@ -137,8 +137,7 @@ class channelSignalReconstructor:
 
         t = time.time()
         max_amplitude_station = 0
-        channels = station.get_channels()
-        for channel in channels:
+        for channel in station.iter_channels():
             times = channel.get_times()
             trace = channel.get_trace()
             h = np.abs(signal.hilbert(trace))

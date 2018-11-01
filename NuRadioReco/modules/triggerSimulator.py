@@ -42,7 +42,7 @@ class triggerSimulator:
         coincidences = 0
         max_signal = 0
 
-        for channel in station.get_channels():
+        for channel in station.iter_channels():
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
                 logger.debug("skipping channel {}".format(channel_id))
