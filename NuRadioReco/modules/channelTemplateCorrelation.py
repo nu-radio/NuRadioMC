@@ -73,10 +73,9 @@ class channelTemplateCorrelation:
             ref_str = 'cr'
             logger.info("Using average of correlation over many templates")
 
-        channels = station.get_channels()
         xcorrs = []
 
-        for iCh, channel in enumerate(channels):
+        for iCh, channel in enumerate(station.iter_channels()):
             channel_id = channel.get_id()
             xcorrs_ch = []
             xcorrpos_ch = []
@@ -155,7 +154,7 @@ class channelTemplateCorrelation:
         xcorrelations_station = {}
         xcorrelations_station['number_of_templates'] = n_templates
         xcorrelations_station['{}_max_xcorr'.format(ref_str)] = np.abs(xcorrs).max()
-        ref_mask = np.array([channel.get_id() in channels_to_use for channel in channels])
+        ref_mask = np.array([channel.get_id() in channels_to_use for channel in station.iter_channels()])
         xcorrelations_station['{0}_max_xcorr_{0}channels'.format(ref_str)] = np.abs(xcorrs[ref_mask]).max()
         xcorrelations_station['{0}_avg_xcorr_{0}channels'.format(ref_str)] = np.abs(xcorrs[ref_mask]).mean()
 
@@ -165,7 +164,7 @@ class channelTemplateCorrelation:
         for pair in parallel_channels:
             mask = np.in1d(pair, channels_to_use)  # we use only the specified channels to calculate the pair averages
             if(np.sum(mask)):
-                ref_mask = np.array([channel.get_id() in pair[mask] for channel in channels])
+                ref_mask = np.array([channel.get_id() in pair[mask] for channel in station.iter_channels()])
                 tmp = np.abs(xcorrs[ref_mask]).mean()
                 logger.debug("calculating average xcorr for parallel channels {} = {:.2f}".format(pair[mask], tmp))
                 max_xcorr_parallel = max(max_xcorr_parallel, tmp)

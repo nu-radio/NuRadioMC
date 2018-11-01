@@ -48,7 +48,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     logger.debug("adding relative station time = {:.0f}ns".format((t_cables.min() + t_geos.max()) / units.ns))
     logger.debug("delta t is {:.2f}".format(delta_t / units.ns))
 #             print(delta_t - (time_shifts - tmin))
-    trace_length = station.get_channels()[0].get_times()[-1] - station.get_channels()[0].get_times()[0]
+    trace_length = station.get_channel(0).get_times()[-1] - station.get_channel(0).get_times()[0]
     debug_cut = 0
     if(debug_cut):
         fig, ax = plt.subplots(len(use_channels), 1)
@@ -176,7 +176,6 @@ class voltageToEfieldConverter:
             azimuth = station[stnp.azimuth]
             sim_present = False
 
-        channels = station.get_channels()
 
         efield_antenna_factor, V = get_array_of_channels(station, use_channels, det, zenith, azimuth, self.antenna_provider)
         n_frequencies = len(V[0])
@@ -227,7 +226,7 @@ class voltageToEfieldConverter:
 #             if (f < 500 * units.MHz):
 #                 print "%.0f MHz" % (f / units.MHz), solution
 
-        station.set_frequency_spectrum(efield3_f, channels[0].get_sampling_rate())
+        station.set_frequency_spectrum(efield3_f, station.get_channel(0).get_sampling_rate())
 
         if debug:
             fig, (ax2, ax2f) = plt.subplots(2, 1, figsize=(10, 8))

@@ -20,8 +20,7 @@ class channelTimeWindow:
         """
 
 
-        channels = station.get_channels()
-        for channel in channels:
+        for channel in station.iter_channels():
             times = channel.get_times()
             trace = channel.get_trace()
             trace[np.where(times < window[0])] = 0.

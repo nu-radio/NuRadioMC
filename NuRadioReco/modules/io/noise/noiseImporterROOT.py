@@ -33,7 +33,7 @@ class noiseImporter:
 
     def run(self, evt, station, det):
         # loop over stations in simulation
-        for channel in station.get_channels():
+        for channel in station.iter_channels():
             channel_id = channel.get_id()
 
             # pick a noise waveform

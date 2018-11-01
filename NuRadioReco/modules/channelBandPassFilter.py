@@ -34,8 +34,7 @@ class channelBandPassFilter:
             for a butterworth wilter: specifies the order of the filter
 
         """
-        channels = station.get_channels()
-        for channel in channels:
+        for channel in station.iter_channels():
             frequencies = channel.get_frequencies()
             trace_fft = channel.get_frequency_spectrum()
 

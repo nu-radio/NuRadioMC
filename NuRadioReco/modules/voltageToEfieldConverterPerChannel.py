@@ -70,13 +70,12 @@ class voltageToEfieldConverterPerChannel:
             azimuth = station[stnp.azimuth]
             sim_present = False
 
-        channels = station.get_channels()
-        efield_antenna_factor, V = get_array_of_channels(station, range(len(channels)),
+        efield_antenna_factor, V = get_array_of_channels(station, range(station.get_number_of_channels()),
                                                                        det, zenith, azimuth, self.antenna_provider)
 
-        sampling_rate = channels[0].get_sampling_rate()
+        sampling_rate = station.get_channel(0).get_sampling_rate()
 
-        for iCh, channel in enumerate(channels):
+        for iCh, channel in enumerate(station.iter_channels()):
             mask = np.abs(efield_antenna_factor[iCh][pol]) != 0
             efield_spectrum = np.zeros_like(V[iCh])
             efield_spectrum[mask] = V[iCh][mask] / efield_antenna_factor[iCh][pol][mask]

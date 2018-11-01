@@ -27,7 +27,7 @@ class channelStopFilter:
         append: time interval to append
             the time span that is filled with zeros and appended to the trace
         """
-        for channel in station.get_channels():
+        for channel in station.iter_channels():
             trace = channel.get_trace()
             sampling_rate = channel.get_sampling_rate()
             window = signal.tukey(len(trace), filter_size)

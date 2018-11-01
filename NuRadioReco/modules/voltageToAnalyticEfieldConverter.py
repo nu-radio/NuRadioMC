@@ -311,11 +311,10 @@ class voltageToAnalyticEfieldConverter:
             azimuth = station[stnp.azimuth]
             sim_present = False
 
-        channels = station.get_channels()
         efield_antenna_factor, V, V_timedomain = get_array_of_channels(station, use_channels,
                                                                        det, zenith, azimuth, self.antenna_provider,
                                                                        time_domain=True)
-        sampling_rate = channels[0].get_sampling_rate()
+        sampling_rate = station.get_channel(0).get_sampling_rate()
         n_samples_time = V_timedomain.shape[1]
 
         debug_obj = 0

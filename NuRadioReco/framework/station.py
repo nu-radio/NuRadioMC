@@ -42,6 +42,9 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def get_channel(self, channel_id):
         return self.__channels[channel_id]
+        
+    def get_number_of_channels(self):
+        return len(self.__channels)
 
     def add_channel(self, channel):
         self.__channels[channel.get_id()] = channel
@@ -83,7 +86,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
     def serialize(self, mode):
         base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(self, mode)
         channels_pkl = []
-        for channel in self.get_channels():
+        for channel in self.iter_channels():
             channels_pkl.append(channel.serialize(mode))
         sim_station_pkl = None
         if(self.has_sim_station()):

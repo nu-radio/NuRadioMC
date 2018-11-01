@@ -37,11 +37,11 @@ class triggerSimulator:
             channels ids that are triggered on
         """
 
-        sampling_rate = station.get_channels()[0].get_sampling_rate()
+        sampling_rate = station.get_channel(0).get_sampling_rate()
 
         phased_trace = None
 
-        for channel in station.get_channels():  # loop over all channels (i.e. antennas) of the station
+        for channel in station.iter_channels():  # loop over all channels (i.e. antennas) of the station
             channel_id = channel.get_id()
             if channel_id not in triggered_channels:  # skip all channels that do not participate in the trigger decision
                 continue
