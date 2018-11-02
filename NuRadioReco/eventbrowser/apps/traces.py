@@ -260,7 +260,7 @@ def update_time_trace(trigger, evt_counter, filename, juser_id, jstation_id):
     station = evt.get_stations()[0]
     traces = []
     fig = tools.make_subplots(rows=1, cols=1)
-    for i, channel in enumerate(station.get_channels()):
+    for i, channel in enumerate(station.iter_channels()):
         fig.append_trace(go.Scatter(
                 x=channel.get_times() / units.ns,
                 y=channel.get_trace() / units.mV,
@@ -300,7 +300,7 @@ def update_channel_spectrum(trigger, evt_counter, filename, juser_id, jstation_i
     fig = tools.make_subplots(rows=1, cols=1)
     maxL1 = 0
     maxY = 0
-    for i, channel in enumerate(station.get_channels()):
+    for i, channel in enumerate(station.iter_channels()):
         tt = channel.get_times()
         dt = tt[1] - tt[0]
         trace = channel.get_trace()
@@ -352,15 +352,15 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, ju
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_stations()[0]
     traces = []
-    fig = tools.make_subplots(rows=len(station.get_channels()), cols=2,
+    fig = tools.make_subplots(rows=station.get_number_of_channels(), cols=2,
                               shared_xaxes=True, shared_yaxes=False,
                               vertical_spacing=0.01)
     ymax = 0
     if 'trace' in dropdown_traces:
-        for i, channel in enumerate(station.get_channels()):
+        for i, channel in enumerate(station.iter_channels()):
             trace = channel.get_trace() / units.mV
             ymax = max(ymax, np.max(np.abs(trace)))
-        for i, channel in enumerate(station.get_channels()):
+        for i, channel in enumerate(station.iter_channels()):
             tt = channel.get_times() / units.ns
             trace = channel.get_trace() / units.mV
             fig.append_trace(go.Scatter(
@@ -386,7 +386,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, ju
                         ),
                     i + 1, 1)
     if 'envelope' in dropdown_traces:
-        for i, channel in enumerate(station.get_channels()):
+        for i, channel in enumerate(station.iter_channels()):
             trace = channel.get_trace() / units.mV
             from scipy import signal
             yy = np.abs(signal.hilbert(trace))
@@ -409,7 +409,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, ju
         ref_template = template_provider.get_cr_ref_template(station_id)
         if(station.has_parameter('number_of_templates')):
             ref_templates = template_provider.get_set_of_cr_templates(station_id, n=station['number_of_templates'])
-        for i, channel in enumerate(station.get_channels()):
+        for i, channel in enumerate(station.iter_channels()):
             if(channel.has_parameter('cr_ref_xcorr_template')):
                 key = channel['cr_ref_xcorr_template']
                 logger.info("using template {}".format(key))
@@ -462,7 +462,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, ju
             i + 1, 1)
     if 'nutemplate' in dropdown_traces:
         ref_template = template_provider.get_nu_ref_template(station_id)
-        for i, channel in enumerate(station.get_channels()):
+        for i, channel in enumerate(station.iter_channels()):
             times = channel.get_times()
             trace = channel.get_trace()
             xcorr = channel['nu_ref_xcorr']
@@ -506,7 +506,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, ju
             i + 1, 1)
     fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['yaxis1'].update(title='voltage [mV]')
-    for i, channel in enumerate(station.get_channels()):
+    for i, channel in enumerate(station.iter_channels()):
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(range=[-ymax, ymax])
 
         tt = channel.get_times()
@@ -562,8 +562,8 @@ def update_time_traces2(evt_counter, filename, dropdown_traces, juser_id, jstati
                               shared_xaxes=True, shared_yaxes=True,
                               vertical_spacing=0.05)
     if 'trace' in dropdown_traces:
-        for i, iCh in enumerate(range(4, min([8, len(station.get_channels())]))):
-            channel = station.get_channels()[iCh]
+        for i, iCh in enumerate(range(4, min([8, station.get_number_of_channels()]))):
+            channel = station.get_channel(iCh)
             fig.append_trace(go.Scatter(
                     x=channel.get_times() / units.ns,
                     y=channel.get_trace() / units.mV,
@@ -579,7 +579,7 @@ def update_time_traces2(evt_counter, filename, dropdown_traces, juser_id, jstati
     if 'crtemplate' in dropdown_traces:
         ref_templates = template_provider.get_cr_ref_template(station_id)
         for i, iCh in enumerate(range(4, 8)):
-            channel = station.get_channels()[iCh]
+            channel = station.get_channel(iCh)
             times = channel.get_times()
             trace = channel.get_trace()
             xcorr = channel['cr_ref_xcorr']

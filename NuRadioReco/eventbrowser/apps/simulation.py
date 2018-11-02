@@ -155,7 +155,7 @@ def update_sim_trace_plot(i_event, filename, event_type, signal_types, juser_id,
     fig = tools.make_subplots(rows=1, cols=1)
     try:
         if event_type == 'nu':
-            for i_channel, channel in enumerate(sim_station.get_channels()):
+            for i_channel, channel in enumerate(sim_station.iter_channels()):
                 if 'direct' in signal_types:
                     for polarization in range(0,3):
                         fig.append_trace(
@@ -241,7 +241,7 @@ def update_sim_spectrum_plot(i_event, filename, event_type, signal_types, juser_
     fig = tools.make_subplots(rows=1, cols=1)
     try:
         if event_type == 'nu':
-            for i_channel, channel in enumerate(sim_station.get_channels()):
+            for i_channel, channel in enumerate(sim_station.iter_channels()):
                 if 'direct' in signal_types:
                     for polarization in range(0,3):
                         fig.append_trace(
