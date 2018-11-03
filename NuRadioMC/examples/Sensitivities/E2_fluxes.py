@@ -4,20 +4,20 @@ from NuRadioReco.utilities import units
 from NuRadioMC.utilities import fluxes
 
 # What to plot
-save_figure_as = "Limits_work_in_progress.pdf"
+save_figure_as = "Work_in_progress.pdf"
 # ----------------------------------------
 # Our simulations
-show_strawman = False
-N_strawman = [300]
+show_strawman = True
+N_strawman = [270]
 
 show_strawman_pa = True
-N_strawman_pa = [100,1000]
+N_strawman_pa = [270]
 
 show_punch = True
-N_punch = [50,500]
+N_punch = [50]
 
-show_50_punch = False
-N_50_punch = [50]
+show_50_punch = True
+N_50_punch = [80]
 
 
 livetime = 3 * units.year
@@ -39,7 +39,7 @@ show_neutrino_worst_case = True
 # Other planned experiments
 show_grand_10k = True
 show_grand_200k = True
-show_radar = False
+show_radar = True
 
 #--------------------------------------
 show_veff = False
@@ -66,7 +66,6 @@ strawman_veff_pa[:,0] *= units.eV
 strawman_veff_pa[:,1] *= units.km**3 * units.sr
 
 strawman_pa_label = 'Strawman + PA (15m)'
-
 # NuRadioMC Simulations 2018-10-30
 # shallow (no PA)
 
@@ -95,6 +94,7 @@ punch_veff = np.array((
 punch_veff[:,0] *= units.eV
 punch_veff[:,1] *= units.km**3 * units.sr
 punch_label = 'Punch 90m PA'
+
 
 # NuRadioMC Simulations 2018-10-30
 # deep 50m PA (+ 3x > 3$\\sigma$)
@@ -158,7 +158,8 @@ Radar = np.array(([
 (1.875e+01, 5.562e-08, 8.253e-06),
 (1.925e+01, 1.072e-07, 1.849e-05)]))
 
-Radar[:,0] *= 10**Radar[:,0]*units.eV
+Radar[:,0] = 10**Radar[:,0]*units.eV
+
 Radar[:,1] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
 Radar[:,2] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
 
@@ -318,7 +319,7 @@ vanVliet_max = np.maximum(vanVliet_max_1[1,:],vanVliet_max_2[1,:])
 
 prot10, = ax.plot(vanVliet_reas[0,:],vanVliet_reas[1,:],label=r'10% protons in UHECRs, van Vliet et al.',linestyle=':',color='darkmagenta')
 
-prot = ax.fill_between(vanVliet_max_1[0,:],vanVliet_max,vanVliet_reas[1,:],color='thistle',alpha=0.5,label=r'not excluded from UHECRs')
+prot = ax.fill_between(vanVliet_max_1[0,:],vanVliet_max,vanVliet_reas[1,:]/10,color='thistle',alpha=0.5,label=r'not excluded from UHECRs')
 
 first_legend = plt.legend(handles=[best_fit,prot,prot10], loc=4)
 
@@ -339,7 +340,7 @@ if show_grand_200k:
 if show_radar:
     ax.fill_between(Radar[:,0]/plotUnitsEnergy,Radar[:,1]/plotUnitsFlux,Radar[:,2]/plotUnitsFlux, facecolor='None',hatch='x',edgecolor='0.8')
     ax.annotate('Radar',
-            xy=(3e10, 8e-8), xycoords='data',
+            xy=(1e9, 4.5e-8), xycoords='data',
             horizontalalignment='left',color='0.7' ,rotation=45)
 
 if show_ice_cube_EHE_limit:
