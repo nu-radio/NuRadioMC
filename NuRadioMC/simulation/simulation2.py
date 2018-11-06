@@ -419,7 +419,7 @@ class simulation():
     def _calculate_signal_properties(self):
         if(self._station.has_triggered()):
             self._channelSignalReconstructor.run(self._evt, self._station, self._det)
-            for channel in self._station.get_channels():
+            for channel in self._station.iter_channels():
                 self._mout['maximum_amplitudes'][self._iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
                 self._mout['maximum_amplitudes_envelope'][self._iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
 
