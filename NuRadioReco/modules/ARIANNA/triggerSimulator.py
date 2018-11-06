@@ -106,6 +106,7 @@ class triggerSimulator:
     def __init__(self):
         self.__t = 0
         self.begin()
+        self.warning("the usage of this module is deprecated, plase use 'modules/trigger/highlowThreshold.py instead'")
 
     def begin(self, samples_before_trigger=50):
         self.__samples_before_trigger = samples_before_trigger
