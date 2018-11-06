@@ -147,14 +147,14 @@ class triggerSimulator:
             logger.error("Impossible trigger configuration, high {0} low {1}.".format(threshold_high, threshold_low))
             raise NotImplementedError
 
-        sampling_rate = station.get_channels()[0].get_sampling_rate()
+        sampling_rate = station.get_channel(0).get_sampling_rate()
         if not set_not_triggered:
             max_signal = 0
 
             triggerd_bins_channels = []
             dt = 1. / sampling_rate
 
-            for channel in station.get_channels():
+            for channel in station.iter_channels():
                 channel_id = channel.get_id()
                 if triggered_channels is not None and channel_id not in triggered_channels:
                     continue
@@ -167,7 +167,7 @@ class triggerSimulator:
             # set maximum signal aplitude
             max_signal = 0
             if(has_triggered):
-                for channel in station.get_channels():
+                for channel in station.iter_channels():
                     max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
                 station.set_parameter(stnp.channels_max_amplitude, max_signal)
         else:
@@ -196,7 +196,7 @@ class triggerSimulator:
 
         # now cut trace to the correct number of samples
         # assuming that all channels have the same trace length
-        for channel in station.get_channels():
+        for channel in station.iter_channels():
             trace = channel.get_trace()
             trace_length = len(trace)
             number_of_samples = det.get_number_of_samples(station.get_id(), channel.get_id())
