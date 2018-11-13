@@ -358,14 +358,19 @@ def add_click_info(json_object, event_number_array, times_array):
         event_number_array.append(object['event_i'])
         times_array.append(object['time'])
 
+        #finds out which one of the plots was clicked last (i.e. which one triggered the event update)
 @app.callback(Output('event-click-coordinator', 'children'),
             [Input('cr-polarization-zenith-point-click', 'children'),
-            Input('cr-skyplot-point-click', 'children')])
-def coordinate_event_click(cr_polarization_zenith_click, cr_skyplot_click):
+            Input('cr-skyplot-point-click', 'children'),
+            Input('cr-xcorrelation-point-click', 'children'),
+            Input('cr-xcorrelation-amplitude-point-click', 'children')])
+def coordinate_event_click(cr_polarization_zenith_click, cr_skyplot_click, cr_xcorrelation_click, cr_xcorrelation_amplitude_click):
     event_numbers = []
     times = []
     add_click_info(cr_polarization_zenith_click, event_numbers, times)
     add_click_info(cr_skyplot_click, event_numbers, times)
+    add_click_info(cr_xcorrelation_click, event_numbers, times)
+    add_click_info(cr_xcorrelation_amplitude_click, event_numbers, times)
     if len(times) == 0:
         return json.dumps(None)
     i = np.argmax(times)
