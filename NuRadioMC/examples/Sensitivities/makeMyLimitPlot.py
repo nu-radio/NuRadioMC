@@ -10,6 +10,21 @@ import json
 with open("NuRadioMC_20181113_Veff.json", 'r') as fin:
     data = json.load(fin)
     
+    # producen nice outreach plot
+    fig, ax = limit.get_E2_limit_figure()
+    labels = []
+    labels = limit.add_limit(ax, labels,
+                             data['shallow + PA@15m@2s']['energies'],
+                             data['shallow + PA@15m@2s']['Veff'], 200, 'GIANT (200 stations)', fmt='-C1')
+    labels = limit.add_limit(ax, labels,
+                             data['shallow + PA@15m@2s']['energies'],
+                             data['shallow + PA@15m@2s']['Veff'], 2000, 'GIANT (2000 stations)', fmt='-C3')
+    plt.legend(handles=labels, loc=2)
+    ax.set_title("raw triggered volumes")
+    fig.tight_layout()
+    fig.savefig("limits_outreach.pdf")
+    
+    
     fig, ax = limit.get_E2_limit_figure()
     labels = []
     labels = limit.add_limit(ax, labels,
