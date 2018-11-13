@@ -170,11 +170,10 @@ class ARIANNAio(object):
     def get_event(self, event_id):
         if(not self.__file_scanned):
             self.__scan_file()
-        i = np.argwhere((self.__event_ids == event_id))
-        if(len(i) == 0):
-            logger.debug("event {} not found in file".format(event_id))
-            return None
-        return self.get_event_i(np.squeeze(i))
+        for i in range(self.get_n_events()):
+            if self.__event_ids[i][0] == event_id[0] and self.__event_ids[i][1] == event_id[1]:
+                return self.get_event_i(i)
+        logger.error('event number {} not found in file'.format(event_id))
 
     def get_events(self):
         iF = 0
