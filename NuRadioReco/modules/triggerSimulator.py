@@ -15,7 +15,7 @@ class triggerSimulator:
     def __init__(self):
         self.__t = 0
         self.begin()
-        self.warning("the usage of this module is deprecated, plase use 'modules/trigger/simpleThreshold.py instead'")
+        logger.warning("the usage of this module is deprecated, plase use 'modules/trigger/simpleThreshold.py instead'")
 
     def begin(self, debug=False):
         self.__debug = debug
