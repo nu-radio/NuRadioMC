@@ -59,7 +59,7 @@ Radar = np.array(([
     (1.875e+01, 5.562e-08, 8.253e-06),
     (1.925e+01, 1.072e-07, 1.849e-05)]))
 
-Radar[:, 0] *= 10**Radar[:, 0] * units.eV
+Radar[:, 0] = 10**Radar[:, 0] * units.eV
 Radar[:, 1] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
 Radar[:, 2] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
 
@@ -223,8 +223,7 @@ def get_E2_limit_figure(show_ice_cube_EHE_limit=True,
     prot10, = ax.plot(vanVliet_reas[0, :], vanVliet_reas[1, :],
                       label=r'10% protons in UHECRs, van Vliet et al.', linestyle=':', color='darkmagenta')
 
-    prot = ax.fill_between(vanVliet_max_1[0, :], vanVliet_max, vanVliet_reas[1, :],
-                           color='thistle', alpha=0.5, label=r'not excluded from UHECRs')
+    prot = ax.fill_between(vanVliet_max_1[0,:],vanVliet_max,vanVliet_reas[1,:]/10,color='thistle',alpha=0.5,label=r'not excluded from UHECRs')
 
     first_legend = plt.legend(handles=[best_fit, prot, prot10], loc=4)
 
@@ -246,7 +245,7 @@ def get_E2_limit_figure(show_ice_cube_EHE_limit=True,
         ax.fill_between(Radar[:, 0] / plotUnitsEnergy, Radar[:, 1] / plotUnitsFlux,
                         Radar[:, 2] / plotUnitsFlux, facecolor='None', hatch='x', edgecolor='0.8')
         ax.annotate('Radar',
-                    xy=(3e10, 8e-8), xycoords='data',
+                    xy=(1e9, 4.5e-8), xycoords='data',
                     horizontalalignment='left', color='0.7', rotation=45)
 
     if show_ice_cube_EHE_limit:
