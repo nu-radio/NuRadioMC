@@ -9,3 +9,11 @@
 .custom-table-td-last {
   text-align: right;
 }
+.event-info-table {
+  padding: 10px;
+  margin-right: 2px;
+  height: 100%;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  border-color: #ddd;
+}
