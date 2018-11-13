@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function  # , unicode_literals
 from dash.dependencies import Input, Output, State
+import time
 import dash
 import radiotools.helper as hp
 import dash_html_components as html
@@ -59,14 +60,22 @@ layout = html.Div([
                     html.Div([
                         html.Div([
                             dcc.Graph(id='cr-polarization-zenith')
-                        ], style={'flex': '1'})
+                        ], style={'flex': '1'}),
+                        html.Div(
+                            children=json.dumps(None),
+                            id='cr-polarization-zenith-point-click',
+                            style={'display': 'none'}
+                        )
                     ], style={'display': 'flex'})
                 ], className='panel-body')
             ], className='panel panel-default', style={'flex': '1'}),
             html.Div([
                 html.Div('Direction Reconstruction', className='panel-heading', style={'display': 'flex'}),
                 html.Div([
-                    dcc.Graph(id='cr-skyplot')
+                    dcc.Graph(id='cr-skyplot'),
+                    html.Div(children=json.dumps(None),
+                        id='cr-skyplot-point-click',
+                        style={'display': 'none'})
                 ], className='panel-body')
             ], className='panel panel-default', style={'flex': '1'})
         ], style={'display': 'flex'})
@@ -191,6 +200,7 @@ def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, jstation_id, 
         y=np.abs(pol - pol_exp) / units.deg,
         text=[str(x) for x in ariio.get_event_ids()],
         mode='markers',
+        customdata=[x for x in range(ariio.get_n_events())],
         opacity=1
     ))
 
@@ -210,6 +220,14 @@ def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, jstation_id, 
             hovermode='closest'
         )
     }
+@app.callback(Output('cr-polarization-zenith-point-click', 'children'),
+                [Input('cr-polarization-zenith', 'clickData')])
+def handle_cr_polarization_zenith_point_click(click_data):
+    event_i = click_data['points'][0]['customdata']
+    return json.dumps({
+        'event_i': event_i,
+        'time': time.time()
+    })
     
 
 @app.callback(Output('cr-skyplot', 'figure'),
@@ -240,6 +258,7 @@ def plot_skyplot(filename, trigger, jcurrent_selection, btn, jstation_id, juser_
             mode='markers',
             name='cosmic ray events',
             opacity=1,
+            customdata=[x for x in range(ariio.get_n_events())],
             marker=dict(
                 color='blue'
             )
@@ -257,4 +276,13 @@ def plot_skyplot(filename, trigger, jcurrent_selection, btn, jstation_id, juser_
             height=500
         )
     }
+
+@app.callback(Output('cr-skyplot-point-click', 'children'),
+                [Input('cr-skyplot', 'clickData')])
+def handle_cr_skyplot_point_click(click_data):
+    event_i = click_data['points'][0]['customdata']
+    return json.dumps({
+        'event_i': event_i,
+        'time': time.time()
+    })
 
