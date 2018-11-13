@@ -392,7 +392,7 @@ def get_sim_station_property_options(i_event, filename, juser_id, jstation_id):
     station_id = json.loads(jstation_id)
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(i_event)
-    station = evt.get_stations()[0]
+    station = evt.get_stations()[0].get_sim_station()
     options = []
     for parameter in stnp:
         if station.has_parameter(parameter):
@@ -411,7 +411,7 @@ def get_sim_station_property_table(i_event, filename, properties, juser_id, jsta
     station_id = json.loads(jstation_id)
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(i_event)
-    station = evt.get_stations()[0]
+    station = evt.get_stations()[0].get_sim_station()
     reply = []
     for property in properties:
         reply.append(
