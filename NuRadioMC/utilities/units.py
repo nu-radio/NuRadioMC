@@ -13,7 +13,7 @@ instead of:
     ``s = 1.5   # don't forget this is in km!``
 
 The conversion factors defined in this file
-convert your data into NuRadioMC base units, so that
+convert your data into Auger base units, so that
 all dimensional quantities in the code are in a
 single system of units!  You can also
 use the conversions defined here to, for example,
@@ -90,6 +90,8 @@ nanometer = nano * meter
 angstrom = 1e-10 * meter
 fermi = femto * meter
 
+feet = 0.3048 * meter
+
 barn = 1e-28 * meter2
 millibarn = milli * barn
 microbarn = micro * barn
@@ -137,6 +139,7 @@ femtosecond = femto * second
 minute = 60 * second
 hour = 60 * minute
 day = 24 * hour
+year = 356 * day
 
 hertz = 1 / second
 kilohertz = kilo * hertz
@@ -173,9 +176,9 @@ zettaelectronvolt = zetta * electronvolt
 joule = electronvolt / eSI  # joule = 6.24150 e+12 * MeV
 
 # symbols
-MeV = megaelectronvolt
 eV = electronvolt
 keV = kiloelectronvolt
+MeV = megaelectronvolt
 GeV = gigaelectronvolt
 TeV = teraelectronvolt
 PeV = petaelectronvolt
@@ -199,8 +202,6 @@ watt = joule / second  # watt = 6.24150 e+3 * MeV/ns
 newton = joule / meter  # newton = 6.24150 e+9 * MeV/mm
 
 # Pressure [E][L^-3]
-# hep_pascal = newton/m2    # pascal = 6.24150 e+3 * MeV/mm3
-# pascal     = hep_pascal   # pascal = 6.24150 e+3 * MeV/mm3
 pascal = newton / m2  # pascal = 6.24150 e+3 * MeV/mm3
 bar = 100000 * pascal  # bar    = 6.24150 e+8 * MeV/mm3
 atmosphere = 101325 * pascal  # atm    = 6.32420 e+8 * MeV/mm3
