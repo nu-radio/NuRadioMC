@@ -50,61 +50,78 @@ app.layout = html.Div([
              children=json.dumps(None)),
     html.Div(id='event-ids',  style={'display': 'none'},
              children=json.dumps([])),
-
     html.Div([
         html.Div([
-        html.Div('File location:', className='input-group-text')
-        ], className='input-group-addon'),
-        dcc.Input(id='datafolder', placeholder='filename', type='text', value=data_folder, className='form-control')
-        ], className='input-group'),
-    html.Div([
-        dcc.Dropdown(id='filename',
-                     options=[{'label': l, 'value': l} for l in sorted(glob.glob(data_folder + '/*.ar*'))],
-                     className='custom-dropdown'),
-         html.Div([
-            html.Button('open file', id='btn-open-file', className='btn btn-default')
-            ], className='input-group-btn'),
-    ], className='input-group'),
-    html.Div([
-        html.Div([
-                html.Button([
-                        html.Div(className='fa fa-arrow-left')
+            html.Div([
+                html.Div([
+                html.Div('File location:', className='input-group-text')
+                ], className='input-group-addon'),
+                dcc.Input(id='datafolder', placeholder='filename', type='text', value=data_folder, className='form-control')
+                ], className='input-group'),
+            html.Div([
+                dcc.Dropdown(id='filename',
+                             options=[{'label': l, 'value': l} for l in sorted(glob.glob(data_folder + '/*.ar*'))],
+                             className='custom-dropdown'),
+                 html.Div([
+                    html.Button('open file', id='btn-open-file', className='btn btn-default')
+                    ], className='input-group-btn'),
+            ], className='input-group'),
+            html.Div([
+                html.Div([
+                        html.Button([
+                                html.Div(className='fa fa-arrow-left')
+                            ],
+                            id='btn-previous-event',
+                            className='btn btn-primary',
+                            n_clicks_timestamp = 0
+                        ),
+                        html.Button(
+                            id = 'event-number-display',
+                            children = '''''',
+                            className='btn btn-primary'
+                        ),
+                        html.Button([
+                                html.Div(className='fa fa-arrow-right')
+                            ],
+                            id='btn-next-event',
+                            className='btn btn-primary',
+                            n_clicks_timestamp=0
+                            )
                     ],
-                    id='btn-previous-event',
-                    className='btn btn-primary',
-                    n_clicks_timestamp = 0
-                ),
-                html.Button(
-                    id = 'event-number-display',
-                    children = '''''',
-                    className='btn btn-primary'
-                ),
-                html.Button([
-                        html.Div(className='fa fa-arrow-right')
-                    ],
-                    id='btn-next-event',
-                    className='btn btn-primary',
-                    n_clicks_timestamp=0
-                    )
+                    className='btn-group'
+                    ),
+                html.Div([
+                     dcc.Slider(
+                        id='event-counter-slider',
+                        step=1,
+                        value=0,
+                        marks={}
+                    ),
+                ],
+                style={
+                'margin': '10px 10px 20px 10px',
+                'flex': '1'}
+                )
             ],
-            className='btn-group'
-            ),
+            style={
+            'display': 'flex'
+            })
+        ], style={'flex': '7'}),
         html.Div([
-             dcc.Slider(
-                id='event-counter-slider',
-                step=1,
-                value=0,
-                marks={}
-            ),
-        ],
-        style={
-        'margin': '10px 10px 20px 10px',
-        'flex': '1'}
-        )
-    ],
-    style={
-    'display': 'flex'
-    }),
+            html.Div([
+                html.Div('Run:', className='custom-table-td'),
+                html.Div('', className='custom-table-td-last', id='event-info-run')
+            ], className='custom-table-row'),
+            html.Div([
+                html.Div('Event:', className='custom-table-td'),
+                html.Div('', className='custom-table-td-last', id='event-info-id')
+            ], className='custom-table-row'),
+            html.Div([
+                html.Div('Time:', className='custom-table-td'),
+                html.Div('', className='custom-table-td-last', id='event-info-time')
+            ], className='custom-table-row')
+        ], style={'flex': '1'}, className='event-info-table')
+    ], style={'display': 'flex'}),
     dcc.Tabs([
         dcc.Tab([
             html.H3('summary plots'),
@@ -378,6 +395,54 @@ def coordinate_event_click(cr_polarization_zenith_click, cr_skyplot_click, cr_xc
         'event_i': event_numbers[i],
         'time': times[i]
     })
+
+@app.callback(Output('event-info-run', 'children'),
+            [Input('event-counter-slider', 'value'),
+            Input('filename', 'value')],
+            [State('user_id', 'children'),
+            State('station_id', 'children')])
+def update_event_info_run(event_i, filename, juser_id, jstation_id):
+    if filename is None:
+        return ""
+#     filename = json.loads(jfilename)
+    user_id = json.loads(juser_id)
+    station_id = json.loads(jstation_id)
+
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(event_i)
+    return evt.get_run_number()    
+
+@app.callback(Output('event-info-id', 'children'),
+            [Input('event-counter-slider', 'value'),
+            Input('filename', 'value')],
+            [State('user_id', 'children'),
+            State('station_id', 'children')])
+def update_event_info_id(event_i, filename, juser_id, jstation_id):
+    if filename is None:
+        return ""
+#     filename = json.loads(jfilename)
+    user_id = json.loads(juser_id)
+    station_id = json.loads(jstation_id)
+
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(event_i)
+    return evt.get_id()
+
+@app.callback(Output('event-info-time', 'children'),
+            [Input('event-counter-slider', 'value'),
+            Input('filename', 'value')],
+            [State('user_id', 'children'),
+            State('station_id', 'children')])
+def update_event_info_time(event_i, filename, juser_id, jstation_id):
+    if filename is None:
+        return ""
+#     filename = json.loads(jfilename)
+    user_id = json.loads(juser_id)
+    station_id = json.loads(jstation_id)
+
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(event_i)
+    return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_stations()[0].get_station_time())
 
 if __name__ == '__main__':
     app.run_server(debug=True, port=8080)

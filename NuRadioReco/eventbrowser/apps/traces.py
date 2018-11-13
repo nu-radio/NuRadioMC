@@ -40,7 +40,6 @@ layout = html.Div([
         multi=True,
         value=["RMS", "L1"]
     ),
-    html.Div(id='event-info'),
     html.Div([
         html.Div([
             html.Div('Electric Field Traces', className='panel-heading'),
@@ -78,53 +77,6 @@ def get_L1(a):
     ct = np.array(a[1:]) ** 2
     l1 = np.max(ct) / (np.sum(ct) - np.max(ct))
     return l1
-
-
-@app.callback(
-    dash.dependencies.Output('event-info', 'children'),
-    [dash.dependencies.Input('event-counter-slider', 'value'),
-     dash.dependencies.Input('filename', 'value')],
-     [State('user_id', 'children'),
-      State('station_id', 'children')])
-def update_event_info(evt_counter, filename, juser_id, jstation_id):
-    print("update event info")
-    if filename is None:
-        return ""
-#     filename = json.loads(jfilename)
-    user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
-
-    ariio = provider.get_arianna_io(user_id, filename)
-    number_of_events = ariio.get_n_events()
-    evt = ariio.get_event_i(evt_counter)
-    station = evt.get_stations()[0]
-    event_info = ""
-    event_info += "{}/{} run {:d} event {:d} {}".format(evt_counter + 1, number_of_events, evt.get_run_number(), evt.get_id(), station.get_station_time())
-    if(station.has_parameter(stnp.zenith_cr_templatefit)):
-        event_info += "\n cr template fit: {:.1f}, {:.1f}, chi2 = {:.1f}".format(station[stnp.zenith_cr_templatefit] / units.deg,
-                                                                                 station[stnp.azimuth_cr_templatefit] / units.deg,
-                                                                                 station[stnp.chi2_cr_templatefit])
-    if(station.has_parameter(stnp.zenith_nu_templatefit)):
-        event_info += "   nu template fit: {:.1f}, {:.1f}, chi2 = {:.1f}".format(station[stnp.zenith_nu_templatefit] / units.deg,
-                                                                                 station[stnp.azimuth_nu_templatefit] / units.deg,
-                                                                                 station[stnp.chi2_nu_templatefit])
-    if(station.has_parameter(stnp.zenith)):
-        event_info += "   x-corr fit fit: {:.1f}, {:.1f}".format(station[stnp.zenith] / units.deg,
-                                                                 station[stnp.azimuth] / units.deg)
-    if(station.has_parameter(stnp.polarization_angle)):
-        pol = station[stnp.polarization_angle]
-        event_info += "\n pol = {:.1f}".format(pol / units.deg)
-        pol = np.abs(pol)
-        if(pol > 0.5 * np.pi):
-            pol = np.pi - pol
-        pol_exp = station[stnp.polarization_angle_expectation]
-        event_info += " pol exp = {:.1f}".format(pol_exp / units.deg)
-        pol_exp = np.abs(pol_exp)
-        if(pol_exp > 0.5 * np.pi):
-                pol_exp = np.pi - pol_exp
-        event_info += " delta polarization = {:.1f}deg".format(np.abs(pol - pol_exp) / units.deg)
-    return event_info
-
 
 @app.callback(
     dash.dependencies.Output('efield-trace', 'figure'),
