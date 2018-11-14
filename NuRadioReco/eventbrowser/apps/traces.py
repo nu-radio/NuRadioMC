@@ -162,13 +162,15 @@ def update_efield_spectrum(trigger, evt_counter, filename, juser_id, jstation_id
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_stations()[0]
     fig = tools.make_subplots(rows=1, cols=1)
-    if station.get_trace() is None:
-        trace = np.array([[],[],[]])
+    if station.get_trace() is None or station.get_frequencies() is None:
+        spectrum = np.array([[],[],[]])
+        frequencies = np.array([[],[],[]])
     else:
-        trace = station.get_trace()
+        spectrum = station.get_trace()
+        frequencies = station.get_frequencies()
     fig.append_trace(go.Scatter(
-            x=station.get_frequencies() / units.MHz,
-            y=np.abs(station.get_frequency_spectrum()[1]) / units.mV,
+            x=frequencies / units.MHz,
+            y=np.abs(spectrum[1]) / units.mV,
             opacity=0.7,
             marker={
                 'color': colors[1],
@@ -177,8 +179,8 @@ def update_efield_spectrum(trigger, evt_counter, filename, juser_id, jstation_id
             name='eTheta'
         ), 1, 1)
     fig.append_trace(go.Scatter(
-            x=station.get_frequencies() / units.MHz,
-            y=np.abs(station.get_frequency_spectrum()[2]) / units.mV,
+            x=frequencies / units.MHz,
+            y=np.abs(spectrum[2]) / units.mV,
             opacity=0.7,
             marker={
                 'color': colors[2],
