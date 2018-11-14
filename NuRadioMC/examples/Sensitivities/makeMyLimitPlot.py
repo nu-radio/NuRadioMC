@@ -15,10 +15,10 @@ with open("NuRadioMC_20181113_Veff.json", 'r') as fin:
     labels = []
     labels = limit.add_limit(ax, labels,
                              data['shallow + PA@15m@2s']['energies'],
-                             data['shallow + PA@15m@2s']['Veff'], 200, 'GIANT (200 stations)', fmt='-C1')
+                             data['shallow + PA@15m@2s']['Veff'], 200, 'GIANT', fmt='-C1')
     labels = limit.add_limit(ax, labels,
                              data['shallow + PA@15m@2s']['energies'],
-                             data['shallow + PA@15m@2s']['Veff'], 2000, 'GIANT (2000 stations)', fmt='-C3')
+                             data['shallow + PA@15m@2s']['Veff'], 2000, 'GIANT', fmt='-C3')
     plt.legend(handles=labels, loc=2)
     ax.set_title("raw triggered volumes")
     fig.tight_layout()
