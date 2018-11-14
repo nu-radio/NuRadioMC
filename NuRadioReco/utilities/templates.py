@@ -112,9 +112,7 @@ class Templates(object):
         return self.__cr_template_set
 
     def __load_nu_template(self, station_id):
-        import os
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            '../analysis/templateGeneration/templates_nu_station_{}.pickle'.format(station_id))
+        path= os.path.join(self.__path, 'templates_nu_station_{}.pickle'.format(station_id))
         if(os.path.exists(path)):
             with open(path, 'r') as fin:
                 self.__nu_templates[station_id] = pickle.load(fin)
