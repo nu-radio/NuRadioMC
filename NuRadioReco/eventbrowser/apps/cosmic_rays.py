@@ -117,7 +117,7 @@ def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, jstation_id, juser_i
     current_selection = json.loads(jcurrent_selection)
     if current_selection != []:
         for trace in traces:
-            trace['selectedpoints'] = get_point_index(trace['text'], current_selection)
+            trace['selectedpoints'] = current_selection
     return {
         'data': traces,
         'layout': go.Layout(
@@ -168,7 +168,7 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, jstation_i
     current_selection = json.loads(jcurrent_selection)
     if current_selection != []:
         for trace in traces:
-            trace['selectedpoints'] = get_point_index(trace['text'], current_selection)
+            trace['selectedpoints'] = current_selection
 
     return {
         'data': traces,
@@ -224,7 +224,7 @@ def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, jstation_id, 
     current_selection = json.loads(jcurrent_selection)
     if current_selection != []:
         for trace in traces:
-            trace['selectedpoints'] = get_point_index(trace['text'], current_selection)
+            trace['selectedpoints'] = current_selection
 
     return {
         'data': traces,
@@ -282,7 +282,7 @@ def plot_skyplot(filename, trigger, jcurrent_selection, btn, jstation_id, juser_
     # update with current selection
     if current_selection != []:
         for trace in traces:
-            trace['selectedpoints'] = get_point_index(trace['text'], current_selection)
+            trace['selectedpoints'] = current_selection
 
     return {
         'data': traces,
