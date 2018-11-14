@@ -493,20 +493,95 @@ def plot_reconstruction_quality_histogram(filename, selected_property, jcurrent_
         x_coords.append(i+.5*d_bin)
         y_coords.append(len(e_diffs[(e_diffs>i)&(e_diffs<i+d_bin)]))
         y_coords_selected.append(len(e_diffs[in_selection&(e_diffs>i)&(e_diffs<i+d_bin)]))
+    quantiles = np.round(np.percentile(e_diffs, [16,84, 50, 2.5, 97.5]),2)
+    annotations = [{
+        'x': .9,
+        'y': .95,
+        'yanchor': 'middle',
+        'showarrow': False,
+        'xref': 'paper',
+        'yref': 'paper',
+        'text': 'median: {}'.format(quantiles[2]),
+        'font': {
+            'color': plotly.colors.DEFAULT_PLOTLY_COLORS[0]
+        }
+    },{
+        'x': .9,
+        'y': .9,
+        'yanchor': 'middle',
+        'showarrow': False,
+        'xref': 'paper',
+        'yref': 'paper',
+        'text': '68% quantile: {} to {}'.format(quantiles[0], quantiles[1]),
+        'font': {
+            'color': plotly.colors.DEFAULT_PLOTLY_COLORS[0]
+        }
+    },{
+        'x': .9,
+        'y': .85,
+        'yanchor': 'middle',
+        'showarrow': False,
+        'xref': 'paper',
+        'yref': 'paper',
+        'text': '95% quantile: {} to {}'.format(quantiles[3], quantiles[4]),
+        'font': {
+            'color': plotly.colors.DEFAULT_PLOTLY_COLORS[0]
+        }
+    }]
+    if not np.all(in_selection):
+        quantiles_selected = np.round(np.percentile(e_diffs[in_selection], [16,84, 50, 2.5, 97.5]),2)
+        annotations = np.append(annotations, [{
+            'x': .9,
+            'y': .75,
+            'yanchor': 'middle',
+            'showarrow': False,
+            'xref': 'paper',
+            'yref': 'paper',
+            'text': 'median: {}'.format(quantiles_selected[2]),
+            'font': {
+                'color': plotly.colors.DEFAULT_PLOTLY_COLORS[1]
+            }
+        },{
+            'x': .9,
+            'y': .7,
+            'yanchor': 'middle',
+            'showarrow': False,
+            'xref': 'paper',
+            'yref': 'paper',
+            'text': '68% quantile: {} to {}'.format(quantiles_selected[0], quantiles_selected[1]),
+            'font': {
+                'color': plotly.colors.DEFAULT_PLOTLY_COLORS[1]
+            }
+        },{
+            'x': .9,
+            'y': .65,
+            'yanchor': 'middle',
+            'showarrow': False,
+            'xref': 'paper',
+            'yref': 'paper',
+            'text': '95% quantile: {} to {}'.format(quantiles_selected[3], quantiles_selected[4]),
+            'font': {
+                'color': plotly.colors.DEFAULT_PLOTLY_COLORS[1]
+            }
+        }])
     layout = {
         'xaxis': {
             'title': 'Relative error of reconstructed property'
         },
         'yaxis': {
             'title': 'Entries'
-        }
+        },
+        'annotations': annotations
     }
     if np.all(in_selection):
         return {
             'data': [{
                 'x': x_coords,
                 'y': y_coords,
-                'type': 'bar'
+                'type': 'bar',
+                'marker': {
+                    'color': plotly.colors.DEFAULT_PLOTLY_COLORS[0]
+                }
             }],
             'layout': layout
         }
@@ -516,12 +591,18 @@ def plot_reconstruction_quality_histogram(filename, selected_property, jcurrent_
                 'x': x_coords,
                 'y': y_coords,
                 'type': 'bar',
-                'name': 'All events'
+                'name': 'All events',
+                'marker': {
+                    'color': plotly.colors.DEFAULT_PLOTLY_COLORS[0]
+                }
             },{
                 'x': x_coords,
                 'y': y_coords_selected,
                 'type': 'bar',
-                'name': 'Selected events'
+                'name': 'Selected events',
+                'marker': {
+                    'color': plotly.colors.DEFAULT_PLOTLY_COLORS[1]
+                }
             }],
             'layout': layout
         }
