@@ -102,7 +102,7 @@ class channelGenericNoiseAdder:
         frequencies = np.fft.rfftfreq(n_samples, 1./sampling_rate)
         n_samples_freq = len(frequencies)
         
-        if min_freq == None:
+        if min_freq == None or min_freq == 0:
             # remove DC component; fftfreq returns the DC component as 0-th element and the negative
             # frequencies at the end, so frequencies[1] should be the lowest frequency; it seems safer,
             # to take the difference between two frequencies to determine the minimum frequency, in case
