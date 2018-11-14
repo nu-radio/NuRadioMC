@@ -105,7 +105,21 @@ layout = html.Div([
                         html.Div(id='sim-station-properties-table', className='table table-striped')
                     ], style={'flex': '1', 'min-height': '500px'})
                 ], className='panel-body', style={'display': 'flex'})
-            ], className='panel panel-default', style = {'flex': 'none', 'width': '50%'}),
+            ], className='panel panel-default', style = {'flex': '1'}),
+            html.Div([
+                html.Div('Reconstruction Quality', className='panel-heading'),
+                html.Div([
+                    html.Div([
+                        html.Div('Property:', style={'flex': '1', 'padding': '0 10px'}),
+                        html.Div([
+                            dcc.Dropdown(id='reconstruction-quality-properties-dropdown', options=[], multi=False, value=None)
+                        ], style={'flex': '5'})
+                    ], style={'display': 'flex'}),
+                    html.Div([
+                        dcc.Graph(id='reconstruction-quality-histogram')
+                    ])
+                ], className='panel-body')
+            ], className='panel panel-default', style={'flex': '1'})
         ], style={'display': 'flex'})
     ])
     
@@ -421,4 +435,93 @@ def get_sim_station_property_table(i_event, filename, properties, juser_id, jsta
             ],className='custom-table-row')
         )
     return reply
+
+@app.callback(Output('reconstruction-quality-properties-dropdown', 'options'),
+    [Input('filename', 'value')],
+    [State('user_id', 'children'),
+    State('station_id', 'children')])
+def get_reconstruction_quality_property_options(filename, juser_id, jstation_id):
+    if filename is None:
+        return []
+    user_id = json.loads(juser_id)
+    station_id = json.loads(jstation_id)
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(0)      # we assume that the same properties are set for every event and every station
+    station = evt.get_stations()[0]
+    sim_station = station.get_sim_station()
+    if sim_station is None:
+        return []
+    options = []
+    for parameter in stnp:
+        if station.has_parameter(parameter) and sim_station.has_parameter(parameter):
+            options.append({'label': parameter.name, 'value': parameter.value})
+    return options
     
+    
+@app.callback(Output('reconstruction-quality-histogram', 'figure'),
+              [Input('filename', 'value'),
+              Input('reconstruction-quality-properties-dropdown', 'value'),
+              Input('event-ids', 'children')],
+              [State('station_id', 'children'),
+              State('user_id', 'children')])
+def plot_reconstruction_quality_histogram(filename, selected_property, jcurrent_selection, jstation_id, juser_id):
+    if filename is None or selected_property is None:
+        return {}
+    user_id = json.loads(juser_id)
+    station_id = json.loads(jstation_id)
+    current_selection = json.loads(jcurrent_selection)
+    e_diffs = []
+    in_selection = []
+    ariio = provider.get_arianna_io(user_id, filename)
+    for i_event,  event in enumerate(ariio.get_events()):
+        station = event.get_stations()[0]
+        sim_station = station.get_sim_station()
+        e_sim = sim_station.get_parameter(stnp(selected_property))
+        e_rec = station.get_parameter(stnp(selected_property))
+        e_diffs.append(2.*(e_rec-e_sim)/(e_rec+e_sim))
+        if len(current_selection) == 0:
+            in_selection.append(True)
+        else:
+            in_selection.append(i_event in current_selection)
+    e_diffs = np.array(e_diffs)
+    in_selection = np.array(in_selection)
+    x_coords = []
+    y_coords = []
+    y_coords_selected = []
+    d_bin = .05
+    for i in np.arange(-2,2,d_bin):
+        x_coords.append(i+.5*d_bin)
+        y_coords.append(len(e_diffs[(e_diffs>i)&(e_diffs<i+d_bin)]))
+        y_coords_selected.append(len(e_diffs[in_selection&(e_diffs>i)&(e_diffs<i+d_bin)]))
+    layout = {
+        'xaxis': {
+            'title': 'Relative error of reconstructed property'
+        },
+        'yaxis': {
+            'title': 'Entries'
+        }
+    }
+    if np.all(in_selection):
+        return {
+            'data': [{
+                'x': x_coords,
+                'y': y_coords,
+                'type': 'bar'
+            }],
+            'layout': layout
+        }
+    else:
+        return {
+            'data': [{
+                'x': x_coords,
+                'y': y_coords,
+                'type': 'bar',
+                'name': 'All events'
+            },{
+                'x': x_coords,
+                'y': y_coords_selected,
+                'type': 'bar',
+                'name': 'Selected events'
+            }],
+            'layout': layout
+        }

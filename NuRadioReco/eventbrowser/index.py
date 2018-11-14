@@ -331,7 +331,7 @@ def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, jstation_id, juser
     # update with current selection
     if current_selection != []:
         for trace in traces:
-            trace['selectedpoints'] = get_point_index(trace['text'], current_selection)
+            trace['selectedpoints'] = current_selection
 
     return {
         'data': traces,
@@ -358,11 +358,12 @@ def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, jstation_id, juser
 def set_event_selection(selectedData1, selectedData2, selectedData3, selectedData4, selectedData5, jcurrent_selection):
     current_selection = json.loads(jcurrent_selection)
     tcurrent_selection = []
+    #print(selectedData3)
     for i, selection in enumerate([selectedData1, selectedData2, selectedData3, selectedData4, selectedData5]):  # check which selection has fired the callback
         if selection is not None:
             event_ids = []
             for x in selection['points']:
-                t = x['text']
+                t = x['customdata']
                 if t not in event_ids:
                     event_ids.append(t)
             if not np.array_equal(np.array(event_ids), current_selection):  # this selection has fired the callback
