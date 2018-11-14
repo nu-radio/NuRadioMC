@@ -407,6 +407,8 @@ def get_sim_station_property_options(i_event, filename, juser_id, jstation_id):
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(i_event)
     station = evt.get_stations()[0].get_sim_station()
+    if station is None:
+        return []
     options = []
     for parameter in stnp:
         if station.has_parameter(parameter):
