@@ -129,6 +129,8 @@ def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, jstation_id, juser_i
 @app.callback(Output('cr-xcorrelation-point-click', 'children'),
                 [Input('cr-xcorrelation', 'clickData')])
 def handle_cr_xcorrelation_point_click(click_data):
+    if click_data is None:
+        return json.dumps(None)
     event_i = click_data['points'][0]['customdata']
     return json.dumps({
         'event_i': event_i,
@@ -182,6 +184,8 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, jstation_i
 @app.callback(Output('cr-xcorrelation-amplitude-point-click', 'children'),
                 [Input('cr-xcorrelation-amplitude', 'clickData')])
 def handle_cr_xcorrelation_amplitude_point_click(click_data):
+    if click_data is None:
+        return json.dumps(None)
     event_i = click_data['points'][0]['customdata']
     return json.dumps({
         'event_i': event_i,
@@ -239,6 +243,8 @@ def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, jstation_id, 
 @app.callback(Output('cr-polarization-zenith-point-click', 'children'),
                 [Input('cr-polarization-zenith', 'clickData')])
 def handle_cr_polarization_zenith_point_click(click_data):
+    if click_data is None:
+        return json.dumps(None)
     event_i = click_data['points'][0]['customdata']
     return json.dumps({
         'event_i': event_i,
@@ -296,6 +302,8 @@ def plot_skyplot(filename, trigger, jcurrent_selection, btn, jstation_id, juser_
 @app.callback(Output('cr-skyplot-point-click', 'children'),
                 [Input('cr-skyplot', 'clickData')])
 def handle_cr_skyplot_point_click(click_data):
+    if click_data is None:
+        return json.dumps(None)
     event_i = click_data['points'][0]['customdata']
     return json.dumps({
         'event_i': event_i,
