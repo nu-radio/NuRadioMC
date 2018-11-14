@@ -25,6 +25,7 @@ class ARIANNAio(object):
         self.__fail_on_version_mismatch = fail_on_version_mismatch
         self.__fail_on_minor_version_mismatch = fail_on_minor_version_mismatch
         self.__parse_header = parse_header
+        self.__read_lock = False
         self.openFile(filenames)
         logger.info("... finished in {:.0f} seconds".format(time.time() - t))
 
@@ -144,6 +145,11 @@ class ARIANNAio(object):
         return self.__event_ids
 
     def get_event_i(self, event_number):
+        while(self.__read_lock):
+            time.sleep(1)
+            logger.debug("read lock waiting 1ms")
+        self.__read_lock = True
+            
         if(not self.__file_scanned):
             self.__scan_file()
         if(event_number < 0 or event_number >= self.get_n_events()):
@@ -165,6 +171,7 @@ class ARIANNAio(object):
         evtstr = self.__fin[file_id].read(self.__bytes_length[file_id][event_id])
         event = NuRadioReco.framework.event.Event(0, 0)
         event.deserialize(evtstr)
+        self.__read_lock = False
         return event
 
     def get_event(self, event_id):
