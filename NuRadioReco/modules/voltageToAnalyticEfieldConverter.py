@@ -525,7 +525,7 @@ class voltageToAnalyticEfieldConverter:
             return chi2
 
         method = "Nelder-Mead"
-        # method = "BFGS"
+        #method = "BFGS"
         options = {'maxiter': 1000,
                    'disp': True}
 
@@ -592,7 +592,9 @@ class voltageToAnalyticEfieldConverter:
         Atheta = res_amp.x[1]
         #counts number of iterations in the slope fit. Used so we do not need to show the plots every iteration
         self.i_slope_fit_iterations = 0
-        res_amp_slope = opt.minimize(obj_amplitude_slope, x0=[res_amp.x[0], res_amp.x[1], -1.9], args=(phase, pos),
+        sign_phi = np.sign(Aphi)
+        sign_theta = np.sign(Atheta)
+        res_amp_slope = opt.minimize(obj_amplitude_slope, x0=[res_amp.x[0], res_amp.x[1], -1.9], args=(phase, pos, 'hilbert', False),
                                      method=method, options=options)
 
         # calculate uncertainties
@@ -603,15 +605,15 @@ class voltageToAnalyticEfieldConverter:
             cov = covariance(Wrapper, res_amp_slope.x, 0.5, fast=True)
         except:
             cov = np.zeros((3, 3))
-        logger.info("amplitude fit, Aphi = {:.3g}+-{:.3g} Atheta = {:.3g}+-{:.3g}, slope = {:.3g}+-{:.3g} with fmin = {:.5e}".format(res_amp_slope.x[0], cov[0, 0] ** 0.5,
+        logger.info("slope fit, Aphi = {:.3g}+-{:.3g} Atheta = {:.3g}+-{:.3g}, slope = {:.3g}+-{:.3g} with fmin = {:.5e}".format(res_amp_slope.x[0], cov[0, 0] ** 0.5,
                                                                                                                                      res_amp_slope.x[1], cov[1, 1] ** 0.5,
                                                                                                              res_amp_slope.x[2], cov[2, 2] ** 0.5, res_amp_slope.fun))
 #         print(res_amp_slope)
         logger.info("covariance matrix \n{}".format(cov))
         if(cov[0, 0] > 0 and cov[1, 1] > 0 and cov[2, 2] > 0):
             logger.info("correlation matrix \n{}".format(hp.covariance_to_correlation(cov)))
-        Aphi = res_amp_slope.x[0]
-        Atheta = res_amp_slope.x[1]
+        Aphi = sign_phi*np.abs(res_amp_slope.x[0])
+        Atheta = sign_theta*np.abs(res_amp_slope.x[1])
         slope = res_amp_slope.x[2]
         Aphi_error = cov[0, 0] ** 0.5
         Atheta_error = cov[1, 1] ** 0.5
