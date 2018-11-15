@@ -166,7 +166,7 @@ def update_efield_spectrum(trigger, evt_counter, filename, juser_id, jstation_id
         spectrum = np.array([[],[],[]])
         frequencies = np.array([[],[],[]])
     else:
-        spectrum = station.get_trace()
+        spectrum = station.get_frequency_spectrum()
         frequencies = station.get_frequencies()
     fig.append_trace(go.Scatter(
             x=frequencies / units.MHz,
