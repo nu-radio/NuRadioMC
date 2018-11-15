@@ -196,7 +196,7 @@ class triggerSimulator:
 #                 logger.info("Channel {} already at desired length, nothing done.".format(channel.get_id()))
             else:
                 sampling_rate = channel.get_sampling_rate()
-                samples_before_trigger = self.__pre_trigger_time * sampling_rate
+                samples_before_trigger = int(self.__pre_trigger_time * sampling_rate)
                 rel_station_time_samples = 0
                 cut_samples_beginning = 0
                 if(samples_before_trigger < trigger_time_sample):

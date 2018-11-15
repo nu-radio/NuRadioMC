@@ -85,7 +85,7 @@ class triggerSimulator:
         for channel in station.iter_channels():
             trace = channel.get_trace()
             trace_length = len(trace)
-            number_of_samples = det.get_number_of_samples(station.get_id(), channel.get_id())
+            number_of_samples = int(det.get_number_of_samples(station.get_id(), channel.get_id()) * channel.get_sampling_rate() / det.get_sampling_frequency(station.get_id(), channel.get_id()))
             if number_of_samples > trace.shape[0]:
                 logger.error("Input has fewer samples than desired output. Channels has only {} samples but {} samples are requested.".format(
                     trace.shape[0], number_of_samples))
@@ -97,7 +97,7 @@ class triggerSimulator:
 #                 logger.info("Channel {} already at desired length, nothing done.".format(channel.get_id()))
             else:
                 sampling_rate = channel.get_sampling_rate()
-                samples_before_trigger = self.__pre_trigger_time * sampling_rate
+                samples_before_trigger = int(self.__pre_trigger_time * sampling_rate)
                 rel_station_time_samples = 0
                 cut_samples_beginning = 0
                 if(samples_before_trigger < trigger_time_sample):
