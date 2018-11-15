@@ -20,9 +20,9 @@ class stationParameters(Enum):
     zenith_nu_templatefit = 16
     polarization_angle = 17
     polarization_angle_expectation = 18
-    xcorr_type = 19
+    
     cr_xcorrelations = 20 # dict of result of crosscorrelations with cr templates
-    cr_avg_xcorr_crchannels = 21
+    
     nu_xcorrelations = 22 #  dict of result of crosscorrelations with nu templates
     station_time = 23
     signal_energy_fluence = 24
