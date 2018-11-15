@@ -87,8 +87,8 @@ class triggerSimulator:
         self.__t = 0
         self.begin()
 
-    def begin(self, samples_before_trigger=50):
-        self.__samples_before_trigger = samples_before_trigger
+    def begin(self, pre_trigger_time=100 * units.ns):
+        self.__pre_trigger_time = pre_trigger_time
 
     def run(self, evt, station, det,
             threshold_high=60 * units.mV,
@@ -195,19 +195,21 @@ class triggerSimulator:
 #             elif number_of_samples == trace.shape[0]:
 #                 logger.info("Channel {} already at desired length, nothing done.".format(channel.get_id()))
             else:
+                sampling_rate = channel.get_sampling_rate()
+                samples_before_trigger = self.__pre_trigger_time * sampling_rate
                 rel_station_time_samples = 0
                 cut_samples_beginning = 0
-                if(self.__samples_before_trigger < trigger_time_sample):
-                    cut_samples_beginning = trigger_time_sample - self.__samples_before_trigger
+                if(samples_before_trigger < trigger_time_sample):
+                    cut_samples_beginning = trigger_time_sample - samples_before_trigger
                     if(cut_samples_beginning + number_of_samples > trace_length):
                         logger.warning("trigger time is sample {} but total trace length is only {} samples (requested trace length is {} with an offest of {} before trigger). To achieve desired configuration, trace will be rolled".format(
-                            trigger_time_sample, trace_length, number_of_samples, self.__samples_before_trigger))
+                            trigger_time_sample, trace_length, number_of_samples, samples_before_trigger))
                         roll_by = cut_samples_beginning + number_of_samples - trace_length  # roll_by is positive
                         trace = np.roll(trace, -1 * roll_by)
                         cut_samples_beginning -= roll_by
                     rel_station_time_samples = cut_samples_beginning
-                elif(self.__samples_before_trigger > trigger_time_sample):
-                    roll_by = trigger_time_sample - self.__samples_before_trigger
+                elif(samples_before_trigger > trigger_time_sample):
+                    roll_by = trigger_time_sample - samples_before_trigger
                     logger.warning(
                         "trigger time is before 'trigger offset window', the trace needs to be rolled by {} samples first".format(roll_by))
                     trace = np.roll(trace, roll_by)
