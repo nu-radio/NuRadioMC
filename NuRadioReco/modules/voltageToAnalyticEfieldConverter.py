@@ -473,7 +473,7 @@ class voltageToAnalyticEfieldConverter:
                 fig.tight_layout()
                 plt.show()
             return chi2
-        def obj_amplitude_slope(params, phase, pos, compare='trace', debug_obj=0):
+        def obj_amplitude_slope(params, phase, pos, compare='hilbert', debug_obj=0):
             ampPhi, ampTheta, slope = params
             analytic_pulse_theta = pulse.get_analytic_pulse_freq(ampTheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
             analytic_pulse_phi = pulse.get_analytic_pulse_freq(ampPhi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
