@@ -28,8 +28,8 @@ class stationParameters(Enum):
     signal_energy_fluence = 24
     signal_time = 25
     efield_vector = 26
-    efield_vector_polarization = 27,
-    spectrum_slope = 28,
+    efield_vector_polarization = 27
+    spectrum_slope = 28
     cr_energy_em = 29  # the electromagnetic shower energy (the cosmic ray energy that ends up in electrons, positrons and gammas)
 
 class channelParameters(Enum):
