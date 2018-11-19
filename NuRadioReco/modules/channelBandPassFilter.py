@@ -2,6 +2,7 @@ import numpy as np
 from NuRadioReco.utilities import units
 import scipy.signal
 from NuRadioReco.detector import filterresponse
+import NuRadioReco.framework.sim_station
 
 
 class channelBandPassFilter:
@@ -34,28 +35,52 @@ class channelBandPassFilter:
             for a butterworth wilter: specifies the order of the filter
 
         """
+        
         for channel in station.iter_channels():
-            frequencies = channel.get_frequencies()
-            trace_fft = channel.get_frequency_spectrum()
-
-            if(filter_type == 'rectangular'):
+            if isinstance(station, NuRadioReco.framework.sim_station.SimStation):
+                for sub_channel in channel:
+                    self.__apply_filter(sub_channel, passband, filter_type, order, True)
+            else:
+                self.__apply_filter(channel, passband, filter_type, order, False)
+            
+    def __apply_filter(self, channel, passband, filter_type, order, is_efield=False):
+        frequencies = channel.get_frequencies()
+        trace_fft = channel.get_frequency_spectrum()
+        if(filter_type == 'rectangular'):
+            if is_efield:
+                for polarization in trace_fft:
+                    polarization[np.where(frequencies < passband[0])] = 0.
+                    polarization[np.where(frequencies > passband[1])] = 0.    
+            else:
                 trace_fft[np.where(frequencies < passband[0])] = 0.
                 trace_fft[np.where(frequencies > passband[1])] = 0.
-            elif(filter_type == 'butter'):
-                mask = frequencies > 0
-                b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
-                w, h = scipy.signal.freqs(b, a, frequencies[mask])
-                trace_fft[mask] *= h
-            elif(filter_type == 'butterabs'):
-                mask = frequencies > 0
-                b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
-                w, h = scipy.signal.freqs(b, a, frequencies[mask])
-                trace_fft[mask] *= np.abs(h)
+        elif(filter_type == 'butter'):
+            mask = frequencies > 0
+            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
+            w, h = scipy.signal.freqs(b, a, frequencies[mask])
+            if is_efield:
+                for polarization in trace_fft:
+                    polarization[mask] *= h
             else:
-                mask = frequencies > 0
-                filt = filterresponse.get_filter_response(frequencies[mask], filter_type)
+                trace_fft[mask] *= h
+        elif(filter_type == 'butterabs'):
+            mask = frequencies > 0
+            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
+            w, h = scipy.signal.freqs(b, a, frequencies[mask])
+            if is_efield:
+                for polarization in trace_fft:
+                    polarization[mask] *= h
+            else:
+                trace_fft[mask] *= np.abs(h)
+        else:
+            mask = frequencies > 0
+            filt = filterresponse.get_filter_response(frequencies[mask], filter_type)
+            if is_efield:
+                for polarization in trace_fft:
+                    polarization[mask] *= filt
+            else:
                 trace_fft[mask] *= filt
-            channel.set_frequency_spectrum(trace_fft, channel.get_sampling_rate())
+        channel.set_frequency_spectrum(trace_fft, channel.get_sampling_rate())                
 
     def end(self):
         pass
