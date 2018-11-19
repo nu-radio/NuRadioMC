@@ -3,8 +3,11 @@ from NuRadioReco.utilities import units
 from radiotools import helper as hp
 from radiotools import coordinatesystems
 import NuRadioReco.framework.sim_station
+import NuRadioReco.framework.channel
+import NuRadioReco.framework.base_trace
 
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import channelParameters as chp
 
 # conversion_fieldstrength_cgs_to_SI = 2.99792458e4 * 1e-6
 conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
@@ -84,8 +87,11 @@ def make_sim_station(station_id, corsika, observer, weight=None):
 
     antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
-    sim_station = NuRadioReco.framework.sim_station.SimStation(station_id, sampling_rate, efield2, antenna_position)
-
+    sim_station = NuRadioReco.framework.sim_station.SimStation(station_id, position=antenna_position)
+    sim_channel = NuRadioReco.framework.channel.Channel(0)
+    sim_channel.set_trace(efield2, sampling_rate)
+    sim_channel.set_parameter(chp.ray_path_type, 'direct')
+    sim_station.add_channel(sim_channel)
     sim_station.set_parameter(stnp.azimuth, azimuth)
     sim_station.set_parameter(stnp.zenith, zenith)
     energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV
