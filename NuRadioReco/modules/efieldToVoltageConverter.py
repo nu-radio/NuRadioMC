@@ -64,7 +64,6 @@ class efieldToVoltageConverter:
         event_time = sim_station.get_station_time()
 
         nChannels = det.get_number_of_channels(sim_station_id)
-        sampling = 1. / sim_station.get_sampling_rate()
 
         if (self.__debug == logging.DEBUG):
             efield = sim_station.get_trace()  # in on-sky coordinates, times, e_r, e_phi, e_theta
@@ -77,13 +76,18 @@ class efieldToVoltageConverter:
             ax.set_title("electric field before antenne response")
 #             plt.show()
 
-        ff = sim_station.get_frequencies()
         site = det.get_site(sim_station_id)
         n_ice = ice.get_refractive_index(-0.01, site)
 
         for iCh in range(nChannels):
-            efield_fft = copy.copy(sim_station.get_frequency_spectrum())  # we make a copy to not alter the original efield if reflectios off the boundary are taken into account
-            # we first check if we have a fresnel refraction at air-firn boundary
+            if cosmic_ray_mode: # for cr events the efield is stored in a single channel, for nu events each channel has its own efield stored
+                efield_fft = copy.copy(sim_station.get_channel(0)[0].get_frequency_spectrum()) # we make a copy to not alter the original efield if reflectios off the boundary are taken into account
+                sampling = 1. / sim_station.get_channel(0)[0].get_sampling_rate()
+                ff = sim_station.get_channel(0)[0].get_frequencies()
+            else:
+                efield_fft = copy.copy(sim_station.get_channel(iCh).get_frequency_spectrum())
+                sampling = 1. / sim_station.get_channel(iCh).get_sampling_rate()
+                ff = sim_station.get_channel(iCh).get_frequencies()
             zenith_antenna = zenith
             # first check case if signal originates from air
             if((zenith < 0.5 * np.pi) and cosmic_ray_mode):
