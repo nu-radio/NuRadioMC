@@ -165,8 +165,7 @@ class triggerSimulator:
         if not has_triggered:
             trigger.set_triggered(False)
             logger.info("Station has NOT passed trigger")
-            trigger_time_sample = self.__samples_before_trigger
-            trigger.set_trigger_time(trigger_time_sample / sampling_rate)
+            trigger.set_trigger_time(self.__pre_trigger_time)
         else:
             trigger.set_triggered(True)
             trigger.set_trigger_time(triggered_times.min())
@@ -184,7 +183,7 @@ class triggerSimulator:
         for channel in station.iter_channels():
             trace = channel.get_trace()
             trace_length = len(trace)
-            number_of_samples = det.get_number_of_samples(station.get_id(), channel.get_id())
+            number_of_samples = int(det.get_number_of_samples(station.get_id(), channel.get_id()) * channel.get_sampling_rate() / det.get_sampling_frequency(station.get_id(), channel.get_id()))
             if number_of_samples > trace.shape[0]:
                 logger.error("Input has fewer samples than desired output. Channels has only {} samples but {} samples are requested.".format(
                     trace.shape[0], number_of_samples))
