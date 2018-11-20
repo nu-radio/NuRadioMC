@@ -64,6 +64,14 @@ def interpolate_linear_vectorized(x, x0, x1, y0, y1, interpolation_method='compl
     result[~mask] = y0[~mask]
     return result
 
+
+def get_group_delay(vector_effective_length, df):
+    """
+    helper function to calculate the group delay from the vector effecitve length
+    """
+    return -np.diff(np.unwrap(np.angle(vector_effective_length))) / df / units.ns / 2 / np.pi
+
+
 # def interpolate_linear_VEL(x, x0, x1, y0, y1):
 #     result = {}
 #     result['theta'] = interpolate_linear(x, x0, x1, y0['theta'], y1['theta'])
