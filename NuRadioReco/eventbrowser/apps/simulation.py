@@ -165,7 +165,7 @@ def update_sim_trace_plot(i_event, filename, signal_types, juser_id, jstation_id
                         fig.append_trace(
                             go.Scatter(
                                 x=sub_channel.get_times()/units.ns,
-                                y=sub_channel.get_trace()[polarization]/units.mV,
+                                y=sub_channel.get_trace()[polarization]/units.mV*units.m,
                                 opacity=1.,
                                 line = {
                                     'color': efield_plot_colors[i_channel % len(efield_plot_colors)][polarization-1],
@@ -180,7 +180,7 @@ def update_sim_trace_plot(i_event, filename, signal_types, juser_id, jstation_id
         return {}
     fig['layout'].update(
         xaxis={'title': 't [ns]'},
-        yaxis={'title': 'voltage [mV]'}
+        yaxis={'title': 'electric field [mV/m]'}
     )
     return fig
 
@@ -213,7 +213,7 @@ def update_sim_spectrum_plot(i_event, filename, signal_types, juser_id, jstation
                         fig.append_trace(
                             go.Scatter(
                                 x=sub_channel.get_frequencies()/units.MHz,
-                                y=np.abs(sub_channel.get_frequency_spectrum()[polarization])/units.mV,
+                                y=np.abs(sub_channel.get_frequency_spectrum()[polarization])/units.mV*units.m,
                                 opacity=1.,
                                 line = {
                                     'color': efield_plot_colors[i_channel % len(efield_plot_colors)][polarization-1],
@@ -227,7 +227,7 @@ def update_sim_spectrum_plot(i_event, filename, signal_types, juser_id, jstation
         return {}
     fig['layout'].update(
         xaxis={'title': 'f [MHz]'},
-        yaxis={'title': 'voltage [mV]'}
+        yaxis={'title': 'electric field [mV/m]'}
     )
     return fig
     
