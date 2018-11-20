@@ -18,7 +18,7 @@ class stationParameters(Enum):
     azimuth = 14  # the azimuth angle of the incoming signal direction (WARNING: this parameter is not well defined as the incoming signal direction might be different for different channels)
     zenith_cr_templatefit = 15
     zenith_nu_templatefit = 16
-    polarization_angle = 17 # electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90° is polarization in e_phi
+    polarization_angle = 17 # electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
     polarization_angle_expectation = 18 # expected polarization based on shower geometry. Defined analogous to polarization_angle
     cr_xcorrelations = 19 # dict of result of crosscorrelations with cr templates
     nu_xcorrelations = 20 #  dict of result of crosscorrelations with nu templates
