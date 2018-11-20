@@ -70,6 +70,8 @@ def get_weight(theta_nu, pnu, flavors, ccncs, mode='simple'):
         return get_simple_weight(theta_nu, pnu)
     elif (mode == "core_mantle_crust"):
         return get_arasim_simple_weight(theta_nu, pnu, flavors, ccncs)
+    elif (mode == "None"):
+        return 1.
     else:
         logger.error('mode {} not supported'.format(mode))
         raise NotImplementedError
