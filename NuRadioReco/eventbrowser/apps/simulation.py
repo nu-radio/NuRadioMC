@@ -266,12 +266,13 @@ def update_sim_event_3d(i_event, filename, juser_id, jstation_id):
             mode = 'markers',
             name = 'Interaction Vertex'
             ))
+        plot_range = 1.5*np.max(np.abs(vertex))
         if sim_station.has_parameter(stnp.nu_zenith) and sim_station.has_parameter(stnp.nu_azimuth): 
             neutrino_path = hp.spherical_to_cartesian(sim_station.get_parameter(stnp.nu_zenith), sim_station.get_parameter(stnp.nu_azimuth))
             data.append(go.Scatter3d(
-                x = [vertex[0], vertex[0] + 500*neutrino_path[0]],
-                y = [vertex[1], vertex[1] + 500*neutrino_path[1]],
-                z = [vertex[2], vertex[2] + 500*neutrino_path[2]],
+                x = [vertex[0], vertex[0] + .25*plot_range*neutrino_path[0]],
+                y = [vertex[1], vertex[1] + .25*plot_range*neutrino_path[1]],
+                z = [vertex[2], vertex[2] + .25*plot_range*neutrino_path[2]],
                 name = 'Neutrino Direction',
                 mode = 'lines'
                 ))
@@ -292,13 +293,13 @@ def update_sim_event_3d(i_event, filename, juser_id, jstation_id):
                     'z': 1
                 },
                 'xaxis' : {
-                    'range': [-1000,1000]
+                    'range': [-plot_range,plot_range]
                 },
                 'yaxis' : {
-                    'range': [-1000, 1000]
+                    'range': [-plot_range, plot_range]
                 },
                 'zaxis' : {
-                    'range': [-1000,0]
+                    'range': [-plot_range,0]
                 }
                 }
             )
