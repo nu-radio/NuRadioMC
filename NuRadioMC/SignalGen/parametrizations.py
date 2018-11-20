@@ -150,6 +150,12 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
         from NuRadioMC.SignalGen.RalstonBuniy import askaryan_module
         return askaryan_module.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R)
     
+    elif(model == 'spherical'):
+        amplitude = 1. * energy / R
+        trace = np.zeros(N)
+        trace[N//2] = amplitude
+        return trace
+    
     else:
         raise NotImplementedError("model {} unknown".format(model))
 
