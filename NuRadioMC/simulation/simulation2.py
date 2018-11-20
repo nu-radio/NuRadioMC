@@ -362,7 +362,10 @@ class simulation():
         logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(self._n_events,
                                                                                          t_total, 1.e3 * t_total / self._n_events))
 
-        self.calculate_Veff()
+        try:
+            self.calculate_Veff()
+        except:
+            logger.error("error in calculating effective volume")
 
         outputTime = time.time() - t5
         print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
@@ -635,7 +638,15 @@ class simulation():
     def _calculate_polarization_vector(self):
         """ calculates the polarization vector in spherical coordinates (eR, eTheta, ePhi)
         """ 
-        polarization_direction = np.cross(self._launch_vector, np.cross(self._shower_axis, self._launch_vector))
-        polarization_direction /= np.linalg.norm(polarization_direction)
-        cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*self._launch_vector))
-        return cs.transform_from_ground_to_onsky(polarization_direction)
+        if(self._cfg['signal']['polarization'] == 'auto'):
+            polarization_direction = np.cross(self._launch_vector, np.cross(self._shower_axis, self._launch_vector))
+            polarization_direction /= np.linalg.norm(polarization_direction)
+            cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*self._launch_vector))
+            return cs.transform_from_ground_to_onsky(polarization_direction)
+        elif(self._cfg['signal']['polarization'] == 'custom'):
+            v = np.array([0, float(self._cfg['signal']['eTheta']), float(self._cfg['signal']['ePhi'])])
+            return v/np.linalg.norm(v)
+        else:
+            msg = "{} for config.signal.polarization is not a valid option".format(self._cfg['signal']['polarization'])
+            logger.error(msg)
+            raise ValueError(msg)
