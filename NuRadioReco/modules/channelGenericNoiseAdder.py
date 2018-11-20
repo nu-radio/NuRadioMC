@@ -156,7 +156,8 @@ class channelGenericNoiseAdder:
                             amplitude=1 * units.mV,
                             min_freq=50 * units.MHz,
                             max_freq=2000 * units.MHz,
-                            type='white'):
+                            type='white',
+                            excluded_channels=[]):
 
         """
         Add noise to given event.
@@ -179,11 +180,15 @@ class channelGenericNoiseAdder:
         type: string
             perfect_white: flat frequency spectrum
             rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
+        excluded_channels: list of ints
+            the channels ids of channels where no noise will be added, default is that no channel is excluded
 
         """
 
         channels = station.iter_channels()
         for channel in channels:
+            if(channel.get_id() in excluded_channels):
+                continue
 
             trace = channel.get_trace()
             sampling_rate = channel.get_sampling_rate()
