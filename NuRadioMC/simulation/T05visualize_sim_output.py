@@ -175,6 +175,16 @@ ax.set_title(trigger_name)
 fig.tight_layout()
 fig.savefig(os.path.join(plot_folder, 'neutrino_direction.png'))
 
+# calculate sky coverage of 90% quantile
+from radiotools import stat
+q2 =stat.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.95)
+q1 =stat.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.05)
+from scipy import integrate
+def a(theta):
+    return np.sin(theta)
+b = integrate.quad(a, q1, q2)
+print("90% quantile sky coverage {:.2f} sr".format(b[0] * 2 * np.pi))
+
 shower_axis = -1 * hp.spherical_to_cartesian(np.array(fin['zeniths'])[triggered], np.array(fin['azimuths'])[triggered])
 launch_vectors = np.array(fin['launch_vectors'])[triggered]
 viewing_angles = np.array([hp.get_angle(x, y) for x, y in zip(shower_axis, launch_vectors[:, 0, 0])])
