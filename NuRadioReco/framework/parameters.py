@@ -18,19 +18,15 @@ class stationParameters(Enum):
     azimuth = 14  # the azimuth angle of the incoming signal direction (WARNING: this parameter is not well defined as the incoming signal direction might be different for different channels)
     zenith_cr_templatefit = 15
     zenith_nu_templatefit = 16
-    polarization_angle = 17
-    polarization_angle_expectation = 18
-    
-    cr_xcorrelations = 20 # dict of result of crosscorrelations with cr templates
-    
-    nu_xcorrelations = 22 #  dict of result of crosscorrelations with nu templates
-    station_time = 23
-    signal_energy_fluence = 24
-    signal_time = 25
-    efield_vector = 26
-    efield_vector_polarization = 27
-    cr_spectrum_slope = 28
-    cr_energy_em = 29  # the electromagnetic shower energy (the cosmic ray energy that ends up in electrons, positrons and gammas)
+    polarization_angle = 17 # electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90° is polarization in e_phi
+    polarization_angle_expectation = 18 # expected polarization based on shower geometry. Defined analogous to polarization_angle
+    cr_xcorrelations = 19 # dict of result of crosscorrelations with cr templates
+    nu_xcorrelations = 20 #  dict of result of crosscorrelations with nu templates
+    station_time = 21
+    signal_energy_fluence = 22 # Energy/area in the radio signal
+    signal_time = 23
+    cr_energy_em = 24  # the electromagnetic shower energy (the cosmic ray energy that ends up in electrons, positrons and gammas)
+    cr_spectrum_slope = 25 # Slope of the radio signal's spectrum as reconstructed by the voltageToAnalyticEfieldConverter
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
