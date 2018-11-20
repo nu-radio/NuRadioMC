@@ -162,6 +162,8 @@ State('user_id', 'children'),
 State('filename', 'value')]
 )
 def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_click_info, i_event, juser_id, filename):
+    if filename is None:
+        return 0
     plot_click_info = json.loads(j_plot_click_info)
     if plot_click_info is not None and plot_click_info['time']*1000. > prev_evt_click_timestamp and plot_click_info['time']*1000. > next_evt_click_timestamp:
         return plot_click_info['event_i']
