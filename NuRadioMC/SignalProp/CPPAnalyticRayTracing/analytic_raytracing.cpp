@@ -190,7 +190,7 @@ double dt (double t, void *p){
 	struct dt_params *params = (struct dt_params *) p;	
 	double C0 = (params->a);
 	double n_ice = (params->b);
-	double delta_n = (params->a);
+	double delta_n = (params->c);
 	double z_0 = (params->d);	
 	
 	double z = get_z_unmirrored(t,C0,n_ice, delta_n, z_0);
