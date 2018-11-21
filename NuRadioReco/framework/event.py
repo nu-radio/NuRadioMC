@@ -4,6 +4,7 @@ try:
 except ImportError:
     import pickle
 import NuRadioReco.framework.station
+from six import itervalues
 import logging
 logger = logging.getLogger('Event')
 
@@ -32,8 +33,12 @@ class Event:
     def get_run_number(self):
         return self.__run_number
 
+    def get_station(self, station_id):
+        return self.__stations[station_id]
+
     def get_stations(self):
-        return self.__stations.values()
+        for station in itervalues(self.__stations):
+            yield station
 
     def set_station(self, station):
         self.__stations[station.get_id()] = station
