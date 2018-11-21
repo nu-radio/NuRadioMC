@@ -295,15 +295,15 @@ class simulation():
                     # reflection at the surface
                     if(ray.solution_types[r.get_solution_type(iS)] == 'reflected'):
                         from NuRadioReco.utilities import geometryUtilities as geo_utl
-                        r_parallel = geo_utl.get_fresnel_r_parallel(
+                        r_theta = geo_utl.get_fresnel_r_p(
                             zenith, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
-                        r_perpendicular = geo_utl.get_fresnel_r_perpendicular(
+                        r_phi = geo_utl.get_fresnel_r_s(
                             zenith, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
 
-                        eTheta *= r_parallel
-                        ePhi *= r_perpendicular
-                        logger.debug("reflection coefficient is r_parallel = {:.2f}, r_perpendicular = {:.2f}".format(
-                            r_parallel, r_perpendicular))
+                        eTheta *= r_theta
+                        ePhi *= r_phi
+                        logger.debug("reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
+                            r_theta, r_phi))
 
                     if(self._debug):
                         fig, (ax, ax2) = plt.subplots(1, 2)
