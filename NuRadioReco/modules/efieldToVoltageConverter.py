@@ -96,11 +96,11 @@ class efieldToVoltageConverter:
                 if(position[2] <= 0):
                     # signal comes from above and antenna is in the firn
                     zenith_antenna = geo_utl.get_fresnel_angle(zenith, n_ice, 1)
-                    t_parallel = geo_utl.get_fresnel_t_parallel(zenith, n_ice, 1)
-                    t_perpendicular = geo_utl.get_fresnel_t_perpendicular(zenith, n_ice, 1)
-                    efield_fft[1] *= t_parallel  # eTheta is parallel to the incident plane
-                    efield_fft[2] *= t_perpendicular  # ePhi is perpendicular to the incident plane
-                    logger.info("channel {:d}: electric field is refracted into the firn. theta {:.0f} -> {:.0f}. Transmission coefficient parallel {:.2f} perpendicular {:.2f}".format(iCh, zenith / units.deg, zenith_antenna / units.deg, t_parallel, t_perpendicular))
+                    t_theta = geo_utl.get_fresnel_t_p(zenith, n_ice, 1)
+                    t_phi = geo_utl.get_fresnel_t_s(zenith, n_ice, 1)
+                    efield_fft[1] *= t_theta  # eTheta is parallel to the incident plane
+                    efield_fft[2] *= t_phi  # ePhi is perpendicular to the incident plane
+                    logger.info("channel {:d}: electric field is refracted into the firn. theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) {:.2f} s (ePhi) {:.2f}".format(iCh, zenith / units.deg, zenith_antenna / units.deg, t_theta, t_phi))
 
                     # ##DEBUG
                     if 0:
@@ -121,14 +121,14 @@ class efieldToVoltageConverter:
                             ax[1].set_xlim(0, 500)
                             ax[0].legend()
                             ax[1].legend()
-                        t_parallel = geo_utl.get_fresnel_t_parallel(zenith, n_ice, 1)
-                        t_perpendicular = geo_utl.get_fresnel_t_perpendicular(zenith, n_ice, 1)
+                        t_theta = geo_utl.get_fresnel_t_p(zenith, n_ice, 1)
+                        t_phi = geo_utl.get_fresnel_t_s(zenith, n_ice, 1)
     #                     efield_fft[0] *= t_parallel
     #                     efield_fft[1] *= t_parallel
     #                     efield_fft[2] *= t_perpendicular
                         # parallel and perpendicular are with respect to the plane of incident and NOT the surface!
-                        efield_fft[1] *= t_parallel
-                        efield_fft[2] *= t_perpendicular
+                        efield_fft[1] *= t_theta
+                        efield_fft[2] *= t_phi
                         if(self.__debug == logging.DEBUG):
                             ax[1].plot(ff / units.MHz, np.abs(efield_fft[0]), 'C0--')
                             ax[1].plot(ff / units.MHz, np.abs(efield_fft[1]), 'C1--')
