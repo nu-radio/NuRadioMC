@@ -23,10 +23,20 @@ class hardwareResponseIncorporator:
     def begin(self, debug=False):
         self.__debug = debug
 
-    def run(self, evt, station, det, sim_to_data=False, zero_noise=False):
+    def run(self, evt, station, det, sim_to_data=False, phase_only=False):
         """
         Switch sim_to_data to go from simulation to data or otherwise.
         The option zero_noise can be used to zero the noise around the pulse. It is unclear, how useful this is.
+        
+        Parameters
+        -----------
+        sim_to_data: bool (default False)
+            if False, deconvolve the hardware response
+            if True, convolve with the hardware response
+        phase_only: bool (default False)
+            if True, only the phases response is applied but not the amplitude response 
+        
+        
         """
         t = time.time()
         station_id = station.get_id()
@@ -40,6 +50,9 @@ class hardwareResponseIncorporator:
             trace_fft = channel.get_frequency_spectrum()
             amp_response = analog_components.get_amplifier_response(frequencies, amp_type=amp_type)
             cable_response = analog_components.get_cable_response_parametrized(frequencies, *det.get_cable_type_and_length(station.get_id(), channel.get_id()))
+            if(phase_only):
+                cable_response = np.ones_like(cable_response) * np.exp(1j * np.angle(cable_response))
+                amp_response['gain'] = np.ones_like(amp_response['gain'])
             if sim_to_data:
                 if(self.__debug):
                     import matplotlib.pyplot as plt
@@ -102,20 +115,20 @@ class hardwareResponseIncorporator:
 #                 trace = channel.get_trace()
 #                 trace = np.roll(trace, roll_by)
 
-                if zero_noise:
-                    if amp_type == '100':
-                        t_0 = 10 * units.ns
-                        t_1 = 140 * units.ns
-                        signal_window = ((channel.get_times() > t_0) &
-                                        (channel.get_times() < t_1))
-
-                        trace[~signal_window] = 0
-
-                        if self.__debug:
-                            f1.axes[channel.get_id()].plot(channel.get_times(), trace)
-                            f1.axes[channel.get_id()].axvspan(t_0, t_1, alpha=0.5, color='C5')
-                    else:
-                        logger.warning("Zero noise not implemented for amp other than 100 series")
+#                 if zero_noise:
+#                     if amp_type == '100':
+#                         t_0 = 10 * units.ns
+#                         t_1 = 140 * units.ns
+#                         signal_window = ((channel.get_times() > t_0) &
+#                                         (channel.get_times() < t_1))
+# 
+#                         trace[~signal_window] = 0
+# 
+#                         if self.__debug:
+#                             f1.axes[channel.get_id()].plot(channel.get_times(), trace)
+#                             f1.axes[channel.get_id()].axvspan(t_0, t_1, alpha=0.5, color='C5')
+#                     else:
+#                         logger.warning("Zero noise not implemented for amp other than 100 series")
 
 #                 channel.set_trace(trace, channel.get_sampling_rate())
         self.__t += time.time() - t

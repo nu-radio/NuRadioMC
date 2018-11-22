@@ -1,7 +1,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import cPickle as pickle
 import numpy as np
+from NuRadioReco.utilities import units
 import logging
+from six import iteritems
 import os
 logger = logging.getLogger("Templates")
 
@@ -21,6 +23,7 @@ class Templates(object):
         self.__cr_template_set_full = {}
         self.__ref_nu_templates = {}
         self.__nu_templates = {}
+        self.__nu_template_set = {}
         self.__path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                             '../analysis/templateGeneration/') 
         
@@ -110,6 +113,32 @@ class Templates(object):
                         if n_tmpl >= n:
                             break
         return self.__cr_template_set
+    
+    def get_set_of_nu_templates(self, station_id, n=100):
+        """
+        gets set of n templates to allow for the calculation of average templates
+
+        loops first over different viewing angles
+        and then over azimuth angles of 0, 22.5 and 45 degree
+        and then over zenith angles of 100, 120 and 140 degree
+        """
+        if station_id not in self.__ref_nu_templates.keys():
+            self.__load_nu_template(station_id)
+        if self.__nu_template_set == {}:
+            logger.info("Getting set of templates for station ID {}".format(station_id))
+            n_tmpl = 0
+            zen_refs = np.deg2rad([100, 120, 140])
+            az_refs = np.deg2rad([0, 22.5, 45])
+            dCherenkovs = np.deg2rad([0, -0.5, -1, -1.5, -2, -3, -4, -5])
+
+            for zen in zen_refs:
+                for az in az_refs:
+                    for dCh in dCherenkovs:
+                        self.__nu_template_set[n_tmpl] = self.__nu_templates[station_id][zen][az][dCh]
+                        n_tmpl += 1
+                        if n_tmpl >= n:
+                            break
+        return self.__nu_template_set
 
     def __load_nu_template(self, station_id):
         path= os.path.join(self.__path, 'templates_nu_station_{}.pickle'.format(station_id))
