@@ -13,6 +13,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from flask import Flask, send_from_directory
 from app import app
+from apps import overview
 from apps import traces
 from apps import cosmic_rays
 from apps.common import get_point_index
@@ -125,19 +126,7 @@ app.layout = html.Div([
     ], style={'display': 'flex'}),
     dcc.Tabs([
         dcc.Tab([
-            html.H3('summary plots'),
-            html.Div(id='trigger', style={'display': 'none'},
-                     children=json.dumps(None)),
-            html.Div([
-                html.Div([
-                    html.H5("template time fit")
-                ], className="six columns"),
-                html.Div([
-                    html.H5("cross correlation fitter"),
-                    dcc.Graph(id='skyplot-xcorr')
-                ], className="six columns")
-            ], className='row'),
-            html.Div(id='output')
+            overview.layout
         ], id='summary-tab', label='Summary'),
         dcc.Tab([
             traces.layout
