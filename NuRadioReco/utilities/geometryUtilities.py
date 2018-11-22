@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 from scipy import constants
 from NuRadioReco.utilities import units
-import NuRadioReco.framework.channel
+from numpy.lib import scimath as SM
 import logging
 logger = logging.getLogger('geometryUtilities')
 
@@ -94,9 +94,10 @@ def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.):
         return np.arcsin(t)
 
 
-def get_fresnel_t_perpendicular(zenith_incoming, n_2=1.3, n_1=1.):
+def get_fresnel_t_p(zenith_incoming, n_2=1.3, n_1=1.):
     """  returns the coefficient t which is the ratio of the transmitted wave's
-    electric field amplitude to that of the incident wave for perpendicular polarization (p-wave)
+    electric field amplitude to that of the incident wave for parallel polarization (p-wave)
+    this polarization corresponds to the eTheta polarization
 
     parallel and perpendicular refers to the signal's polarization with respect
     to the 'plane of incident' which is defindes as: "the plane of incidence
@@ -108,9 +109,10 @@ def get_fresnel_t_perpendicular(zenith_incoming, n_2=1.3, n_1=1.):
     return t
 
 
-def get_fresnel_t_parallel(zenith_incoming, n_2=1.3, n_1=1.):
+def get_fresnel_t_s(zenith_incoming, n_2=1.3, n_1=1.):
     """  returns the coefficient t which is the ratio of the transmitted wave's
-    electric field amplitude to that of the incident wave for parallel polarization (s-wave)
+    electric field amplitude to that of the incident wave for perpendicular polarization (s-wave)
+    this polarization corresponds to the ePhi polarization
 
     parallel and perpendicular refers to the signal's polarization with respect
     to the 'plane of incident' which is defindes as: "the plane of incidence
@@ -122,34 +124,32 @@ def get_fresnel_t_parallel(zenith_incoming, n_2=1.3, n_1=1.):
     return t
 
 
-def get_fresnel_r_perpendicular(zenith_incoming, n_2=1.3, n_1=1.):
+def get_fresnel_r_p(zenith_incoming, n_2=1.3, n_1=1.):
     """  returns the coefficient r which is the ratio of the reflected wave's
-    electric field amplitude to that of the incident wave for perpendicular polarization (p-wave)
+    electric field amplitude to that of the incident wave for parallel polarization (p-wave)
+    this polarization corresponds to the eTheta polarization
 
     parallel and perpendicular refers to the signal's polarization with respect
     to the 'plane of incident' which is defindes as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
     """
-    zenith_outgoing = get_fresnel_angle(zenith_incoming, n_2, n_1)
-    if(zenith_outgoing is None):  # we have total internal reflection
-        return 1
-    r = (n_2 * np.cos(zenith_incoming) - n_1 * np.cos(zenith_outgoing)) / (n_2 * np.cos(zenith_incoming) + n_1 * np.cos(zenith_outgoing))
-    return r
+    n = n_2/n_1
+    return (-n**2 * np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2)) / \
+              (n**2 * np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2))
 
 
-def get_fresnel_r_parallel(zenith_incoming, n_2=1.3, n_1=1.):
+def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
     """  returns the coefficient r which is the ratio of the reflected wave's
-    electric field amplitude to that of the incident wave for parallel polarization (s-wave)
+    electric field amplitude to that of the incident wave for perpendicular polarization (s-wave)
+    this polarization corresponds to the ePhi polarization
 
     parallel and perpendicular refers to the signal's polarization with respect
     to the 'plane of incident' which is defindes as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
     """
-    zenith_outgoing = get_fresnel_angle(zenith_incoming, n_2, n_1)
-    if(zenith_outgoing is None):  # we have total internal reflection
-        return 1
-    r = (n_1 * np.cos(zenith_incoming) - n_2 * np.cos(zenith_outgoing)) / (n_1 * np.cos(zenith_incoming) + n_2 * np.cos(zenith_outgoing))
-    return r
+    n = n_2/n_1
+    return (np.cos(zenith_incoming) - SM.sqrt(n**2 - np.sin(zenith_incoming)**2)) / \
+              (np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2))
 

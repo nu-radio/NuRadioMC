@@ -69,9 +69,13 @@ class channelTemplateCorrelation:
                 ref_template = self.__templates.get_nu_ref_template(station_id)
                 ref_str = 'nu'
         else:
-            ref_templates = self.__templates.get_set_of_cr_templates(station_id, n=n_templates)
-            ref_str = 'cr'
             logger.info("Using average of correlation over many templates")
+            if cosmic_ray:
+                ref_templates = self.__templates.get_set_of_cr_templates(station_id, n=n_templates)
+                ref_str = 'cr'
+            else:
+                ref_templates = self.__templates.get_set_of_nu_templates(station_id, n=n_templates)
+                ref_str = 'nu'
 
         xcorrs = []
 
@@ -133,6 +137,7 @@ class channelTemplateCorrelation:
                     template_key.append(key)
 
                 xcorrelations['{}_ref_xcorr'.format(ref_str)] = np.abs(xcorrs_ch).mean()
+                xcorrelations['{}_ref_xcorr_all'.format(ref_str)] = np.abs(xcorrs_ch)
                 xcorrelations['{}_ref_xcorr_max'.format(ref_str)] = xcorrs_ch[np.argmax(np.abs(xcorrs_ch))]
                 xcorrelations['{}_ref_xcorr_time'.format(ref_str)] = np.mean(xcorrpos_ch[np.argmax(np.abs(xcorrs_ch))]) * dt
                 xcorrelations['{}_ref_xcorr_template'.format(ref_str)] = template_key[np.argmax(np.abs(xcorrs_ch))]

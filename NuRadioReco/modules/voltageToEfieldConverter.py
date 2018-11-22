@@ -85,17 +85,17 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     efield_antenna_factor = np.zeros((len(use_channels), 2, len(frequencies)), dtype=np.complex)  # from antenna model in e_theta, e_phi
     for iCh, channel in enumerate(station.iter_channels(use_channels)):
         zenith_antenna = zenith
-        transmission_parallel = 1.
-        transmission_perpendicular = 1.
+        t_theta = 1.
+        t_phi = 1.
         # first check case if signal comes from above
         if(zenith <= 0.5 * np.pi):
             # is antenna below surface?
             position = det.get_relative_position(station_id, channel.get_id())
             if(position[2] <= 0):
                 zenith_antenna = geo_utl.get_fresnel_angle(zenith, n_ice, 1)
-                transmission_parallel = geo_utl.get_fresnel_t_parallel(zenith, n_ice, 1)
-                transmission_perpendicular = geo_utl.get_fresnel_t_perpendicular(zenith, n_ice, 1)
-                logger.info("channel {:d}: electric field is refracted into the firn. theta {:.0f} -> {:.0f}. Transmission coefficient parallel {:.2f} perpendicular {:.2f}".format(iCh, zenith / units.deg, zenith_antenna / units.deg, transmission_parallel, transmission_perpendicular))
+                t_theta = geo_utl.get_fresnel_t_p(zenith, n_ice, 1)
+                t_phi = geo_utl.get_fresnel_t_s(zenith, n_ice, 1)
+                logger.info("channel {:d}: electric field is refracted into the firn. theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) {:.2f} s (ePhi) {:.2f}".format(iCh, zenith / units.deg, zenith_antenna / units.deg, t_theta, t_phi))
         else:
             # now the signal is coming from below, do we have an antenna above the surface?
             position = det.get_relative_position(station_id, channel.get_id())
@@ -110,7 +110,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         antenna_pattern = antenna_pattern_provider.load_antenna_pattern(antenna_model)
         ori = det.get_antanna_orientation(station_id, channel.get_id())
         VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_antenna, azimuth, *ori)
-        efield_antenna_factor[iCh] = np.array([VEL['theta'] * transmission_parallel, VEL['phi'] * transmission_perpendicular])
+        efield_antenna_factor[iCh] = np.array([VEL['theta'] * t_theta, VEL['phi'] * t_phi])
 
     if(debug_cut):
         plt.show()
