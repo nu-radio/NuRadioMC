@@ -99,7 +99,8 @@ app.layout = html.Div([
                     ),
                 ],
                 style={
-                'margin': '10px 10px 20px 10px',
+                'padding': '10px 20px 20px',
+                'overflow': 'hidden',
                 'flex': '1'}
                 )
             ],
