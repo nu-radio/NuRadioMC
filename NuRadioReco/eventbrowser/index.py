@@ -200,16 +200,11 @@ def set_event_number_display(filename, event_number):
 # set maximum value of slider
 @app.callback(
     Output('event-counter-slider', 'max'),
-    [Input('filename', 'value'),
-     Input('event-ids', 'children')],
+    [Input('filename', 'value')],
     [State('user_id', 'children')])
-def update_slider_options(filename, jevent_ids, juser_id):
+def update_slider_options(filename, juser_id):
     if filename is None:
         return 0
-#     filename = json.loads(jfilename)
-    current_selection = json.loads(jevent_ids)
-    if(current_selection != [] and current_selection is not None):
-        return len(current_selection) - 1
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
     number_of_events = ariio.get_n_events()
