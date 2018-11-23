@@ -47,8 +47,6 @@ app.layout = html.Div([
              children=json.dumps(None)),
 #     html.Div(id='filename', style={'display': 'none'},
 #              children=json.dumps(None)),
-    html.Div(id='station_id', style={'display': 'none'},
-             children=json.dumps(None)),
     html.Div(id='event-ids',  style={'display': 'none'},
              children=json.dumps([])),
     html.Div([
@@ -245,18 +243,6 @@ def set_filename_dropdown(folder):
     return [{'label': l, 'value': l} for l in sorted(glob.glob(os.path.join(folder, '*.ar*')))]
 
 
-@app.callback(Output('station_id', 'children'),
-              [Input('filename', 'value')],
-              [State('user_id', 'children'),
-               State('station_id', 'children')])
-def set_station_id(filename, juser_id, jstation_id):
-    station_id = json.loads(jstation_id)
-    if(station_id is None and filename is not None):
-        user_id = json.loads(juser_id)
-#         filename = json.loads(jfilename)
-        ariio = provider.get_arianna_io(user_id, filename)
-        station_id = ariio.get_header().keys()[0]
-    return json.dumps(station_id)
 
 @app.callback(Output('station-id-dropdown', 'options'),
             [Input('filename', 'value'),
@@ -293,13 +279,12 @@ def display_page2(pathname):
               [Input('filename', 'value'),
                Input('trigger', 'children'),
                Input('event-ids', 'children'),
-               Input('station_id', 'children')],
+               Input('station-id-dropdown', 'value')],
               [State('user_id', 'children')])
-def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, jstation_id, juser_id):
-    if filename is None or jstation_id is None:
+def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, station_id, juser_id):
+    if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
     current_selection = json.loads(jcurrent_selection)
     ariio = provider.get_arianna_io(user_id, filename)
     traces = []
@@ -391,15 +376,11 @@ def coordinate_event_click(cr_polarization_zenith_click, cr_skyplot_click, cr_xc
 @app.callback(Output('event-info-run', 'children'),
             [Input('event-counter-slider', 'value'),
             Input('filename', 'value')],
-            [State('user_id', 'children'),
-            State('station_id', 'children')])
-def update_event_info_run(event_i, filename, juser_id, jstation_id):
+            [State('user_id', 'children')])
+def update_event_info_run(event_i, filename, juser_id):
     if filename is None:
         return ""
-#     filename = json.loads(jfilename)
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
-
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(event_i)
     return evt.get_run_number()    
@@ -407,15 +388,11 @@ def update_event_info_run(event_i, filename, juser_id, jstation_id):
 @app.callback(Output('event-info-id', 'children'),
             [Input('event-counter-slider', 'value'),
             Input('filename', 'value')],
-            [State('user_id', 'children'),
-            State('station_id', 'children')])
-def update_event_info_id(event_i, filename, juser_id, jstation_id):
+            [State('user_id', 'children')])
+def update_event_info_id(event_i, filename, juser_id):
     if filename is None:
         return ""
-#     filename = json.loads(jfilename)
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
-
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(event_i)
     return evt.get_id()
