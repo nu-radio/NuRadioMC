@@ -60,14 +60,12 @@ layout = html.Div([
               [Input('filename', 'value'),
                Input('btn-open-file', 'value'),
                Input('event-ids', 'children'),
-               Input('station_id', 'children')],
+               Input('station-id-dropdown', 'value')],
               [State('user_id', 'children')])
-def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, jstation_id, juser_id):
-    if filename is None or jstation_id is None:
+def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, station_id, juser_id):
+    if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
-#     filename = json.loads(jfilename)
-    station_id = json.loads(jstation_id)
     ariio = provider.get_arianna_io(user_id, filename)
     traces = []
     keys = ariio.get_header()[station_id].keys()
@@ -121,14 +119,12 @@ def handle_cr_polarization_zenith_point_click(click_data):
                Input('trigger', 'children'),
                Input('event-ids', 'children'),
                Input('btn-open-file', 'value'),
-               Input('station_id', 'children')],
+               Input('station-id-dropdown', 'value')],
               [State('user_id', 'children')])
-def plot_skyplot(filename, trigger, jcurrent_selection, btn, jstation_id, juser_id):
-    if filename is None:
+def plot_skyplot(filename, trigger, jcurrent_selection, btn, station_id, juser_id):
+    if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
-#     filename = json.loads(jfilename)
-    station_id = json.loads(jstation_id)
     current_selection = json.loads(jcurrent_selection)
     ariio = provider.get_arianna_io(user_id, filename)
     traces = []
