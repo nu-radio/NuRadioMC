@@ -262,6 +262,19 @@ def get_station_dropdown_options(filename, i_event, juser_id):
         })
     return dropdown_options
 
+@app.callback(Output('station-id-dropdown', 'value'),
+            [Input('filename', 'value'),
+            Input('event-counter-slider', 'value')],
+            [State('user_id', 'children')])
+def set_to_first_station_in_event(filename, event_i, juser_id):
+    if filename is None:
+        return None
+    user_id = json.loads(juser_id)
+    ariio = provider.get_arianna_io(user_id, filename)
+    event = ariio.get_event_i(event_i)
+    for station in event.get_stations():
+        return station.get_id()
+
 @app.callback(Output('summary', 'style'),
               [Input('url', 'pathname')])
 def display_page2(pathname):
