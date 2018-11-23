@@ -89,7 +89,8 @@ app.layout = html.Div([
                             n_clicks_timestamp=0
                             )
                     ],
-                    className='btn-group'
+                    className='btn-group',
+                    style={'margin': '10px'}
                     ),
                 html.Div([
                      dcc.Slider(
@@ -100,10 +101,18 @@ app.layout = html.Div([
                     ),
                 ],
                 style={
-                'padding': '10px 20px 20px',
+                'padding': '10px 30px 20px',
                 'overflow': 'hidden',
                 'flex': '1'}
-                )
+                ),
+                html.Div([
+                    dcc.Dropdown(
+                        id='station-id-dropdown',
+                        options = [],
+                        multi=False
+                    )
+                ],
+                style={'flex': 'none', 'padding': '10px', 'min-width': '200px'})
             ],
             style={
             'display': 'flex'
@@ -235,20 +244,6 @@ def set_uuid(pathname, juser_id):
 def set_filename_dropdown(folder):
     return [{'label': l, 'value': l} for l in sorted(glob.glob(os.path.join(folder, '*.ar*')))]
 
-# @app.callback(Output('filename', 'children'),
-#               [Input('btn-open-file', 'n_clicks')],
-#               [State('user_id', 'children'),
-#                State('filename', 'children')])
-# def open_file(n_clicks, juser_id, jfilename):
-#     user_id = json.loads(juser_id)
-#     filename = json.loads(jfilename)
-#     if(filename is None):
-#         with open('filename.txt', 'r') as fin:
-#             filename = fin.readlines()[0].strip('\n')
-#             ariio = provider.get_arianna_io(user_id, filename)
-#     print("setting filename to ", filename)
-#     return json.dumps(filename)
-
 
 @app.callback(Output('station_id', 'children'),
               [Input('filename', 'value')],
@@ -263,14 +258,23 @@ def set_station_id(filename, juser_id, jstation_id):
         station_id = ariio.get_header().keys()[0]
     return json.dumps(station_id)
 
-# @app.callback(Output('event-counter', 'children'),
-#               [Input('filename', 'children')],
-#               [State('event-counter', 'children')])
-# def reset_event_counter(jfilename, jeventcounter):
-#     eventcounter = json.loads(jeventcounter)
-#     eventcounter['evt_counter'] = 0
-#     return json.dumps(eventcounter)
-
+@app.callback(Output('station-id-dropdown', 'options'),
+            [Input('filename', 'value'),
+            Input('event-counter-slider', 'value')],
+            [State('user_id', 'children')])
+def get_station_dropdown_options(filename, i_event, juser_id):
+    if filename is None:
+        return []
+    user_id = json.loads(juser_id)
+    ariio = provider.get_arianna_io(user_id, filename)
+    event = ariio.get_event_i(i_event)
+    dropdown_options = []
+    for station in event.get_stations():
+        dropdown_options.append({
+            'label': 'Station {}'.format(station.get_id()),
+            'value': station.get_id()
+        })
+    return dropdown_options
 
 @app.callback(Output('summary', 'style'),
               [Input('url', 'pathname')])
@@ -418,19 +422,17 @@ def update_event_info_id(event_i, filename, juser_id, jstation_id):
 
 @app.callback(Output('event-info-time', 'children'),
             [Input('event-counter-slider', 'value'),
-            Input('filename', 'value')],
-            [State('user_id', 'children'),
-            State('station_id', 'children')])
-def update_event_info_time(event_i, filename, juser_id, jstation_id):
-    if filename is None:
+            Input('filename', 'value'),
+            Input('station-id-dropdown', 'value')],
+            [State('user_id', 'children')])
+def update_event_info_time(event_i, filename, station_id, juser_id):
+    if filename is None or station_id is None:
         return ""
 #     filename = json.loads(jfilename)
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
-
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(event_i)
-    return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_stations()[0].get_station_time())
+    return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_station(station_id).get_station_time())
 
 if __name__ == '__main__':
     app.run_server(debug=True, port=8080)

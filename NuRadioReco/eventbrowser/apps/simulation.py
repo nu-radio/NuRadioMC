@@ -139,19 +139,18 @@ def show_signal_spectrum_signal_types(event_type):
     Output('sim-traces', 'figure'),
     [Input('event-counter-slider', 'value'),
     Input('filename', 'value'),
-    Input('sim-traces-signal-types', 'values')],
-    [State('user_id', 'children'),
-     State('station_id', 'children')]
+    Input('sim-traces-signal-types', 'values'),
+    Input('station-id-dropdown', 'value')],
+    [State('user_id', 'children')]
 )
-def update_sim_trace_plot(i_event, filename, signal_types, juser_id, jstation_id):
-    if filename is None:
+def update_sim_trace_plot(i_event, filename, signal_types, station_id, juser_id):
+    if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(i_event)
-    station = evt.get_stations()[0]
+    station = evt.get_station(station_id)
     sim_station = station.get_sim_station()
     visibility_settings = ['legendonly', True, True]
     if sim_station is None:
@@ -188,19 +187,18 @@ def update_sim_trace_plot(i_event, filename, signal_types, juser_id, jstation_id
     Output('sim-spectrum', 'figure'),
     [Input('event-counter-slider', 'value'),
     Input('filename', 'value'),
-    Input('sim-spectrum-signal-types', 'values')],
-    [State('user_id', 'children'),
-     State('station_id', 'children')]
+    Input('sim-spectrum-signal-types', 'values'),
+    Input('station-id-dropdown', 'value')],
+    [State('user_id', 'children')]
 )
-def update_sim_spectrum_plot(i_event, filename, signal_types, juser_id, jstation_id):
-    if filename is None:
+def update_sim_spectrum_plot(i_event, filename, signal_types, station_id, juser_id):
+    if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(i_event)
-    station = evt.get_stations()[0]
+    station = evt.get_station(station_id)
     sim_station = station.get_sim_station()
     if sim_station is None:
         return {}
@@ -234,19 +232,18 @@ def update_sim_spectrum_plot(i_event, filename, signal_types, juser_id, jstation
 @app.callback(
     Output('sim-event-3d', 'figure'),
     [Input('event-counter-slider', 'value'),
-    Input('filename', 'value')],
-    [State('user_id', 'children'),
-     State('station_id', 'children')]
+    Input('filename', 'value'),
+    Input('station-id-dropdown', 'value')],
+    [State('user_id', 'children')]
      )
-def update_sim_event_3d(i_event, filename, juser_id, jstation_id):
-    if filename is None:
+def update_sim_event_3d(i_event, filename, station_id, juser_id):
+    if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(i_event)
-    station = evt.get_stations()[0]
+    station = evt.get_station(station_id)
     sim_station = station.get_sim_station()
     if sim_station is None:
         return {}
@@ -276,6 +273,8 @@ def update_sim_event_3d(i_event, filename, juser_id, jstation_id):
                 name = 'Neutrino Direction',
                 mode = 'lines'
                 ))
+    else:
+        plot_range = 1*units.km
     fig = go.Figure(
         data = data,
             layout = go.Layout(
@@ -308,17 +307,16 @@ def update_sim_event_3d(i_event, filename, juser_id, jstation_id):
     
 @app.callback(Output('sim-station-properties-dropdown', 'options'), 
     [Input('event-counter-slider', 'value'),
-    Input('filename', 'value')],
-    [State('user_id', 'children'),
-     State('station_id', 'children')])
-def get_sim_station_property_options(i_event, filename, juser_id, jstation_id):
-    if filename is None:
+    Input('filename', 'value'),
+    Input('station-id-dropdown', 'value')],
+    [State('user_id', 'children')])
+def get_sim_station_property_options(i_event, filename, station_id, juser_id):
+    if filename is None or station_id is None:
         return []
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(i_event)
-    station = evt.get_stations()[0].get_sim_station()
+    station = evt.get_station(station_id).get_sim_station()
     if station is None:
         return []
     options = []
@@ -329,17 +327,16 @@ def get_sim_station_property_options(i_event, filename, juser_id, jstation_id):
 @app.callback(Output('sim-station-properties-table', 'children'),
     [Input('event-counter-slider', 'value'),
     Input('filename', 'value'),
-    Input('sim-station-properties-dropdown', 'value')],
-    [State('user_id', 'children'),
-     State('station_id', 'children')])
-def get_sim_station_property_table(i_event, filename, properties, juser_id, jstation_id):
-    if filename is None:
+    Input('sim-station-properties-dropdown', 'value'),
+    Input('station-id-dropdown', 'value')],
+    [State('user_id', 'children')])
+def get_sim_station_property_table(i_event, filename, properties, station_id, juser_id):
+    if filename is None or station_id is None:
          return []
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(i_event)
-    station = evt.get_stations()[0].get_sim_station()
+    station = evt.get_station(station_id).get_sim_station()
     reply = []
     for property in properties:
         reply.append(
@@ -351,17 +348,16 @@ def get_sim_station_property_table(i_event, filename, properties, juser_id, jsta
     return reply
 
 @app.callback(Output('reconstruction-quality-properties-dropdown', 'options'),
-    [Input('filename', 'value')],
-    [State('user_id', 'children'),
-    State('station_id', 'children')])
-def get_reconstruction_quality_property_options(filename, juser_id, jstation_id):
-    if filename is None:
+    [Input('filename', 'value'),
+    Input('station-id-dropdown', 'value')],
+    [State('user_id', 'children')])
+def get_reconstruction_quality_property_options(filename, station_id, juser_id):
+    if filename is None or station_id is None:
         return []
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(0)      # we assume that the same properties are set for every event and every station
-    station = evt.get_stations()[0]
+    station = evt.get_station(station_id)
     sim_station = station.get_sim_station()
     if sim_station is None:
         return []
@@ -375,20 +371,19 @@ def get_reconstruction_quality_property_options(filename, juser_id, jstation_id)
 @app.callback(Output('reconstruction-quality-histogram', 'figure'),
               [Input('filename', 'value'),
               Input('reconstruction-quality-properties-dropdown', 'value'),
-              Input('event-ids', 'children')],
-              [State('station_id', 'children'),
-              State('user_id', 'children')])
-def plot_reconstruction_quality_histogram(filename, selected_property, jcurrent_selection, jstation_id, juser_id):
-    if filename is None or selected_property is None:
+              Input('event-ids', 'children'),
+              Input('station-id-dropdown', 'value')],
+              [State('user_id', 'children')])
+def plot_reconstruction_quality_histogram(filename, selected_property, jcurrent_selection, station_id, juser_id):
+    if filename is None or selected_property is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
     current_selection = json.loads(jcurrent_selection)
     e_diffs = []
     in_selection = []
     ariio = provider.get_arianna_io(user_id, filename)
     for i_event,  event in enumerate(ariio.get_events()):
-        station = event.get_stations()[0]
+        station = event.get_station(station_id)
         sim_station = station.get_sim_station()
         e_sim = sim_station.get_parameter(stnp(selected_property))
         e_rec = station.get_parameter(stnp(selected_property))
