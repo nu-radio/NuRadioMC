@@ -161,20 +161,24 @@ def handle_cr_xcorrelation_point_click(click_data):
               [Input('cr-xcorrelation-dropdown', 'value'),
                Input('filename', 'value'),
                Input('event-ids', 'children'),
-               Input('station_id', 'children')],
+               Input('xcorrelation-event-type', 'value'),
+               Input('station-id-dropdown', 'value')],
               [State('user_id', 'children')])
-def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, jstation_id, juser_id):
-    if filename is None:
+def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, event_type, station_id, juser_id):
+    if filename is None or station_id is None or xcorr_type is None:
         return {}
     user_id = json.loads(juser_id)
-#     filename = json.loads(jfilename)
-    station_id = json.loads(jstation_id)
     ariio = provider.get_arianna_io(user_id, filename)
     traces = []
     keys = ariio.get_header()[station_id].keys()
-    if stnp.cr_xcorrelations not in ariio.get_header()[station_id]:
-        return {}
-    xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
+    if event_type == 'nu':
+        if not stnp.nu_xcorrelations in keys:
+            return {}
+        xcorrs = ariio.get_header()[station_id][stnp.nu_xcorrelations]
+    else:
+        if not stnp.cr_xcorrelations in keys:
+            return {}
+        xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
     if stnp.channels_max_amplitude in keys:
         traces.append(go.Scatter(
             x=ariio.get_header()[station_id][stnp.channels_max_amplitude] / units.mV,

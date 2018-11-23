@@ -82,21 +82,17 @@ def get_L1(a):
     dash.dependencies.Output('efield-trace', 'figure'),
     [dash.dependencies.Input('trigger-trace', 'children'),
      dash.dependencies.Input('event-counter-slider', 'value'),
-     dash.dependencies.Input('filename', 'value')],
-     [State('user_id', 'children'),
-      State('station_id', 'children')])
-def update_time_efieldtrace(trigger, evt_counter, filename, juser_id, jstation_id):
-    if filename is None:
+     dash.dependencies.Input('filename', 'value'),
+     dash.dependencies.Input('station-id-dropdown', 'value')],
+     [State('user_id', 'children')])
+def update_time_efieldtrace(trigger, evt_counter, filename, station_id, juser_id):
+    if filename is None or station_id is None:
         return {}
-    print("update efield trace")
-#     filename = json.loads(jfilename)
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
-
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(evt_counter)
-    station = evt.get_stations()[0]
+    station = evt.get_station(station_id)
     fig = tools.make_subplots(rows=1, cols=1)
     if station.get_trace() is None:
         trace = np.array([[],[],[]])
@@ -146,21 +142,17 @@ def update_time_efieldtrace(trigger, evt_counter, filename, juser_id, jstation_i
     dash.dependencies.Output('efield-spectrum', 'figure'),
     [dash.dependencies.Input('trigger-trace', 'children'),
      dash.dependencies.Input('event-counter-slider', 'value'),
-     dash.dependencies.Input('filename', 'value')],
-     [State('user_id', 'children'),
-      State('station_id', 'children')])
-def update_efield_spectrum(trigger, evt_counter, filename, juser_id, jstation_id):
-    if filename is None:
+     dash.dependencies.Input('filename', 'value'),
+     dash.dependencies.Input('station-id-dropdown', 'value')],
+     [State('user_id', 'children')])
+def update_efield_spectrum(trigger, evt_counter, filename, station_id, juser_id):
+    if filename is None or station_id is None:
         return {}
-    print("update efield trace")
-    #     filename = json.loads(jfilename)
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
-
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(evt_counter)
-    station = evt.get_stations()[0]
+    station = evt.get_station(station_id)
     fig = tools.make_subplots(rows=1, cols=1)
     if station.get_trace() is None or station.get_frequencies() is None:
         spectrum = np.array([[],[],[]])
@@ -197,21 +189,17 @@ def update_efield_spectrum(trigger, evt_counter, filename, juser_id, jstation_id
     dash.dependencies.Output('time-trace', 'figure'),
     [dash.dependencies.Input('trigger-trace', 'children'),
      dash.dependencies.Input('event-counter-slider', 'value'),
-     dash.dependencies.Input('filename', 'value')],
-     [State('user_id', 'children'),
-      State('station_id', 'children')])
-def update_time_trace(trigger, evt_counter, filename, juser_id, jstation_id):
-    if filename is None:
+     dash.dependencies.Input('filename', 'value'),
+     dash.dependencies.Input('station-id-dropdown', 'value')],
+     [State('user_id', 'children')])
+def update_time_trace(trigger, evt_counter, filename, station_id, juser_id):
+    if filename is None or station_id is None:
         return {}
-    print("update time trace")
-#     filename = json.loads(jfilename)
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
-
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(evt_counter)
-    station = evt.get_stations()[0]
+    station = evt.get_station(station_id)
     traces = []
     fig = tools.make_subplots(rows=1, cols=1)
     for i, channel in enumerate(station.iter_channels()):
@@ -236,20 +224,17 @@ def update_time_trace(trigger, evt_counter, filename, juser_id, jstation_id):
     dash.dependencies.Output('channel-spectrum', 'figure'),
     [dash.dependencies.Input('trigger-trace', 'children'),
      dash.dependencies.Input('event-counter-slider', 'value'),
-     dash.dependencies.Input('filename', 'value')],
-     [State('user_id', 'children'),
-      State('station_id', 'children')])
-def update_channel_spectrum(trigger, evt_counter, filename, juser_id, jstation_id):
-    if filename is None:
+     dash.dependencies.Input('filename', 'value'),
+     dash.dependencies.Input('station-id-dropdown', 'value')],
+     [State('user_id', 'children')])
+def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id):
+    if filename is None or station_id is None:
         return {}
-#     filename = json.loads(jfilename)
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
-
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(evt_counter)
-    station = evt.get_stations()[0]
+    station = evt.get_station(station_id)
     traces = []
     fig = tools.make_subplots(rows=1, cols=1)
     maxL1 = 0
@@ -291,20 +276,17 @@ def update_channel_spectrum(trigger, evt_counter, filename, juser_id, jstation_i
     [dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
      dash.dependencies.Input('dropdown-traces', 'value'),
-     dash.dependencies.Input('dropdown-trace-info', 'value')],
-     [State('user_id', 'children'),
-      State('station_id', 'children')])
-def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, juser_id, jstation_id):
-#     filename = json.loads(jfilename)
-    if filename is None:
+     dash.dependencies.Input('dropdown-trace-info', 'value'),
+     dash.dependencies.Input('station-id-dropdown', 'value')],
+     [State('user_id', 'children')])
+def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, station_id, juser_id):
+    if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
-
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(evt_counter)
-    station = evt.get_stations()[0]
+    station = evt.get_station(station_id)
     traces = []
     fig = tools.make_subplots(rows=station.get_number_of_channels(), cols=2,
                               shared_xaxes=True, shared_yaxes=False,
@@ -497,20 +479,17 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, ju
     dash.dependencies.Output('time-traces2', 'figure'),
     [dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
-     dash.dependencies.Input('dropdown-traces', 'value')],
-     [State('user_id', 'children'),
-      State('station_id', 'children')])
-def update_time_traces2(evt_counter, filename, dropdown_traces, juser_id, jstation_id):
-    if filename is None:
+     dash.dependencies.Input('dropdown-traces', 'value'),
+     dash.dependencies.Input('station-id-dropdown', 'value')],
+     [State('user_id', 'children')])
+def update_time_traces2(evt_counter, filename, dropdown_traces, station_id, juser_id):
+    if filename is None or station_id is None:
         return {}
-#     filename = json.loads(jfilename)
     user_id = json.loads(juser_id)
-    station_id = json.loads(jstation_id)
-
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(evt_counter)
-    station = evt.get_stations()[0]
+    station = evt.get_station(station_id)
     traces = []
     fig = tools.make_subplots(rows=4, cols=1,
                               shared_xaxes=True, shared_yaxes=True,
