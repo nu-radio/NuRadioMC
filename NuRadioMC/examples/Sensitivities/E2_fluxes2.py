@@ -187,6 +187,16 @@ auger_limit[:, 1] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1
 auger_limit[:, 1] /= 2  # half-decade binning
 auger_limit[:, 1] *= energyBinsPerDecade
 
+# get 10% proton flux
+def get_proton_10(energy):
+    vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), "ReasonableNeutrinos1.txt"))
+    E = vanVliet_reas[0, :] * plotUnitsEnergy
+    f = vanVliet_reas[1, :] * plotUnitsFlux / E**2
+    from scipy.interpolate import interp1d
+    getE = interp1d(E, f)
+    return getE(energy)
+    
+
 
 def get_E2_limit_figure(show_ice_cube_EHE_limit=True,
                         show_ice_cube_HESE=True,
