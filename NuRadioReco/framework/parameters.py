@@ -38,3 +38,5 @@ class channelParameters(Enum):
     P2P_amplitude = 7  # the peak to peak amplitude
     cr_xcorrelations = 8 # dict of result of crosscorrelations with cr templates
     nu_xcorrelations = 9 #  dict of result of crosscorrelations with nu templates
+    nu_vertex_distance = 10 # the distance along the ray path from the vertex to the channel
+    nu_viewing_angle = 11 # the angle between shower axis and launch vector
