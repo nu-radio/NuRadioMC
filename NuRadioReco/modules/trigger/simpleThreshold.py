@@ -1,10 +1,29 @@
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.trigger import SimpleThresholdTrigger
+from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 import numpy as np
 import time
 import logging
 logger = logging.getLogger('simpleThresholdTrigger')
+
+def get_threshold_triggers(trace, threshold):
+    """
+    calculats a simple threshold trigger
+
+    Parameters
+    ----------
+    trace: array of floats
+        the signal trace
+    threshold: float
+        the threshold
+    Returns
+    -------
+    triggered bins: array of bools
+        the bins where the trigger condition is satisfied
+    """
+
+    return np.abs(trace) >= threshold
 
 
 class triggerSimulator:
@@ -24,6 +43,7 @@ class triggerSimulator:
             threshold=60 * units.mV,
             number_concidences=1,
             triggered_channels=None,
+            coinc_window=200 * units.ns,
             trigger_name='default_simple_threshold',
             cut_trace=False):
         """
@@ -37,42 +57,42 @@ class triggerSimulator:
             threshold above (or below) a trigger is issued, absolute amplitude
         triggered_channels: array of ints or None
             channels ids that are triggered on, if None trigger will run on all channels
+        coinc_window: float
+            time window in which number_concidences channels need to trigger
         trigger_name: string
             a unique name of this particular trigger
         """
         t = time.time()
-        coincidences = 0
-        max_signal = 0
-        trigger_time_sample = 99999999999
 
+        sampling_rate = station.get_channel(0).get_sampling_rate()
+        dt = 1. / sampling_rate
+        triggerd_bins_channels = []
         for channel in station.iter_channels():
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
                 logger.debug("skipping channel {}".format(channel_id))
                 continue
             trace = channel.get_trace()
-            index = np.argmax(np.abs(trace))
-            trigger_time_sample = min(index, trigger_time_sample)
-            maximum = np.abs(trace)[index]
-            max_signal = max(max_signal, maximum)
-            if maximum > threshold:
-                coincidences += 1
-            if self.__debug:
-                import matplotlib.pyplot as plt
-                plt.figure()
-                plt.plot(trace)
-                plt.axhline(threshold)
-                plt.show()
+            triggerd_bins = get_threshold_triggers(trace, threshold)
+            triggerd_bins_channels.append(triggerd_bins)
 
-        station.set_parameter(stnp.channels_max_amplitude, max_signal)
-
+        has_triggered, triggered_bins, triggered_times = get_majority_logic(
+            triggerd_bins_channels, number_concidences, coinc_window, dt)
+        # set maximum signal aplitude
+        max_signal = 0
+        if(has_triggered):
+            for channel in station.iter_channels():
+                max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
+            station.set_parameter(stnp.channels_max_amplitude, max_signal)
         trigger = SimpleThresholdTrigger(trigger_name, threshold, triggered_channels,
                                          number_concidences)
-        if coincidences >= number_concidences:
+        if has_triggered:
             trigger.set_triggered(True)
+            trigger.set_trigger_time(triggered_times.min())
             logger.debug("station has triggered")
         else:
             trigger.set_triggered(False)
+            trigger.set_trigger_time(self.__pre_trigger_time)
             logger.debug("station has NOT triggered")
         station.set_trigger(trigger)
 
