@@ -103,7 +103,8 @@ class Trigger:
 
 class SimpleThresholdTrigger(Trigger):
 
-    def __init__(self, name, threshold, channels=None, number_of_coincidences=1):
+    def __init__(self, name, threshold, channels=None, number_of_coincidences=1,
+                 channel_coincidence_window=None):
         """
         initialize trigger class
 
@@ -119,10 +120,13 @@ class SimpleThresholdTrigger(Trigger):
         number_of_coincidences: int
             the number of channels that need to fulfill the trigger condition
             default: 1
+        channel_coincidence_window: float or None (default)
+            the coincidence time between triggers of different channels
         """
         Trigger.__init__(self, name, channels, 'simple_threshold')
         self._threshold = threshold
         self._number_of_coincidences = number_of_coincidences
+        self._coinc_window = channel_coincidence_window
 
 
 class HighLowTrigger(Trigger):
