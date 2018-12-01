@@ -28,8 +28,8 @@ import yaml
 import os
 from numpy.lib.recfunctions import repack_fields
 # import confuse
-# logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("sim")
+logger.setLevel(logging.WARNING)
 
 VERSION = 0.1
 
@@ -163,6 +163,7 @@ class simulation():
         t_start = time.time()
         
         for self._iE in range(self._n_events):
+            logger.debug("Test")
             t1 = time.time()
             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 100.)) == 0):
                 eta = datetime.timedelta(seconds=(time.time() - t_start) * (self._n_events - self._iE) / self._iE)
@@ -203,7 +204,8 @@ class simulation():
             ray_tracing_performed = ('ray_tracing_C0' in self._fin) and (self._was_pre_simulated)
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                 x2 = self._det.get_relative_position(self._station_id, channel_id)
-                r = ray.ray_tracing(x1, x2, self._ice, log_level=logging.WARNING)
+                r = ray.ray_tracing(x1, x2, self._ice, log_level=logging.WARNING,
+                                    n_frequencies_integration=int(self._cfg['propagation']['n_freq']))
 
                 if(ray_tracing_performed):  # check if raytracing was already performed
                     r.set_solution(self._fin['ray_tracing_C0'][self._iE, channel_id], self._fin['ray_tracing_C1'][self._iE, channel_id],
@@ -268,14 +270,16 @@ class simulation():
 
                     # apply frequency dependent attenuation
                     t_att = time.time()
-                    attn = r.get_attenuation(iS, self._ff)
+                    if self._cfg['propagation']['attenuate_ice']:
+                        attn = r.get_attenuation(iS, self._ff)
+                        spectrum *= attn
                     time_attenuation_length += (time.time() - t_att)
-                    spectrum *= attn
 
                     if(fem > 0):
                         spectrum_em = signalgen.get_frequency_spectrum(
                             self._energy * fem, viewing_angles[iS], self._n_samples, self._dt, 1, n_index, R, self._cfg['signal']['model'])
-                        spectrum_em *= attn
+                        if self._cfg['propagation']['attenuate_ice']:
+                            spectrum_em *= attn
                         # add EM signal to had signal in the time domain
                         spectrum = fft.time2freq(fft.freq2time(spectrum) + fft.freq2time(spectrum_em))
 
@@ -322,6 +326,8 @@ class simulation():
                     channel[chp.azimuth] = azimuth
                     channel[chp.zenith] = zenith
                     channel[chp.ray_path_type] = ray.solution_types[r.get_solution_type(iS)]
+                    channel[chp.nu_vertex_distance] = Rs[iS]
+                    channel[chp.nu_viewing_angle] = viewing_angles[iS]
                     self._sim_station.add_channel(channel)
 
                     # apply a simple threshold cut to speed up the simulation,
@@ -348,7 +354,7 @@ class simulation():
             self._detector_simulation()
             self._calculate_signal_properties()
             self._save_triggers_to_hdf5()
-            if(self._outputfilenameNuRadioReco is not None):
+            if(self._outputfilenameNuRadioReco is not None and self._mout['triggered'][self._iE]):
                 self._eventWriter.run(self._evt)
             t4 = time.time()
             detSimTime += (t4 - t3)

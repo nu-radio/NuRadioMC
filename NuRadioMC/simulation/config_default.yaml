@@ -10,6 +10,8 @@ speedup:
 
 propagation:
   ice_model: ARAsim_southpole
+  attenuate_ice: True # if True apply the frequency dependent attenuation due to propagating through ice. (Note: The 1/R amplitude scaling will be applied in either case.)
+  n_freq: 25  # the number of frequencies where the attenuation length is calculated for. The remaining frequencies will be determined from a linear interpolation between the reference frequencies. The reference frequencies are equally spaced over the complet frequency range. 
   
 signal:
   model: Alvarez2000
