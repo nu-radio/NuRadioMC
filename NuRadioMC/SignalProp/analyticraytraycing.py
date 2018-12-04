@@ -101,7 +101,7 @@ class ray_tracing_2D():
         root = np.abs(gamma ** 2 - gamma * self.__b + c)
         logargument = gamma / (2 * c ** 0.5 * (root) ** 0.5 - self.__b * gamma + 2 * c)
         if(np.sum(logargument <= 0)):
-            self.__logger.debug('log = ', logargument)
+            self.__logger.debug('log = {}'.format(logargument))
         result = self.medium.z_0 * (self.medium.n_ice ** 2 * C_0 ** 2 - 1) ** -0.5 * np.log(logargument) + C_1
         return result
 
@@ -510,6 +510,20 @@ class ray_tracing_2D():
 
     def get_receive_angle(self, x1, x2, C_0):
         return np.pi - self.get_angle(x2, x1, C_0)
+    
+    def get_reflection_angle(self, x1, C_0):
+        c = self.medium.n_ice ** 2 - C_0 ** -2
+        C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
+        gamma_turn, z_turn = self.get_turning_point(c)
+        if(z_turn >= 0):
+            gamma_turn = self.get_gamma(0)
+            y_turn = self.get_y(gamma_turn, C_0, C_1)
+            r = self.get_angle(np.array([y_turn, 0]), x1, C_0)
+            self.__logger.debug(
+                "reflecting off surface at y = {:.1f}m, reflection angle = {:.1f}deg".format(y_turn, r / units.deg))
+            return r
+        else:
+            return None
 
     def get_path(self, x1, x2, C_0, n_points=1000):
         """
@@ -921,6 +935,29 @@ class ray_tracing:
             receive_vector_2d = np.array([np.sin(alpha), 0, np.cos(alpha)])
         receive_vector = np.dot(self.__R.T, receive_vector_2d)
         return receive_vector
+    
+    def get_reflection_angle(self, iS):
+        """
+        calculates the angle of reflection at the surface (in case of a reflected ray)
+
+        Parameters
+        ----------
+        iS: int
+            choose for which solution to compute the launch vector, counting
+            starts at zero
+
+        Returns
+        -------
+        reflection_angle: float or None
+            the reflection angle (for reflected rays) or None for direct and refracted rays
+        """
+        n = self.get_number_of_solutions()
+        if(iS >= n):
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            raise IndexError
+
+        result = self.__results[iS]
+        return self.__r2d.get_reflection_angle(self.__x1, result['C0'])
 
     def get_path_length(self, iS, analytic=True):
         """
