@@ -78,6 +78,24 @@ Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights) / n_events
 
 print("Veff = {:.6g} km^3 sr".format(Veff / units.km ** 3))
 
+fig, ax = php.get_histogram(np.array(fin['zeniths'])[triggered] / units.deg, weights=weights,
+                            ylabel='weighted entries', xlabel='zenith angle [deg]',
+                            bins=np.arange(0, 181, 5), figsize=(6, 6))
+ax.set_xticks(np.arange(0, 181, 45))
+ax.set_title(trigger_name)
+fig.tight_layout()
+fig.savefig(os.path.join(plot_folder, 'neutrino_direction.png'))
+
+# calculate sky coverage of 90% quantile
+from radiotools import stat
+q2 =stat.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.95)
+q1 =stat.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.05)
+from scipy import integrate
+def a(theta):
+    return np.sin(theta)
+b = integrate.quad(a, q1, q2)
+print("90% quantile sky coverage {:.2f} sr".format(b[0] * 2 * np.pi))
+
 # plot vertex distribution
 fig, ax = plt.subplots(1, 1)
 xx = np.array(fin['xx'])[triggered]
@@ -167,23 +185,7 @@ bins = np.linspace(0, 90, 50)
 # fig.tight_layout()
 # fig.savefig(os.path.join(plot_folder, 'polarization_unweighted.png'))
 
-fig, ax = php.get_histogram(np.array(fin['zeniths'])[triggered] / units.deg, weights=weights,
-                            ylabel='weighted entries', xlabel='zenith angle [deg]',
-                            bins=np.arange(0, 181, 5), figsize=(6, 6))
-ax.set_xticks(np.arange(0, 181, 45))
-ax.set_title(trigger_name)
-fig.tight_layout()
-fig.savefig(os.path.join(plot_folder, 'neutrino_direction.png'))
 
-# calculate sky coverage of 90% quantile
-from radiotools import stat
-q2 =stat.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.95)
-q1 =stat.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.05)
-from scipy import integrate
-def a(theta):
-    return np.sin(theta)
-b = integrate.quad(a, q1, q2)
-print("90% quantile sky coverage {:.2f} sr".format(b[0] * 2 * np.pi))
 
 shower_axis = -1 * hp.spherical_to_cartesian(np.array(fin['zeniths'])[triggered], np.array(fin['azimuths'])[triggered])
 launch_vectors = np.array(fin['launch_vectors'])[triggered]
