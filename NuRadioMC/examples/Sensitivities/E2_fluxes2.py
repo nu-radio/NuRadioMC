@@ -31,7 +31,9 @@ GRAND_10k = np.array(([8.41513361e-08, 7.38147706e-08, 5.69225180e-08, 3.4664793
                        1.14294614e-02, 1.72447830e-02, 7.48579143e-02, 3.31883351e-01,
                        8.57786094e-01, 1.24824516e+00, 1.42294586e+00, 1.80135089e+00]))
 
-GRAND_10k *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
+GRAND_10k *= (units.GeV* units.cm**-2 * units.second**-1 * units.sr**-1)
+#GRAND_10k /= 2 #halfdecade bins
+GRAND_10k *= energyBinsPerDecade
 
 GRAND_200k = np.array(([4.26219753e-09, 3.58147708e-09, 2.75670137e-09, 1.85254042e-09,
                         1.13825106e-09, 7.70141315e-10, 6.51758930e-10, 6.35878242e-10,
@@ -113,13 +115,14 @@ ice_cube_hese = np.array(([
 ]))
 
 
+
 ice_cube_hese[:, 0] = ice_cube_hese[:, 0] * units.GeV
 ice_cube_hese[:, 1] = ice_cube_hese[:, 1] * (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
-ice_cube_hese[:, 1] *= energyBinsPerDecade * 3
+ice_cube_hese[:, 1] *= 3
 ice_cube_hese[:, 2] = ice_cube_hese[:, 2] * (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
-ice_cube_hese[:, 2] *= energyBinsPerDecade * 3
+ice_cube_hese[:, 2] *=  3
 ice_cube_hese[:, 3] = ice_cube_hese[:, 3] * (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
-ice_cube_hese[:, 3] *= energyBinsPerDecade * 3
+ice_cube_hese[:, 3] *= 3
 
 # Ice cube
 
@@ -243,13 +246,13 @@ def get_E2_limit_figure(show_ice_cube_EHE_limit=True,
     if show_grand_10k:
         ax.plot(GRAND_energy / plotUnitsEnergy, GRAND_10k / plotUnitsFlux, linestyle="--", color='saddlebrown')
         ax.annotate('GRAND 10k',
-                    xy=(1e10, 1.1e-7), xycoords='data',
+                    xy=(0.3e10, 1.1e-7 /2 * energyBinsPerDecade), xycoords='data',
                     horizontalalignment='left', color='saddlebrown', rotation=50)
 
     if show_grand_200k:
         ax.plot(GRAND_energy / plotUnitsEnergy, GRAND_200k / plotUnitsFlux, linestyle="--", color='saddlebrown')
         ax.annotate('GRAND 200k',
-                    xy=(1e10, 6e-9), xycoords='data',
+                    xy=(1e10, 6e-9 /2 * energyBinsPerDecade), xycoords='data',
                     horizontalalignment='left', color='saddlebrown', rotation=50)
     if show_radar:
         ax.fill_between(Radar[:, 0] / plotUnitsEnergy, Radar[:, 1] / plotUnitsFlux,
@@ -261,8 +264,8 @@ def get_E2_limit_figure(show_ice_cube_EHE_limit=True,
     if show_ice_cube_EHE_limit:
         ax.plot(ice_cube_limit[:, 0] / plotUnitsEnergy, ice_cube_limit[:, 1] / plotUnitsFlux, color='dodgerblue')
         ax.annotate('IceCube',
-                    xy=(0.7e7, 4e-8), xycoords='data',
-                    horizontalalignment='center', color='dodgerblue', rotation=0)
+                    xy=(3e5, 1e-7), xycoords='data',
+                    horizontalalignment='left', verticalalignment='center', color='dodgerblue', rotation=0)
 
     if show_ice_cube_HESE:
         # data points
@@ -270,8 +273,8 @@ def get_E2_limit_figure(show_ice_cube_EHE_limit=True,
         uplimit[np.where(ice_cube_hese[:, 3] == 0)] = 1
         uplimit[np.where(ice_cube_hese[:, 3] != 0.)] = 0
 
-        ax.errorbar(ice_cube_hese[:, 0] / plotUnitsEnergy, ice_cube_hese[:, 1] / plotUnitsFlux, yerr=ice_cube_hese[:,
-                                                                                                                   2:].T / plotUnitsFlux, uplims=uplimit, color='dodgerblue', marker='o', ecolor='dodgerblue', linestyle='None')
+        ax.errorbar(ice_cube_hese[:, 0] / plotUnitsEnergy, ice_cube_hese[:, 1] / plotUnitsFlux, yerr=ice_cube_hese[:,2:].T / plotUnitsFlux,
+                    uplims=uplimit, color='dodgerblue', marker='o', ecolor='dodgerblue', linestyle='None')
 
         # hese fit
         ice_cube_hese_range = get_ice_cube_hese_range()
@@ -291,13 +294,13 @@ def get_E2_limit_figure(show_ice_cube_EHE_limit=True,
     if show_anita_I_III_limit:
         ax.plot(anita_limit[:, 0] / plotUnitsEnergy, anita_limit[:, 1] / plotUnitsFlux, color='darkorange')
         ax.annotate('ANITA I - III',
-                    xy=(7e9, 1e-6), xycoords='data',
-                    horizontalalignment='left', color='darkorange')
+                    xy=(5e9, 0.5e-6 /2 * energyBinsPerDecade), xycoords='data',
+                    horizontalalignment='right', color='darkorange')
 
     if show_auger_limit:
         ax.plot(auger_limit[:, 0] / plotUnitsEnergy, auger_limit[:, 1] / plotUnitsFlux, color='forestgreen')
         ax.annotate('Auger',
-                    xy=(1.1e8, 2.1e-7), xycoords='data',
+                    xy=(1.2e8, 2.1e-7 /2 * energyBinsPerDecade), xycoords='data',
                     horizontalalignment='left', color='forestgreen', rotation=0)
 
     ax.set_yscale('log')
@@ -313,7 +316,7 @@ def get_E2_limit_figure(show_ice_cube_EHE_limit=True,
     return fig, ax
 
 
-def add_limit(ax, limit_labels, E, Veff, n_stations, label, livetime=3*units.year, fmt='-C0'):
+def add_limit(ax, limit_labels, E, Veff, n_stations, label, livetime=3*units.year, fmt='-', color='C0'):
     E = np.array(E)
     Veff = np.array(Veff)
     limit = fluxes.get_limit_e2_flux(energy = E,
@@ -324,10 +327,35 @@ def add_limit(ax, limit_labels, E, Veff, n_stations, label, livetime=3*units.yea
                                      upperLimOnEvents=2.44,
                                      nuCrsScn='ctw')
 
-    _plt, = ax.plot(E/plotUnitsEnergy,limit/ plotUnitsFlux, fmt,
+    _plt, = ax.plot(E/plotUnitsEnergy,limit/ plotUnitsFlux, fmt, color=color,
                     label="{2}: {0} stations, {1} years".format(n_stations,int(livetime/units.year),label),
                     linewidth=3)
     limit_labels.append(_plt)
+    return limit_labels
+
+def add_limit_band(ax, limit_labels, E, Veff1, Veff2, n_stations, label, livetime=3*units.year, color='C0'):
+    E = np.array(E)
+    Veff1 = np.array(Veff1)
+    Veff2 = np.array(Veff2)
+    limit1 = fluxes.get_limit_e2_flux(energy = E,
+                                     veff = Veff1,
+                                     livetime = livetime,
+                                     signalEff = n_stations,
+                                     energyBinsPerDecade=energyBinsPerDecade,
+                                     upperLimOnEvents=2.44,
+                                     nuCrsScn='ctw')
+    limit2 = fluxes.get_limit_e2_flux(energy = E,
+                                      veff = Veff2,
+                                     livetime = livetime,
+                                     signalEff = n_stations,
+                                     energyBinsPerDecade=energyBinsPerDecade,
+                                     upperLimOnEvents=2.44,
+                                     nuCrsScn='ctw')
+
+    ax.fill_between(E/plotUnitsEnergy,limit1/ plotUnitsFlux,limit2/ plotUnitsFlux,
+                            color=color, alpha=0.5, 
+                            label="{2}: {0} stations, {1} years".format(n_stations,int(livetime/units.year),label))
+#     limit_labels.append(_plt)
     return limit_labels
 
 if __name__=="__main__":
