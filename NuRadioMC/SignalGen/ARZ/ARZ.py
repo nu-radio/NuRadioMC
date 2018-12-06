@@ -15,6 +15,12 @@ import os
 #####################
 ##################### 
 
+# define constants
+# x0 = 36.08 * units.g / units.cm**2  # radiation length g cm^-2
+rho = 0.924 * units.g / units.cm**3  # density g cm^-3
+xmu = 12.566370e-7 * units.newton / units.ampere**2
+c = 2.99792458e8 * units.m / units.s
+# e = 1.602177e-19 * units.coulomb
 
 
 def get_time_trace(energy, theta, N, dt, y=1., ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m):
@@ -23,7 +29,7 @@ def get_time_trace(energy, theta, N, dt, y=1., ccnc='cc', flavor=12, n_index=1.7
     return E
 
 
-def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m):
+def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m, profile_depth=None, profile_ce=None):
 
 
     tt = np.arange(0, (N + 1) * dt, dt)
@@ -38,12 +44,6 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
 #     tt += 0.5 * dt
     N = len(tt)
 
-    # define constants
-    # x0 = 36.08 * units.g / units.cm**2  # radiation length g cm^-2
-    rho = 0.924 * units.g / units.cm**3  # density g cm^-3
-    xmu = 12.566370e-7 * units.newton / units.ampere**2
-    c = 2.99792458e8 * units.m / units.s
-    # e = 1.602177e-19 * units.coulomb
 
     xn = n_index
     cher = np.arccos(1. / n_index)
@@ -72,17 +72,10 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
         """
         return (X[0]**2 + X[1]**2 + (X[2] - z)**2)**0.5
 
-    cdir = os.path.dirname(__file__)
-    bins, depth_e, N_e = np.loadtxt(os.path.join(cdir, "shower_library/nue_1EeV_CC_1_s0001.t1005"), unpack=True)
-    bins, depth_p, N_p = np.loadtxt(os.path.join(cdir, "shower_library/nue_1EeV_CC_1_s0001.t1006"), unpack=True)
-    depth_e *= units.g / units.cm**2
-    depth_p *= units.g / units.cm**2
-    # sanity check if files electron and positron profiles are compatible
-    if (not np.all(depth_e == depth_p)):
-        raise ImportError("electron and positron profile have different depths")
-    length = (depth_e - 1e3 * units.g / units.cm**2) / rho
-    zmax = length.max()
-    xnep = intp.interp1d(length, N_e - N_p, bounds_error=False, fill_value=0)
+    
+    
+    length = profile_depth / rho
+    xnep = intp.interp1d(length, profile_ce, bounds_error=False, fill_value=0)
 
     # calculate total charged track length
     xntot = np.sum((N_e - N_p)) * (length[1] - length[0])
@@ -182,23 +175,36 @@ if __name__ == "__main__":
     ccnc = 'cc'
     flavor = 12  # e = 12, mu = 14, tau = 16
     
-    vp = get_vector_potential(energy, theta, N, dt, y, ccnc, flavor, n_index, R)
+    cdir = os.path.dirname(__file__)
+    bins, depth_e, N_e = np.loadtxt(os.path.join(cdir, "shower_library/nue_1EeV_CC_1_s0001.t1005"), unpack=True)
+    bins, depth_p, N_p = np.loadtxt(os.path.join(cdir, "shower_library/nue_1EeV_CC_1_s0001.t1006"), unpack=True)
+    depth_e *= units.g / units.cm**2
+    depth_p *= units.g / units.cm**2
+    depth_e -= 1000 * units.g/units.cm**2  # all simulations have an artificial offset of 1000 g/cm^2
+    depth_p -= 1000 * units.g/units.cm**2
+    # sanity check if files electron and positron profiles are compatible
+    if (not np.all(depth_e == depth_p)):
+        raise ImportError("electron and positron profile have different depths")
+    
+    vp = get_vector_potential(energy, theta, N, dt, y, ccnc, flavor, n_index, R, profile_depth=depth_e, profile_ce=(N_e-N_p))
     
     # generate time array
     tt = np.arange(0, (N + 1) * dt, dt)
     tt = tt + 0.5 * dt - tt.mean()
     
+    t, Ax, Ay, Az = np.loadtxt("fortran_reference.dat", unpack=True)
     fig, ax = plt.subplots(1, 1)
     ax.plot(tt, vp[:, 0] / units.V / units.s)
     ax.plot(tt, vp[:, 1] / units.V / units.s)
     ax.plot(tt, vp[:, 2] / units.V / units.s)
+    ax.plot(t, Ax, "C0--")
+    ax.plot(t, Az, "C2--")
     ax.set_xlim(-2, 2)
 
     ax.set_xlabel("time [ns]")
     ax.set_ylabel("vector potential")
     
 
-    t, Ax, Ay, Az = np.loadtxt("fortran_reference.dat", unpack=True)
     mask = np.array([x in t for x in tt])
     fig, ax = plt.subplots(1, 1)
     ax.plot(t, vp[:, 0][mask] / units.V / units.s / Ax)
