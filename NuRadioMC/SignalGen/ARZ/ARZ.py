@@ -7,6 +7,7 @@ from scipy import integrate as int
 from scipy import constants
 from matplotlib import pyplot as plt
 import os
+import pickle
 
 
 ######################
@@ -25,8 +26,38 @@ c = 2.99792458e8 * units.m / units.s
 # e = 1.602177e-19 * units.coulomb
 
 
+## load shower library into memory
+with open(os.path.join(os.path.dirname(__file__), "shower_library/library_v1.pkl")) as fin:
+    library = pickle.load(fin)
+    
+
+
 def get_time_trace(energy, theta, N, dt, y=1., ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m):
-    vp = get_vector_potential(energy, theta, N, dt, y=y, ccnc=ccnc, flavor=flavor, n_index=n_index, R=R)
+    if(ccnc == 'nc'):
+        shower_type = "HAD"
+        shower_energy = energy * y
+    else:
+        if(np.abs(flavor) == 12):
+            shower_type = "EM"
+            shower_energy = energy * (1-y)
+        elif(np.abs(flavor) == 16):
+            shower_type = "TAU"
+            shower_energy = energy * y
+        else:
+            return np.zeros(N)  # muon cc do not lead to any emission
+
+    if not shower_type in library.keys():
+        raise KeyError("shower type {} not present in library.".format(shower_type))
+    
+    energies = np.array(library[shower_type].keys())
+    iE = np.argmin(np.abs(energies - shower_energy))
+    profiles = library[shower_type][energies[iE]]
+    N_profiles = len(profiles['charge_excess'])
+    iN =  np.random.randint(N_profiles)
+    profile_depth = profiles['depth']
+    profile_ce = profiles['charge_excess'][iN]
+    vp = get_vector_potential(energy, theta, N, dt, y=y, ccnc=ccnc, flavor=flavor, n_index=n_index, R=R, profile_depth=profile_depth,
+                              profile_ce=profile_ce)
     E = -np.diff(vp, axis=0) / dt
     return E
 
@@ -215,5 +246,13 @@ if __name__ == "__main__":
     ax.set_xlabel("time [ns]")
     ax.set_ylabel("python/fortran implementation")
     ax.set_ylim(0.8, 1.2)
-
+    
+    trace = get_time_trace(energy, theta, N, dt, y, ccnc, flavor, n_index, R)
+    tt = np.arange(0, dt * N, dt)
+    fig, ax = plt.subplots(1, 1)
+    ax.plot(tt, trace[:, 0])
+    ax.plot(tt, trace[:, 1])
+    ax.plot(tt, trace[:, 2])
+    fig.tight_layout()
     plt.show()
+
