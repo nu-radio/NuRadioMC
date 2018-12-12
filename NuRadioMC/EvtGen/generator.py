@@ -76,53 +76,6 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
 
         fout.close()
 
-def write_events_to_hdf5_new(filename, data_sets, attributes, n_events_per_file=None):
-    """
-    writes NuRadioMC input parameters to the new style of hdf5 file
-    
-    this function can automatically split the dataset up into multiple files for easy multiprocessing
-    
-    Parameters
-    ----------
-    filename: string
-        the desired output filename (if multiple files are generated, a 'part000x' is appended to the filename
-    data_sets: dict
-        a dictionary with the data sets
-    attributes: dict
-        a dictionary containing the meta attributes
-    n_events_per_file: int (optional, default None)
-        the number of events per file
-    """
-    n_events = len(data_sets.values()[0])
-    total_number_of_events = n_events
-    if('n_events' in attributes):
-        total_number_of_events = attributes['n_events']
-    if(n_events_per_file is None):
-        n_events_per_file = n_events
-    else:
-        n_events_per_file = int(n_events_per_file)
-    for iFile in range(np.int(np.ceil(n_events / n_events_per_file))):
-        filename2 = filename
-        if((iFile > 0) or (n_events_per_file < n_events)):
-            filename2 = filename + ".part{:04}".format(iFile + 1)
-        print('writing file {}'.format(filename2))
-        fout = h5py.File(filename2, 'w')
-        fout.attrs['VERSION_MAJOR'] = VERSION_MAJOR
-        fout.attrs['VERSION_MINOR'] = VERSION_MINOR
-        fout.attrs['header'] = HEADER
-        for key, value in attributes.iteritems():
-            fout.attrs[key] = value
-        fout.attrs['total_number_of_events'] = total_number_of_events
-
-        comp_type = np.dtype([('azimuths', 'f8'), ('ccncs', np.str_, 2), ('energies', 'f8'), ('event_ids', 'i4'), ('flavors', 'i4'), ('inelasticity', 'f8'), ('xx', 'f8'), ('yy', 'f8'), ('zeniths', 'f8'), ('zz', 'f8')])
-        dataset = fout.create_dataset("Event_input", (n_events_per_file, ), comp_type)
-        for key in data_sets:
-            dataset[key] = data_sets[key][iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
-        fout.attrs['n_events'] = len(dataset)
-
-        fout.close()
-
-
 
 def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 rmin, rmax, zmin, zmax,
