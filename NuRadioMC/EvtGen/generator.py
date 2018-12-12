@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from NuRadioMC.utilities import units
+from six import iterkeys
 import h5py
 
 VERSION_MAJOR = 1
@@ -16,7 +17,7 @@ HEADER = """
 #
 # the collumns are defined as follows
 # 1. event id (integer)
-# 2. neutrino flavor (integer) encoded as using PDF numbering scheme, particles have positive sign, anti-particles have negative sign, relevant for us are:
+# 2. neutrino flavor (integer) encoded as using PDG numbering scheme, particles have positive sign, anti-particles have negative sign, relevant for us are:
 #       12: electron neutrino
 #       14: muon neutrino
 #       16: tau neutrino
@@ -93,7 +94,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 start_event_id=1,
                                 flavor=[12, -12, 14, -14, 16, -16],
                                 n_events_per_file=None,
-                                spectrum='log_uniform'):
+                                spectrum='log_uniform',
+                                addTauSecondBang=False):
     """
     Event generator
 
@@ -219,7 +221,29 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     epsilon = np.log10(energies / 1e9)
     inelasticity = pickY(flavors, ccncs, epsilon)
     """
-    write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=n_events_per_file)
+    
+    additional_interactions = None
+    if addTauSecondBang:
+        mask = (data_sets['ccncs'] == 'cc') & (np.abs(data_sets['flavors']) == 16)  # select nu_tau cc interactions
+        additional_interactions = {}
+        for key in iterkeys(data_sets):
+            additional_interactions[key] = []
+        for event_id in data_sets['event_ids'][mask]:
+            iE = event_id - start_event_id
+            
+            # for now just copy all properties of first interaction into second interaction
+            for key in iterkeys(data_sets):
+                additional_interactions[key].append(data_sets[key][iE])
+            # set flavor to tau
+            additional_interactions['flavors'][-1] = 15 * np.sign(data_sets['flavors'][iE])  # keep particle/anti particle nature
+        
+        # convert all data sets to numpy arrays
+        for key in iterkeys(data_sets):
+            additional_interactions[key] = np.array(additional_interactions[key])
+            
+    
+    write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=n_events_per_file,
+                         additional_interactions=additional_interactions)
 
 
 def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_file):
