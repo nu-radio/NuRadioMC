@@ -3,14 +3,11 @@
 Merge hdf5 files
 """
 import os
-import sys
-import hdf5
+from NuRadioMC.utilities.hdf5_manipulator import hdf5
 import numpy as np
 from collections import OrderedDict
-from parser import get_args_merge as parser
-import msg
-import check
-import argparse
+from NuRadioMC.utilities.hdf5_manipulator import msg
+from NuRadioMC.utilities.hdf5_manipulator import check
 
 
 def get_filelist(bases):
