@@ -32,7 +32,7 @@ HEADER = """
 
 
 
-def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None):
+def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None, additional_interactions=None):
     """
     writes NuRadioMC input parameters to hdf5 file
     
@@ -48,6 +48,8 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         a dictionary containing the meta attributes
     n_events_per_file: int (optional, default None)
         the number of events per file
+    additional_interactions: dict or None (default)
+        a dictionary containing potential additional interactions, such as the second tau interaction vertex. 
     """
     n_events = len(data_sets.values()[0])
     total_number_of_events = n_events
@@ -72,6 +74,15 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
 
         for key, value in data_sets.iteritems():
             fout[key] = value[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
+        if(additional_interactions is not None):
+            # if additional interactions are present, write them into the file
+            event_ids = np.array(fout["event_ids"])
+            event_ids2 = np.array(additional_interactions["event_ids"])
+            mask = np.array([x in event_ids for x in event_ids2], dtype=np.bool)
+            if(np.sum(mask)): # only create a group with additional interactions if we have additional interaction in this subfile
+                sec = fout.create_group("additional_interactions")
+                for key, value in additional_interactions.iteritems():
+                    sec[key] = value[mask]
         fout.attrs['n_events'] = len(fout[data_sets.keys()[0]])
 
         fout.close()
@@ -228,12 +239,23 @@ def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_
     data_sets = {}
     attributes = {}
     for key, value in fin.items():
-        data_sets[key] = np.array(value)
+        if isinstance(value, h5py.Dataset): # the loop is also over potential subgroupu that we don't want to consider here
+            data_sets[key] = np.array(value)
     for key, value in fin.attrs.items():
         attributes[key] = value
+        
+    additional_interactions = {}
+    if('additional_interactions' in fin):
+        for key, value in fin['additional_interactions'].items():
+            additional_interactions[key] = np.array(value)
+    else:
+        additional_interactions = None
+        
+        
     fin.close()
 
-    write_events_to_hdf5(output_filename, data_sets, attributes, n_events_per_file=number_of_events_per_file)
+    write_events_to_hdf5(output_filename, data_sets, attributes, n_events_per_file=number_of_events_per_file,
+                         additional_interactions=additional_interactions)
     
     
 
