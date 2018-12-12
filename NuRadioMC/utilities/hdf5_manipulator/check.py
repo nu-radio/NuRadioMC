@@ -3,7 +3,7 @@ Basic checks for data dictionaries.
 """
 
 import sys
-import msg
+from NuRadioMC.utilities.hdf5_manipulator import msg
 
 
 def get_size(data):
