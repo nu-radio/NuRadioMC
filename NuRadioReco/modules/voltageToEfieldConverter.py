@@ -35,7 +35,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         t_geos[iCh] = time_shift
         t_cables[iCh] = channel.get_trace_start_time()
         logger.debug("time shift channel {}: {:.2f}ns (signal prop), {:.2f}ns (trace start time)".format(channel.get_id(), time_shift, channel.get_trace_start_time()))
-        time_shift -= channel.get_trace_start_time()
+        time_shift += channel.get_trace_start_time()
         time_shifts[iCh] = time_shift
 
     delta_t = time_shifts.max() - time_shifts.min()
