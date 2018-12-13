@@ -339,5 +339,5 @@ if __name__ == '__main__':
     ymax = 3 * units.km
     zmin = -2.7 * units.km
     zmax = 0 * units.km
-    generate_eventlist_cylinder('1e19.hdf5', 1e6, 1e15 * units.eV, 1e15 * units.eV,
+    generate_eventlist_cylinder('1e19.hdf5', 1e3, 1e15 * units.eV, 1e15 * units.eV,
                                 0, 3*units.km, zmin, zmax)
