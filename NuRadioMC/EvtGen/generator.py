@@ -2,7 +2,9 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from NuRadioMC.utilities import units
 from six import iterkeys
+from scipy import constants
 import h5py
+import matplotlib.pyplot as plt
 
 VERSION_MAJOR = 1
 VERSION_MINOR = 1
@@ -29,9 +31,37 @@ HEADER = """
 # 10. inelasticity (the fraction of neutrino energy that goes into the hadronic part)
 #
 """
+# Mass energy equivalent of the tau lepton
+tau_mass = constants.physical_constants['tau mass energy equivalent in MeV'][0] * units.MeV
+# Lifetime of the tau (rest frame). Taken from PDG
+tau_rest_time = 290.3 * units.fs
 
+def get_tau_decay_time(energy):
+    """
+    Calculates the random tau decay time taking into account time dilation
+    """
 
+    gamma = energy/tau_mass # tau_mass must be in natural units (c = 1)
+    tau_mean_time = gamma * tau_rest_time
 
+    # The tau decay time is taken assuming an exponential decay
+    # and applying the inverse transform method
+    tau_decay_time = -np.log(1 - np.random.uniform(0,1)) * tau_mean_time
+
+    return tau_decay_time
+
+def get_tau_speed(energy):
+    """
+    Calculates the speed of the tau lepton
+    """
+
+    gamma = energy/tau_mass
+    if (gamma < 1):
+	raise ValueError('The energy is less than the tau mass. Returning zero speed')
+        return 0
+    beta = np.sqrt(1 - 1/gamma**2)
+
+    return beta * constants.c*units.m/units.s
 
 def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None, additional_interactions=None):
     """
@@ -95,7 +125,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 flavor=[12, -12, 14, -14, 16, -16],
                                 n_events_per_file=None,
                                 spectrum='log_uniform',
-                                addTauSecondBang=False):
+                                addTauSecondBang=True):
     """
     Event generator
 
@@ -230,12 +260,30 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             additional_interactions[key] = []
         for event_id in data_sets['event_ids'][mask]:
             iE = event_id - start_event_id
+
+            decay_time = get_tau_decay_time(data_sets['energies'][iE])
+
+            # Let us assume that the tau has the same direction as the tau neutrino
+            # to calculate the vertex of the second shower            
+            # This must be changed in the future
             
-            # for now just copy all properties of first interaction into second interaction
-            for key in iterkeys(data_sets):
-                additional_interactions[key].append(data_sets[key][iE])
+            second_vertex_x  = get_tau_speed(data_sets['energies'][iE]) * decay_time
+            second_vertex_x *= np.sin(data_sets['zeniths'][iE]) * np.cos(data_sets['azimuths'])
+            second_vertex_x += data_sets['xx'][iE]
+            additional_interactions['xx'].append(second_vertex_x)
+
+            second_vertex_y  = get_tau_speed(data_sets['energies'][iE]) * decay_time
+            second_vertex_y *= np.sin(data_sets['zeniths'][iE]) * np.sin(data_sets['azimuths'])
+            second_vertex_y += data_sets['yy'][iE]
+            additional_interactions['yy'].append(second_vertex_y)
+
+            second_vertex_z  = get_tau_speed(data_sets['energies'][iE]) * decay_time
+            second_vertex_z *= np.cos(data_sets['zeniths'][iE])
+            second_vertex_z += data_sets['zz'][iE]
+            additional_interactions['zz'].append(second_vertex_z)
+
             # set flavor to tau
-            additional_interactions['flavors'][-1] = 15 * np.sign(data_sets['flavors'][iE])  # keep particle/anti particle nature
+            additional_interactions['flavors'].append(16 * np.sign(data_sets['flavors'][iE]))  # keep particle/anti particle nature
         
         # convert all data sets to numpy arrays
         for key in iterkeys(data_sets):
@@ -291,5 +339,5 @@ if __name__ == '__main__':
     ymax = 3 * units.km
     zmin = -2.7 * units.km
     zmax = 0 * units.km
-    generate_eventlist_cylinder('1e19.hdf5', 1e6, 1e19 * units.eV, 1e19 * units.eV,
+    generate_eventlist_cylinder('1e19.hdf5', 1e6, 1e15 * units.eV, 1e15 * units.eV,
                                 0, 3*units.km, zmin, zmax)
