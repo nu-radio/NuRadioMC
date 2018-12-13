@@ -359,6 +359,10 @@ class simulation():
             t4 = time.time()
             detSimTime += (t4 - t3)
             
+        try:
+            self._mout['Veff'] = self.calculate_Veff()
+        except:
+            logger.error("error in calculating effective volume")
 
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
@@ -367,11 +371,6 @@ class simulation():
         t_total = time.time() - t_start
         logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(self._n_events,
                                                                                          t_total, 1.e3 * t_total / self._n_events))
-
-        try:
-            self.calculate_Veff()
-        except:
-            logger.error("error in calculating effective volume")
 
         outputTime = time.time() - t5
         print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
@@ -604,6 +603,8 @@ class simulation():
             V = np.pi * (rmax**2 - rmin**2) * dZ
         Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
         logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
+
+	return Veff
         
     def _get_em_had_fraction(self, inelasticity, ccnc, flavor):
         """
