@@ -604,7 +604,7 @@ class simulation():
         Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
         logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
 
-	return Veff
+        return Veff
         
     def _get_em_had_fraction(self, inelasticity, ccnc, flavor):
         """

@@ -126,8 +126,8 @@ def write_events_to_hdf5_new(filename, data_sets, attributes, n_events_per_file=
 
 def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 rmin, rmax, zmin, zmax,
-				thetamin=0.*units.rad, thetamax=np.pi*units.rad,
-				phimin=0.*units.rad, phimax=2*np.pi*units.rad, 
+                                thetamin=0.*units.rad, thetamax=np.pi*units.rad,
+                                phimin=0.*units.rad, phimax=2*np.pi*units.rad, 
                                 start_event_id=1,
                                 flavor=[12, -12, 14, -14, 16, -16],
                                 n_events_per_file=None,
