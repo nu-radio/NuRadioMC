@@ -57,7 +57,7 @@ def get_tau_speed(energy):
 
     gamma = energy/tau_mass
     if (gamma < 1):
-	raise ValueError('The energy is less than the tau mass. Returning zero speed')
+        raise ValueError('The energy is less than the tau mass. Returning zero speed')
         return 0
     beta = np.sqrt(1 - 1/gamma**2)
 
@@ -125,7 +125,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 flavor=[12, -12, 14, -14, 16, -16],
                                 n_events_per_file=None,
                                 spectrum='log_uniform',
-                                addTauSecondBang=True):
+                                addTauSecondBang=False):
     """
     Event generator
 
@@ -189,6 +189,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     n_events = int(n_events)
     data_sets["event_ids"] = np.arange(n_events) + start_event_id
+    data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
 
     # generate neutrino flavors randomly
     data_sets["flavors"] = np.array([flavor[i] for i in np.random.randint(0, high=len(flavor), size=n_events)])
@@ -258,8 +259,16 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         additional_interactions = {}
         for key in iterkeys(data_sets):
             additional_interactions[key] = []
+        n_taus = 0
         for event_id in data_sets['event_ids'][mask]:
-            iE = event_id - start_event_id
+            iE = event_id - start_event_id + n_taus
+            n_taus += 1  # we change the datasets during the loop, to still have the correct indices, we need to keep track of the number of events we inserted
+            
+            # insert second vertex after the first neutrino interaction
+            for key in iterkeys(data_sets):
+                data_sets[key] = np.insert(data_sets[key], iE, data_sets[key][iE])
+            iE += 1
+            data_sets['n_interaction'][iE] = 2  # specify that new event is a second interaction
 
             decay_time = get_tau_decay_time(data_sets['energies'][iE])
 
@@ -268,22 +277,22 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             # This must be changed in the future
             
             second_vertex_x  = get_tau_speed(data_sets['energies'][iE]) * decay_time
-            second_vertex_x *= np.sin(data_sets['zeniths'][iE]) * np.cos(data_sets['azimuths'])
+            second_vertex_x *= np.sin(data_sets['zeniths'][iE]) * np.cos(data_sets['azimuths'][iE])
             second_vertex_x += data_sets['xx'][iE]
-            additional_interactions['xx'].append(second_vertex_x)
+            data_sets['xx'][iE] = second_vertex_x
 
             second_vertex_y  = get_tau_speed(data_sets['energies'][iE]) * decay_time
-            second_vertex_y *= np.sin(data_sets['zeniths'][iE]) * np.sin(data_sets['azimuths'])
+            second_vertex_y *= np.sin(data_sets['zeniths'][iE]) * np.sin(data_sets['azimuths'][iE])
             second_vertex_y += data_sets['yy'][iE]
-            additional_interactions['yy'].append(second_vertex_y)
+            data_sets['yy'][iE] = second_vertex_y
 
             second_vertex_z  = get_tau_speed(data_sets['energies'][iE]) * decay_time
             second_vertex_z *= np.cos(data_sets['zeniths'][iE])
             second_vertex_z += data_sets['zz'][iE]
-            additional_interactions['zz'].append(second_vertex_z)
+            data_sets['zz'][iE] = second_vertex_z
 
             # set flavor to tau
-            additional_interactions['flavors'].append(16 * np.sign(data_sets['flavors'][iE]))  # keep particle/anti particle nature
+            data_sets['flavors'][iE] = 16 * np.sign(data_sets['flavors'][iE])  # keep particle/anti particle nature
         
         # convert all data sets to numpy arrays
         for key in iterkeys(data_sets):
