@@ -35,9 +35,9 @@ HEADER = """
 def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None):
     """
     writes NuRadioMC input parameters to hdf5 file
-    
+
     this function can automatically split the dataset up into multiple files for easy multiprocessing
-    
+
     Parameters
     ----------
     filename: string
@@ -79,9 +79,9 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
 def write_events_to_hdf5_new(filename, data_sets, attributes, n_events_per_file=None):
     """
     writes NuRadioMC input parameters to the new style of hdf5 file
-    
+
     this function can automatically split the dataset up into multiple files for easy multiprocessing
-    
+
     Parameters
     ----------
     filename: string
@@ -127,7 +127,7 @@ def write_events_to_hdf5_new(filename, data_sets, attributes, n_events_per_file=
 def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 rmin, rmax, zmin, zmax,
                                 thetamin=0.*units.rad, thetamax=np.pi*units.rad,
-                                phimin=0.*units.rad, phimax=2*np.pi*units.rad, 
+                                phimin=0.*units.rad, phimax=2*np.pi*units.rad,
                                 start_event_id=1,
                                 flavor=[12, -12, 14, -14, 16, -16],
                                 n_events_per_file=None,
@@ -196,6 +196,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     attributes['rmax'] = rmax
     attributes['zmin'] = zmin
     attributes['zmax'] = zmax
+    attributes['thetamin'] = thetamin
+    attributes['thetamax'] = thetamax
+    attributes['phimin'] = phimin
+    attributes['thetamax'] = thetamax
     attributes['flavors'] = flavor
     attributes['Emin'] = Emin
     attributes['Emax'] = Emax
@@ -260,7 +264,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     R1 = 0.36787944
     R2 = 0.63212056
     data_sets["inelasticity"] = (-np.log(R1 + np.random.uniform(0., 1., n_events) * R2)) ** 2.5
-    """    
+    """
     #from AraSim
     epsilon = np.log10(energies / 1e9)
     inelasticity = pickY(flavors, ccncs, epsilon)
@@ -271,7 +275,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_file):
     """
     splits up an existing hdf5 file into multiple subfiles
-    
+
     Parameters
     ----------
     input_filename: string
@@ -291,8 +295,8 @@ def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_
     fin.close()
 
     write_events_to_hdf5(output_filename, data_sets, attributes, n_events_per_file=number_of_events_per_file)
-    
-    
+
+
 
 if __name__ == '__main__':
     # define simulation volume
