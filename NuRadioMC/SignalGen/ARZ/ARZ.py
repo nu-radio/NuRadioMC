@@ -90,7 +90,6 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
     # For instance to place an observer at a distance R and angle theta w.r.t. shower axis in the x,z plane
     # it can be simply done by putting in the input file the numerical values:
     X = np.array([R * np.sin(theta), 0., R * np.cos(theta)])
-    print(X)
 
     def get_dist_shower(X, z):
         """ 
@@ -111,7 +110,7 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
     xnep = intp.interp1d(length, profile_ce, bounds_error=False, fill_value=0)
 
     # calculate total charged track length
-    xntot = np.sum((N_e - N_p)) * (length[1] - length[0])
+    xntot = np.sum(profile_ce) * (length[1] - length[0])
     # print("{:.5g}".format(xntot))
     # res = int.quad(xnep, length.min(), length.max())
     # print("{:.5g} {:.5g}".format(*res))
@@ -196,6 +195,112 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
     vp *= factor
     return vp
 
+def get_vector_potential_fast(shower_energy, theta, N, dt, shower_type="HAD", n_index=1.78, R=1 * units.m, profile_depth=None, profile_ce=None):
+
+
+    tt = np.arange(0, (N + 1) * dt, dt)
+    tt = tt + 0.5 * dt - tt.mean()
+    N = len(tt)
+
+    xn = n_index
+    cher = np.arccos(1. / n_index)
+    beta = 1.
+
+    # calculate antenna position in ARZ reference frame
+    # coordinate system is with respect to an origin which is located
+    # at the position where the primary particle is injected in the medium. The reference frame
+    # is z = along shower axis, and x,y are two arbitray directions perpendicular to z
+    # and perpendicular among themselves of course.
+    # For instance to place an observer at a distance R and angle theta w.r.t. shower axis in the x,z plane
+    # it can be simply done by putting in the input file the numerical values:
+    X = np.array([R * np.sin(theta), 0., R * np.cos(theta)])
+
+    def get_dist_shower(X, z):
+        """ 
+        Distance from position in shower depth z' to each antenna. 
+        Denominator in Eq. (22) PRD paper
+
+        Parameters
+        ----------
+        X: 3dim np. array
+            position of antenna in ARZ reference frame
+        z: shower depth 
+        """
+        return (X[0]**2 + X[1]**2 + (X[2] - z)**2)**0.5
+
+    length = profile_depth / rho
+    # calculate total charged track length
+    xntot = np.sum(profile_ce) * (length[1] - length[0])
+    factor = -xmu / (4. * np.pi)
+    fc = 4. * np.pi / (xmu * np.sin(cher))
+
+    
+    vp = np.zeros((N, 3))
+    for it, t in enumerate(tt):
+        tobs = t + (get_dist_shower(X, 0) / c * xn)
+        z = length
+        
+        R = get_dist_shower(X, z)
+        arg = z - (beta * c * tobs - xn * R)
+        u_x = X[0] / R
+        u_y = X[1] / R
+        u_z = (X[2] - z) / R
+        beta_z = 1.
+        vperp_x = u_x * u_z * beta_z
+        vperp_y = u_y * u_z * beta_z
+        vperp_z = -(u_x * u_x + u_y * u_y) * beta_z
+        v = np.array([vperp_x, vperp_y, vperp_z])
+
+        """
+        Function F_p Eq.(15) PRD paper.
+        """
+        # Factor accompanying the F_p in Eq.(15) in PRD paper
+        beta = 1.
+
+        # Note that Acher peaks at tt=0 which corresponds to the observer time.
+        # The shift from tobs to tt=0 is done when defining argument
+        tt = (-arg / (c * beta))  # Parameterisation of A_Cherenkov with t in ns
+        # Cut fit above +/-5 ns
+        mask = abs(tt) < 5. * units.ns
+
+        # Choose Acher between purely electromagnetic, purely hadronic or mixed shower
+        # Eq.(16) PRD paper.
+        # Refit of ZHAireS results => factor 0.88 in Af_e
+        Af_e = -4.5e-14 * 0.88 * units.V * units.s
+        Af_p = -3.2e-14 * units.V * units.s  # V s
+        E_TeV = shower_energy / units.TeV
+        Acher = np.zeros_like(tt)
+        F_p = np.zeros_like(tt)
+        if(np.sum(mask)):
+            if(shower_type == "HAD"):
+                mask2 = tt>0 & mask
+                if(np.sum(mask2)):
+                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.065 * units.ns)) +
+                                          (1. + 3.00 / units.ns * np.abs(tt[mask2]))**(-2.65))  # hadronic
+                mask2 = tt<=0 & mask
+                if(np.sum(mask2)):
+                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.043 * units.ns)) +
+                                          (1. + 2.92 / units.ns * np.abs(tt[mask2]))**(-3.21))  # hadronic
+            elif(shower_type == "EM"):
+                mask2 = tt>0 & mask
+                if(np.sum(mask2)):
+                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.057 * units.ns)) +
+                                          (1. + 2.87 / units.ns * np.abs(tt[mask2]))**(-3.00))  # electromagnetic
+                mask2 = tt<=0 & mask
+                if(np.sum(mask2)): 
+                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.030 * units.ns)) +
+                                          (1. + 3.05 / units.ns * np.abs(tt[mask2]))**(-3.50))  # electromagnetic
+    
+            # Obtain "shape" of Lambda-function from vp at Cherenkov angle
+            # xntot = LQ_tot in PRD paper
+            F_p[mask] = Acher[mask] * fc / xntot
+        F_p[~mask] = 1.e-30 * fc / xntot
+
+        vp[it] = np.trapz(-v * profile_ce * F_p / R, z)
+
+    vp *= factor
+    return vp
+
 
 if __name__ == "__main__":
     energy = 1.e6 * units.TeV
@@ -220,6 +325,7 @@ if __name__ == "__main__":
         raise ImportError("electron and positron profile have different depths")
     
     vp = get_vector_potential(energy, theta, N, dt, y, ccnc, flavor, n_index, R, profile_depth=depth_e, profile_ce=(N_e-N_p))
+    vp2 = get_vector_potential(energy, theta, N, dt, y, "EM", n_index, R, profile_depth=depth_e, profile_ce=(N_e-N_p))
     
     # generate time array
     tt = np.arange(0, (N + 1) * dt, dt)
