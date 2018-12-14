@@ -15,3 +15,7 @@ zmax = 0 * units.km
 generator.generate_eventlist_cylinder('tau.hdf5', 1e3, 1e19 * units.eV, 1e19 * units.eV,
                             0, 3*units.km, zmin, zmax, addTauSecondBang=True)
 
+
+generator.generate_eventlist_cylinder('tau2.hdf5', 1e2, 1e19 * units.eV, 1e19 * units.eV,
+                            0, 3*units.km, zmin, zmax, addTauSecondBang=True, n_events_per_file=10)
+

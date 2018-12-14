@@ -4,7 +4,6 @@ from NuRadioMC.utilities import units
 from six import iterkeys
 from scipy import constants
 import h5py
-import matplotlib.pyplot as plt
 
 VERSION_MAJOR = 1
 VERSION_MINOR = 1
@@ -63,7 +62,7 @@ def get_tau_speed(energy):
 
     return beta * constants.c*units.m/units.s
 
-def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None, additional_interactions=None):
+def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None):
     """
     writes NuRadioMC input parameters to hdf5 file
     
@@ -90,11 +89,13 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         n_events_per_file = n_events
     else:
         n_events_per_file = int(n_events_per_file)
-    for iFile in range(np.int(np.ceil(n_events / n_events_per_file))):
+    iFile = -1
+    start_index = 0
+    while True:
+        iFile += 1
         filename2 = filename
         if((iFile > 0) or (n_events_per_file < n_events)):
             filename2 = filename + ".part{:04}".format(iFile + 1)
-        print('writing file {}'.format(filename2))
         fout = h5py.File(filename2, 'w')
         fout.attrs['VERSION_MAJOR'] = VERSION_MAJOR
         fout.attrs['VERSION_MINOR'] = VERSION_MINOR
@@ -102,21 +103,32 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         for key, value in attributes.iteritems():
             fout.attrs[key] = value
         fout.attrs['total_number_of_events'] = total_number_of_events
+        
+        stop_index = start_index + n_events_per_file  # the 'stop_index' is 1 + the actual index
+        if(stop_index >= n_events):
+            stop_index = n_events
+        else:
+            evt_id_last = data_sets['event_ids'][stop_index - 1]
+            if(evt_id_last == np.unique(data_sets['event_ids'])[-1]): # last event index is very last event but not last vertex
+                stop_index = n_events
+            else:
+                tmp = np.squeeze(np.argwhere(data_sets['event_ids'] > evt_id_last)) # set stop index such that last event is competely in file
+                if(tmp.size == 1):
+                    stop_index = tmp
+                else:
+                    stop_index = tmp[0] 
 
+        print('writing file {} with {} events'.format(filename2, stop_index - start_index))
         for key, value in data_sets.iteritems():
-            fout[key] = value[iFile * n_events_per_file:(iFile + 1) * n_events_per_file]
-        if(additional_interactions is not None):
-            # if additional interactions are present, write them into the file
-            event_ids = np.array(fout["event_ids"])
-            event_ids2 = np.array(additional_interactions["event_ids"])
-            mask = np.array([x in event_ids for x in event_ids2], dtype=np.bool)
-            if(np.sum(mask)): # only create a group with additional interactions if we have additional interaction in this subfile
-                sec = fout.create_group("additional_interactions")
-                for key, value in additional_interactions.iteritems():
-                    sec[key] = value[mask]
-        fout.attrs['n_events'] = len(fout[data_sets.keys()[0]])
+            fout[key] = value[start_index:stop_index]
 
+        fout.attrs['n_events'] = len(np.unique(np.array(fout['event_ids'])))
         fout.close()
+        
+        start_index = stop_index
+        if(start_index == n_events):  # break while loop if all events are saved
+            break
+
 
 
 def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
@@ -253,12 +265,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     inelasticity = pickY(flavors, ccncs, epsilon)
     """
     
-    additional_interactions = None
     if addTauSecondBang:
         mask = (data_sets['ccncs'] == 'cc') & (np.abs(data_sets['flavors']) == 16)  # select nu_tau cc interactions
-        additional_interactions = {}
-        for key in iterkeys(data_sets):
-            additional_interactions[key] = []
         n_taus = 0
         for event_id in data_sets['event_ids'][mask]:
             iE = event_id - start_event_id + n_taus
@@ -292,15 +300,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             data_sets['zz'][iE] = second_vertex_z
 
             # set flavor to tau
-            data_sets['flavors'][iE] = 16 * np.sign(data_sets['flavors'][iE])  # keep particle/anti particle nature
+            data_sets['flavors'][iE] = 15 * np.sign(data_sets['flavors'][iE])  # keep particle/anti particle nature
         
-        # convert all data sets to numpy arrays
-        for key in iterkeys(data_sets):
-            additional_interactions[key] = np.array(additional_interactions[key])
-            
-    
-    write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=n_events_per_file,
-                         additional_interactions=additional_interactions)
+    write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=n_events_per_file)
 
 
 def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_file):
@@ -325,18 +327,9 @@ def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_
     for key, value in fin.attrs.items():
         attributes[key] = value
         
-    additional_interactions = {}
-    if('additional_interactions' in fin):
-        for key, value in fin['additional_interactions'].items():
-            additional_interactions[key] = np.array(value)
-    else:
-        additional_interactions = None
-        
-        
     fin.close()
 
-    write_events_to_hdf5(output_filename, data_sets, attributes, n_events_per_file=number_of_events_per_file,
-                         additional_interactions=additional_interactions)
+    write_events_to_hdf5(output_filename, data_sets, attributes, n_events_per_file=number_of_events_per_file)
     
     
 
