@@ -22,24 +22,6 @@ template_provider = templates.Templates()
 
 layout = html.Div([
     html.Div(id='trigger-trace', style={'display': 'none'}),
-    dcc.Dropdown(id='dropdown-traces',
-        options=[
-            {'label': 'calibrated trace', 'value': 'trace'},
-            {'label': 'cosmic-ray template', 'value': 'crtemplate'},
-            {'label': 'neutrino template', 'value': 'nutemplate'},
-            {'label': 'envelope', 'value': 'envelope'}
-        ],
-        multi=True,
-        value=["trace"]
-    ),
-    dcc.Dropdown(id='dropdown-trace-info',
-        options=[
-            {'label': 'RMS', 'value': 'RMS'},
-            {'label': 'L1', 'value': 'L1'}
-        ],
-        multi=True,
-        value=["RMS", "L1"]
-    ),
     html.Div([
         html.Div([
             html.Div('Electric Field Traces', className='panel-heading'),
@@ -68,7 +50,38 @@ layout = html.Div([
             ], className='panel-body')
         ], className='panel panel-default', style={'flex': '1'})
     ], style={'display': 'flex'}),
-    dcc.Graph(id='time-traces'),
+    html.Div([
+        html.Div([
+            html.Div('Individual Channels', className='panel-heading'),
+            html.Div([
+                html.Div([
+                    html.Div([
+                        dcc.Dropdown(id='dropdown-traces',
+                            options=[
+                                {'label': 'calibrated trace', 'value': 'trace'},
+                                {'label': 'cosmic-ray template', 'value': 'crtemplate'},
+                                {'label': 'neutrino template', 'value': 'nutemplate'},
+                                {'label': 'envelope', 'value': 'envelope'}
+                            ],
+                            multi=True,
+                            value=["trace"]
+                        )
+                    ], style={'flex': '1'}),
+                    html.Div([
+                        dcc.Dropdown(id='dropdown-trace-info',
+                            options=[
+                                {'label': 'RMS', 'value': 'RMS'},
+                                {'label': 'L1', 'value': 'L1'}
+                            ],
+                            multi=True,
+                            value=["RMS", "L1"]
+                        )
+                    ], style={'flex': '1'}),
+                ], style={'display': 'flex'}),
+                dcc.Graph(id='time-traces')
+            ], className='panel-body')
+        ], className='panel panel-default', style={'flex': '1'})
+    ], style={'display': 'flex'}),
     dcc.Graph(id='time-traces2')
 ])
 
