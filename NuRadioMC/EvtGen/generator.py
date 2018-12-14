@@ -126,8 +126,6 @@ def write_events_to_hdf5_new(filename, data_sets, attributes, n_events_per_file=
 
 def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 rmin, rmax, zmin, zmax,
-                                thetamin=0.*units.rad, thetamax=np.pi*units.rad,
-                                phimin=0.*units.rad, phimax=2*np.pi*units.rad,
                                 start_event_id=1,
                                 flavor=[12, -12, 14, -14, 16, -16],
                                 n_events_per_file=None,
@@ -159,14 +157,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         lower z coordinate of simulated volume
     zmax: float
         upper z coordinate of simulated volume
-    thetamin: float
-        lower zenith angle for neutrino arrival direction
-    thetamax: float
-        upper zenith angle for neutrino arrival direction
-    phimin: float
-        lower azimuth angle for neutrino arrival direction
-    phimax: float
-        upper azimuth angle for neutrino arrival direction
     start_event: int
         default: 1
         event number of first event
@@ -199,7 +189,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     attributes['thetamin'] = thetamin
     attributes['thetamax'] = thetamax
     attributes['phimin'] = phimin
-    attributes['thetamax'] = thetamax
+    attributes['phimax'] = phimax
     attributes['flavors'] = flavor
     attributes['Emin'] = Emin
     attributes['Emax'] = Emax
@@ -256,8 +246,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets["zz"] = np.random.uniform(zmin, zmax, n_events)
 
     # generate neutrino direction randomly
-    data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
-    u = np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events)
+    data_sets["azimuths"] = np.random.uniform(0, 360 * units.deg, n_events)
+    u = np.random.uniform(-1, 1, n_events)
     data_sets["zeniths"] = np.arccos(u)  # generates distribution that is uniform in cos(theta)
 
     # generate inelasticity (ported from ShelfMC)
