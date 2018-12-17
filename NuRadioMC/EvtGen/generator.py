@@ -62,12 +62,36 @@ def get_tau_speed(energy):
 
     return beta * constants.c*units.m/units.s
 
+def get_tau_vertex(data_sets, iE):
+
+    decay_time = get_tau_decay_time(data_sets['energies'][iE])
+    tau_speed = get_tau_speed(data_sets['energies'][iE])
+
+    # Let us assume that the tau has the same direction as the tau neutrino
+    # to calculate the vertex of the second shower
+    # This must be changed in the future
+
+    second_vertex_x  = tau_speed * decay_time
+    second_vertex_x *= np.sin(data_sets['zeniths'][iE]) * np.cos(data_sets['azimuths'][iE])
+    second_vertex_x += data_sets['xx'][iE]
+    data_sets['xx'][iE] = second_vertex_x
+
+    second_vertex_y  = tau_speed * decay_time
+    second_vertex_y *= np.sin(data_sets['zeniths'][iE]) * np.sin(data_sets['azimuths'][iE])
+    second_vertex_y += data_sets['yy'][iE]
+    data_sets['yy'][iE] = second_vertex_y
+
+    second_vertex_z  = tau_speed * decay_time
+    second_vertex_z *= np.cos(data_sets['zeniths'][iE])
+    second_vertex_z += data_sets['zz'][iE]
+    data_sets['zz'][iE] = second_vertex_z
+
 def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None):
     """
     writes NuRadioMC input parameters to hdf5 file
-    
+
     this function can automatically split the dataset up into multiple files for easy multiprocessing
-    
+
     Parameters
     ----------
     filename: string
@@ -79,7 +103,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
     n_events_per_file: int (optional, default None)
         the number of events per file
     additional_interactions: dict or None (default)
-        a dictionary containing potential additional interactions, such as the second tau interaction vertex. 
+        a dictionary containing potential additional interactions, such as the second tau interaction vertex.
     """
     n_events = len(data_sets.values()[0])
     total_number_of_events = n_events
@@ -103,7 +127,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         for key, value in attributes.iteritems():
             fout.attrs[key] = value
         fout.attrs['total_number_of_events'] = total_number_of_events
-        
+
         stop_index = start_index + n_events_per_file  # the 'stop_index' is 1 + the actual index
         if(stop_index >= n_events):
             stop_index = n_events
@@ -116,7 +140,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
                 if(tmp.size == 1):
                     stop_index = tmp
                 else:
-                    stop_index = tmp[0] 
+                    stop_index = tmp[0]
 
         print('writing file {} with {} events'.format(filename2, stop_index - start_index))
         for key, value in data_sets.iteritems():
@@ -124,7 +148,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
 
         fout.attrs['n_events'] = len(np.unique(np.array(fout['event_ids'])))
         fout.close()
-        
+
         start_index = stop_index
         if(start_index == n_events):  # break while loop if all events are saved
             break
@@ -259,56 +283,41 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     R1 = 0.36787944
     R2 = 0.63212056
     data_sets["inelasticity"] = (-np.log(R1 + np.random.uniform(0., 1., n_events) * R2)) ** 2.5
-    """    
+    """
     #from AraSim
     epsilon = np.log10(energies / 1e9)
     inelasticity = pickY(flavors, ccncs, epsilon)
     """
-    
+
     if addTauSecondBang:
         mask = (data_sets['ccncs'] == 'cc') & (np.abs(data_sets['flavors']) == 16)  # select nu_tau cc interactions
         n_taus = 0
         for event_id in data_sets['event_ids'][mask]:
             iE = event_id - start_event_id + n_taus
             n_taus += 1  # we change the datasets during the loop, to still have the correct indices, we need to keep track of the number of events we inserted
-            
+
             # insert second vertex after the first neutrino interaction
             for key in iterkeys(data_sets):
                 data_sets[key] = np.insert(data_sets[key], iE, data_sets[key][iE])
             iE += 1
             data_sets['n_interaction'][iE] = 2  # specify that new event is a second interaction
 
-            decay_time = get_tau_decay_time(data_sets['energies'][iE])
+            # Calculating the energy of the tau from the neutrino energy
+            data_sets['energies'][iE] = (1-data_sets['inelasticity'][iE-1])*data_sets['energies'][iE-1]
 
-            # Let us assume that the tau has the same direction as the tau neutrino
-            # to calculate the vertex of the second shower            
-            # This must be changed in the future
-            
-            second_vertex_x  = get_tau_speed(data_sets['energies'][iE]) * decay_time
-            second_vertex_x *= np.sin(data_sets['zeniths'][iE]) * np.cos(data_sets['azimuths'][iE])
-            second_vertex_x += data_sets['xx'][iE]
-            data_sets['xx'][iE] = second_vertex_x
-
-            second_vertex_y  = get_tau_speed(data_sets['energies'][iE]) * decay_time
-            second_vertex_y *= np.sin(data_sets['zeniths'][iE]) * np.sin(data_sets['azimuths'][iE])
-            second_vertex_y += data_sets['yy'][iE]
-            data_sets['yy'][iE] = second_vertex_y
-
-            second_vertex_z  = get_tau_speed(data_sets['energies'][iE]) * decay_time
-            second_vertex_z *= np.cos(data_sets['zeniths'][iE])
-            second_vertex_z += data_sets['zz'][iE]
-            data_sets['zz'][iE] = second_vertex_z
+            # Calculation of the tau decay vertex
+            get_tau_vertex(data_sets, iE)
 
             # set flavor to tau
             data_sets['flavors'][iE] = 15 * np.sign(data_sets['flavors'][iE])  # keep particle/anti particle nature
-        
+
     write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=n_events_per_file)
 
 
 def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_file):
     """
     splits up an existing hdf5 file into multiple subfiles
-    
+
     Parameters
     ----------
     input_filename: string
@@ -326,12 +335,12 @@ def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_
             data_sets[key] = np.array(value)
     for key, value in fin.attrs.items():
         attributes[key] = value
-        
+
     fin.close()
 
     write_events_to_hdf5(output_filename, data_sets, attributes, n_events_per_file=number_of_events_per_file)
-    
-    
+
+
 
 if __name__ == '__main__':
     # define simulation volume
@@ -341,5 +350,5 @@ if __name__ == '__main__':
     ymax = 3 * units.km
     zmin = -2.7 * units.km
     zmax = 0 * units.km
-    generate_eventlist_cylinder('1e19.hdf5', 1e3, 1e15 * units.eV, 1e15 * units.eV,
+    generate_eventlist_cylinder('1e19.hdf5', 1e3, 1e19 * units.eV, 1e19 * units.eV,
                                 0, 3*units.km, zmin, zmax)
