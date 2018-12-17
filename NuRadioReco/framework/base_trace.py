@@ -53,6 +53,12 @@ class BaseTrace:
         sampling_rate: float
             the sampling rage of the trace, i.e., the inverse of the bin width
         """
+        if trace is not None:
+            if trace.shape[trace.ndim - 1]%2 != 0:
+                if trace.ndim == 1:
+                    trace = np.append(trace, 0)
+                else:
+                    trace = np.append(trace, np.zeros((trace.shape[0], 1)), axis=1)
         self.__time_domain_up_to_date = True
         self._time_trace = trace
         self._sampling_rate = sampling_rate
