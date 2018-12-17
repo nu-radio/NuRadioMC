@@ -27,6 +27,8 @@ class stationParameters(Enum):
     signal_time = 23
     cr_energy_em = 24  # the electromagnetic shower energy (the cosmic ray energy that ends up in electrons, positrons and gammas)
     cr_spectrum_slope = 25 # Slope of the radio signal's spectrum as reconstructed by the voltageToAnalyticEfieldConverter
+    cr_xmax = 26 # Xmax of the air shower
+    cr_spectrum_quadratic_term = 27 # result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
