@@ -31,6 +31,7 @@ class BaseTrace:
 #             logger.debug("time domain is not up to date, calculating FFT on the fly")
             self._time_trace = fft.freq2time(self._frequency_spectrum)
             self.__time_domain_up_to_date = True
+            self._frequency_spectrum = None
         return self._time_trace
 
     def get_frequency_spectrum(self):
@@ -38,6 +39,7 @@ class BaseTrace:
 #             logger.debug("frequency domain is not up to date, calculating FFT on the fly")
 #             logger.debug("time trace has shape {}".format(self._time_trace.shape))
             self._frequency_spectrum = fft.time2freq(self._time_trace)
+            self._time_trace = None
 #             logger.debug("frequency spectrum has shape {}".format(self._frequency_spectrum.shape))
             self.__time_domain_up_to_date = False
         return self._frequency_spectrum
