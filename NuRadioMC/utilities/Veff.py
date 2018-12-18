@@ -11,10 +11,10 @@ import os
 
 
 
-def get_Veff(folder, trigger_combinations={}):
+def get_Veff(folder, trigger_combinations={}, zenithbins=False):
     """
     calculates the effective volume from NuRadioMC hdf5 files
-    
+
     Parameters
     ----------
     folder: string
@@ -27,8 +27,8 @@ def get_Veff(folder, trigger_combinations={}):
                 the signal efficiency vs. SNR (=Vmax/Vrms) to use. E.g. 'Chris'
             * 'efficiency_scale': float
                 rescaling of the efficiency curve by SNR' = SNR * scale
-    
-    
+
+
     """
     trigger_names = None
     trigger_names_dict = {}
@@ -62,6 +62,8 @@ def get_Veff(folder, trigger_combinations={}):
         density_water = 997 * units.kg / units.m ** 3
         rmin = fin.attrs['rmin']
         rmax = fin.attrs['rmax']
+        thetamin = fin.attrs['thetamin']
+        thetamax = fin.attrs['thetamax']
         dZ = fin.attrs['zmax'] - fin.attrs['zmin']
         V = np.pi * (rmax**2 - rmin**2) * dZ
         Vrms = fin.attrs['Vrms']
@@ -133,10 +135,10 @@ def get_Veff(folder, trigger_combinations={}):
 #                 print(max_amps.shape)
 #                 a = 1/0
                 mask = np.array([sol[i,values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=np.bool)
-                triggered = triggered & mask 
-            
+                triggered = triggered & mask
+
             Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
-            
+
             if('efficiency' in values.keys()):
                 SNReff, eff = np.loadtxt("analysis_efficiency_{}.csv".format(values['efficiency']), delimiter=",", unpack=True)
                 get_eff = interpolate.interp1d(SNReff, eff, bounds_error=False, fill_value=(0, eff[-1]))
@@ -145,20 +147,22 @@ def get_Veff(folder, trigger_combinations={}):
                     As *= values['efficiency_scale']
                 e = get_eff(As/Vrms)
                 Veff = V * density_ice / density_water * 4 * np.pi * np.sum((weights*e)[triggered]) / n_events
-            
+
             Veffs[trigger_name].append(Veff)
             Veffs_error[trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
-    for trigger_name in Veffs.keys():    
+    for trigger_name in Veffs.keys():
         Veffs[trigger_name] = np.array(Veffs[trigger_name])
         Veffs_error[trigger_name] = np.array(Veffs_error[trigger_name])
-    
-    return np.array(Es), Veffs, Veffs_error, SNR, trigger_names
 
+    if zenithbins:
+        return np.array(Es), Veffs, Veffs_error, SNR, trigger_names, [thetamin, thetamax]
+    else:
+        return np.array(Es), Veffs, Veffs_error, SNR, trigger_names
 
 def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
     """
     export effective volumes into a human readable JSON file
-    
+
     Parameters
     ----------
     filename: string
@@ -171,8 +175,8 @@ def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
         dictionary containing Veffs for each trigger
     Veffs_error: dictionary
         dictionary containing Veff_errors for each trigger
-    
-    
+
+
     """
     output = {}
     for trigger_name in trigger_names:
@@ -182,4 +186,24 @@ def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
         output[trigger_name]['Veff_error'] = list(Veffs_error[trigger_name])
 
     with open(filename, 'w') as fout:
+        json.dump(output, fout, sort_keys=True, indent=4)
+
+def exportVeffPerZenith(folderlist, outputfile):
+    """
+    export effective volumes into a human readable JSON file
+    We assume a binning in zenithal angles
+    """
+    output = {}
+    for folder in folderlist:
+
+        Es, Veffs, Veffs_error, SNR, trigger_names, thetas = get_Veff(folder, zenithbins=True)
+        output[thetas[0]] = {}
+
+        for trigger_name in trigger_names:
+            output[thetas[0]][trigger_name] = {}
+            output[thetas[0]][trigger_name]['energies'] = list(Es)
+            output[thetas[0]][trigger_name]['Veff'] = list(Veffs[trigger_name])
+            output[thetas[0]][trigger_name]['Veff_error'] = list(Veffs_error[trigger_name])
+
+    with open(outputfile, 'w+') as fout:
         json.dump(output, fout, sort_keys=True, indent=4)
