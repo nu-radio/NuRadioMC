@@ -717,10 +717,10 @@ class voltageToAnalyticEfieldConverter:
         #Atheta = sign_phi*np.abs(res_amp_second_order.x[1])
         second_order_correction = res_amp_second_order.x[2]
         station.set_parameter(stnp.cr_spectrum_quadratic_term, second_order_correction)
-        analytic_pulse_theta = pulse.get_analytic_pulse(Atheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, quadratic_term=second_order_correction)
-        analytic_pulse_phi = pulse.get_analytic_pulse(Aphi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, quadratic_term=second_order_correction)
-        analytic_pulse_theta_freq = pulse.get_analytic_pulse_freq(Atheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, quadratic_term=second_order_correction)
-        analytic_pulse_phi_freq = pulse.get_analytic_pulse_freq(Aphi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, quadratic_term=second_order_correction)
+        analytic_pulse_theta = pulse.get_analytic_pulse(Atheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
+        analytic_pulse_theta_freq = pulse.get_analytic_pulse_freq(Atheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
+        analytic_pulse_phi = pulse.get_analytic_pulse(Aphi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
+        analytic_pulse_phi_freq = pulse.get_analytic_pulse_freq(Aphi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
 
 #         print("Aphi = {:.4g}".format(Aphi * conversion_factor_integrated_signal * 1e-12))
 #         print('fphi spec {:.4e}'.format(np.sum(np.abs(analytic_pulse_phi_freq) ** 2) / sampling_rate * conversion_factor_integrated_signal * 1e-12))
