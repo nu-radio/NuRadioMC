@@ -37,7 +37,7 @@ def get_Veff(folder, trigger_combinations={}):
     Veffs_error = {}
     Es = []
 
-    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
+    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
         print(filename)
         fin = h5py.File(filename, 'r')
         E = fin.attrs['Emin']
@@ -151,8 +151,8 @@ def get_Veff(folder, trigger_combinations={}):
     for trigger_name in Veffs.keys():    
         Veffs[trigger_name] = np.array(Veffs[trigger_name])
         Veffs_error[trigger_name] = np.array(Veffs_error[trigger_name])
-
-    return np.array(Es), Veffs, Veffs_error, SNR
+    
+    return np.array(Es), Veffs, Veffs_error, SNR, trigger_names
 
 
 def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
