@@ -184,6 +184,9 @@ class simulation():
                 logger.debug("neutrino weight is smaller than {}, skipping event".format(self._cfg['speedup']['minimum_weight_cut']))
                 continue
 
+            # calculate deposited energy
+            self._calculate_deposited_energy()
+
             # be careful, zenith/azimuth angle always refer to where the neutrino came from,
             # i.e., opposite to the direction of propagation. We need the propagation directio nhere,
             # so we multiply the shower axis with '-1'
@@ -603,6 +606,28 @@ class simulation():
             V = np.pi * (rmax**2 - rmin**2) * dZ
         Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
         logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
+
+    def _fraction_deposited_energy(self, inelasticity, ccnc, flavor):
+        """
+        Returns the fraction of the neutrino energy that goes into particle showers
+        TODO: Tau energy
+        """
+        fem, fhad = self._get_em_had_fraction(inelasticity, ccnc, flavor)
+        return fem+fhad
+
+    def _calculate_deposited_energy(self):
+        """
+        Calculates the energy deposited in the medium as the energy taken
+        by the electromagnetic and hadronic showersself.
+        TODO: Tau energy
+        """
+        dep_energy = lambda inelasticity, ccnc, flavor, energy: \
+        self._fraction_deposited_energy(inelasticity, ccnc, flavor) * energy
+
+        Edep = map(dep_energy, self._fin['inelasticity'], self._fin['ccncs'], \
+        self._fin['flavors'], self._fin['energies'])
+
+        self._mout['deposited_energies'] = np.array(Edep)
 
     def _get_em_had_fraction(self, inelasticity, ccnc, flavor):
         """

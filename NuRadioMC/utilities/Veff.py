@@ -14,7 +14,7 @@ import os
 def get_Veff(folder, trigger_combinations={}):
     """
     calculates the effective volume from NuRadioMC hdf5 files
-    
+
     Parameters
     ----------
     folder: string
@@ -27,8 +27,8 @@ def get_Veff(folder, trigger_combinations={}):
                 the signal efficiency vs. SNR (=Vmax/Vrms) to use. E.g. 'Chris'
             * 'efficiency_scale': float
                 rescaling of the efficiency curve by SNR' = SNR * scale
-    
-    
+
+
     """
     trigger_names = None
     trigger_names_dict = {}
@@ -37,7 +37,7 @@ def get_Veff(folder, trigger_combinations={}):
     Veffs_error = {}
     Es = []
 
-    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
+    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
         print(filename)
         fin = h5py.File(filename, 'r')
         E = fin.attrs['Emin']
@@ -133,10 +133,10 @@ def get_Veff(folder, trigger_combinations={}):
 #                 print(max_amps.shape)
 #                 a = 1/0
                 mask = np.array([sol[i,values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=np.bool)
-                triggered = triggered & mask 
-            
+                triggered = triggered & mask
+
             Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
-            
+
             if('efficiency' in values.keys()):
                 SNReff, eff = np.loadtxt("analysis_efficiency_{}.csv".format(values['efficiency']), delimiter=",", unpack=True)
                 get_eff = interpolate.interp1d(SNReff, eff, bounds_error=False, fill_value=(0, eff[-1]))
@@ -145,10 +145,10 @@ def get_Veff(folder, trigger_combinations={}):
                     As *= values['efficiency_scale']
                 e = get_eff(As/Vrms)
                 Veff = V * density_ice / density_water * 4 * np.pi * np.sum((weights*e)[triggered]) / n_events
-            
+
             Veffs[trigger_name].append(Veff)
             Veffs_error[trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
-    for trigger_name in Veffs.keys():    
+    for trigger_name in Veffs.keys():
         Veffs[trigger_name] = np.array(Veffs[trigger_name])
         Veffs_error[trigger_name] = np.array(Veffs_error[trigger_name])
 
@@ -158,7 +158,7 @@ def get_Veff(folder, trigger_combinations={}):
 def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
     """
     export effective volumes into a human readable JSON file
-    
+
     Parameters
     ----------
     filename: string
@@ -171,8 +171,8 @@ def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
         dictionary containing Veffs for each trigger
     Veffs_error: dictionary
         dictionary containing Veff_errors for each trigger
-    
-    
+
+
     """
     output = {}
     for trigger_name in trigger_names:
