@@ -16,7 +16,7 @@ import pickle
 # Alvarez-Muñiz, J., Romero-Wolf, A., & Zas, E. (2011). Practical and accurate calculations of Askaryan radiation. Physical Review D - Particles, Fields, Gravitation and Cosmology, 84(10). https://doi.org/10.1103/PhysRevD.84.103003
 # to hadronic showers. Thanks a lot to Jaime Alvarez-Muñiz for providing us with this unpublished work!
 #####################
-##################### 
+#####################
 
 # define constants
 # x0 = 36.08 * units.g / units.cm**2  # radiation length g cm^-2
@@ -29,7 +29,7 @@ c = 2.99792458e8 * units.m / units.s
 ## load shower library into memory
 with open(os.path.join(os.path.dirname(__file__), "shower_library/library_v1.pkl")) as fin:
     library = pickle.load(fin)
-    
+
 
 
 def get_time_trace(energy, theta, N, dt, y=1., ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m):
@@ -48,7 +48,7 @@ def get_time_trace(energy, theta, N, dt, y=1., ccnc='cc', flavor=12, n_index=1.7
 
     if not shower_type in library.keys():
         raise KeyError("shower type {} not present in library.".format(shower_type))
-    
+
     energies = np.array(library[shower_type].keys())
     iE = np.argmin(np.abs(energies - shower_energy))
     profiles = library[shower_type][energies[iE]]
@@ -92,20 +92,20 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
     X = np.array([R * np.sin(theta), 0., R * np.cos(theta)])
 
     def get_dist_shower(X, z):
-        """ 
-        Distance from position in shower depth z' to each antenna. 
+        """
+        Distance from position in shower depth z' to each antenna.
         Denominator in Eq. (22) PRD paper
 
         Parameters
         ----------
         X: 3dim np. array
             position of antenna in ARZ reference frame
-        z: shower depth 
+        z: shower depth
         """
         return (X[0]**2 + X[1]**2 + (X[2] - z)**2)**0.5
 
-    
-    
+
+
     length = profile_depth / rho
     xnep = intp.interp1d(length, profile_ce, bounds_error=False, fill_value=0)
 
@@ -216,30 +216,34 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, shower_type="HAD", n_
     X = np.array([R * np.sin(theta), 0., R * np.cos(theta)])
 
     def get_dist_shower(X, z):
-        """ 
-        Distance from position in shower depth z' to each antenna. 
+        """
+        Distance from position in shower depth z' to each antenna.
         Denominator in Eq. (22) PRD paper
 
         Parameters
         ----------
         X: 3dim np. array
             position of antenna in ARZ reference frame
-        z: shower depth 
+        z: shower depth
         """
         return (X[0]**2 + X[1]**2 + (X[2] - z)**2)**0.5
 
     length = profile_depth / rho
+    interp_factor = 100
+    profile_dense = np.linspace(min(profile_depth), max(profile_depth), interp_factor*len(profile_depth))
+    length = profile_dense/rho
+    profile_ce_interp = np.interp(profile_dense, profile_depth, profile_ce)
     # calculate total charged track length
-    xntot = np.sum(profile_ce) * (length[1] - length[0])
+    xntot = np.sum(profile_ce_interp) * (length[1] - length[0])
     factor = -xmu / (4. * np.pi)
     fc = 4. * np.pi / (xmu * np.sin(cher))
 
-    
+
     vp = np.zeros((N, 3))
     for it, t in enumerate(tt):
         tobs = t + (get_dist_shower(X, 0) / c * xn)
         z = length
-        
+
         R = get_dist_shower(X, z)
         arg = z - (beta * c * tobs - xn * R)
         u_x = X[0] / R
@@ -287,16 +291,16 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, shower_type="HAD", n_
                     Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.057 * units.ns)) +
                                           (1. + 2.87 / units.ns * np.abs(tt[mask2]))**(-3.00))  # electromagnetic
                 mask2 = tt<=0 & mask
-                if(np.sum(mask2)): 
+                if(np.sum(mask2)):
                     Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.030 * units.ns)) +
                                           (1. + 3.05 / units.ns * np.abs(tt[mask2]))**(-3.50))  # electromagnetic
-    
+
             # Obtain "shape" of Lambda-function from vp at Cherenkov angle
             # xntot = LQ_tot in PRD paper
             F_p[mask] = Acher[mask] * fc / xntot
         F_p[~mask] = 1.e-30 * fc / xntot
 
-        vp[it] = np.trapz(-v * profile_ce * F_p / R, z)
+        vp[it] = np.trapz(-v * profile_ce_interp * F_p / R, z)
 
     vp *= factor
     return vp
@@ -312,7 +316,7 @@ if __name__ == "__main__":
     y = 0.60146725
     ccnc = 'cc'
     flavor = 12  # e = 12, mu = 14, tau = 16
-    
+
     cdir = os.path.dirname(__file__)
     bins, depth_e, N_e = np.loadtxt(os.path.join(cdir, "shower_library/nue_1EeV_CC_1_s0001.t1005"), unpack=True)
     bins, depth_p, N_p = np.loadtxt(os.path.join(cdir, "shower_library/nue_1EeV_CC_1_s0001.t1006"), unpack=True)
@@ -323,14 +327,14 @@ if __name__ == "__main__":
     # sanity check if files electron and positron profiles are compatible
     if (not np.all(depth_e == depth_p)):
         raise ImportError("electron and positron profile have different depths")
-    
+
     vp = get_vector_potential(energy, theta, N, dt, y, ccnc, flavor, n_index, R, profile_depth=depth_e, profile_ce=(N_e-N_p))
     vp2 = get_vector_potential(energy, theta, N, dt, y, "EM", n_index, R, profile_depth=depth_e, profile_ce=(N_e-N_p))
-    
+
     # generate time array
     tt = np.arange(0, (N + 1) * dt, dt)
     tt = tt + 0.5 * dt - tt.mean()
-    
+
     t, Ax, Ay, Az = np.loadtxt("fortran_reference.dat", unpack=True)
     fig, ax = plt.subplots(1, 1)
     ax.plot(tt, vp[:, 0] / units.V / units.s)
@@ -342,7 +346,7 @@ if __name__ == "__main__":
 
     ax.set_xlabel("time [ns]")
     ax.set_ylabel("vector potential")
-    
+
 
     mask = np.array([x in t for x in tt])
     fig, ax = plt.subplots(1, 1)
@@ -352,7 +356,7 @@ if __name__ == "__main__":
     ax.set_xlabel("time [ns]")
     ax.set_ylabel("python/fortran implementation")
     ax.set_ylim(0.8, 1.2)
-    
+
     trace = get_time_trace(energy, theta, N, dt, y, ccnc, flavor, n_index, R)
     tt = np.arange(0, dt * N, dt)
     fig, ax = plt.subplots(1, 1)
@@ -361,4 +365,3 @@ if __name__ == "__main__":
     ax.plot(tt, trace[:, 2])
     fig.tight_layout()
     plt.show()
-
