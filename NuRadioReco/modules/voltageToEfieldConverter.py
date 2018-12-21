@@ -5,6 +5,7 @@ from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.utilities import ice
 from NuRadioReco.detector import antennapattern
+from NuRadioReco.utilities import trace_utilities
 import NuRadioReco.framework.base_trace
 import matplotlib.pyplot as plt
 
@@ -82,36 +83,8 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     for iCh, trace in enumerate(traces):
         V[iCh] = trace.get_frequency_spectrum()
 
-    efield_antenna_factor = np.zeros((len(use_channels), 2, len(frequencies)), dtype=np.complex)  # from antenna model in e_theta, e_phi
-    for iCh, channel in enumerate(station.iter_channels(use_channels)):
-        zenith_antenna = zenith
-        t_theta = 1.
-        t_phi = 1.
-        # first check case if signal comes from above
-        if(zenith <= 0.5 * np.pi):
-            # is antenna below surface?
-            position = det.get_relative_position(station_id, channel.get_id())
-            if(position[2] <= 0):
-                zenith_antenna = geo_utl.get_fresnel_angle(zenith, n_ice, 1)
-                t_theta = geo_utl.get_fresnel_t_p(zenith, n_ice, 1)
-                t_phi = geo_utl.get_fresnel_t_s(zenith, n_ice, 1)
-                logger.info("channel {:d}: electric field is refracted into the firn. theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) {:.2f} s (ePhi) {:.2f}".format(iCh, zenith / units.deg, zenith_antenna / units.deg, t_theta, t_phi))
-        else:
-            # now the signal is coming from below, do we have an antenna above the surface?
-            position = det.get_relative_position(station_id, channel.get_id())
-            if(position[2] > 0):
-                zenith_antenna = geo_utl.get_fresnel_angle(zenith, 1., n_ice)
-        if(zenith_antenna is None):
-            logger.warning("fresnel reflection at air-firn boundary leads to unphysical results, no reconstruction possible")
-            return
-
-        logger.debug("angles: zenith {0:.0f}, zenith antenna {1:.0f}, azimuth {2:.0f}".format(np.rad2deg(zenith), np.rad2deg(zenith_antenna), np.rad2deg(azimuth)))
-        antenna_model = det.get_antenna_model(station_id, channel.get_id(), zenith_antenna)
-        antenna_pattern = antenna_pattern_provider.load_antenna_pattern(antenna_model)
-        ori = det.get_antanna_orientation(station_id, channel.get_id())
-        VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_antenna, azimuth, *ori)
-        efield_antenna_factor[iCh] = np.array([VEL['theta'] * t_theta, VEL['phi'] * t_phi])
-
+    efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider)
+    
     if(debug_cut):
         plt.show()
 
