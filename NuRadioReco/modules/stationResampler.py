@@ -44,7 +44,8 @@ class stationResampler:
                 trace = signal.resample(trace, len(trace) / resampling_factor.denominator)  # , window='hann')
 
             resampled_efield[iE] = trace
-
+        if resampled_efield.shape[-1] % 2 != 0:
+            resampled_efield = resampled_efield.T[:-1].T
         station.set_trace(resampled_efield, sampling_rate)
 
     def end(self):
