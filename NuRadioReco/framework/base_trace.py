@@ -57,10 +57,7 @@ class BaseTrace:
         """
         if trace is not None:
             if trace.shape[trace.ndim - 1]%2 != 0:
-                if trace.ndim == 1:
-                    trace = np.append(trace, 0)
-                else:
-                    trace = np.append(trace, np.zeros((trace.shape[0], 1)), axis=1)
+                raise ValueError('Attempted to set trace with an uneven number ({}) of samples. Only traces with an even number of samples are allowed.'.format(trace.shape[trace.ndim - 1]))
         self.__time_domain_up_to_date = True
         self._time_trace = trace
         self._sampling_rate = sampling_rate
