@@ -44,6 +44,7 @@ class stationResampler:
                 trace = signal.resample(trace, len(trace) / resampling_factor.denominator)  # , window='hann')
 
             resampled_efield[iE] = trace
+        # prevent traces to get an odd number of samples. If the trae has an odd number of samples, the last sample is discarded.
         if resampled_efield.shape[-1] % 2 != 0:
             resampled_efield = resampled_efield.T[:-1].T
         station.set_trace(resampled_efield, sampling_rate)
