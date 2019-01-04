@@ -62,7 +62,7 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
         efield_antenna_factor[iCh] = np.array([VEL['theta'] * t_theta, VEL['phi'] * t_phi])
     return efield_antenna_factor
     
-def get_channel_voltage_from_efield(station, channels, detector, zenith, azimuth, antenna_pattern_provider, i_sim_channel=0, return_spectrum=True):
+def get_channel_voltage_from_efield(station, channels, detector, zenith, azimuth, antenna_pattern_provider, return_spectrum=True):
     """
     Returns the voltage traces that would result in the channels from the station's E-field. 
     
