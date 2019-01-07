@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.trigger
+import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.parameters as parameters
 try:
     import cPickle as pickle
@@ -159,12 +160,16 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         trigger_pkls = []
         for trigger in self._triggers.values():
             trigger_pkls.append(trigger.serialize())
+        efield_pkls = []
+        for efield in self.get_electric_fields():
+            efield_pkls.append(efield.serialize(self))
         data = {'_parameters': self._parameters,
                 '_parameter_covariances': self._parameter_covariances,
                 '_station_id': self._station_id,
                 '_station_time': self._station_time,
                 'triggers': trigger_pkls,
                 '_triggered': self._triggered,
+                'electric_fields': efield_pkls,
                 'base_trace': base_trace_pkl}
         return pickle.dumps(data, protocol=2)
 
@@ -176,6 +181,10 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
             self._triggers = NuRadioReco.framework.trigger.deserialize(data['triggers'])
         if ('triggers' in data):
             self._triggered = data['_triggered']
+        for electric_field in data['electric_fields']:
+            efield = NuRadioReco.framework.electric_field.ElectricField([])
+            efield.deserialize(electric_field)
+            self.add_electric_field(efield)
         self._parameters = data['_parameters']
         self._parameter_covariances = data['_parameter_covariances']
         self._station_id = data['_station_id']
