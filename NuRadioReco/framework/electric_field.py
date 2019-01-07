@@ -50,3 +50,20 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
     
     def has_channel_id(self, channel_id):
         return channel_id in self._channel_ids
+
+    def serialize(self, mode):
+        if(mode == 'micro'):
+            base_trace_pkl = None
+        else:
+            base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
+        data = {'parameters': self._parameters,
+                'channel_ids': self._channel_ids,
+                'base_trace': base_trace_pkl}
+        return pickle.dumps(data, protocol=2)
+    
+    def deserialize(self, data_pkl):
+        data = pickle.loads(data_pkl)
+        if(data['base_trace'] is not None):
+            NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
+        self._parameters = data['parameters']
+        self._channel_ids = data['channel_ids']
