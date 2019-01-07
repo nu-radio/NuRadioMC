@@ -40,3 +40,10 @@ class channelParameters(Enum):
     nu_xcorrelations = 9 #  dict of result of crosscorrelations with nu templates
     nu_vertex_distance = 10 # the distance along the ray path from the vertex to the channel
     nu_viewing_angle = 11 # the angle between shower axis and launch vector
+
+class electricFieldParameters(Enum):
+    ray_path_type = 1  # the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
+    polarization_angle = 2 # electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
+    polarization_angle_expectation = 3 # expected polarization based on shower geometry. Defined analogous to polarization_angle
+    signal_energy_fluence = 4 # Energy/area in the radio signal
+    
