@@ -48,9 +48,11 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
     def get_channel_ids(self):
         return self._channel_ids
     
-    def has_channel_id(self, channel_id):
-        return channel_id in self._channel_ids
-
+    def has_channel_ids(self, channel_ids):
+        for channel_id in channel_ids:
+            if channel_id not in self._channel_ids:
+                return False
+        return True
     def serialize(self, mode):
         if(mode == 'micro'):
             base_trace_pkl = None
