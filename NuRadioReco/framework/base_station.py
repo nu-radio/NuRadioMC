@@ -20,6 +20,7 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         self._station_time = None
         self._triggers = {}
         self._triggered = False
+        self._electric_fields = []
 
     def __setitem__(self, key, value):
         self.set_parameter(key, value)
@@ -133,6 +134,22 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         trigger.set_triggered(triggered)
         self.set_trigger(trigger)
 
+    def set_electric_fields(self, electric_fields):
+        self._electric_fields = electric_fields
+    
+    def get_electric_fields(self):
+        return self._electric_fields
+    
+    def add_electric_field(self, electric_field):
+        self._electric_fields.append(electric_field)
+    
+    def get_electric_fields_for_channels(self, channel_ids, ray_path_type=None):
+        for e_field in interitems(self._electric_fields):
+            if e_field.has_channel_ids(channel_ids):
+                if ray_path_type is None:
+                    yield e_field
+                elif ray_path_type == e_field.get_parameter(parameters.electricFieldParameters.ray_path_type):
+                    yield e_field
 
     def serialize(self, mode):
         if(mode == 'micro'):
