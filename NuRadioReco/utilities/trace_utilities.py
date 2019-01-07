@@ -12,7 +12,7 @@ logger = logging.getLogger('trace_utilities')
 
 
 
-def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider):
+def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, cosmic_ray_mode=False):
     """
     Returns the antenna response to a radio signal coming from a specific direction
     
@@ -27,6 +27,8 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
     zenith, azimuth: float, float
         incoming direction of the signal. Note that refraction and reflection at the ice/air boundary are taken into account
     antenna_pattern_provider: AntennaPatternProvider
+    cosmic_ray_mode: boolean
+        If set to true, the signal is assumed to be from an air shower and the refraction at the air/ice boundary is taken into account
     -----------------
     """
     n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
@@ -40,7 +42,7 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
         if(zenith <= 0.5 * np.pi):
             # is antenna below surface?
             position = detector.get_relative_position(station.get_id(), channel.get_id())
-            if(position[2] <= 0):
+            if(position[2] <= 0 and cosmic_ray_mode):
                 zenith_antenna = geo_utl.get_fresnel_angle(zenith, n_ice, 1)
                 t_theta = geo_utl.get_fresnel_t_p(zenith, n_ice, 1)
                 t_phi = geo_utl.get_fresnel_t_s(zenith, n_ice, 1)
@@ -62,7 +64,7 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
         efield_antenna_factor[iCh] = np.array([VEL['theta'] * t_theta, VEL['phi'] * t_phi])
     return efield_antenna_factor
     
-def get_channel_voltage_from_efield(station, channels, detector, zenith, azimuth, antenna_pattern_provider, return_spectrum=True):
+def get_channel_voltage_from_efield(station, channels, detector, zenith, azimuth, antenna_pattern_provider, return_spectrum=True, cosmic_ray_mode=False):
     """
     Returns the voltage traces that would result in the channels from the station's E-field. 
     
@@ -78,11 +80,13 @@ def get_channel_voltage_from_efield(station, channels, detector, zenith, azimuth
     antenna_pattern_provider: AntennaPatternProvider
     return_spectrum: boolean
         if True, returns the spectrum, if False return the time trace
+    cosmic_ray_mode: boolean
+        If set to true, the signal is assumed to be from an air shower and the refraction at the air/ice boundary is taken into account        
     """
     
     frequencies = station.get_sim_station().get_channel(0)[0].get_frequencies()
     spectrum = station.get_sim_station().get_channel(0)[0].get_frequency_spectrum()
-    efield_antenna_factor = get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider)
+    efield_antenna_factor = get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, cosmic_ray_mode)
     if return_spectrum:
         voltage_spectrum = np.zeros((len(channels), len(frequencies)), dtype=np.complex)
         for i_ch, ch in enumerate(channels):
