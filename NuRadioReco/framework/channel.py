@@ -47,15 +47,6 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
     def get_id(self):
         return self._id
 
-    def set_electric_field(self, trace):
-        if not (isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace)):
-            logger.error("electric field is not of instance of framework.base_trace.BaseTrace, but is of name {}".format(trace.__class__.__name__))
-            raise NotImplemented
-        self.__electric_field = trace
-
-    def get_electric_field(self):
-        return self.__electric_field
-
     def serialize(self, mode):
         if(mode == 'micro' or mode == 'mini'):
             base_trace_pkl = None
