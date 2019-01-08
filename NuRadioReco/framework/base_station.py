@@ -20,6 +20,7 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         self._station_time = None
         self._triggers = {}
         self._triggered = False
+        self._is_neutrino = True
 
     def __setitem__(self, key, value):
         self.set_parameter(key, value)
@@ -133,6 +134,15 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         trigger.set_triggered(triggered)
         self.set_trigger(trigger)
 
+    def is_neutrino():
+        return self._is_neutrino
+        
+    def is_cosmic_ray():
+        return not self._is_neutrino
+        
+    def set_is_neutrino(is_neutrino):
+        self._is_neutrino = is_neutrino
+
 
     def serialize(self, mode):
         if(mode == 'micro'):
@@ -146,6 +156,7 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
                 '_parameter_covariances': self._parameter_covariances,
                 '_station_id': self._station_id,
                 '_station_time': self._station_time,
+                '_is_neutrino': self._is_neutrino,
                 'triggers': trigger_pkls,
                 '_triggered': self._triggered,
                 'base_trace': base_trace_pkl}
@@ -163,3 +174,4 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         self._parameter_covariances = data['_parameter_covariances']
         self._station_id = data['_station_id']
         self._station_time = data['_station_time']
+        self._is_neutrino = data['_is_neutrino']
