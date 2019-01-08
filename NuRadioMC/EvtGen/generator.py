@@ -105,7 +105,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
     additional_interactions: dict or None (default)
         a dictionary containing potential additional interactions, such as the second tau interaction vertex.
     """
-    n_events = len(data_sets.values()[0])
+    n_events = len(np.unique(data_sets['event_ids']))
     total_number_of_events = n_events
     if('n_events' in attributes):
         total_number_of_events = attributes['n_events']
@@ -114,6 +114,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
     else:
         n_events_per_file = int(n_events_per_file)
     iFile = -1
+    evt_id_first = data_sets['event_ids'][0]
     start_index = 0
     while True:
         iFile += 1
@@ -128,21 +129,20 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
             fout.attrs[key] = value
         fout.attrs['total_number_of_events'] = total_number_of_events
 
-        stop_index = start_index + n_events_per_file  # the 'stop_index' is 1 + the actual index
-        if(stop_index >= n_events):
-            stop_index = n_events
-        else:
-            evt_id_last = data_sets['event_ids'][stop_index - 1]
-            if(evt_id_last == np.unique(data_sets['event_ids'])[-1]): # last event index is very last event but not last vertex
-                stop_index = n_events
-            else:
-                tmp = np.squeeze(np.argwhere(data_sets['event_ids'] > evt_id_last)) # set stop index such that last event is competely in file
-                if(tmp.size == 1):
-                    stop_index = tmp
-                else:
-                    stop_index = tmp[0]
+        evt_id_last = evt_id_first + n_events_per_file - 1
 
-        print('writing file {} with {} events'.format(filename2, stop_index - start_index))
+        if(evt_id_last >= n_events):
+            evt_id_last = n_events
+            stop_index = len(data_sets['event_ids'])
+        else:
+            tmp = np.squeeze(np.argwhere(data_sets['event_ids'] > evt_id_last)) # set stop index such that last event is competely in file
+            if(tmp.size == 1):
+                stop_index = tmp
+            else:
+                stop_index = tmp[0]
+
+        print('writing file {} with {} events'.format(filename2, 1 + evt_id_last - evt_id_first))
+
         for key, value in data_sets.iteritems():
             fout[key] = value[start_index:stop_index]
 
@@ -150,7 +150,8 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         fout.close()
 
         start_index = stop_index
-        if(start_index == n_events):  # break while loop if all events are saved
+        evt_id_first = evt_id_last + 1
+        if(evt_id_last == n_events):  # break while loop if all events are saved
             break
 
 
@@ -302,8 +303,26 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             iE += 1
             data_sets['n_interaction'][iE] = 2  # specify that new event is a second interaction
 
+<<<<<<< HEAD
             # Calculating the energy of the tau from the neutrino energy
             data_sets['energies'][iE] = (1-data_sets['inelasticity'][iE-1])*data_sets['energies'][iE-1]
+=======
+            decay_time = get_tau_decay_time(data_sets['energies'][iE])
+
+            # Let us assume that the tau has the same direction as the tau neutrino
+            # to calculate the vertex of the second shower
+            # This must be changed in the future
+
+            second_vertex_x  = get_tau_speed(data_sets['energies'][iE]) * decay_time
+            second_vertex_x *= np.sin(data_sets['zeniths'][iE]) * np.cos(data_sets['azimuths'][iE])
+            second_vertex_x += data_sets['xx'][iE]
+            data_sets['xx'][iE] = second_vertex_x
+
+            second_vertex_y  = get_tau_speed(data_sets['energies'][iE]) * decay_time
+            second_vertex_y *= np.sin(data_sets['zeniths'][iE]) * np.sin(data_sets['azimuths'][iE])
+            second_vertex_y += data_sets['yy'][iE]
+            data_sets['yy'][iE] = second_vertex_y
+>>>>>>> TauConstantNumberEvents
 
             # Calculation of the tau decay vertex
             get_tau_vertex(data_sets, iE)
