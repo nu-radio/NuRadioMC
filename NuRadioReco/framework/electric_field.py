@@ -16,7 +16,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         self._parameters = {}
     
     def get_parameter(self, key):
-        if not isinstance(parameters.electricFieldParameters):
+        if not isinstance(key, parameters.electricFieldParameters):
             logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
         return self._parameters[key]

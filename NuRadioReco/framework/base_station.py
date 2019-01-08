@@ -145,7 +145,7 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         self._electric_fields.append(electric_field)
     
     def get_electric_fields_for_channels(self, channel_ids, ray_path_type=None):
-        for e_field in interitems(self._electric_fields):
+        for e_field in self._electric_fields:
             if e_field.has_channel_ids(channel_ids):
                 if ray_path_type is None:
                     yield e_field

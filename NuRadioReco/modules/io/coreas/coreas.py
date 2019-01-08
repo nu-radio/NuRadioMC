@@ -93,6 +93,8 @@ def make_sim_station(station_id, corsika, observer, n_channels,  weight=None):
     electric_field = NuRadioReco.framework.electric_field.ElectricField(range(n_channels))
     electric_field.set_trace(efield2, sampling_rate)
     electric_field.set_parameter(efp.ray_path_type, 'direct')
+    electric_field.set_parameter(efp.zenith, zenith)
+    electric_field.set_parameter(efp.azimuth, azimuth)
     sim_station.add_electric_field(electric_field)
     sim_station.set_parameter(stnp.azimuth, azimuth)
     sim_station.set_parameter(stnp.zenith, zenith)
