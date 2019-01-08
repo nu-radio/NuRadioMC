@@ -14,6 +14,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.utilities import templates
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import numpy as np
 import logging
 logger = logging.getLogger('traces')
@@ -157,24 +158,23 @@ def update_sim_trace_plot(i_event, filename, signal_types, station_id, juser_id)
         return {}
     fig = tools.make_subplots(rows=1, cols=1)
     try:
-        for i_channel, channel in enumerate(sim_station.iter_channels()):
-            for sub_channel in channel:
-                if sub_channel.get_parameter(chp.ray_path_type) in signal_types:
-                    for polarization in range(1,3):
-                        fig.append_trace(
-                            go.Scatter(
-                                x=sub_channel.get_times()/units.ns,
-                                y=sub_channel.get_trace()[polarization]/units.mV*units.m,
-                                opacity=1.,
-                                line = {
-                                    'color': efield_plot_colors[i_channel % len(efield_plot_colors)][polarization-1],
-                                    'dash': efield_plot_linestyles[sub_channel.get_parameter(chp.ray_path_type)]
-                                },
-                                name = 'Ch. {} {} ({})'.format(i_channel, polarizaiton_names[polarization], sub_channel.get_parameter(chp.ray_path_type)),
-                                legendgroup=str(i_channel),
-                                visible=visibility_settings[polarization]
-                            ), 1, 1
-                        )
+        for i_electric_field, electric_field in enumerate(sim_station.get_electric_fields()):
+            if electric_field.get_parameter(efp.ray_path_type) in signal_types:
+                for polarization in range(1,3):
+                    fig.append_trace(
+                        go.Scatter(
+                            x=electric_field.get_times()/units.ns,
+                            y=electric_field.get_trace()[polarization]/units.mV*units.m,
+                            opacity=1.,
+                            line = {
+                                'color': efield_plot_colors[i_electric_field % len(efield_plot_colors)][polarization-1],
+                                'dash': efield_plot_linestyles[electric_field.get_parameter(efp.ray_path_type)]
+                            },
+                            name = 'Ch. {} {} ({})'.format(electric_field.get_channel_ids(), polarizaiton_names[polarization], electric_field.get_parameter(efp.ray_path_type)),
+                            legendgroup=str(i_electric_field),
+                            visible=visibility_settings[polarization]
+                        ), 1, 1
+                    )
     except:
         return {}
     fig['layout'].update(
@@ -204,23 +204,22 @@ def update_sim_spectrum_plot(i_event, filename, signal_types, station_id, juser_
         return {}
     fig = tools.make_subplots(rows=1, cols=1)
     try:
-        for i_channel, channel in enumerate(sim_station.iter_channels()):
-            for sub_channel in channel:
-                if sub_channel.get_parameter(chp.ray_path_type) in signal_types:
-                    for polarization in range(1,3):
-                        fig.append_trace(
-                            go.Scatter(
-                                x=sub_channel.get_frequencies()/units.MHz,
-                                y=np.abs(sub_channel.get_frequency_spectrum()[polarization])/units.mV*units.m,
-                                opacity=1.,
-                                line = {
-                                    'color': efield_plot_colors[i_channel % len(efield_plot_colors)][polarization-1],
-                                    'dash': efield_plot_linestyles[sub_channel.get_parameter(chp.ray_path_type)]
-                                },
-                                name = 'Ch. {} {} ({})'.format(i_channel, polarizaiton_names[polarization], sub_channel.get_parameter(chp.ray_path_type)),
-                                legendgroup=str(i_channel)
-                            ), 1, 1
-                        )
+        for i_electric_field, electric_field in enumerate(sim_station.get_electric_fields()):
+            if electric_field.get_parameter(efp.ray_path_type) in signal_types:
+                for polarization in range(1,3):
+                    fig.append_trace(
+                        go.Scatter(
+                            x=electric_field.get_frequencies()/units.MHz,
+                            y=np.abs(electric_field.get_frequency_spectrum()[polarization])/units.mV*units.m,
+                            opacity=1.,
+                            line = {
+                                'color': efield_plot_colors[i_electric_field % len(efield_plot_colors)][polarization-1],
+                                'dash': efield_plot_linestyles[electric_field.get_parameter(efp.ray_path_type)]
+                            },
+                            name = 'Ch. {} {} ({})'.format(electric_field.get_channel_ids(), polarizaiton_names[polarization], electric_field.get_parameter(efp.ray_path_type)),
+                            legendgroup=str(i_electric_field)
+                        ), 1, 1
+                    )
     except:
         return {}
     fig['layout'].update(
