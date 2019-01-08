@@ -46,7 +46,8 @@ class electricFieldParameters(Enum):
     polarization_angle = 2 # electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
     polarization_angle_expectation = 3 # expected polarization based on shower geometry. Defined analogous to polarization_angle
     signal_energy_fluence = 4 # Energy/area in the radio signal
-    zenith = 5  # zenith angle of the signal. Note that refraction at the air/ice boundary is not taken into account
-    azimuth = 6  # azimuth angle of the signal. Note that refraction at the air/ice boundary is not taken into account
+    cr_spectrum_slope = 5 # Slope of the radio signal's spectrum as reconstructed by the voltageToAnalyticEfieldConverter
+    zenith = 7  # zenith angle of the signal. Note that refraction at the air/ice boundary is not taken into account
+    azimuth = 8  # azimuth angle of the signal. Note that refraction at the air/ice boundary is not taken into account
     
     
