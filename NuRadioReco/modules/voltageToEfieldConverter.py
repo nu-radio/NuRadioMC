@@ -6,6 +6,7 @@ from NuRadioReco.utilities import units, fft
 from NuRadioReco.utilities import ice
 from NuRadioReco.detector import antennapattern
 import NuRadioReco.framework.base_trace
+import NuRadioReco.framework.electric_field
 import matplotlib.pyplot as plt
 
 import logging
@@ -13,6 +14,7 @@ logger = logging.getLogger('voltageToEfieldConverter')
 
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 def get_array_of_channels(station, use_channels, det, zenith, azimuth,
                           antenna_pattern_provider, time_domain=False):
@@ -225,8 +227,11 @@ class voltageToEfieldConverter:
 #
 #             if (f < 500 * units.MHz):
 #                 print "%.0f MHz" % (f / units.MHz), solution
-
-        station.set_frequency_spectrum(efield3_f, station.get_channel(0).get_sampling_rate())
+        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels)
+        electric_field.set_frequency_spectrum(efield3_f, station.get_channel(0).get_sampling_rate())
+        electric_field.set_parameter(efp.zenith, zenith)
+        electric_field.set_parameter(efp.azimuth, azimuth)
+        station.add_electric_field(electric_field)
 
         if debug:
             fig, (ax2, ax2f) = plt.subplots(2, 1, figsize=(10, 8))
