@@ -134,13 +134,13 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         trigger.set_triggered(triggered)
         self.set_trigger(trigger)
 
-    def is_neutrino():
+    def is_neutrino(self):
         return self._is_neutrino
         
-    def is_cosmic_ray():
+    def is_cosmic_ray(self):
         return not self._is_neutrino
         
-    def set_is_neutrino(is_neutrino):
+    def set_is_neutrino(self, is_neutrino):
         self._is_neutrino = is_neutrino
 
 
