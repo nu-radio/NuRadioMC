@@ -38,7 +38,7 @@ class templateDirectionFitter:
 
         for iCh, channel in enumerate(channels):
             channel_id = channel.get_id()
-            times.append(channel[xcorrelations]['{}_ref_xcorr_time'.format(type_str)])
+            times.append(channel[xcorrelations]['{}_ref_xcorr_time'.format(type_str)] + channel.get_trace_start_time())
             positions.append(det.get_relative_position(station_id, channel_id))
 
         times = np.array(times)
