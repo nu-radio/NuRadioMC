@@ -195,6 +195,7 @@ class triggerSimulator:
 #                 logger.info("Channel {} already at desired length, nothing done.".format(channel.get_id()))
             else:
                 sampling_rate = channel.get_sampling_rate()
+                trigger_time_sample = trigger.get_trigger_time() * sampling_rate
                 samples_before_trigger = int(self.__pre_trigger_time * sampling_rate)
                 rel_station_time_samples = 0
                 cut_samples_beginning = 0
@@ -219,7 +220,7 @@ class triggerSimulator:
                 trace = trace[cut_samples_beginning:(number_of_samples + cut_samples_beginning)]
                 channel.set_trace(trace, channel.get_sampling_rate())
         try:
-            logger.debug('setting ssim tation start time to {:.1f} + {:.1f}ns'.format(
+            logger.debug('setting sim tation start time to {:.1f} + {:.1f}ns'.format(
                 station.get_sim_station().get_trace_start_time(), (rel_station_time_samples / sampling_rate)))
             # here we assumed that all channels had the same length
             station.get_sim_station().add_trace_start_time(-rel_station_time_samples / sampling_rate)

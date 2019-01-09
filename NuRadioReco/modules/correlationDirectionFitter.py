@@ -50,7 +50,7 @@ class correlationDirectionFitter:
 
         use_correlation = True
 
-        def ll_regular_station(angles, corr_02, corr_13, sampling_rate, positions):
+        def ll_regular_station(angles, corr_02, corr_13, sampling_rate, positions, trace_start_times):
             """
             Likelihood function for a four antenna ARIANNA station, using correction.
             Using correlation, has no built in wrap around, pulse needs to be in the middle
@@ -68,7 +68,9 @@ class correlationDirectionFitter:
 
             delta_t_02 = times[0][1] - times[0][0]
             delta_t_13 = times[1][1] - times[1][0]
-
+            #take different trace start times into account
+            delta_t_02 -= (trace_start_times[0][1] - trace_start_times[0][0])*sampling_rate
+            delta_t_13 -= (trace_start_times[1][1] - trace_start_times[1][0])*sampling_rate
             pos_02 = int(corr_02.shape[0] / 2 - delta_t_02)
             pos_13 = int(corr_13.shape[0] / 2 - delta_t_13)
 
@@ -86,7 +88,7 @@ class correlationDirectionFitter:
 
             return likelihood
 
-        def ll_regular_station_fft(angles, corr_02_fft, corr_13_fft, sampling_rate, positions):
+        def ll_regular_station_fft(angles, corr_02_fft, corr_13_fft, sampling_rate, positions, trace_start_times):
             """
             Likelihood function for a four antenna ARIANNA station, using FFT convolution
             Using FFT convolution, has built-in wrap around, but ARIANNA signals are too short for it to be accurate
@@ -103,8 +105,8 @@ class correlationDirectionFitter:
                 tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n_index) * sampling_rate)
                 times.append(tmp)
 
-            delta_t_02 = times[0][1] - times[0][0]
-            delta_t_13 = times[1][1] - times[1][0]
+            delta_t_02 = (times[0][1] + trace_start_times[0][1]*sampling_rate) - (times[0][0] + trace_start_times[0][0]*sampling_rate)
+            delta_t_13 = (times[1][1] + trace_start_times[1][1]*sampling_rate) - (times[1][0] + trace_start_times[1][0]*sampling_rate)
 
             if delta_t_02 < 0:
                 pos_02 = int(delta_t_02 + corr_02_fft.shape[0])
@@ -127,7 +129,8 @@ class correlationDirectionFitter:
         positions_pairs = [[positions[channel_pairs[0][0]], positions[channel_pairs[0][1]]],
                            [positions[channel_pairs[1][0]], positions[channel_pairs[1][1]]]]
         sampling_rate = station.get_channel(0).get_sampling_rate()  # assume that channels have the same sampling rate
-
+        trace_start_time_pairs = [[station.get_channel(channel_pairs[0][0]).get_trace_start_time(), station.get_channel(channel_pairs[0][1]).get_trace_start_time()],
+                                    [station.get_channel(channel_pairs[1][0]).get_trace_start_time(), station.get_channel(channel_pairs[1][1]).get_trace_start_time()]]
         # determine automatically if one channel has an inverted waveform with respect to the other
         signs = [1., 1.]
         for iPair, pair in enumerate(channel_pairs):
@@ -162,11 +165,11 @@ class correlationDirectionFitter:
         # Using correlation
             ll = opt.brute(ll_regular_station, ranges=(slice(ZenLim[0], ZenLim[1], 0.05),
                                                        slice(AziLim[0], AziLim[1], 0.05)),
-                            args=(corr_02, corr_13, sampling_rate, positions_pairs), full_output=True, finish=opt.fmin)  # slow but does the trick
+                            args=(corr_02, corr_13, sampling_rate, positions_pairs, trace_start_time_pairs), full_output=True, finish=opt.fmin)  # slow but does the trick
         else:
             ll = opt.brute(ll_regular_station_fft, ranges=(slice(ZenLim[0], ZenLim[1], 0.05),
                                                            slice(AziLim[0], AziLim[1], 0.05)),
-                           args=(corr_02_fft, corr_13_fft, sampling_rate, positions_pairs), full_output=True, finish=opt.fmin)  # slow but does the trick
+                           args=(corr_02_fft, corr_13_fft, sampling_rate, positions_pairs, trace_start_time_pairs), full_output=True, finish=opt.fmin)  # slow but does the trick
 
         if self.__debug:
             import peakutils
@@ -180,8 +183,8 @@ class correlationDirectionFitter:
                 tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n_index) * sampling_rate)
                 times.append(tmp)
 
-            delta_t_02 = times[0][1] - times[0][0]
-            delta_t_13 = times[1][1] - times[1][0]
+            delta_t_02 = (times[0][1] + trace_start_time_pairs[0][1]) - (times[0][0] + trace_start_time_pairs[0][0])
+            delta_t_13 = (times[1][1] + trace_start_time_pairs[1][1]) - (times[1][0] + trace_start_time_pairs[1][0])
 
             pos_02 = int(corr_02.shape[0] / 2 - delta_t_02)
             pos_13 = int(corr_13.shape[0] / 2 - delta_t_13)
@@ -263,9 +266,9 @@ class correlationDirectionFitter:
                 for z in zen:
                     # Evaluate fit function for grid
                     if use_correlation:
-                        z_plot[i] = ll_regular_station([z, a], corr_02, corr_13, sampling_rate, positions_pairs)
+                        z_plot[i] = ll_regular_station([z, a], corr_02, corr_13, sampling_rate, positions_pairs, trace_start_time_pairs)
                     else:
-                        z_plot[i] = ll_regular_station_fft([z, a], corr_02_fft, corr_13_fft, sampling_rate, positions_pairs)
+                        z_plot[i] = ll_regular_station_fft([z, a], corr_02_fft, corr_13_fft, sampling_rate, positions_pairs, trace_start_time_pairs)
                     x_plot[i] = a
                     y_plot[i] = z
                     i += 1

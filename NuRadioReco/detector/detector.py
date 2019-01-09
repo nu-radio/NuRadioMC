@@ -28,6 +28,7 @@ serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
 
 
 def buffer_db(in_memory, filename=None):
+    logger.info("buffering SQL database on-the-fly")
     db = None
     if(in_memory):
         db = TinyDB(storage=MemoryStorage)
