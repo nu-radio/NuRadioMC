@@ -68,6 +68,7 @@ class readARIANNAData:
 #         self.data_tree.SetBranchAddress("AmpOutData.", self.calwv)
 
         self.readout_config = ROOT.TSnReadoutConfig()
+
         self.config_tree.SetBranchAddress("ReadoutConfig.", self.readout_config)
 
         self.n_events = self.data_tree.GetEntries()
@@ -149,10 +150,13 @@ class readARIANNAData:
                 for iCh in xrange(nChan):
                     channel = NuRadioReco.framework.channel.Channel(iCh)
                     voltage = np.array(self.calwv.GetDataOnCh(iCh)) * units.mV
-                    voltage = np.roll(voltage, -stop[0])
-                    channel.set_trace(voltage, self.sampling_rate)
-                    station.add_channel(channel)
-
+                    # Robert Lahmann 16-Nov-2018: Fix problem: "IndexError: index 0 is out of bounds for axis 0 with size 0"
+                    if (stop.size!=0):
+                        voltage = np.roll(voltage, -stop[0])
+                        channel.set_trace(voltage, self.sampling_rate)
+                        station.add_channel(channel)
+                    else:
+                        logger.warning(" Event {event} of run {run} is skipped, no stop point for rolling array!".format(event=evt_number,run=run_number))
                 evt.set_station(station)
                 yield evt
 #             except:
