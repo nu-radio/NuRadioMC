@@ -49,5 +49,6 @@ class electricFieldParameters(Enum):
     cr_spectrum_slope = 5 # Slope of the radio signal's spectrum as reconstructed by the voltageToAnalyticEfieldConverter
     zenith = 7  # zenith angle of the signal. Note that refraction at the air/ice boundary is not taken into account
     azimuth = 8  # azimuth angle of the signal. Note that refraction at the air/ice boundary is not taken into account
-    
+    signal_time = 9
+        
     
