@@ -18,28 +18,22 @@ class stationParameters(Enum):
     azimuth = 14  # the azimuth angle of the incoming signal direction (WARNING: this parameter is not well defined as the incoming signal direction might be different for different channels)
     zenith_cr_templatefit = 15
     zenith_nu_templatefit = 16
-    polarization_angle = 17 # electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
-    polarization_angle_expectation = 18 # expected polarization based on shower geometry. Defined analogous to polarization_angle
-    cr_xcorrelations = 19 # dict of result of crosscorrelations with cr templates
-    nu_xcorrelations = 20 #  dict of result of crosscorrelations with nu templates
-    station_time = 21
-    signal_energy_fluence = 22 # Energy/area in the radio signal
-    signal_time = 23
-    cr_energy_em = 24  # the electromagnetic shower energy (the cosmic ray energy that ends up in electrons, positrons and gammas)
-    cr_spectrum_slope = 25 # Slope of the radio signal's spectrum as reconstructed by the voltageToAnalyticEfieldConverter
+    cr_xcorrelations = 17 # dict of result of crosscorrelations with cr templates
+    nu_xcorrelations = 18 #  dict of result of crosscorrelations with nu templates
+    station_time = 19
+    cr_energy_em = 20  # the electromagnetic shower energy (the cosmic ray energy that ends up in electrons, positrons and gammas)
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
     azimuth = 2  # azimuth angle of the incoming signal direction
-    ray_path_type = 3  # the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
-    maximum_amplitude = 4  # the maximum ampliude of the magnitude of the trace
-    SNR = 5  # an dictionary of various signal-to-noise ratio definitions
-    maximum_amplitude_envelope = 6  # the maximum ampliude of the hilbert envelope of the trace
-    P2P_amplitude = 7  # the peak to peak amplitude
-    cr_xcorrelations = 8 # dict of result of crosscorrelations with cr templates
-    nu_xcorrelations = 9 #  dict of result of crosscorrelations with nu templates
-    nu_vertex_distance = 10 # the distance along the ray path from the vertex to the channel
-    nu_viewing_angle = 11 # the angle between shower axis and launch vector
+    maximum_amplitude = 3  # the maximum ampliude of the magnitude of the trace
+    SNR = 4  # an dictionary of various signal-to-noise ratio definitions
+    maximum_amplitude_envelope = 5  # the maximum ampliude of the hilbert envelope of the trace
+    P2P_amplitude = 6  # the peak to peak amplitude
+    cr_xcorrelations = 7 # dict of result of crosscorrelations with cr templates
+    nu_xcorrelations = 8 #  dict of result of crosscorrelations with nu templates
+    nu_vertex_distance = 9 # the distance along the ray path from the vertex to the channel
+    nu_viewing_angle = 10 # the angle between shower axis and launch vector
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  # the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
