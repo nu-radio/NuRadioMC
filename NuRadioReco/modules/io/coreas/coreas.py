@@ -102,6 +102,7 @@ def make_sim_station(station_id, corsika, observer, n_channels,  weight=None):
     sim_station.set_parameter(stnp.cr_energy, energy)
     sim_station.set_magnetic_field_vector(magnetic_field_vector)
     sim_station.set_parameter(stnp.cr_energy_em, corsika["highlevel"].attrs["Eem"])
+    sim_station.set_is_cosmic_ray()
 
     sim_station.set_simulation_weight(weight)
     return sim_station

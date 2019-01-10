@@ -18,12 +18,14 @@ class hardwareResponseIncorporator:
         self.__debug = False
         self.__time_delays = {}
         self.__t = 0
+        self.__mingainlin = None
         self.begin()
 
     def begin(self, debug=False):
         self.__debug = debug
-
-    def run(self, evt, station, det, sim_to_data=False, phase_only=False):
+        #analog_components
+        
+    def run(self, evt, station, det, sim_to_data=False, phase_only=False,mode=None,mingainlin=None):
         """
         Switch sim_to_data to go from simulation to data or otherwise.
         The option zero_noise can be used to zero the noise around the pulse. It is unclear, how useful this is.
@@ -35,9 +37,28 @@ class hardwareResponseIncorporator:
             if True, convolve with the hardware response
         phase_only: bool (default False)
             if True, only the phases response is applied but not the amplitude response 
-        
-        
+        mode: string
+            'phase_only': only the phases response is applied but not the amplitude response
+                (identical to phase_only=True )
+            'relativ': gain of amp is divided by maximum of the gain, i.e. at the maximum of the 
+                filter response is 1 (before applying cable response). This makes it easier
+                to compare the filtered to unfiltered signal
+            None : default, gain and phase effects are applied 'normally'
+        mingainlin: float
+            In frequency ranges where the gain gets very small, the reconstruction of the original signal (obtained by 
+            dividing the measured signal by the gain) leads to excessively high values, due to the effect of 
+            post-amplifier noise. In order to mitigate this effect, a minimum gain (linear scale!) as fraction of the
+            maximum gain can be defined. If specified, any gain value smaller than mingainlin will be replaced by mingainlin.
+            Note: The adjustment to the minimal gain is NOT visible when getting the amp response from 
+            analog_components.get_amplifier_response()
         """
+        
+        self.__mingainlin = mingainlin
+        
+        if (phase_only):
+            mode='phase_only'
+            logger.warning('Please use option mode=''phase_only'' in the future, use of option phase_only will be phased out')
+            
         t = time.time()
         station_id = station.get_id()
         frequencies = station.get_channel(0).get_frequencies()  # get frequencies, the sampling rate is assumed to be the same for all channels
@@ -49,10 +70,20 @@ class hardwareResponseIncorporator:
             amp_type = det.get_amplifier_type(station_id, channel.get_id())
             trace_fft = channel.get_frequency_spectrum()
             amp_response = analog_components.get_amplifier_response(frequencies, amp_type=amp_type)
+            
+            if mingainlin!=None:
+                mingainlin = float(mingainlin)
+                ampmax= np.max(amp_response['gain'])
+                iamp_gain_low = np.where(amp_response['gain']<(mingainlin*ampmax))
+                amp_response['gain'][iamp_gain_low]=(mingainlin*ampmax)
+            
             cable_response = analog_components.get_cable_response_parametrized(frequencies, *det.get_cable_type_and_length(station.get_id(), channel.get_id()))
-            if(phase_only):
+            if(mode=='phase_only'):
                 cable_response = np.ones_like(cable_response) * np.exp(1j * np.angle(cable_response))
                 amp_response['gain'] = np.ones_like(amp_response['gain'])
+            elif(mode=='relative'):
+                ampmax= np.max(amp_response['gain'])
+                amp_response['gain'] /= ampmax
             if sim_to_data:
                 if(self.__debug):
                     import matplotlib.pyplot as plt
@@ -194,3 +225,6 @@ class hardwareResponseIncorporator:
             self.__time_delays[amp_type] = self.__calculate_time_delays_amp(amp_type)
             logger.info("time delays of amp {} have not yet been calculated -> calculating -> time delay is {:.2f} ns".format(amp_type, self.__time_delays[amp_type] / units.ns))
         return self.__time_delays[amp_type]
+    
+    def get_mingainlin(self):
+        return self.__mingainlin

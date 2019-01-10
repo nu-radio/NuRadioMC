@@ -279,7 +279,7 @@ class voltageToAnalyticEfieldConverter:
     def run(self, evt, station, det, debug=False, debug_plotpath=None,
             use_channels=[0, 1, 2, 3],
             bandpass=[100 * units.MHz, 500 * units.MHz],
-            useMCdirection=False):
+            useMCdirection=False, cosmic_ray_mode=False):
         """
         run method. This function is executed for each event
 
@@ -298,6 +298,8 @@ class voltageToAnalyticEfieldConverter:
         bandpass: [float, float]
             the lower and upper frequecy for which the analytic pulse is calculated.
             A butterworth filter of 10th order and a rectangular filter is applied.
+        cosmic_ray_mode: boolean
+            If set to true, the signal is assumed to be from an air shower and the refraction at the air/ice boundary is taken into account
         """
         self.__counter += 1
         event_time = station.get_station_time()
@@ -315,7 +317,7 @@ class voltageToAnalyticEfieldConverter:
 
         efield_antenna_factor, V, V_timedomain = get_array_of_channels(station, use_channels,
                                                                        det, zenith, azimuth, self.antenna_provider,
-                                                                       time_domain=True)
+                                                                       time_domain=True, cosmic_ray_mode=cosmic_ray_mode)
         sampling_rate = station.get_channel(0).get_sampling_rate()
         n_samples_time = V_timedomain.shape[1]
 
