@@ -11,7 +11,6 @@ import json
 from app import app
 import dataprovider
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities import templates
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 import numpy as np
@@ -20,7 +19,6 @@ logger = logging.getLogger('traces')
 
 polarizaiton_names = ['r', 'theta', 'phi']
 provider = dataprovider.DataProvider()
-template_provider = templates.Templates()
 
 efield_plot_colors = [
     ['rgb(91, 179, 240)', 'rgb(31, 119, 180)'],
