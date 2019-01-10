@@ -11,12 +11,12 @@ logger = logging.getLogger("Templates")
 class Templates(object):
     __instance = None
 
-    def __new__(cls):
+    def __new__(cls, path):
         if Templates.__instance is None:
-            Templates.__instance = object.__new__(cls)
+            Templates.__instance = object.__new__(cls, path)
         return Templates.__instance
 
-    def __init__(self):
+    def __init__(self, path):
         self.__ref_cr_templates = {}
         self.__cr_templates = {}
         self.__cr_template_set = {}
@@ -24,8 +24,7 @@ class Templates(object):
         self.__ref_nu_templates = {}
         self.__nu_templates = {}
         self.__nu_template_set = {}
-        self.__path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            '../analysis/templateGeneration/') 
+        self.__path = path
         
     
     def set_template_directory(self, path):
