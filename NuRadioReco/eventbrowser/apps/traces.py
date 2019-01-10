@@ -11,14 +11,21 @@ from app import app
 import dataprovider
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import templates
+from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.utilities import fft
+from NuRadioReco.detector import detector
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+import NuRadioReco.detector.antennapattern
 import numpy as np
 import logging
+
 logger = logging.getLogger('traces')
 
 provider = dataprovider.DataProvider()
 template_provider = templates.Templates()
+det = detector.Detector()
+antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
 
 layout = html.Div([
     html.Div(id='trigger-trace', style={'display': 'none'}),
@@ -61,7 +68,8 @@ layout = html.Div([
                                 {'label': 'calibrated trace', 'value': 'trace'},
                                 {'label': 'cosmic-ray template', 'value': 'crtemplate'},
                                 {'label': 'neutrino template', 'value': 'nutemplate'},
-                                {'label': 'envelope', 'value': 'envelope'}
+                                {'label': 'envelope', 'value': 'envelope'},
+                                {'label': 'from rec. E-field', 'value': 'efield'}
                             ],
                             multi=True,
                             value=["trace"]
@@ -305,10 +313,10 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                               shared_xaxes=True, shared_yaxes=False,
                               vertical_spacing=0.01)
     ymax = 0
+    for i, channel in enumerate(station.iter_channels()):
+        trace = channel.get_trace() / units.mV
+        ymax = max(ymax, np.max(np.abs(trace)))
     if 'trace' in dropdown_traces:
-        for i, channel in enumerate(station.iter_channels()):
-            trace = channel.get_trace() / units.mV
-            ymax = max(ymax, np.max(np.abs(trace)))
         for i, channel in enumerate(station.iter_channels()):
             tt = channel.get_times() / units.ns
             trace = channel.get_trace() / units.mV
@@ -453,6 +461,30 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     textposition='top center'
                 ),
             i + 1, 1)
+    if 'efield' in dropdown_traces:
+        det.update(station.get_station_time())
+        channel_ids = []
+        for channel in station.iter_channels():
+            channel_ids.append(channel.get_id())
+        for i_trace, trace in enumerate(trace_utilities.get_channel_voltage_from_efield(station, channel_ids, det, station.get_parameter(stnp.zenith), station.get_parameter(stnp.azimuth), antenna_pattern_provider, cosmic_ray_mode=station.is_cosmic_ray())):
+                fig.append_trace(go.Scatter(
+                    x=station.get_times()/units.ns,
+                    y=fft.freq2time(trace)/units.mV,
+                    line=dict(
+                        dash='solid',
+                        color=colors[i_trace%len(colors)]
+                    ),
+                    opacity=.5
+                ), i_trace+1, 1)
+                fig.append_trace(go.Scatter(
+                    x=station.get_frequencies()/units.MHz,
+                    y=np.abs(trace)/units.mV,
+                    line=dict(
+                        dash='solid',
+                        color=colors[i_trace%len(colors)]
+                    ),
+                    opacity=.5
+                ), i_trace + 1, 2)
     fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['yaxis1'].update(title='voltage [mV]')
     for i, channel in enumerate(station.iter_channels()):
@@ -460,12 +492,11 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
 
         tt = channel.get_times()
         dt = tt[1] - tt[0]
-        trace = channel.get_trace()
-        ff = np.fft.rfftfreq(len(tt), dt)
-        spec = np.abs(np.fft.rfft(trace, norm='ortho'))
+        spec = channel.get_frequency_spectrum()
+        ff = channel.get_frequencies()
         fig.append_trace(go.Scatter(
                 x=ff / units.MHz,
-                y=spec / units.mV,
+                y=np.abs(spec) / units.mV,
                 opacity=0.7,
                 marker={
                     'color': colors[i % len(colors)],
@@ -477,7 +508,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
             fig.append_trace(
                    go.Scatter(
                         x=[0.9 * ff.max() / units.MHz],
-                        y=[0.8 * spec.max() / units.mV],
+                        y=[0.8 * np.abs(spec).max() / units.mV],
                         mode='text',
                         text=['max L1 = {:.2f}'.format(get_L1(spec))],
                         textposition='top center'

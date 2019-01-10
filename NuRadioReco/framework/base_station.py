@@ -20,6 +20,7 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         self._station_time = None
         self._triggers = {}
         self._triggered = False
+        self._particle_type = 'nu'
 
     def __setitem__(self, key, value):
         self.set_parameter(key, value)
@@ -133,6 +134,24 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         trigger.set_triggered(triggered)
         self.set_trigger(trigger)
 
+    def is_neutrino(self):
+        return self._particle_type == 'nu'
+        
+    def is_cosmic_ray(self):
+        return self._particle_type == 'cr'
+        
+    def set_is_neutrino(self):
+        """
+        set station type to neutrino
+        """
+        self._is_neutrino = 'nu'
+    
+    def set_is_cosmic_ray(self):
+        """
+        set station type to cosmic rays (relevant e.g. for refraction into the snow)
+        """
+        self._is_neutrino = 'cr'
+
 
     def serialize(self, mode):
         if(mode == 'micro'):
@@ -146,6 +165,7 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
                 '_parameter_covariances': self._parameter_covariances,
                 '_station_id': self._station_id,
                 '_station_time': self._station_time,
+                '_particle_type': self._particle_type,
                 'triggers': trigger_pkls,
                 '_triggered': self._triggered,
                 'base_trace': base_trace_pkl}
@@ -163,3 +183,4 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         self._parameter_covariances = data['_parameter_covariances']
         self._station_id = data['_station_id']
         self._station_time = data['_station_time']
+        self._particle_type = data['_particle_type']
