@@ -158,7 +158,8 @@ class efieldToVoltageConverter:
 
                 zenith = electric_field[efp.zenith]
                 azimuth = electric_field[efp.azimuth]
-                if zenith < 0.5 * np.pi:    # TODO: check for cosmic ray flag
+                if zenith < 0.5 * np.pi and sim_station.is_cosmic_ray():
+                    print('isCosmicRay', sim_station.is_cosmic_ray())
                     site = det.get_site(sim_station_id)
                     n_ice = ice.get_refractive_index(-0.01, site)
                     # is antenna below surface?
