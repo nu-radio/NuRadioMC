@@ -452,16 +452,18 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                 ),
             i + 1, 1)
     if 'nutemplate' in dropdown_traces:
+        if not 'NURADIORECOTEMPLATES' in os.environ: # if the environment variable is not set, we have to ask the user to specify the template location
+            template_provider.set_template_directory(template_directory)
         ref_template = template_provider.get_nu_ref_template(station_id)
         for i, channel in enumerate(station.iter_channels()):
             times = channel.get_times()
             trace = channel.get_trace()
-            xcorr = channel['nu_ref_xcorr']
-            xcorrpos = channel['nu_ref_xcorr_time']
+            xcorr = channel.get_parameter(chp.nu_xcorrelations)['nu_ref_xcorr']
+            xcorrpos = channel.get_parameter(chp.nu_xcorrelations)['nu_ref_xcorr_time']
             dt = times[1] - times[0]
             flip = np.sign(xcorr)
             tttemp = np.arange(0, len(ref_template) * dt, dt)
-            yy = flip * np.roll(ref_template * np.abs(trace).max(), int(np.round(xcorrpos / dt)))
+            yy = flip * ref_template * np.abs(trace).max()
             fig.append_trace(go.Scatter(
                     x=tttemp[:len(trace)] / units.ns,
                     y=yy[:len(trace)] / units.mV,
@@ -477,6 +479,19 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     },
                     name=i
                 ), i + 1, 1)
+            template_spectrum = fft.time2freq(yy)
+            template_freqs = np.fft.rfftfreq(len(yy), dt)
+            template_freq_mask = (template_freqs > channel.get_frequencies()[0])&(template_freqs<(channel.get_frequencies()[-1]))
+            fig.append_trace(go.Scatter(
+                x = template_freqs[template_freq_mask] / units.MHz,
+                y = np.abs(template_spectrum)[template_freq_mask] / units.mV,
+                line=dict(
+                    width=2,
+                    dash='dot'
+                ),
+                name=i
+            ), i+1, 2)
+            
             fig.append_trace(
                go.Scatter(
                     x=[0.9 * times.max() / units.ns],
