@@ -144,13 +144,13 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         """
         set station type to neutrino
         """
-        self._is_neutrino = 'nu'
+        self._particle_type = 'nu'
     
     def set_is_cosmic_ray(self):
         """
         set station type to cosmic rays (relevant e.g. for refraction into the snow)
         """
-        self._is_neutrino = 'cr'
+        self._particle_type = 'cr'
 
 
     def serialize(self, mode):
