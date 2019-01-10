@@ -468,25 +468,26 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
         channel_ids = []
         for channel in station.iter_channels():
             channel_ids.append(channel.get_id())
-        for i_trace, trace in enumerate(trace_utilities.get_channel_voltage_from_efield(station, channel_ids, det, station.get_parameter(stnp.zenith), station.get_parameter(stnp.azimuth), antenna_pattern_provider, cosmic_ray_mode=station.is_cosmic_ray())):
-                fig.append_trace(go.Scatter(
-                    x=station.get_times()/units.ns,
-                    y=fft.freq2time(trace)/units.mV,
-                    line=dict(
-                        dash='solid',
-                        color=colors[i_trace%len(colors)]
-                    ),
-                    opacity=.5
-                ), i_trace+1, 1)
-                fig.append_trace(go.Scatter(
-                    x=station.get_frequencies()/units.MHz,
-                    y=np.abs(trace)/units.mV,
-                    line=dict(
-                        dash='solid',
-                        color=colors[i_trace%len(colors)]
-                    ),
-                    opacity=.5
-                ), i_trace + 1, 2)
+        for electric_field in station.get_electric_fields():
+            for i_trace, trace in enumerate(trace_utilities.get_channel_voltage_from_efield(station, electric_field, channel_ids, det, station.get_parameter(stnp.zenith), station.get_parameter(stnp.azimuth), antenna_pattern_provider, cosmic_ray_mode=station.is_cosmic_ray())):
+                    fig.append_trace(go.Scatter(
+                        x=electric_field.get_times()/units.ns,
+                        y=fft.freq2time(trace)/units.mV,
+                        line=dict(
+                            dash='solid',
+                            color=colors[i_trace%len(colors)]
+                        ),
+                        opacity=.5
+                    ), i_trace+1, 1)
+                    fig.append_trace(go.Scatter(
+                        x=electric_field.get_frequencies()/units.MHz,
+                        y=np.abs(trace)/units.mV,
+                        line=dict(
+                            dash='solid',
+                            color=colors[i_trace%len(colors)]
+                        ),
+                        opacity=.5
+                    ), i_trace + 1, 2)
     fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['yaxis1'].update(title='voltage [mV]')
     for i, channel in enumerate(station.iter_channels()):
