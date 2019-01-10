@@ -64,13 +64,14 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
         efield_antenna_factor[iCh] = np.array([VEL['theta'] * t_theta, VEL['phi'] * t_phi])
     return efield_antenna_factor
     
-def get_channel_voltage_from_efield(station, channels, detector, zenith, azimuth, antenna_pattern_provider, return_spectrum=True, cosmic_ray_mode=False):
+def get_channel_voltage_from_efield(station, electric_field, channels, detector, zenith, azimuth, antenna_pattern_provider, return_spectrum=True, cosmic_ray_mode=False):
     """
     Returns the voltage traces that would result in the channels from the station's E-field. 
     
     Parameters
     ------------------------
     station: Station
+    electric_field: ElectricField
     channels: array of int
         IDs of the channels for which the expected voltages should be calculated
     detector: Detector
@@ -84,8 +85,8 @@ def get_channel_voltage_from_efield(station, channels, detector, zenith, azimuth
         If set to true, the signal is assumed to be from an air shower and the refraction at the air/ice boundary is taken into account        
     """
     
-    frequencies = station.get_sim_station().get_channel(0)[0].get_frequencies()
-    spectrum = station.get_sim_station().get_channel(0)[0].get_frequency_spectrum()
+    frequencies = electric_field.get_frequencies()
+    spectrum = electric_field.get_frequency_spectrum()
     efield_antenna_factor = get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, cosmic_ray_mode)
     if return_spectrum:
         voltage_spectrum = np.zeros((len(channels), len(frequencies)), dtype=np.complex)
