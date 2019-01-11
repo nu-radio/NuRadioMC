@@ -32,9 +32,7 @@ class channelParameters(Enum):
     P2P_amplitude = 6  # the peak to peak amplitude
     cr_xcorrelations = 7 # dict of result of crosscorrelations with cr templates
     nu_xcorrelations = 8 #  dict of result of crosscorrelations with nu templates
-    nu_vertex_distance = 9 # the distance along the ray path from the vertex to the channel
-    nu_viewing_angle = 10 # the angle between shower axis and launch vector
-
+    
 class electricFieldParameters(Enum):
     ray_path_type = 1  # the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
     polarization_angle = 2 # electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
@@ -44,5 +42,7 @@ class electricFieldParameters(Enum):
     zenith = 7  # zenith angle of the signal. Note that refraction at the air/ice boundary is not taken into account
     azimuth = 8  # azimuth angle of the signal. Note that refraction at the air/ice boundary is not taken into account
     signal_time = 9
-        
+    nu_vertex_distance = 10 # the distance along the ray path from the vertex to the channel
+    nu_viewing_angle = 11 # the angle between shower axis and launch vector
+    
     
