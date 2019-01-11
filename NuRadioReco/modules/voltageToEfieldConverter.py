@@ -18,7 +18,7 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 def get_array_of_channels(station, use_channels, det, zenith, azimuth,
-                          antenna_pattern_provider, time_domain=False, cosmic_ray_mode=False):
+                          antenna_pattern_provider, time_domain=False):
     time_shifts = np.zeros(len(use_channels))
     t_cables = np.zeros(len(use_channels))
     t_geos = np.zeros(len(use_channels))
@@ -85,7 +85,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     for iCh, trace in enumerate(traces):
         V[iCh] = trace.get_frequency_spectrum()
 
-    efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider, cosmic_ray_mode)
+    efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider)
     
     if(debug_cut):
         plt.show()
@@ -121,7 +121,7 @@ class voltageToEfieldConverter:
         self.antenna_provider = antennapattern.AntennaPatternProvider()
         pass
 
-    def run(self, evt, station, det, debug=False, debug_plotpath=None, use_channels=[0, 1, 2, 3], cosmic_ray_mode=False):
+    def run(self, evt, station, det, debug=False, debug_plotpath=None, use_channels=[0, 1, 2, 3]):
         """
         run method. This function is executed for each event
 
@@ -137,8 +137,6 @@ class voltageToEfieldConverter:
             be save into the `debug_plotpath` directory
         use_channels: array of ints
             the channel ids to use for the electric field reconstruction
-        cosmic_ray_mode: boolean
-            If set to true, the signal is assumed to be from an air shower and the refraction at the air/ice boundary is taken into account
         """
         event_time = station.get_station_time()
         station_id = station.get_id()
@@ -154,7 +152,7 @@ class voltageToEfieldConverter:
             sim_present = False
 
 
-        efield_antenna_factor, V = get_array_of_channels(station, use_channels, det, zenith, azimuth, self.antenna_provider, cosmic_ray_mode)
+        efield_antenna_factor, V = get_array_of_channels(station, use_channels, det, zenith, azimuth, self.antenna_provider)
         n_frequencies = len(V[0])
         denom = (efield_antenna_factor[0][0] * efield_antenna_factor[1][1] - efield_antenna_factor[0][1] * efield_antenna_factor[1][0])
         mask = np.abs(denom) != 0

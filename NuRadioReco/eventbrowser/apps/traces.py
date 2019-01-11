@@ -469,7 +469,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
         for channel in station.iter_channels():
             channel_ids.append(channel.get_id())
         for electric_field in station.get_electric_fields():
-            for i_trace, trace in enumerate(trace_utilities.get_channel_voltage_from_efield(station, electric_field, channel_ids, det, station.get_parameter(stnp.zenith), station.get_parameter(stnp.azimuth), antenna_pattern_provider, cosmic_ray_mode=station.is_cosmic_ray())):
+            for i_trace, trace in enumerate(trace_utilities.get_channel_voltage_from_efield(station, electric_field, channel_ids, det, station.get_parameter(stnp.zenith), station.get_parameter(stnp.azimuth), antenna_pattern_provider)):
                     fig.append_trace(go.Scatter(
                         x=electric_field.get_times()/units.ns,
                         y=fft.freq2time(trace)/units.mV,
