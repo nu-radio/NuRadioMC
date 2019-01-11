@@ -27,9 +27,6 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
     zenith, azimuth: float, float
         incoming direction of the signal. Note that refraction and reflection at the ice/air boundary are taken into account
     antenna_pattern_provider: AntennaPatternProvider
-    cosmic_ray_mode: boolean
-        If set to true, the signal is assumed to be from an air shower and the refraction at the air/ice boundary is taken into account
-    -----------------
     """
     n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
     efield_antenna_factor = np.zeros((len(channels), 2, len(frequencies)), dtype=np.complex)  # from antenna model in e_theta, e_phi
@@ -80,8 +77,6 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
     antenna_pattern_provider: AntennaPatternProvider
     return_spectrum: boolean
         if True, returns the spectrum, if False return the time trace
-    cosmic_ray_mode: boolean
-        If set to true, the signal is assumed to be from an air shower and the refraction at the air/ice boundary is taken into account        
     """
     
     frequencies = electric_field.get_frequencies()
