@@ -72,7 +72,10 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
             Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
             Veffs[trigger_name].append(Veff)
-            Veffs_error[trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
+            try:
+                Veffs_error[trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
+            except:
+                Veffs_error[trigger_name].append(np.nan)
 #             print("{}: log(E) = {:.3g}, Veff = {:.3f}km^3 st".format(trigger_name, np.log10(E), Veff / units.km**3))
 
         for trigger_name, values in trigger_combinations.iteritems():

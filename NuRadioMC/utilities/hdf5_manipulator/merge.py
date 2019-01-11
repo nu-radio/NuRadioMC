@@ -48,6 +48,10 @@ def merge_data(data_list, attrs_list):
             attrs = attrs_list[f]
         else:
             print "\nAdding %(n)d entries from %(f)s" % {"n": size, "f": f}
+
+            #if len(data_list[f]['triggered']) == 0:
+            #    attrs['n_events'] =+ attrs_list[f]['n_events']
+            #    continue
             check.check_keys(data, data_list[f])
             check.check_shapes(data, data_list[f])
             for key in data_list[f]:
@@ -72,4 +76,3 @@ def merge_data_filenames(filelist, outputfile):
     hdf5.save(outputfile, *merge_data(data, attrs))
 
     msg.info("Done")
-
