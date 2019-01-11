@@ -2,6 +2,7 @@ import numpy as np
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.utilities import ice
+from NuRadioReco.utilities import trace_utilities
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 # from detector import antennamodel
@@ -158,31 +159,12 @@ class efieldToVoltageConverter:
 
                 zenith = electric_field[efp.zenith]
                 azimuth = electric_field[efp.azimuth]
-                if zenith < 0.5 * np.pi and sim_station.is_cosmic_ray():
-                    print('isCosmicRay', sim_station.is_cosmic_ray())
-                    site = det.get_site(sim_station_id)
-                    n_ice = ice.get_refractive_index(-0.01, site)
-                    # is antenna below surface?
-                    position = det.get_relative_position(sim_station_id, iCh)
-                    if(position[2] <= 0):
-                        # signal comes from above and antenna is in the firn
-                        zenith_antenna = geo_utl.get_fresnel_angle(zenith, n_ice, 1)
-                        t_theta = geo_utl.get_fresnel_t_p(zenith, n_ice, 1)
-                        t_phi = geo_utl.get_fresnel_t_s(zenith, n_ice, 1)
-                        efield_fft[1] *= t_theta  # eTheta is parallel to the incident plane
-                        efield_fft[2] *= t_phi  # ePhi is perpendicular to the incident plane
-                        logger.info("channel {:d}: electric field is refracted into the firn. theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) {:.2f} s (ePhi) {:.2f}".format(iCh, zenith / units.deg, zenith_antenna / units.deg, t_theta, t_phi))
-
 
                 # get antenna pattern for current channel
-                antenna_model = det.get_antenna_model(sim_station_id, channel_id, zenith)
-                antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model, interpolation_method='complex')
-                ori = det.get_antanna_orientation(sim_station_id, channel_id)
-                logger.debug("zen {:.0f}, az {:.0f}".format(zenith / units.deg, azimuth / units.deg))
-                VEL = antenna_pattern.get_antenna_response_vectorized(ff, zenith, azimuth, *ori)
+                VEL = trace_utilities.get_efield_antenna_factor(sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)[0]
 
                 # Apply antenna response to electric field
-                voltage_fft = efield_fft[2] * VEL['phi'] + efield_fft[1] * VEL['theta']
+                voltage_fft = np.sum(VEL * np.array([efield_fft[1], efield_fft[2]]), axis=0)
 
                 # Remove DC offset
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
