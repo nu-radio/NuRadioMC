@@ -3,7 +3,7 @@
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build2
+SPHINXBUILD   = sphinx-build
 SPHINXBUILD1  = sphinx-build
 SPHINXPROJ    = NuRadioReco
 SOURCEDIR     = .

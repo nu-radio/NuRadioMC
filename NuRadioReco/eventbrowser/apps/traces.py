@@ -11,14 +11,21 @@ from app import app
 import dataprovider
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import templates
+from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.utilities import fft
+from NuRadioReco.detector import detector
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+import NuRadioReco.detector.antennapattern
 import numpy as np
 import logging
+
 logger = logging.getLogger('traces')
 
 provider = dataprovider.DataProvider()
 template_provider = templates.Templates()
+det = detector.Detector()
+antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
 
 layout = html.Div([
     html.Div(id='trigger-trace', style={'display': 'none'}),
@@ -61,7 +68,8 @@ layout = html.Div([
                                 {'label': 'calibrated trace', 'value': 'trace'},
                                 {'label': 'cosmic-ray template', 'value': 'crtemplate'},
                                 {'label': 'neutrino template', 'value': 'nutemplate'},
-                                {'label': 'envelope', 'value': 'envelope'}
+                                {'label': 'envelope', 'value': 'envelope'},
+                                {'label': 'from rec. E-field', 'value': 'efield'}
                             ],
                             multi=True,
                             value=["trace"]
@@ -107,46 +115,47 @@ def update_time_efieldtrace(trigger, evt_counter, filename, station_id, juser_id
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     fig = tools.make_subplots(rows=1, cols=1)
-    if station.get_trace() is None:
-        trace = np.array([[],[],[]])
-    else:
-        trace = station.get_trace()
-    fig.append_trace(go.Scatter(
-            x=station.get_times() / units.ns,
-            y=trace[0] / units.mV * units.m,
-            # text=df_by_continent['country'],
-            # mode='markers',
-            opacity=0.7,
-            marker={
-                'color': colors[0],
-                'line': {'color': colors[0]}
-            },
-            name='eR'
-        ), 1, 1)
-    fig.append_trace(go.Scatter(
-            x=station.get_times() / units.ns,
-            y=trace[1] / units.mV * units.m,
-            # text=df_by_continent['country'],
-            # mode='markers',
-            opacity=0.7,
-            marker={
-                'color': colors[1],
-                'line': {'color': colors[1]}
-            },
-            name='eTheta'
-        ), 1, 1)
-    fig.append_trace(go.Scatter(
-            x=station.get_times() / units.ns,
-            y=trace[2] / units.mV * units.m,
-            # text=df_by_continent['country'],
-            # mode='markers',
-            opacity=0.7,
-            marker={
-                'color': colors[2],
-                'line': {'color': colors[2]}
-            },
-            name='ePhi'
-        ), 1, 1)
+    for electric_field in station.get_electric_fields():
+        if electric_field.get_trace() is None:
+            trace = np.array([[],[],[]])
+        else:
+            trace = electric_field.get_trace()
+        fig.append_trace(go.Scatter(
+                x=electric_field.get_times() / units.ns,
+                y=trace[0] / units.mV * units.m,
+                # text=df_by_continent['country'],
+                # mode='markers',
+                opacity=0.7,
+                marker={
+                    'color': colors[0],
+                    'line': {'color': colors[0]}
+                },
+                name='eR'
+            ), 1, 1)
+        fig.append_trace(go.Scatter(
+                x=electric_field.get_times() / units.ns,
+                y=trace[1] / units.mV * units.m,
+                # text=df_by_continent['country'],
+                # mode='markers',
+                opacity=0.7,
+                marker={
+                    'color': colors[1],
+                    'line': {'color': colors[1]}
+                },
+                name='eTheta'
+            ), 1, 1)
+        fig.append_trace(go.Scatter(
+                x=electric_field.get_times() / units.ns,
+                y=trace[2] / units.mV * units.m,
+                # text=df_by_continent['country'],
+                # mode='markers',
+                opacity=0.7,
+                marker={
+                    'color': colors[2],
+                    'line': {'color': colors[2]}
+                },
+                name='ePhi'
+            ), 1, 1)
     fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['yaxis1'].update(title='efield [mV/m]')
     fig['layout'].showlegend = True
@@ -167,32 +176,33 @@ def update_efield_spectrum(trigger, evt_counter, filename, station_id, juser_id)
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     fig = tools.make_subplots(rows=1, cols=1)
-    if station.get_trace() is None or station.get_frequencies() is None:
-        spectrum = np.array([[],[],[]])
-        frequencies = np.array([[],[],[]])
-    else:
-        spectrum = station.get_frequency_spectrum()
-        frequencies = station.get_frequencies()
-    fig.append_trace(go.Scatter(
-            x=frequencies / units.MHz,
-            y=np.abs(spectrum[1]) / units.mV,
-            opacity=0.7,
-            marker={
-                'color': colors[1],
-                'line': {'color': colors[1]}
-            },
-            name='eTheta'
-        ), 1, 1)
-    fig.append_trace(go.Scatter(
-            x=frequencies / units.MHz,
-            y=np.abs(spectrum[2]) / units.mV,
-            opacity=0.7,
-            marker={
-                'color': colors[2],
-                'line': {'color': colors[2]}
-            },
-            name='ePhi'
-        ), 1, 1)
+    for electric_field in station.get_electric_fields():
+        if electric_field.get_frequencies() is None:
+            spectrum = np.array([[],[],[]])
+            frequencies = np.array([[],[],[]])
+        else:
+            spectrum = electric_field.get_frequency_spectrum()
+            frequencies = electric_field.get_frequencies()
+        fig.append_trace(go.Scatter(
+                x=frequencies / units.MHz,
+                y=np.abs(spectrum[1]) / units.mV,
+                opacity=0.7,
+                marker={
+                    'color': colors[1],
+                    'line': {'color': colors[1]}
+                },
+                name='eTheta'
+            ), 1, 1)
+        fig.append_trace(go.Scatter(
+                x=frequencies / units.MHz,
+                y=np.abs(spectrum[2]) / units.mV,
+                opacity=0.7,
+                marker={
+                    'color': colors[2],
+                    'line': {'color': colors[2]}
+                },
+                name='ePhi'
+            ), 1, 1)
     fig['layout']['xaxis1'].update(title='frequency [MHz]')
     fig['layout']['yaxis1'].update(title='amplitude [mV/m]')
     fig['layout'].showlegend = True
@@ -305,10 +315,10 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                               shared_xaxes=True, shared_yaxes=False,
                               vertical_spacing=0.01)
     ymax = 0
+    for i, channel in enumerate(station.iter_channels()):
+        trace = channel.get_trace() / units.mV
+        ymax = max(ymax, np.max(np.abs(trace)))
     if 'trace' in dropdown_traces:
-        for i, channel in enumerate(station.iter_channels()):
-            trace = channel.get_trace() / units.mV
-            ymax = max(ymax, np.max(np.abs(trace)))
         for i, channel in enumerate(station.iter_channels()):
             tt = channel.get_times() / units.ns
             trace = channel.get_trace() / units.mV
@@ -453,6 +463,31 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     textposition='top center'
                 ),
             i + 1, 1)
+    if 'efield' in dropdown_traces:
+        det.update(station.get_station_time())
+        channel_ids = []
+        for channel in station.iter_channels():
+            channel_ids.append(channel.get_id())
+        for electric_field in station.get_electric_fields():
+            for i_trace, trace in enumerate(trace_utilities.get_channel_voltage_from_efield(station, electric_field, channel_ids, det, station.get_parameter(stnp.zenith), station.get_parameter(stnp.azimuth), antenna_pattern_provider)):
+                    fig.append_trace(go.Scatter(
+                        x=electric_field.get_times()/units.ns,
+                        y=fft.freq2time(trace)/units.mV,
+                        line=dict(
+                            dash='solid',
+                            color=colors[i_trace%len(colors)]
+                        ),
+                        opacity=.5
+                    ), i_trace+1, 1)
+                    fig.append_trace(go.Scatter(
+                        x=electric_field.get_frequencies()/units.MHz,
+                        y=np.abs(trace)/units.mV,
+                        line=dict(
+                            dash='solid',
+                            color=colors[i_trace%len(colors)]
+                        ),
+                        opacity=.5
+                    ), i_trace + 1, 2)
     fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['yaxis1'].update(title='voltage [mV]')
     for i, channel in enumerate(station.iter_channels()):
@@ -460,12 +495,11 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
 
         tt = channel.get_times()
         dt = tt[1] - tt[0]
-        trace = channel.get_trace()
-        ff = np.fft.rfftfreq(len(tt), dt)
-        spec = np.abs(np.fft.rfft(trace, norm='ortho'))
+        spec = channel.get_frequency_spectrum()
+        ff = channel.get_frequencies()
         fig.append_trace(go.Scatter(
                 x=ff / units.MHz,
-                y=spec / units.mV,
+                y=np.abs(spec) / units.mV,
                 opacity=0.7,
                 marker={
                     'color': colors[i % len(colors)],
@@ -477,7 +511,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
             fig.append_trace(
                    go.Scatter(
                         x=[0.9 * ff.max() / units.MHz],
-                        y=[0.8 * spec.max() / units.mV],
+                        y=[0.8 * np.abs(spec).max() / units.mV],
                         mode='text',
                         text=['max L1 = {:.2f}'.format(get_L1(spec))],
                         textposition='top center'
