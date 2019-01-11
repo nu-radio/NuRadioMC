@@ -23,7 +23,7 @@ class BaseTrace:
         returns the time trace. If the frequency spectrum was modified before,
         an ifft is performed automatically to have the time domain representation
         up to date.
-
+        
         Returns: 1 or N dimensional np.array of floats
             the time trace
         """
@@ -31,6 +31,7 @@ class BaseTrace:
 #             logger.debug("time domain is not up to date, calculating FFT on the fly")
             self._time_trace = fft.freq2time(self._frequency_spectrum)
             self.__time_domain_up_to_date = True
+            self._frequency_spectrum = None
         return self._time_trace
 
     def get_frequency_spectrum(self):
@@ -38,6 +39,7 @@ class BaseTrace:
 #             logger.debug("frequency domain is not up to date, calculating FFT on the fly")
 #             logger.debug("time trace has shape {}".format(self._time_trace.shape))
             self._frequency_spectrum = fft.time2freq(self._time_trace)
+            self._time_trace = None
 #             logger.debug("frequency spectrum has shape {}".format(self._frequency_spectrum.shape))
             self.__time_domain_up_to_date = False
         return self._frequency_spectrum
@@ -45,7 +47,7 @@ class BaseTrace:
     def set_trace(self, trace, sampling_rate):
         """
         sets the time trace
-
+        
         Parameters
         -----------
         trace: np.array of floats
@@ -53,6 +55,9 @@ class BaseTrace:
         sampling_rate: float
             the sampling rage of the trace, i.e., the inverse of the bin width
         """
+        if trace is not None:
+            if trace.shape[trace.ndim - 1]%2 != 0:
+                raise ValueError('Attempted to set trace with an uneven number ({}) of samples. Only traces with an even number of samples are allowed.'.format(trace.shape[trace.ndim - 1]))
         self.__time_domain_up_to_date = True
         self._time_trace = trace
         self._sampling_rate = sampling_rate
@@ -67,7 +72,7 @@ class BaseTrace:
     def get_sampling_rate(self):
         """
         returns the sampling rate of the trace
-
+        
         Return: float
             sampling rate, i.e., the inverse of the bin width
         """
@@ -108,7 +113,7 @@ class BaseTrace:
     def get_number_of_samples(self):
         """
         returns the number of samples in the time domain
-
+        
         Return: int
             number of samples in time domain
         """
@@ -130,3 +135,4 @@ class BaseTrace:
         self.set_trace(data['time_trace'], data['sampling_rate'])
         if('trace_start_time' in data.keys()):
             self.set_trace_start_time(data['trace_start_time'])
+            

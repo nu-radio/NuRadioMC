@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.trigger
+import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.parameters as parameters
 try:
     import cPickle as pickle
@@ -20,6 +21,8 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         self._station_time = None
         self._triggers = {}
         self._triggered = False
+        self._electric_fields = []
+        self._particle_type = 'nu'
 
     def __setitem__(self, key, value):
         self.set_parameter(key, value)
@@ -133,6 +136,40 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         trigger.set_triggered(triggered)
         self.set_trigger(trigger)
 
+    def set_electric_fields(self, electric_fields):
+        self._electric_fields = electric_fields
+    
+    def get_electric_fields(self):
+        return self._electric_fields
+    
+    def add_electric_field(self, electric_field):
+        self._electric_fields.append(electric_field)
+    
+    def get_electric_fields_for_channels(self, channel_ids, ray_path_type=None):
+        for e_field in self._electric_fields:
+            if e_field.has_channel_ids(channel_ids):
+                if ray_path_type is None:
+                    yield e_field
+                elif ray_path_type == e_field.get_parameter(parameters.electricFieldParameters.ray_path_type):
+                    yield e_field
+    def is_neutrino(self):
+        return self._particle_type == 'nu'
+        
+    def is_cosmic_ray(self):
+        return self._particle_type == 'cr'
+        
+    def set_is_neutrino(self):
+        """
+        set station type to neutrino
+        """
+        self._particle_type = 'nu'
+    
+    def set_is_cosmic_ray(self):
+        """
+        set station type to cosmic rays (relevant e.g. for refraction into the snow)
+        """
+        self._particle_type = 'cr'
+
 
     def serialize(self, mode):
         if(mode == 'micro'):
@@ -142,12 +179,17 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         trigger_pkls = []
         for trigger in self._triggers.values():
             trigger_pkls.append(trigger.serialize())
+        efield_pkls = []
+        for efield in self.get_electric_fields():
+            efield_pkls.append(efield.serialize(self))
         data = {'_parameters': self._parameters,
                 '_parameter_covariances': self._parameter_covariances,
                 '_station_id': self._station_id,
                 '_station_time': self._station_time,
+                '_particle_type': self._particle_type,
                 'triggers': trigger_pkls,
                 '_triggered': self._triggered,
+                'electric_fields': efield_pkls,
                 'base_trace': base_trace_pkl}
         return pickle.dumps(data, protocol=2)
 
@@ -159,7 +201,12 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
             self._triggers = NuRadioReco.framework.trigger.deserialize(data['triggers'])
         if ('triggers' in data):
             self._triggered = data['_triggered']
+        for electric_field in data['electric_fields']:
+            efield = NuRadioReco.framework.electric_field.ElectricField([])
+            efield.deserialize(electric_field)
+            self.add_electric_field(efield)
         self._parameters = data['_parameters']
         self._parameter_covariances = data['_parameter_covariances']
         self._station_id = data['_station_id']
         self._station_time = data['_station_time']
+        self._particle_type = data['_particle_type']
