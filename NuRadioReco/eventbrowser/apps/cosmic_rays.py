@@ -12,7 +12,6 @@ import json
 from app import app
 import dataprovider
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities import templates
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.eventbrowser.apps.common import get_point_index
@@ -21,7 +20,6 @@ import logging
 logger = logging.getLogger('traces')
 
 provider = dataprovider.DataProvider()
-template_provider = templates.Templates()
 
 layout = html.Div([
     #Sim Traces Plot
