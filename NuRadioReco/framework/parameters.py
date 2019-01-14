@@ -22,6 +22,7 @@ class stationParameters(Enum):
     nu_xcorrelations = 20 #  dict of result of crosscorrelations with nu templates
     station_time = 21
     cr_energy_em = 24  # the electromagnetic shower energy (the cosmic ray energy that ends up in electrons, positrons and gammas)
+    cr_xmax = 25
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
