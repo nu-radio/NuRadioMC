@@ -3,7 +3,6 @@ from NuRadioReco.utilities import units
 from radiotools import helper as hp
 from radiotools import coordinatesystems
 import NuRadioReco.framework.sim_station
-import NuRadioReco.framework.channel
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
 
@@ -40,7 +39,7 @@ def calculate_simulation_weights(positions):
     return weights
 
 
-def make_sim_station(station_id, corsika, observer, n_channels,  weight=None):
+def make_sim_station(station_id, corsika, observer, channel_ids,  weight=None):
     """
     creates an ARIANNA sim station from the observer object of the coreas hdf5 file
 
@@ -90,7 +89,7 @@ def make_sim_station(station_id, corsika, observer, n_channels,  weight=None):
     antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id, position=antenna_position)
-    electric_field = NuRadioReco.framework.electric_field.ElectricField(range(n_channels))
+    electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids)
     electric_field.set_trace(efield2, sampling_rate)
     electric_field.set_parameter(efp.ray_path_type, 'direct')
     electric_field.set_parameter(efp.zenith, zenith)

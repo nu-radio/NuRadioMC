@@ -19,7 +19,7 @@ class readCoREAS:
         self.__t_event_structure = 0
         self.__t_per_event = 0
 
-    def begin(self, input_files, station_id, detector, n_cores=10, max_distance=2 * units.km, seed=0):
+    def begin(self, input_files, station_id, n_cores=10, max_distance=2 * units.km, seed=0):
         """
         begin method
 
@@ -42,10 +42,9 @@ class readCoREAS:
         self.__n_cores = n_cores
         self.__max_distace = max_distance
         self.__current_input_file = 0
-        self.__n_channels = detector.get_number_of_channels(station_id)
         np.random.seed(seed)
 
-    def run(self, output_mode=0):
+    def run(self, detector, output_mode=0):
         while (self.__current_input_file < len(self.__input_files)):
             t = time.time()
             t_per_event = time.time()
@@ -140,7 +139,8 @@ class readCoREAS:
 
                 evt = NuRadioReco.framework.event.Event(self.__current_input_file, iCore)  # create empty event
                 station = NuRadioReco.framework.station.Station(self.__station_id)
-                sim_station = coreas.make_sim_station(self.__station_id, corsika, observer, self.__n_channels)
+                channel_ids = detector.get_channel_ids(self.__station_id)
+                sim_station = coreas.make_sim_station(self.__station_id, corsika, observer, channel_ids)
 
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
