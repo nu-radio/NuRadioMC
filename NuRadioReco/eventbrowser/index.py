@@ -240,7 +240,7 @@ def set_uuid(pathname, juser_id):
 @app.callback(Output('filename', 'options'),
               [Input('datafolder', 'value')])
 def set_filename_dropdown(folder):
-    return [{'label': l, 'value': l} for l in sorted(glob.glob(os.path.join(folder, '*.ar*')))]
+    return [{'label': l, 'value': l} for l in sorted(glob.glob(os.path.join(folder, '*.nur*')))]
 
 
 
