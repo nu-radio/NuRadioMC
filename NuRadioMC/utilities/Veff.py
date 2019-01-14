@@ -154,6 +154,83 @@ def get_Veff(folder, trigger_combinations={}):
 
     return np.array(Es), Veffs, Veffs_error, SNR
 
+def get_Veff_Deposited_Bins(folder):
+
+    """
+    calculates the effective volumes from NuRadioMC hdf5 files
+    for each deposited energy.
+
+    Parameters
+    ----------
+    folder: string
+        folder conaining the hdf5 files, one per energy
+    """
+
+    trigger_names = None
+    trigger_names_dict = {}
+    Veffs = {}
+    Veffs_error = {}
+    Es = []
+
+    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
+        fin = h5py.File(filename, 'r')
+        E = fin.attrs['Emin']
+        Emax = fin.attrs['Emax']
+        Es.append(E)
+        Veffs[E] = {}
+        Veffs_error[E] = {}
+
+    Emins = Es
+    Emaxs = Es[1:] + [Emax]
+
+    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
+        print(filename)
+        fin = h5py.File(filename, 'r')
+        weights = np.array(fin['weights'])
+        triggered = np.array(fin['triggered'])
+        n_events = fin.attrs['n_events']
+        if(trigger_names is None):
+            trigger_names = fin.attrs['trigger_names']
+            print(trigger_names)
+        else:
+            if(np.any(trigger_names != fin.attrs['trigger_names'])):
+                print("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
+                raise
+
+        for trigger_name in trigger_names:
+            for E in Es:
+                Veffs[E][trigger_name] = []
+                Veffs_error[E][trigger_name] = []
+
+        # calculate effective
+        density_ice = 0.9167 * units.g / units.cm ** 3
+        density_water = 997 * units.kg / units.m ** 3
+        rmin = fin.attrs['rmin']
+        rmax = fin.attrs['rmax']
+        dZ = fin.attrs['zmax'] - fin.attrs['zmin']
+        V = np.pi * (rmax**2 - rmin**2) * dZ
+        Vrms = fin.attrs['Vrms']
+
+        for iT, trigger_name in enumerate(trigger_names):
+            triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
+
+
+            for Emin, Emax in zip(Emins, Emaxs):
+
+                Emask = np.array( [ Edep > Emin and Edep < Emax for Edep in fin['deposited_energies'] ] )
+                Emask = Emask & triggered
+                Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[Emask]) / n_events
+                Veffs[Emin][trigger_name].append(Veff)
+                Veffs_error[Emin][trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
+
+    print (Veffs)
+    for E in Veffs.keys():
+
+        for trigger_name in trigger_names:
+            Veffs[E][trigger_name] = np.array(Veffs[E][trigger_name])
+            Veffs_error[E][trigger_name] = np.array(Veffs_error[E][trigger_name])
+
+    return np.array(Es), Veffs, Veffs_error, trigger_names
 
 def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
     """
@@ -180,6 +257,38 @@ def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
         output[trigger_name]['energies'] = list(Es)
         output[trigger_name]['Veff'] = list(Veffs[trigger_name])
         output[trigger_name]['Veff_error'] = list(Veffs_error[trigger_name])
+
+    with open(filename, 'w') as fout:
+        json.dump(output, fout, sort_keys=True, indent=4)
+
+def exportVeffDeposited(filename, trigger_names, Es, Veffs, Veffs_error):
+    """
+    export effective volumes per deposited energy into a human readable JSON file
+
+    Parameters
+    ----------
+    filename: string
+        the output filename of the JSON file
+    trigger_names: list of strings
+        the triggers for which the effective volume is exported
+    Es: list or array of floats
+        the energies
+    Veffs: Dictionary containing the effective volumes
+        The first key is the minimum energy of the bin
+        The second key is the trigger name
+    Veffs_error: Dictionary containing the uncertainty on the effective volumes
+        Same structure as Veffs
+
+
+    """
+    output = {}
+    for trigger_name in trigger_names:
+        output[trigger_name] = {}
+        output[trigger_name]['energies'] = list(Es)
+        for E in Veffs.keys():
+            output[trigger_name][E] = {}
+            output[trigger_name][E]['Veffs'] = list(Veffs[E][trigger_name])
+            output[trigger_name][E]['Veff_error'] = list(Veffs_error[E][trigger_name])
 
     with open(filename, 'w') as fout:
         json.dump(output, fout, sort_keys=True, indent=4)
