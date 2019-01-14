@@ -28,10 +28,6 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
     def has_sim_station(self):
         return self.__sim_station is not None
 
-    def get_channels(self):
-        logger.warning("This function is deprecated and will be removed soon. Use station.get_channel(channel_id) or station.iter_channels() instead.")
-        return self.__channels.values()
-
     def iter_channels(self, use_channels=None):
         for channel_id, channel in iteritems(self.__channels):
             if(use_channels is None):
