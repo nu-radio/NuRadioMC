@@ -618,7 +618,7 @@ class simulation():
     def _calculate_deposited_energy(self):
         """
         Calculates the energy deposited in the medium as the energy taken
-        by the electromagnetic and hadronic showersself.
+        by the electromagnetic and hadronic showers.
         TODO: Tau energy
         """
         dep_energy = lambda inelasticity, ccnc, flavor, energy: \
