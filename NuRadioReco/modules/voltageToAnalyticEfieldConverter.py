@@ -21,6 +21,8 @@ from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
 
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
+import NuRadioReco.framework.electric_field
 
 import logging
 logger = logging.getLogger('voltageToAnalyticEfieldConverter')
@@ -277,7 +279,7 @@ class voltageToAnalyticEfieldConverter:
     def run(self, evt, station, det, debug=False, debug_plotpath=None,
             use_channels=[0, 1, 2, 3],
             bandpass=[100 * units.MHz, 500 * units.MHz],
-            useMCdirection=False, cosmic_ray_mode=False):
+            useMCdirection=False):
         """
         run method. This function is executed for each event
 
@@ -296,8 +298,6 @@ class voltageToAnalyticEfieldConverter:
         bandpass: [float, float]
             the lower and upper frequecy for which the analytic pulse is calculated.
             A butterworth filter of 10th order and a rectangular filter is applied.
-        cosmic_ray_mode: boolean
-            If set to true, the signal is assumed to be from an air shower and the refraction at the air/ice boundary is taken into account
         """
         self.__counter += 1
         event_time = station.get_station_time()
@@ -315,7 +315,7 @@ class voltageToAnalyticEfieldConverter:
 
         efield_antenna_factor, V, V_timedomain = get_array_of_channels(station, use_channels,
                                                                        det, zenith, azimuth, self.antenna_provider,
-                                                                       time_domain=True, cosmic_ray_mode=cosmic_ray_mode)
+                                                                       time_domain=True)
         sampling_rate = station.get_channel(0).get_sampling_rate()
         n_samples_time = V_timedomain.shape[1]
 
@@ -594,8 +594,6 @@ class voltageToAnalyticEfieldConverter:
         Atheta = res_amp.x[1]
         #counts number of iterations in the slope fit. Used so we do not need to show the plots every iteration
         self.i_slope_fit_iterations = 0
-        sign_phi = np.sign(Aphi)
-        sign_theta = np.sign(Atheta)
         res_amp_slope = opt.minimize(obj_amplitude_slope, x0=[res_amp.x[0], res_amp.x[1], -1.9], args=(phase, pos, 'hilbert', False),
                                      method=method, options=options)
 
@@ -614,15 +612,19 @@ class voltageToAnalyticEfieldConverter:
         logger.info("covariance matrix \n{}".format(cov))
         if(cov[0, 0] > 0 and cov[1, 1] > 0 and cov[2, 2] > 0):
             logger.info("correlation matrix \n{}".format(hp.covariance_to_correlation(cov)))
-        Aphi = sign_phi*np.abs(res_amp_slope.x[0])
-        Atheta = sign_theta*np.abs(res_amp_slope.x[1])
+        Aphi = res_amp_slope.x[0]
+        Atheta = res_amp_slope.x[1]
         slope = res_amp_slope.x[2]
         Aphi_error = cov[0, 0] ** 0.5
         Atheta_error = cov[1, 1] ** 0.5
         slope_error = cov[2, 2] ** 0.5
-        station.set_parameter(stnp.signal_energy_fluence, np.array([0, Atheta, Aphi]))
-        station.set_parameter_error(stnp.signal_energy_fluence, np.array([0, Atheta_error, Aphi_error]))
-        station.set_parameter(stnp.cr_spectrum_slope, slope)
+        
+        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels)
+        electric_field.set_parameter(efp.signal_energy_fluence, np.array([0, Atheta, Aphi]))
+        electric_field.set_parameter_error(efp.signal_energy_fluence, np.array([0, Atheta_error, Aphi_error]))
+        electric_field.set_parameter(efp.cr_spectrum_slope, slope)
+        electric_field.set_parameter(efp.zenith, zenith)
+        electric_field.set_parameter(efp.azimuth, azimuth)
 
 #         cov = covariance(Wrapper, res_amp_slope.x, 0.5, fast=False)
 #         print(cov)
@@ -663,7 +665,7 @@ class voltageToAnalyticEfieldConverter:
         analytic_pulse_theta = np.roll(analytic_pulse_theta, pos)
         analytic_pulse_phi = np.roll(analytic_pulse_phi, pos)
         station_trace = np.array([np.zeros_like(analytic_pulse_theta), analytic_pulse_theta, analytic_pulse_phi])
-        station.set_trace(station_trace, sampling_rate)
+        electric_field.set_trace(station_trace, sampling_rate)
 
         # calculate high level parameters
         x = np.sign(Atheta) * np.abs(Atheta) ** 0.5
@@ -673,8 +675,8 @@ class voltageToAnalyticEfieldConverter:
         pol_angle = np.arctan2(y, x)
         pol_angle_error = 1. / (x ** 2 + y ** 2) * (y ** 2 * sx ** 2 + x ** 2 + sy ** 2) ** 0.5  # gaussian error propagation
         logger.info("polarization angle = {:.1f} +- {:.1f}".format(pol_angle / units.deg, pol_angle_error / units.deg))
-        station.set_parameter(stnp.polarization_angle, pol_angle)
-        station.set_parameter_error(stnp.polarization_angle, pol_angle_error)
+        electric_field.set_parameter(efp.polarization_angle, pol_angle)
+        electric_field.set_parameter_error(efp.polarization_angle, pol_angle_error)
 
         # compute expeted polarization
         site = det.get_site(station.get_id())
@@ -683,8 +685,8 @@ class voltageToAnalyticEfieldConverter:
         exp_efield_onsky = cs.transform_from_ground_to_onsky(exp_efield)
         exp_pol_angle = np.arctan2(exp_efield_onsky[2], exp_efield_onsky[1])
         logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
-        station.set_parameter(stnp.polarization_angle_expectation, exp_pol_angle)
-
+        electric_field.set_parameter(efp.polarization_angle_expectation, exp_pol_angle)
+        station.add_electric_field(electric_field)
         if debug:
             analytic_traces = np.zeros((n_channels, n_samples_time))
             for iCh, trace in enumerate(V_timedomain):

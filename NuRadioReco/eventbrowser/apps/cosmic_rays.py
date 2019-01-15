@@ -14,6 +14,7 @@ import dataprovider
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.eventbrowser.apps.common import get_point_index
 import numpy as np
 import logging
@@ -67,16 +68,26 @@ def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, station_id, j
     ariio = provider.get_arianna_io(user_id, filename)
     traces = []
     keys = ariio.get_header()[station_id].keys()
-    if stnp.polarization_angle not in keys or stnp.polarization_angle_expectation not in keys or stnp.zenith not in keys:
-        return {}
-    pol = ariio.get_header()[station_id][stnp.polarization_angle]
+    pol = []
+    pol_exp = []
+    zeniths = []
+    for i_event in range(ariio.get_n_events()):
+        event = ariio.get_event_i(i_event)
+        for station in event.get_stations():
+            for electric_field in station.get_electric_fields():
+                if electric_field.has_parameter(efp.polarization_angle) and electric_field.has_parameter(efp.polarization_angle_expectation) and electric_field.has_parameter(efp.zenith):
+                    pol.append(electric_field.get_parameter(efp.polarization_angle))
+                    pol_exp.append(electric_field.get_parameter(efp.polarization_angle_expectation))
+                    zeniths.append(electric_field.get_parameter(efp.zenith))
+    pol = np.array(pol)
     pol = np.abs(pol)
     pol[pol > 0.5 * np.pi] = np.pi - pol[pol > 0.5 * np.pi]
-    pol_exp = ariio.get_header()[station_id][stnp.polarization_angle_expectation]
+    pol_exp = np.array(pol_exp)
     pol_exp = np.abs(pol_exp)
     pol_exp[pol_exp > 0.5 * np.pi] = np.pi - pol_exp[pol_exp > 0.5 * np.pi]
+    zeniths = np.array(zeniths)
     traces.append(go.Scatter(
-        x=ariio.get_header()[station_id][stnp.zenith] / units.deg,
+        x=zeniths / units.deg,
         y=np.abs(pol - pol_exp) / units.deg,
         text=[str(x) for x in ariio.get_event_ids()],
         mode='markers',
@@ -94,7 +105,7 @@ def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, station_id, j
         'data': traces,
         'layout': go.Layout(
             xaxis={'type': 'linear', 'title': 'zenith angle [deg]'},
-            yaxis={'title': 'polarization angle [deg]', 'range': [0, 90]},
+            yaxis={'title': 'polarization angle error [deg]', 'range': [0, 90]},
 #             margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
 #             legend={'x': 0, 'y': 1},
             hovermode='closest'

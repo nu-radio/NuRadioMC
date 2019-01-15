@@ -44,7 +44,7 @@ class readCoREAS:
         self.__current_input_file = 0
         np.random.seed(seed)
 
-    def run(self, output_mode=0):
+    def run(self, detector, output_mode=0):
         while (self.__current_input_file < len(self.__input_files)):
             t = time.time()
             t_per_event = time.time()
@@ -139,7 +139,8 @@ class readCoREAS:
 
                 evt = NuRadioReco.framework.event.Event(self.__current_input_file, iCore)  # create empty event
                 station = NuRadioReco.framework.station.Station(self.__station_id)
-                sim_station = coreas.make_sim_station(self.__station_id, corsika, observer)
+                channel_ids = detector.get_channel_ids(self.__station_id)
+                sim_station = coreas.make_sim_station(self.__station_id, corsika, observer, channel_ids)
 
                 station.set_sim_station(sim_station)
                 evt.set_station(station)

@@ -43,59 +43,53 @@ class efieldGenericNoiseAdder:
         """
 
         # access simulated efield and high level parameters
-        sim_station = station.get_sim_station()
 
-        sampling_rate = sim_station.get_sampling_rate()
+        for electric_field in station.get_electric_fields():
+            sampling_rate = electric_field.get_sampling_rate()
 
-        efield_fft = copy.copy(sim_station.get_frequency_spectrum())
-        efield = copy.copy(sim_station.get_trace())
-        n_samples = efield.shape[1]
+            efield_fft = copy.copy(electric_field.get_frequency_spectrum())
+            efield = copy.copy(electric_field.get_trace())
+            n_samples = efield.shape[1]
 
-        if type == 'narrowband':
+            if type == 'narrowband':
 
-            for j, peak_pos in enumerate(narrowband_freq):
-                norm_freq = np.random.normal(peak_pos, 0.05*units.MHz) # Typical width found by fitting to data
-                t = np.linspace(0, n_samples * (1/sampling_rate), n_samples)
-                for i, pol_power in enumerate(narrowband_power[j]):
-                    pol_noise = pol_power * np.sin(norm_freq * 2 * np.pi * t)
-                    efield[i] = efield[i] + pol_noise
-
-            logger.warning('You are now changing dataelements in sim. station')
-            
-            station.set_trace(efield, sim_station.get_sampling_rate())
-            sim_station.set_trace(efield, sim_station.get_sampling_rate())
-            
-        elif type == 'galactic':
-
-            freq_range_raw = sim_station.get_frequencies()
-            lower_lim = freq_range_raw > passband[0]
-            freq_range = freq_range_raw[lower_lim]
-            noise_idx = int(efield_fft.shape[1]) - int(freq_range.shape[0])
-            
-            # Power law found by fit to Fig 3.2. "An absolute calibration of the antennas at LOFAR", Tijs Karskens (2015)
-            def GalTemp(x,n=-2.41,k=10**7.88):
-                return k * x**n
-            
-            S = np.zeros(efield_fft.shape[1])
-            S[noise_idx:] = 4*np.pi * ((2*sp.constants.Boltzmann)/(sp.constants.speed_of_light**2)) * (freq_range/units.MHz)**2 * GalTemp(freq_range/units.MHz) * 50*units.ohm
-            S = S*sampling_rate
-            
-            for i,x in enumerate(S):
-                if x != 0.: S[i] = np.sqrt(x)
-            
-            angle = np.random.uniform(0, 2*np.pi)
-            gal_noise = S * np.exp(angle * 1j)
-            
-            for i in range(3): # The power of the galactic background is assumed to be the same in all polarizations
-                efield_fft[i] = efield_fft[i] + gal_noise
-            
-            logger.warning('You are now changing dataelements in sim. station')
+                for j, peak_pos in enumerate(narrowband_freq):
+                    norm_freq = np.random.normal(peak_pos, 0.05*units.MHz) # Typical width found by fitting to data
+                    t = np.linspace(0, n_samples * (1/sampling_rate), n_samples)
+                    for i, pol_power in enumerate(narrowband_power[j]):
+                        pol_noise = pol_power * np.sin(norm_freq * 2 * np.pi * t)
+                        efield[i] = efield[i] + pol_noise
                 
-            station.set_frequency_spectrum(efield_fft, sampling_rate)
-            sim_station.set_frequency_spectrum(efield_fft, sampling_rate)
+                electric_field.set_trace(efield, sampling_rate)
+                
+            elif type == 'galactic':
 
-        else:
-            logger.error("Other types of noise not yet implemented.")
+                freq_range_raw = electric_field.get_frequencies()
+                lower_lim = freq_range_raw > passband[0]
+                freq_range = freq_range_raw[lower_lim]
+                noise_idx = int(efield_fft.shape[1]) - int(freq_range.shape[0])
+                
+                # Power law found by fit to Fig 3.2. "An absolute calibration of the antennas at LOFAR", Tijs Karskens (2015)
+                def GalTemp(x,n=-2.41,k=10**7.88):
+                    return k * x**n
+                
+                S = np.zeros(efield_fft.shape[1])
+                S[noise_idx:] = 4*np.pi * ((2*sp.constants.Boltzmann)/(sp.constants.speed_of_light**2)) * (freq_range/units.MHz)**2 * GalTemp(freq_range/units.MHz) * 50*units.ohm
+                S = S*sampling_rate
+                
+                for i,x in enumerate(S):
+                    if x != 0.: S[i] = np.sqrt(x)
+                
+                angle = np.random.uniform(0, 2*np.pi)
+                gal_noise = S * np.exp(angle * 1j)*100.
+                
+                for i in range(3): # The power of the galactic background is assumed to be the same in all polarizations
+                    efield_fft[i] = efield_fft[i] + gal_noise
+            
+                electric_field.set_frequency_spectrum(efield_fft, sampling_rate)
+
+            else:
+                logger.error("Other types of noise not yet implemented.")
             
     def end():
         pass
