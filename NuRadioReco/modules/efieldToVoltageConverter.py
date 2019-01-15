@@ -1,37 +1,69 @@
 import numpy as np
 from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, fft
 from NuRadioReco.utilities import ice
+from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 # from detector import antennamodel
 from NuRadioReco.detector import antennapattern
 from radiotools import coordinatesystems
 import copy
 import time
 import logging
+import fractions
+from scipy import signal
+from decimal import Decimal
 import NuRadioReco.framework.channel
-
-from NuRadioReco.framework.parameters import stationParameters as stnp
 logger = logging.getLogger('efieldToVoltageConverter')
 
 
 class efieldToVoltageConverter:
     """
     Module that should be used to convert simulations to data.
-    It assumes that an efield is given as input and creates the channels of a station.
-    It will make the voltages according to the station id that has been set in the reader.
+    It assumes that at least one efield is given per channel as input. It will
+    convolve the electric field with the corresponding antenna response for the
+    incoming direction specified in the channel object.
     The station id, defines antenna location and antenna type.
-    It also shifts the traces according to an arrival direction. Note that the trace has to be upsampled significantly,
-    in order for the arrival direction shift to be accurate. A sampling of more than 50 GHz is required to be reasonably
-    accurate.
     """
 
     def __init__(self):
         self.__t = 0
         self.begin()
 
-    def begin(self, debug=logging.WARNING, uncertainty={}):
+    def begin(self, debug=False, uncertainty={},
+              time_resolution=0.1 * units.ns,
+              pre_pulse_time=200 * units.ns,
+              post_pulse_time=200 * units.ns
+              ):
+        """
+        begin method, sets general parameters of module
+
+        Parameters
+        ------------
+        debug: bool
+            enable/disable debug mode (default: False -> no debug output)
+        uncertainty: dictionary
+            optional argument to specify systematic uncertainties. currently supported keys
+#             * 'sys_dx': systematic uncertainty of x position of antenna
+#             * 'sys_dy': systematic uncertainty of y position of antenna
+#             * 'sys_dz': systematic uncertainty of z position of antenna
+            * 'sys_amp': systematic uncertainty of the amplifier aplification,
+                         specify value as relative difference of linear gain
+            * 'amp': statistical uncertainty of the amplifier aplification,
+                     specify value as relative difference of linear gain
+        time_resolution: float
+            time resolution of shifting pulse times
+        pre_pulse_time: float
+            length of empty samples that is added before the first pulse
+        post_pulse_time: float
+            length of empty samples that is added after the simulated trace
+        """
         self.__debug = debug
-        logger.setLevel(self.__debug)
+        self.__time_resolution = time_resolution
+        self.__pre_pulse_time = pre_pulse_time
+        self.__post_pulse_time = post_pulse_time
+        self.__max_upsampling_factor = 5000
         self.__uncertainty = uncertainty
         # some uncertainties are systematic, fix them here
         if('sys_dx' in self.__uncertainty):
@@ -45,190 +77,123 @@ class efieldToVoltageConverter:
                 self.__uncertainty['sys_amp'][iCh] = np.random.normal(1, self.__uncertainty['sys_amp'][iCh])
         self.antenna_provider = antennapattern.AntennaPatternProvider()
 
-    def run(self, evt, station, det, cosmic_ray_mode=False):
-        """
-        Parameters
-        -----------
-        cosmic_ray_mode: bool (default False)
-            if True and if signal comes from above and antenna is below surface, the refraction into the ice is automatically
-            taken into account. The user needs to explicitly activate this method to differentiate from neutrino signals 
-            that get bended or reflected off the surface and hit the antenna from above. 
-        """
+    def run(self, evt, station, det):
         t = time.time()
 
         # access simulated efield and high level parameters
         sim_station = station.get_sim_station()
         sim_station_id = sim_station.get_id()
-        azimuth = sim_station.get_parameter(stnp.azimuth)
-        zenith = sim_station.get_parameter(stnp.zenith)
         event_time = sim_station.get_station_time()
 
-        nChannels = det.get_number_of_channels(sim_station_id)
+        # first we determine the trace start time of all channels and correct
+        # for different cable delays
+        times_min = []
+        times_max = []
+        for iCh in det.get_channel_ids(sim_station_id):
+            for electric_field in sim_station.get_electric_fields_for_channels([iCh]):
+                original_binning = 1./ electric_field.get_sampling_rate()
+                cab_delay = det.get_cable_delay(sim_station_id, iCh)
+                t0 = electric_field.get_trace_start_time() + cab_delay
+                if(not np.isnan(t0)):  # trace start time is None if no ray tracing solution was found and channel contains only zeros
+                    times_min.append(t0)
+                    times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
+                    logger.debug("trace start time {}, cab_delty {}, tracelength {}".format(electric_field.get_trace_start_time(), cab_delay, electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
+        time_resolution = min(self.__time_resolution, original_binning)
+        times_min = np.array(times_min) - self.__pre_pulse_time
+        times_max = np.array(times_max) + self.__post_pulse_time
+        trace_length = times_max.max() - times_min.min()
+        trace_length_samples = int(round(trace_length / time_resolution))
+        if trace_length_samples % 2 != 0:
+            trace_length_samples += 1
+        logger.debug("smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d} {:.0f}ns)".format(times_min.min(), times_max.max(), trace_length_samples,trace_length/units.ns))
 
-        if (self.__debug == logging.DEBUG):
-            efield = sim_station.get_trace()  # in on-sky coordinates, times, e_r, e_phi, e_theta
-            import matplotlib.pyplot as plt
-            fig, ax = plt.subplots(1, 1)
-            ax.plot(efield[0], label='eR')
-            ax.plot(efield[1], label='eTheta')
-            ax.plot(efield[2], label='ePhi')
-            ax.legend()
-            ax.set_title("electric field before antenne response")
-#             plt.show()
+        # loop over all channels
+        for channel_id in det.get_channel_ids(station.get_id()):
 
-        site = det.get_site(sim_station_id)
-        n_ice = ice.get_refractive_index(-0.01, site)
+            # one channel might contain multiple channels to store the signals from multiple ray paths,
+            # so we loop over all simulated channels with the same id,
+            # convolve each trace with the antenna response for the given angles
+            # and everything up in the time domain
+            logger.debug('channel id {}'.format(channel_id))
+            channel = NuRadioReco.framework.channel.Channel(channel_id)
+            channel_spectrum = None
+            if(self.__debug):
+                from matplotlib import pyplot as plt
+                fig, axes = plt.subplots(2, 1)
+            for electric_field in sim_station.get_electric_fields_for_channels([channel_id]):
 
-        for iCh in range(nChannels):
-            if cosmic_ray_mode: # for cr events the efield is stored in a single channel, for nu events each channel has its own efield stored
-                efield_fft = copy.copy(sim_station.get_channel(0)[0].get_frequency_spectrum()) # we make a copy to not alter the original efield if reflectios off the boundary are taken into account
-                sampling = 1. / sim_station.get_channel(0)[0].get_sampling_rate()
-                ff = sim_station.get_channel(0)[0].get_frequencies()
-            else:
-                efield_fft = copy.copy(sim_station.get_channel(iCh).get_frequency_spectrum())
-                sampling = 1. / sim_station.get_channel(iCh).get_sampling_rate()
-                ff = sim_station.get_channel(iCh).get_frequencies()
-            zenith_antenna = zenith
-            # first check case if signal originates from air
-            if((zenith < 0.5 * np.pi) and cosmic_ray_mode):
-                # is antenna below surface?
-                position = det.get_relative_position(sim_station_id, iCh)
-                if(position[2] <= 0):
-                    # signal comes from above and antenna is in the firn
-                    zenith_antenna = geo_utl.get_fresnel_angle(zenith, n_ice, 1)
-                    t_theta = geo_utl.get_fresnel_t_p(zenith, n_ice, 1)
-                    t_phi = geo_utl.get_fresnel_t_s(zenith, n_ice, 1)
-                    efield_fft[1] *= t_theta  # eTheta is parallel to the incident plane
-                    efield_fft[2] *= t_phi  # ePhi is perpendicular to the incident plane
-                    logger.info("channel {:d}: electric field is refracted into the firn. theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) {:.2f} s (ePhi) {:.2f}".format(iCh, zenith / units.deg, zenith_antenna / units.deg, t_theta, t_phi))
+                # all simulated channels have a different trace start time
+                # in a measurement, all channels have the same physical start time
+                # so we need to create one long trace that can hold all the different channel times
+                # to achieve a good time resolution, we upsample the trace first.
+                orig_binning = 1. / electric_field.get_sampling_rate()  # assume that all channels have the same sampling rate
+                target_binning = time_resolution
+                resampling_factor = fractions.Fraction(Decimal(orig_binning / target_binning)).limit_denominator(self.__max_upsampling_factor)
+                efield_trace = electric_field.get_trace()
+                new_length = int(efield_trace.shape[1] * resampling_factor)
+                resampled_efield = np.zeros((3, new_length))  # create new data structure with new efield length
+                for iE in range(len(efield_trace)):
+                    trace = efield_trace[iE]
+                    if(resampling_factor.numerator != 1):
+                        trace = signal.resample(trace, resampling_factor.numerator * len(trace))
+                    if(resampling_factor.denominator != 1):
+                        trace = signal.resample(trace, len(trace) / resampling_factor.denominator)
+                    resampled_efield[iE] = trace
 
-                    # ##DEBUG
-                    if 0:
-                        # correct for reflected signal
-                        cs = coordinatesystems.cstrafo(zenith, azimuth)
-                        efield_fft[0] = np.zeros_like(efield_fft[0])
-                        if(self.__debug == logging.DEBUG):
-                            fig, ax = plt.subplots(2, 1, sharex=True, sharey=True)
-                            ax[0].plot(ff / units.MHz, np.abs(efield_fft[0]), label='eR')
-                            ax[0].plot(ff / units.MHz, np.abs(efield_fft[1]), label='eTheta')
-                            ax[0].plot(ff / units.MHz, np.abs(efield_fft[2]), label='ePhi')
-                            ax[0].set_title("theta = {:.0f} -> {:.0f} , phi = {:.0f}".format(zenith / units.deg, zenith_antenna / units.deg, azimuth / units.deg))
-    #                     efield_fft = cs.transform_from_onsky_to_ground(efield_fft)
-                        if(self.__debug == logging.DEBUG):
-                            ax[1].plot(ff / units.MHz, np.abs(efield_fft[0]), 'C0-', label='x')
-                            ax[1].plot(ff / units.MHz, np.abs(efield_fft[1]), 'C1-', label='y')
-                            ax[1].plot(ff / units.MHz, np.abs(efield_fft[2]), 'C2-', label='z')
-                            ax[1].set_xlim(0, 500)
-                            ax[0].legend()
-                            ax[1].legend()
-                        t_theta = geo_utl.get_fresnel_t_p(zenith, n_ice, 1)
-                        t_phi = geo_utl.get_fresnel_t_s(zenith, n_ice, 1)
-    #                     efield_fft[0] *= t_parallel
-    #                     efield_fft[1] *= t_parallel
-    #                     efield_fft[2] *= t_perpendicular
-                        # parallel and perpendicular are with respect to the plane of incident and NOT the surface!
-                        efield_fft[1] *= t_theta
-                        efield_fft[2] *= t_phi
-                        if(self.__debug == logging.DEBUG):
-                            ax[1].plot(ff / units.MHz, np.abs(efield_fft[0]), 'C0--')
-                            ax[1].plot(ff / units.MHz, np.abs(efield_fft[1]), 'C1--')
-                            ax[1].plot(ff / units.MHz, np.abs(efield_fft[2]), 'C2--')
-                            ax[1].set_xlabel("frequency [MHz]")
-                        efield_fft = cs.transform_from_onsky_to_ground(efield_fft)
-                        cs2 = coordinatesystems.cstrafo(zenith_antenna, azimuth)
-                        efield_fft = cs2.transform_from_ground_to_onsky(efield_fft)  # backtransformation with refracted zenith angle
-                        if(self.__debug == logging.DEBUG):
-                            ax[0].plot(ff / units.MHz, np.abs(efield_fft[0]), 'C0--')
-                            ax[0].plot(ff / units.MHz, np.abs(efield_fft[1]), 'C1--')
-                            ax[0].plot(ff / units.MHz, np.abs(efield_fft[2]), 'C2--')
-                            plt.show()
+                new_trace = np.zeros((3, trace_length_samples))
+                # calculate the start bin
+                if(not np.isnan(electric_field.get_trace_start_time())):
+                    cab_delay = det.get_cable_delay(sim_station_id, channel_id)
+                    start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min()) / time_resolution))
+                    logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
+                    new_trace[:, start_bin:(start_bin + len(trace))] = resampled_efield
+                trace_object = NuRadioReco.framework.base_trace.BaseTrace()
+                trace_object.set_trace(new_trace, 1. / time_resolution)
+                trace_object.set_trace_start_time(times_min.min())
+                if(self.__debug):
+                    axes[0].plot(trace_object.get_times(), new_trace[1], label="eTheta {}".format(electric_field[efp.ray_path_type]))
+                    axes[0].plot(trace_object.get_times(), new_trace[2], label="ePhi {}".format(electric_field[efp.ray_path_type]))
 
-            elif(zenith >= 0.5 * np.pi):
-                # now the signal is coming from below, do we have an antenna above the surface?
-                position = det.get_relative_position(sim_station_id, iCh)
-                if(position[2] > 0):
-                    zenith_antenna = geo_utl.get_fresnel_angle(zenith, 1., n_ice)
-                    if(zenith_antenna is not None):
-                        logger.debug('refracting out of the ice {:.1f} -> {:.1f}'.format(zenith / units.deg, zenith_antenna / units.deg))
-            if(zenith_antenna is None):
-                logger.warning("fresnel reflection at air-firn boundary leads to unphysical results, setting channel {} to zero".format(iCh))
-                channel = NuRadioReco.framework.channel.Channel(iCh)
-                channel.set_trace(np.zeros(sim_station.get_trace().shape[-1]), 1. / sampling)
-                station.add_channel(channel)
-            else:
+                ff = trace_object.get_frequencies()
+                efield_fft = trace_object.get_frequency_spectrum()
+
+                zenith = electric_field[efp.zenith]
+                azimuth = electric_field[efp.azimuth]
+
                 # get antenna pattern for current channel
-                antenna_model = det.get_antenna_model(sim_station_id, iCh, zenith)
-                antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model)
-                ori = det.get_antanna_orientation(sim_station_id, iCh)
-                VEL = antenna_pattern.get_antenna_response_vectorized(ff, zenith_antenna, azimuth, *ori)
+                VEL = trace_utilities.get_efield_antenna_factor(sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)[0]
 
-                # window function
-#                 b, a = scipy.signal.butter(10, 500 * units.MHz, 'low', analog=True)
-#                 b, a = scipy.signal.butter(4, [50 * units.MHz, 500 * units.MHz], 'bandpass', analog=True)
-#                 w, h = scipy.signal.freqs(b, a, ff)
-#                 b, a = scipy.signal.cheby2(10, 60, 600 * units.MHz, 'low', analog=True)
-#                 w, h = scipy.signal.freqs(b, a, ff)
                 # Apply antenna response to electric field
-                voltage_fft = efield_fft[2] * VEL['phi'] + efield_fft[1] * VEL['theta']
-                if(self.__debug == logging.DEBUG):
-                    fig, ax = plt.subplots(1, 1)
-                    ax.plot(ff, np.abs(VEL['phi']), label='phi')
-                    ax.plot(ff, np.abs(VEL['theta']), label='theta')
+                voltage_fft = np.sum(VEL * np.array([efield_fft[1], efield_fft[2]]), axis=0)
 
-    #                 from detector import antennaTimedomain as aT
-    #                 spec = aT.get_antenna_response(0, ff)
-    #                 ax.plot(ff, np.abs(spec), label='Time domain measurement')
-
-                    ax.set_title("antenna response channel {}".format(iCh))
-                    ax.set_xlim(0, 0.6)
-                    ax.legend()
                 # Remove DC offset
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
+
+                if(self.__debug):
+                    axes[1].plot(trace_object.get_times(), fft.freq2time(voltage_fft), label="{}, zen = {:.0f}deg".format(electric_field[efp.ray_path_type], zenith / units.deg))
+
                 if('amp' in self.__uncertainty):
-                    voltage_fft *= np.random.normal(1, self.__uncertainty['amp'][iCh])
+                    voltage_fft *= np.random.normal(1, self.__uncertainty['amp'][channel_id])
                 if('sys_amp' in self.__uncertainty):
-                    voltage_fft *= self.__uncertainty['sys_amp'][iCh]
-                channel = NuRadioReco.framework.channel.Channel(iCh)
-                channel.set_frequency_spectrum(voltage_fft, 1. / sampling)
+                    voltage_fft *= self.__uncertainty['sys_amp'][channel_id]
 
-                voltage = channel.get_trace()
+                if(channel_spectrum is None):
+                    channel_spectrum = voltage_fft
+                else:
+                    channel_spectrum += voltage_fft
 
-                # calculate time shift from antenna position and arrival direction
-                antenna_position = det.get_relative_position(sim_station_id, iCh)
-                if('sys_dx' in self.__uncertainty):
-                    antenna_position[0] += self.__uncertainty['sys_dx']
-                if('sys_dy' in self.__uncertainty):
-                    antenna_position[1] += self.__uncertainty['sys_dy']
-                if('sys_dz' in self.__uncertainty):
-                    antenna_position[2] += self.__uncertainty['sys_dz']
-                # determine refractive index of signal propagation speed between antennas
-                refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
-                if(zenith > 0.5 * np.pi):
-                    # if signal comes from below, use refractivity at antenna position
-                    # for antennas above the surface, the relevant index of refraction is the one for slightly below the surface
-                    refractive_index = ice.get_refractive_index(min(-1, antenna_position[2]), site)
-                time_shift = geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
-                if('dt' in self.__uncertainty):
-                    time_shift += np.random.normal(0, self.__uncertainty['dt'])
-                time_shift_samples = int(round(time_shift / sampling))  # Check ???
-                logger.debug("Shifting channel {} by {:.3}ns = {:.2f}samples = {}samples (rounded) -> error {:.4f}ns, using n = {:.3f}".format(iCh, time_shift,
-                      time_shift / sampling, time_shift_samples, (time_shift - time_shift_samples * sampling) / units.ns, refractive_index))
-                voltage = np.roll(voltage, time_shift_samples)
-                channel.set_trace(voltage, channel.get_sampling_rate())
+            if(self.__debug):
+                axes[0].legend(loc='upper left')
+                axes[1].legend(loc='upper left')
+                plt.show()
+            channel.set_frequency_spectrum(channel_spectrum, trace_object.get_sampling_rate())
 
-                if(self.__debug == logging.DEBUG):
-                    fig, ax = plt.subplots(1, 1)
-                    ax.plot(voltage)
-                    ax.set_title("voltage trace channel {}".format(iCh))
-
-                station.add_channel(channel)
-#         if(self.__debug):
-#             plt.show()
+            station.add_channel(channel)
         self.__t += time.time() - t
 
     def end(self):
         from datetime import timedelta
-        #logger.setLevel(logging.INFO)
+        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt

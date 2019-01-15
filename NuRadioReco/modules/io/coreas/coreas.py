@@ -3,11 +3,12 @@ from NuRadioReco.utilities import units
 from radiotools import helper as hp
 from radiotools import coordinatesystems
 import NuRadioReco.framework.sim_station
-import NuRadioReco.framework.channel
 import NuRadioReco.framework.base_trace
+import NuRadioReco.framework.electric_field
 
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 # conversion_fieldstrength_cgs_to_SI = 2.99792458e4 * 1e-6
 conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
@@ -38,7 +39,7 @@ def calculate_simulation_weights(positions):
     return weights
 
 
-def make_sim_station(station_id, corsika, observer, weight=None):
+def make_sim_station(station_id, corsika, observer, channel_ids,  weight=None):
     """
     creates an ARIANNA sim station from the observer object of the coreas hdf5 file
 
@@ -88,10 +89,12 @@ def make_sim_station(station_id, corsika, observer, weight=None):
     antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id, position=antenna_position)
-    sim_channel = NuRadioReco.framework.channel.Channel(0)
-    sim_channel.set_trace(efield2, sampling_rate)
-    sim_channel.set_parameter(chp.ray_path_type, 'direct')
-    sim_station.add_channel(sim_channel)
+    electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids)
+    electric_field.set_trace(efield2, sampling_rate)
+    electric_field.set_parameter(efp.ray_path_type, 'direct')
+    electric_field.set_parameter(efp.zenith, zenith)
+    electric_field.set_parameter(efp.azimuth, azimuth)
+    sim_station.add_electric_field(electric_field)
     sim_station.set_parameter(stnp.azimuth, azimuth)
     sim_station.set_parameter(stnp.zenith, zenith)
     energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV
