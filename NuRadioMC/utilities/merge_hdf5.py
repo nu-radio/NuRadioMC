@@ -12,8 +12,9 @@ of simulated events (which are needed to correctly calculate the effective volum
 The script expects that the folder structure is
 ../energy/output/*.hdf5.part????
 """
-
-
+if(len(sys.argv) != 2):
+    print("usage: python merge_hdf5.py /path/to/simulation/output/folder")
+else:
     filenames = glob.glob("{}/*/*/*.hdf5.part????".format(sys.argv[1]))
     filenames2 = []
     for i, filename in enumerate(filenames):
