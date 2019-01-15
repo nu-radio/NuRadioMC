@@ -594,8 +594,6 @@ class voltageToAnalyticEfieldConverter:
         Atheta = res_amp.x[1]
         #counts number of iterations in the slope fit. Used so we do not need to show the plots every iteration
         self.i_slope_fit_iterations = 0
-        sign_phi = np.sign(Aphi)
-        sign_theta = np.sign(Atheta)
         res_amp_slope = opt.minimize(obj_amplitude_slope, x0=[res_amp.x[0], res_amp.x[1], -1.9], args=(phase, pos, 'hilbert', False),
                                      method=method, options=options)
 
@@ -614,8 +612,8 @@ class voltageToAnalyticEfieldConverter:
         logger.info("covariance matrix \n{}".format(cov))
         if(cov[0, 0] > 0 and cov[1, 1] > 0 and cov[2, 2] > 0):
             logger.info("correlation matrix \n{}".format(hp.covariance_to_correlation(cov)))
-        Aphi = sign_phi*np.abs(res_amp_slope.x[0])
-        Atheta = sign_theta*np.abs(res_amp_slope.x[1])
+        Aphi = res_amp_slope.x[0]
+        Atheta = res_amp_slope.x[1]
         slope = res_amp_slope.x[2]
         Aphi_error = cov[0, 0] ** 0.5
         Atheta_error = cov[1, 1] ** 0.5
