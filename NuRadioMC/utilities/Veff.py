@@ -199,6 +199,13 @@ def get_Veff_Deposited_Bins(folder, zenithbins=True):
 
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
         fin = h5py.File(filename, 'r')
+        if('trigger_names' in fin.attrs):
+            trigger_names = fin.attrs['trigger_names']
+        if(len(trigger_names) > 0):
+            break
+
+    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
+        fin = h5py.File(filename, 'r')
         E = fin.attrs['Emin']
         Emax = fin.attrs['Emax']
         Es.append(E)
@@ -219,8 +226,12 @@ def get_Veff_Deposited_Bins(folder, zenithbins=True):
             print(trigger_names)
         else:
             if(np.any(trigger_names != fin.attrs['trigger_names'])):
-                print("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
-                raise
+
+                if( triggered.size == 0 and fin.attrs['trigger_names'].size == 0 ):
+                    print("file {} has not triggering events. Using trigger names from another file".format(filename))
+                else:
+                    print("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
+                    raise
 
         for trigger_name in trigger_names:
             for E in Es:
@@ -366,4 +377,4 @@ def exportVeffPerEdepZenith(folderlist, outputfile):
 
     with open(outputfile, 'w+') as fout:
 
-        json.dump(output, fout, sort_keys=True, indent=4)    
+        json.dump(output, fout, sort_keys=True, indent=4)
