@@ -38,6 +38,19 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
     Es = []
 
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
+        fin = h5py.File(filename, 'r')
+        if('trigger_names' in fin.attrs):
+            trigger_names = fin.attrs['trigger_names']
+        if(len(trigger_names) > 0):
+            for iT, trigger_name in enumerate(trigger_names):
+                Veffs[trigger_name] = []
+                Veffs_error[trigger_name] = []
+                trigger_names_dict[trigger_name] = iT
+            break
+
+    print("Trigger names:", trigger_names)
+
+    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
         print(filename)
         fin = h5py.File(filename, 'r')
         E = fin.attrs['Emin']
@@ -54,8 +67,12 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
             print(trigger_names)
         else:
             if(np.any(trigger_names != fin.attrs['trigger_names'])):
-                print("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
-                raise
+
+                if( triggered.size == 0 and fin.attrs['trigger_names'].size == 0 ):
+                    print("file {} has not triggering events. Using trigger names from another file".format(filename))
+                else:
+                    print("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
+                    raise
 
         # calculate effective
         density_ice = 0.9167 * units.g / units.cm ** 3

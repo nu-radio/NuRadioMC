@@ -362,7 +362,7 @@ class simulation():
         # Create trigger structures if there are no triggering events.
         # This is done to ensure that files with no triggering n_events
         # merge properly.
-        self._create_trigger_structures()
+        self._create_empty_multiple_triggers()
 
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
@@ -438,10 +438,16 @@ class simulation():
 
             self._mout['SNRs'][self._iE] = self._station.get_parameter(stnp.channels_max_amplitude) / self._Vrms
 
+    def _create_empty_multiple_triggers(self):
+
+        if('multiple_triggers' not in self._mout):
+            self._mout['multiple_triggers'] = np.zeros((self._n_events, len(['trigger_names'])))
+
     def _create_trigger_structures(self):
 
         if('trigger_names' not in self._mout_attrs):
             self._mout_attrs['trigger_names'] = []
+
             for trigger in six.itervalues(self._station.get_triggers()):
                 self._mout_attrs['trigger_names'].append(trigger.get_name())
         # the 'multiple_triggers' output array is not initialized in the constructor because the number of
