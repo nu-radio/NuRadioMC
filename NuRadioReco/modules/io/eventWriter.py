@@ -37,9 +37,14 @@ class eventWriter:
         """
         max_file_size: maximum file size in Mbytes (if the file exceeds the maximum file the output will be splited into several files)
         """
-        self.__filename = filename
+        if filename[-4:] == '.nur':
+            self.__filename = filename[:-4]
+        else:
+            self.__filename = filename
+        if filename[-4:] == '.ari':
+            logger.warning('The file ending .ari for NuRadioReco files is deprecated. Please use .nur instead.')
         self.__number_of_events = 0
-        self.__fout = open(filename, 'wb')
+        self.__fout = open('{}.nur'.format(self.__filename), 'wb')
         self.__write_fout_header()
         self.__current_file_size = 0
         self.__number_of_files = 1
@@ -86,7 +91,7 @@ class eventWriter:
             self.__current_file_size = 0
             self.__fout.close()
             self.__number_of_files += 1
-            self.__fout = open("{}_part{:02d}".format(self.__filename, self.__number_of_files), 'wb')
+            self.__fout = open("{}_part{:02d}.nur".format(self.__filename, self.__number_of_files), 'wb')
             self.__write_fout_header()
 
     def end(self):
