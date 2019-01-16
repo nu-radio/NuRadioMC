@@ -5,10 +5,7 @@ from NuRadioReco.utilities import ice
 from NuRadioReco.utilities import trace_utilities
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-<<<<<<< HEAD
 from NuRadioReco.framework.parameters import stationParameters as stnp
-=======
->>>>>>> 43ed65386d73f789b80371095f2f6c9ade9e9961
 # from detector import antennamodel
 from NuRadioReco.detector import antennapattern
 from radiotools import coordinatesystems
