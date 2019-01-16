@@ -97,18 +97,6 @@ class hardwareResponseIncorporator:
                 trace_after_cable_fft[0] = 0
                 channel.set_frequency_spectrum(trace_after_cable_fft, channel.get_sampling_rate())
 
-                # Cable delays, cable delays are differently treated for sim->data and deconvolution.
-                # in case of simulations, the trace lenght is long enough that the trace is just rolled.
-                # from the trigger simulator it will be cut to the correct length
-                # in case of cable devoncolution, we don't roll the trace because of its limited size.
-                # Instead we just save the cable delays in the trace start time
-                roll_by = np.int(np.round((det.get_cable_delay(station_id, channel.get_id()) * channel.get_sampling_rate())))
-
-#                 roll_by -= int(self.get_time_delay(amp_type) * channel.get_sampling_rate())
-
-                trace = channel.get_trace()
-                trace = np.roll(trace, roll_by)
-                channel.set_trace(trace, channel.get_sampling_rate())
 
             else:
                 trace_before_cable_fft = trace_fft / (cable_response)

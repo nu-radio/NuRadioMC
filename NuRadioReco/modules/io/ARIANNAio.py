@@ -9,8 +9,8 @@ except ImportError:
 import time
 logger = logging.getLogger('ARIANNAio')
 
-VERSION = 1
-VERSION_MINOR = 1
+VERSION = 2
+VERSION_MINOR = 0
 
 
 class ARIANNAio(object):

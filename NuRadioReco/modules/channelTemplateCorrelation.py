@@ -18,17 +18,15 @@ class channelTemplateCorrelation:
     Calculates correlation of waveform with neutrino/cr templates
     """
 
-    def __init__(self):
+    def __init__(self, template_directory):
         self.__max_upsampling_factor = 5000
-        self.__templates = templates.Templates()
+        self.__templates = templates.Templates(template_directory)
         self.begin()
 
-    def begin(self, debug=False, template_directory=None):
+    def begin(self, debug=False):
         self.__cr_templates = {}
         self.__ref_cr_template = {}
         self.__debug = debug
-        if(template_directory is not None):
-            self.__templates.set_template_directory(template_directory)
 
     def match_sampling(self, ref_template, resampling_factor):
         if(resampling_factor.numerator != 1):

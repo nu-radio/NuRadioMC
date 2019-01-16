@@ -19,11 +19,17 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 import NuRadioReco.detector.antennapattern
 import numpy as np
 import logging
+import os
 
 logger = logging.getLogger('traces')
 
 provider = dataprovider.DataProvider()
-template_provider = templates.Templates()
+# if environment variable for templates is set, we use it, otherwise we later
+# get the template directory from user input
+if 'NURADIORECOTEMPLATES' in os.environ:
+    template_provider = templates.Templates(os.environ.get('NURADIORECOTEMPLATES'))
+else:
+    template_provider = templates.Templates('')
 det = detector.Detector()
 antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
 
@@ -85,6 +91,18 @@ layout = html.Div([
                             value=["RMS", "L1"]
                         )
                     ], style={'flex': '1'}),
+                ], style={'display': 'flex'}),
+                html.Div([
+                    html.Div([
+                        html.Div([
+                            html.Div('Template directory', className='input-group-addon'),
+                            dcc.Input(id='template-directory-input', placeholder='template directory', className='form-control'),
+                            html.Div([
+                                html.Button('load', id='open-template-button', className='btn btn-default')
+                            ], className='input-group-btn')
+                        ], className='input-group', id='template-input-group')
+                    ], style={'flex': '1'}),
+                    html.Div('', style={'flex': '1'})
                 ], style={'display': 'flex'}),
                 dcc.Graph(id='time-traces')
             ], className='panel-body')
@@ -300,9 +318,11 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
      dash.dependencies.Input('filename', 'value'),
      dash.dependencies.Input('dropdown-traces', 'value'),
      dash.dependencies.Input('dropdown-trace-info', 'value'),
-     dash.dependencies.Input('station-id-dropdown', 'value')],
-     [State('user_id', 'children')])
-def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, station_id, juser_id):
+     dash.dependencies.Input('station-id-dropdown', 'value'),
+     dash.dependencies.Input('open-template-button', 'n_clicks_timestamp')],
+     [State('user_id', 'children'),
+     State('template-directory-input', 'value')])
+def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, station_id, open_template_timestamp, juser_id, template_directory):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
@@ -365,27 +385,29 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     name=i
                 ), i + 1, 1)
     if 'crtemplate' in dropdown_traces:
+        if not 'NURADIORECOTEMPLATES' in os.environ: # if the environment variable is not set, we have to ask the user to specify the template location
+            template_provider.set_template_directory(template_directory)
         ref_template = template_provider.get_cr_ref_template(station_id)
-        if(station.has_parameter('number_of_templates')):
-            ref_templates = template_provider.get_set_of_cr_templates(station_id, n=station['number_of_templates'])
+        if(station.has_parameter(stnp.cr_xcorrelations)):
+            ref_templates = template_provider.get_set_of_cr_templates(station_id, n=station.get_parameter(stnp.cr_xcorrelations)['number_of_templates'])
         for i, channel in enumerate(station.iter_channels()):
-            if(channel.has_parameter('cr_ref_xcorr_template')):
-                key = channel['cr_ref_xcorr_template']
+            if(channel.has_parameter(chp.cr_xcorrelations)):
+                key = channel.get_parameter(chp.cr_xcorrelations)['cr_ref_xcorr_template']
                 logger.info("using template {}".format(key))
                 print(ref_templates.keys())
                 ref_template = ref_templates[key][channel.get_id()]
             times = channel.get_times()
             trace = channel.get_trace()
-            xcorr = channel['cr_ref_xcorr']
-            xcorrpos = channel['cr_ref_xcorr_time']
+            xcorr = channel.get_parameter(chp.cr_xcorrelations)['cr_ref_xcorr']
+            xcorrpos = channel.get_parameter(chp.cr_xcorrelations)['cr_ref_xcorr_time']
             dt = times[1] - times[0]
             xcorr_max = xcorr
-            if(channel.has_parameter('cr_ref_xcorr_template')):
-                xcorr_max = channel['cr_ref_xcorr_max']
+            if(channel.has_parameter(chp.cr_xcorrelations)):
+                xcorr_max = channel.get_parameter(chp.cr_xcorrelations)['cr_ref_xcorr_max']
             flip = np.sign(xcorr_max)
 #             flip = 1
             tttemp = np.arange(0, len(ref_template) * dt, dt)
-            yy = flip * np.roll(ref_template * np.abs(trace).max(), int(np.round(xcorrpos / dt)))
+            yy = flip * ref_template * np.abs(trace).max()
             fig.append_trace(go.Scatter(
                     x=tttemp[:len(trace)] / units.ns,
                     y=yy[:len(trace)] / units.mV,
@@ -393,7 +415,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     # mode='markers',
                     opacity=0.7,
                     line=dict(
-                        width=4,
+                        width=2,
                         dash='dot'),  # dash options include 'dash', 'dot', and 'dashdot'
                     marker={
                         'color': colors[i % len(colors)],
@@ -401,6 +423,18 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     },
                     name=i
                 ), i + 1, 1)
+            template_spectrum = fft.time2freq(yy)
+            template_freqs = np.fft.rfftfreq(len(yy), dt)
+            template_freq_mask = (template_freqs > channel.get_frequencies()[0])&(template_freqs<(channel.get_frequencies()[-1]))
+            fig.append_trace(go.Scatter(
+                x = template_freqs[template_freq_mask] / units.MHz,
+                y = np.abs(template_spectrum)[template_freq_mask] / units.mV,
+                line=dict(
+                    width=2,
+                    dash='dot'
+                ),
+                name=i
+            ), i+1, 2)
             fig.append_trace(
                go.Scatter(
                     x=[0.9 * times.max() / units.ns],
@@ -420,16 +454,18 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                 ),
             i + 1, 1)
     if 'nutemplate' in dropdown_traces:
+        if not 'NURADIORECOTEMPLATES' in os.environ: # if the environment variable is not set, we have to ask the user to specify the template location
+            template_provider.set_template_directory(template_directory)
         ref_template = template_provider.get_nu_ref_template(station_id)
         for i, channel in enumerate(station.iter_channels()):
             times = channel.get_times()
             trace = channel.get_trace()
-            xcorr = channel['nu_ref_xcorr']
-            xcorrpos = channel['nu_ref_xcorr_time']
+            xcorr = channel.get_parameter(chp.nu_xcorrelations)['nu_ref_xcorr']
+            xcorrpos = channel.get_parameter(chp.nu_xcorrelations)['nu_ref_xcorr_time']
             dt = times[1] - times[0]
             flip = np.sign(xcorr)
             tttemp = np.arange(0, len(ref_template) * dt, dt)
-            yy = flip * np.roll(ref_template * np.abs(trace).max(), int(np.round(xcorrpos / dt)))
+            yy = flip * ref_template * np.abs(trace).max()
             fig.append_trace(go.Scatter(
                     x=tttemp[:len(trace)] / units.ns,
                     y=yy[:len(trace)] / units.mV,
@@ -445,6 +481,19 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     },
                     name=i
                 ), i + 1, 1)
+            template_spectrum = fft.time2freq(yy)
+            template_freqs = np.fft.rfftfreq(len(yy), dt)
+            template_freq_mask = (template_freqs > channel.get_frequencies()[0])&(template_freqs<(channel.get_frequencies()[-1]))
+            fig.append_trace(go.Scatter(
+                x = template_freqs[template_freq_mask] / units.MHz,
+                y = np.abs(template_spectrum)[template_freq_mask] / units.mV,
+                line=dict(
+                    width=2,
+                    dash='dot'
+                ),
+                name=i
+            ), i+1, 2)
+            
             fig.append_trace(
                go.Scatter(
                     x=[0.9 * times.max() / units.ns],
@@ -592,3 +641,14 @@ def update_time_traces2(evt_counter, filename, dropdown_traces, station_id, juse
     fig['layout'].update(height=700, width=700)
     fig['layout'].showlegend = False
     return fig
+
+@app.callback(
+    Output('template-input-group', 'style'),
+    [Input('dropdown-traces', 'value')]
+)
+def show_template_input(trace_dropdown_options):
+    if 'NURADIORECOTEMPLATES' in os.environ:
+        return {'display': 'none'}
+    if 'crtemplate' in trace_dropdown_options or 'nutemplate' in trace_dropdown_options:
+        return {}
+    return {'display': 'none'}

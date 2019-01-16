@@ -5,6 +5,10 @@ from NuRadioReco.utilities import ice
 from NuRadioReco.utilities import trace_utilities
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+<<<<<<< HEAD
+from NuRadioReco.framework.parameters import stationParameters as stnp
+=======
+>>>>>>> 43ed65386d73f789b80371095f2f6c9ade9e9961
 # from detector import antennamodel
 from NuRadioReco.detector import antennapattern
 from radiotools import coordinatesystems
@@ -94,11 +98,27 @@ class efieldToVoltageConverter:
                 original_binning = 1./ electric_field.get_sampling_rate()
                 cab_delay = det.get_cable_delay(sim_station_id, iCh)
                 t0 = electric_field.get_trace_start_time() + cab_delay
+                # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
+                if sim_station.is_cosmic_ray():
+                    site = det.get_site(sim_station_id)
+                    antenna_position = det.get_relative_position(sim_station_id, iCh)
+                    if sim_station.get_parameter(stnp.zenith) > 90*units.deg:   #signal is coming from below, so we take IOR of ice
+                        index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
+                    else:   # signal is coming from above, so we take IOR of air
+                        index_of_refraction = ice.get_refractive_index(1, site)
+                    travel_time_shift = geo_utl.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith),
+                        sim_station.get_parameter(stnp.azimuth), antenna_position, index_of_refraction)
+                    t0 += travel_time_shift
                 if(not np.isnan(t0)):  # trace start time is None if no ray tracing solution was found and channel contains only zeros
                     times_min.append(t0)
                     times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
                     logger.debug("trace start time {}, cab_delty {}, tracelength {}".format(electric_field.get_trace_start_time(), cab_delay, electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
         time_resolution = min(self.__time_resolution, original_binning)
+        times_min = np.array(times_min)
+        times_max = np.array(times_max)
+        if times_min.min() < 0:
+            times_min -= times_min.min()
+            times_max -= times_min.min()
         times_min = np.array(times_min) - self.__pre_pulse_time
         times_max = np.array(times_max) + self.__post_pulse_time
         trace_length = times_max.max() - times_min.min()
@@ -144,7 +164,18 @@ class efieldToVoltageConverter:
                 # calculate the start bin
                 if(not np.isnan(electric_field.get_trace_start_time())):
                     cab_delay = det.get_cable_delay(sim_station_id, channel_id)
-                    start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min()) / time_resolution))
+                    if sim_station.is_cosmic_ray():
+                        site = det.get_site(sim_station_id)
+                        antenna_position = det.get_relative_position(sim_station_id, channel_id)
+                        if sim_station.get_parameter(stnp.zenith) > 90*units.deg:   #signal is coming from below, so we take IOR of ice
+                            index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
+                        else:   # signal is coming from above, so we take IOR of air
+                            index_of_refraction = ice.get_refractive_index(1, site)
+                        travel_time_shift = geo_utl.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith), 
+                            sim_station.get_parameter(stnp.azimuth), antenna_position, index_of_refraction)
+                        start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift) / time_resolution))
+                    else:
+                        start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min()) / time_resolution))
                     logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
                     new_trace[:, start_bin:(start_bin + len(trace))] = resampled_efield
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
