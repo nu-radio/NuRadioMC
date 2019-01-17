@@ -195,6 +195,7 @@ def get_Veff_Deposited_Bins(folder, zenithbins=True):
     trigger_names_dict = {}
     Veffs = {}
     Veffs_error = {}
+    Nevts = {}
     Es = []
 
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
@@ -211,9 +212,16 @@ def get_Veff_Deposited_Bins(folder, zenithbins=True):
         Es.append(E)
         Veffs[E] = {}
         Veffs_error[E] = {}
+        Nevts[E] = {}
 
     Emins = Es
     Emaxs = Es[1:] + [Emax]
+
+    for trigger_name in trigger_names:
+        for E in Es:
+            Veffs[E][trigger_name] = []
+            Veffs_error[E][trigger_name] = []
+            Nevts[E][trigger_name] = []
 
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
         print(filename)
@@ -233,11 +241,6 @@ def get_Veff_Deposited_Bins(folder, zenithbins=True):
                     print("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
                     raise
 
-        for trigger_name in trigger_names:
-            for E in Es:
-                Veffs[E][trigger_name] = []
-                Veffs_error[E][trigger_name] = []
-
         # calculate effective
         density_ice = 0.9167 * units.g / units.cm ** 3
         density_water = 997 * units.kg / units.m ** 3
@@ -252,25 +255,29 @@ def get_Veff_Deposited_Bins(folder, zenithbins=True):
         for iT, trigger_name in enumerate(trigger_names):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
 
-
             for Emin, Emax in zip(Emins, Emaxs):
 
                 Emask = np.array( [ Edep > Emin and Edep < Emax for Edep in fin['deposited_energies'] ] )
-                Emask = Emask & triggered
+                if( Emask.size > 0 ):
+                    Emask = Emask & triggered
+                else:
+                    Emask = []
                 Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[Emask]) / n_events
                 Veffs[Emin][trigger_name].append(Veff)
-                Veffs_error[Emin][trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
+                Veffs_error[Emin][trigger_name].append(Veff / np.sum(weights[Emask])**0.5)
+                Nevts[Emin][trigger_name].append( np.sum(weights[Emask]) )
 
     for E in Veffs.keys():
 
         for trigger_name in trigger_names:
             Veffs[E][trigger_name] = np.array(Veffs[E][trigger_name])
             Veffs_error[E][trigger_name] = np.array(Veffs_error[E][trigger_name])
+            Nevts[E][trigger_name] = np.array(Nevts[E][trigger_name])
 
     if zenithbins:
-        return np.array(Es), Veffs, Veffs_error, trigger_names, [thetamin, thetamax]
+        return np.array(Es), Veffs, Veffs_error, Nevts, trigger_names, [thetamin, thetamax]
     else:
-        return np.array(Es), Veffs, Veffs_error, trigger_names
+        return np.array(Es), Veffs, Veffs_error, Nevts, trigger_names
 
 def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
     """
@@ -354,7 +361,44 @@ def exportVeffPerZenith(folderlist, outputfile):
 
         json.dump(output, fout, sort_keys=True, indent=4)
 
-def exportVeffPerEdepZenith(folderlist, outputfile):
+def integrateNeutrinoEnergy( input_dict ):
+    """
+    Taking a dictionary having the following structure:
+    dict[zenith_angles][trigger_names][energies][Veffs, Nevts],
+    integrates the neutrino energy and returns a Dictionary
+    containing the effective volumes as a function of deposited energy.
+    """
+
+    output_dict = {}
+
+    for angle in input_dict.keys():
+
+        output_dict[angle] = {}
+        for trigger_name in input_dict[angle].keys():
+
+            output_dict[angle][trigger_name] = {}
+            output_dict[angle][trigger_name]['Deposited energies'] = input_dict[angle][trigger_name]['energies']
+            output_dict[angle][trigger_name]['Veffs'] = []
+            output_dict[angle][trigger_name]['Veff_error'] = []
+
+            for iEdep in range(len(input_dict[angle][trigger_name]['energies'])):
+
+                Veff = 0.
+                Nevts = 0
+
+                for Enu in input_dict[angle][trigger_name]['energies']:
+                    print (iEdep, Enu)
+                    Veff += input_dict[angle][trigger_name][Enu]['Veffs'][iEdep]
+                    Nevts += input_dict[angle][trigger_name][Enu]['Nevts'][iEdep]
+
+                Veff_error = Veff/np.sqrt(Nevts)
+
+                output_dict[angle][trigger_name]['Veffs'].append(Veff)
+                output_dict[angle][trigger_name]['Veff_error'].append(Veff_error)
+
+    return output_dict
+
+def exportVeffPerEdepZenith(folderlist, outputfile, integrate_nuE=True):
     """
     exports effective volumes per deposited energy into a human
     readable JSON file. We assume a binning in zenithal angles
@@ -363,7 +407,7 @@ def exportVeffPerEdepZenith(folderlist, outputfile):
     output = {}
     for folder in folderlist:
 
-        Es, Veffs, Veffs_error, trigger_names, thetas = get_Veff_Deposited_Bins(folder)
+        Es, Veffs, Veffs_error, Nevts, trigger_names, thetas = get_Veff_Deposited_Bins(folder)
         output[thetas[0]] = {}
 
         for trigger_name in trigger_names:
@@ -374,6 +418,11 @@ def exportVeffPerEdepZenith(folderlist, outputfile):
                 output[thetas[0]][trigger_name][E] = {}
                 output[thetas[0]][trigger_name][E]['Veffs'] = list(Veffs[E][trigger_name])
                 output[thetas[0]][trigger_name][E]['Veff_error'] = list(Veffs_error[E][trigger_name])
+                if integrate_nuE:
+                    output[thetas[0]][trigger_name][E]['Nevts'] = list(Nevts[E][trigger_name])
+
+    if integrate_nuE:
+        output = integrateNeutrinoEnergy(output)
 
     with open(outputfile, 'w+') as fout:
 
