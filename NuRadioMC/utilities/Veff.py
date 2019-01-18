@@ -215,13 +215,13 @@ def get_Veff_Deposited_Bins(folder, zenithbins=True):
         Smallest energy (deposited or incident) for each bin
     Veffs: dictionary containing floats lists
         Effective volumes. Each key represents an incident neutrino energy.
-        Each element of the list correspond to a given deposited energy.
+        Each element of the list corresponds to a given deposited energy.
     Veffs_error: dictionary containing floats lists
         Effective volume uncertainties. Each key represents an incident neutrino energy.
-        Each element of the list correspond to a given deposited energy.
+        Each element of the list corresponds to a given deposited energy.
     Nevts: dictionary containing floats lists
         Number of events per energy. Each key represents an incident neutrino energy.
-        Each element of the list correspond to a given deposited energy.
+        Each element of the list corresponds to a given deposited energy.
     trigger_names: string list
         Trigger names
     [thetamin, thetamax]: [float, float]
@@ -414,6 +414,17 @@ def integrateNeutrinoEnergy( input_dict ):
     dict[zenith_angles][trigger_names][energies][Veffs, Nevts],
     integrates the neutrino energy and returns a Dictionary
     containing the effective volumes as a function of deposited energy.
+
+    Parameters
+    ----------
+    input_dict: dictionary
+        Dictionary with the structure dict[zenith_angles][trigger_names][energies][Veffs, Nevts]
+
+    Returns
+    -------
+    output_dict: dictionary
+        Dictionary with the properties of input_dict but dependent only on
+        the deposited energy
     """
 
     output_dict = {}
