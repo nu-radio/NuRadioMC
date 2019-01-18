@@ -27,8 +27,23 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
                 the signal efficiency vs. SNR (=Vmax/Vrms) to use. E.g. 'Chris'
             * 'efficiency_scale': float
                 rescaling of the efficiency curve by SNR' = SNR * scale
+    zenithbins: bool
+        If true, returns the minimum and maximum zenith angles
 
-
+    Returns
+    ----------
+    np.array(Es): numpy floats array
+        Smallest energy for each bin
+    Veffs: floats list
+        Effective volumes
+    Veffs_error: floats list
+        Effective volume uncertainties
+    SNR: floats list
+        Signal to noise ratios
+    trigger_names: string list
+        Trigger names
+    [thetamin, thetamax]: [float, float]
+        Mimimum and maximum zenith angles
     """
     trigger_names = None
     trigger_names_dict = {}
@@ -37,7 +52,7 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
     Veffs_error = {}
     Es = []
 
-    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
+    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
         fin = h5py.File(filename, 'r')
         if('trigger_names' in fin.attrs):
             trigger_names = fin.attrs['trigger_names']
@@ -50,7 +65,7 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
 
     print("Trigger names:", trigger_names)
 
-    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
+    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
         print(filename)
         fin = h5py.File(filename, 'r')
         E = fin.attrs['Emin']
@@ -85,9 +100,12 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
         V = np.pi * (rmax**2 - rmin**2) * dZ
         Vrms = fin.attrs['Vrms']
 
+        # Solid angle needed for the effective volume calculations
+        omega = 2 * np.pi * np.abs( np.cos(thetamin)-np.cos(thetamax) )
+
         for iT, trigger_name in enumerate(trigger_names):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
-            Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
+            Veff = V * density_ice / density_water * omega * np.sum(weights[triggered]) / n_events
             Veffs[trigger_name].append(Veff)
             try:
                 Veffs_error[trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
@@ -157,7 +175,7 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
                 mask = np.array([sol[i,values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=np.bool)
                 triggered = triggered & mask
 
-            Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[triggered]) / n_events
+            Veff = V * density_ice / density_water * omega * np.sum(weights[triggered]) / n_events
 
             if('efficiency' in values.keys()):
                 SNReff, eff = np.loadtxt("analysis_efficiency_{}.csv".format(values['efficiency']), delimiter=",", unpack=True)
@@ -166,7 +184,7 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
                 if('efficiency_scale' in values.keys()):
                     As *= values['efficiency_scale']
                 e = get_eff(As/Vrms)
-                Veff = V * density_ice / density_water * 4 * np.pi * np.sum((weights*e)[triggered]) / n_events
+                Veff = V * density_ice / density_water * omega * np.sum((weights*e)[triggered]) / n_events
 
             Veffs[trigger_name].append(Veff)
             Veffs_error[trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
@@ -180,15 +198,34 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
         return np.array(Es), Veffs, Veffs_error, SNR, trigger_names
 
 def get_Veff_Deposited_Bins(folder, zenithbins=True):
-
     """
-    calculates the effective volumes from NuRadioMC hdf5 files
-    for each deposited energy.
+    calculates the effective volume from NuRadioMC hdf5 files as a function
+    of the energy deposited by the neutrino in the medium
 
     Parameters
     ----------
     folder: string
         folder conaining the hdf5 files, one per energy
+    zenithbins: bool
+        If true, returns the minimum and maximum zenith angles
+
+    Returns
+    ----------
+    np.array(Es): numpy floats array
+        Smallest energy (deposited or incident) for each bin
+    Veffs: dictionary containing floats lists
+        Effective volumes. Each key represents an incident neutrino energy.
+        Each element of the list correspond to a given deposited energy.
+    Veffs_error: dictionary containing floats lists
+        Effective volume uncertainties. Each key represents an incident neutrino energy.
+        Each element of the list correspond to a given deposited energy.
+    Nevts: dictionary containing floats lists
+        Number of events per energy. Each key represents an incident neutrino energy.
+        Each element of the list correspond to a given deposited energy.
+    trigger_names: string list
+        Trigger names
+    [thetamin, thetamax]: [float, float]
+        Mimimum and maximum zenith angles
     """
 
     trigger_names = None
@@ -198,14 +235,14 @@ def get_Veff_Deposited_Bins(folder, zenithbins=True):
     Nevts = {}
     Es = []
 
-    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
+    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
         fin = h5py.File(filename, 'r')
         if('trigger_names' in fin.attrs):
             trigger_names = fin.attrs['trigger_names']
         if(len(trigger_names) > 0):
             break
 
-    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
+    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
         fin = h5py.File(filename, 'r')
         E = fin.attrs['Emin']
         Emax = fin.attrs['Emax']
@@ -223,7 +260,7 @@ def get_Veff_Deposited_Bins(folder, zenithbins=True):
             Veffs_error[E][trigger_name] = []
             Nevts[E][trigger_name] = []
 
-    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*/*.hdf5')))):
+    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
         print(filename)
         fin = h5py.File(filename, 'r')
         weights = np.array(fin['weights'])
@@ -252,6 +289,9 @@ def get_Veff_Deposited_Bins(folder, zenithbins=True):
         V = np.pi * (rmax**2 - rmin**2) * dZ
         Vrms = fin.attrs['Vrms']
 
+        # Solid angle needed for the effective volume calculations
+        omega = 2 * np.pi * np.abs( np.cos(thetamin)-np.cos(thetamax) )
+
         for iT, trigger_name in enumerate(trigger_names):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
 
@@ -262,7 +302,7 @@ def get_Veff_Deposited_Bins(folder, zenithbins=True):
                     Emask = Emask & triggered
                 else:
                     Emask = []
-                Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights[Emask]) / n_events
+                Veff = V * density_ice / density_water * omega * np.sum(weights[Emask]) / n_events
                 Veffs[Emin][trigger_name].append(Veff)
                 Veffs_error[Emin][trigger_name].append(Veff / np.sum(weights[Emask])**0.5)
                 Nevts[Emin][trigger_name].append( np.sum(weights[Emask]) )
@@ -344,6 +384,13 @@ def exportVeffPerZenith(folderlist, outputfile):
     """
     export effective volumes into a human readable JSON file
     We assume a binning in zenithal angles
+
+    Parameters
+    ----------
+    folderlist: strings list
+        list containing the input folders
+    outputfile: string
+        name for the output file
     """
     output = {}
     for folder in folderlist:
@@ -400,8 +447,19 @@ def integrateNeutrinoEnergy( input_dict ):
 
 def exportVeffPerEdepZenith(folderlist, outputfile, integrate_nuE=True):
     """
-    exports effective volumes per deposited energy into a human
-    readable JSON file. We assume a binning in zenithal angles
+    export effective volumes per deposited energy into a human readable JSON file
+
+    Parameters
+    ----------
+    folderlist: strings list
+        list containing the input folders
+    outputfile: string
+        name for the output file
+    integrate_nuE: bool
+        If True, the incident neutrino energy is integrated and the result is
+        given as a function of the deposited energy only.
+        If False, the output contains a 2D histogram of the efective volume as
+        a function of both the incident and deposited energies.
     """
 
     output = {}

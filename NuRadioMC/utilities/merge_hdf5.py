@@ -10,12 +10,12 @@ The merger module automatically keeps track of the total number
 of simulated events (which are needed to correctly calculate the effective volume).
 
 The script expects that the folder structure is
-../energy/output/*.hdf5.part????
+../output/energy/*.hdf5.part????
 """
 if(len(sys.argv) != 2):
     print("usage: python merge_hdf5.py /path/to/simulation/output/folder")
 else:
-    filenames = glob.glob("{}/*/*/*.hdf5.part????".format(sys.argv[1]))
+    filenames = glob.glob("{}/*/*.hdf5.part????".format(sys.argv[1]))
     filenames2 = []
     for i, filename in enumerate(filenames):
         filename, ext = os.path.splitext(filename)
