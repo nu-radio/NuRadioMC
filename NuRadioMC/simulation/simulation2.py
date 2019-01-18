@@ -447,8 +447,9 @@ class simulation():
 
     def _create_empty_multiple_triggers(self):
 
-        if('multiple_triggers' not in self._mout):
-            self._mout['multiple_triggers'] = np.zeros((self._n_events, len(['trigger_names'])))
+        if ('trigger_names' not in self._mout_attrs):
+            self._mout_attrs['trigger_names'] = []
+            self._mout['multiple_triggers'] = []
 
     def _create_trigger_structures(self):
 
@@ -631,6 +632,20 @@ class simulation():
         """
         Returns the fraction of the neutrino energy that goes into particle showers
         TODO: Tau energy
+
+        Parameters
+        ----------
+        inelasticity: float
+            the inelasticity (fraction of energy that goes into had. cascade)
+        ccnc: string ['nc', 'cc']
+            neutral current (nc) or carged currend (cc) interaction
+        flavor: int
+            flavor id
+
+        Returns
+        ----------
+        fem+fhad: float
+            The fraction of deposited energy
         """
         fem, fhad = self._get_em_had_fraction(inelasticity, ccnc, flavor)
         return fem+fhad
@@ -638,14 +653,15 @@ class simulation():
     def _calculate_deposited_energy(self):
         """
         Calculates the energy deposited in the medium as the energy taken
-        by the electromagnetic and hadronic showers.
+        by the electromagnetic and hadronic showers and stores in
+        self._mout['deposited_energies']
         TODO: Tau energy
         """
-        dep_energy = lambda inelasticity, ccnc, flavor, energy: \
-        self._fraction_deposited_energy(inelasticity, ccnc, flavor) * energy
 
-        Edep = map(dep_energy, self._fin['inelasticity'], self._fin['ccncs'], \
-        self._fin['flavors'], self._fin['energies'])
+        Edep = [self._fraction_deposited_energy(inelasticity, ccnc, flavor) * \
+                energy for inelasticity, ccnc, flavor, energy in \
+                zip(self._fin['inelasticity'], self._fin['ccncs'], \
+                self._fin['flavors'], self._fin['energies'])]
 
         self._mout['deposited_energies'] = np.array(Edep)
 

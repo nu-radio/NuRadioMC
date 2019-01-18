@@ -387,7 +387,7 @@ def integrateNeutrinoEnergy( input_dict ):
                 Nevts = 0
 
                 for Enu in input_dict[angle][trigger_name]['energies']:
-                    print (iEdep, Enu)
+
                     Veff += input_dict[angle][trigger_name][Enu]['Veffs'][iEdep]
                     Nevts += input_dict[angle][trigger_name][Enu]['Nevts'][iEdep]
 
