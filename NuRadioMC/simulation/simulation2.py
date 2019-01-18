@@ -448,8 +448,8 @@ class simulation():
     def _create_empty_multiple_triggers(self):
 
         if ('trigger_names' not in self._mout_attrs):
-            self._mout_attrs['trigger_names'] = []
-            self._mout['multiple_triggers'] = []
+            self._mout_attrs['trigger_names'] = np.array([])
+            self._mout['multiple_triggers'] = np.array([])
 
     def _create_trigger_structures(self):
 
