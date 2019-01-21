@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function
 import numpy as np
 from NuRadioReco.utilities import units
 from scipy import interpolate as intp
@@ -31,37 +32,64 @@ with open(os.path.join(os.path.dirname(__file__), "shower_library/library_v1.pkl
     library = pickle.load(fin)
 
 
-def get_time_trace(energy, theta, N, dt, y=1., ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m):
-    if(ccnc == 'nc'):
-        shower_type = "HAD"
-        shower_energy = energy * y
-    else:
-        if(np.abs(flavor) == 12):
-            shower_type = "EM"
-            shower_energy = energy * (1 - y)
-        elif(np.abs(flavor) == 16):
-            shower_type = "TAU"
-            shower_energy = energy * y
-        else:
-            return np.zeros(N)  # muon cc do not lead to any emission
-
+def get_time_trace(shower_energy, theta, N, dt, shower_type, n_index, R, interp_factor=1.):
+    """
+    calculates the electric-field Askaryan pulse from a charge-excess profile
+    
+    Parameters
+    ----------
+    shower_energy: float
+        the energy of the shower
+    theta: float
+        viewing angle, i.e., the angle between shower axis and launch angle of the signal (the ray path)
+    N: int
+        number of samples in the time domain
+    dt: float
+        size of one time bin in units of time
+    profile_depth: array of floats
+        shower depth values of the charge excess profile
+    profile_ce: array of floats
+        charge-excess values of the charge excess profile
+    shower_type: string (default "HAD")
+        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+    n_index: float (default 1.78)
+        index of refraction where the shower development takes place
+    R: float (default 1km)
+        observation distance, the signal amplitude will be scaled according to 1/R
+    interp_factor: int (default 10)
+        interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
+        for small vertex distances but also slows down the calculation proportional to the interpolation factor. 
+        
+    Returns: array of floats
+        array of electric-field time trace
+    """
     if not shower_type in library.keys():
-        raise KeyError("shower type {} not present in library.".format(shower_type))
+        raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *library.keys()))
 
+    # determine closes available energy in shower library
     energies = np.array(library[shower_type].keys())
     iE = np.argmin(np.abs(energies - shower_energy))
+    rescaling_factor = shower_energy / energies[iE]
+    logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the \
+                    charge-excess profile will be rescaled accordingly by a factor of \
+                    {:.2f}".format(shower_energy/units.eV, energies[iE]/units.eV, rescaling_factor))
     profiles = library[shower_type][energies[iE]]
     N_profiles = len(profiles['charge_excess'])
     iN = np.random.randint(N_profiles)
+    logger.debug("picking profile {}/{} randomly".format(iN, N_profiles))
     profile_depth = profiles['depth']
-    profile_ce = profiles['charge_excess'][iN]
-    vp = get_vector_potential(energy, theta, N, dt, y=y, ccnc=ccnc, flavor=flavor, n_index=n_index, R=R, profile_depth=profile_depth,
-                              profile_ce=profile_ce)
+    profile_ce = profiles['charge_excess'][iN] * rescaling_factor
+    vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, 
+                                   shower_type, n_index, R, interp_factor)
     E = -np.diff(vp, axis=0) / dt
     return E
 
 
-def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m, profile_depth=None, profile_ce=None):
+def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m,
+                         profile_depth=None, profile_ce=None):
+    """
+    python transcription of original FORTRAN code
+    """
 
     tt = np.arange(0, (N + 1) * dt, dt)
     tt = tt + 0.5 * dt - tt.mean()
@@ -195,7 +223,10 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
                               shower_type="HAD", n_index=1.78, R=1 * units.m,
                               interp_factor=10):
     """
-    fast interpolation of time-domain calculation of Askaryan pulse from charge-excess profile
+    fast interpolation of time-domain calculation of vector potential of the 
+    Askaryan pulse from a charge-excess profile
+    
+    Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples. 
     
     The numerical integration was replaces by a sum using the trapeoiz rule using vectorized numpy operations
     
