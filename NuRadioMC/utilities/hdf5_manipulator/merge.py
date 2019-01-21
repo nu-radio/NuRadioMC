@@ -49,7 +49,7 @@ def merge_data(data_list, attrs_list):
         else:
             print "\nAdding %(n)d entries from %(f)s" % {"n": size, "f": f}
 
-            if 'trigger_names' not in attrs and 'trigger_names' in attrs_list[f]:
+            if len(attrs['trigger_names']) == 0 and 'trigger_names' in attrs_list[f]:
                 attrs['trigger_names'] = attrs_list[f]['trigger_names']
             if len(data_list[f]['triggered']) == 0:
                 attrs['n_events'] =+ attrs_list[f]['n_events']
