@@ -184,9 +184,6 @@ class simulation():
                 logger.debug("neutrino weight is smaller than {}, skipping event".format(self._cfg['speedup']['minimum_weight_cut']))
                 continue
 
-            # calculate deposited energy
-            self._calculate_deposited_energy()
-
             # be careful, zenith/azimuth angle always refer to where the neutrino came from,
             # i.e., opposite to the direction of propagation. We need the propagation directio nhere,
             # so we multiply the shower axis with '-1'
@@ -367,6 +364,9 @@ class simulation():
         # merge properly.
         self._create_empty_multiple_triggers()
 
+        # calculate deposited energy
+        self._calculate_deposited_energy()
+
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
         self._write_ouput_file()
@@ -449,7 +449,7 @@ class simulation():
 
         if ('trigger_names' not in self._mout_attrs):
             self._mout_attrs['trigger_names'] = np.array([])
-            self._mout['multiple_triggers'] = np.array([])
+            self._mout['multiple_triggers'] = np.zeros((self._n_events, 1))
 
     def _create_trigger_structures(self):
 
