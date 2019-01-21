@@ -8,7 +8,8 @@ from scipy import constants
 from matplotlib import pyplot as plt
 import os
 import pickle
-
+import logging
+logger = logging.getLogger("SignalGen.ARZ")
 
 ######################
 ######################
@@ -20,16 +21,14 @@ import pickle
 
 # define constants
 # x0 = 36.08 * units.g / units.cm**2  # radiation length g cm^-2
-rho = 0.924 * units.g / units.cm**3  # density g cm^-3
-xmu = 12.566370e-7 * units.newton / units.ampere**2
+rho = 0.924 * units.g / units.cm ** 3  # density g cm^-3
+xmu = 12.566370e-7 * units.newton / units.ampere ** 2
 c = 2.99792458e8 * units.m / units.s
 # e = 1.602177e-19 * units.coulomb
 
-
-## load shower library into memory
+# # load shower library into memory
 with open(os.path.join(os.path.dirname(__file__), "shower_library/library_v1.pkl")) as fin:
     library = pickle.load(fin)
-
 
 
 def get_time_trace(energy, theta, N, dt, y=1., ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m):
@@ -39,7 +38,7 @@ def get_time_trace(energy, theta, N, dt, y=1., ccnc='cc', flavor=12, n_index=1.7
     else:
         if(np.abs(flavor) == 12):
             shower_type = "EM"
-            shower_energy = energy * (1-y)
+            shower_energy = energy * (1 - y)
         elif(np.abs(flavor) == 16):
             shower_type = "TAU"
             shower_energy = energy * y
@@ -53,7 +52,7 @@ def get_time_trace(energy, theta, N, dt, y=1., ccnc='cc', flavor=12, n_index=1.7
     iE = np.argmin(np.abs(energies - shower_energy))
     profiles = library[shower_type][energies[iE]]
     N_profiles = len(profiles['charge_excess'])
-    iN =  np.random.randint(N_profiles)
+    iN = np.random.randint(N_profiles)
     profile_depth = profiles['depth']
     profile_ce = profiles['charge_excess'][iN]
     vp = get_vector_potential(energy, theta, N, dt, y=y, ccnc=ccnc, flavor=flavor, n_index=n_index, R=R, profile_depth=profile_depth,
@@ -63,7 +62,6 @@ def get_time_trace(energy, theta, N, dt, y=1., ccnc='cc', flavor=12, n_index=1.7
 
 
 def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m, profile_depth=None, profile_ce=None):
-
 
     tt = np.arange(0, (N + 1) * dt, dt)
     tt = tt + 0.5 * dt - tt.mean()
@@ -76,7 +74,6 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
 #     tt = np.arange(tmin, tmax, dt)
 #     tt += 0.5 * dt
     N = len(tt)
-
 
     xn = n_index
     cher = np.arccos(1. / n_index)
@@ -102,9 +99,7 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
             position of antenna in ARZ reference frame
         z: shower depth
         """
-        return (X[0]**2 + X[1]**2 + (X[2] - z)**2)**0.5
-
-
+        return (X[0] ** 2 + X[1] ** 2 + (X[2] - z) ** 2) ** 0.5
 
     length = profile_depth / rho
     xnep = intp.interp1d(length, profile_ce, bounds_error=False, fill_value=0)
@@ -118,7 +113,7 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
     if 0:  # debug plot
         ll = np.linspace(length.min(), length.max(), 10000)
         plt.plot(ll, xnep(ll))
-        plt.plot(length, N_e - N_p,  'o')
+        plt.plot(length, N_e - N_p, 'o')
         plt.show()
 
     factor = -xmu / (4. * np.pi)
@@ -159,15 +154,15 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
         Af_p = -3.2e-14 * units.V * units.s  # V s
         E_TeV = energy / units.TeV
         if (tt > 0):
-            A_e = Af_e * E_TeV * (np.exp(-np.abs(tt) / (0.057 * units.ns)) +
-                                  (1. + 2.87 / units.ns * np.abs(tt))**(-3.00))  # electromagnetic
-            A_p = Af_p * E_TeV * (np.exp(-np.abs(tt) / (0.065 * units.ns)) +
-                                  (1. + 3.00 / units.ns * np.abs(tt))**(-2.65))  # hadronic
+            A_e = Af_e * E_TeV * (np.exp(-np.abs(tt) / (0.057 * units.ns)) + 
+                                  (1. + 2.87 / units.ns * np.abs(tt)) ** (-3.00))  # electromagnetic
+            A_p = Af_p * E_TeV * (np.exp(-np.abs(tt) / (0.065 * units.ns)) + 
+                                  (1. + 3.00 / units.ns * np.abs(tt)) ** (-2.65))  # hadronic
         else:
-            A_e = Af_e * E_TeV * (np.exp(-np.abs(tt) / (0.030 * units.ns)) +
-                                  (1. + 3.05 / units.ns * np.abs(tt))**(-3.50))  # electromagnetic
-            A_p = Af_p * E_TeV * (np.exp(-np.abs(tt) / (0.043 * units.ns)) +
-                                  (1. + 2.92 / units.ns * np.abs(tt))**(-3.21))  # hadronic
+            A_e = Af_e * E_TeV * (np.exp(-np.abs(tt) / (0.030 * units.ns)) + 
+                                  (1. + 3.05 / units.ns * np.abs(tt)) ** (-3.50))  # electromagnetic
+            A_p = Af_p * E_TeV * (np.exp(-np.abs(tt) / (0.043 * units.ns)) + 
+                                  (1. + 2.92 / units.ns * np.abs(tt)) ** (-3.21))  # hadronic
 
         if(ccnc == 'nc'):
             Acher = y * A_p
@@ -195,8 +190,39 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
     vp *= factor
     return vp
 
-def get_vector_potential_fast(shower_energy, theta, N, dt, shower_type="HAD", n_index=1.78, R=1 * units.m, profile_depth=None, profile_ce=None):
 
+def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
+                              shower_type="HAD", n_index=1.78, R=1 * units.m,
+                              interp_factor=10):
+    """
+    fast interpolation of time-domain calculation of Askaryan pulse from charge-excess profile
+    
+    The numerical integration was replaces by a sum using the trapeoiz rule using vectorized numpy operations
+    
+    Parameters
+    ----------
+    shower_energy: float
+        the energy of the shower
+    theta: float
+        viewing angle, i.e., the angle between shower axis and launch angle of the signal (the ray path)
+    N: int
+        number of samples in the time domain
+    dt: float
+        size of one time bin in units of time
+    profile_depth: array of floats
+        shower depth values of the charge excess profile
+    profile_ce: array of floats
+        charge-excess values of the charge excess profile
+    shower_type: string (default "HAD")
+        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+    n_index: float (default 1.78)
+        index of refraction where the shower development takes place
+    R: float (default 1km)
+        observation distance, the signal amplitude will be scaled according to 1/R
+    interp_factor: int (default 10)
+        interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
+        for small vertex distances but also slows down the calculation proportional to the interpolation factor. 
+    """
 
     tt = np.arange(0, (N + 1) * dt, dt)
     tt = tt + 0.5 * dt - tt.mean()
@@ -226,18 +252,15 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, shower_type="HAD", n_
             position of antenna in ARZ reference frame
         z: shower depth
         """
-        return (X[0]**2 + X[1]**2 + (X[2] - z)**2)**0.5
+        return (X[0] ** 2 + X[1] ** 2 + (X[2] - z) ** 2) ** 0.5
 
-    length = profile_depth / rho
-    interp_factor = 100
-    profile_dense = np.linspace(min(profile_depth), max(profile_depth), interp_factor*len(profile_depth))
-    length = profile_dense/rho
+    profile_dense = np.linspace(min(profile_depth), max(profile_depth), interp_factor * len(profile_depth))
+    length = profile_dense / rho
     profile_ce_interp = np.interp(profile_dense, profile_depth, profile_ce)
     # calculate total charged track length
     xntot = np.sum(profile_ce_interp) * (length[1] - length[0])
     factor = -xmu / (4. * np.pi)
     fc = 4. * np.pi / (xmu * np.sin(cher))
-
 
     vp = np.zeros((N, 3))
     for it, t in enumerate(tt):
@@ -277,24 +300,30 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, shower_type="HAD", n_
         F_p = np.zeros_like(tt)
         if(np.sum(mask)):
             if(shower_type == "HAD"):
-                mask2 = tt>0 & mask
+                mask2 = tt > 0 & mask
                 if(np.sum(mask2)):
-                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.065 * units.ns)) +
-                                          (1. + 3.00 / units.ns * np.abs(tt[mask2]))**(-2.65))  # hadronic
-                mask2 = tt<=0 & mask
+                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.065 * units.ns)) + 
+                                          (1. + 3.00 / units.ns * np.abs(tt[mask2])) ** (-2.65))  # hadronic
+                mask2 = tt <= 0 & mask
                 if(np.sum(mask2)):
-                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.043 * units.ns)) +
-                                          (1. + 2.92 / units.ns * np.abs(tt[mask2]))**(-3.21))  # hadronic
+                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.043 * units.ns)) + 
+                                          (1. + 2.92 / units.ns * np.abs(tt[mask2])) ** (-3.21))  # hadronic
             elif(shower_type == "EM"):
-                mask2 = tt>0 & mask
+                mask2 = tt > 0 & mask
                 if(np.sum(mask2)):
-                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.057 * units.ns)) +
-                                          (1. + 2.87 / units.ns * np.abs(tt[mask2]))**(-3.00))  # electromagnetic
-                mask2 = tt<=0 & mask
+                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.057 * units.ns)) + 
+                                          (1. + 2.87 / units.ns * np.abs(tt[mask2])) ** (-3.00))  # electromagnetic
+                mask2 = tt <= 0 & mask
                 if(np.sum(mask2)):
-                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.030 * units.ns)) +
-                                          (1. + 3.05 / units.ns * np.abs(tt[mask2]))**(-3.50))  # electromagnetic
-
+                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.030 * units.ns)) + 
+                                          (1. + 3.05 / units.ns * np.abs(tt[mask2])) ** (-3.50))  # electromagnetic
+            elif(shower_type == "TAU"):
+                logger.error("Tau showers are not yet implemented")
+                raise NotImplementedError("Tau showers are not yet implemented")
+            else:
+                msg ="showers of type {} are not implemented. Use 'HAD', 'EM' or 'TAU'".format(shower_type)
+                logger.error(msg)
+                raise NotImplementedError(msg)
             # Obtain "shape" of Lambda-function from vp at Cherenkov angle
             # xntot = LQ_tot in PRD paper
             F_p[mask] = Acher[mask] * fc / xntot
@@ -320,16 +349,16 @@ if __name__ == "__main__":
     cdir = os.path.dirname(__file__)
     bins, depth_e, N_e = np.loadtxt(os.path.join(cdir, "shower_library/nue_1EeV_CC_1_s0001.t1005"), unpack=True)
     bins, depth_p, N_p = np.loadtxt(os.path.join(cdir, "shower_library/nue_1EeV_CC_1_s0001.t1006"), unpack=True)
-    depth_e *= units.g / units.cm**2
-    depth_p *= units.g / units.cm**2
-    depth_e -= 1000 * units.g/units.cm**2  # all simulations have an artificial offset of 1000 g/cm^2
-    depth_p -= 1000 * units.g/units.cm**2
+    depth_e *= units.g / units.cm ** 2
+    depth_p *= units.g / units.cm ** 2
+    depth_e -= 1000 * units.g / units.cm ** 2  # all simulations have an artificial offset of 1000 g/cm^2
+    depth_p -= 1000 * units.g / units.cm ** 2
     # sanity check if files electron and positron profiles are compatible
     if (not np.all(depth_e == depth_p)):
         raise ImportError("electron and positron profile have different depths")
 
-    vp = get_vector_potential(energy, theta, N, dt, y, ccnc, flavor, n_index, R, profile_depth=depth_e, profile_ce=(N_e-N_p))
-    vp2 = get_vector_potential(energy, theta, N, dt, y, "EM", n_index, R, profile_depth=depth_e, profile_ce=(N_e-N_p))
+    vp = get_vector_potential(energy, theta, N, dt, y, ccnc, flavor, n_index, R, profile_depth=depth_e, profile_ce=(N_e - N_p))
+    vp2 = get_vector_potential(energy, theta, N, dt, y, "EM", n_index, R, profile_depth=depth_e, profile_ce=(N_e - N_p))
 
     # generate time array
     tt = np.arange(0, (N + 1) * dt, dt)
@@ -346,7 +375,6 @@ if __name__ == "__main__":
 
     ax.set_xlabel("time [ns]")
     ax.set_ylabel("vector potential")
-
 
     mask = np.array([x in t for x in tt])
     fig, ax = plt.subplots(1, 1)
