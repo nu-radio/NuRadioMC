@@ -1,9 +1,14 @@
 import numpy as np
 import logging
+import time
+
+from NuRadioReco.utilities import units
+
 
 logger = logging.getLogger('simulationSelector')
 
 class simulationSelector:
+
     '''
     Module that let's you select CoREAS simulations
     based on certain criteria, e.g. signal in a relevant band
@@ -17,11 +22,65 @@ class simulationSelector:
     def begin(self, debug=False):
         pass
 
-    def run(self, evt):
+    def run(self, evt, sim_station, det, frequency_window = [100*units.MHz,500*units.MHz]):
+
+        """
+        run method, selects CoREAS simulations that have signal in
+        desired frequency_window.
+        Crude approximation with 7 sigma * noise
+
+        Parameters
+        ------------
+        evt: Event
+        sim_station: sim_station
+            CoREAS simulated efields
+        det: Detector
+        frequency_window: list
+            [lower, upper] frequencies that will be used for analysis
+
+        Returns
+        ------------
+        selected_sim: bool
+            if True then simulation has signal in desired range
+
+        """
         t = time.time()
+        efields = sim_station.get_electric_fields()
+        selected_sim = False
+        j = 0
+        for efield in efields:
+            fft = np.abs(efield.get_frequency_spectrum())
+            freq = efield.get_frequencies()
+
+            # identify the largest polarization
+            max_pol = 0
+            max_    = 0
+            for i in xrange(3):
+                if np.sum(fft[i]) > max_:
+                    max_pol = i
+                    max_ = np.sum(fft[i])
+
+            # Find a 7 sigma excess above the noise
+            # Seems to be a reasonably well-working number
+
+            if fft.shape[1] < 1000:
+                logger.warning("CoREAS trace-length too short for selection to work properly")
+
+            noise = np.mean(np.abs(fft[max_pol])[-200:])
+            noise_std = np.std(np.abs(fft[i])[-200:])
+
+            noise += 7 * noise_std
+
+            mask =  np.where(np.abs(fft[max_pol]) > noise)
+            max_freq = np.max(freq[mask])
+
+            if max_freq > np.min(np.array(frequency_window)):
+                selected_sim = True
 
 
         self.__t += time.time() - t
+        return selected_sim
+
 
     def end(self):
         from datetime import timedelta
