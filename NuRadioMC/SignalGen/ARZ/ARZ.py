@@ -44,9 +44,16 @@ class ARZ(object):
         with open(os.path.join(os.path.dirname(__file__), "shower_library/library_v1.pkl")) as fin:
             logger.warning("loading shower library into memory")
             self._library = pickle.load(fin)
+            
+    def set_seed(self, seed):
+        """
+        allow to set a new random seed
+        """
+        np.random.seed(seed)
 
 
-    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, interp_factor=1.):
+    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, interp_factor=20., 
+                       shift_for_xmax=True):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
         
@@ -73,6 +80,9 @@ class ARZ(object):
         interp_factor: int (default 10)
             interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
             for small vertex distances but also slows down the calculation proportional to the interpolation factor. 
+        shift_for_xmax: bool (default True)
+            if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
+            with respect to (0,0,0) which is the start of the charge-excess profile
             
         Returns: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
@@ -88,20 +98,178 @@ class ARZ(object):
         profiles = self._library[shower_type][energies[iE]]
         N_profiles = len(profiles['charge_excess'])
         iN = np.random.randint(N_profiles)
-        logger.debug("picking profile {}/{} randomly".format(iN, N_profiles))
+        logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
         profile_depth = profiles['depth']
         profile_ce = profiles['charge_excess'][iN] * rescaling_factor
-        vp, theta2 = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, 
-                                               shower_type, n_index, R, interp_factor)
+        vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, 
+                                               shower_type, n_index, R, interp_factor, shift_for_xmax)
         trace = -np.diff(vp, axis=0) / dt
         
         cs = cstrafo.cstrafo(zenith=theta, azimuth=0)
         trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
-        cs2 = cstrafo.cstrafo(zenith=theta2, azimuth=0)
-        trace_onsky2 = cs2.transform_from_ground_to_onsky(trace.T)
-        return trace_onsky, trace_onsky2
+        return trace_onsky
     
     
+
+    
+    
+def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
+                              shower_type="HAD", n_index=1.78, distance=1 * units.m,
+                              interp_factor=10, shift_for_xmax=True):
+    """
+    fast interpolation of time-domain calculation of vector potential of the 
+    Askaryan pulse from a charge-excess profile
+    
+    Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples. 
+    
+    The numerical integration was replaces by a sum using the trapeoiz rule using vectorized numpy operations
+    
+    Parameters
+    ----------
+    shower_energy: float
+        the energy of the shower
+    theta: float
+        viewing angle, i.e., the angle between shower axis and launch angle of the signal (the ray path)
+    N: int
+        number of samples in the time domain
+    dt: float
+        size of one time bin in units of time
+    profile_depth: array of floats
+        shower depth values of the charge excess profile
+    profile_ce: array of floats
+        charge-excess values of the charge excess profile
+    shower_type: string (default "HAD")
+        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+    n_index: float (default 1.78)
+        index of refraction where the shower development takes place
+    distance: float (default 1km)
+        observation distance, the signal amplitude will be scaled according to 1/R
+    interp_factor: int (default 10)
+        interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
+        for small vertex distances but also slows down the calculation proportional to the interpolation factor. 
+    shift_for_xmax: bool (default True)
+        if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
+        with respect to (0,0,0) which is the start of the charge-excess profile
+    """
+
+    tt = np.arange(0, (N + 1) * dt, dt)
+    tt = tt + 0.5 * dt - tt.mean()
+    N = len(tt)
+
+    xn = n_index
+    cher = np.arccos(1. / n_index)
+    beta = 1.
+
+    profile_dense = np.linspace(min(profile_depth), max(profile_depth), interp_factor * len(profile_depth))
+    length = profile_dense / rho
+    profile_ce_interp = np.interp(profile_dense, profile_depth, profile_ce)
+    dxmax = length[np.argmax(profile_ce_interp)]
+#     theta2 = np.arctan(R * np.sin(theta)/(R * np.cos(theta) - dxmax))
+#     logger.warning("theta changes from {:.2f} to {:.2f}".format(theta/units.deg, theta2/units.deg))
+    
+    # calculate antenna position in ARZ reference frame
+    # coordinate system is with respect to an origin which is located
+    # at the position where the primary particle is injected in the medium. The reference frame
+    # is z = along shower axis, and x,y are two arbitray directions perpendicular to z
+    # and perpendicular among themselves of course.
+    # For instance to place an observer at a distance R and angle theta w.r.t. shower axis in the x,z plane
+    # it can be simply done by putting in the input file the numerical values:
+    X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta)])
+    if(shift_for_xmax):
+        logger.info("shower maximum at z = {:.1f}m, shifting observer position accordingly.".format(dxmax/units.m))
+        X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta) + dxmax])
+    logger.info("setting observer position to {}".format(X))
+
+    def get_dist_shower(X, z):
+        """
+        Distance from position in shower depth z' to each antenna.
+        Denominator in Eq. (22) PRD paper
+
+        Parameters
+        ----------
+        X: 3dim np. array
+            position of antenna in ARZ reference frame
+        z: shower depth
+        """
+        return (X[0] ** 2 + X[1] ** 2 + (X[2] - z) ** 2) ** 0.5
+
+    # calculate total charged track length
+    xntot = np.sum(profile_ce_interp) * (length[1] - length[0])
+    factor = -xmu / (4. * np.pi)
+    fc = 4. * np.pi / (xmu * np.sin(cher))
+
+    vp = np.zeros((N, 3))
+    for it, t in enumerate(tt):
+        tobs = t + (get_dist_shower(X, 0) / c * xn)
+        z = length
+
+        R = get_dist_shower(X, z)
+        arg = z - (beta * c * tobs - xn * R)
+        u_x = X[0] / R
+        u_y = X[1] / R
+        u_z = (X[2] - z) / R
+        beta_z = 1.
+        vperp_x = u_x * u_z * beta_z
+        vperp_y = u_y * u_z * beta_z
+        vperp_z = -(u_x * u_x + u_y * u_y) * beta_z
+        v = np.array([vperp_x, vperp_y, vperp_z])
+
+        """
+        Function F_p Eq.(15) PRD paper.
+        """
+        # Factor accompanying the F_p in Eq.(15) in PRD paper
+        beta = 1.
+
+        # Note that Acher peaks at tt=0 which corresponds to the observer time.
+        # The shift from tobs to tt=0 is done when defining argument
+        tt = (-arg / (c * beta))  # Parameterisation of A_Cherenkov with t in ns
+        # Cut fit above +/-5 ns
+        mask = abs(tt) < 5. * units.ns
+
+        # Choose Acher between purely electromagnetic, purely hadronic or mixed shower
+        # Eq.(16) PRD paper.
+        # Refit of ZHAireS results => factor 0.88 in Af_e
+        Af_e = -4.5e-14 * 0.88 * units.V * units.s
+        Af_p = -3.2e-14 * units.V * units.s  # V s
+        E_TeV = shower_energy / units.TeV
+        Acher = np.zeros_like(tt)
+        F_p = np.zeros_like(tt)
+        if(np.sum(mask)):
+            if(shower_type == "HAD"):
+                mask2 = tt > 0 & mask
+                if(np.sum(mask2)):
+                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.065 * units.ns)) + 
+                                          (1. + 3.00 / units.ns * np.abs(tt[mask2])) ** (-2.65))  # hadronic
+                mask2 = tt <= 0 & mask
+                if(np.sum(mask2)):
+                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.043 * units.ns)) + 
+                                          (1. + 2.92 / units.ns * np.abs(tt[mask2])) ** (-3.21))  # hadronic
+            elif(shower_type == "EM"):
+                mask2 = tt > 0 & mask
+                if(np.sum(mask2)):
+                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.057 * units.ns)) + 
+                                          (1. + 2.87 / units.ns * np.abs(tt[mask2])) ** (-3.00))  # electromagnetic
+                mask2 = tt <= 0 & mask
+                if(np.sum(mask2)):
+                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.030 * units.ns)) + 
+                                          (1. + 3.05 / units.ns * np.abs(tt[mask2])) ** (-3.50))  # electromagnetic
+            elif(shower_type == "TAU"):
+                logger.error("Tau showers are not yet implemented")
+                raise NotImplementedError("Tau showers are not yet implemented")
+            else:
+                msg ="showers of type {} are not implemented. Use 'HAD', 'EM' or 'TAU'".format(shower_type)
+                logger.error(msg)
+                raise NotImplementedError(msg)
+            # Obtain "shape" of Lambda-function from vp at Cherenkov angle
+            # xntot = LQ_tot in PRD paper
+            F_p[mask] = Acher[mask] * fc / xntot
+        F_p[~mask] = 1.e-30 * fc / xntot
+
+        vp[it] = np.trapz(-v * profile_ce_interp * F_p / R, z)
+
+    vp *= factor
+    return vp
+
 def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m,
                          profile_depth=None, profile_ce=None):
     """
@@ -234,156 +402,6 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
             vp[it][2] = int.quad(xintegrand, xmin, xmax, args=(2, tobs))[0]
     vp *= factor
     return vp
-    
-    
-def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
-                              shower_type="HAD", n_index=1.78, R=1 * units.m,
-                              interp_factor=10):
-    """
-    fast interpolation of time-domain calculation of vector potential of the 
-    Askaryan pulse from a charge-excess profile
-    
-    Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples. 
-    
-    The numerical integration was replaces by a sum using the trapeoiz rule using vectorized numpy operations
-    
-    Parameters
-    ----------
-    shower_energy: float
-        the energy of the shower
-    theta: float
-        viewing angle, i.e., the angle between shower axis and launch angle of the signal (the ray path)
-    N: int
-        number of samples in the time domain
-    dt: float
-        size of one time bin in units of time
-    profile_depth: array of floats
-        shower depth values of the charge excess profile
-    profile_ce: array of floats
-        charge-excess values of the charge excess profile
-    shower_type: string (default "HAD")
-        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
-    n_index: float (default 1.78)
-        index of refraction where the shower development takes place
-    R: float (default 1km)
-        observation distance, the signal amplitude will be scaled according to 1/R
-    interp_factor: int (default 10)
-        interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
-        for small vertex distances but also slows down the calculation proportional to the interpolation factor. 
-    """
-
-    tt = np.arange(0, (N + 1) * dt, dt)
-    tt = tt + 0.5 * dt - tt.mean()
-    N = len(tt)
-
-    xn = n_index
-    cher = np.arccos(1. / n_index)
-    beta = 1.
-
-    # calculate antenna position in ARZ reference frame
-    # coordinate system is with respect to an origin which is located
-    # at the position where the primary particle is injected in the medium. The reference frame
-    # is z = along shower axis, and x,y are two arbitray directions perpendicular to z
-    # and perpendicular among themselves of course.
-    # For instance to place an observer at a distance R and angle theta w.r.t. shower axis in the x,z plane
-    # it can be simply done by putting in the input file the numerical values:
-    X = np.array([R * np.sin(theta), 0., R * np.cos(theta)])
-
-    def get_dist_shower(X, z):
-        """
-        Distance from position in shower depth z' to each antenna.
-        Denominator in Eq. (22) PRD paper
-
-        Parameters
-        ----------
-        X: 3dim np. array
-            position of antenna in ARZ reference frame
-        z: shower depth
-        """
-        return (X[0] ** 2 + X[1] ** 2 + (X[2] - z) ** 2) ** 0.5
-
-    profile_dense = np.linspace(min(profile_depth), max(profile_depth), interp_factor * len(profile_depth))
-    length = profile_dense / rho
-    profile_ce_interp = np.interp(profile_dense, profile_depth, profile_ce)
-    dxmax = length[np.argmax(profile_ce_interp)]
-    theta2 = np.arctan(R * np.sin(theta)/(R * np.cos(theta) - dxmax))
-    logger.warning("theta changes from {:.2f} to {:.2f}".format(theta/units.deg, theta2/units.deg))
-    # calculate total charged track length
-    xntot = np.sum(profile_ce_interp) * (length[1] - length[0])
-    factor = -xmu / (4. * np.pi)
-    fc = 4. * np.pi / (xmu * np.sin(cher))
-
-    vp = np.zeros((N, 3))
-    for it, t in enumerate(tt):
-        tobs = t + (get_dist_shower(X, 0) / c * xn)
-        z = length
-
-        R = get_dist_shower(X, z)
-        arg = z - (beta * c * tobs - xn * R)
-        u_x = X[0] / R
-        u_y = X[1] / R
-        u_z = (X[2] - z) / R
-        beta_z = 1.
-        vperp_x = u_x * u_z * beta_z
-        vperp_y = u_y * u_z * beta_z
-        vperp_z = -(u_x * u_x + u_y * u_y) * beta_z
-        v = np.array([vperp_x, vperp_y, vperp_z])
-
-        """
-        Function F_p Eq.(15) PRD paper.
-        """
-        # Factor accompanying the F_p in Eq.(15) in PRD paper
-        beta = 1.
-
-        # Note that Acher peaks at tt=0 which corresponds to the observer time.
-        # The shift from tobs to tt=0 is done when defining argument
-        tt = (-arg / (c * beta))  # Parameterisation of A_Cherenkov with t in ns
-        # Cut fit above +/-5 ns
-        mask = abs(tt) < 5. * units.ns
-
-        # Choose Acher between purely electromagnetic, purely hadronic or mixed shower
-        # Eq.(16) PRD paper.
-        # Refit of ZHAireS results => factor 0.88 in Af_e
-        Af_e = -4.5e-14 * 0.88 * units.V * units.s
-        Af_p = -3.2e-14 * units.V * units.s  # V s
-        E_TeV = shower_energy / units.TeV
-        Acher = np.zeros_like(tt)
-        F_p = np.zeros_like(tt)
-        if(np.sum(mask)):
-            if(shower_type == "HAD"):
-                mask2 = tt > 0 & mask
-                if(np.sum(mask2)):
-                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.065 * units.ns)) + 
-                                          (1. + 3.00 / units.ns * np.abs(tt[mask2])) ** (-2.65))  # hadronic
-                mask2 = tt <= 0 & mask
-                if(np.sum(mask2)):
-                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.043 * units.ns)) + 
-                                          (1. + 2.92 / units.ns * np.abs(tt[mask2])) ** (-3.21))  # hadronic
-            elif(shower_type == "EM"):
-                mask2 = tt > 0 & mask
-                if(np.sum(mask2)):
-                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.057 * units.ns)) + 
-                                          (1. + 2.87 / units.ns * np.abs(tt[mask2])) ** (-3.00))  # electromagnetic
-                mask2 = tt <= 0 & mask
-                if(np.sum(mask2)):
-                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.030 * units.ns)) + 
-                                          (1. + 3.05 / units.ns * np.abs(tt[mask2])) ** (-3.50))  # electromagnetic
-            elif(shower_type == "TAU"):
-                logger.error("Tau showers are not yet implemented")
-                raise NotImplementedError("Tau showers are not yet implemented")
-            else:
-                msg ="showers of type {} are not implemented. Use 'HAD', 'EM' or 'TAU'".format(shower_type)
-                logger.error(msg)
-                raise NotImplementedError(msg)
-            # Obtain "shape" of Lambda-function from vp at Cherenkov angle
-            # xntot = LQ_tot in PRD paper
-            F_p[mask] = Acher[mask] * fc / xntot
-        F_p[~mask] = 1.e-30 * fc / xntot
-
-        vp[it] = np.trapz(-v * profile_ce_interp * F_p / R, z)
-
-    vp *= factor
-    return vp, theta2
 
 
 if __name__ == "__main__":
