@@ -25,7 +25,7 @@ class simulationSelector:
     def run(self, evt, sim_station, det, frequency_window = [100*units.MHz,500*units.MHz]):
 
         """
-        run method, selects CoREAS simulations that have signal in
+        run method, selects CoREAS simulations that have any signal in
         desired frequency_window.
         Crude approximation with 7 sigma * noise
 
@@ -63,11 +63,20 @@ class simulationSelector:
             # Find a 7 sigma excess above the noise
             # Seems to be a reasonably well-working number
 
-            if fft.shape[1] < 1000:
-                logger.warning("CoREAS trace-length too short for selection to work properly")
+            noise_region = fft[max_pol][np.where(freq > 1.5 * units.GHz)]
+            noise = np.mean(noise_region)
+            if noise == 0:
+                logger.warning("Trace seems to have bee upsampled beyong 1.5 GHz, using lower noise window")
+                noise_region = fft[max_pol][np.where(freq > 1. * units.GHz)]
+                noise = np.mean(noise_region)
+            if noise == 0:
+                logger.warning("Trace seems to have bee upsampled beyong 1. GHz, using lower noise window")
+                noise_region = fft[max_pol][np.where(freq > 800. * units.MHz)]
+                noise = np.mean(noise_region)
+            if noise == 0:
+                logger.error("Trace seems to have bee upsampled beyong 800 MHz, unsuitable simulations")
 
-            noise = np.mean(np.abs(fft[max_pol])[-200:])
-            noise_std = np.std(np.abs(fft[i])[-200:])
+            noise_std = np.std(noise_region)
 
             noise += 7 * noise_std
 
@@ -76,6 +85,7 @@ class simulationSelector:
 
             if max_freq > np.min(np.array(frequency_window)):
                 selected_sim = True
+                break
 
 
         self.__t += time.time() - t
