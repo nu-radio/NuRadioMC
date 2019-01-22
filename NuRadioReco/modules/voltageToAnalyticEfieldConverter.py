@@ -322,8 +322,6 @@ class voltageToAnalyticEfieldConverter:
         debug_obj = 0
         noise_RMS = det.get_noise_RMS(station.get_id(), 0)
 
-#         V_timedomain /= (units.micro * units.V)
-
         def obj(params):
             theta_amp_p1 = 0
             phi_amp_p1 = 0
@@ -335,8 +333,6 @@ class voltageToAnalyticEfieldConverter:
                 theta_amp_p0, phi_amp_p0, theta_amp_p1, phi_amp_p1 = params
             elif(len(params) == 6):
                 theta_amp_p0, phi_amp_p0, theta_amp_p1, phi_amp_p1, theta_phase_p0, phi_phase_p0 = params
-#             theta_amp_p0 -= 6
-#             phi_amp_p0 -= 6
 
             analytic_pulse_theta = pulse.get_analytic_pulse_freq(theta_amp_p0, theta_amp_p1, theta_phase_p0, n_samples_time, sampling_rate, bandpass=bandpass)
             analytic_pulse_phi = pulse.get_analytic_pulse_freq(phi_amp_p0, phi_amp_p1, phi_phase_p0, n_samples_time, sampling_rate, bandpass=bandpass)
@@ -364,7 +360,6 @@ class voltageToAnalyticEfieldConverter:
                 if(debug_obj):
                     ax[iCh].plot(trace, label='measurement')
                     ax[iCh].plot(np.roll(analytic_traces[iCh], pos), '--', label='fit')
-#                 logger.debug("channel {:d}: optimal position {:d}, chi2 = {:4g}".format(iCh, pos, tmp))
                 chi2 += tmp
             if(debug_obj):
                 ax[0].set_title("Atheta = {:.2g}, Aphi = {:.2g}, chi2 = {:.4g}".format(theta_amp_p0, phi_amp_p0, chi2))
@@ -373,16 +368,6 @@ class voltageToAnalyticEfieldConverter:
             return chi2
 
         def obj_xcorr(params):
-#             if(len(params) == 3):
-#                 slope, ratio2, phase2 = params
-#             elif(len(params) == 2):
-#                 slope, phase2 = params
-#                 ratio2 = -1000
-#             elif(len(params) == 1):
-#                 phase2 = 0
-#                 ratio2 = -1000
-#                 slope = params[0]
-
             if(len(params) == 3):
                 slope, ratio2, phase2 = params
                 ratio = (np.arctan(ratio2) + np.pi * 0.5) / np.pi  # project -inf..inf on 0..1
@@ -412,24 +397,9 @@ class voltageToAnalyticEfieldConverter:
                 analytic_trace_fft = np.sum(efield_antenna_factor[iCh] * np.array([analytic_pulse_theta, analytic_pulse_phi]), axis=0)
                 analytic_traces[iCh] = fft.freq2time(analytic_trace_fft)
                 xcorr = np.abs(hp.get_normalized_xcorr(trace, analytic_traces[iCh]))
-#                 pos = np.argmax(np.abs(xcorr)) + 1
                 positions[iCh] = np.argmax(np.abs(xcorr)) + 1
                 max_xcorrs[iCh] = xcorr.max()
                 chi2 -= xcorr.max()
-#             pos = positions[np.argmax(max_xcorrs)]
-#             # calculate chi2 by summing all xcorrs at the same position
-#             for iCh, trace in enumerate(V_timedomain):
-#                 xcorr = hp.get_normalized_xcorr(trace, analytic_traces[iCh])
-#                 chi2 -= np.abs(xcorr[pos])
-#                 if(debug_obj):
-#                     ax[iCh, 0].plot(trace, label='measurement')
-#                     trace_ana = np.roll(analytic_traces[iCh], pos) / analytic_traces[iCh].max() * trace.max() * np.sign(xcorr[pos])
-#                     ax[iCh, 0].plot(trace_ana, '--', label='fit')
-#                     ax[iCh, 0].set_xlim(1600, 2400)
-#                     specana = np.fft.rfft(trace_ana, norm='ortho') * 2 ** 0.5
-#                     specV = np.fft.rfft(trace, norm='ortho') * 2 ** 0.5
-#                     ax[iCh, 1].plot(np.abs(specV))
-#                     ax[iCh, 1].plot(np.abs(specana), '--')
             if(debug_obj):
                 ax[0, 0].set_title("ratio = {:.2f}, slope = {:.4g}, phase = {:.0f} ({:.4f}), chi2 = {:.4g}".format(ratio, slope, phase / units.deg, phase2, chi2))
                 fig.tight_layout()
@@ -534,17 +504,11 @@ class voltageToAnalyticEfieldConverter:
         if 0:  # test first method
             res = opt.minimize(obj, x0=[1, 1, -1, -1, 0, 0], method=method, options=options)
             logger.debug(res)
-    #         res = opt.minimize(obj, x0=[res.x[0], res.x[1], -1, -1], method=method, options=options)
-    #         print(res)
-    #         res = opt.minimize(obj, x0=[res.x[0], res.x[1], res.x[2], res.x[3], 0, 0], method=method, options=options)
             logger.debug(res)
             analytic_pulse_theta_freq = pulse.get_analytic_pulse_freq(res.x[0], res.x[2], res.x[4], n_samples_time, sampling_rate, bandpass=bandpass)
             analytic_pulse_phi_freq = pulse.get_analytic_pulse_freq(res.x[1], res.x[3], res.x[5], n_samples_time, sampling_rate, bandpass=bandpass)
             analytic_pulse_theta = pulse.get_analytic_pulse(res.x[0], res.x[2], res.x[4], n_samples_time, sampling_rate, bandpass=bandpass)
             analytic_pulse_phi = pulse.get_analytic_pulse(res.x[1], res.x[3], res.x[5], n_samples_time, sampling_rate, bandpass=bandpass)
-
-#         res = opt.minimize(obj_xcorr, x0=[0.5, 0, 1], method=method, options=options)
-#         phase = np.arctan(res.x[2])  # project -inf..+inf to -0.5 pi..0.5 pi
 
         res = opt.minimize(obj_xcorr, x0=[-1], method=method, options=options)
         logger.info("slope xcorr fit, slope = {:.3g} with fmin = {:.3f}".format(res.x[0], res.fun))
@@ -554,17 +518,9 @@ class voltageToAnalyticEfieldConverter:
             ss = np.linspace(-6, -1, 100)
             oos = [obj_xcorr([s]) for s in ss]
             ao.plot(ss, oos)
-#             plt.show()
-#         ratio = 0.5
         phase = 0
-#         res = opt.minimize(obj_xcorr, x0=[res.x[0], -1], method=method, options=options)
         ratio = 0
-#         phase = np.arctan(res.x[1])  # project -inf..+inf to -0.5 pi..0.5 pi
         slope = res.x[0]
-#         res = opt.minimize(obj_xcorr, x0=[res.x[0], -100], method=method, options=options)
-#         ratio = (np.arctan(res.x[1]) + np.pi * 0.5) / np.pi  # project -inf..inf on 0..1
-#         phase = np.arctan(0)  # project -inf..+inf to -0.5 pi..0.5 pi
-#         slope = res.x[0]
         analytic_pulse_theta_freq = pulse.get_analytic_pulse_freq(ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
         analytic_pulse_phi_freq = pulse.get_analytic_pulse_freq(1 - ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
         analytic_pulse_theta = pulse.get_analytic_pulse(ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
@@ -626,14 +582,6 @@ class voltageToAnalyticEfieldConverter:
         electric_field.set_parameter(efp.zenith, zenith)
         electric_field.set_parameter(efp.azimuth, azimuth)
 
-#         cov = covariance(Wrapper, res_amp_slope.x, 0.5, fast=False)
-#         print(cov)
-
-#         res_amp_slope2 = opt.basinhopping(obj_amplitude_slope, x0=[res_amp_slope.x[0], res_amp_slope.x[1], -2],
-#                                           minimizer_kwargs={'args':(phase, pos)}, disp=True)
-#         logger.info("amplitude fit, Aphi = {:.3g} Atheta = {:.3g}, slope = {:.3g} with fmin = {:.5e}".format(res_amp_slope2.x[0], res_amp_slope2.x[1],
-#                                                                                                              res_amp_slope2.x[2], res_amp_slope2.fun))
-
          # plot objective function
         if 0:
             fo, ao = plt.subplots(1, 1)
@@ -653,15 +601,11 @@ class voltageToAnalyticEfieldConverter:
             fig, ax = plt.subplots(1, 1)
             ax.pcolor(X, Y, Z, cmap='viridis_r', vmin=res_amp_slope.fun, vmax=res_amp_slope.fun * 2)
 
-#             plt.show()
         analytic_pulse_theta = pulse.get_analytic_pulse(Atheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
         analytic_pulse_phi = pulse.get_analytic_pulse(Aphi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
         analytic_pulse_theta_freq = pulse.get_analytic_pulse_freq(Atheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
         analytic_pulse_phi_freq = pulse.get_analytic_pulse_freq(Aphi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
 
-#         print("Aphi = {:.4g}".format(Aphi * conversion_factor_integrated_signal * 1e-12))
-#         print('fphi spec {:.4e}'.format(np.sum(np.abs(analytic_pulse_phi_freq) ** 2) / sampling_rate * conversion_factor_integrated_signal * 1e-12))
-#         print('fphi time {:.4e}'.format(np.sum(np.abs(analytic_pulse_phi) ** 2) / sampling_rate * conversion_factor_integrated_signal * 1e-12))
         analytic_pulse_theta = np.roll(analytic_pulse_theta, pos)
         analytic_pulse_phi = np.roll(analytic_pulse_phi, pos)
         station_trace = np.array([np.zeros_like(analytic_pulse_theta), analytic_pulse_theta, analytic_pulse_phi])
@@ -710,7 +654,6 @@ class voltageToAnalyticEfieldConverter:
             if station.has_sim_station():
                 sim_station = station.get_sim_station()
                 logger.debug("station start time {:.1f}ns, relativ sim station time = {:.1f}".format(station.get_trace_start_time(), sim_station.get_trace_start_time()))
-                # ax2.plot(times_sim / units.ns, efield_sim[0] / units.mV * units.m, "--", label="simulation eR")
                 df = (sim_station.get_frequencies()[1] - sim_station.get_frequencies()[0]) / units.MHz
                 c = station.get_trace()[2].max() / sim_station.get_trace()[2].max()
                 c = 1.
@@ -725,11 +668,9 @@ class voltageToAnalyticEfieldConverter:
 
                 ax2f.plot(ffsim / units.MHz, 10 ** (result[0][0] + result[0][1] * ffsim), "C3:")
 
-#             ax2f.set_ylim(1e-3)
             ax2.legend(fontsize="xx-small")
             ax2.set_xlabel("time [ns]")
             ax2.set_ylabel("electric-field [mV/m]")
-#             axf.set_xlabel("Frequency [MHz]")
             ax2f.set_ylim(1e-3, 5)
             ax2f.set_xlabel("Frequency [MHz]")
             ax2f.set_xlim(100, 500)
@@ -771,278 +712,6 @@ class voltageToAnalyticEfieldConverter:
             if(debug_plotpath is not None):
                 fig.savefig(os.path.join(debug_plotpath, 'run_{:05d}_event_{:06d}_channels.png'.format(evt.get_run_number(), evt.get_id())))
                 plt.close(fig)
-
-#         p_mag_pre = np.zeros((3, 2))
-#         p_mag_stats_pre = []
-#         p_phase_pre = np.zeros((3, 2))
-#         p_phase_stats_pre = []
-#         if station.has_sim_station():
-#             sim_station = station.get_sim_station()
-#             max_bin = np.argmax(sim_station.get_hilbert_envelope_mag())
-#             sim_trace = np.roll(sim_station.get_trace(), -max_bin, axis=1)
-#             sim_times = sim_station.get_times()
-#             sim_ff = sim_station.get_frequencies()
-#             sim_spectrum = np.fft.rfft(sim_trace, norm='ortho', axis=-1) * 2 ** 0.5
-#             mask = (sim_ff >= 100 * units.MHz) & (sim_ff <= 500 * units.MHz)
-#
-#             for iPol in xrange(0, 3):
-#                 p0_mag, p0_mag_stats = poly.polyfit(sim_ff[mask], np.log10(np.abs(sim_spectrum[iPol][mask])),
-#                                                     1, w=1. / np.log10(np.abs(sim_spectrum[iPol][mask])), full=True)
-#                 p_mag_pre[iPol] = p0_mag
-#                 p_mag_stats_pre.append(p0_mag_stats)
-#                 p0_phase, p0_phase_stats = poly.polyfit(sim_ff[mask], np.unwrap(np.angle(sim_spectrum[iPol][mask])),
-#                                                         1, full=True)
-#                 p_phase_pre[iPol] = p0_phase
-#                 p_phase_stats_pre.append(p0_phase_stats)
-#
-#             if 0:
-#                 fsim, (axtrace, axmag, axphase) = plt.subplots(1, 3, figsize=(15, 6))
-#                 axtrace.plot(sim_times, sim_trace[0], "-{}".format(php.get_color(0)))
-#                 axtrace.plot(sim_times, sim_trace[1], "-{}".format(php.get_color(1)))
-#                 axtrace.plot(sim_times, sim_trace[2], "-{}".format(php.get_color(2)))
-#     #             axtrace.plot(sim_times, sim_station.get_trace()[0], "--{}".format(php.get_color(0)))
-#     #             axtrace.plot(sim_times, sim_station.get_trace()[1], "--{}".format(php.get_color(1)))
-#     #             axtrace.plot(sim_times, sim_station.get_trace()[2], "--{}".format(php.get_color(2)))
-#                 xxx = np.linspace(100 * units.MHz, 500 * units.MHz)
-#                 for iPol in xrange(0, 3):
-#                     axmag.plot(sim_ff / units.MHz, np.abs(sim_spectrum[iPol]), ".{}".format(php.get_color(iPol)))
-#                     axphase.plot(sim_ff[mask] / units.MHz, np.rad2deg(np.unwrap(np.angle(sim_spectrum[iPol][mask]))), ".{}".format(php.get_color(iPol)))
-#                     axmag.plot(xxx / units.MHz, 10 ** poly.polyval(xxx, p_mag_pre[iPol]), "-{}".format(php.get_color(iPol)))
-#                     axphase.plot(xxx / units.MHz, np.rad2deg(poly.polyval(xxx, p_phase_pre[iPol])), "-{}".format(php.get_color(iPol)))
-#                 axmag.set_xlim(100, 500)
-#                 axphase.set_xlim(100, 500)
-#                 plt.tight_layout()
-#
-#         def get_voltage_spectrum(params, frequencies):
-#             amp_p0_theta, amp_p1_theta, phase_p0_theta, phase_p1_theta, amp_p0_phi, amp_p1_phi, phase_p0_phi, phase_p1_phi = params
-#             efield_trace_theta_analytic = get_analytic_pulse_freq(amp_p0_theta, amp_p1_theta, phase_p0_theta,
-#                                                                   phase_p1_theta, frequencies)
-#             efield_trace_phi_analytic = get_analytic_pulse_freq(amp_p0_phi, amp_p1_phi, phase_p0_phi, phase_p1_phi, frequencies)
-#
-#             voltage_spectrum_analytic = np.einsum('ij..., j...', efield_antenna_factor,
-#                                                   np.array([efield_trace_theta_analytic, efield_trace_phi_analytic])).T
-#             return voltage_spectrum_analytic
-#
-#         def get_voltage_traces(params, frequencies):
-#             return np.fft.irfft(get_voltage_spectrum(params, frequencies),
-#                                 norm="ortho", axis=-1) / 2 ** 0.5
-#
-#         def obj(params, voltage_traces, frequencies):
-#             voltage_traces_analytic = get_voltage_traces(params, frequencies)
-#             chi2 = 0
-# #                                                      np.array([efield_trace_theta_analytic, efield_trace_phi_analytic]))
-#             for iT, trace_analytic in enumerate(voltage_traces_analytic):
-#                 chi2 += np.sum(np.abs(voltage_traces[iT] - trace_analytic) ** 2 / np.abs(voltage_traces).max())
-#             return chi2
-#
-#         def get_voltage_spectrum_mag(params, frequencies):
-#             amp_p0_theta, amp_p1_theta, phase_offset_theta, amp_p0_phi, amp_p1_phi, phase_offset_phi = params
-# #             t = (2 * ((phase_offset_theta - 0) / (2 * np.pi)) - 1)
-# #             t = min(1, t)
-# #             t = max(-1, t)
-# #             phase_offset_theta_internal = np.arcsin(t)
-# #             print(phase_offset_theta_internal)
-# #             t = 2 * ((phase_offset_phi - 0) / (2 * np.pi)) - 1
-# #             t = min(1, t)
-# #             t = max(-1, t)
-# #             phase_offset_phi_internal = np.arcsin(t)
-# #             print(phase_offset_phi_internal)
-#             efield_trace_theta_analytic = get_analytic_pulse_freq(amp_p0_theta, amp_p1_theta, phase_offset_theta, 0, frequencies)
-#             efield_trace_phi_analytic = get_analytic_pulse_freq(amp_p0_phi, amp_p1_phi, phase_offset_phi, 0, frequencies)
-#
-#             voltage_spectrum_analytic = np.einsum('ij..., j...', efield_antenna_factor,
-#                                                   np.array([efield_trace_theta_analytic, efield_trace_phi_analytic])).T
-#
-# #             voltage_spectrum_analytic2 = np.zeros_like(voltage_spectrum_analytic)
-# #             for iCh in xrange(4):
-# #                 voltage_spectrum_analytic2[iCh] = efield_antenna_factor[iCh][0] * efield_trace_theta_analytic + efield_antenna_factor[iCh][1] * efield_trace_phi_analytic
-#
-#             return voltage_spectrum_analytic
-#
-#         def get_voltage_traces_mag(params, frequencies):
-#             return np.fft.irfft(get_voltage_spectrum_mag(params, frequencies),
-#                                 norm="ortho", axis=-1) / 2 ** 0.5
-#
-#         def get_shift(params, voltage_traces, voltage_traces_analytic):
-#             corr = np.zeros_like(voltage_traces_analytic)
-#             for iT, trace_analytic in enumerate(voltage_traces_analytic):
-#                 corr[iT] = signal.correlate(voltage_traces[iT], voltage_traces_analytic[iT], mode='same')
-#             corr_mag = np.linalg.norm(corr, axis=0)
-#             max_bin = np.argmax(corr_mag)
-#             n_samples = len(corr_mag)
-#             i_shift = max_bin - n_samples // 2
-#             return i_shift
-#
-#         def obj_mag(params, voltage_traces, frequencies):
-#             voltage_traces_analytic = get_voltage_traces_mag(params, frequencies)
-#             i_shift = get_shift(params, voltage_traces, voltage_traces_analytic)
-#
-#             chi2 = 0
-#             for iT, trace_analytic in enumerate(voltage_traces_analytic):
-#                 chi2 += np.sum((voltage_traces[iT] - np.roll(trace_analytic, i_shift)) ** 2 / np.abs(voltage_traces).max() ** 2)
-#
-# #             print("{:.2g}".format(chi2), params)
-#             if 0:
-#                 fig, ax = plt.subplots(2, 1, sharex=True)
-#                 for iT, trace_analytic in enumerate(voltage_traces_analytic):
-#                     corr = signal.correlate(voltage_traces[iT], voltage_traces_analytic[iT], mode='same')
-#     #                 chi2 += np.sum(np.abs(voltage_traces[iT] - trace_analytic) ** 2 / np.abs(voltage_traces).max())
-#                     ax[0].plot(voltage_traces[iT], color=php.get_color(iT))
-#                     ax[0].plot(np.roll(trace_analytic, i_shift), '--', color=php.get_color(iT))
-#                     ax[1].plot(corr, color=php.get_color(iT))
-#                 ax[0].set_title('correlation')
-#                 plt.tight_layout()
-#                 plt.show()
-#             return chi2
-#
-#         # compute the time shift due to the antenna model
-# #         n_samples = len(V_timedomain[0])
-# #         trace_delta = np.zeros(n_samples)
-# #         i_middle = n_samples // 2
-# #         trace_delta[i_middle] = 1
-# #         spec_delta = np.fft.rfft(trace_delta, norm='ortho')
-# #         mask = (frequencies < 100 * units.MHz) | (frequencies > 500 * units.MHz)
-# #         spec_delta[mask] = 0
-# #         V_delta_spec = np.einsum('ij..., j...', efield_antenna_factor, np.array([spec_delta, np.zeros_like(spec_delta, dtype=np.complex)])).T
-# #         V_delta = np.fft.irfft(V_delta_spec, norm='ortho', axis=-1)
-# #         print('middle of trace is ', i_middle)
-# #         fig_delta, ax_delta = plt.subplots(1, 1)
-# #         for i, V_temp in enumerate(V_delta):
-# #             print(i, np.argmax(np.abs(V_temp)))
-# #             from scipy import signal
-# #             ax_delta.plot(times, V_temp)
-# #             ax_delta.plot(times, np.abs(signal.hilbert(V_temp)), '--')
-# #         plt.show()
-#
-#         method = "Nelder-Mead"
-#         # method = "BFGS"
-#         options = {'maxiter': 1000,
-#                    'disp': True}
-#         x0 = [p_mag_pre[1][0], p_mag_pre[1][1], p_phase_pre[1][0], p_phase_pre[1][1],
-#               p_mag_pre[2][0], p_mag_pre[2][1], p_phase_pre[2][0], p_phase_pre[2][1]]
-# #         plt.close("all")
-# #         res = opt.minimize(obj, x0=x0, args=(V_timedomain, frequencies), method=method, options=options)
-#         x0_mag = [p_mag_pre[1][0], p_mag_pre[1][1], np.pi,
-#                   p_mag_pre[2][0], p_mag_pre[2][1], np.pi]
-#         t = time.time()
-#         res_mag = opt.minimize(obj_mag, x0=x0_mag, args=(V_timedomain, frequencies), method=method, options=options)
-#         print("fit needed {:.1f} s".format(time.time() - t))
-#         print(res_mag.x)
-#         voltage_traces_analytic = get_voltage_traces_mag(res_mag.x, frequencies)
-#         i_shift = get_shift(res_mag.x, V_timedomain, voltage_traces_analytic)
-# #         P = ((2 * np.pi) / (2.))(np.sin(P) + 1)
-# #         res = res_mag
-#
-#         for i, trace in enumerate(voltage_traces_analytic):
-#             ax_V.plot(times / units.ns, np.roll(trace, i_shift) / units.mV, "C{}--".format(i))
-#             ax_V_res.plot(times / units.ns, (np.roll(trace, i_shift) - V_timedomain[i]) / units.mV, "C{}--".format(i))
-#         ax_V.legend(fontsize='small')
-#         ax_V_res.set_xlabel("time [ns]")
-#         ax_V.set_ylabel("voltage [mV]")
-#         ax_V_res.set_ylabel(r"$\Delta$")
-#         ax_V.set_title("S/N {rms0:.1f}, {rms1:.1f}, {rms2:.1f}, {rms3:.1f}".format(rms0=channels.values()[0]['SNR'],
-#                                                                                          rms1=channels.values()[1]['SNR'],
-#                                                                                         rms2=channels.values()[2]['SNR'],
-#                                                                                          rms3=channels.values()[3]['SNR']))
-#         fig_V.tight_layout()
-# #         fig_analytic, ax_analytic = plt.subplots(1, 1)
-# #         yy = get_analytic_pulse(res_mag.x[0], res_mag.x[1], res_mag.x[2], 0, frequencies)
-# #         ax_analytic.plot(times, yy / units.mV * units.m, label='eTheta')
-# #         yy = get_analytic_pulse(res_mag.x[3], res_mag.x[4], res_mag.x[5], 0, frequencies)
-# #         ax_analytic.plot(times, yy / units.mV * units.m, label='ePhi')
-# #         ax_analytic.legend(fontsize='small')
-# #         plt.show()
-#
-#         # solve it in a vectorized way
-#         efield3_f = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor, 2, 0), np.moveaxis(V, 1, 0)), 0, 1)
-#         # add eR direction
-#         efield3_f = np.array([np.zeros_like(efield3_f[0], dtype=np.complex),
-#                              efield3_f[0],
-#                              efield3_f[1]])
-#
-#         station.set_frequency_spectrum(efield3_f, channels.values()[0].get_sampling_rate())
-#
-
-#             fig_E, (ax_E, ax_E_res) = plt.subplots(2, 1, sharex=True)
-#             efield3 = np.fft.irfft(efield3_f, norm="ortho") / 2 ** 0.5
-# #             efield = np.fft.irfft(efield_f, norm="ortho") / 2 ** 0.5
-# #             efield2 = np.fft.irfft(efield_f2, norm="ortho") / 2 ** 0.5
-# #             efield21 = np.fft.irfft(E1, norm="ortho") / 2 ** 0.5
-# #             efield22 = np.fft.irfft(E2, norm="ortho") / 2 ** 0.5
-# #             efield31 = np.fft.irfft(E3, norm="ortho") / 2 ** 0.5
-#
-#             times = station.get_times() / units.ns
-# #             ax2.plot(times, efield21 / units.mV * units.m, ":C2", label="exact solution Ch 0+1")
-# #             ax2.plot(times, efield31 / units.mV * units.m, ":C3", label="exact solution Ch 2+3")
-# #             ax2.plot(times, efield3[1] / units.mV * units.m, "-C0", label="4 stations lsqr eTheta")
-# #             ax2.plot(times, efield3[2] / units.mV * units.m, "-C1", label="4 stations lsqr ePhi")
-#
-#             etheta_analytic = np.roll(get_analytic_pulse(res_mag.x[0], res_mag.x[1], res_mag.x[2], 0, frequencies), i_shift)
-#             ax2.plot(times, etheta_analytic / units.mV * units.m, "--C0", label="analytic eTheta")
-#             ephi_analytic = np.roll(get_analytic_pulse(res_mag.x[3], res_mag.x[4], res_mag.x[5], 0, frequencies), i_shift)
-#             ax2.plot(times, ephi_analytic / units.mV * units.m, "--C1", label="analytic ePhi")
-#
-#             ax_E.plot(times, etheta_analytic / units.mV * units.m, "--C0", label="analytic eTheta")
-#             ax_E.plot(times, ephi_analytic / units.mV * units.m, "--C1", label="analytic ePhi")
-#
-#             ff = station.get_frequencies() / units.MHz
-# #             ax2f.plot(ff[ff < 500], np.abs(station.get_frequency_spectrum()[1][ff < 500]) / units.mV * units.m, "-C0", label="4 stations lsqr eTheta")
-# #             ax2f.plot(ff[ff < 500], np.abs(station.get_frequency_spectrum()[2][ff < 500]) / units.mV * units.m, "-C1", label="4 stations lsqr ePhi")
-#
-#             ax2f.plot(ff[ff < 500], np.abs(get_analytic_pulse_freq(res_mag.x[0], res_mag.x[1], res_mag.x[2], 0, frequencies))[ff < 500] / units.mV * units.m, "--C0")
-#             ax2f.plot(ff[ff < 500], np.abs(get_analytic_pulse_freq(res_mag.x[3], res_mag.x[4], res_mag.x[5], 0, frequencies))[ff < 500] / units.mV * units.m, "--C1")
-#
-#             if station.has_sim_station():
-#                 sim_station = station.get_sim_station()
-#                 efield_sim = sim_station.get_trace()
-#                 times_sim = sim_station.get_times()
-#                 times_sim = (times_sim + station.get_relative_station_time()) % times_sim.max()
-#                 sort_mask = np.argsort(times_sim)
-#                 # ax2.plot(times_sim / units.ns, efield_sim[0] / units.mV * units.m, "--", label="simulation eR")
-#                 ax2.plot(times_sim[sort_mask] / units.ns, efield_sim[1][sort_mask] / units.mV * units.m, "-C0", label="simulation eTheta")
-#                 ax2.plot(times_sim[sort_mask] / units.ns, efield_sim[2][sort_mask] / units.mV * units.m, "-C1", label="simulation ePhi")
-#
-#                 ax_E.plot(times_sim[sort_mask][:len(times)] / units.ns, efield_sim[1][sort_mask][:len(times)] / units.mV * units.m, "-C0", label="simulation eTheta")
-#                 ax_E.plot(times_sim[sort_mask][:len(times)] / units.ns, efield_sim[2][sort_mask][:len(times)] / units.mV * units.m, "-C1", label="simulation ePhi")
-#                 ax_E_res.plot(times_sim[sort_mask][:len(times)] / units.ns, (etheta_analytic - efield_sim[1][sort_mask][:len(times)]) / units.mV * units.m, "-C0", label="simulation eTheta")
-#                 ax_E_res.plot(times_sim[sort_mask][:len(times)] / units.ns, (ephi_analytic - efield_sim[2][sort_mask][:len(times)]) / units.mV * units.m, "-C1", label="simulation eTheta")
-#
-#                 ff = sim_station.get_frequencies() / units.MHz
-#                 ax2f.plot(ff[ff < 500], np.abs(sim_station.get_frequency_spectrum()[1])[ff < 500] / units.mV * units.m, "-C0", label="eTheta")
-#                 ax2f.plot(ff[ff < 500], np.abs(sim_station.get_frequency_spectrum()[2])[ff < 500] / units.mV * units.m, "-C1", label="ePhi")
-#
-#                 ax2f_phase = ax2f.twinx()
-#                 ax2f_phase.plot(ff[ff < 500], np.unwrap(np.angle(sim_station.get_frequency_spectrum()[1][ff < 500])), "--C2", label="eTheta")
-#                 ax2f_phase.plot(ff[ff < 500], np.unwrap(np.angle(sim_station.get_frequency_spectrum()[2][ff < 500])), "--C3", label="ePhi")
-#
-#             ax_E.legend(fontsize='small')
-#             ax_E_res.set_xlabel("time [ns]")
-#             ax_E.set_ylabel("efield [mV/m]")
-#             ax_E_res.set_ylabel(r"$\Delta$")
-#             ax_E.set_xlim(20, 120)
-#             ax_V.set_xlim(20, 150)
-#             fig_E.tight_layout()
-#             fig_E.savefig("plots/event{:06d}_station{:02d}_efield.png".format(self.__counter, station.get_id()))
-#             fig_V.savefig("plots/event{:06d}_station{:02d}_voltage.png".format(self.__counter, station.get_id()))
-#
-#             ax2.legend(fontsize="small")
-#             ax2.set_xlabel("time [ns]")
-#             ax2.set_ylabel("electric-field [mV/m]")
-#             axf.set_xlabel("Frequency [MHz]")
-#             ax2f.set_xlabel("Frequency [MHz]")
-# #             ax2f.semilogy(True)
-#             ax2f.set_xlim(100, 500)
-#             axf.set_xlim(100, 500)
-#             if station.has_sim_station():
-#                 fig.suptitle("Simulation:  Zenith {:.1f}, Azimuth {:.1f}".format(np.rad2deg(zenith), np.rad2deg(azimuth)))
-#             else:
-#                 fig.suptitle("Data: reconstructed zenith {0:.1f}, azimuth {1:.1f}".format(np.rad2deg(zenith), np.rad2deg(azimuth)))
-#             fig.tight_layout()
-#             fig.subplots_adjust(top=0.95)
-#
-#             f1.tight_layout()
-#             f1.subplots_adjust(top=0.95)
-#             plt.close("all")
 
     def end(self):
         pass
