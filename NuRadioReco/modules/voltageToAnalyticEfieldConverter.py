@@ -340,9 +340,6 @@ class voltageToAnalyticEfieldConverter:
             analytic_pulse_phi = pulse.get_analytic_pulse_freq(1 - ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
             chi2 = 0
 
-            if(debug_obj):
-                fig, ax = plt.subplots(4, 2, sharex='col')
-
             n_channels = len(V_timedomain)
             analytic_traces = np.zeros((n_channels, n_samples_time))
             positions = np.zeros(n_channels, dtype=np.int)
@@ -355,10 +352,6 @@ class voltageToAnalyticEfieldConverter:
                 positions[iCh] = np.argmax(np.abs(xcorr)) + 1
                 max_xcorrs[iCh] = xcorr.max()
                 chi2 -= xcorr.max()
-            if(debug_obj):
-                ax[0, 0].set_title("ratio = {:.2f}, slope = {:.4g}, phase = {:.0f} ({:.4f}), chi2 = {:.4g}".format(ratio, slope, phase / units.deg, phase2, chi2))
-                fig.tight_layout()
-                plt.show()
             logger.debug("ratio = {:.2f}, slope = {:.4g}, phase = {:.0f} ({:.4f}), chi2 = {:.4g}".format(ratio, slope, phase / units.deg, phase2, chi2))
             return chi2
 
