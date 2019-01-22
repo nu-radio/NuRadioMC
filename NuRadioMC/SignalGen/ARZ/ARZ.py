@@ -28,65 +28,80 @@ xmu = 12.566370e-7 * units.newton / units.ampere ** 2
 c = 2.99792458e8 * units.m / units.s
 # e = 1.602177e-19 * units.coulomb
 
-# # load shower library into memory
-with open(os.path.join(os.path.dirname(__file__), "shower_library/library_v1.pkl")) as fin:
-    library = pickle.load(fin)
+
+class ARZ(object):
+    __instance = None
+
+    def __new__(cls, seed=1234):
+        if ARZ.__instance is None:
+            ARZ.__instance = object.__new__(cls, seed)
+        return ARZ.__instance
+
+    def __init__(self, seed=1234):
+        logger.warning("setting seed to {}".format(seed))
+        np.random.seed(seed)
+        # # load shower library into memory
+        with open(os.path.join(os.path.dirname(__file__), "shower_library/library_v1.pkl")) as fin:
+            logger.warning("loading shower library into memory")
+            self._library = pickle.load(fin)
 
 
-def get_time_trace(shower_energy, theta, N, dt, shower_type, n_index, R, interp_factor=1.):
-    """
-    calculates the electric-field Askaryan pulse from a charge-excess profile
-    
-    Parameters
-    ----------
-    shower_energy: float
-        the energy of the shower
-    theta: float
-        viewing angle, i.e., the angle between shower axis and launch angle of the signal (the ray path)
-    N: int
-        number of samples in the time domain
-    dt: float
-        size of one time bin in units of time
-    profile_depth: array of floats
-        shower depth values of the charge excess profile
-    profile_ce: array of floats
-        charge-excess values of the charge excess profile
-    shower_type: string (default "HAD")
-        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
-    n_index: float (default 1.78)
-        index of refraction where the shower development takes place
-    R: float (default 1km)
-        observation distance, the signal amplitude will be scaled according to 1/R
-    interp_factor: int (default 10)
-        interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
-        for small vertex distances but also slows down the calculation proportional to the interpolation factor. 
+    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, interp_factor=1.):
+        """
+        calculates the electric-field Askaryan pulse from a charge-excess profile
         
-    Returns: array of floats
-        array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
-    """
-    if not shower_type in library.keys():
-        raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *library.keys()))
-
-    # determine closes available energy in shower library
-    energies = np.array(library[shower_type].keys())
-    iE = np.argmin(np.abs(energies - shower_energy))
-    rescaling_factor = shower_energy / energies[iE]
-    logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}".format(shower_energy/units.eV, energies[iE]/units.eV, rescaling_factor))
-    profiles = library[shower_type][energies[iE]]
-    N_profiles = len(profiles['charge_excess'])
-    iN = np.random.randint(N_profiles)
-    logger.debug("picking profile {}/{} randomly".format(iN, N_profiles))
-    profile_depth = profiles['depth']
-    profile_ce = profiles['charge_excess'][iN] * rescaling_factor
-    vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, 
-                                   shower_type, n_index, R, interp_factor)
-    trace = -np.diff(vp, axis=0) / dt
+        Parameters
+        ----------
+        shower_energy: float
+            the energy of the shower
+        theta: float
+            viewing angle, i.e., the angle between shower axis and launch angle of the signal (the ray path)
+        N: int
+            number of samples in the time domain
+        dt: float
+            size of one time bin in units of time
+        profile_depth: array of floats
+            shower depth values of the charge excess profile
+        profile_ce: array of floats
+            charge-excess values of the charge excess profile
+        shower_type: string (default "HAD")
+            type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+        n_index: float (default 1.78)
+            index of refraction where the shower development takes place
+        R: float (default 1km)
+            observation distance, the signal amplitude will be scaled according to 1/R
+        interp_factor: int (default 10)
+            interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
+            for small vertex distances but also slows down the calculation proportional to the interpolation factor. 
+            
+        Returns: array of floats
+            array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
+        """
+        if not shower_type in self._library.keys():
+            raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
     
-    cs = cstrafo.cstrafo(zenith=theta, azimuth=0)
-    trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
-    return trace_onsky
-
-
+        # determine closes available energy in shower library
+        energies = np.array(self._library[shower_type].keys())
+        iE = np.argmin(np.abs(energies - shower_energy))
+        rescaling_factor = shower_energy / energies[iE]
+        logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}".format(shower_energy/units.eV, energies[iE]/units.eV, rescaling_factor))
+        profiles = self._library[shower_type][energies[iE]]
+        N_profiles = len(profiles['charge_excess'])
+        iN = np.random.randint(N_profiles)
+        logger.debug("picking profile {}/{} randomly".format(iN, N_profiles))
+        profile_depth = profiles['depth']
+        profile_ce = profiles['charge_excess'][iN] * rescaling_factor
+        vp, theta2 = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, 
+                                               shower_type, n_index, R, interp_factor)
+        trace = -np.diff(vp, axis=0) / dt
+        
+        cs = cstrafo.cstrafo(zenith=theta, azimuth=0)
+        trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
+        cs2 = cstrafo.cstrafo(zenith=theta2, azimuth=0)
+        trace_onsky2 = cs2.transform_from_ground_to_onsky(trace.T)
+        return trace_onsky, trace_onsky2
+    
+    
 def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m,
                          profile_depth=None, profile_ce=None):
     """
@@ -219,8 +234,8 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
             vp[it][2] = int.quad(xintegrand, xmin, xmax, args=(2, tobs))[0]
     vp *= factor
     return vp
-
-
+    
+    
 def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
                               shower_type="HAD", n_index=1.78, R=1 * units.m,
                               interp_factor=10):
@@ -290,6 +305,9 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
     profile_dense = np.linspace(min(profile_depth), max(profile_depth), interp_factor * len(profile_depth))
     length = profile_dense / rho
     profile_ce_interp = np.interp(profile_dense, profile_depth, profile_ce)
+    dxmax = length[np.argmax(profile_ce_interp)]
+    theta2 = np.arctan(R * np.sin(theta)/(R * np.cos(theta) - dxmax))
+    logger.warning("theta changes from {:.2f} to {:.2f}".format(theta/units.deg, theta2/units.deg))
     # calculate total charged track length
     xntot = np.sum(profile_ce_interp) * (length[1] - length[0])
     factor = -xmu / (4. * np.pi)
@@ -365,7 +383,7 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
         vp[it] = np.trapz(-v * profile_ce_interp * F_p / R, z)
 
     vp *= factor
-    return vp
+    return vp, theta2
 
 
 if __name__ == "__main__":
