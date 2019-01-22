@@ -7,6 +7,7 @@ from scipy import interpolate as intp
 from scipy import integrate as int
 from scipy import constants
 from matplotlib import pyplot as plt
+from radiotools import coordinatesystems as cstrafo
 import os
 import pickle
 import logging
@@ -61,7 +62,7 @@ def get_time_trace(shower_energy, theta, N, dt, shower_type, n_index, R, interp_
         for small vertex distances but also slows down the calculation proportional to the interpolation factor. 
         
     Returns: array of floats
-        array of electric-field time trace
+        array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
     """
     if not shower_type in library.keys():
         raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *library.keys()))
@@ -81,8 +82,11 @@ def get_time_trace(shower_energy, theta, N, dt, shower_type, n_index, R, interp_
     profile_ce = profiles['charge_excess'][iN] * rescaling_factor
     vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, 
                                    shower_type, n_index, R, interp_factor)
-    E = -np.diff(vp, axis=0) / dt
-    return E
+    trace = -np.diff(vp, axis=0) / dt
+    
+    cs = cstrafo.cstrafo(zenith=theta, azimuth=0)
+    trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
+    return trace_onsky
 
 
 def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m,
