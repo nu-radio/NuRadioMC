@@ -22,12 +22,12 @@ class simulationSelector:
     def begin(self, debug=False):
         pass
 
-    def run(self, evt, sim_station, det, frequency_window = [100*units.MHz,500*units.MHz]):
+    def run(self, evt, sim_station, det, frequency_window = [100*units.MHz,500*units.MHz],n_std = 8):
 
         """
         run method, selects CoREAS simulations that have any signal in
         desired frequency_window.
-        Crude approximation with 7 sigma * noise
+        Crude approximation with n_std sigma * noise
 
         Parameters
         ------------
@@ -37,6 +37,8 @@ class simulationSelector:
         det: Detector
         frequency_window: list
             [lower, upper] frequencies that will be used for analysis
+        n_std: int
+            number of std deviations needed, can make cut stricter, if needed
 
         Returns
         ------------
@@ -60,7 +62,7 @@ class simulationSelector:
                     max_pol = i
                     max_ = np.sum(fft[i])
 
-            # Find a 7 sigma excess above the noise
+            # Find a n_std sigma excess above the noise
             # Seems to be a reasonably well-working number
 
             noise_region = fft[max_pol][np.where(freq > 1.5 * units.GHz)]
@@ -78,11 +80,10 @@ class simulationSelector:
 
             noise_std = np.std(noise_region)
 
-            noise += 7 * noise_std
+            noise += n_std * noise_std
 
             mask =  np.where(np.abs(fft[max_pol]) > noise)
             max_freq = np.max(freq[mask])
-
             if max_freq > np.min(np.array(frequency_window)):
                 selected_sim = True
                 break
