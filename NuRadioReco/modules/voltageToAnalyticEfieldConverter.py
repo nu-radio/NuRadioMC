@@ -449,23 +449,9 @@ class voltageToAnalyticEfieldConverter:
         options = {'maxiter': 1000,
                    'disp': True}
 
-        if 0:  # test first method
-            res = opt.minimize(obj, x0=[1, 1, -1, -1, 0, 0], method=method, options=options)
-            logger.debug(res)
-            logger.debug(res)
-            analytic_pulse_theta_freq = pulse.get_analytic_pulse_freq(res.x[0], res.x[2], res.x[4], n_samples_time, sampling_rate, bandpass=bandpass)
-            analytic_pulse_phi_freq = pulse.get_analytic_pulse_freq(res.x[1], res.x[3], res.x[5], n_samples_time, sampling_rate, bandpass=bandpass)
-            analytic_pulse_theta = pulse.get_analytic_pulse(res.x[0], res.x[2], res.x[4], n_samples_time, sampling_rate, bandpass=bandpass)
-            analytic_pulse_phi = pulse.get_analytic_pulse(res.x[1], res.x[3], res.x[5], n_samples_time, sampling_rate, bandpass=bandpass)
-
         res = opt.minimize(obj_xcorr, x0=[-1], method=method, options=options)
         logger.info("slope xcorr fit, slope = {:.3g} with fmin = {:.3f}".format(res.x[0], res.fun))
         # plot objective function
-        if 0:
-            fo, ao = plt.subplots(1, 1)
-            ss = np.linspace(-6, -1, 100)
-            oos = [obj_xcorr([s]) for s in ss]
-            ao.plot(ss, oos)
         phase = 0
         ratio = 0
         slope = res.x[0]
