@@ -11,8 +11,10 @@ import pickle
 from time import time
 from NuRadioMC.SignalGen.ARZ import ARZ
 from radiotools import coordinatesystems as cstrafo
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
-shower_energy = 1e18 *units.eV
+shower_energy = 1.24e18 *units.eV
 theta = 55 * units.deg
 R = 1 * units.km
 N = 512

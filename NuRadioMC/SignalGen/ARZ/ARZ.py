@@ -71,9 +71,7 @@ def get_time_trace(shower_energy, theta, N, dt, shower_type, n_index, R, interp_
     energies = np.array(library[shower_type].keys())
     iE = np.argmin(np.abs(energies - shower_energy))
     rescaling_factor = shower_energy / energies[iE]
-    logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the \
-                    charge-excess profile will be rescaled accordingly by a factor of \
-                    {:.2f}".format(shower_energy/units.eV, energies[iE]/units.eV, rescaling_factor))
+    logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}".format(shower_energy/units.eV, energies[iE]/units.eV, rescaling_factor))
     profiles = library[shower_type][energies[iE]]
     N_profiles = len(profiles['charge_excess'])
     iN = np.random.randint(N_profiles)
