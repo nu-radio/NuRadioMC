@@ -20,7 +20,7 @@ class electricFieldResampler:
         self.__debug = debug
         pass
 
-    def run(self, event, station, det, sampling_rate, station_type='CR_4'):
+    def run(self, event, station, det, sampling_rate):
 
         # access simulated efield and high level parameters
         # calculate sampling and FFT resolution
