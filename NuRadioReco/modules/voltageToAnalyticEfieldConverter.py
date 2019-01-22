@@ -322,51 +322,6 @@ class voltageToAnalyticEfieldConverter:
         debug_obj = 0
         noise_RMS = det.get_noise_RMS(station.get_id(), 0)
 
-        def obj(params):
-            theta_amp_p1 = 0
-            phi_amp_p1 = 0
-            theta_phase_p0 = 0
-            phi_phase_p0 = 0
-            if(len(params) == 2):
-                theta_amp_p0, phi_amp_p0 = params
-            elif(len(params) == 4):
-                theta_amp_p0, phi_amp_p0, theta_amp_p1, phi_amp_p1 = params
-            elif(len(params) == 6):
-                theta_amp_p0, phi_amp_p0, theta_amp_p1, phi_amp_p1, theta_phase_p0, phi_phase_p0 = params
-
-            analytic_pulse_theta = pulse.get_analytic_pulse_freq(theta_amp_p0, theta_amp_p1, theta_phase_p0, n_samples_time, sampling_rate, bandpass=bandpass)
-            analytic_pulse_phi = pulse.get_analytic_pulse_freq(phi_amp_p0, phi_amp_p1, phi_phase_p0, n_samples_time, sampling_rate, bandpass=bandpass)
-            chi2 = 0
-            # first determine the time offset of the analytic pulse
-            # use time offset of channel with the best xcorr
-
-            if(debug_obj):
-                fig, ax = plt.subplots(4, 1, sharex=True)
-
-            n_channels = len(V_timedomain)
-            analytic_traces = np.zeros((n_channels, n_samples_time))
-            positions = np.zeros(n_channels, dtype=np.int)
-            max_xcorrs = np.zeros(n_channels)
-            for iCh, trace in enumerate(V_timedomain):
-                analytic_trace_fft = np.sum(efield_antenna_factor[iCh] * np.array([analytic_pulse_theta, analytic_pulse_phi]), axis=0)
-                analytic_traces[iCh] = fft.freq2time(analytic_trace_fft)
-                xcorr = np.abs(hp.get_normalized_xcorr(trace, analytic_traces[iCh]))
-                positions[iCh] = np.argmax(np.abs(xcorr)) + 1
-                max_xcorrs[iCh] = xcorr.max()
-            pos = positions[np.argmax(max_xcorrs)]
-
-            for iCh, trace in enumerate(V_timedomain):
-                tmp = np.sum(np.abs(trace - np.roll(analytic_traces[iCh], pos)))
-                if(debug_obj):
-                    ax[iCh].plot(trace, label='measurement')
-                    ax[iCh].plot(np.roll(analytic_traces[iCh], pos), '--', label='fit')
-                chi2 += tmp
-            if(debug_obj):
-                ax[0].set_title("Atheta = {:.2g}, Aphi = {:.2g}, chi2 = {:.4g}".format(theta_amp_p0, phi_amp_p0, chi2))
-                fig.tight_layout()
-                plt.show()
-            return chi2
-
         def obj_xcorr(params):
             if(len(params) == 3):
                 slope, ratio2, phase2 = params
