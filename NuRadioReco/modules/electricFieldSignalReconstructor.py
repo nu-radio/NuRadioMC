@@ -50,7 +50,6 @@ class electricFieldSignalReconstructor:
                 ax.set_xlabel("eTheta")
                 ax.set_ylabel("ePhi")
                 fig.tight_layout()
-    #
 
             low_pos, up_pos = hp.get_interval(envelope_mag, scale=0.5)
             v_start = trace_copy[:, signal_time_bin]
@@ -62,10 +61,6 @@ class electricFieldSignalReconstructor:
                     v *= -1
                 v_avg += v
             pole = np.arctan2(np.abs(v_avg[2]), np.abs(v_avg[1]))
-    #         if(pole > 180 * units.deg):
-    #             pole -= 360 * units.deg
-    #         if(pole > 90 * units.deg):
-    #             pole = 180 * units.deg - pole
             electric_field[efp.polarization_angle] = pole
             logger.info("average e-field vector = {:.4g}, {:.4g}, {:.4g} -> polarization = {:.1f}deg".format(v_avg[0], v_avg[1], v_avg[2], pole / units.deg))
             trace = electric_field.get_trace()
