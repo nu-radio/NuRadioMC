@@ -3,7 +3,8 @@ from NuRadioMC.utilities import units, fft
 import numpy as np
 import matplotlib.pyplot as plt
 from radiotools import plthelpers as php
-
+import logging
+logging.basicConfig(level=logging.INFO)
 
 interp_factor = 20
 # HAD for different viewing angles

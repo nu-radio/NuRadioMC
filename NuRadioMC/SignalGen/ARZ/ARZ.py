@@ -59,7 +59,7 @@ class ARZ(object):
         self._interp_factor = interp_factor
 
 
-    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=True):
+    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
         
@@ -121,7 +121,7 @@ class ARZ(object):
     
 def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
                               shower_type="HAD", n_index=1.78, distance=1 * units.m,
-                              interp_factor=10, shift_for_xmax=True):
+                              interp_factor=10, shift_for_xmax=False):
     """
     fast interpolation of time-domain calculation of vector potential of the 
     Askaryan pulse from a charge-excess profile
