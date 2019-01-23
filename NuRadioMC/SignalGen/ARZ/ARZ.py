@@ -41,6 +41,7 @@ class ARZ(object):
         logger.warning("setting seed to {}".format(seed, interp_factor))
         np.random.seed(seed)
         self._interp_factor = interp_factor
+        self._random_numbers = {}
         # # load shower library into memory
         with open(os.path.join(os.path.dirname(__file__), "shower_library/library_v1.pkl")) as fin:
             logger.warning("loading shower library into memory")
@@ -58,8 +59,8 @@ class ARZ(object):
         """
         self._interp_factor = interp_factor
 
-
-    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False):
+    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
+                       same_shower=False):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
         
@@ -89,6 +90,10 @@ class ARZ(object):
         shift_for_xmax: bool (default True)
             if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
             with respect to (0,0,0) which is the start of the charge-excess profile
+        same_shower: bool (default False)
+            if False, for each request a new random shower realization is choosen. 
+            if True, the shower from the last request of the same shower type is used. This is needed to get the Askaryan
+            signal for both ray tracing solutions from the same shower. 
             
         Returns: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
@@ -100,23 +105,31 @@ class ARZ(object):
         energies = np.array(self._library[shower_type].keys())
         iE = np.argmin(np.abs(energies - shower_energy))
         rescaling_factor = shower_energy / energies[iE]
-        logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}".format(shower_energy/units.eV, energies[iE]/units.eV, rescaling_factor))
+        logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}".format(shower_energy / units.eV, energies[iE] / units.eV, rescaling_factor))
         profiles = self._library[shower_type][energies[iE]]
         N_profiles = len(profiles['charge_excess'])
-        iN = np.random.randint(N_profiles)
+        
+        if(same_shower):
+            if(shower_type in self._random_numbers):
+                iN = self._random_numbers[shower_type]
+            else:
+                logger.warning("no previous random number for shower type {} exists. Generating a new random number.".format(shower_type))
+                iN = np.random.randint(N_profiles)
+                self._random_numbers[shower_type] = iN
+        else:
+            iN = np.random.randint(N_profiles)
+            self._random_numbers[shower_type] = iN
+            
         logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
         profile_depth = profiles['depth']
         profile_ce = profiles['charge_excess'][iN] * rescaling_factor
-        vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, 
+        vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
                                                shower_type, n_index, R, self._interp_factor, shift_for_xmax)
         trace = -np.diff(vp, axis=0) / dt
         
         cs = cstrafo.cstrafo(zenith=theta, azimuth=0)
         trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
         return trace_onsky
-    
-    
-
     
     
 def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
@@ -182,7 +195,7 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
     # it can be simply done by putting in the input file the numerical values:
     X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta)])
     if(shift_for_xmax):
-        logger.info("shower maximum at z = {:.1f}m, shifting observer position accordingly.".format(dxmax/units.m))
+        logger.info("shower maximum at z = {:.1f}m, shifting observer position accordingly.".format(dxmax / units.m))
         X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta) + dxmax])
     logger.info("setting observer position to {}".format(X))
 
@@ -263,7 +276,7 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
                 logger.error("Tau showers are not yet implemented")
                 raise NotImplementedError("Tau showers are not yet implemented")
             else:
-                msg ="showers of type {} are not implemented. Use 'HAD', 'EM' or 'TAU'".format(shower_type)
+                msg = "showers of type {} are not implemented. Use 'HAD', 'EM' or 'TAU'".format(shower_type)
                 logger.error(msg)
                 raise NotImplementedError(msg)
             # Obtain "shape" of Lambda-function from vp at Cherenkov angle
@@ -275,6 +288,7 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
 
     vp *= factor
     return vp
+
 
 def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m,
                          profile_depth=None, profile_ce=None):
