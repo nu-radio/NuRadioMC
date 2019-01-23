@@ -561,6 +561,8 @@ class voltageToAnalyticEfieldConverter:
         ratio = 0
 #         phase = np.arctan(res.x[1])  # project -inf..+inf to -0.5 pi..0.5 pi
         slope = res.x[0]
+        if slope > 0 or slope < -50:    #sanity check
+            slope = - 1.9
 #         res = opt.minimize(obj_xcorr, x0=[res.x[0], -100], method=method, options=options)
 #         ratio = (np.arctan(res.x[1]) + np.pi * 0.5) / np.pi  # project -inf..inf on 0..1
 #         phase = np.arctan(0)  # project -inf..+inf to -0.5 pi..0.5 pi
@@ -584,17 +586,17 @@ class voltageToAnalyticEfieldConverter:
         for iCh, trace in enumerate(V_timedomain):
             analytic_traces[iCh] = np.roll(analytic_traces[iCh], pos)
 
-        res_amp = opt.minimize(obj_amplitude, x0=[1.], args=(-1.9, phase, pos, 0), method=method, options=options)
+        res_amp = opt.minimize(obj_amplitude, x0=[1.], args=(slope, phase, pos, 0), method=method, options=options)
         logger.info("amplitude fit, Aphi = {:.3g} with fmin = {:.5e}".format(res_amp.x[0], res_amp.fun))
         Aphi = res_amp.x[0]
         Atheta = 0
-        res_amp = opt.minimize(obj_amplitude, x0=[res_amp.x[0], 0], args=(-1.9, phase, pos, 0), method=method, options=options)
+        res_amp = opt.minimize(obj_amplitude, x0=[res_amp.x[0], 0], args=(slope, phase, pos, 0), method=method, options=options)
         logger.info("amplitude fit, Aphi = {:.3g} Atheta = {:.3g} with fmin = {:.5e}".format(res_amp.x[0], res_amp.x[1], res_amp.fun))
         Aphi = res_amp.x[0]
         Atheta = res_amp.x[1]
         #counts number of iterations in the slope fit. Used so we do not need to show the plots every iteration
         self.i_slope_fit_iterations = 0
-        res_amp_slope = opt.minimize(obj_amplitude_slope, x0=[res_amp.x[0], res_amp.x[1], -1.9], args=(phase, pos, 'hilbert', False),
+        res_amp_slope = opt.minimize(obj_amplitude_slope, x0=[res_amp.x[0], res_amp.x[1], slope], args=(phase, pos, 'hilbert', False),
                                      method=method, options=options)
 
         # calculate uncertainties
