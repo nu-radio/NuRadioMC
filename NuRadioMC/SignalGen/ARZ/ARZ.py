@@ -32,14 +32,15 @@ c = 2.99792458e8 * units.m / units.s
 class ARZ(object):
     __instance = None
 
-    def __new__(cls, seed=1234):
+    def __new__(cls, seed=1234, interp_factor=10.):
         if ARZ.__instance is None:
-            ARZ.__instance = object.__new__(cls, seed)
+            ARZ.__instance = object.__new__(cls, seed, interp_factor)
         return ARZ.__instance
 
-    def __init__(self, seed=1234):
-        logger.warning("setting seed to {}".format(seed))
+    def __init__(self, seed=1234, interp_factor=10.):
+        logger.warning("setting seed to {}".format(seed, interp_factor))
         np.random.seed(seed)
+        self._interp_factor = interp_factor
         # # load shower library into memory
         with open(os.path.join(os.path.dirname(__file__), "shower_library/library_v1.pkl")) as fin:
             logger.warning("loading shower library into memory")
@@ -50,10 +51,15 @@ class ARZ(object):
         allow to set a new random seed
         """
         np.random.seed(seed)
+        
+    def set_interpolation_factor(self, interp_factor):
+        """
+        set interpolation factor of charge-excess profiles
+        """
+        self._interp_factor = interp_factor
 
 
-    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, interp_factor=20., 
-                       shift_for_xmax=True):
+    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=True):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
         
@@ -102,7 +108,7 @@ class ARZ(object):
         profile_depth = profiles['depth']
         profile_ce = profiles['charge_excess'][iN] * rescaling_factor
         vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, 
-                                               shower_type, n_index, R, interp_factor, shift_for_xmax)
+                                               shower_type, n_index, R, self._interp_factor, shift_for_xmax)
         trace = -np.diff(vp, axis=0) / dt
         
         cs = cstrafo.cstrafo(zenith=theta, azimuth=0)

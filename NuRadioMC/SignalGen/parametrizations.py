@@ -24,10 +24,10 @@ argument of the respective function.
 
 def get_parametrizations():
     """ returns a list of all implemented parametrizations """
-    return ['ZHS1992', 'Alvarez2000', 'Alvarez2011']
+    return ['ZHS1992', 'Alvarez2000', 'Alvarez2012']
 
 
-def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
+def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
     """
     returns the Askaryan pulse in the time domain of the eTheta component
 
@@ -48,8 +48,8 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
         number of samples in the time domain
     dt: float
         time bin width, i.e. the inverse of the sampling rate
-    is_em_shower: bool
-        true if EM shower, false otherwise
+    shower_type: string (default "HAD")
+        type of shower, either "HAD" (hadronic), "EM" (electromagnetic)
     n_index: float
         index of refraction at interaction vertex
     R: float
@@ -92,7 +92,12 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
                      vertex=(0, 0, ice.depth_with_index(n_index)),
                      direction=(0, 0, -1), # irrelevant
                      energy=energy/units.GeV)
-        p.interaction.em_frac = int(is_em_shower)
+        if(shower_type == "HAD"):
+            p.interaction.em_frac = 0
+        elif(shower_type == "EM"):
+            p.interaction.em_frac = 1
+        else:
+            raise NotImplementedError("shower type {} not implemented in {} Askaryan module".format(shower_type, model))
         p.interaction.had_frac = 1 - p.interaction.em_frac
         ask = AskaryanSignal(times=tt / units.s, 
                             particle=p,
@@ -130,14 +135,16 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
         E *= np.sin(theta) / np.sin(cherenkov_angle)
 
         tmp = np.zeros(len(freqs) + 1)
-        if(is_em_shower):
+        if(shower_type == "EM"):
             tmp[1:] = E * np.exp(-np.log(2) * ((theta - cherenkov_angle) / dThetaEM) ** 2) / R
-        else:
+        elif(shower_type == "HAD"):
             if(np.any(dThetaHad != 0)):
                 tmp[1:] = E * np.exp(-np.log(2) * ((theta - cherenkov_angle) / dThetaHad) ** 2) / R
             else:
                 pass
                 # energy is below a TeV, setting Askaryan pulse to zero
+        else:
+            raise NotImplementedError("shower type {} not implemented in {} Askaryan module".format(shower_type, model))
 
         tmp *= 0.5  # the factor 0.5 is introduced to compensate the unusual fourier transform normalization used in the ZHS code
 
@@ -146,51 +153,7 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model):
         trace = np.roll(trace, int(50 * units.ns / dt))
         return trace
 
-    elif(model == 'Hanson2017'):
-        from NuRadioMC.SignalGen.RalstonBuniy import askaryan_module
-        return askaryan_module.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R)
-    
-    elif(model == 'spherical'):
-        amplitude = 1. * energy / R
-        trace = np.zeros(N)
-        trace[N//2] = amplitude
-        return trace
-    
     else:
         raise NotImplementedError("model {} unknown".format(model))
 
 
-def get_frequency_spectrum(energy, theta, N, dt, is_em_shower, n_index, R, model):
-    """
-    returns the complex amplitudes of the frequency spectrum of the neutrino radio signal
-
-    Parameters
-    ----------
-    energy : float
-        energy of the shower
-    theta: float
-        viewangle: angle between shower axis (neutrino direction) and the line
-        of sight between interaction and detector
-    N : int
-        number of samples in the time domain
-    dt: float
-        time bin width, i.e. the inverse of the sampling rate
-    is_em_shower: bool
-        true if EM shower, false otherwise
-    n_index: float
-        index of refraction at interaction vertex
-    R: float
-        distance from vertex to observer
-    model: string
-        specifies the signal model
-        * ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information
-        * Alvarez2000: what is in shelfmc
-        * Alvarez2011: parametrization based on ZHS from Jaime Alvarez-Muñiz, Andrés Romero-Wolf, and Enrique Zas Phys. Rev. D 84, 103003, doi:10.1103/PhysRevD.84.103003. The model is implemented in pyrex and here only a wrapper around the pyrex code is implemented
-
-    Returns
-    -------
-    spectrum: array
-        the complex amplitudes for the given frequencies
-
-    """
-    return fft.time2freq(get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model))

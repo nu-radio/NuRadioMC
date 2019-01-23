@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 shower_energy = 1.24e18 *units.eV
 theta = 56 * units.deg
-R = 5 * units.km
+R = 50000 * units.km
 N = 512
 dt = 0.1 * units.ns
 n_index = 1.78
