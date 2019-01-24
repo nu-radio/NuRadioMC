@@ -365,7 +365,9 @@ class simulation():
         self._create_empty_multiple_triggers()
 
         # calculate deposited energy
-        if not self._fin_attrs['deposited']:
+        if 'deposited' not in self._fin_attrs:
+            self._calculate_deposited_energy()
+        elif self._fin_attrs['deposited'] == False:
             self._calculate_deposited_energy()
 
         # save simulation run in hdf5 format (only triggered events)
