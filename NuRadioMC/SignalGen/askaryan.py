@@ -10,7 +10,8 @@ def set_log_level(level):
     logger.setLevel(level)
     par.set_log_level(level)
 
-def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_factor=None):
+def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_factor=None,
+                   same_shower=False):
     """
     returns the Askaryan pulse in the time domain of the eTheta component
 
@@ -47,6 +48,9 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
         * ARZ2019 semi MC time domain model
     interp_factor: float or None
         controls the interpolation of the charge-excess profiles in the ARZ model
+    same_shower: bool (default False)
+        controls the random behviour of picking a shower from the library in the ARZ model, see description there for
+        more details
 
     Returns
     -------
@@ -71,7 +75,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
         cARZ = ARZ.ARZ()
         if(interp_factor is not None):
             cARZ.set_interpolation_factor(interp_factor)
-        return cARZ.get_time_trace(energy, theta, N, dt, shower_type, n_index, R)
+        return cARZ.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, same_shower=same_shower)
         
     elif(model == 'spherical'):
         amplitude = 1. * energy / R
