@@ -364,12 +364,6 @@ class simulation():
         # merge properly.
         self._create_empty_multiple_triggers()
 
-        # calculate deposited energy
-        if 'deposited' not in self._fin_attrs:
-            self._calculate_deposited_energy()
-        elif self._fin_attrs['deposited'] == False:
-            self._calculate_deposited_energy()
-
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
         self._write_ouput_file()
@@ -630,43 +624,6 @@ class simulation():
             V = np.pi * (rmax**2 - rmin**2) * dZ
         Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
         logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
-
-    def _fraction_deposited_energy(self, inelasticity, ccnc, flavor):
-        """
-        Returns the fraction of the neutrino energy that goes into particle showers
-        TODO: Tau energy
-
-        Parameters
-        ----------
-        inelasticity: float
-            the inelasticity (fraction of energy that goes into had. cascade)
-        ccnc: string ['nc', 'cc']
-            neutral current (nc) or carged currend (cc) interaction
-        flavor: int
-            flavor id
-
-        Returns
-        ----------
-        fem+fhad: float
-            The fraction of deposited energy
-        """
-        fem, fhad = self._get_em_had_fraction(inelasticity, ccnc, flavor)
-        return fem+fhad
-
-    def _calculate_deposited_energy(self):
-        """
-        Calculates the energy deposited in the medium as the energy taken
-        by the electromagnetic and hadronic showers and stores in
-        self._mout['deposited_energies']
-        TODO: Tau energy
-        """
-
-        Edep = [self._fraction_deposited_energy(inelasticity, ccnc, flavor) * \
-                energy for inelasticity, ccnc, flavor, energy in \
-                zip(self._fin['inelasticity'], self._fin['ccncs'], \
-                self._fin['flavors'], self._fin['energies'])]
-
-        self._mout['deposited_energies'] = np.array(Edep)
 
     def _get_em_had_fraction(self, inelasticity, ccnc, flavor):
         """
