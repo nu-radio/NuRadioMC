@@ -298,11 +298,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     inelasticity = pickY(flavors, ccncs, epsilon)
     """
 
-    data_sets["deposited_energies"] = data_sets["energies"][:]
     if deposited:
         data_sets["energies"] = [primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity) \
                                 for Edep, ccnc, flavor, inelasticity in \
-                                zip(data_sets["deposited_energies"], data_sets["ccncs"], \
+                                zip(data_sets["energies"], data_sets["ccncs"], \
                                 data_sets["flavors"], data_sets["inelasticity"])]
 
     write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=n_events_per_file)
