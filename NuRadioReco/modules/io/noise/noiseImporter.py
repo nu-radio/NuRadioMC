@@ -34,7 +34,7 @@ class noiseImporter:
             the folder containing the noise files
         station_id: int
             the station id, specifies from which station the forced triggers are used
-            as a noise sample. The data must have the naming convention 'forced_station_??.ari'
+            as a noise sample. The data must have the naming convention 'forced_station_??.nur'
             where ?? is replaced with the station id. If station_id is None, the noiseImporter
             will try to find the station with the same iD as the one passed to the run
             function in the noise file
@@ -52,7 +52,7 @@ class noiseImporter:
                 logger.error("noise_files and station_id can't be both None")
                 sys.exit(-1)
             else:
-                self.__noise_files = glob.glob(os.path.join(noise_folder, "forced_station_{}.ar*".format(station_id)))
+                self.__noise_files = glob.glob(os.path.join(noise_folder, "forced_station_{}.nur".format(station_id)))
                 if(len(self.__noise_files) == 0):
                     logger.error("no noise files found for station {} in folder {}".format(station_id, noise_folder))
                     sys.exit(-1)
