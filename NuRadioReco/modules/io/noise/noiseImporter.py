@@ -23,7 +23,7 @@ class noiseImporter:
 
     def __init__(self):
         self.__channel_mapping = None
-        sefl.__station_id = None
+        self.__station_id = None
 
     def begin(self, noise_folder, station_id=None, noise_files=None,
               channel_mapping=None):
