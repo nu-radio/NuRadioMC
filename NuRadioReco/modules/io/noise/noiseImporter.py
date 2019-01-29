@@ -23,6 +23,7 @@ class noiseImporter:
 
     def __init__(self):
         self.__channel_mapping = None
+        sefl.__station_id = None
 
     def begin(self, noise_folder, station_id=None, noise_files=None,
               channel_mapping=None):
@@ -34,7 +35,9 @@ class noiseImporter:
         station_id: int
             the station id, specifies from which station the forced triggers are used
             as a noise sample. The data must have the naming convention 'forced_station_??.ari'
-            where ?? is replaced with the station id.
+            where ?? is replaced with the station id. If station_id is None, the noiseImporter
+            will try to find the station with the same iD as the one passed to the run
+            function in the noise file
         channel_mapping: dict or None
             option relevant for MC studies of new station designs where we do not
             have forced triggers for. The channel_mapping dictionary maps the channel
@@ -79,7 +82,13 @@ class noiseImporter:
         # loop over stations in simulation
         i_noise = np.random.randint(0, self.__n_tot)
         noise_event = self.__get_noise_event(i_noise)
-        noise_station = noise_event.get_stations()[0]
+        if self.__station_id is None:
+            station_id = station.get_id()
+        else:
+            station_id = self.__station_id
+            noise_station = noise_event.get_station(station_id)
+        if noise_station is None:
+            raise KeyError('Station whith ID {} not found in noise file'.format(station_id))
         logger.info("choosing noise event {} ({}) randomly".format(i_noise, noise_station.get_station_time()))
 
         for channel in station.iter_channels():
