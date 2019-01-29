@@ -265,7 +265,8 @@ class simulation():
                     fem, fhad = self._get_em_had_fraction(self._inelasticity, self._ccnc, self._flavor)
                     # get neutrino pulse from Askaryan module
                     spectrum = signalgen.get_frequency_spectrum(
-                        self._energy * fhad, viewing_angles[iS], self._n_samples, self._dt, "HAD", n_index, R, self._cfg['signal']['model'])
+                        self._energy * fhad, viewing_angles[iS], self._n_samples, self._dt, "HAD", n_index, R,
+                        self._cfg['signal']['model'], same_shower=(iS > 0))
 
                     # apply frequency dependent attenuation
                     t_att = time.time()
@@ -276,7 +277,8 @@ class simulation():
 
                     if(fem > 0):
                         spectrum_em = signalgen.get_frequency_spectrum(
-                            self._energy * fem, viewing_angles[iS], self._n_samples, self._dt, "EM", n_index, R, self._cfg['signal']['model'])
+                            self._energy * fem, viewing_angles[iS], self._n_samples, self._dt, "EM", n_index, R,
+                            self._cfg['signal']['model'], same_shower=(iS > 0))
                         if self._cfg['propagation']['attenuate_ice']:
                             spectrum_em *= attn
                         # add EM signal to had signal in the time domain
