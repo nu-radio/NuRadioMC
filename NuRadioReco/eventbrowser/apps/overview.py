@@ -14,6 +14,7 @@ import dataprovider
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.eventbrowser.apps.common import get_point_index
 import numpy as np
 import logging
@@ -36,6 +37,28 @@ nu_xcorr_options = [
 ]
     
 layout = html.Div([
+    html.Div([
+        html.Div([
+            html.Div('Station', className='panel-heading'),
+            html.Div([
+                dcc.RadioItems(
+                    id='station-overview-rec-sim',
+                    options=[
+                        {'label': 'Reconstruction', 'value': 'rec'},
+                        {'label': 'Simulation', 'value': 'sim'}
+                    ],
+                    value='rec'
+                ),
+                html.Div(id='station-overview-properties')
+            ], className='panel-body')
+        ], className='panel panel-default', style={'flex':'1'}),
+        html.Div([
+            html.Div('Channels', className='panel-heading')
+        ], className='panel panel-default', style={'flex':'1'}),
+        html.Div([
+            html.Div('Electric Fields', className='panel-heading')
+        ], className='panel panel-default', style={'flex':'1'})
+    ], style={'display': 'flex'}),
     html.Div([
         html.Div('Correlations', className='panel-heading'),
         html.Div([
@@ -96,6 +119,69 @@ def set_xcorrelation_options(event_type):
         return nu_xcorr_options
     else:
         return cr_xcorr_options
+
+
+station_properties_for_overview = [
+    {
+        'label': 'Zenith',
+        'param': stnp.zenith,
+        'unit': units.deg
+    },
+    {
+        'label': 'Azimuth',
+        'param': stnp.azimuth,
+        'unit': units.deg
+    }
+]
+@app.callback(Output('station-overview-properties', 'children'),
+                [Input('filename', 'value'),
+                Input('event-counter-slider', 'value'),
+                Input('station-id-dropdown', 'value'),
+                Input('station-overview-rec-sim', 'value')],
+                [State('user_id', 'children')])
+def station_overview_properties(filename, evt_counter, station_id, rec_or_sim, juser_id):
+    if filename is None or station_id is None:
+        return ''
+    user_id = json.loads(juser_id)
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(evt_counter)
+    station = evt.get_station(station_id)
+    if station is None:
+        return []
+    if rec_or_sim == 'rec':
+        prop_station = station
+    else:
+        if station.get_sim_station() is None:
+            return []
+        else:
+            prop_station = station.get_sim_station()
+    if prop_station.is_neutrino():
+        event_type = 'Neutrino'
+    elif prop_station.is_cosmic_ray():
+        event_type = 'Cosmic Ray'
+    else:
+        event_type = 'Unknown'
+    reply = []
+    reply.append(
+        html.Div([
+            html.Div('Event Type:', className='custom-table-td'),
+            html.Div(str(event_type), className='custom-table-td custom-table-td-last')
+        ], className='custom-table-row')
+    )
+    for display_prop in station_properties_for_overview:
+        if prop_station.has_parameter(display_prop['param']):
+            if display_prop['unit'] is not None:
+                v = prop_station.get_parameter(display_prop['param'])/display_prop['unit']
+            else:
+                v = prop_station.get_parameter(display_prop['param'])
+            reply.append(
+            html.Div([
+                html.Div(display_prop['label'], className='custom-table-td'),
+                html.Div('{:.2f}'.format(v), className='custom-table-td custom-table-td-last')
+            ], className='custom-table-row')
+            )
+    return reply
+
 
 @app.callback(Output('cr-xcorrelation', 'figure'),
               [Input('cr-xcorrelation-dropdown', 'value'),
