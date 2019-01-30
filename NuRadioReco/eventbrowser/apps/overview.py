@@ -36,56 +36,56 @@ nu_xcorr_options = [
 ]
     
 layout = html.Div([
+    html.Div([
+        html.Div('Correlations', className='panel-heading'),
+        html.Div([
             html.Div([
-                html.Div('Correlations', className='panel-heading'),
                 html.Div([
-                    html.Div([
-                        html.Div([
-                            dcc.RadioItems(
-                                id='xcorrelation-event-type',
-                                options=[
-                                    {'label': 'Neutrino', 'value': 'nu'},
-                                    {'label': 'Cosmic Ray', 'value': 'cr'}
-                                ],
-                                value='nu'
-                            )
-                        ], style={'flex': 'none', 'padding-right': '20px'}),
-                        html.Div([
-                            dcc.Dropdown(
-                                id='cr-xcorrelation-dropdown',
-                                options=[]
-                            )
-                        ], style={'flex': '1'})
-                    ], style={'display': 'flex'}),
-                    html.Div([
-                        html.Div([
-                            dcc.Graph(id='cr-xcorrelation'),
-                            html.Div(children=json.dumps(None), id='cr-xcorrelation-point-click', style={'display': 'none'})
-                        ], style={'flex': '1'}),
-                        html.Div([
-                            dcc.Graph(id='cr-xcorrelation-amplitude'),
-                            html.Div(children=json.dumps(None), id='cr-xcorrelation-amplitude-point-click', style={'display': 'none'})
-                        ], style={'flex': '1'})
-                    ], style={'display': 'flex'})
-                ], className='panel-body')
-            ], className = 'panel panel-default'),
+                    dcc.RadioItems(
+                        id='xcorrelation-event-type',
+                        options=[
+                            {'label': 'Neutrino', 'value': 'nu'},
+                            {'label': 'Cosmic Ray', 'value': 'cr'}
+                        ],
+                        value='nu'
+                    )
+                ], style={'flex': 'none', 'padding-right': '20px'}),
+                html.Div([
+                    dcc.Dropdown(
+                        id='cr-xcorrelation-dropdown',
+                        options=[]
+                    )
+                ], style={'flex': '1'})
+            ], style={'display': 'flex'}),
             html.Div([
-                html.Div('Template Time Fit', className='panel-heading'),
                 html.Div([
-                    html.Div(id='trigger', style={'display': 'none'},
-                             children=json.dumps(None)),
-                    html.Div([
-                        html.Div([
-                            html.H5("template time fit")
-                        ], className="six columns"),
-                        html.Div([
-                            html.H5("cross correlation fitter"),
-                            dcc.Graph(id='skyplot-xcorr')
-                        ], className="six columns")
-                    ], className='row'),
-                    html.Div(id='output')
-                ], className='panel-body')
-            ], className='panel panel-default')
+                    dcc.Graph(id='cr-xcorrelation'),
+                    html.Div(children=json.dumps(None), id='cr-xcorrelation-point-click', style={'display': 'none'})
+                ], style={'flex': '1'}),
+                html.Div([
+                    dcc.Graph(id='cr-xcorrelation-amplitude'),
+                    html.Div(children=json.dumps(None), id='cr-xcorrelation-amplitude-point-click', style={'display': 'none'})
+                ], style={'flex': '1'})
+            ], style={'display': 'flex'})
+        ], className='panel-body')
+    ], className = 'panel panel-default'),
+    html.Div([
+        html.Div('Template Time Fit', className='panel-heading'),
+        html.Div([
+            html.Div(id='trigger', style={'display': 'none'},
+                     children=json.dumps(None)),
+            html.Div([
+                html.Div([
+                    html.H5("template time fit")
+                ], className="six columns"),
+                html.Div([
+                    html.H5("cross correlation fitter"),
+                    dcc.Graph(id='skyplot-xcorr')
+                ], className="six columns")
+            ], className='row'),
+            html.Div(id='output')
+        ], className='panel-body')
+    ], className='panel panel-default')
 ])
 
 
