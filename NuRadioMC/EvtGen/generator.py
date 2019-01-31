@@ -303,10 +303,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             iE += 1
             data_sets['n_interaction'][iE] = 2  # specify that new event is a second interaction
 
-<<<<<<< HEAD
             # Calculating the energy of the tau from the neutrino energy
             data_sets['energies'][iE] = (1-data_sets['inelasticity'][iE-1])*data_sets['energies'][iE-1]
-=======
+
             decay_time = get_tau_decay_time(data_sets['energies'][iE])
 
             # Let us assume that the tau has the same direction as the tau neutrino
@@ -322,7 +321,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             second_vertex_y *= np.sin(data_sets['zeniths'][iE]) * np.sin(data_sets['azimuths'][iE])
             second_vertex_y += data_sets['yy'][iE]
             data_sets['yy'][iE] = second_vertex_y
->>>>>>> TauConstantNumberEvents
 
             # Calculation of the tau decay vertex
             get_tau_vertex(data_sets, iE)
