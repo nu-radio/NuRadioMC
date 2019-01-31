@@ -16,6 +16,7 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
     def __init__(self, station_id):
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
         self._parameters = {}
+        self._ARIANNA_parameters = {}
         self._parameter_covariances = {}
         self._station_id = station_id
         self._station_time = None
@@ -169,6 +170,30 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         set station type to cosmic rays (relevant e.g. for refraction into the snow)
         """
         self._particle_type = 'cr'
+        
+        
+    # provide interface to ARIANNA specific parameters
+    def get_ARIANNA_parameter(self, key):
+        if not isinstance(key, parameters.ARIANNAParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
+        return self._ARIANNA_parameters[key]
+
+    def get_ARIANNA_parameters(self):
+        return self._ARIANNA_parameters
+
+    def has_ARIANNA_parameter(self, key):
+        if not isinstance(key, parameters.ARIANNAParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
+        return key in self._ARIANNA_parameters.keys()
+
+    def set_ARIANNA_parameter(self, key, value):
+        if not isinstance(key, parameters.ARIANNAParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
+        self._ARIANNA_parameters[key] = value
+
 
 
     def serialize(self, mode):
@@ -184,6 +209,7 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
             efield_pkls.append(efield.serialize(self))
         data = {'_parameters': self._parameters,
                 '_parameter_covariances': self._parameter_covariances,
+                '_ARIANNA_parameters': self._ARIANNA_parameters,
                 '_station_id': self._station_id,
                 '_station_time': self._station_time,
                 '_particle_type': self._particle_type,
@@ -207,6 +233,8 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
             self.add_electric_field(efield)
         self._parameters = data['_parameters']
         self._parameter_covariances = data['_parameter_covariances']
+        if('_ARIANNA_parameters') in data:
+            self._ARIANNA_parameters = data['_ARIANNA_parameters']
         self._station_id = data['_station_id']
         self._station_time = data['_station_time']
         self._particle_type = data['_particle_type']
