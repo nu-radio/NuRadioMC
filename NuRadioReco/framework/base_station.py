@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger('BaseStation')
 
 
-class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
+class BaseStation():
 
     def __init__(self, station_id):
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
