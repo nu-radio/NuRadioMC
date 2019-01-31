@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function  # , unicode_literals
-from NuRadioReco.modules.io import ARIANNAio
+from NuRadioReco.modules.io import NuRadioRecoio
 
 
 class DataProvider(object):
@@ -17,10 +17,10 @@ class DataProvider(object):
         if filename is None:
             return
         if user_id not in self.__user_instances:
-            self.__user_instances[user_id] = ARIANNAio.ARIANNAio(filename)
+            self.__user_instances[user_id] = NuRadioRecoio.NuRadioRecoio(filename)
         if filename != self.__user_instances[user_id].get_filename():
             # user is requesting new file -> close current file and open new one
             self.__user_instances[user_id].close_files()
             del self.__user_instances[user_id]
-            self.__user_instances[user_id] = ARIANNAio.ARIANNAio(filename)
+            self.__user_instances[user_id] = NuRadioRecoio.NuRadioRecoio(filename)
         return self.__user_instances[user_id]
