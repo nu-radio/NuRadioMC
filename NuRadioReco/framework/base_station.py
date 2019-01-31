@@ -205,8 +205,9 @@ class BaseStation(NuRadioReco.framework.base_trace.BaseTrace):
         for trigger in self._triggers.values():
             trigger_pkls.append(trigger.serialize())
         efield_pkls = []
-        for efield in self.get_electric_fields():
-            efield_pkls.append(efield.serialize(self))
+        if(mode != 'micro'):
+            for efield in self.get_electric_fields():
+                efield_pkls.append(efield.serialize(self))
         data = {'_parameters': self._parameters,
                 '_parameter_covariances': self._parameter_covariances,
                 '_ARIANNA_parameters': self._ARIANNA_parameters,
