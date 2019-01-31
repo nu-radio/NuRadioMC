@@ -4,7 +4,7 @@ import logging
 import glob
 import os
 import sys
-from NuRadioReco.modules.io import ARIANNAio
+from NuRadioReco.modules.io import NuRadioRecoio
 logger = logging.getLogger('noiseImporter')
 
 
@@ -58,7 +58,7 @@ class noiseImporter:
         self.__open_files = []
         self.__n_tot = 0
         for file_name in self.__noise_files:
-            f = ARIANNAio.ARIANNAio(file_name, parse_header=False)
+            f = NuRadioRecoio.NuRadioRecoio(file_name, parse_header=False)
             n = f.get_n_events()
             self.__open_files.append({'f': f, 'n_low': self.__n_tot,
                                       'n_high': self.__n_tot + n - 1})
