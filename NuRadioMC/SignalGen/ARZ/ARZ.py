@@ -42,13 +42,64 @@ class ARZ(object):
         np.random.seed(seed)
         self._interp_factor = interp_factor
         self._random_numbers = {}
+        self._version = (1, 1)
         # # load shower library into memory
         if(library is None):
-            library = os.path.join(os.path.dirname(__file__), "shower_library/library_v1.1.pkl")
+            library = os.path.join(os.path.dirname(__file__), "shower_library/library_v{:d}.{:d}.pkl".format(*self._version))
+        else:
+            if(not os.path.exists(library)):
+                logger.error("user specified shower library {} not found.".format(library))
+                raise FileNotFoundError("user specified shower library {} not found.".format(library))
+        self.__check_and_get_library()
+        
         with open(library) as fin:
             logger.warning("loading shower library into memory")
             self._library = pickle.load(fin)
             
+    def __check_and_get_library(self):
+        path = os.path.join(os.path.dirname(__file__), "shower_library/library_v{:d}.{:d}.pkl".format(*self._version))
+        
+        download_file = False
+        if(not os.path.exists(path)):
+            logger.warning("shower library version {} does not exist on the local file system yet. It will be downloaded to {}".format(self._version, path))
+            download_file = True
+    
+        if(os.path.exists(path)):
+            BUF_SIZE = 65536 * 2 ** 4  # lets read stuff in 64kb chunks!
+            import hashlib
+            import json
+            sha1 = hashlib.sha1()
+            with open(path, 'rb') as f:
+                while True:
+                    data = f.read(BUF_SIZE)
+                    if not data:
+                        break
+                    sha1.update(data)
+    
+            shower_directory = os.path.join(os.path.dirname(__file__), "shower_library/")
+            with open(os.path.join(shower_directory, 'shower_lib_hash.json'), 'r') as fin:
+                lib_hashs = json.load(fin)
+                if("{:d}.{:d}".format(*self._version) in lib_hashs.keys()):
+                    if(sha1.hexdigest() != lib_hashs["{:d}.{:d}".format(*self._version)]):
+                        logger.warning("shower library {} has changed on the server. downloading newest version...".format(self._version))
+                        download_file = True
+                else:
+                    logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))            
+        if not download_file:
+            return True
+        else:
+            import requests
+            URL = 'http://arianna.ps.uci.edu/~arianna/data/ce_shower_library/library_v{:d}.{:d}.pkl'.format(*self._version)
+    
+            logger.info("downloading shower library {} from {}. This can take a while...".format(self._version, URL))
+            r = requests.get(URL)
+            if (r.status_code != requests.codes.ok):
+                logger.error("error in download of antenna model")
+                raise IOError("error in download of antenna model")
+            with open(path, "wb") as code:
+                code.write(r.content)
+            logger.info("...download finished.")
+        
     def set_seed(self, seed):
         """
         allow to set a new random seed
