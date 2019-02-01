@@ -57,6 +57,10 @@ class ARZ(object):
             self._library = pickle.load(fin)
             
     def __check_and_get_library(self):
+        """
+        checks if shower library exists and is up to date by comparing the sha1sum. If the library does not exist
+        or changes on the server, a new library will be downloaded. 
+        """
         path = os.path.join(os.path.dirname(__file__), "shower_library/library_v{:d}.{:d}.pkl".format(*self._version))
         
         download_file = False
