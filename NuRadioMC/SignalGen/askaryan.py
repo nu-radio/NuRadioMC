@@ -6,6 +6,8 @@ from NuRadioMC.SignalGen import parametrizations as par
 import logging
 logger = logging.getLogger("SignalGen.askaryan")
 
+gARZ = None
+
 def set_log_level(level):
     logger.setLevel(level)
     par.set_log_level(level)
@@ -72,10 +74,12 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
         return askaryan_module.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R)
     elif(model == 'ARZ2019'):
         from NuRadioMC.SignalGen.ARZ import ARZ
-        cARZ = ARZ.ARZ()
+        global gARZ
+        if(gARZ is None):
+            gARZ = ARZ.ARZ()
         if(interp_factor is not None):
-            cARZ.set_interpolation_factor(interp_factor)
-        return cARZ.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, same_shower=same_shower)
+            gARZ.set_interpolation_factor(interp_factor)
+        return gARZ.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, same_shower=same_shower)
         
     elif(model == 'spherical'):
         amplitude = 1. * energy / R
