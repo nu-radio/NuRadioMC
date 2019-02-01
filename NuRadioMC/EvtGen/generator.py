@@ -161,7 +161,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 flavor=[12, -12, 14, -14, 16, -16],
                                 n_events_per_file=None,
                                 spectrum='log_uniform',
-                                add_tau_second_bang=False):
+                                add_tau_second_bang=False,
+                                add_tau_larger_volume=False):
     """
     Event generator
 
@@ -321,6 +322,27 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                     # set flavor to tau
                     data_sets['flavors'][iE] = 15 * np.sign(data_sets['flavors'][iE])  # keep particle/anti particle nature
+    
+    if add_tau_larger_volume:
+        # here, we generate tau neutrino interactions in a larger volume (outside of our fiducial volume) and save all 
+        # second bands (tau decays) that end up in the fiducial volume
+        V_fiducial = (zmin-zmax) * np.pi * (rmax -rmin)**2
+        rmin_tau = rmin
+        rmax_tau = 4 * rmax
+        # we assume that zmax is at the end of the ice layer and that taus can't escape from anything below
+        V_nutau = (zmin-zmax) * np.pi * (rmax_tau -rmin_tau)**2
+        # calculate the number of nu_tau interactions to simulate in the new volume to keep the density (interactions/volume) constant
+        n_taus = int(V_nutau/V_fiducial * np.sum(np.abs(flavor) == 16) / len(flavor))
+        # generate neutrino vertices randomly
+        rr = np.random.triangular(rmin, rmax, rmax, n_taus)
+        phiphi = np.random.uniform(0, 2 * np.pi, n_taus)
+        xx = rr * np.cos(phiphi)
+        yy = rr * np.sin(phiphi)
+        zz = np.random.uniform(zmin, zmax, n_events)
+        EE = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_taus)
+        
+        for i in range(n_taus):
+            xt, yt, zt = get_tau_decay_vertex(xx[i], yy[i], zz[i], EE[i], zeniths[i], azimuths[i])
 
     write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=n_events_per_file)
 
