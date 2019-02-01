@@ -4,12 +4,15 @@ import os
 from scipy import interpolate as intp
 import glob
 import pickle
+import sys
 
 rho = 0.924 * units.g / units.cm**3  # density g cm^-3
 
 if __name__ == "__main__":
+    print("usage: python A01preprocess_shower_library.py /path/to/library/ outputfilename")
+    path = sys.argv[1]
+    out = sys.argv[2]
     
-    path  = "/Users/cglaser/work/ARIANNA/data/ARZ/Library_v1/"
     library = {}
     for subfolder in ["HAD", "EM"]:
         if(subfolder not in library):
@@ -71,5 +74,5 @@ if __name__ == "__main__":
 #             length = depth_e / rho
 #             zmax = length.max()
 #             xnep = intp.interp1d(length, N_e - N_p, bounds_error=False, fill_value=0)
-    with open(os.path.join(path, "library.pkl"), 'wb') as fout:
+    with open(os.path.join(path, out), 'wb') as fout:
         pickle.dump(library, fout, protocol=2)
