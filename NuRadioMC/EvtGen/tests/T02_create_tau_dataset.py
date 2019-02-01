@@ -13,9 +13,9 @@ ymax = 3 * units.km
 zmin = -2.7 * units.km
 zmax = 0 * units.km
 generator.generate_eventlist_cylinder('tau.hdf5', 1e3, 1e19 * units.eV, 1e19 * units.eV,
-                            0, 3*units.km, zmin, zmax, addTauSecondBang=True)
+                            0, 3*units.km, zmin, zmax, add_tau_second_bang=True)
 
 
 generator.generate_eventlist_cylinder('tau2.hdf5', 1e2, 1e19 * units.eV, 1e19 * units.eV,
-                            0, 3*units.km, zmin, zmax, addTauSecondBang=True, n_events_per_file=10)
+                            0, 3*units.km, zmin, zmax, add_tau_second_bang=True, n_events_per_file=10)
 

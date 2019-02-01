@@ -62,29 +62,28 @@ def get_tau_speed(energy):
 
     return beta * constants.c*units.m/units.s
 
-def get_tau_vertex(data_sets, iE):
 
-    decay_time = get_tau_decay_time(data_sets['energies'][iE])
-    tau_speed = get_tau_speed(data_sets['energies'][iE])
+def get_tau_decay_vertex(x, y, z, E, zenith, azimuth):
+    """
+     Let us assume that the tau has the same direction as the tau neutrino
+     to calculate the vertex of the second shower            
+     This must be changed in the future
+    """
+    decay_time = get_tau_decay_time(E)
+    v = get_tau_speed(E)
+    second_vertex_x  = v * decay_time
+    second_vertex_x *= np.sin(zenith) * np.cos(azimuth)
+    second_vertex_x += x
 
-    # Let us assume that the tau has the same direction as the tau neutrino
-    # to calculate the vertex of the second shower
-    # This must be changed in the future
+    second_vertex_y  = v * decay_time
+    second_vertex_y *= np.sin(zenith) * np.sin(azimuth)
+    second_vertex_y += y
 
-    second_vertex_x  = tau_speed * decay_time
-    second_vertex_x *= np.sin(data_sets['zeniths'][iE]) * np.cos(data_sets['azimuths'][iE])
-    second_vertex_x += data_sets['xx'][iE]
-    data_sets['xx'][iE] = second_vertex_x
+    second_vertex_z  = v * decay_time
+    second_vertex_z *= np.cos(zenith)
+    second_vertex_z += z
+    return second_vertex_x, second_vertex_y, second_vertex_z
 
-    second_vertex_y  = tau_speed * decay_time
-    second_vertex_y *= np.sin(data_sets['zeniths'][iE]) * np.sin(data_sets['azimuths'][iE])
-    second_vertex_y += data_sets['yy'][iE]
-    data_sets['yy'][iE] = second_vertex_y
-
-    second_vertex_z  = tau_speed * decay_time
-    second_vertex_z *= np.cos(data_sets['zeniths'][iE])
-    second_vertex_z += data_sets['zz'][iE]
-    data_sets['zz'][iE] = second_vertex_z
 
 def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None):
     """
@@ -162,7 +161,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 flavor=[12, -12, 14, -14, 16, -16],
                                 n_events_per_file=None,
                                 spectrum='log_uniform',
-                                addTauSecondBang=False):
+                                add_tau_second_bang=False):
     """
     Event generator
 
@@ -290,43 +289,38 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     inelasticity = pickY(flavors, ccncs, epsilon)
     """
 
-    if addTauSecondBang:
+    if add_tau_second_bang:
         mask = (data_sets['ccncs'] == 'cc') & (np.abs(data_sets['flavors']) == 16)  # select nu_tau cc interactions
         n_taus = 0
         for event_id in data_sets['event_ids'][mask]:
             iE = event_id - start_event_id + n_taus
-            n_taus += 1  # we change the datasets during the loop, to still have the correct indices, we need to keep track of the number of events we inserted
+            
+            Etau = (1-data_sets['inelasticity'][iE])*data_sets['energies'][iE]
+            # first calculate if tau decay is still in our fiducial volume
+            x, y, z = get_tau_decay_vertex(data_sets['xx'][iE], data_sets['yy'][iE], data_sets['zz'][iE],
+                                           Etau, data_sets['zeniths'][iE], data_sets['azimuths'][iE])
+            
+            d =x**2 + y**2 
+            if(d > rmin**2 and d < rmax**2):
+                if(z < zmin and z > zmax):  # z coordinate is negative
+                    # the tau decay is in our fiducial volume
+            
+                    n_taus += 1  # we change the datasets during the loop, to still have the correct indices, we need to keep track of the number of events we inserted
+        
+                    # insert second vertex after the first neutrino interaction
+                    for key in iterkeys(data_sets):
+                        data_sets[key] = np.insert(data_sets[key], iE, data_sets[key][iE])
+                    iE += 1
+                    data_sets['n_interaction'][iE] = 2  # specify that new event is a second interaction
 
-            # insert second vertex after the first neutrino interaction
-            for key in iterkeys(data_sets):
-                data_sets[key] = np.insert(data_sets[key], iE, data_sets[key][iE])
-            iE += 1
-            data_sets['n_interaction'][iE] = 2  # specify that new event is a second interaction
+                    # Calculating the energy of the tau from the neutrino energy
+                    data_sets['energies'][iE] = Etau
+                    data_sets['xx'][iE] = x
+                    data_sets['yy'][iE] = y
+                    data_sets['zz'][iE] = z
 
-            # Calculating the energy of the tau from the neutrino energy
-            data_sets['energies'][iE] = (1-data_sets['inelasticity'][iE-1])*data_sets['energies'][iE-1]
-
-            decay_time = get_tau_decay_time(data_sets['energies'][iE])
-
-            # Let us assume that the tau has the same direction as the tau neutrino
-            # to calculate the vertex of the second shower
-            # This must be changed in the future
-
-            second_vertex_x  = get_tau_speed(data_sets['energies'][iE]) * decay_time
-            second_vertex_x *= np.sin(data_sets['zeniths'][iE]) * np.cos(data_sets['azimuths'][iE])
-            second_vertex_x += data_sets['xx'][iE]
-            data_sets['xx'][iE] = second_vertex_x
-
-            second_vertex_y  = get_tau_speed(data_sets['energies'][iE]) * decay_time
-            second_vertex_y *= np.sin(data_sets['zeniths'][iE]) * np.sin(data_sets['azimuths'][iE])
-            second_vertex_y += data_sets['yy'][iE]
-            data_sets['yy'][iE] = second_vertex_y
-
-            # Calculation of the tau decay vertex
-            get_tau_vertex(data_sets, iE)
-
-            # set flavor to tau
-            data_sets['flavors'][iE] = 15 * np.sign(data_sets['flavors'][iE])  # keep particle/anti particle nature
+                    # set flavor to tau
+                    data_sets['flavors'][iE] = 15 * np.sign(data_sets['flavors'][iE])  # keep particle/anti particle nature
 
     write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=n_events_per_file)
 
