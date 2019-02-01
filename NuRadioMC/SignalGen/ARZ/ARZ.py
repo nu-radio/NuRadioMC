@@ -60,7 +60,7 @@ class ARZ(object):
         self._interp_factor = interp_factor
 
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
-                       same_shower=False):
+                       same_shower=False, iN=None, output_mode='trace'):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
         
@@ -94,6 +94,11 @@ class ARZ(object):
             if False, for each request a new random shower realization is choosen. 
             if True, the shower from the last request of the same shower type is used. This is needed to get the Askaryan
             signal for both ray tracing solutions from the same shower. 
+        iN: int or None (default None)
+            specify shower number
+        output_mode: string
+            * 'trace' (default): return only the electric field trace
+            * 'full' return trace, depth and charge_excess profile
             
         Returns: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
@@ -109,16 +114,17 @@ class ARZ(object):
         profiles = self._library[shower_type][energies[iE]]
         N_profiles = len(profiles['charge_excess'])
         
-        if(same_shower):
-            if(shower_type in self._random_numbers):
-                iN = self._random_numbers[shower_type]
+        if(iN is None):
+            if(same_shower):
+                if(shower_type in self._random_numbers):
+                    iN = self._random_numbers[shower_type]
+                else:
+                    logger.warning("no previous random number for shower type {} exists. Generating a new random number.".format(shower_type))
+                    iN = np.random.randint(N_profiles)
+                    self._random_numbers[shower_type] = iN
             else:
-                logger.warning("no previous random number for shower type {} exists. Generating a new random number.".format(shower_type))
                 iN = np.random.randint(N_profiles)
                 self._random_numbers[shower_type] = iN
-        else:
-            iN = np.random.randint(N_profiles)
-            self._random_numbers[shower_type] = iN
             
         logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
         profile_depth = profiles['depth']
@@ -129,6 +135,8 @@ class ARZ(object):
         
         cs = cstrafo.cstrafo(zenith=theta, azimuth=0)
         trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
+        if(output_mode == 'full'):
+            return trace_onsky, profile_depth, profile_ce
         return trace_onsky
     
     
