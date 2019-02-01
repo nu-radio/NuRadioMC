@@ -32,18 +32,20 @@ c = 2.99792458e8 * units.m / units.s
 class ARZ(object):
     __instance = None
 
-    def __new__(cls, seed=1234, interp_factor=10.):
+    def __new__(cls, seed=1234, interp_factor=10., library=None):
         if ARZ.__instance is None:
-            ARZ.__instance = object.__new__(cls, seed, interp_factor)
+            ARZ.__instance = object.__new__(cls, seed, interp_factor, library)
         return ARZ.__instance
 
-    def __init__(self, seed=1234, interp_factor=10.):
+    def __init__(self, seed=1234, interp_factor=10., library=None):
         logger.warning("setting seed to {}".format(seed, interp_factor))
         np.random.seed(seed)
         self._interp_factor = interp_factor
         self._random_numbers = {}
         # # load shower library into memory
-        with open(os.path.join(os.path.dirname(__file__), "shower_library/library_v1.pkl")) as fin:
+        if(library is None):
+            library = os.path.join(os.path.dirname(__file__), "shower_library/library_v1.1.pkl")
+        with open(library) as fin:
             logger.warning("loading shower library into memory")
             self._library = pickle.load(fin)
             
@@ -118,15 +120,19 @@ class ARZ(object):
             if(same_shower):
                 if(shower_type in self._random_numbers):
                     iN = self._random_numbers[shower_type]
+                    logger.info("using previously used shower {}/{}".format(iN, N_profiles))
                 else:
                     logger.warning("no previous random number for shower type {} exists. Generating a new random number.".format(shower_type))
                     iN = np.random.randint(N_profiles)
                     self._random_numbers[shower_type] = iN
+                    logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
             else:
                 iN = np.random.randint(N_profiles)
                 self._random_numbers[shower_type] = iN
+                logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
+        else:
+            logger.info("using shower {}/{} as specified by user".format(iN, N_profiles))
             
-        logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
         profile_depth = profiles['depth']
         profile_ce = profiles['charge_excess'][iN] * rescaling_factor
         vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
