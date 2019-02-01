@@ -300,14 +300,15 @@ class simulation():
                     # reflection at the surface
                     if(ray.solution_types[r.get_solution_type(iS)] == 'reflected'):
                         from NuRadioReco.utilities import geometryUtilities as geo_utl
+                        zenith_reflection = r.get_reflection_angle(iS)
                         r_theta = geo_utl.get_fresnel_r_p(
-                            zenith, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
+                            zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
                         r_phi = geo_utl.get_fresnel_r_s(
-                            zenith, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
+                            zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
 
                         eTheta *= r_theta
                         ePhi *= r_phi
-                        logger.debug("reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
+                        logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection/units.deg,
                             r_theta, r_phi))
 
                     if(self._debug):
