@@ -51,8 +51,8 @@ Double_t ftheta(Double_t theta, Double_t z);
 
 /*! \brief Takes in value of depth z and returns the value of temperature. This is used in the RK4 calculations.
  *
- *The temperature model has been taken from AraSim which also took it from here http://icecube.wisc.edu/~mnewcomb/radio/atten/ . This is basically Matt Newcomb's icecube directory which has alot of information, plots and codes about South Pole Ice activities. Please read it if you find it interesting.
- * http://icecube.wisc.edu/~mnewcomb/radio/#iceabsorbtion
+ *The temperature model has been taken from AraSim which also took it from here http://icecube.wisc.edu/~araproject/radio/atten/ . This is basically Matt Newcomb's icecube directory which has alot of information, plots and codes about South Pole Ice activities. Please read it if you find it interesting.
+ * http://icecube.wisc.edu/~araproject/radio/#iceabsorbtion
  */
 Double_t temperature(Double_t z);
 
@@ -178,8 +178,8 @@ Double_t *getAngleCorrections(Int_t num, Int_t antco, Int_t D56co,
  * 
  *If you want to know how I derived the function to calculate launch angle read Der_LauAng.pdf .
  *
- *The temperature model has been taken from AraSim which also took it from here http://icecube.wisc.edu/~mnewcomb/radio/atten/ . This is basically Matt Newcomb's icecube directory which has alot of information, plots and codes about South Pole Ice activities. Please read it if you find it interesting.
- * http://icecube.wisc.edu/~mnewcomb/radio/#iceabsorbtion
+ *The temperature model has been taken from AraSim which also took it from here http://icecube.wisc.edu/~araproject/radio/atten/ . This is basically Matt Newcomb's icecube directory which has alot of information, plots and codes about South Pole Ice activities. Please read it if you find it interesting.
+ * http://icecube.wisc.edu/~araproject/radio/#iceabsorbtion
  *
  */
 Double_t* RayTraceRK4(Double_t c1, Double_t c2, Double_t c3, Double_t r1,
