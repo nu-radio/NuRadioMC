@@ -66,4 +66,4 @@ Please read raytracing_code.pdf for more detail. If you find any weird behaviour
 
 If you want to know how I derived the function to calculate launch angle read Der_LauAng.pdf.
 
-The temperature model has been taken from AraSim which also took it from here http://icecube.wisc.edu/~mnewcomb/radio/atten/ . This is basically Matt Newcomb's icecube directory which has alot of information, plots and codes about South Pole Ice activities. Please read it if you find it interesting: http://icecube.wisc.edu/~mnewcomb/radio/#iceabsorbtion
+The temperature model has been taken from AraSim which also took it from here http://icecube.wisc.edu/~araproject/radio/atten/ . This is basically Matt Newcomb's icecube directory which has alot of information, plots and codes about South Pole Ice activities. Please read it if you find it interesting: http://icecube.wisc.edu/~araproject/radio/#iceabsorbtion
