@@ -122,7 +122,32 @@ def write_events_to_hdf5_new(filename, data_sets, attributes, n_events_per_file=
 
         fout.close()
 
+def primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity):
+    """
+    Calculates the primary energy of the neutrino from the deposited
+    energy in the medium.
 
+    Parameters
+    ----------
+    Edep: float
+        deposited energy
+    ccnc: string
+        indicates 'nc', neutral current; 'cc', charged current
+    flavor: int
+        neutrino flavor
+    inelasticity: float
+        inelasticity of the interaction
+    """
+
+    if (ccnc == 'nc'):
+        return Edep/inelasticity
+    elif (ccnc == 'cc'):
+        if (np.abs(flavor) == 12):
+            return Edep
+        elif (np.abs(flavor) == 14):
+            return Edep/inelasticity
+        elif (np.abs(flavor) == 16):
+            return Edep/inelasticity # TODO: change this for taus
 
 def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 rmin, rmax, zmin, zmax,
@@ -131,7 +156,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 start_event_id=1,
                                 flavor=[12, -12, 14, -14, 16, -16],
                                 n_events_per_file=None,
-                                spectrum='log_uniform'):
+                                spectrum='log_uniform',
+                                deposited=False):
     """
     Event generator
 
@@ -189,7 +215,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         defines the probability distribution for which the neutrino energies are generated
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-1': 1 over E spectrum
-
+    deposited: bool
+        If True, generate deposited energies instead of primary neutrino energies
     """
     attributes = {}
     attributes['rmin'] = rmin
@@ -203,6 +230,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     attributes['flavors'] = flavor
     attributes['Emin'] = Emin
     attributes['Emax'] = Emax
+    attributes['deposited'] = deposited
     data_sets = {}
 
     n_events = int(n_events)
@@ -269,6 +297,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     epsilon = np.log10(energies / 1e9)
     inelasticity = pickY(flavors, ccncs, epsilon)
     """
+
+    if deposited:
+        data_sets["energies"] = [primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity) \
+                                for Edep, ccnc, flavor, inelasticity in \
+                                zip(data_sets["energies"], data_sets["ccncs"], \
+                                data_sets["flavors"], data_sets["inelasticity"])]
+
     write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=n_events_per_file)
 
 
