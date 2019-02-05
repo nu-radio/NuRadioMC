@@ -216,7 +216,7 @@ double get_travel_time(double pos[2], double pos2[2], double C0, double n_ice, d
 
 double get_temperature(double z){
 	//return temperature as a function of depth
-	// from https://icecube.wisc.edu/~mnewcomb/radio/#iceabsorbtion
+	// from https://icecube.wisc.edu/~araproject/radio/#icetemperature
 	double z2 = abs(z/utl::m);
 	return 1.83415e-09*z2*z2*z2 + (-1.59061e-08*z2*z2) + 0.00267687*z2 + (-51.0696 );
 }
