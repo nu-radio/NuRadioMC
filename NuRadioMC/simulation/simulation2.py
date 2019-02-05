@@ -19,8 +19,10 @@ import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.channel
+import NuRadioReco.framework.electric_field
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import datetime
 import logging
 from six import iteritems
@@ -215,7 +217,7 @@ class simulation():
                 if(not r.has_solution()):
                     logger.debug("event {} and station {}, channel {} does not have any ray tracing solution".format(
                         self._event_id, self._station_id, channel_id))
-                    self._add_empty_channel(channel_id)
+                    self._add_empty_electric_field(channel_id)
                     continue
                 delta_Cs = []
                 viewing_angles = []
@@ -237,7 +239,7 @@ class simulation():
                 # discard event if delta_C (angle off cherenkov cone) is too large
                 if(min(np.abs(delta_Cs)) > self._cfg['speedup']['delta_C_cut']):
                     logger.debug('delta_C too large, event unlikely to be observed, skipping event')
-                    self._add_empty_channel(channel_id)
+                    self._add_empty_electric_field(channel_id)
                     continue
 
                 n = r.get_number_of_solutions()
@@ -320,20 +322,20 @@ class simulation():
                         fig.subplots_adjust(top=0.9)
                         plt.show()
 
-                    channel = NuRadioReco.framework.channel.Channel(channel_id)
-                    channel.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / self._dt)
-                    channel.set_trace_start_time(T)
-                    channel[chp.azimuth] = azimuth
-                    channel[chp.zenith] = zenith
-                    channel[chp.ray_path_type] = ray.solution_types[r.get_solution_type(iS)]
-                    channel[chp.nu_vertex_distance] = Rs[iS]
-                    channel[chp.nu_viewing_angle] = viewing_angles[iS]
-                    self._sim_station.add_channel(channel)
+                    electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id])
+                    electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / self._dt)
+                    electric_field.set_trace_start_time(T)
+                    electric_field[efp.azimuth] = azimuth
+                    electric_field[efp.zenith] = zenith
+                    electric_field[efp.ray_path_type] = ray.solution_types[r.get_solution_type(iS)]
+                    electric_field[efp.nu_vertex_distance] = Rs[iS]
+                    electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
+                    self._sim_station.add_electric_field(electric_field)
 
                     # apply a simple threshold cut to speed up the simulation,
                     # application of antenna response will just decrease the
                     # signal amplitude
-                    if(np.max(np.abs(channel.get_trace())) > 2 * self._Vrms):
+                    if(np.max(np.abs(electric_field.get_trace())) > 2 * self._Vrms):
                         candidate_event = True
 
             #print("start detector simulation. time: " + str(time.time()))
@@ -397,12 +399,11 @@ class simulation():
             if None, all available channels will be modified
         """
         if(channel_id is None):
-            for sim_channels in self._station.get_sim_station().iter_channels():
-                for sim_channel in sim_channels:
-                    sim_channel.set_trace(sim_channel.get_trace() * factor, sampling_rate=sim_channel.get_sampling_rate())
+            for electric_field in self._station.get_sim_station().get_electric_fields():
+                electric_field.set_trace(electric_field.get_trace() * factor, sampling_rate=electric_field.get_sampling_rate())
 
         else:
-            sim_channels = self._station.get_sim_station().get_channel(channel_id)
+            sim_channels = self._station.get_sim_station().get_electric_field_for_channels([channel_id])
             for sim_channel in sim_channels:
                 sim_channel.set_trace(sim_channel.get_trace() * factor, sampling_rate=sim_channel.get_sampling_rate())
 
@@ -545,14 +546,14 @@ class simulation():
         self._sim_station[stnp.inelasticity] = self._inelasticity
 
 
-    def _add_empty_channel(self, channel_id):
-        channel = NuRadioReco.framework.channel.Channel(channel_id)
-        channel.set_frequency_spectrum(np.zeros((3, len(self._ff)), dtype=np.complex), 1. / self._dt)
-        channel[chp.azimuth] = 0
-        channel[chp.zenith] = 180 * units.deg
-        channel[chp.ray_path_type] = 'none'
-        channel.set_trace_start_time(np.nan)
-        self._sim_station.add_channel(channel)
+    def _add_empty_electric_field(self, channel_id):
+        electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id])
+        electric_field.set_frequency_spectrum(np.zeros((3, len(self._ff)), dtype=np.complex), 1. / self._dt)
+        electric_field[efp.azimuth] = 0
+        electric_field[efp.zenith] = 180 * units.deg
+        electric_field[efp.ray_path_type] = 'none'
+        electric_field.set_trace_start_time(np.nan)
+        self._sim_station.add_electric_field(electric_field)
 
     def _write_ouput_file(self):
         fout = h5py.File(self._outputfilename, 'w')
