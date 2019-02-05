@@ -359,9 +359,18 @@ class simulation():
             t4 = time.time()
             detSimTime += (t4 - t3)
 
+        # Create trigger structures if there are no triggering events.
+        # This is done to ensure that files with no triggering n_events
+        # merge properly.
+        self._create_empty_multiple_triggers()
+
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
         self._write_ouput_file()
+
+        t_total = time.time() - t_start
+        logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(self._n_events,
+                                                                                         t_total, 1.e3 * t_total / self._n_events))
 
         try:
             self.calculate_Veff()
@@ -433,10 +442,17 @@ class simulation():
 
             self._mout['SNRs'][self._iE] = self._station.get_parameter(stnp.channels_max_amplitude) / self._Vrms
 
-    def _save_triggers_to_hdf5(self):
+    def _create_empty_multiple_triggers(self):
+
+        if ('trigger_names' not in self._mout_attrs):
+            self._mout_attrs['trigger_names'] = np.array([])
+            self._mout['multiple_triggers'] = np.zeros((self._n_events, 1))
+
+    def _create_trigger_structures(self):
 
         if('trigger_names' not in self._mout_attrs):
             self._mout_attrs['trigger_names'] = []
+
             for trigger in six.itervalues(self._station.get_triggers()):
                 self._mout_attrs['trigger_names'].append(trigger.get_name())
         # the 'multiple_triggers' output array is not initialized in the constructor because the number of
@@ -444,6 +460,11 @@ class simulation():
         # we first create this data structure
         if('multiple_triggers' not in self._mout):
             self._mout['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])))
+
+    def _save_triggers_to_hdf5(self):
+
+        self._create_trigger_structures()
+
         for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
             self._mout['multiple_triggers'][self._iE, iT] = self._station.get_trigger(trigger_name).has_triggered()
 
