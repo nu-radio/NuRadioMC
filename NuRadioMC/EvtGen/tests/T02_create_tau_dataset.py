@@ -3,19 +3,19 @@ import h5py
 
 from NuRadioMC.EvtGen import generator
 from NuRadioMC.utilities import units
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger("testtaueventgen")
 
 
 # define simulation volume
-xmin = -3 * units.km
-xmax = 3 * units.km
-ymin = -3 * units.km
-ymax = 3 * units.km
-zmin = -2.7 * units.km
-zmax = 0 * units.km
-generator.generate_eventlist_cylinder('tau.hdf5', 1e3, 1e19 * units.eV, 1e19 * units.eV,
-                            0, 3*units.km, zmin, zmax, addTauSecondBang=True)
+fiducial_zmin = -2.7 * units.km
+fiducial_zmax = 0 * units.km
+generator.generate_eventlist_cylinder('tau.hdf5', 1e4, 1e18 * units.eV, 1e19 * units.eV,
+                            0, 3*units.km, fiducial_zmin, fiducial_zmax, add_tau_second_bang=True)
 
 
-generator.generate_eventlist_cylinder('tau2.hdf5', 1e2, 1e19 * units.eV, 1e19 * units.eV,
-                            0, 3*units.km, zmin, zmax, addTauSecondBang=True, n_events_per_file=10)
+print("writing many subfiles")
+generator.generate_eventlist_cylinder('tau2.hdf5', 1e4, 1e16 * units.eV, 1e19 * units.eV,
+                            0, 3*units.km, fiducial_zmin, fiducial_zmax, add_tau_second_bang=True, n_events_per_file=10)
 
