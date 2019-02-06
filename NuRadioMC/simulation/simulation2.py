@@ -7,7 +7,7 @@ from NuRadioMC.utilities import units
 from NuRadioMC.SignalProp import analyticraytraycing as ray
 from NuRadioMC.utilities import medium
 from NuRadioMC.utilities import fft
-from NuRadioMC.EvtGen.weight import get_weight
+from NuRadioMC.utilities.earth_attenuation import get_weight
 from matplotlib import pyplot as plt
 import h5py
 import time

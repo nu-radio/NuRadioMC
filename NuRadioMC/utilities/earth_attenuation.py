@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from NuRadioMC.utilities import units
 import logging
-logger = logging.getLogger("EvtGen.weight")
+logger = logging.getLogger("utilities.earth_attenuation")
 
 R_earth = 6357390 * units.m
 DensityCRUST = 2900 * units.kg / units.m ** 3
