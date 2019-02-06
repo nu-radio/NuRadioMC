@@ -66,6 +66,13 @@ def get_tau_speed(energy):
 
     return beta * constants.c * units.m / units.s
 
+def get_tau_decay_length(energy):
+    """
+    calculates the decay length of the tau
+    """
+    decay_time = get_tau_decay_time(energy)
+    v = get_tau_speed(energy)
+    return decay_time * v
 
 def get_tau_decay_vertex(x, y, z, E, zenith, azimuth):
     """
@@ -73,17 +80,16 @@ def get_tau_decay_vertex(x, y, z, E, zenith, azimuth):
      to calculate the vertex of the second shower            
      This must be changed in the future
     """
-    decay_time = get_tau_decay_time(E)
-    v = get_tau_speed(E)
-    second_vertex_x = v * decay_time
+    L = get_tau_decay_length(E)
+    second_vertex_x = L
     second_vertex_x *= np.sin(zenith) * np.cos(azimuth)
     second_vertex_x += x
 
-    second_vertex_y = v * decay_time
+    second_vertex_y = L
     second_vertex_y *= np.sin(zenith) * np.sin(azimuth)
     second_vertex_y += y
 
-    second_vertex_z = v * decay_time
+    second_vertex_z = L
     second_vertex_z *= np.cos(zenith)
     second_vertex_z += z
     return second_vertex_x, second_vertex_y, second_vertex_z
@@ -355,6 +361,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     if add_tau_second_bang:
         mask = (data_sets["ccncs"] == 'cc') & (np.abs(data_sets["flavors"]) == 16)  # select nu_tau cc interactions
+        logger.info("{} taus are created in nu tau interactions -> checking if tau decays in fiducial volume".format(np.sum(mask)))
         n_taus = 0
         for event_id in data_sets["event_ids"][mask]:
             iE = event_id - start_event_id
@@ -363,6 +370,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             # first calculate if tau decay is still in our fiducial volume
             x, y, z = get_tau_decay_vertex(data_sets["xx"][iE], data_sets["yy"][iE], data_sets["zz"][iE],
                                            Etau, data_sets["zeniths"][iE], data_sets["azimuths"][iE])
+            logger.debug("tau energy = {:.2g}eV, decay length = {:.2f}km -> decay at {:.2f}, {:.2f}, {:.2f}".format(Etau/units.eV,
+                                                            get_tau_decay_length(Etau)/units.km, x/units.km, y/units.km, z/units.km))
             
             r = (x ** 2 + y ** 2)**0.5
             if(r >= fiducial_rmin and r <= fiducial_rmax ):
