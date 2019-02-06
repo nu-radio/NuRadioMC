@@ -99,6 +99,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
     """
     writes NuRadioMC input parameters to hdf5 file
 
+
     this function can automatically split the dataset up into multiple files for easy multiprocessing
 
     Parameters
@@ -162,7 +163,6 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
 #             else:
 #                 stop_index = tmp[0]
 
-
         for key, value in data_sets.iteritems():
             fout[key] = value[start_index:stop_index]
             
@@ -194,15 +194,45 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
             break
     logger.info("wrote {} events in total".format(n_events_total))
 
+def primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity):
+    """
+    Calculates the primary energy of the neutrino from the deposited
+    energy in the medium.
+
+    Parameters
+    ----------
+    Edep: float
+        deposited energy
+    ccnc: string
+        indicates 'nc', neutral current; 'cc', charged current
+    flavor: int
+        neutrino flavor
+    inelasticity: float
+        inelasticity of the interaction
+    """
+
+    if (ccnc == 'nc'):
+        return Edep/inelasticity
+    elif (ccnc == 'cc'):
+        if (np.abs(flavor) == 12):
+            return Edep
+        elif (np.abs(flavor) == 14):
+            return Edep/inelasticity
+        elif (np.abs(flavor) == 16):
+            return Edep/inelasticity # TODO: change this for taus
+          
 def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
                                 full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
+                                thetamin=0.*units.rad, thetamax=np.pi*units.rad,
+                                phimin=0.*units.rad, phimax=2*np.pi*units.rad,
                                 start_event_id=1,
                                 flavor=[12, -12, 14, -14, 16, -16],
                                 n_events_per_file=None,
                                 spectrum='log_uniform',
                                 add_tau_second_bang=False,
                                 add_tau_larger_volume=False):
+                                deposited=False):
     """
     Event generator
 
@@ -222,6 +252,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     Emax: float
         the maximum neutrino energy (energies are randomly chosen assuming a
         uniform distribution in the logarithm of the energy)
+
     fiducial_rmin: float
         lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
     fiducial_rmax: float
@@ -238,6 +269,14 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         lower z coordinate of simulated volume (if None it is set to 3x the fiducial volume)
     full_zmax: float (default None)
         upper z coordinate of simulated volume (if None it is set to 3x the fiducial volume)
+    thetamin: float
+        lower zenith angle for neutrino arrival direction
+    thetamax: float
+        upper zenith angle for neutrino arrival direction
+    phimin: float
+        lower azimuth angle for neutrino arrival direction
+    phimax: float
+         upper azimuth angle for neutrino arrival direction
     start_event: int
         default: 1
         event number of first event
@@ -260,7 +299,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         defines the probability distribution for which the neutrino energies are generated
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-1': 1 over E spectrum
-
+    deposited: bool
+        If True, generate deposited energies instead of primary neutrino energies
     """
     attributes = {}
     n_events = int(n_events)
@@ -285,11 +325,15 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     attributes['rmax'] = full_rmax
     attributes['zmin'] = full_zmin
     attributes['zmax'] = full_zmax
-    
     attributes['flavors'] = flavor
     attributes['Emin'] = Emin
     attributes['Emax'] = Emax
-    
+    attributes['thetamin'] = thetamin
+    attributes['thetamax'] = thetamax
+    attributes['phimin'] = phimin
+    attributes['phimax'] = phimax
+    attributes['deposited'] = deposited
+
     data_sets = {}
     # generate neutrino vertices randomly
     rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
@@ -340,8 +384,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             data_sets["ccncs"][i] = 'nc'
 
     # generate neutrino direction randomly
-    data_sets["azimuths"] = np.random.uniform(0, 360 * units.deg, n_events)
-    u = np.random.uniform(-1, 1, n_events)
+    data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
+    u = np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events)
     data_sets["zeniths"] = np.arccos(u)  # generates distribution that is uniform in cos(theta)
 
     # generate inelasticity (ported from ShelfMC)
@@ -353,6 +397,12 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     epsilon = np.log10(energies / 1e9)
     inelasticity = pickY(flavors, ccncs, epsilon)
     """
+    
+    if deposited:
+        data_sets["energies"] = [primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity) \
+                                for Edep, ccnc, flavor, inelasticity in \
+                                zip(data_sets["energies"], data_sets["ccncs"], \
+                                data_sets["flavors"], data_sets["inelasticity"])]
     
     # save only events with interactions in fiducial volume
     data_sets_fiducial = {}
@@ -403,7 +453,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     data_sets_fiducial['flavors'][iE2] = 15 * np.sign(data_sets_fiducial['flavors'][iE2])  # keep particle/anti particle nature
         print("added {} tau decays to the event list".format(n_taus))
 
-    write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file)
+    write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=n_events_per_file)
 
 
 def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_file):
