@@ -19,8 +19,10 @@ import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.channel
+import NuRadioReco.framework.electric_field
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import datetime
 import logging
 from six import iteritems
@@ -82,7 +84,7 @@ class simulation():
         evt_time: datetime object
             the time of the events, default 1/1/2018
         """
-        
+
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
         logger.warning('reading default config from {}'.format(config_file_default))
         with open(config_file_default, 'r') as ymlfile:
@@ -93,7 +95,7 @@ class simulation():
                 local_config=yaml.load(ymlfile)
                 new_cfg = merge_config(local_config, self._cfg)
                 self._cfg = new_cfg
-        
+
         self._eventlist = eventlist
         self._outputfilename = outputfilename
         self._detectorfile = detectorfile
@@ -102,26 +104,26 @@ class simulation():
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._debug = debug
         self._evt_time = evt_time
-        
+
         self._ice = medium.get_ice_model(self._cfg['propagation']['ice_model'])
-        
+
         self._mout = {}
         self._mout_attrs = {}
 
         # read in detector positions
         logger.debug("Detectorfile {}".format(self._detectorfile))
         self._det = detector.Detector(json_filename=self._detectorfile)
-        
+
         # print noise information
         logger.warning("running with noise {}".format(bool(self._cfg['noise'])))
         logger.warning("setting signal to zero {}".format(bool(self._cfg['signal']['zerosignal'])))
 
         # read sampling rate from config (this sampling rate will be used internally)
         self._dt = 1. / (self._cfg['sampling_rate'] * units.GHz)
-        
+
         self._sampling_rate_detector = self._det.get_sampling_frequency(station_id, 0)
         logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
-        
+
         bandwidth = self._cfg['trigger']['bandwidth']
         if(bandwidth is None):
             self._bandwidth = 0.5 / self._dt
@@ -148,20 +150,20 @@ class simulation():
         self._read_input_hdf5() # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
         self._n_events = len(self._fin['event_ids'])
         self._n_antennas = self._det.get_number_of_channels(self._station_id)
-        
+
         self._create_meta_output_datastructures()
-        
+
         # check if the same detector was simulated before (then we can save the ray tracing part)
         self._check_if_was_pre_simulated()
-        
-    
+
+
         inputTime = 0.0
         rayTracingTime = 0.0
         detSimTime = 0.0
         outputTime = 0.0
         time_attenuation_length = 0.
         t_start = time.time()
-        
+
         for self._iE in range(self._n_events):
             t1 = time.time()
             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 100.)) == 0):
@@ -192,7 +194,7 @@ class simulation():
             # calculate correct chereknov angle for ice density at vertex position
             n_index = self._ice.get_index_of_refraction(x1)
             cherenkov_angle = np.arccos(1. / n_index)
-                
+
             self._create_sim_station()
             candidate_event = False
 
@@ -214,7 +216,7 @@ class simulation():
                 if(not r.has_solution()):
                     logger.debug("event {} and station {}, channel {} does not have any ray tracing solution".format(
                         self._event_id, self._station_id, channel_id))
-                    self._add_empty_channel(channel_id)
+                    self._add_empty_electric_field(channel_id)
                     continue
                 delta_Cs = []
                 viewing_angles = []
@@ -236,7 +238,7 @@ class simulation():
                 # discard event if delta_C (angle off cherenkov cone) is too large
                 if(min(np.abs(delta_Cs)) > self._cfg['speedup']['delta_C_cut']):
                     logger.debug('delta_C too large, event unlikely to be observed, skipping event')
-                    self._add_empty_channel(channel_id)
+                    self._add_empty_electric_field(channel_id)
                     continue
 
                 n = r.get_number_of_solutions()
@@ -284,7 +286,7 @@ class simulation():
                         # add EM signal to had signal in the time domain
                         spectrum = fft.time2freq(fft.freq2time(spectrum) + fft.freq2time(spectrum_em))
 
-                    
+
                     polarization_direction_onsky = self._calculate_polarization_vector()
                     cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
                     polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
@@ -322,20 +324,20 @@ class simulation():
                         fig.subplots_adjust(top=0.9)
                         plt.show()
 
-                    channel = NuRadioReco.framework.channel.Channel(channel_id)
-                    channel.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / self._dt)
-                    channel.set_trace_start_time(T)
-                    channel[chp.azimuth] = azimuth
-                    channel[chp.zenith] = zenith
-                    channel[chp.ray_path_type] = ray.solution_types[r.get_solution_type(iS)]
-                    channel[chp.nu_vertex_distance] = Rs[iS]
-                    channel[chp.nu_viewing_angle] = viewing_angles[iS]
-                    self._sim_station.add_channel(channel)
+                    electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id])
+                    electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / self._dt)
+                    electric_field.set_trace_start_time(T)
+                    electric_field[efp.azimuth] = azimuth
+                    electric_field[efp.zenith] = zenith
+                    electric_field[efp.ray_path_type] = ray.solution_types[r.get_solution_type(iS)]
+                    electric_field[efp.nu_vertex_distance] = Rs[iS]
+                    electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
+                    self._sim_station.add_electric_field(electric_field)
 
                     # apply a simple threshold cut to speed up the simulation,
                     # application of antenna response will just decrease the
                     # signal amplitude
-                    if(np.max(np.abs(channel.get_trace())) > 2 * self._Vrms):
+                    if(np.max(np.abs(electric_field.get_trace())) > 2 * self._Vrms):
                         candidate_event = True
 
             #print("start detector simulation. time: " + str(time.time()))
@@ -360,12 +362,16 @@ class simulation():
                 self._eventWriter.run(self._evt)
             t4 = time.time()
             detSimTime += (t4 - t3)
-            
+
+        # Create trigger structures if there are no triggering events.
+        # This is done to ensure that files with no triggering n_events
+        # merge properly.
+        self._create_empty_multiple_triggers()
 
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
         self._write_ouput_file()
-        
+
         t_total = time.time() - t_start
         logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(self._n_events,
                                                                                          t_total, 1.e3 * t_total / self._n_events))
@@ -375,31 +381,34 @@ class simulation():
         except:
             logger.error("error in calculating effective volume")
 
+        t_total = time.time() - t_start
+        logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(self._n_events,
+                                                                                         t_total, 1.e3 * t_total / self._n_events))
+
         outputTime = time.time() - t5
         print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
               "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
-        
-    
+
+
     def _increase_signal(self, channel_id, factor):
         """
         increase the signal of a simulated station by a factor of x
         this is e.g. used to approximate a phased array concept with a single antenna
-        
+
         Parameters
         ----------
         channel_id: int or None
             if None, all available channels will be modified
         """
         if(channel_id is None):
-            for sim_channels in self._station.get_sim_station().iter_channels():
-                for sim_channel in sim_channels:
-                    sim_channel.set_trace(sim_channel.get_trace() * factor, sampling_rate=sim_channel.get_sampling_rate())
-                
+            for electric_field in self._station.get_sim_station().get_electric_fields():
+                electric_field.set_trace(electric_field.get_trace() * factor, sampling_rate=electric_field.get_sampling_rate())
+
         else:
-            sim_channels = self._station.get_sim_station().get_channel(channel_id)
+            sim_channels = self._station.get_sim_station().get_electric_field_for_channels([channel_id])
             for sim_channel in sim_channels:
                 sim_channel.set_trace(sim_channel.get_trace() * factor, sampling_rate=sim_channel.get_sampling_rate())
-        
+
     def _read_input_hdf5(self):
         """
         reads input file into memory
@@ -426,7 +435,7 @@ class simulation():
         for key, value in iteritems(fin.attrs):
             self._fin_attrs[key] = value
         fin.close()
-    
+
     def _calculate_signal_properties(self):
         if(self._station.has_triggered()):
             self._channelSignalReconstructor.run(self._evt, self._station, self._det)
@@ -436,17 +445,29 @@ class simulation():
 
             self._mout['SNRs'][self._iE] = self._station.get_parameter(stnp.channels_max_amplitude) / self._Vrms
 
-    def _save_triggers_to_hdf5(self):
+    def _create_empty_multiple_triggers(self):
+
+        if ('trigger_names' not in self._mout_attrs):
+            self._mout_attrs['trigger_names'] = np.array([])
+            self._mout['multiple_triggers'] = np.zeros((self._n_events, 1))
+
+    def _create_trigger_structures(self):
 
         if('trigger_names' not in self._mout_attrs):
             self._mout_attrs['trigger_names'] = []
+
             for trigger in six.itervalues(self._station.get_triggers()):
                 self._mout_attrs['trigger_names'].append(trigger.get_name())
-        # the 'multiple_triggers' output array is not initialized in the constructor because the number of 
-        # simulated triggers is unknown at the beginning. So we check if the key already exists and if not, 
+        # the 'multiple_triggers' output array is not initialized in the constructor because the number of
+        # simulated triggers is unknown at the beginning. So we check if the key already exists and if not,
         # we first create this data structure
         if('multiple_triggers' not in self._mout):
             self._mout['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])))
+
+    def _save_triggers_to_hdf5(self):
+
+        self._create_trigger_structures()
+
         for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
             self._mout['multiple_triggers'][self._iE, iT] = self._station.get_trigger(trigger_name).has_triggered()
 
@@ -454,7 +475,7 @@ class simulation():
         if(self._mout['triggered'][self._iE]):
             logger.info("event triggered")
 
-    
+
     def get_Vrms(self):
         return self._Vrms
 
@@ -463,7 +484,7 @@ class simulation():
 
     def get_bandwidth(self):
         return self._bandwidth
-    
+
     def _check_if_was_pre_simulated(self):
         """
         checks if the same detector was simulated before (then we can save the ray tracing part)
@@ -476,7 +497,7 @@ class simulation():
                     print("the simulation was already performed with the same detector")
         return self._was_pre_simulated
 
-    
+
     def _create_meta_output_datastructures(self):
         """
         creates the data structures of the parameters that will be saved into the hdf5 output file
@@ -498,7 +519,7 @@ class simulation():
         self._mout['SNRs'] = np.zeros(self._n_events) * np.nan
         self._mout['maximum_amplitudes'] = np.zeros((self._n_events, self._n_antennas)) * np.nan
         self._mout['maximum_amplitudes_envelope'] = np.zeros((self._n_events, self._n_antennas)) * np.nan
-        
+
     def _read_input_neutrino_properties(self):
         self._event_id = self._fin['event_ids'][self._iE]
         self._flavor = self._fin['flavors'][self._iE]
@@ -510,7 +531,7 @@ class simulation():
         self._zenith_nu = self._fin['zeniths'][self._iE]
         self._azimuth_nu = self._fin['azimuths'][self._iE]
         self._inelasticity = self._fin['inelasticity'][self._iE]
-        
+
     def _create_sim_station(self):
         """
         created an empyt sim_station object and saves the meta arguments such as neutrino direction, self._energy and self._flavor
@@ -527,14 +548,14 @@ class simulation():
         self._sim_station[stnp.inelasticity] = self._inelasticity
 
 
-    def _add_empty_channel(self, channel_id):
-        channel = NuRadioReco.framework.channel.Channel(channel_id)
-        channel.set_frequency_spectrum(np.zeros((3, len(self._ff)), dtype=np.complex), 1. / self._dt)
-        channel[chp.azimuth] = 0
-        channel[chp.zenith] = 180 * units.deg
-        channel[chp.ray_path_type] = 'none'
-        channel.set_trace_start_time(np.nan)
-        self._sim_station.add_channel(channel)
+    def _add_empty_electric_field(self, channel_id):
+        electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id])
+        electric_field.set_frequency_spectrum(np.zeros((3, len(self._ff)), dtype=np.complex), 1. / self._dt)
+        electric_field[efp.azimuth] = 0
+        electric_field[efp.zenith] = 180 * units.deg
+        electric_field[efp.ray_path_type] = 'none'
+        electric_field.set_trace_start_time(np.nan)
+        self._sim_station.add_electric_field(electric_field)
 
     def _write_ouput_file(self):
         fout = h5py.File(self._outputfilename, 'w')
@@ -547,7 +568,7 @@ class simulation():
             print("Saving all events")
             for (key, value) in iteritems(self._mout):
                 fout[key] = value
-            
+
         for (key, value) in iteritems(self._mout_attrs):
             fout.attrs[key] = value
 
@@ -558,8 +579,8 @@ class simulation():
         positions = np.zeros((n_channels, 3))
         for channel_id in range(n_channels):
             positions[channel_id] = self._det.get_relative_position(self._station_id, channel_id)
-        fout.attrs['antenna_positions'] = positions    
-        
+        fout.attrs['antenna_positions'] = positions
+
         fout.attrs['Tnoise'] = self._Tnoise
         fout.attrs['Vrms'] = self._Vrms
         fout.attrs['dt'] = self._dt
@@ -582,7 +603,7 @@ class simulation():
                 fout.attrs[key] = self._fin_attrs[key]
         fout.close()
 
-        
+
     def calculate_Veff(self):
         # calculate effective
         density_ice = 0.9167 * units.g / units.cm ** 3
@@ -606,12 +627,12 @@ class simulation():
             V = np.pi * (rmax**2 - rmin**2) * dZ
         Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
         logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
-        
+
     def _get_em_had_fraction(self, inelasticity, ccnc, flavor):
         """
         calculates the fraction of the neutrino energy that goes into the
         electromagnetic cascade (em) and the hadronic cascade (had)
-    
+
         Parameters
         ----------
         inelasticity: float
@@ -620,7 +641,7 @@ class simulation():
             neutral current (nc) or carged currend (cc) interaction
         flavor: int
             flavor id
-    
+
         returns
         --------
         fem: float
@@ -641,11 +662,11 @@ class simulation():
             elif(np.abs(flavor) == 16):
                 fhad = inelasticity
         return fem, fhad
-    
+
     # TODO verify that calculation of polarization vector is correct!
     def _calculate_polarization_vector(self):
         """ calculates the polarization vector in spherical coordinates (eR, eTheta, ePhi)
-        """ 
+        """
         if(self._cfg['signal']['polarization'] == 'auto'):
             polarization_direction = np.cross(self._launch_vector, np.cross(self._shower_axis, self._launch_vector))
             polarization_direction /= np.linalg.norm(polarization_direction)
