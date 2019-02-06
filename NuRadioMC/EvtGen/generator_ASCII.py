@@ -7,8 +7,8 @@ xmin = -3 * units.km
 xmax = 3 * units.km
 ymin = -3 * units.km
 ymax = 3 * units.km
-zmin = -3 * units.km
-zmax = 0 * units.km
+fiducial_zmin = -3 * units.km
+fiducial_zmax = 0 * units.km
 
 HEADER = """VERSION=0.2
 # standard event list format of NuRadioMC (adapted from ARASim)
@@ -60,7 +60,7 @@ def generate_eventlist(filename, n_events, Emin, Emax,
     # generate neutrino vertices randomly
     xx = np.random.uniform(xmin, xmax, n_events)
     yy = np.random.uniform(ymin, ymax, n_events)
-    zz = np.random.uniform(zmin, zmax, n_events)
+    zz = np.random.uniform(fiducial_zmin, fiducial_zmax, n_events)
 
     # generate neutrino direction randomly
     azimuths = np.random.uniform(0, 360 * units.deg, n_events)

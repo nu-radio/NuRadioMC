@@ -103,3 +103,4 @@ ENV/
 # eclipse
 .project
 .pydevproject
+.settings

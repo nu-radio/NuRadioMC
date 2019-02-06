@@ -165,7 +165,6 @@ class simulation():
         t_start = time.time()
 
         for self._iE in range(self._n_events):
-            logger.debug("Test")
             t1 = time.time()
             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 100.)) == 0):
                 eta = datetime.timedelta(seconds=(time.time() - t_start) * (self._n_events - self._iE) / self._iE)
@@ -648,7 +647,7 @@ class simulation():
             hadroninc fraction
         """
         fem = 0  # electrogmatnetic fraction
-        fhad = 0  # hadroninc fraction
+        fhad = 0  # hadronic fraction
         if(ccnc == 'nc'):
             fhad = inelasticity
         else:
