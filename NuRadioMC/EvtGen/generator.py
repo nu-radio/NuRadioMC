@@ -157,9 +157,6 @@ def get_decay_time_losses(energy, distmax, average=False, compare=False):
         tau_decay_rest = get_tau_decay_rest(energy)
     else:
         tau_decay_rest = tau_rest_lifetime
-    #print(times)
-    #print(energies)
-    #print([ mean_energy_loss(E)/units.PeV/units.cm**2*units.g for E in energies ] )
 
     # We use an interpolation for having the energies as a function of time
     energies_interp = interp1d(times, energies)
