@@ -114,7 +114,7 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
         Vrms = fin.attrs['Vrms']
 
         # Solid angle needed for the effective volume calculations
-        omega = 2 * np.pi * np.abs( np.cos(thetamin)-np.cos(thetamax) )
+        omega = np.abs(fin.attrs['phimax'] - fin.attrs['phimin']) * np.abs( np.cos(thetamin)-np.cos(thetamax) )
 
         for iT, trigger_name in enumerate(trigger_names):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
