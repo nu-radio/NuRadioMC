@@ -42,12 +42,6 @@ def get_tau_decay_time(energy):
     Calculates the random tau decay time taking into account time dilation
     """
 
-
-def get_tau_decay_time(energy):
-    """
-    Calculates the random tau decay time taking into account time dilation
-    """
-
     gamma = energy / tau_mass  # tau_mass must be in natural units (c = 1)
     tau_mean_time = gamma * tau_rest_time
 
@@ -82,7 +76,7 @@ def get_tau_decay_length(energy):
 def get_tau_decay_vertex(x, y, z, E, zenith, azimuth):
     """
      Let us assume that the tau has the same direction as the tau neutrino
-     to calculate the vertex of the second shower            
+     to calculate the vertex of the second shower
      This must be changed in the future
     """
     L = get_tau_decay_length(E)
@@ -138,7 +132,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         if(len(evt_ids_this_file) == 0):
             logger.info("no more events to write in file {}".format(iFile))
             break
-        
+
         if((iFile > 0) or (n_events_per_file < n_events)):
             filename2 = filename + ".part{:04}".format(iFile + 1)
         fout = h5py.File(filename2, 'w')
@@ -151,7 +145,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
 
         evt_id_first = evt_ids_this_file[0]
         evt_id_last = evt_ids_this_file[-1]
-        
+
         tmp = np.squeeze(np.argwhere(data_sets['event_ids'] == evt_id_last))  # set stop index such that last event is competely in file
         if(tmp.size == 1):
             stop_index = tmp + 1
@@ -169,7 +163,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
 
         for key, value in data_sets.iteritems():
             fout[key] = value[start_index:stop_index]
-            
+
         # determine the number of events in this file (which is NOT the same as the entries in the file)
         # case 1) this is not the last file -> number of events is difference between last event id of the current and previous file + 1
         # case 2) it is the last file -> total number of simulated events - last event id of previous file
@@ -185,7 +179,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
             n_events_this_file = evt_id_last  - attributes['start_event_id']
         else: # case 1
             n_events_this_file = evt_id_last - evt_id_last_previous
-        
+
         print('writing file {} with {} events (id {} - {}) and {} entries'.format(filename2, n_events_this_file, evt_id_first,
                                                                                   evt_id_last, stop_index - start_index))
         fout.attrs['n_events'] = n_events_this_file
@@ -225,7 +219,7 @@ def primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity):
             return Edep/inelasticity
         elif (np.abs(flavor) == 16):
             return Edep/inelasticity # TODO: change this for taus
-          
+
 def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
                                 full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
@@ -316,7 +310,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     attributes['fiducial_rmax'] = fiducial_rmax
     attributes['fiducial_zmin'] = fiducial_zmin
     attributes['fiducial_zmax'] = fiducial_zmax
-    
+
     if(full_rmin is None):
         full_rmin = fiducial_rmin / 3.
     if(full_rmax is None):
@@ -325,7 +319,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         full_zmin = fiducial_zmin * 5.
     if(full_zmax is None):
         full_zmax = fiducial_zmax / 3.
-        
+
     attributes['rmin'] = full_rmin
     attributes['rmax'] = full_rmax
     attributes['zmin'] = full_zmin
@@ -347,7 +341,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets["yy"] = rr_full * np.sin(phiphi)
     data_sets["zz"] = np.random.uniform(full_zmin, full_zmax, n_events)
     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
-    
+
     data_sets["event_ids"] = np.arange(n_events) + start_event_id
     data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
 
@@ -401,13 +395,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     #from AraSim
     epsilon = np.log10(energies / 1e9)
     inelasticity = pickY(flavors, ccncs, epsilon)
-    """    
+    """
     if deposited:
         data_sets["energies"] = [primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity) \
                                 for Edep, ccnc, flavor, inelasticity in \
                                 zip(data_sets["energies"], data_sets["ccncs"], \
                                 data_sets["flavors"], data_sets["inelasticity"])]
-    
+
     # save only events with interactions in fiducial volume
     data_sets_fiducial = {}
     for key, value in iteritems(data_sets):
@@ -419,23 +413,23 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         n_taus = 0
         for event_id in data_sets["event_ids"][mask]:
             iE = event_id - start_event_id
-            
+
             Etau = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
             # first calculate if tau decay is still in our fiducial volume
             x, y, z = get_tau_decay_vertex(data_sets["xx"][iE], data_sets["yy"][iE], data_sets["zz"][iE],
                                            Etau, data_sets["zeniths"][iE], data_sets["azimuths"][iE])
             logger.debug("tau energy = {:.2g}eV, decay length = {:.2f}km -> decay at {:.2f}, {:.2f}, {:.2f}".format(Etau/units.eV,
                                                             get_tau_decay_length(Etau)/units.km, x/units.km, y/units.km, z/units.km))
-            
+
             r = (x ** 2 + y ** 2)**0.5
             if(r >= fiducial_rmin and r <= fiducial_rmax ):
                 if(z >= fiducial_zmin and z <= fiducial_zmax):  # z coordinate is negative
                     # the tau decay is in our fiducial volume
-            
+
                     n_taus += 1  # we change the datasets during the loop, to still have the correct indices, we need to keep track of the number of events we inserted
-        
+
                     # insert second vertex after the first neutrino interaction
-                    # two possible cases 
+                    # two possible cases
                     # 1) first interaction is not in fiducial volume -> insert event such that event ids are increasing
                     # 2) first interaction is in fiducial volume -> find correct index
                     if(event_id in data_sets['event_ids']):  # case 2
@@ -484,4 +478,3 @@ def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_
     fin.close()
 
     write_events_to_hdf5(output_filename, data_sets, attributes, n_events_per_file=number_of_events_per_file)
-
