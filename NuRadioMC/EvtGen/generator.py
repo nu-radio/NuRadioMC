@@ -37,6 +37,11 @@ tau_mass = constants.physical_constants['tau mass energy equivalent in MeV'][0] 
 # Lifetime of the tau (rest frame). Taken from PDG
 tau_rest_time = 290.3 * units.fs
 
+def get_tau_decay_time(energy):
+    """
+    Calculates the random tau decay time taking into account time dilation
+    """
+
 
 def get_tau_decay_time(energy):
     """
@@ -52,11 +57,11 @@ def get_tau_decay_time(energy):
 
     return tau_decay_time
 
-
 def get_tau_speed(energy):
     """
     Calculates the speed of the tau lepton
     """
+
 
     gamma = energy / tau_mass
     if (gamma < 1):
@@ -98,7 +103,6 @@ def get_tau_decay_vertex(x, y, z, E, zenith, azimuth):
 def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None):
     """
     writes NuRadioMC input parameters to hdf5 file
-
 
     this function can automatically split the dataset up into multiple files for easy multiprocessing
 
@@ -189,6 +193,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         n_events_total += n_events_this_file
 
         start_index = stop_index
+
         evt_id_last_previous = evt_id_last
         if(evt_id_last == n_events):  # break while loop if all events are saved
             break
@@ -396,8 +401,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     #from AraSim
     epsilon = np.log10(energies / 1e9)
     inelasticity = pickY(flavors, ccncs, epsilon)
-    """
-    
+    """    
     if deposited:
         data_sets["energies"] = [primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity) \
                                 for Edep, ccnc, flavor, inelasticity in \
@@ -452,8 +456,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     # set flavor to tau
                     data_sets_fiducial['flavors'][iE2] = 15 * np.sign(data_sets_fiducial['flavors'][iE2])  # keep particle/anti particle nature
         print("added {} tau decays to the event list".format(n_taus))
-
-    write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=n_events_per_file)
+   write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=n_events_per_file)
 
 
 def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_file):
@@ -482,14 +485,3 @@ def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_
 
     write_events_to_hdf5(output_filename, data_sets, attributes, n_events_per_file=number_of_events_per_file)
 
-
-if __name__ == '__main__':
-    # define simulation volume
-    xmin = -3 * units.km
-    xmax = 3 * units.km
-    ymin = -3 * units.km
-    ymax = 3 * units.km
-    fiducial_zmin = -2.7 * units.km
-    fiducial_zmax = 0 * units.km
-    generate_eventlist_cylinder('1e19.hdf5', 1e3, 1e19 * units.eV, 1e19 * units.eV,
-                                0, 3 * units.km, fiducial_zmin, fiducial_zmax)
