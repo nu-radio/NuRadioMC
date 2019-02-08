@@ -32,12 +32,12 @@ c = 2.99792458e8 * units.m / units.s
 class ARZ(object):
     __instance = None
 
-    def __new__(cls, seed=1234, interp_factor=10., library=None):
+    def __new__(cls, seed=1234, interp_factor=None, library=None):
         if ARZ.__instance is None:
             ARZ.__instance = object.__new__(cls, seed, interp_factor, library)
         return ARZ.__instance
 
-    def __init__(self, seed=1234, interp_factor=10., library=None):
+    def __init__(self, seed=1234, interp_factor=None, library=None):
         logger.warning("setting seed to {}".format(seed, interp_factor))
         np.random.seed(seed)
         self._interp_factor = interp_factor
@@ -203,7 +203,7 @@ class ARZ(object):
     
 def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
                               shower_type="HAD", n_index=1.78, distance=1 * units.m,
-                              interp_factor=10, shift_for_xmax=False):
+                              interp_factor=None, shift_for_xmax=False):
     """
     fast interpolation of time-domain calculation of vector potential of the 
     Askaryan pulse from a charge-excess profile
@@ -232,14 +232,19 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
         index of refraction where the shower development takes place
     distance: float (default 1km)
         observation distance, the signal amplitude will be scaled according to 1/R
-    interp_factor: int (default 10)
+    interp_factor: int (default None)
         interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
-        for small vertex distances but also slows down the calculation proportional to the interpolation factor. 
+        for small vertex distances but also slows down the calculation proportional to the interpolation factor.
+        if None, the interpolation factor will be calculated from the distance 
     shift_for_xmax: bool (default True)
         if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
         with respect to (0,0,0) which is the start of the charge-excess profile
     """
-
+    
+    if(interp_factor is None):
+        interp_factor  = 10**(3 - np.log10(distance/units.m))  # TODO to be tuned!
+        logger.warning("using interpolation factor {:.2f} for distance {:.0f}m".format(interp_factor, distance/units.m))
+    
     ttt = np.arange(0, (N + 1) * dt, dt)
     ttt = ttt + 0.5 * dt - ttt.mean()
     N = len(ttt)
