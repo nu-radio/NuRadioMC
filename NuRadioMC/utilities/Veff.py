@@ -31,7 +31,7 @@ def get_triggered(fin):
     if (len(triggered) == 0):
         return triggered
 
-    second_bang_indexes = np.argwhere(np.array(fin['event_ids']) < 0)
+    second_bang_indexes = np.argwhere(np.array(fin['n_interaction']) == 2)
     if(second_bang_indexes.shape[0] > 1):
         second_bang_indexes = np.squeeze(second_bang_indexes)
     elif(second_bang_indexes.shape[0] == 1):
