@@ -29,6 +29,14 @@ c = 2.99792458e8 * units.m / units.s
 # e = 1.602177e-19 * units.coulomb
 
 
+def thetaprime_to_theta(thetaprime, xmax, R):
+    """
+    convertes a viewing angle relative to the shower maximum to a viewing angle relative to the start of the shower. 
+    """
+    L = xmax / rho
+    return thetaprime-np.arcsin((L * np.sin(np.pi - thetaprime))/R)
+
+
 class ARZ(object):
     __instance = None
 
