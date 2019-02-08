@@ -81,13 +81,11 @@ class simulationSelector:
             noise_std = np.std(noise_region)
 
             noise += n_std * noise_std
-
-            mask =  np.where(np.abs(fft[max_pol]) > noise)
-            max_freq = np.max(freq[mask])
-            if max_freq > np.min(np.array(frequency_window)):
+            
+            mask = (freq >= frequency_window.min())  & (freq <= frequency_window.max())
+            if(np.any(fft[:, mask] > noise)):
                 selected_sim = True
                 break
-
 
         self.__t += time.time() - t
         return selected_sim
