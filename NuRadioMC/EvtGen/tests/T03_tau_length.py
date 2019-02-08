@@ -25,6 +25,7 @@ plt.legend()
 plt.show()
 
 plt.loglog(energies, tau_energies, label='With photonuclear losses')
+plt.loglog(energies, energies, label='Without losses')
 plt.xlabel('Initial tau energy [eV]')
 plt.ylabel('Decay tau energy [eV]')
 plt.legend()
