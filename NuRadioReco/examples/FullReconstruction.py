@@ -14,7 +14,6 @@ import NuRadioReco.modules.electricFieldBandPassFilter
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.channelBandPassFilter
-import NuRadioReco.modules.io.eventReader
 import NuRadioReco.modules.channelTemplateCorrelation
 import NuRadioReco.modules.channelStopFilter
 import NuRadioReco.modules.templateDirectionFitter
@@ -35,22 +34,19 @@ import NuRadioReco.modules.electricFieldSignalReconstructor
 import NuRadioReco.modules.voltageToEfieldConverter
 from NuRadioReco.framework.parameters import channelParameters as chp
 
-
 # Logging level
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('FullExample')
 
-station_id = int(sys.argv[1])  # specify station id 
-triggered_channels = [4, 5, 6, 7]
+station_id = int(sys.argv[1])  # specify station id
 if(station_id == 32):
     triggered_channels = [0,1,2,3]
     used_channels_efield = [0, 1, 2, 3]
     used_channels_fit = [0, 1, 2, 3]
     channel_pairs = ((0, 2), (1, 3))
 
-
-det = detector.Detector(json_filename='ARIANNA/arianna_detector_db.json'.format(station_id)) 
+det = detector.Detector(json_filename='ARIANNA/arianna_detector_db.json'.format(station_id))
 
 NOISE_PATH = "/lustre/fs22/group/radio/plaisier/software/simulations/example" #path to measured noise files
 
@@ -58,7 +54,6 @@ input_files = glob.glob(os.path.join('/lustre/fs22/group/radio/sim/cr/000000', "
 
 dir_path = os.path.dirname(os.path.realpath(__file__)) #get the directory of this file
 template_directory = os.path.join(dir_path, '../../ARIANNAreco/analysis/templateGeneration') #path to templates
-
 
 # initialize all modules
 readCoREAS = NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS()
@@ -97,58 +92,59 @@ voltageToEfieldConverter = NuRadioReco.modules.voltageToEfieldConverter.voltageT
 channelSignalReconstructor.begin()
 channelTemplateCorrelation.begin()
 
-output_filename = "outputfilename.nur" 
+output_filename = "outputfilename.nur"
 eventWriter.begin(output_filename)
 
 for iE, evt in enumerate(readCoREAS.run(det)):
-
-        logger.info("processing event {:d} with id {:d}".format(iE, evt.get_id()))
-        station = evt.get_station(station_id)
-
-        electricFieldResampler.run(evt, station.get_sim_station(), det, sampling_rate=100 * units.GHz)
-
-        efieldToVoltageConverter.run(evt, station, det)
-
-        channelResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
-
+    
+    logger.info("processing event {:d} with id {:d}".format(iE, evt.get_id()))
+    station = evt.get_station(station_id)
+    
+    efieldToVoltageConverter.run(evt, station, det)
+        
         hardwareResponseIncorporator.run(evt, station, det, sim_to_data=True)
-
+        
         #channelLengthAdjuster.run(evt, station, det)
-
+        
         #noiseImporter.run(evt, station, det)
-
+        
         channelGenericNoiseAdder.run(evt, station, det, type = "perfect_white", amplitude = 20* units.mV)
-        channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 500 * units.MHz], filter_type='butter', order = 10)
-        electricFieldResampler.run(evt, station.get_sim_station(), det, sampling_rate=1 * units.GHz)
-
-        channelTemplateCorrelation.run(evt, station, det, cosmic_ray=True, channels_to_use=used_channels_fit)
-
-        xcorr = station[stnp.cr_xcorrelations]["cr_avg_xcorr_parallel_crchannels"]
-        output_mode = 'full'
-        if(xcorr < 0.4):
+        
+        triggerSimulator.run(evt, station,det)
+        
+        if station.get_trigger('default_simple_threshold').has_triggered():
+            
+            channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 500 * units.MHz], filter_type='butter', order = 10)
+            
+            channelTemplateCorrelation.run(evt, station, det, cosmic_ray=True, channels_to_use=used_channels_fit)
+            
+            xcorr = station[stnp.cr_xcorrelations]["cr_avg_xcorr_parallel_crchannels"]
+            output_mode = 'full'
+            if(xcorr < 0.4):
                 output_mode = 'micro'
                 continue
-
-        channelSignalReconstructor.run(evt, station, det)
-
-        cosmicRayIdentifier.run(evt, station, "forced")
-
-        channelStopFilter.run(evt, station, det)
-
-        hardwareResponseIncorporator.run(evt, station, det)
-
-        templateDirectionFitter.run(evt, station, det, cosmic_ray=True, channels_to_use=used_channels_fit)
-
-        correlationDirectionFitter.run(evt, station, det, n_index=1., channel_pairs=channel_pairs)
-        electricFieldBandPassFilter.run(evt, station.get_sim_station(), det, passband = [80*units.MHz, 500*units.MHz], filter_type = 'butter10')
-
-        channelBandPassFilter.run(evt, station, det, passband=[60 * units.MHz, 600 * units.MHz], filter_type='rectangular')
-        voltageToEfieldConverter.run(evt, station, det, debug=1, use_channels=used_channels_efield)
-        electricFieldSignalReconstructor.run(evt, station, det)
-        voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], useMCdirection=False)
-
-        channelResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
-
+        
+            cosmicRayIdentifier.run(evt, station, "forced")
+            
+            channelStopFilter.run(evt, station, det)
+            
+            channelBandPassFilter.run(evt, station, det, passband=[60 * units.MHz, 600 * units.MHz], filter_type='rectangular')
+            
+            channelSignalReconstructor.run(evt, station, det)
+            
+            hardwareResponseIncorporator.run(evt, station, det)
+            
+            templateDirectionFitter.run(evt, station, det, cosmic_ray=True, channels_to_use=used_channels_fit)
+            
+            correlationDirectionFitter.run(evt, station, det, n_index=1., channel_pairs=channel_pairs)
+            
+            voltageToEfieldConverter.run(evt, station, det, debug=1, use_channels=used_channels_efield)
+            
+            electricFieldSignalReconstructor.run(evt, station, det)
+            voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], useMCdirection=False)
+            
+            channelResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
+    
         eventWriter.run(evt)
 
 nevents = eventWriter.end()
@@ -158,6 +154,7 @@ print("number of events =", nevents)
 
 
 
-               
-        
+
+
+
 
