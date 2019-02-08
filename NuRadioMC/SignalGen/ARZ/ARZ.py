@@ -240,9 +240,9 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
         with respect to (0,0,0) which is the start of the charge-excess profile
     """
 
-    tt = np.arange(0, (N + 1) * dt, dt)
-    tt = tt + 0.5 * dt - tt.mean()
-    N = len(tt)
+    ttt = np.arange(0, (N + 1) * dt, dt)
+    ttt = ttt + 0.5 * dt - ttt.mean()
+    N = len(ttt)
 
     xn = n_index
     cher = np.arccos(1. / n_index)
@@ -287,12 +287,23 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
     fc = 4. * np.pi / (xmu * np.sin(cher))
 
     vp = np.zeros((N, 3))
-    for it, t in enumerate(tt):
+    for it, t in enumerate(ttt):
         tobs = t + (get_dist_shower(X, 0) / c * xn)
         z = length
 
         R = get_dist_shower(X, z)
         arg = z - (beta * c * tobs - xn * R)
+        
+        # Note that Acher peaks at tt=0 which corresponds to the observer time.
+        # The shift from tobs to tt=0 is done when defining argument
+        tt = (-arg / (c * beta))  # Parameterisation of A_Cherenkov with t in ns
+        F_p = np.zeros_like(tt)
+        # Cut fit above +/-5 ns
+        mask = abs(tt) < 5. * units.ns
+        if(np.sum(mask) == 0):  # 
+            vp[it] = 0
+            continue
+
         u_x = X[0] / R
         u_y = X[1] / R
         u_z = (X[2] - z) / R
@@ -301,28 +312,19 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
         vperp_y = u_y * u_z * beta_z
         vperp_z = -(u_x * u_x + u_y * u_y) * beta_z
         v = np.array([vperp_x, vperp_y, vperp_z])
-
         """
         Function F_p Eq.(15) PRD paper.
         """
         # Factor accompanying the F_p in Eq.(15) in PRD paper
         beta = 1.
-
-        # Note that Acher peaks at tt=0 which corresponds to the observer time.
-        # The shift from tobs to tt=0 is done when defining argument
-        tt = (-arg / (c * beta))  # Parameterisation of A_Cherenkov with t in ns
-        # Cut fit above +/-5 ns
-        mask = abs(tt) < 5. * units.ns
-
-        # Choose Acher between purely electromagnetic, purely hadronic or mixed shower
-        # Eq.(16) PRD paper.
-        # Refit of ZHAireS results => factor 0.88 in Af_e
-        Af_e = -4.5e-14 * 0.88 * units.V * units.s
-        Af_p = -3.2e-14 * units.V * units.s  # V s
-        E_TeV = shower_energy / units.TeV
-        Acher = np.zeros_like(tt)
-        F_p = np.zeros_like(tt)
         if(np.sum(mask)):
+            # Choose Acher between purely electromagnetic, purely hadronic or mixed shower
+            # Eq.(16) PRD paper.
+            # Refit of ZHAireS results => factor 0.88 in Af_e
+            Af_e = -4.5e-14 * 0.88 * units.V * units.s
+            Af_p = -3.2e-14 * units.V * units.s  # V s
+            E_TeV = shower_energy / units.TeV
+            Acher = np.zeros_like(tt)
             if(shower_type == "HAD"):
                 mask2 = tt > 0 & mask
                 if(np.sum(mask2)):
