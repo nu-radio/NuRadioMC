@@ -44,6 +44,8 @@ class electricFieldParameters(Enum):
     signal_time = 9
     nu_vertex_distance = 10 # the distance along the ray path from the vertex to the channel
     nu_viewing_angle = 11 # the angle between shower axis and launch vector
+    max_amp_antenna = 12  # the maximum amplitude of the signal after convolution with the antenna response pattern, dict with channelid as key
+    max_amp_antenna_envelope = 13  # the maximum amplitude of the signal envelope after convolution with the antenna response pattern, dict with channelid as key
     
 class ARIANNAParameters(Enum):  # this class stores parameters specific to the ARIANNA data taking
     seq_start_time = 1  # the start time of a sequence
