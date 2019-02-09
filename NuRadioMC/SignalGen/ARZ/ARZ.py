@@ -9,6 +9,7 @@ from scipy import constants
 from matplotlib import pyplot as plt
 from radiotools import coordinatesystems as cstrafo
 import os
+import copy
 import pickle
 import logging
 logger = logging.getLogger("SignalGen.ARZ")
@@ -125,7 +126,7 @@ class ARZ(object):
         self._interp_factor = interp_factor
 
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
-                       same_shower=False, iN=None, output_mode='trace'):
+                       same_shower=False, iN=None, output_mode='trace', theta_reference='X0'):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
         
@@ -164,6 +165,9 @@ class ARZ(object):
         output_mode: string
             * 'trace' (default): return only the electric field trace
             * 'full' return trace, depth and charge_excess profile
+        theta_reference: string (default: X0)
+            * 'X0': viewing angle relativ to start of the shower
+            * 'Xmax': viewing angle is relativ to Xmax, internally it will be converted to be relative to X0
             
         Returns: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
@@ -198,6 +202,15 @@ class ARZ(object):
             
         profile_depth = profiles['depth']
         profile_ce = profiles['charge_excess'][iN] * rescaling_factor
+        
+        if(theta_reference == 'Xmax'):
+            xmax = profile_depth[np.argmax(profile_ce)]
+            thetat = copy.copy(theta)
+            theta = thetaprime_to_theta(theta, xmax, R)
+            logger.info("transforming viewing angle from {:.2f} to {:.2f}".format(thetat/units.deg, theta/units.deg))
+        elif(theta_reference != 'X0'):
+            raise NotImplementedError("theta_reference = '{}' is not implemented".format(theta_reference))
+        
         vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
                                                shower_type, n_index, R, self._interp_factor, shift_for_xmax)
         trace = -np.diff(vp, axis=0) / dt
