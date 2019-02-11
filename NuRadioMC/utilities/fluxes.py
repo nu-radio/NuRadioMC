@@ -239,7 +239,7 @@ def get_number_of_events_for_flux(energies, flux, Veff, livetime, nuCrsScn='ctw'
     return np.log(10) * livetime * flux * energies * Veff / get_interaction_length(energies, cross_section_type = nuCrsScn) * dlogE
 
 
-def get_exposure(energy, Veff):
+def get_exposure(energy, Veff, field_of_view=2*np.pi):
     """
     calculate exposure from effective volume 
     
@@ -249,11 +249,13 @@ def get_exposure(energy, Veff):
         neutrino energy (needed to calculate interaction length)
     Veff: float
         effective volume
+    field_of_view: float
+        the field of view of the detector
     
     Returns
     float: exposure
     """
-    return Veff / (2 * np.pi) / get_interaction_length(energy)
+    return Veff / field_of_view / get_interaction_length(energy)
 
 def get_integrated_exposure(exp_func, E_low, E_high):
     """
