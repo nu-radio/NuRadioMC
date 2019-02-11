@@ -35,7 +35,7 @@ def thetaprime_to_theta(thetaprime, xmax, R):
     convertes a viewing angle relative to the shower maximum to a viewing angle relative to the start of the shower. 
     """
     L = xmax / rho
-    return thetaprime-np.arcsin((L * np.sin(np.pi - thetaprime))/R)
+    return thetaprime - np.arcsin((L * np.sin(np.pi - thetaprime)) / R)
 
 
 class ARZ(object):
@@ -164,6 +164,7 @@ class ARZ(object):
             specify shower number
         output_mode: string
             * 'trace' (default): return only the electric field trace
+            * 'Xmax': return trace and position of xmax in units of length
             * 'full' return trace, depth and charge_excess profile
         theta_reference: string (default: X0)
             * 'X0': viewing angle relativ to start of the shower
@@ -207,7 +208,7 @@ class ARZ(object):
             xmax = profile_depth[np.argmax(profile_ce)]
             thetat = copy.copy(theta)
             theta = thetaprime_to_theta(theta, xmax, R)
-            logger.info("transforming viewing angle from {:.2f} to {:.2f}".format(thetat/units.deg, theta/units.deg))
+            logger.info("transforming viewing angle from {:.2f} to {:.2f}".format(thetat / units.deg, theta / units.deg))
         elif(theta_reference != 'X0'):
             raise NotImplementedError("theta_reference = '{}' is not implemented".format(theta_reference))
         
@@ -219,6 +220,10 @@ class ARZ(object):
         trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
         if(output_mode == 'full'):
             return trace_onsky, profile_depth, profile_ce
+        elif(output_mode == 'Xmax'):
+            xmax = profile_depth[np.argmax(profile_ce)]
+            Lmax = xmax / rho
+            return trace_onsky, Lmax
         return trace_onsky
     
     
@@ -263,8 +268,8 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
     """
     
     if(interp_factor is None):
-        interp_factor  = 10**(3 - np.log10(distance/units.m))  # TODO to be tuned!
-        logger.warning("using interpolation factor {:.2f} for distance {:.0f}m".format(interp_factor, distance/units.m))
+        interp_factor = 10 ** (3 - np.log10(distance / units.m))  # TODO to be tuned!
+        logger.warning("using interpolation factor {:.2f} for distance {:.0f}m".format(interp_factor, distance / units.m))
     
     ttt = np.arange(0, (N + 1) * dt, dt)
     ttt = ttt + 0.5 * dt - ttt.mean()
@@ -519,6 +524,168 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
             vp[it][2] = int.quad(xintegrand, xmin, xmax, args=(2, tobs))[0]
     vp *= factor
     return vp
+
+
+class ARZ_tabulated(object):
+    __instance = None
+
+    def __new__(cls, seed=1234, library=None):
+        if ARZ_tabulated.__instance is None:
+            ARZ_tabulated.__instance = object.__new__(cls, seed, library)
+        return ARZ_tabulated.__instance
+
+    def __init__(self, seed=1234, library=None):
+        logger.warning("setting seed to {}".format(seed))
+        np.random.seed(seed)
+        self._random_numbers = {}
+        self._version = (1, 1)
+        # # load shower library into memory
+        if(library is None):
+            library = os.path.join(os.path.dirname(__file__), "shower_library/ARZ_library_v{:d}.{:d}.pkl".format(*self._version))
+        else:
+            if(not os.path.exists(library)):
+                logger.error("user specified pulse library {} not found.".format(library))
+                raise FileNotFoundError("user specified pulse library {} not found.".format(library))
+        self.__check_and_get_library()
+        
+        with open(library) as fin:
+            logger.warning("loading pulse library into memory")
+            self._library = pickle.load(fin)
+            
+    def __check_and_get_library(self):
+        """
+        checks if pulse library exists and is up to date by comparing the sha1sum. If the library does not exist
+        or changes on the server, a new library will be downloaded. 
+        """
+        path = os.path.join(os.path.dirname(__file__), "shower_library/ARZ_library_v{:d}.{:d}.pkl".format(*self._version))
+        
+        download_file = False
+        if(not os.path.exists(path)):
+            logger.warning("ARZ library version {} does not exist on the local file system yet. It will be downloaded to {}".format(self._version, path))
+            download_file = True
+    
+        if(os.path.exists(path)):
+            BUF_SIZE = 65536 * 2 ** 4  # lets read stuff in 64kb chunks!
+            import hashlib
+            import json
+            sha1 = hashlib.sha1()
+            with open(path, 'rb') as f:
+                while True:
+                    data = f.read(BUF_SIZE)
+                    if not data:
+                        break
+                    sha1.update(data)
+    
+            shower_directory = os.path.join(os.path.dirname(__file__), "shower_library/")
+            with open(os.path.join(shower_directory, 'shower_lib_hash.json'), 'r') as fin:
+                lib_hashs = json.load(fin)
+                if("ARZ_{:d}.{:d}".format(*self._version) in lib_hashs.keys()):
+                    if(sha1.hexdigest() != lib_hashs["{:d}.{:d}".format(*self._version)]):
+                        logger.warning("pulse library {} has changed on the server. downloading newest version...".format(self._version))
+                        download_file = True
+                else:
+                    logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))            
+        if not download_file:
+            return True
+        else:
+            import requests
+            URL = 'http://arianna.ps.uci.edu/~arianna/data/ce_shower_library/ARZ_library_v{:d}.{:d}.pkl'.format(*self._version)
+    
+            logger.info("downloading pulse library {} from {}. This can take a while...".format(self._version, URL))
+            r = requests.get(URL)
+            if (r.status_code != requests.codes.ok):
+                logger.error("error in download of antenna model")
+                raise IOError("error in download of antenna model")
+            with open(path, "wb") as code:
+                code.write(r.content)
+            logger.info("...download finished.")
+        
+    def set_seed(self, seed):
+        """
+        allow to set a new random seed
+        """
+        np.random.seed(seed)
+        
+    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, 
+                       same_shower=False, iN=None, output_mode='trace', theta_reference='X0'):
+        """
+        calculates the electric-field Askaryan pulse from a charge-excess profile
+        
+        Parameters
+        ----------
+        shower_energy: float
+            the energy of the shower
+        theta: float
+            viewing angle, i.e., the angle between shower axis and launch angle of the signal (the ray path)
+        N: int
+            number of samples in the time domain
+        dt: float
+            size of one time bin in units of time
+        shower_type: string (default "HAD")
+            type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+        n_index: float (default 1.78)
+            index of refraction where the shower development takes place
+        R: float (default 1km)
+            observation distance, the signal amplitude will be scaled according to 1/R
+        same_shower: bool (default False)
+            if False, for each request a new random shower realization is choosen. 
+            if True, the shower from the last request of the same shower type is used. This is needed to get the Askaryan
+            signal for both ray tracing solutions from the same shower. 
+        iN: int or None (default None)
+            specify shower number
+        output_mode: string
+            * 'trace' (default): return only the electric field trace
+            * 'Xmax': return trace and position of xmax in units of length
+        theta_reference: string (default: X0)
+            * 'X0': viewing angle relativ to start of the shower
+            * 'Xmax': viewing angle is relativ to Xmax, internally it will be converted to be relative to X0
+            
+        Returns: array of floats
+            array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
+        """
+        if not shower_type in self._library.keys():
+            raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
+    
+        # determine closes available energy in shower library
+        energies = np.array(list(self._library[shower_type].keys()))
+        iE = np.argmin(np.abs(energies - shower_energy))
+        rescaling_factor = shower_energy / energies[iE]
+        logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The pulse amplitude will be rescaled accordingly by a factor of {:.2f}".format(shower_energy / units.eV, energies[iE] / units.eV, rescaling_factor))
+        profiles = self._library[shower_type][energies[iE]]
+        N_profiles = len(profiles.keys())
+        
+        if(iN is None):
+            if(same_shower):
+                if(shower_type in self._random_numbers):
+                    iN = self._random_numbers[shower_type]
+                    logger.info("using previously used shower {}/{}".format(iN, N_profiles))
+                else:
+                    logger.warning("no previous random number for shower type {} exists. Generating a new random number.".format(shower_type))
+                    iN = np.random.randint(N_profiles)
+                    self._random_numbers[shower_type] = iN
+                    logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
+            else:
+                iN = np.random.randint(N_profiles)
+                self._random_numbers[shower_type] = iN
+                logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
+        else:
+            logger.info("using shower {}/{} as specified by user".format(iN, N_profiles))
+            
+        thetas = profiles[iN].keys()
+        iT = np.argmin(np.abs(thetas - theta))
+        logger.info("selecting theta = {:.2f} ({:.2f} requested)".format(thetas[iT]/units.deg, theta))
+        trace = profiles[iT]['trace']
+        t0 = profiles[iT]['t0']
+        Lmax = profiles[iT]['Lmax']
+        trace2 = np.zeros(N)
+        tcenter = N//2 * dt
+        tstart = t0 + tcenter
+        i0 = np.int(np.round(tstart / dt))
+        trace2[i0:(i0 + len(trace))] = trace
+        
+        if(output_mode == 'Xmax'):
+            return trace2, Lmax
+        return trace2
 
 
 if __name__ == "__main__":
