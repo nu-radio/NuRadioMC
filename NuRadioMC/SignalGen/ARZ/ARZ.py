@@ -683,6 +683,8 @@ class ARZ_tabulated(object):
         i0 = np.int(np.round(tstart / dt))
         trace2[i0:(i0 + len(trace))] = trace
         
+        trace2 *= self._library['meta']['R'] / R * rescaling_factor
+        
         if(output_mode == 'Xmax'):
             return trace2, Lmax
         return trace2
