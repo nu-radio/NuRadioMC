@@ -212,8 +212,7 @@ class BaseStation():
                 '_particle_type': self._particle_type,
                 'triggers': trigger_pkls,
                 '_triggered': self._triggered,
-                'electric_fields': efield_pkls,
-                'base_trace': base_trace_pkl}
+                'electric_fields': efield_pkls}
         return pickle.dumps(data, protocol=2)
 
     def deserialize(self, data_pkl):
