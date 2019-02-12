@@ -14,7 +14,6 @@ logger = logging.getLogger('BaseStation')
 class BaseStation():
 
     def __init__(self, station_id):
-        NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
         self._parameters = {}
         self._ARIANNA_parameters = {}
         self._parameter_covariances = {}
