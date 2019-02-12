@@ -86,7 +86,7 @@ def get_tau_decay_time(energy):
 
     return tau_decay_time
 
-def get_decay_time_losses(energy, distmax, average=False, compare=False):
+def get_decay_time_losses(energy, distmax, average=False, compare=False, user_time=None):
     """
     Calculates the decay time assuming photonuclear energy losses above
     1 PeV and using the quasi-continuous approximation.
@@ -153,7 +153,9 @@ def get_decay_time_losses(energy, distmax, average=False, compare=False):
 
     energies = energies[0:len(times)]
 
-    if not average:
+    if user_time is not None:
+        tau_decay_rest = user_time
+    elif not average:
         tau_decay_rest = get_tau_decay_rest(energy)
     else:
         tau_decay_rest = tau_rest_lifetime
