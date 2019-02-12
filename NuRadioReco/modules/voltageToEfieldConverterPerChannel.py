@@ -20,6 +20,8 @@ import NuRadioReco.framework.base_trace
 
 from NuRadioReco.framework.parameters import stationParameters as stnp
 
+from NuRadioReco.framework import electric_field as ef
+
 import logging
 logger = logging.getLogger('voltageToEfieldConverterPerChannel')
 
@@ -81,13 +83,14 @@ class voltageToEfieldConverterPerChannel:
         sampling_rate = station.get_channel(0).get_sampling_rate()
 
         for iCh, channel in enumerate(station.iter_channels()):
-            trace = channel.get_trace()
+            efield = ef.ElectricField([iCh])
+            trace = channel.get_frequency_spectrum()
             mask = np.abs(efield_antenna_factor[iCh][pol]) != 0
-            efield_spectrum = np.zeros_like(trace)
-            efield_spectrum[mask] = trace[mask] / efield_antenna_factor[iCh][pol][mask]
-            base_trace = NuRadioReco.framework.base_trace.BaseTrace()
-            base_trace.set_frequency_spectrum(efield_spectrum, sampling_rate)
-            channel.set_electric_field(base_trace)
+            efield_spectrum = np.zeros((3,len(trace)), dtype=np.complex)
+            efield_spectrum[1][mask] = np.cos(pol) * trace[mask] / efield_antenna_factor[iCh][pol][mask]
+            efield_spectrum[2][mask] = np.sin(pol) * trace[mask] / efield_antenna_factor[iCh][pol][mask]
+            efield.set_frequency_spectrum(efield_spectrum, sampling_rate)
+            station.add_electric_field(efield)
 
     def end(self):
         pass
