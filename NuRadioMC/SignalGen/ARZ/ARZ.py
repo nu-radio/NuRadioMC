@@ -279,6 +279,8 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
     
     ttt = np.arange(0, (N + 1) * dt, dt)
     ttt = ttt + 0.5 * dt - ttt.mean()
+    if(len(ttt) != N+1):
+        ttt = ttt[:-1]
     N = len(ttt)
 
     xn = n_index
