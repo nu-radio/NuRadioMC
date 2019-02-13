@@ -348,28 +348,31 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
         abc = False
         if(interp_factor2 != 1):
             # we only need to interpolate between +- 1ns to achieve a better precision in the numerical integration
+            # the following code finds the indices sourrounding the bins fulfilling these condition
+            # please not that we often have two distinct intervals having -1 < tt < 1
             tmask = (tt < 1 * units.ns) & (tt > -1 * units.ns)
             gaps = (tmask[1:] ^ tmask[:-1])  # xor
             indices = np.arange(len(gaps))[gaps]  # the indices in between tt is within -+ 1ns
             if(len(indices) != 0):  # only interpolate if we have time within +- 1 ns of the observer time
+                # now we add the corner cases of having the tt array start or end with an entry fulfilling the condition
                 if(len(indices) % 2 != 0):
                     if((tt[0] < 1 * units.ns) and (tt[0] > -1 * units.ns) and indices[0] != 0):
                         indices = np.append(0, indices)
                     else:
                         if(indices[-1] != (len(tt) -1)):
                             indices = np.append(indices, len(tt) - 1)
-                if(len(indices) % 2 == 0):
+                if(len(indices) % 2 == 0): # this rejects the cases where only the first or the last entry fulfills the -1 < tt < 1 condition
                     dt = tt[1] - tt[0]
                     
                     dp = profile_dense2[1] - profile_dense2[0]
-                    if(len(indices) == 2):
+                    if(len(indices) == 2):  # we have only one interval
                         i_start = indices[0]
                         i_stop = indices[1]
                         profile_dense2 = np.arange(profile_dense[i_start], profile_dense[i_stop], dp / interp_factor2)
                         profile_ce_interp2 = np.interp(profile_dense2, profile_dense[i_start:i_stop], profile_ce_interp[i_start:i_stop])
                         profile_dense2 = np.append(np.append(profile_dense[:i_start], profile_dense2), profile_dense[i_stop:])
                         profile_ce_interp2 = np.append(np.append(profile_ce_interp[:i_start], profile_ce_interp2), profile_ce_interp[i_stop:])
-                    elif(len(indices) == 4):
+                    elif(len(indices) == 4):  # we have two intervals, hence, we need to upsample two distinct intervals and put the full array back together. 
                         i_start = indices[0]
                         i_stop = indices[1]
                         profile_dense2 = np.arange(profile_dense[i_start], profile_dense[i_stop], dp / interp_factor2)
@@ -393,7 +396,7 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
                                                 profile_ce_interp[i_stop3:])
                             
                     else:
-                        raise NotImplementedError("length of indices is not 2 nor 4")
+                        raise NotImplementedError("length of indices is not 2 nor 4") # this should never happen
                     if 0:
                         abc = True
                         i_stop = len(profile_dense) - 1
