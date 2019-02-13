@@ -14,7 +14,7 @@ from scipy import signal
 import matplotlib.gridspec as gridspec
 
 logger = logging.getLogger("test")
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 rho = 0.924 * units.g / units.cm ** 3  # density g cm^-3
 
 plot=False
@@ -22,16 +22,20 @@ plot=False
 if __name__ == "__main__":
     sampling_rate = 5 * units.GHz
     dt = 1. / sampling_rate
-    T = 500 * units.ns
     T2 = 50 * units.ns
-    N = np.int(np.round(T / dt))
     N2 = np.int(np.round(T2 / dt))
-    tt = np.arange(0, dt * N, dt)
     n_index = 1.78
     theta = np.arccos(1. / n_index)
     R = 5 * units.km
+    T = 600 * units.ns
+    N = np.int(np.round(T / dt))
+    tt = np.arange(0, dt * N, dt)
     
-    dCs = np.arange(-15, 15, .1) * units.deg
+    dCs = np.append(np.arange(-20, -5, 1), np.append(np.arange(-5,-1,0.2), np.arange(-1, 0, .05)))
+    dCs = np.append(np.append(dCs, [0]), -1 * dCs)
+    dCs = np.sort(dCs) * units.deg
+    print('generating Askaryan pulses for the following viewing angles')
+    print(dCs/units.deg)
     
     lib_path = "/Users/cglaser/work/ARIANNA/data/ARZ/v1.1/library_v1.1.pkl"
     a = ARZ.ARZ(library=lib_path, interp_factor=100)
@@ -46,11 +50,11 @@ if __name__ == "__main__":
         for iS, shower_type in enumerate(lib):  # loop through shower types
             if(shower_type not in showers):
                 showers[shower_type] = {}
+            print("shower type {}".format(shower_type))
             b = []
             nb = []
             for iE, E in enumerate(lib[shower_type]):  # loop through energies
-                if(E < 1e19 * units.eV):
-                    continue
+                print('E = {:.2g}eV'.format(E))
                 
                 nE = len(lib[shower_type][E]['charge_excess'])
                 if(E not in showers[shower_type]):
@@ -66,8 +70,10 @@ if __name__ == "__main__":
                         trace, Lmax = a.get_time_trace(E, theta1, N, dt, shower_type, n_index, R, iN=iN, output_mode='Xmax')
                         iMax = np.argmax(np.abs(trace[1]))
                         i1 = iMax - N2 // 2
+                        if((i1 + N2) >= N) or (i1 < 0):
+                            print("tracelength to short, i1 = {}".format(i1))
+#                             raise IndexError("tracelength to short, i1 = {}".format(i1))
                         t0 = tt[i1] - tt.mean()
-                        print("t0 = {:.2f}".format(t0))
                         showers[shower_type][E][iN][theta1] = {}
                         showers[shower_type][E][iN][theta1]['t0'] = t0
                         showers[shower_type][E][iN][theta1]['Lmax'] = Lmax
