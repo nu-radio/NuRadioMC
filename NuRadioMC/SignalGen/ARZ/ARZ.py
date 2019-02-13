@@ -219,23 +219,10 @@ class ARZ(object):
         elif(theta_reference != 'X0'):
             raise NotImplementedError("theta_reference = '{}' is not implemented".format(theta_reference))
         
-        vp, tt = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, shower_type, n_index, R,
+        vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, shower_type, n_index, R,
                                        self._interp_factor, self._interp_factor2, shift_for_xmax)
-        
         trace = -np.diff(vp, axis=0) / dt
 #         trace = -np.gradient(vp, axis=0) / dt
-        if 1:
-            import matplotlib.pyplot as plt
-            fig, (ax, ax2) = plt.subplots(1, 2)
-            ax.plot(tt - tt[0], vp.T[0])
-            ax.plot(tt - tt[0], vp.T[1])
-            ax.plot(tt - tt[0], vp.T[2])
-            t_emit = np.arange(0, dt * (N+1), dt)
-            t_emit = t_emit[0:(N+1)]
-            ax2.plot(t_emit, vp.T[0])
-            ax2.plot(t_emit, vp.T[1])
-            ax2.plot(t_emit, vp.T[2])
-            plt.show()
         
         cs = cstrafo.cstrafo(zenith=theta, azimuth=0)
         trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
@@ -342,10 +329,8 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
     fc = 4. * np.pi / (xmu * np.sin(cher))
 
     vp = np.zeros((N, 3))
-    tt_obs = np.zeros(N)
     for it, t in enumerate(ttt):
         tobs = t + (get_dist_shower(X, 0) / c * xn)
-        tt_obs[it] = tobs
         z = length
 
         R = get_dist_shower(X, z)
@@ -521,7 +506,7 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
         ax2.plot(trace2.T[1], '--')
         ax2.plot(trace2.T[2], '--')
         plt.show()
-    return vp, tt_obs
+    return vp
 
 
 def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m,
