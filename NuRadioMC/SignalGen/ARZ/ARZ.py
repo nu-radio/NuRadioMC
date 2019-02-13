@@ -41,15 +41,16 @@ def thetaprime_to_theta(thetaprime, xmax, R):
 class ARZ(object):
     __instance = None
 
-    def __new__(cls, seed=1234, interp_factor=None, library=None):
+    def __new__(cls, seed=1234, interp_factor=1, interp_factor2=100, library=None):
         if ARZ.__instance is None:
-            ARZ.__instance = object.__new__(cls, seed, interp_factor, library)
+            ARZ.__instance = object.__new__(cls, seed, interp_factor, interp_factor2, library)
         return ARZ.__instance
 
-    def __init__(self, seed=1234, interp_factor=None, library=None):
+    def __init__(self, seed=1234, interp_factor=1, interp_factor2=100, library=None):
         logger.warning("setting seed to {}".format(seed, interp_factor))
         np.random.seed(seed)
         self._interp_factor = interp_factor
+        self._interp_factor2 = interp_factor2
         self._random_numbers = {}
         self._version = (1, 1)
         # # load shower library into memory
@@ -124,6 +125,12 @@ class ARZ(object):
         set interpolation factor of charge-excess profiles
         """
         self._interp_factor = interp_factor
+        
+    def set_interpolation_factor2(self, interp_factor):
+        """
+        set interpolation factor around peak of form factor
+        """
+        self._interp_factor2 = interp_factor
 
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
                        same_shower=False, iN=None, output_mode='trace', theta_reference='X0'):
@@ -212,9 +219,10 @@ class ARZ(object):
         elif(theta_reference != 'X0'):
             raise NotImplementedError("theta_reference = '{}' is not implemented".format(theta_reference))
         
-        vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
-                                               shower_type, n_index, R, self._interp_factor, shift_for_xmax)
+        vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, shower_type, n_index, R,
+                                       self._interp_factor, self._interp_factor2, shift_for_xmax)
         trace = -np.diff(vp, axis=0) / dt
+#         trace = -np.gradient(vp, axis=0) / dt
         
         cs = cstrafo.cstrafo(zenith=theta, azimuth=0)
         trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
@@ -229,7 +237,7 @@ class ARZ(object):
     
 def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
                               shower_type="HAD", n_index=1.78, distance=1 * units.m,
-                              interp_factor=None, shift_for_xmax=False):
+                              interp_factor=1., interp_factor2=100., shift_for_xmax=False):
     """
     fast interpolation of time-domain calculation of vector potential of the 
     Askaryan pulse from a charge-excess profile
@@ -258,18 +266,16 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
         index of refraction where the shower development takes place
     distance: float (default 1km)
         observation distance, the signal amplitude will be scaled according to 1/R
-    interp_factor: int (default None)
+    interp_factor: int (default 1)
         interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
         for small vertex distances but also slows down the calculation proportional to the interpolation factor.
         if None, the interpolation factor will be calculated from the distance 
+    interp_factor2: int (default 100)
+        interpolation just around the peak of the form factor 
     shift_for_xmax: bool (default True)
         if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
         with respect to (0,0,0) which is the start of the charge-excess profile
     """
-    
-    if(interp_factor is None):
-        interp_factor = 10 ** (3 - np.log10(distance / units.m))  # TODO to be tuned!
-        logger.warning("using interpolation factor {:.2f} for distance {:.0f}m".format(interp_factor, distance / units.m))
     
     ttt = np.arange(0, (N + 1) * dt, dt)
     ttt = ttt + 0.5 * dt - ttt.mean()
@@ -279,9 +285,12 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
     cher = np.arccos(1. / n_index)
     beta = 1.
 
-    profile_dense = np.linspace(min(profile_depth), max(profile_depth), interp_factor * len(profile_depth))
+    profile_dense = profile_depth
+    profile_ce_interp = profile_ce
+    if(interp_factor != 1):
+        profile_dense = np.linspace(min(profile_depth), max(profile_depth), interp_factor * len(profile_depth))
+        profile_ce_interp = np.interp(profile_dense, profile_depth, profile_ce)
     length = profile_dense / rho
-    profile_ce_interp = np.interp(profile_dense, profile_depth, profile_ce)
     dxmax = length[np.argmax(profile_ce_interp)]
 #     theta2 = np.arctan(R * np.sin(theta)/(R * np.cos(theta) - dxmax))
 #     logger.warning("theta changes from {:.2f} to {:.2f}".format(theta/units.deg, theta2/units.deg))
@@ -328,12 +337,84 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
         # Note that Acher peaks at tt=0 which corresponds to the observer time.
         # The shift from tobs to tt=0 is done when defining argument
         tt = (-arg / (c * beta))  # Parameterisation of A_Cherenkov with t in ns
-        F_p = np.zeros_like(tt)
-        # Cut fit above +/-5 ns
-        mask = abs(tt) < 5. * units.ns
+        
+        mask = abs(tt) < 20. * units.ns
         if(np.sum(mask) == 0):  # 
             vp[it] = 0
             continue
+        
+        profile_dense2 = profile_dense
+        profile_ce_interp2 = profile_ce_interp
+        abc = False
+        if(interp_factor2 != 1):
+            # we only need to interpolate between +- 1ns to achieve a better precision in the numerical integration
+            tmask = (tt < 1 * units.ns) & (tt > -1 * units.ns)
+            gaps = (tmask[1:] ^ tmask[:-1])  # xor
+            indices = np.arange(len(gaps))[gaps]  # the indices in between tt is within -+ 1ns
+            if(len(indices) != 0):  # only interpolate if we have time within +- 1 ns of the observer time
+                if(not (len(indices) ==  1 and indices[0] == 0)):
+                    if(len(indices) % 2 != 0):
+                        if((tt[0] < 1 * units.ns) & (tt[0] > -1 * units.ns)):
+                            indices = np.append(0, indices)
+                        else:
+                            indices = np.append(indices, len(tt) - 1)
+                    dt = tt[1] - tt[0]
+                    
+                    
+                    dp = profile_dense2[1] - profile_dense2[0]
+                    if(len(indices) == 2):
+                        i_start = indices[0]
+                        i_stop = indices[1]
+                        profile_dense2 = np.arange(profile_dense[i_start], profile_dense[i_stop], dp / interp_factor2)
+                        profile_ce_interp2 = np.interp(profile_dense2, profile_dense[i_start:i_stop], profile_ce_interp[i_start:i_stop])
+                        profile_dense2 = np.append(np.append(profile_dense[:i_start], profile_dense2), profile_dense[i_stop:])
+                        profile_ce_interp2 = np.append(np.append(profile_ce_interp[:i_start], profile_ce_interp2), profile_ce_interp[i_stop:])
+                    elif(len(indices) == 4):
+                        i_start = indices[0]
+                        i_stop = indices[1]
+                        profile_dense2 = np.arange(profile_dense[i_start], profile_dense[i_stop], dp / interp_factor2)
+                        profile_ce_interp2 = np.interp(profile_dense2, profile_dense[i_start:i_stop], profile_ce_interp[i_start:i_stop])
+                        
+                        i_start3 = indices[2]
+                        i_stop3 = indices[3]
+                        profile_dense3 = np.arange(profile_dense[i_start3], profile_dense[i_stop3], dp / interp_factor2)
+                        profile_ce_interp3 = np.interp(profile_dense3, profile_dense[i_start3:i_stop3], profile_ce_interp[i_start3:i_stop3])
+                        
+                        profile_dense2 = np.append(np.append(np.append(np.append(
+                                                        profile_dense[:i_start], profile_dense2),
+                                                           profile_dense[i_stop:i_start3]),
+                                                              profile_dense3),
+                                                                   profile_dense[i_stop3:])
+                        profile_ce_interp2 = np.append(np.append(np.append(np.append(
+                                                profile_ce_interp[:i_start],
+                                                profile_ce_interp2),
+                                                profile_ce_interp[i_stop:i_start3]),
+                                                profile_ce_interp3), 
+                                                profile_ce_interp[i_stop3:])
+                            
+                    else:
+                        raise NotImplementedError("length of indices is not 2 nor 4")
+                    if 0:
+                        abc = True
+                        i_stop = len(profile_dense) - 1
+                        from matplotlib import pyplot as plt
+                        fig, ax = plt.subplots(1, 1)
+                        ax.plot(tt, color='0.5')
+                        ax.plot(np.arange(len(tmask))[tmask], tt[tmask], 'o')
+                        ax.plot(indices, np.ones_like(indices), 'd')
+        #                 ax.plot(np.arange(len(tmask))[gaps], tt[gaps], 'd')
+                        plt.show()
+                
+                    # recalculate parameters for interpolated values
+                    z = profile_dense2 / rho
+                    R = get_dist_shower(X, z)
+                    arg = z - (beta * c * tobs - xn * R)
+                    tt = (-arg / (c * beta))
+                    mask = abs(tt) < 20. * units.ns
+                    tmask = (tt < 1 * units.ns) & (tt > -1 * units.ns)
+        
+        F_p = np.zeros_like(tt)
+        # Cut fit above +/-5 ns
 
         u_x = X[0] / R
         u_y = X[1] / R
@@ -384,11 +465,42 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
             # Obtain "shape" of Lambda-function from vp at Cherenkov angle
             # xntot = LQ_tot in PRD paper
             F_p[mask] = Acher[mask] * fc / xntot
-        F_p[~mask] = 1.e-30 * fc / xntot
+#         F_p[~mask] = 1.e-30 * fc / xntot
+        F_p[~mask] = 0
 
-        vp[it] = np.trapz(-v * profile_ce_interp * F_p / R, z)
+        vp[it] = np.trapz(-v * profile_ce_interp2 * F_p / R, z)
+        if  0:
+            import matplotlib.pyplot as plt
+            fig, ax = plt.subplots(1, 1)
+            inte = -v * profile_ce_interp2 * F_p / R
+            ax.plot(tt, inte[0], '-')
+            ax.plot(tt, inte[1], '-')
+            ax.plot(tt, inte[2], '-')
+            ax.plot(tt[tmask], inte[0][tmask], 'o')
+            ax.plot(tt[tmask], inte[1][tmask], 'o')
+            ax.plot(tt[tmask], inte[2][tmask], 'o')
+            ax.set_title("{}".format(vp[it]))
+            plt.show()
 
     vp *= factor
+    if 0:
+        import matplotlib.pyplot as plt
+        fig, (ax, ax2) = plt.subplots(1, 2)
+        ax.plot(vp)
+        print(vp.shape)
+        t0 = -np.gradient(vp.T[0]) / dt
+        t1 = -np.gradient(vp.T[1]) / dt
+        t2 = -np.gradient(vp.T[2]) / dt
+        trace2 = -np.diff(vp, axis=0) / dt
+#         print(trace.shape)
+        ax2.plot(t0)
+        ax2.plot(t1)
+        ax2.plot(t2)
+        
+        ax2.plot(trace2.T[0], '--')
+        ax2.plot(trace2.T[1], '--')
+        ax2.plot(trace2.T[2], '--')
+        plt.show()
     return vp
 
 
@@ -606,7 +718,7 @@ class ARZ_tabulated(object):
         """
         np.random.seed(seed)
         
-    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, 
+    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R,
                        same_shower=False, iN=None, output_mode='trace', theta_reference='X0'):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
@@ -673,12 +785,12 @@ class ARZ_tabulated(object):
             
         thetas = profiles[iN].keys()
         iT = np.argmin(np.abs(thetas - theta))
-        logger.info("selecting theta = {:.2f} ({:.2f} requested)".format(thetas[iT]/units.deg, theta))
+        logger.info("selecting theta = {:.2f} ({:.2f} requested)".format(thetas[iT] / units.deg, theta))
         trace = profiles[iT]['trace']
         t0 = profiles[iT]['t0']
         Lmax = profiles[iT]['Lmax']
         trace2 = np.zeros(N)
-        tcenter = N//2 * dt
+        tcenter = N // 2 * dt
         tstart = t0 + tcenter
         i0 = np.int(np.round(tstart / dt))
         trace2[i0:(i0 + len(trace))] = trace
