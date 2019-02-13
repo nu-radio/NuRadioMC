@@ -352,14 +352,14 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
             gaps = (tmask[1:] ^ tmask[:-1])  # xor
             indices = np.arange(len(gaps))[gaps]  # the indices in between tt is within -+ 1ns
             if(len(indices) != 0):  # only interpolate if we have time within +- 1 ns of the observer time
-                if(not (len(indices) ==  1 and indices[0] == 0)):
-                    if(len(indices) % 2 != 0):
-                        if((tt[0] < 1 * units.ns) & (tt[0] > -1 * units.ns)):
-                            indices = np.append(0, indices)
-                        else:
+                if(len(indices) % 2 != 0):
+                    if((tt[0] < 1 * units.ns) and (tt[0] > -1 * units.ns) and indices[0] != 0):
+                        indices = np.append(0, indices)
+                    else:
+                        if(indices[-1] != (len(tt) -1)):
                             indices = np.append(indices, len(tt) - 1)
+                if(len(indices) % 2 == 0):
                     dt = tt[1] - tt[0]
-                    
                     
                     dp = profile_dense2[1] - profile_dense2[0]
                     if(len(indices) == 2):
