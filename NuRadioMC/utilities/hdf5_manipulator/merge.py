@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 """
 Merge hdf5 files
 """
@@ -42,23 +43,24 @@ def merge_data(data_list, attrs_list):
     for f in data_list:
         size = check.get_size(data_list[f])
         if not data:
-            print "\nThe following datasets were found in %s:\n" % f
+            print("\nThe following datasets were found in %s:\n" % f)
             msg.list_dataset(data_list[f])
             data = data_list[f]
             attrs = attrs_list[f]
         else:
-            print "\nAdding %(n)d entries from %(f)s" % {"n": size, "f": f}
+            print("\nAdding %(n)d entries from %(f)s" % {"n": size, "f": f})
 
             if len(attrs['trigger_names']) == 0 and 'trigger_names' in attrs_list[f]:
                 attrs['trigger_names'] = attrs_list[f]['trigger_names']
             if len(data_list[f]['triggered']) == 0:
                 attrs['n_events'] =+ attrs_list[f]['n_events']
-                continue
-            check.check_keys(data, data_list[f])
-            check.check_shapes(data, data_list[f])
-            for key in data_list[f]:
-                data[key] = np.append(data[key], data_list[f][key], axis=0)
-            attrs['n_events'] += attrs_list[f]['n_events']
+                print("adding empty event")
+            else:
+                check.check_keys(data, data_list[f])
+                check.check_shapes(data, data_list[f])
+                for key in data_list[f]:
+                    data[key] = np.append(data[key], data_list[f][key], axis=0)
+                attrs['n_events'] += attrs_list[f]['n_events']
 
     if 'trigger_names' not in attrs:
         attrs['trigger_names'] = []
@@ -67,10 +69,10 @@ def merge_data(data_list, attrs_list):
 
 
 def merge_data_filenames(filelist, outputfile):
-    print "The following input files were found:\n"
+    print("The following input files were found:\n")
 
     for f in filelist:
-        print "\t - %s" % f
+        print("\t - %s" % f)
 
     data = OrderedDict()
     attrs = OrderedDict()
