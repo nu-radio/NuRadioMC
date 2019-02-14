@@ -71,7 +71,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
             is_em_shower = True
         else:
             raise NotImplementedError("shower type {} not implemented in {} Askaryan module".format(shower_type, model))
-        return askaryan_module.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R)
+        return askaryan_module.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R)[1]
     elif(model == 'ARZ2019'):
         from NuRadioMC.SignalGen.ARZ import ARZ
         global gARZ
@@ -79,7 +79,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
             gARZ = ARZ.ARZ()
         if(interp_factor is not None):
             gARZ.set_interpolation_factor(interp_factor)
-        return gARZ.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, same_shower=same_shower, **kwargs)
+        return gARZ.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, same_shower=same_shower, **kwargs)[1]
         
     elif(model == 'spherical'):
         amplitude = 1. * energy / R
