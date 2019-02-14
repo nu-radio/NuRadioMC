@@ -53,8 +53,7 @@ def merge_data(data_list, attrs_list):
             if len(attrs['trigger_names']) == 0 and 'trigger_names' in attrs_list[f]:
                 attrs['trigger_names'] = attrs_list[f]['trigger_names']
             if len(data_list[f]['triggered']) == 0:
-                attrs['n_events'] =+ attrs_list[f]['n_events']
-                print("adding empty event")
+                attrs['n_events'] += attrs_list[f]['n_events']
             else:
                 check.check_keys(data, data_list[f])
                 check.check_shapes(data, data_list[f])
