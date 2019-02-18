@@ -123,14 +123,21 @@ def set_xcorrelation_options(event_type):
 
 station_properties_for_overview = [
     {
-        'label': 'Zenith',
+        'label': 'Zenith [deg]',
         'param': stnp.zenith,
         'unit': units.deg
-    },
-    {
-        'label': 'Azimuth',
+    },{
+        'label': 'Azimuth [deg]',
         'param': stnp.azimuth,
         'unit': units.deg
+    },{
+        'label': 'Neutrino Energy [eV]',
+        'param': stnp.nu_energy,
+        'unit': units.eV
+    },{
+        'label': 'Cosmic Ray Energy [eV]',
+        'param': stnp.cr_energy,
+        'unit': units.eV
     }
 ]
 @app.callback(Output('station-overview-properties', 'children'),
