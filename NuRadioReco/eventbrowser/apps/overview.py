@@ -53,7 +53,15 @@ layout = html.Div([
             ], className='panel-body')
         ], className='panel panel-default', style={'flex':'1'}),
         html.Div([
-            html.Div('Channels', className='panel-heading')
+            html.Div('Channels', className='panel-heading'),
+            html.Div([
+                dcc.Dropdown(id='dropdown-overview-channels',
+                    options=[],
+                    multi=True,
+                    value=[]
+                ),
+                html.Div(id='channel-overview-properties')
+            ], className='panel-body')
         ], className='panel panel-default', style={'flex':'1'}),
         html.Div([
             html.Div('Electric Fields', className='panel-heading')
@@ -187,6 +195,54 @@ def station_overview_properties(filename, evt_counter, station_id, rec_or_sim, j
                 html.Div('{:.2f}'.format(v), className='custom-table-td custom-table-td-last')
             ], className='custom-table-row')
             )
+    return reply
+
+
+@app.callback(Output('dropdown-overview-channels', 'options'),
+                [Input('filename', 'value'),
+                Input('event-counter-slider', 'value'),
+                Input('station-id-dropdown', 'value'),
+                Input('station-overview-rec-sim', 'value')],
+                [State('user_id', 'children')])
+def dropdown_overview_channels(filename, evt_counter, station_id, rec_or_sim, juser_id):
+    if filename is None or station_id is None:
+        return ''
+    user_id = json.loads(juser_id)
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(evt_counter)
+    station = evt.get_station(station_id)
+    if station is None:
+        return []
+    options = []
+    for channel in station.iter_channels():
+        options.append({
+            'label': 'Ch. {}'.format(channel.get_id()),
+            'value': channel.get_id()
+        })
+    return options
+
+
+@app.callback(Output('channel-overview-properties', 'children'),
+                [Input('filename', 'value'),
+                Input('event-counter-slider', 'value'),
+                Input('station-id-dropdown', 'value'),
+                Input('dropdown-overview-channels', 'value')],
+                [State('user_id', 'children')])
+def channel_overview_properties(filename, evt_counter, station_id, selected_channels, juser_id):
+    if filename is None or station_id is None:
+        return ''
+    user_id = json.loads(juser_id)
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(evt_counter)
+    station = evt.get_station(station_id)
+    if station is None:
+        return []
+    reply = []
+    for channel_id in selected_channels:
+        channel = station.get_channel(channel_id)
+        reply.append(
+            html.Div('Channel {}'.format(channel.get_id()),className='custom-table-td')
+        )
     return reply
 
 
