@@ -71,7 +71,7 @@ layout = html.Div([
             html.Div('Triggers', className='panel-heading'),
             html.Div(id='trigger-overview-properties')
         ], className='panel panel-default', style={'flex': '1'})
-    ], style={'display': 'flex'}),
+    ], style={'display': 'flex', 'margin': '20px 0'}),
     html.Div([
         html.Div('Correlations', className='panel-heading'),
         html.Div([
