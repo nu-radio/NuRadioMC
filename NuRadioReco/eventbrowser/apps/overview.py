@@ -120,6 +120,34 @@ layout = html.Div([
 ])
 
 
+def get_properties_divs(obj, props_dic):
+    props = []
+    for display_prop in props_dic:
+        if obj.has_parameter(display_prop['param']):
+            if type(obj.get_parameter(display_prop['param'])) is dict:
+                dict_entries = []
+                dic = obj.get_parameter(display_prop['param'])
+                for key in dic:
+                    dict_entries.append(
+                        html.Div([
+                            html.Div(key, className='custom-table-td'),
+                            html.Div('{:.2f}'.format(dic[key]), className='custom-table-td custom-table-td-last')
+                        ], className='custom-table-row')
+                    )
+                prop = html.Div(dict_entries, className='custom-table-td')
+            else:
+                if display_prop['unit'] is not None:
+                    v = obj.get_parameter(display_prop['param'])/display_prop['unit']
+                else:
+                    v = obj.get_parameter(display_prop['param'])
+                    
+                prop = html.Div('{:.2f}'.format(v), className='custom-table-td custom-table-td-last')
+            props.append(html.Div([
+                html.Div(display_prop['label'], className='custom-table-td'),
+                prop
+            ], className='custom-table-row'))
+    return props
+
 @app.callback(Output('cr-xcorrelation-dropdown', 'options'),
             [Input('xcorrelation-event-type', 'value')])
 def set_xcorrelation_options(event_type):
@@ -183,18 +211,9 @@ def station_overview_properties(filename, evt_counter, station_id, rec_or_sim, j
             html.Div(str(event_type), className='custom-table-td custom-table-td-last')
         ], className='custom-table-row')
     )
-    for display_prop in station_properties_for_overview:
-        if prop_station.has_parameter(display_prop['param']):
-            if display_prop['unit'] is not None:
-                v = prop_station.get_parameter(display_prop['param'])/display_prop['unit']
-            else:
-                v = prop_station.get_parameter(display_prop['param'])
-            reply.append(
-            html.Div([
-                html.Div(display_prop['label'], className='custom-table-td'),
-                html.Div('{:.2f}'.format(v), className='custom-table-td custom-table-td-last')
-            ], className='custom-table-row')
-            )
+    props = get_properties_divs(prop_station, station_properties_for_overview)
+    for prop in props:
+        reply.append(prop)
     return reply
 
 
@@ -263,32 +282,8 @@ def channel_overview_properties(filename, evt_counter, station_id, selected_chan
     reply = []
     for channel_id in selected_channels:
         channel = station.get_channel(channel_id)
-        props = []
-        for display_prop in channel_properties_for_overview:
-            if channel.has_parameter(display_prop['param']):
-                if type(channel.get_parameter(display_prop['param'])) is dict:
-                    dict_entries = []
-                    dic = channel.get_parameter(display_prop['param'])
-                    for key in channel.get_parameter(display_prop['param']):
-                        print(key, dic[key])
-                        dict_entries.append(
-                            html.Div([
-                                html.Div(key, className='custom-table-td'),
-                                html.Div('{:.2f}'.format(dic[key]), className='custom-table-td custom-table-td-last')
-                            ], className='custom-table-row')
-                        )
-                    prop = html.Div(dict_entries, className='custom-table-td')
-                else:
-                    if display_prop['unit'] is not None:
-                        v = channel.get_parameter(display_prop['param'])/display_prop['unit']
-                    else:
-                        v = channel.get_parameter(display_prop['param'])
-                        
-                    prop = html.Div('{:.2f}'.format(v), className='custom-table-td custom-table-td-last')
-                props.append(html.Div([
-                    html.Div(display_prop['label'], className='custom-table-td'),
-                    prop
-                ], className='custom-table-row'))
+        props = get_properties_divs(channel, channel_properties_for_overview)
+        
         reply.append(
             html.Div([
             html.Div([
