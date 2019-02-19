@@ -4,7 +4,7 @@
 }
 .custom-table-td {
   flex: 1;
-  margin: 0 2px;
+  margin: 0 10px;
 }
 .custom-table-td-last {
   text-align: right;
