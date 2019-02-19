@@ -221,6 +221,29 @@ def dropdown_overview_channels(filename, evt_counter, station_id, rec_or_sim, ju
         })
     return options
 
+channel_properties_for_overview = [
+    {
+        'label': 'Signal to Noise ratio',
+        'param': chp.SNR,
+        'unit': None
+    },{
+        'label': 'Max. amplitude [microVolt]',
+        'param': chp.maximum_amplitude,
+        'unit': units.microvolt
+    },{
+        'label': 'Max. of Hilbert envelope [microVolt]',
+        'param': chp.maximum_amplitude_envelope,
+        'unit': units.microvolt
+    },{
+        'label': 'Cosmic Ray Template Correlations',
+        'param': chp.cr_xcorrelations,
+        'unit': None
+    },{
+        'label': 'Neutrino Template Correlations',
+        'param': chp.nu_xcorrelations,
+        'unit': None
+    }
+]
 
 @app.callback(Output('channel-overview-properties', 'children'),
                 [Input('filename', 'value'),
@@ -240,9 +263,39 @@ def channel_overview_properties(filename, evt_counter, station_id, selected_chan
     reply = []
     for channel_id in selected_channels:
         channel = station.get_channel(channel_id)
+        props = []
+        for display_prop in channel_properties_for_overview:
+            if channel.has_parameter(display_prop['param']):
+                if type(channel.get_parameter(display_prop['param'])) is dict:
+                    dict_entries = []
+                    dic = channel.get_parameter(display_prop['param'])
+                    for key in channel.get_parameter(display_prop['param']):
+                        print(key, dic[key])
+                        dict_entries.append(
+                            html.Div([
+                                html.Div(key, className='custom-table-td'),
+                                html.Div('{:.2f}'.format(dic[key]), className='custom-table-td custom-table-td-last')
+                            ], className='custom-table-row')
+                        )
+                    prop = html.Div(dict_entries, className='custom-table-td')
+                else:
+                    if display_prop['unit'] is not None:
+                        v = channel.get_parameter(display_prop['param'])/display_prop['unit']
+                    else:
+                        v = channel.get_parameter(display_prop['param'])
+                        
+                    prop = html.Div('{:.2f}'.format(v), className='custom-table-td custom-table-td-last')
+                props.append(html.Div([
+                    html.Div(display_prop['label'], className='custom-table-td'),
+                    prop
+                ], className='custom-table-row'))
         reply.append(
-            html.Div('Channel {}'.format(channel.get_id()),className='custom-table-td')
-        )
+            html.Div([
+            html.Div([
+                html.Div('Channel {}'.format(channel.get_id()), className='custom-table-th')
+            ],className='custom-table-row'),
+            html.Div(props)
+        ]))
     return reply
 
 

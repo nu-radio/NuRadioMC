@@ -9,6 +9,11 @@
 .custom-table-td-last {
   text-align: right;
 }
+.custom-table-th {
+  flex:1;
+  margin:0 2px;
+  font-weight: bold
+}
 .event-info-table {
   padding: 10px;
   margin-right: 2px;
