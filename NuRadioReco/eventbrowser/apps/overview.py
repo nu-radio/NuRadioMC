@@ -64,7 +64,8 @@ layout = html.Div([
             ], className='panel-body')
         ], className='panel panel-default', style={'flex':'1'}),
         html.Div([
-            html.Div('Electric Fields', className='panel-heading')
+            html.Div('Electric Fields', className='panel-heading'),
+            html.Div(id='efield-overview-properties')
         ], className='panel panel-default', style={'flex':'1'})
     ], style={'display': 'flex'}),
     html.Div([
@@ -140,8 +141,10 @@ def get_properties_divs(obj, props_dic):
                     v = obj.get_parameter(display_prop['param'])/display_prop['unit']
                 else:
                     v = obj.get_parameter(display_prop['param'])
-                    
-                prop = html.Div('{:.2f}'.format(v), className='custom-table-td custom-table-td-last')
+                if isinstance(v,float) or isinstance(v, int):
+                    prop = html.Div('{:.2f}'.format(v), className='custom-table-td custom-table-td-last')
+                else:
+                    prop = html.Div('{}'.format(v), className='custom-table-td custom-table-td-last')
             props.append(html.Div([
                 html.Div(display_prop['label'], className='custom-table-td'),
                 prop
@@ -291,6 +294,62 @@ def channel_overview_properties(filename, evt_counter, station_id, selected_chan
             ],className='custom-table-row'),
             html.Div(props)
         ]))
+    return reply
+
+efield_properties_for_overview = [
+    {
+        'label': 'Ray Path Type',
+        'param': efp.ray_path_type,
+        'unit': None
+    },{
+        'label': 'Zenith [deg]',
+        'param': efp.zenith,
+        'unit': units.deg
+    },{
+        'label': 'Azimuth [deg]',
+        'param': efp.azimuth,
+        'unit': units.deg
+    },{
+        'label': 'spectrum Slope',
+        'param': efp.cr_spectrum_slope,
+        'unit': None
+    },{
+        'label': 'Energy Fluence [eV]',
+        'param': efp.signal_energy_fluence,
+        'unit': units.eV
+    },{
+        'label': 'Polarization Angle [deg]',
+        'param': efp.polarization_angle,
+        'unit': units.deg
+    },{
+        'label': 'Expected Polarization Angle [deg]',
+        'param': efp.polarization_angle_expectation,
+        'unit': units.deg
+    }
+]
+
+@app.callback(Output('efield-overview-properties', 'children'),
+                [Input('filename', 'value'),
+                Input('event-counter-slider', 'value'),
+                Input('station-id-dropdown', 'value')],
+                [State('user_id', 'children')])
+def channel_overview_properties(filename, evt_counter, station_id, juser_id):
+    if filename is None or station_id is None:
+        return ''
+    user_id = json.loads(juser_id)
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(evt_counter)
+    station = evt.get_station(station_id)
+    if station is None:
+        return []
+    reply = []
+    for electric_field in station.get_electric_fields():
+        props = get_properties_divs(electric_field, efield_properties_for_overview)
+        reply.append(html.Div([
+            html.Div('Channels', className='custom-table-td'),
+            html.Div('{}'.format(electric_field.get_channel_ids()), className='custom-table-td custom-table-td-last')
+        ], className='custom-table-row'))
+        reply.append(html.Div(props, style={'margin': '0 0 30px'}))
     return reply
 
 
