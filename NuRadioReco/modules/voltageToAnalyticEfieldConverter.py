@@ -15,7 +15,7 @@ from radiotools import coordinatesystems
 from NuRadioReco.detector import detector
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units, fft, trace_utilities
 from NuRadioReco.utilities import analytic_pulse as pulse
 from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
 
@@ -620,13 +620,6 @@ class voltageToAnalyticEfieldConverter:
         Aphi_error = cov[0, 0] ** 0.5
         Atheta_error = cov[1, 1] ** 0.5
         slope_error = cov[2, 2] ** 0.5
-        
-        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels)
-        electric_field.set_parameter(efp.signal_energy_fluence, np.array([0, Atheta, Aphi]))
-        electric_field.set_parameter_error(efp.signal_energy_fluence, np.array([0, Atheta_error, Aphi_error]))
-        electric_field.set_parameter(efp.cr_spectrum_slope, slope)
-        electric_field.set_parameter(efp.zenith, zenith)
-        electric_field.set_parameter(efp.azimuth, azimuth)
 
 #         cov = covariance(Wrapper, res_amp_slope.x, 0.5, fast=False)
 #         print(cov)
@@ -667,8 +660,15 @@ class voltageToAnalyticEfieldConverter:
         analytic_pulse_theta = np.roll(analytic_pulse_theta, pos)
         analytic_pulse_phi = np.roll(analytic_pulse_phi, pos)
         station_trace = np.array([np.zeros_like(analytic_pulse_theta), analytic_pulse_theta, analytic_pulse_phi])
-        electric_field.set_trace(station_trace, sampling_rate)
 
+        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels)
+        electric_field.set_trace(station_trace, sampling_rate)
+        energy_fluence = trace_utilities.get_electric_field_energy_fluence(electric_field.get_trace(), electric_field.get_times())        
+        electric_field.set_parameter(efp.signal_energy_fluence, energy_fluence)
+        electric_field.set_parameter_error(efp.signal_energy_fluence, np.array([0, Atheta_error, Aphi_error]))
+        electric_field.set_parameter(efp.cr_spectrum_slope, slope)
+        electric_field.set_parameter(efp.zenith, zenith)
+        electric_field.set_parameter(efp.azimuth, azimuth)
         # calculate high level parameters
         x = np.sign(Atheta) * np.abs(Atheta) ** 0.5
         y = np.sign(Aphi) * np.abs(Aphi) ** 0.5
