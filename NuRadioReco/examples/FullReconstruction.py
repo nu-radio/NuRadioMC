@@ -26,6 +26,7 @@ from NuRadioReco.detector import detector
 from NuRadioReco.framework.parameters import stationParameters as stnp
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.cosmicRayIdentifier
+import NuRadioReco.modules.trigger.simpleThreshold
 import datetime
 import glob
 import matplotlib.pyplot as plt
@@ -33,6 +34,8 @@ import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.electricFieldSignalReconstructor
 import NuRadioReco.modules.voltageToEfieldConverter
 from NuRadioReco.framework.parameters import channelParameters as chp
+import NuRadioReco.modules.io.coreas.simulationSelector
+
 
 # Logging level
 import logging
@@ -56,6 +59,8 @@ dir_path = os.path.dirname(os.path.realpath(__file__)) #get the directory of thi
 template_directory = os.path.join(dir_path, '../../ARIANNAreco/analysis/templateGeneration') #path to templates
 
 # initialize all modules
+triggerSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
+triggerSimulator.begin()
 readCoREAS = NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS()
 readCoREAS.begin(input_files, station_id, n_cores=10, max_distance=None)
 electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
@@ -92,60 +97,61 @@ voltageToEfieldConverter = NuRadioReco.modules.voltageToEfieldConverter.voltageT
 channelSignalReconstructor.begin()
 channelTemplateCorrelation.begin()
 
-output_filename = "outputfilename.nur"
+output_filename = "MC_station_{}.nur".format(station_id)
 eventWriter.begin(output_filename)
 
 for iE, evt in enumerate(readCoREAS.run(det)):
     
     logger.info("processing event {:d} with id {:d}".format(iE, evt.get_id()))
     station = evt.get_station(station_id)
+    if simulationSelector.run(evt, station.get_sim_station(), det):
     
-    efieldToVoltageConverter.run(evt, station, det)
-        
+        efieldToVoltageConverter.run(evt, station, det)
+
         hardwareResponseIncorporator.run(evt, station, det, sim_to_data=True)
-        
-        #channelLengthAdjuster.run(evt, station, det)
-        
+
+        #channelLengthAdjuster.run(evt, station, det) # 
+
         #noiseImporter.run(evt, station, det)
-        
+
         channelGenericNoiseAdder.run(evt, station, det, type = "perfect_white", amplitude = 20* units.mV)
-        
-        triggerSimulator.run(evt, station,det)
-        
+
+        triggerSimulator.run(evt, station,det, number_concidences = 2, threshold = 100 *units.mV)
+
         if station.get_trigger('default_simple_threshold').has_triggered():
-            
+
             channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 500 * units.MHz], filter_type='butter', order = 10)
-            
+
             channelTemplateCorrelation.run(evt, station, det, cosmic_ray=True, channels_to_use=used_channels_fit)
-            
-            xcorr = station[stnp.cr_xcorrelations]["cr_avg_xcorr_parallel_crchannels"]
+
+            #xcorr = station[stnp.cr_xcorrelations]["cr_avg_xcorr_parallel_crchannels"]
             output_mode = 'full'
-            if(xcorr < 0.4):
-                output_mode = 'micro'
-                continue
-        
+            #if(xcorr < 0.4):
+            #    output_mode = 'micro'
+            #    continue
+
             cosmicRayIdentifier.run(evt, station, "forced")
-            
+
             channelStopFilter.run(evt, station, det)
-            
+
             channelBandPassFilter.run(evt, station, det, passband=[60 * units.MHz, 600 * units.MHz], filter_type='rectangular')
-            
+
             channelSignalReconstructor.run(evt, station, det)
-            
+
             hardwareResponseIncorporator.run(evt, station, det)
-            
+
             templateDirectionFitter.run(evt, station, det, cosmic_ray=True, channels_to_use=used_channels_fit)
-            
+
             correlationDirectionFitter.run(evt, station, det, n_index=1., channel_pairs=channel_pairs)
-            
+
             voltageToEfieldConverter.run(evt, station, det, debug=1, use_channels=used_channels_efield)
-            
+
             electricFieldSignalReconstructor.run(evt, station, det)
-            voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], useMCdirection=False)
-            
+                voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], useMCdirection=False)
+
             channelResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
-    
-        eventWriter.run(evt)
+
+            eventWriter.run(evt)
 
 nevents = eventWriter.end()
 
