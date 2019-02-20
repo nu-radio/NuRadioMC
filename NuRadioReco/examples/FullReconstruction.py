@@ -43,6 +43,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('FullExample')
 
 station_id = int(sys.argv[1])  # specify station id
+input_files = sys.argv[2] # file with coreas simulations
+
 if(station_id == 32):
     triggered_channels = [0,1,2,3]
     used_channels_efield = [0, 1, 2, 3]
@@ -53,10 +55,8 @@ det = detector.Detector(json_filename='ARIANNA/arianna_detector_db.json'.format(
 
 NOISE_PATH = "/lustre/fs22/group/radio/plaisier/software/simulations/example" # path to measured noise files
 
-input_files = glob.glob(os.path.join('/lustre/fs22/group/radio/sim/cr/000000', "*.hdf5*")) # file with coreas simulations
-
 dir_path = os.path.dirname(os.path.realpath(__file__)) # get the directory of this file
-template_directory = os.path.join(dir_path, '../../ARIANNAreco/analysis/templateGeneration') # path to templates
+template_directory = os.path.join(dir_path, '../ARIANNAreco/analysis/templateGeneration') # path to templates
 
 # initialize all modules
 triggerSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
@@ -73,7 +73,7 @@ hardwareResponseIncorporator = ChardwareResponseIncorporator.hardwareResponseInc
 channelResampler = CchannelResampler.channelResampler()
 channelResampler.begin()
 noiseImporter = NuRadioReco.modules.io.noise.noiseImporter.noiseImporter()
-noiseImporter.begin(NOISE_PATH, station_id=51)
+#noiseImporter.begin(NOISE_PATH, station_id=51)
 channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 noise_adder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
@@ -96,15 +96,19 @@ electricFieldSignalReconstructor.begin()
 voltageToEfieldConverter = NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter()
 channelSignalReconstructor.begin()
 channelTemplateCorrelation.begin()
+simulationSelector = NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector()
+simulationSelector.begin()
+
 
 output_filename = "MC_station_{}.nur".format(station_id)
 eventWriter.begin(output_filename)
 
 for iE, evt in enumerate(readCoREAS.run(det)):
-    
     logger.info("processing event {:d} with id {:d}".format(iE, evt.get_id()))
     station = evt.get_station(station_id)
+    
     if simulationSelector.run(evt, station.get_sim_station(), det):
+
     
         efieldToVoltageConverter.run(evt, station, det)
 
@@ -114,16 +118,17 @@ for iE, evt in enumerate(readCoREAS.run(det)):
 
         #noiseImporter.run(evt, station, det) # imports measured noise 
 
-        channelGenericNoiseAdder.run(evt, station, det, type = "perfect_white", amplitude = 20* units.mV)
+        channelGenericNoiseAdder.run(evt, station, det, type = "rayleigh", amplitude = 20* units.mV)
 
         triggerSimulator.run(evt, station,det, number_concidences = 2, threshold = 100 *units.mV)
 
         if station.get_trigger('default_simple_threshold').has_triggered():
 
             channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 500 * units.MHz], filter_type='butter', order = 10)
+            
+            #channelTemplateCorrelation.run(evt, station, det, cosmic_ray=True, channels_to_use=used_channels_fit, n_templates = 1)
 
-            channelTemplateCorrelation.run(evt, station, det, cosmic_ray=True, channels_to_use=used_channels_fit)
-
+          
             cosmicRayIdentifier.run(evt, station, "forced")
 
             channelStopFilter.run(evt, station, det)
@@ -134,7 +139,7 @@ for iE, evt in enumerate(readCoREAS.run(det)):
 
             hardwareResponseIncorporator.run(evt, station, det)
 
-            templateDirectionFitter.run(evt, station, det, cosmic_ray=True, channels_to_use=used_channels_fit)
+            #templateDirectionFitter.run(evt, station, det, cosmic_ray=True, channels_to_use=used_channels_fit)
 
             correlationDirectionFitter.run(evt, station, det, n_index=1., channel_pairs=channel_pairs)
 
