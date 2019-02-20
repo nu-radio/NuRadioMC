@@ -79,12 +79,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
             gARZ = ARZ.ARZ()
         if(interp_factor is not None):
             gARZ.set_interpolation_factor(interp_factor)
-<<<<<<< HEAD
         return gARZ.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, same_shower=same_shower, **kwargs)
-=======
-        return gARZ.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, same_shower=same_shower, **kwargs)[1]
->>>>>>> 89056dea6b313499ff651e6d6f9edce61a2e7c34
-        
+
     elif(model == 'spherical'):
         amplitude = 1. * energy / R
         trace = np.zeros(N)
