@@ -49,14 +49,14 @@ if(station_id == 32):
     used_channels_fit = [0, 1, 2, 3]
     channel_pairs = ((0, 2), (1, 3))
 
-det = detector.Detector(json_filename='ARIANNA/arianna_detector_db.json'.format(station_id))
+det = detector.Detector(json_filename='ARIANNA/arianna_detector_db.json'.format(station_id)) # detector file
 
-NOISE_PATH = "/lustre/fs22/group/radio/plaisier/software/simulations/example" #path to measured noise files
+NOISE_PATH = "/lustre/fs22/group/radio/plaisier/software/simulations/example" # path to measured noise files
 
-input_files = glob.glob(os.path.join('/lustre/fs22/group/radio/sim/cr/000000', "*.hdf5*")) #file with coreas simulations
+input_files = glob.glob(os.path.join('/lustre/fs22/group/radio/sim/cr/000000', "*.hdf5*")) # file with coreas simulations
 
-dir_path = os.path.dirname(os.path.realpath(__file__)) #get the directory of this file
-template_directory = os.path.join(dir_path, '../../ARIANNAreco/analysis/templateGeneration') #path to templates
+dir_path = os.path.dirname(os.path.realpath(__file__)) # get the directory of this file
+template_directory = os.path.join(dir_path, '../../ARIANNAreco/analysis/templateGeneration') # path to templates
 
 # initialize all modules
 triggerSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
@@ -110,9 +110,9 @@ for iE, evt in enumerate(readCoREAS.run(det)):
 
         hardwareResponseIncorporator.run(evt, station, det, sim_to_data=True)
 
-        #channelLengthAdjuster.run(evt, station, det) # 
+        #channelLengthAdjuster.run(evt, station, det) # cuts the trace lengths to the same lenghts as the files for the measured noise
 
-        #noiseImporter.run(evt, station, det)
+        #noiseImporter.run(evt, station, det) # imports measured noise 
 
         channelGenericNoiseAdder.run(evt, station, det, type = "perfect_white", amplitude = 20* units.mV)
 
@@ -123,12 +123,6 @@ for iE, evt in enumerate(readCoREAS.run(det)):
             channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 500 * units.MHz], filter_type='butter', order = 10)
 
             channelTemplateCorrelation.run(evt, station, det, cosmic_ray=True, channels_to_use=used_channels_fit)
-
-            #xcorr = station[stnp.cr_xcorrelations]["cr_avg_xcorr_parallel_crchannels"]
-            output_mode = 'full'
-            #if(xcorr < 0.4):
-            #    output_mode = 'micro'
-            #    continue
 
             cosmicRayIdentifier.run(evt, station, "forced")
 
@@ -147,7 +141,7 @@ for iE, evt in enumerate(readCoREAS.run(det)):
             voltageToEfieldConverter.run(evt, station, det, debug=1, use_channels=used_channels_efield)
 
             electricFieldSignalReconstructor.run(evt, station, det)
-                voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], useMCdirection=False)
+            voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], useMCdirection=False)
 
             channelResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
 
