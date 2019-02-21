@@ -2,7 +2,7 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-with open('interp.json', 'r') as f:
+with open('interp_1e-3.json', 'r') as f:
     interp = json.load(f)
 
 colours = ['red', 'black', 'blue', 'orange', 'cadetblue']
@@ -35,4 +35,5 @@ plt.legend()
 plt.subplot(2,1,2)
 plt.ylabel('Interp factor 2')
 plt.xlabel('Angle [deg]')
+plt.savefig('interpolation_plot.png', format='png')
 plt.show()
