@@ -112,6 +112,7 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
                 trigger_names_dict[trigger_name] = iT
             break
 
+    trigger_combinations['all_triggers'] = {'triggers': trigger_names}
     print("Trigger names:", trigger_names)
 
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
