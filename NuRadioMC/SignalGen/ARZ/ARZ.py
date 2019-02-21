@@ -9,6 +9,7 @@ from scipy import constants
 from matplotlib import pyplot as plt
 from radiotools import coordinatesystems as cstrafo
 import os
+import copy
 import pickle
 import logging
 logger = logging.getLogger("SignalGen.ARZ")
@@ -29,18 +30,27 @@ c = 2.99792458e8 * units.m / units.s
 # e = 1.602177e-19 * units.coulomb
 
 
+def thetaprime_to_theta(thetaprime, xmax, R):
+    """
+    convertes a viewing angle relative to the shower maximum to a viewing angle relative to the start of the shower. 
+    """
+    L = xmax / rho
+    return thetaprime - np.arcsin((L * np.sin(np.pi - thetaprime)) / R)
+
+
 class ARZ(object):
     __instance = None
 
-    def __new__(cls, seed=1234, interp_factor=10., library=None):
+    def __new__(cls, seed=1234, interp_factor=1, interp_factor2=100, library=None):
         if ARZ.__instance is None:
-            ARZ.__instance = object.__new__(cls, seed, interp_factor, library)
+            ARZ.__instance = object.__new__(cls, seed, interp_factor, interp_factor2, library)
         return ARZ.__instance
 
-    def __init__(self, seed=1234, interp_factor=10., library=None):
+    def __init__(self, seed=1234, interp_factor=1, interp_factor2=100, library=None):
         logger.warning("setting seed to {}".format(seed, interp_factor))
         np.random.seed(seed)
         self._interp_factor = interp_factor
+        self._interp_factor2 = interp_factor2
         self._random_numbers = {}
         self._version = (1, 1)
         # # load shower library into memory
@@ -115,9 +125,15 @@ class ARZ(object):
         set interpolation factor of charge-excess profiles
         """
         self._interp_factor = interp_factor
+        
+    def set_interpolation_factor2(self, interp_factor):
+        """
+        set interpolation factor around peak of form factor
+        """
+        self._interp_factor2 = interp_factor
 
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
-                       same_shower=False, iN=None, output_mode='trace'):
+                       same_shower=False, iN=None, output_mode='trace', theta_reference='X0'):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
         
@@ -155,7 +171,11 @@ class ARZ(object):
             specify shower number
         output_mode: string
             * 'trace' (default): return only the electric field trace
+            * 'Xmax': return trace and position of xmax in units of length
             * 'full' return trace, depth and charge_excess profile
+        theta_reference: string (default: X0)
+            * 'X0': viewing angle relativ to start of the shower
+            * 'Xmax': viewing angle is relativ to Xmax, internally it will be converted to be relative to X0
             
         Returns: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
@@ -190,20 +210,34 @@ class ARZ(object):
             
         profile_depth = profiles['depth']
         profile_ce = profiles['charge_excess'][iN] * rescaling_factor
-        vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
-                                               shower_type, n_index, R, self._interp_factor, shift_for_xmax)
+        
+        if(theta_reference == 'Xmax'):
+            xmax = profile_depth[np.argmax(profile_ce)]
+            thetat = copy.copy(theta)
+            theta = thetaprime_to_theta(theta, xmax, R)
+            logger.info("transforming viewing angle from {:.2f} to {:.2f}".format(thetat / units.deg, theta / units.deg))
+        elif(theta_reference != 'X0'):
+            raise NotImplementedError("theta_reference = '{}' is not implemented".format(theta_reference))
+        
+        vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, shower_type, n_index, R,
+                                       self._interp_factor, self._interp_factor2, shift_for_xmax)
         trace = -np.diff(vp, axis=0) / dt
+#         trace = -np.gradient(vp, axis=0) / dt
         
         cs = cstrafo.cstrafo(zenith=theta, azimuth=0)
         trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
         if(output_mode == 'full'):
             return trace_onsky, profile_depth, profile_ce
+        elif(output_mode == 'Xmax'):
+            xmax = profile_depth[np.argmax(profile_ce)]
+            Lmax = xmax / rho
+            return trace_onsky, Lmax
         return trace_onsky
     
     
 def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
                               shower_type="HAD", n_index=1.78, distance=1 * units.m,
-                              interp_factor=10, shift_for_xmax=False):
+                              interp_factor=1., interp_factor2=100., shift_for_xmax=False):
     """
     fast interpolation of time-domain calculation of vector potential of the 
     Askaryan pulse from a charge-excess profile
@@ -232,25 +266,33 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
         index of refraction where the shower development takes place
     distance: float (default 1km)
         observation distance, the signal amplitude will be scaled according to 1/R
-    interp_factor: int (default 10)
+    interp_factor: int (default 1)
         interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
-        for small vertex distances but also slows down the calculation proportional to the interpolation factor. 
+        for small vertex distances but also slows down the calculation proportional to the interpolation factor.
+        if None, the interpolation factor will be calculated from the distance 
+    interp_factor2: int (default 100)
+        interpolation just around the peak of the form factor 
     shift_for_xmax: bool (default True)
         if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
         with respect to (0,0,0) which is the start of the charge-excess profile
     """
-
-    tt = np.arange(0, (N + 1) * dt, dt)
-    tt = tt + 0.5 * dt - tt.mean()
-    N = len(tt)
+    
+    ttt = np.arange(0, (N + 1) * dt, dt)
+    ttt = ttt + 0.5 * dt - ttt.mean()
+    if(len(ttt) != N+1):
+        ttt = ttt[:-1]
+    N = len(ttt)
 
     xn = n_index
     cher = np.arccos(1. / n_index)
     beta = 1.
 
-    profile_dense = np.linspace(min(profile_depth), max(profile_depth), interp_factor * len(profile_depth))
+    profile_dense = profile_depth
+    profile_ce_interp = profile_ce
+    if(interp_factor != 1):
+        profile_dense = np.linspace(min(profile_depth), max(profile_depth), interp_factor * len(profile_depth))
+        profile_ce_interp = np.interp(profile_dense, profile_depth, profile_ce)
     length = profile_dense / rho
-    profile_ce_interp = np.interp(profile_dense, profile_depth, profile_ce)
     dxmax = length[np.argmax(profile_ce_interp)]
 #     theta2 = np.arctan(R * np.sin(theta)/(R * np.cos(theta) - dxmax))
 #     logger.warning("theta changes from {:.2f} to {:.2f}".format(theta/units.deg, theta2/units.deg))
@@ -287,12 +329,98 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
     fc = 4. * np.pi / (xmu * np.sin(cher))
 
     vp = np.zeros((N, 3))
-    for it, t in enumerate(tt):
+    for it, t in enumerate(ttt):
         tobs = t + (get_dist_shower(X, 0) / c * xn)
         z = length
 
         R = get_dist_shower(X, z)
         arg = z - (beta * c * tobs - xn * R)
+        
+        # Note that Acher peaks at tt=0 which corresponds to the observer time.
+        # The shift from tobs to tt=0 is done when defining argument
+        tt = (-arg / (c * beta))  # Parameterisation of A_Cherenkov with t in ns
+        
+        mask = abs(tt) < 20. * units.ns
+        if(np.sum(mask) == 0):  # 
+            vp[it] = 0
+            continue
+        
+        profile_dense2 = profile_dense
+        profile_ce_interp2 = profile_ce_interp
+        abc = False
+        if(interp_factor2 != 1):
+            # we only need to interpolate between +- 1ns to achieve a better precision in the numerical integration
+            # the following code finds the indices sourrounding the bins fulfilling these condition
+            # please not that we often have two distinct intervals having -1 < tt < 1
+            tmask = (tt < 1 * units.ns) & (tt > -1 * units.ns)
+            gaps = (tmask[1:] ^ tmask[:-1])  # xor
+            indices = np.arange(len(gaps))[gaps]  # the indices in between tt is within -+ 1ns
+            if(len(indices) != 0):  # only interpolate if we have time within +- 1 ns of the observer time
+                # now we add the corner cases of having the tt array start or end with an entry fulfilling the condition
+                if(len(indices) % 2 != 0):
+                    if((tt[0] < 1 * units.ns) and (tt[0] > -1 * units.ns) and indices[0] != 0):
+                        indices = np.append(0, indices)
+                    else:
+                        if(indices[-1] != (len(tt) -1)):
+                            indices = np.append(indices, len(tt) - 1)
+                if(len(indices) % 2 == 0): # this rejects the cases where only the first or the last entry fulfills the -1 < tt < 1 condition
+                    dt = tt[1] - tt[0]
+                    
+                    dp = profile_dense2[1] - profile_dense2[0]
+                    if(len(indices) == 2):  # we have only one interval
+                        i_start = indices[0]
+                        i_stop = indices[1]
+                        profile_dense2 = np.arange(profile_dense[i_start], profile_dense[i_stop], dp / interp_factor2)
+                        profile_ce_interp2 = np.interp(profile_dense2, profile_dense[i_start:i_stop], profile_ce_interp[i_start:i_stop])
+                        profile_dense2 = np.append(np.append(profile_dense[:i_start], profile_dense2), profile_dense[i_stop:])
+                        profile_ce_interp2 = np.append(np.append(profile_ce_interp[:i_start], profile_ce_interp2), profile_ce_interp[i_stop:])
+                    elif(len(indices) == 4):  # we have two intervals, hence, we need to upsample two distinct intervals and put the full array back together. 
+                        i_start = indices[0]
+                        i_stop = indices[1]
+                        profile_dense2 = np.arange(profile_dense[i_start], profile_dense[i_stop], dp / interp_factor2)
+                        profile_ce_interp2 = np.interp(profile_dense2, profile_dense[i_start:i_stop], profile_ce_interp[i_start:i_stop])
+                        
+                        i_start3 = indices[2]
+                        i_stop3 = indices[3]
+                        profile_dense3 = np.arange(profile_dense[i_start3], profile_dense[i_stop3], dp / interp_factor2)
+                        profile_ce_interp3 = np.interp(profile_dense3, profile_dense[i_start3:i_stop3], profile_ce_interp[i_start3:i_stop3])
+                        
+                        profile_dense2 = np.append(np.append(np.append(np.append(
+                                                        profile_dense[:i_start], profile_dense2),
+                                                           profile_dense[i_stop:i_start3]),
+                                                              profile_dense3),
+                                                                   profile_dense[i_stop3:])
+                        profile_ce_interp2 = np.append(np.append(np.append(np.append(
+                                                profile_ce_interp[:i_start],
+                                                profile_ce_interp2),
+                                                profile_ce_interp[i_stop:i_start3]),
+                                                profile_ce_interp3), 
+                                                profile_ce_interp[i_stop3:])
+                            
+                    else:
+                        raise NotImplementedError("length of indices is not 2 nor 4") # this should never happen
+                    if 0:
+                        abc = True
+                        i_stop = len(profile_dense) - 1
+                        from matplotlib import pyplot as plt
+                        fig, ax = plt.subplots(1, 1)
+                        ax.plot(tt, color='0.5')
+                        ax.plot(np.arange(len(tmask))[tmask], tt[tmask], 'o')
+                        ax.plot(indices, np.ones_like(indices), 'd')
+        #                 ax.plot(np.arange(len(tmask))[gaps], tt[gaps], 'd')
+                        plt.show()
+                
+                    # recalculate parameters for interpolated values
+                    z = profile_dense2 / rho
+                    R = get_dist_shower(X, z)
+                    arg = z - (beta * c * tobs - xn * R)
+                    tt = (-arg / (c * beta))
+                    mask = abs(tt) < 20. * units.ns
+                    tmask = (tt < 1 * units.ns) & (tt > -1 * units.ns)
+        
+        F_p = np.zeros_like(tt)
+        # Cut fit above +/-5 ns
+
         u_x = X[0] / R
         u_y = X[1] / R
         u_z = (X[2] - z) / R
@@ -301,28 +429,19 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
         vperp_y = u_y * u_z * beta_z
         vperp_z = -(u_x * u_x + u_y * u_y) * beta_z
         v = np.array([vperp_x, vperp_y, vperp_z])
-
         """
         Function F_p Eq.(15) PRD paper.
         """
         # Factor accompanying the F_p in Eq.(15) in PRD paper
         beta = 1.
-
-        # Note that Acher peaks at tt=0 which corresponds to the observer time.
-        # The shift from tobs to tt=0 is done when defining argument
-        tt = (-arg / (c * beta))  # Parameterisation of A_Cherenkov with t in ns
-        # Cut fit above +/-5 ns
-        mask = abs(tt) < 5. * units.ns
-
-        # Choose Acher between purely electromagnetic, purely hadronic or mixed shower
-        # Eq.(16) PRD paper.
-        # Refit of ZHAireS results => factor 0.88 in Af_e
-        Af_e = -4.5e-14 * 0.88 * units.V * units.s
-        Af_p = -3.2e-14 * units.V * units.s  # V s
-        E_TeV = shower_energy / units.TeV
-        Acher = np.zeros_like(tt)
-        F_p = np.zeros_like(tt)
         if(np.sum(mask)):
+            # Choose Acher between purely electromagnetic, purely hadronic or mixed shower
+            # Eq.(16) PRD paper.
+            # Refit of ZHAireS results => factor 0.88 in Af_e
+            Af_e = -4.5e-14 * 0.88 * units.V * units.s
+            Af_p = -3.2e-14 * units.V * units.s  # V s
+            E_TeV = shower_energy / units.TeV
+            Acher = np.zeros_like(tt)
             if(shower_type == "HAD"):
                 mask2 = tt > 0 & mask
                 if(np.sum(mask2)):
@@ -351,11 +470,42 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
             # Obtain "shape" of Lambda-function from vp at Cherenkov angle
             # xntot = LQ_tot in PRD paper
             F_p[mask] = Acher[mask] * fc / xntot
-        F_p[~mask] = 1.e-30 * fc / xntot
+#         F_p[~mask] = 1.e-30 * fc / xntot
+        F_p[~mask] = 0
 
-        vp[it] = np.trapz(-v * profile_ce_interp * F_p / R, z)
+        vp[it] = np.trapz(-v * profile_ce_interp2 * F_p / R, z)
+        if  0:
+            import matplotlib.pyplot as plt
+            fig, ax = plt.subplots(1, 1)
+            inte = -v * profile_ce_interp2 * F_p / R
+            ax.plot(tt, inte[0], '-')
+            ax.plot(tt, inte[1], '-')
+            ax.plot(tt, inte[2], '-')
+            ax.plot(tt[tmask], inte[0][tmask], 'o')
+            ax.plot(tt[tmask], inte[1][tmask], 'o')
+            ax.plot(tt[tmask], inte[2][tmask], 'o')
+            ax.set_title("{}".format(vp[it]))
+            plt.show()
 
     vp *= factor
+    if 0:
+        import matplotlib.pyplot as plt
+        fig, (ax, ax2) = plt.subplots(1, 2)
+        ax.plot(vp)
+        print(vp.shape)
+        t0 = -np.gradient(vp.T[0]) / dt
+        t1 = -np.gradient(vp.T[1]) / dt
+        t2 = -np.gradient(vp.T[2]) / dt
+        trace2 = -np.diff(vp, axis=0) / dt
+#         print(trace.shape)
+        ax2.plot(t0)
+        ax2.plot(t1)
+        ax2.plot(t2)
+        
+        ax2.plot(trace2.T[0], '--')
+        ax2.plot(trace2.T[1], '--')
+        ax2.plot(trace2.T[2], '--')
+        plt.show()
     return vp
 
 
@@ -491,6 +641,170 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
             vp[it][2] = int.quad(xintegrand, xmin, xmax, args=(2, tobs))[0]
     vp *= factor
     return vp
+
+
+class ARZ_tabulated(object):
+    __instance = None
+
+    def __new__(cls, seed=1234, library=None):
+        if ARZ_tabulated.__instance is None:
+            ARZ_tabulated.__instance = object.__new__(cls, seed, library)
+        return ARZ_tabulated.__instance
+
+    def __init__(self, seed=1234, library=None):
+        logger.warning("setting seed to {}".format(seed))
+        np.random.seed(seed)
+        self._random_numbers = {}
+        self._version = (1, 1)
+        # # load shower library into memory
+        if(library is None):
+            library = os.path.join(os.path.dirname(__file__), "shower_library/ARZ_library_v{:d}.{:d}.pkl".format(*self._version))
+        else:
+            if(not os.path.exists(library)):
+                logger.error("user specified pulse library {} not found.".format(library))
+                raise FileNotFoundError("user specified pulse library {} not found.".format(library))
+        self.__check_and_get_library()
+        
+        with open(library) as fin:
+            logger.warning("loading pulse library into memory")
+            self._library = pickle.load(fin)
+            
+    def __check_and_get_library(self):
+        """
+        checks if pulse library exists and is up to date by comparing the sha1sum. If the library does not exist
+        or changes on the server, a new library will be downloaded. 
+        """
+        path = os.path.join(os.path.dirname(__file__), "shower_library/ARZ_library_v{:d}.{:d}.pkl".format(*self._version))
+        
+        download_file = False
+        if(not os.path.exists(path)):
+            logger.warning("ARZ library version {} does not exist on the local file system yet. It will be downloaded to {}".format(self._version, path))
+            download_file = True
+    
+        if(os.path.exists(path)):
+            BUF_SIZE = 65536 * 2 ** 4  # lets read stuff in 64kb chunks!
+            import hashlib
+            import json
+            sha1 = hashlib.sha1()
+            with open(path, 'rb') as f:
+                while True:
+                    data = f.read(BUF_SIZE)
+                    if not data:
+                        break
+                    sha1.update(data)
+    
+            shower_directory = os.path.join(os.path.dirname(__file__), "shower_library/")
+            with open(os.path.join(shower_directory, 'shower_lib_hash.json'), 'r') as fin:
+                lib_hashs = json.load(fin)
+                if("ARZ_{:d}.{:d}".format(*self._version) in lib_hashs.keys()):
+                    if(sha1.hexdigest() != lib_hashs["{:d}.{:d}".format(*self._version)]):
+                        logger.warning("pulse library {} has changed on the server. downloading newest version...".format(self._version))
+                        download_file = True
+                else:
+                    logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))            
+        if not download_file:
+            return True
+        else:
+            import requests
+            URL = 'http://arianna.ps.uci.edu/~arianna/data/ce_shower_library/ARZ_library_v{:d}.{:d}.pkl'.format(*self._version)
+    
+            logger.info("downloading pulse library {} from {}. This can take a while...".format(self._version, URL))
+            r = requests.get(URL)
+            if (r.status_code != requests.codes.ok):
+                logger.error("error in download of antenna model")
+                raise IOError("error in download of antenna model")
+            with open(path, "wb") as code:
+                code.write(r.content)
+            logger.info("...download finished.")
+        
+    def set_seed(self, seed):
+        """
+        allow to set a new random seed
+        """
+        np.random.seed(seed)
+        
+    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R,
+                       same_shower=False, iN=None, output_mode='trace', theta_reference='X0'):
+        """
+        calculates the electric-field Askaryan pulse from a charge-excess profile
+        
+        Parameters
+        ----------
+        shower_energy: float
+            the energy of the shower
+        theta: float
+            viewing angle, i.e., the angle between shower axis and launch angle of the signal (the ray path)
+        N: int
+            number of samples in the time domain
+        dt: float
+            size of one time bin in units of time
+        shower_type: string (default "HAD")
+            type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+        n_index: float (default 1.78)
+            index of refraction where the shower development takes place
+        R: float (default 1km)
+            observation distance, the signal amplitude will be scaled according to 1/R
+        same_shower: bool (default False)
+            if False, for each request a new random shower realization is choosen. 
+            if True, the shower from the last request of the same shower type is used. This is needed to get the Askaryan
+            signal for both ray tracing solutions from the same shower. 
+        iN: int or None (default None)
+            specify shower number
+        output_mode: string
+            * 'trace' (default): return only the electric field trace
+            * 'Xmax': return trace and position of xmax in units of length
+        theta_reference: string (default: X0)
+            * 'X0': viewing angle relativ to start of the shower
+            * 'Xmax': viewing angle is relativ to Xmax, internally it will be converted to be relative to X0
+            
+        Returns: array of floats
+            array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
+        """
+        if not shower_type in self._library.keys():
+            raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
+    
+        # determine closes available energy in shower library
+        energies = np.array(list(self._library[shower_type].keys()))
+        iE = np.argmin(np.abs(energies - shower_energy))
+        rescaling_factor = shower_energy / energies[iE]
+        logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The pulse amplitude will be rescaled accordingly by a factor of {:.2f}".format(shower_energy / units.eV, energies[iE] / units.eV, rescaling_factor))
+        profiles = self._library[shower_type][energies[iE]]
+        N_profiles = len(profiles.keys())
+        
+        if(iN is None):
+            if(same_shower):
+                if(shower_type in self._random_numbers):
+                    iN = self._random_numbers[shower_type]
+                    logger.info("using previously used shower {}/{}".format(iN, N_profiles))
+                else:
+                    logger.warning("no previous random number for shower type {} exists. Generating a new random number.".format(shower_type))
+                    iN = np.random.randint(N_profiles)
+                    self._random_numbers[shower_type] = iN
+                    logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
+            else:
+                iN = np.random.randint(N_profiles)
+                self._random_numbers[shower_type] = iN
+                logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
+        else:
+            logger.info("using shower {}/{} as specified by user".format(iN, N_profiles))
+            
+        thetas = profiles[iN].keys()
+        iT = np.argmin(np.abs(thetas - theta))
+        logger.info("selecting theta = {:.2f} ({:.2f} requested)".format(thetas[iT] / units.deg, theta))
+        trace = profiles[iT]['trace']
+        t0 = profiles[iT]['t0']
+        Lmax = profiles[iT]['Lmax']
+        trace2 = np.zeros(N)
+        tcenter = N // 2 * dt
+        tstart = t0 + tcenter
+        i0 = np.int(np.round(tstart / dt))
+        trace2[i0:(i0 + len(trace))] = trace
+        
+        trace2 *= self._library['meta']['R'] / R * rescaling_factor
+        
+        if(output_mode == 'Xmax'):
+            return trace2, Lmax
+        return trace2
 
 
 if __name__ == "__main__":
