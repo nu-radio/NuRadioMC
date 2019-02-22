@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import argparse
 # import detector simulation modules
-import NuRadioReco.modules.efieldToVoltageConverterPerChannel
+import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.ARIANNA.triggerSimulator2
 import NuRadioReco.modules.triggerSimulator
 import NuRadioReco.modules.channelResampler
@@ -13,8 +13,8 @@ logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("runstrawman")
 
 # initialize detector sim modules
-efieldToVoltageConverterPerChannel = NuRadioReco.modules.efieldToVoltageConverterPerChannel.efieldToVoltageConverterPerChannel()
-efieldToVoltageConverterPerChannel.begin(debug=False, time_resolution=1*units.ns)
+efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
+efieldToVoltageConverter.begin(debug = False, time_resolution = 1*units.ns)
 triggerSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
 triggerSimulatorARIANNA = NuRadioReco.modules.ARIANNA.triggerSimulator2.triggerSimulator()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
@@ -25,7 +25,7 @@ class mySimulation(simulation.simulation):
 
     def _detector_simulation(self):
         # start detector simulation
-        efieldToVoltageConverterPerChannel.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
+        efieldToVoltageConverter.run(self._evt, self._station, self._det) # convolve efield with antenna pattern
         # downsample trace back to detector sampling rate
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
