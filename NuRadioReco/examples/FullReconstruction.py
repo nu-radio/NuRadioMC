@@ -33,8 +33,11 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('FullExample')
 
+plt.switch_backend('agg')
+
+
 """
-Here, we shown an example reconstruction of CoREAS data. A variety of modules
+Here, we show an example reconstruction of CoREAS data. A variety of modules
 are being used. Please refer to details in the modules themselves.
 
 Input parameters (all with a default provided)
@@ -60,7 +63,7 @@ try:
 except:
     print("Usage: python FullReconstruction.py station_id input_file detector templates")
     station_id = 32
-    input_file = "test_data.hdf5"
+    input_file = "example_data/example_data.hdf5"
     print("Using default station {}".format(32))
 
 if(station_id == 32):
@@ -77,7 +80,7 @@ try:
     print("Using {0} as detector and {1} as templates".format(detector_file, template_path))
 except:
     print("Using default file for detector")
-    detector_file = 'ARIANNA/arianna_detector_db.json'
+    detector_file = '../examples/example_data/arianna_detector_db.json'
     template_path = '../ARIANNAreco/analysis/templateGeneration'
 
 
@@ -152,7 +155,7 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
 
             correlationDirectionFitter.run(evt, station, det, n_index=1., channel_pairs=channel_pairs)
 
-            voltageToEfieldConverter.run(evt, station, det, debug=1, use_channels=used_channels_efield)
+            voltageToEfieldConverter.run(evt, station, det, use_channels=used_channels_efield)
 
             electricFieldSignalReconstructor.run(evt, station, det)
             voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], useMCdirection=False)
