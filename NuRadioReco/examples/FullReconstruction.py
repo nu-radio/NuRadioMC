@@ -1,122 +1,136 @@
 import numpy as np
-import os
-import scipy
-import sys
+import os, scipy, sys
 import copy
-import NuRadioReco.modules.io.coreas.readCoREAS
-from NuRadioReco.modules import efieldToVoltageConverter as CefieldToVoltageConverter
-import NuRadioReco.modules.io.noise.noiseImporter
-from NuRadioReco.modules import channelLengthAdjuster
-from NuRadioReco.modules.ARIANNA import hardwareResponseIncorporator as ChardwareResponseIncorporator
-from NuRadioReco.modules import channelResampler as CchannelResampler
-import NuRadioReco.modules.electricFieldResampler
-import NuRadioReco.modules.electricFieldBandPassFilter
-import NuRadioReco.modules.channelSignalReconstructor
-import NuRadioReco.modules.io.eventWriter
-import NuRadioReco.modules.channelBandPassFilter
-import NuRadioReco.modules.channelTemplateCorrelation
-import NuRadioReco.modules.channelStopFilter
-import NuRadioReco.modules.templateDirectionFitter
-import NuRadioReco.modules.correlationDirectionFitter
-import NuRadioReco.modules.voltageToAnalyticEfieldConverter
-from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
-from NuRadioReco.detector import antennapattern
-from NuRadioReco.utilities import units, fft
-from NuRadioReco.detector import detector
-from NuRadioReco.framework.parameters import stationParameters as stnp
-import NuRadioReco.modules.channelGenericNoiseAdder
-import NuRadioReco.modules.cosmicRayIdentifier
-import NuRadioReco.modules.trigger.simpleThreshold
 import datetime
 import glob
 import matplotlib.pyplot as plt
-import NuRadioReco.modules.channelGenericNoiseAdder
-import NuRadioReco.modules.electricFieldSignalReconstructor
-import NuRadioReco.modules.voltageToEfieldConverter
-from NuRadioReco.framework.parameters import channelParameters as chp
-import NuRadioReco.modules.io.coreas.simulationSelector
 
+from NuRadioReco.utilities import units
+from NuRadioReco.detector import detector
+
+import NuRadioReco.modules.io.coreas.readCoREAS
+import NuRadioReco.modules.io.coreas.simulationSelector
+import NuRadioReco.modules.efieldToVoltageConverter
+import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
+import NuRadioReco.modules.channelGenericNoiseAdder
+import NuRadioReco.modules.trigger.simpleThreshold
+import NuRadioReco.modules.channelBandPassFilter
+import NuRadioReco.modules.cosmicRayIdentifier
+import NuRadioReco.modules.channelStopFilter
+import NuRadioReco.modules.channelSignalReconstructor
+import NuRadioReco.modules.correlationDirectionFitter
+import NuRadioReco.modules.voltageToEfieldConverter
+import NuRadioReco.modules.electricFieldSignalReconstructor
+import NuRadioReco.modules.voltageToAnalyticEfieldConverter
+import NuRadioReco.modules.channelResampler
+import NuRadioReco.modules.io.eventWriter
+
+from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import stationParameters as stnp
 
 # Logging level
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('FullExample')
 
-station_id = int(sys.argv[1])  # specify station id
-input_files = sys.argv[2] # file with coreas simulations
+"""
+Here, we shown an example reconstruction of CoREAS data. A variety of modules
+are being used. Please refer to details in the modules themselves.
+
+Input parameters (all with a default provided)
+---------------------
+
+Command line input:
+    python FullReconstruction.py station_id input_file detector_file templates
+
+station_id: int
+            station id to be used, default 32
+input_file: str
+            CoREAS simulation file, default example data
+detector_file: str
+            path to json detector database, default given
+template_path: str
+            path to signal templates, default given
+
+"""
+
+try:
+    station_id = int(sys.argv[1])  # specify station id
+    input_file = sys.argv[2] # file with coreas simulations
+except:
+    print("Usage: python FullReconstruction.py station_id input_file detector templates")
+    station_id = 32
+    input_file = "test_data.hdf5"
+    print("Using default station {}".format(32))
 
 if(station_id == 32):
     triggered_channels = [0,1,2,3]
     used_channels_efield = [0, 1, 2, 3]
     used_channels_fit = [0, 1, 2, 3]
     channel_pairs = ((0, 2), (1, 3))
+else:
+    print("Default channels not defined for station_id != 32")
 
-det = detector.Detector(json_filename='ARIANNA/arianna_detector_db.json'.format(station_id)) # detector file
+try:
+    detector_file = sys.argv[3]
+    template_path = sys.argv[4]
+    print("Using {0} as detector and {1} as templates".format(detector_file, template_path))
+except:
+    print("Using default file for detector")
+    detector_file = 'ARIANNA/arianna_detector_db.json'
+    template_path = '../ARIANNAreco/analysis/templateGeneration'
 
-NOISE_PATH = "/lustre/fs22/group/radio/plaisier/software/simulations/example" # path to measured noise files
+
+det = detector.Detector(json_filename=detector_file) # detector file
+det.update(datetime.datetime(2018, 10, 1))
 
 dir_path = os.path.dirname(os.path.realpath(__file__)) # get the directory of this file
-template_directory = os.path.join(dir_path, '../ARIANNAreco/analysis/templateGeneration') # path to templates
+template_directory = os.path.join(dir_path, template_path) # path to templates
 
-# initialize all modules
-triggerSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
-triggerSimulator.begin()
+# initialize all modules that are needed for processing
+# provide input parameters that are to remain constant during processung
 readCoREAS = NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS()
-readCoREAS.begin(input_files, station_id, n_cores=10, max_distance=None)
-electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
-electricFieldResampler.begin()
-electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
-electricFieldBandPassFilter.begin()
-efieldToVoltageConverter = CefieldToVoltageConverter.efieldToVoltageConverter()
-efieldToVoltageConverter.begin(debug=False)
-hardwareResponseIncorporator = ChardwareResponseIncorporator.hardwareResponseIncorporator()
-channelResampler = CchannelResampler.channelResampler()
-channelResampler.begin()
-noiseImporter = NuRadioReco.modules.io.noise.noiseImporter.noiseImporter()
-#noiseImporter.begin(NOISE_PATH, station_id=51)
-channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
-eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-noise_adder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
-channelBandPassFilter.begin()
-channelLengthAdjuster = NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster()
-channelLengthAdjuster.begin()
-channelTemplateCorrelation = NuRadioReco.modules.channelTemplateCorrelation.channelTemplateCorrelation(template_directory = template_directory)
-voltageToAnalyticEfieldConverter = NuRadioReco.modules.voltageToAnalyticEfieldConverter.voltageToAnalyticEfieldConverter()
-voltageToAnalyticEfieldConverter.begin()
-channelStopFilter = NuRadioReco.modules.channelStopFilter.channelStopFilter()
-templateDirectionFitter = NuRadioReco.modules.templateDirectionFitter.templateDirectionFitter()
-correlationDirectionFitter = NuRadioReco.modules.correlationDirectionFitter.correlationDirectionFitter()
-cosmicRayIdentifier = NuRadioReco.modules.cosmicRayIdentifier.cosmicRayIdentifier()
-cosmicRayIdentifier.begin()
-channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-channelGenericNoiseAdder.begin()
-electricFieldSignalReconstructor = NuRadioReco.modules.electricFieldSignalReconstructor.electricFieldSignalReconstructor()
-electricFieldSignalReconstructor.begin()
-voltageToEfieldConverter = NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter()
-channelSignalReconstructor.begin()
-channelTemplateCorrelation.begin()
+readCoREAS.begin([input_file], station_id, n_cores=10, max_distance=None)
 simulationSelector = NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector()
 simulationSelector.begin()
+efieldToVoltageConverter =  NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
+efieldToVoltageConverter.begin(debug=False)
+hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
+channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+channelGenericNoiseAdder.begin()
+triggerSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
+triggerSimulator.begin()
+channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
+channelBandPassFilter.begin()
+cosmicRayIdentifier = NuRadioReco.modules.cosmicRayIdentifier.cosmicRayIdentifier()
+channelStopFilter = NuRadioReco.modules.channelStopFilter.channelStopFilter()
+channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
+channelSignalReconstructor.begin()
+correlationDirectionFitter = NuRadioReco.modules.correlationDirectionFitter.correlationDirectionFitter()
+voltageToEfieldConverter = NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter()
 
+electricFieldSignalReconstructor = NuRadioReco.modules.electricFieldSignalReconstructor.electricFieldSignalReconstructor()
+electricFieldSignalReconstructor.begin()
 
-output_filename = "MC_station_{}.nur".format(station_id)
+voltageToAnalyticEfieldConverter = NuRadioReco.modules.voltageToAnalyticEfieldConverter.voltageToAnalyticEfieldConverter()
+voltageToAnalyticEfieldConverter.begin()
+
+channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
+channelResampler.begin()
+eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
+output_filename = "MC_example_station_{}.nur".format(station_id)
 eventWriter.begin(output_filename)
 
-for iE, evt in enumerate(readCoREAS.run(det)):
+# Loop over all events in file as initialized in readCoRREAS and perform analysis
+for iE, evt in enumerate(readCoREAS.run(detector=det)):
     logger.info("processing event {:d} with id {:d}".format(iE, evt.get_id()))
     station = evt.get_station(station_id)
-    
+
     if simulationSelector.run(evt, station.get_sim_station(), det):
 
-    
         efieldToVoltageConverter.run(evt, station, det)
 
         hardwareResponseIncorporator.run(evt, station, det, sim_to_data=True)
-
-        #channelLengthAdjuster.run(evt, station, det) # cuts the trace lengths to the same lenghts as the files for the measured noise
-
-        #noiseImporter.run(evt, station, det) # imports measured noise 
 
         channelGenericNoiseAdder.run(evt, station, det, type = "rayleigh", amplitude = 20* units.mV)
 
@@ -125,10 +139,7 @@ for iE, evt in enumerate(readCoREAS.run(det)):
         if station.get_trigger('default_simple_threshold').has_triggered():
 
             channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 500 * units.MHz], filter_type='butter', order = 10)
-            
-            #channelTemplateCorrelation.run(evt, station, det, cosmic_ray=True, channels_to_use=used_channels_fit, n_templates = 1)
 
-          
             cosmicRayIdentifier.run(evt, station, "forced")
 
             channelStopFilter.run(evt, station, det)
@@ -138,8 +149,6 @@ for iE, evt in enumerate(readCoREAS.run(det)):
             channelSignalReconstructor.run(evt, station, det)
 
             hardwareResponseIncorporator.run(evt, station, det)
-
-            #templateDirectionFitter.run(evt, station, det, cosmic_ray=True, channels_to_use=used_channels_fit)
 
             correlationDirectionFitter.run(evt, station, det, n_index=1., channel_pairs=channel_pairs)
 
@@ -152,9 +161,9 @@ for iE, evt in enumerate(readCoREAS.run(det)):
 
             eventWriter.run(evt)
 
-nevents = eventWriter.end()
 
-print("number of events =", nevents)
+nevents = eventWriter.end()
+print("Finished processing, {} events".format(nevents))
 
 
 
