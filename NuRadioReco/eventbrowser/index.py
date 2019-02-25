@@ -422,6 +422,8 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(event_i)
+    if evt.get_station(station_id).get_station_time() is None:
+        return ''
     return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_station(station_id).get_station_time())
 
 if __name__ == '__main__':
