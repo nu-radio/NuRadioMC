@@ -1,5 +1,6 @@
-from NuRadioReco.utilities import units
 import numpy as np
+import scipy
+from NuRadioReco.utilities import units
 import NuRadioReco.framework.sim_station
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
@@ -11,11 +12,10 @@ logger = logging.getLogger('trace_utilities')
 
 
 
-
 def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider):
     """
     Returns the antenna response to a radio signal coming from a specific direction
-    
+
     Parameters
     ---------------
     station: Station
@@ -59,11 +59,11 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
         VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_antenna, azimuth, *ori)
         efield_antenna_factor[iCh] = np.array([VEL['theta'] * t_theta, VEL['phi'] * t_phi])
     return efield_antenna_factor
-    
+
 def get_channel_voltage_from_efield(station, electric_field, channels, detector, zenith, azimuth, antenna_pattern_provider, return_spectrum=True):
     """
-    Returns the voltage traces that would result in the channels from the station's E-field. 
-    
+    Returns the voltage traces that would result in the channels from the station's E-field.
+
     Parameters
     ------------------------
     station: Station
@@ -72,13 +72,13 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
         IDs of the channels for which the expected voltages should be calculated
     detector: Detector
     zenith, azimuth: float
-        incoming direction of the signal. Note that reflection and refraction 
+        incoming direction of the signal. Note that reflection and refraction
         at the air/ice boundary are already being taken into account.
     antenna_pattern_provider: AntennaPatternProvider
     return_spectrum: boolean
         if True, returns the spectrum, if False return the time trace
     """
-    
+
     frequencies = electric_field.get_frequencies()
     spectrum = electric_field.get_frequency_spectrum()
     efield_antenna_factor = get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider)
@@ -92,9 +92,12 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
         for i_ch, ch in enumerate(channels):
             voltage_trace[i_ch] = fft.freq2time(np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0))
         return voltage_trace
-        
+
 def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask = None, noise_window_mask = None):
-    conversion_factor_integrated_signal = 2.65441729 * 1e-3 / units.s * units.joule  # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
+    conversion_factor_integrated_signal = scipy.constants.c * scipy.constants.epsilon_0
+                                            * units.joule / units.s  / units.volt**2
+    # see Phys. Rev. D DOI: 10.1103/PhysRevD.93.122005
+
     if signal_window_mask is None:
         f_signal = np.sum(electric_field_trace ** 2, axis=1)
     else:
@@ -103,5 +106,5 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
     if noise_window_mask is not None:
         f_noise = np.sum(electric_field_trace[:, noise_window_mask] ** 2, axis=1)
         f_signal -= f_noise * np.sum(signal_window_mask) / np.sum(noise_window_mask)
-        
+
     return f_signal * dt * conversion_factor_integrated_signal
