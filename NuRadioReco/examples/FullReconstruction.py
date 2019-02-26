@@ -23,6 +23,8 @@ import NuRadioReco.modules.voltageToEfieldConverter
 import NuRadioReco.modules.electricFieldSignalReconstructor
 import NuRadioReco.modules.voltageToAnalyticEfieldConverter
 import NuRadioReco.modules.channelResampler
+import NuRadioReco.modules.electricFieldResampler
+
 import NuRadioReco.modules.io.eventWriter
 
 from NuRadioReco.framework.parameters import channelParameters as chp
@@ -63,7 +65,7 @@ try:
 except:
     print("Usage: python FullReconstruction.py station_id input_file detector templates")
     station_id = 32
-    input_file = "example_data/example_data.hdf5"
+    input_file = "example_data/example_event.h5"
     print("Using default station {}".format(32))
 
 if(station_id == 32):
@@ -118,6 +120,9 @@ electricFieldSignalReconstructor.begin()
 voltageToAnalyticEfieldConverter = NuRadioReco.modules.voltageToAnalyticEfieldConverter.voltageToAnalyticEfieldConverter()
 voltageToAnalyticEfieldConverter.begin()
 
+electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
+electricFieldResampler.begin()
+
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelResampler.begin()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
@@ -161,6 +166,8 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
             voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], useMCdirection=False)
 
             channelResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
+            
+            electricFieldResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
 
             eventWriter.run(evt)
 
