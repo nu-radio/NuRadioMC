@@ -7,20 +7,20 @@ try:
 except ImportError:
     import pickle
 import time
-logger = logging.getLogger('ARIANNAio')
+logger = logging.getLogger('NuRadioRecoio')
 
 VERSION = 2
-VERSION_MINOR = 0
+VERSION_MINOR = 1
 
 
-class ARIANNAio(object):
+class NuRadioRecoio(object):
 
     def __init__(self, filenames, parse_header=True, fail_on_version_mismatch=True,
                  fail_on_minor_version_mismatch=False):
         if(not isinstance(filenames, list)):
             filenames = [filenames]
         self.__file_scanned = False
-        logger.info("initializing ARIANNAio with file {}".format(filenames))
+        logger.info("initializing NuRadioRecoio with file {}".format(filenames))
         t = time.time()
         self.__fail_on_version_mismatch = fail_on_version_mismatch
         self.__fail_on_minor_version_mismatch = fail_on_minor_version_mismatch
@@ -210,8 +210,3 @@ class ARIANNAio(object):
             self.__scan_files()
         return self.__n_events
 
-
-if __name__ == '__main__':
-    ari = ARIANNAio()
-    ari.openFile("/home/cglaser/ARIANNA/ARIANNAreco/analysis/CRSearch/output.ari")
-    evt = ari.get_event(24900)

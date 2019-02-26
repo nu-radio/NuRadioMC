@@ -35,8 +35,6 @@ class channelStopFilter:
             trace = np.append(np.zeros(np.int(np.round(prepend * sampling_rate))), trace)
             trace = np.append(trace, np.zeros(np.int(np.round(append * sampling_rate))))
             channel.set_trace(trace, sampling_rate)
-        logger.debug("adding {:.0f}ns to station start time of {:.0f}ns".format(-prepend / units.ns, station.get_trace_start_time() / units.ns))
-        station.add_trace_start_time(-prepend)
 
     def end(self):
         pass

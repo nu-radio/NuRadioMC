@@ -4,12 +4,14 @@ import NuRadioReco.framework.channel
 import ROOT
 import numpy as np
 from NuRadioReco.utilities import units
+from NuRadioReco.framework.parameters import ARIANNAParameters as ARIpar
 import datetime
 import sys
 import time
 import os
 sys.path.append(os.path.expandvars('$SNS'))
 from scripts.online import AriUtils
+from scripts.offline import dacs2014
 import logging
 logger = logging.getLogger("readARIANNAData")
 
@@ -73,6 +75,17 @@ class readARIANNAData:
 
         self.n_events = self.data_tree.GetEntries()
         self.__id_current_event = -1
+        
+        n_events_config = self.config_tree.GetEntries()
+        logger.debug("{} entries in config".format(n_events_config))
+        self._config_keys = {}
+        for i in range(n_events_config):
+            self.config_tree.GetEntry(i)
+            stn_id = AriUtils.getStnFromMacAdr(self.config_tree.ConfigMetadata.GetStationId())
+            run_num = self.config_tree.ConfigMetadata.GetRunNum()
+            seq_num = self.config_tree.ConfigMetadata.GetSeqNum()
+            self._config_keys[(stn_id, run_num, seq_num)] = i
+            
         self.__t = time.time()
 
         return self.n_events
@@ -92,7 +105,6 @@ class readARIANNAData:
                                                                          100 * progress, eta))
             if 1:
                 self.data_tree.GetEntry(self.__id_current_event)
-                self.config_tree.GetEntry(self.__id_current_event)
 
                 evt_time = datetime.datetime.fromtimestamp(self.data_tree.EventHeader.GetUnixTime())
                 if(self.__time_interval is not None):
@@ -127,6 +139,13 @@ class readARIANNAData:
                     if(evt_number not in self.__event_ids[run_number]):
                         continue
 
+                seq_number = self.data_tree.EventMetadata.GetSeqNum()
+                self.config_tree.GetEntry(self._config_keys[(self._station_id, run_number, seq_number)])
+                # check if config and event sequence are the same
+                seq_num_config = self.config_tree.ConfigMetadata.GetSeqNum()
+                if(seq_number != seq_num_config):
+                    raise Exception("seq number in config {} does not match sequence number in event {}".format(seq_num_config, seq_number))
+
                 evt_triggered = self.data_tree.EventHeader.IsThermal()
                 evt = NuRadioReco.framework.event.Event(run_number, evt_number)
 
@@ -157,6 +176,28 @@ class readARIANNAData:
                         station.add_channel(channel)
                     else:
                         logger.warning(" Event {event} of run {run} is skipped, no stop point for rolling array!".format(event=evt_number,run=run_number))
+                
+                station.set_ARIANNA_parameter(ARIpar.seq_num, seq_number)
+                # read and save start and stop time of a sequence
+                start = datetime.datetime.fromtimestamp(self.config_tree.TrigStartClock.GetCurrTime())
+                stop = datetime.datetime.fromtimestamp(self.config_tree.TrigStopClock.GetCurrTime())
+                if(start < datetime.datetime(1971, 1, 1)):
+                    start = None
+                if(stop < datetime.datetime(1971, 1, 1)):
+                    stop = None
+                station.set_ARIANNA_parameter(ARIpar.seq_start_time, start)
+                station.set_ARIANNA_parameter(ARIpar.seq_stop_time, stop)
+                
+                station.set_ARIANNA_parameter(ARIpar.comm_duration, self.config_tree.DAQConfig.GetCommWinDuration() * units.s)
+                station.set_ARIANNA_parameter(ARIpar.comm_period, self.config_tree.DAQConfig.GetCommWinPeriod() * units.s)
+                dacset = self.config_tree.DAQConfig.GetDacSet().GetDacs()
+                dacsV = {}
+                for iCh in range(len(dacset)):
+                    dacsV[iCh] = {}
+                    for ihl, hl in enumerate(['low', 'high']):
+                        dacsV[iCh][hl] = dacs2014.getVth(AriUtils.getBoardFromMacAdr(AriUtils.getMacAdrFromStn(self._station_id)), iCh, dacset[iCh][ihl], hl)
+                station.set_ARIANNA_parameter(ARIpar.trigger_thresholds, dacsV)
+
                 evt.set_station(station)
                 yield evt
 #             except:

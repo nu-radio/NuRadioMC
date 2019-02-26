@@ -4,7 +4,7 @@ import logging
 import glob
 import os
 import sys
-from NuRadioReco.modules.io import ARIANNAio
+from NuRadioReco.modules.io import NuRadioRecoio
 logger = logging.getLogger('noiseImporter')
 
 
@@ -23,6 +23,7 @@ class noiseImporter:
 
     def __init__(self):
         self.__channel_mapping = None
+        self.__station_id = None
 
     def begin(self, noise_folder, station_id=None, noise_files=None,
               channel_mapping=None):
@@ -33,8 +34,10 @@ class noiseImporter:
             the folder containing the noise files
         station_id: int
             the station id, specifies from which station the forced triggers are used
-            as a noise sample. The data must have the naming convention 'forced_station_??.ari'
-            where ?? is replaced with the station id.
+            as a noise sample. The data must have the naming convention 'forced_station_??.nur'
+            where ?? is replaced with the station id. If station_id is None, the noiseImporter
+            will try to find the station with the same iD as the one passed to the run
+            function in the noise file
         channel_mapping: dict or None
             option relevant for MC studies of new station designs where we do not
             have forced triggers for. The channel_mapping dictionary maps the channel
@@ -49,7 +52,7 @@ class noiseImporter:
                 logger.error("noise_files and station_id can't be both None")
                 sys.exit(-1)
             else:
-                self.__noise_files = glob.glob(os.path.join(noise_folder, "forced_station_{}.ar*".format(station_id)))
+                self.__noise_files = glob.glob(os.path.join(noise_folder, "forced_station_{}.nur".format(station_id)))
                 if(len(self.__noise_files) == 0):
                     logger.error("no noise files found for station {} in folder {}".format(station_id, noise_folder))
                     sys.exit(-1)
@@ -58,7 +61,7 @@ class noiseImporter:
         self.__open_files = []
         self.__n_tot = 0
         for file_name in self.__noise_files:
-            f = ARIANNAio.ARIANNAio(file_name, parse_header=False)
+            f = NuRadioRecoio.NuRadioRecoio(file_name, parse_header=False)
             n = f.get_n_events()
             self.__open_files.append({'f': f, 'n_low': self.__n_tot,
                                       'n_high': self.__n_tot + n - 1})
@@ -79,7 +82,13 @@ class noiseImporter:
         # loop over stations in simulation
         i_noise = np.random.randint(0, self.__n_tot)
         noise_event = self.__get_noise_event(i_noise)
-        noise_station = noise_event.get_stations()[0]
+        if self.__station_id is None:
+            station_id = station.get_id()
+        else:
+            station_id = self.__station_id
+        noise_station = noise_event.get_station(station_id)
+        if noise_station is None:
+            raise KeyError('Station whith ID {} not found in noise file'.format(station_id))
         logger.info("choosing noise event {} ({}) randomly".format(i_noise, noise_station.get_station_time()))
 
         for channel in station.iter_channels():

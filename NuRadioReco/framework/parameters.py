@@ -45,6 +45,14 @@ class electricFieldParameters(Enum):
     signal_time = 9
     nu_vertex_distance = 10 # the distance along the ray path from the vertex to the channel
     nu_viewing_angle = 11 # the angle between shower axis and launch vector
-    cr_spectrum_quadratic_term = 12 # result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
+    max_amp_antenna = 12  # the maximum amplitude of the signal after convolution with the antenna response pattern, dict with channelid as key
+    max_amp_antenna_envelope = 13  # the maximum amplitude of the signal envelope after convolution with the antenna response pattern, dict with channelid as key
+    cr_spectrum_quadratic_term = 14 # result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
     
-    
+class ARIANNAParameters(Enum):  # this class stores parameters specific to the ARIANNA data taking
+    seq_start_time = 1  # the start time of a sequence
+    seq_stop_time = 2  # the stop time of a sequence
+    seq_num = 3  # the sequence number of the current event
+    comm_period = 4  # length of data taking window
+    comm_duration = 5  # maximum diration of communication window
+    trigger_thresholds = 6  # trigger thresholds converted to voltage
