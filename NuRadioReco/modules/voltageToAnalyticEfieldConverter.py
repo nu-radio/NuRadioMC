@@ -674,7 +674,7 @@ class voltageToAnalyticEfieldConverter:
         y = np.sign(Aphi) * np.abs(Aphi) ** 0.5
         sx = Atheta_error * 0.5
         sy = Aphi_error * 0.5
-        pol_angle = np.arctan2(y, x)
+        pol_angle = np.arctan2(abs(y), abs(x))
         pol_angle_error = 1. / (x ** 2 + y ** 2) * (y ** 2 * sx ** 2 + x ** 2 + sy ** 2) ** 0.5  # gaussian error propagation
         logger.info("polarization angle = {:.1f} +- {:.1f}".format(pol_angle / units.deg, pol_angle_error / units.deg))
         electric_field.set_parameter(efp.polarization_angle, pol_angle)
