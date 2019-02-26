@@ -94,7 +94,7 @@ class noiseImporter:
                 sys.exit(-1)
             # check sampling rate
             if (channel.get_sampling_rate() != noise_channel.get_sampling_rate()):
-                logger.error("Mismatch in sampling rate: Noise has {0} and simulation {1} GHz".format(channel.get_sampling_rate() / units.GHz, noise_channel.get_sampling_rate() / units.GHz))
+                logger.error("Mismatch in sampling rate: Noise has {0} and simulation {1} GHz".format(noise_channel.get_sampling_rate() / units.GHz, channel.get_sampling_rate() / units.GHz))
                 sys.exit(-1)
 
             mean = noise_trace.mean()
