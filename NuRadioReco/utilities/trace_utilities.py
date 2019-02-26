@@ -92,3 +92,16 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
         for i_ch, ch in enumerate(channels):
             voltage_trace[i_ch] = fft.freq2time(np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0))
         return voltage_trace
+        
+def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask = None, noise_window_mask = None):
+    conversion_factor_integrated_signal = 2.65441729 * 1e-3 / units.s * units.joule  # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
+    if signal_window_mask is None:
+        f_signal = np.sum(electric_field_trace ** 2, axis=1)
+    else:
+        f_signal = np.sum(electric_field_trace[:, signal_window_mask] ** 2, axis=1)
+    dt = times[1] - times[0]
+    if noise_window_mask is not None:
+        f_noise = np.sum(electric_field_trace[:, noise_window_mask] ** 2, axis=1)
+        f_signal -= f_noise * np.sum(signal_window_mask) / np.sum(noise_window_mask)
+        
+    return f_signal * dt * conversion_factor_integrated_signal

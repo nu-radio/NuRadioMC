@@ -15,7 +15,7 @@ from radiotools import coordinatesystems
 from NuRadioReco.detector import detector
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units, fft, trace_utilities
 from NuRadioReco.utilities import analytic_pulse as pulse
 from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
 
@@ -610,6 +610,8 @@ class voltageToAnalyticEfieldConverter:
         ratio = 0
 #         phase = np.arctan(res.x[1])  # project -inf..+inf to -0.5 pi..0.5 pi
         slope = res.x[0]
+        if slope > 0 or slope < -50:    #sanity check
+            slope = - 1.9
 #         res = opt.minimize(obj_xcorr, x0=[res.x[0], -100], method=method, options=options)
 #         ratio = (np.arctan(res.x[1]) + np.pi * 0.5) / np.pi  # project -inf..inf on 0..1
 #         phase = np.arctan(0)  # project -inf..+inf to -0.5 pi..0.5 pi
@@ -634,17 +636,17 @@ class voltageToAnalyticEfieldConverter:
         for iCh, trace in enumerate(V_timedomain):
             analytic_traces[iCh] = np.roll(analytic_traces[iCh], pos)
 
-        res_amp = opt.minimize(obj_amplitude, x0=[1.], args=(-1.9, phase, pos, 0), method=method, options=options)
+        res_amp = opt.minimize(obj_amplitude, x0=[1.], args=(slope, phase, pos, 0), method=method, options=options)
         logger.info("amplitude fit, Aphi = {:.3g} with fmin = {:.5e}".format(res_amp.x[0], res_amp.fun))
         Aphi = res_amp.x[0]
         Atheta = 0
-        res_amp = opt.minimize(obj_amplitude, x0=[res_amp.x[0], 0], args=(-1.9, phase, pos, 0), method=method, options=options)
+        res_amp = opt.minimize(obj_amplitude, x0=[res_amp.x[0], 0], args=(slope, phase, pos, 0), method=method, options=options)
         logger.info("amplitude fit, Aphi = {:.3g} Atheta = {:.3g} with fmin = {:.5e}".format(res_amp.x[0], res_amp.x[1], res_amp.fun))
         Aphi = res_amp.x[0]
         Atheta = res_amp.x[1]
         #counts number of iterations in the slope fit. Used so we do not need to show the plots every iteration
         self.i_slope_fit_iterations = 0
-        res_amp_slope = opt.minimize(obj_amplitude_slope, x0=[res_amp.x[0], res_amp.x[1], -1.9], args=(phase, pos, 'hilbert', False),
+        res_amp_slope = opt.minimize(obj_amplitude_slope, x0=[res_amp.x[0], res_amp.x[1], slope], args=(phase, pos, 'hilbert', False),
                                      method=method, options=options)
 
         # calculate uncertainties
@@ -668,13 +670,6 @@ class voltageToAnalyticEfieldConverter:
         Aphi_error = cov[0, 0] ** 0.5
         Atheta_error = cov[1, 1] ** 0.5
         slope_error = cov[2, 2] ** 0.5
-        
-        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels)
-        electric_field.set_parameter(efp.signal_energy_fluence, np.array([0, Atheta, Aphi]))
-        electric_field.set_parameter_error(efp.signal_energy_fluence, np.array([0, Atheta_error, Aphi_error]))
-        electric_field.set_parameter(efp.cr_spectrum_slope, slope)
-        electric_field.set_parameter(efp.zenith, zenith)
-        electric_field.set_parameter(efp.azimuth, azimuth)
 
         analytic_pulse_theta = pulse.get_analytic_pulse(Atheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, filter_type=filter_type)
         analytic_pulse_theta_freq = pulse.get_analytic_pulse_freq(Atheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, filter_type=filter_type)
@@ -687,8 +682,15 @@ class voltageToAnalyticEfieldConverter:
         analytic_pulse_theta = np.roll(analytic_pulse_theta, pos)
         analytic_pulse_phi = np.roll(analytic_pulse_phi, pos)
         station_trace = np.array([np.zeros_like(analytic_pulse_theta), analytic_pulse_theta, analytic_pulse_phi])
-        electric_field.set_trace(station_trace, sampling_rate)
 
+        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels)
+        electric_field.set_trace(station_trace, sampling_rate)
+        energy_fluence = trace_utilities.get_electric_field_energy_fluence(electric_field.get_trace(), electric_field.get_times())        
+        electric_field.set_parameter(efp.signal_energy_fluence, energy_fluence)
+        electric_field.set_parameter_error(efp.signal_energy_fluence, np.array([0, Atheta_error, Aphi_error]))
+        electric_field.set_parameter(efp.cr_spectrum_slope, slope)
+        electric_field.set_parameter(efp.zenith, zenith)
+        electric_field.set_parameter(efp.azimuth, azimuth)
         # calculate high level parameters
         x = np.sign(Atheta) * np.abs(Atheta) ** 0.5
         y = np.sign(Aphi) * np.abs(Aphi) ** 0.5

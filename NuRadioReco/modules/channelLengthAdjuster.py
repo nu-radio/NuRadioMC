@@ -1,6 +1,7 @@
 import numpy as np
 import copy
 import logging
+import datetime
 from NuRadioReco.utilities import units
 logger = logging.getLogger('channelLengthAdjuster')
 
@@ -51,8 +52,6 @@ class channelLengthAdjuster:
                 change_time = 1
 
             channel.set_trace(new_trace, channel.get_sampling_rate())
-        if(change_time):
-            station.set_relative_station_time(station.get_relative_station_time() + (-1. * pulse_start / station.get_channel(0).get_sampling_rate()))
 
     def end(self):
         pass
