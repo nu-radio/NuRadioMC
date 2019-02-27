@@ -38,6 +38,16 @@ def thetaprime_to_theta(thetaprime, xmax, R):
     return thetaprime - np.arcsin((L * np.sin(np.pi - thetaprime)) / R)
 
 
+def theta_to_thetaprime(theta, xmax, R):
+    """
+    converts a viewing angle relative to the start of the shower to a viewing angle relative to the shower maximum
+    """
+    L = xmax / rho
+    b = R * np.sin(theta)
+    a = R * np.cos(theta) - L
+    return np.arctan2(b, a)
+
+
 class ARZ(object):
     __instance = None
 
@@ -211,8 +221,8 @@ class ARZ(object):
         profile_depth = profiles['depth']
         profile_ce = profiles['charge_excess'][iN] * rescaling_factor
         
+        xmax = profile_depth[np.argmax(profile_ce)]
         if(theta_reference == 'Xmax'):
-            xmax = profile_depth[np.argmax(profile_ce)]
             thetat = copy.copy(theta)
             theta = thetaprime_to_theta(theta, xmax, R)
             logger.info("transforming viewing angle from {:.2f} to {:.2f}".format(thetat / units.deg, theta / units.deg))
@@ -224,7 +234,9 @@ class ARZ(object):
         trace = -np.diff(vp, axis=0) / dt
 #         trace = -np.gradient(vp, axis=0) / dt
         
-        cs = cstrafo.cstrafo(zenith=theta, azimuth=0)
+        # use viewing angle relative to shower maximum for rotation into spherical coordinate system (that reduced eR component)
+        thetaprime = theta_to_thetaprime(theta, xmax, R)
+        cs = cstrafo.cstrafo(zenith=thetaprime, azimuth=0)
         trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
         if(output_mode == 'full'):
             return trace_onsky, profile_depth, profile_ce
@@ -279,7 +291,7 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
     
     ttt = np.arange(0, (N + 1) * dt, dt)
     ttt = ttt + 0.5 * dt - ttt.mean()
-    if(len(ttt) != N+1):
+    if(len(ttt) != N + 1):
         ttt = ttt[:-1]
     N = len(ttt)
 
@@ -361,9 +373,9 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
                     if((tt[0] < 1 * units.ns) and (tt[0] > -1 * units.ns) and indices[0] != 0):
                         indices = np.append(0, indices)
                     else:
-                        if(indices[-1] != (len(tt) -1)):
+                        if(indices[-1] != (len(tt) - 1)):
                             indices = np.append(indices, len(tt) - 1)
-                if(len(indices) % 2 == 0): # this rejects the cases where only the first or the last entry fulfills the -1 < tt < 1 condition
+                if(len(indices) % 2 == 0):  # this rejects the cases where only the first or the last entry fulfills the -1 < tt < 1 condition
                     dt = tt[1] - tt[0]
                     
                     dp = profile_dense2[1] - profile_dense2[0]
@@ -394,11 +406,11 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
                                                 profile_ce_interp[:i_start],
                                                 profile_ce_interp2),
                                                 profile_ce_interp[i_stop:i_start3]),
-                                                profile_ce_interp3), 
+                                                profile_ce_interp3),
                                                 profile_ce_interp[i_stop3:])
                             
                     else:
-                        raise NotImplementedError("length of indices is not 2 nor 4") # this should never happen
+                        raise NotImplementedError("length of indices is not 2 nor 4")  # this should never happen
                     if 0:
                         abc = True
                         i_stop = len(profile_dense) - 1
