@@ -94,8 +94,7 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
         return voltage_trace
 
 def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask = None, noise_window_mask = None):
-    conversion_factor_integrated_signal = scipy.constants.c * scipy.constants.epsilon_0
-                                            * units.joule / units.s  / units.volt**2
+    conversion_factor_integrated_signal = scipy.constants.c * scipy.constants.epsilon_0* units.joule / units.s  / units.volt**2
     # see Phys. Rev. D DOI: 10.1103/PhysRevD.93.122005
 
     if signal_window_mask is None:
