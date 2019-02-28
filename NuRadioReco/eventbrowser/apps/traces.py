@@ -16,6 +16,7 @@ from NuRadioReco.utilities import fft
 from NuRadioReco.detector import detector
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.eventbrowser.default_layout import default_layout
 import NuRadioReco.detector.antennapattern
 import numpy as np
 import logging
@@ -176,7 +177,7 @@ def update_time_efieldtrace(trigger, evt_counter, filename, station_id, juser_id
             ), 1, 1)
     fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['yaxis1'].update(title='efield [mV/m]')
-    fig['layout'].showlegend = True
+    fig['layout'].update(default_layout)
     return fig
 @app.callback(
     dash.dependencies.Output('efield-spectrum', 'figure'),
@@ -221,9 +222,9 @@ def update_efield_spectrum(trigger, evt_counter, filename, station_id, juser_id)
                 },
                 name='ePhi'
             ), 1, 1)
+    fig['layout'].update(default_layout)
     fig['layout']['xaxis1'].update(title='frequency [MHz]')
     fig['layout']['yaxis1'].update(title='amplitude [mV/m]')
-    fig['layout'].showlegend = True
     return fig
         
 @app.callback(
@@ -256,9 +257,9 @@ def update_time_trace(trigger, evt_counter, filename, station_id, juser_id):
                 },
                 name='Channel {}'.format(i)
             ), 1, 1)
+    fig['layout'].update(default_layout)
     fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['yaxis1'].update(title='voltage [mV]')
-    fig['layout'].showlegend = True
     return fig
     
 @app.callback(
@@ -307,9 +308,9 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
                 textposition='top center'
             ),
         1, 1)
+    fig['layout'].update(default_layout)
     fig['layout']['xaxis1'].update(title='frequency [MHz]')
     fig['layout']['yaxis1'].update(title='amplitude [mV]')
-    fig['layout'].showlegend = True
     return fig
 
 @app.callback(
@@ -537,8 +538,6 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                         ),
                         opacity=.5
                     ), i_trace + 1, 2)
-    fig['layout']['xaxis1'].update(title='time [ns]')
-    fig['layout']['yaxis1'].update(title='voltage [mV]')
     for i, channel in enumerate(station.iter_channels()):
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(range=[-ymax, ymax])
 
@@ -566,8 +565,10 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                         textposition='top center'
                     ),
                 i + 1, 2)
+    fig['layout'].update(default_layout)
+    fig['layout']['xaxis1'].update(title='time [ns]')
+    fig['layout']['yaxis1'].update(title='voltage [mV]')
     fig['layout'].update(height=1000)
-    fig['layout'].showlegend = False
     return fig
 
 
