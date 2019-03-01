@@ -15,6 +15,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.eventbrowser.apps.common import get_point_index
+from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
 import logging
 logger = logging.getLogger('overview')
@@ -109,7 +110,7 @@ def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, station_id, event_ty
         return {}
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
-    traces = []
+    fig = tools.make_subplots(rows=1, cols=1)
     keys = ariio.get_header()[station_id].keys()
     if event_type == 'nu':
         if not stnp.nu_xcorrelations in keys:
@@ -120,27 +121,24 @@ def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, station_id, event_ty
             return {}
         xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
     if stnp.station_time in keys:
-        traces.append(go.Scatter(
+        fig.append_trace(go.Scatter(
             x=ariio.get_header()[station_id][stnp.station_time],
             y=[xcorrs[i][xcorr_type] for i in range(len(xcorrs))],
             text=[str(x) for x in ariio.get_event_ids()],
             customdata=[x for x in range(ariio.get_n_events())],
             mode='markers',
             opacity=1
-        ))
+        ),1,1)
     else:
         return {}
     current_selection = json.loads(jcurrent_selection)
     if current_selection != []:
         for trace in traces:
             trace['selectedpoints'] = current_selection
-    return {
-        'data': traces,
-        'layout': go.Layout(
-            yaxis={'title': xcorr_type, 'range': [0, 1]},
-            hovermode='closest'
-        )
-    }
+    fig['layout'].update(default_layout)
+    fig['layout']['yaxis'].update({'title': xcorr_type, 'range': [0, 1]})
+    fig['layout']['hovermode'] = 'closest'
+    return fig
 
 @app.callback(Output('cr-xcorrelation-point-click', 'children'),
                 [Input('cr-xcorrelation', 'clickData')])
@@ -165,7 +163,7 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, event_type
         return {}
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
-    traces = []
+    fig = tools.make_subplots(rows=1, cols=1)
     keys = ariio.get_header()[station_id].keys()
     if event_type == 'nu':
         if not stnp.nu_xcorrelations in keys:
@@ -176,14 +174,14 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, event_type
             return {}
         xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
     if stnp.channels_max_amplitude in keys:
-        traces.append(go.Scatter(
+        fig.append_trace(go.Scatter(
             x=ariio.get_header()[station_id][stnp.channels_max_amplitude] / units.mV,
             y=[xcorrs[i][xcorr_type] for i in range(len(xcorrs))],
             text=[str(x) for x in ariio.get_event_ids()],
             customdata=[x for x in range(ariio.get_n_events())],
             mode='markers',
             opacity=1
-        ))
+        ),1,1)
     else:
         return {}
     # update with current selection
@@ -191,15 +189,11 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, event_type
     if current_selection != []:
         for trace in traces:
             trace['selectedpoints'] = current_selection
-
-    return {
-        'data': traces,
-        'layout': go.Layout(
-            xaxis={'type': 'log', 'title': 'maximum amplitude [mV]'},
-            yaxis={'title': xcorr_type, 'range': [0, 1]},
-            hovermode='closest'
-        )
-    }
+    fig['layout'].update(default_layout)
+    fig['layout']['xaxis'].update({'type': 'log', 'title': 'maximum amplitude [mV]'})
+    fig['layout']['yaxis'].update({'title': xcorr_type, 'range': [0, 1]})
+    fig['layout']['hovermode'] = 'closest'
+    return fig
 
 @app.callback(Output('cr-xcorrelation-amplitude-point-click', 'children'),
                 [Input('cr-xcorrelation-amplitude', 'clickData')])
