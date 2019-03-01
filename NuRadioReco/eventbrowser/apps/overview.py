@@ -105,7 +105,7 @@ def set_xcorrelation_options(event_type):
                Input('xcorrelation-event-type', 'value')],
               [State('user_id', 'children')])
 def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, station_id, event_type, juser_id):
-    if filename is None or station_id is None:
+    if filename is None or station_id is None or xcorr_type is None:
         return {}
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
