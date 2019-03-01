@@ -238,6 +238,49 @@ def get_number_of_events_for_flux(energies, flux, Veff, livetime, nuCrsScn='ctw'
     dlogE = logE[1] - logE[0]
     return np.log(10) * livetime * flux * energies * Veff / get_interaction_length(energies, cross_section_type = nuCrsScn) * dlogE
 
+
+def get_exposure(energy, Veff, field_of_view=2*np.pi):
+    """
+    calculate exposure from effective volume 
+    
+    Parameters
+    ----------
+    energy: float
+        neutrino energy (needed to calculate interaction length)
+    Veff: float
+        effective volume
+    field_of_view: float
+        the field of view of the detector
+    
+    Returns
+    float: exposure
+    """
+    return Veff / field_of_view / get_interaction_length(energy)
+
+def get_integrated_exposure(exp_func, E_low, E_high):
+    """
+    calculates the integral int(E^-2 * exposure(E) dE)
+    
+    integration is performed in log space
+    """
+    
+    def f(logE):
+        E = 10 ** logE
+        return exp_func(E) * np.log(E) / E
+    
+    from scipy import integrate
+    i = integrate.quad(f, np.log10(E_low), np.log10(E_high))
+    return i[0]
+
+def get_fluence_limit(int_exp):
+    """
+    calculates the fluence limit for a integrated exposure
+    """
+    return 2.39/int_exp
+    
+
+
+
 if __name__=="__main__":  # this part of the code gets only executed it the script is directly called
 
     debug = False
