@@ -289,6 +289,33 @@ def get_tau_decay_vertex(x, y, z, E, zenith, azimuth, distmax):
     second_vertex_z += z
     return second_vertex_x, second_vertex_y, second_vertex_z, decay_energy
 
+def get_tau_cascade_properties(tau_energy):
+    """
+    Given the energy of a decaying tau, calculates the properties of the
+    resulting cascade.
+
+    Parameters
+    ----------
+    tau_energy: float
+       Tau energy at the moment of decay
+
+    Returns
+    -------
+    cascade_energy: float
+        The energy of the resulting cascade
+    cascade_type: string
+        Decay type: 'tau_had', 'tau_em', or 'tau_mu'
+    """
+    # TODO: calculate cascade energy
+    # TODO: include the rest of the particles produced
+    branching = random.uniform(0,1)
+    if (branching < 0.68):
+        return tau_energy, 'tau_had'
+    elif (branching < 0.86):
+        return tau_energy, 'tau_em'
+    else:
+        return tau_energy, 'tau_mu'
+
 
 def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None):
     """
@@ -570,13 +597,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     # generate charged/neutral current randomly (ported from ShelfMC)
     rnd = np.random.uniform(0., 1., n_events)
-    data_sets["ccncs"] = np.ones(n_events, dtype='S2')
+    data_sets["interaction_type"] = np.ones(n_events, dtype='S2')
     for i, r in enumerate(rnd):
         #    if (r <= 0.6865254):#from AraSim
         if(r <= 0.7064):
-            data_sets["ccncs"][i] = 'cc'
+            data_sets["interaction_type"][i] = 'cc'
         else:
-            data_sets["ccncs"][i] = 'nc'
+            data_sets["interaction_type"][i] = 'nc'
 
     # generate neutrino direction randomly
     data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
@@ -595,7 +622,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     if deposited:
         data_sets["energies"] = [primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity) \
                                 for Edep, ccnc, flavor, inelasticity in \
-                                zip(data_sets["energies"], data_sets["ccncs"], \
+                                zip(data_sets["energies"], data_sets["interaction_type"], \
                                 data_sets["flavors"], data_sets["inelasticity"])]
         data_sets["energies"] = np.array(data_sets["energies"])
 
@@ -605,7 +632,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         data_sets_fiducial[key] = value[fmask]
 
     if add_tau_second_bang:
-        mask = (data_sets["ccncs"] == 'cc') & (np.abs(data_sets["flavors"]) == 16)  # select nu_tau cc interactions
+        mask = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 16)  # select nu_tau cc interactions
         logger.info("{} taus are created in nu tau interactions -> checking if tau decays in fiducial volume".format(np.sum(mask)))
         n_taus = 0
         for event_id in data_sets["event_ids"][mask]:
@@ -639,8 +666,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     iE2 += 1
                     data_sets_fiducial['n_interaction'][iE2] = 2  # specify that new event is a second interaction
 
-                    # Calculating the energy of the tau from the neutrino energy
-                    data_sets_fiducial['energies'][iE2] = decay_energy
+                    # Calculating the energy of the tau cascade from the tau decay energy
+                    tau_cascade_energy, cascade_type = get_tau_cascade_properties(decay_energy)
+                    data_sets_fiducial['energies'][iE2] = tau_cascade_energy
+                    # TODO: take care of the tau_mu
+                    data_sets_fiducial['interaction_type'][iE2] = cascade_type
                     data_sets_fiducial['xx'][iE2] = x
                     data_sets_fiducial['yy'][iE2] = y
                     data_sets_fiducial['zz'][iE2] = z
