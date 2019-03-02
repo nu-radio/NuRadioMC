@@ -178,7 +178,7 @@ class simulation():
             self._read_input_neutrino_properties()
 
             # calculate weight
-            self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, self._ccnc, mode=self._cfg['weights']['weight_mode'])
+            self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, self._inttype, mode=self._cfg['weights']['weight_mode'])
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if(self._mout['weights'][self._iE] < self._cfg['speedup']['minimum_weight_cut']):
@@ -264,7 +264,7 @@ class simulation():
                     logger.debug("ch {}, s {} R = {:.1f} m, t = {:.1f}ns, receive angles {:.0f} {:.0f}".format(
                         channel_id, iS, R / units.m, T / units.ns, zenith / units.deg, azimuth / units.deg))
 
-                    fem, fhad = self._get_em_had_fraction(self._inelasticity, self._ccnc, self._flavor)
+                    fem, fhad = self._get_em_had_fraction(self._inelasticity, self._inttype, self._flavor)
                     # get neutrino pulse from Askaryan module
                     spectrum = signalgen.get_frequency_spectrum(
                         self._energy * fhad, viewing_angles[iS], self._n_samples, self._dt, "HAD", n_index, R,
@@ -524,7 +524,7 @@ class simulation():
         self._event_id = self._fin['event_ids'][self._iE]
         self._flavor = self._fin['flavors'][self._iE]
         self._energy = self._fin['energies'][self._iE]
-        self._ccnc = self._fin['ccncs'][self._iE]
+        self._inttype = self._fin['interaction_type'][self._iE]
         self._x = self._fin['xx'][self._iE]
         self._y = self._fin['yy'][self._iE]
         self._z = self._fin['zz'][self._iE]
@@ -543,7 +543,7 @@ class simulation():
         self._sim_station[stnp.nu_azimuth] = self._azimuth_nu
         self._sim_station[stnp.nu_energy] = self._energy
         self._sim_station[stnp.nu_flavor] = self._flavor
-        self._sim_station[stnp.ccnc] = self._ccnc
+        self._sim_station[stnp.inttype] = self._inttype
         self._sim_station[stnp.nu_vertex] = np.array([self._x, self._y, self._z])
         self._sim_station[stnp.inelasticity] = self._inelasticity
 
@@ -628,7 +628,7 @@ class simulation():
         Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
         logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
 
-    def _get_em_had_fraction(self, inelasticity, ccnc, flavor):
+    def _get_em_had_fraction(self, inelasticity, inttype, flavor):
         """
         calculates the fraction of the neutrino energy that goes into the
         electromagnetic cascade (em) and the hadronic cascade (had)
@@ -637,7 +637,7 @@ class simulation():
         ----------
         inelasticity: float
             the inelasticity (fraction of energy that goes into had. cascade)
-        ccnc: string ['nc', 'cc']
+        inttype: string ['nc', 'cc', 'tau_had', 'tau_em']
             neutral current (nc) or carged currend (cc) interaction
         flavor: int
             flavor id
@@ -651,9 +651,9 @@ class simulation():
         """
         fem = 0  # electrogmatnetic fraction
         fhad = 0  # hadronic fraction
-        if(ccnc == 'nc'):
+        if(inttype == 'nc'):
             fhad = inelasticity
-        else:
+        elif(inttype == 'cc'):
             if(np.abs(flavor) == 12):
                 fem = (1 - inelasticity)
                 fhad = inelasticity
@@ -661,6 +661,11 @@ class simulation():
                 fhad = inelasticity
             elif(np.abs(flavor) == 16):
                 fhad = inelasticity
+        elif(np.abs(flavor) == 15):
+            if (inttype == 'tau_em'):
+                fem = 1
+            elif (inttype == 'tau_had'):
+                fhad = 1
         return fem, fhad
 
     # TODO verify that calculation of polarization vector is correct!
