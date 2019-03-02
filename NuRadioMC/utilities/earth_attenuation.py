@@ -66,8 +66,6 @@ def get_weight(theta_nu, pnu, flavors, ccncs, mode='simple'):
     pnu: float or array of floats
         the momentum of the neutrino
     """
-    if (ccncs == 'tau_em' or ccncs == 'tau_had'):
-        ccncs = 'cc'
     if(mode == 'simple'):
         return get_simple_weight(theta_nu, pnu)
     elif (mode == "core_mantle_crust"):
