@@ -178,7 +178,7 @@ class simulation():
             self._read_input_neutrino_properties()
 
             # calculate weight
-            self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, self._inttype, mode=self._cfg['weights']['weight_mode'])
+            self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, mode=self._cfg['weights']['weight_mode'])
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if(self._mout['weights'][self._iE] < self._cfg['speedup']['minimum_weight_cut']):
