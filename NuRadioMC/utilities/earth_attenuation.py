@@ -28,7 +28,7 @@ c1[0][1] = -17.31;
 c2[0][1] = -6.406;
 c3[0][1] = 1.431;
 c4[0][1] = -17.91;
-# [nubar][neutral current]    
+# [nubar][neutral current]
 c0[1][0] = -1.033;
 c1[1][0] = -15.95;
 c2[1][0] = -7.296;
@@ -66,6 +66,8 @@ def get_weight(theta_nu, pnu, flavors, ccncs, mode='simple'):
     pnu: float or array of floats
         the momentum of the neutrino
     """
+    if (ccncs == 'tau_em' or ccncs == 'tau_had'):
+        ccncs = 'cc'
     if(mode == 'simple'):
         return get_simple_weight(theta_nu, pnu)
     elif (mode == "core_mantle_crust"):
@@ -134,7 +136,7 @@ def get_arasim_simple_weight(theta_nu, pnu, flavors, ccncs):
         d_outer = - 2 * R_EARTH * np.cos(theta_nu) - d_middle - d_inner
         weight = np.exp(-d_outer * sigma * densities[2] / AMU - d_middle * sigma * densities[1] / AMU - d_inner * sigma * densities[0] / AMU)
     return weight
-    
+
 def get_sigma(pnu, flavors, ccncs):
     """
     calculates the cross section based on Connolly et al. 2011
@@ -152,5 +154,5 @@ def get_sigma(pnu, flavors, ccncs):
         the current type
     """
     sigma = m_fsigma(flavors, ccncs, np.log10(pnu / units.GeV)) / 1e4 * units.m2
-    sigma_total = m_fsigma(flavors, 'nc', np.log10(pnu / units.GeV)) / 1e4 * units.m2 + m_fsigma(flavors, 'cc', np.log10(pnu / units.GeV)) / 1e4 * units.m2 
+    sigma_total = m_fsigma(flavors, 'nc', np.log10(pnu / units.GeV)) / 1e4 * units.m2 + m_fsigma(flavors, 'cc', np.log10(pnu / units.GeV)) / 1e4 * units.m2
     return sigma_total
