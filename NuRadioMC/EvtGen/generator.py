@@ -116,6 +116,10 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
     n_events = len(np.unique(data_sets['event_ids']))
     logger.info("saving {} events in total".format(n_events))
     total_number_of_events = attributes['n_events']
+    
+    if "start_event_id" not in attributes:
+        attributes["start_event_id"] = 0  # backward compatibility
+    
     if(n_events_per_file is None):
         n_events_per_file = n_events
     else:
