@@ -36,6 +36,8 @@ else:
                 try:
                     input_files = np.array(sorted(glob.glob(filename + '.part????')))
                     mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=np.bool)
+                    if(np.sum(~mask)):
+                        print("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
 
 
                     merge.merge_data_filenames(input_files[mask], output_filename)
