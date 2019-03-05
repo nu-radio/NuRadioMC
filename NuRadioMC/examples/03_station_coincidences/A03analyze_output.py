@@ -27,6 +27,7 @@ for iF, filename in enumerate(sorted(glob.glob(os.path.join(sys.argv[1], "*.hdf5
         fout.close()
     det = detector.Detector(json_filename="det.json")
     max_amps_env = np.array(fin['maximum_amplitudes_envelope'])
+    weights = fin['weights']
     
 
     n_stations = det.get_number_of_channels(101) / 4  # (we had 4 antennas per station)
@@ -43,7 +44,7 @@ for iF, filename in enumerate(sorted(glob.glob(os.path.join(sys.argv[1], "*.hdf5
         triggered_surface[:, i] = np.any(max_amps_env[:, i * 4:(i * 4 + 3)] > (3 * Vrms), axis=1)
         triggered_deep[:, i] = max_amps_env[:, i * 4 + 3] > (3 * Vrms)
         # get their position
-        xs[i] = np.abs(det.get_relative_position(101, i * 4 + 2)[0])
+        xs[i] = np.abs(det.get_relative_position(101, i * 4)[0])
         ys[i] = np.abs(det.get_relative_position(101, i * 4)[1])
 
     # loop through all simulated distances
@@ -54,8 +55,8 @@ for iF, filename in enumerate(sorted(glob.glob(os.path.join(sys.argv[1], "*.hdf5
             | ((np.abs(xs) == x) & (ys == 0)) \
             | ((np.abs(ys) == x) & (xs == 0))
         # calculate coincidence fraction
-        coincidence_fractions_surface[i] = 1. * np.sum(np.any(triggered_surface[:, mask], axis=1) & triggered_near_surface) / np.sum(triggered_near_surface)
-        coincidence_fractions_deep[i] = 1. * np.sum(np.any(triggered_deep[:, mask], axis=1) & triggered_near_deep) / np.sum(triggered_near_deep)
+        coincidence_fractions_surface[i] = 1. * np.sum(weights[np.any(triggered_surface[:, mask], axis=1) & triggered_near_surface]) / np.sum(weights[triggered_near_surface])
+        coincidence_fractions_deep[i] = 1. * np.sum(weights[np.any(triggered_deep[:, mask], axis=1) & triggered_near_deep]) / np.sum(weights[triggered_near_deep])
 
     ax.plot(np.unique(xs), coincidence_fractions_surface, php.get_marker2(counter)+'-', label="E = {:.2g}eV".format(fin.attrs['Emin']))
     ax.plot(np.unique(xs), coincidence_fractions_deep, php.get_marker2(counter)+'--') #, label="E = {:.2g}, 50m deep".format(fin.attrs['Emin']))
