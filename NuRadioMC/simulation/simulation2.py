@@ -273,7 +273,7 @@ class simulation():
                     # apply frequency dependent attenuation
                     t_att = time.time()
                     if self._cfg['propagation']['attenuate_ice']:
-                        attn = r.get_attenuation(iS, self._ff)
+                        attn = r.get_attenuation(iS, self._ff, 0.5 * self._sampling_rate_detector)
                         spectrum *= attn
                     time_attenuation_length += (time.time() - t_att)
 
