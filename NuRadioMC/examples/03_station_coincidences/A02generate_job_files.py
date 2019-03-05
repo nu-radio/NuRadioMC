@@ -3,16 +3,33 @@ from NuRadioMC.utilities import units
 import numpy as np
 import glob
 import os
+import sys
 
+
+"""
+This example creates job files for simulations to check for coincidences.
+
+"""
 
 n_events_per_file = 300
 
-NuRadioMCpath = '/data/apps/user_contributed_software/cglaser/NuRadioMC'
-working_dir = "/pub/arianna/NuRadioMC/examples/03_station_coincidences"
+try:
+    software = sys.argv[0]
+    # specify the path to the software directory (where NuRadioMC, NuRadioReco and radiotools are installed in)
+    working_dir   = sys.argv[1]
+    #where you want the simulation to go
+    presim_dir = sys.argv[2]
+    # Directory with simulations ()
+
+except:
+    print("Usage python A02generate_job_files.py software working_dir presim_dir")
+    print("Using default values")
+    working_dir = "./"
+    software = '/data/users/jcglaser/software'
+    presim_dir = '/pub/arianna/NuRadioMC/Veff_presim_2/output/'
+
 config_file = os.path.join(working_dir, 'config.yaml')
 
-# specify the path to the software directory (where NuRadioMC, NuRadioReco and radiotools are installed in)
-software = '/data/users/jcglaser/software'
 
 if not os.path.exists("output"):
     os.makedirs("output")
@@ -21,8 +38,8 @@ if not os.path.exists("input"):
 if not os.path.exists("run"):
     os.makedirs("run")
 
-for iI, filename in enumerate(sorted(glob.glob("/pub/arianna/NuRadioMC/Veff_presim_2/output/*.hdf5"))):
-    
+for iI, filename in enumerate(sorted(glob.glob(presim_dir+"*.hdf5"))):
+
     output_filename = os.path.join(working_dir, 'input', os.path.basename(filename))
     print('saving files to {}'.format(output_filename))
 
