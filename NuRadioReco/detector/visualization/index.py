@@ -10,7 +10,6 @@ import uuid
 import glob
 from NuRadioReco.utilities import units
 from flask import Flask, send_from_directory
-from app import app
 import os
 import sys
 from NuRadioReco.detector import detector
@@ -20,6 +19,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('index')
 
 det = detector.Detector(source='sql')
+
+server = Flask(__name__)
+app = dash.Dash(__name__, server=server)
 
 # Loading screen CSS
 # app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/brPBPO.css"})
