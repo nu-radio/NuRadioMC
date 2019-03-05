@@ -414,23 +414,28 @@ class ray_tracing_2D():
                 
             return time
 
-        
-    def get_attenuation_along_path(self, x1, x2, C_0, frequency):
-        if(cpp_available):
+    def __get_frequencies_for_attenuation(self, frequency, max_detector_freq):
             mask = frequency > 0
             nfreqs = min(self.__n_frequencies_integration, np.sum(mask))
             freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), nfreqs)
-            tmp = np.zeros(nfreqs)
+            if(nfreqs < np.sum(mask) and max_detector_freq is not None):
+                mask2 = frequency <= max_detector_freq
+                nfreqs2 = min(self.__n_frequencies_integration, np.sum(mask2 & mask))
+                freqs = np.linspace(frequency[mask2 & mask].min(), frequency[mask2 & mask].max(), nfreqs2)
+                freqs = np.append(freqs, np.linspace(frequency[~mask2].min(), frequency[~mask2].max(), nfreqs//2))
+            return freqs
+        
+    def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq):
+        if(cpp_available):
+            mask = frequency > 0
+            freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
+            tmp = np.zeros_like(freqs)
             for i, f in enumerate(freqs):
                 tmp[i] = wrapper.get_attenuation_along_path(
                     x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
 
             attenuation = np.ones_like(frequency)
-            if(nfreqs == np.sum(mask)):
-                attenuation[mask] = tmp
-            else:
-                att_func = interpolate.interp1d(freqs, tmp)
-                attenuation[mask] = att_func(frequency[mask])
+            attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
             return attenuation
         else:
 
@@ -440,11 +445,10 @@ class ray_tracing_2D():
                 z = self.get_z_unmirrored(t, C_0)
                 return self.ds(t, C_0) / self.get_attenuation_length(z, frequency)
 
-            mask = frequency > 0
-
             # to speed up things we only calculate the attenuation for a few frequencies
             # and interpolate linearly between them
-            freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), self.__n_frequencies_integration)
+            mask = frequency > 0
+            freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
             gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
             points = None
             if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
@@ -1018,7 +1022,7 @@ class ray_tracing:
         else:
             return self.__r2d.get_travel_time(self.__x1, self.__x2, result['C0'])
 
-    def get_attenuation(self, iS, frequency):
+    def get_attenuation(self, iS, frequency, max_detector_freq=None):
         """
         calculates the signal attenuation due to attenuation in the medium (ice)
 
@@ -1030,6 +1034,11 @@ class ray_tracing:
 
         frequency: array of floats
             the frequencies for which the attenuation is calculated
+            
+        max_detector_freq: float or None
+            the maximum frequency of the final detector sampling
+            (the simulation is internally run with a higher sampling rate, but the relevant part of the attenuation length
+            calculation is the frequency interval visible by the detector, hence a finer calculation is more important)
 
         Returns
         -------
@@ -1043,7 +1052,7 @@ class ray_tracing:
             raise IndexError
 
         result = self.__results[iS]
-        return self.__r2d.get_attenuation_along_path(self.__x1, self.__x2, result['C0'], frequency)
+        return self.__r2d.get_attenuation_along_path(self.__x1, self.__x2, result['C0'], frequency, max_detector_freq)
 
     def get_ray_path(self, iS):
         return self.__r2d.get_path(self.__x1, self.__x2, self.__results[iS]['C0'], 10000)
