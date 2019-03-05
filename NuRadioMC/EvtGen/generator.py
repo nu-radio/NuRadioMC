@@ -521,6 +521,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         defines the probability distribution for which the neutrino energies are generated
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-1': 1 over E spectrum
+    add_tau_second_bang: bool
+        if True simulate second vertices from tau decays
     deposited: bool
         If True, generate deposited energies instead of primary neutrino energies
     """
@@ -558,10 +560,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     data_sets = {}
     # generate neutrino vertices randomly
+    data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
+    u = np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events)
+    data_sets["zeniths"] = np.arccos(u)  # generates distribution that is uniform in cos(theta)
+
     rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
-    phiphi = np.random.uniform(0, 2 * np.pi, n_events)
-    data_sets["xx"] = rr_full * np.cos(phiphi)
-    data_sets["yy"] = rr_full * np.sin(phiphi)
+    data_sets["xx"] = rr_full * np.cos(data_sets["azimuths"])
+    data_sets["yy"] = rr_full * np.sin(data_sets["azimuths"])
     data_sets["zz"] = np.random.uniform(full_zmin, full_zmax, n_events)
     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
@@ -605,10 +610,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         else:
             data_sets["interaction_type"][i] = 'nc'
 
-    # generate neutrino direction randomly
-    data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
-    u = np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events)
-    data_sets["zeniths"] = np.arccos(u)  # generates distribution that is uniform in cos(theta)
 
     # generate inelasticity (ported from ShelfMC)
     R1 = 0.36787944
@@ -677,8 +678,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                     # set flavor to tau
                     data_sets_fiducial['flavors'][iE2] = 15 * np.sign(data_sets_fiducial['flavors'][iE2])  # keep particle/anti particle nature
-        print("added {} tau decays to the event list".format(n_taus))
-    write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=n_events_per_file)
+        logger.info("added {} tau decays to the event list".format(n_taus))
+    write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file)
 
 
 def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_file):
