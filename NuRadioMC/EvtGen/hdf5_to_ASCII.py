@@ -16,7 +16,7 @@ fin = h5py.File(args.hdf5input, 'r')
 event_ids = fin['event_ids']
 flavors = fin['flavors']
 energies = fin['energies']
-ccncs = fin['ccncs']
+ccncs = fin['interaction_type']
 xx = fin['xx']
 yy = fin['yy']
 zz = fin['zz']
@@ -31,5 +31,3 @@ with open(args.ASCIIoutput, 'w') as fout:
     for i in range(n_events):
         fout.write("{:08d} {:>+5d}  {:.5e}  {:s}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}\n".format(event_ids[i], flavors[i], energies[i], ccncs[i], xx[i], yy[i], zz[i], zeniths[i], azimuths[i], inelasticity[i]))
     fout.close()
-
-
