@@ -26,7 +26,7 @@ except:
     print("Usage python A02generate_job_files.py software working_dir presim_dir")
     print("Using default values")
     conf_dir = "/pub/arianna/NuRadioMC/examples/03_station_coincidences/"
-    working_dir = os.path.join(conf_dir, "presim")
+    working_dir = conf_dir
     software = '/data/users/jcglaser/software'
     presim_dir = os.path.join(working_dir, 'presim/output')
 
@@ -40,7 +40,7 @@ if not os.path.exists(os.path.join(working_dir, "run")):
 if not os.path.exists(os.path.join(working_dir, "input")):
     os.makedirs(os.path.join(working_dir, "input"))
 
-for iI, filename in enumerate(sorted(glob.glob(presim_dir+"*.hdf5"))):
+for iI, filename in enumerate(sorted(glob.glob(os.path.join(presim_dir,"*.hdf5")))):
     current_folder = os.path.splitext(os.path.basename(filename))[0]
     t1 = os.path.join(working_dir, "output", current_folder)
     if(not os.path.exists(t1)):
