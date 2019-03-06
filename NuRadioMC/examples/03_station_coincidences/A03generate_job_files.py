@@ -61,7 +61,7 @@ for iI, filename in enumerate(sorted(glob.glob(os.path.join(presim_dir,"*.hdf5")
     for iF, filename2 in enumerate(sorted(glob.glob(os.path.join(working_dir, 'input', current_folder, "{}*".format(os.path.basename(output_filename[:-1])))))):
         print('generating job submission files for {}'.format(filename2))
         detector_file = os.path.join(working_dir, 'horizontal_spacing_detector.json')
-        output_filename = os.path.join("output", os.path.basename(filename2))
+        output_filename = os.path.join("output", current_folder, os.path.basename(filename2))
         cmd = "python {} {} {} {} {}\n".format(os.path.join(working_dir, 'E06RunSimPreprocess.py'), filename2,
                                                detector_file, config_file, output_filename)
 
