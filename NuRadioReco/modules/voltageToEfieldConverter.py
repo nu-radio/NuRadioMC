@@ -46,7 +46,6 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     tmax = time_shifts.max()
 #             print('cables ', t_cables)
 #             print('geos', t_geos)
-    station.add_trace_start_time(t_cables.min() + t_geos.max())
 #             print(time_shifts)
     logger.debug("adding relative station time = {:.0f}ns".format((t_cables.min() + t_geos.max()) / units.ns))
     logger.debug("delta t is {:.2f}".format(delta_t / units.ns))
