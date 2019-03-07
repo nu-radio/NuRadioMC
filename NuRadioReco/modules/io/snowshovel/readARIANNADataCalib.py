@@ -190,6 +190,7 @@ class readARIANNAData:
                 
                 station.set_ARIANNA_parameter(ARIpar.comm_duration, self.config_tree.DAQConfig.GetCommWinDuration() * units.s)
                 station.set_ARIANNA_parameter(ARIpar.comm_period, self.config_tree.DAQConfig.GetCommWinPeriod() * units.s)
+                station.set_ARIANNA_parameter(ARIpar.l1_supression_value, self.config_tree.DAQConfig.GetL1SingleFreqRatioCut())
                 dacset = self.config_tree.DAQConfig.GetDacSet().GetDacs()
                 dacsV = {}
                 for iCh in range(len(dacset)):

@@ -54,3 +54,4 @@ class ARIANNAParameters(Enum):  # this class stores parameters specific to the A
     comm_period = 4  # length of data taking window
     comm_duration = 5  # maximum diration of communication window
     trigger_thresholds = 6  # trigger thresholds converted to voltage
+    l1_supression_value = 7 # This provieds the L1 supression value for given event
