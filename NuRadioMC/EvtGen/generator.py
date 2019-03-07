@@ -35,12 +35,44 @@ HEADER = """
 # 10. inelasticity (the fraction of neutrino energy that goes into the hadronic part)
 #
 """
+e_mass = constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV
+mu_mass = constants.physical_constants['muon mass energy equivalent in MeV'][0] * units.MeV
 # Mass energy equivalent of the tau lepton
 tau_mass = constants.physical_constants['tau mass energy equivalent in MeV'][0] * units.MeV
 # Lifetime of the tau (rest frame). Taken from PDG
 tau_rest_lifetime = 290.3 * units.fs
+pi_mass = 139.57061 * units.MeV
+rho770_mass = 775.49 * units.MeV
+rho1450_mass = 1465 * units.MeV
+a1_mass = 1230 * units.MeV
 density_ice = 0.9167 * units.g / units.cm ** 3
 cspeed = constants.c * units.m / units.s
+
+def rejection_sampling(f, xmin, xmax, ymax):
+    """
+    Draws a random number following a given distribution using
+    a rejection sampling algorithm.
+
+    Parameters
+    ----------
+    f: function
+        Random distribution
+    xmin: float
+        Minimum value of the argument
+    xmax: float
+        Maximum value of the argument
+    ymax: float
+        Maximum function value to use for the rejection sample
+        (e.g., the maximum of the function)
+    """
+    reject = True
+
+    while( reject ):
+        x = np.random.uniform(xmin, xmax)
+        y = np.random.uniform(0, ymax)
+        reject = f(x) < y
+
+    return x
 
 def mean_energy_loss(energy):
     """
@@ -289,6 +321,108 @@ def get_tau_decay_vertex(x, y, z, E, zenith, azimuth, distmax):
     second_vertex_z += z
     return second_vertex_x, second_vertex_y, second_vertex_z, decay_energy
 
+def random_tau_branch():
+    """
+    Calculates a random tau branch decay
+    See http://dx.doi.org/10.1016/j.cpc.2013.04.001
+
+    Returns
+    -------
+    branch: string
+        The corresponding decay branch
+    """
+
+    branching_ratios = np.array([0.18, 0.18, 0.12, 0.26, 0.13])
+    branching = np.random.uniform(0,1)
+    if (branching < np.sum(branching_ratios[0:1])):
+        # tau -> nu_tau + mu + nu_tau
+        branch = 'tau_mu'
+    elif (branching < np.sum(branching_ratios[0:2])):
+        # tau -> nu_tau + e + nu_e
+        branch = 'tau_e'
+    elif (branching < np.sum(branching_ratios[0:3])):
+        # tau -> nu_tau + pi
+        branch = 'tau_pi'
+    elif (branching < np.sum(branching_ratios[0:4])):
+        # tau -> nu_tau + rho_770
+        branch = 'tau_rho'
+    elif (branching < np.sum(branching_ratios[0:5])):
+        # tau -> nu_tau + a_1
+        branch = 'tau_a'
+    else:
+        # tau -> nu_tau + rho_1450
+        # There are actually many more decay modes, but with a low branching ratio
+        branch = 'tau_rho1450'
+
+    return branch
+
+def products_from_tau_decay(tau_energy, branch):
+    """
+    Calculates the products from the tau decay
+    See http://dx.doi.org/10.1016/j.cpc.2013.04.001
+    and https://arxiv.org/pdf/1607.00193.pdf
+
+    Parameters
+    ----------
+    tau_energy: float
+        Tau energy at the moment of decay
+    branch: string
+        Type of tau decay: 'tau_mu', 'tau_e', 'tau_pi', 'tau_rho', 'tau_a', 'tau_mult'
+
+    Returns
+    -------
+    particles: dictionary
+        particle_type: particle_energy
+    """
+
+    particles = {}
+
+    if ( branch == 'tau_pi' or branch == 'tau_rho770'
+        or branch == 'tau_a' or branch == 'tau_rho1450' ):
+
+        if ( branch == 'tau_pi' ):
+            r = pi_mass/tau_mass
+            code = 211
+        elif ( branch == 'tau_rho770' ):
+            r = rho770_mass/tau_mass
+            code = 213
+        elif ( branch == 'tau_a' ):
+            r = a1_mass/tau_mass
+            code = 9020213
+        elif ( branch == 'tau_rho1450' ):
+            r = rho1450_mass/tau_mass
+            code = 100213
+
+        if ( branch == 'tau_pi' ):
+            def g_1(y):
+                return -(2*y-1+r)/(1-r**2)**2
+        else:
+            def g_1(y):
+                return -(2*y-1+r)*(1-2*r)/(1-r)**2/(1+2*r)
+
+        def g_0(y):
+            return 1/(1-r)
+
+        def y_distribution(y):
+            if ( y < 0 or y > 1-r**2 ):
+                return 0.
+            else:
+                return g_0(y)+g_1(y)
+
+        chosen_y = rejection_sampling(y_distribution, 0, 1, 10)
+
+        # Calculating the meson and tau neutrino energies
+        particles[code] = (1-chosen_y)*tau_energy
+        particles[16] = chosen_y*tau_energy
+
+    elif ( branch == 'tau_e' or branch == 'tau_mu' ):
+
+        return 0
+
+    return particles
+
+
+
 def get_tau_cascade_properties(tau_energy):
     """
     Given the energy of a decaying tau, calculates the properties of the
@@ -308,13 +442,11 @@ def get_tau_cascade_properties(tau_energy):
     """
     # TODO: calculate cascade energy
     # TODO: include the rest of the particles produced
-    branching = random.uniform(0,1)
-    if (branching < 0.68):
-        return tau_energy, 'tau_had'
-    elif (branching < 0.86):
-        return tau_energy, 'tau_em'
-    else:
-        return tau_energy, 'tau_mu'
+
+    branch = random_tau_branch()
+    products = products_from_tau_decay(tau_energy, branch)
+    return products, branch
+
 
 
 def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None):
@@ -668,7 +800,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     data_sets_fiducial['n_interaction'][iE2] = 2  # specify that new event is a second interaction
 
                     # Calculating the energy of the tau cascade from the tau decay energy
-                    tau_cascade_energy, cascade_type = get_tau_cascade_properties(decay_energy)
+                    tau_products, cascade_type = get_tau_cascade_properties(decay_energy)
                     data_sets_fiducial['energies'][iE2] = tau_cascade_energy
                     # TODO: take care of the tau_mu
                     data_sets_fiducial['interaction_type'][iE2] = cascade_type
