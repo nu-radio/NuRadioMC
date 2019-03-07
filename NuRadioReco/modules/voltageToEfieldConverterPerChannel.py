@@ -85,12 +85,15 @@ class voltageToEfieldConverterPerChannel:
         for iCh, channel in enumerate(station.iter_channels()):
             efield = ef.ElectricField([iCh])
             trace = channel.get_frequency_spectrum()
-            mask = np.abs(efield_antenna_factor[iCh][pol]) != 0
+            mask1 = np.abs(efield_antenna_factor[iCh][0]) != 0
+            mask2 = np.abs(efield_antenna_factor[iCh][1]) != 0
             efield_spectrum = np.zeros((3,len(trace)), dtype=np.complex)
-            efield_spectrum[1][mask] = np.cos(pol) * trace[mask] / efield_antenna_factor[iCh][pol][mask]
-            efield_spectrum[2][mask] = np.sin(pol) * trace[mask] / efield_antenna_factor[iCh][pol][mask]
+            efield_spectrum[1][mask1] = (1.0-pol)**2 * trace[mask1] / efield_antenna_factor[iCh][0][mask1]
+            efield_spectrum[2][mask2] = pol**2 * trace[mask2] / efield_antenna_factor[iCh][1][mask2]
             efield.set_frequency_spectrum(efield_spectrum, sampling_rate)
             station.add_electric_field(efield)
+
+
 
     def end(self):
         pass
