@@ -3,7 +3,7 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
-from NuRadioReco.modules.io.ARIANNAio import VERSION, VERSION_MINOR
+from NuRadioReco.modules.io.NuRadioRecoio import VERSION, VERSION_MINOR
 import logging
 from NuRadioReco.framework.parameters import stationParameters as stnp
 logger = logging.getLogger("eventWriter")

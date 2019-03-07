@@ -196,10 +196,6 @@ class BaseStation():
 
 
     def serialize(self, mode):
-        if(mode == 'micro'):
-            base_trace_pkl = None
-        else:
-            base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
         trigger_pkls = []
         for trigger in self._triggers.values():
             trigger_pkls.append(trigger.serialize())
@@ -215,14 +211,11 @@ class BaseStation():
                 '_particle_type': self._particle_type,
                 'triggers': trigger_pkls,
                 '_triggered': self._triggered,
-                'electric_fields': efield_pkls,
-                'base_trace': base_trace_pkl}
+                'electric_fields': efield_pkls}
         return pickle.dumps(data, protocol=2)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        if(data['base_trace'] is not None):
-            NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
         if ('triggers' in data):
             self._triggers = NuRadioReco.framework.trigger.deserialize(data['triggers'])
         if ('triggers' in data):

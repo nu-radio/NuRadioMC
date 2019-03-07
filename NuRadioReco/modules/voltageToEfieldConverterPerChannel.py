@@ -94,5 +94,6 @@ class voltageToEfieldConverterPerChannel:
             station.add_electric_field(efield)
 
 
+
     def end(self):
         pass
