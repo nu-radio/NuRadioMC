@@ -8,6 +8,7 @@ import scipy.constants
 from NuRadioMC.utilities import units
 from operator import itemgetter
 import logging
+logging.basicConfig()
 from matplotlib.hatch import get_path
 
 # check if CPP implementation is available
@@ -840,6 +841,8 @@ class ray_tracing:
         self.__logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self.__X2 - self.__X1, X1r, X2r))
         self.__x1 = np.array([X1r[0], X1r[2]])
         self.__x2 = np.array([X2r[0], X2r[2]])
+        
+        self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
         self.__r2d = ray_tracing_2D(self.__medium, log_level=log_level,
                                     n_frequencies_integration=self.__n_frequencies_integration)
 
@@ -881,6 +884,20 @@ class ray_tracing:
             * 3: 'reflected
         """
         return self.__r2d.determine_solution_type(self.__x1, self.__x2, self.__results[iS]['C0'])
+    
+    def get_path(self, iS, n_points=1000):
+        n = self.get_number_of_solutions()
+        if(iS >= n):
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            raise IndexError
+        result = self.__results[iS]
+        xx, zz = self.__r2d.get_path(self.__x1, self.__x2, result['C0'], n_points=n_points)
+        path_2d = np.array([xx, np.zeros_like(xx), zz]).T
+        dP = path_2d - np.array([self.__X1[0], 0, self.__X1[2]])
+        MM = np.matmul(self.__R.T, dP.T)
+        path = MM.T + self.__X1
+        return path
+        
 
     def get_launch_vector(self, iS):
         """
