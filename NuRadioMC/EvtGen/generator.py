@@ -6,6 +6,8 @@ from scipy import constants
 from scipy.integrate import quad
 from scipy.interpolate import interp1d
 from scipy.optimize import fsolve
+from scipy.interpolate import interp1d
+from scipy.interpolate import interp2d
 import h5py
 import logging
 logger = logging.getLogger("EventGen")
@@ -74,6 +76,42 @@ def rejection_sampling(f, xmin, xmax, ymax):
 
     return x
 
+def load_input_hdf5(filename):
+    """
+    reads input file into memory
+    """
+    h5fin = h5py.File(filename, 'r')
+    fin = {}
+    for key, value in iteritems(h5fin):
+        fin[key] = np.array(value)
+    h5fin.close()
+    return fin
+
+def create_interp(filename):
+    """
+    Creates interp2d functions for an input filename file
+
+    Parameters
+    ----------
+    filename: string
+        name of the hdf5 file containing the table
+
+    Returns
+    -------
+    (f_time, f_energies): tuple of interp2d functions
+    """
+    fin = load_input_hdf5(filename)
+
+    time_bins = fin['rest_times']
+    energy_bins = np.log10(fin['initial_energies'])
+
+    # Careful! For interp2d, the first array represents the COLUMNS, and
+    # the second the ROWS.
+    f_time = interp2d(time_bins, energy_bins, fin['decay_times'], kind='cubic')
+    f_energies = interp2d(time_bins, energy_bins, fin['decay_energies'], kind='cubic')
+
+    return (f_time, f_energies)
+
 def mean_energy_loss(energy):
     """
     Returns the mean energy loss of a tau per g/cm2 as a function of the tau energy
@@ -137,6 +175,9 @@ def get_decay_time_losses(energy, distmax, average=False, compare=False, user_ti
     compare: bool
         If True, returns a tuple with the decay time with losses and without
         If False, only the decay time with losses is returned
+    user_time: float
+        If user_time is not None, the tau decay time in rest frame is taken as
+        equal to user_time and the average flag is ignored.
 
     Returns
     -------
@@ -149,8 +190,12 @@ def get_decay_time_losses(energy, distmax, average=False, compare=False, user_ti
     """
     E0 = 1*units.PeV
     if (energy <= E0):
-        raise ValueError('Energy is equal to or less than 1 PeV. Returning decay time without energy loss.')
-        return get_tau_decay_time(energy)
+        #raise ValueError('Energy is equal to or less than 1 PeV. Returning decay time without energy loss.')
+        if user_time is None:
+            return get_tau_decay_time(energy), energy
+        else:
+            gamma = energy/tau_mass
+            return gamma*user_time, energy
 
     # At these energies, we can use the speed of light as the tau speed
     timemax = distmax/cspeed
@@ -247,7 +292,7 @@ def get_tau_speed(energy):
 
     return beta * constants.c * units.m / units.s
 
-def get_tau_decay_length(energy, distmax=0):
+def get_tau_decay_length(energy, distmax=0, table=None):
     """
     calculates the decay length of the tau
 
@@ -258,6 +303,7 @@ def get_tau_decay_length(energy, distmax=0):
     distmax: float
     maximum distance for which we calculate energy losses.
     It should be similar to the maximal dimension of the simulation volume.
+    table: interp2d type function. See get_decay_time_tab.
 
     Returns
     -------
@@ -270,10 +316,47 @@ def get_tau_decay_length(energy, distmax=0):
         v = get_tau_speed(energy)
         return decay_time * v, energy
     else:
-        decay_time, decay_energy = get_decay_time_losses(energy, distmax)
+        if table is None:
+            decay_time, decay_energy = get_decay_time_losses(energy, distmax)
+        else:
+            decay_time, decay_energy = get_decay_time_tab(table, energy)
         return decay_time * cspeed, decay_energy
 
-def get_tau_decay_vertex(x, y, z, E, zenith, azimuth, distmax):
+def get_decay_time_tab(table, energy, time=None):
+    """
+    Calculates the decay time assuming photonuclear energy losses above
+    1 PeV and using the quasi-continuous approximation.
+    See https://doi.org/10.1016/j.astropartphys.2006.11.003 for details.
+    This version uses tabulated histograms to speed up the computation.
+
+    Parameters
+    ----------
+    table: tuple of 2 interp2d type functions
+        table[0](time,log10(energy)) must interpolate the decay time in lab frame
+        table[1](time,log10(energy)) must interpolate the decay energy in lab frame
+    energy: float
+        energy of the incident neutrino
+    time: float
+        If time is not None, the tau decay time in rest frame is taken as
+        equal to time. If time is None, a random time is drawn.
+
+    Returns
+    -------
+    decay_time: float
+        Tau decay time with photonuclear losses
+    energy_decay: float
+        Tau energy at the time of decay
+    """
+
+    if time is None:
+        time = get_tau_decay_rest(energy)
+
+    decay_time = table[0](time, np.log10(energy))
+    decay_energy = table[1](time, np.log10(energy))
+
+    return decay_time, decay_energy
+
+def get_tau_decay_vertex(x, y, z, E, zenith, azimuth, distmax, table=None):
     """
      Let us assume that the tau has the same direction as the tau neutrino
      to calculate the vertex of the second shower
@@ -293,8 +376,9 @@ def get_tau_decay_vertex(x, y, z, E, zenith, azimuth, distmax):
      azimuth: float
         Azimuth arrival direction
      distmax: float
-     maximum distance for which we calculate energy losses.
-     It should be similar to the maximal dimension of the simulation volume.
+        maximum distance for which we calculate energy losses.
+        It should be similar to the maximal dimension of the simulation volume.
+     table: tuple of 2 interp2d type functions
 
      Returns
      -------
@@ -307,7 +391,7 @@ def get_tau_decay_vertex(x, y, z, E, zenith, azimuth, distmax):
      decay_energy: float
         Tau energy at the moment of decay
     """
-    L, decay_energy = get_tau_decay_length(E, distmax)
+    L, decay_energy = get_tau_decay_length(E, distmax, table)
     second_vertex_x = L
     second_vertex_x *= np.sin(zenith) * np.cos(azimuth)
     second_vertex_x += x
@@ -332,7 +416,7 @@ def random_tau_branch():
         The corresponding decay branch
     """
 
-    branching_ratios = np.array([0.18, 0.18, 0.12, 0.26, 0.13])
+    branching_ratios = np.array([0.18, 0.18])
     branching = np.random.uniform(0,1)
     if (branching < np.sum(branching_ratios[0:1])):
         # tau -> nu_tau + mu + nu_tau
@@ -340,19 +424,9 @@ def random_tau_branch():
     elif (branching < np.sum(branching_ratios[0:2])):
         # tau -> nu_tau + e + nu_e
         branch = 'tau_e'
-    elif (branching < np.sum(branching_ratios[0:3])):
-        # tau -> nu_tau + pi
-        branch = 'tau_pi'
-    elif (branching < np.sum(branching_ratios[0:4])):
-        # tau -> nu_tau + rho_770
-        branch = 'tau_rho'
-    elif (branching < np.sum(branching_ratios[0:5])):
-        # tau -> nu_tau + a_1
-        branch = 'tau_a'
     else:
-        # tau -> nu_tau + rho_1450
-        # There are actually many more decay modes, but with a low branching ratio
-        branch = 'tau_rho1450'
+        # tau -> nu_tau + hadrons
+        branch = 'tau_had'
 
     return branch
 
@@ -377,37 +451,33 @@ def products_from_tau_decay(tau_energy, branch):
 
     particles = {}
 
-    if ( branch == 'tau_pi' or branch == 'tau_rho770'
-        or branch == 'tau_a' or branch == 'tau_rho1450' ):
+    if ( branch == 'tau_had' ):
 
-        if ( branch == 'tau_pi' ):
-            r = pi_mass/tau_mass
-            code = 211
-        elif ( branch == 'tau_rho770' ):
-            r = rho770_mass/tau_mass
-            code = 213
-        elif ( branch == 'tau_a' ):
-            r = a1_mass/tau_mass
-            code = 9020213
-        elif ( branch == 'tau_rho1450' ):
-            r = rho1450_mass/tau_mass
-            code = 100213
+        branching = np.array([0.12, 0.26, 0.13, 0.13])
+        rs = np.array([pi_mass, rho770_mass, a1_mass, rho1450_mass])/tau_mass
 
-        if ( branch == 'tau_pi' ):
-            def g_1(y):
-                return -(2*y-1+r)/(1-r**2)**2
-        else:
-            def g_1(y):
-                return -(2*y-1+r)*(1-2*r)/(1-r)**2/(1+2*r)
-
-        def g_0(y):
-            return 1/(1-r)
-
-        def y_distribution(y):
+        def g_pi(y,r):
             if ( y < 0 or y > 1-r**2 ):
                 return 0.
             else:
-                return g_0(y)+g_1(y)
+                return -(2*y-1+r)/(1-r**2)**2
+
+        def g_1(y,r):
+            if ( y < 0 or y > 1-r**2 ):
+                return 0.
+            else:
+                return -(2*y-1+r)*(1-2*r)/(1-r)**2/(1+2*r)
+
+        def g_0(y,r):
+            if ( y < 0 or y > 1-r**2 ):
+                return 0.
+            else:
+                return 1/(1-r)
+
+        def y_distribution(y):
+            pi_term = branching[0]*(g_pi(y,rs[0])+g_0(y,rs[0]))
+            rest_terms = branching[1:]*(g_1(y,rs)+g_0(y,rs))
+            return pi_term + np.sum(rest_terms)
 
         chosen_y = rejection_sampling(y_distribution, 0, 1, 10)
 
@@ -586,6 +656,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 spectrum='log_uniform',
                                 add_tau_second_bang=False,
                                 add_tau_larger_volume=False,
+                                tabulated_taus=True,
                                 deposited=False):
     """
     Event generator
@@ -655,6 +726,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         * 'E-1': 1 over E spectrum
     add_tau_second_bang: bool
         if True simulate second vertices from tau decays
+    tabulated_taus: bool
+        if True the tau decay properties are taken from a table
     deposited: bool
         If True, generate deposited energies instead of primary neutrino energies
     """
@@ -772,10 +845,16 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             iE = event_id - start_event_id
 
             Etau = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
+
+            if tabulated_taus:
+                cdir = os.path.dirname(__file__)
+                table = create_interp(os.path.join(cdir, 'decay_library.hdf5'))
+            else:
+                table = None
             # first calculate if tau decay is still in our fiducial volume
             x, y, z, decay_energy = get_tau_decay_vertex(data_sets["xx"][iE], data_sets["yy"][iE], data_sets["zz"][iE],
                                            Etau, data_sets["zeniths"][iE], data_sets["azimuths"][iE],
-                                           np.sqrt(4*(full_rmax-full_rmin)**2+(full_zmax-full_zmin)**2))
+                                           np.sqrt(4*(full_rmax-full_rmin)**2+(full_zmax-full_zmin)**2), table=table)
             logger.debug("tau energy = {:.2g}eV, decay length = {:.2f}km -> decay at {:.2f}, {:.2f}, {:.2f}".format(Etau/units.eV,
                                                             get_tau_decay_length(Etau)[0]/units.km, x/units.km, y/units.km, z/units.km))
 
