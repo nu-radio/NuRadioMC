@@ -20,10 +20,10 @@ def f_pi(y,r):
     else:
         return f_0(y,r)-(2*y-1+r)/(1-r**2)**2
 
-r = pi_mass/tau_mass
+r = rho770_mass/tau_mass
 print(r)
 x = np.linspace(0,1,100)
-distr = [f_pi(x0,r) for x0 in x]
+distr = [f(x0,r) for x0 in x]
 plt.plot(x, distr)
 plt.show()
 
