@@ -637,7 +637,7 @@ class simulation():
         ----------
         inelasticity: float
             the inelasticity (fraction of energy that goes into had. cascade)
-        inttype: string ['nc', 'cc', 'tau_had', 'tau_em']
+        inttype: string ['nc', 'cc', 'tau_had', 'tau_e']
             neutral current (nc) or carged currend (cc) interaction
         flavor: int
             flavor id
@@ -662,10 +662,10 @@ class simulation():
             elif(np.abs(flavor) == 16):
                 fhad = inelasticity
         elif(np.abs(flavor) == 15):
-            if (inttype == 'tau_em'):
-                fem = 1
+            if (inttype == 'tau_e'):
+                fem = inelasticity
             elif (inttype == 'tau_had'):
-                fhad = 1
+                fhad = inelasticity
         return fem, fhad
 
     # TODO verify that calculation of polarization vector is correct!
