@@ -102,15 +102,21 @@ def create_interp(filename):
     """
     fin = load_input_hdf5(filename)
 
-    time_bins = fin['rest_times']
-    energy_bins = np.log10(fin['initial_energies'])
+    log_time_bins = np.log10(fin['rest_times'])
+    log_energy_bins = np.log10(fin['initial_energies'])
 
     # Careful! For interp2d, the first array represents the COLUMNS, and
     # the second the ROWS.
-    f_time = interp2d(time_bins, energy_bins, fin['decay_times'], kind='cubic')
-    f_energies = interp2d(time_bins, energy_bins, fin['decay_energies'], kind='cubic')
+    f_time = interp2d(log_time_bins, log_energy_bins, np.log10(fin['decay_times']), kind='linear')
+    f_energies = interp2d(log_time_bins, log_energy_bins, np.log10(fin['decay_energies']), kind='linear')
 
-    return (f_time, f_energies)
+    def interp_time(time, energy):
+        return 10**f_time(np.log10(time), np.log10(energy))
+
+    def interp_energies(time, energy):
+        return 10**f_energies(np.log10(time), np.log10(energy))
+
+    return (interp_time, interp_energies)
 
 def mean_energy_loss(energy):
     """
@@ -351,8 +357,8 @@ def get_decay_time_tab(table, energy, time=None):
     if time is None:
         time = get_tau_decay_rest(energy)
 
-    decay_time = table[0](time, np.log10(energy))
-    decay_energy = table[1](time, np.log10(energy))
+    decay_time = table[0](time, energy)
+    decay_energy = table[1](time, energy)
 
     return decay_time, decay_energy
 
@@ -476,7 +482,8 @@ def products_from_tau_decay(tau_energy, branch):
 
         def y_distribution(y):
             pi_term = branching[0]*(g_pi(y,rs[0])+g_0(y,rs[0]))
-            rest_terms = branching[1:]*(g_1(y,rs)+g_0(y,rs))
+            #rest_terms = branching[1:]*(g_1(y,rs)+g_0(y,rs))
+            rest_terms = [ branch*(g_1(y,r)+g_0(y,r)) for branch,r in zip(branching[1:],rs[1:]) ]
             return pi_term + np.sum(rest_terms)
 
         chosen_y = rejection_sampling(y_distribution, 0, 1, 10)
