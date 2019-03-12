@@ -8,7 +8,9 @@ from scipy.interpolate import interp1d
 from scipy.optimize import fsolve
 from scipy.interpolate import interp1d
 from scipy.interpolate import interp2d
+from scipy.interpolate import RectBivariateSpline
 import h5py
+import os
 import logging
 logger = logging.getLogger("EventGen")
 
@@ -49,6 +51,7 @@ rho1450_mass = 1465 * units.MeV
 a1_mass = 1230 * units.MeV
 density_ice = 0.9167 * units.g / units.cm ** 3
 cspeed = constants.c * units.m / units.s
+G_F = constants.physical_constants['Fermi coupling constant'][0] * units.GeV**(-2)
 
 def rejection_sampling(f, xmin, xmax, ymax):
     """
@@ -107,8 +110,10 @@ def create_interp(filename):
 
     # Careful! For interp2d, the first array represents the COLUMNS, and
     # the second the ROWS.
-    f_time = interp2d(log_time_bins, log_energy_bins, np.log10(fin['decay_times']), kind='linear')
-    f_energies = interp2d(log_time_bins, log_energy_bins, np.log10(fin['decay_energies']), kind='linear')
+    #f_time = interp2d(log_time_bins, log_energy_bins, np.log10(fin['decay_times']))
+    #f_energies = interp2d(log_time_bins, log_energy_bins, np.log10(fin['decay_energies']))
+    f_time = RectBivariateSpline(log_time_bins, log_energy_bins, np.transpose(np.log10(fin['decay_times'])) )
+    f_energies = RectBivariateSpline(log_time_bins, log_energy_bins, np.transpose(np.log10(fin['decay_energies'])) )
 
     def interp_time(time, energy):
         return 10**f_time(np.log10(time), np.log10(energy))
@@ -357,8 +362,8 @@ def get_decay_time_tab(table, energy, time=None):
     if time is None:
         time = get_tau_decay_rest(energy)
 
-    decay_time = table[0](time, energy)
-    decay_energy = table[1](time, energy)
+    decay_time = table[0](time, energy)[0,0]
+    decay_energy = table[1](time, energy)[0,0]
 
     return decay_time, decay_energy
 
@@ -436,9 +441,9 @@ def random_tau_branch():
 
     return branch
 
-def products_from_tau_decay(tau_energy, branch):
+def inelasticity_tau_decay(tau_energy, branch):
     """
-    Calculates the products from the tau decay
+    Returns the hadronic or electromagnetic inelasticity for the tau decay
     See http://dx.doi.org/10.1016/j.cpc.2013.04.001
     and https://arxiv.org/pdf/1607.00193.pdf
 
@@ -447,15 +452,13 @@ def products_from_tau_decay(tau_energy, branch):
     tau_energy: float
         Tau energy at the moment of decay
     branch: string
-        Type of tau decay: 'tau_mu', 'tau_e', 'tau_pi', 'tau_rho', 'tau_a', 'tau_mult'
+        Type of tau decay: 'tau_mu', 'tau_e', 'tau_had'
 
     Returns
     -------
-    particles: dictionary
-        particle_type: particle_energy
+    inelasticity: float
+        The fraction of energy carried by the leptonic or hadronic products
     """
-
-    particles = {}
 
     if ( branch == 'tau_had' ):
 
@@ -486,17 +489,37 @@ def products_from_tau_decay(tau_energy, branch):
             rest_terms = [ branch*(g_1(y,r)+g_0(y,r)) for branch,r in zip(branching[1:],rs[1:]) ]
             return pi_term + np.sum(rest_terms)
 
-        chosen_y = rejection_sampling(y_distribution, 0, 1, 10)
+        chosen_y = rejection_sampling(y_distribution, 0, 1, 3)
 
-        # Calculating the meson and tau neutrino energies
-        particles[code] = (1-chosen_y)*tau_energy
-        particles[16] = chosen_y*tau_energy
+        return 1-chosen_y
 
     elif ( branch == 'tau_e' or branch == 'tau_mu' ):
 
-        return 0
+        mu = tau_mass
+        if ( branch == 'tau_e' ):
+            m_l = e_mass
+        elif ( branch == 'tau_mu' ):
+            m_l = mu_mass
 
-    return particles
+        nu_min = m_l
+        nu_max = (mu**2 + m_l**2)/2/mu
+
+        # Fraction energy distibution in the decaying particle rest frame
+        def x_distribution(x):
+            if ( x < m_l/nu_max or x > 1 ):
+                return 0.
+            else:
+                factor = G_F**2 * mu**5/192/np.pi**3
+                return factor * (3-2*x)*x**2
+
+        chosen_x = rejection_sampling(x_distribution, 0, 1, x_distribution(1))
+        chosen_cos = np.random.uniform(-1,1)
+
+        y_rest = chosen_x * nu_max/tau_mass
+        # Transforming the rest inelasticity to the lab inelasticity
+        y_lab = y_rest - np.sqrt(y_rest**2 - (m_l/mu)**2)*chosen_cos
+
+        return y_lab
 
 
 
@@ -521,7 +544,7 @@ def get_tau_cascade_properties(tau_energy):
     # TODO: include the rest of the particles produced
 
     branch = random_tau_branch()
-    products = products_from_tau_decay(tau_energy, branch)
+    products = inelasticity_tau_decay(tau_energy, branch)
     return products, branch
 
 
@@ -845,6 +868,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         data_sets_fiducial[key] = value[fmask]
 
     if add_tau_second_bang:
+
+        if tabulated_taus:
+            cdir = os.path.dirname(__file__)
+            table = create_interp(os.path.join(cdir, 'decay_library.hdf5'))
+        else:
+            table = None
+
         mask = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 16)  # select nu_tau cc interactions
         logger.info("{} taus are created in nu tau interactions -> checking if tau decays in fiducial volume".format(np.sum(mask)))
         n_taus = 0
@@ -853,17 +883,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
             Etau = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
 
-            if tabulated_taus:
-                cdir = os.path.dirname(__file__)
-                table = create_interp(os.path.join(cdir, 'decay_library.hdf5'))
-            else:
-                table = None
             # first calculate if tau decay is still in our fiducial volume
             x, y, z, decay_energy = get_tau_decay_vertex(data_sets["xx"][iE], data_sets["yy"][iE], data_sets["zz"][iE],
                                            Etau, data_sets["zeniths"][iE], data_sets["azimuths"][iE],
                                            np.sqrt(4*(full_rmax-full_rmin)**2+(full_zmax-full_zmin)**2), table=table)
-            logger.debug("tau energy = {:.2g}eV, decay length = {:.2f}km -> decay at {:.2f}, {:.2f}, {:.2f}".format(Etau/units.eV,
-                                                            get_tau_decay_length(Etau)[0]/units.km, x/units.km, y/units.km, z/units.km))
 
             r = (x ** 2 + y ** 2)**0.5
             if(r >= fiducial_rmin and r <= fiducial_rmax ):
@@ -886,8 +909,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     data_sets_fiducial['n_interaction'][iE2] = 2  # specify that new event is a second interaction
 
                     # Calculating the energy of the tau cascade from the tau decay energy
-                    tau_products, cascade_type = get_tau_cascade_properties(decay_energy)
-                    data_sets_fiducial['energies'][iE2] = tau_cascade_energy
+                    y_cascade, cascade_type = get_tau_cascade_properties(decay_energy)
+                    data_sets_fiducial['energies'][iE2] = decay_energy
+                    data_sets_fiducial['inelasticity'][iE2] = y_cascade
                     # TODO: take care of the tau_mu
                     data_sets_fiducial['interaction_type'][iE2] = cascade_type
                     data_sets_fiducial['xx'][iE2] = x

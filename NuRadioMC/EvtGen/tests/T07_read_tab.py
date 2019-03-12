@@ -31,13 +31,13 @@ if exact:
         decay_energies.append(row_energies)
 
 for itime, time in enumerate(times):
-    plt.loglog(energies, table[0](time, energies))
+    plt.loglog(energies, table[0](time, energies)[0])
     if exact:
         plt.loglog(energies, decay_times[itime], linestyle='--')
 plt.show()
 
 for itime, time in enumerate(times):
-    plt.loglog(energies, table[1](time, energies))
+    plt.loglog(energies, table[1](time, energies)[0])
     if exact:
         plt.loglog(energies, decay_energies[itime], linestyle='--')
 plt.show()
