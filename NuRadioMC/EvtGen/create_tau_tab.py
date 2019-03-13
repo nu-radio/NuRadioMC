@@ -14,10 +14,10 @@ energies = 10**energies * units.eV
 #            for time in times ] for energy in energies ]
 
 tables = []
-for energy in energies:
+for itime, time in enumerate(times):
     row = []
-    for time in times:
-        print(np.where(energies==energy)[0], np.where(times==time)[0])
+    for ienergy, energy in enumerate(energies):
+        print(itime, ienergy)
         row.append( get_decay_time_losses(energy, 1000*units.km, average=True, compare=False, user_time=time) )
     tables.append(row)
 
