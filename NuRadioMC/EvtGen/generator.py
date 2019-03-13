@@ -69,6 +69,11 @@ def rejection_sampling(f, xmin, xmax, ymax):
     ymax: float
         Maximum function value to use for the rejection sample
         (e.g., the maximum of the function)
+
+    Returns
+    -------
+    x: float
+        Random value from the distribution
     """
     reject = True
 
@@ -82,6 +87,16 @@ def rejection_sampling(f, xmin, xmax, ymax):
 def load_input_hdf5(filename):
     """
     reads input file into memory
+
+    Parameters
+    ----------
+    filename: string
+        Name of the file
+
+    Returns
+    -------
+    fin: dictionary
+        Dictionary containing the elements in filename
     """
     h5fin = h5py.File(filename, 'r')
     fin = {}
@@ -92,7 +107,8 @@ def load_input_hdf5(filename):
 
 def create_interp(filename):
     """
-    Creates interp2d functions for an input filename file
+    Creates RectBivariateSpline functions for interpolating the decay
+    times and energies from filename
 
     Parameters
     ----------
@@ -101,19 +117,15 @@ def create_interp(filename):
 
     Returns
     -------
-    (f_time, f_energies): tuple of interp2d functions
+    (interp_time, interp_energies): tuple of RectBivariateSpline functions
     """
     fin = load_input_hdf5(filename)
 
     log_time_bins = np.log10(fin['rest_times'])
     log_energy_bins = np.log10(fin['initial_energies'])
 
-    # Careful! For interp2d, the first array represents the COLUMNS, and
-    # the second the ROWS.
-    #f_time = interp2d(log_time_bins, log_energy_bins, np.log10(fin['decay_times']))
-    #f_energies = interp2d(log_time_bins, log_energy_bins, np.log10(fin['decay_energies']))
-    f_time = RectBivariateSpline(log_time_bins, log_energy_bins, np.transpose(np.log10(fin['decay_times'])) )
-    f_energies = RectBivariateSpline(log_time_bins, log_energy_bins, np.transpose(np.log10(fin['decay_energies'])) )
+    f_time = RectBivariateSpline(log_time_bins, log_energy_bins, np.log10(fin['decay_times']) )
+    f_energies = RectBivariateSpline(log_time_bins, log_energy_bins, np.log10(fin['decay_energies']) )
 
     def interp_time(time, energy):
         return 10**f_time(np.log10(time), np.log10(energy))
@@ -297,7 +309,7 @@ def get_tau_speed(energy):
 
     gamma = energy / tau_mass
     if (gamma < 1):
-        raise ValueError('The energy is less than the tau mass. Returning zero speed')
+        #raise ValueError('The energy is less than the tau mass. Returning zero speed')
         return 0
     beta = np.sqrt(1 - 1 / gamma ** 2)
 
@@ -314,7 +326,7 @@ def get_tau_decay_length(energy, distmax=0, table=None):
     distmax: float
     maximum distance for which we calculate energy losses.
     It should be similar to the maximal dimension of the simulation volume.
-    table: interp2d type function. See get_decay_time_tab.
+    table: RectBivariateSpline type function. See get_decay_time_tab.
 
     Returns
     -------
@@ -342,9 +354,9 @@ def get_decay_time_tab(table, energy, time=None):
 
     Parameters
     ----------
-    table: tuple of 2 interp2d type functions
-        table[0](time,log10(energy)) must interpolate the decay time in lab frame
-        table[1](time,log10(energy)) must interpolate the decay energy in lab frame
+    table: tuple of 2 RectBivariateSpline type functions
+        table[0](time,energy) must interpolate the decay time in lab frame
+        table[1](time,energy) must interpolate the decay energy in lab frame
     energy: float
         energy of the incident neutrino
     time: float
@@ -389,7 +401,7 @@ def get_tau_decay_vertex(x, y, z, E, zenith, azimuth, distmax, table=None):
      distmax: float
         maximum distance for which we calculate energy losses.
         It should be similar to the maximal dimension of the simulation volume.
-     table: tuple of 2 interp2d type functions
+     table: tuple of 2 RectBivariateSpline type functions
 
      Returns
      -------
