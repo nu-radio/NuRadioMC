@@ -40,9 +40,17 @@ def get_triggered(fin):
         return triggered
 
     for second_bang_index in second_bang_indexes:
+        # Second interactions
         if (fin['event_ids'][second_bang_index-1] == fin['event_ids'][second_bang_index]
             and fin['triggered'][second_bang_index-1] == True
             and fin['triggered'][second_bang_index] == True):
+
+            triggered[second_bang_index] = False
+
+        # Third interactions
+        elif (fin['event_ids'][second_bang_index-2] == fin['event_ids'][second_bang_index]
+            and fin['triggered'][second_bang_index-2] == True
+            and fin['triggered'][second_bang_index] == True)):
 
             triggered[second_bang_index] = False
 
