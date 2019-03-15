@@ -888,6 +888,12 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             table = None
 
         mask = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 16)  # select nu_tau cc interactions
+
+        data_sets_second_bang = {}
+        for key in iterkeys(data_sets):
+            data_sets_second_bang[key] = []
+        iE2s = []
+
         logger.info("{} taus are created in nu tau interactions -> checking if tau decays in fiducial volume".format(np.sum(mask)))
         n_taus = 0
         for event_id in data_sets["event_ids"][mask]:
@@ -906,33 +912,55 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     # the tau decay is in our fiducial volume
 
                     n_taus += 1  # we change the datasets during the loop, to still have the correct indices, we need to keep track of the number of events we inserted
-
                     # insert second vertex after the first neutrino interaction
                     # two possible cases
                     # 1) first interaction is not in fiducial volume -> insert event such that event ids are increasing
                     # 2) first interaction is in fiducial volume -> find correct index
-                    if(event_id in data_sets['event_ids']):  # case 2
+                    if(event_id in data_sets_fiducial['event_ids']):  # case 2
                         iE2 = np.squeeze(np.argwhere(data_sets_fiducial['event_ids'] == event_id))
                     else:  # case 1
-                        iE2 = np.squeeze(np.argwhere(data_sets_fiducial['event_ids'] < event_id))[-1]
-                    for key in iterkeys(data_sets):
-                        data_sets_fiducial[key] = np.insert(data_sets_fiducial[key], iE2, data_sets[key][iE])
-                    iE2 += 1
-                    data_sets_fiducial['n_interaction'][iE2] = 2  # specify that new event is a second interaction
+                        try:
+                            iE2 = np.squeeze(np.argwhere(data_sets_fiducial['event_ids'] < event_id))[-1]
+                        except:
+                            # If the argwhere result is not an array, that means that the current event_id
+                            # is the lowest one that can be found in data_sets_fiducial.
+                            iE2 = 0
 
-                    # Calculating the energy of the tau cascade from the tau decay energy
-                    y_cascade, cascade_type = get_tau_cascade_properties(decay_energy)
-                    data_sets_fiducial['energies'][iE2] = decay_energy
-                    data_sets_fiducial['inelasticity'][iE2] = y_cascade
+                    for key in iterkeys(data_sets):
+                        data_sets_second_bang[key].append(data_sets[key][iE])
+
+                    y_cascade, cascade_type = get_tau_cascade_properties(decay_energy) # specify that new event is a second interaction
+                    iE2s.append(iE2)
+                    data_sets_second_bang['n_interaction'][-1] = 2
+                    data_sets_second_bang['energies'][-1] = decay_energy
+                    data_sets_second_bang['inelasticity'][-1] = y_cascade
+                    data_sets_second_bang['interaction_type'][-1] = cascade_type
                     # TODO: take care of the tau_mu
-                    data_sets_fiducial['interaction_type'][iE2] = cascade_type
-                    data_sets_fiducial['xx'][iE2] = x
-                    data_sets_fiducial['yy'][iE2] = y
-                    data_sets_fiducial['zz'][iE2] = z
+                    data_sets_second_bang['xx'][-1] = x
+                    data_sets_second_bang['yy'][-1] = y
+                    data_sets_second_bang['zz'][-1] = z
 
                     # set flavor to tau
-                    data_sets_fiducial['flavors'][iE2] = 15 * np.sign(data_sets_fiducial['flavors'][iE2])  # keep particle/anti particle nature
+                    data_sets_second_bang['flavors'][-1] = 15 * np.sign(data_sets['flavors'][iE])  # keep particle/anti particle nature
         logger.info("added {} tau decays to the event list".format(n_taus))
+
+    # Create final data_set with data_sets_fiducial and data_sets_second_bang
+    data_sets_final = {}
+    for key in iterkeys(data_sets):
+        data_sets_final[key] = []
+
+    iE2 = 0
+    for iEfinal in range(len(data_sets_fiducial['event_ids'])):
+        for key in iterkeys(data_sets):
+            data_sets_final[key].append(data_sets_fiducial[key][iEfinal])
+        if iEfinal in iE2s:
+            for key in iterkeys(data_sets):
+                data_sets_final[key].append(data_sets_second_bang[key][iE2])
+            iE2 += 1
+
+    for key in iterkeys(data_sets):
+        data_sets_fiducial[key] = np.array(data_sets_final[key])
+
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file)
 
 
