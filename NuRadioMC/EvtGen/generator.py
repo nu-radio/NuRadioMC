@@ -935,6 +935,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                         data_sets_second_bang[key].append(data_sets[key][iE])
 
                     y_cascade, cascade_type = get_tau_cascade_properties(decay_energy)
+                    # Append iE2 to the list of fiducial indices
                     iEdouble.append(iE2)
                     data_sets_second_bang['n_interaction'][-1] = 2 # specify that new event is a second interaction
                     data_sets_second_bang['energies'][-1] = decay_energy
@@ -949,23 +950,16 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     data_sets_second_bang['flavors'][-1] = 15 * np.sign(data_sets['flavors'][iE])  # keep particle/anti particle nature
         logger.info("added {} tau decays to the event list".format(n_taus))
 
-    # Inserting double bangs with no corresponding fiducial first bang and
-    # having an event_id lower than the lowest event_id in data_sets_fiducial
-    while( -1 in iEdouble ):
-        for key in iterkeys(data_sets):
-            data_sets_final[key].append(data_sets_second_bang[key][0])
-            data_sets_second_bang[key].pop(0)
-        iEdouble.pop(0)
-
     # Inserting double bangs so that the event_id is always increasing
-    iE2 = 0
-    for iEfinal in range(len(data_sets_fiducial['event_ids'])):
-        for key in iterkeys(data_sets):
-            data_sets_final[key].append(data_sets_fiducial[key][iEfinal])
-        if iEfinal in iEdouble:
+    for iEfinal in range(-1,len(data_sets_fiducial['event_ids'])):
+        if ( iEfinal != -1 ):
             for key in iterkeys(data_sets):
-                data_sets_final[key].append(data_sets_second_bang[key][iE2])
-            iE2 += 1
+                data_sets_final[key].append(data_sets_fiducial[key][iEfinal])
+        while( iEfinal in iEdouble ):
+            for key in iterkeys(data_sets):
+                data_sets_final[key].append(data_sets_second_bang[key][0])
+                data_sets_second_bang[key].pop(0)
+            iEdouble.pop(0)
 
     # Transforming every array into a numpy array and copying it back to
     # data_sets_fiducial
