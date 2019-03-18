@@ -879,6 +879,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     for key, value in iteritems(data_sets):
         data_sets_fiducial[key] = value[fmask]
 
+    # Create final data_set with data_sets_fiducial and data_sets_second_bang
+    data_sets_final = {}
+    for key in iterkeys(data_sets):
+        data_sets_final[key] = []
+
     if add_tau_second_bang:
 
         if tabulated_taus:
@@ -892,7 +897,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         data_sets_second_bang = {}
         for key in iterkeys(data_sets):
             data_sets_second_bang[key] = []
-        iE2s = []
+        iEdouble = []
 
         logger.info("{} taus are created in nu tau interactions -> checking if tau decays in fiducial volume".format(np.sum(mask)))
         n_taus = 0
@@ -923,14 +928,14 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                             iE2 = np.squeeze(np.argwhere(data_sets_fiducial['event_ids'] < event_id))[-1]
                         except:
                             # If the argwhere result is not an array, that means that the current event_id
-                            # is the lowest one that can be found in data_sets_fiducial.
-                            iE2 = 0
+                            # is lower than the lowest one that can be found in data_sets_fiducial.
+                            iE2 = -1
 
                     for key in iterkeys(data_sets):
                         data_sets_second_bang[key].append(data_sets[key][iE])
 
                     y_cascade, cascade_type = get_tau_cascade_properties(decay_energy) # specify that new event is a second interaction
-                    iE2s.append(iE2)
+                    iEdouble.append(iE2)
                     data_sets_second_bang['n_interaction'][-1] = 2
                     data_sets_second_bang['energies'][-1] = decay_energy
                     data_sets_second_bang['inelasticity'][-1] = y_cascade
@@ -944,20 +949,26 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     data_sets_second_bang['flavors'][-1] = 15 * np.sign(data_sets['flavors'][iE])  # keep particle/anti particle nature
         logger.info("added {} tau decays to the event list".format(n_taus))
 
-    # Create final data_set with data_sets_fiducial and data_sets_second_bang
-    data_sets_final = {}
-    for key in iterkeys(data_sets):
-        data_sets_final[key] = []
+    # Inserting double bangs with no corresponding fiducial first bang and
+    # having an event_id lower than the lowest event_id in data_sets_fiducial
+    while( -1 in iEdouble ):
+        for key in iterkeys(data_sets):
+            data_sets_final[key].append(data_sets_second_bang[key][0])
+            data_sets_second_bang[key].pop(0)
+        iEdouble.pop(0)
 
+    # Inserting double bangs so that the event_id is always increasing
     iE2 = 0
     for iEfinal in range(len(data_sets_fiducial['event_ids'])):
         for key in iterkeys(data_sets):
             data_sets_final[key].append(data_sets_fiducial[key][iEfinal])
-        if iEfinal in iE2s:
+        if iEfinal in iEdouble:
             for key in iterkeys(data_sets):
                 data_sets_final[key].append(data_sets_second_bang[key][iE2])
             iE2 += 1
 
+    # Transforming every array into a numpy array and copying it back to
+    # data_sets_fiducial
     for key in iterkeys(data_sets):
         data_sets_fiducial[key] = np.array(data_sets_final[key])
 
