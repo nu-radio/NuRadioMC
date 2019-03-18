@@ -159,20 +159,21 @@ State('user_id', 'children'),
 State('filename', 'value')]
 )
 def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_click_info, i_event, juser_id, filename):
+    context = dash.callback_context
     if filename is None:
         return 0
     plot_click_info = json.loads(j_plot_click_info)
     if plot_click_info is not None and plot_click_info['time']*1000. > prev_evt_click_timestamp and plot_click_info['time']*1000. > next_evt_click_timestamp:
         return plot_click_info['event_i']
     else:
-        if prev_evt_click_timestamp == 0 and next_evt_click_timestamp == 0:
+        if context.triggered[0]['prop_id'] != 'btn-next-event.n_clicks_timestamp' and context.triggered[0]['prop_id'] != 'btn-previous-event.n_clicks_timestamp':
             return 0
-        if prev_evt_click_timestamp > next_evt_click_timestamp:
+        if context.triggered[0]['prop_id'] == 'btn-previous-event.n_clicks_timestamp':
             if i_event == 0:
                 return 0
             else:
                 return i_event - 1
-        else:
+        if context.triggered[0]['prop_id'] == 'btn-next-event.n_clicks_timestamp':
             user_id = json.loads(juser_id)
             
             number_of_events = provider.get_arianna_io(user_id, filename).get_n_events()    
