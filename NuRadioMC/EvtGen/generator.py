@@ -957,8 +957,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                 data_sets_final[key].append(data_sets_fiducial[key][iEfinal])
         while( iEfinal in iEdouble ):
             for key in iterkeys(data_sets):
-                data_sets_final[key].append(data_sets_second_bang[key][0])
-                data_sets_second_bang[key].pop(0)
+                data_sets_final[key].append(data_sets_second_bang[key].pop(0))
             iEdouble.pop(0)
 
     # Transforming every array into a numpy array and copying it back to
