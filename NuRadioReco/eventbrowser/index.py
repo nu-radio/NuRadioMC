@@ -20,7 +20,6 @@ from apps.common import get_point_index
 import apps.simulation
 import os
 import sys
-# from apps import summary
 import dataprovider
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -28,11 +27,6 @@ logger = logging.getLogger('index')
 
 data_folder = os.path.dirname(sys.argv[1])
 
-# Loading screen CSS
-# app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/brPBPO.css"})
-# app.css.append_css({
-#     'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
-# })
 app.css.append_css({"external_url": "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"})
 provider = dataprovider.DataProvider()
 
@@ -40,12 +34,9 @@ provider = dataprovider.DataProvider()
 app.title = 'ARIANNA viewer'
 
 app.layout = html.Div([
-    # represents the URL bar, doesn't render anything
     html.Div(id='event-click-coordinator', children=json.dumps(None), style={'display': 'none'}),
     html.Div(id='user_id', style={'display': 'none'},
              children=json.dumps(None)),
-#     html.Div(id='filename', style={'display': 'none'},
-#              children=json.dumps(None)),
     html.Div(id='event-ids',  style={'display': 'none'},
              children=json.dumps([])),
     html.Div([
@@ -192,9 +183,6 @@ def set_event_number_display(filename, event_number):
         return 'No file selected'
     return 'Event {}'.format(event_number)
 
-# slider functions
-###############
-# set maximum value of slider
 @app.callback(
     Output('event-counter-slider', 'max'),
     [Input('filename', 'value')],
@@ -313,10 +301,6 @@ def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, station_id, juser_
         'data': traces,
         'layout': go.Layout(
             showlegend= True,
-#             xaxis={'type': 'linear', 'title': ''},
-#             yaxis={'title': xcorr_states[xcorr_type], 'range': [0, 1]},
-#             margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-#             legend={'x': 0, 'y': 1},
             hovermode='closest',
             height=500
         )
@@ -352,7 +336,7 @@ def add_click_info(json_object, event_number_array, times_array):
         event_number_array.append(object['event_i'])
         times_array.append(object['time'])
 
-        #finds out which one of the plots was clicked last (i.e. which one triggered the event update)
+#finds out which one of the plots was clicked last (i.e. which one triggered the event update)
 @app.callback(Output('event-click-coordinator', 'children'),
             [Input('cr-polarization-zenith-point-click', 'children'),
             Input('cr-skyplot-point-click', 'children'),
@@ -405,7 +389,6 @@ def update_event_info_id(event_i, filename, juser_id):
 def update_event_info_time(event_i, filename, station_id, juser_id):
     if filename is None or station_id is None:
         return ""
-#     filename = json.loads(jfilename)
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(event_i)
