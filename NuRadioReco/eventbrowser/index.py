@@ -153,7 +153,7 @@ def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_
     if filename is None:
         return 0
     plot_click_info = json.loads(j_plot_click_info)
-    if plot_click_info is not None and plot_click_info['time']*1000. > prev_evt_click_timestamp and plot_click_info['time']*1000. > next_evt_click_timestamp:
+    if context.triggered[0]['prop_id'] == 'event-click-coordinator.children':
         return plot_click_info['event_i']
     else:
         if context.triggered[0]['prop_id'] != 'btn-next-event.n_clicks_timestamp' and context.triggered[0]['prop_id'] != 'btn-previous-event.n_clicks_timestamp':
@@ -318,7 +318,6 @@ def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, station_id, juser_
 def set_event_selection(selectedData1, selectedData2, selectedData3, selectedData4, selectedData5, jcurrent_selection):
     current_selection = json.loads(jcurrent_selection)
     tcurrent_selection = []
-    #print(selectedData3)
     for i, selection in enumerate([selectedData1, selectedData2, selectedData3, selectedData4, selectedData5]):  # check which selection has fired the callback
         if selection is not None:
             event_ids = []
@@ -338,23 +337,14 @@ def add_click_info(json_object, event_number_array, times_array):
 
 #finds out which one of the plots was clicked last (i.e. which one triggered the event update)
 @app.callback(Output('event-click-coordinator', 'children'),
-            [Input('cr-polarization-zenith-point-click', 'children'),
-            Input('cr-skyplot-point-click', 'children'),
-            Input('cr-xcorrelation-point-click', 'children'),
-            Input('cr-xcorrelation-amplitude-point-click', 'children')])
+            [Input('cr-polarization-zenith', 'clickData'),
+            Input('cr-skyplot', 'clickData'),
+            Input('cr-xcorrelation', 'clickData'),
+            Input('cr-xcorrelation-amplitude', 'clickData')])
 def coordinate_event_click(cr_polarization_zenith_click, cr_skyplot_click, cr_xcorrelation_click, cr_xcorrelation_amplitude_click):
-    event_numbers = []
-    times = []
-    add_click_info(cr_polarization_zenith_click, event_numbers, times)
-    add_click_info(cr_skyplot_click, event_numbers, times)
-    add_click_info(cr_xcorrelation_click, event_numbers, times)
-    add_click_info(cr_xcorrelation_amplitude_click, event_numbers, times)
-    if len(times) == 0:
-        return json.dumps(None)
-    i = np.argmax(times)
+    context = dash.callback_context
     return json.dumps({
-        'event_i': event_numbers[i],
-        'time': times[i]
+        'event_i': context.triggered[0]['value']['points'][0]['customdata'],
     })
 
 @app.callback(Output('event-info-run', 'children'),
