@@ -12,6 +12,7 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 import logging
 logger = logging.getLogger('channelTemplateCorrelation')
 
+import matplotlib.pyplot as plt
 
 class channelTemplateCorrelation:
     """
@@ -56,7 +57,7 @@ class channelTemplateCorrelation:
         """
         station_id = station.get_id()
         run = evt.get_run_number()
-        event_id = evt.get_id()
+        event_id = int(evt.get_id())
 
         if n_templates == 1:
 
@@ -67,15 +68,16 @@ class channelTemplateCorrelation:
                 ref_template = self.__templates.get_nu_ref_template(station_id)
                 ref_str = 'nu'
         else:
-            logger.info("Using average of correlation over many templates")
+            logger.debug("Using average of correlation over many templates")
             if cosmic_ray:
-                ref_templates = self.__templates.get_set_of_cr_templates(station_id, n=n_templates)
+                ref_templates = self.__templates.get_set_of_cr_templates_full(station_id, n=n_templates)
                 ref_str = 'cr'
             else:
-                ref_templates = self.__templates.get_set_of_nu_templates(station_id, n=n_templates)
+                ref_templates = self.__templates.get_set_of_nu_templates_full(station_id, n=n_templates)
                 ref_str = 'nu'
 
         xcorrs = []
+        xcorrs_max = []
 
         for iCh, channel in enumerate(station.iter_channels()):
             channel_id = channel.get_id()
@@ -121,45 +123,79 @@ class channelTemplateCorrelation:
 
             else:
                 template_key = []
+
                 for key in ref_templates.keys():
 
                     ref_template = ref_templates[key][channel.get_id()]
                     ref_template_resampled = self.match_sampling(ref_template, resampling_factor)
 
+
                     xcorr_trace = hp.get_normalized_xcorr(trace, ref_template_resampled)
                     xcorrpos = np.argmax(np.abs(xcorr_trace))
-                    xcorr = xcorr_trace[xcorrpos]
+                    xcorr = np.abs(xcorr_trace[xcorrpos])
 
                     xcorrpos_ch.append(xcorrpos)
                     xcorrs_ch.append(xcorr)
                     template_key.append(key)
 
+                if self.__debug:
+                    print(event_id)
+                    plt.figure()
+                    plt.hist(xcorrs_ch,range=(0,1),bins=50)
+                    plt.axvline(np.mean(np.abs(xcorrs_ch)))
+                    plt.axvline(np.max(np.abs(xcorrs_ch)))s
+                    print(np.mean(np.abs(xcorrs_ch)), np.max(np.abs(xcorrs_ch)),
+                            channel[chp.maximum_amplitude]/units.mV)
+
+
+
+
+
                 xcorrelations['{}_ref_xcorr'.format(ref_str)] = np.abs(xcorrs_ch).mean()
                 xcorrelations['{}_ref_xcorr_all'.format(ref_str)] = np.abs(xcorrs_ch)
-                xcorrelations['{}_ref_xcorr_max'.format(ref_str)] = xcorrs_ch[np.argmax(np.abs(xcorrs_ch))]
+                xcorrelations['{}_ref_xcorr_max'.format(ref_str)] = np.abs(xcorrs_ch[np.argmax(np.abs(xcorrs_ch))])
                 xcorrelations['{}_ref_xcorr_time'.format(ref_str)] = np.mean(xcorrpos_ch[np.argmax(np.abs(xcorrs_ch))]) * dt
                 xcorrelations['{}_ref_xcorr_template'.format(ref_str)] = template_key[np.argmax(np.abs(xcorrs_ch))]
+
                 logger.debug("average xcorr over all templates {:.2f} +- {:.2f}, \
                     best template is {} at position {:.2f}".format(np.abs(xcorrs_ch).mean(),
                     np.abs(xcorrs_ch).std(),
                     xcorrelations['{}_ref_xcorr_template'.format(ref_str)],
                     xcorrelations['{}_ref_xcorr_time'.format(ref_str)]))
 
-                xcorrs.append(np.abs(xcorrs_ch).mean())
+                xcorrs.append(np.nanmean(np.abs(xcorrs_ch)))
+                xcorrs_max.append(np.nanmax(np.abs(xcorrs_ch)))
 
+            if self.__debug:
+                print "per channel", len(xcorrs_ch)
+                plt.hist(xcorrs_ch,range=(0,1),bins=50)
+                plt.show()
+                print xcorrs
             #Writing information to channel
             if cosmic_ray:
                 channel[chp.cr_xcorrelations] = xcorrelations
             else:
                 channel[chp.nu_xcorrelations] = xcorrelations
 
+
         xcorrs = np.array(xcorrs)
-        xcorrelations_station = {}
-        xcorrelations_station['number_of_templates'] = n_templates
-        xcorrelations_station['{}_max_xcorr'.format(ref_str)] = np.abs(xcorrs).max()
-        ref_mask = np.array([channel.get_id() in channels_to_use for channel in station.iter_channels()])
-        xcorrelations_station['{0}_max_xcorr_{0}channels'.format(ref_str)] = np.abs(xcorrs[ref_mask]).max()
-        xcorrelations_station['{0}_avg_xcorr_{0}channels'.format(ref_str)] = np.abs(xcorrs[ref_mask]).mean()
+        xcorrs_max = np.array(xcorrs_max)
+
+        if n_templates == 1:
+
+            xcorrelations_station = {}
+            xcorrelations_station['number_of_templates'] = n_templates
+            xcorrelations_station['{}_max_xcorr'.format(ref_str)] = np.abs(xcorrs).max()
+            ref_mask = np.array([channel.get_id() in channels_to_use for channel in station.iter_channels()])
+            xcorrelations_station['{0}_max_xcorr_{0}channels'.format(ref_str)] = np.abs(xcorrs[ref_mask]).max()
+            xcorrelations_station['{0}_avg_xcorr_{0}channels'.format(ref_str)] = np.abs(xcorrs[ref_mask]).mean()
+        else:
+            xcorrelations_station = {}
+            xcorrelations_station['number_of_templates'] = n_templates
+            xcorrelations_station['{}_max_xcorr'.format(ref_str)] = xcorrs_max.max()
+            ref_mask = np.array([channel.get_id() in channels_to_use for channel in station.iter_channels()])
+            xcorrelations_station['{0}_max_xcorr_{0}channels'.format(ref_str)] = xcorrs_max[ref_mask].max()
+            xcorrelations_station['{0}_avg_xcorr_{0}channels'.format(ref_str)] = xcorrs[ref_mask].max()
 
         # calculate average xcorr in parallel channels
         parallel_channels = det.get_parallel_channels(station_id)

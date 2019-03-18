@@ -10,6 +10,8 @@ import time
 from radiotools import helper as hp
 from radiotools import plthelpers as php
 
+from NuRadioReco.utilities import trace_utilities
+
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.detector import antennapattern
@@ -17,6 +19,8 @@ from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
 import NuRadioReco.framework.base_trace
 
 from NuRadioReco.framework.parameters import stationParameters as stnp
+
+from NuRadioReco.framework import electric_field as ef
 
 import logging
 logger = logging.getLogger('voltageToEfieldConverterPerChannel')
@@ -70,18 +74,26 @@ class voltageToEfieldConverterPerChannel:
             azimuth = station[stnp.azimuth]
             sim_present = False
 
-        efield_antenna_factor, V = get_array_of_channels(station, range(station.get_number_of_channels()),
-                                                                       det, zenith, azimuth, self.antenna_provider)
+
+        frequencies = station.get_channel(0).get_frequencies()  # assuming that all channels have the  same sampling rate and length
+        use_channels = det.get_channel_ids(station.get_id())
+        efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, frequencies, use_channels, det,
+                                                                          zenith, azimuth, self.antenna_provider)
 
         sampling_rate = station.get_channel(0).get_sampling_rate()
 
         for iCh, channel in enumerate(station.iter_channels()):
-            mask = np.abs(efield_antenna_factor[iCh][pol]) != 0
-            efield_spectrum = np.zeros_like(V[iCh])
-            efield_spectrum[mask] = V[iCh][mask] / efield_antenna_factor[iCh][pol][mask]
-            base_trace = NuRadioReco.framework.base_trace.BaseTrace()
-            base_trace.set_frequency_spectrum(efield_spectrum, sampling_rate)
-            channel.set_electric_field(base_trace)
+            efield = ef.ElectricField([iCh])
+            trace = channel.get_frequency_spectrum()
+            mask1 = np.abs(efield_antenna_factor[iCh][0]) != 0
+            mask2 = np.abs(efield_antenna_factor[iCh][1]) != 0
+            efield_spectrum = np.zeros((3,len(trace)), dtype=np.complex)
+            efield_spectrum[1][mask1] = (1.0-pol)**2 * trace[mask1] / efield_antenna_factor[iCh][0][mask1]
+            efield_spectrum[2][mask2] = pol**2 * trace[mask2] / efield_antenna_factor[iCh][1][mask2]
+            efield.set_frequency_spectrum(efield_spectrum, sampling_rate)
+            station.add_electric_field(efield)
+
+
 
     def end(self):
         pass

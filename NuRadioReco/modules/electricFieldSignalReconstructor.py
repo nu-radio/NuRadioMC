@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from radiotools import helper as hp
 from radiotools import coordinatesystems
 from NuRadioReco.utilities import fft
+from NuRadioReco.utilities import trace_utilities
 import logging
 logger = logging.getLogger('stationSignalReconstructor')
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -83,20 +84,12 @@ class electricFieldSignalReconstructor:
             if(self.__noise_window > 0):
                 mask_noise_window[np.int(np.round((-self.__noise_window - 141.) * electric_field.get_sampling_rate())):np.int(np.round(-141. * electric_field.get_sampling_rate()))] = np.ones(np.int(np.round(self.__noise_window * electric_field.get_sampling_rate())), dtype=np.bool)  # the last n bins
 
+            signal_energy_fluence = trace_utilities.get_electric_field_energy_fluence(trace, times, mask_signal_window, mask_noise_window)
             dt = times[1] - times[0]
-            f_signal = np.sum(trace[:, mask_signal_window] ** 2, axis=1) * dt
-            signal_energy_fluence = f_signal
-            logger.debug('f signal {}'.format(f_signal))
-            f_noise = np.zeros_like(f_signal)
             signal_energy_fluence_error = np.zeros(3)
             if(np.sum(mask_noise_window)):
-                f_noise = np.sum(trace[:, mask_noise_window] ** 2, axis=1) * dt
-                logger.debug('f_noise {},  {}/{} = {}'.format(f_noise * np.sum(mask_signal_window) / np.sum(mask_noise_window), np.sum(mask_signal_window), np.sum(mask_noise_window), 1. * np.sum(mask_signal_window) / np.sum(mask_noise_window)))
-                signal_energy_fluence = f_signal - f_noise * np.sum(mask_signal_window) / np.sum(mask_noise_window)
                 RMSNoise = np.sqrt(np.mean(trace[:, mask_noise_window] ** 2, axis=1))
-                signal_energy_fluence_error = (4 * np.abs(signal_energy_fluence) * RMSNoise ** 2 * dt + 2 * (self.__signal_window_pre + self.__signal_window_post) * RMSNoise ** 4 * dt) ** 0.5
-
-            signal_energy_fluence *= self.__conversion_factor_integrated_signal
+                signal_energy_fluence_error = (4 * np.abs(signal_energy_fluence/self.__conversion_factor_integrated_signal) * RMSNoise ** 2 * dt + 2 * (self.__signal_window_pre + self.__signal_window_post) * RMSNoise ** 4 * dt) ** 0.5
             signal_energy_fluence_error *= self.__conversion_factor_integrated_signal
             electric_field.set_parameter(efp.signal_energy_fluence, signal_energy_fluence)
             electric_field.set_parameter_error(efp.signal_energy_fluence, signal_energy_fluence_error)
