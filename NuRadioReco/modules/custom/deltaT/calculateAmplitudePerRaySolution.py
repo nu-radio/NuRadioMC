@@ -3,6 +3,7 @@ from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import ice
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 # from detector import antennamodel
 from NuRadioReco.detector import antennapattern
 from radiotools import coordinatesystems
@@ -41,30 +42,21 @@ class calculateAmplitudePerRaySolution:
         # access simulated efield and high level parameters
         sim_station = station.get_sim_station()
         sim_station_id = sim_station.get_id()
-        event_time = sim_station.get_station_time()
 
         # loop over all channels
-        for sim_channel in sim_station.iter_channels():
-
-            # one channel might contain multiple channels to store the signals from multiple ray paths,
-            # so we loop over all simulated channels with the same id,
+        for efield in sim_station.get_electric_fields():
+            # one efield might be valid for multiple channels, hence we loop over all channels this efiels is valid for,
             # convolve each trace with the antenna response for the given angles
-            # and everything up in the time domain
-            channel_id = sim_channel[0].get_id()
-            logger.debug('channel id {}'.format(channel_id))
-            channel = NuRadioReco.framework.channel.Channel(channel_id)
-            channel_spectrum = None
-            if(self.__debug):
-                from matplotlib import pyplot as plt
-                fig, axes = plt.subplots(2, 1)
-            for sim_channel2 in sim_channel:
-                channel_id = sim_channel2.get_id()
+            # and transform it to the time domain to calculate the max. amplitude
+            channel_ids = efield.get_channel_ids()
+            for channel_id in channel_ids:
+                logger.debug('channel id {}'.format(channel_id))
 
-                zenith = sim_channel2[chp.zenith]
-                azimuth = sim_channel2[chp.azimuth]
+                zenith = efield[efp.zenith]
+                azimuth = efield[efp.azimuth]
                 
-                ff = sim_channel2.get_frequencies()
-                efield_fft = sim_channel2.get_frequency_spectrum()
+                ff = efield.get_frequencies()
+                efield_fft = efield.get_frequency_spectrum()
 
                 # get antenna pattern for current channel
                 antenna_model = det.get_antenna_model(sim_station_id, channel_id, zenith)
@@ -84,8 +76,11 @@ class calculateAmplitudePerRaySolution:
                 maximum = np.abs(voltage).max()
                 maximum_envelope = h.max()
                 
-                sim_channel2.set_parameter(chp.maximum_amplitude, maximum)
-                sim_channel2.set_parameter(chp.maximum_amplitude_envelope, maximum_envelope)
+                if not efield.has_parameter(efp.max_amp_antenna):
+                    efield[efp.max_amp_antenna] = {}
+                    efield[efp.max_amp_antenna_envelope] = {}
+                efield[efp.max_amp_antenna][channel_id] = maximum
+                efield[efp.max_amp_antenna_envelope][channel_id] = maximum_envelope
                 
         self.__t += time.time() - t
 
