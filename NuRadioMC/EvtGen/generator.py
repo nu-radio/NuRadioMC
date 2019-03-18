@@ -934,9 +934,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     for key in iterkeys(data_sets):
                         data_sets_second_bang[key].append(data_sets[key][iE])
 
-                    y_cascade, cascade_type = get_tau_cascade_properties(decay_energy) # specify that new event is a second interaction
+                    y_cascade, cascade_type = get_tau_cascade_properties(decay_energy)
                     iEdouble.append(iE2)
-                    data_sets_second_bang['n_interaction'][-1] = 2
+                    data_sets_second_bang['n_interaction'][-1] = 2 # specify that new event is a second interaction
                     data_sets_second_bang['energies'][-1] = decay_energy
                     data_sets_second_bang['inelasticity'][-1] = y_cascade
                     data_sets_second_bang['interaction_type'][-1] = cascade_type
