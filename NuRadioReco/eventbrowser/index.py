@@ -41,7 +41,6 @@ app.title = 'ARIANNA viewer'
 
 app.layout = html.Div([
     # represents the URL bar, doesn't render anything
-    dcc.Location(id='url', refresh=False),
     html.Div(id='event-click-coordinator', children=json.dumps(None), style={'display': 'none'}),
     html.Div(id='user_id', style={'display': 'none'},
              children=json.dumps(None)),
@@ -275,19 +274,6 @@ def set_to_first_station_in_event(filename, event_i, juser_id):
     event = ariio.get_event_i(event_i)
     for station in event.get_stations():
         return station.get_id()
-
-@app.callback(Output('summary', 'style'),
-              [Input('url', 'pathname')])
-def display_page2(pathname):
-    if pathname == '/apps/traces':
-        return {'display': 'none'}
-    if pathname == '/apps/summary':
-        return {}
-#     elif pathname == '/apps/app2':
-#         return app2.layout
-    else:
-        return '404'
-
 
 @app.callback(Output('skyplot-xcorr', 'figure'),
               [Input('filename', 'value'),
