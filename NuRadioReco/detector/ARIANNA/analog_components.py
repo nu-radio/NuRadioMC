@@ -87,12 +87,21 @@ def get_cable_response_parametrized(frequencies, cable_type, cable_length):
     if(cable_type == "LMR_400"):
 
         def attn_db_per_100ft(f):  # from LMR-400 spec sheet
-            return 0.122290 * (f / units.MHz) ** 0.5 + 0.000260 * f / units.MHz
+            return 0.122290 * (f / units.MHz) ** 0.5 + 0.000260 * f / units.MHz   # https://www.timesmicrowave.com/DataSheets/CableProducts/LMR-400.pdf
 
         logger.debug("{} {} {}".format(cable_type, cable_length, type(cable_length)))
         attn = attn_db_per_100ft(frequencies) / (100 * units.feet) * cable_length
         attn += 0.01  # dB connetor loss
         return 1. / hp.dB_to_linear(attn) ** 0.5
+    elif(cable_type == "LMR_240"):
+
+        def attn_db_per_100ft(f):  # from LMR-400 spec sheet
+            return 0.242080 * (f / units.MHz) ** 0.5 + 0.000330 * f / units.MHz    # https://www.timesmicrowave.com/DataSheets/CableProducts/LMR-240.pdf
+
+        logger.debug("{} {} {}".format(cable_type, cable_length, type(cable_length)))
+        attn = attn_db_per_100ft(frequencies) / (100 * units.feet) * cable_length
+        attn += 0.01  # dB connetor loss
+        return 1. / hp.dB_to_linear(attn) ** 0.5 
     else:
         logger.error("cable type {} not defined".format(cable_type))
         raise NotImplementedError
