@@ -130,7 +130,8 @@ class SimpleThresholdTrigger(Trigger):
 
 class SimplePhasedTrigger(Trigger):
 
-    def __init__(self, name, threshold, channels=None):
+    def __init__(self, name, threshold, channels=None, secondary_channels=None,
+                 primary_angles=None, secondary_angles=None):
         """
         initialize trigger class
         Parameters
@@ -140,10 +141,20 @@ class SimplePhasedTrigger(Trigger):
         threshold: float
             the threshold
         channels: array of ints or None
-            the channels that are involved in the trigger
+            the channels that are involved in the main phased beam
             default: None, i.e. all channels
+        secondary_channels: array of ints or None
+            the channels involved in the secondary phased beam
+        primary_angles: array of floats or None
+            the angles for each subbeam of the primary phasing
+        secondary_angles: array of floats or None
+            the angles for each subbeam of the secondary phasing
         """
         Trigger.__init__(self, name, channels, 'simple_phased')
+        self._primary_channels = channels
+        self._primary_angles = primary_angles
+        self._secondary_channels = secondary_channels
+        self._secondary_angles = secondary_angles
         self._threshold = threshold
 
 class HighLowTrigger(Trigger):
