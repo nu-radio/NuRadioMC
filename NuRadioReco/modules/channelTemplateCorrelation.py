@@ -143,7 +143,7 @@ class channelTemplateCorrelation:
                     plt.figure()
                     plt.hist(xcorrs_ch,range=(0,1),bins=50)
                     plt.axvline(np.mean(np.abs(xcorrs_ch)))
-                    plt.axvline(np.max(np.abs(xcorrs_ch)))s
+                    plt.axvline(np.max(np.abs(xcorrs_ch)))
                     print(np.mean(np.abs(xcorrs_ch)), np.max(np.abs(xcorrs_ch)),
                             channel[chp.maximum_amplitude]/units.mV)
 

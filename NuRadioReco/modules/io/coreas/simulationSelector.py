@@ -81,8 +81,9 @@ class simulationSelector:
             noise_std = np.std(noise_region)
 
             noise += n_std * noise_std
-            
-            mask = (freq >= frequency_window.min())  & (freq <= frequency_window.max())
+
+            mask = np.array((freq >= np.min(frequency_window))  & (freq <= np.max(frequency_window)))
+
             if(np.any(fft[:, mask] > noise)):
                 selected_sim = True
                 break
