@@ -93,7 +93,17 @@ class triggerSimulator:
         threshold: float
             threshold above (or below) a trigger is issued, absolute amplitude
         triggered_channels: array of ints
-            channels ids that form the primary phasing array
+            channels ids of the channels that form the primary phasing array
+            if None, all channels are taken
+        secondary_channels: array of int
+            channel ids of the channels that form the secondary phasing array
+            if None, only the channels in even indexes are taken
+        trigger_name: string
+            name for the trigger
+        phasing_angles: array of float
+            pointing angles for the primary beam
+        secondary_phasing_angles: array of float
+            pointing angles for the secondary beam
         """
 
         phased_trace = None
