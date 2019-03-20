@@ -950,20 +950,20 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     data_sets_second_bang['flavors'][-1] = 15 * np.sign(data_sets['flavors'][iE])  # keep particle/anti particle nature
         logger.info("added {} tau decays to the event list".format(n_taus))
 
-    # Inserting double bangs so that the event_id is always increasing
-    for iEfinal in range(-1,len(data_sets_fiducial['event_ids'])):
-        if ( iEfinal != -1 ):
-            for key in iterkeys(data_sets):
-                data_sets_final[key].append(data_sets_fiducial[key][iEfinal])
-        while( iEfinal in iEdouble ):
-            for key in iterkeys(data_sets):
-                data_sets_final[key].append(data_sets_second_bang[key].pop(0))
-            iEdouble.pop(0)
+        # Inserting double bangs so that the event_id is always increasing
+        for iEfinal in range(-1,len(data_sets_fiducial['event_ids'])):
+            if ( iEfinal != -1 ):
+                for key in iterkeys(data_sets):
+                    data_sets_final[key].append(data_sets_fiducial[key][iEfinal])
+            while( iEfinal in iEdouble ):
+                for key in iterkeys(data_sets):
+                    data_sets_final[key].append(data_sets_second_bang[key].pop(0))
+                iEdouble.pop(0)
 
-    # Transforming every array into a numpy array and copying it back to
-    # data_sets_fiducial
-    for key in iterkeys(data_sets):
-        data_sets_fiducial[key] = np.array(data_sets_final[key])
+        # Transforming every array into a numpy array and copying it back to
+        # data_sets_fiducial
+        for key in iterkeys(data_sets):
+            data_sets_fiducial[key] = np.array(data_sets_final[key])
 
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file)
 
