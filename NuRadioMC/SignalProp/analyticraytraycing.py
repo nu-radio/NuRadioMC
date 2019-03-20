@@ -80,7 +80,7 @@ class ray_tracing_2D():
         transforms the fit parameter C_0 so that the likelihood looks better
         """
         return np.exp(logC0) + 1. / self.medium.n_ice
-
+    
     def get_y(self, gamma, C_0, C_1):
         """
         analytic form of the ray tracing part given an exponential index of refraction profile
@@ -697,9 +697,18 @@ class ray_tracing_2D():
             tol = 1e-6
             results = []
             C0s = []  # intermediate storage of results
+            
+            # calculate optimal start value. The objective function becomes infinity if the turning point is below the z
+            # position of the observer. We calculate the corresponding value so that the minimization starts at one edge
+            # of the objective function
+            c = self.__b ** 2 / 4 - (0.5 * self.__b - np.exp(x2[1] / self.__z0) * self.medium.n_ice) ** 2
+            C_0_start = (1 / (self.medium.n_ice ** 2 - c)) ** 0.5
+            logC_0_start = np.log(C_0_start - 1. / self.medium.n_ice)
+#             self.__logger.debug(
+#                 'starting optimization with x0 = {:.2f} -> C0 = {:.3f}'.format(-1, self.get_C0_from_log(-1)))
             self.__logger.debug(
-                'starting optimization with x0 = {:.2f} -> C0 = {:.3f}'.format(-1, self.get_C0_from_log(-1)))
-            result = optimize.root(self.obj_delta_y_square, x0=-1, args=(x1, x2), tol=tol)
+                'starting optimization with x0 = {:.2f} -> C0 = {:.3f}'.format(logC_0_start, C_0_start))
+            result = optimize.root(self.obj_delta_y_square, x0=logC_0_start, args=(x1, x2), tol=tol)
             if(plot):
                 fig, ax = plt.subplots(1, 1)
             if(result.fun < 1e-7):
