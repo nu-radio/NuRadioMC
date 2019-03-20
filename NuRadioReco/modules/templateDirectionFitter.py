@@ -68,7 +68,6 @@ class templateDirectionFitter:
             return chi2
 
         method = "Nelder-Mead"
-        # method = "BFGS"
         options = {'maxiter': 1000,
                    'disp': False}
         zenith_start = 135 * units.deg
@@ -92,11 +91,9 @@ class templateDirectionFitter:
         if(cosmic_ray):
             station[stnp.cr_zenith] = res.x[0]
             station[stnp.cr_azimuth] = hp.get_normalized_angle(res.x[1])
-            #station['chi2_cr_templatefit'] = res.fun
         else:
             station[stnp.nu_zenith] = res.x[0]
             station[stnp.nu_azimuth] = hp.get_normalized_angle(res.x[1])
-            #station['chi2_nu_templatefit'] = res.fun
 
     def end(self):
         pass

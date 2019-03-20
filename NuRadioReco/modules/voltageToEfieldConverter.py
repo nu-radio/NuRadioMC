@@ -44,12 +44,8 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     delta_t = time_shifts.max() - time_shifts.min()
     tmin = time_shifts.min()
     tmax = time_shifts.max()
-#             print('cables ', t_cables)
-#             print('geos', t_geos)
-#             print(time_shifts)
     logger.debug("adding relative station time = {:.0f}ns".format((t_cables.min() + t_geos.max()) / units.ns))
     logger.debug("delta t is {:.2f}".format(delta_t / units.ns))
-#             print(delta_t - (time_shifts - tmin))
     trace_length = station.get_channel(0).get_times()[-1] - station.get_channel(0).get_times()[0]
     debug_cut = 0
     if(debug_cut):
@@ -162,20 +158,8 @@ class voltageToEfieldConverter:
         E2[mask] = (V[1] - efield_antenna_factor[1][0] * E1)[mask] / efield_antenna_factor[1][1][mask]
         denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] - efield_antenna_factor[0][1] * efield_antenna_factor[-1][0])
         mask = np.abs(denom) != 0
-#         mask[:17] = False
         E1[mask] = (V[0] * efield_antenna_factor[-1][1] - V[-1] * efield_antenna_factor[0][1])[mask] / denom[mask]
         E2[mask] = (V[-1] - efield_antenna_factor[-1][0] * E1)[mask] / efield_antenna_factor[-1][1][mask]
-#
-#         E3 = np.zeros_like(V[2])
-#         E4 = np.zeros_like(V[2])
-#         denom = (efield_antenna_factor[0][0] * efield_antenna_factor[1][1] - efield_antenna_factor[0][1] * efield_antenna_factor[1][0])
-#         mask = np.abs(denom) != 0
-#         E3[mask] = (V[2] * efield_antenna_factor[1][1] - V[3] * efield_antenna_factor[0][1])[mask] / denom[mask]
-#         E4[mask] = (V[3] - efield_antenna_factor[1][0] * E3)[mask] / efield_antenna_factor[1][1][mask]
-#
-#         efield_f = np.zeros((2, n_frequencies), dtype=np.complex)
-#         efield_f2 = np.zeros((2, n_frequencies), dtype=np.complex)
-
         # solve it in a vectorized way
         efield3_f = np.zeros((2, n_frequencies), dtype=np.complex)
         efield3_f[:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, :, mask], 2, 0), np.moveaxis(V[:, mask], 1, 0)), 0, 1)
@@ -184,21 +168,6 @@ class voltageToEfieldConverter:
                              efield3_f[0],
                              efield3_f[1]])
 
-#         for iF, f in enumerate(frequencies):
-#             A = efield_antenna_factor[:, :, iF]
-#             b = V[:, iF]
-#
-#             Q, R = np.linalg.qr(A)  # qr decomposition of A
-#             Qb = np.dot(Q.T, b)  # computing Q^T*b (project b onto the range of A)
-#             x = np.linalg.solve(R, Qb)  # solving R*x = Q^T*b
-#             efield_f[:, iF] = np.array(x)
-#
-#             solution = linalg.lstsq(A, b, cond=1e-2)
-#             x_lstsq = solution[0]
-#             efield_f2[:, iF] = np.array(x_lstsq)
-#
-#             if (f < 500 * units.MHz):
-#                 print "%.0f MHz" % (f / units.MHz), solution
         electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels)
         electric_field.set_frequency_spectrum(efield3_f, station.get_channel(0).get_sampling_rate())
         electric_field.set_parameter(efp.zenith, zenith)
@@ -208,31 +177,10 @@ class voltageToEfieldConverter:
         if debug:
             fig, (ax2, ax2f) = plt.subplots(2, 1, figsize=(10, 8))
             lw = 2
-
-#             f1, ((a0, a1), (a2, a3)) = plt.subplots(2, 2, figsize=(10, 8), sharex=True, sharey=True)
-#             a0.set_ylabel("VEL [m]")
-#             a2.set_ylabel("VEL [m]")
-#             a3.set_xlabel("Frequencies [GHz]")
-#             a2.set_xlabel("Frequencies [GHz]")
-#             f1.suptitle("Antenna model")
-
-#             efield3 = np.fft.irfft(efield3_f, norm="ortho") / 2 ** 0.5
-#             efield = np.fft.irfft(efield_f, norm="ortho") / 2 ** 0.5
-#             efield2 = np.fft.irfft(efield_f2, norm="ortho") / 2 ** 0.5
-#             efield21 = np.fft.irfft(E1, norm="ortho") / 2 ** 0.5
-#             efield22 = np.fft.irfft(E2, norm="ortho") / 2 ** 0.5
-#             efield31 = np.fft.irfft(E3, norm="ortho") / 2 ** 0.5
-
             times = station.get_times() / units.ns
-#             ax2.plot(times, efield21 / units.mV * units.m, ":C2", label="exact solution Ch 0+1")
-#             ax2.plot(times, efield31 / units.mV * units.m, ":C3", label="exact solution Ch 2+3")
             ax2.plot(times, station.get_trace()[1] / units.mV * units.m, "-C0", label="reconstructed eTheta", lw=lw)
             ax2.plot(times, station.get_trace()[2] / units.mV * units.m, "-C1", label="reconstructed ePhi", lw=lw)
             ax2.set_xlim(400, 600)
-#             ax2.plot(times, efield21 / units.mV * units.m, "-C2", label="ch0+1 eTheta", lw=lw)
-#             ax2.plot(times, efield22 / units.mV * units.m, "-C3", label="ch0+1 ePhi", lw=lw)
-#             ax2.set_xlim(times.min(), times.max())
-
             ff = station.get_frequencies() / units.MHz
             ax2f.plot(ff[ff < 500], np.abs(station.get_frequency_spectrum()[1][ff < 500]) / units.mV * units.m, "-C0", label="4 stations lsqr eTheta", lw=lw)
             ax2f.plot(ff[ff < 500], np.abs(station.get_frequency_spectrum()[2][ff < 500]) / units.mV * units.m, "-C1", label="4 stations lsqr ePhi", lw=lw)
@@ -240,7 +188,6 @@ class voltageToEfieldConverter:
             if station.has_sim_station():
                 sim_station = station.get_sim_station()
                 logger.debug("station start time {:.1f}ns, relativ sim station time = {:.1f}".format(station.get_trace_start_time(), sim_station.get_trace_start_time()))
-                # ax2.plot(times_sim / units.ns, efield_sim[0] / units.mV * units.m, "--", label="simulation eR")
                 ax2.plot(sim_station.get_times() / units.ns, sim_station.get_trace()[1] / units.mV * units.m, "--C2", label="simulation eTheta", lw=lw)
                 ax2.plot(sim_station.get_times() / units.ns, sim_station.get_trace()[2] / units.mV * units.m, "--C3", label="simulation ePhi", lw=lw)
                 ax2f.plot(sim_station.get_frequencies() / units.MHz, np.abs(sim_station.get_frequency_spectrum()[1] / units.mV * units.m), "--C2", label="simulation eTheta", lw=lw)
@@ -249,7 +196,6 @@ class voltageToEfieldConverter:
             ax2.legend(fontsize="xx-small")
             ax2.set_xlabel("time [ns]")
             ax2.set_ylabel("electric-field [mV/m]")
-#             axf.set_xlabel("Frequency [MHz]")
             ax2f.set_ylim(1e-3, 5)
             ax2f.set_xlabel("Frequency [MHz]")
             ax2f.set_xlim(100, 500)
@@ -284,9 +230,6 @@ class voltageToEfieldConverter:
             if(debug_plotpath is not None):
                 fig.savefig(os.path.join(debug_plotpath, 'run_{:05d}_event_{:06d}_channels.png'.format(evt.get_run_number(), evt.get_id())))
                 plt.close(fig)
-
-#             f1.tight_layout()
-#             f1.subplots_adjust(top=0.95)
 
     def end(self):
         pass
