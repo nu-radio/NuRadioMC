@@ -37,7 +37,7 @@ app.css.append_css({"external_url": "https://maxcdn.bootstrapcdn.com/font-awesom
 provider = dataprovider.DataProvider()
 
 
-app.title = 'ARIANNA viewer'
+app.title = 'NuRadioViewer'
 
 app.layout = html.Div([
     # represents the URL bar, doesn't render anything

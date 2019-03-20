@@ -14,6 +14,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
 import logging
 logger = logging.getLogger('traces')
@@ -175,6 +176,7 @@ def update_sim_trace_plot(i_event, filename, signal_types, station_id, juser_id)
                     )
     except:
         return {}
+    fig['layout'].update(default_layout)
     fig['layout'].update(
         xaxis={'title': 't [ns]'},
         yaxis={'title': 'electric field [mV/m]'}
@@ -220,6 +222,7 @@ def update_sim_spectrum_plot(i_event, filename, signal_types, station_id, juser_
                     )
     except:
         return {}
+    fig['layout'].update(default_layout)
     fig['layout'].update(
         xaxis={'title': 'f [MHz]'},
         yaxis={'title': 'electric field [mV/m]'}
