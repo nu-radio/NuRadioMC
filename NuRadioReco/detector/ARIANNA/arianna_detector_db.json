@@ -13,8 +13,8 @@
             "ant_deployment_time": "{TinyDate}:2017-12-01T00:00:00",
             "ant_orientation_phi": 0.0,
             "ant_orientation_theta": 180.0,
-            "ant_position_x": -3.059,
-            "ant_position_y": -0.268,
+            "ant_position_x": -2.92,
+            "ant_position_y": -0.15,
             "ant_position_z": -1.0,
             "ant_rotation_phi": 8.21,
             "ant_rotation_theta": 90.0,
@@ -26,7 +26,7 @@
             "cab_type": "LMR_400",
             "channel_id": 0,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "decommission_time": "{TinyDate}:2018-12-05T00:00:00",
             "station_id": 51
         },
         "2": {
@@ -41,8 +41,8 @@
             "ant_deployment_time": "{TinyDate}:2017-12-01T00:00:00",
             "ant_orientation_phi": 0.0,
             "ant_orientation_theta": 180.0,
-            "ant_position_x": -0.447,
-            "ant_position_y": 2.609,
+            "ant_position_x": -0.17,
+            "ant_position_y": 2.94,
             "ant_position_z": -1.0,
             "ant_rotation_phi": 276.9,
             "ant_rotation_theta": 90.0,
@@ -54,7 +54,7 @@
             "cab_type": "LMR_400",
             "channel_id": 1,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "decommission_time": "{TinyDate}:2018-12-05T00:00:00",
             "station_id": 51
         },
         "3": {
@@ -69,8 +69,8 @@
             "ant_deployment_time": "{TinyDate}:2017-12-01T00:00:00",
             "ant_orientation_phi": 0.0,
             "ant_orientation_theta": 180.0,
-            "ant_position_x": 3.277,
-            "ant_position_y": 0.646,
+            "ant_position_x": 3.17,
+            "ant_position_y": -0.0900000000001,
             "ant_position_z": -1.0,
             "ant_rotation_phi": 188.21,
             "ant_rotation_theta": 90.0,
@@ -82,7 +82,7 @@
             "cab_type": "LMR_400",
             "channel_id": 2,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "decommission_time": "{TinyDate}:2018-12-05T00:00:00",
             "station_id": 51
         },
         "4": {
@@ -97,8 +97,8 @@
             "ant_deployment_time": "{TinyDate}:2017-12-01T00:00:00",
             "ant_orientation_phi": 0.0,
             "ant_orientation_theta": 180.0,
-            "ant_position_x": 0.229,
-            "ant_position_y": -2.987,
+            "ant_position_x": 0.5,
+            "ant_position_y": -2.96,
             "ant_position_z": -1.0,
             "ant_rotation_phi": 96.9,
             "ant_rotation_theta": 90.0,
@@ -110,7 +110,7 @@
             "cab_type": "LMR_400",
             "channel_id": 3,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "decommission_time": "{TinyDate}:2018-12-05T00:00:00",
             "station_id": 51
         },
         "5": {
@@ -138,7 +138,7 @@
             "cab_type": "LMR_400",
             "channel_id": 4,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "decommission_time": "{TinyDate}:2018-12-05T00:00:00",
             "station_id": 51
         },
         "6": {
@@ -166,7 +166,7 @@
             "cab_type": "LMR_400",
             "channel_id": 5,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "decommission_time": "{TinyDate}:2018-12-05T00:00:00",
             "station_id": 51
         },
         "7": {
@@ -194,7 +194,7 @@
             "cab_type": "LMR_400",
             "channel_id": 6,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "decommission_time": "{TinyDate}:2018-12-05T00:00:00",
             "station_id": 51
         },
         "8": {
@@ -222,7 +222,7 @@
             "cab_type": "LMR_400",
             "channel_id": 7,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "decommission_time": "{TinyDate}:2018-12-05T00:00:00",
             "station_id": 51
         },
         "9": {
@@ -260,6 +260,230 @@
             "adc_sampling_frequency": 1.0,
             "adc_time_delay": null,
             "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Station 51 Channel 0 (2019)",
+            "ant_deployment_time": "{TinyDate}:2018-12-05T00:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 180.0,
+            "ant_position_x": -2.92,
+            "ant_position_y": -0.15,
+            "ant_position_z": -1.462,
+            "ant_rotation_phi": 8.21,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "createLPDA_100MHz",
+            "cab_id": "17-09",
+            "cab_length": 5.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 19.8,
+            "cab_type": "LMR_400",
+            "channel_id": 0,
+            "commission_time": "{TinyDate}:2018-12-05T00:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 51
+        },
+        "11": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn51 Chan1 2019",
+            "ant_deployment_time": "{TinyDate}:2018-12-05T00:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 180.0,
+            "ant_position_x": -0.17,
+            "ant_position_y": 2.94,
+            "ant_position_z": -1.519,
+            "ant_rotation_phi": 276.9,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "createLPDA_100MHz",
+            "cab_id": "17-11",
+            "cab_length": 5.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 19.8,
+            "cab_type": "LMR_400",
+            "channel_id": 1,
+            "commission_time": "{TinyDate}:2018-12-05T00:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 51
+        },
+        "12": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn51 Chan2 2019",
+            "ant_deployment_time": "{TinyDate}:2018-12-05T00:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 180.0,
+            "ant_position_x": 3.17,
+            "ant_position_y": -0.0900000000001,
+            "ant_position_z": -1.647,
+            "ant_rotation_phi": 188.21,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "createLPDA_100MHz",
+            "cab_id": "17-10",
+            "cab_length": 5.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 19.8,
+            "cab_type": "LMR_400",
+            "channel_id": 2,
+            "commission_time": "{TinyDate}:2018-12-05T00:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 51
+        },
+        "13": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn51 Chan3 2019",
+            "ant_deployment_time": "{TinyDate}:2018-12-05T00:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 180.0,
+            "ant_position_x": 0.5,
+            "ant_position_y": -2.96,
+            "ant_position_z": -1.45,
+            "ant_rotation_phi": 96.9,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "createLPDA_100MHz",
+            "cab_id": "17-14",
+            "cab_length": 5.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 19.7,
+            "cab_type": "LMR_400",
+            "channel_id": 3,
+            "commission_time": "{TinyDate}:2018-12-05T00:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 51
+        },
+        "14": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn51 Chan4 2019",
+            "ant_deployment_time": "{TinyDate}:2018-12-05T00:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x": -3.25,
+            "ant_position_y": -3.87,
+            "ant_position_z": -0.928,
+            "ant_rotation_phi": 51.35,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "bicone_v8",
+            "cab_id": "17-01",
+            "cab_length": 7.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 27.3,
+            "cab_type": "LMR_400",
+            "channel_id": 4,
+            "commission_time": "{TinyDate}:2018-12-05T00:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 51
+        },
+        "15": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn51 Chan5 2019",
+            "ant_deployment_time": "{TinyDate}:2018-12-05T00:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x": -4.45,
+            "ant_position_y": 2.63,
+            "ant_position_z": -0.932,
+            "ant_rotation_phi": 321.35,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "bicone_v8",
+            "cab_id": "17-02",
+            "cab_length": 7.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 27.5,
+            "cab_type": "LMR_400",
+            "channel_id": 5,
+            "commission_time": "{TinyDate}:2018-12-05T00:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 51
+        },
+        "16": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn51 Chan6 2019",
+            "ant_deployment_time": "{TinyDate}:2018-12-05T00:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x": 3.2,
+            "ant_position_y": 3.83,
+            "ant_position_z": -0.995,
+            "ant_rotation_phi": 231.4,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "bicone_v8",
+            "cab_id": "17-03",
+            "cab_length": 7.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 27.3,
+            "cab_type": "LMR_400",
+            "channel_id": 6,
+            "commission_time": "{TinyDate}:2018-12-05T00:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 51
+        },
+        "17": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn51 Chan7 2019",
+            "ant_deployment_time": "{TinyDate}:2018-12-05T00:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x": 4.48,
+            "ant_position_y": -2.45,
+            "ant_position_z": -0.998,
+            "ant_rotation_phi": 0.0,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "bicone_v8",
+            "cab_id": "10",
+            "cab_length": 10.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 41.41,
+            "cab_type": "LMR_240",
+            "channel_id": 7,
+            "commission_time": "{TinyDate}:2018-12-05T00:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 51
+        },
+        "18": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
             "amp_type": "100",
             "ant_comment": "station 52 layout upward facing channel 5",
             "ant_deployment_time": "{TinyDate}:2017-11-15T00:00:00",
@@ -281,7 +505,7 @@
             "decommission_time": "{TinyDate}:2017-11-01T00:00:00",
             "station_id": 41
         },
-        "11": {
+        "19": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -309,7 +533,7 @@
             "decommission_time": "{TinyDate}:2017-11-01T00:00:00",
             "station_id": 41
         },
-        "12": {
+        "20": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -337,7 +561,7 @@
             "decommission_time": "{TinyDate}:2017-11-01T00:00:00",
             "station_id": 41
         },
-        "13": {
+        "21": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -365,7 +589,7 @@
             "decommission_time": "{TinyDate}:2017-11-01T00:00:00",
             "station_id": 41
         },
-        "14": {
+        "22": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -393,7 +617,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 32
         },
-        "15": {
+        "23": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -421,7 +645,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 32
         },
-        "16": {
+        "24": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -449,7 +673,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 32
         },
-        "17": {
+        "25": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -477,7 +701,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 32
         },
-        "18": {
+        "26": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -505,7 +729,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 52
         },
-        "19": {
+        "27": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -533,7 +757,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 52
         },
-        "20": {
+        "28": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -561,7 +785,7 @@
             "decommission_time": "{TinyDate}:2018-11-25T03:00:00",
             "station_id": 52
         },
-        "21": {
+        "29": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -589,7 +813,7 @@
             "decommission_time": "{TinyDate}:2018-11-25T03:00:00",
             "station_id": 52
         },
-        "22": {
+        "30": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -617,7 +841,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 52
         },
-        "23": {
+        "31": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -645,7 +869,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 52
         },
-        "24": {
+        "32": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -673,7 +897,7 @@
             "decommission_time": "{TinyDate}:2018-11-15T00:00:00",
             "station_id": 52
         },
-        "25": {
+        "33": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -701,7 +925,7 @@
             "decommission_time": "{TinyDate}:2018-11-15T00:00:00",
             "station_id": 52
         },
-        "26": {
+        "34": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -719,17 +943,17 @@
             "ant_rotation_phi": 0.0,
             "ant_rotation_theta": 90.0,
             "ant_type": "bicone_v8",
-            "cab_id": "17-06",
-            "cab_length": 5.0,
+            "cab_id": "5-elog2205",
+            "cab_length": 12.0,
             "cab_reference_measurement": null,
-            "cab_time_delay": 27.2,
-            "cab_type": "LMR_400",
+            "cab_time_delay": 53.4,
+            "cab_type": "LMR_240",
             "channel_id": 6,
             "commission_time": "{TinyDate}:2018-11-15T00:00:00",
             "decommission_time": "{TinyDate}:2018-11-21T13:00:00",
             "station_id": 52
         },
-        "27": {
+        "35": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -747,17 +971,17 @@
             "ant_rotation_phi": 0.0,
             "ant_rotation_theta": 90.0,
             "ant_type": "bicone_v8",
-            "cab_id": "17-06",
-            "cab_length": 5.0,
+            "cab_id": "9-elog2205",
+            "cab_length": 10.0,
             "cab_reference_measurement": null,
-            "cab_time_delay": 27.2,
-            "cab_type": "LMR_400",
+            "cab_time_delay": 41.0,
+            "cab_type": "LMR_240",
             "channel_id": 7,
             "commission_time": "{TinyDate}:2018-11-15T00:00:00",
             "decommission_time": "{TinyDate}:2018-11-25T03:00:00",
             "station_id": 52
         },
-        "28": {
+        "36": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -775,17 +999,17 @@
             "ant_rotation_phi": 0.0,
             "ant_rotation_theta": 90.0,
             "ant_type": "bicone_v8",
-            "cab_id": "17-06",
-            "cab_length": 5.0,
+            "cab_id": "5-elog2205",
+            "cab_length": 12.0,
             "cab_reference_measurement": null,
-            "cab_time_delay": 27.2,
-            "cab_type": "LMR_400",
+            "cab_time_delay": 53.4,
+            "cab_type": "LMR_240",
             "channel_id": 6,
             "commission_time": "{TinyDate}:2018-11-21T13:00:00",
             "decommission_time": "{TinyDate}:2018-11-25T03:00:00",
             "station_id": 52
         },
-        "29": {
+        "37": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -803,17 +1027,17 @@
             "ant_rotation_phi": 0.0,
             "ant_rotation_theta": 90.0,
             "ant_type": "bicone_v8",
-            "cab_id": "17-06",
-            "cab_length": 5.0,
+            "cab_id": "9-elog2205",
+            "cab_length": 10.0,
             "cab_reference_measurement": null,
-            "cab_time_delay": 27.2,
-            "cab_type": "LMR_400",
+            "cab_time_delay": 41.0,
+            "cab_type": "LMR_240",
             "channel_id": 3,
             "commission_time": "{TinyDate}:2018-11-25T03:00:00",
             "decommission_time": "{TinyDate}:2038-11-15T00:00:00",
             "station_id": 52
         },
-        "30": {
+        "38": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -831,17 +1055,17 @@
             "ant_rotation_phi": 0.0,
             "ant_rotation_theta": 90.0,
             "ant_type": "bicone_v8",
-            "cab_id": "17-06",
-            "cab_length": 5.0,
+            "cab_id": "5-elog2205",
+            "cab_length": 12.0,
             "cab_reference_measurement": null,
-            "cab_time_delay": 27.2,
-            "cab_type": "LMR_400",
+            "cab_time_delay": 53.4,
+            "cab_type": "LMR_240",
             "channel_id": 2,
             "commission_time": "{TinyDate}:2018-11-25T03:00:00",
             "decommission_time": "{TinyDate}:2032-11-25T03:00:00",
             "station_id": 52
         },
-        "31": {
+        "39": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -869,7 +1093,7 @@
             "decommission_time": "{TinyDate}:2032-11-15T00:00:00",
             "station_id": 52
         },
-        "32": {
+        "40": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -897,7 +1121,7 @@
             "decommission_time": "{TinyDate}:2032-11-15T00:00:00",
             "station_id": 52
         },
-        "33": {
+        "41": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -925,7 +1149,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 13
         },
-        "34": {
+        "42": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -953,7 +1177,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 13
         },
-        "35": {
+        "43": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -981,7 +1205,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 13
         },
-        "36": {
+        "44": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1009,7 +1233,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 13
         },
-        "37": {
+        "45": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1037,7 +1261,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 14
         },
-        "38": {
+        "46": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1065,7 +1289,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 14
         },
-        "39": {
+        "47": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1093,7 +1317,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 14
         },
-        "40": {
+        "48": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1121,7 +1345,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 14
         },
-        "41": {
+        "49": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1149,7 +1373,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 15
         },
-        "42": {
+        "50": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1177,7 +1401,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 15
         },
-        "43": {
+        "51": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1205,7 +1429,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 15
         },
-        "44": {
+        "52": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1233,7 +1457,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 15
         },
-        "45": {
+        "53": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1261,7 +1485,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 17
         },
-        "46": {
+        "54": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1289,7 +1513,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 17
         },
-        "47": {
+        "55": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1317,7 +1541,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 17
         },
-        "48": {
+        "56": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1345,7 +1569,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 17
         },
-        "49": {
+        "57": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1373,7 +1597,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 19
         },
-        "50": {
+        "58": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1401,7 +1625,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 19
         },
-        "51": {
+        "59": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1429,7 +1653,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 19
         },
-        "52": {
+        "60": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1457,7 +1681,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 19
         },
-        "53": {
+        "61": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1485,7 +1709,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 30
         },
-        "54": {
+        "62": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1513,7 +1737,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 30
         },
-        "55": {
+        "63": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1541,7 +1765,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 30
         },
-        "56": {
+        "64": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1568,6 +1792,230 @@
             "commission_time": "{TinyDate}:2015-11-15T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 30
+        },
+        "65": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn61 Ch0",
+            "ant_deployment_time": "{TinyDate}:2018-12-08T12:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 180.0,
+            "ant_position_x": 0.0,
+            "ant_position_y": 2.97,
+            "ant_position_z": -1.4,
+            "ant_rotation_phi": 270.0,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "createLPDA_100MHz",
+            "cab_id": "18-15",
+            "cab_length": 5.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 20.7,
+            "cab_type": "LMR_400",
+            "channel_id": 0,
+            "commission_time": "{TinyDate}:2018-12-08T12:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 61
+        },
+        "66": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn61 Ch1",
+            "ant_deployment_time": "{TinyDate}:2018-12-08T12:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 180.0,
+            "ant_position_x": 2.94,
+            "ant_position_y": -0.0176,
+            "ant_position_z": -1.4,
+            "ant_rotation_phi": 180.0,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "createLPDA_100MHz",
+            "cab_id": "18-19",
+            "cab_length": 5.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 20.6,
+            "cab_type": "LMR_400",
+            "channel_id": 1,
+            "commission_time": "{TinyDate}:2018-12-08T12:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 61
+        },
+        "67": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn61 Ch2",
+            "ant_deployment_time": "{TinyDate}:2018-12-08T12:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 180.0,
+            "ant_position_x": -0.0582,
+            "ant_position_y": -3.06,
+            "ant_position_z": -1.4,
+            "ant_rotation_phi": 90.0,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "createLPDA_100MHz",
+            "cab_id": "18-17",
+            "cab_length": 5.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 20.8,
+            "cab_type": "LMR_400",
+            "channel_id": 2,
+            "commission_time": "{TinyDate}:2018-12-08T12:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 61
+        },
+        "68": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn61 Ch3",
+            "ant_deployment_time": "{TinyDate}:2018-12-08T12:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 180.0,
+            "ant_position_x": -2.91,
+            "ant_position_y": -0.00687,
+            "ant_position_z": -1.4,
+            "ant_rotation_phi": 0.0,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "createLPDA_100MHz",
+            "cab_id": "18-18",
+            "cab_length": 5.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 20.7,
+            "cab_type": "LMR_400",
+            "channel_id": 3,
+            "commission_time": "{TinyDate}:2018-12-08T12:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 61
+        },
+        "69": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn61 Ch4",
+            "ant_deployment_time": "{TinyDate}:2018-12-08T12:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x": -3.54,
+            "ant_position_y": 3.76,
+            "ant_position_z": -2.695,
+            "ant_rotation_phi": 0.0,
+            "ant_rotation_theta": 0.0,
+            "ant_type": "KU_dipole",
+            "cab_id": "18-14",
+            "cab_length": 10.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 41.5,
+            "cab_type": "LMR_400",
+            "channel_id": 4,
+            "commission_time": "{TinyDate}:2018-12-08T12:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 61
+        },
+        "70": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn61 Ch5",
+            "ant_deployment_time": "{TinyDate}:2018-12-08T12:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x": 3.13,
+            "ant_position_y": 3.8,
+            "ant_position_z": 1.422,
+            "ant_rotation_phi": 270.0,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "createLPDA_100MHz",
+            "cab_id": "18-12",
+            "cab_length": 10.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 41.0,
+            "cab_type": "LMR_400",
+            "channel_id": 5,
+            "commission_time": "{TinyDate}:2018-12-08T12:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 61
+        },
+        "71": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn61 Ch6",
+            "ant_deployment_time": "{TinyDate}:2018-12-08T12:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x": 3.56,
+            "ant_position_y": -3.77,
+            "ant_position_z": -2.766,
+            "ant_rotation_phi": 0.0,
+            "ant_rotation_theta": 0.0,
+            "ant_type": "KU_dipole",
+            "cab_id": "18-13",
+            "cab_length": 10.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 41.5,
+            "cab_type": "LMR_400",
+            "channel_id": 6,
+            "commission_time": "{TinyDate}:2018-12-08T12:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 61
+        },
+        "72": {
+            "adc_id": null,
+            "adc_n_samples": 256,
+            "adc_nbits": null,
+            "adc_sampling_frequency": 1.0,
+            "adc_time_delay": null,
+            "amp_reference_measurement": null,
+            "amp_type": "300",
+            "ant_comment": "Stn61 Ch7",
+            "ant_deployment_time": "{TinyDate}:2018-12-08T12:00:00",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x": -3.09,
+            "ant_position_y": -3.88,
+            "ant_position_z": 1.4,
+            "ant_rotation_phi": 0.0,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "createLPDA_100MHz",
+            "cab_id": "18-00",
+            "cab_length": 10.0,
+            "cab_reference_measurement": null,
+            "cab_time_delay": 41.5,
+            "cab_type": "LMR_400",
+            "channel_id": 7,
+            "commission_time": "{TinyDate}:2018-12-08T12:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "station_id": 61
         }
     },
     "stations": {
@@ -1615,6 +2063,21 @@
             "position": "F",
             "station_id": 30,
             "station_type": "HRA_4"
+        },
+        "12": {
+            "MAC_address": "0002F7F2EC55",
+            "MBED_type": "v1",
+            "board_number": 207,
+            "commission_time": "{TinyDate}:2018-12-08T12:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "pos_altitude": 2800.0,
+            "pos_easting": null,
+            "pos_measurement_time": null,
+            "pos_position": "SP2",
+            "pos_site": "southpole",
+            "position": "SP2",
+            "station_id": 61,
+            "station_type": null
         },
         "2": {
             "MAC_address": null,
