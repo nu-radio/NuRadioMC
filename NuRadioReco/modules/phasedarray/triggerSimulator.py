@@ -44,7 +44,9 @@ class triggerSimulator:
 
     def get_beam_rolls(self, station, det, triggered_channels,
                        phasing_angles=default_angles, ref_index=1.78):
-
+        """
+        Calculates the delays needed for phasing the array.
+        """
         sampling_rate = station.get_channel(0).get_sampling_rate()
         time_step = 1./sampling_rate
 
@@ -68,6 +70,7 @@ class triggerSimulator:
     def check_vertical_string(self, ant_z):
 
         diff_z = np.array(ant_z) - ant_z[0]
+        diff_z = np.abs(diff_z)
         if ( sum(diff_z) > 1.e-3*units.m ):
             raise NotImplementedError('The phased triggering array should lie on a vertical line')
 
@@ -109,11 +112,9 @@ class triggerSimulator:
         phased_trace = None
 
     	if (triggered_channels == None):
-
     		triggered_channels = [channel._id for channel in station.iter_channels()]
 
         if (secondary_channels == None):
-
             secondary_channels = triggered_channels[::2]
 
         logger.debug("primary channels:", triggered_channels)
