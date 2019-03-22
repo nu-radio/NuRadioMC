@@ -14,7 +14,7 @@ default_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_hig
 
 sec_low_angle = main_low_angle/2
 sec_high_angle = main_high_angle/2
-default_sec_angles = np.arcsin(np.linspace( np.sin(sec_low_angle), np.sin(sec_high_angle), 15) )
+default_sec_angles = np.arcsin( np.linspace( np.sin(sec_low_angle), np.sin(sec_high_angle), 15) )
 
 
 class triggerSimulator:
@@ -34,13 +34,13 @@ class triggerSimulator:
         self.__pre_trigger_time = pre_trigger_time
         self.__debug = debug
 
-    def get_vertical_positions(self, station, det, triggered_channels=None):
+    def get_antenna_positions(self, station, det, triggered_channels=None, component=2):
 
-        ant_z = [ det.get_relative_position(station.get_id(), channel.get_id())[2] \
+        ant_pos = [ det.get_relative_position(station.get_id(), channel.get_id())[2] \
                     for channel in station.iter_channels() \
                     if channel.get_id() in triggered_channels ]
 
-        return np.array(ant_z)
+        return np.array(ant_pos)
 
     def get_beam_rolls(self, station, det, triggered_channels,
                        phasing_angles=default_angles, ref_index=1.78):
@@ -50,8 +50,8 @@ class triggerSimulator:
         sampling_rate = station.get_channel(0).get_sampling_rate()
         time_step = 1./sampling_rate
 
-        ant_z = self.get_vertical_positions(station, det, triggered_channels)
-        self.check_vertical_string(ant_z)
+        ant_z = self.get_antenna_positions(station, det, triggered_channels, 2)
+        self.check_vertical_string(station, det, triggered_channels)
         beam_rolls = []
         ref_z = (np.max(ant_z)+np.min(ant_z))/2
 
@@ -67,11 +67,14 @@ class triggerSimulator:
 
         return beam_rolls
 
-    def check_vertical_string(self, ant_z):
+    def check_vertical_string(self, station, det, triggered_channels):
 
-        diff_z = np.array(ant_z) - ant_z[0]
-        diff_z = np.abs(diff_z)
-        if ( sum(diff_z) > 1.e-3*units.m ):
+        cut = 1.e-3*units.m
+        ant_x = self.get_antenna_positions(station, det, triggered_channels, 0)
+        diff_x = ant_x - ant_x[0]
+        ant_y = self.get_antenna_positions(station, det, triggered_channels, 1)
+        diff_y = diff_x - ant_y[0]
+        if ( sum(diff_x) > cut or sum(diff_y) > cut ):
             raise NotImplementedError('The phased triggering array should lie on a vertical line')
 
     def run(self, evt, station, det,
