@@ -73,7 +73,7 @@ class triggerSimulator:
         ant_x = self.get_antenna_positions(station, det, triggered_channels, 0)
         diff_x = ant_x - ant_x[0]
         ant_y = self.get_antenna_positions(station, det, triggered_channels, 1)
-        diff_y = diff_x - ant_y[0]
+        diff_y = ant_y - ant_y[0]
         if ( sum(diff_x) > cut or sum(diff_y) > cut ):
             raise NotImplementedError('The phased triggering array should lie on a vertical line')
 
