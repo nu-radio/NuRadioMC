@@ -36,7 +36,7 @@ class triggerSimulator:
 
     def get_antenna_positions(self, station, det, triggered_channels=None, component=2):
 
-        ant_pos = [ det.get_relative_position(station.get_id(), channel.get_id())[2] \
+        ant_pos = [ det.get_relative_position(station.get_id(), channel.get_id())[component] \
                     for channel in station.iter_channels() \
                     if channel.get_id() in triggered_channels ]
 
