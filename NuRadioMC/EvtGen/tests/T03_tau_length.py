@@ -1,5 +1,6 @@
 from NuRadioMC.EvtGen.generator import *
 import matplotlib.pyplot as plt
+plt.tight_layout()
 
 def get_p(p):
 
@@ -52,22 +53,24 @@ for user_time in user_times:
     plt.loglog(energies, lengths[user_time]/units.km, linestyle='-', color=colours[user_time], label=labels[user_time])
     plt.loglog(energies, lengths_nolosses[user_time]/units.km, linestyle='--', color=colours[user_time])
 
-fontsize=15
-plt.tick_params(labelsize=11)
-plt.loglog([],[], linestyle='', label='Photonuclear losses - Solid\nNo losses - Dashed')
+plt.gcf().subplots_adjust(bottom=0.13)
+fontsize=16
+plt.tick_params(labelsize=12)
+plt.loglog([],[], linestyle='', label='P.N. losses - Solid\nNo losses - Dashed')
 plt.xlabel('Tau energy [eV]', size=fontsize)
 plt.ylabel('Tau track length [km]', size=fontsize)
-plt.legend(fontsize=11)
+plt.legend(fontsize=12)
 plt.savefig('tau_decay_length.png', format='png')
 plt.show()
 
-plt.tick_params(labelsize=11)
+plt.gcf().subplots_adjust(bottom=0.13)
+plt.tick_params(labelsize=12)
 for user_time in user_times:
     plt.loglog(energies, tau_energies[user_time], linestyle='-', color=colours[user_time], label=labels[user_time])
 plt.loglog(energies, energies, linestyle='--', color='cadetblue')
-plt.loglog([],[], linestyle='', label='Photonuclear losses - Solid\nNo losses - Dashed')
+plt.loglog([],[], linestyle='', label='P.N. losses - Solid\nNo losses - Dashed')
 plt.xlabel('Tau initial energy [eV]', size=fontsize)
 plt.ylabel('Tau decay energy [eV]', size=fontsize)
-plt.legend(fontsize=11)
+plt.legend(fontsize=12)
 plt.savefig('tau_decay_energy.png', format='png')
 plt.show()
