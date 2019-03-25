@@ -51,19 +51,23 @@ for user_time in user_times:
 
     plt.loglog(energies, lengths[user_time]/units.km, linestyle='-', color=colours[user_time], label=labels[user_time])
     plt.loglog(energies, lengths_nolosses[user_time]/units.km, linestyle='--', color=colours[user_time])
+
+fontsize=15
+plt.tick_params(labelsize=11)
 plt.loglog([],[], linestyle='', label='Photonuclear losses - Solid\nNo losses - Dashed')
-plt.xlabel('Tau energy [eV]')
-plt.ylabel('Tau track length [km]')
-plt.legend()
+plt.xlabel('Tau energy [eV]', size=fontsize)
+plt.ylabel('Tau track length [km]', size=fontsize)
+plt.legend(fontsize=11)
 plt.savefig('tau_decay_length.png', format='png')
 plt.show()
 
+plt.tick_params(labelsize=11)
 for user_time in user_times:
     plt.loglog(energies, tau_energies[user_time], linestyle='-', color=colours[user_time], label=labels[user_time])
 plt.loglog(energies, energies, linestyle='--', color='cadetblue')
 plt.loglog([],[], linestyle='', label='Photonuclear losses - Solid\nNo losses - Dashed')
-plt.xlabel('Tau initial energy [eV]')
-plt.ylabel('Tau decay energy [eV]')
-plt.legend()
+plt.xlabel('Tau initial energy [eV]', size=fontsize)
+plt.ylabel('Tau decay energy [eV]', size=fontsize)
+plt.legend(fontsize=11)
 plt.savefig('tau_decay_energy.png', format='png')
 plt.show()
