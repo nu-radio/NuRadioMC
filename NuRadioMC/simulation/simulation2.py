@@ -158,6 +158,7 @@ class simulation():
 
 
         inputTime = 0.0
+        askaryan_time = 0.
         rayTracingTime = 0.0
         detSimTime = 0.0
         outputTime = 0.0
@@ -169,8 +170,10 @@ class simulation():
             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 100.)) == 0):
                 eta = datetime.timedelta(seconds=(time.time() - t_start) * (self._n_events - self._iE) / self._iE)
                 total_time = inputTime + rayTracingTime + detSimTime + outputTime
-                logger.warning("processing event {}/{} = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), detector simulation = {:.0f}% reading input = {:.0f}%".format(
-                    self._iE, self._n_events, 100. * self._iE / self._n_events, eta, 100. * rayTracingTime / total_time, 100. * time_attenuation_length / rayTracingTime, 100. * detSimTime / total_time, 100.*inputTime/total_time))
+                logger.warning("processing event {}/{} = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%".format(
+                    self._iE, self._n_events, 100. * self._iE / self._n_events, eta, 100. * (rayTracingTime - askaryan_time) / total_time,
+                    100. * time_attenuation_length / (rayTracingTime - askaryan_time),
+                    100.* askaryan_time/total_time, 100. * detSimTime / total_time, 100.*inputTime/total_time))
 #             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 10000.)) == 0):
 #                 print("*", end='')
 
@@ -201,7 +204,7 @@ class simulation():
             # first step: peorform raytracing to see if solution exists
             #print("start raytracing. time: " + str(time.time()))
             t2 = time.time()
-            inputTime += (t2 - t1)
+            inputTime += (time.time() - t1)
             ray_tracing_performed = ('ray_tracing_C0' in self._fin) and (self._was_pre_simulated)
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                 x2 = self._det.get_relative_position(self._station_id, channel_id)
@@ -266,9 +269,11 @@ class simulation():
 
                     fem, fhad = self._get_em_had_fraction(self._inelasticity, self._inttype, self._flavor)
                     # get neutrino pulse from Askaryan module
+                    t_ask = time.time()
                     spectrum = signalgen.get_frequency_spectrum(
                         self._energy * fhad, viewing_angles[iS], self._n_samples, self._dt, "HAD", n_index, R,
                         self._cfg['signal']['model'], same_shower=(iS > 0))
+                    askaryan_time += (time.time() - t_ask)
 
                     # apply frequency dependent attenuation
                     t_att = time.time()
@@ -278,9 +283,11 @@ class simulation():
                     time_attenuation_length += (time.time() - t_att)
 
                     if(fem > 0):
+                        t_ask = time.time()
                         spectrum_em = signalgen.get_frequency_spectrum(
                             self._energy * fem, viewing_angles[iS], self._n_samples, self._dt, "EM", n_index, R,
                             self._cfg['signal']['model'], same_shower=(iS > 0))
+                        askaryan_time += (time.time() - t_ask)
                         if self._cfg['propagation']['attenuate_ice']:
                             spectrum_em *= attn
                         # add EM signal to had signal in the time domain
@@ -342,7 +349,7 @@ class simulation():
 
             #print("start detector simulation. time: " + str(time.time()))
             t3 = time.time()
-            rayTracingTime += (t3 - t2)
+            rayTracingTime += t3 - t2
             # perform only a detector simulation if event had at least one
             # candidate channel
             if(not candidate_event):
@@ -371,10 +378,6 @@ class simulation():
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
         self._write_ouput_file()
-
-        t_total = time.time() - t_start
-        logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(self._n_events,
-                                                                                         t_total, 1.e3 * t_total / self._n_events))
 
         try:
             self.calculate_Veff()
