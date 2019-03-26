@@ -49,16 +49,16 @@ for user_time in user_times:
     lengths[user_time] = np.array(lengths[user_time])
     lengths_nolosses[user_time] = np.array(lengths_nolosses[user_time])
 
-    if (user_time == user_times[1] or user_time == user_times[2]):
-        plt.loglog(energies, lengths[user_time]/units.km, linestyle=linestyles[user_time], color=colours[user_time], label=labels[user_time])
-        plt.loglog(energies, lengths_nolosses[user_time]/units.km, linestyle='--', color=colours[user_time])
+
+plt.loglog(energies, lengths[user_times[2]]/units.km, linestyle='-', color=colours[user_times[2]], label='Mean, with PN losses')
+plt.loglog(energies, lengths_nolosses[user_times[2]]/units.km, linestyle='--', color=colours[user_times[2]], label='Mean, without losses')
 
 plt.gcf().subplots_adjust(bottom=0.13)
 fontsize=16
 plt.tick_params(labelsize=12)
-plt.fill_between(energies, lengths[user_times[0]]/units.km, lengths[user_times[-1]]/units.km, facecolor='0.75', interpolate=True)
+plt.fill_between(energies, lengths[user_times[0]]/units.km, lengths[user_times[-1]]/units.km, facecolor='0.75', interpolate=True, label=r'10% to 90% quantiles')
 #plt.loglog([],[], linestyle='', label='P.N. losses - Solid\nNo losses - Dashed')
-plt.loglog([],[], linestyle='', label='No losses - Dashed')
+#plt.loglog([],[], linestyle='', label='No losses - Dashed')
 plt.xlabel('Tau energy [eV]', size=fontsize)
 plt.ylabel('Tau track length [km]', size=fontsize)
 plt.legend(fontsize=12)
@@ -67,14 +67,15 @@ plt.show()
 
 plt.gcf().subplots_adjust(bottom=0.13)
 plt.tick_params(labelsize=12)
-for user_time in user_times:
+#for user_time in user_times:
 #    plt.loglog(energies, tau_energies[user_time], linestyle='-', color=colours[user_time], label=labels[user_time])
-    if (user_time == user_times[1] or user_time == user_times[2]):
-        plt.loglog(energies, tau_energies[user_time], linestyle=linestyles[user_time], color=colours[user_time], label=labels[user_time])
-plt.loglog(energies, energies, linestyle='--', color='cadetblue')
-plt.fill_between(energies, tau_energies[user_times[0]], tau_energies[user_times[-1]], facecolor='0.75', interpolate=True)
+#    if (user_time == user_times[2]):
+#        plt.loglog(energies, tau_energies[user_time], linestyle=linestyles[user_time], color=colours[user_time], label='Mean, with PN losses')
+plt.loglog(energies, tau_energies[user_times[2]], linestyle='-', color=colours[user_times[2]], label='Mean, with PN losses')
+plt.loglog(energies, energies, linestyle='--', color=colours[user_times[2]], label="Mean, without losses")
+plt.fill_between(energies, tau_energies[user_times[0]], tau_energies[user_times[-1]], facecolor='0.75', interpolate=True, label=r'10% to 90% quantiles')
 #plt.loglog([],[], linestyle='', label='P.N. losses - Solid\nNo losses - Dashed')
-plt.loglog([],[], linestyle='', label='No losses - Dashed')
+#plt.loglog([],[], linestyle='', label='No losses - Dashed')
 plt.xlabel('Tau initial energy [eV]', size=fontsize)
 plt.ylabel('Tau decay energy [eV]', size=fontsize)
 plt.legend(fontsize=12)
