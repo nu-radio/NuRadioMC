@@ -176,6 +176,11 @@ class simulation():
 
             # read all quantities from hdf5 file and store them in local variables
             self._read_input_neutrino_properties()
+            
+            # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
+            # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
+            if not self._is_in_fiducial_volume():
+                continue
 
             # calculate weight
             self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, mode=self._cfg['weights']['weight_mode'])
@@ -389,6 +394,13 @@ class simulation():
         print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
               "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
 
+
+    def _is_in_fiducial_volume(self):
+        r = (self._x**2 + self._y**2)**0.5
+        if(r >= self._fin_attrs['fiducial_rmin'] and r <= self._fin_attrs['fiducial_rmax']):
+            if(self._z >= self._fin_attrs['fiducial_zmin'] and self._z <= self._fin_attrs['fiducial_zmax']):
+                return True
+        return False
 
     def _increase_signal(self, channel_id, factor):
         """
