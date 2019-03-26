@@ -35,6 +35,7 @@ logger.setLevel(logging.WARNING)
 
 VERSION = 0.1
 
+
 def merge_config(user, default):
     if isinstance(user,dict) and isinstance(default,dict):
         for k,v in iteritems(default):
@@ -43,11 +44,6 @@ def merge_config(user, default):
             else:
                 user[k] = merge_config(user[k],v)
     return user
-
-
-
-
-
 
 
 class simulation():
@@ -388,7 +384,6 @@ class simulation():
         outputTime = time.time() - t5
         print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
               "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
-
 
     def _increase_signal(self, channel_id, factor):
         """
