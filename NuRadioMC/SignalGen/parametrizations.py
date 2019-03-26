@@ -197,6 +197,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
             return 1/(1+(freq/nu_R)**alpha)
 
         spectrum = A(energy, theta, freqs) * d_L(energy, theta, freqs) * d_R(energy, theta, freqs)
+        spectrum *= 0.5 # ZHS Fourier transform normalisation
         spectrum /= R
         spectrum = np.insert(spectrum, 0, 0)
 
