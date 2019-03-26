@@ -174,6 +174,17 @@ class Detector(object):
             logger.error("query for station {} at time {} returned no results".format(station_id, self.__current_time))
             raise LookupError("query for station {} at time {} returned no results".format(station_id, self.__current_time))
         return res
+    
+    def get_station_ids(self):
+        station_ids = []
+        res = self.__stations.all()
+        if(res is None):
+            logger.error("query for stations returned no results")
+            raise LookupError("query for stations returned no results")
+        for a in res:
+            if(a['station_id'] not in station_ids):
+                station_ids.append(a['station_id'])
+        return sorted(station_ids)
 
     def __get_station(self, station_id):
         if(station_id not in self.__buffered_stations.keys()):
@@ -223,7 +234,6 @@ class Detector(object):
     
     def has_station(self, station_id):
         Station = Query()
-        print(self.__stations)
         res = self.__stations.get(Station.station_id == station_id)
         return res != None
     
@@ -275,7 +285,7 @@ class Detector(object):
     def get_number_of_channels(self, station_id):
         res = self.__get_channels(station_id)
         return len(res)
-        
+    
     def get_channel_ids(self, station_id):
         channel_ids = []
         for channel in self.__get_channels(station_id).values():
