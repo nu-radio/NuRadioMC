@@ -183,7 +183,15 @@ class simulation():
                 continue
 
             # calculate weight
-            self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, mode=self._cfg['weights']['weight_mode'])
+            # if we have a second interaction, the weight needs to be calculated from the initial neutrino
+            if(self._n_interaction > 1):
+                iE_mother = np.argwhere(self._fin['event_ids'] == self._iE).min()  # get index of mother neutrino
+                self._mout['weights'][self._iE] = get_weight(self._fin['zenith'][iE_mother],
+                                                             self._fin['energy'][iE_mother],
+                                                             self._fin['flavor'][iE_mother],
+                                                             mode=self._cfg['weights']['weight_mode'])
+            else:
+                self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, mode=self._cfg['weights']['weight_mode'])
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if(self._mout['weights'][self._iE] < self._cfg['speedup']['minimum_weight_cut']):
@@ -543,6 +551,7 @@ class simulation():
         self._zenith_nu = self._fin['zeniths'][self._iE]
         self._azimuth_nu = self._fin['azimuths'][self._iE]
         self._inelasticity = self._fin['inelasticity'][self._iE]
+        self._n_interaction = self._fin['n_interaction'][self._iE]
 
     def _create_sim_station(self):
         """
