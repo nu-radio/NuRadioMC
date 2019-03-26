@@ -122,8 +122,8 @@ fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'))
 receive_vectors = np.array(fin['receive_vectors'])[triggered]
 # for all events, antennas and ray tracing solutions
 zeniths, azimuths = hp.cartesian_to_spherical(receive_vectors[:, :, :, 0].flatten(),
-                                                         receive_vectors[:, :, :, 1].flatten(),
-                                                         receive_vectors[:, :, :, 2].flatten())
+                                              receive_vectors[:, :, :, 1].flatten(),
+                                              receive_vectors[:, :, :, 2].flatten())
 for i in range(len(azimuths)):
     azimuths[i] = hp.get_normalized_angle(azimuths[i])
 weights_matrix = np.outer(weights, np.ones(np.prod(receive_vectors.shape[1:-1]))).flatten()
@@ -202,24 +202,24 @@ fig, ax = php.get_histogram((viewing_angles[mask] - rho[mask]) / units.deg, weig
 fig.savefig(os.path.join(plot_folder, 'dCherenkov.png'))
 
 # SNR
-flavor_labels = ['e cc', r'$\bar{e}$ cc', 'e nc', r'$\bar{e}$ nc', 
+flavor_labels = ['e cc', r'$\bar{e}$ cc', 'e nc', r'$\bar{e}$ nc',
            '$\mu$ cc', r'$\bar{\mu}$ cc', '$\mu$ nc', r'$\bar{\mu}$ nc',
            r'$\tau$ cc', r'$\bar{\tau}$ cc', r'$\tau$ nc', r'$\bar{\tau}$ nc']
 yy = np.zeros(len(flavor_labels))
-yy[0] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['ccncs'][triggered] == 'cc')])
-yy[1] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['ccncs'][triggered] == 'cc')])
-yy[2] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['ccncs'][triggered] == 'nc')])
-yy[3] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['ccncs'][triggered] == 'nc')])
+yy[0] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == 'cc')])
+yy[1] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == 'cc')])
+yy[2] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == 'nc')])
+yy[3] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == 'nc')])
 
-yy[4] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['ccncs'][triggered] == 'cc')])
-yy[5] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['ccncs'][triggered] == 'cc')])
-yy[6] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['ccncs'][triggered] == 'nc')])
-yy[7] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['ccncs'][triggered] == 'nc')])
+yy[4] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == 'cc')])
+yy[5] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == 'cc')])
+yy[6] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == 'nc')])
+yy[7] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == 'nc')])
 
-yy[8] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['ccncs'][triggered] == 'cc')])
-yy[9] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['ccncs'][triggered] == 'cc')])
-yy[10] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['ccncs'][triggered] == 'nc')])
-yy[11] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['ccncs'][triggered] == 'nc')])
+yy[8] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == 'cc')])
+yy[9] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == 'cc')])
+yy[10] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == 'nc')])
+yy[11] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == 'nc')])
 
 fig, ax = plt.subplots(1, 1)
 ax.bar(range(len(flavor_labels)), yy)

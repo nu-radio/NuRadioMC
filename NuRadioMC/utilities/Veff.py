@@ -9,7 +9,44 @@ import os
 
 # collection of utility function regarding the calculation of the effective volume of a neutrino detector
 
+def get_triggered(fin):
+    """
+    Computes an array indicating the triggered events.
+    If a double bang is seen, removes the second bang from the actual triggered
+    array so as not to count twice the same event for the effective volume.
 
+    Parameters
+    ----------
+    fin: dictionary
+       Dictionary containing the output data sets from the simulation
+
+    Returns
+    -------
+    triggered: numpy array with bools
+       The bools indicate if the events have triggered
+    """
+
+    triggered = fin['triggered'][:]
+
+    if (len(triggered) == 0):
+        return triggered
+
+    second_bang_indexes = np.argwhere(np.array(fin['n_interaction']) > 2)
+    if(second_bang_indexes.shape[0] > 1):
+        second_bang_indexes = np.squeeze(second_bang_indexes)
+    elif(second_bang_indexes.shape[0] == 1):
+        second_bang_indexes = second_bang_indexes[0]
+    else:
+        return triggered
+
+    for second_bang_index in second_bang_indexes:
+        if (fin['event_ids'][second_bang_index-1] == fin['event_ids'][second_bang_index]
+            and fin['triggered'][second_bang_index-1] == True
+            and fin['triggered'][second_bang_index] == True):
+
+            triggered[second_bang_index] = False
+
+    return triggered
 
 def get_Veff(folder, trigger_combinations={}, zenithbins=False):
     """
@@ -84,7 +121,8 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
         Es.append(E)
 
         weights = np.array(fin['weights'])
-        triggered = np.array(fin['triggered'])
+        #triggered = np.array(fin['triggered'])
+        triggered = get_triggered(fin)
         n_events = fin.attrs['n_events']
         if(trigger_names is None):
             trigger_names = fin.attrs['trigger_names']
