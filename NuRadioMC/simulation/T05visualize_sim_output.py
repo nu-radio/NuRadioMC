@@ -87,9 +87,9 @@ fig.tight_layout()
 fig.savefig(os.path.join(plot_folder, 'neutrino_direction.png'))
 
 # calculate sky coverage of 90% quantile
-from radiotools import stat
-q2 =stat.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.95)
-q1 =stat.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.05)
+from radiotools import stats
+q2 =stats.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.95)
+q1 =stats.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.05)
 from scipy import integrate
 def a(theta):
     return np.sin(theta)
@@ -121,7 +121,7 @@ fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'))
 # plot incoming direction
 receive_vectors = np.array(fin['receive_vectors'])[triggered]
 # for all events, antennas and ray tracing solutions
-zeniths, azimuths = hp.cartesian_to_spherical_vectorized(receive_vectors[:, :, :, 0].flatten(),
+zeniths, azimuths = hp.cartesian_to_spherical(receive_vectors[:, :, :, 0].flatten(),
                                                          receive_vectors[:, :, :, 1].flatten(),
                                                          receive_vectors[:, :, :, 2].flatten())
 for i in range(len(azimuths)):
