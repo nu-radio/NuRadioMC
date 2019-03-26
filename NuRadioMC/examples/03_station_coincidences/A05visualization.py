@@ -18,6 +18,7 @@ import logging
 Tnoise = 300
 Vrms = (Tnoise * 50 * constants.k * 500 * units.MHz / units.Hz) ** 0.5
 
+plot=False
 counter = -1
 filename = sys.argv[1]
 x = float(sys.argv[2]) * units.m
@@ -65,24 +66,25 @@ mask = ((np.abs(xs) == x) & (np.abs(ys) == x))  \
 theta  = np.arccos(1. / 1.78)
     
 n_events = len(triggered_near_surface)
+dTs = []
 for iE in np.arange(n_events, dtype=np.int)[np.any(triggered_deep[:, mask], axis=1) & triggered_near_deep]:
-    ax = plt.axes(projection='3d')
+    if(iE % 100 == 0):
+        print(iE)
+    if(plot):
+        ax = plt.axes(projection='3d')
 #     x1 = det.get_relative_position(101, 3)
 #     ax.plot([x1[0]], [x1[1]], [x1[2]], 'ko')
     for j in np.append([0], np.arange(n_stations)[mask]):
         iC = j * 4 + 3
         x2 = det.get_relative_position(101, iC)
-        ax.plot([x2[0]], [x2[1]], [x2[2]], 'ko')
+        if(plot):
+            ax.plot([x2[0]], [x2[1]], [x2[2]], 'ko')
         if(j != 0 and (~(np.array(triggered_deep[iE], dtype=np.bool) & mask))[j]):
             continue
-        print(j)
         vertex = np.array([fin['xx'][iE], fin['yy'][iE], fin['zz'][iE]])
-        print(fin.keys())
+#         print(fin.keys())
 #         l1 = fin['launch_vectors'][iE][3] / units.deg
         l2 = fin['launch_vectors'][iE][j*4 + 3]
-        r2 = ray.ray_tracing(vertex, x2, med, log_level=logging.DEBUG)
-        r2.set_solution(fin['ray_tracing_C0'][iE][iC], fin['ray_tracing_C1'][iE][iC], fin['ray_tracing_solution_type'][iE][iC])
-        path2 = r2.get_path(0)
         
 #         r1 = ray.ray_tracing(vertex, x1, med, log_level=logging.DEBUG)
 # #         r1.find_solutions()
@@ -92,14 +94,21 @@ for iE in np.arange(n_events, dtype=np.int)[np.any(triggered_deep[:, mask], axis
         zen, az = fin['zeniths'][iE], fin['azimuths'][iE]
         v = hp.spherical_to_cartesian(zen, az)
         
-#         ax.plot3D(path1.T[0], path1.T[1], path1.T[2], label='path 1')
-        ax.plot3D(path2.T[0], path2.T[1], path2.T[2], label='path {}'.format(j))
-        ax.plot3D([vertex[0], vertex[0] + 500*v[0]], [vertex[1], vertex[1] + 500*v[1]], [vertex[2], vertex[2] + 500*v[2]],
-                  '--', label='shower direction')
+        if(plot):
+            r2 = ray.ray_tracing(vertex, x2, med, log_level=logging.INFO)
+            r2.set_solution(fin['ray_tracing_C0'][iE][iC], fin['ray_tracing_C1'][iE][iC], fin['ray_tracing_solution_type'][iE][iC])
+            path2 = r2.get_path(0)
+    #         ax.plot3D(path1.T[0], path1.T[1], path1.T[2], label='path 1')
+            ax.plot3D(path2.T[0], path2.T[1], path2.T[2], label='path {}'.format(j))
+            ax.plot3D([vertex[0], vertex[0] + 500*v[0]], [vertex[1], vertex[1] + 500*v[1]], [vertex[2], vertex[2] + 500*v[2]],
+                      '--', label='shower direction')
         
+        dT = []
         for l in l2:
-            print("{:.1f}".format((theta - hp.get_angle(-v, l))/units.deg))
-        if 1:
+#             print("{:.1f}".format((theta - hp.get_angle(-v, l))/units.deg))
+            dT.append((theta - hp.get_angle(-v, l))/units.deg)
+        dTs.append(np.min(np.abs(np.array(dT))))
+        if(plot):
             R3 = hp.get_rotation(np.array([0, 0, 1]), -v)
             
             for phi in np.linspace(0, 2 * np.pi, 200):
@@ -116,13 +125,16 @@ for iE in np.arange(n_events, dtype=np.int)[np.any(triggered_deep[:, mask], axis
 #                 print(hp.get_angle(v, l2)/units.deg)
                 l2 += vertex
                 ax.plot3D([vertex[0], l2[0]], [vertex[1], l2[1]], [vertex[2], l2[2]], 'C3-', alpha=0.2)
-    ax.legend()
-#     ax.set_aspect('equal')
-    ax.set_xlabel("x [m]")
-    ax.set_ylabel("y [m]")
-    ax.set_zlabel("z [m]")
-#     plt.ion()
-    plt.show()
+    if(plot):
+        ax.legend()
+    #     ax.set_aspect('equal')
+        ax.set_xlabel("x [m]")
+        ax.set_ylabel("y [m]")
+        ax.set_zlabel("z [m]")
+    #     plt.ion()
+        plt.show()
 #     a =     1/0
+php.get_histogram(np.array(dTs))
+plt.show()
         
 
