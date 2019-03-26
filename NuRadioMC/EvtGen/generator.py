@@ -3,6 +3,9 @@ import numpy as np
 from NuRadioMC.utilities import units
 from six import iterkeys, iteritems
 from scipy import constants
+from scipy.integrate import quad
+from scipy.interpolate import interp1d
+from scipy.optimize import fsolve
 import h5py
 import logging
 logger = logging.getLogger("EventGen")
@@ -35,7 +38,42 @@ HEADER = """
 # Mass energy equivalent of the tau lepton
 tau_mass = constants.physical_constants['tau mass energy equivalent in MeV'][0] * units.MeV
 # Lifetime of the tau (rest frame). Taken from PDG
-tau_rest_time = 290.3 * units.fs
+tau_rest_lifetime = 290.3 * units.fs
+density_ice = 0.9167 * units.g / units.cm ** 3
+cspeed = constants.c * units.m / units.s
+
+def mean_energy_loss(energy):
+    """
+    Returns the mean energy loss of a tau per g/cm2 as a function of the tau energy
+    This function is a linear (in log scale) approximation above 1 PeV to the
+    curve found in https://doi.org/10.1016/j.astropartphys.2006.11.003
+
+    Parameters
+    ----------
+    energy: float
+       Tau energy
+
+    Returns
+    -------
+    Energy loss per amount of matter (float)
+    """
+    E0 = 1*units.PeV
+    if (energy > E0):
+        b1 = 1.e-7 * units.cm ** 2 / units.g
+        b2 = 1.8e-7 * units.cm ** 2 / units.g
+        return b1*energy + b2*energy*np.log10(energy/E0)
+    else:
+        return 0.
+
+def get_tau_decay_rest(energy):
+    """
+    Calculates the random tau decay time without time dilation
+    """
+    # The tau decay time is taken assuming an exponential decay
+    # and applying the inverse transform method
+    tau_decay_rest = -np.log(1 - np.random.uniform(0, 1)) * tau_rest_lifetime
+
+    return tau_decay_rest
 
 def get_tau_decay_time(energy):
     """
@@ -43,19 +81,131 @@ def get_tau_decay_time(energy):
     """
 
     gamma = energy / tau_mass  # tau_mass must be in natural units (c = 1)
-    tau_mean_time = gamma * tau_rest_time
-
-    # The tau decay time is taken assuming an exponential decay
-    # and applying the inverse transform method
-    tau_decay_time = -np.log(1 - np.random.uniform(0, 1)) * tau_mean_time
+    tau_decay_rest = get_tau_decay_rest(energy)
+    tau_decay_time = gamma * tau_decay_rest
 
     return tau_decay_time
+
+def get_decay_time_losses(energy, distmax, average=False, compare=False, user_time=None):
+    """
+    Calculates the decay time assuming photonuclear energy losses above
+    1 PeV and using the quasi-continuous approximation.
+    See https://doi.org/10.1016/j.astropartphys.2006.11.003 for details.
+
+    Parameters
+    ----------
+    energy: float
+        energy of the incident neutrino
+    distmax: float
+        maximum distance for which we calculate energy losses.
+        It should be similar to the maximal dimension of the simulation volume.
+    average: bool
+        If False, a random decay time at rest is calculated
+        If True, the tau mean lifetime at rest is used
+    compare: bool
+        If True, returns a tuple with the decay time with losses and without
+        If False, only the decay time with losses is returned
+
+    Returns
+    -------
+    decay_time: float
+        Tau decay time with photonuclear losses
+    energy_decay: float
+        Tau energy at the time of decay
+    decay_time_no_losses: float
+        Tau decay time without losses
+    """
+    E0 = 1*units.PeV
+    if (energy <= E0):
+        raise ValueError('Energy is equal to or less than 1 PeV. Returning decay time without energy loss.')
+        return get_tau_decay_time(energy)
+
+    # At these energies, we can use the speed of light as the tau speed
+    timemax = distmax/cspeed
+    Estep = energy/1000.
+
+    times = [0.]
+    timebreak = None
+    energies = np.arange(energy, E0, -Estep)
+    if (energies[-1] != E0):
+        energies = np.append(energies, E0)
+
+    # This function returns the inverse of the energy loss, needed for the
+    # calculation of the ellapsed times
+    def loss_int(E):
+        return 1./mean_energy_loss(E)
+
+    # We loop over the energies and integrate the inverse of the energy loss
+    # so that we obtain the corresponding time at which the particle has a
+    # given energy.
+    for finalenergy in energies[1:]:
+
+        # If the energy is less than 1 PeV, we stop.
+        if (finalenergy < E0):
+            timebreak = quad(loss_int, E0, energy)/density_ice/cspeed
+            times.append(timebreak)
+            break
+
+        time = quad(loss_int, finalenergy, energy)[0]/density_ice/cspeed
+        times.append(time)
+        if (time > timemax):
+            break
+
+    energies = energies[0:len(times)]
+
+    if user_time is not None:
+        tau_decay_rest = user_time
+    elif not average:
+        tau_decay_rest = get_tau_decay_rest(energy)
+    else:
+        tau_decay_rest = tau_rest_lifetime
+
+    # We use an interpolation for having the energies as a function of time
+    energies_interp = interp1d(times, energies)
+
+    # This function returns the Lorentz factor for a given time t
+    def gamma(t):
+        if timebreak is not None and t > timebreak:
+            return E0/tau_mass
+        elif (t > timemax):
+            return energies[-1]/tau_mass
+        elif (t > times[-1]):
+            return E0/tau_mass
+        elif (t < 0):
+            return np.inf
+        else:
+            return energies_interp(t)/tau_mass
+
+    # This function returns the inverse of the Lorentz factor at a time t
+    def inv_gamma(t):
+        return 1./gamma(t)
+
+    # This function integrates the inverse of the Lorentz factor in order
+    # to obtain the proper time for the tau between the times t0 and t1
+    def proper_time(gamma_function, t0, t1):
+        return quad(inv_gamma, t0, t1)[0]
+
+    # This function returns the difference between the proper time of the tau
+    # at a time t and its decay time (in the tau rest frame)
+    def times_diff(t):
+        return proper_time(gamma, 0, t)-tau_decay_rest
+
+    # We obtain the decay time for the observer finding the roots for the
+    # difference between the proper time and the decay time in the rest frame
+    decay_time = fsolve(times_diff,1e3*units.ns)[0]
+    energy_decay = gamma(decay_time)*tau_mass
+
+    if not compare:
+        return decay_time, energy_decay
+    else:
+        decay_time_no_losses = tau_decay_rest*gamma(0)
+        return decay_time, decay_time_no_losses, energy_decay
+
 
 def get_tau_speed(energy):
     """
     Calculates the speed of the tau lepton
     """
-
 
     gamma = energy / tau_mass
     if (gamma < 1):
@@ -65,21 +215,67 @@ def get_tau_speed(energy):
 
     return beta * constants.c * units.m / units.s
 
-def get_tau_decay_length(energy):
+def get_tau_decay_length(energy, distmax=0):
     """
     calculates the decay length of the tau
-    """
-    decay_time = get_tau_decay_time(energy)
-    v = get_tau_speed(energy)
-    return decay_time * v
 
-def get_tau_decay_vertex(x, y, z, E, zenith, azimuth):
+    Parameters
+    ----------
+    energy: float
+       Tau energy
+    distmax: float
+    maximum distance for which we calculate energy losses.
+    It should be similar to the maximal dimension of the simulation volume.
+
+    Returns
+    -------
+    decay_time, decay_energy: float, float
+       Tau decay time and tau decay energy
+    """
+
+    if (energy <= 1*units.PeV):
+        decay_time = get_tau_decay_time(energy)
+        v = get_tau_speed(energy)
+        return decay_time * v, energy
+    else:
+        decay_time, decay_energy = get_decay_time_losses(energy, distmax)
+        return decay_time * cspeed, decay_energy
+
+def get_tau_decay_vertex(x, y, z, E, zenith, azimuth, distmax):
     """
      Let us assume that the tau has the same direction as the tau neutrino
-     to calculate the vertex of the second shower            
-     This must be changed in the future
+     to calculate the vertex of the second shower
+
+     Parameters
+     ----------
+     x: float
+        x coordinate of the vertex position
+     y: float
+        y coordinate of the vertex position
+     z: float
+        z coordinate of the vertex position
+     E: float
+        Tau energy after neutrino interaction
+     zenith: float
+        Zenith arrival direction
+     azimuth: float
+        Azimuth arrival direction
+     distmax: float
+     maximum distance for which we calculate energy losses.
+     It should be similar to the maximal dimension of the simulation volume.
+
+     Returns
+     -------
+     second_vertex_x: float
+        x coordinate of the decay position
+     second_vertex_y: float
+        y coordinate of the decay position
+     second_vertex_z: float
+        z coordinate of the decay position
+     decay_energy: float
+        Tau energy at the moment of decay
     """
-    L = get_tau_decay_length(E)
+    L, decay_energy = get_tau_decay_length(E, distmax)
     second_vertex_x = L
     second_vertex_x *= np.sin(zenith) * np.cos(azimuth)
     second_vertex_x += x
@@ -91,7 +287,34 @@ def get_tau_decay_vertex(x, y, z, E, zenith, azimuth):
     second_vertex_z = L
     second_vertex_z *= np.cos(zenith)
     second_vertex_z += z
-    return second_vertex_x, second_vertex_y, second_vertex_z
+    return second_vertex_x, second_vertex_y, second_vertex_z, decay_energy
+
+def get_tau_cascade_properties(tau_energy):
+    """
+    Given the energy of a decaying tau, calculates the properties of the
+    resulting cascade.
+
+    Parameters
+    ----------
+    tau_energy: float
+       Tau energy at the moment of decay
+
+    Returns
+    -------
+    cascade_energy: float
+        The energy of the resulting cascade
+    cascade_type: string
+        Decay type: 'tau_had', 'tau_em', or 'tau_mu'
+    """
+    # TODO: calculate cascade energy
+    # TODO: include the rest of the particles produced
+    branching = random.uniform(0,1)
+    if (branching < 0.68):
+        return tau_energy, 'tau_had'
+    elif (branching < 0.86):
+        return tau_energy, 'tau_em'
+    else:
+        return tau_energy, 'tau_mu'
 
 
 def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None):
@@ -116,6 +339,10 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
     n_events = len(np.unique(data_sets['event_ids']))
     logger.info("saving {} events in total".format(n_events))
     total_number_of_events = attributes['n_events']
+    
+    if "start_event_id" not in attributes:
+        attributes["start_event_id"] = 0  # backward compatibility
+    
     if(n_events_per_file is None):
         n_events_per_file = n_events
     else:
@@ -132,7 +359,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         if(len(evt_ids_this_file) == 0):
             logger.info("no more events to write in file {}".format(iFile))
             break
-        
+
         if((iFile > 0) or (n_events_per_file < n_events)):
             filename2 = filename + ".part{:04}".format(iFile + 1)
         fout = h5py.File(filename2, 'w')
@@ -145,7 +372,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
 
         evt_id_first = evt_ids_this_file[0]
         evt_id_last = evt_ids_this_file[-1]
-        
+
         tmp = np.squeeze(np.argwhere(data_sets['event_ids'] == evt_id_last))  # set stop index such that last event is competely in file
         if(tmp.size == 1):
             stop_index = tmp + 1
@@ -163,7 +390,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
 
         for key, value in data_sets.iteritems():
             fout[key] = value[start_index:stop_index]
-            
+
         # determine the number of events in this file (which is NOT the same as the entries in the file)
         # case 1) this is not the last file -> number of events is difference between last event id of the current and previous file + 1
         # case 2) it is the last file -> total number of simulated events - last event id of previous file
@@ -179,7 +406,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
             n_events_this_file = evt_id_last  - attributes['start_event_id']
         else: # case 1
             n_events_this_file = evt_id_last - evt_id_last_previous
-        
+
         print('writing file {} with {} events (id {} - {}) and {} entries'.format(filename2, n_events_this_file, evt_id_first,
                                                                                   evt_id_last, stop_index - start_index))
         fout.attrs['n_events'] = n_events_this_file
@@ -219,7 +446,7 @@ def primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity):
             return Edep/inelasticity
         elif (np.abs(flavor) == 16):
             return Edep/inelasticity # TODO: change this for taus
-          
+
 def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
                                 full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
@@ -230,6 +457,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 n_events_per_file=None,
                                 spectrum='log_uniform',
                                 add_tau_second_bang=False,
+                                add_tau_larger_volume=False,
                                 deposited=False):
     """
     Event generator
@@ -297,7 +525,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         defines the probability distribution for which the neutrino energies are generated
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-1': 1 over E spectrum
-    add_tau_second_bang: bool 
+    add_tau_second_bang: bool
         if True simulate second vertices from tau decays
     deposited: bool
         If True, generate deposited energies instead of primary neutrino energies
@@ -311,7 +539,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     attributes['fiducial_rmax'] = fiducial_rmax
     attributes['fiducial_zmin'] = fiducial_zmin
     attributes['fiducial_zmax'] = fiducial_zmax
-    
+
     if(full_rmin is None):
         full_rmin = fiducial_rmin / 3.
     if(full_rmax is None):
@@ -320,7 +548,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         full_zmin = fiducial_zmin * 5.
     if(full_zmax is None):
         full_zmax = fiducial_zmax / 3.
-        
+
     attributes['rmin'] = full_rmin
     attributes['rmax'] = full_rmax
     attributes['zmin'] = full_zmin
@@ -339,13 +567,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
     u = np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events)
     data_sets["zeniths"] = np.arccos(u)  # generates distribution that is uniform in cos(theta)
-    
+
     rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
     data_sets["xx"] = rr_full * np.cos(data_sets["azimuths"])
     data_sets["yy"] = rr_full * np.sin(data_sets["azimuths"])
     data_sets["zz"] = np.random.uniform(full_zmin, full_zmax, n_events)
     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
-    
+
     data_sets["event_ids"] = np.arange(n_events) + start_event_id
     data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
 
@@ -378,13 +606,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     # generate charged/neutral current randomly (ported from ShelfMC)
     rnd = np.random.uniform(0., 1., n_events)
-    data_sets["ccncs"] = np.ones(n_events, dtype='S2')
+    data_sets["interaction_type"] = np.ones(n_events, dtype='S2')
     for i, r in enumerate(rnd):
         #    if (r <= 0.6865254):#from AraSim
         if(r <= 0.7064):
-            data_sets["ccncs"][i] = 'cc'
+            data_sets["interaction_type"][i] = 'cc'
         else:
-            data_sets["ccncs"][i] = 'nc'
+            data_sets["interaction_type"][i] = 'nc'
 
 
     # generate inelasticity (ported from ShelfMC)
@@ -395,41 +623,43 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     #from AraSim
     epsilon = np.log10(energies / 1e9)
     inelasticity = pickY(flavors, ccncs, epsilon)
-    """    
+    """
     if deposited:
         data_sets["energies"] = [primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity) \
                                 for Edep, ccnc, flavor, inelasticity in \
-                                zip(data_sets["energies"], data_sets["ccncs"], \
+                                zip(data_sets["energies"], data_sets["interaction_type"], \
                                 data_sets["flavors"], data_sets["inelasticity"])]
-    
+        data_sets["energies"] = np.array(data_sets["energies"])
+
     # save only events with interactions in fiducial volume
     data_sets_fiducial = {}
     for key, value in iteritems(data_sets):
         data_sets_fiducial[key] = value[fmask]
 
     if add_tau_second_bang:
-        mask = (data_sets["ccncs"] == 'cc') & (np.abs(data_sets["flavors"]) == 16)  # select nu_tau cc interactions
+        mask = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 16)  # select nu_tau cc interactions
         logger.info("{} taus are created in nu tau interactions -> checking if tau decays in fiducial volume".format(np.sum(mask)))
         n_taus = 0
         for event_id in data_sets["event_ids"][mask]:
             iE = event_id - start_event_id
-            
+
             Etau = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
             # first calculate if tau decay is still in our fiducial volume
-            x, y, z = get_tau_decay_vertex(data_sets["xx"][iE], data_sets["yy"][iE], data_sets["zz"][iE],
-                                           Etau, data_sets["zeniths"][iE], data_sets["azimuths"][iE])
+            x, y, z, decay_energy = get_tau_decay_vertex(data_sets["xx"][iE], data_sets["yy"][iE], data_sets["zz"][iE],
+                                           Etau, data_sets["zeniths"][iE], data_sets["azimuths"][iE],
+                                           np.sqrt(4*(full_rmax-full_rmin)**2+(full_zmax-full_zmin)**2))
             logger.debug("tau energy = {:.2g}eV, decay length = {:.2f}km -> decay at {:.2f}, {:.2f}, {:.2f}".format(Etau/units.eV,
-                                                            get_tau_decay_length(Etau)/units.km, x/units.km, y/units.km, z/units.km))
-            
+                                                            get_tau_decay_length(Etau)[0]/units.km, x/units.km, y/units.km, z/units.km))
+
             r = (x ** 2 + y ** 2)**0.5
             if(r >= fiducial_rmin and r <= fiducial_rmax ):
                 if(z >= fiducial_zmin and z <= fiducial_zmax):  # z coordinate is negative
                     # the tau decay is in our fiducial volume
-            
+
                     n_taus += 1  # we change the datasets during the loop, to still have the correct indices, we need to keep track of the number of events we inserted
-        
+
                     # insert second vertex after the first neutrino interaction
-                    # two possible cases 
+                    # two possible cases
                     # 1) first interaction is not in fiducial volume -> insert event such that event ids are increasing
                     # 2) first interaction is in fiducial volume -> find correct index
                     if(event_id in data_sets['event_ids']):  # case 2
@@ -441,8 +671,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     iE2 += 1
                     data_sets_fiducial['n_interaction'][iE2] = 2  # specify that new event is a second interaction
 
-                    # Calculating the energy of the tau from the neutrino energy
-                    data_sets_fiducial['energies'][iE2] = Etau
+                    # Calculating the energy of the tau cascade from the tau decay energy
+                    tau_cascade_energy, cascade_type = get_tau_cascade_properties(decay_energy)
+                    data_sets_fiducial['energies'][iE2] = tau_cascade_energy
+                    # TODO: take care of the tau_mu
+                    data_sets_fiducial['interaction_type'][iE2] = cascade_type
                     data_sets_fiducial['xx'][iE2] = x
                     data_sets_fiducial['yy'][iE2] = y
                     data_sets_fiducial['zz'][iE2] = z
@@ -478,4 +711,3 @@ def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_
     fin.close()
 
     write_events_to_hdf5(output_filename, data_sets, attributes, n_events_per_file=number_of_events_per_file)
-

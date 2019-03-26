@@ -79,6 +79,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
             gARZ = ARZ.ARZ()
         if(interp_factor is not None):
             gARZ.set_interpolation_factor(interp_factor)
+
         if(interp_factor2 is not None):
             gARZ.set_interpolation_factor2(interp_factor2)
         return gARZ.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, same_shower=same_shower, **kwargs)[1]
