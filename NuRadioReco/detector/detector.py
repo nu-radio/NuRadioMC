@@ -152,7 +152,7 @@ class Detector(object):
     def __query_channel(self, station_id, channel_id):
         Channel = Query()
         res = self.__channels.get((Channel.station_id == station_id) & (Channel.channel_id == channel_id)
-                                           & (Channel.commission_time < self.__current_time)
+                                           & (Channel.commission_time <= self.__current_time)
                                            & (Channel.decommission_time > self.__current_time))
         if(res is None):
             logger.error("query for station {} and channel {} at time {} returned no results".format(station_id, channel_id, self.__current_time))
@@ -162,18 +162,29 @@ class Detector(object):
     def __query_channels(self, station_id):
         Channel = Query()
         return self.__channels.search((Channel.station_id == station_id)
-                                           & (Channel.commission_time < self.__current_time)
+                                           & (Channel.commission_time <= self.__current_time)
                                            & (Channel.decommission_time > self.__current_time))
 
     def __query_station(self, station_id):
         Station = Query()
         res = self.__stations.get((Station.station_id == station_id)
-                                       & (Station.commission_time < self.__current_time)
+                                       & (Station.commission_time <= self.__current_time)
                                        & (Station.decommission_time > self.__current_time))
         if(res is None):
             logger.error("query for station {} at time {} returned no results".format(station_id, self.__current_time))
-            raise LookupError
+            raise LookupError("query for station {} at time {} returned no results".format(station_id, self.__current_time))
         return res
+    
+    def get_station_ids(self):
+        station_ids = []
+        res = self.__stations.all()
+        if(res is None):
+            logger.error("query for stations returned no results")
+            raise LookupError("query for stations returned no results")
+        for a in res:
+            if(a['station_id'] not in station_ids):
+                station_ids.append(a['station_id'])
+        return sorted(station_ids)
 
     def __get_station(self, station_id):
         if(station_id not in self.__buffered_stations.keys()):
@@ -192,14 +203,56 @@ class Detector(object):
 
     def __buffer(self, station_id):
         self.__buffered_stations[station_id] = self.__query_station(station_id)
-        self.__valid_t0 = max(self.__valid_t0, self.__buffered_stations[station_id]['commission_time'])
-        self.__valid_t1 = min(self.__valid_t0, self.__buffered_stations[station_id]['decommission_time'])
+        self.__valid_t0 = self.__buffered_stations[station_id]['commission_time']
+        self.__valid_t1 = self.__buffered_stations[station_id]['decommission_time']
         channels = self.__query_channels(station_id)
         self.__buffered_channels[station_id] = {}
         for channel in channels:
             self.__buffered_channels[station_id][channel['channel_id']] = channel
             self.__valid_t0 = max(self.__valid_t0, channel['commission_time'])
-            self.__valid_t1 = min(self.__valid_t0, channel['decommission_time'])
+            self.__valid_t1 = min(self.__valid_t1, channel['decommission_time'])
+            
+    def __get_t0_t1(self, station_id):
+        Station = Query()
+        res = self.__stations.get(Station.station_id == station_id)
+        t0 = None
+        t1 = None
+        if(isinstance(res, list)):
+            for station in res:
+                if(t0 is None):
+                    t0 = station['commission_time']
+                else:
+                    t0 = min(t0, station['commission_time'])
+                if(t1 is None):
+                    t1 = station['decommission_time']
+                else:
+                    t1 = max(t1, station['decommission_time'])
+        else:
+            t0 = res['commission_time']
+            t1 = res['decommission_time']
+        return t0, t1
+    
+    def has_station(self, station_id):
+        Station = Query()
+        res = self.__stations.get(Station.station_id == station_id)
+        return res != None
+    
+    def get_unique_time_periods(self, station_id):
+        """
+        returns the time periods in which the station configuration (including all channels) was constant
+        """
+        up = []
+        t0, t1 = self.__get_t0_t1(station_id)
+        self.update(t0)
+        while True:
+            if(len(up) > 0 and up[-1] == t1):
+                break
+            self.__buffer(station_id)
+            if(len(up) == 0):
+                up.append(self.__valid_t0)
+            up.append(self.__valid_t1)
+            self.update(self.__valid_t1)
+        return up
 
     def update(self, timestamp):
         logger.info("updating detector time to {}".format(timestamp))
@@ -209,6 +262,9 @@ class Detector(object):
             self.__buffered_channels = {}
             self.__valid_t0 = datetime(2100, 1, 1)
             self.__valid_t1 = datetime(1970, 1, 1)
+            
+    def get_channel(self, station_id, channel_id):
+        return self.__get_channel(station_id, channel_id)
 
     def get_relative_position(self, station_id, channel_id):
         res = self.__get_channel(station_id, channel_id)
@@ -229,7 +285,7 @@ class Detector(object):
     def get_number_of_channels(self, station_id):
         res = self.__get_channels(station_id)
         return len(res)
-        
+    
     def get_channel_ids(self, station_id):
         channel_ids = []
         for channel in self.__get_channels(station_id).values():
