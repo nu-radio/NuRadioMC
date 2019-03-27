@@ -42,7 +42,7 @@ with open("single_position.json") as fin:
 
     xx = np.array(xx)
     yy = np.array(yy)
-    fig, ax = plt.subplots(1, 1)
+    fig, ax = plt.subplots(1, 1, figsize=(7,7))
     for i, x in enumerate(np.unique(np.abs(xx))):
         # select all stations corresponding to this distance
         mask = ((np.abs(xx) == x) & (np.abs(yy) == x))  \
