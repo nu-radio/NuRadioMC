@@ -15,7 +15,7 @@ fin = h5py.File(args.hdf5input[0], 'r')
 event_ids = np.array(fin['event_ids'])
 flavors = np.array(fin['flavors'])
 energies = np.array(fin['energies'])
-ccncs = np.array(fin['ccncs'])
+ccncs = np.array(fin['interaction_type'])
 xx = np.array(fin['xx'])
 yy = np.array(fin['yy'])
 zz = np.array(fin['zz'])
@@ -43,7 +43,7 @@ for i in range(len(args.hdf5input) - 2):
     st = np.append(st, np.array(fin['ray_tracing_solution_type']), axis = 0)
     launch_vectors = np.append(launch_vectors, np.array(fin['launch_vectors']), axis = 0)
     receive_vectors = np.append(receive_vectors, np.array(fin['receive_vectors']), axis = 0)
-    
+
 shower_axis = -1.0 * hp.spherical_to_cartesian(zeniths, azimuths)
 viewing_angles_d = np.array([hp.get_angle(x, y) for x, y in zip(shower_axis, launch_vectors[:, 5, 0])])
 viewing_angles_r = np.array([hp.get_angle(x, y) for x, y in zip(shower_axis, launch_vectors[:, 5, 1])])
@@ -61,5 +61,3 @@ with open(args.ASCIIoutput, 'w') as fout:
         print(str(event_ids[i]) + ", ", end = '')
         fout.write("{:08d}  {:>+5d}  {:.5e}  {:s}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}\n{:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:>10.3f}  {:02f}  {:02f}\n".format(int(event_ids[i]), int(flavors[i]), energies[i], ccncs[i], xx[i], yy[i], zz[i], zeniths[i] / units.deg, azimuths[i] / units.deg, inelasticity[i], weight[i], viewing_angles_d[i] / units.deg, viewing_angles_r[i] / units.deg, launch_angles_d[i] / units.deg, launch_angles_r[i] / units.deg, 180.0 - rec_angles_d[i] / units.deg, 180.0 - rec_angles_r[i] / units.deg, st[i][5][0], st[i][5][1]))
     fout.close()
-
-
