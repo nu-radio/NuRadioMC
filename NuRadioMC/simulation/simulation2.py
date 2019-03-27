@@ -35,6 +35,7 @@ logger.setLevel(logging.WARNING)
 
 VERSION = 0.1
 
+
 def merge_config(user, default):
     if isinstance(user,dict) and isinstance(default,dict):
         for k,v in iteritems(default):
@@ -43,11 +44,6 @@ def merge_config(user, default):
             else:
                 user[k] = merge_config(user[k],v)
     return user
-
-
-
-
-
 
 
 class simulation():
@@ -158,6 +154,7 @@ class simulation():
 
 
         inputTime = 0.0
+        askaryan_time = 0.
         rayTracingTime = 0.0
         detSimTime = 0.0
         outputTime = 0.0
@@ -169,8 +166,10 @@ class simulation():
             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 100.)) == 0):
                 eta = datetime.timedelta(seconds=(time.time() - t_start) * (self._n_events - self._iE) / self._iE)
                 total_time = inputTime + rayTracingTime + detSimTime + outputTime
-                logger.warning("processing event {}/{} = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), detector simulation = {:.0f}% reading input = {:.0f}%".format(
-                    self._iE, self._n_events, 100. * self._iE / self._n_events, eta, 100. * rayTracingTime / total_time, 100. * time_attenuation_length / rayTracingTime, 100. * detSimTime / total_time, 100.*inputTime/total_time))
+                logger.warning("processing event {}/{} = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%".format(
+                    self._iE, self._n_events, 100. * self._iE / self._n_events, eta, 100. * (rayTracingTime - askaryan_time) / total_time,
+                    100. * time_attenuation_length / (rayTracingTime - askaryan_time),
+                    100.* askaryan_time/total_time, 100. * detSimTime / total_time, 100.*inputTime/total_time))
 #             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 10000.)) == 0):
 #                 print("*", end='')
 
@@ -178,7 +177,7 @@ class simulation():
             self._read_input_neutrino_properties()
 
             # calculate weight
-            self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, self._ccnc, mode=self._cfg['weights']['weight_mode'])
+            self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, mode=self._cfg['weights']['weight_mode'])
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if(self._mout['weights'][self._iE] < self._cfg['speedup']['minimum_weight_cut']):
@@ -201,7 +200,7 @@ class simulation():
             # first step: peorform raytracing to see if solution exists
             #print("start raytracing. time: " + str(time.time()))
             t2 = time.time()
-            inputTime += (t2 - t1)
+            inputTime += (time.time() - t1)
             ray_tracing_performed = ('ray_tracing_C0' in self._fin) and (self._was_pre_simulated)
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                 x2 = self._det.get_relative_position(self._station_id, channel_id)
@@ -264,23 +263,27 @@ class simulation():
                     logger.debug("ch {}, s {} R = {:.1f} m, t = {:.1f}ns, receive angles {:.0f} {:.0f}".format(
                         channel_id, iS, R / units.m, T / units.ns, zenith / units.deg, azimuth / units.deg))
 
-                    fem, fhad = self._get_em_had_fraction(self._inelasticity, self._ccnc, self._flavor)
+                    fem, fhad = self._get_em_had_fraction(self._inelasticity, self._inttype, self._flavor)
                     # get neutrino pulse from Askaryan module
+                    t_ask = time.time()
                     spectrum = signalgen.get_frequency_spectrum(
                         self._energy * fhad, viewing_angles[iS], self._n_samples, self._dt, "HAD", n_index, R,
                         self._cfg['signal']['model'], same_shower=(iS > 0))
+                    askaryan_time += (time.time() - t_ask)
 
                     # apply frequency dependent attenuation
                     t_att = time.time()
                     if self._cfg['propagation']['attenuate_ice']:
-                        attn = r.get_attenuation(iS, self._ff)
+                        attn = r.get_attenuation(iS, self._ff, 0.5 * self._sampling_rate_detector)
                         spectrum *= attn
                     time_attenuation_length += (time.time() - t_att)
 
                     if(fem > 0):
+                        t_ask = time.time()
                         spectrum_em = signalgen.get_frequency_spectrum(
                             self._energy * fem, viewing_angles[iS], self._n_samples, self._dt, "EM", n_index, R,
                             self._cfg['signal']['model'], same_shower=(iS > 0))
+                        askaryan_time += (time.time() - t_ask)
                         if self._cfg['propagation']['attenuate_ice']:
                             spectrum_em *= attn
                         # add EM signal to had signal in the time domain
@@ -342,7 +345,7 @@ class simulation():
 
             #print("start detector simulation. time: " + str(time.time()))
             t3 = time.time()
-            rayTracingTime += (t3 - t2)
+            rayTracingTime += t3 - t2
             # perform only a detector simulation if event had at least one
             # candidate channel
             if(not candidate_event):
@@ -372,10 +375,6 @@ class simulation():
         t5 = time.time()
         self._write_ouput_file()
 
-        t_total = time.time() - t_start
-        logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(self._n_events,
-                                                                                         t_total, 1.e3 * t_total / self._n_events))
-
         try:
             self.calculate_Veff()
         except:
@@ -388,7 +387,6 @@ class simulation():
         outputTime = time.time() - t5
         print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
               "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
-
 
     def _increase_signal(self, channel_id, factor):
         """
@@ -524,7 +522,7 @@ class simulation():
         self._event_id = self._fin['event_ids'][self._iE]
         self._flavor = self._fin['flavors'][self._iE]
         self._energy = self._fin['energies'][self._iE]
-        self._ccnc = self._fin['ccncs'][self._iE]
+        self._inttype = self._fin['interaction_type'][self._iE]
         self._x = self._fin['xx'][self._iE]
         self._y = self._fin['yy'][self._iE]
         self._z = self._fin['zz'][self._iE]
@@ -543,7 +541,7 @@ class simulation():
         self._sim_station[stnp.nu_azimuth] = self._azimuth_nu
         self._sim_station[stnp.nu_energy] = self._energy
         self._sim_station[stnp.nu_flavor] = self._flavor
-        self._sim_station[stnp.ccnc] = self._ccnc
+        self._sim_station[stnp.inttype] = self._inttype
         self._sim_station[stnp.nu_vertex] = np.array([self._x, self._y, self._z])
         self._sim_station[stnp.inelasticity] = self._inelasticity
 
@@ -628,7 +626,7 @@ class simulation():
         Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
         logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
 
-    def _get_em_had_fraction(self, inelasticity, ccnc, flavor):
+    def _get_em_had_fraction(self, inelasticity, inttype, flavor):
         """
         calculates the fraction of the neutrino energy that goes into the
         electromagnetic cascade (em) and the hadronic cascade (had)
@@ -637,7 +635,7 @@ class simulation():
         ----------
         inelasticity: float
             the inelasticity (fraction of energy that goes into had. cascade)
-        ccnc: string ['nc', 'cc']
+        inttype: string ['nc', 'cc', 'tau_had', 'tau_em']
             neutral current (nc) or carged currend (cc) interaction
         flavor: int
             flavor id
@@ -651,9 +649,9 @@ class simulation():
         """
         fem = 0  # electrogmatnetic fraction
         fhad = 0  # hadronic fraction
-        if(ccnc == 'nc'):
+        if(inttype == 'nc'):
             fhad = inelasticity
-        else:
+        elif(inttype == 'cc'):
             if(np.abs(flavor) == 12):
                 fem = (1 - inelasticity)
                 fhad = inelasticity
@@ -661,6 +659,11 @@ class simulation():
                 fhad = inelasticity
             elif(np.abs(flavor) == 16):
                 fhad = inelasticity
+        elif(np.abs(flavor) == 15):
+            if (inttype == 'tau_em'):
+                fem = 1
+            elif (inttype == 'tau_had'):
+                fhad = 1
         return fem, fhad
 
     # TODO verify that calculation of polarization vector is correct!

@@ -20,7 +20,7 @@ AraStationDep = args.avgDepth / units.m
 event_ids = fin['event_ids']
 flavors = np.array(fin['flavors'])
 energies = np.array(fin['energies'])
-ccncs = np.array(fin['ccncs'])
+ccncs = np.array(fin['interaction_type'])
 xx = np.array(fin['xx'])
 yy = np.array(fin['yy'])
 zz = np.array(fin['zz'])
@@ -59,5 +59,3 @@ with open(args.AraSiminput, 'w') as fout:
         fout.write("{:08d} {:01d} {:01d} {:.3f} {:01d} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f}\n".format(event_ids[i], int(nuflavorint[i]), int(nu_nubar[i]), pnu[i], int(currentint[i]), posnu_r[i], posnu_theta[i], posnu_phi[i], np.pi - zeniths[i], np.pi + azimuths[i], inelasticity[i]))
 #        fout.write("{:08d} {:01d} {:01d} {:.3f} {:01d} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f}\n".format(event_ids[i], int(nuflavorint[i]), int(nu_nubar[i]), pnu[i], int(currentint[i]), posnu_r[i], posnu_theta[i], posnu_phi[i], np.pi - zeniths[i], np.pi + azimuths[i]))
     fout.close()
-
-

@@ -54,12 +54,12 @@ def merge_data(data_list, attrs_list):
                 attrs['trigger_names'] = attrs_list[f]['trigger_names']
             if len(data_list[f]['triggered']) == 0:
                 attrs['n_events'] += attrs_list[f]['n_events']
-            else:
-                check.check_keys(data, data_list[f])
-                check.check_shapes(data, data_list[f])
-                for key in data_list[f]:
-                    data[key] = np.append(data[key], data_list[f][key], axis=0)
-                attrs['n_events'] += attrs_list[f]['n_events']
+                continue
+            check.check_keys(data, data_list[f])
+            check.check_shapes(data, data_list[f])
+            for key in data_list[f]:
+                data[key] = np.append(data[key], data_list[f][key], axis=0)
+            attrs['n_events'] += attrs_list[f]['n_events']
 
     if 'trigger_names' not in attrs:
         attrs['trigger_names'] = []

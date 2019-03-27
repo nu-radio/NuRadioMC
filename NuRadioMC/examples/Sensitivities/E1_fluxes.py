@@ -161,7 +161,7 @@ Radar = np.array(([
 (1.875e+01, 5.562e-08, 8.253e-06),
 (1.925e+01, 1.072e-07, 1.849e-05)]))
 
-Radar[:,0] *= 10**Radar[:,0]*units.eV
+Radar[:,0] = 10**Radar[:,0]*units.eV
 Radar[:,1] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
 Radar[:,1] /= Radar[:,0]
 Radar[:,2] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
