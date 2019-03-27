@@ -48,7 +48,7 @@ for iD, depth in enumerate(depths):
     eff3[iD] = np.sum(weights[~mask][C4])/ np.sum(weights[~mask][C3])
     
      
-fig, (ax) = plt.subplots(1, 1)
+fig, (ax) = plt.subplots(1, 1, figsize=(6, 5))
 sort_mask = np.argsort(depths)
 ax.plot(depths[sort_mask], eff1[sort_mask], 'o-', label='one pulse > 3 sigma, one pulse > 2 sigma')
 ax.plot(depths[sort_mask], eff2[sort_mask], "d--", label="both pulses > 3 sigma")
@@ -58,7 +58,7 @@ ax.set_ylim(0, 1)
 ax.set_xlabel("depth [m]")
 ax.set_ylabel("efficiency")
 ax.set_title("neutrino energy {:.2g}eV".format(np.array(fin['energies']).mean()))
-ax.legend()
+ax.legend(fontsize='x-small', numpoints=1)
 fig.tight_layout()
 fig.savefig("{}.png".format(os.path.basename(args.inputfilename)))
 plt.show()
