@@ -800,6 +800,10 @@ class ray_tracing:
     utility class (wrapper around the 2D analytic ray tracing code) to get
     ray tracing solutions in 3D for two arbitrary points x1 and x2
     """
+    
+    solution_types = {1: 'direct',
+                  2: 'refracted',
+                  3: 'reflected'}
 
     def __init__(self, x1, x2, medium, log_level=logging.WARNING,
                  n_frequencies_integration=6):
