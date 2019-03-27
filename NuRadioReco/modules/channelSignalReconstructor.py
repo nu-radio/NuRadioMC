@@ -59,7 +59,6 @@ class channelSignalReconstructor:
             dictionary of various SNR parameters
         """
 
-        SNR = {}
         trace = channel.get_trace()
         times = channel.get_times()
 
@@ -91,22 +90,30 @@ class channelSignalReconstructor:
             plt.ylabel("Power")
             plt.legend()
 
-        # normalize sampling_rate
-        SNR['integrated_power'] = (np.sum(np.square(trace[signal_window_mask])) - noise_int)
-
-        if SNR['integrated_power'] < noise_int:
-            logger.debug("Intgreated signal {0} smaller than noise {1}, power SNR 0".format(SNR['integrated_power'], noise_int))
+        # Calculating SNR
+        SNR = {}
+        if (noise_rms == 0) or (noise_int == 0):
+            logger.warning("RMS of noise is zero, calculating an SNR is not useful. All SNRs are set to zero.")
+            SNR['peak_2_peak_amplitude'] = 0.
+            SNR['peak_amplitude'] = 0.
             SNR['integrated_power'] = 0.
         else:
 
-            SNR['integrated_power'] /= (noise_int / self.__signal_window_start)
-            SNR['integrated_power'] = np.sqrt(SNR['integrated_power'])
+            SNR['integrated_power'] = (np.sum(np.square(trace[signal_window_mask])) - noise_int)
+            if SNR['integrated_power'] < noise_int:
+                logger.debug("Integrated signal {0} smaller than noise {1}, power SNR 0".format(SNR['integrated_power'], noise_int))
+                SNR['integrated_power'] = 0.
+            else:
 
-        SNR['peak_2_peak_amplitude'] = np.max(trace[signal_window_mask]) - np.min(trace[signal_window_mask])
-        SNR['peak_2_peak_amplitude'] /= noise_rms
-        SNR['peak_2_peak_amplitude'] /= 2
+                SNR['integrated_power'] /= (noise_int / self.__signal_window_start)
+                SNR['integrated_power'] = np.sqrt(SNR['integrated_power'])
 
-        SNR['peak_amplitude'] = np.max(np.abs(trace[signal_window_mask])) / noise_rms
+            # calculate amplitude values
+            SNR['peak_2_peak_amplitude'] = np.max(trace[signal_window_mask]) - np.min(trace[signal_window_mask])
+            SNR['peak_2_peak_amplitude'] /= noise_rms
+            SNR['peak_2_peak_amplitude'] /= 2
+
+            SNR['peak_amplitude'] = np.max(np.abs(trace[signal_window_mask])) / noise_rms
 
         # SCNR
         SNR['Seckel_2_noise'] = 5
