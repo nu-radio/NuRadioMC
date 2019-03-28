@@ -1,54 +1,10 @@
 import numpy as np
 import scipy.constants
-from NuRadioReco.utilities import units
+from NuRadioMC.utilities import units
+from NuRadioMC.utilities import cross_sections
 import logging
 logger = logging.getLogger('fluxes')
 
-def get_nu_cross_section(energy, cross_section_type = 'ctw'):
-    """
-    return neutrino cross-section
-
-    Parameters
-        ----------
-    energy: neutrino energy
-
-    cross_section_type: str
-        defines model of cross-section
-        ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998
-        ctwcc  : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
-                Charge Current Only
-        ctwnc  : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
-                Neutral Current Only
-        ctw    : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
-                Total Cross Section
-    """
-
-    def param(energy,cross_section_type = 'cc'):
-
-        if cross_section_type == 'cc':
-            c = (-1.826, -17.31, -6.406, 1.431, -17.91) # nu, CC
-        elif cross_section_type == 'nc':
-            c = (-1.826, -17.31, -6.448, 1.431, -18.61) # nu, NC
-        else:
-            logger.error("Type {0} of cross-section not defined".format(cross_section_type))
-        epsilon = np.log10(energy/units.GeV)
-        l_eps = np.log(epsilon - c[0])
-        crscn = c[1] + c[2] * l_eps + c[3] * l_eps**2 + c[4]/l_eps
-        crscn = np.power(10,crscn) * units.cm**2
-        return crscn
-
-    if cross_section_type == 'ghandi':
-        crscn = 7.84e-36 * units.cm**2 * np.power(energy/units.GeV,0.363)
-    elif cross_section_type == 'ctwcc':
-        crscn = param(energy,'cc')
-    elif cross_section_type == 'ctwnc':
-        crscn = param(energy,'nc')
-    elif cross_section_type == 'ctw':
-        crscn = param(energy,'nc') + param(energy,'cc')
-    else:
-        logger.error('Type {0} of neutrino cross-section not defined'.format(cross_section_type))
-
-    return crscn
 
 
 def get_interaction_length(energy, cross_section_type = 'ctw'):
@@ -57,7 +13,7 @@ def get_interaction_length(energy, cross_section_type = 'ctw'):
     """
     ice_density = 0.917 # units.g/units.cm**3 water equivalent is 1, so unitless
     N_A = scipy.constants.Avogadro * units.cm**-3
-    L = 1./(N_A * ice_density * get_nu_cross_section(energy, cross_section_type=cross_section_type))
+    L = 1./(N_A * ice_density * cross_sections.get_nu_cross_section(energy, cross_section_type=cross_section_type))
     return L
 
 def get_limit_from_aeff(energy, aeff,
@@ -279,8 +235,8 @@ def get_number_of_events_for_flux(energies, flux, Veff, livetime, nuCrsScn='ctw'
 
 def get_exposure(energy, Veff, field_of_view=2*np.pi):
     """
-    calculate exposure from effective volume 
-    
+    calculate exposure from effective volume
+
     Parameters
     ----------
     energy: float
@@ -289,7 +245,7 @@ def get_exposure(energy, Veff, field_of_view=2*np.pi):
         effective volume
     field_of_view: float
         the field of view of the detector
-    
+
     Returns
     float: exposure
     """
@@ -298,14 +254,14 @@ def get_exposure(energy, Veff, field_of_view=2*np.pi):
 def get_integrated_exposure(exp_func, E_low, E_high):
     """
     calculates the integral int(E^-2 * exposure(E) dE)
-    
+
     integration is performed in log space
     """
-    
+
     def f(logE):
         E = 10 ** logE
         return exp_func(E) * np.log(E) / E
-    
+
     from scipy import integrate
     i = integrate.quad(f, np.log10(E_low), np.log10(E_high))
     return i[0]
@@ -315,7 +271,7 @@ def get_fluence_limit(int_exp):
     calculates the fluence limit for a integrated exposure
     """
     return 2.39/int_exp
-    
+
 
 
 
@@ -326,7 +282,7 @@ if __name__=="__main__":  # this part of the code gets only executed it the scri
     veff = 2150 * units.km**3 * units.sr
     livetime = 5 *units.year
 
-    print "Cross section: {} cm^2".format(get_nu_cross_section(energy, cross_section_type = 'ctw'))
+    print "Cross section: {} cm^2".format(cross_sections.get_nu_cross_section(energy, cross_section_type = 'ctw'))
 
     print "interaction length: {} km".format(get_interaction_length(energy, cross_section_type = 'ctw')/units.km)
 
