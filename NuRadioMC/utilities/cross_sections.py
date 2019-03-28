@@ -67,7 +67,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type = 
         crscn = np.zeros_like(energy)
         if inttype == 'total':
 
-            if type(flavors) == int:
+            if ( type(flavors) == int or type(flavors) == np.int64 ):
                 if flavors >= 0:
                     crscn = param(energy,'nc') + param(energy,'cc')
                 else:
@@ -81,7 +81,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type = 
 
         else:
             if (inttype == 'cc') or (inttype =='nc'):
-                if type(flavors) == int:
+                if ( type(flavors) == int or type(flavors) == np.int64 ):
                     crscn = param(energy,inttype)
                 else:
                     antiparticles = np.where(flavors < 0)
@@ -89,7 +89,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type = 
                     crscn[particles] = param(energy[particles],inttype)
                     crscn[antiparticles] = param(energy[antiparticles],inttype)
             else:
-                if type(flavors) == int:
+                if ( type(flavors) == int or type(flavors) == np.int64 ):
 
                     particles_cc = np.where(inttype == 'cc')
                     particles_nc = np.where(inttype == 'nc')
