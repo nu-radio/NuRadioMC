@@ -153,9 +153,8 @@ def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_
     context = dash.callback_context
     if filename is None:
         return 0
-    plot_click_info = json.loads(j_plot_click_info)
     if context.triggered[0]['prop_id'] == 'event-click-coordinator.children':
-        return plot_click_info['event_i']
+        return context.triggered[0]['value']['event_i']
     else:
         if context.triggered[0]['prop_id'] != 'btn-next-event.n_clicks_timestamp' and context.triggered[0]['prop_id'] != 'btn-previous-event.n_clicks_timestamp':
             return 0
