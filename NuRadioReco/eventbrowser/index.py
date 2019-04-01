@@ -344,6 +344,8 @@ def add_click_info(json_object, event_number_array, times_array):
             Input('cr-xcorrelation-amplitude', 'clickData')])
 def coordinate_event_click(cr_polarization_zenith_click, cr_skyplot_click, cr_xcorrelation_click, cr_xcorrelation_amplitude_click):
     context = dash.callback_context
+    if context.triggered[0]['value'] is None:
+        return None
     return json.dumps({
         'event_i': context.triggered[0]['value']['points'][0]['customdata'],
     })
