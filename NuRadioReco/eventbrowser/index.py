@@ -49,7 +49,8 @@ app.layout = html.Div([
                 ], className='input-group'),
             html.Div([
                 dcc.Dropdown(id='filename',
-                             options=[{'label': l, 'value': l} for l in sorted(glob.glob(data_folder + '/*.ar*'))],
+                             options=[],
+                             multi=True,
                              className='custom-dropdown'),
                  html.Div([
                     html.Button('open file', id='btn-open-file', className='btn btn-default')
@@ -228,7 +229,7 @@ def set_uuid(pathname, juser_id):
 @app.callback(Output('filename', 'options'),
               [Input('datafolder', 'value')])
 def set_filename_dropdown(folder):
-    return [{'label': l, 'value': l} for l in sorted(glob.glob(os.path.join(folder, '*.nur*')))]
+    return [{'label': l.split('/')[-1], 'value': l} for l in sorted(glob.glob(os.path.join(folder, '*.nur*')))]
 
 
 
