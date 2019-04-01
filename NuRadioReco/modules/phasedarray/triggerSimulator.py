@@ -98,6 +98,11 @@ class triggerSimulator:
         Threshold: float
             Threshold for a SINGLE antenna. It will be rescaled with the
             square root of the number of antennas
+
+        Returns
+        -------
+        is_triggered: bool
+            True if the triggering condition is met
         """
 
         for subbeam_rolls in beam_rolls:
