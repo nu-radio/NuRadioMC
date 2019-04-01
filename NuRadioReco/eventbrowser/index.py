@@ -34,6 +34,7 @@ provider = dataprovider.DataProvider()
 app.title = 'ARIANNA viewer'
 
 app.layout = html.Div([
+    dcc.Location(id='url', refresh=False),
     html.Div(id='event-click-coordinator', children=json.dumps(None), style={'display': 'none'}),
     html.Div(id='user_id', style={'display': 'none'},
              children=json.dumps(None)),
