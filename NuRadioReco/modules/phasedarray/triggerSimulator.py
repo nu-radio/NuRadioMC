@@ -35,6 +35,9 @@ class triggerSimulator:
         self.__debug = debug
 
     def get_antenna_positions(self, station, det, triggered_channels=None, component=2):
+        """
+        Calculates the vertical coordinates of the antennas of the detector
+        """
 
         ant_pos = [ det.get_relative_position(station.get_id(), channel.get_id())[component] \
                     for channel in station.iter_channels() \
@@ -68,6 +71,9 @@ class triggerSimulator:
         return beam_rolls
 
     def check_vertical_string(self, station, det, triggered_channels):
+        """
+        Checks if the triggering antennas lie in a straight vertical line
+        """
 
         cut = 1.e-3*units.m
         ant_x = self.get_antenna_positions(station, det, triggered_channels, 0)
@@ -76,6 +82,51 @@ class triggerSimulator:
         diff_y = np.abs(ant_y - ant_y[0])
         if ( sum(diff_x) > cut or sum(diff_y) > cut ):
             raise NotImplementedError('The phased triggering array should lie on a vertical line')
+
+    def phased_trigger(self, station, beam_rolls, triggered_channels, threshold):
+        """
+        Calculates the trigger for a certain phasing configuration
+
+        Parameters
+        ----------
+        Station: Station object
+            Description of the current station
+        Beam rolls: array of ints
+            Contains the integers for rolling the voltage traces (delays)
+        Triggered_channels: array of ints
+            Ids of the triggering channels
+        Threshold: float
+            Threshold for a SINGLE antenna. It will be rescaled with the
+            square root of the number of antennas
+        """
+
+        for subbeam_rolls in beam_rolls:
+
+            phased_trace = None
+            Nant = len(triggered_channels)
+
+            for channel in station.iter_channels():  # loop over all channels (i.e. antennas) of the station
+                channel_id = channel.get_id()
+                if channel_id not in triggered_channels:  # skip all channels that do not participate in the trigger decision
+                    logger.debug("skipping channel{}".format(channel_id))
+                    continue
+
+                trace = channel.get_trace()  # get the time trace (i.e. an array of amplitudes)
+                #times = channel.get_times()  # get the corresponding time bins
+
+                if(phased_trace is None):
+                    phased_trace = np.roll(trace, subbeam_rolls[channel_id])
+                else:
+                    phased_trace += np.roll(trace, subbeam_rolls[channel_id])
+
+            # Noise RMS is the square root of the number of phased antennas times the RMS
+            # of the noise for a single antenna, resulting in the following condition
+            if(np.max(np.abs(phased_trace)) > np.sqrt(Nant)*threshold):
+                is_triggered = True
+                logger.debug("Station has triggered")
+                return is_triggered
+
+        return False
 
     def run(self, evt, station, det,
             threshold=60 * units.mV,
@@ -112,8 +163,6 @@ class triggerSimulator:
             pointing angles for the secondary beam
         """
 
-        phased_trace = None
-
     	if (triggered_channels == None):
     		triggered_channels = [channel._id for channel in station.iter_channels()]
 
@@ -125,30 +174,13 @@ class triggerSimulator:
         logger.debug("secondary_channels:", secondary_channels)
         secondary_beam_rolls = self.get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles)
 
-        for channel in station.iter_channels():  # loop over all channels (i.e. antennas) of the station
-            channel_id = channel.get_id()
-            if channel_id not in triggered_channels:  # skip all channels that do not participate in the trigger decision
-                logger.debug("skipping channel{}".format(channel_id))
-                continue
+        primary_trigger = self.phased_trigger(station, beam_rolls, triggered_channels, threshold)
+        secondary_trigger = self.phased_trigger(station, secondary_beam_rolls, secondary_channels, threshold)
 
-            trace = channel.get_trace()  # get the time trace (i.e. an array of amplitudes)
-            #times = channel.get_times()  # get the corresponding time bins
-
-            for subbeam_rolls in beam_rolls:
-
-                if(phased_trace is None):
-                    phased_trace = np.roll(trace, subbeam_rolls[channel_id])
-                else:
-                    phased_trace += np.roll(trace, subbeam_rolls[channel_id])
-
-            if channel_id in secondary_channels:
-                for secbeam_rolls in secondary_beam_rolls:
-                    phased_trace += np.roll(trace, secbeam_rolls[channel_id])
-
-    	is_triggered = False
-        if(np.max(np.abs(phased_trace)) > threshold):  # define a simple threshold trigger
+        if primary_trigger or secondary_trigger:
             is_triggered = True
-    	    logger.debug("Station has triggered")
+        else:
+            is_triggered = False
 
     	trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, secondary_channels, phasing_angles, secondary_phasing_angles)
      	trigger.set_triggered(is_triggered)
