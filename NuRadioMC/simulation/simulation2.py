@@ -541,7 +541,7 @@ class simulation():
         self._sim_station[stnp.nu_azimuth] = self._azimuth_nu
         self._sim_station[stnp.nu_energy] = self._energy
         self._sim_station[stnp.nu_flavor] = self._flavor
-        self._sim_station[stnp.inttype] = self._inttype
+        self._sim_station[stnp.nu_inttype] = self._inttype
         self._sim_station[stnp.nu_vertex] = np.array([self._x, self._y, self._z])
         self._sim_station[stnp.inelasticity] = self._inelasticity
 
