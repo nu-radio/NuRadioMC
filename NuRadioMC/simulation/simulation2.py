@@ -405,7 +405,7 @@ class simulation():
                 electric_field.set_trace(electric_field.get_trace() * factor, sampling_rate=electric_field.get_sampling_rate())
 
         else:
-            sim_channels = self._station.get_sim_station().get_electric_field_for_channels([channel_id])
+            sim_channels = self._station.get_sim_station().get_electric_fields_for_channels([channel_id])
             for sim_channel in sim_channels:
                 sim_channel.set_trace(sim_channel.get_trace() * factor, sampling_rate=sim_channel.get_sampling_rate())
 
