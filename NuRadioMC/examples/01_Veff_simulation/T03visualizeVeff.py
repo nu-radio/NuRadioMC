@@ -18,10 +18,15 @@ from NuRadioMC.examples.Sensitivities import E2_fluxes2 as limits
 
 
 if __name__ == "__main__":
-    
-    energies, Veff, Veff_error, SNR, trigger_names, deposited  = get_Veff("/Users/cglaser/analysis/simulations/201902_ARZ_Veff/ARIA/Alvarez2000/")
-    
-    
+
+    try:
+        os.path.isdir("output")
+    except:
+        print("Please move files to folder output. This is the default location.")
+
+    energies, Veff, Veff_error, SNR, trigger_names, deposited  = get_Veff("output")
+
+
     # plot effective volume
     fig, ax = plt.subplots(1, 1, figsize=(6,6))
     ax.errorbar(energies / units.eV, Veff['all_triggers']/units.km**3 /units.sr,
@@ -34,9 +39,9 @@ if __name__ == "__main__":
 #     fig.savefig("plots/ARIA_Alv_ARZ.png")
     fig.tight_layout()
     fig.savefig("Veff.png")
-    
-    
-    
+
+
+
     # plot expected limit
     fig, ax = limits.get_E2_limit_figure(show_grand_10k=True, show_grand_200k=False)
     labels = []
