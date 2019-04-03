@@ -7,13 +7,13 @@ logger = logging.getLogger('fluxes')
 
 
 
-def get_interaction_length(energy, cross_section_type = 'ctw'):
+def get_interaction_length(energy,flavors=12, inttype='total', cross_section_type = 'ctw'):
     """
     return interaction length at given energy, assuming a constant ice density
     """
     ice_density = 0.917 # units.g/units.cm**3 water equivalent is 1, so unitless
     N_A = scipy.constants.Avogadro * units.cm**-3
-    L = 1./(N_A * ice_density * cross_sections.get_nu_cross_section(energy, cross_section_type=cross_section_type))
+    L = 1./(N_A * ice_density * cross_sections.get_nu_cross_section(energy, flavors=flavors,inttype=inttype,cross_section_type=cross_section_type))
     return L
 
 def get_limit_from_aeff(energy, aeff,
