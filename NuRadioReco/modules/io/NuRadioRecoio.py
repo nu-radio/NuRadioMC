@@ -61,8 +61,8 @@ class NuRadioRecoio(object):
         for f in self.__fin:
             f.close()
 
-    def get_filename(self):
-        return self.__filenames[0]
+    def get_filenames(self):
+        return self.__filenames
 
     def __parse_event_header(self, evt_header):
         self.__event_ids.append(evt_header['event_id'])
