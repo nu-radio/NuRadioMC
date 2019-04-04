@@ -180,7 +180,7 @@ double get_path_length(double pos[2], double pos2[2], double C0, double n_ice, d
 
 	double result, error;
 	double epsrel = 1.e-7; //small initial absolute error
-	int max_badfunc_tries=6;
+	int max_badfunc_tries=7;
 	int num_badfunc_tries=0;
 	int status;
 
@@ -208,7 +208,6 @@ double get_path_length(double pos[2], double pos2[2], double C0, double n_ice, d
 		pathlength = result;
 	}
 	else{
-		printf("Bad call!\n");
 		pathlength=0.;
 	}	
 	return pathlength;
