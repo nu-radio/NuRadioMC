@@ -20,7 +20,6 @@ from apps.common import get_point_index
 import apps.simulation
 import os
 import sys
-# from apps import summary
 import dataprovider
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -28,11 +27,6 @@ logger = logging.getLogger('index')
 
 data_folder = os.path.dirname(sys.argv[1])
 
-# Loading screen CSS
-# app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/brPBPO.css"})
-# app.css.append_css({
-#     'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
-# })
 app.css.append_css({"external_url": "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"})
 provider = dataprovider.DataProvider()
 
@@ -40,13 +34,10 @@ provider = dataprovider.DataProvider()
 app.title = 'NuRadioViewer'
 
 app.layout = html.Div([
-    # represents the URL bar, doesn't render anything
     dcc.Location(id='url', refresh=False),
     html.Div(id='event-click-coordinator', children=json.dumps(None), style={'display': 'none'}),
     html.Div(id='user_id', style={'display': 'none'},
              children=json.dumps(None)),
-#     html.Div(id='filename', style={'display': 'none'},
-#              children=json.dumps(None)),
     html.Div(id='event-ids',  style={'display': 'none'},
              children=json.dumps([])),
     html.Div([
@@ -59,7 +50,8 @@ app.layout = html.Div([
                 ], className='input-group'),
             html.Div([
                 dcc.Dropdown(id='filename',
-                             options=[{'label': l, 'value': l} for l in sorted(glob.glob(data_folder + '/*.ar*'))],
+                             options=[],
+                             multi=True,
                              className='custom-dropdown'),
                  html.Div([
                     html.Button('open file', id='btn-open-file', className='btn btn-default')
@@ -159,20 +151,20 @@ State('user_id', 'children'),
 State('filename', 'value')]
 )
 def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_click_info, i_event, juser_id, filename):
+    context = dash.callback_context
     if filename is None:
         return 0
-    plot_click_info = json.loads(j_plot_click_info)
-    if plot_click_info is not None and plot_click_info['time']*1000. > prev_evt_click_timestamp and plot_click_info['time']*1000. > next_evt_click_timestamp:
-        return plot_click_info['event_i']
+    if context.triggered[0]['prop_id'] == 'event-click-coordinator.children':
+        return context.triggered[0]['value']['event_i']
     else:
-        if prev_evt_click_timestamp == 0 and next_evt_click_timestamp == 0:
+        if context.triggered[0]['prop_id'] != 'btn-next-event.n_clicks_timestamp' and context.triggered[0]['prop_id'] != 'btn-previous-event.n_clicks_timestamp':
             return 0
-        if prev_evt_click_timestamp > next_evt_click_timestamp:
+        if context.triggered[0]['prop_id'] == 'btn-previous-event.n_clicks_timestamp':
             if i_event == 0:
                 return 0
             else:
                 return i_event - 1
-        else:
+        if context.triggered[0]['prop_id'] == 'btn-next-event.n_clicks_timestamp':
             user_id = json.loads(juser_id)
             
             number_of_events = provider.get_arianna_io(user_id, filename).get_n_events()    
@@ -192,9 +184,6 @@ def set_event_number_display(filename, event_number):
         return 'No file selected'
     return 'Event {}'.format(event_number)
 
-# slider functions
-###############
-# set maximum value of slider
 @app.callback(
     Output('event-counter-slider', 'max'),
     [Input('filename', 'value')],
@@ -240,7 +229,7 @@ def set_uuid(pathname, juser_id):
 @app.callback(Output('filename', 'options'),
               [Input('datafolder', 'value')])
 def set_filename_dropdown(folder):
-    return [{'label': l, 'value': l} for l in sorted(glob.glob(os.path.join(folder, '*.nur*')))]
+    return [{'label': l.split('/')[-1], 'value': l} for l in sorted(glob.glob(os.path.join(folder, '*.nur*')))]
 
 
 
@@ -274,19 +263,6 @@ def set_to_first_station_in_event(filename, event_i, juser_id):
     event = ariio.get_event_i(event_i)
     for station in event.get_stations():
         return station.get_id()
-
-@app.callback(Output('summary', 'style'),
-              [Input('url', 'pathname')])
-def display_page2(pathname):
-    if pathname == '/apps/traces':
-        return {'display': 'none'}
-    if pathname == '/apps/summary':
-        return {}
-#     elif pathname == '/apps/app2':
-#         return app2.layout
-    else:
-        return '404'
-
 
 @app.callback(Output('skyplot-xcorr', 'figure'),
               [Input('filename', 'value'),
@@ -326,10 +302,6 @@ def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, station_id, juser_
         'data': traces,
         'layout': go.Layout(
             showlegend= True,
-#             xaxis={'type': 'linear', 'title': ''},
-#             yaxis={'title': xcorr_states[xcorr_type], 'range': [0, 1]},
-#             margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-#             legend={'x': 0, 'y': 1},
             hovermode='closest',
             height=500
         )
@@ -347,7 +319,6 @@ def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, station_id, juser_
 def set_event_selection(selectedData1, selectedData2, selectedData3, selectedData4, selectedData5, jcurrent_selection):
     current_selection = json.loads(jcurrent_selection)
     tcurrent_selection = []
-    #print(selectedData3)
     for i, selection in enumerate([selectedData1, selectedData2, selectedData3, selectedData4, selectedData5]):  # check which selection has fired the callback
         if selection is not None:
             event_ids = []
@@ -365,25 +336,18 @@ def add_click_info(json_object, event_number_array, times_array):
         event_number_array.append(object['event_i'])
         times_array.append(object['time'])
 
-        #finds out which one of the plots was clicked last (i.e. which one triggered the event update)
+#finds out which one of the plots was clicked last (i.e. which one triggered the event update)
 @app.callback(Output('event-click-coordinator', 'children'),
-            [Input('cr-polarization-zenith-point-click', 'children'),
-            Input('cr-skyplot-point-click', 'children'),
-            Input('cr-xcorrelation-point-click', 'children'),
-            Input('cr-xcorrelation-amplitude-point-click', 'children')])
+            [Input('cr-polarization-zenith', 'clickData'),
+            Input('cr-skyplot', 'clickData'),
+            Input('cr-xcorrelation', 'clickData'),
+            Input('cr-xcorrelation-amplitude', 'clickData')])
 def coordinate_event_click(cr_polarization_zenith_click, cr_skyplot_click, cr_xcorrelation_click, cr_xcorrelation_amplitude_click):
-    event_numbers = []
-    times = []
-    add_click_info(cr_polarization_zenith_click, event_numbers, times)
-    add_click_info(cr_skyplot_click, event_numbers, times)
-    add_click_info(cr_xcorrelation_click, event_numbers, times)
-    add_click_info(cr_xcorrelation_amplitude_click, event_numbers, times)
-    if len(times) == 0:
-        return json.dumps(None)
-    i = np.argmax(times)
+    context = dash.callback_context
+    if context.triggered[0]['value'] is None:
+        return None
     return json.dumps({
-        'event_i': event_numbers[i],
-        'time': times[i]
+        'event_i': context.triggered[0]['value']['points'][0]['customdata'],
     })
 
 @app.callback(Output('event-info-run', 'children'),
@@ -418,7 +382,6 @@ def update_event_info_id(event_i, filename, juser_id):
 def update_event_info_time(event_i, filename, station_id, juser_id):
     if filename is None or station_id is None:
         return ""
-#     filename = json.loads(jfilename)
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(event_i)
@@ -427,4 +390,6 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
     return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_station(station_id).get_station_time())
 
 if __name__ == '__main__':
+    if int(dash.__version__.split('.')[1]) < 39:
+        print('WARNING: Dash version 0.39.0 or newer is required, you are running version {}. Please update.'.format(dash.__version__))
     app.run_server(debug=True, port=8080)

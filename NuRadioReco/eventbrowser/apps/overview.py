@@ -97,11 +97,9 @@ layout = html.Div([
             html.Div([
                 html.Div([
                     dcc.Graph(id='cr-xcorrelation'),
-                    html.Div(children=json.dumps(None), id='cr-xcorrelation-point-click', style={'display': 'none'})
                 ], style={'flex': '1'}),
                 html.Div([
                     dcc.Graph(id='cr-xcorrelation-amplitude'),
-                    html.Div(children=json.dumps(None), id='cr-xcorrelation-amplitude-point-click', style={'display': 'none'})
                 ], style={'flex': '1'})
             ], style={'display': 'flex'})
         ], className='panel-body')
@@ -433,16 +431,6 @@ def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, station_id, event_ty
     fig['layout']['hovermode'] = 'closest'
     return fig
 
-@app.callback(Output('cr-xcorrelation-point-click', 'children'),
-                [Input('cr-xcorrelation', 'clickData')])
-def handle_cr_xcorrelation_point_click(click_data):
-    if click_data is None:
-        return json.dumps(None)
-    event_i = click_data['points'][0]['customdata']
-    return json.dumps({
-        'event_i': event_i,
-        'time': time.time()
-    })
 
 @app.callback(Output('cr-xcorrelation-amplitude', 'figure'),
               [Input('cr-xcorrelation-dropdown', 'value'),
@@ -488,13 +476,3 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, event_type
     fig['layout']['hovermode'] = 'closest'
     return fig
 
-@app.callback(Output('cr-xcorrelation-amplitude-point-click', 'children'),
-                [Input('cr-xcorrelation-amplitude', 'clickData')])
-def handle_cr_xcorrelation_amplitude_point_click(click_data):
-    if click_data is None:
-        return json.dumps(None)
-    event_i = click_data['points'][0]['customdata']
-    return json.dumps({
-        'event_i': event_i,
-        'time': time.time()
-    })
