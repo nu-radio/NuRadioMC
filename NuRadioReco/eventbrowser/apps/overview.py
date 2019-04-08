@@ -66,7 +66,17 @@ layout = html.Div([
         ], className='panel panel-default', style={'flex':'1'}),
         html.Div([
             html.Div('Electric Fields', className='panel-heading'),
-            html.Div(id='efield-overview-properties')
+            html.Div([
+                dcc.RadioItems(
+                    id='efield-overview-rec-sim',
+                    options=[
+                        {'label': 'Reconstruction', 'value': 'rec'},
+                        {'label': 'Simulation', 'value': 'sim'}
+                    ],
+                    value='rec'
+                ),
+                html.Div(id='efield-overview-properties')
+            ], className='panel-body')
         ], className='panel panel-default', style={'flex':'1'}),
         html.Div([
             html.Div('Triggers', className='panel-heading'),
@@ -334,9 +344,10 @@ efield_properties_for_overview = [
 @app.callback(Output('efield-overview-properties', 'children'),
                 [Input('filename', 'value'),
                 Input('event-counter-slider', 'value'),
-                Input('station-id-dropdown', 'value')],
+                Input('station-id-dropdown', 'value'),
+                Input('efield-overview-rec-sim', 'value')],
                 [State('user_id', 'children')])
-def channel_overview_properties(filename, evt_counter, station_id, juser_id):
+def efield_overview_properties(filename, evt_counter, station_id, rec_sim, juser_id):
     if filename is None or station_id is None:
         return ''
     user_id = json.loads(juser_id)
@@ -346,7 +357,13 @@ def channel_overview_properties(filename, evt_counter, station_id, juser_id):
     if station is None:
         return []
     reply = []
-    for electric_field in station.get_electric_fields():
+    if rec_sim == 'rec':
+        chosen_station = station
+    else:
+        if station.get_sim_station() is None:
+            return {}
+        chosen_station = station.get_sim_station()
+    for electric_field in chosen_station.get_electric_fields():
         props = get_properties_divs(electric_field, efield_properties_for_overview)
         reply.append(html.Div([
             html.Div('Channels', className='custom-table-td'),
