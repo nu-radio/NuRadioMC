@@ -81,17 +81,7 @@ layout = html.Div([
                             multi=True,
                             value=["trace"]
                         )
-                    ], style={'flex': '1'}),
-                    html.Div([
-                        dcc.Dropdown(id='dropdown-trace-info',
-                            options=[
-                                {'label': 'RMS', 'value': 'RMS'},
-                                {'label': 'L1', 'value': 'L1'}
-                            ],
-                            multi=True,
-                            value=["RMS", "L1"]
-                        )
-                    ], style={'flex': '1'}),
+                    ], style={'flex': '1'})
                 ], style={'display': 'flex'}),
                 html.Div([
                     html.Div([
@@ -318,12 +308,11 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
     [dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
      dash.dependencies.Input('dropdown-traces', 'value'),
-     dash.dependencies.Input('dropdown-trace-info', 'value'),
      dash.dependencies.Input('station-id-dropdown', 'value'),
      dash.dependencies.Input('open-template-button', 'n_clicks_timestamp')],
      [State('user_id', 'children'),
      State('template-directory-input', 'value')])
-def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, station_id, open_template_timestamp, juser_id, template_directory):
+def update_time_traces(evt_counter, filename, dropdown_traces, station_id, open_template_timestamp, juser_id, template_directory):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
@@ -332,13 +321,18 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     traces = []
-    fig = tools.make_subplots(rows=station.get_number_of_channels(), cols=2,
-                              shared_xaxes=True, shared_yaxes=False,
-                              vertical_spacing=0.01)
     ymax = 0
+    n_channels = 0
+    plot_titles = []
     for i, channel in enumerate(station.iter_channels()):
+        n_channels += 1
         trace = channel.get_trace() / units.mV
         ymax = max(ymax, np.max(np.abs(trace)))
+        plot_titles.append('Channel {}'.format(channel.get_id()))
+        plot_titles.append('Channel {}'.format(channel.get_id()))
+    fig = tools.make_subplots(rows=station.get_number_of_channels(), cols=2,
+                              shared_xaxes=True, shared_yaxes=False,
+                              vertical_spacing=0.01, subplot_titles=plot_titles)
     if 'trace' in dropdown_traces:
         for i, channel in enumerate(station.iter_channels()):
             tt = channel.get_times() / units.ns
@@ -355,16 +349,6 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     },
                     name=i
                 ), i + 1, 1)
-            if 'RMS' in dropdown_info:
-                fig.append_trace(
-                       go.Scatter(
-                            x=[0.99 * tt.max()],
-                            y=[0.98 * trace.max()],
-                            mode='text',
-                            text=[r'mu = {:.2f}, STD={:.2f}'.format(np.mean(trace), np.std(trace))],
-                            textposition='bottom left'
-                        ),
-                    i + 1, 1)
     if 'envelope' in dropdown_traces:
         for i, channel in enumerate(station.iter_channels()):
             trace = channel.get_trace() / units.mV
@@ -540,6 +524,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     ), i_trace + 1, 2)
     for i, channel in enumerate(station.iter_channels()):
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(range=[-ymax, ymax])
+        fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(title='voltage [mV]')
 
         tt = channel.get_times()
         dt = tt[1] - tt[0]
@@ -555,20 +540,10 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                 },
                 name=i
             ), i + 1, 2)
-        if 'L1' in dropdown_info:
-            fig.append_trace(
-                   go.Scatter(
-                        x=[0.9 * ff.max() / units.MHz],
-                        y=[0.8 * np.abs(spec).max() / units.mV],
-                        mode='text',
-                        text=['max L1 = {:.2f}'.format(get_L1(spec))],
-                        textposition='top center'
-                    ),
-                i + 1, 2)
-    fig['layout'].update(default_layout)
     fig['layout']['xaxis1'].update(title='time [ns]')
-    fig['layout']['yaxis1'].update(title='voltage [mV]')
-    fig['layout'].update(height=1000)
+    fig['layout']['xaxis2'].update(title='frequency [MHz]')
+    fig['layout'].update(height=n_channels*150)
+    fig['layout'].update(showlegend=False)
     return fig
 
 
