@@ -12,7 +12,7 @@ cdef extern from "numpy/arrayobject.h":
 
 cdef extern from "analytic_raytracing.cpp":
     void find_solutions2(double * &, double * &, int * &, int & , double, double, double, double, double, double, double)
-    double get_attenuation_along_path2(double, double, double, double, double, double, double, double, double)
+    double get_attenuation_along_path2(double, double, double, double, double, double, double, double, double, int)
     
 
 cpdef find_solutions(x1, x2, n_ice, delta_n, z_0):
@@ -52,8 +52,8 @@ cpdef find_solutions(x1, x2, n_ice, delta_n, z_0):
     return s
 
 
-cpdef get_attenuation_along_path(x1, x2, C0, frequency, n_ice, delta_n, z_0):
+cpdef get_attenuation_along_path(x1, x2, C0, frequency, n_ice, delta_n, z_0, model):
 
 #     t = time.time()
-    return get_attenuation_along_path2(x1[0], x1[1], x2[0], x2[1], C0, frequency, n_ice, delta_n, z_0)
+    return get_attenuation_along_path2(x1[0], x1[1], x2[0], x2[1], C0, frequency, n_ice, delta_n, z_0, model)
 #     print((time.time() - t) * 1000)

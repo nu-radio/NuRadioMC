@@ -207,7 +207,7 @@ class simulation():
             ray_tracing_performed = ('ray_tracing_C0' in self._fin) and (self._was_pre_simulated)
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                 x2 = self._det.get_relative_position(self._station_id, channel_id)
-                r = self._prop(x1, x2, self._ice, log_level=logging.WARNING,
+                r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=logging.WARNING,
                                     n_frequencies_integration=int(self._cfg['propagation']['n_freq']))
 
                 if(ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed

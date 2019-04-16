@@ -20,6 +20,7 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_roots.h>
 #include <units.h>
+#include <attenuation.h>
 
 
 using namespace std;
@@ -214,38 +215,10 @@ double get_travel_time(double pos[2], double pos2[2], double C0, double n_ice, d
 	return result;
 }
 
-double get_temperature(double z){
-	//return temperature as a function of depth
-	// from https://icecube.wisc.edu/~araproject/radio/#icetemperature
-	double z2 = abs(z/utl::m);
-	return 1.83415e-09*z2*z2*z2 + (-1.59061e-08*z2*z2) + 0.00267687*z2 + (-51.0696 );
-}
 
-double get_attenuation_length(double z, double frequency){
-	double t = get_temperature(z);
-	double f0 = 0.0001;
-	double f2 = 3.16;
-	double w0 = log(f0);
-	double w1 = 0.0;
-	double w2 = log(f2); 
-	double w = log(frequency / utl::GHz);
-	double b0 = -6.74890 + t * (0.026709 - t * 0.000884);
-	double b1 = -6.22121 - t * (0.070927 + t * 0.001773);
-	double b2 = -4.09468 - t * (0.002213 + t * 0.000332);
-	double a, bb;
-	if(frequency<1. * utl::GHz){
-		a = (b1 * w0 - b0 * w1) / (w0 - w1);
-		bb = (b1 - b0) / (w1 - w0);
-	}
-	else{
-		a = (b2 * w1 - b1 * w2) / (w1 - w2);
-		bb = (b2 - b1) / (w2 - w1);
-	}
-	return 1./exp(a +bb*w);
-}
 
 //this function is explicitly prepared for gsl integration in get_attenuation_along_path
-struct dt_freq_params{ double a; double c; double d; double e; double f;}; //a=C0, c=freq, d=n_ice, e=delta_n, f=z_0
+struct dt_freq_params{ double a; double c; double d; double e; double f; int model;}; //a=C0, c=freq, d=n_ice, e=delta_n, f=z_0
 double dt_freq (double t, void *p){
 	struct dt_freq_params *params = (struct dt_freq_params *)p;
 	double C0 = (params->a);
@@ -255,18 +228,18 @@ double dt_freq (double t, void *p){
 	double z_0 = (params->f);		
 	
 	double z = get_z_unmirrored(t,C0,n_ice, delta_n, z_0);
-	return sqrt((pow(get_y_diff(t,C0,n_ice, delta_n, z_0),2.)+1)) / get_attenuation_length(z,freq);
+	return sqrt((pow(get_y_diff(t,C0,n_ice, delta_n, z_0),2.)+1)) / get_attenuation_length(z,freq, params->model);
 }
 
 double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
-		double frequency, double n_ice, double delta_n, double z_0){
+		double frequency, double n_ice, double delta_n, double z_0, int model){
 	double x2_mirrored[2]={0.};
 	get_z_mirrored(pos,pos2,C0,x2_mirrored, n_ice, delta_n, z_0);
 	
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc(2000);
 	gsl_function F;
 	F.function = &dt_freq;
-	struct dt_freq_params params = {C0,frequency, n_ice, delta_n, z_0};
+	struct dt_freq_params params = {C0,frequency, n_ice, delta_n, z_0, model};
 	F.params=&params;
 
 	double result, error;
@@ -305,10 +278,10 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 }
 
 double get_attenuation_along_path2(double pos_y, double pos_z, double pos2_y, double pos2_z,
-		double C0, double frequency, double n_ice, double delta_n, double z_0) {
+		double C0, double frequency, double n_ice, double delta_n, double z_0, int model) {
 	double pos[2] = {pos_y, pos_z};
 	double pos2[2] = {pos2_y, pos2_z};
-	return get_attenuation_along_path(pos, pos2, C0, frequency, n_ice, delta_n, z_0);
+	return get_attenuation_along_path(pos, pos2, C0, frequency, n_ice, delta_n, z_0, model);
 }
 
 double get_angle(double x[2], double x_start[2], double C0, double n_ice, double delta_n, double z_0){
@@ -776,21 +749,21 @@ void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[
 	}
 }
 	
-int main(int argc, char **argv){
-	
-	double x1[2] = {478., -149.};
-	double x2[2] = {635., -5.}; //this target has both a direct and reflected ray solution
-
-	double n_ice = 1.78;
-	double delta_n = 0.427;
-	double z_0 = 71. * utl::m; //meters
-	vector<vector<double> > solutions = find_solutions(x1,x2, n_ice, delta_n, z_0);
-	if(solutions.size()>0){
-		printf("C0 %.6f \n ",solutions[0][1]);
-		double att = get_attenuation_along_path(x1, x2, solutions[0][1], 0.00390625*utl::GHz,n_ice, delta_n, z_0);
-		printf("Att %.3f \n ", att);
-	}
-
-	return 0;
-
-}
+//int main(int argc, char **argv){
+//
+//	double x1[2] = {478., -149.};
+//	double x2[2] = {635., -5.}; //this target has both a direct and reflected ray solution
+//
+//	double n_ice = 1.78;
+//	double delta_n = 0.427;
+//	double z_0 = 71. * utl::m; //meters
+//	vector<vector<double> > solutions = find_solutions(x1,x2, n_ice, delta_n, z_0);
+//	if(solutions.size()>0){
+//		printf("C0 %.6f \n ",solutions[0][1]);
+//		double att = get_attenuation_along_path(x1, x2, solutions[0][1], 0.00390625*utl::GHz,n_ice, delta_n, z_0, "SP1");
+//		printf("Att %.3f \n ", att);
+//	}
+//
+//	return 0;
+//
+//}
