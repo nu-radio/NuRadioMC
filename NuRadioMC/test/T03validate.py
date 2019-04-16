@@ -72,7 +72,7 @@ for key in keys:
     testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
     
     
-print("if not error occured, previous results are exactly reproduced.")
+print("if no error occured, previous results are exactly reproduced.")
 
 
 
