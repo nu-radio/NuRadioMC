@@ -8,6 +8,8 @@ def get_ice_model(name):
         return ARAsim_southpole()
     elif(name == "southpole_simple"):
         return southpole_simple()
+    elif(name == "southpole_2015"):
+        return southpole_2015()
     elif(name == "mooresbay_simple"):
         return mooresbay_simple()
 
@@ -33,10 +35,19 @@ class medium():
 class southpole_simple(medium):
 
     def __init__(self):
-        # define model parameters (SPICE 2015/southpole)
+        # from https://doi.org/10.1088/1475-7516/2018/07/055 RICE2014/SP model
+        # define model parameters (RICE 2014/southpole)
         self.n_ice = 1.78
         self.z_0 = 71. * units.m
-        self.delta_n = 0.427
+        self.delta_n = 0.426
+        
+class southpole_2015(medium):
+
+    def __init__(self):
+        # from https://doi.org/10.1088/1475-7516/2018/07/055 SPICE2015/SP model
+        self.n_ice = 1.78
+        self.z_0 = 77. * units.m
+        self.delta_n = 0.423
         
 class ARAsim_southpole(medium):
 
@@ -48,7 +59,7 @@ class ARAsim_southpole(medium):
 
 
 class mooresbay_simple(medium):
-
+    # from https://doi.org/10.1088/1475-7516/2018/07/055 MB1 model
     def __init__(self):
         self.n_ice = 1.78
         self.z_0 = 34.5 * units.m
