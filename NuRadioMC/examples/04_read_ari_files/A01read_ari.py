@@ -30,7 +30,7 @@ eventReader.begin(args.inputfilename)
 for event in eventReader.run():
     for station in event.get_stations():
         station_id = station.get_id()
-        for channel in station.get_channels():
+        for channel in station.iter_channels():
             channel_id = channel.get_id()
             
             # get time trace and times of bins
