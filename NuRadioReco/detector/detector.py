@@ -11,7 +11,7 @@ from datetime import datetime
 from tinydb_serialization import Serializer
 import six  # # used for compatibility between py2 and py3
 logger = logging.getLogger('detector')
-
+logging.basicConfig()
 
 class DateTimeSerializer(Serializer):
     OBJ_CLASS = datetime  # The class this serializer handles

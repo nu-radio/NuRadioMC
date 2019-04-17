@@ -10,6 +10,7 @@ import scipy.optimize as opt
 from radiotools import helper as hp
 import logging
 logger = logging.getLogger('correlationDirectionFitter')
+logging.basicConfig()
 
 
 class correlationDirectionFitter:
