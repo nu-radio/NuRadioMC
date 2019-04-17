@@ -345,7 +345,6 @@ class correlationDirectionFitter:
                     theta02 = np.insert(theta02, pos + 1 + j, np.nan)
                 # mask02 = ~np.isnan(theta02)
                 ax.plot(np.rad2deg(phi02), np.rad2deg(theta02), '{}C3'.format(linestyles[i % 4]), label='c 0+2 dt = {}'.format(t02))
-                ax.plot(np.rad2deg(phi02), 180 - np.rad2deg(theta02), '{}C3'.format(linestyles[i % 4]))
             for i, t13 in enumerate(t13s):
                 # theta13 = get_deltat13(t13, phis)
                 phi13, theta13 = getDeltaTCone(r1_3, t13)
@@ -357,7 +356,6 @@ class correlationDirectionFitter:
                     theta13 = np.insert(theta13, pos + 1 + j, np.nan)
                 # mask13 = ~np.isnan(theta13)
                 ax.plot(np.rad2deg(phi13), np.rad2deg(theta13), '{}C2'.format(linestyles[i % 4]), label='c 1+3 dt = {}'.format(t13))
-                ax.plot(np.rad2deg(phi13), 180 - np.rad2deg(theta13), '{}C2'.format(linestyles[i % 4]))
             ax.legend(fontsize='small')
             ax.set_ylim(ZenLim[0] / units.deg, ZenLim[1] / units.deg)
             ax.set_xlim(AziLim[0] / units.deg, AziLim[1] / units.deg)
