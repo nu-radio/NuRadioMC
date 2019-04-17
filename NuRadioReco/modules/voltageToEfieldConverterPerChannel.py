@@ -19,12 +19,13 @@ from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
 import NuRadioReco.framework.base_trace
 
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 from NuRadioReco.framework import electric_field as ef
 
 import logging
 logger = logging.getLogger('voltageToEfieldConverterPerChannel')
-
+logging.basicConfig()
 
 class voltageToEfieldConverterPerChannel:
     """
@@ -91,6 +92,9 @@ class voltageToEfieldConverterPerChannel:
             efield_spectrum[1][mask1] = (1.0-pol)**2 * trace[mask1] / efield_antenna_factor[iCh][0][mask1]
             efield_spectrum[2][mask2] = pol**2 * trace[mask2] / efield_antenna_factor[iCh][1][mask2]
             efield.set_frequency_spectrum(efield_spectrum, sampling_rate)
+            efield.set_trace_start_time(channel.get_trace_start_time())
+            efield[efp.zenith] = zenith
+            efield[efp.azimuth] = azimuth
             station.add_electric_field(efield)
 
 
