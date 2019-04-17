@@ -22,7 +22,9 @@ class stationParameters(Enum):
     nu_xcorrelations = 20 #  dict of result of crosscorrelations with nu templates
     station_time = 21
     cr_energy_em = 24  # the electromagnetic shower energy (the cosmic ray energy that ends up in electrons, positrons and gammas)
-    nu_inttype = 25  # interaction type, e.g., cc, nc, tau_em, tau_had    
+    nu_inttype = 25  # interaction type, e.g., cc, nc, tau_em, tau_had
+    chi2_efield_time_direction_fit = 26  # the chi2 of the direction fitter that used the maximum pulse times of the efields
+    ndf_efield_time_direction_fit = 27  # the number of degrees of freedom of the direction fitter that used the maximum pulse times of the efields    
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
@@ -33,6 +35,7 @@ class channelParameters(Enum):
     P2P_amplitude = 7  # the peak to peak amplitude
     cr_xcorrelations = 8 # dict of result of crosscorrelations with cr templates
     nu_xcorrelations = 9 #  dict of result of crosscorrelations with nu templates
+    signal_time = 10  # the time of the maximum amplitude of the envelope
     
 class electricFieldParameters(Enum):
     ray_path_type = 1  # the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
