@@ -149,6 +149,7 @@ class channelSignalReconstructor:
             trace = channel.get_trace()
             h = np.abs(signal.hilbert(trace))
             max_amplitude = np.max(np.abs(trace))
+            channel[chp.signal_time] = times[np.argmax(h)]
             max_amplitude_station = max(max_amplitude_station, max_amplitude)
             channel[chp.maximum_amplitude] = max_amplitude
             channel[chp.maximum_amplitude_envelope] = h.max()
