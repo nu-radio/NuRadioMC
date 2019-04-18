@@ -64,13 +64,13 @@ class voltageToEfieldConverterPerChannel:
         self.__counter += 1
         event_time = station.get_station_time()
         station_id = station.get_id()
-        logger.info("event {}, station {}".format(evt.get_id(), station_id))
+        logger.debug("event {}, station {}".format(evt.get_id(), station_id))
         if station.get_sim_station() is not None:
             zenith = station.get_sim_station()[stnp.zenith]
             azimuth = station.get_sim_station()[stnp.azimuth]
             sim_present = True
         else:
-            logger.warning("Using reconstructed angles as no simulation present")
+            logger.debug("Using reconstructed angles as no simulation present")
             zenith = station[stnp.zenith]
             azimuth = station[stnp.azimuth]
             sim_present = False
