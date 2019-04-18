@@ -3,6 +3,7 @@ import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.trigger
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.parameters as parameters
+import datetime
 try:
     import cPickle as pickle
 except ImportError:
@@ -70,7 +71,10 @@ class BaseStation():
         self._parameters.pop(key, None)
 
     def set_station_time(self, time):
-        self._station_time = time
+        if isinstance(time, datetime.datetime):
+            self._station_time = (time - datetime.datetime(1970,1,1,0,0,0)).total_seconds()
+        else:
+            self._station_time = time
 
     def get_station_time(self):
         return self._station_time
@@ -229,5 +233,5 @@ class BaseStation():
         if('_ARIANNA_parameters') in data:
             self._ARIANNA_parameters = data['_ARIANNA_parameters']
         self._station_id = data['_station_id']
-        self._station_time = data['_station_time']
+        self.set_station_time(data['_station_time'])
         self._particle_type = data['_particle_type']
