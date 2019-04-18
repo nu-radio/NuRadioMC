@@ -78,6 +78,11 @@ class BaseStation():
 
     def get_station_time(self):
         return self._station_time
+    
+    def get_station_time_stamp(self):
+        print(self._station_time)
+        print(datetime.datetime(1970,1,1).fromtimestamp(int(self._station_time)))
+        return datetime.datetime(1970,1,1).fromtimestamp(int(self._station_time))
 
 #     def get_trace(self):
 #         return self._time_trace
