@@ -388,8 +388,7 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
     evt = ariio.get_event_i(event_i)
     if evt.get_station(station_id).get_station_time() is None:
         return ''
-    return ''   # Converting UTC to datetime is a nightmare in python 2, so this will be fixed once we switch to python 3
-    #return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_station(station_id).get_station_time())
+    return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_station(station_id).get_station_time_stamp())
 
 if __name__ == '__main__':
     if int(dash.__version__.split('.')[1]) < 39:
