@@ -63,15 +63,17 @@ class correlationDirectionFitter:
 
             for pos in positions:
                 tmp = []
-                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[0], n=n_index) * sampling_rate)
-                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n_index) * sampling_rate)
+                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[0], n=n_index))
+                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n_index))
                 times.append(tmp)
 
             delta_t_02 = times[0][1] - times[0][0]
             delta_t_13 = times[1][1] - times[1][0]
             #take different trace start times into account
-            delta_t_02 -= (trace_start_times[0][1] - trace_start_times[0][0])*sampling_rate
-            delta_t_13 -= (trace_start_times[1][1] - trace_start_times[1][0])*sampling_rate
+            delta_t_02 -= (trace_start_times[0][1] - trace_start_times[0][0])
+            delta_t_13 -= (trace_start_times[1][1] - trace_start_times[1][0])
+            delta_t_02 *= sampling_rate
+            delta_t_13 *= sampling_rate
             pos_02 = int(corr_02.shape[0] / 2 - delta_t_02)
             pos_13 = int(corr_13.shape[0] / 2 - delta_t_13)
 
@@ -144,6 +146,7 @@ class correlationDirectionFitter:
 
         if use_correlation:
             # Correlation
+            print(signs)
             corr_02 = signal.correlate(station.get_channel(channel_pairs[0][0]).get_trace(),
                                        signs[0] * station.get_channel(channel_pairs[0][1]).get_trace())
             corr_13 = signal.correlate(station.get_channel(channel_pairs[1][0]).get_trace(),
@@ -164,9 +167,12 @@ class correlationDirectionFitter:
 
         if use_correlation:
         # Using correlation
-            ll = opt.brute(ll_regular_station, ranges=(slice(ZenLim[0], ZenLim[1], 0.05),
-                                                       slice(AziLim[0], AziLim[1], 0.05)),
-                            args=(corr_02, corr_13, sampling_rate, positions_pairs, trace_start_time_pairs), full_output=True, finish=opt.fmin)  # slow but does the trick
+            print(trace_start_time_pairs)
+            ll = opt.brute(ll_regular_station, ranges=(slice(ZenLim[0], ZenLim[1], 0.01),
+                                                       slice(AziLim[0], AziLim[1], 0.01)),
+                            args=(corr_02, corr_13, sampling_rate, positions_pairs, trace_start_time_pairs),
+                            full_output=True, finish=opt.fmin)  # slow but does the trick
+#             print(ll)
         else:
             ll = opt.brute(ll_regular_station_fft, ranges=(slice(ZenLim[0], ZenLim[1], 0.05),
                                                            slice(AziLim[0], AziLim[1], 0.05)),
@@ -180,15 +186,17 @@ class correlationDirectionFitter:
 
             for pos in positions_pairs:
                 tmp = []
-                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[0], n=n_index) * sampling_rate)
-                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n_index) * sampling_rate)
+                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[0], n=n_index))
+                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n_index))
                 times.append(tmp)
 
-            delta_t_02 = (times[0][1] + trace_start_time_pairs[0][1]) - (times[0][0] + trace_start_time_pairs[0][0])
-            delta_t_13 = (times[1][1] + trace_start_time_pairs[1][1]) - (times[1][0] + trace_start_time_pairs[1][0])
-
-            pos_02 = int(corr_02.shape[0] / 2 - delta_t_02)
-            pos_13 = int(corr_13.shape[0] / 2 - delta_t_13)
+            delta_t_02 = times[0][1] - times[0][0]
+            delta_t_13 = times[1][1] - times[1][0]
+            #take different trace start times into account
+            delta_t_02 -= (trace_start_time_pairs[0][1] - trace_start_time_pairs[0][0])
+            delta_t_13 -= (trace_start_time_pairs[1][1] - trace_start_time_pairs[1][0])
+            delta_t_02 *= sampling_rate
+            delta_t_13 *= sampling_rate
 
             toffset = -(np.arange(0, corr_02.shape[0]) - corr_02.shape[0] / 2) / sampling_rate
 
@@ -198,16 +206,22 @@ class correlationDirectionFitter:
             indices = peakutils.indexes(corr_02, thres=0.8, min_dist=5)
             t02s = toffset[indices]
             ax.plot(toffset[indices], corr_02[indices], 'o')
+            imax = np.argmax(corr_02[indices])
+            print("offset 02= {:.3f}".format(toffset[indices[imax]] -  (delta_t_02 / sampling_rate)))
 
             ax2.plot(toffset, corr_13)
             indices = peakutils.indexes(corr_13, thres=0.8, min_dist=5)
             ax2.plot(toffset[indices], corr_13[indices], 'o')
+            imax = np.argmax(corr_13[indices])
+            print("offset 13= {:.3f}".format(toffset[indices[imax]] -  (delta_t_13 / sampling_rate)))
 
             ax2.axvline(delta_t_13 / sampling_rate, label='time', c='k')
+            
             ax2.set_xlabel("time")
             ax2.set_ylabel("Correlation Ch 1/ Ch3", fontsize='small')
             ax.set_ylabel("Correlation Ch 0/ Ch2", fontsize='small')
             plt.tight_layout()
+#             plt.close("all")
 
         station[stnp.zenith] = max(ZenLim[0], min(ZenLim[1], ll[0][0]))
         station[stnp.azimuth] = ll[0][1]
@@ -288,10 +302,10 @@ class correlationDirectionFitter:
             # plot allowed solution separately for each pair of channels
             toffset = -(np.arange(0, corr_02.shape[0]) - corr_02.shape[0] / 2.) / sampling_rate
             indices = peakutils.indexes(corr_02, thres=0.8, min_dist=5)
-            t02s = toffset[indices][np.argsort(corr_02[indices])[::-1]]
+            t02s = toffset[indices][np.argsort(corr_02[indices])[::-1]] + (trace_start_time_pairs[0][1] - trace_start_time_pairs[0][0])
             toffset = -(np.arange(0, corr_13.shape[0]) - corr_13.shape[0] / 2.) / sampling_rate
             indices = peakutils.indexes(corr_13, thres=0.8, min_dist=5)
-            t13s = toffset[indices][np.argsort(corr_13[indices])[::-1]]
+            t13s = toffset[indices][np.argsort(corr_13[indices])[::-1]] + (trace_start_time_pairs[1][1] - trace_start_time_pairs[1][0])
             from scipy import constants
             c = constants.c * units.m / units.s
             dx = -6 * units.m
