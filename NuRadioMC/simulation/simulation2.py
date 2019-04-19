@@ -29,7 +29,6 @@ import yaml
 import os
 # import confuse
 logger = logging.getLogger("sim")
-logger.setLevel(logging.WARNING)
 
 VERSION = 0.1
 
@@ -49,11 +48,11 @@ class simulation():
     def __init__(self, eventlist,
                  outputfilename,
                  detectorfile,
-                 station_id,
                  outputfilenameNuRadioReco=None,
                  debug=False,
                  evt_time=datetime.datetime(2018, 1, 1),
-                 config_file=None):
+                 config_file=None,
+                 log_level=logging.WARNING):
         """
         initialize the NuRadioMC end-to-end simulation
 
@@ -78,7 +77,7 @@ class simulation():
         evt_time: datetime object
             the time of the events, default 1/1/2018
         """
-
+        logger.setLevel(log_level)
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
         logger.warning('reading default config from {}'.format(config_file_default))
         with open(config_file_default, 'r') as ymlfile:
@@ -93,7 +92,6 @@ class simulation():
         self._eventlist = eventlist
         self._outputfilename = outputfilename
         self._detectorfile = detectorfile
-        self._station_id = station_id
         self._Tnoise = float(self._cfg['trigger']['noise_temperature'])
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._debug = debug
@@ -105,11 +103,14 @@ class simulation():
         self._ice = medium.get_ice_model(self._cfg['propagation']['ice_model'])
 
         self._mout = {}
+        self._mout_groups = {}
         self._mout_attrs = {}
 
         # read in detector positions
         logger.debug("Detectorfile {}".format(self._detectorfile))
         self._det = detector.Detector(json_filename=self._detectorfile)
+        
+        self._station_ids = self._det.get_station_ids()
 
         # print noise information
         logger.warning("running with noise {}".format(bool(self._cfg['noise'])))
@@ -118,18 +119,11 @@ class simulation():
         # read sampling rate from config (this sampling rate will be used internally)
         self._dt = 1. / (self._cfg['sampling_rate'] * units.GHz)
 
-        self._sampling_rate_detector = self._det.get_sampling_frequency(station_id, 0)
-        logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
-
         bandwidth = self._cfg['trigger']['bandwidth']
         if(bandwidth is None):
             self._bandwidth = 0.5 / self._dt
         else:
             self._bandwidth = bandwidth
-        self._n_samples = self._det.get_number_of_samples(station_id, 0) / self._sampling_rate_detector / self._dt
-        self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to nearest even integer
-        self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
-        self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
         self._Vrms = (self._Tnoise * 50 * constants.k * 
                        self._bandwidth / units.Hz) ** 0.5
         logger.warning('noise temperature = {}, bandwidth = {:.0f} MHz, Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
@@ -145,7 +139,6 @@ class simulation():
             self._eventWriter.begin(self._outputfilenameNuRadioReco)
         self._read_input_hdf5()  # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
         self._n_events = len(self._fin['event_ids'])
-        self._n_antennas = self._det.get_number_of_channels(self._station_id)
 
         self._create_meta_output_datastructures()
 
@@ -193,7 +186,6 @@ class simulation():
             n_index = self._ice.get_index_of_refraction(x1)
             cherenkov_angle = np.arccos(1. / n_index)
 
-            
             self._evt = NuRadioReco.framework.event.Event(0, self._event_id)
             candidate_event = False
 
@@ -201,11 +193,17 @@ class simulation():
             # print("start raytracing. time: " + str(time.time()))
             t2 = time.time()
             inputTime += (time.time() - t1)
-            ray_tracing_performed = ('ray_tracing_C0' in self._fin) and (self._was_pre_simulated)
 
-            station_ids = self._det.get_station_ids()
-            self._n_stations = len(station_ids)
-            for iSt, self._station_id in enumerate(station_ids):
+            for iSt, self._station_id in enumerate(self._station_ids):
+                self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
+#                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
+                self._n_samples = self._det.get_number_of_samples(self._station_id, 0) / self._sampling_rate_detector / self._dt
+                self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to nearest even integer
+                self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
+                self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
+
+                sg = self._mout_groups[self._station_id]
+                ray_tracing_performed = ('ray_tracing_C0' in sg) and (self._was_pre_simulated)
                 self._create_sim_station()
                 for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                     x2 = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
@@ -213,24 +211,24 @@ class simulation():
                                    n_frequencies_integration=int(self._cfg['propagation']['n_freq']))
     
                     if(ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
-                        r.set_solution(self._fin['ray_tracing_C0'][self._iE, iSt, channel_id], self._fin['ray_tracing_C1'][self._iE, iSt, channel_id],
-                                       self._fin['ray_tracing_solution_type'][self._iE, iSt, channel_id])
+                        r.set_solution(sg['ray_tracing_C0'][self._iE, iSt, channel_id], sg['ray_tracing_C1'][self._iE, iSt, channel_id],
+                                       sg['ray_tracing_solution_type'][self._iE, iSt, channel_id])
                     else:
                         r.find_solutions()
                     if(not r.has_solution()):
-                        logger.debug("event {} and station {}, channel {} does not have any ray tracing solution".format(
-                            self._event_id, self._station_id, channel_id))
+                        logger.debug("event {} and station {}, channel {} does not have any ray tracing solution ({} to {})".format(
+                            self._event_id, self._station_id, channel_id, x1, x2))
                         self._add_empty_electric_field(channel_id)
                         continue
                     delta_Cs = []
                     viewing_angles = []
                     # loop through all ray tracing solution
                     for iS in range(r.get_number_of_solutions()):
-                        self._mout['ray_tracing_C0'][self._iE, iSt, channel_id, iS] = r.get_results()[iS]['C0']
-                        self._mout['ray_tracing_C1'][self._iE, iSt, channel_id, iS] = r.get_results()[iS]['C1']
-                        self._mout['ray_tracing_solution_type'][self._iE, iSt, channel_id, iS] = r.get_solution_type(iS)
+                        sg['ray_tracing_C0'][self._iE, channel_id, iS] = r.get_results()[iS]['C0']
+                        sg['ray_tracing_C1'][self._iE, channel_id, iS] = r.get_results()[iS]['C1']
+                        sg['ray_tracing_solution_type'][self._iE, channel_id, iS] = r.get_solution_type(iS)
                         self._launch_vector = r.get_launch_vector(iS)
-                        self._mout['launch_vectors'][self._iE, iSt, channel_id, iS] = self._launch_vector
+                        sg['launch_vectors'][self._iE, channel_id, iS] = self._launch_vector
                         # calculates angle between shower axis and launch vector
                         viewing_angle = hp.get_angle(self._shower_axis, self._launch_vector)
                         viewing_angles.append(viewing_angle)
@@ -250,19 +248,19 @@ class simulation():
                     Ts = np.zeros(n)
                     for iS in range(n):  # loop through all ray tracing solution
                         if(ray_tracing_performed):
-                            R = self._fin['travel_distances'][self._iE, iSt, channel_id, iS]
-                            T = self._fin['travel_times'][self._iE, iSt, channel_id, iS]
+                            R = sg['travel_distances'][self._iE, iSt, channel_id, iS]
+                            T = sg['travel_times'][self._iE, iSt, channel_id, iS]
                         else:
                             R = r.get_path_length(iS)  # calculate path length
                             T = r.get_travel_time(iS)  # calculate travel time
-                        self._mout['travel_distances'][self._iE, iSt, channel_id, iS] = R
-                        self._mout['travel_times'][self._iE, iSt, channel_id, iS] = T
+                        sg['travel_distances'][self._iE, channel_id, iS] = R
+                        sg['travel_times'][self._iE, channel_id, iS] = T
                         Rs[iS] = R
                         Ts[iS] = T
                         self._launch_vector = r.get_launch_vector(iS)
                         receive_vector = r.get_receive_vector(iS)
                         # save receive vector
-                        self._mout['receive_vectors'][self._iE, iSt, channel_id, iS] = receive_vector
+                        sg['receive_vectors'][self._iE, channel_id, iS] = receive_vector
                         zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
                         logger.debug("st {}, ch {}, s {} R = {:.1f} m, t = {:.1f}ns, receive angles {:.0f} {:.0f}".format(self._station_id,
                             channel_id, iS, R / units.m, T / units.ns, zenith / units.deg, azimuth / units.deg))
@@ -301,7 +299,7 @@ class simulation():
                             zenith / units.deg, azimuth / units.deg, polarization_direction_onsky[0],
                             polarization_direction_onsky[1], polarization_direction_onsky[2],
                             *polarization_direction_at_antenna))
-                        self._mout['polarization'][self._iE, iSt, channel_id, iS] = polarization_direction_at_antenna
+                        sg['polarization'][self._iE, channel_id, iS] = polarization_direction_at_antenna
                         eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
             #             print("{} {:.2f} {:.0f}".format(polarization_direction_onsky, np.linalg.norm(polarization_direction_onsky), np.arctan2(np.abs(polarization_direction_onsky[1]), np.abs(polarization_direction_onsky[2])) / units.deg))
     
@@ -344,7 +342,7 @@ class simulation():
                         # apply a simple threshold cut to speed up the simulation,
                         # application of antenna response will just decrease the
                         # signal amplitude
-                        if(np.max(np.abs(electric_field.get_trace())) > 2 * self._Vrms):
+                        if(np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms):
                             candidate_event = True
 
                 #print("start detector simulation. time: " + str(time.time()))
@@ -353,6 +351,7 @@ class simulation():
                 # perform only a detector simulation if event had at least one
                 # candidate channel
                 if(not candidate_event):
+                    logger.debug("electric field amplitude too small in all channels, skipping to next event")
                     continue
                 logger.debug("performing detector simulation")
                 # self._finalize NuRadioReco event structure
@@ -424,33 +423,23 @@ class simulation():
             self._fin_attrs[key] = value
         fin.close()
 
-    def _read_input_hdf5_new(self):
-        """
-        read new style input file into memory
-        """
-        fin = h5py.File(self._eventlist, 'r')
-        self._fin = {}
-        self._fin_attrs = {}
-        dataset = fin["Event_input"]
-        for key in dataset.dtype.names:
-            self._fin[key] = np.array(dataset[key])
-        for key, value in iteritems(fin.attrs):
-            self._fin_attrs[key] = value
-        fin.close()
-
     def _calculate_signal_properties(self):
         if(self._station.has_triggered()):
+            sg = self._mout_groups[self._station_id]
             self._channelSignalReconstructor.run(self._evt, self._station, self._det)
             for channel in self._station.iter_channels():
-                self._mout['maximum_amplitudes'][self._iE, self._station.get_id(), channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
-                self._mout['maximum_amplitudes_envelope'][self._iE, self._station.get_id(), channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
+                sg['maximum_amplitudes'][self._iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
+                sg['maximum_amplitudes_envelope'][self._iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
 
-            self._mout['SNRs'][self._iE, self._station.get_id()] = self._station.get_parameter(stnp.channels_max_amplitude) / self._Vrms
+            sg['SNRs'][self._iE] = self._station.get_parameter(stnp.channels_max_amplitude) / self._Vrms
 
     def _create_empty_multiple_triggers(self):
         if ('trigger_names' not in self._mout_attrs):
             self._mout_attrs['trigger_names'] = np.array([])
-            self._mout['multiple_triggers'] = np.zeros((self._n_events, 1))
+            self._mout['multiple_triggers'] = np.zeros((self._n_events, 1), dtype=np.bool)
+            for station_id in self._station_ids:
+                sg = self._mout_groups[station_id]
+                sg['multiple_triggers'] = np.zeros((self._n_events, 1), dtype=np.bool)
 
     def _create_trigger_structures(self):
 
@@ -458,23 +447,27 @@ class simulation():
             self._mout_attrs['trigger_names'] = []
 
             for trigger in six.itervalues(self._station.get_triggers()):
-                self._mout_attrs['trigger_names'].append(trigger.get_name())
+                self._mout_attrs['trigger_names'].append(np.string_(trigger.get_name()))
         # the 'multiple_triggers' output array is not initialized in the constructor because the number of
         # simulated triggers is unknown at the beginning. So we check if the key already exists and if not,
         # we first create this data structure
         if('multiple_triggers' not in self._mout):
             self._mout['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            sg = self._mout_groups[self._station_id]
+            sg['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
 
     def _save_triggers_to_hdf5(self):
 
         self._create_trigger_structures()
-
+        sg = self._mout_groups[self._station_id]
         for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
             self._mout['multiple_triggers'][self._iE, iT] |= self._station.get_trigger(trigger_name).has_triggered()
+            sg['multiple_triggers'][self._iE, iT] = self._station.get_trigger(trigger_name).has_triggered()
 
         self._mout['triggered'][self._iE] = np.any(self._mout['multiple_triggers'][self._iE])
+        sg['triggered'][self._iE] = np.any(sg['multiple_triggers'][self._iE])
         if(self._mout['triggered'][self._iE]):
-            logger.info("event triggered")
+            logger.debug("event triggered")
 
     def get_Vrms(self):
         return self._Vrms
@@ -507,17 +500,23 @@ class simulation():
         self._mout['triggered'] = np.zeros(self._n_events, dtype=np.bool)
 #         self._mout['multiple_triggers'] = np.zeros((self._n_events, self._number_of_triggers), dtype=np.bool)
         self._mout_attributes['trigger_names'] = None
-        self._mout['launch_vectors'] = np.zeros((self._n_events, self._n_stations, self._n_antennas, 2, 3)) * np.nan
-        self._mout['receive_vectors'] = np.zeros((self._n_events, self._n_stations, self._n_antennas, 2, 3)) * np.nan
-        self._mout['ray_tracing_C0'] = np.zeros((self._n_events, self._n_stations, self._n_antennas, 2)) * np.nan
-        self._mout['ray_tracing_C1'] = np.zeros((self._n_events, self._n_stations, self._n_antennas, 2)) * np.nan
-        self._mout['ray_tracing_solution_type'] = np.zeros((self._n_events, self._n_stations, self._n_antennas, 2), dtype=np.int) * np.nan
-        self._mout['polarization'] = np.zeros((self._n_events, self._n_stations, self._n_antennas, 2, 3)) * np.nan
-        self._mout['travel_times'] = np.zeros((self._n_events, self._n_stations, self._n_antennas, 2)) * np.nan
-        self._mout['travel_distances'] = np.zeros((self._n_events, self._n_stations, self._n_antennas, 2)) * np.nan
-        self._mout['SNRs'] = np.zeros(self._n_events, self._n_stations) * np.nan
-        self._mout['maximum_amplitudes'] = np.zeros((self._n_events, self._n_stations,  self._n_antennas)) * np.nan
-        self._mout['maximum_amplitudes_envelope'] = np.zeros((self._n_events, self._n_stations, self._n_antennas)) * np.nan
+
+        for station_id in self._station_ids:
+            n_antennas = self._det.get_number_of_channels(station_id)
+            self._mout_groups[station_id] = {}
+            sg = self._mout_groups[station_id]
+            sg['triggered'] = np.zeros(self._n_events, dtype=np.bool)
+            sg['launch_vectors'] = np.zeros((self._n_events, n_antennas, 2, 3)) * np.nan
+            sg['receive_vectors'] = np.zeros((self._n_events, n_antennas, 2, 3)) * np.nan
+            sg['ray_tracing_C0'] = np.zeros((self._n_events, n_antennas, 2)) * np.nan
+            sg['ray_tracing_C1'] = np.zeros((self._n_events, n_antennas, 2)) * np.nan
+            sg['ray_tracing_solution_type'] = np.zeros((self._n_events, n_antennas, 2), dtype=np.int) * np.nan
+            sg['polarization'] = np.zeros((self._n_events, n_antennas, 2, 3)) * np.nan
+            sg['travel_times'] = np.zeros((self._n_events, n_antennas, 2)) * np.nan
+            sg['travel_distances'] = np.zeros((self._n_events, n_antennas, 2)) * np.nan
+            sg['SNRs'] = np.zeros(self._n_events) * np.nan
+            sg['maximum_amplitudes'] = np.zeros((self._n_events, n_antennas)) * np.nan
+            sg['maximum_amplitudes_envelope'] = np.zeros((self._n_events, n_antennas)) * np.nan
 
     def _read_input_neutrino_properties(self):
         self._event_id = self._fin['event_ids'][self._iE]
@@ -557,16 +556,25 @@ class simulation():
 
     def _write_ouput_file(self):
         fout = h5py.File(self._outputfilename, 'w')
-
+        
+        triggered = np.ones(len(self._mout['triggered']), dtype=np.bool)
         if (self._cfg['save_all'] == False):
-            print("Saving only triggered events")
-            for (key, value) in iteritems(self._mout):
-                fout[key] = value[self._mout['triggered']]
+            logger.info("saving only triggered events")
+            triggered = self._mout['triggered']
         else:
-            print("Saving all events")
-            for (key, value) in iteritems(self._mout):
-                fout[key] = value
+            logger.info("saving all events")
+            
+        # save data sets
+        for (key, value) in iteritems(self._mout):
+            fout[key] = value[triggered]
 
+        # save all data sets of the station groups
+        for (key, value) in iteritems(self._mout_groups):
+            sg = fout.create_group("station_{:d}".format(key))
+            for (key2, value2) in iteritems(value):
+                sg[key2] = value2[triggered]
+
+        # save meta arguments
         for (key, value) in iteritems(self._mout_attrs):
             fout.attrs[key] = value
 
@@ -587,14 +595,9 @@ class simulation():
         fout.attrs['config'] = yaml.dump(self._cfg)
 
         # now we also save all input parameters back into the out file
-        if (self._cfg['save_all'] == False):
-            for key in self._fin.keys():
-                if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
-                    fout[key] = np.array(self._fin[key])[self._mout['triggered']]
-        else:
-            for key in self._fin.keys():
-                if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
-                    fout[key] = np.array(self._fin[key])
+        for key in self._fin.keys():
+            if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
+                fout[key] = np.array(self._fin[key])[triggered]
 
         for key in self._fin_attrs.keys():
             if(not key in fout.attrs.keys()):  # only save atrributes sets that havn't been recomputed and saved already
@@ -658,11 +661,19 @@ class simulation():
                 fhad = inelasticity
             elif(np.abs(flavor) == 16):
                 fhad = inelasticity
+        elif(inttype == 'had'):
+            fem = 0
+            fhad = 1
+        elif(inttype == 'em'):
+            fem = 1
+            fhad = 0
         elif(np.abs(flavor) == 15):
             if (inttype == 'tau_em'):
                 fem = 1
             elif (inttype == 'tau_had'):
                 fhad = 1
+        else:
+            raise AttributeError("interaction type {} with flavor {} is not implemented".format(inttype, flavor))
         return fem, fhad
 
     # TODO verify that calculation of polarization vector is correct!
