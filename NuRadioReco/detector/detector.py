@@ -53,6 +53,7 @@ def buffer_db(in_memory, filename=None):
                                'pos_position': result['pos.position'],
                                'pos_measurement_time': result['pos.measurement_time'],
                                'pos_easting': result['pos.easting'],
+                               'pos_northing': result['pos.northing'],
                                'pos_altitude': result['pos.altitude'],
                                'pos_site': result['pos.site']})
 
@@ -265,6 +266,17 @@ class Detector(object):
             
     def get_channel(self, station_id, channel_id):
         return self.__get_channel(station_id, channel_id)
+    
+    def get_absolute_position(self, station_id):
+        res = self.__get_station(station_id)
+        easting, northing, altitude = 0, 0, 0
+        if(res['pos_easting'] is not None):
+            easting = res['pos_easting'] * units.feet
+        if(res['pos_northing'] is not None):
+            northing = res['pos_northing'] * units.feet
+        if(res['pos_altitude'] is not None):
+            altitude = res['pos_altitude'] * units.m 
+        return np.array([easting, northing, altitude])
 
     def get_relative_position(self, station_id, channel_id):
         res = self.__get_channel(station_id, channel_id)
