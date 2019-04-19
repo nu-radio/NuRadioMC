@@ -93,10 +93,10 @@ class channelSignalReconstructor:
         # Calculating SNR
         SNR = {}
         if (noise_rms == 0) or (noise_int == 0):
-            logger.warning("RMS of noise is zero, calculating an SNR is not useful. All SNRs are set to zero.")
-            SNR['peak_2_peak_amplitude'] = 0.
-            SNR['peak_amplitude'] = 0.
-            SNR['integrated_power'] = 0.
+            logger.info("RMS of noise is zero, calculating an SNR is not useful. All SNRs are set to infinity.")
+            SNR['peak_2_peak_amplitude'] = np.infty
+            SNR['peak_amplitude'] = np.infty
+            SNR['integrated_power'] = np.infty
         else:
 
             SNR['integrated_power'] = (np.sum(np.square(trace[signal_window_mask])) - noise_int)
