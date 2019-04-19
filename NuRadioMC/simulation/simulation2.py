@@ -96,6 +96,7 @@ class simulation():
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._debug = debug
         self._evt_time = evt_time
+        logger.warning("setting event time to {}".format(evt_time))
         
         # initialize propagation module
         self._prop = propagation.get_propagation_module(self._cfg['propagation']['module'])
