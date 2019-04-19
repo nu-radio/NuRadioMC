@@ -203,7 +203,7 @@ class simulation():
             inputTime += (time.time() - t1)
             ray_tracing_performed = ('ray_tracing_C0' in self._fin) and (self._was_pre_simulated)
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
-                x2 = self._det.get_relative_position(self._station_id, channel_id)
+                x2 = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
                 r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=logging.WARNING,
                                     n_frequencies_integration=int(self._cfg['propagation']['n_freq']))
 
@@ -571,7 +571,7 @@ class simulation():
         n_channels = self._det.get_number_of_channels(self._station_id)
         positions = np.zeros((n_channels, 3))
         for channel_id in range(n_channels):
-            positions[channel_id] = self._det.get_relative_position(self._station_id, channel_id)
+            positions[channel_id] = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
         fout.attrs['antenna_positions'] = positions
 
         fout.attrs['Tnoise'] = self._Tnoise
