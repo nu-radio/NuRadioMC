@@ -36,12 +36,12 @@ VERSION = 0.1
 
 
 def merge_config(user, default):
-    if isinstance(user,dict) and isinstance(default,dict):
-        for k,v in iteritems(default):
+    if isinstance(user, dict) and isinstance(default, dict):
+        for k, v in iteritems(default):
             if k not in user:
                 user[k] = v
             else:
-                user[k] = merge_config(user[k],v)
+                user[k] = merge_config(user[k], v)
     return user
 
 
@@ -87,7 +87,7 @@ class simulation():
         if(config_file is not None):
             logger.warning('reading local config overrides from {}'.format(config_file))
             with open(config_file, 'r') as ymlfile:
-                local_config=yaml.load(ymlfile)
+                local_config = yaml.load(ymlfile)
                 new_cfg = merge_config(local_config, self._cfg)
                 self._cfg = new_cfg
 
@@ -102,7 +102,6 @@ class simulation():
         
         # initialize propagation module
         self._prop = propagation.get_propagation_module(self._cfg['propagation']['module'])
-        
 
         self._ice = medium.get_ice_model(self._cfg['propagation']['ice_model'])
 
@@ -132,10 +131,9 @@ class simulation():
         self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to nearest even integer
         self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
         self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
-        self._Vrms = (self._Tnoise * 50 * constants.k *
+        self._Vrms = (self._Tnoise * 50 * constants.k * 
                        self._bandwidth / units.Hz) ** 0.5
-        logger.warning('noise temperature = {}, bandwidth = {:.0f} MHz, Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth/units.MHz, self._Vrms/units.V/units.micro))
-
+        logger.warning('noise temperature = {}, bandwidth = {:.0f} MHz, Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
 
     def run(self):
         """
@@ -146,7 +144,7 @@ class simulation():
         self._eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
         if(self._outputfilenameNuRadioReco is not None):
             self._eventWriter.begin(self._outputfilenameNuRadioReco)
-        self._read_input_hdf5() # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
+        self._read_input_hdf5()  # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
         self._n_events = len(self._fin['event_ids'])
         self._n_antennas = self._det.get_number_of_channels(self._station_id)
 
@@ -154,7 +152,6 @@ class simulation():
 
         # check if the same detector was simulated before (then we can save the ray tracing part)
         self._check_if_was_pre_simulated()
-
 
         inputTime = 0.0
         askaryan_time = 0.
@@ -172,7 +169,7 @@ class simulation():
                 logger.warning("processing event {}/{} = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%".format(
                     self._iE, self._n_events, 100. * self._iE / self._n_events, eta, 100. * (rayTracingTime - askaryan_time) / total_time,
                     100. * time_attenuation_length / (rayTracingTime - askaryan_time),
-                    100.* askaryan_time/total_time, 100. * detSimTime / total_time, 100.*inputTime/total_time))
+                    100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*inputTime / total_time))
 #             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 10000.)) == 0):
 #                 print("*", end='')
 
@@ -201,7 +198,7 @@ class simulation():
             candidate_event = False
 
             # first step: peorform raytracing to see if solution exists
-            #print("start raytracing. time: " + str(time.time()))
+            # print("start raytracing. time: " + str(time.time()))
             t2 = time.time()
             inputTime += (time.time() - t1)
             ray_tracing_performed = ('ray_tracing_C0' in self._fin) and (self._was_pre_simulated)
@@ -291,7 +288,6 @@ class simulation():
                         # add EM signal to had signal in the time domain
                         spectrum = fft.time2freq(fft.freq2time(spectrum) + fft.freq2time(spectrum_em))
 
-
                     polarization_direction_onsky = self._calculate_polarization_vector()
                     cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
                     polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
@@ -315,7 +311,7 @@ class simulation():
 
                         eTheta *= r_theta
                         ePhi *= r_phi
-                        logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection/units.deg,
+                        logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection / units.deg,
                             r_theta, r_phi))
 
                     if(self._debug):
@@ -345,7 +341,7 @@ class simulation():
                     if(np.max(np.abs(electric_field.get_trace())) > 2 * self._Vrms):
                         candidate_event = True
 
-            #print("start detector simulation. time: " + str(time.time()))
+            # print("start detector simulation. time: " + str(time.time()))
             t3 = time.time()
             rayTracingTime += t3 - t2
             # perform only a detector simulation if event had at least one
@@ -387,7 +383,7 @@ class simulation():
                                                                                          t_total, 1.e3 * t_total / self._n_events))
 
         outputTime = time.time() - t5
-        print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
+        print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) + 
               "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
 
     def _increase_signal(self, channel_id, factor):
@@ -475,7 +471,6 @@ class simulation():
         if(self._mout['triggered'][self._iE]):
             logger.info("event triggered")
 
-
     def get_Vrms(self):
         return self._Vrms
 
@@ -496,7 +491,6 @@ class simulation():
                     self._was_pre_simulated = True
                     print("the simulation was already performed with the same detector")
         return self._was_pre_simulated
-
 
     def _create_meta_output_datastructures(self):
         """
@@ -546,7 +540,6 @@ class simulation():
         self._sim_station[stnp.nu_inttype] = self._inttype
         self._sim_station[stnp.nu_vertex] = np.array([self._x, self._y, self._z])
         self._sim_station[stnp.inelasticity] = self._inelasticity
-
 
     def _add_empty_electric_field(self, channel_id):
         electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id])
@@ -603,7 +596,6 @@ class simulation():
                 fout.attrs[key] = self._fin_attrs[key]
         fout.close()
 
-
     def calculate_Veff(self):
         # calculate effective
         density_ice = 0.9167 * units.g / units.cm ** 3
@@ -624,7 +616,7 @@ class simulation():
             rmin = self._fin_attrs['rmin']
             rmax = self._fin_attrs['rmax']
             dZ = self._fin_attrs['zmax'] - self._fin_attrs['zmin']
-            V = np.pi * (rmax**2 - rmin**2) * dZ
+            V = np.pi * (rmax ** 2 - rmin ** 2) * dZ
         Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
         logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
 
@@ -678,8 +670,10 @@ class simulation():
             cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*self._launch_vector))
             return cs.transform_from_ground_to_onsky(polarization_direction)
         elif(self._cfg['signal']['polarization'] == 'custom'):
-            v = np.array([0, float(self._cfg['signal']['eTheta']), float(self._cfg['signal']['ePhi'])])
-            return v/np.linalg.norm(v)
+            ePhi = float(self._cfg['signal']['ePhi'])
+            eTheta = (1 - ePhi ** 2) ** 0.5
+            v = np.array([0, eTheta, ePhi])
+            return v / np.linalg.norm(v)
         else:
             msg = "{} for config.signal.polarization is not a valid option".format(self._cfg['signal']['polarization'])
             logger.error(msg)
