@@ -8,6 +8,7 @@ speedup:
   minimum_weight_cut: 1.e-5
   delta_C_cut: 0.698  # 40 degree
   redo_raytracing: False  # redo ray tracing even if previous calculated ray tracing solutions are present
+  min_efield_amplitude: 2  # the minimum signal amplitude of the efield as a factor of the noise RMS. If the value is smaller, no detector simulation is performed. As the vector effecive length of antennas is typically less than 1, this cut does not introduce any bias as long as the value is smaller than the trigger threshold. 
 
 propagation:
   module: analytic
