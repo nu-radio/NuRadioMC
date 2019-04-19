@@ -146,7 +146,6 @@ class correlationDirectionFitter:
 
         if use_correlation:
             # Correlation
-            print(signs)
             corr_02 = signal.correlate(station.get_channel(channel_pairs[0][0]).get_trace(),
                                        signs[0] * station.get_channel(channel_pairs[0][1]).get_trace())
             corr_13 = signal.correlate(station.get_channel(channel_pairs[1][0]).get_trace(),
@@ -167,7 +166,6 @@ class correlationDirectionFitter:
 
         if use_correlation:
         # Using correlation
-            print(trace_start_time_pairs)
             ll = opt.brute(ll_regular_station, ranges=(slice(ZenLim[0], ZenLim[1], 0.01),
                                                        slice(AziLim[0], AziLim[1], 0.01)),
                             args=(corr_02, corr_13, sampling_rate, positions_pairs, trace_start_time_pairs),
