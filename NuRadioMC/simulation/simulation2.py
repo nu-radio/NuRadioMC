@@ -4,10 +4,10 @@ from radiotools import helper as hp
 from radiotools import coordinatesystems as cstrans
 from NuRadioMC.SignalGen import askaryan as signalgen
 from NuRadioMC.utilities import units
-from NuRadioMC.SignalProp import analyticraytraycing as ray
 from NuRadioMC.utilities import medium
 from NuRadioMC.utilities import fft
 from NuRadioMC.utilities.earth_attenuation import get_weight
+from NuRadioMC.SignalProp import propagation
 from matplotlib import pyplot as plt
 import h5py
 import time
@@ -28,7 +28,6 @@ import logging
 from six import iteritems
 import yaml
 import os
-from numpy.lib.recfunctions import repack_fields
 # import confuse
 logger = logging.getLogger("sim")
 logger.setLevel(logging.WARNING)
@@ -100,6 +99,10 @@ class simulation():
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._debug = debug
         self._evt_time = evt_time
+        
+        # initialize propagation module
+        self._prop = propagation.get_propagation_module(self._cfg['propagation']['module'])
+        
 
         self._ice = medium.get_ice_model(self._cfg['propagation']['ice_model'])
 
@@ -204,10 +207,10 @@ class simulation():
             ray_tracing_performed = ('ray_tracing_C0' in self._fin) and (self._was_pre_simulated)
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                 x2 = self._det.get_relative_position(self._station_id, channel_id)
-                r = ray.ray_tracing(x1, x2, self._ice, log_level=logging.WARNING,
+                r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=logging.WARNING,
                                     n_frequencies_integration=int(self._cfg['propagation']['n_freq']))
 
-                if(ray_tracing_performed):  # check if raytracing was already performed
+                if(ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                     r.set_solution(self._fin['ray_tracing_C0'][self._iE, channel_id], self._fin['ray_tracing_C1'][self._iE, channel_id],
                                    self._fin['ray_tracing_solution_type'][self._iE, channel_id])
                 else:
@@ -231,7 +234,7 @@ class simulation():
                     viewing_angles.append(viewing_angle)
                     delta_C = (viewing_angle - cherenkov_angle)
                     logger.debug('solution {} {}: viewing angle {:.1f} = delta_C = {:.1f}'.format(
-                        iS, ray.solution_types[r.get_solution_type(iS)], viewing_angle / units.deg, (viewing_angle - cherenkov_angle) / units.deg))
+                        iS, self._prop.solution_types[r.get_solution_type(iS)], viewing_angle / units.deg, (viewing_angle - cherenkov_angle) / units.deg))
                     delta_Cs.append(delta_C)
 
                 # discard event if delta_C (angle off cherenkov cone) is too large
@@ -243,7 +246,6 @@ class simulation():
                 n = r.get_number_of_solutions()
                 Rs = np.zeros(n)
                 Ts = np.zeros(n)
-                tts = np.zeros((n, self._n_samples))
                 for iS in range(n):  # loop through all ray tracing solution
                     if(ray_tracing_performed):
                         R = self._fin['travel_distances'][self._iE, channel_id, iS]
@@ -303,7 +305,7 @@ class simulation():
 
                     # in case of a reflected ray we need to account for fresnel
                     # reflection at the surface
-                    if(ray.solution_types[r.get_solution_type(iS)] == 'reflected'):
+                    if(self._prop.solution_types[r.get_solution_type(iS)] == 'reflected'):
                         from NuRadioReco.utilities import geometryUtilities as geo_utl
                         zenith_reflection = r.get_reflection_angle(iS)
                         r_theta = geo_utl.get_fresnel_r_p(
@@ -332,7 +334,7 @@ class simulation():
                     electric_field.set_trace_start_time(T)
                     electric_field[efp.azimuth] = azimuth
                     electric_field[efp.zenith] = zenith
-                    electric_field[efp.ray_path_type] = ray.solution_types[r.get_solution_type(iS)]
+                    electric_field[efp.ray_path_type] = self._prop.solution_types[r.get_solution_type(iS)]
                     electric_field[efp.nu_vertex_distance] = Rs[iS]
                     electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
                     self._sim_station.add_electric_field(electric_field)
