@@ -58,8 +58,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
     model: string
         specifies the signal model
         * ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information
-        * Alvarez2000: what is in shelfmc
-        * Alvarez2011: parametrization based on ZHS from Jaime Alvarez-Muñiz, Andrés Romero-Wolf, and Enrique Zas Phys. Rev. D 84, 103003, doi:10.1103/PhysRevD.84.103003. The model is implemented in pyrex and here only a wrapper around the pyrex code is implemented
+        * Alvarez2000: parameterization based on ZHS mainly based on J. Alvarez-Muniz, R. A. Vazquez, and E. Zas, Calculation methods for radio pulses from high energyshowers,Physical Review D62 (2000) https://doi.org/10.1103/PhysRevD.84.103003
+        * Alvarez2009: parameterization based on ZHS from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas, Coherent cherenkov radio pulses fromhadronic showers up to eev energies,Astroparticle Physics35(2012), no. 6 287 – 299 and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas, Thinned simulations of extremely energeticshowers in dense media for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111
         * Hanson2017: analytic model from J. Hanson, A. Connolly Astroparticle Physics 91 (2017) 75-89
 
     Returns
@@ -81,33 +81,6 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
         # the factor 0.5 is introduced to compensate the unusual fourier transform normalization used in the ZHS code
         trace = 0.5 * np.fft.irfft(tmp) / dt
         trace = np.roll(trace, int(2 * units.ns / dt))
-        return trace
-
-    elif(model == 'Alvarez2012'):
-        from pyrex.signals import AskaryanSignal
-        from pyrex.ice_model import IceModel
-        from pyrex.particle import Particle
-        tt = np.arange(0, N * dt, dt)
-        ice = IceModel()
-        p = Particle(particle_id="nu_e", # irrelevant
-                     vertex=(0, 0, ice.depth_with_index(n_index)),
-                     direction=(0, 0, -1), # irrelevant
-                     energy=energy/units.GeV)
-        if(shower_type == "HAD"):
-            p.interaction.em_frac = 0
-        elif(shower_type == "EM"):
-            p.interaction.em_frac = 1
-        else:
-            raise NotImplementedError("shower type {} not implemented in {} Askaryan module".format(shower_type, model))
-        p.interaction.had_frac = 1 - p.interaction.em_frac
-        ask = AskaryanSignal(times=tt / units.s,
-                            particle=p,
-                            viewing_angle=theta,
-                            viewing_distance=R,
-                            ice_model=ice,
-                            t0=20 * units.ns / units.s)
-
-        trace = ask.values * units.V / units.m
         return trace
 
     elif(model == 'Alvarez2009'):
