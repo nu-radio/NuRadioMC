@@ -145,8 +145,10 @@ class BaseStation():
     def add_electric_field(self, electric_field):
         self._electric_fields.append(electric_field)
     
-    def get_electric_fields_for_channels(self, channel_ids, ray_path_type=None):
+    def get_electric_fields_for_channels(self, channel_ids=None, ray_path_type=None):
         for e_field in self._electric_fields:
+            if (channel_ids is None):
+                channel_ids = e_field.get_channel_ids()
             if e_field.has_channel_ids(channel_ids):
                 if ray_path_type is None:
                     yield e_field
