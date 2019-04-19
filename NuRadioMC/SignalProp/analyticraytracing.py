@@ -10,6 +10,7 @@ from operator import itemgetter
 import logging
 logging.basicConfig()
 from matplotlib.hatch import get_path
+from NuRadioMC.utilities import attenuation
 
 # check if CPP implementation is available
 cpp_available = False
@@ -34,9 +35,14 @@ solution_types = {1: 'direct',
 
 class ray_tracing_2D():
 
-    def __init__(self, medium, log_level=logging.WARNING,
+    def __init__(self, medium, attenuation_model="SP1", 
+                 log_level=logging.WARNING,
                  n_frequencies_integration=6):
         self.medium = medium
+        self.attenuation_model = attenuation_model
+        if(not self.attenuation_model in attenuation.model_to_int):
+            raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
+        self.attenuation_model_int = attenuation.model_to_int[self.attenuation_model]
         self.__b = 2 * self.medium.n_ice
         self.__logger = logging.getLogger('ray_tracing_2D')
         self.__logger.setLevel(log_level)
@@ -433,7 +439,7 @@ class ray_tracing_2D():
             tmp = np.zeros_like(freqs)
             for i, f in enumerate(freqs):
                 tmp[i] = wrapper.get_attenuation_along_path(
-                    x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
+                    x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n, self.medium.z_0, self.attenuation_model_int)
 
             attenuation = np.ones_like(frequency)
             attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
@@ -444,7 +450,7 @@ class ray_tracing_2D():
 
             def dt(t, C_0, frequency):
                 z = self.get_z_unmirrored(t, C_0)
-                return self.ds(t, C_0) / self.get_attenuation_length(z, frequency)
+                return self.ds(t, C_0) / attenuation.get_attenuation_length(z, frequency, self.attenuation_model)
 
             # to speed up things we only calculate the attenuation for a few frequencies
             # and interpolate linearly between them
@@ -465,43 +471,7 @@ class ray_tracing_2D():
                 x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation))
             return attenuation
 
-#     def get_temperature(self, z):
-#         return (-51.5 + z * (-4.5319e-3 + 5.822e-6 * z))
 
-    def get_temperature(self, z):
-        """
-        returns the temperature in Celsius as a function of depth
-        """
-        # from https://icecube.wisc.edu/~araproject/radio/#icetabsorption
-
-        z2 = np.abs(z / units.m)
-        return 1.83415e-09 * z2**3 + (-1.59061e-08 * z2**2) + 0.00267687 * z2 + (-51.0696)
-
-    def get_attenuation_length(self, z, frequency):
-        t = self.get_temperature(z)
-        f0 = 0.0001
-        f2 = 3.16
-        w0 = np.log(f0)
-        w1 = 0.0
-        w2 = np.log(f2)
-        w = np.log(frequency / units.GHz)
-        b0 = -6.74890 + t * (0.026709 - t * 0.000884)
-        b1 = -6.22121 - t * (0.070927 + t * 0.001773)
-        b2 = -4.09468 - t * (0.002213 + t * 0.000332)
-        if(not hasattr(frequency, '__len__')):
-            if (frequency < 1. * units.GHz):
-                a = (b1 * w0 - b0 * w1) / (w0 - w1)
-                bb = (b1 - b0) / (w1 - w0)
-            else:
-                a = (b2 * w1 - b1 * w2) / (w1 - w2)
-                bb = (b2 - b1) / (w2 - w1)
-        else:
-            a = np.ones_like(frequency) * (b2 * w1 - b1 * w2) / (w1 - w2)
-            bb = np.ones_like(frequency) * (b2 - b1) / (w2 - w1)
-            a[frequency < 1. * units.GHz] = (b1 * w0 - b0 * w1) / (w0 - w1)
-            bb[frequency < 1. * units.GHz] = (b1 - b0) / (w1 - w0)
-
-        return 1. / np.exp(a + bb * w)
 
     def get_angle(self, x, x_start, C_0):
         z = self.get_z_mirrored(x_start, x, C_0)[1]
@@ -791,8 +761,12 @@ class ray_tracing:
     utility class (wrapper around the 2D analytic ray tracing code) to get
     ray tracing solutions in 3D for two arbitrary points x1 and x2
     """
+    
+    solution_types = {1: 'direct',
+                  2: 'refracted',
+                  3: 'reflected'}
 
-    def __init__(self, x1, x2, medium, log_level=logging.WARNING,
+    def __init__(self, x1, x2, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=6):
         """
         class initilization
@@ -803,6 +777,10 @@ class ray_tracing:
             start point of the ray
         x2: 3dim np.array
             stop point of the ray
+        medium: medium class
+            class describing the index-of-refraction profile
+        attenuation_model: string
+            signal attenuation model (so far only "SP1" is implemented)
         log_level: logging object
             specify the log level of the ray tracing class
             * logging.ERROR
@@ -819,6 +797,7 @@ class ray_tracing:
         self.__logger = logging.getLogger('ray_tracing')
         self.__logger.setLevel(log_level)
         self.__medium = medium
+        self.__attenuation_model = attenuation_model
         self.__n_frequencies_integration = n_frequencies_integration
 
         self.__swap = False
@@ -843,7 +822,7 @@ class ray_tracing:
         self.__x2 = np.array([X2r[0], X2r[2]])
         
         self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
-        self.__r2d = ray_tracing_2D(self.__medium, log_level=log_level,
+        self.__r2d = ray_tracing_2D(self.__medium, self.__attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self.__n_frequencies_integration)
 
     def set_solution(self, C0s, C1s, solution_types):
