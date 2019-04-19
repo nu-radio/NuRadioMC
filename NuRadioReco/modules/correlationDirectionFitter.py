@@ -5,7 +5,7 @@ import numpy as np
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import scipy.optimize as opt
 from radiotools import helper as hp
 import logging
@@ -229,17 +229,15 @@ class correlationDirectionFitter:
         if station.has_sim_station():
             sim_zen = None
             sim_az = None
-            if(station.get_sim_station().has_parameter(stnp.zenith)):
+            if(station.get_sim_station().is_cosmic_ray()):
                 sim_zen = station.get_sim_station()[stnp.zenith]
                 sim_az = station.get_sim_station()[stnp.azimuth]
-            elif(station.get_sim_station().has_channels()):  # in case of a neutrino simulation, each channel has a slightly different arrival direction -> compute the average
+            elif(station.get_sim_station().is_neutrino()):  # in case of a neutrino simulation, each channel has a slightly different arrival direction -> compute the average
                 sim_zen = []
                 sim_az = []
-                for sim_channels in station.get_sim_station().iter_channels(use_channels=np.array(channel_pairs).flatten()):
-                    for sim_channel in sim_channels:
-                        if(sim_channel[chp.ray_path_type] == 'direct' or sim_channel[chp.ray_path_type] == 'refracted'):
-                            sim_zen.append(sim_channel[chp.zenith])
-                            sim_az.append(sim_channel[chp.azimuth])
+                for efield in station.get_sim_station().get_electric_fields_for_channels(ray_path_type='direct'):
+                    sim_zen.append(efield[efp.zenith])
+                    sim_az.append(efield[efp.azimuth])
                 sim_zen = np.mean(np.array(sim_zen))
                 sim_az = np.mean(np.array(sim_az))
 
