@@ -63,7 +63,7 @@ for iF, filename in enumerate(sorted(glob.glob(os.path.join(sys.argv[1], "*.hdf5
 ax.set_xlabel("distance [m]")
 ax.set_ylabel("coincidence fraction")
 ax.semilogy(True)
-ax.set_aspect('box')
+ax.set_aspect('equal', 'box')
 ax.set_xlim(0, 3000)
 ax.set_ylim(0.5e-2, 1.1)
 ax.legend(loc='lower left', fontsize='medium', numpoints=1)
