@@ -101,11 +101,7 @@ class efieldTimeDirectionFitter:
                                                                                               res.fun, df,
                                                                                               chi2ndf,
                                                                                               chi2prob)
-        if station.has_sim_station():
-            sim_zen = station.get_sim_station()[stnp.zenith]
-            sim_az = station.get_sim_station()[stnp.azimuth]
-            dOmega = hp.get_angle(hp.spherical_to_cartesian(sim_zen, sim_az), hp.spherical_to_cartesian(res.x[0], res.x[1]))
-            output_str += "  MC theta = {:.1f}, phi = {:.1f},  dOmega = {:.2f}".format(sim_zen / units.deg, sim_az / units.deg, dOmega / units.deg)
+        
         logger.info(output_str)
         station[stnp.zenith] = res.x[0]
         station[stnp.azimuth] = hp.get_normalized_angle(res.x[1])
