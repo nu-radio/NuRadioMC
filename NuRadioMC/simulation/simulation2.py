@@ -537,6 +537,7 @@ class simulation():
         """
         # create NuRadioReco event structure
         self._sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
+        self._sim_station.set_is_neutrino()
         # save relevant neutrino properties
         self._sim_station[stnp.nu_zenith] = self._zenith_nu
         self._sim_station[stnp.nu_azimuth] = self._azimuth_nu
