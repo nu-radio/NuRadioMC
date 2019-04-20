@@ -25,7 +25,9 @@ class correlationDirectionFitter:
         self.__delta_azimuth = []
         self.begin()
 
-    def begin(self, debug=False):
+    def begin(self, debug=False, log_level=None):
+        if(log_level is not None):
+            logger.setLevel(log_level)
         self.__debug = debug
 
     def run(self, evt, station, det, n_index=None, ZenLim=[0 * units.deg, 90 * units.deg],
@@ -236,6 +238,8 @@ class correlationDirectionFitter:
                 for efield in station.get_sim_station().get_electric_fields_for_channels(ray_path_type='direct'):
                     sim_zen.append(efield[efp.zenith])
                     sim_az.append(efield[efp.azimuth])
+                sim_zen = np.array(sim_zen)
+                logger.debug("average incident zenith {:.1f} +- {:.1f}".format(np.mean(sim_zen) /units.deg, np.std(sim_zen)/units.deg))
                 sim_zen = np.mean(np.array(sim_zen))
                 sim_az = np.mean(np.array(sim_az))
 
