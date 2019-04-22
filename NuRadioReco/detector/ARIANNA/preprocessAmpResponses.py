@@ -39,6 +39,7 @@ def preprocess_300Amp(amp, channel, path="HardwareResponses/"):
     # Convert to GHz and add 40dB for attenuation in measurement circuit
     amp_gain_db[:, 0] *= units.Hz
     amp_phase_discrete[:, 0] *= units.Hz
+    amp_phase_discrete[:, 1] *= units.deg
     if(not np.allclose(amp_gain_db[:, 0], amp_phase_discrete[:, 0])):
         raise ValueError("frequencies of gain and phase measurement are not equal for NULL measurement")
     amp_gain_db[:, 1] += 40  # 300 series amps
@@ -56,6 +57,7 @@ def preprocess_300Amp(amp, channel, path="HardwareResponses/"):
     # Convert to GHz and add 40dB for attenuation in measurement circuit
     amp_gain_db[:, 0] *= units.Hz
     amp_phase_discrete[:, 0] *= units.Hz
+    amp_phase_discrete[:, 1] *= units.deg
     ff = amp_gain_db[:, 0]
     if(not np.allclose(amp_gain_db[:, 0], amp_phase_discrete[:, 0])):
         raise ValueError("frequencies of gain and phase measurement are not equal for {}-{:02d}".format(amp, channel))
