@@ -207,13 +207,13 @@ class correlationDirectionFitter:
             t02s = toffset[indices]
             ax.plot(toffset[indices], corr_02[indices], 'o')
             imax = np.argmax(corr_02[indices])
-            print("offset 02= {:.3f}".format(toffset[indices[imax]] -  (delta_t_02 / sampling_rate)))
+#             print("offset 02= {:.3f}".format(toffset[indices[imax]] -  (delta_t_02 / sampling_rate)))
 
             ax2.plot(toffset, corr_13)
             indices = peakutils.indexes(corr_13, thres=0.8, min_dist=5)
             ax2.plot(toffset[indices], corr_13[indices], 'o')
             imax = np.argmax(corr_13[indices])
-            print("offset 13= {:.3f}".format(toffset[indices[imax]] -  (delta_t_13 / sampling_rate)))
+#             print("offset 13= {:.3f}".format(toffset[indices[imax]] -  (delta_t_13 / sampling_rate)))
 
             ax2.axvline(delta_t_13 / sampling_rate, label='time', c='k')
             

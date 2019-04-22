@@ -147,6 +147,7 @@ class BaseStation():
     
     def get_electric_fields_for_channels(self, channel_ids=None, ray_path_type=None):
         for e_field in self._electric_fields:
+            channel_ids2 = channel_ids
             if (channel_ids is None):
                 channel_ids2 = e_field.get_channel_ids()
             if e_field.has_channel_ids(channel_ids2):
