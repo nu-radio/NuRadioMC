@@ -360,6 +360,10 @@ class Detector(object):
     def get_amplifier_type(self, station_id, channel_id):
         res = self.__get_channel(station_id, channel_id)
         return res['amp_type']
+    
+    def get_amplifier_measurement(self, station_id, channel_id):
+        res = self.__get_channel(station_id, channel_id)
+        return res['amp_reference_measurement']
 
     def get_sampling_frequency(self, station_id, channel_id):
         res = self.__get_channel(station_id, channel_id)
