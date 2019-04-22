@@ -80,7 +80,7 @@ def load_amp_measurement(amp_measurement):
         gain = np.abs(response)
         phase = np.unwrap(np.angle(response))
         amp_phase_f = interp1d(ff, phase, bounds_error=False, fill_value=0)  # all requests outside of measurement range are set to 0
-        amp_gain_f = interp1d(ff, gain, bounds_error=False, fill_value=0)  # all requests outside of measurement range are set to 0
+        amp_gain_f = interp1d(ff, gain, bounds_error=False, fill_value=1)  # all requests outside of measurement range are set to 1
         
         def get_response(ff):
             return amp_gain_f(ff) * np.exp(1j * amp_phase_f(ff))
