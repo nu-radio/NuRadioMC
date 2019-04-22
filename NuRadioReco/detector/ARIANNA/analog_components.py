@@ -70,7 +70,7 @@ def load_amp_measurement(amp_measurement):
     """
     load individual amp measurement from file and buffer interpolation function
     """
-    filename = ""
+    filename = "/home/me/ARIANNA/NuRadioReco/NuRadioReco/detector/ARIANNA/HardwareResponses/300SeriesPickleFiles/"+amp_measurement+".pkl"
     with open(filename, 'r') as fin:
         data = pickle.load(fin)
         if(amp_measurement not in data):
@@ -86,7 +86,7 @@ def load_amp_measurement(amp_measurement):
             return amp_gain_f(ff) * np.exp(1j * amp_phase_f(ff))
         
         amp_measurements[amp_measurement] = get_response
-
+        print get_response(ff)
 
 # amp responses do not occupy a lot of memory, pre load all responses
 amplifier_response = {}
@@ -100,6 +100,7 @@ def get_amplifier_response(ff, amp_type, amp_measurement=None):
     if(amp_measurement is not None):
         if amp_measurement not in amp_measurements:
             load_amp_measurement(amp_measurement)
+        ff = ff/1e9 # need better fix
         return amp_measurements[amp_measurement](ff)
     elif(amp_type in amplifier_response.keys()):
         return amplifier_response[amp_type]['gain'](ff) * amplifier_response[amp_type]['phase'](ff)
