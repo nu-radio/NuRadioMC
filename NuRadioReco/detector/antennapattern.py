@@ -653,7 +653,7 @@ class AntennaPattern(AntennaPatternBase):
                                                         freq, ff[index]))
                         raise Exception("frequency has changed")
 
-        logger.info('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
+        logger.warning('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
 
     def _get_index(self, iFreq, iTheta, iPhi):
         return iFreq * self.n_theta * self.n_phi + iPhi * self.n_theta + iTheta
