@@ -32,7 +32,8 @@ class correlationDirectionFitter:
 
     def run(self, evt, station, det, n_index=None, ZenLim=[0 * units.deg, 90 * units.deg],
             AziLim=[0 * units.deg, 360 * units.deg],
-            channel_pairs=((0, 2), (1, 3))):
+            channel_pairs=((0, 2), (1, 3)),
+            use_envelope=False):
         """
         reconstruct signal arrival direction for all events
 
@@ -49,6 +50,8 @@ class correlationDirectionFitter:
             default is 0-360deg
         channel_pairs: pair of pair of integers
             specify the two channel pairs to use, default ((0, 2), (1, 3))
+        use_envelope: bool (default False)
+            if True, the hilbert envelope of the traces is used
         """
 
         use_correlation = True
@@ -148,10 +151,18 @@ class correlationDirectionFitter:
 
         if use_correlation:
             # Correlation
-            corr_02 = signal.correlate(station.get_channel(channel_pairs[0][0]).get_trace(),
-                                       signs[0] * station.get_channel(channel_pairs[0][1]).get_trace())
-            corr_13 = signal.correlate(station.get_channel(channel_pairs[1][0]).get_trace(),
-                                       signs[1] * station.get_channel(channel_pairs[1][1]).get_trace())
+            if not use_envelope:
+                corr_02 = signal.correlate(station.get_channel(channel_pairs[0][0]).get_trace(),
+                                           signs[0] * station.get_channel(channel_pairs[0][1]).get_trace())
+                corr_13 = signal.correlate(station.get_channel(channel_pairs[1][0]).get_trace(),
+                                           signs[1] * station.get_channel(channel_pairs[1][1]).get_trace())
+            else:
+                corr_02 = signal.correlate(np.abs(signal.hilbert(station.get_channel(channel_pairs[0][0]).get_trace())),
+                                           np.abs(signal.hilbert(station.get_channel(channel_pairs[0][1]).get_trace())))
+                corr_13 = signal.correlate(np.abs(signal.hilbert(station.get_channel(channel_pairs[1][0]).get_trace())),
+                                           np.abs(signal.hilbert(station.get_channel(channel_pairs[1][1]).get_trace())))
+                        
+                        
 
         else:
             # FFT convolution
