@@ -250,13 +250,26 @@ class correlationDirectionFitter:
                     sim_zen.append(efield[efp.zenith])
                     sim_az.append(efield[efp.azimuth])
                 sim_zen = np.array(sim_zen)
-                logger.debug("average incident zenith {:.1f} +- {:.1f}".format(np.mean(sim_zen) /units.deg, np.std(sim_zen)/units.deg))
+                sim_az = hp.get_normalized_angle(np.array(sim_az))
+                ops = "average incident zenith {:.1f} +- {:.1f}".format(np.mean(sim_zen) /units.deg, np.std(sim_zen)/units.deg)
+                ops += " (individual: "
+                for x in sim_zen:
+                    ops += "{:.1f}, ".format(x/units.deg)
+                ops += ")"
+                logger.debug(ops)
+                ops = "average incident azimuth {:.1f} +- {:.1f}".format(np.mean(sim_az) /units.deg, np.std(sim_az)/units.deg)
+                ops += " (individual: "
+                for x in sim_az:
+                    ops += "{:.1f}, ".format(x/units.deg)
+                ops += ")"
+
+                logger.debug(ops)
                 sim_zen = np.mean(np.array(sim_zen))
                 sim_az = np.mean(np.array(sim_az))
 
             if(sim_zen is not None):
                 dOmega = hp.get_angle(hp.spherical_to_cartesian(sim_zen, sim_az), hp.spherical_to_cartesian(station[stnp.zenith], station[stnp.azimuth]))
-                output_str += "  MC theta = {:.1f}, phi = {:.1f},  dOmega = {:.2f}, dZen = {:.01f}, dAz = {:.1f}".format(sim_zen / units.deg, sim_az / units.deg, dOmega / units.deg, (station[stnp.zenith] - sim_zen) / units.deg, (station[stnp.azimuth] - hp.get_normalized_angle(sim_az)) / units.deg)
+                output_str += "  MC theta = {:.2f}, phi = {:.2f},  dOmega = {:.2f}, dZen = {:.1f}, dAz = {:.1f}".format(sim_zen / units.deg, hp.get_normalized_angle(sim_az) / units.deg, dOmega / units.deg, (station[stnp.zenith] - sim_zen) / units.deg, (station[stnp.azimuth] - hp.get_normalized_angle(sim_az)) / units.deg)
                 self.__zenith.append(sim_zen)
                 self.__azimuth.append(sim_az)
                 self.__delta_zenith.append(station[stnp.zenith] - sim_zen)
