@@ -108,7 +108,7 @@ class simulation():
         self._mout_attrs = {}
 
         # read in detector positions
-        logger.debug("Detectorfile {}".format(self._detectorfile))
+        logger.warning("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
         self._det = detector.Detector(json_filename=self._detectorfile)
         
         self._station_ids = self._det.get_station_ids()
