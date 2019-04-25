@@ -129,6 +129,7 @@ class Detector(object):
                     logger.error("can't locate json database file {} or {}".format(filename, filename2))
                     raise NameError
                 filename = filename2
+            logger.warning("loading detector description from {}".format(os.path.abspath(filename)))
             self.__db = TinyDB(filename, storage=serialization,
                                sort_keys=True, indent=4, separators=(',', ': '))
 
