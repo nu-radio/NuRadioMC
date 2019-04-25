@@ -306,6 +306,8 @@ class simulation():
     
                         # in case of a reflected ray we need to account for fresnel
                         # reflection at the surface
+                        r_theta = None
+                        r_phi = None
                         if(self._prop.solution_types[r.get_solution_type(iS)] == 'reflected'):
                             from NuRadioReco.utilities import geometryUtilities as geo_utl
                             zenith_reflection = r.get_reflection_angle(iS)
@@ -338,6 +340,8 @@ class simulation():
                         electric_field[efp.ray_path_type] = self._prop.solution_types[r.get_solution_type(iS)]
                         electric_field[efp.nu_vertex_distance] = Rs[iS]
                         electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
+                        electric_field[efp.reflection_coefficient_theta] = r_theta
+                        electric_field[efp.reflection_coefficient_phi] = r_phi
                         self._sim_station.add_electric_field(electric_field)
     
                         # apply a simple threshold cut to speed up the simulation,
