@@ -4,7 +4,7 @@ speedup:
   minimum_weight_cut: 1.e-5
   delta_C_cut: 0.698  # 40 degree
 propagation:
-  ice_model: ARAsim_southpole
+  ice_model: southpole_2015
 signal:
   model: Alvarez2000
 trigger:
