@@ -12,6 +12,8 @@ def get_ice_model(name):
         return southpole_2015()
     elif(name == "mooresbay_simple"):
         return mooresbay_simple()
+    elif(name == "greenland_simple"):
+        return greenland_simple()
 
 class medium():
 
@@ -40,7 +42,7 @@ class southpole_simple(medium):
         self.n_ice = 1.78
         self.z_0 = 71. * units.m
         self.delta_n = 0.426
-        
+
 class southpole_2015(medium):
 
     def __init__(self):
@@ -48,7 +50,7 @@ class southpole_2015(medium):
         self.n_ice = 1.78
         self.z_0 = 77. * units.m
         self.delta_n = 0.423
-        
+
 class ARAsim_southpole(medium):
 
     def __init__(self):
@@ -64,3 +66,11 @@ class mooresbay_simple(medium):
         self.n_ice = 1.78
         self.z_0 = 34.5 * units.m
         self.delta_n = 0.46
+
+class greenland_simple(medium):
+    # from C. Deaconu, fit to data from Hawley '08, Alley '88
+    # rho(z) = 917 - 602 * exp (-z/37.25), using n = 1 + 0.78 rho(z)/rho_0
+    def __init__(self):
+        self.n_ice = 1.78
+        self.z_0 = 37.25 * units.m
+        self.delta_n = 0.51
