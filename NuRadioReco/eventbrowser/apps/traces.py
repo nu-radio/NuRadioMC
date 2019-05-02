@@ -285,6 +285,8 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
     maxY = 0
     for i, channel in enumerate(station.iter_channels()):
         tt = channel.get_times()
+        if tt is None:
+            continue
         dt = tt[1] - tt[0]
         if channel.get_trace() is None:
             continue
