@@ -283,10 +283,11 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
     fig = tools.make_subplots(rows=1, cols=1)
     maxL1 = 0
     maxY = 0
+    ff=np.array([0])
     for i, channel in enumerate(station.iter_channels()):
-        tt = channel.get_times()
-        if tt is None:
+        if channel.get_trace() is None:
             continue
+        tt = channel.get_times()
         dt = tt[1] - tt[0]
         if channel.get_trace() is None:
             continue
@@ -343,8 +344,8 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                               vertical_spacing=0.01)
     ymax = 0
     for i, channel in enumerate(station.iter_channels()):
-        trace = channel.get_trace() / units.mV
-        if trace is not None:
+        if channel.get_trace() is not None:
+            trace = channel.get_trace() / units.mV
             ymax = max(ymax, np.max(np.abs(trace)))
     if 'trace' in dropdown_traces:
         for i, channel in enumerate(station.iter_channels()):
@@ -556,9 +557,9 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
     for i, channel in enumerate(station.iter_channels()):
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(range=[-ymax, ymax])
 
-        tt = channel.get_times()
-        if tt is None:
+        if channel.get_trace() is None:
             continue
+        tt = channel.get_times()
         dt = tt[1] - tt[0]
         spec = channel.get_frequency_spectrum()
         ff = channel.get_frequencies()
