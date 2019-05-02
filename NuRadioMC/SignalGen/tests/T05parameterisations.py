@@ -1,4 +1,4 @@
-from NuRadioMC.SignalGen.askaryan import get_time_trace
+from NuRadioMC.SignalGen.askaryan import get_time_trace, get_frequency_spectrum
 from NuRadioMC.utilities import units, fft
 import numpy as np
 import matplotlib.pyplot as plt
@@ -31,10 +31,8 @@ for model in models:
 
     for E in Es:
 
-        trace = get_time_trace(E, theta, n_samples, dt, shower_type, n_index, R, model)
-        #trace /= units.mV/units.m
-        spectrum = fft.time2freq(trace)
-        spectrum *= R / units.V * units.MHz * dt
+        spectrum = get_frequency_spectrum(E, theta, n_samples, dt, shower_type, n_index, R, model)
+        spectrum *= R 
         freqs = np.fft.rfftfreq(n_samples, dt)
 
         if (model=='Alvarez2009'):
@@ -43,7 +41,7 @@ for model in models:
             label = ''
 
         #plt.plot(tt, trace, color=col_dict[E], label=label, linestyle=linestyle[model])
-        plt.loglog(freqs, np.abs(spectrum), color=col_dict[E], label=label, linestyle=linestyle[model])
+        plt.loglog(freqs, np.abs(spectrum) / units.V * units.MHz, color=col_dict[E], label=label, linestyle=linestyle[model])
 
 #plt.xlabel('Time [ns]')
 plt.xlabel('Frequency [GHz]')
