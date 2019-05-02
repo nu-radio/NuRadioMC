@@ -473,7 +473,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
             times = channel.get_times()
             trace = channel.get_trace()
             if trace is None:
-                continue()
+                continue
             xcorr = channel.get_parameter(chp.nu_xcorrelations)['nu_ref_xcorr']
             xcorrpos = channel.get_parameter(chp.nu_xcorrelations)['nu_ref_xcorr_time']
             dt = times[1] - times[0]
