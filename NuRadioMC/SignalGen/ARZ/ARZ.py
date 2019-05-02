@@ -13,6 +13,7 @@ import copy
 import pickle
 import logging
 logger = logging.getLogger("SignalGen.ARZ")
+logging.basicConfig()
 
 ######################
 ######################
@@ -62,7 +63,7 @@ class ARZ(object):
         self._interp_factor = interp_factor
         self._interp_factor2 = interp_factor2
         self._random_numbers = {}
-        self._version = (1, 1)
+        self._version = (1, 2)
         # # load shower library into memory
         if(library is None):
             library = os.path.join(os.path.dirname(__file__), "shower_library/library_v{:d}.{:d}.pkl".format(*self._version))
