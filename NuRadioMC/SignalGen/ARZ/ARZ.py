@@ -13,6 +13,7 @@ import copy
 import pickle
 import logging
 logger = logging.getLogger("SignalGen.ARZ")
+logging.basicConfig()
 
 ######################
 ######################
