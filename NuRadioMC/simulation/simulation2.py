@@ -212,8 +212,8 @@ class simulation():
                                    n_frequencies_integration=int(self._cfg['propagation']['n_freq']))
     
                     if(ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
-                        r.set_solution(sg['ray_tracing_C0'][self._iE, iSt, channel_id], sg['ray_tracing_C1'][self._iE, iSt, channel_id],
-                                       sg['ray_tracing_solution_type'][self._iE, iSt, channel_id])
+                        r.set_solution(sg['ray_tracing_C0'][self._iE, channel_id], sg['ray_tracing_C1'][self._iE, channel_id],
+                                       sg['ray_tracing_solution_type'][self._iE, channel_id])
                     else:
                         r.find_solutions()
                     if(not r.has_solution()):
@@ -248,9 +248,9 @@ class simulation():
                     Rs = np.zeros(n)
                     Ts = np.zeros(n)
                     for iS in range(n):  # loop through all ray tracing solution
-                        if(ray_tracing_performed):
-                            R = sg['travel_distances'][self._iE, iSt, channel_id, iS]
-                            T = sg['travel_times'][self._iE, iSt, channel_id, iS]
+                        if(ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):
+                            R = sg['travel_distances'][self._iE, channel_id, iS]
+                            T = sg['travel_times'][self._iE, channel_id, iS]
                         else:
                             R = r.get_path_length(iS)  # calculate path length
                             T = r.get_travel_time(iS)  # calculate travel time
