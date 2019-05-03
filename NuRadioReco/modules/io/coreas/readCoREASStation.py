@@ -29,9 +29,6 @@ class readCoREASStation:
     def run(self, detector):
         for input_file in self.__input_files:
 
-            # read in coreas simulation and copy to event
-#             if input_file == "../../data/CR_sims/005548.hdf5":
-#                 continue
             corsika = h5py.File(input_file, "r")
             if corsika["highlevel"].values() == []:
                 logger.warning(" No highlevel quantities in simulated hdf5 files, weights will be one")
