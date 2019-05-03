@@ -217,18 +217,6 @@ class correlationDirectionFitter:
             if(station.get_sim_station().has_parameter(stnp.zenith)):
                 sim_zen = station.get_sim_station()[stnp.zenith]
                 sim_az = station.get_sim_station()[stnp.azimuth]
-            elif(station.get_sim_station().has_channels()):  # in case of a neutrino simulation, each channel has a slightly different arrival direction -> compute the average
-                sim_zen = []
-                sim_az = []
-                for sim_channels in station.get_sim_station().iter_channels(use_channels=np.array(channel_pairs).flatten()):
-                    for sim_channel in sim_channels:
-                        if(sim_channel[chp.ray_path_type] == 'direct' or sim_channel[chp.ray_path_type] == 'refracted'):
-                            sim_zen.append(sim_channel[chp.zenith])
-                            sim_az.append(sim_channel[chp.azimuth])
-                sim_zen = np.mean(np.array(sim_zen))
-                sim_az = np.mean(np.array(sim_az))
-
-            if(sim_zen is not None):
                 dOmega = hp.get_angle(hp.spherical_to_cartesian(sim_zen, sim_az), hp.spherical_to_cartesian(station[stnp.zenith], station[stnp.azimuth]))
                 output_str += "  MC theta = {:.1f}, phi = {:.1f},  dOmega = {:.2f}, dZen = {:.01f}, dAz = {:.1f}".format(sim_zen / units.deg, sim_az / units.deg, dOmega / units.deg, (station[stnp.zenith] - sim_zen) / units.deg, (station[stnp.azimuth] - hp.get_normalized_angle(sim_az)) / units.deg)
                 self.__zenith.append(sim_zen)
