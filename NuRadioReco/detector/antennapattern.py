@@ -23,6 +23,13 @@ path_to_antennamodels = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 
 def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
+    """
+    Linear interpolation for antennapattern
+
+    Parameters:
+    ------
+
+    """
     if (x0 == x1):
         return y0
     if(interpolation_method == 'complex'):
@@ -43,6 +50,13 @@ def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
 
 
 def interpolate_linear_vectorized(x, x0, x1, y0, y1, interpolation_method='complex'):
+    """
+    Linear interpolation for antennapattern
+
+    Parameters:
+    ------
+
+    """
     x = np.array(x)
     mask = x0 != x1
     result = np.zeros_like(x, dtype=np.complex)
@@ -68,15 +82,15 @@ def interpolate_linear_vectorized(x, x0, x1, y0, y1, interpolation_method='compl
 def get_group_delay(vector_effective_length, df):
     """
     helper function to calculate the group delay from the vector effecitve length
+
+    Parameters:
+    ----------
+    vector_effective_length:
+
+    df:
+
     """
     return -np.diff(np.unwrap(np.angle(vector_effective_length))) / df / units.ns / 2 / np.pi
-
-
-# def interpolate_linear_VEL(x, x0, x1, y0, y1):
-#     result = {}
-#     result['theta'] = interpolate_linear(x, x0, x1, y0['theta'], y1['theta'])
-#     result['phi'] = interpolate_linear(x, x0, x1, y0['phi'], y1['phi'])
-#     return result
 
 
 def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
@@ -108,7 +122,7 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
     Re_Z = ad1_data[:, 5][mask] * units.ohm
     Im_Z = ad1_data[:, 6][mask] * units.ohm
     Z = Re_Z + 1j * Im_Z
-    
+
     Re_S = ad1_data[:, 7][mask]
     Im_S = ad1_data[:, 8][mask]
     S = Re_S + 1j * Im_S
@@ -151,9 +165,9 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
 def preprocess_WIPLD_old(path, gen_num=1, s_paramateres=[1, 1]):
     """
     preprocesses WIPLD file and pickles it
-    
-    this function implements the older insufficient calculation of the vector effective length. This VEL only 
-    relates the incident electric field to the open circuit voltage and not the voltage in a 50 Ohm system.  
+
+    this function implements the older insufficient calculation of the vector effective length. This VEL only
+    relates the incident electric field to the open circuit voltage and not the voltage in a 50 Ohm system.
 
     Parameters
     ----------
@@ -192,12 +206,18 @@ def preprocess_WIPLD_old(path, gen_num=1, s_paramateres=[1, 1]):
     wavelength = c / ff2
     H_phi = (2 * wavelength * get_Z(ff2) * Iphi) / (Z_0) / 1j
     H_theta = (2 * wavelength * get_Z(ff2) * Itheta) / (Z_0) / 1j
-    
+
     return zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta
 
 #     H = wavelength * (np.real(get_Z(ff2)) / (np.pi * Z_0)) ** 0.5 * gains ** 0.5
 
 def save_preprocessed_WIPLD_old(path):
+    """
+    saves preprocessed WIPLD files
+
+    Parameters
+    ----------
+    """
     zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta = preprocess_WIPLD_old(path)
     split = os.path.split(os.path.dirname(path))
     name = split[1]
@@ -206,7 +226,7 @@ def save_preprocessed_WIPLD_old(path):
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)
-        
+
 def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
     """
     preprocesses WIPLD file and pickles it
@@ -250,7 +270,7 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
     V = 1 * units.V
     Z_L = 50 * units.ohm
     H_phi = wavelength * (1 + get_S(ff2)) * Iphi * Z_L / (Z_0) / 1j / V
-    H_theta = wavelength * (1 + get_S(ff2)) * Itheta * Z_L / (Z_0) / 1j / V 
+    H_theta = wavelength * (1 + get_S(ff2)) * Itheta * Z_L / (Z_0) / 1j / V
 
 #     H = wavelength * (np.real(get_Z(ff2)) / (np.pi * Z_0)) ** 0.5 * gains ** 0.5
     return zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta
@@ -258,7 +278,7 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
 #     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
 #     with open(output_filename, 'wb') as fout:
 #         logger.info('saving output to {}'.format(output_filename))
-#         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)        
+#         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)
 
 def save_preprocessed_WIPLD(path):
     zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta = preprocess_WIPLD(path)
@@ -269,7 +289,7 @@ def save_preprocessed_WIPLD(path):
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)
-        
+
 def save_preprocessed_WIPLD_forARA(path):
     """
     this function saves the realized gain in an ARASim readable format
@@ -295,7 +315,7 @@ def save_preprocessed_WIPLD_forARA(path):
     theta = theta[index]
     Iphi = Iphi[index]
     Itheta = Itheta[index]
-    
+
     wavelength = c / ff2
     V = 1 * units.V
     Z_L = 50 * units.ohm
@@ -313,18 +333,24 @@ def save_preprocessed_WIPLD_forARA(path):
             fout.write("Theta   Phi      Gain(dB)          Gain          Phase(deg)\n")
             mask = ff2 == f
             for i in range(np.sum(mask)):
-                fout.write("{:.4f} {:.4f} {:.4g} {:.4g} {:.2f} {:.2f}\n".format(theta[mask][i]/units.deg, 
+                fout.write("{:.4f} {:.4f} {:.4g} {:.4g} {:.2f} {:.2f}\n".format(theta[mask][i]/units.deg,
                                                                        phi[mask][i]/units.deg,
                                                                        0,
                                                                        Gr[mask][i],
                                                                        np.angle(H_theta[mask][i])/units.deg,
                                                                        np.angle(H_phi[mask][i])/units.deg))
-            
-        
-    
-    
+
+
+
+
 
 def get_WIPLD_antenna_response(path):
+    """
+
+    Parameters:
+    ----------
+
+    """
 
     download_file = False
 
@@ -381,7 +407,12 @@ def get_WIPLD_antenna_response(path):
 
 
 def parse_ARA_file(ara):
+    """
 
+    Parameters:
+    ----------
+
+    """
     with open(ara, 'r') as fin:
         ff = []
         phis = []
@@ -423,6 +454,12 @@ def parse_ARA_file(ara):
 
 
 def preprocess_ARA(path):
+    """
+
+    Parameters:
+    ----------
+
+    """
     c = constants.c * units.m / units.s
     Z_0 = 119.9169 * np.pi
     split = os.path.split(os.path.dirname(path))
@@ -438,19 +475,19 @@ def preprocess_ARA(path):
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
-        
+
 def preprocess_XFDTD(path):
     split = os.path.split(os.path.dirname(path))
     name = split[1]
     path = split[0]
-    
+
     import yaml
     with open(os.path.join(path, name, '{}.yaml'.format(name))) as fin:
         info = yaml.load(fin)
         zen_boresight, azi_boresight = hp.cartesian_to_spherical(*info['boresight_direction'])
         zen_ori, azi_ori = hp.cartesian_to_spherical(*info['orientation'])
         n_index = info['n']
-    
+
         c = constants.c * units.m / units.s
         Z_0 = 119.9169 * np.pi
         ff, phi, theta, gain, phase = parse_ARA_file(os.path.join(path, name, '{}.txt'.format(name)))
@@ -474,7 +511,16 @@ def preprocess_XFDTD(path):
 
 class AntennaPatternBase():
 
+    """
+
+    """
     def _get_antenna_rotation(self, zen_boresight, azi_boresight, zen_ori, azi_ori):
+        """
+
+        Parameters:
+        ----------
+
+        """
         # define orientation of wiplD antenna simulation (in ARIANNA CS)
         e1 = hp.spherical_to_cartesian(self._zen_boresight, self._azi_boresight)  # boresight direction
         e2 = hp.spherical_to_cartesian(self._zen_ori, self._azi_ori)  # vector perpendicular to tine plane
@@ -500,6 +546,9 @@ class AntennaPatternBase():
         """
         transform zenith and azimuth angle in ARIANNA coordinate system to the WIPLD coordinate system.
         In addition the orientation of the antenna as deployed in the field is taken into account.
+
+        Parameters:
+        ----------
         """
 
         rot = self._get_antenna_rotation(zen_boresight, azi_boresight, zen_ori, azi_ori)
@@ -655,6 +704,8 @@ class AntennaPattern(AntennaPatternBase):
         logger.info('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
 
     def _get_index(self, iFreq, iTheta, iPhi):
+        """
+        """
         return iFreq * self.n_theta * self.n_phi + iPhi * self.n_theta + iTheta
 
     def _get_antenna_response_vectorized_raw(self, freq, theta, phi):
@@ -800,6 +851,9 @@ class AntennaPattern(AntennaPatternBase):
 class AntennaPatternAnalytic(AntennaPatternBase):
 
     def __init__(self, antenna_model, cutoff_freq=50 * units.MHz):
+        """
+
+        """
         self._notfound = False
         self._model = antenna_model
         self._cutoff_freq = cutoff_freq
@@ -812,6 +866,9 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             self._azi_ori = 0 * units.deg
 
     def parametric_phase(self, freq, type='theoretical'):
+            """
+
+            """
             if type == 'frontlobe_lpda':
                 a = 100 * (freq  - 400 * units.MHz) ** 2 - 20
                 a[np.where(freq > 400 * units.MHz)] -= 0.00007 * (freq[np.where(freq > 400 * units.MHz)] - 400 * units.MHz) ** 2
@@ -829,6 +886,9 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             return a
 
     def _get_antenna_response_vectorized_raw(self, freq, theta, phi, group_delay='frontlobe_lpda'):
+        """
+
+        """
         if(self._model == 'analytic_LPDA'):
             """
             Dummy LPDA model.
@@ -883,6 +943,9 @@ class AntennaPatternProvider(object):
         return AntennaPatternProvider.__instance
 
     def __init__(self):
+        """
+
+        """
         self._open_antenna_patterns = {}
         self._antenna_model_replacements = {}
 
@@ -893,6 +956,9 @@ class AntennaPatternProvider(object):
                 self._antenna_model_replacements = json.load(fin)
 
     def load_antenna_pattern(self, name, **kwargs):
+        """
+
+        """
         if(name in self._antenna_model_replacements.keys()):
             name = self._antenna_model_replacements[name]
         if (name not in self._open_antenna_patterns.keys()):
