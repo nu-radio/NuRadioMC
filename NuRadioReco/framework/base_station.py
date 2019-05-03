@@ -3,6 +3,7 @@ import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.trigger
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.parameters as parameters
+import NuRadioReco.framework.parameter_serialization
 try:
     import cPickle as pickle
 except ImportError:
@@ -203,7 +204,7 @@ class BaseStation():
         if(mode != 'micro'):
             for efield in self.get_electric_fields():
                 efield_pkls.append(efield.serialize(self))
-        data = {'_parameters': self._parameters,
+        data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 '_parameter_covariances': self._parameter_covariances,
                 '_ARIANNA_parameters': self._ARIANNA_parameters,
                 '_station_id': self._station_id,
@@ -224,7 +225,7 @@ class BaseStation():
             efield = NuRadioReco.framework.electric_field.ElectricField([])
             efield.deserialize(electric_field)
             self.add_electric_field(efield)
-        self._parameters = data['_parameters']
+        self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'], parameters.stationParameters)
         self._parameter_covariances = data['_parameter_covariances']
         if('_ARIANNA_parameters') in data:
             self._ARIANNA_parameters = data['_ARIANNA_parameters']

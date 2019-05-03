@@ -52,7 +52,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
             base_trace_pkl = None
         else:
             base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
-        data = {'parameters': self._parameters,
+        data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 'id': self.get_id(),
                 'base_trace': base_trace_pkl}
         if(self.__electric_field is not None):
@@ -64,7 +64,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         data = pickle.loads(data_pkl)
         if(data['base_trace'] is not None):
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
-        self._parameters = data['parameters']
+        self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.channelParameters)
         self._id = data['id']
         if 'electric_field' in data.keys():
             self.__electric_field = NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['electric_field'])
