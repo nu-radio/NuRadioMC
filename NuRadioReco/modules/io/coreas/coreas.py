@@ -105,7 +105,10 @@ def make_sim_station(station_id, corsika, observer, channel_ids,  weight=None):
     energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV
     sim_station.set_parameter(stnp.cr_energy, energy)
     sim_station.set_magnetic_field_vector(magnetic_field_vector)
-    sim_station.set_parameter(stnp.cr_energy_em, corsika["highlevel"].attrs["Eem"])
+    try:
+        sim_station.set_parameter(stnp.cr_energy_em, corsika["highlevel"].attrs["Eem"])
+    except:
+        logger.warning("No high-level quantities in HDF5 file, not setting EM energy")
     sim_station.set_is_cosmic_ray()
 
     sim_station.set_simulation_weight(weight)
