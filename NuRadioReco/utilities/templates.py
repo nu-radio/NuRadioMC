@@ -25,11 +25,11 @@ class Templates(object):
         self.__nu_templates = {}
         self.__nu_template_set = {}
         self.__path = path
-        
-    
+
+
     def set_template_directory(self, path):
         self.__path = path
-    
+
 
     def __load_cr_template(self, station_id):
         path= os.path.join(self.__path, 'templates_cr_station_{}.pickle'.format(station_id))
@@ -60,8 +60,10 @@ class Templates(object):
             tmpl = self.get_cr_ref_templates(station_id)[4]  # FIXME: hardcoded that channel 4 is a cosmic-ray sensitive channel
         elif station_id == 32:
             tmpl = self.get_cr_ref_templates(station_id)[1]
+        elif station_id == 61:
+            tmpl = self.get_cr_ref_templates(station_id)[5]
         else:
-            logger.error("No hardcoded value for station {}".format(station_id))
+            logger.error("Provided value for CR senistive channel of station {} in templates.py".format(station_id))
             tmpl = None
 
         return tmpl
@@ -112,7 +114,7 @@ class Templates(object):
                         if n_tmpl >= n:
                             break
         return self.__cr_template_set
-    
+
     def get_set_of_nu_templates(self, station_id, n=100):
         """
         gets set of n templates to allow for the calculation of average templates
