@@ -21,12 +21,26 @@ class electricFieldResampler:
         pass
 
     def run(self, event, station, det, sampling_rate):
+        """
+        resample electric field
 
+        Parameters
+        ----------
+        event: event
+
+        station: station
+
+        det: detector
+
+        sampling_rate: float
+            desired new sampling rate
+
+        """
         # access simulated efield and high level parameters
         # calculate sampling and FFT resolution
         for efield in station.get_electric_fields():
             orig_binning = 1. / efield.get_sampling_rate()
-            
+
             target_binning = 1. / sampling_rate
             resampling_factor = fractions.Fraction(Decimal(orig_binning / target_binning)).limit_denominator(self.__max_upsampling_factor)
             logger.debug("resampling channel trace by a factor of {}. Original binning {:.3g}ns, target binning {:.3g}".format(resampling_factor,
