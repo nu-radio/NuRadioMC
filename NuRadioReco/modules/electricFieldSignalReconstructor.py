@@ -33,7 +33,21 @@ class electricFieldSignalReconstructor:
         self.__noise_window = noise_window
 
     def run(self, evt, station, det, debug=False):
+        """
+        reconstructs quantities for electric field
 
+        Parameters
+        ----------
+        event: event
+
+        station: station
+
+        det: detector
+
+        debug: bool
+            set debug
+
+        """
         for electric_field in station.get_electric_fields():
             trace_copy = copy.copy(electric_field.get_trace())
 
