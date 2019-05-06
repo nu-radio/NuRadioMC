@@ -24,11 +24,23 @@ path_to_antennamodels = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
     """
-    Linear interpolation for antennapattern
+    helper function to linearly interpolate between two complex numbers
 
     Parameters:
     ------
+    x: float
+        the requested position
+    x0, y0: float, complex float
+        the first data point
+    x1, y1: float, complex float
+        the second data point
+    interpolation_method: string
+        specifies if interpolation is in 
+        * complex (default) i.e. real and imaginary part
+        * magnitude and phase
 
+    Returns: compex float
+        the interpolated value
     """
     if (x0 == x1):
         return y0
@@ -51,10 +63,7 @@ def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
 
 def interpolate_linear_vectorized(x, x0, x1, y0, y1, interpolation_method='complex'):
     """
-    Linear interpolation for antennapattern
-
-    Parameters:
-    ------
+    Same as `interpolate_linear` but all parameters can be vectors
 
     """
     x = np.array(x)
@@ -85,9 +94,13 @@ def get_group_delay(vector_effective_length, df):
 
     Parameters:
     ----------
-    vector_effective_length:
-
-    df:
+    vector_effective_length: complex float
+        the vector effective length of an antenna
+    df: float
+        the size of a frequency bin
+    
+    Returns: float (the group delay)
+        
 
     """
     return -np.diff(np.unwrap(np.angle(vector_effective_length))) / df / units.ns / 2 / np.pi
@@ -109,6 +122,8 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
         which antenna (one or two) to pull from
     s_parameters: list of 2 ints
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
+        
+    Returns: all parameters of the files
     """
     boresight, tines = np.loadtxt(orientation, delimiter=',')
     zen_boresight, azi_boresight = hp.cartesian_to_spherical(*boresight)
@@ -164,7 +179,7 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
 
 def preprocess_WIPLD_old(path, gen_num=1, s_paramateres=[1, 1]):
     """
-    preprocesses WIPLD file and pickles it
+    preprocesses WIPLD file
 
     this function implements the older insufficient calculation of the vector effective length. This VEL only
     relates the incident electric field to the open circuit voltage and not the voltage in a 50 Ohm system.
@@ -177,9 +192,18 @@ def preprocess_WIPLD_old(path, gen_num=1, s_paramateres=[1, 1]):
         which antenna (one or two) to pull from
     s_parameters: list of 2 ints
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
-
+        
+    Returns:
+        * zen_boresight: zenith angle of the boresight direction of the antenna
+        * azi_boresight: azimuth angle of the boresight direction of the antenna
+        * zen_ori: zenith angle of the orientation of the antenna (the vector perpendicular to the boresight direction and the tines (for LPDAs)
+        * azi_ori: azimuth angle of the orientation of the antenna (the vector perpendicular to the boresight direction and the tines (for LPDAs)
+        * ff2: array of frequencies
+        * theta: zenith angle of inicdent electric field
+        * phi: azimuth angle of incident electric field
+        * H_phi: the complex vector effective length of the ePhi polarization component
+        * H_theta: the complex vector effective length of the eTheta polarization component
     """
-    from scipy import constants
     from scipy.interpolate import interp1d
     c = constants.c * units.m / units.s
     Z_0 = 119.9169 * np.pi * units.ohm
@@ -213,10 +237,12 @@ def preprocess_WIPLD_old(path, gen_num=1, s_paramateres=[1, 1]):
 
 def save_preprocessed_WIPLD_old(path):
     """
-    saves preprocessed WIPLD files
+    saves preprocessed WIPLD files to a pickle file
 
     Parameters
     ----------
+    path: string
+        path to folder containing ad1, ra1, and orientation files.
     """
     zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta = preprocess_WIPLD_old(path)
     split = os.path.split(os.path.dirname(path))
@@ -229,7 +255,10 @@ def save_preprocessed_WIPLD_old(path):
 
 def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
     """
-    preprocesses WIPLD file and pickles it
+    preprocesses WIPLD file
+
+    this function implements the older insufficient calculation of the vector effective length. This VEL only
+    relates the incident electric field to the open circuit voltage and not the voltage in a 50 Ohm system.
 
     Parameters
     ----------
@@ -239,9 +268,18 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
         which antenna (one or two) to pull from
     s_parameters: list of 2 ints
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
-
+        
+    Returns:
+        * zen_boresight: zenith angle of the boresight direction of the antenna
+        * azi_boresight: azimuth angle of the boresight direction of the antenna
+        * zen_ori: zenith angle of the orientation of the antenna (the vector perpendicular to the boresight direction and the tines (for LPDAs)
+        * azi_ori: azimuth angle of the orientation of the antenna (the vector perpendicular to the boresight direction and the tines (for LPDAs)
+        * ff2: array of frequencies
+        * theta: zenith angle of inicdent electric field
+        * phi: azimuth angle of incident electric field
+        * H_phi: the complex vector effective length of the ePhi polarization component
+        * H_theta: the complex vector effective length of the eTheta polarization component
     """
-    from scipy import constants
     from scipy.interpolate import interp1d
     c = constants.c * units.m / units.s
     Z_0 = 119.9169 * np.pi * units.ohm
@@ -281,6 +319,14 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
 #         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)
 
 def save_preprocessed_WIPLD(path):
+    """
+    saves preprocessed WIPLD files to a pickle file
+
+    Parameters
+    ----------
+    path: string
+        path to folder containing ad1, ra1, and orientation files.
+    """
     zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta = preprocess_WIPLD(path)
     split = os.path.split(os.path.dirname(path))
     name = split[1]
@@ -293,8 +339,12 @@ def save_preprocessed_WIPLD(path):
 def save_preprocessed_WIPLD_forARA(path):
     """
     this function saves the realized gain in an ARASim readable format
+    
+    Parameters
+    ----------
+    path: string
+        path to folder containing ad1, ra1, and orientation files.
     """
-    from scipy import constants
     from scipy.interpolate import interp1d
     c = constants.c * units.m / units.s
     Z_0 = 119.9169 * np.pi * units.ohm
@@ -341,14 +391,17 @@ def save_preprocessed_WIPLD_forARA(path):
                                                                        np.angle(H_phi[mask][i])/units.deg))
 
 
-
-
-
 def get_WIPLD_antenna_response(path):
     """
+    opens and return the pickle file containing the preprocessed WIPL-D antenna simulation
+    If the pickle file is not present on the local file system, or if the file is outdated (verified via a sha1 hash sum),
+    the file will be downloaded from a central data server
+    
 
     Parameters:
     ----------
+    path: string
+        the path to the pickle file
 
     """
 
@@ -408,9 +461,24 @@ def get_WIPLD_antenna_response(path):
 
 def parse_ARA_file(ara):
     """
+    Helper function that parses the ARAsim ASCII files containig antenna responses
 
     Parameters:
     ----------
+    ara: string
+        path to the file
+    
+    Returns:
+        * ff: array of floats
+            frequencies
+        * thetas: array of floats
+            zenith angle of inicdent electric field
+        * phis: array of floats
+            azimuth angle of inicdent electric field
+        * gains: array of floats
+            corresponding linear gain values
+        * phases: array of floats
+            corresponding phases
 
     """
     with open(ara, 'r') as fin:
@@ -455,9 +523,13 @@ def parse_ARA_file(ara):
 
 def preprocess_ARA(path):
     """
+    preprocess an antenna pattern in the ARASim ASCII file format. The vector effective length is calculated and
+    the output is saved to the NuRadioReco pickle format. 
 
     Parameters:
     ----------
+    path: string
+        the path to the file
 
     """
     c = constants.c * units.m / units.s
@@ -477,6 +549,16 @@ def preprocess_ARA(path):
         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
 
 def preprocess_XFDTD(path):
+    """
+    preprocess an antenna pattern in the XFDTD file format. The vector effective length is calculated and
+    the output is saved to the NuRadioReco pickle format. 
+
+    Parameters:
+    ----------
+    path: string
+        the path to the file
+
+    """
     split = os.path.split(os.path.dirname(path))
     name = split[1]
     path = split[0]
@@ -510,9 +592,8 @@ def preprocess_XFDTD(path):
 
 
 class AntennaPatternBase():
-
     """
-
+    base class of utility class that handles access and buffering to antenna pattern
     """
     def _get_antenna_rotation(self, zen_boresight, azi_boresight, zen_ori, azi_ori):
         """
@@ -528,7 +609,7 @@ class AntennaPatternBase():
         E = np.array([e1, e2, e3])
         if(np.linalg.norm(e3) < 0.9):
             logger.error("orientation of antenna not properly defined in WIPL-D orientation file")
-            raise StandardError
+            raise AssertionError("orientation of antenna not properly defined in WIPL-D orientation file")
 
         # get normal vectors for antenne orientation in field (in ARIANNA CS)
         a1 = hp.spherical_to_cartesian(zen_boresight, azi_boresight)
@@ -537,7 +618,7 @@ class AntennaPatternBase():
         A = np.array([a1, a2, a3])
         if(np.linalg.norm(a3) < 0.9):
             logger.error("orientation of antenna not properly defined detector description")
-            raise StandardError
+            raise AssertionError("orientation of antenna not properly defined detector description")
         from numpy.linalg import inv
 
         return np.matmul(inv(E), A)
@@ -630,6 +711,9 @@ class AntennaPatternBase():
 
 
 class AntennaPattern(AntennaPatternBase):
+    """
+    utility class that handles access and buffering to simulated antenna pattern
+    """
 
     def __init__(self, antenna_model, path=path_to_antennamodels,
                  interpolation_method='complex'):
@@ -849,6 +933,9 @@ class AntennaPattern(AntennaPatternBase):
 
 
 class AntennaPatternAnalytic(AntennaPatternBase):
+    """
+    utility class that handles access and buffering to analytic antenna pattern
+    """
 
     def __init__(self, antenna_model, cutoff_freq=50 * units.MHz):
         """
@@ -866,24 +953,24 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             self._azi_ori = 0 * units.deg
 
     def parametric_phase(self, freq, type='theoretical'):
-            """
+        """
 
-            """
-            if type == 'frontlobe_lpda':
-                a = 100 * (freq  - 400 * units.MHz) ** 2 - 20
-                a[np.where(freq > 400 * units.MHz)] -= 0.00007 * (freq[np.where(freq > 400 * units.MHz)] - 400 * units.MHz) ** 2
-            elif type == 'side_lpda':
-                a = 40 * (freq - 950 * units.MHz) ** 2 - 40
-            elif type == 'back_lpda':
-                a = 50 * (freq - 950 * units.MHz) ** 2 - 50
-            elif type == "theoretical":
-                # ratio of two elements
-                tau = 0.75
-                # maximum frequency
-                f = 1000. * units.MHz
-                a = np.pi / np.log(tau) * np.log(freq / f) - 60
+        """
+        if type == 'frontlobe_lpda':
+            a = 100 * (freq  - 400 * units.MHz) ** 2 - 20
+            a[np.where(freq > 400 * units.MHz)] -= 0.00007 * (freq[np.where(freq > 400 * units.MHz)] - 400 * units.MHz) ** 2
+        elif type == 'side_lpda':
+            a = 40 * (freq - 950 * units.MHz) ** 2 - 40
+        elif type == 'back_lpda':
+            a = 50 * (freq - 950 * units.MHz) ** 2 - 50
+        elif type == "theoretical":
+            # ratio of two elements
+            tau = 0.75
+            # maximum frequency
+            f = 1000. * units.MHz
+            a = np.pi / np.log(tau) * np.log(freq / f) - 60
 
-            return a
+        return a
 
     def _get_antenna_response_vectorized_raw(self, freq, theta, phi, group_delay='frontlobe_lpda'):
         """
@@ -944,7 +1031,9 @@ class AntennaPatternProvider(object):
 
     def __init__(self):
         """
-
+        Provider class for antenna pattern. The usage of antenna pattern through this class ensures
+        that an antenna pattern is loaded only once into memory which takes a significant time and occupies a 
+        significant amount of memory. 
         """
         self._open_antenna_patterns = {}
         self._antenna_model_replacements = {}
@@ -957,7 +1046,15 @@ class AntennaPatternProvider(object):
 
     def load_antenna_pattern(self, name, **kwargs):
         """
-
+        loads an antenna pattern and returns the antenna pattern class
+        
+        Paramters
+        ----------
+        name: string
+            the name of the antenna pattern
+        **kwargs: dict
+            key word arguments that are passed to the init function of the `AntennaPattern` class (see 
+            documentation of this class for further information)
         """
         if(name in self._antenna_model_replacements.keys()):
             name = self._antenna_model_replacements[name]
