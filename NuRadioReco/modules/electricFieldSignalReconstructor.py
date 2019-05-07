@@ -27,10 +27,13 @@ class electricFieldSignalReconstructor:
         self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
         self.begin()
 
-    def begin(self, signal_window_pre=10 * units.ns, signal_window_post=40 * units.ns, noise_window=100 * units.ns):
+    def begin(self, signal_window_pre=10 * units.ns, signal_window_post=40 * units.ns, noise_window=100 * units.ns,
+              log_level=None):
         self.__signal_window_pre = signal_window_pre
         self.__signal_window_post = signal_window_post
         self.__noise_window = noise_window
+        if(log_level is not None):
+            logger.setLevel(log_level)
 
     def run(self, evt, station, det, debug=False):
         """
@@ -55,7 +58,7 @@ class electricFieldSignalReconstructor:
             envelope = np.abs(signal.hilbert(trace_copy))
             envelope_mag = np.linalg.norm(envelope, axis=0)
             signal_time_bin = np.argmax(envelope_mag)
-            signal_time = signal_time_bin / electric_field.get_sampling_rate()
+            signal_time = electric_field.get_times()[signal_time_bin]
             electric_field[efp.signal_time] = signal_time
 
     #
@@ -134,7 +137,6 @@ class electricFieldSignalReconstructor:
             logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
             electric_field.set_parameter(efp.polarization_angle_expectation, exp_pol_angle)
 
-            return
 
     def end(self):
         pass

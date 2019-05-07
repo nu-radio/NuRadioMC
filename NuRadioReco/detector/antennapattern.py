@@ -12,6 +12,7 @@ from radiotools import coordinatesystems as cs
 from scipy import constants
 import logging
 logger = logging.getLogger('antennapattern')
+logging.basicConfig()
 
 # config = ConfigParser.RawConfigParser()
 # config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'antennamodels.cfg')
@@ -785,7 +786,7 @@ class AntennaPattern(AntennaPatternBase):
                                                         freq, ff[index]))
                         raise Exception("frequency has changed")
 
-        logger.info('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
+        logger.warning('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
 
     def _get_index(self, iFreq, iTheta, iPhi):
         """
