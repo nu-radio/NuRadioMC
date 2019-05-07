@@ -5,6 +5,7 @@ import time
 import logging
 
 logger = logging.getLogger("hardwareResponseIncorporator")
+logging.basicConfig()
 
 
 class hardwareResponseIncorporator:

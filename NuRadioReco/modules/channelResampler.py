@@ -7,6 +7,7 @@ from NuRadioReco.utilities import units, fft
 import NuRadioReco.framework.sim_station
 import logging
 logger = logging.getLogger('channelResampler')
+logging.basicConfig()
 
 
 class channelResampler:
