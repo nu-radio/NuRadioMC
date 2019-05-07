@@ -4,7 +4,7 @@ from NuRadioReco.framework.trigger import HighLowTrigger
 import numpy as np
 import time
 import logging
-logger = logging.getLogger('ARIANNAtriggerSimulatorFast')
+logger = logging.getLogger('HighLowTriggerSimulator')
 
 
 def get_high_low_triggers(trace, high_threshold, low_threshold,
@@ -87,7 +87,9 @@ class triggerSimulator:
         self.__t = 0
         self.begin()
 
-    def begin(self, pre_trigger_time=100 * units.ns):
+    def begin(self, pre_trigger_time=50 * units.ns, log_level=None):
+        if(log_level is not None):
+            logger.setLevel(log_level)
         self.__pre_trigger_time = pre_trigger_time
 
     def run(self, evt, station, det,

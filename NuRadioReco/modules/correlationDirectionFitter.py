@@ -5,11 +5,12 @@ import numpy as np
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import scipy.optimize as opt
 from radiotools import helper as hp
 import logging
 logger = logging.getLogger('correlationDirectionFitter')
+logging.basicConfig()
 
 
 class correlationDirectionFitter:
@@ -24,12 +25,15 @@ class correlationDirectionFitter:
         self.__delta_azimuth = []
         self.begin()
 
-    def begin(self, debug=False):
+    def begin(self, debug=False, log_level=None):
+        if(log_level is not None):
+            logger.setLevel(log_level)
         self.__debug = debug
 
     def run(self, evt, station, det, n_index=None, ZenLim=[0 * units.deg, 90 * units.deg],
             AziLim=[0 * units.deg, 360 * units.deg],
-            channel_pairs=((0, 2), (1, 3))):
+            channel_pairs=((0, 2), (1, 3)),
+            use_envelope=False):
         """
         reconstruct signal arrival direction for all events
 
@@ -46,6 +50,8 @@ class correlationDirectionFitter:
             default is 0-360deg
         channel_pairs: pair of pair of integers
             specify the two channel pairs to use, default ((0, 2), (1, 3))
+        use_envelope: bool (default False)
+            if True, the hilbert envelope of the traces is used
         """
 
         use_correlation = True
@@ -62,15 +68,17 @@ class correlationDirectionFitter:
 
             for pos in positions:
                 tmp = []
-                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[0], n=n_index) * sampling_rate)
-                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n_index) * sampling_rate)
+                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[0], n=n_index))
+                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n_index))
                 times.append(tmp)
 
             delta_t_02 = times[0][1] - times[0][0]
             delta_t_13 = times[1][1] - times[1][0]
             #take different trace start times into account
-            delta_t_02 -= (trace_start_times[0][1] - trace_start_times[0][0])*sampling_rate
-            delta_t_13 -= (trace_start_times[1][1] - trace_start_times[1][0])*sampling_rate
+            delta_t_02 -= (trace_start_times[0][1] - trace_start_times[0][0])
+            delta_t_13 -= (trace_start_times[1][1] - trace_start_times[1][0])
+            delta_t_02 *= sampling_rate
+            delta_t_13 *= sampling_rate
             pos_02 = int(corr_02.shape[0] / 2 - delta_t_02)
             pos_13 = int(corr_13.shape[0] / 2 - delta_t_13)
 
@@ -143,10 +151,18 @@ class correlationDirectionFitter:
 
         if use_correlation:
             # Correlation
-            corr_02 = signal.correlate(station.get_channel(channel_pairs[0][0]).get_trace(),
-                                       signs[0] * station.get_channel(channel_pairs[0][1]).get_trace())
-            corr_13 = signal.correlate(station.get_channel(channel_pairs[1][0]).get_trace(),
-                                       signs[1] * station.get_channel(channel_pairs[1][1]).get_trace())
+            if not use_envelope:
+                corr_02 = signal.correlate(station.get_channel(channel_pairs[0][0]).get_trace(),
+                                           signs[0] * station.get_channel(channel_pairs[0][1]).get_trace())
+                corr_13 = signal.correlate(station.get_channel(channel_pairs[1][0]).get_trace(),
+                                           signs[1] * station.get_channel(channel_pairs[1][1]).get_trace())
+            else:
+                corr_02 = signal.correlate(np.abs(signal.hilbert(station.get_channel(channel_pairs[0][0]).get_trace())),
+                                           np.abs(signal.hilbert(station.get_channel(channel_pairs[0][1]).get_trace())))
+                corr_13 = signal.correlate(np.abs(signal.hilbert(station.get_channel(channel_pairs[1][0]).get_trace())),
+                                           np.abs(signal.hilbert(station.get_channel(channel_pairs[1][1]).get_trace())))
+                        
+                        
 
         else:
             # FFT convolution
@@ -163,9 +179,11 @@ class correlationDirectionFitter:
 
         if use_correlation:
         # Using correlation
-            ll = opt.brute(ll_regular_station, ranges=(slice(ZenLim[0], ZenLim[1], 0.05),
-                                                       slice(AziLim[0], AziLim[1], 0.05)),
-                            args=(corr_02, corr_13, sampling_rate, positions_pairs, trace_start_time_pairs), full_output=True, finish=opt.fmin)  # slow but does the trick
+            ll = opt.brute(ll_regular_station, ranges=(slice(ZenLim[0], ZenLim[1], 0.01),
+                                                       slice(AziLim[0], AziLim[1], 0.01)),
+                            args=(corr_02, corr_13, sampling_rate, positions_pairs, trace_start_time_pairs),
+                            full_output=True, finish=opt.fmin)  # slow but does the trick
+#             print(ll)
         else:
             ll = opt.brute(ll_regular_station_fft, ranges=(slice(ZenLim[0], ZenLim[1], 0.05),
                                                            slice(AziLim[0], AziLim[1], 0.05)),
@@ -179,15 +197,17 @@ class correlationDirectionFitter:
 
             for pos in positions_pairs:
                 tmp = []
-                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[0], n=n_index) * sampling_rate)
-                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n_index) * sampling_rate)
+                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[0], n=n_index))
+                tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n_index))
                 times.append(tmp)
 
-            delta_t_02 = (times[0][1] + trace_start_time_pairs[0][1]) - (times[0][0] + trace_start_time_pairs[0][0])
-            delta_t_13 = (times[1][1] + trace_start_time_pairs[1][1]) - (times[1][0] + trace_start_time_pairs[1][0])
-
-            pos_02 = int(corr_02.shape[0] / 2 - delta_t_02)
-            pos_13 = int(corr_13.shape[0] / 2 - delta_t_13)
+            delta_t_02 = times[0][1] - times[0][0]
+            delta_t_13 = times[1][1] - times[1][0]
+            #take different trace start times into account
+            delta_t_02 -= (trace_start_time_pairs[0][1] - trace_start_time_pairs[0][0])
+            delta_t_13 -= (trace_start_time_pairs[1][1] - trace_start_time_pairs[1][0])
+            delta_t_02 *= sampling_rate
+            delta_t_13 *= sampling_rate
 
             toffset = -(np.arange(0, corr_02.shape[0]) - corr_02.shape[0] / 2) / sampling_rate
 
@@ -197,16 +217,22 @@ class correlationDirectionFitter:
             indices = peakutils.indexes(corr_02, thres=0.8, min_dist=5)
             t02s = toffset[indices]
             ax.plot(toffset[indices], corr_02[indices], 'o')
+            imax = np.argmax(corr_02[indices])
+#             print("offset 02= {:.3f}".format(toffset[indices[imax]] -  (delta_t_02 / sampling_rate)))
 
             ax2.plot(toffset, corr_13)
             indices = peakutils.indexes(corr_13, thres=0.8, min_dist=5)
             ax2.plot(toffset[indices], corr_13[indices], 'o')
+            imax = np.argmax(corr_13[indices])
+#             print("offset 13= {:.3f}".format(toffset[indices[imax]] -  (delta_t_13 / sampling_rate)))
 
             ax2.axvline(delta_t_13 / sampling_rate, label='time', c='k')
+            
             ax2.set_xlabel("time")
             ax2.set_ylabel("Correlation Ch 1/ Ch3", fontsize='small')
             ax.set_ylabel("Correlation Ch 0/ Ch2", fontsize='small')
             plt.tight_layout()
+#             plt.close("all")
 
         station[stnp.zenith] = max(ZenLim[0], min(ZenLim[1], ll[0][0]))
         station[stnp.azimuth] = ll[0][1]
@@ -214,11 +240,36 @@ class correlationDirectionFitter:
         if station.has_sim_station():
             sim_zen = None
             sim_az = None
-            if(station.get_sim_station().has_parameter(stnp.zenith)):
+            if(station.get_sim_station().is_cosmic_ray()):
                 sim_zen = station.get_sim_station()[stnp.zenith]
                 sim_az = station.get_sim_station()[stnp.azimuth]
+            elif(station.get_sim_station().is_neutrino()):  # in case of a neutrino simulation, each channel has a slightly different arrival direction -> compute the average
+                sim_zen = []
+                sim_az = []
+                for efield in station.get_sim_station().get_electric_fields_for_channels(ray_path_type='direct'):
+                    sim_zen.append(efield[efp.zenith])
+                    sim_az.append(efield[efp.azimuth])
+                sim_zen = np.array(sim_zen)
+                sim_az = hp.get_normalized_angle(np.array(sim_az))
+                ops = "average incident zenith {:.1f} +- {:.1f}".format(np.mean(sim_zen) /units.deg, np.std(sim_zen)/units.deg)
+                ops += " (individual: "
+                for x in sim_zen:
+                    ops += "{:.1f}, ".format(x/units.deg)
+                ops += ")"
+                logger.debug(ops)
+                ops = "average incident azimuth {:.1f} +- {:.1f}".format(np.mean(sim_az) /units.deg, np.std(sim_az)/units.deg)
+                ops += " (individual: "
+                for x in sim_az:
+                    ops += "{:.1f}, ".format(x/units.deg)
+                ops += ")"
+
+                logger.debug(ops)
+                sim_zen = np.mean(np.array(sim_zen))
+                sim_az = np.mean(np.array(sim_az))
+
+            if(sim_zen is not None):
                 dOmega = hp.get_angle(hp.spherical_to_cartesian(sim_zen, sim_az), hp.spherical_to_cartesian(station[stnp.zenith], station[stnp.azimuth]))
-                output_str += "  MC theta = {:.1f}, phi = {:.1f},  dOmega = {:.2f}, dZen = {:.01f}, dAz = {:.1f}".format(sim_zen / units.deg, sim_az / units.deg, dOmega / units.deg, (station[stnp.zenith] - sim_zen) / units.deg, (station[stnp.azimuth] - hp.get_normalized_angle(sim_az)) / units.deg)
+                output_str += "  MC theta = {:.2f}, phi = {:.2f},  dOmega = {:.2f}, dZen = {:.1f}, dAz = {:.1f}".format(sim_zen / units.deg, hp.get_normalized_angle(sim_az) / units.deg, dOmega / units.deg, (station[stnp.zenith] - sim_zen) / units.deg, (station[stnp.azimuth] - hp.get_normalized_angle(sim_az)) / units.deg)
                 self.__zenith.append(sim_zen)
                 self.__azimuth.append(sim_az)
                 self.__delta_zenith.append(station[stnp.zenith] - sim_zen)
@@ -275,10 +326,10 @@ class correlationDirectionFitter:
             # plot allowed solution separately for each pair of channels
             toffset = -(np.arange(0, corr_02.shape[0]) - corr_02.shape[0] / 2.) / sampling_rate
             indices = peakutils.indexes(corr_02, thres=0.8, min_dist=5)
-            t02s = toffset[indices][np.argsort(corr_02[indices])[::-1]]
+            t02s = toffset[indices][np.argsort(corr_02[indices])[::-1]] + (trace_start_time_pairs[0][1] - trace_start_time_pairs[0][0])
             toffset = -(np.arange(0, corr_13.shape[0]) - corr_13.shape[0] / 2.) / sampling_rate
             indices = peakutils.indexes(corr_13, thres=0.8, min_dist=5)
-            t13s = toffset[indices][np.argsort(corr_13[indices])[::-1]]
+            t13s = toffset[indices][np.argsort(corr_13[indices])[::-1]] + (trace_start_time_pairs[1][1] - trace_start_time_pairs[1][0])
             from scipy import constants
             c = constants.c * units.m / units.s
             dx = -6 * units.m
@@ -332,7 +383,6 @@ class correlationDirectionFitter:
                     theta02 = np.insert(theta02, pos + 1 + j, np.nan)
                 # mask02 = ~np.isnan(theta02)
                 ax.plot(np.rad2deg(phi02), np.rad2deg(theta02), '{}C3'.format(linestyles[i % 4]), label='c 0+2 dt = {}'.format(t02))
-                ax.plot(np.rad2deg(phi02), 180 - np.rad2deg(theta02), '{}C3'.format(linestyles[i % 4]))
             for i, t13 in enumerate(t13s):
                 # theta13 = get_deltat13(t13, phis)
                 phi13, theta13 = getDeltaTCone(r1_3, t13)
@@ -344,7 +394,6 @@ class correlationDirectionFitter:
                     theta13 = np.insert(theta13, pos + 1 + j, np.nan)
                 # mask13 = ~np.isnan(theta13)
                 ax.plot(np.rad2deg(phi13), np.rad2deg(theta13), '{}C2'.format(linestyles[i % 4]), label='c 1+3 dt = {}'.format(t13))
-                ax.plot(np.rad2deg(phi13), 180 - np.rad2deg(theta13), '{}C2'.format(linestyles[i % 4]))
             ax.legend(fontsize='small')
             ax.set_ylim(ZenLim[0] / units.deg, ZenLim[1] / units.deg)
             ax.set_xlim(AziLim[0] / units.deg, AziLim[1] / units.deg)

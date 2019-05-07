@@ -23,6 +23,8 @@ class stationParameters(Enum):
     station_time = 21
     cr_energy_em = 24  # the electromagnetic shower energy (the cosmic ray energy that ends up in electrons, positrons and gammas)
     nu_inttype = 25  # interaction type, e.g., cc, nc, tau_em, tau_had
+    chi2_efield_time_direction_fit = 26  # the chi2 of the direction fitter that used the maximum pulse times of the efields
+    ndf_efield_time_direction_fit = 27  # the number of degrees of freedom of the direction fitter that used the maximum pulse times of the efields    
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
@@ -33,7 +35,8 @@ class channelParameters(Enum):
     P2P_amplitude = 7  # the peak to peak amplitude
     cr_xcorrelations = 8 # dict of result of crosscorrelations with cr templates
     nu_xcorrelations = 9 #  dict of result of crosscorrelations with nu templates
-
+    signal_time = 10  # the time of the maximum amplitude of the envelope
+    
 class electricFieldParameters(Enum):
     ray_path_type = 1  # the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
     polarization_angle = 2 # electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
@@ -47,7 +50,9 @@ class electricFieldParameters(Enum):
     nu_viewing_angle = 11 # the angle between shower axis and launch vector
     max_amp_antenna = 12  # the maximum amplitude of the signal after convolution with the antenna response pattern, dict with channelid as key
     max_amp_antenna_envelope = 13  # the maximum amplitude of the signal envelope after convolution with the antenna response pattern, dict with channelid as key
-
+    reflection_coefficient_theta = 14  # for reflected rays: the complex Fresnel reflection coefficient of the eTheta component
+    reflection_coefficient_phi = 15  # for reflected rays: the complex Fresnel reflection coefficient of the ePhi component
+    
 class ARIANNAParameters(Enum):  # this class stores parameters specific to the ARIANNA data taking
     seq_start_time = 1  # the start time of a sequence
     seq_stop_time = 2  # the stop time of a sequence

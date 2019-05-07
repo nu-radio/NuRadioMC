@@ -9,6 +9,7 @@ from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import fft
 import logging
 logger = logging.getLogger('trace_utilities')
+logging.basicConfig()
 
 
 
