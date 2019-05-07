@@ -141,7 +141,7 @@ class Detector(object):
         fields = ['st.station_id', 'st.commission_time', 'st.decommission_time',
                   'st.station_type',
                   'st.position', 'st.board_number', 'st.MAC_address', 'st.MBED_type',
-                  'pos.position', 'pos.measurement_time', 'pos.easting', 'pos.northing',
+                  'pos.position', 'pos.measurement_time', 'pos.easting', 'pos.northing', 'pos.UTMzone',
                   'pos.altitude', 'pos.site']
         field_str = ""
         for field in fields:
