@@ -166,10 +166,12 @@ class Detector(object):
 
         self.__stations = self.__db.table('stations', cache_size=1000)
         self.__channels = self.__db.table('channels', cache_size=1000)
+        self.__positions = self.__db.table('positions', cache_size=1000)
 
         logger.info("database initialized")
 
         self.__buffered_stations = {}
+        self.__buffered_positions = {}
         self.__buffered_channels = {}
         self.__valid_t0 = datetime(2100, 1, 1)
         self.__valid_t1 = datetime(1970, 1, 1)
@@ -208,6 +210,14 @@ class Detector(object):
             raise LookupError("query for station {} at time {} returned no results".format(station_id, self.__current_time))
         return res
     
+    def __query_position(self, position_id):
+        Position = Query()
+        res = self.__positions.get((Position.pos_position == position_id))
+        if(res is None):
+            logger.error("query for position {} at time {} returned no results".format(position_id, self.__current_time))
+            raise LookupError("query for position {} at time {} returned no results".format(position_id, self.__current_time))
+        return res
+
     def get_station_ids(self):
         """
         returns a sorted list of all station ids present in the database
@@ -226,6 +236,11 @@ class Detector(object):
         if(station_id not in self.__buffered_stations.keys()):
             self.__buffer(station_id)
         return self.__buffered_stations[station_id]
+    
+    def __get_position(self, position_id):
+        if(position_id not in self.__buffered_positions.keys()):
+            self.__buffer_position(position_id)
+        return self.__buffered_positions[position_id]
 
     def __get_channels(self, station_id):
         if(station_id not in self.__buffered_stations.keys()):
@@ -247,6 +262,9 @@ class Detector(object):
             self.__buffered_channels[station_id][channel['channel_id']] = channel
             self.__valid_t0 = max(self.__valid_t0, channel['commission_time'])
             self.__valid_t1 = min(self.__valid_t1, channel['decommission_time'])
+            
+    def __buffer_position(self, position_id):
+        self.__buffered_positions[position_id] = self.__query_position(position_id)
             
     def __get_t0_t1(self, station_id):
         Station = Query()
@@ -340,6 +358,17 @@ class Detector(object):
         return self.__get_channel(station_id, channel_id)
     
     def get_absolute_position(self, station_id):
+        """
+        get the absolute position of a specific station
+        
+        Parameters
+        ---------
+        station_id: int
+            the station id
+            
+        Returns: 3-dim array of absolute station position in easting, northing and depth wrt. to snow level at 
+        time of measurement 
+        """
         res = self.__get_station(station_id)
         easting, northing, altitude = 0, 0, 0
         if(res['pos_easting'] is not None):
@@ -349,6 +378,29 @@ class Detector(object):
         if(res['pos_altitude'] is not None):
             altitude = res['pos_altitude'] * units.m 
         return np.array([easting, northing, altitude])
+    
+    def get_absolute_position_site(self, site):
+        """
+        get the absolute position of a specific station
+        
+        Parameters
+        ---------
+        site: string
+            the position identifier e.g. "G"
+            
+        Returns: 3-dim array of absolute station position in easting, northing and depth wrt. to snow level at 
+        time of measurement 
+        """
+        res = self.__get_position(site)
+        easting, northing, altitude = 0, 0, 0
+        if(res['pos_easting'] is not None):
+            easting = res['pos_easting'] * units.feet
+        if(res['pos_northing'] is not None):
+            northing = res['pos_northing'] * units.feet
+        if(res['pos_altitude'] is not None):
+            altitude = res['pos_altitude'] * units.m 
+        return np.array([easting, northing, altitude])
+
 
     def get_relative_position(self, station_id, channel_id):
         """
