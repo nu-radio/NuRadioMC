@@ -163,6 +163,32 @@ class Detector(object):
                 t[field_name] = r[i]
             result_dict.append(t)
         return result_dict
+    
+    def get_absolute_position_site(self, pos):
+        """
+        returns the UTM coordinates
+        
+        Parameters
+        ----------
+        pos: string
+            the position identifier (e.g. "A" or "X")
+        Returns:
+            * easting (float)
+            * northing (float)
+            * UTM zone (string)
+            * measurement time
+        """
+        cursor = self.__mysql.cursor()
+        query = """
+        SELECT easting, northing, UTMzone, measurement_time FROM positions
+        WHERE position = '{position}' ORDER BY measurement_time DESC;
+            """.format(position=pos)
+        cursor.execute(query)
+        position = np.array(cursor.fetchall())
+        if(len(position) == 0):
+            frame = inspect.currentframe()
+            self.__error(frame)
+        return np.squeeze(position)
 
     def get_relative_position(self, station_id, channel_id):
         cursor = self.__mysql.cursor()
