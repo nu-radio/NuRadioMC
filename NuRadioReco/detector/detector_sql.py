@@ -141,7 +141,7 @@ class Detector(object):
         fields = ['st.station_id', 'st.commission_time', 'st.decommission_time',
                   'st.station_type',
                   'st.position', 'st.board_number', 'st.MAC_address', 'st.MBED_type',
-                  'pos.position', 'pos.measurement_time', 'pos.easting', 'pos.northing', 'pos.UTMzone',
+                  'pos.position', 'pos.measurement_time', 'pos.easting', 'pos.northing', 'pos.zone',
                   'pos.altitude', 'pos.site']
         field_str = ""
         for field in fields:
@@ -150,6 +150,31 @@ class Detector(object):
         query = """
         SELECT {fields} FROM stations AS st
             JOIN positions AS pos USING(position);
+            """.format(fields=field_str)
+        cursor.execute(query)
+        result = np.array(cursor.fetchall())
+        if(len(result) == 0):
+            frame = inspect.currentframe()
+            self.__error(frame)
+        result_dict = []
+        for r in np.squeeze(result):
+            t = {}
+            for i, field_name in enumerate(fields):
+                t[field_name] = r[i]
+            result_dict.append(t)
+        return result_dict
+    
+    def get_everything_positions(self):
+        cursor = self.__mysql.cursor()
+
+        fields = ['pos.position', 'pos.measurement_time', 'pos.easting', 'pos.northing', 'pos.zone',
+                  'pos.altitude', 'pos.site', 'pos.comment']
+        field_str = ""
+        for field in fields:
+            field_str += field + ", "
+        field_str = field_str[:-2]
+        query = """
+        SELECT {fields} FROM positions AS pos;
             """.format(fields=field_str)
         cursor.execute(query)
         result = np.array(cursor.fetchall())
@@ -176,11 +201,12 @@ class Detector(object):
             * easting (float)
             * northing (float)
             * UTM zone (string)
+            * altitude
             * measurement time
         """
         cursor = self.__mysql.cursor()
         query = """
-        SELECT easting, northing, UTMzone, measurement_time FROM positions
+        SELECT easting, northing, zone, altitude, measurement_time FROM positions
         WHERE position = '{position}' ORDER BY measurement_time DESC;
             """.format(position=pos)
         cursor.execute(query)

@@ -41,12 +41,12 @@ def buffer_db(in_memory, filename=None):
     else:
         db = TinyDB(filename, storage=serialization, sort_keys=True, indent=4, separators=(',', ': '))
     db.purge()
-    table_stations = db.table('stations')
-    table_stations.purge()
 
     import detector_sql
     sqldet = detector_sql.Detector()
     results = sqldet.get_everything_stations()
+    table_stations = db.table('stations')
+    table_stations.purge()
     for result in results:
         table_stations.insert({'station_id': result['st.station_id'],
                                'commission_time': result['st.commission_time'],
@@ -59,7 +59,9 @@ def buffer_db(in_memory, filename=None):
                                'pos_position': result['pos.position'],
                                'pos_measurement_time': result['pos.measurement_time'],
                                'pos_easting': result['pos.easting'],
+                               'pos_northing': result['pos.northing'],
                                'pos_altitude': result['pos.altitude'],
+                               'pos_zone': result['pos.zone'],
                                'pos_site': result['pos.site']})
 
     table_channels = db.table('channels')
@@ -92,6 +94,20 @@ def buffer_db(in_memory, filename=None):
                                 'adc_nbits': channel['adcs.nbits'],
                                 'adc_n_samples': channel['adcs.n_samples'],
                                 'adc_sampling_frequency': channel['adcs.sampling_frequency']})
+        
+    results = sqldet.get_everything_positions()
+    table_positions = db.table('positions')
+    table_positions.purge()
+    for result in results:
+        table_positions.insert({
+                               'pos_position': result['pos.position'],
+                               'pos_measurement_time': result['pos.measurement_time'],
+                               'pos_easting': result['pos.easting'],
+                               'pos_northing': result['pos.northing'],
+                               'pos_altitude': result['pos.altitude'],
+                               'pos_zone': result['pos.zone'],
+                               'pos_site': result['pos.site']})
+        
     logger.info("sql database buffered")
     return db
 
