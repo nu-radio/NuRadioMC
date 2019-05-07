@@ -15,7 +15,7 @@
             "ant_orientation_theta": 180.0,
             "ant_position_x": -2.92,
             "ant_position_y": -0.15,
-            "ant_position_z": -1.0,
+            "ant_position_z": -1.462,
             "ant_rotation_phi": 8.21,
             "ant_rotation_theta": 90.0,
             "ant_type": "createLPDA_100MHz",
@@ -43,7 +43,7 @@
             "ant_orientation_theta": 180.0,
             "ant_position_x": -0.17,
             "ant_position_y": 2.94,
-            "ant_position_z": -1.0,
+            "ant_position_z": -1.519,
             "ant_rotation_phi": 276.9,
             "ant_rotation_theta": 90.0,
             "ant_type": "createLPDA_100MHz",
@@ -71,7 +71,7 @@
             "ant_orientation_theta": 180.0,
             "ant_position_x": 3.17,
             "ant_position_y": -0.0900000000001,
-            "ant_position_z": -1.0,
+            "ant_position_z": -1.647,
             "ant_rotation_phi": 188.21,
             "ant_rotation_theta": 90.0,
             "ant_type": "createLPDA_100MHz",
@@ -99,7 +99,7 @@
             "ant_orientation_theta": 180.0,
             "ant_position_x": 0.5,
             "ant_position_y": -2.96,
-            "ant_position_z": -1.0,
+            "ant_position_z": -1.45,
             "ant_rotation_phi": 96.9,
             "ant_rotation_theta": 90.0,
             "ant_type": "createLPDA_100MHz",
@@ -134,7 +134,7 @@
             "cab_id": "17-01",
             "cab_length": 7.0,
             "cab_reference_measurement": null,
-            "cab_time_delay": 27.3,
+            "cab_time_delay": 28.6,
             "cab_type": "LMR_400",
             "channel_id": 4,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
@@ -162,7 +162,7 @@
             "cab_id": "17-02",
             "cab_length": 7.0,
             "cab_reference_measurement": null,
-            "cab_time_delay": 27.5,
+            "cab_time_delay": 28.8,
             "cab_type": "LMR_400",
             "channel_id": 5,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
@@ -190,7 +190,7 @@
             "cab_id": "17-03",
             "cab_length": 7.0,
             "cab_reference_measurement": null,
-            "cab_time_delay": 27.3,
+            "cab_time_delay": 28.6,
             "cab_type": "LMR_400",
             "channel_id": 6,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
@@ -233,34 +233,6 @@
             "adc_time_delay": null,
             "amp_reference_measurement": null,
             "amp_type": "300",
-            "ant_comment": "bicone antenna installed at first southpole station Ch7",
-            "ant_deployment_time": "{TinyDate}:2017-12-01T00:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 0.0,
-            "ant_position_x": -1.057,
-            "ant_position_y": 5.06,
-            "ant_position_z": -1.0,
-            "ant_rotation_phi": 0.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "ARA_bicone",
-            "cab_id": "",
-            "cab_length": 5.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 19.95,
-            "cab_type": "LMR_400",
-            "channel_id": 0,
-            "commission_time": "{TinyDate}:2016-08-10T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "station_id": 2
-        },
-        "10": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
             "ant_comment": "Station 51 Channel 0 (2019)",
             "ant_deployment_time": "{TinyDate}:2018-12-05T00:00:00",
             "ant_orientation_phi": 0.0,
@@ -281,7 +253,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 51
         },
-        "11": {
+        "10": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -309,7 +281,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 51
         },
-        "12": {
+        "11": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -337,7 +309,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 51
         },
-        "13": {
+        "12": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -365,7 +337,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 51
         },
-        "14": {
+        "13": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -386,14 +358,14 @@
             "cab_id": "17-01",
             "cab_length": 7.0,
             "cab_reference_measurement": null,
-            "cab_time_delay": 27.3,
+            "cab_time_delay": 28.6,
             "cab_type": "LMR_400",
             "channel_id": 4,
             "commission_time": "{TinyDate}:2018-12-05T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 51
         },
-        "15": {
+        "14": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -414,14 +386,14 @@
             "cab_id": "17-02",
             "cab_length": 7.0,
             "cab_reference_measurement": null,
-            "cab_time_delay": 27.5,
+            "cab_time_delay": 28.8,
             "cab_type": "LMR_400",
             "channel_id": 5,
             "commission_time": "{TinyDate}:2018-12-05T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 51
         },
-        "16": {
+        "15": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -442,14 +414,14 @@
             "cab_id": "17-03",
             "cab_length": 7.0,
             "cab_reference_measurement": null,
-            "cab_time_delay": 27.3,
+            "cab_time_delay": 28.6,
             "cab_type": "LMR_400",
             "channel_id": 6,
             "commission_time": "{TinyDate}:2018-12-05T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 51
         },
-        "17": {
+        "16": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -470,14 +442,14 @@
             "cab_id": "10",
             "cab_length": 10.0,
             "cab_reference_measurement": null,
-            "cab_time_delay": 41.41,
+            "cab_time_delay": 42.3,
             "cab_type": "LMR_240",
             "channel_id": 7,
             "commission_time": "{TinyDate}:2018-12-05T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 51
         },
-        "18": {
+        "17": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -505,7 +477,7 @@
             "decommission_time": "{TinyDate}:2017-11-01T00:00:00",
             "station_id": 41
         },
-        "19": {
+        "18": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -533,7 +505,7 @@
             "decommission_time": "{TinyDate}:2017-11-01T00:00:00",
             "station_id": 41
         },
-        "20": {
+        "19": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -561,7 +533,7 @@
             "decommission_time": "{TinyDate}:2017-11-01T00:00:00",
             "station_id": 41
         },
-        "21": {
+        "20": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -589,7 +561,7 @@
             "decommission_time": "{TinyDate}:2017-11-01T00:00:00",
             "station_id": 41
         },
-        "22": {
+        "21": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -617,7 +589,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 32
         },
-        "23": {
+        "22": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -645,7 +617,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 32
         },
-        "24": {
+        "23": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -673,7 +645,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 32
         },
-        "25": {
+        "24": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -701,427 +673,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 32
         },
-        "26": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "station 52 layout channel0",
-            "ant_deployment_time": "{TinyDate}:2017-11-15T00:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 180.0,
-            "ant_position_x": 0.0,
-            "ant_position_y": 2.92,
-            "ant_position_z": -2.0,
-            "ant_rotation_phi": 270.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "createLPDA_100MHz",
-            "cab_id": "17-12",
-            "cab_length": 5.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 19.7,
-            "cab_type": "LMR_400",
-            "channel_id": 0,
-            "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "station_id": 52
-        },
-        "27": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "station 52 layout channel 1",
-            "ant_deployment_time": "{TinyDate}:2017-11-15T00:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 180.0,
-            "ant_position_x": 3.01,
-            "ant_position_y": 0.311,
-            "ant_position_z": -2.0,
-            "ant_rotation_phi": 180.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "createLPDA_100MHz",
-            "cab_id": "17-13",
-            "cab_length": 5.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 19.6,
-            "cab_type": "LMR_400",
-            "channel_id": 1,
-            "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "station_id": 52
-        },
-        "28": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "station 52 layout channel 2",
-            "ant_deployment_time": "{TinyDate}:2017-11-15T00:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 180.0,
-            "ant_position_x": -0.00508,
-            "ant_position_y": -2.95,
-            "ant_position_z": -2.0,
-            "ant_rotation_phi": 90.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "createLPDA_100MHz",
-            "cab_id": "17-15",
-            "cab_length": 5.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 19.7,
-            "cab_type": "LMR_400",
-            "channel_id": 2,
-            "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2018-11-25T03:00:00",
-            "station_id": 52
-        },
-        "29": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "station 52 layout channel 3",
-            "ant_deployment_time": "{TinyDate}:2017-11-15T00:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 180.0,
-            "ant_position_x": -3.05,
-            "ant_position_y": -0.135,
-            "ant_position_z": -2.0,
-            "ant_rotation_phi": 0.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "createLPDA_100MHz",
-            "cab_id": "17-16",
-            "cab_length": 5.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 19.8,
-            "cab_type": "LMR_400",
-            "channel_id": 3,
-            "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2018-11-25T03:00:00",
-            "station_id": 52
-        },
-        "30": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "station 52 layout upward facing channel 4",
-            "ant_deployment_time": "{TinyDate}:2017-11-15T00:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 0.0,
-            "ant_position_x": -3.8,
-            "ant_position_y": 3.25,
-            "ant_position_z": -1.0,
-            "ant_rotation_phi": 315.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "createLPDA_100MHz",
-            "cab_id": "17-04",
-            "cab_length": 5.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 27.2,
-            "cab_type": "LMR_400",
-            "channel_id": 4,
-            "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "station_id": 52
-        },
-        "31": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "station 52 layout upward facing channel 5",
-            "ant_deployment_time": "{TinyDate}:2017-11-15T00:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 0.0,
-            "ant_position_x": 3.46,
-            "ant_position_y": 3.57,
-            "ant_position_z": -1.0,
-            "ant_rotation_phi": 225.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "createLPDA_100MHz",
-            "cab_id": "17-05",
-            "cab_length": 5.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 27.4,
-            "cab_type": "LMR_400",
-            "channel_id": 5,
-            "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "station_id": 52
-        },
-        "32": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "station 52 layout upward facing channel 6",
-            "ant_deployment_time": "{TinyDate}:2017-11-15T00:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 0.0,
-            "ant_position_x": 3.69,
-            "ant_position_y": -3.27,
-            "ant_position_z": -1.0,
-            "ant_rotation_phi": 135.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "createLPDA_100MHz",
-            "cab_id": "17-06",
-            "cab_length": 5.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 27.2,
-            "cab_type": "LMR_400",
-            "channel_id": 6,
-            "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2018-11-15T00:00:00",
-            "station_id": 52
-        },
-        "33": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "station 52 layout upward facing channel 7",
-            "ant_deployment_time": "{TinyDate}:2017-11-15T00:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 0.0,
-            "ant_position_x": -3.61,
-            "ant_position_y": -3.48,
-            "ant_position_z": -1.0,
-            "ant_rotation_phi": 45.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "createLPDA_100MHz",
-            "cab_id": "17-07",
-            "cab_length": 5.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 27.4,
-            "cab_type": "LMR_400",
-            "channel_id": 7,
-            "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2018-11-15T00:00:00",
-            "station_id": 52
-        },
-        "34": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "dipole antenna installed at CR station 52 at Moores Bay",
-            "ant_deployment_time": "{TinyDate}:2018-11-15T00:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 0.0,
-            "ant_position_x": 1.93,
-            "ant_position_y": 1.09,
-            "ant_position_z": -8.0,
-            "ant_rotation_phi": 0.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "bicone_v8",
-            "cab_id": "5-elog2205",
-            "cab_length": 12.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 53.4,
-            "cab_type": "LMR_240",
-            "channel_id": 6,
-            "commission_time": "{TinyDate}:2018-11-15T00:00:00",
-            "decommission_time": "{TinyDate}:2018-11-21T13:00:00",
-            "station_id": 52
-        },
-        "35": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "dipole antenna installed at CR station 52 at Moores Bay",
-            "ant_deployment_time": "{TinyDate}:2018-11-15T00:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 0.0,
-            "ant_position_x": 2.85,
-            "ant_position_y": -0.471,
-            "ant_position_z": -5.0,
-            "ant_rotation_phi": 0.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "bicone_v8",
-            "cab_id": "9-elog2205",
-            "cab_length": 10.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 41.0,
-            "cab_type": "LMR_240",
-            "channel_id": 7,
-            "commission_time": "{TinyDate}:2018-11-15T00:00:00",
-            "decommission_time": "{TinyDate}:2018-11-25T03:00:00",
-            "station_id": 52
-        },
-        "36": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "dipole antenna installed at CR station 52 at Moores Bay",
-            "ant_deployment_time": "{TinyDate}:2018-11-21T13:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 0.0,
-            "ant_position_x": 1.93,
-            "ant_position_y": 1.09,
-            "ant_position_z": -8.575,
-            "ant_rotation_phi": 0.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "bicone_v8",
-            "cab_id": "5-elog2205",
-            "cab_length": 12.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 53.4,
-            "cab_type": "LMR_240",
-            "channel_id": 6,
-            "commission_time": "{TinyDate}:2018-11-21T13:00:00",
-            "decommission_time": "{TinyDate}:2018-11-25T03:00:00",
-            "station_id": 52
-        },
-        "37": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "dipole antenna installed at CR station 52 at Moores Bay",
-            "ant_deployment_time": "{TinyDate}:2018-11-15T00:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 0.0,
-            "ant_position_x": 2.85,
-            "ant_position_y": -0.471,
-            "ant_position_z": -5.0,
-            "ant_rotation_phi": 0.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "bicone_v8",
-            "cab_id": "9-elog2205",
-            "cab_length": 10.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 41.0,
-            "cab_type": "LMR_240",
-            "channel_id": 3,
-            "commission_time": "{TinyDate}:2018-11-25T03:00:00",
-            "decommission_time": "{TinyDate}:2038-11-15T00:00:00",
-            "station_id": 52
-        },
-        "38": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "dipole antenna installed at CR station 52 at Moores Bay",
-            "ant_deployment_time": "{TinyDate}:2018-11-21T13:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 0.0,
-            "ant_position_x": 1.93,
-            "ant_position_y": 1.09,
-            "ant_position_z": -8.575,
-            "ant_rotation_phi": 0.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "bicone_v8",
-            "cab_id": "5-elog2205",
-            "cab_length": 12.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 53.4,
-            "cab_type": "LMR_240",
-            "channel_id": 2,
-            "commission_time": "{TinyDate}:2018-11-25T03:00:00",
-            "decommission_time": "{TinyDate}:2032-11-25T03:00:00",
-            "station_id": 52
-        },
-        "39": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "station 52 layout upward facing channel 6",
-            "ant_deployment_time": "{TinyDate}:2017-11-15T00:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 0.0,
-            "ant_position_x": 3.69,
-            "ant_position_y": -3.27,
-            "ant_position_z": -1.0,
-            "ant_rotation_phi": 135.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "createLPDA_100MHz",
-            "cab_id": "17-06",
-            "cab_length": 5.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 27.2,
-            "cab_type": "LMR_400",
-            "channel_id": 6,
-            "commission_time": "{TinyDate}:2018-11-25T03:00:00",
-            "decommission_time": "{TinyDate}:2032-11-15T00:00:00",
-            "station_id": 52
-        },
-        "40": {
-            "adc_id": null,
-            "adc_n_samples": 256,
-            "adc_nbits": null,
-            "adc_sampling_frequency": 1.0,
-            "adc_time_delay": null,
-            "amp_reference_measurement": null,
-            "amp_type": "300",
-            "ant_comment": "station 52 layout upward facing channel 7",
-            "ant_deployment_time": "{TinyDate}:2017-11-15T00:00:00",
-            "ant_orientation_phi": 0.0,
-            "ant_orientation_theta": 0.0,
-            "ant_position_x": -3.61,
-            "ant_position_y": -3.48,
-            "ant_position_z": -1.0,
-            "ant_rotation_phi": 45.0,
-            "ant_rotation_theta": 90.0,
-            "ant_type": "createLPDA_100MHz",
-            "cab_id": "17-07",
-            "cab_length": 5.0,
-            "cab_reference_measurement": null,
-            "cab_time_delay": 27.4,
-            "cab_type": "LMR_400",
-            "channel_id": 7,
-            "commission_time": "{TinyDate}:2018-11-25T03:00:00",
-            "decommission_time": "{TinyDate}:2032-11-15T00:00:00",
-            "station_id": 52
-        },
-        "41": {
+        "25": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1149,7 +701,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 13
         },
-        "42": {
+        "26": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1177,7 +729,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 13
         },
-        "43": {
+        "27": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1205,7 +757,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 13
         },
-        "44": {
+        "28": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1233,7 +785,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 13
         },
-        "45": {
+        "29": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1261,7 +813,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 14
         },
-        "46": {
+        "30": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1289,7 +841,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 14
         },
-        "47": {
+        "31": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1317,7 +869,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 14
         },
-        "48": {
+        "32": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1345,7 +897,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 14
         },
-        "49": {
+        "33": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1373,7 +925,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 15
         },
-        "50": {
+        "34": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1401,7 +953,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 15
         },
-        "51": {
+        "35": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1429,7 +981,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 15
         },
-        "52": {
+        "36": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1457,7 +1009,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 15
         },
-        "53": {
+        "37": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1485,7 +1037,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 17
         },
-        "54": {
+        "38": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1513,7 +1065,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 17
         },
-        "55": {
+        "39": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1541,7 +1093,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 17
         },
-        "56": {
+        "40": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1569,7 +1121,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 17
         },
-        "57": {
+        "41": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1597,7 +1149,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 19
         },
-        "58": {
+        "42": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1625,7 +1177,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 19
         },
-        "59": {
+        "43": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1653,7 +1205,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 19
         },
-        "60": {
+        "44": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1681,7 +1233,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 19
         },
-        "61": {
+        "45": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1709,7 +1261,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 30
         },
-        "62": {
+        "46": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1737,7 +1289,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 30
         },
-        "63": {
+        "47": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1765,7 +1317,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 30
         },
-        "64": {
+        "48": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1793,7 +1345,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 30
         },
-        "65": {
+        "49": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1821,7 +1373,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 61
         },
-        "66": {
+        "50": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1849,7 +1401,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 61
         },
-        "67": {
+        "51": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1877,7 +1429,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 61
         },
-        "68": {
+        "52": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1905,7 +1457,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 61
         },
-        "69": {
+        "53": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1933,7 +1485,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 61
         },
-        "70": {
+        "54": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1961,7 +1513,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 61
         },
-        "71": {
+        "55": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -1989,7 +1541,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 61
         },
-        "72": {
+        "56": {
             "adc_id": null,
             "adc_n_samples": 256,
             "adc_nbits": null,
@@ -2025,9 +1577,10 @@
             "board_number": 203,
             "commission_time": "{TinyDate}:2017-11-04T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": 2800.0,
-            "pos_easting": null,
-            "pos_measurement_time": null,
+            "pos_altitude": 0.0,
+            "pos_easting": 41153.2175,
+            "pos_measurement_time": "{TinyDate}:2018-01-25T00:00:00",
+            "pos_northing": 50381.75,
             "pos_position": "SP1",
             "pos_site": "southpole",
             "position": "SP1",
@@ -2035,44 +1588,15 @@
             "station_type": null
         },
         "10": {
-            "MAC_address": "0002F7F22444",
-            "MBED_type": "v1",
-            "board_number": 105,
-            "commission_time": "{TinyDate}:2015-11-15T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": null,
-            "pos_easting": null,
-            "pos_measurement_time": null,
-            "pos_position": "A",
-            "pos_site": "mooresbay",
-            "position": "A",
-            "station_id": 19,
-            "station_type": "HRA_4"
-        },
-        "11": {
-            "MAC_address": "0002F7F1F212",
-            "MBED_type": "v1",
-            "board_number": 113,
-            "commission_time": "{TinyDate}:2015-11-15T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": null,
-            "pos_easting": null,
-            "pos_measurement_time": null,
-            "pos_position": "F",
-            "pos_site": "mooresbay",
-            "position": "F",
-            "station_id": 30,
-            "station_type": "HRA_4"
-        },
-        "12": {
             "MAC_address": "0002F7F2EC55",
             "MBED_type": "v1",
             "board_number": 207,
             "commission_time": "{TinyDate}:2018-12-08T12:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": 2800.0,
+            "pos_altitude": 0.0,
             "pos_easting": null,
-            "pos_measurement_time": null,
+            "pos_measurement_time": "{TinyDate}:2018-12-04T16:35:00",
+            "pos_northing": null,
             "pos_position": "SP2",
             "pos_site": "southpole",
             "position": "SP2",
@@ -2080,21 +1604,6 @@
             "station_type": null
         },
         "2": {
-            "MAC_address": null,
-            "MBED_type": null,
-            "board_number": null,
-            "commission_time": "{TinyDate}:2016-08-09T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": 2800.0,
-            "pos_easting": null,
-            "pos_measurement_time": null,
-            "pos_position": "SP1",
-            "pos_site": "southpole",
-            "position": "SP1",
-            "station_id": 2,
-            "station_type": "dummy"
-        },
-        "3": {
             "MAC_address": "0002F7F1F7C6",
             "MBED_type": "v1",
             "board_number": 101,
@@ -2103,28 +1612,14 @@
             "pos_altitude": null,
             "pos_easting": null,
             "pos_measurement_time": null,
+            "pos_northing": null,
             "pos_position": "Y",
             "pos_site": "mooresbay",
             "position": "Y",
             "station_id": 41,
             "station_type": "CR_4"
         },
-        "4": {
-            "MAC_address": "0002F7F2E1CE",
-            "MBED_type": "v1",
-            "board_number": 204,
-            "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": null,
-            "pos_easting": null,
-            "pos_measurement_time": null,
-            "pos_position": "Y",
-            "pos_site": "mooresbay",
-            "position": "Y",
-            "station_id": 52,
-            "station_type": "HRA_8"
-        },
-        "5": {
+        "3": {
             "MAC_address": "0002F7F1F21A",
             "MBED_type": "v1",
             "board_number": 112,
@@ -2133,13 +1628,14 @@
             "pos_altitude": null,
             "pos_easting": null,
             "pos_measurement_time": null,
+            "pos_northing": null,
             "pos_position": "Y",
             "pos_site": "mooresbay",
             "position": "Y",
             "station_id": 32,
             "station_type": "HRA_4"
         },
-        "6": {
+        "4": {
             "MAC_address": "0002F7F2244B",
             "MBED_type": "v1",
             "board_number": 102,
@@ -2148,13 +1644,14 @@
             "pos_altitude": null,
             "pos_easting": null,
             "pos_measurement_time": null,
+            "pos_northing": null,
             "pos_position": "C",
             "pos_site": "mooresbay",
             "position": "C",
             "station_id": 13,
             "station_type": "HRA_4"
         },
-        "7": {
+        "5": {
             "MAC_address": "0002F7F20A9C",
             "MBED_type": "v1",
             "board_number": 104,
@@ -2163,13 +1660,14 @@
             "pos_altitude": null,
             "pos_easting": null,
             "pos_measurement_time": null,
+            "pos_northing": null,
             "pos_position": "B",
             "pos_site": "mooresbay",
             "position": "B",
             "station_id": 14,
             "station_type": "HRA_4"
         },
-        "8": {
+        "6": {
             "MAC_address": "0002F7F1F7A8",
             "MBED_type": "v1",
             "board_number": 110,
@@ -2178,13 +1676,14 @@
             "pos_altitude": null,
             "pos_easting": null,
             "pos_measurement_time": null,
+            "pos_northing": null,
             "pos_position": "E",
             "pos_site": "mooresbay",
             "position": "E",
             "station_id": 15,
             "station_type": "HRA_4"
         },
-        "9": {
+        "7": {
             "MAC_address": "0002F7F202C1",
             "MBED_type": "v1",
             "board_number": 109,
@@ -2193,11 +1692,44 @@
             "pos_altitude": null,
             "pos_easting": null,
             "pos_measurement_time": null,
+            "pos_northing": null,
             "pos_position": "D",
             "pos_site": "mooresbay",
             "position": "D",
             "station_id": 17,
             "station_type": null
+        },
+        "8": {
+            "MAC_address": "0002F7F22444",
+            "MBED_type": "v1",
+            "board_number": 105,
+            "commission_time": "{TinyDate}:2015-11-15T00:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "pos_altitude": null,
+            "pos_easting": null,
+            "pos_measurement_time": null,
+            "pos_northing": null,
+            "pos_position": "A",
+            "pos_site": "mooresbay",
+            "position": "A",
+            "station_id": 19,
+            "station_type": "HRA_4"
+        },
+        "9": {
+            "MAC_address": "0002F7F1F212",
+            "MBED_type": "v1",
+            "board_number": 113,
+            "commission_time": "{TinyDate}:2015-11-15T00:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "pos_altitude": null,
+            "pos_easting": null,
+            "pos_measurement_time": null,
+            "pos_northing": null,
+            "pos_position": "F",
+            "pos_site": "mooresbay",
+            "position": "F",
+            "station_id": 30,
+            "station_type": "HRA_4"
         }
     }
 }
