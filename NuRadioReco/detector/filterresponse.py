@@ -9,6 +9,11 @@ import glob
 
 
 def get_filter_response_mini_circuits(frequencies, filter_name):
+    """
+    Simple minicircuits filters.
+    Check filter directory for available filters.
+
+    """
     # parse input file and convert to default units
     directory = os.path.dirname(os.path.abspath(__file__))
     filename = os.path.join(directory, 'filter/{}_S2P'.format(filter_name), '{}_Minus40degC.S2P'.format(filter_name))
@@ -29,7 +34,13 @@ def get_filter_response_mini_circuits(frequencies, filter_name):
 
 
 def get_filter_response_mini_circuits2(frequencies, filter_name):
-    # parse input file and convert to default units
+    """
+    Simple minicircuits filters.
+    Check filter directory for available filters.
+    Parse input file and convert to default units
+
+    """
+
     directory = os.path.dirname(os.path.abspath(__file__))
     ff, insertion_loss, return_loss, ff2, group_delay = np.loadtxt(
         os.path.join(directory, 'filter/{}.dat'.format(filter_name)), unpack=True)
@@ -54,6 +65,9 @@ def get_filter_response_mini_circuits2(frequencies, filter_name):
 
 
 def get_filter_response(frequencies, filter_name):
+    """
+    Get measured filter responses.
+    """
     directory = os.path.dirname(os.path.abspath(__file__))
     if(filter_name =='NTU+cheb'):
         ff, mag, phase = np.loadtxt(os.path.join(directory, 'filter/NTU+cheb_filter_mag_phase.txt'), unpack=True)
@@ -69,7 +83,7 @@ def get_filter_response(frequencies, filter_name):
         ff *= units.Hz
         ff2 *= units.Hz
         phase *= units.deg
-    
+
         get_phase = intp.interp1d(ff2, np.unwrap(phase))
         get_insertion_loss = intp.interp1d(ff, insertion_loss)
 

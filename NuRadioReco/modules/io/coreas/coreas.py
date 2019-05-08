@@ -1,7 +1,9 @@
 import numpy as np
-from NuRadioReco.utilities import units
+
 from radiotools import helper as hp
 from radiotools import coordinatesystems
+
+from NuRadioReco.utilities import units
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
@@ -10,19 +12,22 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
-# conversion_fieldstrength_cgs_to_SI = 2.99792458e4 * 1e-6
 conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
 
 
 def get_angles(corsika):
+    """
+    Converting angles in corsika coordinates to local coordinates
+    """
     zenith = np.deg2rad(corsika['inputs'].attrs["THETAP"][0])
-    azimuth = hp.get_normalized_angle(3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]))  # conert to auger cs
+    azimuth = hp.get_normalized_angle(3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]))
+
     Bx, Bz = corsika['inputs'].attrs["MAGNET"]
     B_inclination = np.arctan2(Bz, Bx)
-#     B_declination = hp.get_declination(hp.get_magnetic_field_vector(site='mooresbay'))
-#     azimuth -= B_declination
+
     B_strength = (Bx ** 2 + Bz ** 2) ** 0.5 * units.micro * units.tesla
-    magnetic_field_vector = B_strength * hp.spherical_to_cartesian(np.pi * 0.5 + B_inclination, 0 + np.pi * 0.5)  # in arianna cooordinates north is + 90 deg
+    magnetic_field_vector = B_strength * hp.spherical_to_cartesian(np.pi * 0.5 + B_inclination, 0 + np.pi * 0.5)
+     # in local coordinates north is + 90 deg
     return zenith, azimuth, magnetic_field_vector
 
 
@@ -41,7 +46,7 @@ def calculate_simulation_weights(positions):
 
 def make_sim_station(station_id, corsika, observer, channel_ids,  weight=None):
     """
-    creates an ARIANNA sim station from the observer object of the coreas hdf5 file
+    creates an NuRadioReco sim station from the observer object of the coreas hdf5 file
 
     Parameters
     ----------
@@ -100,7 +105,10 @@ def make_sim_station(station_id, corsika, observer, channel_ids,  weight=None):
     energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV
     sim_station.set_parameter(stnp.cr_energy, energy)
     sim_station.set_magnetic_field_vector(magnetic_field_vector)
-    sim_station.set_parameter(stnp.cr_energy_em, corsika["highlevel"].attrs["Eem"])
+    try:
+        sim_station.set_parameter(stnp.cr_energy_em, corsika["highlevel"].attrs["Eem"])
+    except:
+        logger.warning("No high-level quantities in HDF5 file, not setting EM energy")
     sim_station.set_is_cosmic_ray()
 
     sim_station.set_simulation_weight(weight)

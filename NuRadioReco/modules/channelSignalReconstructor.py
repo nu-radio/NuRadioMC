@@ -1,9 +1,12 @@
 import numpy as np
-from NuRadioReco.utilities import units
-from NuRadioReco.framework.parameters import channelParameters as chp
-from NuRadioReco.framework.parameters import stationParameters as stnp
 from scipy import signal
 import time
+
+from NuRadioReco.utilities import units
+from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import stationParameters as stnp
+
 import logging
 logger = logging.getLogger('channelSignalReconstructor')
 
@@ -16,8 +19,7 @@ class channelSignalReconstructor:
 
     def __init__(self):
         self.__t = 0
-        self.__conversion_factor_integrated_signal = 2.65441729 * 1e-3 * 1.e-9 * \
-            6.24150934 * 1e18  # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
+        self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
         self.begin()
 
     def begin(self, debug=False, signal_start=20 * units.ns, signal_stop=100 * units.ns,
@@ -93,10 +95,10 @@ class channelSignalReconstructor:
         # Calculating SNR
         SNR = {}
         if (noise_rms == 0) or (noise_int == 0):
-            logger.warning("RMS of noise is zero, calculating an SNR is not useful. All SNRs are set to zero.")
-            SNR['peak_2_peak_amplitude'] = 0.
-            SNR['peak_amplitude'] = 0.
-            SNR['integrated_power'] = 0.
+            logger.info("RMS of noise is zero, calculating an SNR is not useful. All SNRs are set to infinity.")
+            SNR['peak_2_peak_amplitude'] = np.infty
+            SNR['peak_amplitude'] = np.infty
+            SNR['integrated_power'] = np.infty
         else:
 
             SNR['integrated_power'] = (np.sum(np.square(trace[signal_window_mask])) - noise_int)
@@ -149,6 +151,7 @@ class channelSignalReconstructor:
             trace = channel.get_trace()
             h = np.abs(signal.hilbert(trace))
             max_amplitude = np.max(np.abs(trace))
+            channel[chp.signal_time] = times[np.argmax(h)]
             max_amplitude_station = max(max_amplitude_station, max_amplitude)
             channel[chp.maximum_amplitude] = max_amplitude
             channel[chp.maximum_amplitude_envelope] = h.max()

@@ -19,12 +19,13 @@ from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
 import NuRadioReco.framework.base_trace
 
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 from NuRadioReco.framework import electric_field as ef
 
 import logging
 logger = logging.getLogger('voltageToEfieldConverterPerChannel')
-
+logging.basicConfig()
 
 class voltageToEfieldConverterPerChannel:
     """
@@ -63,17 +64,14 @@ class voltageToEfieldConverterPerChannel:
         self.__counter += 1
         event_time = station.get_station_time()
         station_id = station.get_id()
-        logger.info("event {}, station {}".format(evt.get_id(), station_id))
-        if station.get_sim_station() is not None:
+        logger.debug("event {}, station {}".format(evt.get_id(), station_id))
+        if station.get_sim_station() is not None and station.get_sim_station().has_parameter(stnp.zenith):
             zenith = station.get_sim_station()[stnp.zenith]
             azimuth = station.get_sim_station()[stnp.azimuth]
-            sim_present = True
         else:
-            logger.warning("Using reconstructed angles as no simulation present")
+            logger.debug("Using reconstructed angles as no simulation present")
             zenith = station[stnp.zenith]
             azimuth = station[stnp.azimuth]
-            sim_present = False
-
 
         frequencies = station.get_channel(0).get_frequencies()  # assuming that all channels have the  same sampling rate and length
         use_channels = det.get_channel_ids(station.get_id())
@@ -91,6 +89,9 @@ class voltageToEfieldConverterPerChannel:
             efield_spectrum[1][mask1] = (1.0-pol)**2 * trace[mask1] / efield_antenna_factor[iCh][0][mask1]
             efield_spectrum[2][mask2] = pol**2 * trace[mask2] / efield_antenna_factor[iCh][1][mask2]
             efield.set_frequency_spectrum(efield_spectrum, sampling_rate)
+            efield.set_trace_start_time(channel.get_trace_start_time())
+            efield[efp.zenith] = zenith
+            efield[efp.azimuth] = azimuth
             station.add_electric_field(efield)
 
 
