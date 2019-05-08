@@ -1,9 +1,12 @@
 import numpy as np
-from NuRadioReco.utilities import units
-from NuRadioReco.framework.parameters import channelParameters as chp
-from NuRadioReco.framework.parameters import stationParameters as stnp
 from scipy import signal
 import time
+
+from NuRadioReco.utilities import units
+from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import stationParameters as stnp
+
 import logging
 logger = logging.getLogger('channelSignalReconstructor')
 
@@ -16,8 +19,7 @@ class channelSignalReconstructor:
 
     def __init__(self):
         self.__t = 0
-        self.__conversion_factor_integrated_signal = 2.65441729 * 1e-3 * 1.e-9 * \
-            6.24150934 * 1e18  # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
+        self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
         self.begin()
 
     def begin(self, debug=False, signal_start=20 * units.ns, signal_stop=100 * units.ns,

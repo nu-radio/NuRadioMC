@@ -30,7 +30,7 @@ class readCoREAS:
         input_files: input files
             list of coreas hdf5 files
         station_id: station id
-            id number of the ARIANNA station
+            id number of the station
         n_cores: number of cores (integer)
             the number of random core positions to generate for each input file
         max_distance: radius of random cores (double or None)
@@ -47,15 +47,15 @@ class readCoREAS:
     def run(self, detector, output_mode=0):
         """
         read in CoREAS simulation
-        
+
         Parameters
         ----------
         output_mode: integer (default 0)
             0: only the event object is returned
             1: the function reuturns the event object, the current inputfilename, the distance between the choosen station and the requested core position,
                and the area in which the core positions are randomly distributed
-                 
-        
+
+
         """
         while (self.__current_input_file < len(self.__input_files)):
             t = time.time()

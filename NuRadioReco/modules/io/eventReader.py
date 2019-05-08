@@ -6,7 +6,7 @@ logger = logging.getLogger('eventReader')
 
 class eventReader:
     """
-    save events to file
+    read events from file
     """
 
     def begin(self, filename):
