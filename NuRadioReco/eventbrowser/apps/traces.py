@@ -81,7 +81,17 @@ layout = html.Div([
                             multi=True,
                             value=["trace"]
                         )
-                    ], style={'flex': '1'})
+                    ], style={'flex': '1'}),
+                    html.Div([
+                        dcc.Dropdown(id='dropdown-trace-info',
+                            options=[
+                                {'label': 'RMS', 'value': 'RMS'},
+                                {'label': 'L1', 'value': 'L1'}
+                            ],
+                            multi=True,
+                            value=["RMS", "L1"]
+                        )
+                    ], style={'flex': '1'}),
                 ], style={'display': 'flex'}),
                 html.Div([
                     html.Div([
@@ -315,11 +325,12 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
     [dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
      dash.dependencies.Input('dropdown-traces', 'value'),
+     dash.dependencies.Input('dropdown-trace-info', 'value'),
      dash.dependencies.Input('station-id-dropdown', 'value'),
      dash.dependencies.Input('open-template-button', 'n_clicks_timestamp')],
      [State('user_id', 'children'),
      State('template-directory-input', 'value')])
-def update_time_traces(evt_counter, filename, dropdown_traces, station_id, open_template_timestamp, juser_id, template_directory):
+def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, station_id, open_template_timestamp, juser_id, template_directory):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
@@ -361,6 +372,15 @@ def update_time_traces(evt_counter, filename, dropdown_traces, station_id, open_
                     },
                     name=i
                 ), i + 1, 1)
+            if 'RMS' in dropdown_info:
+                fig.append_trace(
+                   go.Scatter(
+                        x=[0.99 * tt.max()],
+                        y=[0.98 * trace.max()],
+                        mode='text',
+                        text=[r'mu = {:.2f}, STD={:.2f}'.format(np.mean(trace), np.std(trace))],
+                        textposition='bottom left'
+                    ),i + 1, 1)
     if 'envelope' in dropdown_traces:
         for i, channel in enumerate(station.iter_channels()):
             if channel.get_trace() is None:
