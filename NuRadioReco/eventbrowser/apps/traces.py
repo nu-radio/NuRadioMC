@@ -580,6 +580,16 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                 },
                 name=i
             ), i + 1, 2)
+        if 'L1' in dropdown_info:
+            fig.append_trace(
+                   go.Scatter(
+                        x=[0.9 * ff.max() / units.MHz],
+                        y=[0.8 * np.abs(spec).max() / units.mV],
+                        mode='text',
+                        text=['max L1 = {:.2f}'.format(get_L1(spec))],
+                        textposition='top center'
+                    ),
+                i + 1, 2)
     fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['xaxis2'].update(title='frequency [MHz]')
     fig['layout'].update(height=n_channels*150)
