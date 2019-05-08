@@ -1,18 +1,22 @@
 import numpy as np
 import copy
 from numpy import fft
-from NuRadioReco.utilities import units
 from scipy import signal
 from numpy.polynomial import polynomial as poly
 import matplotlib.pyplot as plt
+
 from radiotools import helper as hp
 from radiotools import coordinatesystems
+
 from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import trace_utilities
-import logging
-logger = logging.getLogger('stationSignalReconstructor')
+from NuRadioReco.utilities import units
+
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+
+import logging
+logger = logging.getLogger('stationSignalReconstructor')
 
 class electricFieldSignalReconstructor:
     """
@@ -20,7 +24,7 @@ class electricFieldSignalReconstructor:
     """
 
     def __init__(self):
-        self.__conversion_factor_integrated_signal = 2.65441729 * 1e-3 * 1.e-9 * 6.24150934 * 1e18  # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
+        self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
         self.begin()
 
     def begin(self, signal_window_pre=10 * units.ns, signal_window_post=40 * units.ns, noise_window=100 * units.ns,
@@ -32,7 +36,21 @@ class electricFieldSignalReconstructor:
             logger.setLevel(log_level)
 
     def run(self, evt, station, det, debug=False):
+        """
+        reconstructs quantities for electric field
 
+        Parameters
+        ----------
+        event: event
+
+        station: station
+
+        det: detector
+
+        debug: bool
+            set debug
+
+        """
         for electric_field in station.get_electric_fields():
             trace_copy = copy.copy(electric_field.get_trace())
 

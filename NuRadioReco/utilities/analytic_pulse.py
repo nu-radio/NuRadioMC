@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import scipy.signal
-from NuRadioReco.utilities import units, fft
 
-conversion_factor_integrated_signal = 2.65441729 * 1e-3 * 1.e-9 * 6.24150934 * 1e18
+from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import trace_utilities
 
 
 def amp_from_energy(energy):
@@ -15,7 +15,7 @@ def amp_from_energy(energy):
 
 def get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_rate,
                             phase_p1=0, bandpass=None):
-    amp_p0 /= conversion_factor_integrated_signal  # input variable is energy in eV/m^2
+    amp_p0 /= trace_utilities.conversion_factor_integrated_signal  # input variable is energy in eV/m^2
     dt = 1. / sampling_rate
     frequencies = np.fft.rfftfreq(n_samples_time, dt)
     df = frequencies[1] - frequencies[0]
