@@ -14,6 +14,7 @@ from scripts.online import AriUtils
 from scripts.offline import dacs2014
 import logging
 logger = logging.getLogger("readARIANNAData")
+logging.basicConfig()
 
 
 class readARIANNAData:

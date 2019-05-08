@@ -38,17 +38,17 @@ class efieldToVoltageConverter:
               post_pulse_time=200 * units.ns
               ):
         """
-        begin method, sets general parameters of module
+        Begin method, sets general parameters of module
 
         Parameters
-        ------------
+        ---------------------
         debug: bool
             enable/disable debug mode (default: False -> no debug output)
         uncertainty: dictionary
             optional argument to specify systematic uncertainties. currently supported keys
-#             * 'sys_dx': systematic uncertainty of x position of antenna
-#             * 'sys_dy': systematic uncertainty of y position of antenna
-#             * 'sys_dz': systematic uncertainty of z position of antenna
+             * 'sys_dx': systematic uncertainty of x position of antenna
+             * 'sys_dy': systematic uncertainty of y position of antenna
+             * 'sys_dz': systematic uncertainty of z position of antenna
             * 'sys_amp': systematic uncertainty of the amplifier aplification,
                          specify value as relative difference of linear gain
             * 'amp': statistical uncertainty of the amplifier aplification,
@@ -168,7 +168,7 @@ class efieldToVoltageConverter:
                             index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                         else:   # signal is coming from above, so we take IOR of air
                             index_of_refraction = ice.get_refractive_index(1, site)
-                        travel_time_shift = geo_utl.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith), 
+                        travel_time_shift = geo_utl.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith),
                             sim_station.get_parameter(stnp.azimuth), antenna_position, index_of_refraction)
                         start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift) / time_resolution))
                     else:
