@@ -5,6 +5,7 @@ C++ code for analytic ray tracing
 You will need to have a functioning installation of [GSL](https://www.gnu.org/software/gsl/) ([1.16](https://ftp.gnu.org/gnu/gsl/gsl-1.16.tar.gz) is verified to work).
 - You will need to set the enviromnent variable `GSLDIR` to your local installation of GSL.
 - You will also need to have `GSLDIR` in your `LD_LIBRARY_PATH`.
+- For Mac users: you can locate your GSL installation via `gsl-config --prefix`, i.e. `export GSLDIR=$(gsl-config --prefix)`
 
 ## Install instructions
 
