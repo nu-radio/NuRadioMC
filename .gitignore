@@ -104,3 +104,6 @@ ENV/
 .project
 .pydevproject
 .settings
+
+#Mac nonsense
+.DS_Store

@@ -1,36 +1,54 @@
 from __future__ import absolute_import, division, print_function
 import argparse
+from six import iteritems
 # import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverter
-import NuRadioReco.modules.ARIANNA.triggerSimulator2
+import NuRadioReco.modules.ARIANNA.triggerSimulator
 import NuRadioReco.modules.triggerSimulator
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
+import NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation2 as simulation
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import logging
+import numpy as np
 logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runstrawman")
+logger = logging.getLogger("runDeltaTStudy")
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
-efieldToVoltageConverter.begin()
+efieldToVoltageConverter.begin(pre_pulse_time=0 * units.ns, post_pulse_time=0 * units.ns)
+calculateAmplitudePerRaySolution = NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution.calculateAmplitudePerRaySolution()
 triggerSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
-triggerSimulatorARIANNA = NuRadioReco.modules.ARIANNA.triggerSimulator2.triggerSimulator()
+triggerSimulatorARIANNA = NuRadioReco.modules.ARIANNA.triggerSimulator.triggerSimulator()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+
 
 class mySimulation(simulation.simulation):
 
 
     def _detector_simulation(self):
-        # start detector simulation
         if(bool(self._cfg['signal']['zerosignal'])):
             self._increase_signal(None, 0)
+
+        calculateAmplitudePerRaySolution.run(self._evt, self._station, self._det)
+        # save the amplitudes to output hdf5 file
+        # save amplitudes per ray tracing solution to hdf5 data output
+        if('max_amp_ray_solution' not in self._mout):
+            self._mout['max_amp_ray_solution'] = np.zeros((self._n_events, self._n_antennas, 2)) * np.nan
+        ch_counter = np.zeros(self._n_antennas, dtype=np.int)
+        for efield in self._station.get_sim_station().get_electric_fields():
+            for channel_id, maximum in iteritems(efield[efp.max_amp_antenna]):
+                self._mout['max_amp_ray_solution'][self._iE, channel_id, ch_counter[channel_id]] = maximum
+                ch_counter[channel_id] += 1 
         
+        # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
+        
         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
         # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added) 
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
@@ -39,38 +57,17 @@ class mySimulation(simulation.simulation):
             Vrms = self._Vrms / (self._bandwidth /( 2.5 * units.GHz))** 0.5  # normalize noise level to the bandwidth its generated for
             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
                                          max_freq=2.5 * units.GHz, type='rayleigh')
-        
+
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[80 * units.MHz, 1000 * units.GHz],
                                   filter_type='butter', order=2)
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 500 * units.MHz],
                                   filter_type='butter', order=10)
-        # first run a simple threshold trigger
         triggerSimulator.run(self._evt, self._station, self._det,
-                             threshold=3 * self._Vrms,
-                             triggered_channels=None,  # run trigger on all channels
+                             threshold=2 * self._Vrms,
+                             triggered_channels=None,
                              number_concidences=1,
-                             trigger_name='simple_threshold')  # the name of the trigger
-        
-        # run a high/low trigger on the 4 downward pointing LPDAs
-        triggerSimulatorARIANNA.run(self._evt, self._station, self._det,
-                                    threshold_high=4 * self._Vrms,
-                                    threshold_low=-4 * self._Vrms,
-                                    triggered_channels=[0, 1, 2, 3],  # select the LPDA channels
-                                    number_concidences=2,  # 2/4 majority logic
-                                    cut_trace=False,
-                                    trigger_name='LPDA_2of4_4.1sigma',
-                                    set_not_triggered=(not self._station.has_triggered("simple_threshold"))) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
-        
-        # run a high/low trigger on the 4 surface dipoles 
-        triggerSimulatorARIANNA.run(self._evt, self._station, self._det,
-                                    threshold_high=3 * self._Vrms,
-                                    threshold_low=-3 * self._Vrms,
-                                    triggered_channels=[4, 5, 6, 7], # select the bicone channels
-                                    number_concidences=4, # 4/4 majority logic
-                                    cut_trace=False,
-                                    trigger_name='surface_dipoles_4of4_3sigma',
-                                    set_not_triggered=(not self._station.has_triggered("simple_threshold"))) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
+                             trigger_name='pre_trigger_2sigma')
         
         # downsample trace back to detector sampling rate
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
@@ -96,4 +93,3 @@ sim = mySimulation(eventlist=args.inputfilename,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
                             config_file=args.config)
 sim.run()
-

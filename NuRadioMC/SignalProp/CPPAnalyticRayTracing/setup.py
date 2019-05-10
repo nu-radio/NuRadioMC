@@ -5,7 +5,12 @@ from Cython.Distutils import build_ext
 import numpy
 import os
 
-print('Your $GSLDIR = ' + str(os.environ['GSLDIR']))
+try:
+    print('Your $GSLDIR = ' + str(os.environ['GSLDIR']))
+except:
+    print('You have either not installed GSL or have not set the system variable $GSLDIR.\
+           See NuRadioMC wiki for further GSL details. ')
+
 extensions = [
     Extension('wrapper', ['wrapper.pyx'],
               #include_dirs=[numpy.get_include(), '../../utilities/'],
