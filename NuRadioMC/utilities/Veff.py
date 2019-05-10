@@ -120,6 +120,7 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
                 trigger_names_dict[trigger_name] = iT
             break
 
+    trigger_combinations['all_triggers'] = {'triggers': trigger_names}
     print("Trigger names:", trigger_names)
 
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
@@ -153,14 +154,24 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
         density_water = 997 * units.kg / units.m ** 3
         rmin = fin.attrs['rmin']
         rmax = fin.attrs['rmax']
-        thetamin = fin.attrs['thetamin']
-        thetamax = fin.attrs['thetamax']
+        thetamin = 0 
+        thetamax = np.pi
+        phimin = 0
+        phimax = 2 * np.pi
+        if('thetamin' in fin.attrs):
+            thetamin = fin.attrs['thetamin']
+        if('thetamax' in fin.attrs):
+            thetamax = fin.attrs['thetamax']
+        if('phimin' in fin.attrs):
+            fin.attrs['phimin']
+        if('phimax' in fin.attrs):
+            fin.attrs['phimax']
         dZ = fin.attrs['zmax'] - fin.attrs['zmin']
         V = np.pi * (rmax**2 - rmin**2) * dZ
         Vrms = fin.attrs['Vrms']
 
         # Solid angle needed for the effective volume calculations
-        omega = np.abs(fin.attrs['phimax'] - fin.attrs['phimin']) * np.abs( np.cos(thetamin)-np.cos(thetamax) )
+        omega = np.abs(phimax - phimin) * np.abs( np.cos(thetamin)-np.cos(thetamax) )
 
         for iT, trigger_name in enumerate(trigger_names):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
