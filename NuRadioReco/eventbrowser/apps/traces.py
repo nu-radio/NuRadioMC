@@ -516,7 +516,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                 ),
             i + 1, 1)
     if 'efield' in dropdown_traces:
-        det.update(station.get_station_time())
+        det.update(station.get_station_time_stamp())
         channel_ids = []
         for channel in station.iter_channels():
             channel_ids.append(channel.get_id())
