@@ -10,7 +10,7 @@ from operator import itemgetter
 import logging
 logging.basicConfig()
 from matplotlib.hatch import get_path
-from NuRadioMC.utilities import attenuation
+from NuRadioMC.utilities import attenuation as attenuation_util
 
 # check if CPP implementation is available
 cpp_available = False
@@ -40,9 +40,9 @@ class ray_tracing_2D():
                  n_frequencies_integration=6):
         self.medium = medium
         self.attenuation_model = attenuation_model
-        if(not self.attenuation_model in attenuation.model_to_int):
+        if(not self.attenuation_model in attenuation_util.model_to_int):
             raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
-        self.attenuation_model_int = attenuation.model_to_int[self.attenuation_model]
+        self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
         self.__b = 2 * self.medium.n_ice
         self.__logger = logging.getLogger('ray_tracing_2D')
         self.__logger.setLevel(log_level)
@@ -450,7 +450,7 @@ class ray_tracing_2D():
 
             def dt(t, C_0, frequency):
                 z = self.get_z_unmirrored(t, C_0)
-                return self.ds(t, C_0) / attenuation.get_attenuation_length(z, frequency, self.attenuation_model)
+                return self.ds(t, C_0) / attenuation_util.get_attenuation_length(z, frequency, self.attenuation_model)
 
             # to speed up things we only calculate the attenuation for a few frequencies
             # and interpolate linearly between them
