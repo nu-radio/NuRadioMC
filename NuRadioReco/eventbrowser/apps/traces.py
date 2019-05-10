@@ -316,6 +316,32 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
     return fig
 
 @app.callback(
+    dash.dependencies.Output('dropdown-traces', 'options'),
+    [dash.dependencies.Input('event-counter-slider', 'value'),
+     dash.dependencies.Input('filename', 'value'),
+     dash.dependencies.Input('station-id-dropdown', 'value')],
+     [State('user_id', 'children')]
+)
+def get_dropdown_traces_options(evt_counter, filename, station_id, juser_id):
+    if filename is None or station_id is None:
+        return []
+    user_id = json.loads(juser_id)
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(evt_counter)
+    station = evt.get_station(station_id)
+    options=[
+        {'label': 'calibrated trace', 'value': 'trace'},
+        {'label': 'cosmic-ray template', 'value': 'crtemplate'},
+        {'label': 'neutrino template', 'value': 'nutemplate'},
+        {'label': 'envelope', 'value': 'envelope'},
+        {'label': 'from rec. E-field', 'value': 'recefield'}
+    ]
+    if station.get_sim_station() is not None:
+        if len(station.get_sim_station().get_electric_fields()) > 0:
+            options.append({'label': 'from sim. E-field', 'value': 'simefield'})
+    return options
+
+@app.callback(
     dash.dependencies.Output('time-traces', 'figure'),
     [dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
@@ -515,8 +541,9 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     textposition='top center'
                 ),
             i + 1, 1)
-    if 'efield' in dropdown_traces:
+    if 'recefield' in dropdown_traces or 'simefield' in dropdown_traces:
         det.update(station.get_station_time_stamp())
+    if 'recefield' in dropdown_traces:
         channel_ids = []
         for channel in station.iter_channels():
             channel_ids.append(channel.get_id())
@@ -524,6 +551,34 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
             for i_trace, trace in enumerate(trace_utilities.get_channel_voltage_from_efield(station, electric_field, channel_ids, det, station.get_parameter(stnp.zenith), station.get_parameter(stnp.azimuth), antenna_pattern_provider)):
                     channel = station.get_channel(channel_ids[i_trace])
                     direction_time_delay = geometryUtilities.get_time_delay_from_direction(station.get_parameter(stnp.zenith), station.get_parameter(stnp.azimuth), det.get_relative_position(station.get_id(),channel_ids[i_trace]) - electric_field.get_position())
+                    time_shift = direction_time_delay
+                    fig.append_trace(go.Scatter(
+                        x=(electric_field.get_times() + time_shift)/units.ns,
+                        y=fft.freq2time(trace)/units.mV,
+                        line=dict(
+                            dash='solid',
+                            color=colors[i_trace%len(colors)]
+                        ),
+                        opacity=.5
+                    ), i_trace+1, 1)
+                    fig.append_trace(go.Scatter(
+                        x=electric_field.get_frequencies()/units.MHz,
+                        y=np.abs(trace)/units.mV,
+                        line=dict(
+                            dash='solid',
+                            color=colors[i_trace%len(colors)]
+                        ),
+                        opacity=.5
+                    ), i_trace + 1, 2)
+    if 'simefield' in dropdown_traces:
+        channel_ids = []
+        sim_station = station.get_sim_station()
+        for channel in station.iter_channels():
+            channel_ids.append(channel.get_id())
+        for electric_field in sim_station.get_electric_fields():
+            for i_trace, trace in enumerate(trace_utilities.get_channel_voltage_from_efield(sim_station, electric_field, channel_ids, det, sim_station.get_parameter(stnp.zenith), sim_station.get_parameter(stnp.azimuth), antenna_pattern_provider)):
+                    channel = station.get_channel(channel_ids[i_trace])
+                    direction_time_delay = geometryUtilities.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith), sim_station.get_parameter(stnp.azimuth), det.get_relative_position(sim_station.get_id(),channel_ids[i_trace]) - electric_field.get_position())
                     time_shift = direction_time_delay
                     fig.append_trace(go.Scatter(
                         x=(electric_field.get_times() + time_shift)/units.ns,
