@@ -18,7 +18,7 @@ propagation:
   n_freq: 25  # the number of frequencies where the attenuation length is calculated for. The remaining frequencies will be determined from a linear interpolation between the reference frequencies. The reference frequencies are equally spaced over the complet frequency range. 
   
 signal:
-  model: Alvarez2000
+  model: Alvarez2009
   zerosignal: False  # if True, the signal is set to zero. This is useful to study 'noise' only simulations
   polarization: auto # can be either 'auto' or 'custom'
   ePhi: 0.  # only used if 'polarization = custom', fraction of ePhi component, the eTheta component is eTheta = (1 - ePhi**2)**0.5
