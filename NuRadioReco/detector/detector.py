@@ -371,12 +371,13 @@ class Detector(object):
         """
         res = self.__get_station(station_id)
         easting, northing, altitude = 0, 0, 0
+        unit_xy = units.m
+        if('pos_zone' in res and res['pos_zone'] == "SP-grid"):
+            unit_xy = units.feet
         if(res['pos_easting'] is not None):
-            easting = res['pos_easting'] * units.feet
+            easting = res['pos_easting'] * unit_xy
         if(res['pos_northing'] is not None):
-            northing = res['pos_northing'] * units.feet
-        if(res['pos_altitude'] is not None):
-            altitude = res['pos_altitude'] * units.m 
+            northing = res['pos_northing'] * unit_xy 
         return np.array([easting, northing, altitude])
     
     def get_absolute_position_site(self, site):
@@ -392,11 +393,14 @@ class Detector(object):
         time of measurement 
         """
         res = self.__get_position(site)
+        unit_xy = units.m
+        if('pos_zone' in res and res['pos_zone'] == "SP-grid"):
+            unit_xy = units.feet
         easting, northing, altitude = 0, 0, 0
         if(res['pos_easting'] is not None):
-            easting = res['pos_easting'] * units.feet
+            easting = res['pos_easting'] * unit_xy
         if(res['pos_northing'] is not None):
-            northing = res['pos_northing'] * units.feet
+            northing = res['pos_northing'] * unit_xy
         if(res['pos_altitude'] is not None):
             altitude = res['pos_altitude'] * units.m 
         return np.array([easting, northing, altitude])
