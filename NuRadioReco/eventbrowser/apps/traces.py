@@ -339,11 +339,18 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     traces = []
-    fig = tools.make_subplots(rows=station.get_number_of_channels(), cols=2,
-                              shared_xaxes=True, shared_yaxes=False,
-                              vertical_spacing=0.01)
     ymax = 0
+    n_channels = 0
+    plot_titles = []
+    fig = tools.make_subplots(rows=station.get_number_of_channels(), cols=2,
+        shared_xaxes=True, shared_yaxes=False,
+        vertical_spacing=0.01, subplot_titles=plot_titles)
     for i, channel in enumerate(station.iter_channels()):
+        n_channels += 1
+        trace = channel.get_trace() / units.mV
+        ymax = max(ymax, np.max(np.abs(trace)))
+        plot_titles.append('Channel {}'.format(channel.get_id()))
+        plot_titles.append('Channel {}'.format(channel.get_id()))
         if channel.get_trace() is not None:
             trace = channel.get_trace() / units.mV
             ymax = max(ymax, np.max(np.abs(trace)))
@@ -367,14 +374,13 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                 ), i + 1, 1)
             if 'RMS' in dropdown_info:
                 fig.append_trace(
-                       go.Scatter(
-                            x=[0.99 * tt.max()],
-                            y=[0.98 * trace.max()],
-                            mode='text',
-                            text=[r'mu = {:.2f}, STD={:.2f}'.format(np.mean(trace), np.std(trace))],
-                            textposition='bottom left'
-                        ),
-                    i + 1, 1)
+                   go.Scatter(
+                        x=[0.99 * tt.max()],
+                        y=[0.98 * trace.max()],
+                        mode='text',
+                        text=[r'mu = {:.2f}, STD={:.2f}'.format(np.mean(trace), np.std(trace))],
+                        textposition='bottom left'
+                    ),i + 1, 1)
     if 'envelope' in dropdown_traces:
         for i, channel in enumerate(station.iter_channels()):
             if channel.get_trace() is None:
@@ -556,6 +562,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     ), i_trace + 1, 2)
     for i, channel in enumerate(station.iter_channels()):
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(range=[-ymax, ymax])
+        fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(title='voltage [mV]')
 
         if channel.get_trace() is None:
             continue
@@ -583,10 +590,10 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                         textposition='top center'
                     ),
                 i + 1, 2)
-    fig['layout'].update(default_layout)
     fig['layout']['xaxis1'].update(title='time [ns]')
-    fig['layout']['yaxis1'].update(title='voltage [mV]')
-    fig['layout'].update(height=1000)
+    fig['layout']['xaxis2'].update(title='frequency [MHz]')
+    fig['layout'].update(height=n_channels*150)
+    fig['layout'].update(showlegend=False)
     return fig
 
 
