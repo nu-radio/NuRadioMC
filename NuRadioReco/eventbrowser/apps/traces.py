@@ -573,31 +573,34 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
     if 'simefield' in dropdown_traces:
         channel_ids = []
         sim_station = station.get_sim_station()
-        for channel in station.iter_channels():
-            channel_ids.append(channel.get_id())
-        for electric_field in sim_station.get_electric_fields():
-            for i_trace, trace in enumerate(trace_utilities.get_channel_voltage_from_efield(sim_station, electric_field, channel_ids, det, sim_station.get_parameter(stnp.zenith), sim_station.get_parameter(stnp.azimuth), antenna_pattern_provider)):
-                    channel = station.get_channel(channel_ids[i_trace])
-                    direction_time_delay = geometryUtilities.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith), sim_station.get_parameter(stnp.azimuth), det.get_relative_position(sim_station.get_id(),channel_ids[i_trace]) - electric_field.get_position())
+        for i_channel, channel in enumerate(station.iter_channels()):
+            for electric_field in sim_station.get_electric_fields_for_channels([channel.get_id()]):
+                trace = trace_utilities.get_channel_voltage_from_efield(sim_station, electric_field, [channel.get_id()], det, electric_field.get_parameter(efp.zenith), electric_field.get_parameter(efp.azimuth), antenna_pattern_provider)[0]
+                channel = station.get_channel(channel.get_id())
+                if station.is_cosmic_ray():
+                    direction_time_delay = geometryUtilities.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith), sim_station.get_parameter(stnp.azimuth), det.get_relative_position(sim_station.get_id(),channel.get_id()) - electric_field.get_position())
                     time_shift = direction_time_delay
-                    fig.append_trace(go.Scatter(
-                        x=(electric_field.get_times() + time_shift)/units.ns,
-                        y=fft.freq2time(trace)/units.mV,
-                        line=dict(
-                            dash='solid',
-                            color=colors[i_trace%len(colors)]
-                        ),
-                        opacity=.5
-                    ), i_trace+1, 1)
-                    fig.append_trace(go.Scatter(
-                        x=electric_field.get_frequencies()/units.MHz,
-                        y=np.abs(trace)/units.mV,
-                        line=dict(
-                            dash='solid',
-                            color=colors[i_trace%len(colors)]
-                        ),
-                        opacity=.5
-                    ), i_trace + 1, 2)
+                else:
+                    time_shift = 0
+                print(time_shift, channel.get_trace_start_time(), electric_field.get_trace_start_time())
+                fig.append_trace(go.Scatter(
+                    x=(electric_field.get_times() + time_shift)/units.ns,
+                    y=fft.freq2time(trace)/units.mV,
+                    line=dict(
+                        dash='solid',
+                        color=colors[i_channel%len(colors)]
+                    ),
+                    opacity=.5
+                ), i_channel+1, 1)
+                fig.append_trace(go.Scatter(
+                    x=electric_field.get_frequencies()/units.MHz,
+                    y=np.abs(trace)/units.mV,
+                    line=dict(
+                        dash='solid',
+                        color=colors[i_channel%len(colors)]
+                    ),
+                    opacity=.5
+                ), i_channel + 1, 2)
     for i, channel in enumerate(station.iter_channels()):
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(range=[-ymax, ymax])
 
