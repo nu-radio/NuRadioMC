@@ -1,5 +1,6 @@
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import SimplePhasedTrigger
+from NuRadioReco.modules.ARIANNA.triggerSimulator2 import get_high_low_triggers
 import numpy as np
 from scipy import constants
 import time
@@ -9,13 +10,11 @@ logger = logging.getLogger('phasedTriggerSimulator')
 cspeed = constants.c * units.m / units.s
 
 main_low_angle = -53. * units.deg
-main_high_angle = 47 * units.deg
+main_high_angle = 47. * units.deg
 default_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 15) )
 
-sec_low_angle = main_low_angle/2
-sec_high_angle = main_high_angle/2
-default_sec_angles = np.arcsin( np.linspace( np.sin(sec_low_angle), np.sin(sec_high_angle), 15) )
-
+default_sec_angles = 0.5*(default_angles[:-1]+default_angles[1:])
+default_sec_angles = np.insert(default_sec_angles, len(default_sec_angles), default_angles[-1] + 3.5*units.deg)
 
 class triggerSimulator:
     """
@@ -46,7 +45,7 @@ class triggerSimulator:
         return np.array(ant_pos)
 
     def get_beam_rolls(self, station, det, triggered_channels,
-                       phasing_angles=default_angles, ref_index=1.78):
+                       phasing_angles=default_angles, ref_index=1.55):
         """
         Calculates the delays needed for phasing the array.
         """
@@ -83,32 +82,44 @@ class triggerSimulator:
         if ( sum(diff_x) > cut or sum(diff_y) > cut ):
             raise NotImplementedError('The phased triggering array should lie on a vertical line')
 
-    def phased_trigger(self, station, beam_rolls, triggered_channels, threshold):
+    def phased_trigger(self, station, beam_rolls, sec_beam_rolls, triggered_channels, threshold, window_time=10.67*units.ns):
         """
-        Calculates the trigger for a certain phasing configuration
+        Calculates the trigger for a certain phasing configuration.
+        Beams are formed. A set of overlapping time windows is created and
+        the square of the voltage is averaged within each window.
+        If the average surpasses the given threshold squared times the
+        number of antennas in any of these windows, a trigger is created.
+        This is an ARA-like power trigger.
 
         Parameters
         ----------
-        Station: Station object
+        station: Station object
             Description of the current station
-        Beam rolls: array of ints
+        beam_rolls: array of ints
             Contains the integers for rolling the voltage traces (delays)
-        Triggered_channels: array of ints
+        sec_beam_rolls: array of ints
+            Contains the secondary beam integers for rolling the voltage traces (delays)
+        triggered_channels: array of ints
             Ids of the triggering channels
-        Threshold: float
-            Threshold for a SINGLE antenna. It will be rescaled with the
-            square root of the number of antennas
+        threshold: float
+            Voltage threshold for a SINGLE antenna. It will be rescaled with the
+            square root of the number of antennas.
+        window_time: float
+            Width of the time window used in the power integration
 
         Returns
         -------
         is_triggered: bool
             True if the triggering condition is met
         """
+        sampling_rate = station.get_channel(0).get_sampling_rate()
+        time_step = 1./sampling_rate
 
-        for subbeam_rolls in beam_rolls:
+        for subbeam_rolls, sec_subbeam_rolls in zip(beam_rolls, sec_beam_rolls):
 
             phased_trace = None
-            Nant = len(triggered_channels)
+            # Number of antennas: primary beam antennas + secondary beam antennas
+            Nant = len(beam_rolls[0]) + len(sec_beam_rolls[0])
 
             for channel in station.iter_channels():  # loop over all channels (i.e. antennas) of the station
                 channel_id = channel.get_id()
@@ -117,19 +128,34 @@ class triggerSimulator:
                     continue
 
                 trace = channel.get_trace()  # get the time trace (i.e. an array of amplitudes)
-                #times = channel.get_times()  # get the corresponding time bins
+                times = channel.get_times()  # get the corresponding time bins
 
                 if(phased_trace is None):
                     phased_trace = np.roll(trace, subbeam_rolls[channel_id])
                 else:
                     phased_trace += np.roll(trace, subbeam_rolls[channel_id])
 
-            # Noise RMS is the square root of the number of phased antennas times the RMS
-            # of the noise for a single antenna, resulting in the following condition
-            if(np.max(np.abs(phased_trace)) > np.sqrt(Nant)*threshold):
-                is_triggered = True
+                if(channel_id in sec_subbeam_rolls):
+                    #pass
+                    phased_trace += np.roll(trace, sec_subbeam_rolls[channel_id])
+
+            # Implmentation of the ARA-like power trigger
+            window_width = int(window_time/time_step)
+            n_windows = int(len(trace)/window_width)
+            n_windows = 2*n_windows - 1
+            squared_mean_threshold = Nant * threshold**2
+
+            # Create a sliding window
+            strides = phased_trace.strides
+            windowed_traces = np.lib.stride_tricks.as_strided(phased_trace, \
+                              shape=(n_windows,window_width), \
+                              strides=(int(window_width/2)*strides[0], strides[0]))
+
+            squared_mean = np.sum(windowed_traces**2/window_width, axis=1)
+
+            if True in (squared_mean > squared_mean_threshold):
                 logger.debug("Station has triggered")
-                return is_triggered
+                return True
 
         return False
 
@@ -139,7 +165,12 @@ class triggerSimulator:
             secondary_channels=None,
             trigger_name='simple_phased_threshold',
             phasing_angles=default_angles,
-            secondary_phasing_angles=default_sec_angles):
+            secondary_phasing_angles=default_sec_angles,
+            set_not_triggered=False,
+            window_time=10.67*units.ns,
+            only_primary=False,
+            coupled=True,
+            ref_index=1.55):
         """
         simulates phased array trigger for each event
 
@@ -166,30 +197,60 @@ class triggerSimulator:
             pointing angles for the primary beam
         secondary_phasing_angles: array of float
             pointing angles for the secondary beam
+        set_not_triggered: bool (default: False)
+            if True not trigger simulation will be performed and this trigger will be set to not_triggered
+        window_time: float
+            Width of the time window used in the power integration
+        only_primary: bool
+            if True, no secondary beams are formed
+        coupled: bool
+            if True, the primary sub-beams are paired to the secondary sub-beams.
+            if False, the primary sub-beams and the secondary sub-beams specify independent beams.
+        ref_index: float
+            refractive index for beam forming
+
+        Returns
+        -------
+        is_triggered: bool
+            True if the triggering condition is met
         """
 
-    	if (triggered_channels == None):
-    		triggered_channels = [channel._id for channel in station.iter_channels()]
+        if (triggered_channels == None):
+        	triggered_channels = [channel._id for channel in station.iter_channels()]
 
         if (secondary_channels == None):
-            secondary_channels = triggered_channels[::2]
+            # If there are no chosen secondary channels, we take two consecutive
+            # antennas, discard the third, and so on.
+            secondary_channels = [ channel._id for channel in station.iter_channels() \
+                                   if not channel._id % 3 == 2 ]
 
-        logger.debug("primary channels:", triggered_channels)
-        beam_rolls = self.get_beam_rolls(station, det, triggered_channels, phasing_angles)
-        logger.debug("secondary_channels:", secondary_channels)
-        secondary_beam_rolls = self.get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles)
+        if set_not_triggered:
 
-        primary_trigger = self.phased_trigger(station, beam_rolls, triggered_channels, threshold)
-        secondary_trigger = self.phased_trigger(station, secondary_beam_rolls, secondary_channels, threshold)
-
-        if primary_trigger or secondary_trigger:
-            is_triggered = True
-        else:
             is_triggered = False
 
-    	trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, secondary_channels, phasing_angles, secondary_phasing_angles)
-     	trigger.set_triggered(is_triggered)
-    	station.set_trigger(trigger)
+        else:
+
+            logger.debug("primary channels:", triggered_channels)
+            beam_rolls = self.get_beam_rolls(station, det, triggered_channels, phasing_angles, ref_index=ref_index)
+            logger.debug("secondary_channels:", secondary_channels)
+            secondary_beam_rolls = self.get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles, ref_index=ref_index)
+
+            if only_primary:
+                empty_rolls = [ {} for direction in range(len(phasing_angles)) ]
+                is_triggered = self.phased_trigger(station, beam_rolls, empty_rolls, triggered_channels, threshold, window_time)
+            elif coupled:
+                is_triggered = self.phased_trigger(station, beam_rolls, secondary_beam_rolls, triggered_channels, threshold, window_time)
+            else:
+                empty_rolls = [ {} for direction in range(len(phasing_angles)) ]
+                primary_trigger = self.phased_trigger(station, beam_rolls, empty_rolls, triggered_channels, threshold, window_time)
+                secondary_trigger = self.phased_trigger(station, secondary_beam_rolls, empty_rolls, secondary_channels, threshold, window_time)
+                is_triggered = primary_trigger or secondary_trigger
+
+        trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, secondary_channels, phasing_angles, secondary_phasing_angles)
+        trigger.set_triggered(is_triggered)
+        station.set_trigger(trigger)
+
+        return is_triggered
 
     def end(self):
         pass
