@@ -13,9 +13,11 @@ from NuRadioReco.utilities import units
 from NuRadioReco.utilities import templates
 from NuRadioReco.utilities import trace_utilities
 from NuRadioReco.utilities import fft
+from NuRadioReco.utilities import geometryUtilities
 from NuRadioReco.detector import detector
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.eventbrowser.default_layout import default_layout
 import NuRadioReco.detector.antennapattern
 import numpy as np
@@ -520,8 +522,11 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
             channel_ids.append(channel.get_id())
         for electric_field in station.get_electric_fields():
             for i_trace, trace in enumerate(trace_utilities.get_channel_voltage_from_efield(station, electric_field, channel_ids, det, station.get_parameter(stnp.zenith), station.get_parameter(stnp.azimuth), antenna_pattern_provider)):
+                    channel = station.get_channel(channel_ids[i_trace])
+                    direction_time_delay = geometryUtilities.get_time_delay_from_direction(station.get_parameter(stnp.zenith), station.get_parameter(stnp.azimuth), det.get_relative_position(station.get_id(),channel_ids[i_trace]) - electric_field.get_position())
+                    time_shift = direction_time_delay
                     fig.append_trace(go.Scatter(
-                        x=electric_field.get_times()/units.ns,
+                        x=(electric_field.get_times() + time_shift)/units.ns,
                         y=fft.freq2time(trace)/units.mV,
                         line=dict(
                             dash='solid',
