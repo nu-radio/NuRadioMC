@@ -14,6 +14,7 @@ import h5py
 import os
 import logging
 logger = logging.getLogger("EventGen")
+logging.basicConfig()
 
 VERSION_MAJOR = 1
 VERSION_MINOR = 1
@@ -553,7 +554,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 n_events_per_file=None,
                                 spectrum='log_uniform',
                                 add_tau_second_bang=False,
-                                add_tau_larger_volume=False,
                                 tabulated_taus=True,
                                 deposited=False):
     """
@@ -585,13 +585,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     fiducial_zmax: float
         upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
     full_rmin: float (default None)
-        lower r coordinate of simulated volume (if None it is set to 3x the fiducial volume)
+        lower r coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
     full_rmax: float (default None)
-        upper r coordinate of simulated volume (if None it is set to 3x the fiducial volume)
+        upper r coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
     full_zmin: float (default None)
-        lower z coordinate of simulated volume (if None it is set to 3x the fiducial volume)
+        lower z coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
     full_zmax: float (default None)
-        upper z coordinate of simulated volume (if None it is set to 3x the fiducial volume)
+        upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
     thetamin: float
         lower zenith angle for neutrino arrival direction
     thetamax: float
@@ -640,13 +640,25 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     attributes['fiducial_zmax'] = fiducial_zmax
 
     if(full_rmin is None):
-        full_rmin = fiducial_rmin / 3.
+        if(add_tau_second_bang):
+            full_rmin = fiducial_rmin / 3.
+        else:
+            full_rmin = fiducial_rmin
     if(full_rmax is None):
-        full_rmax = fiducial_rmax * 5.
+        if(add_tau_second_bang):
+            full_rmax = fiducial_rmax * 5.
+        else:
+            full_rmax = fiducial_rmax
     if(full_zmin is None):
-        full_zmin = fiducial_zmin * 5.
+        if(add_tau_second_bang):
+            full_zmin = fiducial_zmin * 5.
+        else:
+            full_zmin = fiducial_zmin
     if(full_zmax is None):
-        full_zmax = fiducial_zmax / 3.
+        if(add_tau_second_bang):
+            full_zmax = fiducial_zmax / 3.
+        else:
+            full_zmax = fiducial_zmax
 
     attributes['rmin'] = full_rmin
     attributes['rmax'] = full_rmax
