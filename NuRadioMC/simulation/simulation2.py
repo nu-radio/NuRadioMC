@@ -144,7 +144,7 @@ class simulation():
         self._create_meta_output_datastructures()
 
         # check if the same detector was simulated before (then we can save the ray tracing part)
-        self._check_if_was_pre_simulated()
+        pre_simulated = self._check_if_was_pre_simulated()
 
         inputTime = 0.0
         askaryan_time = 0.
@@ -211,9 +211,10 @@ class simulation():
                     r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=logging.WARNING,
                                    n_frequencies_integration=int(self._cfg['propagation']['n_freq']))
     
-                    if(ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
-                        r.set_solution(sg['ray_tracing_C0'][self._iE, channel_id], sg['ray_tracing_C1'][self._iE, channel_id],
-                                       sg['ray_tracing_solution_type'][self._iE, channel_id])
+                    if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
+                        sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
+                        r.set_solution(sg_pre['ray_tracing_C0'][self._iE][channel_id], sg_pre['ray_tracing_C1'][self._iE][channel_id],
+                                       sg_pre['ray_tracing_solution_type'][self._iE][channel_id])
                     else:
                         r.find_solutions()
                     if(not r.has_solution()):
@@ -248,9 +249,10 @@ class simulation():
                     Rs = np.zeros(n)
                     Ts = np.zeros(n)
                     for iS in range(n):  # loop through all ray tracing solution
-                        if(ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):
-                            R = sg['travel_distances'][self._iE, channel_id, iS]
-                            T = sg['travel_times'][self._iE, channel_id, iS]
+                        if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):
+                            sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
+                            R = sg_pre['travel_distances'][self._iE, channel_id, iS]
+                            T = sg_pre['travel_times'][self._iE, channel_id, iS]
                         else:
                             R = r.get_path_length(iS)  # calculate path length
                             T = r.get_travel_time(iS)  # calculate travel time
@@ -421,8 +423,13 @@ class simulation():
         """
         fin = h5py.File(self._eventlist, 'r')
         self._fin = {}
+        self._fin_stations = {}
         self._fin_attrs = {}
         for key, value in iteritems(fin):
+            if isinstance(value, h5py._hl.group.Group):
+                self._fin_stations[key] = {}
+                for key2, value2 in iteritems(value):
+                    self._fin_stations[key][key2] = np.array(value2)
             self._fin[key] = np.array(value)
         for key, value in iteritems(fin.attrs):
             self._fin_attrs[key] = value
