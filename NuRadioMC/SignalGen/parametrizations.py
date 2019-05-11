@@ -214,6 +214,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
                     epsilon = np.log10(E_0/units.TeV)
                     f_epsilon  = -1.27e-2 - 4.76e-2*(epsilon+3)
                     f_epsilon += -2.07e-3*(epsilon+3)**2 + 0.52*np.sqrt(epsilon+3)
+                    return f_epsilon
 
                 tmp[1:] *= missing_energy_factor(energy)
             else:
