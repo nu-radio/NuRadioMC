@@ -38,12 +38,14 @@ class mySimulation(simulation.simulation):
         calculateAmplitudePerRaySolution.run(self._evt, self._station, self._det)
         # save the amplitudes to output hdf5 file
         # save amplitudes per ray tracing solution to hdf5 data output
-        if('max_amp_ray_solution' not in self._mout):
-            self._mout['max_amp_ray_solution'] = np.zeros((self._n_events, self._n_antennas, 2)) * np.nan
-        ch_counter = np.zeros(self._n_antennas, dtype=np.int)
+        sg = self._mout_groups[self._station_id]
+        n_antennas = self._det.get_number_of_channels(self._station_id)
+        if('max_amp_ray_solution' not in sg):
+            sg['max_amp_ray_solution'] = np.zeros((self._n_events, n_antennas, 2)) * np.nan
+        ch_counter = np.zeros(n_antennas, dtype=np.int)
         for efield in self._station.get_sim_station().get_electric_fields():
             for channel_id, maximum in iteritems(efield[efp.max_amp_antenna]):
-                self._mout['max_amp_ray_solution'][self._iE, channel_id, ch_counter[channel_id]] = maximum
+                sg['max_amp_ray_solution'][self._iE, channel_id, ch_counter[channel_id]] = maximum
                 ch_counter[channel_id] += 1 
         
         # start detector simulation
