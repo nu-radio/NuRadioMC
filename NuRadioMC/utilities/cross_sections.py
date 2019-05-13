@@ -2,7 +2,7 @@ import numpy as np
 from NuRadioMC.utilities import units
 
 
-def param(energy, cross_section_type='cc'):
+def param(energy, inttype='cc'):
     """
     Parameterization and constants as used in
     get_nu_cross_section()
@@ -10,16 +10,16 @@ def param(energy, cross_section_type='cc'):
 
     """
 
-    if cross_section_type == 'cc':
+    if inttype == 'cc':
         c = (-1.826, -17.31, -6.406, 1.431, -17.91) # nu, CC
-    elif cross_section_type == 'nc':
+    elif inttype == 'nc':
         c = (-1.826, -17.31, -6.448, 1.431, -18.61) # nu, NC
-    elif cross_section_type == 'cc_bar':
+    elif inttype == 'cc_bar':
         c = (-1.033, -15.95, -7.247, 1.569, -17.72) # nu_bar, CC
-    elif cross_section_type == 'nc_bar':
+    elif inttype == 'nc_bar':
         c = (-1.033, -15.95, -7.296, 1.569, -18.30) # nu_bar, NC
     else:
-        logger.error("Type {0} of cross-section not defined".format(cross_section_type))
+        logger.error("Type {0} of interaction not defined".format(inttype))
         raise NotImplementedError
 
     epsilon = np.log10(energy/units.GeV)
