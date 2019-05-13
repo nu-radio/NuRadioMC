@@ -67,7 +67,6 @@ args = parser.parse_args()
 sim = mySimulation(eventlist=args.inputfilename,
                             outputfilename=args.outputfilename,
                             detectorfile=args.detectordescription,
-                            station_id=101,
                             config_file=args.config,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco)
 sim.run()

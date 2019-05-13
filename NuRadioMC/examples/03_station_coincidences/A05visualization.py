@@ -9,7 +9,7 @@ from radiotools import plthelpers as php
 import sys
 from radiotools import helper as hp
 import os
-from NuRadioMC.SignalProp import analyticraytraycing as ray
+from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from mpl_toolkits import mplot3d
 import matplotlib
@@ -31,7 +31,7 @@ with open('det.json', 'w') as fout:
     fout.write(fin.attrs['detector'])
     fout.close()
 det = detector.Detector(json_filename="det.json")
-max_amps_env = np.array(fin['maximum_amplitudes_envelope'])
+max_amps_env = np.array(fin['station_101']['maximum_amplitudes_envelope'])
 weights = fin['weights']
 
 n_channels = det.get_number_of_channels(101)
