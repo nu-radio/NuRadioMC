@@ -823,9 +823,7 @@ class ray_tracing_2D():
 #
 #         if(angle < 0):
 #             angle = np.pi + angle
-
-
-        return angle - angoff
+#         return angle - angoff
 
     def get_angle_from_logC_0(self,logC_0, z_pos,angoff=0):
 
