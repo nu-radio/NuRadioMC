@@ -97,7 +97,7 @@ class simulation():
         self._debug = debug
         self._evt_time = evt_time
         logger.warning("setting event time to {}".format(evt_time))
-        
+
         # initialize propagation module
         self._prop = propagation.get_propagation_module(self._cfg['propagation']['module'])
 
@@ -110,7 +110,7 @@ class simulation():
         # read in detector positions
         logger.warning("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
         self._det = detector.Detector(json_filename=self._detectorfile)
-        
+
         self._station_ids = self._det.get_station_ids()
 
         # print noise information
@@ -125,7 +125,7 @@ class simulation():
             self._bandwidth = 0.5 / self._dt
         else:
             self._bandwidth = bandwidth
-        self._Vrms = (self._Tnoise * 50 * constants.k * 
+        self._Vrms = (self._Tnoise * 50 * constants.k *
                        self._bandwidth / units.Hz) ** 0.5
         logger.warning('noise temperature = {}, bandwidth = {:.0f} MHz, Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
 
@@ -169,8 +169,22 @@ class simulation():
             # read all quantities from hdf5 file and store them in local variables
             self._read_input_neutrino_properties()
 
+            # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
+            # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
+            if not self._is_in_fiducial_volume():
+                continue
+
             # calculate weight
-            self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, mode=self._cfg['weights']['weight_mode'])
+            # if we have a second interaction, the weight needs to be calculated from the initial neutrino
+            if(self._n_interaction > 1):
+                iE_mother = np.argwhere(self._fin['event_ids'] == self._iE).min()  # get index of mother neutrino
+                self._mout['weights'][self._iE] = get_weight(self._fin['zenith'][iE_mother],
+                                                     self._fin['energy'][iE_mother],
+                                                     self._fin['flavor'][iE_mother],
+                                                     mode=self._cfg['weights']['weight_mode'],
+                                                     cross_section_type = self._cfg['weights']['cross_section_type'])
+            else:
+                self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, mode=self._cfg['weights']['weight_mode'],cross_section_type = self._cfg['weights']['cross_section_type'])
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if(self._mout['weights'][self._iE] < self._cfg['speedup']['minimum_weight_cut']):
@@ -238,13 +252,13 @@ class simulation():
                         logger.debug('solution {} {}: viewing angle {:.1f} = delta_C = {:.1f}'.format(
                             iS, self._prop.solution_types[r.get_solution_type(iS)], viewing_angle / units.deg, (viewing_angle - cherenkov_angle) / units.deg))
                         delta_Cs.append(delta_C)
-    
+
                     # discard event if delta_C (angle off cherenkov cone) is too large
                     if(min(np.abs(delta_Cs)) > self._cfg['speedup']['delta_C_cut']):
                         logger.debug('delta_C too large, event unlikely to be observed, skipping event')
                         self._add_empty_electric_field(channel_id)
                         continue
-    
+
                     n = r.get_number_of_solutions()
                     Rs = np.zeros(n)
                     Ts = np.zeros(n)
@@ -267,7 +281,7 @@ class simulation():
                         zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
                         logger.debug("st {}, ch {}, s {} R = {:.1f} m, t = {:.1f}ns, receive angles {:.0f} {:.0f}".format(self._station_id,
                             channel_id, iS, R / units.m, T / units.ns, zenith / units.deg, azimuth / units.deg))
-    
+
                         fem, fhad = self._get_em_had_fraction(self._inelasticity, self._inttype, self._flavor)
                         # get neutrino pulse from Askaryan module
                         t_ask = time.time()
@@ -275,14 +289,14 @@ class simulation():
                             self._energy * fhad, viewing_angles[iS], self._n_samples, self._dt, "HAD", n_index, R,
                             self._cfg['signal']['model'], same_shower=(iS > 0))
                         askaryan_time += (time.time() - t_ask)
-    
+
                         # apply frequency dependent attenuation
                         t_att = time.time()
                         if self._cfg['propagation']['attenuate_ice']:
                             attn = r.get_attenuation(iS, self._ff, 0.5 * self._sampling_rate_detector)
                             spectrum *= attn
                         time_attenuation_length += (time.time() - t_att)
-    
+
                         if(fem > 0):
                             t_ask = time.time()
                             spectrum_em = signalgen.get_frequency_spectrum(
@@ -293,8 +307,8 @@ class simulation():
                                 spectrum_em *= attn
                             # add EM signal to had signal in the time domain
                             spectrum = fft.time2freq(fft.freq2time(spectrum) + fft.freq2time(spectrum_em))
-    
-    
+
+
                         polarization_direction_onsky = self._calculate_polarization_vector()
                         cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
                         polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
@@ -305,7 +319,7 @@ class simulation():
                         sg['polarization'][self._iE, channel_id, iS] = polarization_direction_at_antenna
                         eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
             #             print("{} {:.2f} {:.0f}".format(polarization_direction_onsky, np.linalg.norm(polarization_direction_onsky), np.arctan2(np.abs(polarization_direction_onsky[1]), np.abs(polarization_direction_onsky[2])) / units.deg))
-    
+
                         # in case of a reflected ray we need to account for fresnel
                         # reflection at the surface
                         r_theta = None
@@ -317,12 +331,12 @@ class simulation():
                                 zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
                             r_phi = geo_utl.get_fresnel_r_s(
                                 zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
-    
+
                             eTheta *= r_theta
                             ePhi *= r_phi
                             logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection/units.deg,
                                 r_theta, r_phi))
-    
+
                         if(self._debug):
                             fig, (ax, ax2) = plt.subplots(1, 2)
                             ax.plot(self._ff, np.abs(eTheta) / units.micro / units.V * units.m)
@@ -333,7 +347,7 @@ class simulation():
                                 self._energy * fhad, viewing_angles[iS], R))
                             fig.subplots_adjust(top=0.9)
                             plt.show()
-    
+
                         electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id])
                         electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / self._dt)
                         electric_field.set_trace_start_time(T)
@@ -345,7 +359,7 @@ class simulation():
                         electric_field[efp.reflection_coefficient_theta] = r_theta
                         electric_field[efp.reflection_coefficient_phi] = r_phi
                         self._sim_station.add_electric_field(electric_field)
-    
+
                         # apply a simple threshold cut to speed up the simulation,
                         # application of antenna response will just decrease the
                         # signal amplitude
@@ -364,10 +378,10 @@ class simulation():
                 # self._finalize NuRadioReco event structure
                 self._station = NuRadioReco.framework.station.Station(self._station_id)
                 self._station.set_sim_station(self._sim_station)
-                
+
                 self._station.set_station_time(self._evt_time)
                 self._evt.set_station(self._station)
-    
+
                 self._detector_simulation()
                 self._calculate_signal_properties()
                 self._save_triggers_to_hdf5()
@@ -395,8 +409,15 @@ class simulation():
                                                                                          t_total, 1.e3 * t_total / self._n_events))
 
         outputTime = time.time() - t5
-        print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) + 
+        print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
               "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
+
+    def _is_in_fiducial_volume(self):
+        r = (self._x**2 + self._y**2)**0.5
+        if(r >= self._fin_attrs['fiducial_rmin'] and r <= self._fin_attrs['fiducial_rmax']):
+            if(self._z >= self._fin_attrs['fiducial_zmin'] and self._z <= self._fin_attrs['fiducial_zmax']):
+                return True
+        return False
 
     def _increase_signal(self, channel_id, factor):
         """
@@ -541,6 +562,7 @@ class simulation():
         self._zenith_nu = self._fin['zeniths'][self._iE]
         self._azimuth_nu = self._fin['azimuths'][self._iE]
         self._inelasticity = self._fin['inelasticity'][self._iE]
+        self._n_interaction = self._fin['n_interaction'][self._iE]
 
     def _create_sim_station(self):
         """
@@ -569,14 +591,14 @@ class simulation():
 
     def _write_ouput_file(self):
         fout = h5py.File(self._outputfilename, 'w')
-        
+
         triggered = np.ones(len(self._mout['triggered']), dtype=np.bool)
         if (self._cfg['save_all'] == False):
             logger.info("saving only triggered events")
             triggered = self._mout['triggered']
         else:
             logger.info("saving all events")
-            
+
         # save data sets
         for (key, value) in iteritems(self._mout):
             fout[key] = value[triggered]
@@ -650,7 +672,7 @@ class simulation():
         ----------
         inelasticity: float
             the inelasticity (fraction of energy that goes into had. cascade)
-        inttype: string ['nc', 'cc', 'tau_had', 'tau_em']
+        inttype: string ['nc', 'cc', 'tau_had', 'tau_e']
             neutral current (nc) or carged currend (cc) interaction
         flavor: int
             flavor id
@@ -681,10 +703,10 @@ class simulation():
             fem = 1
             fhad = 0
         elif(np.abs(flavor) == 15):
-            if (inttype == 'tau_em'):
-                fem = 1
+            if (inttype == 'tau_e'):
+                fem = inelasticity
             elif (inttype == 'tau_had'):
-                fhad = 1
+                fhad = inelasticity
         else:
             raise AttributeError("interaction type {} with flavor {} is not implemented".format(inttype, flavor))
         return fem, fhad

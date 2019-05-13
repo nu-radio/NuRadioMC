@@ -1,19 +1,17 @@
 import numpy as np
 import matplotlib
 from matplotlib import pyplot as plt
-from NuRadioReco.detector import detector
 import h5py
 import glob
-from NuRadioReco.utilities import units
-from radiotools import plthelpers as php
 from scipy import interpolate
 import json
-from matplotlib import pyplot as plt
 import os
+
+from NuRadioReco.utilities import units
+from NuRadioReco.detector import detector
 from NuRadioMC.utilities import fluxes
 from NuRadioMC.utilities.Veff import get_Veff
-from NuRadioMC.examples.Sensitivities import E2_fluxes2 as limits
-
+from NuRadioMC.examples.Sensitivities import E2_fluxes3 as limits
 
 
 
@@ -35,18 +33,17 @@ if __name__ == "__main__":
     ax.semilogy(True)
     ax.set_xlabel("neutrino energy [eV]")
     ax.set_ylabel("effective volume [km$^3$ sr]")
-#     ax.legend()
-#     fig.savefig("plots/ARIA_Alv_ARZ.png")
     fig.tight_layout()
-    fig.savefig("Veff.png")
+    fig.savefig("Veff.pdf")
 
 
 
     # plot expected limit
-    fig, ax = limits.get_E2_limit_figure(show_grand_10k=True, show_grand_200k=False)
+    fig, ax = limits.get_E2_limit_figure(diffuse=True,show_grand_10k=True, show_grand_200k=False)
     labels = []
-    labels = limits.add_limit(ax, labels, energies, Veff['all_triggers'],
-                              100, 'NuRadioMC example', fmt='-', livetime=3*units.year, color="blue")
+    labels = limits.add_limit(ax, labels, energies, Veff['all_triggers'].T,
+                              100, 'NuRadioMC example', livetime=3*units.year, linestyle='-',color='blue',linewidth=3)
+
     plt.legend(handles=labels, loc=2)
-    fig.savefig("limits.png")
+    fig.savefig("limits.pdf")
     plt.show()
