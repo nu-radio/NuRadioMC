@@ -36,23 +36,24 @@ class mySimulation(simulation.simulation):
             self._increase_signal(None, 0)
 
         calculateAmplitudePerRaySolution.run(self._evt, self._station, self._det)
+        n_antennas = self._det.get_number_of_channels(self._station.get_id())
         # save the amplitudes to output hdf5 file
         # save amplitudes per ray tracing solution to hdf5 data output
         if('max_amp_ray_solution' not in self._mout):
-            self._mout['max_amp_ray_solution'] = np.zeros((self._n_events, self._n_antennas, 2)) * np.nan
-        ch_counter = np.zeros(self._n_antennas, dtype=np.int)
+            self._mout['max_amp_ray_solution'] = np.zeros((self._n_events, n_antennas, 2)) * np.nan
+        ch_counter = np.zeros(n_antennas, dtype=np.int)
         for efield in self._station.get_sim_station().get_electric_fields():
             for channel_id, maximum in iteritems(efield[efp.max_amp_antenna]):
                 self._mout['max_amp_ray_solution'][self._iE, channel_id, ch_counter[channel_id]] = maximum
-                ch_counter[channel_id] += 1 
-        
+                ch_counter[channel_id] += 1
+
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
-        
+
         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
-        # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added) 
+        # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
-        
+
         if bool(self._cfg['noise']):
             Vrms = self._Vrms / (self._bandwidth /( 2.5 * units.GHz))** 0.5  # normalize noise level to the bandwidth its generated for
             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
@@ -68,7 +69,7 @@ class mySimulation(simulation.simulation):
                              triggered_channels=None,
                              number_concidences=1,
                              trigger_name='pre_trigger_2sigma')
-        
+
         # downsample trace back to detector sampling rate
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
 
@@ -89,7 +90,6 @@ args = parser.parse_args()
 sim = mySimulation(eventlist=args.inputfilename,
                             outputfilename=args.outputfilename,
                             detectorfile=args.detectordescription,
-                            station_id=101,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
                             config_file=args.config)
 sim.run()
