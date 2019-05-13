@@ -615,12 +615,14 @@ class simulation():
 
         with open(self._detectorfile) as fdet:
             fout.attrs['detector'] = fdet.read()
+            
         # save antenna position separately to hdf5 output
-        n_channels = self._det.get_number_of_channels(self._station_id)
-        positions = np.zeros((n_channels, 3))
-        for channel_id in range(n_channels):
-            positions[channel_id] = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
-        fout.attrs['antenna_positions'] = positions
+        for station_id in self._mout_groups:
+            n_channels = self._det.get_number_of_channels(station_id)
+            positions = np.zeros((n_channels, 3))
+            for channel_id in range(n_channels):
+                positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
+            fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
 
         fout.attrs['Tnoise'] = self._Tnoise
         fout.attrs['Vrms'] = self._Vrms
