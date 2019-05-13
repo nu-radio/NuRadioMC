@@ -1,4 +1,0 @@
-<map id="ftau" name="ftau">
-<area shape="rect" id="node2" href="$RayTraceRK4_8C.html#aae00660ff3fdd0b0d57389488f592539" title="Takes in value of frequency in Ghz and depth z and returns you the value of attenuation length..." alt="" coords="97,5,156,32"/>
-<area shape="rect" id="node3" href="$RayTraceRK4_8C.html#a7e8e798a5436285f3630ccce025dfb0e" title="Takes in value of depth z and returns the value of temperature. This is used in the RK4 calculations..." alt="" coords="204,5,295,32"/>
-</map>

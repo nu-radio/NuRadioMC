@@ -489,26 +489,11 @@ def get_E2_limit_figure(diffuse = True,
     plt.tight_layout()
     return fig, ax
 
-def add_limit(ax, limit_labels, E, Veff, n_stations, label, livetime=3*units.year, linestyle='-',color='r',linewidth=3):
+def add_limit(ax, limit_labels, E, Veff, n_stations, label, livetime=3*units.year, linestyle='-',color='r',linewidth=3,band=False):
     E = np.array(E)
     Veff = np.array(Veff)
 
-    if Veff.shape[0] != 2:
-
-        limit = fluxes.get_limit_e2_flux(energy = E,
-                                         veff = Veff,
-                                         livetime = livetime,
-                                         signalEff = n_stations,
-                                         energyBinsPerDecade=energyBinsPerDecade,
-                                         upperLimOnEvents=2.44,
-                                         nuCrsScn='ctw')
-
-        _plt, = ax.plot(E/plotUnitsEnergy,limit/ plotUnitsFlux, linestyle=linestyle, color=color,
-                        label="{2}: {0} stations, {1} years".format(n_stations,int(livetime/units.year),label),
-                        linewidth=linewidth)
-        limit_labels.append(_plt)
-    else:
-        print Veff[0]
+    if band:
 
         limit_lower = fluxes.get_limit_e2_flux(energy = E,
                                          veff = Veff[0],
@@ -527,6 +512,27 @@ def add_limit(ax, limit_labels, E, Veff, n_stations, label, livetime=3*units.yea
 
         plt1 = ax.fill_between(E/plotUnitsEnergy,limit_upper/ plotUnitsFlux,
         limit_lower/plotUnitsFlux,color=color,alpha=0.2)
+
+    else:
+
+        limit = fluxes.get_limit_e2_flux(energy = E,
+                                         veff = Veff,
+                                         livetime = livetime,
+                                         signalEff = n_stations,
+                                         energyBinsPerDecade=energyBinsPerDecade,
+                                         upperLimOnEvents=2.44,
+                                         nuCrsScn='ctw')
+
+        print(E/plotUnitsEnergy,limit/ plotUnitsFlux)
+
+    #         _plt, = ax.plot(E/plotUnitsEnergy,limit/ plotUnitsFlux, linestyle=linestyle, color=color,
+    #                         label="{2}: {0} stations, {1} years".format(n_stations,int(livetime/units.year),label),
+    #                         linewidth=linewidth)
+        _plt, = ax.plot(E/plotUnitsEnergy,limit/ plotUnitsFlux, linestyle=linestyle, color=color,
+                        label="{1}: {0} years".format(int(livetime/units.year),label),
+                        linewidth=linewidth)
+
+        limit_labels.append(_plt)
 
 
     return limit_labels

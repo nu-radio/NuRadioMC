@@ -31,7 +31,7 @@ def get_triggered(fin):
     if (len(triggered) == 0):
         return triggered
 
-    second_bang_indexes = np.argwhere(np.array(fin['n_interaction']) > 2)
+    second_bang_indexes = np.argwhere(np.array(fin['n_interaction']) >= 2)
     if(second_bang_indexes.shape[0] > 1):
         second_bang_indexes = np.squeeze(second_bang_indexes)
     elif(second_bang_indexes.shape[0] == 1):
@@ -40,9 +40,17 @@ def get_triggered(fin):
         return triggered
 
     for second_bang_index in second_bang_indexes:
+        # Second interactions
         if (fin['event_ids'][second_bang_index-1] == fin['event_ids'][second_bang_index]
             and fin['triggered'][second_bang_index-1] == True
             and fin['triggered'][second_bang_index] == True):
+
+            triggered[second_bang_index] = False
+
+        # Third interactions
+        elif (fin['event_ids'][second_bang_index-2] == fin['event_ids'][second_bang_index]
+              and fin['triggered'][second_bang_index-2] == True
+              and fin['triggered'][second_bang_index] == True):
 
             triggered[second_bang_index] = False
 
@@ -112,6 +120,7 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
                 trigger_names_dict[trigger_name] = iT
             break
 
+    trigger_combinations['all_triggers'] = {'triggers': trigger_names}
     print("Trigger names:", trigger_names)
 
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
@@ -145,14 +154,24 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
         density_water = 997 * units.kg / units.m ** 3
         rmin = fin.attrs['rmin']
         rmax = fin.attrs['rmax']
-        thetamin = fin.attrs['thetamin']
-        thetamax = fin.attrs['thetamax']
+        thetamin = 0 
+        thetamax = np.pi
+        phimin = 0
+        phimax = 2 * np.pi
+        if('thetamin' in fin.attrs):
+            thetamin = fin.attrs['thetamin']
+        if('thetamax' in fin.attrs):
+            thetamax = fin.attrs['thetamax']
+        if('phimin' in fin.attrs):
+            fin.attrs['phimin']
+        if('phimax' in fin.attrs):
+            fin.attrs['phimax']
         dZ = fin.attrs['zmax'] - fin.attrs['zmin']
         V = np.pi * (rmax**2 - rmin**2) * dZ
         Vrms = fin.attrs['Vrms']
 
         # Solid angle needed for the effective volume calculations
-        omega = np.abs(fin.attrs['phimax'] - fin.attrs['phimin']) * np.abs( np.cos(thetamin)-np.cos(thetamax) )
+        omega = np.abs(phimax - phimin) * np.abs( np.cos(thetamin)-np.cos(thetamax) )
 
         for iT, trigger_name in enumerate(trigger_names):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
