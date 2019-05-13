@@ -145,6 +145,7 @@ class readARIANNAData:
                     self.config_tree.GetEntry(self._config_keys[(self._station_id, run_number, seq_number)])
                 except:
                     logger.error("no config entry exists for station {}, run {} and sequence {}. Skipping event...".format(self._station_id, run_number, seq_number))
+                    continue
                 # check if config and event sequence are the same
                 seq_num_config = self.config_tree.ConfigMetadata.GetSeqNum()
                 if(seq_number != seq_num_config):
