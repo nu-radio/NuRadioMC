@@ -24,7 +24,7 @@ weights = np.array(fin['weights'])
 n_events = fin.attrs['n_events']
 Vrms = fin.attrs['Vrms']
 
-depths = np.array(fin.attrs['antenna_positions'])[:, 2]
+depths = np.array(fin['station_101'].attrs['antenna_positions'])[:, 2]
 print("simulated depths ", depths)
 
 eff1 = np.zeros_like(depths)
@@ -32,10 +32,10 @@ eff2 = np.zeros_like(depths)
 eff3 = np.zeros_like(depths)
 
 for iD, depth in enumerate(depths):
-    As = np.array(fin['max_amp_ray_solution'][:,iD])
+    As = np.array(fin['station_101']['max_amp_ray_solution'][:,iD])
     mask = np.isnan(As[:, 0]) | np.isnan(As[:, 1])
     As = As[~mask]
-    Ts = np.array(fin['travel_times'][:, iD])[~mask]
+    Ts = np.array(fin['station_101']['travel_times'][:, iD])[~mask]
     dTs = np.abs(Ts[:, 1] - Ts[:, 0])
     C3 = (As[:, 0] >= 3 * Vrms) | (As[:, 1] >= 3 * Vrms)
     
@@ -60,5 +60,5 @@ ax.set_ylabel("efficiency")
 ax.set_title("neutrino energy {:.2g}eV".format(np.array(fin['energies']).mean()))
 ax.legend(fontsize='x-small', numpoints=1)
 fig.tight_layout()
-fig.savefig("{}.png".format(os.path.basename(args.inputfilename)))
+# fig.savefig("{}.png".format(os.path.basename(args.inputfilename)))
 plt.show()
