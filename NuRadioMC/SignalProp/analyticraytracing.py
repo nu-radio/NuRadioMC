@@ -714,8 +714,8 @@ class ray_tracing_2D():
             # R.L. March 15, 2019: This initial condition does not find a solution for e.g.:
             # emitter  at [-400.0*units.m,-732.0*units.m], receiver at [0., -2.0*units.m]
 
-            # take surface skimming ray as start value
             if(self.__use_optimized_start_values):
+                # take surface skimming ray as start value
                 C_0_start, th_start = self.get_surf_skim_angle(x1)
                 logC_0_start = np.log(C_0_start - 1. / self.medium.n_ice)
                 self.__logger.debug(
