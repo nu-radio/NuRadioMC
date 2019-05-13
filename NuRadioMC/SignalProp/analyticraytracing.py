@@ -38,7 +38,26 @@ class ray_tracing_2D():
 
     def __init__(self, medium, attenuation_model="SP1",
                  log_level=logging.WARNING,
-                 n_frequencies_integration=6):
+                 n_frequencies_integration=25,
+                 use_optimized_start_values=False):
+        """
+        initialize 2D analytic ray tracing class
+        
+        Parameters
+        ----------
+        medium: NuRadioMC.utilities.medium class
+            details of the medium
+        attenuation_model: string
+            specifies which attenuation model to use (default 'SP1')
+        log_level: logging.loglevel object
+            controls verbosity (default WARNING)
+        n_frequencies_integration: int
+            specifies for how many frequencies the signal attenuation is being calculated
+        use_optimized_start_value: bool
+            if True, the initial C_0 paramter (launch angle) is set to the ray that skims the surface
+            (default: False)
+        
+        """
         self.medium = medium
         self.attenuation_model = attenuation_model
         if(not self.attenuation_model in attenuation.model_to_int):
@@ -48,6 +67,7 @@ class ray_tracing_2D():
         self.__logger = logging.getLogger('ray_tracing_2D')
         self.__logger.setLevel(log_level)
         self.__n_frequencies_integration = n_frequencies_integration
+        self.__use_optimized_start_values = use_optimized_start_values
 
     def n(self, z):
         """
@@ -695,12 +715,14 @@ class ray_tracing_2D():
             # emitter  at [-400.0*units.m,-732.0*units.m], receiver at [0., -2.0*units.m]
 
             # take surface skimming ray as start value
-            C_0_start, th_start = self.get_surf_skim_angle(x1)
+            if(self.__use_optimized_start_values):
+                C_0_start, th_start = self.get_surf_skim_angle(x1)
+                logC_0_start = np.log(C_0_start - 1. / self.medium.n_ice)
+                self.__logger.debug(
+                    'starting optimization with x0 = {:.2f} -> C0 = {:.3f}'.format(logC_0_start, C_0_start))
+            else:
+                logC_0_start = -1
 
-            logC_0_start = np.log(C_0_start - 1. / self.medium.n_ice)
-
-            self.__logger.debug(
-                'starting optimization with x0 = {:.2f} -> C0 = {:.3f}'.format(logC_0_start, C_0_start))
             result = optimize.root(self.obj_delta_y_square, x0=logC_0_start, args=(x1, x2), tol=tol)
 
             if(plot):
