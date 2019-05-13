@@ -168,9 +168,22 @@ class simulation():
 
             # read all quantities from hdf5 file and store them in local variables
             self._read_input_neutrino_properties()
+            
+            # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
+            # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
+            if not self._is_in_fiducial_volume():
+                continue
 
             # calculate weight
-            self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, mode=self._cfg['weights']['weight_mode'])
+            # if we have a second interaction, the weight needs to be calculated from the initial neutrino
+            if(self._n_interaction > 1):
+                iE_mother = np.argwhere(self._fin['event_ids'] == self._iE).min()  # get index of mother neutrino
+                self._mout['weights'][self._iE] = get_weight(self._fin['zenith'][iE_mother],
+                                                             self._fin['energy'][iE_mother],
+                                                             self._fin['flavor'][iE_mother],
+                                                             mode=self._cfg['weights']['weight_mode'])
+            else:
+                self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, mode=self._cfg['weights']['weight_mode'])
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if(self._mout['weights'][self._iE] < self._cfg['speedup']['minimum_weight_cut']):
@@ -396,6 +409,13 @@ class simulation():
         print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) + 
               "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
 
+    def _is_in_fiducial_volume(self):
+        r = (self._x**2 + self._y**2)**0.5
+        if(r >= self._fin_attrs['fiducial_rmin'] and r <= self._fin_attrs['fiducial_rmax']):
+            if(self._z >= self._fin_attrs['fiducial_zmin'] and self._z <= self._fin_attrs['fiducial_zmax']):
+                return True
+        return False
+
     def _increase_signal(self, channel_id, factor):
         """
         increase the signal of a simulated station by a factor of x
@@ -534,6 +554,7 @@ class simulation():
         self._zenith_nu = self._fin['zeniths'][self._iE]
         self._azimuth_nu = self._fin['azimuths'][self._iE]
         self._inelasticity = self._fin['inelasticity'][self._iE]
+        self._n_interaction = self._fin['n_interaction'][self._iE]
 
     def _create_sim_station(self):
         """
@@ -643,7 +664,7 @@ class simulation():
         ----------
         inelasticity: float
             the inelasticity (fraction of energy that goes into had. cascade)
-        inttype: string ['nc', 'cc', 'tau_had', 'tau_em']
+        inttype: string ['nc', 'cc', 'tau_had', 'tau_e']
             neutral current (nc) or carged currend (cc) interaction
         flavor: int
             flavor id
@@ -674,10 +695,10 @@ class simulation():
             fem = 1
             fhad = 0
         elif(np.abs(flavor) == 15):
-            if (inttype == 'tau_em'):
-                fem = 1
+            if (inttype == 'tau_e'):
+                fem = inelasticity
             elif (inttype == 'tau_had'):
-                fhad = 1
+                fhad = inelasticity
         else:
             raise AttributeError("interaction type {} with flavor {} is not implemented".format(inttype, flavor))
         return fem, fhad
