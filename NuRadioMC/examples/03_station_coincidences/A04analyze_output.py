@@ -26,7 +26,7 @@ for iF, filename in enumerate(sorted(glob.glob(os.path.join(sys.argv[1], "*.hdf5
         fout.write(fin.attrs['detector'])
         fout.close()
     det = detector.Detector(json_filename="det.json")
-    max_amps_env = np.array(fin['maximum_amplitudes_envelope'])
+    max_amps_env = np.array(fin['station_101']['maximum_amplitudes_envelope'])
     weights = fin['weights']
     
 
