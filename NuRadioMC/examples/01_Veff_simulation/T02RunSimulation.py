@@ -2,8 +2,8 @@ from __future__ import absolute_import, division, print_function
 import argparse
 # import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverter
-import NuRadioReco.modules.ARIANNA.triggerSimulator2
-import NuRadioReco.modules.triggerSimulator
+import NuRadioReco.modules.trigger.highLowThreshold
+import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
@@ -16,8 +16,8 @@ logger = logging.getLogger("runstrawman")
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin()
-triggerSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
-triggerSimulatorARIANNA = NuRadioReco.modules.ARIANNA.triggerSimulator2.triggerSimulator()
+simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
+highLowThreshold = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
@@ -46,14 +46,14 @@ class mySimulation(simulation.simulation):
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 500 * units.MHz],
                                   filter_type='butter', order=10)
         # first run a simple threshold trigger
-        triggerSimulator.run(self._evt, self._station, self._det,
+        simpleThreshold.run(self._evt, self._station, self._det,
                              threshold=3 * self._Vrms,
                              triggered_channels=None,  # run trigger on all channels
                              number_concidences=1,
                              trigger_name='simple_threshold')  # the name of the trigger
         
         # run a high/low trigger on the 4 downward pointing LPDAs
-        triggerSimulatorARIANNA.run(self._evt, self._station, self._det,
+        highLowThreshold.run(self._evt, self._station, self._det,
                                     threshold_high=4 * self._Vrms,
                                     threshold_low=-4 * self._Vrms,
                                     triggered_channels=[0, 1, 2, 3],  # select the LPDA channels
@@ -63,7 +63,7 @@ class mySimulation(simulation.simulation):
                                     set_not_triggered=(not self._station.has_triggered("simple_threshold"))) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
         
         # run a high/low trigger on the 4 surface dipoles 
-        triggerSimulatorARIANNA.run(self._evt, self._station, self._det,
+        highLowThreshold.run(self._evt, self._station, self._det,
                                     threshold_high=3 * self._Vrms,
                                     threshold_low=-3 * self._Vrms,
                                     triggered_channels=[4, 5, 6, 7], # select the bicone channels
@@ -92,7 +92,6 @@ args = parser.parse_args()
 sim = mySimulation(eventlist=args.inputfilename,
                             outputfilename=args.outputfilename,
                             detectorfile=args.detectordescription,
-                            station_id=101,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
                             config_file=args.config)
 sim.run()
