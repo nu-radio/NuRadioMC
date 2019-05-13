@@ -6,7 +6,7 @@ speedup:
 propagation:
   ice_model: southpole_2015
 signal:
-  model: Alvarez2000
+  model: Alvarez2009
 trigger:
   noise_temperature: 300  # in Kelvin
   bandwidth: 0.42  # effective bandwidth in GHz 

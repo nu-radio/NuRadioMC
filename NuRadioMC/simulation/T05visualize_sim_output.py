@@ -5,6 +5,7 @@ from radiotools import plthelpers as php
 from matplotlib import pyplot as plt
 from NuRadioMC.utilities import units
 from NuRadioMC.utilities import medium
+from six import iteritems
 import h5py
 import argparse
 import json
@@ -56,7 +57,9 @@ else:
 weights = np.array(fin['weights'])[triggered]
 n_events = fin.attrs['n_events']
 
-# calculate effective
+###########################
+# calculate effective volume
+###########################
 density_ice = 0.9167 * units.g / units.cm ** 3
 density_water = 997 * units.kg / units.m ** 3
 
@@ -75,9 +78,12 @@ elif('rmin' in fin.attrs):
     dZ = fin.attrs['zmax'] - fin.attrs['zmin']
     V = np.pi * (rmax**2 - rmin**2) * dZ
 Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights) / n_events
-
 print("Veff = {:.6g} km^3 sr".format(Veff / units.km ** 3))
 
+
+###########################
+# plot neutrino direction
+###########################
 fig, ax = php.get_histogram(np.array(fin['zeniths'])[triggered] / units.deg, weights=weights,
                             ylabel='weighted entries', xlabel='zenith angle [deg]',
                             bins=np.arange(0, 181, 5), figsize=(6, 6))
@@ -86,7 +92,9 @@ ax.set_title(trigger_name)
 fig.tight_layout()
 fig.savefig(os.path.join(plot_folder, 'neutrino_direction.png'))
 
+###########################
 # calculate sky coverage of 90% quantile
+###########################
 from radiotools import stats
 q2 =stats.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.95)
 q1 =stats.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.05)
@@ -96,13 +104,14 @@ def a(theta):
 b = integrate.quad(a, q1, q2)
 print("90% quantile sky coverage {:.2f} sr".format(b[0] * 2 * np.pi))
 
+###########################
 # plot vertex distribution
+###########################
 fig, ax = plt.subplots(1, 1)
 xx = np.array(fin['xx'])[triggered]
 yy = np.array(fin['yy'])[triggered]
 rr = (xx ** 2 + yy ** 2) ** 0.5
 zz = np.array(fin['zz'])[triggered]
-
 mask_weight = weights > 1e-2
 max_r = max(np.abs(xx[mask_weight]).max(), np.abs(yy[mask_weight]).max())
 max_z = np.abs(zz[mask_weight]).max()
@@ -118,124 +127,159 @@ ax.set_ylim(fin.attrs['zmin'], 0)
 ax.set_title(trigger_name)
 fig.tight_layout()
 fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'))
-# plot incoming direction
-receive_vectors = np.array(fin['receive_vectors'])[triggered]
-# for all events, antennas and ray tracing solutions
-zeniths, azimuths = hp.cartesian_to_spherical(receive_vectors[:, :, :, 0].flatten(),
-                                              receive_vectors[:, :, :, 1].flatten(),
-                                              receive_vectors[:, :, :, 2].flatten())
-for i in range(len(azimuths)):
-    azimuths[i] = hp.get_normalized_angle(azimuths[i])
-weights_matrix = np.outer(weights, np.ones(np.prod(receive_vectors.shape[1:-1]))).flatten()
-mask = ~np.isnan(azimuths)  # exclude antennas with not ray tracing solution (or with just one ray tracing solution)
-fig, axs = php.get_histograms([zeniths[mask] / units.deg, azimuths[mask] / units.deg],
-                              bins=[np.arange(0, 181, 5), np.arange(0, 361, 45)],
-                              xlabels=['zenith [deg]', 'azimuth [deg]'],
-                              weights=weights_matrix[mask], stats=False)
-# axs[0].xaxis.set_ticks(np.arange(0, 181, 45))
-majorLocator = MultipleLocator(45)
-majorFormatter = FormatStrFormatter('%d')
-minorLocator = MultipleLocator(5)
-axs[0].xaxis.set_major_locator(majorLocator)
-axs[0].xaxis.set_major_formatter(majorFormatter)
-# for the minor ticks, use no labels; default NullFormatter
-axs[0].xaxis.set_minor_locator(minorLocator)
-
-fig.suptitle('incoming signal direction')
-fig.savefig(os.path.join(plot_folder, 'incoming_signal.png'))
-
-# plot polarization
-polarization = np.array(fin['polarization'])[triggered].flatten()
-polarization = np.abs(polarization)
-polarization[polarization > 90 * units.deg] = 180 * units.deg - polarization[polarization > 90 * units.deg]
-bins = np.linspace(0, 90, 50)
-
-# for all events, antennas and ray tracing solutions
-# mask = zeniths > 90 * units.deg  # select rays coming from below
-# fig, ax = php.get_histogram(polarization / units.deg,
-#                             bins=bins,
-#                             xlabel='polarization [deg]',
-#                             weights=weights_matrix, stats=False,
-#                             figsize=(6, 6))
-# maxy = ax.get_ylim()
-# php.get_histogram(polarization[mask] / units.deg,
-#                   bins=bins,
-#                   xlabel='polarization [deg]',
-#                   weights=weights_matrix[mask], stats=False,
-#                   ax=ax, kwargs={'facecolor': 'C0', 'alpha': 1, 'edgecolor': "k"})
-# # ax.set_xticks(bins)
-# ax.set_ylim(maxy)
-# fig.tight_layout()
-# fig.savefig(os.path.join(plot_folder, 'polarization.png'))
 
 
-# fig, ax = php.get_histogram(polarization / units.deg,
-#                             bins=bins,
-#                             xlabel='polarization [deg]',
-#                             weights=weights_matrix, stats=False,
-#                             figsize=(6, 6))
-# maxy = ax.get_ylim()
-# php.get_histogram(polarization[mask] / units.deg,
-#                   bins=bins,
-#                   xlabel='polarization [deg]',
-#                   stats=False,
-#                   ax=ax, kwargs={'facecolor': 'C0', 'alpha': 1, 'edgecolor': "k"})
-# # ax.set_xticks(bins)
-# ax.set_ylim(max(ax.get_ylim(), maxy))
-# fig.tight_layout()
-# fig.savefig(os.path.join(plot_folder, 'polarization_unweighted.png'))
+###########################
+# loop over all stations and produce station specific plots
+###########################
 
+for key, station in iteritems(fin):
+    if isinstance(station, h5py._hl.group.Group):
+        ###########################
+        # recalculate triggers per station
+        ###########################
+        
+        if(args.trigger_name is None):
+            triggered = np.array(station['triggered'])
+            print("you selected any trigger")
+            trigger_name = 'all'
+        else:
+            if(len(args.trigger_name) > 1):
+                print("trigger {} selected which is a combination of {}".format(args.trigger_name[0], args.trigger_name[1:]))
+                trigger_name = args.trigger_name[0]
+                triggered = np.zeros(len(station['multiple_triggers'][:, 0]), dtype=np.bool)
+                for trigger in args.trigger_name[1:]:
+                    iTrigger = np.squeeze(np.argwhere(fin.attrs['trigger_names'] == trigger))
+                    triggered = triggered | np.array(station['multiple_triggers'][:, iTrigger], dtype=np.bool)
+            else:
+                trigger_name = args.trigger_name[0]
+                iTrigger = np.argwhere(fin.attrs['trigger_names'] == trigger_name)
+                triggered = np.array(station['multiple_triggers'][:, iTrigger], dtype=np.bool)
+                print("\tyou selected '{}'".format(trigger_name))
+            
+        
+        ###########################
+        # plot incoming direction
+        ###########################
+        receive_vectors = np.array(station['receive_vectors'])[triggered]
+        # for all events, antennas and ray tracing solutions
+        zeniths, azimuths = hp.cartesian_to_spherical(receive_vectors[:, :, :, 0].flatten(),
+                                                      receive_vectors[:, :, :, 1].flatten(),
+                                                      receive_vectors[:, :, :, 2].flatten())
+        for i in range(len(azimuths)):
+            azimuths[i] = hp.get_normalized_angle(azimuths[i])
+        weights_matrix = np.outer(weights, np.ones(np.prod(receive_vectors.shape[1:-1]))).flatten()
+        mask = ~np.isnan(azimuths)  # exclude antennas with not ray tracing solution (or with just one ray tracing solution)
+        fig, axs = php.get_histograms([zeniths[mask] / units.deg, azimuths[mask] / units.deg],
+                                      bins=[np.arange(0, 181, 5), np.arange(0, 361, 45)],
+                                      xlabels=['zenith [deg]', 'azimuth [deg]'],
+                                      weights=weights_matrix[mask], stats=False)
+        # axs[0].xaxis.set_ticks(np.arange(0, 181, 45))
+        majorLocator = MultipleLocator(45)
+        majorFormatter = FormatStrFormatter('%d')
+        minorLocator = MultipleLocator(5)
+        axs[0].xaxis.set_major_locator(majorLocator)
+        axs[0].xaxis.set_major_formatter(majorFormatter)
+        axs[0].xaxis.set_minor_locator(minorLocator)
+        
+        fig.suptitle('incoming signal direction')
+        fig.savefig(os.path.join(plot_folder, '{}_incoming_signal.png'.format(key)))
+        
+        ###########################
+        # plot polarization
+        ###########################
+        p = np.array(station['polarization'])[triggered]
+        p_H = (p[:,:,:,0]**2 + p[:,:,:,1]**2)**0.5
+        p_V = np.abs(p[:,:,:,2])
+        weights_matrix = np.outer(weights, np.ones(np.prod(p_V.shape[1:]))).flatten()
+        p_ratio = (p_V/p_H).flatten()
+        bins = np.linspace(0, 1, 50)
+        
+#         for all events, antennas and ray tracing solutions
+        mask = zeniths > 90 * units.deg  # select rays coming from below
+        fig, ax = php.get_histogram(p_ratio,
+                                    bins=bins,
+                                    xlabel='vertical/horizonal polarization ratio',
+                                    weights=weights_matrix, stats=False,
+                                    kwargs={'facecolor':'0.7', 'alpha':1, 'edgecolor':"k", 'label': 'all'},
+                                    figsize=(6, 6))
+        maxy = ax.get_ylim()
+        php.get_histogram(p_ratio[mask],
+                          bins=bins,
+                          weights=weights_matrix[mask], stats=False,
+                          xlabel='vertical/horizonal polarization ratio',
+                          ax=ax, kwargs={'facecolor': 'C0', 'alpha': 1, 'edgecolor': "k", 'label': 'direct rays'})
+        # ax.set_xticks(bins)
+        ax.legend()
+        ax.set_ylim(maxy)
+        fig.tight_layout()
+        fig.savefig(os.path.join(plot_folder, '{}_polarization.png'.format(key)))
+       
+        mask = zeniths > 90 * units.deg  # select rays coming from below
+        fig, ax = php.get_histogram(p_ratio,
+                                    bins=bins,
+                                    stats=False,
+                                    xlabel='vertical/horizonal polarization ratio',
+                                    kwargs={'facecolor':'0.7', 'alpha':1, 'edgecolor':"k", 'label': 'all'},
+                                    figsize=(6, 6))
+        maxy = ax.get_ylim()
+        php.get_histogram(p_ratio[mask],
+                          bins=bins,
+                          xlabel='vertical/horizonal polarization ratio',
+                          stats=False,
+                          ax=ax, kwargs={'facecolor': 'C0', 'alpha': 1, 'edgecolor': "k", 'label': 'direct rays'})
+        # ax.set_xticks(bins)
+        ax.legend()
+        ax.set_ylim(maxy)
+        fig.tight_layout()
+        fig.savefig(os.path.join(plot_folder, '{}_polarization_unweighted.png'.format(key)))
 
+        ###########################
+        # plot viewing angle
+        ###########################
+        shower_axis = -1 * hp.spherical_to_cartesian(np.array(fin['zeniths'])[triggered], np.array(fin['azimuths'])[triggered])
+        launch_vectors = np.array(station['launch_vectors'])[triggered]
+        viewing_angles = np.array([hp.get_angle(x, y) for x, y in zip(shower_axis, launch_vectors[:, 0, 0])])
+        
+        # calculate correct chereknov angle for ice density at vertex position
+        ice = medium.southpole_simple()
+        n_indexs = np.array([ice.get_index_of_refraction(x) for x in np.array([np.array(fin['xx'])[triggered], np.array(fin['yy'])[triggered], np.array(fin['zz'])[triggered]]).T])
+        rho = np.arccos(1. / n_indexs)
+        
+        mask = ~np.isnan(viewing_angles)
+        fig, ax = php.get_histogram((viewing_angles[mask] - rho[mask]) / units.deg, weights=weights[mask],
+                                    bins=np.arange(-30, 30, 1), xlabel='viewing - cherenkov angle [deg]', figsize=(6, 6))
+        fig.savefig(os.path.join(plot_folder, '{}_dCherenkov.png'.format(key)))
+        
+        ###########################
+        # plot flavor ratios
+        ###########################
+        flavor_labels = ['e cc', r'$\bar{e}$ cc', 'e nc', r'$\bar{e}$ nc',
+                   '$\mu$ cc', r'$\bar{\mu}$ cc', '$\mu$ nc', r'$\bar{\mu}$ nc',
+                   r'$\tau$ cc', r'$\bar{\tau}$ cc', r'$\tau$ nc', r'$\bar{\tau}$ nc']
+        yy = np.zeros(len(flavor_labels))
+        yy[0] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == 'cc')])
+        yy[1] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == 'cc')])
+        yy[2] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == 'nc')])
+        yy[3] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == 'nc')])
+        
+        yy[4] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == 'cc')])
+        yy[5] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == 'cc')])
+        yy[6] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == 'nc')])
+        yy[7] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == 'nc')])
+        
+        yy[8] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == 'cc')])
+        yy[9] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == 'cc')])
+        yy[10] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == 'nc')])
+        yy[11] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == 'nc')])
+        
+        fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+        ax.bar(range(len(flavor_labels)), yy)
+        ax.set_xticks(range(len(flavor_labels)))
+        ax.set_xticklabels(flavor_labels, fontsize='large', rotation=45)
+        ax.set_title("trigger: {}".format(trigger_name))
+        ax.set_ylabel('weighted number of triggers', fontsize='large')
+        fig.tight_layout()
+        fig.savefig(os.path.join(plot_folder, '{}_flavor.png'.format(key)))
+        plt.show()
 
-shower_axis = -1 * hp.spherical_to_cartesian(np.array(fin['zeniths'])[triggered], np.array(fin['azimuths'])[triggered])
-launch_vectors = np.array(fin['launch_vectors'])[triggered]
-viewing_angles = np.array([hp.get_angle(x, y) for x, y in zip(shower_axis, launch_vectors[:, 0, 0])])
-
-# calculate correct chereknov angle for ice density at vertex position
-ice = medium.southpole_simple()
-n_indexs = np.array([ice.get_index_of_refraction(x) for x in np.array([np.array(fin['xx'])[triggered], np.array(fin['yy'])[triggered], np.array(fin['zz'])[triggered]]).T])
-rho = np.arccos(1. / n_indexs)
-
-mask = ~np.isnan(viewing_angles)
-fig, ax = php.get_histogram((viewing_angles[mask] - rho[mask]) / units.deg, weights=weights[mask],
-                            bins=np.arange(-30, 30, 1), xlabel='viewing - cherenkov angle [deg]', figsize=(6, 6))
-fig.savefig(os.path.join(plot_folder, 'dCherenkov.png'))
-
-# SNR
-flavor_labels = ['e cc', r'$\bar{e}$ cc', 'e nc', r'$\bar{e}$ nc',
-           '$\mu$ cc', r'$\bar{\mu}$ cc', '$\mu$ nc', r'$\bar{\mu}$ nc',
-           r'$\tau$ cc', r'$\bar{\tau}$ cc', r'$\tau$ nc', r'$\bar{\tau}$ nc']
-yy = np.zeros(len(flavor_labels))
-yy[0] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == 'cc')])
-yy[1] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == 'cc')])
-yy[2] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == 'nc')])
-yy[3] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == 'nc')])
-
-yy[4] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == 'cc')])
-yy[5] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == 'cc')])
-yy[6] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == 'nc')])
-yy[7] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == 'nc')])
-
-yy[8] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == 'cc')])
-yy[9] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == 'cc')])
-yy[10] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == 'nc')])
-yy[11] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == 'nc')])
-
-fig, ax = plt.subplots(1, 1)
-ax.bar(range(len(flavor_labels)), yy)
-ax.set_xticks(range(len(flavor_labels)))
-ax.set_xticklabels(flavor_labels)
-ax.set_title(trigger_name)
-ax.set_ylabel('weighted number of triggers')
-fig.tight_layout()
-fig.savefig(os.path.join(plot_folder, 'flavor.png'))
-plt.show()
-
-# flavor
-
-# plot C0 parameter
-# C0s = np.array(fin['ray_tracing_C0'])
-# php.get_histogram(C0s.flatten())
-# fig.suptitle('incoming signal direction')
-
-# plt.show()
