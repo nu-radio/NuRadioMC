@@ -463,7 +463,7 @@ def get_E2_limit_figure(diffuse = True,
 
     if show_ara:
         ax.plot(ara_1year[:,0]/plotUnitsEnergy,ara_1year[:,1]/ plotUnitsFlux,color='indigo')
-        ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
+#         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
         if energyBinsPerDecade == 2:
             ax.annotate('ARA',
                         xy=(5e8, 6e-7), xycoords='data',
