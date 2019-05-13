@@ -23,12 +23,13 @@ if __name__ == "__main__":
         print("Please move files to folder output. This is the default location.")
 
     energies, Veff, Veff_error, SNR, trigger_names, deposited  = get_Veff("output")
+    sortmask = np.argsort(energies)
 
 
     # plot effective volume
     fig, ax = plt.subplots(1, 1, figsize=(6,6))
-    ax.errorbar(energies / units.eV, Veff['all_triggers']/units.km**3 /units.sr,
-                yerr=Veff_error['all_triggers']/units.km**3/units.sr, fmt='d-')
+    ax.errorbar(energies[sortmask] / units.eV, Veff['all_triggers'][sortmask]/units.km**3 /units.sr,
+                yerr=Veff_error['all_triggers'][sortmask]/units.km**3/units.sr, fmt='d-')
     ax.semilogx(True)
     ax.semilogy(True)
     ax.set_xlabel("neutrino energy [eV]")
@@ -41,7 +42,7 @@ if __name__ == "__main__":
     # plot expected limit
     fig, ax = limits.get_E2_limit_figure(diffuse=True,show_grand_10k=True, show_grand_200k=False)
     labels = []
-    labels = limits.add_limit(ax, labels, energies, Veff['all_triggers'].T,
+    labels = limits.add_limit(ax, labels, energies[sortmask], Veff['all_triggers'].T[sortmask],
                               100, 'NuRadioMC example', livetime=3*units.year, linestyle='-',color='blue',linewidth=3)
 
     plt.legend(handles=labels, loc=2)
