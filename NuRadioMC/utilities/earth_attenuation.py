@@ -13,7 +13,7 @@ densities = np.array([14000.0, 3400.0, 2900.0]) * units.kg / units.m ** 3 # inne
 radii = np.array([3.46e6 * units.m, R_EARTH - 4.0e4 * units.m, R_EARTH]) # average radii of boundaries between earth layers
 
 
-def get_weight(theta_nu, pnu, flavors, mode='simple'):
+def get_weight(theta_nu, pnu, flavors, mode='simple',cross_section_type = 'ghandi'):
     """
     calculates neutrino weight due to Earth absorption for different models
 
@@ -25,9 +25,9 @@ def get_weight(theta_nu, pnu, flavors, mode='simple'):
         the momentum of the neutrino
     """
     if(mode == 'simple'):
-        return get_simple_weight(theta_nu, pnu)
+        return get_simple_weight(theta_nu, pnu,cross_section_type = cross_section_type)
     elif (mode == "core_mantle_crust"):
-        return get_core_mantle_crust_weight(theta_nu, pnu, flavors)
+        return get_core_mantle_crust_weight(theta_nu, pnu, flavors,cross_section_type = cross_section_type)
     elif (mode == "None"):
         return 1.
     else:
@@ -35,7 +35,7 @@ def get_weight(theta_nu, pnu, flavors, mode='simple'):
         raise NotImplementedError
 
 
-def get_simple_weight(theta_nu, pnu):
+def get_simple_weight(theta_nu, pnu, cross_section_type = 'ghandi'):
     """
     calculates neutrino weight due to Earth absorption, i.e. probability of the
     neutrino to reach the detector
@@ -53,11 +53,11 @@ def get_simple_weight(theta_nu, pnu):
     if(theta_nu <= 0.5 * np.pi):  # coming from above
         return np.ones_like(theta_nu)
     else:  # coming from below
-        sigma = cross_sections.get_nu_cross_section(pnu, flavors = 0, cross_section_type = 'ghandi')
+        sigma = cross_sections.get_nu_cross_section(pnu, flavors = 0, cross_section_type = cross_section_type)
         d = - 2 * R_earth * np.cos(theta_nu)
         return np.exp(-d * sigma * DensityCRUST / AMU)
 
-def get_core_mantle_crust_weight(theta_nu, pnu, flavors):
+def get_core_mantle_crust_weight(theta_nu, pnu, flavors, cross_section_type='ctw'):
     """
     calculates neutrino weight due to Earth absorption with a three layers earth model, i.e. probability of the
     neutrino to reach the detector
@@ -76,7 +76,7 @@ def get_core_mantle_crust_weight(theta_nu, pnu, flavors):
     flavors: float or array of floats
         the flavor of the neutrino
     """
-    sigma = cross_sections.get_nu_cross_section(pnu, flavors)
+    sigma = cross_sections.get_nu_cross_section(pnu, flavors, cross_section_type = cross_section_type)
     if(theta_nu <= 0.5 * np.pi):  # coming from above
         return np.ones_like(theta_nu)
     elif (theta_nu <= np.pi - np.arcsin(radii[1] / radii[2])): # only go through the outer layer
