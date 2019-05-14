@@ -1,3 +1,21 @@
+"""
+This file runs a phased array trigger simulation. The phased array configuration
+in this file is inspired by the deployed ARA phased array: 1.5 GS/s, 8 antennas
+at a depth of ~50 m, 15 phasing directions with primary and secondary beams.
+In order to run, we need a detector file and a configuration file, included in
+this folder. To run the code, type:
+
+python T02RunPhasedARA.py input_neutrino_file.hdf5 proposalcompact_50m_1.5GHz.json
+config_ARA.yaml output_NuRadioMC_file.hdf5 output_NuRadioReco_file.nur
+
+The antenna positions can be changed in the detector position. The config file
+defines de bandwidth for the noise RMS calculation. The properties of the phased
+array can be changed in the current file - phasing angles, triggering channels,
+bandpass filter and so on.
+
+WARNING: this file needs NuRadioMC to be run.
+"""
+
 from __future__ import absolute_import, division, print_function
 import argparse
 # import detector simulation modules
