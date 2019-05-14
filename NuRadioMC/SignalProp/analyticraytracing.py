@@ -1,17 +1,19 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.hatch import get_path
 import time
 import copy
 from scipy.optimize import fsolve, minimize, basinhopping, root
 from scipy import optimize, integrate, interpolate
 import scipy.constants
-from NuRadioMC.utilities import units
 from operator import itemgetter
+
+from NuRadioMC.utilities import units
+from NuRadioMC.utilities import attenuation as attenuation_util
+
 import logging
 logging.basicConfig()
-from matplotlib.hatch import get_path
-from NuRadioMC.utilities import attenuation as attenuation_util
 
 # check if CPP implementation is available
 cpp_available = False
@@ -1167,10 +1169,6 @@ class ray_tracing:
     ray tracing solutions in 3D for two arbitrary points x1 and x2
     """
 
-    solution_types = {1: 'direct',
-                  2: 'refracted',
-                  3: 'reflected'}
-
     def __init__(self, x1, x2, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=6):
         """
@@ -1240,15 +1238,27 @@ class ray_tracing:
         self.__results = results
 
     def find_solutions(self):
+        """
+        find all solutions between x1 and x2
+        """
         self.__results = self.__r2d.find_solutions(self.__x1, self.__x2)
 
     def has_solution(self):
+        """
+        checks if ray tracing solution exists
+        """
         return len(self.__results) > 0
 
     def get_number_of_solutions(self):
+        """
+        returns the number of solutions
+        """
         return len(self.__results)
 
     def get_results(self):
+        """
+        returns dictionary of results (the parameters of the analytic ray path function)
+        """
         return self.__results
 
     def get_solution_type(self, iS):
