@@ -73,7 +73,10 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
             is_em_shower = True
         else:
             raise NotImplementedError("shower type {} not implemented in {} Askaryan module".format(shower_type, model))
-        return askaryan_module.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R)[1]
+        a = None
+        if('a' in kwargs):
+            a = kwargs['a']
+        return askaryan_module.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, a=a)[1]
     elif(model == 'ARZ2019'):
         from NuRadioMC.SignalGen.ARZ import ARZ
         global gARZ
