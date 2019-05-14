@@ -1,8 +1,28 @@
+"""
+This file generates the input files for the electron neutrino effective
+volume simulation  using a phased array. For creating a test file, run:
+
+python T01generate_event_list.py
+
+For generating a set of energies organised in folders for later running
+on a cluster with the appropriate scripts, run:
+
+python T01generate_event_list.py full
+
+WARNING: This file needs NuRadioMC installed. https://github.com/nu-radio/NuRadioMC
+"""
+
 from __future__ import absolute_import, division, print_function
 from NuRadioMC.utilities import units
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 import numpy as np
 import os
+import sys
+
+if ( len(sys.argv) < 2 ):
+	mode = 'simple'
+else:
+	mode = sys.argv[1]
 
 # define simulation volume
 zmin = -2.7 * units.km  # the ice sheet at South Pole is 2.7km deep
@@ -10,7 +30,7 @@ zmax = 0 * units.km
 rmin = 0 * units.km
 rmax = 4 * units.km
 
-costhetas = np.linspace(0.999, -1, 2) # Usually 20
+costhetas = np.linspace(1, -1, 2) # Usually 20
 thetas = np.arccos(costhetas)
 #thetas = np.linspace(0.*units.deg, 180.*units.deg, 3)
 thetamins = thetas[0:-1]
@@ -21,15 +41,21 @@ print(thetamaxs)
 phimin = 0.*units.deg
 phimax = 360.*units.deg
 
-logEs = np.linspace(15., 20., 50) # Usually 50
+if ( mode == 'full' ):
+	logEs = np.linspace(15., 20., 50) # Usually 50
+else:
+	logEs = np.linspace(16., 19, 2)
 Es = 10**logEs * units.eV
 Emins = Es[0:-1]
 Emaxs = Es[1:]
 
-flavours = [12] # no difference between neutrinos and antineutrinos for us
-                    # also taus and mus are identical in the present version of the code
-nevt = 1e6
-nevt_perfile = 1e5
+flavours = [12] # +/-12: electronic neutrino. +/-14: muonic neutrino. +/-16: tau neutrino
+if ( mode == 'full' ):
+	nevt = 1e6
+	nevt_perfile = 1e5
+else:
+	nevt = 1e4
+	nevt_perfile = 1e4
 
 for thetamin, thetamax in zip(thetamins, thetamaxs):
 
@@ -57,7 +83,10 @@ for thetamin, thetamax in zip(thetamins, thetamaxs):
 				os.mkdir(input_dir)
 			except:
 				pass
-			outname = folder_angle+'/'+folder+'/input/'+folder+'.hdf5'
+			if ( mode == 'simple' ):
+				outname = folder+'.hdf5'
+			else:
+				outname = folder_angle+'/'+folder+'/input/'+folder+'.hdf5'
 			print(Emin/units.PeV, Emax/units.PeV)
 			print(outname)
 			generate_eventlist_cylinder(outname, nevt, Emin, Emax, rmin, rmax, zmin, zmax, full_rmin=rmin, full_rmax=rmax, full_zmin=zmin, full_zmax=zmax, thetamin=thetamin, thetamax=thetamax, phimin=phimin, phimax=phimax, start_event_id=1, flavor=[flavour], n_events_per_file=nevt_perfile, deposited=True)
