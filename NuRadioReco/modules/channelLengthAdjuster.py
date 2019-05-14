@@ -50,6 +50,7 @@ class channelLengthAdjuster:
                 new_trace = np.roll(trace, -1 * pulse_start)
                 new_trace = new_trace[:self.number_of_samples]
                 change_time = 1
+                channel.set_trace_start_time(channel.get_trace_start_time() + pulse_start/channel.get_sampling_rate())
 
             channel.set_trace(new_trace, channel.get_sampling_rate())
 
