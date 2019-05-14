@@ -1,17 +1,19 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.hatch import get_path
 import time
 import copy
 from scipy.optimize import fsolve, minimize, basinhopping, root
 from scipy import optimize, integrate, interpolate
 import scipy.constants
-from NuRadioMC.utilities import units
 from operator import itemgetter
+
+from NuRadioMC.utilities import units
+from NuRadioMC.utilities import attenuation as attenuation_util
+
 import logging
 logging.basicConfig()
-from matplotlib.hatch import get_path
-from NuRadioMC.utilities import attenuation as attenuation_util
 
 # check if CPP implementation is available
 cpp_available = False
