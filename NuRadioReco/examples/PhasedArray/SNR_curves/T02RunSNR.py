@@ -47,7 +47,7 @@ logger = logging.getLogger("runstrawman")
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
-efieldToVoltageConverter.begin(debug=False, time_resolution=1*units.ns)
+efieldToVoltageConverter.begin(debug=False)
 triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
