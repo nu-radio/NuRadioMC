@@ -3,7 +3,7 @@ import logging
 logging.basicConfig()
 
 """
-analytic ray tracing solution
+Structure of a ray-tracing module. For documentation and development purposes.
 """
 
 solution_types = {1: 'direct',
@@ -67,7 +67,7 @@ class ray_tracing_base:
 
     def get_results(self):
         """
-        
+
         """
         return self.__results
 
@@ -92,7 +92,7 @@ class ray_tracing_base:
     def get_path(self, iS, n_points=1000):
         """
         helper function that returns the 3D ray tracing path of solution iS
-        
+
         Parameters
         ----------
         iS: int
