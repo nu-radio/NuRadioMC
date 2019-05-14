@@ -30,8 +30,8 @@ class channelBandPassFilter:
             passband[0]: lower boundary of filter, passband[1]: upper boundary of filter
         filter_type: string
             'rectangular': perfect straight line filter
-            'butter10': butterworth filter from scipy
-            'butter10abs': absolute of butterworth filter from scipy
+            'butter': butterworth filter from scipy
+            'butterabs': absolute of butterworth filter from scipy
             or any filter that is implemented in NuRadioReco.detector.filterresponse. In this case the
             passband parameter is ignored
             or 'FIR <type> <parameter>' - see below for FIR filter options

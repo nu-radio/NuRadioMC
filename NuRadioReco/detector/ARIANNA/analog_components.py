@@ -3,6 +3,7 @@ from scipy.interpolate import interp1d
 import os
 from radiotools import helper as hp
 from NuRadioReco.utilities import units
+import pickle
 import logging
 logger = logging.getLogger('analog_components')
 
@@ -65,19 +66,42 @@ def load_amplifier_response(amp_type='100', path=os.path.dirname(os.path.realpat
 
     return amplifier_response
 
+def load_amp_measurement(amp_measurement):
+    """
+    load individual amp measurement from file and buffer interpolation function
+    """
+    filename = os.path.join(os.path.dirname(__file__), 'HardwareResponses/', amp_measurement+".pkl")
+    with open(filename, 'r') as fin:
+        data = pickle.load(fin)
+        if(amp_measurement not in data):
+            raise AttributeError("can't find amp measurement {}".format(amp_measurement))
+        ff = data[amp_measurement]['freqs']
+        response = data[amp_measurement]['response']
+        gain = np.abs(response)
+        phase = np.unwrap(np.angle(response))
+        amp_phase_f = interp1d(ff, phase, bounds_error=False, fill_value=0)  # all requests outside of measurement range are set to 0
+        amp_gain_f = interp1d(ff, gain, bounds_error=False, fill_value=1)  # all requests outside of measurement range are set to 1
+        
+        def get_response(ff):
+            return amp_gain_f(ff) * np.exp(1j * amp_phase_f(ff))
+        
+        amp_measurements[amp_measurement] = get_response
 
 # amp responses do not occupy a lot of memory, pre load all responses
 amplifier_response = {}
 for amp_type in ['100', '200', '300']:
     amplifier_response[amp_type] = load_amplifier_response(amp_type)
+    
+amp_measurements = {}  # buffer for amp measurements
 
 
-def get_amplifier_response(ff, amp_type):
-    if(amp_type in amplifier_response.keys()):
-        tmp = {}
-        tmp['gain'] = amplifier_response[amp_type]['gain'](ff)
-        tmp['phase'] = amplifier_response[amp_type]['phase'](ff)
-        return tmp
+def get_amplifier_response(ff, amp_type, amp_measurement=None):
+    if(amp_measurement is not None):
+        if amp_measurement not in amp_measurements:
+            load_amp_measurement(amp_measurement)
+        return amp_measurements[amp_measurement](ff)
+    elif(amp_type in amplifier_response.keys()):
+        return amplifier_response[amp_type]['gain'](ff) * amplifier_response[amp_type]['phase'](ff)
     else:
         logger.error("Amplifier response for type {} not implemented, returning None".format(amp_type))
         return None
@@ -131,9 +155,5 @@ def get_cable_response(frequencies, path=os.path.dirname(os.path.realpath(__file
     cable_phase = cable_phase_f(frequencies)
     cable_phase = np.exp(1j * cable_phase)
 
-    cable_response = {}
-    cable_response['phase'] = cable_phase
-    cable_response['gain'] = cable_amp
-
-    return cable_response
+    return cable_amp * cable_phase
 

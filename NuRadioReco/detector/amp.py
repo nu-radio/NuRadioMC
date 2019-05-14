@@ -9,6 +9,11 @@ import glob
 
 
 def get_amp_response(frequencies, amp_name):
+    """
+    Get measured amplifier responses.
+    Very simple script for currently NTU amps.
+
+    """
     # parse input file and convert to default units
     directory = os.path.dirname(os.path.abspath(__file__))
     ff2, phase, t = np.loadtxt(os.path.join(

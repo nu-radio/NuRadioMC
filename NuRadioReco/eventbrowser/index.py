@@ -156,7 +156,7 @@ def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_
     if filename is None:
         return 0
     if context.triggered[0]['prop_id'] == 'event-click-coordinator.children':
-        return context.triggered[0]['value']['event_i']
+        return json.loads(context.triggered[0]['value'])['event_i']
     else:
         if context.triggered[0]['prop_id'] != 'btn-next-event.n_clicks_timestamp' and context.triggered[0]['prop_id'] != 'btn-previous-event.n_clicks_timestamp':
             return 0

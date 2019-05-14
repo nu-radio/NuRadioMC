@@ -9,7 +9,12 @@ from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import fft
 import logging
 logger = logging.getLogger('trace_utilities')
+logging.basicConfig()
 
+conversion_factor_integrated_signal = scipy.constants.c * scipy.constants.epsilon_0* units.joule / units.s  / units.volt**2
+
+# see Phys. Rev. D DOI: 10.1103/PhysRevD.93.122005
+# to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
 
 
 def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider):
@@ -94,8 +99,6 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
         return np.real(voltage_trace)
 
 def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask = None, noise_window_mask = None):
-    conversion_factor_integrated_signal = scipy.constants.c * scipy.constants.epsilon_0* units.joule / units.s  / units.volt**2
-    # see Phys. Rev. D DOI: 10.1103/PhysRevD.93.122005
 
     if signal_window_mask is None:
         f_signal = np.sum(electric_field_trace ** 2, axis=1)
