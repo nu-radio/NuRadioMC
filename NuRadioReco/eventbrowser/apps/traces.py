@@ -441,7 +441,6 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
             if(channel.has_parameter(chp.cr_xcorrelations)):
                 key = channel.get_parameter(chp.cr_xcorrelations)['cr_ref_xcorr_template']
                 logger.info("using template {}".format(key))
-                print(ref_templates.keys())
                 ref_template = ref_templates[key][channel.get_id()]
             times = channel.get_times()
             trace = channel.get_trace()
@@ -604,7 +603,6 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     time_shift = direction_time_delay
                 else:
                     time_shift = 0
-                print(time_shift, channel.get_trace_start_time(), electric_field.get_trace_start_time())
                 fig.append_trace(go.Scatter(
                     x=(electric_field.get_times() + time_shift)/units.ns,
                     y=fft.freq2time(trace)/units.mV,
