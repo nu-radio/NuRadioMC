@@ -4,6 +4,7 @@ import NuRadioReco.framework.trigger
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.parameters as parameters
 import datetime
+import NuRadioReco.framework.parameter_serialization
 try:
     import cPickle as pickle
 except ImportError:
@@ -152,9 +153,12 @@ class BaseStation():
     def add_electric_field(self, electric_field):
         self._electric_fields.append(electric_field)
     
-    def get_electric_fields_for_channels(self, channel_ids, ray_path_type=None):
+    def get_electric_fields_for_channels(self, channel_ids=None, ray_path_type=None):
         for e_field in self._electric_fields:
-            if e_field.has_channel_ids(channel_ids):
+            channel_ids2 = channel_ids
+            if (channel_ids is None):
+                channel_ids2 = e_field.get_channel_ids()
+            if e_field.has_channel_ids(channel_ids2):
                 if ray_path_type is None:
                     yield e_field
                 elif ray_path_type == e_field.get_parameter(parameters.electricFieldParameters.ray_path_type):
@@ -210,7 +214,7 @@ class BaseStation():
         if(mode != 'micro'):
             for efield in self.get_electric_fields():
                 efield_pkls.append(efield.serialize(self))
-        data = {'_parameters': self._parameters,
+        data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 '_parameter_covariances': self._parameter_covariances,
                 '_ARIANNA_parameters': self._ARIANNA_parameters,
                 '_station_id': self._station_id,
@@ -231,7 +235,7 @@ class BaseStation():
             efield = NuRadioReco.framework.electric_field.ElectricField([])
             efield.deserialize(electric_field)
             self.add_electric_field(efield)
-        self._parameters = data['_parameters']
+        self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'], parameters.stationParameters)
         self._parameter_covariances = data['_parameter_covariances']
         if('_ARIANNA_parameters') in data:
             self._ARIANNA_parameters = data['_ARIANNA_parameters']

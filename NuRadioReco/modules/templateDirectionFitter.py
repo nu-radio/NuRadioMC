@@ -23,6 +23,25 @@ class templateDirectionFitter:
         pass
 
     def run(self, evt, station, det, debug=True, channels_to_use=[0, 1, 2, 3], cosmic_ray=False):
+        """
+        Fits the direction using templates
+
+        Parameters
+        ----------
+        evt: event
+
+        station: station
+
+        det: detector
+
+        debug: bool
+            set debug
+        channels_to_use: list
+            antenna to use for fit
+        cosmic_ray: bool
+            type to set correlation template
+
+        """
         if(cosmic_ray):
             type_str = 'cr'
             xcorrelations = chp.cr_xcorrelations

@@ -247,6 +247,8 @@ def update_time_trace(trigger, evt_counter, filename, station_id, juser_id):
     traces = []
     fig = tools.make_subplots(rows=1, cols=1)
     for i, channel in enumerate(station.iter_channels()):
+        if channel.get_trace() is None:
+            continue
         fig.append_trace(go.Scatter(
                 x=channel.get_times() / units.ns,
                 y=channel.get_trace() / units.mV,
@@ -283,9 +285,14 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
     fig = tools.make_subplots(rows=1, cols=1)
     maxL1 = 0
     maxY = 0
+    ff=np.array([0])
     for i, channel in enumerate(station.iter_channels()):
+        if channel.get_trace() is None:
+            continue
         tt = channel.get_times()
         dt = tt[1] - tt[0]
+        if channel.get_trace() is None:
+            continue
         trace = channel.get_trace()
         ff = np.fft.rfftfreq(len(tt), dt)
         spec = np.abs(np.fft.rfft(trace, norm='ortho'))
@@ -360,16 +367,26 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     traces = []
-    fig = tools.make_subplots(rows=station.get_number_of_channels(), cols=2,
-                              shared_xaxes=True, shared_yaxes=False,
-                              vertical_spacing=0.01)
     ymax = 0
+    n_channels = 0
+    plot_titles = []
+    fig = tools.make_subplots(rows=station.get_number_of_channels(), cols=2,
+        shared_xaxes=True, shared_yaxes=False,
+        vertical_spacing=0.01, subplot_titles=plot_titles)
     for i, channel in enumerate(station.iter_channels()):
+        n_channels += 1
         trace = channel.get_trace() / units.mV
         ymax = max(ymax, np.max(np.abs(trace)))
+        plot_titles.append('Channel {}'.format(channel.get_id()))
+        plot_titles.append('Channel {}'.format(channel.get_id()))
+        if channel.get_trace() is not None:
+            trace = channel.get_trace() / units.mV
+            ymax = max(ymax, np.max(np.abs(trace)))
     if 'trace' in dropdown_traces:
         for i, channel in enumerate(station.iter_channels()):
             tt = channel.get_times() / units.ns
+            if channel.get_trace() is None:
+                continue
             trace = channel.get_trace() / units.mV
             fig.append_trace(go.Scatter(
                     x=tt,
@@ -385,16 +402,17 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                 ), i + 1, 1)
             if 'RMS' in dropdown_info:
                 fig.append_trace(
-                       go.Scatter(
-                            x=[0.99 * tt.max()],
-                            y=[0.98 * trace.max()],
-                            mode='text',
-                            text=[r'mu = {:.2f}, STD={:.2f}'.format(np.mean(trace), np.std(trace))],
-                            textposition='bottom left'
-                        ),
-                    i + 1, 1)
+                   go.Scatter(
+                        x=[0.99 * tt.max()],
+                        y=[0.98 * trace.max()],
+                        mode='text',
+                        text=[r'mu = {:.2f}, STD={:.2f}'.format(np.mean(trace), np.std(trace))],
+                        textposition='bottom left'
+                    ),i + 1, 1)
     if 'envelope' in dropdown_traces:
         for i, channel in enumerate(station.iter_channels()):
+            if channel.get_trace() is None:
+                continue
             trace = channel.get_trace() / units.mV
             from scipy import signal
             yy = np.abs(signal.hilbert(trace))
@@ -427,6 +445,8 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                 ref_template = ref_templates[key][channel.get_id()]
             times = channel.get_times()
             trace = channel.get_trace()
+            if trace is None:
+                continue
             xcorr = channel.get_parameter(chp.cr_xcorrelations)['cr_ref_xcorr']
             xcorrpos = channel.get_parameter(chp.cr_xcorrelations)['cr_ref_xcorr_time']
             dt = times[1] - times[0]
@@ -489,6 +509,8 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
         for i, channel in enumerate(station.iter_channels()):
             times = channel.get_times()
             trace = channel.get_trace()
+            if trace is None:
+                continue
             xcorr = channel.get_parameter(chp.nu_xcorrelations)['nu_ref_xcorr']
             xcorrpos = channel.get_parameter(chp.nu_xcorrelations)['nu_ref_xcorr_time']
             dt = times[1] - times[0]
@@ -603,7 +625,10 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                 ), i_channel + 1, 2)
     for i, channel in enumerate(station.iter_channels()):
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(range=[-ymax, ymax])
+        fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(title='voltage [mV]')
 
+        if channel.get_trace() is None:
+            continue
         tt = channel.get_times()
         dt = tt[1] - tt[0]
         spec = channel.get_frequency_spectrum()
@@ -628,10 +653,10 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                         textposition='top center'
                     ),
                 i + 1, 2)
-    fig['layout'].update(default_layout)
     fig['layout']['xaxis1'].update(title='time [ns]')
-    fig['layout']['yaxis1'].update(title='voltage [mV]')
-    fig['layout'].update(height=1000)
+    fig['layout']['xaxis2'].update(title='frequency [MHz]')
+    fig['layout'].update(height=n_channels*150)
+    fig['layout'].update(showlegend=False)
     return fig
 
 
@@ -657,6 +682,8 @@ def update_time_traces2(evt_counter, filename, dropdown_traces, station_id, juse
     if 'trace' in dropdown_traces:
         for i, iCh in enumerate(range(4, min([8, station.get_number_of_channels()]))):
             channel = station.get_channel(iCh)
+            if channel.get_trace() is None:
+                continue
             fig.append_trace(go.Scatter(
                     x=channel.get_times() / units.ns,
                     y=channel.get_trace() / units.mV,
@@ -675,6 +702,8 @@ def update_time_traces2(evt_counter, filename, dropdown_traces, station_id, juse
             channel = station.get_channel(iCh)
             times = channel.get_times()
             trace = channel.get_trace()
+            if trace is None:
+                continue
             xcorr = channel['cr_ref_xcorr']
             xcorrpos = channel['cr_ref_xcorr_time']
             dt = times[1] - times[0]
