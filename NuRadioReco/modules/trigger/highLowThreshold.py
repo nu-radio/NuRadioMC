@@ -167,7 +167,7 @@ class triggerSimulator:
         if not has_triggered:
             trigger.set_triggered(False)
             logger.info("Station has NOT passed trigger")
-            trigger.set_trigger_time(self.__pre_trigger_time)
+            trigger.set_trigger_time(0)
         else:
             trigger.set_triggered(True)
             trigger.set_trigger_time(triggered_times.min())
