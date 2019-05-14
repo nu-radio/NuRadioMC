@@ -100,8 +100,8 @@ class triggerSimulator:
         self.__t = 0
         self.begin()
 
-    def begin(self, pre_trigger_time=100 * units.ns):
-        self.__pre_trigger_time = pre_trigger_time
+    def begin(self):
+        return
 
     def run(self, evt, station, det,
             threshold_high=60 * units.mV,
@@ -111,7 +111,6 @@ class triggerSimulator:
             coinc_window=200 * units.ns,
             number_concidences=2,
             triggered_channels=[0, 1, 2, 3],
-            cut_trace=True,
             trigger_name="default_high_low",
             set_not_triggered=False):
         """
@@ -180,7 +179,7 @@ class triggerSimulator:
         if not has_triggered:
             trigger.set_triggered(False)
             logger.info("Station has NOT passed trigger")
-            trigger.set_trigger_time(self.__pre_trigger_time)
+            trigger.set_trigger_time(0)
         else:
             trigger.set_triggered(True)
             trigger.set_trigger_time(triggered_times.min())
@@ -189,58 +188,6 @@ class triggerSimulator:
 
         station.set_trigger(trigger)
 
-        if not cut_trace:
-            self.__t += time.time() - t
-            return
-
-        # now cut trace to the correct number of samples
-        # assuming that all channels have the same trace length
-        for channel in station.iter_channels():
-            trace = channel.get_trace()
-            trace_length = len(trace)
-            number_of_samples = det.get_number_of_samples(station.get_id(), channel.get_id())
-            if number_of_samples > trace.shape[0]:
-                logger.error("Input has fewer samples than desired output. Channels has only {} samples but {} samples are requested.".format(
-                    trace.shape[0], number_of_samples))
-#                 new_trace = np.zeros(self.number_of_samples)
-#                 new_trace[:trace.shape[0]] = trace
-#                 change_time = 0
-                raise StandardError
-#             elif number_of_samples == trace.shape[0]:
-#                 logger.info("Channel {} already at desired length, nothing done.".format(channel.get_id()))
-            else:
-                sampling_rate = channel.get_sampling_rate()
-                trigger_time_sample = trigger.get_trigger_time() * sampling_rate
-                samples_before_trigger = int(self.__pre_trigger_time * sampling_rate)
-                rel_station_time_samples = 0
-                cut_samples_beginning = 0
-                if(samples_before_trigger < trigger_time_sample):
-                    cut_samples_beginning = trigger_time_sample - samples_before_trigger
-                    if(cut_samples_beginning + number_of_samples > trace_length):
-                        logger.warning("trigger time is sample {} but total trace length is only {} samples (requested trace length is {} with an offest of {} before trigger). To achieve desired configuration, trace will be rolled".format(
-                            trigger_time_sample, trace_length, number_of_samples, samples_before_trigger))
-                        roll_by = cut_samples_beginning + number_of_samples - trace_length  # roll_by is positive
-                        trace = np.roll(trace, -1 * roll_by)
-                        cut_samples_beginning -= roll_by
-                    rel_station_time_samples = cut_samples_beginning
-                elif(samples_before_trigger > trigger_time_sample):
-                    roll_by = trigger_time_sample - samples_before_trigger
-                    logger.warning(
-                        "trigger time is before 'trigger offset window', the trace needs to be rolled by {} samples first".format(roll_by))
-                    trace = np.roll(trace, roll_by)
-                    trigger_time_sample -= roll_by
-                    rel_station_time_samples = -roll_by
-
-                # shift trace to be in the correct location for cutting
-                trace = trace[cut_samples_beginning:(number_of_samples + cut_samples_beginning)]
-                channel.set_trace(trace, channel.get_sampling_rate())
-        try:
-            logger.debug('setting sim tation start time to {:.1f} + {:.1f}ns'.format(
-                station.get_sim_station().get_trace_start_time(), (rel_station_time_samples / sampling_rate)))
-            # here we assumed that all channels had the same length
-            station.get_sim_station().add_trace_start_time(-rel_station_time_samples / sampling_rate)
-        except:
-            logger.warning("No simulation information in event, trace start time will not be added")
         self.__t += time.time() - t
 
     def end(self):
