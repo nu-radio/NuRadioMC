@@ -1,3 +1,15 @@
+"""
+This file generates the input files for the electron neutrino SNR
+curves simulation using a phased array. For creating a test file, run:
+
+python T01generate_event_list.py
+
+The file will create several folders containing neutrinos that interact at a
+given angle with respect to the horizon. The
+
+WARNING: This file needs NuRadioMC installed. https://github.com/nu-radio/NuRadioMC
+"""
+
 from __future__ import absolute_import, division, print_function
 from NuRadioMC.utilities import units
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
