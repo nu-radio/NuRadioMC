@@ -180,9 +180,38 @@ double get_path_length(double pos[2], double pos2[2], double C0, double n_ice, d
 	F.params=&params;
 
 	double result, error;
-	gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,10.e-7,1000,w,&result,&error);
+	double epsrel = 1.e-7; //small initial absolute error
+	int max_badfunc_tries=7;
+	int num_badfunc_tries=0;
+	int status;
+
+	/*
+	This structuring allows for adaptive relative errors in the integral
+	In many cases, the integral can be achieved with relative error between solutions of 1.e-7
+	But there are several cases were the error bound needs to be as high as 30e-7
+	So this raises the erorr bound by a factor of two, up to six times
+	This means the largest relative error we're going to tolerate is 6.4e-6 (64e-7)
+	If this relative error cannot be achieved, we will return an path length of zero
+	*/
+	gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
+	do{
+		status = gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,epsrel,1000,w,&result,&error);
+		if(status!=GSL_SUCCESS){
+			status=GSL_CONTINUE;
+			num_badfunc_tries++;
+			epsrel*=2.; //double the size of the relative error
+		}
+	}while(status == GSL_CONTINUE && num_badfunc_tries<max_badfunc_tries);
+	gsl_set_error_handler (myhandler); //restore original error handler
 	gsl_integration_workspace_free(w);
-	return result;
+	double pathlength;
+	if(status==GSL_SUCCESS){
+		pathlength = result;
+	}
+	else{
+		pathlength=NAN;
+	}	
+	return pathlength;
 }
 
 //this function is explicitly prepared for gsl integration in get_travel_time
@@ -272,7 +301,7 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 		attenuation = exp(-1 * result);
 	}
 	else{
-		attenuation=0.;
+		attenuation=NAN;
 	}
 	return attenuation;
 }
