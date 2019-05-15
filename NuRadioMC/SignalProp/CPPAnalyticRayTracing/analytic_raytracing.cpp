@@ -328,7 +328,7 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 		attenuation = exp(-1 * result);
 	}
 	else{
-		attenuation=0.;
+		attenuation=NAN;
 	}
 	return attenuation;
 }
