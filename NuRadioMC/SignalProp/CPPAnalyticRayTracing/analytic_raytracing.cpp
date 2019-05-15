@@ -208,7 +208,7 @@ double get_path_length(double pos[2], double pos2[2], double C0, double n_ice, d
 		pathlength = result;
 	}
 	else{
-		pathlength=0.;
+		pathlength=NAN;
 	}	
 	return pathlength;
 }
