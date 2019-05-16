@@ -18,12 +18,17 @@ def load(filename):
     data = {}
     attrs = {}
     groups = {}
+    group_attrs = {}
 
     for key in f:
         if isinstance(f[key], h5py._hl.group.Group):
             groups[key] = {}
+            group_attrs[key] = {}
             for key2 in f[key]:
                 groups[key][key2] = f[key][key2][...]
+            for key2 in f[key].attrs:
+                group_attrs[key][key2] = f[key].attrs[key2]
+            
         else:
             data[key] = f[key][...]
         
@@ -33,10 +38,10 @@ def load(filename):
 
     f.close()
 
-    return data, attrs, groups
+    return data, attrs, groups, group_attrs
 
 
-def save(filename, data, attrs, groups):
+def save(filename, data, attrs, groups, group_attrs):
 
     """Create hdf5 file with given data.
 
@@ -55,6 +60,8 @@ def save(filename, data, attrs, groups):
         g = f.create_group(key)
         for key2 in groups[key]:
             g[key2] = groups[key][key2]
+        for key2 in group_attrs[key]:
+            g.attrs[key2] = group_attrs[key][key2]
     
     for key in attrs:
         f.attrs[key] = attrs[key]
