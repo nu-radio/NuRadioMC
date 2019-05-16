@@ -4,6 +4,7 @@ import NuRadioReco.framework.trigger
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.parameters as parameters
 import datetime
+import astropy.time
 import NuRadioReco.framework.parameter_serialization
 try:
     import cPickle as pickle
@@ -73,16 +74,13 @@ class BaseStation():
 
     def set_station_time(self, time):
         if isinstance(time, datetime.datetime):
-            self._station_time = (time - datetime.datetime(1970,1,1,0,0,0)).total_seconds()
+            self._station_time = astropy.time.Time(time)
         else:
             self._station_time = time
 
     def get_station_time(self):
         return self._station_time
     
-    def get_station_time_stamp(self):
-        return datetime.datetime(1970,1,1).fromtimestamp(int(self._station_time))
-
 #     def get_trace(self):
 #         return self._time_trace
 #
