@@ -58,7 +58,6 @@ class mySimulation(simulation.simulation):
                                     threshold_low=-4 * self._Vrms,
                                     triggered_channels=[0, 1, 2, 3],  # select the LPDA channels
                                     number_concidences=2,  # 2/4 majority logic
-                                    cut_trace=False,
                                     trigger_name='LPDA_2of4_4.1sigma',
                                     set_not_triggered=(not self._station.has_triggered("simple_threshold"))) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
         
@@ -68,7 +67,6 @@ class mySimulation(simulation.simulation):
                                     threshold_low=-3 * self._Vrms,
                                     triggered_channels=[4, 5, 6, 7], # select the bicone channels
                                     number_concidences=4, # 4/4 majority logic
-                                    cut_trace=False,
                                     trigger_name='surface_dipoles_4of4_3sigma',
                                     set_not_triggered=(not self._station.has_triggered("simple_threshold"))) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
         
