@@ -110,6 +110,7 @@ class simulation():
         # read in detector positions
         logger.warning("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
         self._det = detector.Detector(json_filename=self._detectorfile)
+        self._det.update(evt_time)
 
         self._station_ids = self._det.get_station_ids()
 
@@ -348,7 +349,7 @@ class simulation():
                             fig.subplots_adjust(top=0.9)
                             plt.show()
 
-                        electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id])
+                        electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id], self._det.get_relative_position(self._sim_station.get_id(), channel_id))
                         electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / self._dt)
                         electric_field.set_trace_start_time(T)
                         electric_field[efp.azimuth] = azimuth
