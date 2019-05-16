@@ -6,6 +6,7 @@ import glob
 from scipy import interpolate
 import json
 import os
+import sys
 
 from NuRadioReco.utilities import units
 from NuRadioReco.detector import detector
@@ -15,14 +16,16 @@ from NuRadioMC.examples.Sensitivities import E2_fluxes3 as limits
 
 
 
+
 if __name__ == "__main__":
 
-    try:
-        os.path.isdir("output")
-    except:
-        print("Please move files to folder output. This is the default location.")
+    path = 'output'
+    if(len(sys.argv) == 1):
+        print("no path specified, assuming that hdf5 files are in directory 'output'")
+    else:
+        path = sys.argv[1]
 
-    energies, Veff, Veff_error, SNR, trigger_names, deposited  = get_Veff("output")
+    energies, Veff, Veff_error, SNR, trigger_names, deposited  = get_Veff(path)
     sortmask = np.argsort(energies)
 
 
@@ -44,7 +47,6 @@ if __name__ == "__main__":
     labels = []
     labels = limits.add_limit(ax, labels, energies[sortmask], Veff['all_triggers'].T[sortmask],
                               100, 'NuRadioMC example', livetime=3*units.year, linestyle='-',color='blue',linewidth=3)
-
-    plt.legend(handles=labels, loc=2)
+    leg = plt.legend(handles=labels, loc=2)
     fig.savefig("limits.pdf")
     plt.show()
