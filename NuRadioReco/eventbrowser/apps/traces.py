@@ -563,7 +563,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                 ),
             i + 1, 1)
     if 'recefield' in dropdown_traces or 'simefield' in dropdown_traces:
-        det.update(station.get_station_time_stamp())
+        det.update(station.get_station_time())
     if 'recefield' in dropdown_traces:
         channel_ids = []
         for channel in station.iter_channels():
