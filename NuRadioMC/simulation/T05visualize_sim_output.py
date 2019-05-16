@@ -127,7 +127,6 @@ ax.set_ylim(fin.attrs['zmin'], 0)
 ax.set_title("trigger: {}".format(trigger_name))
 fig.tight_layout()
 fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'), bbox='tight')
-a = 1/0
 
 
 ###########################
