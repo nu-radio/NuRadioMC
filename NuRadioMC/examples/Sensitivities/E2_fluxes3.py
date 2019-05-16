@@ -324,7 +324,7 @@ def get_E2_limit_figure(diffuse = True,
 
         prot = ax.fill_between(vanVliet_max_1[0,:]*units.GeV/plotUnitsEnergy,vanVliet_max,vanVliet_reas[1,:]/50,color='0.9',label=r'allowed from UHECRs, van Vliet et al.')
 
-        first_legend = plt.legend(handles=[best_fit, best_fit_3s, prot10, prot], loc=4,fontsize=legendfontsize)
+        first_legend = plt.legend(handles=[best_fit, best_fit_3s, prot10, prot], loc=4,fontsize=legendfontsize, handlelength=4)
 
         plt.gca().add_artist(first_legend)
     else:
@@ -366,7 +366,7 @@ def get_E2_limit_figure(diffuse = True,
         p_pulsar = ax.fill_between(pulsars[:,0]*units.GeV/plotUnitsEnergy,pulsars[:,1],pulsars[:,2],label="Pulsar, Fang et al. (1311.2044)",color='wheat',alpha=0.5)
         p_cluster, = ax.plot(clusters[:,0]*units.GeV/plotUnitsEnergy,clusters[:,1],label="Clusters, Fang & Murase, (1704.00015)",color="olive",zorder=1,linestyle=(0, (5, 10)))
 
-        first_legend = plt.legend(handles=[p_tde, p_ll_grb, p_pulsar,p_cluster,ns_merger], loc=3,fontsize=legendfontsize)
+        first_legend = plt.legend(handles=[p_tde, p_ll_grb, p_pulsar,p_cluster,ns_merger], loc=3,fontsize=legendfontsize, handlelength=4)
 
         plt.gca().add_artist(first_legend)
 
@@ -476,7 +476,7 @@ def get_E2_limit_figure(diffuse = True,
     ax.set_yscale('log')
     ax.set_xscale('log')
 
-    ax.set_xlabel(r'Neutrino Energy [GeV]')
+    ax.set_xlabel(r'neutrino energy [GeV]')
     ax.set_ylabel(r'$E^2\Phi$ [GeV cm$^{-2}$ s$^{-1}$ sr$^{-1}$]')
 
     if diffuse:
