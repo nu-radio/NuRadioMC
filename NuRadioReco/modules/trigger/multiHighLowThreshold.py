@@ -157,6 +157,8 @@ class triggerSimulator:
                 channel_id = channel.get_id()
                 if triggered_channels is not None and channel_id not in triggered_channels:
                     continue
+                if channel.get_trace_start_time() != channel_trace_start_time:
+                    logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
                 trace = channel.get_trace()
                 triggerd_bins = get_multiple_high_low_trigger(trace, threshold_high, threshold_low, n_high_lows, high_low_window, dt)
                 triggerd_bins_channels.append(triggerd_bins)
