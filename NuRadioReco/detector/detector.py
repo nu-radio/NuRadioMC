@@ -335,7 +335,7 @@ class Detector(object):
             for backward compatibility datetime is also accepted, but astropy.time is prefered
         """
         if isinstance(time, datetime):
-            self.__current_time = astropy.time(time)
+            self.__current_time = astropy.time.Time(time)
         else:
             self.__current_time = time
         logger.info("updating detector time to {}".format(self.__current_time))
