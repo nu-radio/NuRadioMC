@@ -48,10 +48,6 @@ def get_N_AskDepthA_2(E, em=True, lpm=True):
     else:
         excess = 0.09 + dx * n_max / ICE_DENSITY * 1.0e-4
     Nmax = excess * n_max / 1000.0
-    # find depth, which is really the FWHM of this Greisen formula.
-    i = np.argwhere((nx / nx[n_max]) > 0.606531)[0][0]
-    j = np.argwhere((nx[(i + 1):] / nx[n_max]) < 0.606531)[0]
-    _askaryanDepthA = dx * (j - i) / ICE_DENSITY * ICE_RAD_LENGTH / 100.0  # meters
 
     fit_region_cut = 0.95 # We want to perform a fit for the regions with an excess charge
                          # 10% close to the maximum
@@ -85,7 +81,7 @@ def get_N_AskDepthA_2(E, em=True, lpm=True):
 
 def get_time_trace(energy, theta, N, dt, is_em_shower, n, R, LPM=True, a=None):
     if(a is None):
-        a = get_N_AskDepthA_2(energy, em=is_em_shower, lpm=True)
+        a = get_N_AskDepthA_2(energy, em=is_em_shower, lpm=False)
     freqs = np.fft.rfftfreq(N, dt)
     eR, eTheta, ePhi = create_askaryan.get_frequency_spectrum(energy, theta, freqs, is_em_shower, n, R, LPM, a)
     ZHS_norm = 2 # ZHS Fourier transform factor
