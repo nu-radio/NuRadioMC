@@ -115,8 +115,8 @@ class triggerSimulator:
             time window in which number_concidences channels need to trigger
         number_concidences: int
             number of channels that are requried in coincidence to trigger a station
-        triggered_channels: array of ints
-            channels ids that are triggered on
+        triggered_channels: array of ints or None
+            channels ids that are triggered on, if None trigger will run on all channels
         cut_trace: bool
             if true, trace is cut to the correct length (50ns before the trigger,
             max trace length is set according to detector description)
@@ -137,7 +137,12 @@ class triggerSimulator:
 
             triggerd_bins_channels = []
             dt = 1. / sampling_rate
-            channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
+            if triggered_channels is None:
+                for channel in station.iter_channels():
+                    channel_trace_start_time = channel.get_trace_start_time()            
+                    break
+            else:
+                channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
             for channel in station.iter_channels():
                 channel_id = channel.get_id()
                 if triggered_channels is not None and channel_id not in triggered_channels:

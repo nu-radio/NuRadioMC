@@ -8,28 +8,38 @@ class triggerTimeAdjuster:
     """
     Modifies channel traces to simulate the effects of the trigger
     """
-    def __init__(self, trigger_name):
-        self.__trigger_name = trigger_name
-        """
-        trigger_name: string
-            name of the trigger that should be used. The corresponding trigger module must be run beforehand.
-            If the trigger does not exist or did not trigger, this module will do nothing
-        """
-    
-    def begin(self, pre_trigger_time = 50.*units.ns):
+    def begin(self, trigger_name=None, pre_trigger_time = 50.*units.ns):
         """
         Setup
         ----
+        trigger_name: string or None
+            name of the trigger that should be used.
+            If trigger_name is None, the trigger with the smalles trigger_time will be used.
+            If a name is give, corresponding trigger module must be run beforehand.
+            If the trigger does not exist or did not trigger, this module will do nothing
         pre_trigger_time: float
             Amount of time that should be stored in the channel trace before the trigger. If the channel trace is long
             enough, it will be cut accordingly. Otherwise, it will be rolled.
         cut_trace: bool
             If true, the trace will be cut to the length specified in the detector description
         """
+        self.__trigger_name = trigger_name
         self.__pre_trigger_time = pre_trigger_time
     
     def run(self, event, station, detector):
-        trigger = station.get_trigger(self.__trigger_name)
+        if self.__trigger_name is None:
+            trigger = station.get_trigger(self.__trigger_name)
+        else:
+            min_trigger_time = None
+            for trig in station.get_triggers().values():
+                continue
+                if min_trigger_time is None or trig.get_trigger_time() < min_trigger_time:
+                    min_trigger_time = trig.get_trigger()
+                    trigger = trig
+        return
+        if trigger is None:
+            logger.warning('No trigger found! Channel timings will not be changed.') 
+            return
         if trigger.has_triggered():
             trigger_time = trigger.get_trigger_time()
             for channel in station.iter_channels():
