@@ -74,10 +74,16 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
                 return False
         return True
     
-    def get_position(self): #get position of the electric field relative to station position
+    def get_position(self): 
+        """
+        get position of the electric field relative to station position
+        """
         return self._position
     
-    def set_position(self, position): #set position of the electric field relative to station position
+    def set_position(self, position): 
+        """
+        set position of the electric field relative to station position
+        """
         self._position = position
     
     def serialize(self, mode):
