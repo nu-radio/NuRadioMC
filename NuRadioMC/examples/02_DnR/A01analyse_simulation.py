@@ -33,7 +33,7 @@ eff3 = np.zeros_like(depths)
 
 for iD, depth in enumerate(depths):
     As = np.array(fin['station_101']['max_amp_ray_solution'][:,iD])
-    As = np.nan_to_num(As)  # this sets all cases with empty ray tracing solution to zero
+    As = np.nan_to_num(As)  # this sets all cases with empty ray tracing solution to an amplitude of zero
     mask = np.isnan(As[:, 0]) | np.isnan(As[:, 1])
     As = As[~mask]
     Ts = np.array(fin['station_101']['travel_times'][:, iD])[~mask]
