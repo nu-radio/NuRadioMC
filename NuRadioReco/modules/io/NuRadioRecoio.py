@@ -140,6 +140,9 @@ class NuRadioRecoio(object):
         return self.__event_headers
 
     def get_event_ids(self):
+        """
+        returns a list of (run, eventid) tuples of all events contained in the data file
+        """
         if(not self.__file_scanned):
             self.__scan_files()
         return self.__event_ids
@@ -181,6 +184,7 @@ class NuRadioRecoio(object):
             if self.__event_ids[i][0] == event_id[0] and self.__event_ids[i][1] == event_id[1]:
                 return self.get_event_i(i)
         logger.error('event number {} not found in file'.format(event_id))
+        return None
 
     def get_events(self):
         iF = 0
