@@ -70,6 +70,8 @@ class triggerSimulator:
             if triggered_channels is not None and channel_id not in triggered_channels:
                 logger.debug("skipping channel {}".format(channel_id))
                 continue
+            if channel.get_trace_start_time() != channel_trace_start_time:
+                logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
             trace = channel.get_trace()
             triggerd_bins = get_threshold_triggers(trace, threshold)
             triggerd_bins_channels.append(triggerd_bins)
