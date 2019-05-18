@@ -81,7 +81,7 @@ def get_N_AskDepthA_2(E, em=True, lpm=True):
 
 def get_time_trace(energy, theta, N, dt, is_em_shower, n, R, LPM=True, a=None):
     if(a is None):
-        a = get_N_AskDepthA_2(energy, em=is_em_shower, lpm=False)
+        a = get_N_AskDepthA_2(energy, em=is_em_shower, lpm=LPM)
     freqs = np.fft.rfftfreq(N, dt)
     eR, eTheta, ePhi = create_askaryan.get_frequency_spectrum(energy, theta, freqs, is_em_shower, n, R, LPM, a)
     ZHS_norm = 1 # ZHS Fourier transform factor
