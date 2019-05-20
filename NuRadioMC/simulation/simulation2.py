@@ -628,6 +628,11 @@ class simulation():
         fout.attrs['bandwidth'] = self._bandwidth
         fout.attrs['n_samples'] = self._n_samples
         fout.attrs['config'] = yaml.dump(self._cfg)
+        
+        # save NuRadioMC and NuRadioReco versions
+        from NuRadioMC.utilities import version
+        fout.attrs['NuRadioMC_version_hash'] = version.get_NuRadioMC_commit_hash()
+        fout.attrs['NuRadioReco_version_hash'] = version.get_NuRadioReco_commit_hash()
 
         # now we also save all input parameters back into the out file
         for key in self._fin.keys():
