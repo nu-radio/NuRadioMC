@@ -69,7 +69,7 @@ class Askaryan {
 					_askaryanR(STANDARD_ASK_R),
 					_Nmax(STANDARD_ASK_NMAX),
 					_askaryanTheta(55.*PI/180.0),
-					_strictLowFreqLimit(false)
+					_strictLowFreqLimit(true)
 					{};
 		void toggleFormFactor(); //What it sounds like: use or don't use form factor.
 		void toggleLowFreqLimit(); //What it sounds like: turn on strictLowFreqLimit.
