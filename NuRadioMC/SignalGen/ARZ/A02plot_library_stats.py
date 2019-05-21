@@ -22,7 +22,7 @@ if __name__ == "__main__":
                 b.append(E)
                 nb.append(nE)
 
-            ax[iS].bar(np.log10(b), nE, linewidth=1, edgecolor='k', width=0.4)
+            ax[iS].bar(np.log10(b), nE, linewidth=1, edgecolor='k', width=0.05)
             ax[iS].set_xlabel("log10(shower energy [eV])")
             ax[iS].set_title(shower_type)
         ax[0].set_ylabel('number of showers')

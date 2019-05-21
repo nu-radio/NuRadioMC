@@ -9,7 +9,7 @@ from radiotools import plthelpers as php
 import sys
 from radiotools import helper as hp
 import os
-from NuRadioMC.SignalProp import analyticraytraycing as ray
+from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from mpl_toolkits import mplot3d
 import matplotlib
@@ -31,7 +31,7 @@ with open('det.json', 'w') as fout:
     fout.write(fin.attrs['detector'])
     fout.close()
 det = detector.Detector(json_filename="det.json")
-max_amps_env = np.array(fin['maximum_amplitudes_envelope'])
+max_amps_env = np.array(fin['station_101']['maximum_amplitudes_envelope'])
 weights = fin['weights']
 
 n_channels = det.get_number_of_channels(101)
@@ -84,7 +84,7 @@ for iE in np.arange(n_events, dtype=np.int)[np.any(triggered_deep[:, mask], axis
         vertex = np.array([fin['xx'][iE], fin['yy'][iE], fin['zz'][iE]])
 #         print(fin.keys())
 #         l1 = fin['launch_vectors'][iE][3] / units.deg
-        l2 = fin['launch_vectors'][iE][j*4 + 3]
+        l2 = fin['station_101']['launch_vectors'][iE][j*4 + 3]
         
 #         r1 = ray.ray_tracing(vertex, x1, med, log_level=logging.DEBUG)
 # #         r1.find_solutions()
@@ -96,7 +96,7 @@ for iE in np.arange(n_events, dtype=np.int)[np.any(triggered_deep[:, mask], axis
         
         if(plot):
             r2 = ray.ray_tracing(vertex, x2, med, log_level=logging.INFO)
-            r2.set_solution(fin['ray_tracing_C0'][iE][iC], fin['ray_tracing_C1'][iE][iC], fin['ray_tracing_solution_type'][iE][iC])
+            r2.set_solution(fin['station_101']['ray_tracing_C0'][iE][iC], fin['station_101']['ray_tracing_C1'][iE][iC], fin['station_101']['ray_tracing_solution_type'][iE][iC])
             path2 = r2.get_path(0)
     #         ax.plot3D(path1.T[0], path1.T[1], path1.T[2], label='path 1')
             ax.plot3D(path2.T[0], path2.T[1], path2.T[2], label='path {}'.format(j))
