@@ -225,7 +225,7 @@ class simulation():
                     x2 = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
                     r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=logging.WARNING,
                                    n_frequencies_integration=int(self._cfg['propagation']['n_freq']))
-    
+
                     if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                         sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
                         r.set_solution(sg_pre['ray_tracing_C0'][self._iE][channel_id], sg_pre['ray_tracing_C1'][self._iE][channel_id],
@@ -573,7 +573,7 @@ class simulation():
         self._sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
         self._sim_station.set_is_neutrino()
         # save relevant neutrino properties
-        self._sim_station[stnp.nu_zenith] = self._zenith_nu
+        self._sim_station.set_parameter(stnp.nu_zenith,self._zenith_nu)
         self._sim_station[stnp.nu_azimuth] = self._azimuth_nu
         self._sim_station[stnp.nu_energy] = self._energy
         self._sim_station[stnp.nu_flavor] = self._flavor
@@ -629,7 +629,7 @@ class simulation():
         fout.attrs['bandwidth'] = self._bandwidth
         fout.attrs['n_samples'] = self._n_samples
         fout.attrs['config'] = yaml.dump(self._cfg)
-        
+
         # save NuRadioMC and NuRadioReco versions
         from NuRadioMC.utilities import version
         fout.attrs['NuRadioMC_version_hash'] = version.get_NuRadioMC_commit_hash()
