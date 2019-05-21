@@ -2,6 +2,9 @@ import numpy as np
 from NuRadioMC.utilities import units, fft
 from scipy import constants
 from scipy.optimize import curve_fit
+import logging
+logger = logging.getLogger("hanson2017")
+logger.setLevel(logging.DEBUG)
 
 
 """
@@ -11,15 +14,15 @@ Implementation of J. Hanson and A. Conolly "Complex analysis of Askaryan radiati
 Astropart. Phys. ????
 """
 
-c = constants.c
-c= 0.29972
+c = constants.c * units.m / units.s
+# c= 0.29972
 
 _strictLowFreqLimit = True
 
 NORM = 1.0
 
-ICE_DENSITY = 0.9167
-ICE_RAD_LENGTH = 36.08
+ICE_DENSITY = 0.9167  * units.g / units.cm**3
+ICE_RAD_LENGTH = 36.08 * units.g / units.cm**2
 
 
 def get_k(ff, n_index):
@@ -47,7 +50,7 @@ def get_Iff(ff, n_index, _askaryanDepthA, _askaryanR, _askaryanTheta):
 
 def get_E_omega(ff, E, R, theta, n_index, em=True,
                 lpm=True, use_form_factor=True,
-                _rho0=1. / (np.sqrt(2.0 * np.pi) * 0.03)):
+                _rho0=1. / (np.sqrt(2.0 * np.pi) * 0.03 * units.m)):
     """
     calculates the frequncy spectrum of an Askaryan pulse 
     
@@ -69,8 +72,6 @@ def get_E_omega(ff, E, R, theta, n_index, em=True,
         enable/disable LPD effect
     
     """
-    ff /= units.GHz
-    E /= units.GeV
 
     _Nmax, _askaryanDepthA = get_N_AskDepthA(E, em, lpm)
     COS_THETA_C = 1. / n_index
@@ -96,8 +97,8 @@ def get_E_omega(ff, E, R, theta, n_index, em=True,
         rComp *= atten
         thetaComp *= atten
 
-    rComp *= units.V / units.m / units.MHz
-    thetaComp *= units.V / units.m / units.MHz
+#     rComp *= units.V / units.m / units.MHz
+#     thetaComp *= units.V / units.m / units.MHz
     return rComp, thetaComp
 
 def gauss(x, A, mu, sigma):
@@ -105,7 +106,6 @@ def gauss(x, A, mu, sigma):
 
 
 def get_N_AskDepthA(E, em=True, lpm=True):
-    E *= units.GeV
     if em:
         E_CRIT = 0.073 * units.GeV  # GeV
         max_x = 5000.0  # maximum number of radiation lengths
@@ -122,12 +122,12 @@ def get_N_AskDepthA(E, em=True, lpm=True):
 
     else:  # hadronic shower profile
         # Gaisser-Hillas hadronic shower parameterization
-        max_x = 200000.0  # maximum depth in g/cm^2
-        dx = 1.0  # small enough bin in depth for our purposes.
+        max_x = 200000.0 * units.g /units.cm**2 # maximum depth in g/cm^2
+        dx = 1.0  * units.g /units.cm**2 # small enough bin in depth for our purposes.
         x_start = dx  # depth in g/cm^2
         S0 = 0.11842
-        X0 = 39.562  # g/cm^2
-        l = 113.03  # g/cm^2
+        X0 = 39.562 * units.g /units.cm**2 # g/cm^2
+        l = 113.03  * units.g /units.cm**2# g/cm^2
         Ec = 0.17006 * units.GeV  # GeV
         Xmax = X0 * np.log(E / Ec)
         x = np.arange(x_start, max_x, dx)
@@ -138,13 +138,13 @@ def get_N_AskDepthA(E, em=True, lpm=True):
     # find location of maximum, and charge excess from Fig. 5.9, compare in cm not m.
     n_max = np.argmax(nx)
     if em:
-        excess = 0.09 + dx * n_max * ICE_RAD_LENGTH / ICE_DENSITY * 1.0e-4
+        excess = 0.09 + dx * n_max * ICE_RAD_LENGTH / ICE_DENSITY / 100.
     else:
-        excess = 0.09 + dx * n_max / ICE_DENSITY * 1.0e-4
+        excess = 0.09 + dx * n_max / ICE_DENSITY * 1.0e-2
     Nmax = excess * n_max / 1000.0
 
     fit_region_cut = 0.95 # We want to perform a fit for the regions with an excess charge
-                         # 10% close to the maximum
+                          # 10% close to the maximum
     cut_left = np.argwhere((nx[:n_max] / nx[n_max]) > fit_region_cut)[0][0]
     cut_right = np.argwhere((nx[n_max:] / nx[n_max]) < fit_region_cut)[0][0]+n_max
     fit_width = cut_right-cut_left
@@ -152,9 +152,9 @@ def get_N_AskDepthA(E, em=True, lpm=True):
     x_fit = np.arange(0, len(max_vicinity), 1)
     sigma = curve_fit(gauss, x_fit, max_vicinity)[0]
     if em:
-        _askaryanDepthA = dx * sigma[2] / ICE_DENSITY * ICE_RAD_LENGTH / 100.0  # meters
+        _askaryanDepthA = dx * sigma[2] / ICE_DENSITY * ICE_RAD_LENGTH 
     else:
-        _askaryanDepthA = dx * sigma[2] / ICE_DENSITY / 100.0  # meters
+        _askaryanDepthA = dx * sigma[2] / ICE_DENSITY
 
     if(em and lpm):
         p1 = -2.8564e2
@@ -168,9 +168,9 @@ def get_N_AskDepthA(E, em=True, lpm=True):
         a = 10.0**log10_shower_depth
         # Right here, record the reduction in n_max that I don't believe in.
         if _strictLowFreqLimit:
-            print(Nmax, a, _askaryanDepthA)
             Nmax = Nmax / (a / _askaryanDepthA)
         _askaryanDepthA = a
+    logger.debug("a = {:.2f}m, Nmax = {}".format(_askaryanDepthA/units.m, Nmax))
     return Nmax, _askaryanDepthA
 
 def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, LPM=True, a=None):
