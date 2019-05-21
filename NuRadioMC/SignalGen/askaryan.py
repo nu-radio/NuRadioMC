@@ -80,6 +80,23 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
         if('a' in kwargs):
             a = kwargs['a']
         return askaryan_module.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, a=a, LPM=LPM)[1]
+
+    elif(model == 'Hanson2017_python'):
+        from NuRadioMC.SignalGen.RalstonBuniy import hanson2017
+        is_em_shower = None
+        if(shower_type == "HAD"):
+            is_em_shower = False
+        elif(shower_type == "EM"):
+            is_em_shower = True
+        else:
+            raise NotImplementedError("shower type {} not implemented in {} Askaryan module".format(shower_type, model))
+        LPM = True
+        a = None
+        if('LPM' in kwargs):
+            LPM = kwargs['LPM']
+        if('a' in kwargs):
+            a = kwargs['a']
+        return hanson2017.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, LPM, a)[1]
     elif(model == 'ARZ2019'):
         from NuRadioMC.SignalGen.ARZ import ARZ
         global gARZ
