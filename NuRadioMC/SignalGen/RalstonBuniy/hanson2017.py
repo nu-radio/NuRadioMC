@@ -156,9 +156,9 @@ def get_N_AskDepthA(E, em=True, lpm=True):
     x_fit = np.arange(0, len(max_vicinity), 1)
     sigma = curve_fit(gauss, x_fit, max_vicinity)[0]
     if em:
-        _askaryanDepthA = dx * sigma[2] * 2 / ICE_DENSITY * ICE_RAD_LENGTH 
+        _askaryanDepthA = dx * sigma[2] / ICE_DENSITY * ICE_RAD_LENGTH 
     else:
-        _askaryanDepthA = dx * sigma[2] * 2/ ICE_DENSITY
+        _askaryanDepthA = dx * sigma[2]/ ICE_DENSITY
     logger.debug("a (before LPM = {}".format(_askaryanDepthA))
 
     if(em and lpm):
