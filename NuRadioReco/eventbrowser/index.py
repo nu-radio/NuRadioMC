@@ -22,6 +22,7 @@ import os
 import sys
 import dataprovider
 import logging
+import datetime
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('index')
 
@@ -387,7 +388,7 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
     evt = ariio.get_event_i(event_i)
     if evt.get_station(station_id).get_station_time() is None:
         return ''
-    return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_station(station_id).get_station_time())
+    return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_station(station_id).get_station_time().datetime)
 
 if __name__ == '__main__':
     if int(dash.__version__.split('.')[1]) < 39:

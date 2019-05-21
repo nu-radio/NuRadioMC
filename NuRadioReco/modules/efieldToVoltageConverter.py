@@ -98,7 +98,7 @@ class efieldToVoltageConverter:
                 # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
                 if sim_station.is_cosmic_ray():
                     site = det.get_site(sim_station_id)
-                    antenna_position = det.get_relative_position(sim_station_id, iCh)
+                    antenna_position = det.get_relative_position(sim_station_id, iCh) - electric_field.get_position()
                     if sim_station.get_parameter(stnp.zenith) > 90*units.deg:   #signal is coming from below, so we take IOR of ice
                         index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                     else:   # signal is coming from above, so we take IOR of air
@@ -163,7 +163,7 @@ class efieldToVoltageConverter:
                     cab_delay = det.get_cable_delay(sim_station_id, channel_id)
                     if sim_station.is_cosmic_ray():
                         site = det.get_site(sim_station_id)
-                        antenna_position = det.get_relative_position(sim_station_id, channel_id)
+                        antenna_position = det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position()
                         if sim_station.get_parameter(stnp.zenith) > 90*units.deg:   #signal is coming from below, so we take IOR of ice
                             index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                         else:   # signal is coming from above, so we take IOR of air
@@ -177,7 +177,6 @@ class efieldToVoltageConverter:
                     new_trace[:, start_bin:(start_bin + len(trace))] = resampled_efield
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
                 trace_object.set_trace(new_trace, 1. / time_resolution)
-                trace_object.set_trace_start_time(times_min.min())
                 if(self.__debug):
                     axes[0].plot(trace_object.get_times(), new_trace[1], label="eTheta {}".format(electric_field[efp.ray_path_type]))
                     axes[0].plot(trace_object.get_times(), new_trace[2], label="ePhi {}".format(electric_field[efp.ray_path_type]))
@@ -218,6 +217,7 @@ class efieldToVoltageConverter:
                 axes[1].legend(loc='upper left')
                 plt.show()
             channel.set_frequency_spectrum(channel_spectrum, trace_object.get_sampling_rate())
+            channel.set_trace_start_time(times_min.min())
 
             station.add_channel(channel)
         self.__t += time.time() - t

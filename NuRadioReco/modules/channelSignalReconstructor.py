@@ -28,15 +28,15 @@ class channelSignalReconstructor:
         Parameters
         -----------
         signal_start: float
-            Start time of the window in which signal quantities will be calculated, with time units
+            Start time (relative to the trace start time) of the window in which signal quantities will be calculated, with time units
         debug: bool
             Set module to debug output
         signal_stop: float
-            Stop time of the window in which signal quantities will be calculated, with time units
+            Stop time (relative to the trace start time) of the window in which signal quantities will be calculated, with time units
         noise_start: float
-            Start time of the window in which noise quantities will be calculated, with time units
+            Start time (relative to the trace start time) of the window in which noise quantities will be calculated, with time units
         noise_stop: float
-            Stop time of the window in which noise quantities will be calculated, with time units
+            Stop time (relative to the trace start time) of the window in which noise quantities will be calculated, with time units
         """
         self.__signal_window_start = signal_start
         self.__signal_window_stop = signal_stop
@@ -62,7 +62,7 @@ class channelSignalReconstructor:
         """
 
         trace = channel.get_trace()
-        times = channel.get_times()
+        times = channel.get_times() - channel.get_trace_start_time()
 
         if (self.__noise_window_start >= self.__noise_window_stop):
             logger.error("Noise cannot end before noise starts")

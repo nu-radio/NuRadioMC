@@ -566,6 +566,20 @@ class voltageToAnalyticEfieldConverter:
         exp_pol_angle = np.arctan2(exp_efield_onsky[2], exp_efield_onsky[1])
         logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
         electric_field.set_parameter(efp.polarization_angle_expectation, exp_pol_angle)
+        # figure out the timing of the electric field
+        voltages_from_efield = trace_utilities.get_channel_voltage_from_efield(station, electric_field, use_channels, det, zenith, azimuth, self.antenna_provider, False)
+        correlation = np.zeros(voltages_from_efield.shape[1] + station.get_channel(use_channels[0]).get_trace().shape[0]-1)
+        channel_trace_start_times = []
+        for channel_id in use_channels:
+            channel_trace_start_times.append(station.get_channel(channel_id).get_trace_start_time())
+        average_trace_start_time = np.average(channel_trace_start_times)
+        for i_trace, v_trace in enumerate(voltages_from_efield):
+            channel = station.get_channel(use_channels[i_trace])
+            time_shift = geo_utl.get_time_delay_from_direction(zenith, azimuth, det.get_relative_position(station.get_id(), use_channels[i_trace])) - (channel.get_trace_start_time() - average_trace_start_time)
+            voltage_trace = np.roll(np.copy(v_trace), int(time_shift*electric_field.get_sampling_rate()))
+            correlation += signal.correlate(voltage_trace, channel.get_trace())
+        toffset = (np.arange(0, correlation.shape[0]) - channel.get_trace().shape[0]) / electric_field.get_sampling_rate()
+        electric_field.set_trace_start_time(-toffset[np.argmax(correlation)] + average_trace_start_time)            
         station.add_electric_field(electric_field)
         if debug:
             analytic_traces = np.zeros((n_channels, n_samples_time))

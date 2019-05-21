@@ -9,6 +9,7 @@ from NuRadioReco.utilities import trace_utilities
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
 import matplotlib.pyplot as plt
+from scipy import signal
 
 import logging
 logger = logging.getLogger('voltageToEfieldConverter')
@@ -168,10 +169,22 @@ class voltageToEfieldConverter:
                              efield3_f[0],
                              efield3_f[1]])
 
-        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels)
+        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels, [0,0,0])
         electric_field.set_frequency_spectrum(efield3_f, station.get_channel(0).get_sampling_rate())
         electric_field.set_parameter(efp.zenith, zenith)
         electric_field.set_parameter(efp.azimuth, azimuth)
+        #figure out the timing of the E-field
+        t_shifts = np.zeros(V.shape[0])
+        site = det.get_site(station_id)
+        if(station.get_parameter(stnp.zenith) > 0.5 * np.pi):
+            refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
+        else:
+            refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
+        for i_ch, channel_id in enumerate(use_channels):
+            antenna_position = det.get_relative_position(station.get_id(), channel_id)
+            t_shifts[i_ch] = station.get_channel(channel_id).get_trace_start_time() -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
+        
+        electric_field.set_trace_start_time(t_shifts.max())
         station.add_electric_field(electric_field)
 
         if debug:
