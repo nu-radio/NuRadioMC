@@ -14,6 +14,7 @@ before_script:
   - unzip /tmp/NuRadioReco.zip
   - mv NuRadioReco-master NuRadioReco
   - export PYTHONPATH=$PYTHONPATH:$PWD/NuRadioReco
+  - export PYTHONPATH=$PYTHONPATH:$PWD
 
 script:
   - NuRadioMC/test/T02RunSimulation.py NuRadioMC/test/1e18_output_reference.hdf5 NuRadioMC/test/surface_station_1GHz.json NuRadioMC/test/config.yaml NuRadioMC/test/1e18_output.hdf5
