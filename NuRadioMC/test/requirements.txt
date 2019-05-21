@@ -6,6 +6,7 @@ astropy
 tinydb
 tinydb-serialization
 h5py
+matplotlib
 ###### Requirements with Version Specifiers ######
 
 
