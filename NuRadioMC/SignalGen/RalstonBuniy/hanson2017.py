@@ -13,8 +13,7 @@ as of 30th Oct. 2018.
 Implementation of J. Hanson and A. Conolly "Complex analysis of Askaryan radiation: A fully analytic treatment including the LPM effect and Cascade Form Factor."
 Astropart. Phys. ????
 """
-
-c = constants.c * units.m / units.s
+speed_of_light = constants.c * units.m / units.s
 # c= 0.29972
 
 _strictLowFreqLimit = True
@@ -26,7 +25,7 @@ ICE_RAD_LENGTH = 36.08 * units.g / units.cm**2
 
 
 def get_k(ff, n_index):
-    return 2 * np.pi * ff / c * n_index
+    return 2 * np.pi * ff / speed_of_light * n_index
 
 
 def get_eta(k, _askaryanDepthA, _askaryanR, _askaryanTheta):
@@ -78,8 +77,9 @@ def get_E_omega(ff, E, R, theta, n_index, em=True,
     k = get_k(ff, n_index)
     eta = get_eta(k, _askaryanDepthA, R, theta)
     I_FF = get_Iff(ff, n_index, _askaryanDepthA, R, theta)
-    nu = c * k / (2.0 * np.pi)
-    norm = 2.52e-7 * _askaryanDepthA * _Nmax * nu / R / NORM
+    nu = speed_of_light * k / (2.0 * np.pi)
+    logger.debug("a {}, nmax {}, R {}".format(_askaryanDepthA, _Nmax, R))
+    norm = 2.52e-7 * 1e3 * _askaryanDepthA * _Nmax * nu / R / NORM  # the additional *1e3 comes from putting all the units in the constant of Eq. (10). The left side of the equation is in MHz, whereas the right side is in GHz
     # Kinematic factor, psi...checked JCH March 8th, 2016...fixed missing sin(theta)
     psi = np.sin(theta) * np.sin(k * R) + 1j * (-np.sin(theta) * np.cos(k * R))
     # radial component (imaginary part is zero)...checked JCH March 8th, 2016
@@ -89,6 +89,7 @@ def get_E_omega(ff, E, R, theta, n_index, em=True,
     thetaComp_num = 1 + eta**2 / (1 + eta)**2 * COS_THETA_C / np.sin(theta)**2 * (np.cos(theta) - COS_THETA_C) + \
         1j * (-eta / (1 + eta)**2 * COS_THETA_C / np.sin(theta)**2 * (np.cos(theta) - COS_THETA_C))
     thetaComp = I_FF * norm * psi * thetaComp_num
+    logger.debug("IFF[0] {:.2g}, norm {:.2g}, psi[0] {:.2g}, thetaComp_num {:.2g}".format(I_FF[1], norm[1], psi[1], thetaComp_num[1]))
 
     if use_form_factor:
         a = k / _rho0
@@ -136,25 +137,29 @@ def get_N_AskDepthA(E, em=True, lpm=True):
         c = np.exp(-x / l)
         nx = a * b * c
     # find location of maximum, and charge excess from Fig. 5.9, compare in cm not m.
-    n_max = np.argmax(nx)
+    n_max_position = np.argmax(nx)
+    n_max = np.max(nx)
     if em:
-        excess = 0.09 + dx * n_max * ICE_RAD_LENGTH / ICE_DENSITY / 100.
+        excess = 0.09 + dx * n_max_position * ICE_RAD_LENGTH / ICE_DENSITY / 100.
     else:
-        excess = 0.09 + dx * n_max / ICE_DENSITY * 1.0e-2
+        excess = 0.09 + dx * n_max_position / ICE_DENSITY * 1.0e-2
     Nmax = excess * n_max / 1000.0
+    logger.debug("Nmax {}, excess {}, n_max {}".format(Nmax, excess, n_max))
+    
 
     fit_region_cut = 0.95 # We want to perform a fit for the regions with an excess charge
                           # 10% close to the maximum
-    cut_left = np.argwhere((nx[:n_max] / nx[n_max]) > fit_region_cut)[0][0]
-    cut_right = np.argwhere((nx[n_max:] / nx[n_max]) < fit_region_cut)[0][0]+n_max
+    cut_left = np.argwhere((nx[:n_max_position] / nx[n_max_position]) > fit_region_cut)[0][0]
+    cut_right = np.argwhere((nx[n_max_position:] / nx[n_max_position]) < fit_region_cut)[0][0]+n_max_position
     fit_width = cut_right-cut_left
-    max_vicinity = nx[n_max-fit_width:n_max+fit_width]/nx[n_max]
+    max_vicinity = nx[n_max_position-fit_width:n_max_position+fit_width]/nx[n_max_position]
     x_fit = np.arange(0, len(max_vicinity), 1)
     sigma = curve_fit(gauss, x_fit, max_vicinity)[0]
     if em:
         _askaryanDepthA = dx * sigma[2] / ICE_DENSITY * ICE_RAD_LENGTH 
     else:
         _askaryanDepthA = dx * sigma[2] / ICE_DENSITY
+    logger.debug("a (before LPM = {}".format(_askaryanDepthA))
 
     if(em and lpm):
         p1 = -2.8564e2
@@ -166,8 +171,9 @@ def get_N_AskDepthA(E, em=True, lpm=True):
         e = np.log10(E/units.eV)  # log_10 of Energy in eV
         log10_shower_depth = p1 + p2 * e + p3 * e**2 + p4 * e**3 + p5 * e**4 + p6 * e**5
         a = 10.0**log10_shower_depth
-        # Right here, record the reduction in n_max that I don't believe in.
+        # Right here, record the reduction in n_max_position that I don't believe in.
         if _strictLowFreqLimit:
+            logger.debug("strict_lowfeq  Nmax = {:.2g}, a= {} priora = {}".format(Nmax, a, _askaryanDepthA/units.m, Nmax))
             Nmax = Nmax / (a / _askaryanDepthA)
         _askaryanDepthA = a
     logger.debug("a = {:.2f}m, Nmax = {}".format(_askaryanDepthA/units.m, Nmax))
@@ -176,9 +182,8 @@ def get_N_AskDepthA(E, em=True, lpm=True):
 def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, LPM=True, a=None):
     freqs = np.fft.rfftfreq(N, dt)
     eR, eTheta = get_E_omega(freqs, energy, R, theta, n_index, is_em_shower, LPM)
-    ZHS_norm = 1 # ZHS Fourier transform factor
-    traceR = np.fft.irfft(eR) / dt / ZHS_norm
-    traceTheta = np.fft.irfft(eTheta) / dt / ZHS_norm
+    traceR = np.fft.irfft(eR) / dt
+    traceTheta = np.fft.irfft(eTheta) / dt
     return np.array([traceR, traceTheta, np.zeros_like(traceTheta)])
 
 
