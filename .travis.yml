@@ -1,0 +1,20 @@
+language: python
+python:
+  - '2.7'
+
+install:
+    pip install -r NuRadioMC/test/requirements.txt
+
+before_script:
+  - wget https://github.com/nu-radio/radiotools/archive/master.zip -O /tmp/radiotools.zip
+  - unzip /tmp/radiotools.zip
+  - mv radiotools-master radiotools
+  - export PYTHONPATH=$PWD/radiotools
+  - wget https://github.com/nu-radio/NuRadioReco/archive/master.zip -O /tmp/NuRadioReco.zip
+  - unzip /tmp/NuRadioReco.zip
+  - mv NuRadioReco-master NuRadioReco
+  - export PYTHONPATH=$PYTHONPATH:$PWD/NuRadioReco
+
+script:
+  - NuRadioMC/test/T02RunSimulation.py NuRadioMC/test/1e18_output_reference.hdf5 NuRadioMC/test/surface_station_1GHz.json NuRadioMC/test/config.yaml NuRadioMC/test/1e18_output.hdf5
+  - NuRadioMC/test/T03validate.py NuRadioMC/test/1e18_output.hdf5 NuRadioMC/test/1e18_output_reference.hdf5

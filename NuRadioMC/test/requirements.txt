@@ -1,0 +1,11 @@
+#
+###### Requirements without Version Specifiers ######
+pyyaml
+numpy
+astropy
+tinydb
+tinydb-serialization
+h5py
+###### Requirements with Version Specifiers ######
+
+
