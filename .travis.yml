@@ -15,6 +15,9 @@ before_script:
   - mv NuRadioReco-master NuRadioReco
   - export PYTHONPATH=$PYTHONPATH:$PWD/NuRadioReco
   - export PYTHONPATH=$PYTHONPATH:$PWD
+  - wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
+  - mkdir -p /home/travis/build/nu-radio/NuRadioMC/NuRadioReco/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn
+  - mv createLPDA_100MHz_InfFirn.pkl /home/travis/build/nu-radio/NuRadioMC/NuRadioReco/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
 
 script:
   - NuRadioMC/test/T02RunSimulation.py NuRadioMC/test/1e18_output_reference.hdf5 NuRadioMC/test/surface_station_1GHz.json NuRadioMC/test/config.yaml NuRadioMC/test/1e18_output.hdf5
