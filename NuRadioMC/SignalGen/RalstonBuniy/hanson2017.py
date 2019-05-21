@@ -4,7 +4,7 @@ from scipy import constants
 from scipy.optimize import curve_fit
 import logging
 logger = logging.getLogger("hanson2017")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 """
@@ -47,8 +47,8 @@ def get_Iff(ff, n_index, _askaryanDepthA, _askaryanR, _askaryanTheta):
     return np.exp(power) / denom**0.5
 
 
-def get_E_omega(ff, E, R, theta, n_index, em=True,
-                lpm=True, use_form_factor=True,
+def get_E_omega(ff, E, R, theta, n_index, EM=True,
+                LPM=True, use_form_factor=True,
                 _rho0=1. / (np.sqrt(2.0 * np.pi) * 0.03 * units.m)):
     """
     calculates the frequncy spectrum of an Askaryan pulse 
@@ -72,7 +72,7 @@ def get_E_omega(ff, E, R, theta, n_index, em=True,
     
     """
 
-    _Nmax, _askaryanDepthA = get_N_AskDepthA(E, em, lpm)
+    _Nmax, _askaryanDepthA = get_N_AskDepthA(E, EM, LPM)
     COS_THETA_C = 1. / n_index
     k = get_k(ff, n_index)
     eta = get_eta(k, _askaryanDepthA, R, theta)
@@ -106,8 +106,8 @@ def gauss(x, A, mu, sigma):
     return A * np.exp(-(x-mu)**2/2/sigma**2)
 
 
-def get_N_AskDepthA(E, em=True, lpm=True):
-    if em:
+def get_N_AskDepthA(E, EM=True, LPM=True):
+    if EM:
         E_CRIT = 0.073 * units.GeV  # GeV
         max_x = 5000.0  # maximum number of radiation lengths
         dx = 0.01  # small enough bin in depth for our purposes.
@@ -139,7 +139,7 @@ def get_N_AskDepthA(E, em=True, lpm=True):
     # find location of maximum, and charge excess from Fig. 5.9, compare in cm not m.
     n_max_position = np.argmax(nx)
     n_max = np.max(nx)
-    if em:
+    if EM:
         excess = 0.09 + dx * n_max_position * ICE_RAD_LENGTH / ICE_DENSITY / 100.
     else:
         excess = 0.09 + dx * n_max_position / ICE_DENSITY * 1.0e-2
@@ -155,27 +155,34 @@ def get_N_AskDepthA(E, em=True, lpm=True):
     max_vicinity = nx[n_max_position-fit_width:n_max_position+fit_width]/nx[n_max_position]
     x_fit = np.arange(0, len(max_vicinity), 1)
     sigma = curve_fit(gauss, x_fit, max_vicinity)[0]
-    if em:
+    if EM:
         _askaryanDepthA = dx * sigma[2] / ICE_DENSITY * ICE_RAD_LENGTH 
     else:
         _askaryanDepthA = dx * sigma[2]/ ICE_DENSITY
     logger.debug("a (before LPM = {}".format(_askaryanDepthA))
 
-    if(em and lpm):
-        p1 = -2.8564e2
-        p2 = 7.8140e1
-        p3 = -8.3893
-        p4 = 4.4175e-1
-        p5 = -1.1382e-2
-        p6 = 1.1493e-4
-        e = np.log10(E/units.eV)  # log_10 of Energy in eV
-        log10_shower_depth = p1 + p2 * e + p3 * e**2 + p4 * e**3 + p5 * e**4 + p6 * e**5
-        a = 10.0**log10_shower_depth
-        # Right here, record the reduction in n_max_position that I don't believe in.
-        if _strictLowFreqLimit:
-            logger.debug("strict_lowfeq  Nmax = {:.2g}, a= {} priora = {}".format(Nmax, a, _askaryanDepthA/units.m, Nmax))
-            Nmax = Nmax / (a / _askaryanDepthA)
-        _askaryanDepthA = a
+    E_LPM = 3e14 * units.eV
+    if(EM and LPM):
+        if(E > E_LPM): # only apply LPM correction in regimes where it is relevant 
+            p1 = -2.8564e2
+            p2 = 7.8140e1
+            p3 = -8.3893
+            p4 = 4.4175e-1
+            p5 = -1.1382e-2
+            p6 = 1.1493e-4
+            e = np.log10(E/units.eV)  # log_10 of Energy in eV
+            log10_shower_depth = p1 + p2 * e + p3 * e**2 + p4 * e**3 + p5 * e**4 + p6 * e**5
+            a = 10.0**log10_shower_depth
+            
+            # normalize to Greisen parameterization at LPM energy
+            a_Greisen = get_N_AskDepthA(E_LPM, EM=True, LPM=False)[1]
+            a /= a_Greisen 
+            
+            # Right here, record the reduction in n_max_position that I don't believe in.
+            if _strictLowFreqLimit:
+                logger.debug("strict_lowfeq  Nmax = {:.2g}, a= {} priora = {}".format(Nmax, a, _askaryanDepthA/units.m, Nmax))
+                Nmax = Nmax / (a / _askaryanDepthA)
+            _askaryanDepthA = a
     logger.debug("a = {:.2f}m, Nmax = {}".format(_askaryanDepthA/units.m, Nmax))
     return Nmax, _askaryanDepthA
 
@@ -188,6 +195,6 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, LPM=True, a=N
 
 
 def get_frequency_spectrum(energy, theta, N, dt, is_em_shower, n, R, LPM=True, a=None):
-    eR, eTheta, ePhi = get_time_trace(energy, theta, N, dt, is_em_shower, n, R, LPM, a)
+    eR, eTheta, ePhi = get_time_trace(energy, theta, N, dt, is_em_shower, n, R, LPM, a=a)
     return np.array([fft.time2freq(eR), fft.time2freq(eTheta), fft.time2freq(ePhi)])
 
