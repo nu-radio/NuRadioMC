@@ -29,7 +29,7 @@ def get_filelist(bases):
     return sorted(filelist)
 
 
-def merge_data(data_list, attrs_list, groups_list):
+def merge_data(data_list, attrs_list, groups_list, attrs_group_list):
 
     """Merge dictionaries with data.
 
@@ -40,6 +40,7 @@ def merge_data(data_list, attrs_list, groups_list):
     data = None
     attrs = None
     groups = None
+    attrs_group = None
 
     for f in data_list:
         size = check.get_size(data_list[f])
@@ -49,6 +50,7 @@ def merge_data(data_list, attrs_list, groups_list):
             data = data_list[f]
             attrs = attrs_list[f]
             groups = groups_list[f]
+            attrs_group = attrs_group_list[f]
         else:
             print("\nAdding %(n)d entries from %(f)s" % {"n": size, "f": f})
 
@@ -64,12 +66,13 @@ def merge_data(data_list, attrs_list, groups_list):
             for key in groups_list[f]:
                 for key2 in groups_list[f][key]:
                     groups[key][key2] = np.append(groups[key][key2], groups_list[f][key][key2], axis=0)
+                    
             attrs['n_events'] += attrs_list[f]['n_events']
 
     if 'trigger_names' not in attrs:
         attrs['trigger_names'] = []
 
-    return data, attrs, groups
+    return data, attrs, groups, attrs_group
 
 
 def merge_data_filenames(filelist, outputfile):
@@ -81,11 +84,12 @@ def merge_data_filenames(filelist, outputfile):
     data = OrderedDict()
     attrs = OrderedDict()
     groups = OrderedDict()
+    group_attrs = OrderedDict()
 
     for f in filelist:
         print(f)
-        data[f], attrs[f], groups[f] = hdf5.load(f)
+        data[f], attrs[f], groups[f], group_attrs[f] = hdf5.load(f)
 
-    hdf5.save(outputfile, *merge_data(data, attrs, groups))
+    hdf5.save(outputfile, *merge_data(data, attrs, groups, group_attrs))
 
     msg.info("Done")

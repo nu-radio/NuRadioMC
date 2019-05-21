@@ -113,7 +113,7 @@ yy = np.array(fin['yy'])[triggered]
 rr = (xx ** 2 + yy ** 2) ** 0.5
 zz = np.array(fin['zz'])[triggered]
 mask_weight = weights > 1e-2
-max_r = max(np.abs(xx[mask_weight]).max(), np.abs(yy[mask_weight]).max())
+max_r = rr[mask_weight].max()
 max_z = np.abs(zz[mask_weight]).max()
 h = ax.hist2d(rr / units.m, zz / units.m, bins=[np.linspace(0, max_r, 50), np.linspace(-max_z, 0, 50)],
               cmap=plt.get_cmap('Blues'), weights=weights)
@@ -124,9 +124,9 @@ ax.set_xlabel("r [m]")
 ax.set_ylabel("z [m]")
 ax.set_xlim(0, rmax)
 ax.set_ylim(fin.attrs['zmin'], 0)
-ax.set_title(trigger_name)
+ax.set_title("trigger: {}".format(trigger_name))
 fig.tight_layout()
-fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'))
+fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'), bbox='tight')
 
 
 ###########################

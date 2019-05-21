@@ -454,7 +454,8 @@ class ray_tracing_2D():
                 mask2 = frequency <= max_detector_freq
                 nfreqs2 = min(self.__n_frequencies_integration, np.sum(mask2 & mask))
                 freqs = np.linspace(frequency[mask2 & mask].min(), frequency[mask2 & mask].max(), nfreqs2)
-                freqs = np.append(freqs, np.linspace(frequency[~mask2].min(), frequency[~mask2].max(), nfreqs//2))
+                if(np.sum(~mask2) > 1):
+                    freqs = np.append(freqs, np.linspace(frequency[~mask2].min(), frequency[~mask2].max(), nfreqs//2))
             return freqs
 
     def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq):

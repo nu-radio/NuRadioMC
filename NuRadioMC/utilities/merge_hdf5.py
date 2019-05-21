@@ -33,7 +33,7 @@ else:
             if(os.path.exists(output_filename)):
                 print('file {} already exists, skipping'.format(output_filename))
             else:
-                try:
+#                 try:
                     input_files = np.array(sorted(glob.glob(filename + '.part????')))
                     mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=np.bool)
                     if(np.sum(~mask)):
@@ -41,5 +41,5 @@ else:
 
 
                     merge.merge_data_filenames(input_files[mask], output_filename)
-                except:
-                    print("failed to merge {}".format(filename))
+#                 except:
+#                     print("failed to merge {}".format(filename))
