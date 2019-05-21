@@ -19,7 +19,8 @@ import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
-from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import stationParameters
+#from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import datetime
@@ -465,7 +466,7 @@ class simulation():
                 sg['maximum_amplitudes'][self._iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
                 sg['maximum_amplitudes_envelope'][self._iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
 
-            sg['SNRs'][self._iE] = self._station.get_parameter(stnp.channels_max_amplitude) / self._Vrms
+            sg['SNRs'][self._iE] = self._station.get_parameter(stationParameters.channels_max_amplitude) / self._Vrms
 
     def _create_empty_multiple_triggers(self):
         if ('trigger_names' not in self._mout_attrs):
@@ -573,13 +574,13 @@ class simulation():
         self._sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
         self._sim_station.set_is_neutrino()
         # save relevant neutrino properties
-        self._sim_station.set_parameter(stnp.nu_zenith,self._zenith_nu)
-        self._sim_station[stnp.nu_azimuth] = self._azimuth_nu
-        self._sim_station[stnp.nu_energy] = self._energy
-        self._sim_station[stnp.nu_flavor] = self._flavor
-        self._sim_station[stnp.nu_inttype] = self._inttype
-        self._sim_station[stnp.nu_vertex] = np.array([self._x, self._y, self._z])
-        self._sim_station[stnp.inelasticity] = self._inelasticity
+        self._sim_station.set_parameter(stationParameters.nu_zenith,self._zenith_nu)
+        self._sim_station[stationParameters.nu_azimuth] = self._azimuth_nu
+        self._sim_station[stationParameters.nu_energy] = self._energy
+        self._sim_station[stationParameters.nu_flavor] = self._flavor
+        self._sim_station[stationParameters.nu_inttype] = self._inttype
+        self._sim_station[stationParameters.nu_vertex] = np.array([self._x, self._y, self._z])
+        self._sim_station[stationParameters.inelasticity] = self._inelasticity
 
     def _add_empty_electric_field(self, channel_id):
         electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id])
