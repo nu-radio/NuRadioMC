@@ -8,6 +8,7 @@ tinydb-serialization
 h5py
 matplotlib
 scipy
+enum
 ###### Requirements with Version Specifiers ######
 
 
