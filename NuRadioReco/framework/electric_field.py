@@ -10,11 +10,12 @@ logger = logging.getLogger('electric_field')
 
 class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
     
-    def __init__(self, channel_ids):
+    def __init__(self, channel_ids, position=[0,0,0]):
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
         self._channel_ids = channel_ids
         self._parameters = {}
         self._parameter_covariances = {}
+        self._position = position
     
     def get_parameter(self, key):
         if not isinstance(key, parameters.electricFieldParameters):
@@ -72,6 +73,19 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
             if channel_id not in self._channel_ids:
                 return False
         return True
+    
+    def get_position(self): 
+        """
+        get position of the electric field relative to station position
+        """
+        return self._position
+    
+    def set_position(self, position): 
+        """
+        set position of the electric field relative to station position
+        """
+        self._position = position
+    
     def serialize(self, mode):
         if(mode == 'micro'):
             base_trace_pkl = None
@@ -79,6 +93,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
             base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
         data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 'channel_ids': self._channel_ids,
+                'position': self._position,
                 'base_trace': base_trace_pkl}
         return pickle.dumps(data, protocol=2)
     
@@ -86,5 +101,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         data = pickle.loads(data_pkl)
         if(data['base_trace'] is not None):
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
+        if 'position' in data:  #for backward compatibility
+            self._position = data['position']
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.electricFieldParameters)
         self._channel_ids = data['channel_ids']

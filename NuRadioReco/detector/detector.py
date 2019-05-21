@@ -7,6 +7,7 @@ import logging
 from tinydb import TinyDB, Query
 from tinydb_serialization import SerializationMiddleware
 from tinydb.storages import MemoryStorage
+import astropy.time
 from datetime import datetime
 from tinydb_serialization import Serializer
 import six  # # used for compatibility between py2 and py3
@@ -173,14 +174,12 @@ class Detector(object):
         self.__buffered_stations = {}
         self.__buffered_positions = {}
         self.__buffered_channels = {}
-        self.__valid_t0 = datetime(2100, 1, 1)
-        self.__valid_t1 = datetime(1970, 1, 1)
+        self.__valid_t0 = astropy.time.Time('2100-1-1')
+        self.__valid_t1 = astropy.time.Time('1970-1-1')
 
         self.__noise_RMS = None
 
         self.__current_time = None
-        # just for testing
-        self.__current_time = datetime.now()
 
         self.__assume_inf = assume_inf
 
@@ -197,25 +196,25 @@ class Detector(object):
     def __query_channels(self, station_id):
         Channel = Query()
         return self.__channels.search((Channel.station_id == station_id)
-                                           & (Channel.commission_time <= self.__current_time)
-                                           & (Channel.decommission_time > self.__current_time))
+                                           & (Channel.commission_time <= self.__current_time.datetime)
+                                           & (Channel.decommission_time > self.__current_time.datetime))
 
     def __query_station(self, station_id):
         Station = Query()
         res = self.__stations.get((Station.station_id == station_id)
-                                       & (Station.commission_time <= self.__current_time)
-                                       & (Station.decommission_time > self.__current_time))
+                                       & (Station.commission_time <= self.__current_time.datetime)
+                                       & (Station.decommission_time > self.__current_time.datetime))
         if(res is None):
-            logger.error("query for station {} at time {} returned no results".format(station_id, self.__current_time))
-            raise LookupError("query for station {} at time {} returned no results".format(station_id, self.__current_time))
+            logger.error("query for station {} at time {} returned no results".format(station_id, self.__current_time.datetime))
+            raise LookupError("query for station {} at time {} returned no results".format(station_id, self.__current_time.datetime))
         return res
     
     def __query_position(self, position_id):
         Position = Query()
         res = self.__positions.get((Position.pos_position == position_id))
         if(res is None):
-            logger.error("query for position {} at time {} returned no results".format(position_id, self.__current_time))
-            raise LookupError("query for position {} at time {} returned no results".format(position_id, self.__current_time))
+            logger.error("query for position {} at time {} returned no results".format(position_id, self.__current_time.datetime))
+            raise LookupError("query for position {} at time {} returned no results".format(position_id, self.__current_time.datetime))
         return res
 
     def get_station_ids(self):
@@ -254,14 +253,14 @@ class Detector(object):
 
     def __buffer(self, station_id):
         self.__buffered_stations[station_id] = self.__query_station(station_id)
-        self.__valid_t0 = self.__buffered_stations[station_id]['commission_time']
-        self.__valid_t1 = self.__buffered_stations[station_id]['decommission_time']
+        self.__valid_t0 = astropy.time.Time(self.__buffered_stations[station_id]['commission_time'])
+        self.__valid_t1 = astropy.time.Time(self.__buffered_stations[station_id]['decommission_time'])
         channels = self.__query_channels(station_id)
         self.__buffered_channels[station_id] = {}
         for channel in channels:
             self.__buffered_channels[station_id][channel['channel_id']] = channel
-            self.__valid_t0 = max(self.__valid_t0, channel['commission_time'])
-            self.__valid_t1 = min(self.__valid_t1, channel['decommission_time'])
+            self.__valid_t0 = max(self.__valid_t0, astropy.time.Time(channel['commission_time']))
+            self.__valid_t1 = min(self.__valid_t1, astropy.time.Time(channel['decommission_time']))
             
     def __buffer_position(self, position_id):
         self.__buffered_positions[position_id] = self.__query_position(position_id)
@@ -284,7 +283,7 @@ class Detector(object):
         else:
             t0 = res['commission_time']
             t1 = res['decommission_time']
-        return t0, t1
+        return astropy.time(t0), astropy.time(t1)
     
     def has_station(self, station_id):
         """
@@ -325,22 +324,26 @@ class Detector(object):
             self.update(self.__valid_t1)
         return up
 
-    def update(self, timestamp):
+    def update(self, time):
         """
         updates the detector description to a new time
         
         Parameters
         ----------
-        timestamp: datetime
+        timestamp: astropy.time.Time
             the time to update the detectordescription to
+            for backward compatibility datetime is also accepted, but astropy.time is prefered
         """
-        logger.info("updating detector time to {}".format(timestamp))
-        self.__current_time = timestamp
+        if isinstance(time, datetime):
+            self.__current_time = astropy.time.Time(time)
+        else:
+            self.__current_time = time
+        logger.info("updating detector time to {}".format(self.__current_time))
         if(not ((self.__current_time > self.__valid_t0) and (self.__current_time < self.__valid_t1))):
             self.__buffered_stations = {}
             self.__buffered_channels = {}
-            self.__valid_t0 = datetime(2100, 1, 1)
-            self.__valid_t1 = datetime(1970, 1, 1)
+            self.__valid_t0 = astropy.time.Time('2100-1-1')
+            self.__valid_t1 = astropy.time.Time('1970-1-1')
             
     def get_channel(self, station_id, channel_id):
         """
