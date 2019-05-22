@@ -81,7 +81,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
             a = kwargs['a']
         return askaryan_module.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, a=a, LPM=LPM)[1]
 
-    elif(model == 'Hanson2017_python'):
+    elif(model == 'HCRB2017'):
         from NuRadioMC.SignalGen.RalstonBuniy import hanson2017
         is_em_shower = None
         if(shower_type == "HAD"):
