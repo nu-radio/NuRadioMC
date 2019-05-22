@@ -1,9 +1,12 @@
 import numpy as np
-from NuRadioReco.utilities import units
-from NuRadioReco.framework.parameters import channelParameters as chp
-from NuRadioReco.framework.parameters import stationParameters as stnp
 from scipy import signal
 import time
+
+from NuRadioReco.utilities import units
+from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import stationParameters as stnp
+
 import logging
 logger = logging.getLogger('channelSignalReconstructor')
 
@@ -16,8 +19,7 @@ class channelSignalReconstructor:
 
     def __init__(self):
         self.__t = 0
-        self.__conversion_factor_integrated_signal = 2.65441729 * 1e-3 * 1.e-9 * \
-            6.24150934 * 1e18  # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
+        self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
         self.begin()
 
     def begin(self, debug=False, signal_start=20 * units.ns, signal_stop=100 * units.ns,
@@ -26,15 +28,15 @@ class channelSignalReconstructor:
         Parameters
         -----------
         signal_start: float
-            Start time of the window in which signal quantities will be calculated, with time units
+            Start time (relative to the trace start time) of the window in which signal quantities will be calculated, with time units
         debug: bool
             Set module to debug output
         signal_stop: float
-            Stop time of the window in which signal quantities will be calculated, with time units
+            Stop time (relative to the trace start time) of the window in which signal quantities will be calculated, with time units
         noise_start: float
-            Start time of the window in which noise quantities will be calculated, with time units
+            Start time (relative to the trace start time) of the window in which noise quantities will be calculated, with time units
         noise_stop: float
-            Stop time of the window in which noise quantities will be calculated, with time units
+            Stop time (relative to the trace start time) of the window in which noise quantities will be calculated, with time units
         """
         self.__signal_window_start = signal_start
         self.__signal_window_stop = signal_stop
@@ -59,9 +61,8 @@ class channelSignalReconstructor:
             dictionary of various SNR parameters
         """
 
-        SNR = {}
         trace = channel.get_trace()
-        times = channel.get_times()
+        times = channel.get_times() - channel.get_trace_start_time()
 
         if (self.__noise_window_start >= self.__noise_window_stop):
             logger.error("Noise cannot end before noise starts")
@@ -91,22 +92,30 @@ class channelSignalReconstructor:
             plt.ylabel("Power")
             plt.legend()
 
-        # normalize sampling_rate
-        SNR['integrated_power'] = (np.sum(np.square(trace[signal_window_mask])) - noise_int)
-
-        if SNR['integrated_power'] < noise_int:
-            logger.debug("Intgreated signal {0} smaller than noise {1}, power SNR 0".format(SNR['integrated_power'], noise_int))
-            SNR['integrated_power'] = 0.
+        # Calculating SNR
+        SNR = {}
+        if (noise_rms == 0) or (noise_int == 0):
+            logger.info("RMS of noise is zero, calculating an SNR is not useful. All SNRs are set to infinity.")
+            SNR['peak_2_peak_amplitude'] = np.infty
+            SNR['peak_amplitude'] = np.infty
+            SNR['integrated_power'] = np.infty
         else:
 
-            SNR['integrated_power'] /= (noise_int / self.__signal_window_start)
-            SNR['integrated_power'] = np.sqrt(SNR['integrated_power'])
+            SNR['integrated_power'] = (np.sum(np.square(trace[signal_window_mask])) - noise_int)
+            if SNR['integrated_power'] < noise_int:
+                logger.debug("Integrated signal {0} smaller than noise {1}, power SNR 0".format(SNR['integrated_power'], noise_int))
+                SNR['integrated_power'] = 0.
+            else:
 
-        SNR['peak_2_peak_amplitude'] = np.max(trace[signal_window_mask]) - np.min(trace[signal_window_mask])
-        SNR['peak_2_peak_amplitude'] /= noise_rms
-        SNR['peak_2_peak_amplitude'] /= 2
+                SNR['integrated_power'] /= (noise_int / self.__signal_window_start)
+                SNR['integrated_power'] = np.sqrt(SNR['integrated_power'])
 
-        SNR['peak_amplitude'] = np.max(np.abs(trace[signal_window_mask])) / noise_rms
+            # calculate amplitude values
+            SNR['peak_2_peak_amplitude'] = np.max(trace[signal_window_mask]) - np.min(trace[signal_window_mask])
+            SNR['peak_2_peak_amplitude'] /= noise_rms
+            SNR['peak_2_peak_amplitude'] /= 2
+
+            SNR['peak_amplitude'] = np.max(np.abs(trace[signal_window_mask])) / noise_rms
 
         # SCNR
         SNR['Seckel_2_noise'] = 5
@@ -141,11 +150,12 @@ class channelSignalReconstructor:
             times = channel.get_times()
             trace = channel.get_trace()
             h = np.abs(signal.hilbert(trace))
-            max_amplitude = h.max()
+            max_amplitude = np.max(np.abs(trace))
+            channel[chp.signal_time] = times[np.argmax(h)]
             max_amplitude_station = max(max_amplitude_station, max_amplitude)
-            channel[chp.maximum_amplitude] = np.max(np.abs(trace))
-            channel[chp.maximum_amplitude_envelope] = max_amplitude
-            channel[chp.P2P_amplitude] = np.max(trace) - np.min(trace) 
+            channel[chp.maximum_amplitude] = max_amplitude
+            channel[chp.maximum_amplitude_envelope] = h.max()
+            channel[chp.P2P_amplitude] = np.max(trace) - np.min(trace)
 
             # Use noise precalculated from forced triggers
             channel[chp.SNR] = self.get_SNR(station.get_id(), channel, det,

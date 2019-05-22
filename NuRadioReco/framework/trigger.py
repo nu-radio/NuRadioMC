@@ -32,7 +32,7 @@ class Trigger:
         """
         initialize trigger class
 
-        Parameters 
+        Parameters
         -----------
         name: string
             unique name of the trigger
@@ -60,7 +60,7 @@ class Trigger:
     def set_trigger_time(self, time):
         """ set the trigger time
 
-        Parameters 
+        Parameters
         ----------
         time: float
             the trigger time in ns from the beginning of the trace
@@ -72,18 +72,18 @@ class Trigger:
         get the trigger time (time with respect to beginning of trace)
         """
         return self._trigger_time
-    
+
     def get_name(self):
         """ get trigger name """
         return self._name
-    
+
     def get_type(self):
         """ get trigger type """
         return self._type
-    
+
     def serialize(self):
         return pickle.dumps(self.__dict__, protocol=2)
-    
+
     def deserialize(self, data_pkl):
         for key, value in iteritems(pickle.loads(data_pkl)):
             setattr(self, key, value)
@@ -93,7 +93,7 @@ class Trigger:
         for key, value in iteritems(self.__dict__):
             output +="{}: {}\n".format(key[1:], value)
         return output
-    
+
     def get_trigger_settings(self):
         output = {}
         for key, value in iteritems(self.__dict__):
@@ -108,10 +108,10 @@ class SimpleThresholdTrigger(Trigger):
         """
         initialize trigger class
 
-        Parameters 
+        Parameters
         -----------
         name: string
-            unique name of the trigger 
+            unique name of the trigger
         threshold: float
             the threshold
         channels: array of ints or None
@@ -128,6 +128,34 @@ class SimpleThresholdTrigger(Trigger):
         self._number_of_coincidences = number_of_coincidences
         self._coinc_window = channel_coincidence_window
 
+class SimplePhasedTrigger(Trigger):
+
+    def __init__(self, name, threshold, channels=None, secondary_channels=None,
+                 primary_angles=None, secondary_angles=None):
+        """
+        initialize trigger class
+        Parameters
+        -----------
+        name: string
+            unique name of the trigger
+        threshold: float
+            the threshold
+        channels: array of ints or None
+            the channels that are involved in the main phased beam
+            default: None, i.e. all channels
+        secondary_channels: array of ints or None
+            the channels involved in the secondary phased beam
+        primary_angles: array of floats or None
+            the angles for each subbeam of the primary phasing
+        secondary_angles: array of floats or None
+            the angles for each subbeam of the secondary phasing
+        """
+        Trigger.__init__(self, name, channels, 'simple_phased')
+        self._primary_channels = channels
+        self._primary_angles = primary_angles
+        self._secondary_channels = secondary_channels
+        self._secondary_angles = secondary_angles
+        self._threshold = threshold
 
 class HighLowTrigger(Trigger):
 
@@ -136,10 +164,10 @@ class HighLowTrigger(Trigger):
         """
         initialize trigger class
 
-        Parameters 
+        Parameters
         -----------
         name: string
-            unique name of the trigger 
+            unique name of the trigger
         threshold_high: float
             the high threshold
         threshold_low: float
@@ -171,10 +199,10 @@ class IntegratedPowerTrigger(Trigger):
         """
         initialize trigger class
 
-        Parameters 
+        Parameters
         -----------
         name: string
-            unique name of the trigger 
+            unique name of the trigger
         threshold: float
             the threshold
         channel_coincidence_window: float

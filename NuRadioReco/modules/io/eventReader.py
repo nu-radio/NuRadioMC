@@ -6,7 +6,7 @@ logger = logging.getLogger('eventReader')
 
 class eventReader:
     """
-    save events to file
+    read events from file
     """
 
     def begin(self, filename):
@@ -17,3 +17,10 @@ class eventReader:
 
     def end(self):
         self.__fin.close_file()
+
+    def get_header(self):
+        """
+        returns the header information of all events, useful to get a quick overview of all events without 
+        looping through all events
+        """
+        return self.__fin.get_header()

@@ -13,6 +13,26 @@ class electricFieldBandPassFilter:
     def run(self, evt, station, det, passband=[55 * units.MHz, 1000 * units.MHz],
             filter_type='rectangular',
             debug=False):
+        """
+        Applies bandpass filter to electric field
+
+        Parameters
+        ----------
+        evt: event
+
+        station: station
+
+        det: detector
+
+        passband: seq, array
+            passband for filter, in phys units
+        filter_type: str
+            chose filter type, rectangular, butter10, butter10abs
+        debug: bool
+            set debug
+
+        """
+
         for efield in station.get_electric_fields():
             frequencies = efield.get_frequencies()
             trace_fft = efield.get_frequency_spectrum()

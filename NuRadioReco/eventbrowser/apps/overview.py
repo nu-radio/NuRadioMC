@@ -16,6 +16,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.eventbrowser.apps.common import get_point_index
+from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
 import logging
 logger = logging.getLogger('overview')
@@ -65,7 +66,17 @@ layout = html.Div([
         ], className='panel panel-default', style={'flex':'1'}),
         html.Div([
             html.Div('Electric Fields', className='panel-heading'),
-            html.Div(id='efield-overview-properties')
+            html.Div([
+                dcc.RadioItems(
+                    id='efield-overview-rec-sim',
+                    options=[
+                        {'label': 'Reconstruction', 'value': 'rec'},
+                        {'label': 'Simulation', 'value': 'sim'}
+                    ],
+                    value='rec'
+                ),
+                html.Div(id='efield-overview-properties')
+            ], className='panel-body')
         ], className='panel panel-default', style={'flex':'1'}),
         html.Div([
             html.Div('Triggers', className='panel-heading'),
@@ -96,11 +107,9 @@ layout = html.Div([
             html.Div([
                 html.Div([
                     dcc.Graph(id='cr-xcorrelation'),
-                    html.Div(children=json.dumps(None), id='cr-xcorrelation-point-click', style={'display': 'none'})
                 ], style={'flex': '1'}),
                 html.Div([
                     dcc.Graph(id='cr-xcorrelation-amplitude'),
-                    html.Div(children=json.dumps(None), id='cr-xcorrelation-amplitude-point-click', style={'display': 'none'})
                 ], style={'flex': '1'})
             ], style={'display': 'flex'})
         ], className='panel-body')
@@ -335,9 +344,10 @@ efield_properties_for_overview = [
 @app.callback(Output('efield-overview-properties', 'children'),
                 [Input('filename', 'value'),
                 Input('event-counter-slider', 'value'),
-                Input('station-id-dropdown', 'value')],
+                Input('station-id-dropdown', 'value'),
+                Input('efield-overview-rec-sim', 'value')],
                 [State('user_id', 'children')])
-def channel_overview_properties(filename, evt_counter, station_id, juser_id):
+def efield_overview_properties(filename, evt_counter, station_id, rec_sim, juser_id):
     if filename is None or station_id is None:
         return ''
     user_id = json.loads(juser_id)
@@ -347,7 +357,13 @@ def channel_overview_properties(filename, evt_counter, station_id, juser_id):
     if station is None:
         return []
     reply = []
-    for electric_field in station.get_electric_fields():
+    if rec_sim == 'rec':
+        chosen_station = station
+    else:
+        if station.get_sim_station() is None:
+            return {}
+        chosen_station = station.get_sim_station()
+    for electric_field in chosen_station.get_electric_fields():
         props = get_properties_divs(electric_field, efield_properties_for_overview)
         reply.append(html.Div([
             html.Div('Channels', className='custom-table-td'),
@@ -398,11 +414,11 @@ def trigger_overview_properties(filename, evt_counter, station_id, juser_id):
                Input('xcorrelation-event-type', 'value')],
               [State('user_id', 'children')])
 def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, station_id, event_type, juser_id):
-    if filename is None or station_id is None:
+    if filename is None or station_id is None or xcorr_type is None:
         return {}
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
-    traces = []
+    fig = tools.make_subplots(rows=1, cols=1)
     keys = ariio.get_header()[station_id].keys()
     if event_type == 'nu':
         if not stnp.nu_xcorrelations in keys:
@@ -413,38 +429,25 @@ def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, station_id, event_ty
             return {}
         xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
     if stnp.station_time in keys:
-        traces.append(go.Scatter(
+        fig.append_trace(go.Scatter(
             x=ariio.get_header()[station_id][stnp.station_time],
             y=[xcorrs[i][xcorr_type] for i in range(len(xcorrs))],
             text=[str(x) for x in ariio.get_event_ids()],
             customdata=[x for x in range(ariio.get_n_events())],
             mode='markers',
             opacity=1
-        ))
+        ),1,1)
     else:
         return {}
     current_selection = json.loads(jcurrent_selection)
     if current_selection != []:
         for trace in traces:
             trace['selectedpoints'] = current_selection
-    return {
-        'data': traces,
-        'layout': go.Layout(
-            yaxis={'title': xcorr_type, 'range': [0, 1]},
-            hovermode='closest'
-        )
-    }
+    fig['layout'].update(default_layout)
+    fig['layout']['yaxis'].update({'title': xcorr_type, 'range': [0, 1]})
+    fig['layout']['hovermode'] = 'closest'
+    return fig
 
-@app.callback(Output('cr-xcorrelation-point-click', 'children'),
-                [Input('cr-xcorrelation', 'clickData')])
-def handle_cr_xcorrelation_point_click(click_data):
-    if click_data is None:
-        return json.dumps(None)
-    event_i = click_data['points'][0]['customdata']
-    return json.dumps({
-        'event_i': event_i,
-        'time': time.time()
-    })
 
 @app.callback(Output('cr-xcorrelation-amplitude', 'figure'),
               [Input('cr-xcorrelation-dropdown', 'value'),
@@ -458,7 +461,7 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, event_type
         return {}
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
-    traces = []
+    fig = tools.make_subplots(rows=1, cols=1)
     keys = ariio.get_header()[station_id].keys()
     if event_type == 'nu':
         if not stnp.nu_xcorrelations in keys:
@@ -469,14 +472,14 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, event_type
             return {}
         xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
     if stnp.channels_max_amplitude in keys:
-        traces.append(go.Scatter(
+        fig.append_trace(go.Scatter(
             x=ariio.get_header()[station_id][stnp.channels_max_amplitude] / units.mV,
             y=[xcorrs[i][xcorr_type] for i in range(len(xcorrs))],
             text=[str(x) for x in ariio.get_event_ids()],
             customdata=[x for x in range(ariio.get_n_events())],
             mode='markers',
             opacity=1
-        ))
+        ),1,1)
     else:
         return {}
     # update with current selection
@@ -484,23 +487,9 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, event_type
     if current_selection != []:
         for trace in traces:
             trace['selectedpoints'] = current_selection
+    fig['layout'].update(default_layout)
+    fig['layout']['xaxis'].update({'type': 'log', 'title': 'maximum amplitude [mV]'})
+    fig['layout']['yaxis'].update({'title': xcorr_type, 'range': [0, 1]})
+    fig['layout']['hovermode'] = 'closest'
+    return fig
 
-    return {
-        'data': traces,
-        'layout': go.Layout(
-            xaxis={'type': 'log', 'title': 'maximum amplitude [mV]'},
-            yaxis={'title': xcorr_type, 'range': [0, 1]},
-            hovermode='closest'
-        )
-    }
-
-@app.callback(Output('cr-xcorrelation-amplitude-point-click', 'children'),
-                [Input('cr-xcorrelation-amplitude', 'clickData')])
-def handle_cr_xcorrelation_amplitude_point_click(click_data):
-    if click_data is None:
-        return json.dumps(None)
-    event_i = click_data['points'][0]['customdata']
-    return json.dumps({
-        'event_i': event_i,
-        'time': time.time()
-    })

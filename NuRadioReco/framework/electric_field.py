@@ -10,11 +10,12 @@ logger = logging.getLogger('electric_field')
 
 class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
     
-    def __init__(self, channel_ids):
+    def __init__(self, channel_ids, position=[0,0,0]):
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
         self._channel_ids = channel_ids
         self._parameters = {}
         self._parameter_covariances = {}
+        self._position = position
     
     def get_parameter(self, key):
         if not isinstance(key, parameters.electricFieldParameters):
@@ -36,6 +37,12 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
             logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
         return key in self._parameters
+    
+    def has_parameter_error(self, key):
+        if not isinstance(key, parameters.electricFieldParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
+        return (key, key) in self._parameter_covariances
     
     def set_parameter_error(self, key, value):
         if not isinstance(key, parameters.electricFieldParameters):
@@ -66,13 +73,27 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
             if channel_id not in self._channel_ids:
                 return False
         return True
+    
+    def get_position(self): 
+        """
+        get position of the electric field relative to station position
+        """
+        return self._position
+    
+    def set_position(self, position): 
+        """
+        set position of the electric field relative to station position
+        """
+        self._position = position
+    
     def serialize(self, mode):
         if(mode == 'micro'):
             base_trace_pkl = None
         else:
             base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
-        data = {'parameters': self._parameters,
+        data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 'channel_ids': self._channel_ids,
+                'position': self._position,
                 'base_trace': base_trace_pkl}
         return pickle.dumps(data, protocol=2)
     
@@ -80,5 +101,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         data = pickle.loads(data_pkl)
         if(data['base_trace'] is not None):
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
-        self._parameters = data['parameters']
+        if 'position' in data:  #for backward compatibility
+            self._position = data['position']
+        self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.electricFieldParameters)
         self._channel_ids = data['channel_ids']
