@@ -42,6 +42,7 @@ void Askaryan::setAskDepthA(float x){
 }
 
 void Askaryan::setNmax(float x){
+	std::cout << "setting Nmax to " << x << std::endl;
 	_Nmax = x;
 }
 
@@ -94,6 +95,7 @@ std::vector<std::vector<cf> >* Askaryan::E_omega(){
 	std::vector<cf>::iterator i;
 	std::vector<float>::iterator j;
 	std::vector<float>::iterator q;
+	int counter = 0;
 	for(i=I_FF->begin(),j=Eta->begin(),q=K->begin();q!=K->end();++i,++j,++q){
 		//Overall normalization: a(m), nu(GHz), Nmax(1000), nu(GHz)...checked JCH March 8th, 2016
 		float nu = LIGHT_SPEED*(*q)/(2.0*PI);
@@ -110,6 +112,12 @@ std::vector<std::vector<cf> >* Askaryan::E_omega(){
 		//phi component (is zero)...checked JCH March 8th, 2016
 		cf phiComp_num(0,0);
 		phiComp->push_back(phiComp_num);
+		if(counter == 1) {
+			std::cout << _askaryanDepthA<< ", " << _Nmax << ", " << _askaryanR << std::endl;
+			std::cout << *i << ", " << norm << ", " << psi << ", " << thetaComp_num << std::endl;
+		}
+		counter += 1;
+
 	}
 
     if(_useFormFactor){
@@ -243,6 +251,7 @@ void Askaryan::emShower(float E){
     std::vector<float>::iterator n_max = max_element(nx->begin(),nx->end());
     float excess=0.09+dx*(std::distance(nx->begin(),n_max))*ICE_RAD_LENGTH/ICE_DENSITY*1.0e-4;
 	this->setNmax(excess*(*n_max)/1000.0);
+	std::cout << "excess = " << excess << ", n_max = " << *n_max << std::endl;
 	//find depth, which is really the FWHM of this Greisen formula.
 	std::vector<float>::iterator i;
 	for(i=nx->begin();i!=nx->end();++i){
@@ -253,6 +262,7 @@ void Askaryan::emShower(float E){
 		if((*j)/(*n_max)>0.606531) break;
 	}
 	this->setAskDepthA(dx*std::distance(i,j)/ICE_DENSITY*ICE_RAD_LENGTH/100.0); //meters
+	std::cout << "EM setting ask depth to " <<  dx*std::distance(i,j)/ICE_DENSITY*ICE_RAD_LENGTH/100.0 << std::endl;
 }
 
 void Askaryan::hadShower(float E){
@@ -311,7 +321,8 @@ void Askaryan::lpmEffect(){
         //Right here, record the reduction in n_max that I don't believe in.
         if(_strictLowFreqLimit)
         {
-		this->setNmax(_Nmax/(a/prior_a));
+        	std::cout << "strict low freq lim Nmax = " << _Nmax << ", " << a << ", " << prior_a << std::endl;
+        	this->setNmax(_Nmax/(a/prior_a));
 	}
     }
     if(_isHAD){
