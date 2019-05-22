@@ -3,7 +3,7 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
-from NuRadioReco.modules.io.ARIANNAio import VERSION, VERSION_MINOR
+from NuRadioReco.modules.io.NuRadioRecoio import VERSION, VERSION_MINOR
 import logging
 from NuRadioReco.framework.parameters import stationParameters as stnp
 logger = logging.getLogger("eventWriter")
@@ -13,7 +13,7 @@ def get_header(evt):
     header = {}
     header['stations'] = {}
     for iS, station in enumerate(evt.get_stations()):
-        header['stations'][station.get_id()] = station.get_parameters()
+        header['stations'][station.get_id()] = station.get_parameters().copy()
         if(station.has_sim_station()):
             header['stations'][station.get_id()]['sim_station'] = {}
             header['stations'][station.get_id()]['sim_station'] = station.get_sim_station().get_parameters()
@@ -35,7 +35,12 @@ class eventWriter:
 
     def begin(self, filename, max_file_size=1024):
         """
-        max_file_size: maximum file size in Mbytes (if the file exceeds the maximum file the output will be splited into several files)
+        begin method
+
+        Parameters
+        ----------
+        max_file_size: maximum file size in Mbytes
+                    (if the file exceeds the maximum file the output will be split into another file)
         """
         if filename[-4:] == '.nur':
             self.__filename = filename[:-4]
@@ -52,11 +57,11 @@ class eventWriter:
 
     def run(self, evt, mode='full'):
         """
-        writes ARIANNA event into a file
+        writes NuRadioReco event into a file
 
         Parameters
         ----------
-        evt: ARIANNA event object
+        evt: NuRadioReco event object
         mode: string
             specifies the output mode:
             * 'full' (default): the full event content is written to disk
@@ -85,7 +90,8 @@ class eventWriter:
         self.__fout.write(b)
         self.__current_file_size += b.__sizeof__()
         self.__number_of_events += 1
-        logger.debug("current file size is {} bytes, event number {}".format(self.__current_file_size, self.__number_of_events))
+        logger.debug("current file size is {} bytes, event number {}".format(self.__current_file_size,
+                     self.__number_of_events))
         if(self.__current_file_size > self.__max_file_size):
             logger.info("current output file exceeds max file size -> closing current output file and opening new one")
             self.__current_file_size = 0

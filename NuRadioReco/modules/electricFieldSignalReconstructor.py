@@ -1,18 +1,22 @@
 import numpy as np
 import copy
 from numpy import fft
-from NuRadioReco.utilities import units
 from scipy import signal
 from numpy.polynomial import polynomial as poly
 import matplotlib.pyplot as plt
+
 from radiotools import helper as hp
 from radiotools import coordinatesystems
+
 from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import trace_utilities
-import logging
-logger = logging.getLogger('stationSignalReconstructor')
+from NuRadioReco.utilities import units
+
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+
+import logging
+logger = logging.getLogger('stationSignalReconstructor')
 
 class electricFieldSignalReconstructor:
     """
@@ -20,16 +24,33 @@ class electricFieldSignalReconstructor:
     """
 
     def __init__(self):
-        self.__conversion_factor_integrated_signal = 2.65441729 * 1e-3 * 1.e-9 * 6.24150934 * 1e18  # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
+        self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
         self.begin()
 
-    def begin(self, signal_window_pre=10 * units.ns, signal_window_post=40 * units.ns, noise_window=100 * units.ns):
+    def begin(self, signal_window_pre=10 * units.ns, signal_window_post=40 * units.ns, noise_window=100 * units.ns,
+              log_level=None):
         self.__signal_window_pre = signal_window_pre
         self.__signal_window_post = signal_window_post
         self.__noise_window = noise_window
+        if(log_level is not None):
+            logger.setLevel(log_level)
 
     def run(self, evt, station, det, debug=False):
+        """
+        reconstructs quantities for electric field
 
+        Parameters
+        ----------
+        event: event
+
+        station: station
+
+        det: detector
+
+        debug: bool
+            set debug
+
+        """
         for electric_field in station.get_electric_fields():
             trace_copy = copy.copy(electric_field.get_trace())
 
@@ -37,7 +58,7 @@ class electricFieldSignalReconstructor:
             envelope = np.abs(signal.hilbert(trace_copy))
             envelope_mag = np.linalg.norm(envelope, axis=0)
             signal_time_bin = np.argmax(envelope_mag)
-            signal_time = signal_time_bin / electric_field.get_sampling_rate()
+            signal_time = electric_field.get_times()[signal_time_bin]
             electric_field[efp.signal_time] = signal_time
 
     #
@@ -51,7 +72,6 @@ class electricFieldSignalReconstructor:
                 ax.set_xlabel("eTheta")
                 ax.set_ylabel("ePhi")
                 fig.tight_layout()
-    #
 
             low_pos, up_pos = hp.get_interval(envelope_mag, scale=0.5)
             v_start = trace_copy[:, signal_time_bin]
@@ -63,10 +83,6 @@ class electricFieldSignalReconstructor:
                     v *= -1
                 v_avg += v
             pole = np.arctan2(np.abs(v_avg[2]), np.abs(v_avg[1]))
-    #         if(pole > 180 * units.deg):
-    #             pole -= 360 * units.deg
-    #         if(pole > 90 * units.deg):
-    #             pole = 180 * units.deg - pole
             electric_field[efp.polarization_angle] = pole
             logger.info("average e-field vector = {:.4g}, {:.4g}, {:.4g} -> polarization = {:.1f}deg".format(v_avg[0], v_avg[1], v_avg[2], pole / units.deg))
             trace = electric_field.get_trace()
@@ -121,7 +137,6 @@ class electricFieldSignalReconstructor:
             logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
             electric_field.set_parameter(efp.polarization_angle_expectation, exp_pol_angle)
 
-            return
 
     def end(self):
         pass

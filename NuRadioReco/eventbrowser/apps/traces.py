@@ -13,9 +13,12 @@ from NuRadioReco.utilities import units
 from NuRadioReco.utilities import templates
 from NuRadioReco.utilities import trace_utilities
 from NuRadioReco.utilities import fft
+from NuRadioReco.utilities import geometryUtilities
 from NuRadioReco.detector import detector
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.eventbrowser.default_layout import default_layout
 import NuRadioReco.detector.antennapattern
 import numpy as np
 import logging
@@ -176,7 +179,7 @@ def update_time_efieldtrace(trigger, evt_counter, filename, station_id, juser_id
             ), 1, 1)
     fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['yaxis1'].update(title='efield [mV/m]')
-    fig['layout'].showlegend = True
+    fig['layout'].update(default_layout)
     return fig
 @app.callback(
     dash.dependencies.Output('efield-spectrum', 'figure'),
@@ -221,9 +224,9 @@ def update_efield_spectrum(trigger, evt_counter, filename, station_id, juser_id)
                 },
                 name='ePhi'
             ), 1, 1)
+    fig['layout'].update(default_layout)
     fig['layout']['xaxis1'].update(title='frequency [MHz]')
     fig['layout']['yaxis1'].update(title='amplitude [mV/m]')
-    fig['layout'].showlegend = True
     return fig
         
 @app.callback(
@@ -244,6 +247,8 @@ def update_time_trace(trigger, evt_counter, filename, station_id, juser_id):
     traces = []
     fig = tools.make_subplots(rows=1, cols=1)
     for i, channel in enumerate(station.iter_channels()):
+        if channel.get_trace() is None:
+            continue
         fig.append_trace(go.Scatter(
                 x=channel.get_times() / units.ns,
                 y=channel.get_trace() / units.mV,
@@ -256,9 +261,9 @@ def update_time_trace(trigger, evt_counter, filename, station_id, juser_id):
                 },
                 name='Channel {}'.format(i)
             ), 1, 1)
+    fig['layout'].update(default_layout)
     fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['yaxis1'].update(title='voltage [mV]')
-    fig['layout'].showlegend = True
     return fig
     
 @app.callback(
@@ -280,9 +285,14 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
     fig = tools.make_subplots(rows=1, cols=1)
     maxL1 = 0
     maxY = 0
+    ff=np.array([0])
     for i, channel in enumerate(station.iter_channels()):
+        if channel.get_trace() is None:
+            continue
         tt = channel.get_times()
         dt = tt[1] - tt[0]
+        if channel.get_trace() is None:
+            continue
         trace = channel.get_trace()
         ff = np.fft.rfftfreq(len(tt), dt)
         spec = np.abs(np.fft.rfft(trace, norm='ortho'))
@@ -307,10 +317,36 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
                 textposition='top center'
             ),
         1, 1)
+    fig['layout'].update(default_layout)
     fig['layout']['xaxis1'].update(title='frequency [MHz]')
     fig['layout']['yaxis1'].update(title='amplitude [mV]')
-    fig['layout'].showlegend = True
     return fig
+
+@app.callback(
+    dash.dependencies.Output('dropdown-traces', 'options'),
+    [dash.dependencies.Input('event-counter-slider', 'value'),
+     dash.dependencies.Input('filename', 'value'),
+     dash.dependencies.Input('station-id-dropdown', 'value')],
+     [State('user_id', 'children')]
+)
+def get_dropdown_traces_options(evt_counter, filename, station_id, juser_id):
+    if filename is None or station_id is None:
+        return []
+    user_id = json.loads(juser_id)
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(evt_counter)
+    station = evt.get_station(station_id)
+    options=[
+        {'label': 'calibrated trace', 'value': 'trace'},
+        {'label': 'cosmic-ray template', 'value': 'crtemplate'},
+        {'label': 'neutrino template', 'value': 'nutemplate'},
+        {'label': 'envelope', 'value': 'envelope'},
+        {'label': 'from rec. E-field', 'value': 'recefield'}
+    ]
+    if station.get_sim_station() is not None:
+        if len(station.get_sim_station().get_electric_fields()) > 0:
+            options.append({'label': 'from sim. E-field', 'value': 'simefield'})
+    return options
 
 @app.callback(
     dash.dependencies.Output('time-traces', 'figure'),
@@ -331,16 +367,26 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     traces = []
-    fig = tools.make_subplots(rows=station.get_number_of_channels(), cols=2,
-                              shared_xaxes=True, shared_yaxes=False,
-                              vertical_spacing=0.01)
     ymax = 0
+    n_channels = 0
+    plot_titles = []
+    fig = tools.make_subplots(rows=station.get_number_of_channels(), cols=2,
+        shared_xaxes=True, shared_yaxes=False,
+        vertical_spacing=0.01, subplot_titles=plot_titles)
     for i, channel in enumerate(station.iter_channels()):
+        n_channels += 1
         trace = channel.get_trace() / units.mV
         ymax = max(ymax, np.max(np.abs(trace)))
+        plot_titles.append('Channel {}'.format(channel.get_id()))
+        plot_titles.append('Channel {}'.format(channel.get_id()))
+        if channel.get_trace() is not None:
+            trace = channel.get_trace() / units.mV
+            ymax = max(ymax, np.max(np.abs(trace)))
     if 'trace' in dropdown_traces:
         for i, channel in enumerate(station.iter_channels()):
             tt = channel.get_times() / units.ns
+            if channel.get_trace() is None:
+                continue
             trace = channel.get_trace() / units.mV
             fig.append_trace(go.Scatter(
                     x=tt,
@@ -356,16 +402,17 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                 ), i + 1, 1)
             if 'RMS' in dropdown_info:
                 fig.append_trace(
-                       go.Scatter(
-                            x=[0.99 * tt.max()],
-                            y=[0.98 * trace.max()],
-                            mode='text',
-                            text=[r'mu = {:.2f}, STD={:.2f}'.format(np.mean(trace), np.std(trace))],
-                            textposition='bottom left'
-                        ),
-                    i + 1, 1)
+                   go.Scatter(
+                        x=[0.99 * tt.max()],
+                        y=[0.98 * trace.max()],
+                        mode='text',
+                        text=[r'mu = {:.2f}, STD={:.2f}'.format(np.mean(trace), np.std(trace))],
+                        textposition='bottom left'
+                    ),i + 1, 1)
     if 'envelope' in dropdown_traces:
         for i, channel in enumerate(station.iter_channels()):
+            if channel.get_trace() is None:
+                continue
             trace = channel.get_trace() / units.mV
             from scipy import signal
             yy = np.abs(signal.hilbert(trace))
@@ -394,10 +441,11 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
             if(channel.has_parameter(chp.cr_xcorrelations)):
                 key = channel.get_parameter(chp.cr_xcorrelations)['cr_ref_xcorr_template']
                 logger.info("using template {}".format(key))
-                print(ref_templates.keys())
                 ref_template = ref_templates[key][channel.get_id()]
             times = channel.get_times()
             trace = channel.get_trace()
+            if trace is None:
+                continue
             xcorr = channel.get_parameter(chp.cr_xcorrelations)['cr_ref_xcorr']
             xcorrpos = channel.get_parameter(chp.cr_xcorrelations)['cr_ref_xcorr_time']
             dt = times[1] - times[0]
@@ -460,6 +508,8 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
         for i, channel in enumerate(station.iter_channels()):
             times = channel.get_times()
             trace = channel.get_trace()
+            if trace is None:
+                continue
             xcorr = channel.get_parameter(chp.nu_xcorrelations)['nu_ref_xcorr']
             xcorrpos = channel.get_parameter(chp.nu_xcorrelations)['nu_ref_xcorr_time']
             dt = times[1] - times[0]
@@ -512,15 +562,19 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     textposition='top center'
                 ),
             i + 1, 1)
-    if 'efield' in dropdown_traces:
+    if 'recefield' in dropdown_traces or 'simefield' in dropdown_traces:
         det.update(station.get_station_time())
+    if 'recefield' in dropdown_traces:
         channel_ids = []
         for channel in station.iter_channels():
             channel_ids.append(channel.get_id())
         for electric_field in station.get_electric_fields():
             for i_trace, trace in enumerate(trace_utilities.get_channel_voltage_from_efield(station, electric_field, channel_ids, det, station.get_parameter(stnp.zenith), station.get_parameter(stnp.azimuth), antenna_pattern_provider)):
+                    channel = station.get_channel(channel_ids[i_trace])
+                    direction_time_delay = geometryUtilities.get_time_delay_from_direction(station.get_parameter(stnp.zenith), station.get_parameter(stnp.azimuth), det.get_relative_position(station.get_id(),channel_ids[i_trace]) - electric_field.get_position())
+                    time_shift = direction_time_delay
                     fig.append_trace(go.Scatter(
-                        x=electric_field.get_times()/units.ns,
+                        x=(electric_field.get_times() + time_shift)/units.ns,
                         y=fft.freq2time(trace)/units.mV,
                         line=dict(
                             dash='solid',
@@ -537,11 +591,42 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                         ),
                         opacity=.5
                     ), i_trace + 1, 2)
-    fig['layout']['xaxis1'].update(title='time [ns]')
-    fig['layout']['yaxis1'].update(title='voltage [mV]')
+    if 'simefield' in dropdown_traces:
+        channel_ids = []
+        sim_station = station.get_sim_station()
+        for i_channel, channel in enumerate(station.iter_channels()):
+            for electric_field in sim_station.get_electric_fields_for_channels([channel.get_id()]):
+                trace = trace_utilities.get_channel_voltage_from_efield(sim_station, electric_field, [channel.get_id()], det, electric_field.get_parameter(efp.zenith), electric_field.get_parameter(efp.azimuth), antenna_pattern_provider)[0]
+                channel = station.get_channel(channel.get_id())
+                if station.is_cosmic_ray():
+                    direction_time_delay = geometryUtilities.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith), sim_station.get_parameter(stnp.azimuth), det.get_relative_position(sim_station.get_id(),channel.get_id()) - electric_field.get_position())
+                    time_shift = direction_time_delay
+                else:
+                    time_shift = 0
+                fig.append_trace(go.Scatter(
+                    x=(electric_field.get_times() + time_shift)/units.ns,
+                    y=fft.freq2time(trace)/units.mV,
+                    line=dict(
+                        dash='solid',
+                        color=colors[i_channel%len(colors)]
+                    ),
+                    opacity=.5
+                ), i_channel+1, 1)
+                fig.append_trace(go.Scatter(
+                    x=electric_field.get_frequencies()/units.MHz,
+                    y=np.abs(trace)/units.mV,
+                    line=dict(
+                        dash='solid',
+                        color=colors[i_channel%len(colors)]
+                    ),
+                    opacity=.5
+                ), i_channel + 1, 2)
     for i, channel in enumerate(station.iter_channels()):
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(range=[-ymax, ymax])
+        fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(title='voltage [mV]')
 
+        if channel.get_trace() is None:
+            continue
         tt = channel.get_times()
         dt = tt[1] - tt[0]
         spec = channel.get_frequency_spectrum()
@@ -566,8 +651,10 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                         textposition='top center'
                     ),
                 i + 1, 2)
-    fig['layout'].update(height=1000)
-    fig['layout'].showlegend = False
+    fig['layout']['xaxis1'].update(title='time [ns]')
+    fig['layout']['xaxis2'].update(title='frequency [MHz]')
+    fig['layout'].update(height=n_channels*150)
+    fig['layout'].update(showlegend=False)
     return fig
 
 
@@ -593,6 +680,8 @@ def update_time_traces2(evt_counter, filename, dropdown_traces, station_id, juse
     if 'trace' in dropdown_traces:
         for i, iCh in enumerate(range(4, min([8, station.get_number_of_channels()]))):
             channel = station.get_channel(iCh)
+            if channel.get_trace() is None:
+                continue
             fig.append_trace(go.Scatter(
                     x=channel.get_times() / units.ns,
                     y=channel.get_trace() / units.mV,
@@ -611,6 +700,8 @@ def update_time_traces2(evt_counter, filename, dropdown_traces, station_id, juse
             channel = station.get_channel(iCh)
             times = channel.get_times()
             trace = channel.get_trace()
+            if trace is None:
+                continue
             xcorr = channel['cr_ref_xcorr']
             xcorrpos = channel['cr_ref_xcorr_time']
             dt = times[1] - times[0]

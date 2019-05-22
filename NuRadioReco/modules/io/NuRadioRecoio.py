@@ -61,8 +61,8 @@ class NuRadioRecoio(object):
         for f in self.__fin:
             f.close()
 
-    def get_filename(self):
-        return self.__filenames[0]
+    def get_filenames(self):
+        return self.__filenames
 
     def __parse_event_header(self, evt_header):
         self.__event_ids.append(evt_header['event_id'])
@@ -136,12 +136,12 @@ class NuRadioRecoio(object):
 
     def get_header(self):
         if(not self.__file_scanned):
-            self.__scan_file()
+            self.__scan_files()
         return self.__event_headers
 
     def get_event_ids(self):
         if(not self.__file_scanned):
-            self.__scan_file()
+            self.__scan_files()
         return self.__event_ids
 
     def get_event_i(self, event_number):
@@ -151,7 +151,7 @@ class NuRadioRecoio(object):
         self.__read_lock = True
             
         if(not self.__file_scanned):
-            self.__scan_file()
+            self.__scan_files()
         if(event_number < 0 or event_number >= self.get_n_events()):
             logger.error('event number {} out of bounds, only {} present in file'.format(event_number, self.get_n_events()))
             return None
@@ -176,7 +176,7 @@ class NuRadioRecoio(object):
 
     def get_event(self, event_id):
         if(not self.__file_scanned):
-            self.__scan_file()
+            self.__scan_files()
         for i in range(self.get_n_events()):
             if self.__event_ids[i][0] == event_id[0] and self.__event_ids[i][1] == event_id[1]:
                 return self.get_event_i(i)

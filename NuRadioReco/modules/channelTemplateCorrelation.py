@@ -57,7 +57,7 @@ class channelTemplateCorrelation:
         """
         station_id = station.get_id()
         run = evt.get_run_number()
-        event_id = evt.get_id()
+        event_id = int(evt.get_id())
 
         if n_templates == 1:
 
@@ -138,6 +138,19 @@ class channelTemplateCorrelation:
                     xcorrs_ch.append(xcorr)
                     template_key.append(key)
 
+                if self.__debug:
+                    print(event_id)
+                    plt.figure()
+                    plt.hist(xcorrs_ch,range=(0,1),bins=50)
+                    plt.axvline(np.mean(np.abs(xcorrs_ch)))
+                    plt.axvline(np.max(np.abs(xcorrs_ch)))
+                    print(np.mean(np.abs(xcorrs_ch)), np.max(np.abs(xcorrs_ch)),
+                            channel[chp.maximum_amplitude]/units.mV)
+
+
+
+
+
                 xcorrelations['{}_ref_xcorr'.format(ref_str)] = np.abs(xcorrs_ch).mean()
                 xcorrelations['{}_ref_xcorr_all'.format(ref_str)] = np.abs(xcorrs_ch)
                 xcorrelations['{}_ref_xcorr_max'.format(ref_str)] = np.abs(xcorrs_ch[np.argmax(np.abs(xcorrs_ch))])
@@ -182,7 +195,7 @@ class channelTemplateCorrelation:
             xcorrelations_station['{}_max_xcorr'.format(ref_str)] = xcorrs_max.max()
             ref_mask = np.array([channel.get_id() in channels_to_use for channel in station.iter_channels()])
             xcorrelations_station['{0}_max_xcorr_{0}channels'.format(ref_str)] = xcorrs_max[ref_mask].max()
-            xcorrelations_station['{0}_avg_xcorr_{0}channels'.format(ref_str)] = xcorrs[ref_mask].mean()
+            xcorrelations_station['{0}_avg_xcorr_{0}channels'.format(ref_str)] = xcorrs[ref_mask].max()
 
         # calculate average xcorr in parallel channels
         parallel_channels = det.get_parallel_channels(station_id)

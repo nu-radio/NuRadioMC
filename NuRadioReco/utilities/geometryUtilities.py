@@ -64,6 +64,10 @@ def rot_y(angle):
 
 
 def get_efield_in_spherical_coords(efield, theta, phi):
+    """
+    Get 3D electric field from cartesian coordinates in spherical coordinates,
+    using the arrival directions theta and phi
+    """
     ct = np.cos(theta)
     st = np.sin(theta)
     cp = np.cos(phi)
