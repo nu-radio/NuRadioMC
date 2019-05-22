@@ -202,7 +202,7 @@ def get_N_AskDepthA(E, EM=True, LPM=True, fudge_LPM=False):
             p6 = 1.1493e-4
             e = np.log10(E/units.eV)  # log_10 of Energy in eV
             log10_shower_depth = p1 + p2 * e + p3 * e**2 + p4 * e**3 + p5 * e**4 + p6 * e**5
-            a = 10.0**log10_shower_depth
+            a = 10.0**log10_shower_depth * 0.5 # adjust shower wiedth to be just the sigma parameter of a Gaussian
             
             if(fudge_LPM):
                 # normalize to Greisen parameterization at LPM energy
