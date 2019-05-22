@@ -5,7 +5,7 @@ import numpy as np
 
 ICE_DENSITY = 0.9167 # g/cm^2
 ICE_RAD_LENGTH = 36.08 # g/cm^2
-_strictLowFreqLimit = False
+_strictLowFreqLimit = True
 
 def gauss(x, A, mu, sigma):
 
@@ -74,14 +74,16 @@ def get_N_AskDepthA_2(E, em=True, lpm=True):
         a = 10.0**log10_shower_depth
         # Right here, record the reduction in n_max that I don't believe in.
         if _strictLowFreqLimit:
+            print("python Nmax ", Nmax, a, _askaryanDepthA)
             Nmax = Nmax / (a / _askaryanDepthA)
         _askaryanDepthA = a
-
+    print("askaryandepth {:.2f}m, nmax = {}".format(_askaryanDepthA/units.m, Nmax))
     return _askaryanDepthA
 
 def get_time_trace(energy, theta, N, dt, is_em_shower, n, R, LPM=True, a=None):
     if(a is None):
-        a = get_N_AskDepthA_2(energy, em=is_em_shower, lpm=LPM)
+#         a = get_N_AskDepthA_2(energy, em=is_em_shower, lpm=LPM)
+        a = 0
     freqs = np.fft.rfftfreq(N, dt)
     eR, eTheta, ePhi = create_askaryan.get_frequency_spectrum(energy, theta, freqs, is_em_shower, n, R, LPM, a)
     ZHS_norm = 1 # ZHS Fourier transform factor
