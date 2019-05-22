@@ -8,13 +8,10 @@ logger.setLevel(logging.INFO)
 
 
 """
-Python transcription of the C++ implementation of https://github.com/918particle/AskaryanModule/tree/simplified/RalstonBuniy
-as of 30th Oct. 2018. 
 Implementation of J. Hanson and A. Conolly "Complex analysis of Askaryan radiation: A fully analytic treatment including the LPM effect and Cascade Form Factor."
 Astropart. Phys. ????
 """
 speed_of_light = constants.c * units.m / units.s
-# c= 0.29972
 
 _strictLowFreqLimit = True
 
@@ -49,7 +46,8 @@ def get_Iff(ff, n_index, _askaryanDepthA, _askaryanR, _askaryanTheta):
 
 def get_E_omega(ff, E, R, theta, n_index, EM=True,
                 LPM=True, use_form_factor=True,
-                _rho0=1. / (np.sqrt(2.0 * np.pi) * 0.03 * units.m)):
+                _rho0=1. / (np.sqrt(2.0 * np.pi) * 0.03 * units.m),
+                a=None, fudge_LPM=False):
     """
     calculates the frequncy spectrum of an Askaryan pulse 
     
@@ -65,14 +63,28 @@ def get_E_omega(ff, E, R, theta, n_index, EM=True,
         viewing angle
     n_index: float
         index of refraction at the shower
-    em: bool (default True)
+    EM: bool (default True)
         switch between EM and had. showers
-    lpm: bool (default True)
+    LPM: bool (default True)
         enable/disable LPD effect
+    use_form_factor: bool (default True)
+        use form factor
+    _rho0: float
+        the value of rho0
+    a: float or None (default Nont)
+        if variable set, the shower width is manually set to this value
+    fudge_LPM: bool (default False)
+        if True, the shower width parameterization of LPM showers is rescaled to match
+        the Greisen parameterization at energies below the E_LPM, i.e., at energies where the LPM effect is negligible
+        
+    Returns:
+        eR, eTheta component of electric field in frequency domain
     
     """
 
-    _Nmax, _askaryanDepthA = get_N_AskDepthA(E, EM, LPM)
+    _Nmax, _askaryanDepthA = get_N_AskDepthA(E, EM, LPM, fudge_LPM=fudge_LPM)
+    if(a is not None):
+        _askaryanDepthA = a
     COS_THETA_C = 1. / n_index
     k = get_k(ff, n_index)
     eta = get_eta(k, _askaryanDepthA, R, theta)
@@ -98,15 +110,33 @@ def get_E_omega(ff, E, R, theta, n_index, EM=True,
         rComp *= atten
         thetaComp *= atten
 
-#     rComp *= units.V / units.m / units.MHz
-#     thetaComp *= units.V / units.m / units.MHz
     return rComp, thetaComp
 
 def gauss(x, A, mu, sigma):
     return A * np.exp(-(x-mu)**2/2/sigma**2)
 
 
-def get_N_AskDepthA(E, EM=True, LPM=True):
+def get_N_AskDepthA(E, EM=True, LPM=True, fudge_LPM=False):
+    """
+    calculates the Gaussian width (sigma) of the shower profile using the 
+    Greisen profile for EM showers and the Gaisser-Hillas profile for HAD showers. 
+    If the LPM flag is activated, for EM shower of the shower width of 10.1103/PhysRevD.82.074017 is used.
+    
+    Please note that the parameterization of the shower width for LPM showers is not compatible with the Greisen
+    parameterization event at regimes where the LPM effect is negligible!!!
+    
+    Parameters
+    ----------
+    E: float
+        the energy of the shower
+    EM: bool (default True)
+        switch between EM and had. showers
+    LPM: bool (default True)
+        enable/disable LPD effect
+    fudge_LPM: bool (default False)
+        if True, the shower width parameterization of LPM showers is rescaled to match
+        the Greisen parameterization at energies below the E_LPM, i.e., at energies where the LPM effect is negligible
+    """
     if EM:
         E_CRIT = 0.073 * units.GeV  # GeV
         max_x = 5000.0  # maximum number of radiation lengths
@@ -163,7 +193,7 @@ def get_N_AskDepthA(E, EM=True, LPM=True):
 
     E_LPM = 3e14 * units.eV
     if(EM and LPM):
-        if(E > E_LPM): # only apply LPM correction in regimes where it is relevant 
+        if((E > E_LPM) or not fudge_LPM): # only apply LPM correction in regimes where it is relevant 
             p1 = -2.8564e2
             p2 = 7.8140e1
             p3 = -8.3893
@@ -174,9 +204,10 @@ def get_N_AskDepthA(E, EM=True, LPM=True):
             log10_shower_depth = p1 + p2 * e + p3 * e**2 + p4 * e**3 + p5 * e**4 + p6 * e**5
             a = 10.0**log10_shower_depth
             
-            # normalize to Greisen parameterization at LPM energy
-            a_Greisen = get_N_AskDepthA(E_LPM, EM=True, LPM=False)[1]
-            a /= a_Greisen 
+            if(fudge_LPM):
+                # normalize to Greisen parameterization at LPM energy
+                a_Greisen = get_N_AskDepthA(E_LPM, EM=True, LPM=False)[1]
+                a /= a_Greisen 
             
             # Right here, record the reduction in n_max_position that I don't believe in.
             if _strictLowFreqLimit:
