@@ -605,7 +605,7 @@ class ray_tracing_2D():
             C_0 = C_0[0]
         if((C_0 < C0range[0]) or(C_0 > C0range[1])):
             self.__logger.debug('C0 = {:.4f} out of range {:.0f} - {:.2f}'.format(C_0, C0range[0], C0range[1]))
-            return np.inf
+            return -np.inf
         c = self.medium.n_ice ** 2 - C_0 ** -2
         # determine y translation first
         C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
@@ -624,9 +624,15 @@ class ray_tracing_2D():
             gamma_turn = self.get_gamma(z_turn)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
         if(z_turn < x2[1]):  # turning points is deeper that x2 positions, can't reach target
+            # the minimizer has problems finding the minimum if inf is returned here. Therefore, we return the distance
+            # between the turning point and the target point + 10 x the distance between the z position of the turning points
+            # and the target position. This results in a objective function that has the solutions as the only minima and 
+            # is smooth in C_0 
+            diff = ((z_turn - x2[1])**2 + (y_turn - x2[0])**2)**0.5 + 10 * np.abs(z_turn - x2[1])
             self.__logger.debug(
-                "turning points (zturn = {:.0f} is deeper than x2 positon z2 = {:.0f}".format(z_turn, x2[1]))
-            return -np.inf
+                "turning points (zturn = {:.0f} is deeper than x2 positon z2 = {:.0f}, setting distance to target position to {:.1f}".format(z_turn, x2[1], -diff))
+            return -diff
+#             return -np.inf
         self.__logger.debug('turning points is z = {:.1f}, y =  {:.1f}'.format(z_turn, y_turn))
         if(y_turn > x2[0]):  # we always propagate from left to right
             # direct ray
@@ -638,7 +644,7 @@ class ray_tracing_2D():
                 x2[0] = x2[0][0]
 
             self.__logger.debug(
-                'we have a direct ray, y({:.1f}) = {:.1f} -> {:.1f} away from {:.1f}'.format(x2[1], y2_fit, diff, x2[0]))
+                'we have a direct ray, y({:.1f}) = {:.1f} -> {:.1f} away from {:.1f}, turning point = y={:.1f}, z={:.2f}, x0 = {:.1f} {:.1f}'.format(x2[1], y2_fit, diff, x2[0], y_turn, z_turn, x1[0], x1[1]))
             return diff
         else:
             # now it's a bit more complicated. we need to transform the coordinates to
@@ -649,6 +655,7 @@ class ray_tracing_2D():
             y2_raw = self.get_y(gamma, C_0, C_1)
             y2_fit = 2 * y_turn - y2_raw
             diff = (x2[0] - y2_fit)
+            
             self.__logger.debug('we have a reflected/refracted ray, y({:.1f}) = {:.1f} ({:.1f}) -> {:.1f} away from {:.1f} (gamma = {:.5g})'.format(
                 z_mirrored, y2_fit, y2_raw, diff, x2[0], gamma))
             return -1 * diff
