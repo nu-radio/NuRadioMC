@@ -73,6 +73,6 @@ class cosmicRayEnergyReconstructor:
             falloff_parameter = self.__parametrization_for_site['falloff'][1][0] * zenith + self.__parametrization_for_site['falloff'][1][1]
         rec_energy = 1.e18 * np.sqrt(energy_fluence) * (xmax_distance/units.km) / (scale_parameter * np.exp(falloff_parameter * np.abs(spectrum_slope)**0.8))
         station.set_parameter(stnp.cr_energy_em, rec_energy)
-        print('Energy reco results: ', rec_energy, station.get_sim_station().get_parameter(stnp.cr_energy_em))
+        
         
         
