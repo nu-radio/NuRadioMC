@@ -12,7 +12,10 @@ logger = logging.getLogger('cosmicRayEnergyReconstructor')
 class cosmicRayEnergyReconstructor:
     """
     Reconstructs the energy of an air shower from its radio signal
-    Requires that the voltageToAnalyticEfieldConverter and a direction reconstruction is run first
+    Requires the following modules to be run beforehand:
+        - a bandpass filter with passband 80-300 MHz
+        - a direction reconstruction
+        - the voltageToAnalyticEfieldConverter
     """
     def __init__(self):
         self.__atmosphere = radiotools.atmosphere.models.Atmosphere()
