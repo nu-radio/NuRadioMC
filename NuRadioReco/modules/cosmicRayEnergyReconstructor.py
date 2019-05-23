@@ -21,7 +21,10 @@ class cosmicRayEnergyReconstructor:
                 'scale': np.array([(442.46, -281.75, 324.96), (394.08,-308.36,436.30)]),
                 'falloff': np.array([(-.1584, -.07943),(.8070, -1.4098)])
             },
-            'southpole': {}
+            'southpole': {
+                'scale': np.array([(976.30, -1213.43, 626.98), (643.39, -667.08, 478.06)]),
+                'falloff': np.array([(-.2273, .05627), (1.3372, -2.1653)])
+            }
         }
         self.__elevations = {   #TODO: This should be changed once we have implemented a proper coordinate system
             'mooresbay': 30.,
