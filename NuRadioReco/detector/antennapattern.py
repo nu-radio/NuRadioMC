@@ -36,7 +36,7 @@ def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
     x1, y1: float, complex float
         the second data point
     interpolation_method: string
-        specifies if interpolation is in 
+        specifies if interpolation is in
         * complex (default) i.e. real and imaginary part
         * magnitude and phase
 
@@ -99,9 +99,9 @@ def get_group_delay(vector_effective_length, df):
         the vector effective length of an antenna
     df: float
         the size of a frequency bin
-    
+
     Returns: float (the group delay)
-        
+
 
     """
     return -np.diff(np.unwrap(np.angle(vector_effective_length))) / df / units.ns / 2 / np.pi
@@ -123,7 +123,7 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
         which antenna (one or two) to pull from
     s_parameters: list of 2 ints
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
-        
+
     Returns: all parameters of the files
     """
     boresight, tines = np.loadtxt(orientation, delimiter=',')
@@ -193,7 +193,7 @@ def preprocess_WIPLD_old(path, gen_num=1, s_paramateres=[1, 1]):
         which antenna (one or two) to pull from
     s_parameters: list of 2 ints
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
-        
+
     Returns:
         * zen_boresight: zenith angle of the boresight direction of the antenna
         * azi_boresight: azimuth angle of the boresight direction of the antenna
@@ -269,7 +269,7 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
         which antenna (one or two) to pull from
     s_parameters: list of 2 ints
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
-        
+
     Returns:
         * zen_boresight: zenith angle of the boresight direction of the antenna
         * azi_boresight: azimuth angle of the boresight direction of the antenna
@@ -340,7 +340,7 @@ def save_preprocessed_WIPLD(path):
 def save_preprocessed_WIPLD_forARA(path):
     """
     this function saves the realized gain in an ARASim readable format
-    
+
     Parameters
     ----------
     path: string
@@ -397,7 +397,7 @@ def get_WIPLD_antenna_response(path):
     opens and return the pickle file containing the preprocessed WIPL-D antenna simulation
     If the pickle file is not present on the local file system, or if the file is outdated (verified via a sha1 hash sum),
     the file will be downloaded from a central data server
-    
+
 
     Parameters:
     ----------
@@ -451,7 +451,7 @@ def get_WIPLD_antenna_response(path):
             raise IOError
         with open(path, "wb") as code:
             code.write(r.content)
-        logger.info("...download finished.")
+        logger.warning("...download finished.")
 
 #         # does not exist yet -> precalculating WIPLD simulations from raw WIPLD output
 #         preprocess_WIPLD(path)
@@ -468,7 +468,7 @@ def parse_ARA_file(ara):
     ----------
     ara: string
         path to the file
-    
+
     Returns:
         * ff: array of floats
             frequencies
@@ -525,7 +525,7 @@ def parse_ARA_file(ara):
 def preprocess_ARA(path):
     """
     preprocess an antenna pattern in the ARASim ASCII file format. The vector effective length is calculated and
-    the output is saved to the NuRadioReco pickle format. 
+    the output is saved to the NuRadioReco pickle format.
 
     Parameters:
     ----------
@@ -552,7 +552,7 @@ def preprocess_ARA(path):
 def preprocess_XFDTD(path):
     """
     preprocess an antenna pattern in the XFDTD file format. The vector effective length is calculated and
-    the output is saved to the NuRadioReco pickle format. 
+    the output is saved to the NuRadioReco pickle format.
 
     Parameters:
     ----------
@@ -1033,8 +1033,8 @@ class AntennaPatternProvider(object):
     def __init__(self):
         """
         Provider class for antenna pattern. The usage of antenna pattern through this class ensures
-        that an antenna pattern is loaded only once into memory which takes a significant time and occupies a 
-        significant amount of memory. 
+        that an antenna pattern is loaded only once into memory which takes a significant time and occupies a
+        significant amount of memory.
         """
         self._open_antenna_patterns = {}
         self._antenna_model_replacements = {}
@@ -1048,13 +1048,13 @@ class AntennaPatternProvider(object):
     def load_antenna_pattern(self, name, **kwargs):
         """
         loads an antenna pattern and returns the antenna pattern class
-        
+
         Paramters
         ----------
         name: string
             the name of the antenna pattern
         **kwargs: dict
-            key word arguments that are passed to the init function of the `AntennaPattern` class (see 
+            key word arguments that are passed to the init function of the `AntennaPattern` class (see
             documentation of this class for further information)
         """
         if(name in self._antenna_model_replacements.keys()):
