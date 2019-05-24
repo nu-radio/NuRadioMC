@@ -173,6 +173,7 @@ class simulation():
             # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
             # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
             if not self._is_in_fiducial_volume():
+                logger.debug("event is not in fiducial volume, skipping simulation")
                 continue
 
             # calculate weight
@@ -414,6 +415,20 @@ class simulation():
               "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
 
     def _is_in_fiducial_volume(self):
+        """
+        checks wether a vertex is in the fiducial volume
+        
+        if the fiducial volume is not specified in the input file, True is returned (this is required for the simulation
+        of pulser calibration measuremens)
+        """
+        tt = ['fiducial_rmin', 'fiducial_rmax', 'fiducial_zmin', 'fiducial_zmax']
+        has_fiducial = True
+        for t in tt:
+            if(not t in self._fin_attrs):
+                has_fiducial = False
+        if(not has_fiducial):
+            return True
+        
         r = (self._x**2 + self._y**2)**0.5
         if(r >= self._fin_attrs['fiducial_rmin'] and r <= self._fin_attrs['fiducial_rmax']):
             if(self._z >= self._fin_attrs['fiducial_zmin'] and self._z <= self._fin_attrs['fiducial_zmax']):
