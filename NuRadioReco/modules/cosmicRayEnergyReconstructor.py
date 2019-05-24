@@ -8,6 +8,7 @@ import radiotools.helper as hp
 import radiotools.coordinatesystems
 import radiotools.atmosphere.models
 logger = logging.getLogger('cosmicRayEnergyReconstructor')
+logging.basicConfig()
 
 class cosmicRayEnergyReconstructor:
     """
