@@ -7,9 +7,7 @@ from scipy import signal
 import argparse
 from datetime import datetime
 import pickle
-import ROOT
-ROOT.gROOT.SetBatch(True)
-ROOT.std.__file__ = 'ROOT.std.py'
+import os 
 
 from NuRadioReco.utilities import units
 import NuRadioReco.detector.detector as detector
@@ -202,6 +200,8 @@ for evt in eventReader.run():
             fig.suptitle("reconstructed electric field d = {:.0f}m".format(d))
             fig.tight_layout()
             fig.subplots_adjust(top=0.9)
+            if(not os.path.exists("plots/efields")):
+                os.makedirs("plots/efields")
             fig.savefig("plots/efields/d_{:04.0f}m.png".format(d))
             plt.close("all")
 #             a = 1/0
