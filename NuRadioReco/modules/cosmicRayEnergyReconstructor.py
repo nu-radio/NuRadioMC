@@ -13,7 +13,7 @@ class cosmicRayEnergyReconstructor:
     """
     Reconstructs the energy of an air shower from its radio signal
     Requires the following modules to be run beforehand:
-        - a bandpass filter with passband 80-300 MHz
+        - a 10th order Butterworth bandpass filter with passband 80-300 MHz
         - a direction reconstruction
         - the voltageToAnalyticEfieldConverter
     """
