@@ -5,12 +5,13 @@ import datetime
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelGenericNoiseAdder
+import NuRadioReco.modules.triggerTimeAdjuster
 import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation2 as simulation
 import logging
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("runstrawman")
 
 # initialize detector sim modules
@@ -20,6 +21,7 @@ channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
+triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
 triggerSimulator.begin(log_level=logging.WARNING)
 
 class mySimulation(simulation.simulation):
@@ -48,8 +50,9 @@ class mySimulation(simulation.simulation):
                            high_low_window=5 * units.ns,
                            coinc_window=30 * units.ns,
                            number_concidences=2,
-                           triggered_channels=range(8),
-                           cut_trace=True)
+                           triggered_channels=range(8))
+        triggerTimeAdjuster.run(self._evt, self._station, self._det)
+        
 #         self._station.set_triggered(True)
                 
         # downsample trace back to detector sampling rate
@@ -74,7 +77,7 @@ sim = mySimulation(eventlist=args.inputfilename,
                             detectorfile=args.detectordescription,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
                             config_file=args.config,
-                            log_level=logging.INFO,
+                            log_level=logging.DEBUG,
                             evt_time=datetime.datetime(2018, 12, 30))
 sim.run()
 
