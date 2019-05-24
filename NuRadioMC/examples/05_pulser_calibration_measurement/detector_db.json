@@ -1582,6 +1582,7 @@
             "pos_easting": 41153.2175,
             "pos_measurement_time": "{TinyDate}:2018-01-25T00:00:00",
             "pos_northing": 50381.75,
+            "pos_zone": "SP-grid",
             "pos_position": "SP1",
             "pos_site": "southpole",
             "position": "SP1",
