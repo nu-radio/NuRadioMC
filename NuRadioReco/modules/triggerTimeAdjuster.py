@@ -8,6 +8,10 @@ class triggerTimeAdjuster:
     """
     Modifies channel traces to simulate the effects of the trigger
     """
+    
+    def __init__(self):
+        self.begin()
+    
     def begin(self, trigger_name=None, pre_trigger_time = 50.*units.ns):
         """
         Setup
@@ -27,16 +31,15 @@ class triggerTimeAdjuster:
         self.__pre_trigger_time = pre_trigger_time
     
     def run(self, event, station, detector):
-        if self.__trigger_name is None:
+        trigger = None
+        if self.__trigger_name is not None:
             trigger = station.get_trigger(self.__trigger_name)
         else:
             min_trigger_time = None
             for trig in station.get_triggers().values():
-                continue
                 if min_trigger_time is None or trig.get_trigger_time() < min_trigger_time:
-                    min_trigger_time = trig.get_trigger()
+                    min_trigger_time = trig.get_trigger_time()
                     trigger = trig
-        return
         if trigger is None:
             logger.warning('No trigger found! Channel timings will not be changed.') 
             return
