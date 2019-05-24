@@ -161,10 +161,11 @@ for evt in eventReader.run():
                 if not cid in range(8):
                     continue
                 tt = channel.get_times() #+ channel.get_trace_start_time()
+                tt -= tt[0]
                 ax[cid].plot(tt/units.ns, channel.get_trace()/units.mV, lw=1)
 #                 ax[cid].plot(tt/units.ns, channel.get_trace()[2]/units.mV)
 #                 ax[cid].axvline(channel[efp.signal_time] + channel.get_trace_start_time())
-                ax[cid].set_xlim(10, 80)
+                ax[cid].set_xlim(10, 150)
                 ax[cid].set_title("channel {}".format(cid), fontsize='xx-small')
             ax[3].set_xlabel("time [ns]")
             ax[7].set_xlabel("time [ns]")
@@ -179,12 +180,14 @@ for evt in eventReader.run():
                 if not eid in range(8):
                     continue
                 tt = efield.get_times() #+ efield.get_trace_start_time()
+                t0 = tt[0]
+                tt -= t0
                 ax[eid].plot(tt/units.ns, efield.get_trace()[1]/units.mV, lw=1, label='rec')
                 ax[eid].plot(tt/units.ns, np.abs(signal.hilbert(efield.get_trace()[1]))/units.mV, '--', lw=1)
                 
 #                 ax[eid].plot(tt/units.ns, efield.get_trace()[2]/units.mV)
-                ax[eid].axvline(efield[efp.signal_time], linestyle='--', lw=1)
-                ax[eid].set_xlim(10, 80)
+                ax[eid].axvline(efield[efp.signal_time] - t0, linestyle='--', lw=1)
+                ax[eid].set_xlim(10, 150)
             # add simulated efields
             for efield in station.get_sim_station().get_electric_fields():
                 eid = efield.get_channel_ids()[0]
