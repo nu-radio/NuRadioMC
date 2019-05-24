@@ -10,7 +10,7 @@ import pickle
 from NuRadioReco.utilities import units
 from radiotools import plthelpers as php
 
-i = 1
+i = 2
 
 with open("sim_results_{:02d}.pkl".format(i), 'r') as fin:
     results = pickle.load(fin)
