@@ -355,7 +355,11 @@ double get_delta_y(double C0, double x1[2], double x2[2], double n_ice, double d
 	}
 	double y_turn = get_y(gamma_turn,C0,C1, n_ice, delta_n, z_0);
 	if(z_turn < x2[1]){ //turning points is deeper than x2 positions, can't reach target
-		return -inf;
+		// the minimizer has problems finding the minimum if inf is returned here. Therefore, we return the distance
+		// between the turning point and the target point + 10 x the distance between the z position of the turning points
+		// and the target position. This results in a objective function that has the solutions as the only minima and
+		// is smooth in C_0
+		return -(pow(pow(z_turn - x2[1], 2) + pow(y_turn - x2[0], 2), 0.5) + 10 * fabs(z_turn - x2[1]));
 	}
 	if(y_turn > x2[0]){//always propagate from left to right
 		//direct ray
