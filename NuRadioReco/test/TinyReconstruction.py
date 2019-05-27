@@ -60,13 +60,15 @@ template_path: str
 
 """
 
+dir_path = os.path.dirname(os.path.realpath(__file__)) # get the directory of this file
+
 try:
     station_id = int(sys.argv[1])  # specify station id
     input_file = sys.argv[2] # file with coreas simulations
 except:
     print("Usage: python FullReconstruction.py station_id input_file detector templates")
     station_id = 32
-    input_file = "../examples/example_data/example_event.h5"
+    input_file = os.path.join(dir_path, "../examples/example_data/example_event.h5")
     print("Using default station {}".format(32))
 
 if(station_id == 32):
@@ -82,13 +84,13 @@ try:
     print("Using {0} as detector ".format(detector_file))
 except:
     print("Using default file for detector")
-    detector_file = '../examples/example_data/arianna_detector_db.json'
+    detector_file = os.path.join(dir_path,"../examples/example_data/arianna_detector_db.json")
 
-
+print detector_file
 det = detector.Detector(json_filename=detector_file) # detector file
 det.update(datetime.datetime(2018, 10, 1))
 
-dir_path = os.path.dirname(os.path.realpath(__file__)) # get the directory of this file
+
 
 # initialize all modules that are needed for processing
 # provide input parameters that are to remain constant during processung
