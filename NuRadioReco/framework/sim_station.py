@@ -17,7 +17,7 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
         self.__magnetic_field_vector = None
         self.__simulation_weight = None
         if(trace is not None and sampling_rate is not None):
-            self.set_trace(trace, sampling_rate)
+            self.set_electric_fields(trace, sampling_rate)
 
     def get_position(self):
         return self.__position
