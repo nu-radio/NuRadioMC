@@ -16,9 +16,8 @@ before_script:
   - export PYTHONPATH=$PYTHONPATH:$PWD/NuRadioMC
   - export PYTHONPATH=$PYTHONPATH:$PWD
  - wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
- - mkdir -p
-/home/travis/build/nu-radio/NuRadioReco/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
- - mv createLPDA_100MHz_InfFirn.pkl /home/travis/build/nu-radio/NuRadioReco/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
+ - mkdir -p /home/travis/build/nu-radio/NuRadioReco/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
+ - mv createLPDA_100MHz_InfFirn.pkl  /home/travis/build/nu-radio/NuRadioReco/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
  - wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/bicone_v8_InfFirn/bicone_v8_InfFirn.pkl
  - mkdir -p /home/travis/build/nu-radio/NuRadioReco/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
  - mv bicone_v8_InfFirn.pkl /home/travis/build/nu-radio/NuRadioReco/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
