@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import numpy as np
 import os, scipy, sys
 import copy
