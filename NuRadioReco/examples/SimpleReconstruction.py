@@ -2,6 +2,7 @@ import logging
 import numpy as np
 import argparse
 import matplotlib.pyplot as plt
+import datetime
 
 from NuRadioReco.utilities import units
 import NuRadioReco.detector.detector as detector
@@ -29,18 +30,19 @@ args = parser.parse_args()
 
 # read in detector positions (this is a dummy detector)
 det = detector.Detector(json_filename=args.detectordescription)
+det.update(datetime.datetime(2018, 10, 1))
 station_id = 101
 
 # initialize modules
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-channelTemplateCorrelation = NuRadioReco.modules.channelTemplateCorrelation.channelTemplateCorrelation()
+#channelTemplateCorrelation = NuRadioReco.modules.channelTemplateCorrelation.channelTemplateCorrelation("example_data/templates")
 voltageToEfieldConverter = NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter()
 eventReader = NuRadioReco.modules.io.eventReader.eventReader()
 
 # Name outputfile
-output_filename = "Simple_reconstruction_results.ari"
+output_filename = "Simple_reconstruction_results.nur"
 eventReader.begin(args.inputfilename)
-channelTemplateCorrelation.begin(debug=False)
+# channelTemplateCorrelation.begin(debug=False)
 voltageToEfieldConverter.begin()
 eventWriter.begin(output_filename, max_file_size=1000)
 
@@ -57,7 +59,7 @@ for iE, event in enumerate(eventReader.run()):
         station.set_parameter(stnp.zenith, starting_zenith)
         station.set_parameter(stnp.azimuth, starting_azimuth)
 
-        voltageToEfieldConverter.run(event, station, det)
+        voltageToEfieldConverter.run(event, station, det,use_channels=[0, 1, 2])
 
 #         for ch, channel in enumerate(station.get_channels()):
 #             logger.info("Channel ID {}".format(channel.get_id()))
