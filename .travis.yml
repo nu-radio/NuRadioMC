@@ -1,0 +1,26 @@
+language: python
+python:
+  - '2.7'
+
+install:
+    pip install -r NuRadioReco/test/requirements.txt
+
+before_script:
+  - wget https://github.com/nu-radio/radiotools/archive/master.zip -O /tmp/radiotools.zip
+  - unzip /tmp/radiotools.zip
+  - mv radiotools-master radiotools
+  - export PYTHONPATH=$PWD/radiotools
+  - wget https://github.com/nu-radio/NuRadioMC/archive/master.zip -O /tmp/NuRadioMC.zip
+  - unzip /tmp/NuRadioMC.zip
+  - mv NuRadioMC-master NuRadioMC
+  - export PYTHONPATH=$PYTHONPATH:$PWD/NuRadioMC
+  - export PYTHONPATH=$PYTHONPATH:$PWD
+  - wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
+  - mkdir -p /home/travis/build/nu-radio/NuRadioReco/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
+  - mv createLPDA_100MHz_InfFirn.pkl /home/travis/build/nu-radio/NuRadioReco/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
+# - wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/bicone_v8_InfFirn/bicone_v8_InfFirn.pkl
+# - mkdir -p /home/travis/build/nu-radio/NuRadioReco/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
+# - mv bicone_v8_InfFirn.pkl /home/travis/build/nu-radio/NuRadioReco/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
+
+script:
+  - NuRadioReco/test/TinyReconstruction.py
