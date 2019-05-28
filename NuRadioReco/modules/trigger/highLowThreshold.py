@@ -32,6 +32,7 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     """
     n_bins_coincidence = np.int(np.round(time_coincidence / dt)) + 1
     c = np.ones(n_bins_coincidence, dtype=np.bool)
+    logger.debug("length of trace {} bins, coincidence window {} bins".format(len(trace), len(c)))
 
     c2 = np.array([1,-1])
     m1 = np.convolve(trace > high_threshold, c, mode='same')
