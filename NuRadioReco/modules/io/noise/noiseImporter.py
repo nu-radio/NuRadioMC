@@ -46,7 +46,7 @@ class noiseImporter:
         log_level: loggging log level
             the log level, default logging.WARNING
         """
-        logger.set_level(log_level)
+        logger.setLevel(log_level)
         self.__channel_mapping = channel_mapping
         if(noise_files is not None):
             self.__noise_files = noise_files
