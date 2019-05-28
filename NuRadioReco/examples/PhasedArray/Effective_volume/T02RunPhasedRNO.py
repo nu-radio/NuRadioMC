@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 import argparse
 # import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverter
-import NuRadioReco.modules.triggerSimulator
+import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.phasedarray.triggerSimulator
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
@@ -39,7 +39,7 @@ triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimul
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-thresholdSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
+thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
 main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
