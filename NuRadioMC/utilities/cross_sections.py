@@ -1,5 +1,6 @@
 import numpy as np
 from NuRadioMC.utilities import units
+from scipy.interpolate import interp1d
 
 
 def param(energy, inttype='cc'):
@@ -26,6 +27,115 @@ def param(energy, inttype='cc'):
     l_eps = np.log(epsilon - c[0])
     crscn = c[1] + c[2] * l_eps + c[3] * l_eps**2 + c[4]/l_eps
     crscn = np.power(10,crscn) * units.cm**2
+    return crscn
+
+
+def csms(energy, inttype, flavors):
+    """
+    Neutrino cross sections according to
+    Amanda Cooper-Sarkar, Philipp Mertsch, Subir Sarkar
+    JHEP 08 (2011) 042
+    """
+    if type(inttype) == str:
+        inttype = np.array([inttype]*energy.shape[0])
+
+    if ( type(flavors) == int or type(flavors) == np.int64 ):
+        flavors = np.array([flavors]*energy.shape[0])
+
+    neutrino = np.array((
+        [50,0.32,0.10],
+        [100,0.65,0.20],
+        [200,1.3,0.41],
+        [500,3.2,1.0],
+        [1000,6.2,2.0],
+        [2000,12.,3.8],
+        [5000,27.,8.6],
+        [10000,47.,15.],
+        [20000,77.,26.],
+        [50000,140.,49.],
+        [100000,210.,75.],
+        [200000,310.,110.],
+        [500000,490.,180.],
+        [1e6,690.,260.],
+        [2e6,950.,360.],
+        [5e6,1400.,540.],
+        [1e7,1900.,730.],
+        [2e7,2600.,980.],
+        [5e7,3700.,1400.],
+        [1e8,4800.,1900.],
+        [2e8,6200.,2400.],
+        [5e8,8700.,3400.],
+        [1e9,11000.,4400.],
+        [2e9,14000.,5600.],
+        [5e9,19000.,7600.],
+        [1e10,24000.,9600.],
+        [2e10,30000.,12000.],
+        [5e10,39000.,16000.],
+        [1e11,48000.,20000.],
+        [2e11,59000.,24000.],
+        [5e11,75000.,31000.]
+        ))
+
+    neutrino[:,0] *= units.GeV
+    neutrino[:,1] *= units.picobarn #CC
+    neutrino[:,2] *= units.picobarn #NC
+
+    neutrino_cc = interp1d(neutrino[:,0], neutrino[:,1],bounds_error=True)
+    neutrino_nc = interp1d(neutrino[:,0], neutrino[:,2],bounds_error=True)
+
+    antineutrino = np.array((
+        [50,0.15,0.05],
+        [100,0.33,0.12],
+        [200,0.69,0.24],
+        [500,1.8,0.61],
+        [1000,3.6,1.20],
+        [2000,7.,2.4],
+        [5000,17.,5.8],
+        [10000,31.,11.],
+        [20000,55.,19.],
+        [50000,110.,39.],
+        [100000,180.,64.],
+        [200000,270.,99.],
+        [500000,460.,170.],
+        [1e6,660.,240.],
+        [2e6,920.,350.],
+        [5e6,1400.,530.],
+        [1e7,1900.,730.],
+        [2e7,2500.,980.],
+        [5e7,3700.,1400.],
+        [1e8,4800.,1900.],
+        [2e8,6200.,2400.],
+        [5e8,8700.,3400.],
+        [1e9,11000.,4400.],
+        [2e9,14000.,5600.],
+        [5e9,19000.,7600.],
+        [1e10,24000.,9600.],
+        [2e10,30000.,12000.],
+        [5e10,39000.,16000.],
+        [1e11,48000.,20000.],
+        [2e11,59000.,24000.],
+        [5e11,75000.,31000.]
+    ))
+
+    antineutrino[:,0] *= units.GeV
+    antineutrino[:,1] *= units.picobarn #CC
+    antineutrino[:,2] *= units.picobarn #NC
+
+    antineutrino_cc = interp1d(antineutrino[:,0], antineutrino[:,1],bounds_error=True)
+    antineutrino_nc = interp1d(antineutrino[:,0], antineutrino[:,2],bounds_error=True)
+
+    crscn = np.zeros_like(energy)
+
+    particles_cc = np.where((flavors >= 0) & (inttype == 'cc'))
+    particles_nc = np.where((flavors >= 0) & (inttype == 'nc'))
+    antiparticles_cc = np.where((flavors < 0) & (inttype == 'cc'))
+    antiparticles_nc = np.where((flavors < 0) & (inttype == 'nc'))
+#
+    crscn[particles_cc] = neutrino_cc(energy[particles_cc])
+    crscn[particles_nc] = neutrino_nc(energy[particles_nc])
+    crscn[antiparticles_cc] = antineutrino_cc(energy[antiparticles_cc])
+    crscn[antiparticles_nc] = antineutrino_nc(energy[antiparticles_nc])
+
     return crscn
 
 
@@ -57,6 +167,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type = 
                  only one cross-section for all interactions and flavors
         ctw    : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
                  cross-sections for all interaction types and flavors
+        csms   : A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
     """
 
 
@@ -65,21 +176,21 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type = 
 
     elif cross_section_type == 'ctw':
         crscn = np.zeros_like(energy)
-        if inttype == 'total':
+        if type(inttype) == str:
+            if inttype == 'total':
 
-            if ( type(flavors) == int or type(flavors) == np.int64 ):
-                if flavors >= 0:
-                    crscn = param(energy,'nc') + param(energy,'cc')
+                if ( type(flavors) == int or type(flavors) == np.int64 ):
+                    if flavors >= 0:
+                        crscn = param(energy,'nc') + param(energy,'cc')
+                    else:
+                        crscn = param(energy,'nc_bar') + param(energy,'cc_bar')
                 else:
-                    crscn = param(energy,'nc_bar') + param(energy,'cc_bar')
-            else:
-                antiparticles = np.where(flavors < 0)
-                particles = np.where(flavors >= 0)
+                    antiparticles = np.where(flavors < 0)
+                    particles = np.where(flavors >= 0)
 
-                crscn[particles] = param(energy[particles],'nc') + param(energy[particles],'cc')
-                crscn[antiparticles] = param(energy[antiparticles],'nc_bar') + param(energy[antiparticles],'cc_bar')
+                    crscn[particles] = param(energy[particles],'nc') + param(energy[particles],'cc')
+                    crscn[antiparticles] = param(energy[antiparticles],'nc_bar') + param(energy[antiparticles],'cc_bar')
 
-        else:
             if (inttype == 'cc') or (inttype =='nc'):
                 if ( type(flavors) == int or type(flavors) == np.int64 ):
                     crscn = param(energy,inttype)
@@ -88,7 +199,8 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type = 
                     particles = np.where(flavors >= 0)
                     crscn[particles] = param(energy[particles],inttype)
                     crscn[antiparticles] = param(energy[antiparticles],inttype)
-            else:
+        else:
+
                 if ( type(flavors) == int or type(flavors) == np.int64 ):
 
                     particles_cc = np.where(inttype == 'cc')
@@ -112,15 +224,40 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type = 
                     crscn[antiparticles_cc] = param(energy[antiparticles_cc],'cc_bar')
                     crscn[antiparticles_nc] = param(energy[antiparticles_nc],'nc_bar')
 
+    elif cross_section_type == 'csms':
+        crscn = csms(energy, inttype, flavors)
+
+    else:
+        logger.error("Cross-section {} not defined".format(cross_section_type))
+        raise NotImplementedError
+
     return crscn
 
 
 if __name__=="__main__":  # this part of the code gets only executed it the script is directly called
 
-    inttype = np.array(['nc','cc','nc','nc'])
+    inttype = np.array(['cc']*10)
 
-    flavors = np.array([14,16,-14,15])
+#     inttype = 'cc'
 
-    energy = np.array([1e18,1e17,1e19,2e17])*units.eV
+    flavors = np.array([14]*10)
 
-    print(get_nu_cross_section(energy, flavors))
+#     flavors = 14
+
+    energy = np.array([1e12,1e14,1e16,2e17,6e17,1e18,5e18,9e18,1e19,1e20])*units.eV
+
+    cc = get_nu_cross_section(energy, flavors,inttype=inttype)/units.picobarn
+
+    cc_new = get_nu_cross_section(energy, flavors, inttype=inttype, cross_section_type = 'csms')/units.picobarn
+
+    import matplotlib.pyplot as plt
+
+    plt.figure()
+    plt.loglog(energy/units.GeV,cc,label='CTW')
+    plt.loglog(energy/units.GeV,cc_new,label='CSMS')
+    plt.xlabel("Energy [GeV]")
+    plt.ylabel("CC [pb]")
+    plt.legend()
+
+
+    plt.show()
