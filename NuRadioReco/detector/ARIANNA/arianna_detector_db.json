@@ -1678,7 +1678,7 @@
             "cab_type": "LMR_400",
             "channel_id": 2,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2018-11-25T03:00:00",
+            "decommission_time": "{TinyDate}:2018-11-26T03:00:00",
             "station_id": 52
         },
         "64": {
@@ -1706,7 +1706,7 @@
             "cab_type": "LMR_400",
             "channel_id": 3,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "decommission_time": "{TinyDate}:2018-11-25T03:00:00",
+            "decommission_time": "{TinyDate}:2018-11-26T03:00:00",
             "station_id": 52
         },
         "65": {
@@ -1902,7 +1902,7 @@
             "cab_type": "LMR_240",
             "channel_id": 7,
             "commission_time": "{TinyDate}:2018-11-15T00:00:00",
-            "decommission_time": "{TinyDate}:2018-11-25T03:00:00",
+            "decommission_time": "{TinyDate}:2018-11-26T03:00:00",
             "station_id": 52
         },
         "71": {
@@ -1930,7 +1930,7 @@
             "cab_type": "LMR_240",
             "channel_id": 6,
             "commission_time": "{TinyDate}:2018-11-21T13:00:00",
-            "decommission_time": "{TinyDate}:2018-11-25T03:00:00",
+            "decommission_time": "{TinyDate}:2018-11-26T03:00:00",
             "station_id": 52
         },
         "72": {
@@ -1957,7 +1957,7 @@
             "cab_time_delay": 41.0,
             "cab_type": "LMR_240",
             "channel_id": 3,
-            "commission_time": "{TinyDate}:2018-11-25T03:00:00",
+            "commission_time": "{TinyDate}:2018-11-26T03:00:00",
             "decommission_time": "{TinyDate}:2038-11-15T00:00:00",
             "station_id": 52
         },
@@ -1985,7 +1985,7 @@
             "cab_time_delay": 53.4,
             "cab_type": "LMR_240",
             "channel_id": 2,
-            "commission_time": "{TinyDate}:2018-11-25T03:00:00",
+            "commission_time": "{TinyDate}:2018-11-26T03:00:00",
             "decommission_time": "{TinyDate}:2032-11-25T03:00:00",
             "station_id": 52
         },
@@ -2013,7 +2013,7 @@
             "cab_time_delay": 27.2,
             "cab_type": "LMR_400",
             "channel_id": 6,
-            "commission_time": "{TinyDate}:2018-11-25T03:00:00",
+            "commission_time": "{TinyDate}:2018-11-26T03:00:00",
             "decommission_time": "{TinyDate}:2032-11-15T00:00:00",
             "station_id": 52
         },
@@ -2041,7 +2041,7 @@
             "cab_time_delay": 27.4,
             "cab_type": "LMR_400",
             "channel_id": 7,
-            "commission_time": "{TinyDate}:2018-11-25T03:00:00",
+            "commission_time": "{TinyDate}:2018-11-26T03:00:00",
             "decommission_time": "{TinyDate}:2032-11-15T00:00:00",
             "station_id": 52
         },
