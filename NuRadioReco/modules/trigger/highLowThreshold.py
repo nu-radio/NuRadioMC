@@ -154,9 +154,11 @@ class triggerSimulator:
                 triggerd_bins = get_high_low_triggers(trace, threshold_high, threshold_low,
                                                       high_low_window, dt)
                 triggerd_bins_channels.append(triggerd_bins)
+                logger.debug("channel {}, len(triggerd_bins) = {}".format(channel_id, len(triggerd_bins)))
 
             has_triggered, triggered_bins, triggered_times = get_majority_logic(
                 triggerd_bins_channels, number_concidences, coinc_window, dt)
+            logger.debug("len(triggerd_bins) = {}".format(len(triggered_bins)))
             # set maximum signal aplitude
             max_signal = 0
             if(has_triggered):
