@@ -66,10 +66,10 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     """
     n = len(tts[0])
     n_bins_coincidence = np.int(np.round(time_coincidence / dt)) + 1
-    c = np.ones(n_bins_coincidence, dtype=np.bool)
-    if(c > n): # reduce coincidence window to maximum trace length
-        c = n
+    if(n_bins_coincidence > n): # reduce coincidence window to maximum trace length
+        n_bins_coincidence = n
         logger.debug("specified coincidence window longer than tracelenght, reducing coincidence window to trace length")
+    c = np.ones(n_bins_coincidence, dtype=np.bool)
 
     for i in range(len(tts)):
         logger.debug("get_majority_logic() length of trace {} bins, coincidence window {} bins".format(len(tts[i]), len(c)))
