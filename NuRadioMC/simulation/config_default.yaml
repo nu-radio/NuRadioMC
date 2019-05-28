@@ -1,6 +1,6 @@
 weights:
   weight_mode: core_mantle_crust # core_mantle_crust: use the three layer earth model, which considers the different densities of the core, mantle and crust. simple: use the simple earth model, which apply a constant earth density
-  cross_section_type: ctw # neutrino cross section: ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998, ctw    : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
+  cross_section_type: ctw # neutrino cross section: ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998, ctw    : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011)., csms: A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
 
 noise: False  # specify if simulation should be run with or without noise
 sampling_rate: 5.  # sampling rate in GHz used internally in the simulation. At the end the waveforms will be downsampled to the sampling rate specified in the detector description
