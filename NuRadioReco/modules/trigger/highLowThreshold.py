@@ -69,6 +69,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     c = np.ones(n_bins_coincidence, dtype=np.bool)
 
     for i in range(len(tts)):
+        logger.debug("get_majority_logic() length of trace {} bins, coincidence window {} bins".format(len(tts[i]), len(c)))
         tts[i] = np.convolve(tts[i],  c, mode='same')
     tts = np.sum(tts, axis=0)
     ttt = tts >= number_of_coincidences
