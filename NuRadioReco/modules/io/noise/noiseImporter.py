@@ -92,7 +92,9 @@ class noiseImporter:
         noise_station = noise_event.get_station(station_id)
         if noise_station is None:
             raise KeyError('Station whith ID {} not found in noise file'.format(station_id))
-        logger.info("choosing noise event {} ({}) randomly".format(i_noise, noise_station.get_station_time()))
+        logger.info("choosing noise event {} ({}, run {}, event {}) randomly".format(i_noise, noise_station.get_station_time(),
+                                                                                     noise_event.get_run_number(),
+                                                                                     noise_event.get_event_id()))
 
         for channel in station.iter_channels():
             channel_id = channel.get_id()
