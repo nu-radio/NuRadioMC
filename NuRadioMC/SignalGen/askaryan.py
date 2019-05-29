@@ -46,7 +46,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
         * ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information
         * Alvarez2000: parameterization based on ZHS mainly based on J. Alvarez-Muniz, R. A. V ́azquez, and E. Zas, Calculation methods for radio pulses from high energyshowers, Physical Review D62 (2000) https://doi.org/10.1103/PhysRevD.84.103003
         * Alvarez2009: parameterization based on ZHS from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas, Coherent cherenkov radio pulses fromhadronic showers up to EeV energies, Astroparticle Physics 35 (2012), no. 6 287 – 299 and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas, Thinned simulations of extremely energeticshowers in dense media for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111
-        * Hanson2017: analytic model from J. Hanson, A. Connolly Astroparticle Physics 91 (2017) 75-89
+        * HCRB2017: analytic model from J. Hanson, A. Connolly Astroparticle Physics 91 (2017) 75-89
         * ARZ2019 semi MC time domain model
     interp_factor: float or None
         controls the interpolation of the charge-excess profiles in the ARZ model
@@ -64,7 +64,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
     """
     if model in par.get_parametrizations():
         return par.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model)
-    elif(model == 'Hanson2017'):
+    elif(model == 'HCRB2017'):
         from NuRadioMC.SignalGen.RalstonBuniy import askaryan_module
         is_em_shower = None
         if(shower_type == "HAD"):
