@@ -1,3 +1,5 @@
+#!/bin/bash
+cd "$(dirname "$0")"
 cd CPPAnalyticRayTracing
 rm wrapper.so  # first delete already existing module
 if [[ -z "${GSLDIR}" ]]; then
