@@ -2361,9 +2361,9 @@
         },
         "17": {
             "pos_altitude": -18.15,
-            "pos_easting": 501280.8322,
+            "pos_easting": 501243.52492649,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
-            "pos_northing": 1258879.538,
+            "pos_northing": 1258865.10999449,
             "pos_position": "X_HB",
             "pos_site": "mooresbay",
             "pos_zone": "UTM-58S"
