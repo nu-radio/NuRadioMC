@@ -22,8 +22,18 @@ try:
     cpp_available = True
     print("using CPP version of ray tracer")
 except:
-    print("using python version of ray tracer")
-    cpp_available = False
+    print("trying to compile the CPP extension on-the-fly")
+    import subprocess
+    import os
+    subprocess.call(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 "install.sh"))
+    try:
+        from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
+        cpp_available = True
+        print("using CPP version of ray tracer")
+    except:
+        print("using python version of ray tracer")
+        cpp_available = False
 
 """
 analytic ray tracing solution
