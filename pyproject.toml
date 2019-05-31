@@ -9,3 +9,9 @@ author-email = "work@c-glaser.de"
 home-page = "https://github.com/nu-radio/NuRadioMC"
 classifiers = ["License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"]
 
+requires = [
+    "radiotools >=0.1.0",
+    "h5py",
+    "NuRadioReco >=0.1.0"
+]
+
