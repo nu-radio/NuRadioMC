@@ -1,0 +1,23 @@
+[build-system]
+requires = ["flit"]
+build-backend = "flit.buildapi"
+
+[tool.flit.metadata]
+module = "NuRadioReco"
+author = "Christian Glaser, Daniel Garcia, Anna Nelles, et al."
+author-email = "work@c-glaser.de"
+home-page = "https://github.com/nu-radio/NuRadioReco"
+classifiers = ["License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"]
+requires = [
+    "tinydb",
+    "tinydb-serialization",
+    "aenum",
+    "astropy",
+    "radiotools >=0.1.0",
+    "h5py",
+    "peakutils",
+]
+
+[tool.flit.metadata.requires-extra]
+doc = ["sphinx"]
+
