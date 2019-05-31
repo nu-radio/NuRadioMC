@@ -1,0 +1,11 @@
+[build-system]
+requires = ["flit"]
+build-backend = "flit.buildapi"
+
+[tool.flit.metadata]
+module = "NuRadioMC"
+author = "Christian Glaser, Daniel Garcia, Anna Nelles, et al."
+author-email = "work@c-glaser.de"
+home-page = "https://github.com/nu-radio/NuRadioMC"
+classifiers = ["License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"]
+
