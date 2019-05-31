@@ -26,7 +26,7 @@ class noiseImporter:
         self.__station_id = None
 
     def begin(self, noise_folder, station_id=None, noise_files=None,
-              channel_mapping=None):
+              channel_mapping=None, log_level=logging.WARNING):
         """
         Parameters
         ----------
@@ -43,7 +43,10 @@ class noiseImporter:
             have forced triggers for. The channel_mapping dictionary maps the channel
             ids of the MC station to the channel ids of the noise data
             Default is None which is 1-to-1 mapping
+        log_level: loggging log level
+            the log level, default logging.WARNING
         """
+        logger.setLevel(log_level)
         self.__channel_mapping = channel_mapping
         if(noise_files is not None):
             self.__noise_files = noise_files
@@ -89,7 +92,9 @@ class noiseImporter:
         noise_station = noise_event.get_station(station_id)
         if noise_station is None:
             raise KeyError('Station whith ID {} not found in noise file'.format(station_id))
-        logger.info("choosing noise event {} ({}) randomly".format(i_noise, noise_station.get_station_time()))
+        logger.info("choosing noise event {} ({}, run {}, event {}) randomly".format(i_noise, noise_station.get_station_time(),
+                                                                                     noise_event.get_run_number(),
+                                                                                     noise_event.get_id()))
 
         for channel in station.iter_channels():
             channel_id = channel.get_id()
