@@ -74,6 +74,7 @@ class readARIANNAData:
 
         self.config_tree.SetBranchAddress("ReadoutConfig.", self.readout_config)
         self.skipped_events = 0
+        self.skipped_events_stop = 0
 
         self.n_events = self.data_tree.GetEntries()
         self.__id_current_event = -1
@@ -184,6 +185,7 @@ class readARIANNAData:
                     station.add_channel(channel)
             else:
                 logger.warning(" Event {event} of run {run} is skipped, no stop point for rolling array!".format(event=evt_number,run=run_number))
+                self.skipped_events_stop += 1
                 continue
 
             station.set_ARIANNA_parameter(ARIpar.seq_num, seq_number)
@@ -220,3 +222,5 @@ class readARIANNAData:
     def end(self):
         if self.skipped_events > 0:
             logger.warning("Skipped {} events due to problems in config".format(self.skipped_events))
+        if self.skipped_events_stop > 0:
+            logger.warning("Skipped {} events due to problems in stop bit".format(self.skipped_events_stop))
