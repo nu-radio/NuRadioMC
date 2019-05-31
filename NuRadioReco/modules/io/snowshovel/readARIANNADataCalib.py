@@ -74,6 +74,7 @@ class readARIANNAData:
 
         self.config_tree.SetBranchAddress("ReadoutConfig.", self.readout_config)
         self.skipped_events = 0
+        self.skipped_events_stop = 0
 
         self.n_events = self.data_tree.GetEntries()
         self.__id_current_event = -1
@@ -174,16 +175,18 @@ class readARIANNAData:
             station.set_triggered(evt_triggered)
             stop = np.array(self.data_tree.RawData.GetStopSamples())
 
-            for iCh in xrange(nChan):
-                channel = NuRadioReco.framework.channel.Channel(iCh)
-                voltage = np.array(self.calwv.GetDataOnCh(iCh)) * units.mV
-                # Robert Lahmann 16-Nov-2018: Fix problem: "IndexError: index 0 is out of bounds for axis 0 with size 0"
-                if (stop.size!=0):
+            # skip events that don't have a proper information of the stop point
+            if (stop.size!=0):
+                for iCh in range(nChan):
+                    channel = NuRadioReco.framework.channel.Channel(iCh)
+                    voltage = np.array(self.calwv.GetDataOnCh(iCh)) * units.mV
                     voltage = np.roll(voltage, -stop[0])
                     channel.set_trace(voltage, self.sampling_rate)
                     station.add_channel(channel)
-                else:
-                    logger.warning(" Event {event} of run {run} is skipped, no stop point for rolling array!".format(event=evt_number,run=run_number))
+            else:
+                logger.warning(" Event {event} of run {run} is skipped, no stop point for rolling array!".format(event=evt_number,run=run_number))
+                self.skipped_events_stop += 1
+                continue
 
             station.set_ARIANNA_parameter(ARIpar.seq_num, seq_number)
             # read and save start and stop time of a sequence
@@ -219,3 +222,5 @@ class readARIANNAData:
     def end(self):
         if self.skipped_events > 0:
             logger.warning("Skipped {} events due to problems in config".format(self.skipped_events))
+        if self.skipped_events_stop > 0:
+            logger.warning("Skipped {} events due to problems in stop bit".format(self.skipped_events_stop))
