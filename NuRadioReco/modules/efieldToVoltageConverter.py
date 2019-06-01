@@ -188,14 +188,14 @@ class efieldToVoltageConverter:
                 azimuth = electric_field[efp.azimuth]
 
                 # get antenna pattern for current channel
-                try:
-                    VEL = trace_utilities.get_efield_antenna_factor(sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)[0]
-                except:
-                    logger.error("efieldToVoltageConverter cannot continue with unphysical values, VEL is None")
-                    VEL = None
+                VEL = trace_utilities.get_efield_antenna_factor(sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)
 
-                # Apply antenna response to electric field
-                voltage_fft = np.sum(VEL * np.array([efield_fft[1], efield_fft[2]]), axis=0)
+                if VEL is None: # this can happen if there is not signal path to the antenna
+                    voltage_fft = np.zeros_like(efield_fft[1])  # set voltage trace to zeros
+                else:
+                    # Apply antenna response to electric field
+                    VEL = VEL[0] # we only requested the VEL for one channel, so selecting it
+                    voltage_fft = np.sum(VEL * np.array([efield_fft[1], efield_fft[2]]), axis=0)
 
                 # Remove DC offset
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
