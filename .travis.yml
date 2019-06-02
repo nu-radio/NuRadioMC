@@ -2,9 +2,11 @@ language: python
 python:
   - '2.7'
 
+before_install:
+    sudo apt-get install libgsl-dev
+
 install:
     pip install -r NuRadioMC/test/requirements.txt
-    sudo apt-get install libgsl-dev
 
 before_script:
   - wget https://github.com/nu-radio/radiotools/archive/master.zip -O /tmp/radiotools.zip
