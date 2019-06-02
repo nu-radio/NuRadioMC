@@ -3,7 +3,7 @@ python:
   - '2.7'
 
 before_install:
-    sudo apt-get install libgsl-dev
+    apt-get install libgsl0ldbl
 
 install:
     pip install -r NuRadioMC/test/requirements.txt
