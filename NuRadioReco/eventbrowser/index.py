@@ -23,11 +23,13 @@ import argparse
 import dataprovider
 import logging
 import datetime
+import webbrowser
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('index')
 
 argparser = argparse.ArgumentParser(description="Starts the Event Display, which then can be accessed via a webbrowser")
 argparser.add_argument('file_location', type=str, help="Path of folder or filename.")
+argparser.add_argument('--open_window', const=True, default=False, action='store_const', help="Open the event display in a new browser tab on startup")
 
 parsed_args = argparser.parse_args()
 data_folder = os.path.dirname(parsed_args.file_location)
@@ -35,7 +37,8 @@ if os.path.isfile(parsed_args.file_location):
     starting_filename = [parsed_args.file_location]
 else:
     starting_filename = None
-    
+if parsed_args.open_window:
+    webbrowser.open('http://127.0.0.1:8080/')    
 
 app.css.append_css({"external_url": "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"})
 provider = dataprovider.DataProvider()
@@ -405,4 +408,4 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
 if __name__ == '__main__':
     if int(dash.__version__.split('.')[1]) < 39:
         print('WARNING: Dash version 0.39.0 or newer is required, you are running version {}. Please update.'.format(dash.__version__))
-    app.run_server(debug=True, port=8081)
+    app.run_server(debug=False, port=8080)
