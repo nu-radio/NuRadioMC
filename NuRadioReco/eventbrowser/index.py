@@ -32,7 +32,7 @@ argparser.add_argument('file_location', type=str, help="Path of folder or filena
 parsed_args = argparser.parse_args()
 data_folder = os.path.dirname(parsed_args.file_location)
 if os.path.isfile(parsed_args.file_location):
-    starting_filename = (parsed_args.file_location)
+    starting_filename = [parsed_args.file_location]
 else:
     starting_filename = None
     
@@ -62,8 +62,8 @@ app.layout = html.Div([
                 dcc.Dropdown(id='filename',
                              options=[],
                              multi=True,
-                             className='custom-dropdown',
-                             value=[starting_filename]),
+                             value=starting_filename,
+                             className='custom-dropdown'),
                  html.Div([
                     html.Button('open file', id='btn-open-file', className='btn btn-default')
                     ], className='input-group-btn'),
