@@ -29,7 +29,7 @@ logger = logging.getLogger('index')
 
 argparser = argparse.ArgumentParser(description="Starts the Event Display, which then can be accessed via a webbrowser")
 argparser.add_argument('file_location', type=str, help="Path of folder or filename.")
-argparser.add_argument('--open_window', const=True, default=False, action='store_const', help="Open the event display in a new browser tab on startup")
+argparser.add_argument('--open-window', const=True, default=False, action='store_const', help="Open the event display in a new browser tab on startup")
 argparser.add_argument('--port', default=8080, help="Specify the port the event display will run on")
 
 parsed_args = argparser.parse_args()
