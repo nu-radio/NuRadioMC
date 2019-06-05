@@ -1,5 +1,6 @@
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.trigger import HighLowTrigger
 from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 import numpy as np
 import time
