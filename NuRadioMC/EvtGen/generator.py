@@ -625,7 +625,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     spectrum: string
         defines the probability distribution for which the neutrino energies are generated
         * 'log_uniform': uniformly distributed in the logarithm of energy
-        * 'E-1': 1 over E spectrum
+        * 'E-?': E to the -? spectrum where ? can be any float
     add_tau_second_bang: bool
         if True simulate second vertices from tau decays
     tabulated_taus: bool
@@ -715,6 +715,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     # generate energies randomly
     if(spectrum == 'log_uniform'):
         data_sets["energies"] = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_events)
+    elif(spectrum.startswith("E-")):  # enerate an E^gamma spectrum.  
+        gamma = float(spectrum[1:])
+        Nmin = (Emin)**gamma
+        Nmax = (Emax)**gamma
+        def get_inverse_spectrum(N, gamma):
+            return np.exp(np.log(N)/gamma)
+        data_sets["energies"] = get_inverse_spectrum(np.random.uniform(Nmax, Nmin, size=n_events), gamma)
     else:
         logger.error("spectrum {} not implemented".format(spectrum))
         raise NotImplementedError("spectrum {} not implemented".format(spectrum))
