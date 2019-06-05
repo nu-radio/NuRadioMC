@@ -24,7 +24,8 @@ class readARIANNAData:
     """
 
     def begin(self, input_files, trigger_types=None, time_interval=None,
-              tree='AmpOutData', run_number=None, event_ids=None):
+              tree='AmpOutData', run_number=None, event_ids=None,
+              random_iterator=False):
         """
         read FPN and gain calibrated ARIANNA data (snowshovel data format)
 
@@ -51,6 +52,8 @@ class readARIANNAData:
             specify any combination of run and event ids, all other events will be skipped.
             key is the run id, values are the event ids
             Default is None which means that all events are read in
+        random_iterator: bool (default False)
+            if True walk through event in a random order
         """
         self.__trigger_types = trigger_types
         self.__time_interval = time_interval
@@ -77,6 +80,9 @@ class readARIANNAData:
         self.skipped_events_stop = 0
 
         self.n_events = self.data_tree.GetEntries()
+        self._evt_range = np.arange(self.n_events, dtype=np.int)
+        if(random_iterator):
+            np.random.shuffle(self._evt_range)
         self.__id_current_event = -1
 
         n_events_config = self.config_tree.GetEntries()
@@ -107,7 +113,7 @@ class readARIANNAData:
                 logger.warning("reading in event {}/{} ({:.0f}%) ETA: {:.1f} minutes".format(self.__id_current_event, self.n_events,
                                                                          100 * progress, eta))
 #             try:
-            self.data_tree.GetEntry(self.__id_current_event)
+            self.data_tree.GetEntry(self._evt_range[self.__id_current_event])
 
             evt_time = datetime.datetime.fromtimestamp(self.data_tree.EventHeader.GetUnixTime())
             if(self.__time_interval is not None):
