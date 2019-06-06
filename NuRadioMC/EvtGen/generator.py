@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from NuRadioMC.utilities import units
@@ -6,9 +7,8 @@ from six import iterkeys, iteritems
 from scipy import constants
 from scipy.integrate import quad
 from scipy.interpolate import interp1d
+import scipy.interpolate as interpolate
 from scipy.optimize import fsolve
-from scipy.interpolate import interp1d
-from scipy.interpolate import interp2d
 from scipy.interpolate import RectBivariateSpline
 import h5py
 import os
@@ -547,6 +547,54 @@ def primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity):
             return Edep/inelasticity
         elif (np.abs(flavor) == 16):
             return Edep/inelasticity # TODO: change this for taus
+        
+def ice_cube_nu_fit(energy, slope=-2.19, offset=1.01):
+    # from https://doi.org/10.22323/1.301.1005
+    # ApJ slope=-2.13, offset=0.9
+    flux = 3 * offset * (energy / (100 * units.TeV))**slope * 1e-18 * \
+        (units.GeV**-1 * units.cm**-2 * units.second**-1 * units.sr**-1)
+    return flux
+
+def get_GZK_1(energy):
+    """
+    model of (van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1) of the cosmogenic neutrino ﬂux
+    for a source evolution parameter of m = 3.4, 
+    a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
+    and a proton fraction of 10% at E = 10^19.6 eV
+    """
+    E, J = np.loadtxt(os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                                     '../examples/Sensitivities/ReasonableNeutrinos1.txt'))
+    E *= units.GeV
+    J *= units.GeV * units.cm**-2 * units.s**-1 * units.sr**-1 / E**2
+    get_flux = interpolate.interp1d(E, J, fill_value=0, bounds_error=False)
+    return get_flux(energy)
+
+def get_energy_from_flux(Emin, Emax, n_events, flux):
+    """
+    returns randomly distribution of energy according to a flux
+    
+    Parameters
+    ----------
+    Emin: float
+        minumum energy
+    Emax: float
+        maximum energy
+    n_event: int
+        number of events to generate
+    flux: function
+        must return flux as function of energy in units of events per energy, time, solid angle and area
+        
+    Returns: array of energies
+    """
+    
+    xx_edges = np.linspace(Emin, Emax, 10000000)
+    xx = 0.5 * (xx_edges[1:] + xx_edges[:-1])
+    yy = flux(xx)
+    cum_values = np.zeros(xx_edges.shape)
+    cum_values[1:] = np.cumsum(yy * np.diff(xx_edges))
+    inv_cdf = interpolate.interp1d(cum_values, xx_edges)
+    r = np.random.uniform(0, cum_values.max(), n_events)
+    return inv_cdf(r)
 
 def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
@@ -625,7 +673,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     spectrum: string
         defines the probability distribution for which the neutrino energies are generated
         * 'log_uniform': uniformly distributed in the logarithm of energy
-        * 'E-1': 1 over E spectrum
+        * 'E-?': E to the -? spectrum where ? can be any float
+        * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
+        * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for
+                   10% proton fraction (see get_GZK_1 function for details)
+        * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
     add_tau_second_bang: bool
         if True simulate second vertices from tau decays
     tabulated_taus: bool
@@ -715,6 +767,28 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     # generate energies randomly
     if(spectrum == 'log_uniform'):
         data_sets["energies"] = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_events)
+    elif(spectrum.startswith("E-")):  # enerate an E^gamma spectrum.  
+        gamma = float(spectrum[1:])
+        gamma += 1
+        Nmin = (Emin)**gamma
+        Nmax = (Emax)**gamma
+        def get_inverse_spectrum(N, gamma):
+            return np.exp(np.log(N)/gamma)
+        data_sets["energies"] = get_inverse_spectrum(np.random.uniform(Nmax, Nmin, size=n_events), gamma)
+    elif(spectrum == "GZK-1"):
+        """
+        model of (van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1) of the cosmogenic neutrino ﬂux
+        for a source evolution parameter of m = 3.4, 
+        a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
+        and a proton fraction of 10% at E = 10^19.6 eV
+        """
+        data_sets["energies"] = get_energy_from_flux(Emin, Emax, n_events, get_GZK_1)
+    elif(spectrum == "IceCube-nu-2017"):
+        data_sets["energies"] = get_energy_from_flux(Emin, Emax, n_events, ice_cube_nu_fit)
+    elif(spectrum == "GZK-1+IceCube-nu-2017"):
+        def J(E):
+            return ice_cube_nu_fit(E) + get_GZK_1(E)
+        data_sets["energies"] = get_energy_from_flux(Emin, Emax, n_events, J)
     else:
         logger.error("spectrum {} not implemented".format(spectrum))
         raise NotImplementedError("spectrum {} not implemented".format(spectrum))
