@@ -283,7 +283,7 @@ class Detector(object):
         else:
             t0 = res['commission_time']
             t1 = res['decommission_time']
-        return astropy.time(t0), astropy.time(t1)
+        return astropy.time.Time(t0), astropy.time.Time(t1)
     
     def has_station(self, station_id):
         """
