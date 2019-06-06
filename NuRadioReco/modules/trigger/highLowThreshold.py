@@ -159,7 +159,7 @@ class triggerSimulator:
                 triggerd_bins = get_high_low_triggers(trace, threshold_high, threshold_low,
                                                       high_low_window, dt)
                 if True in triggerd_bins:
-                    channels_that_passed_trigger.append(channel)
+                    channels_that_passed_trigger.append(channel.get_id())
                 triggerd_bins_channels.append(triggerd_bins)
                 logger.debug("channel {}, len(triggerd_bins) = {}".format(channel_id, len(triggerd_bins)))
 
