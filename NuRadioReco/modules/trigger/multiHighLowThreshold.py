@@ -169,7 +169,7 @@ class triggerSimulator:
                 triggerd_bins = get_multiple_high_low_trigger(trace, threshold_high, threshold_low, n_high_lows, high_low_window, dt)
                 triggerd_bins_channels.append(triggerd_bins)
                 if True in triggerd_bins:
-                    channels_that_passed_trigger.append(channel)
+                    channels_that_passed_trigger.append(channel.get_id())
 
             has_triggered, triggered_bins, triggered_times = get_majority_logic(
                 triggerd_bins_channels, number_concidences, coinc_window, dt)
