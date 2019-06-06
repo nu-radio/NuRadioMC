@@ -71,6 +71,7 @@ class triggerSimulator:
                 break
         else:
             channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
+        channels_that_passed_trigger = []
         for channel in station.iter_channels():
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
@@ -81,6 +82,8 @@ class triggerSimulator:
             trace = channel.get_trace()
             triggerd_bins = get_threshold_triggers(trace, threshold)
             triggerd_bins_channels.append(triggerd_bins)
+            if True in triggerd_bins:
+                channels_that_passed_trigger.append(channel)
 
         has_triggered, triggered_bins, triggered_times = get_majority_logic(
             triggerd_bins_channels, number_concidences, coinc_window, dt)
@@ -92,6 +95,7 @@ class triggerSimulator:
             station.set_parameter(stnp.channels_max_amplitude, max_signal)
         trigger = SimpleThresholdTrigger(trigger_name, threshold, triggered_channels,
                                          number_concidences)
+        trigger.set_triggered_channels(channels_that_passed_trigger) 
         if has_triggered:
             trigger.set_triggered(True)
             trigger.set_trigger_time(triggered_times.min())
