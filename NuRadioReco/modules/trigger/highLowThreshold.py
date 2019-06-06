@@ -148,6 +148,7 @@ class triggerSimulator:
                     break
             else:
                 channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
+            channels_that_passed_trigger = []
             for channel in station.iter_channels():
                 channel_id = channel.get_id()
                 if triggered_channels is not None and channel_id not in triggered_channels:
@@ -157,6 +158,8 @@ class triggerSimulator:
                 trace = channel.get_trace()
                 triggerd_bins = get_high_low_triggers(trace, threshold_high, threshold_low,
                                                       high_low_window, dt)
+                if True in triggerd_bins:
+                    channels_that_passed_trigger.append(channel)
                 triggerd_bins_channels.append(triggerd_bins)
                 logger.debug("channel {}, len(triggerd_bins) = {}".format(channel_id, len(triggerd_bins)))
 
@@ -175,7 +178,7 @@ class triggerSimulator:
 
         trigger = HighLowTrigger(trigger_name, threshold_high, threshold_low, high_low_window,
                                  coinc_window, channels=triggered_channels,  number_of_coincidences=number_concidences)
-
+        trigger.set_triggered_channels(channels_that_passed_trigger) 
         if not has_triggered:
             trigger.set_triggered(False)
             logger.info("Station has NOT passed trigger")
