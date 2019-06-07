@@ -418,7 +418,8 @@ def get_tau_cascade_properties(tau_energy):
 
 
 
-def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None):
+def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None,
+                         start_file_id=0):
     """
     writes NuRadioMC input parameters to hdf5 file
 
@@ -462,7 +463,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
             break
 
         if((iFile > 0) or (n_events_per_file < n_events)):
-            filename2 = filename + ".part{:04}".format(iFile + 1)
+            filename2 = filename + ".part{:04}".format(iFile + 1 + start_file_id)
         fout = h5py.File(filename2, 'w')
         fout.attrs['VERSION_MAJOR'] = VERSION_MAJOR
         fout.attrs['VERSION_MINOR'] = VERSION_MINOR
@@ -607,7 +608,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 spectrum='log_uniform',
                                 add_tau_second_bang=False,
                                 tabulated_taus=True,
-                                deposited=False):
+                                deposited=False,
+                                start_file_id=0):
     """
     Event generator
 
@@ -684,6 +686,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         if True the tau decay properties are taken from a table
     deposited: bool
         If True, generate deposited energies instead of primary neutrino energies
+    start_file_id: int (default 0)
+        in case the data set is distributed over several files, this number specifies the id of the first file
+        (useful if an existing data set is extended)
     """
     attributes = {}
     n_events = int(n_events)
@@ -895,7 +900,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         for key in iterkeys(data_sets):
             data_sets_fiducial[key] = np.array(data_sets_fiducial[key])
 
-    write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file)
+    write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
 
 
 def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_file):
