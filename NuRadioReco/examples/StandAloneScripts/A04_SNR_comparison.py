@@ -4,6 +4,7 @@ import copy
 import matplotlib.pyplot as plt
 import logging
 import datetime
+import os
 
 from radiotools import plthelpers as php
 
@@ -18,7 +19,7 @@ import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 import NuRadioReco.modules.channelGenericNoiseAdder
 
 import NuRadioReco.modules.ARA.triggerSimulator
-import NuRadioReco.modules.ARIANNA.triggerSimulator
+import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioMC.SignalGen import parametrizations as signalgen
 
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -74,7 +75,7 @@ def get_ARA_power_mean_rms(sampling_rate, Vrms, min_freq, max_freq):
     return power_mean, power_rms
 
 
-det = detector.Detector(json_filename='example_data/dummy_detector.json')
+det = detector.Detector(json_filename='../example_data/dummy_detector.json')
 det.update(datetime.datetime(2018, 10, 1))
 
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
@@ -107,18 +108,18 @@ if 0:
     for E in 10 ** np.linspace(15.5, 17, 100):
         for theta in np.linspace(cherenkov_angle - 0.1 * units.deg, cherenkov_angle + 0.1 * units.deg, 10):
             counter += 1
-            pulse = signalgen.get_time_trace(E, theta, N, dt, 0, n_index, 1000 * units.m, 'Alvarez2000')
+            pulse = signalgen.get_time_trace(E, theta, N, dt, 'HAD', n_index, 1000 * units.m, 'Alvarez2000')
             event = NuRadioReco.framework.event.Event(1, 1)
             station = NuRadioReco.framework.station.Station(101)
             trace = np.zeros((3, N))
             trace[1] = pulse
             trace[2] = pulse
             sim_station = NuRadioReco.framework.sim_station.SimStation(101)
-            electric_field = NuRadioReco.framework.electric_field.ElectricField([0])
+            electric_field = NuRadioReco.framework.electric_field.ElectricField([2])
             electric_field.set_trace(sampling_rate=1. / dt, trace=trace)
             electric_field[efp.azimuth] = 0
             electric_field[efp.zenith] = (90 + 45) * units.deg
-
+            electric_field[efp.ray_path_type] = 'direct'
             sim_station.add_electric_field(electric_field)
             sim_station[stnp.zenith] = (90 + 45) * units.deg
             sim_station[stnp.zenith] = 0
@@ -163,6 +164,8 @@ Vp2p_bicone = np.zeros(NN)
 Vp2p_bicone_noise_1 = np.zeros(NN)
 Vp2p_bicone_noise_2 = np.zeros(NN)
 counter = -1
+if not os.path.isdir('plots'):
+    os.mkdir('plots')
 for signal_scaling in np.linspace(1, 100, NN):
     for theta in np.linspace(cherenkov_angle - 3 * units.deg, cherenkov_angle * units.deg, 1):
         counter += 1
@@ -175,15 +178,15 @@ for signal_scaling in np.linspace(1, 100, NN):
         trace[2] = pulse
         trace = trace / np.max(np.abs(trace)) * signal_scaling * Vrms
         sim_station = NuRadioReco.framework.sim_station.SimStation(101)
-        electric_field = NuRadioReco.framework.electric_field.ElectricField([0])
+        electric_field = NuRadioReco.framework.electric_field.ElectricField([2,3,4,5])
         electric_field.set_trace(sampling_rate=1. / dt, trace=trace)
         electric_field[efp.azimuth] = 0
         electric_field[efp.zenith] = (90 + 45) * units.deg
-        electric_field[efp.ray_path_type] = 'none'
-        electric_field.set_trace_start_time(np.nan)
+        electric_field[efp.ray_path_type] = 'direct'
+        electric_field.set_trace_start_time(0)
+        electric_field[efp.zenith] = (90 + 45) * units.deg
+        electric_field[efp.azimuth] = 0
         sim_station.add_electric_field(electric_field)
-        sim_station[stnp.zenith] = (90 + 45) * units.deg
-        sim_station[stnp.azimuth] = 0
         station.set_sim_station(sim_station)
         event.set_station(station)
 
