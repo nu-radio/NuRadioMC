@@ -117,7 +117,7 @@ class voltageToEfieldConverter:
         self.antenna_provider = antennapattern.AntennaPatternProvider()
         pass
 
-    def run(self, evt, station, det, debug=False, debug_plotpath=None, use_channels=[0, 1, 2, 3]):
+    def run(self, evt, station, det, debug=False, debug_plotpath=None, use_channels=[0, 1, 2, 3], use_MC_direction=False):
         """
         run method. This function is executed for each event
 
@@ -137,11 +137,11 @@ class voltageToEfieldConverter:
         event_time = station.get_station_time()
         station_id = station.get_id()
 
-        try:
+        if use_MC_direction:
             zenith = station.get_sim_station()[stnp.zenith]
             azimuth = station.get_sim_station()[stnp.azimuth]
             sim_present = True
-        except:
+        else:
             logger.info("Using reconstructed (or starting) angles as no signal arrival angles are present")
             zenith = station[stnp.zenith]
             azimuth = station[stnp.azimuth]
