@@ -246,11 +246,18 @@ def update_time_trace(trigger, evt_counter, filename, station_id, juser_id):
     station = evt.get_station(station_id)
     traces = []
     fig = tools.make_subplots(rows=1, cols=1)
+    trace_start_times = []
+    for channel in station.iter_channels():
+        trace_start_times.append(channel.get_trace_start_time())
+    if np.min(trace_start_times) > 1000.*units.ns:
+        trace_start_time_offset = np.floor(np.min(trace_start_times)/1000.)*1000.
+    else:
+        trace_start_time_offset = 0
     for i, channel in enumerate(station.iter_channels()):
         if channel.get_trace() is None:
             continue
         fig.append_trace(go.Scatter(
-                x=channel.get_times() / units.ns,
+                x=channel.get_times() - trace_start_time_offset / units.ns,
                 y=channel.get_trace() / units.mV,
                 # text=df_by_continent['country'],
                 # mode='markers',
@@ -262,7 +269,10 @@ def update_time_trace(trigger, evt_counter, filename, station_id, juser_id):
                 name='Channel {}'.format(i)
             ), 1, 1)
     fig['layout'].update(default_layout)
-    fig['layout']['xaxis1'].update(title='time [ns]')
+    if trace_start_time_offset > 0:
+        fig['layout']['xaxis1'].update(title='time [ns] - {:.0f}ns'.format(trace_start_time_offset))
+    else:
+        fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['yaxis1'].update(title='voltage [mV]')
     return fig
     
@@ -370,6 +380,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
     ymax = 0
     n_channels = 0
     plot_titles = []
+    trace_start_times = []
     fig = tools.make_subplots(rows=station.get_number_of_channels(), cols=2,
         shared_xaxes=True, shared_yaxes=False,
         vertical_spacing=0.01, subplot_titles=plot_titles)
@@ -379,12 +390,17 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
         ymax = max(ymax, np.max(np.abs(trace)))
         plot_titles.append('Channel {}'.format(channel.get_id()))
         plot_titles.append('Channel {}'.format(channel.get_id()))
+        trace_start_times.append(channel.get_trace_start_time())
         if channel.get_trace() is not None:
             trace = channel.get_trace() / units.mV
             ymax = max(ymax, np.max(np.abs(trace)))
+    if np.min(trace_start_times) > 1000.*units.ns:
+        trace_start_time_offset = np.floor(np.min(trace_start_times)/1000.)*1000.
+    else:
+        trace_start_time_offset = 0
     if 'trace' in dropdown_traces:
         for i, channel in enumerate(station.iter_channels()):
-            tt = channel.get_times() / units.ns
+            tt = channel.get_times() - trace_start_time_offset / units.ns
             if channel.get_trace() is None:
                 continue
             trace = channel.get_trace() / units.mV
@@ -417,7 +433,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
             from scipy import signal
             yy = np.abs(signal.hilbert(trace))
             fig.append_trace(go.Scatter(
-                    x=channel.get_times() / units.ns,
+                    x=channel.get_times() - trace_start_time_offset / units.ns,
                     y=yy,
                     # text=df_by_continent['country'],
                     # mode='markers',
@@ -442,7 +458,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                 key = channel.get_parameter(chp.cr_xcorrelations)['cr_ref_xcorr_template']
                 logger.info("using template {}".format(key))
                 ref_template = ref_templates[key][channel.get_id()]
-            times = channel.get_times()
+            times = channel.get_times() - trace_start_time_offset
             trace = channel.get_trace()
             if trace is None:
                 continue
@@ -572,7 +588,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
             for i_trace, trace in enumerate(trace_utilities.get_channel_voltage_from_efield(station, electric_field, channel_ids, det, station.get_parameter(stnp.zenith), station.get_parameter(stnp.azimuth), antenna_pattern_provider)):
                     channel = station.get_channel(channel_ids[i_trace])
                     direction_time_delay = geometryUtilities.get_time_delay_from_direction(station.get_parameter(stnp.zenith), station.get_parameter(stnp.azimuth), det.get_relative_position(station.get_id(),channel_ids[i_trace]) - electric_field.get_position())
-                    time_shift = direction_time_delay
+                    time_shift = direction_time_delay - trace_start_time_offset
                     fig.append_trace(go.Scatter(
                         x=(electric_field.get_times() + time_shift)/units.ns,
                         y=fft.freq2time(trace)/units.mV,
@@ -600,9 +616,9 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                 channel = station.get_channel(channel.get_id())
                 if station.is_cosmic_ray():
                     direction_time_delay = geometryUtilities.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith), sim_station.get_parameter(stnp.azimuth), det.get_relative_position(sim_station.get_id(),channel.get_id()) - electric_field.get_position())
-                    time_shift = direction_time_delay
+                    time_shift = direction_time_delay - trace_start_time_offset
                 else:
-                    time_shift = 0
+                    time_shift = - trace_start_time_offset
                 fig.append_trace(go.Scatter(
                     x=(electric_field.get_times() + time_shift)/units.ns,
                     y=fft.freq2time(trace)/units.mV,
@@ -627,8 +643,6 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
 
         if channel.get_trace() is None:
             continue
-        tt = channel.get_times()
-        dt = tt[1] - tt[0]
         spec = channel.get_frequency_spectrum()
         ff = channel.get_frequencies()
         fig.append_trace(go.Scatter(
@@ -651,7 +665,10 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                         textposition='top center'
                     ),
                 i + 1, 2)
-    fig['layout']['xaxis1'].update(title='time [ns]')
+    if trace_start_time_offset > 0:
+        fig['layout']['xaxis1'].update(title='time [ns] - {:.0f}ns'.format(trace_start_time_offset))
+    else:
+        fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['xaxis2'].update(title='frequency [MHz]')
     fig['layout'].update(height=n_channels*150)
     fig['layout'].update(showlegend=False)

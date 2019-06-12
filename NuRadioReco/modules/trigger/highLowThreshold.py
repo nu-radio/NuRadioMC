@@ -32,6 +32,7 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     """
     n_bins_coincidence = np.int(np.round(time_coincidence / dt)) + 1
     c = np.ones(n_bins_coincidence, dtype=np.bool)
+    logger.debug("length of trace {} bins, coincidence window {} bins".format(len(trace), len(c)))
 
     c2 = np.array([1,-1])
     m1 = np.convolve(trace > high_threshold, c, mode='same')
@@ -65,9 +66,13 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     """
     n = len(tts[0])
     n_bins_coincidence = np.int(np.round(time_coincidence / dt)) + 1
+    if(n_bins_coincidence > n): # reduce coincidence window to maximum trace length
+        n_bins_coincidence = n
+        logger.debug("specified coincidence window longer than tracelenght, reducing coincidence window to trace length")
     c = np.ones(n_bins_coincidence, dtype=np.bool)
 
     for i in range(len(tts)):
+        logger.debug("get_majority_logic() length of trace {} bins, coincidence window {} bins".format(len(tts[i]), len(c)))
         tts[i] = np.convolve(tts[i],  c, mode='same')
     tts = np.sum(tts, axis=0)
     ttt = tts >= number_of_coincidences
@@ -143,6 +148,7 @@ class triggerSimulator:
                     break
             else:
                 channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
+            channels_that_passed_trigger = []
             for channel in station.iter_channels():
                 channel_id = channel.get_id()
                 if triggered_channels is not None and channel_id not in triggered_channels:
@@ -152,10 +158,14 @@ class triggerSimulator:
                 trace = channel.get_trace()
                 triggerd_bins = get_high_low_triggers(trace, threshold_high, threshold_low,
                                                       high_low_window, dt)
+                if True in triggerd_bins:
+                    channels_that_passed_trigger.append(channel.get_id())
                 triggerd_bins_channels.append(triggerd_bins)
+                logger.debug("channel {}, len(triggerd_bins) = {}".format(channel_id, len(triggerd_bins)))
 
             has_triggered, triggered_bins, triggered_times = get_majority_logic(
                 triggerd_bins_channels, number_concidences, coinc_window, dt)
+            logger.debug("len(triggerd_bins) = {}".format(len(triggered_bins)))
             # set maximum signal aplitude
             max_signal = 0
             if(has_triggered):
@@ -168,7 +178,7 @@ class triggerSimulator:
 
         trigger = HighLowTrigger(trigger_name, threshold_high, threshold_low, high_low_window,
                                  coinc_window, channels=triggered_channels,  number_of_coincidences=number_concidences)
-
+        trigger.set_triggered_channels(channels_that_passed_trigger) 
         if not has_triggered:
             trigger.set_triggered(False)
             logger.info("Station has NOT passed trigger")

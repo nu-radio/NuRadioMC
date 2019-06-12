@@ -1,6 +1,5 @@
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import SimplePhasedTrigger
-from NuRadioReco.modules.ARIANNA.triggerSimulator2 import get_high_low_triggers
 import numpy as np
 from scipy import constants
 import time
