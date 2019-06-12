@@ -46,6 +46,7 @@ class Trigger:
         self._triggered = False
         self._trigger_time = None
         self._trigger_type = trigger_type
+        self._triggered_channels = []
 
     def has_triggered(self):
         """
@@ -80,6 +81,13 @@ class Trigger:
     def get_type(self):
         """ get trigger type """
         return self._type
+        
+    def get_triggered_channels(self):
+        """ get IDs of channels that have triggered """
+        return self._triggered_channels
+
+    def set_triggered_channels(self, triggered_channels):
+        self._triggered_channels = triggered_channels
 
     def serialize(self):
         return pickle.dumps(self.__dict__, protocol=2)

@@ -13,7 +13,7 @@ In order to run, we need a detector file and a configuration file, included in
 this folder. To run the code, type:
 
 python T02RunSNR.py input_neutrino_file.hdf5 proposalcompact_50m_1.5GHz.json
-config_RNO.yaml output_NuRadioMC_file.hdf5 output_SNR_file.hdf5 output_NuRadioReco_file.nur(optional)
+config.yaml output_NuRadioMC_file.hdf5 output_SNR_file.hdf5 output_NuRadioReco_file.nur(optional)
 
 The output_SNR_file.hdf5 contains the information on the SNR curves stored in
 hdf5 format. The fields in this file are:
@@ -32,7 +32,7 @@ from __future__ import absolute_import, division, print_function
 import argparse
 # import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverter
-import NuRadioReco.modules.triggerSimulator
+import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.phasedarray.triggerSimulator
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
@@ -52,7 +52,7 @@ triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimul
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-thresholdSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
+thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
 N = 51
 SNRs = np.linspace(0.5,5,N)

@@ -77,7 +77,8 @@ bandwidth = max_freq-min_freq
 amplitude = (300 * 50 * constants.k * bandwidth / units.Hz) ** 0.5
 
 Ntries = 100 # number of tries
-threshold_factors = [2.5, 2.45, 2.4] # Factors used for calculating the threshold
+
+# threshold_factors = [2.5, 2.45, 2.4]
 threshold_factors = [1.8, 1.85, 1.9, 1.95, 2.0]
 
 ratios = []
