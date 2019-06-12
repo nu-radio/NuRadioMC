@@ -46,7 +46,7 @@ Input parameters (all with a default provided)
 ---------------------
 
 Command line input:
-    python FullReconstruction.py station_id input_file detector_file templates
+    python FullReconstruction.py station_id input_file detector_file
 
 station_id: int
             station id to be used, default 32
@@ -54,16 +54,13 @@ input_file: str
             CoREAS simulation file, default example data
 detector_file: str
             path to json detector database, default given
-template_path: str
-            path to signal templates, default given
-
 """
 
 try:
     station_id = int(sys.argv[1])  # specify station id
     input_file = sys.argv[2] # file with coreas simulations
 except:
-    print("Usage: python FullReconstruction.py station_id input_file detector templates")
+    print("Usage: python FullReconstruction.py station_id input_file detector")
     station_id = 32
     input_file = "example_data/example_event.h5"
     print("Using default station {}".format(32))
@@ -78,19 +75,16 @@ else:
 
 try:
     detector_file = sys.argv[3]
-    template_path = sys.argv[4]
-    print("Using {0} as detector and {1} as templates".format(detector_file, template_path))
+    print("Using {0} as detector".format(detector_file))
 except:
     print("Using default file for detector")
     detector_file = '../examples/example_data/arianna_detector_db.json'
-    template_path = '../ARIANNAreco/analysis/templateGeneration'
 
 
 det = detector.Detector(json_filename=detector_file) # detector file
 det.update(datetime.datetime(2018, 10, 1))
 
 dir_path = os.path.dirname(os.path.realpath(__file__)) # get the directory of this file
-template_directory = os.path.join(dir_path, template_path) # path to templates
 
 # initialize all modules that are needed for processing
 # provide input parameters that are to remain constant during processung
