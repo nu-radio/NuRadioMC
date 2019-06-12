@@ -100,15 +100,12 @@ else:
 
 n_beams = len(primary_angles)
 
-print("Threshold factor --- Probability --- Noise trigger rate [Hz]")
 
 for threshold_factor in threshold_factors:
 
     prob_cross = 0
     for Ntry in range(Ntries):
 
-        if(Ntry % 100 == 0):
-            print("Trying", Ntry)
         noise_array = []
 
         for iant in range(len(primary_channels)):
@@ -148,6 +145,6 @@ for threshold_factor in threshold_factors:
 
     ratio = float(prob_cross)/Ntries
     trigger_frequency = 2*ratio/window_width / units.Hz
-    print(threshold_factor, ratio, trigger_frequency)
+    print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.5f}%, Noise trigger rate: {:.2f}'.format(threshold_factor, ratio*100., trigger_frequency))
 
     ratios.append(ratio)
