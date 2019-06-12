@@ -19,6 +19,7 @@ from NuRadioReco.eventbrowser.apps.common import get_point_index
 from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
 import logging
+import numbers
 logger = logging.getLogger('overview')
 
 provider = dataprovider.DataProvider()
@@ -142,12 +143,13 @@ def get_properties_divs(obj, props_dic):
                 dict_entries = []
                 dic = obj.get_parameter(display_prop['param'])
                 for key in dic:
-                    dict_entries.append(
-                        html.Div([
-                            html.Div(key, className='custom-table-td'),
-                            html.Div('{:.2f}'.format(dic[key]), className='custom-table-td custom-table-td-last')
-                        ], className='custom-table-row')
-                    )
+                    if isinstance(dic[key], numbers.Number):
+                        dict_entries.append(
+                            html.Div([
+                                html.Div(key, className='custom-table-td'),
+                                html.Div('{:.2f}'.format(dic[key]), className='custom-table-td custom-table-td-last')
+                            ], className='custom-table-row')
+                        )
                 prop = html.Div(dict_entries, className='custom-table-td')
             else:
                 if display_prop['unit'] is not None:
