@@ -185,9 +185,11 @@ class Detector(object):
 
     def __query_channel(self, station_id, channel_id):
         Channel = Query()
+        if self.__current_time is None:
+            raise ValueError("Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
         res = self.__channels.get((Channel.station_id == station_id) & (Channel.channel_id == channel_id)
-                                           & (Channel.commission_time <= self.__current_time)
-                                           & (Channel.decommission_time > self.__current_time))
+                                           & (Channel.commission_time <= self.__current_time.datetime)
+                                           & (Channel.decommission_time > self.__current_time.datetime))
         if(res is None):
             logger.error("query for station {} and channel {} at time {} returned no results".format(station_id, channel_id, self.__current_time))
             raise LookupError
@@ -195,12 +197,16 @@ class Detector(object):
 
     def __query_channels(self, station_id):
         Channel = Query()
+        if self.__current_time is None:
+            raise ValueError("Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
         return self.__channels.search((Channel.station_id == station_id)
                                            & (Channel.commission_time <= self.__current_time.datetime)
                                            & (Channel.decommission_time > self.__current_time.datetime))
 
     def __query_station(self, station_id):
         Station = Query()
+        if self.__current_time is None:
+            raise ValueError("Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
         res = self.__stations.get((Station.station_id == station_id)
                                        & (Station.commission_time <= self.__current_time.datetime)
                                        & (Station.decommission_time > self.__current_time.datetime))
@@ -212,6 +218,8 @@ class Detector(object):
     def __query_position(self, position_id):
         Position = Query()
         res = self.__positions.get((Position.pos_position == position_id))
+        if self.__current_time is None:
+            raise ValueError("Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
         if(res is None):
             logger.error("query for position {} at time {} returned no results".format(position_id, self.__current_time.datetime))
             raise LookupError("query for position {} at time {} returned no results".format(position_id, self.__current_time.datetime))
