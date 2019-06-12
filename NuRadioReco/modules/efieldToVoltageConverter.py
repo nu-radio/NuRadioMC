@@ -134,6 +134,7 @@ class efieldToVoltageConverter:
             logger.debug('channel id {}'.format(channel_id))
             channel = NuRadioReco.framework.channel.Channel(channel_id)
             channel_spectrum = None
+            trace_object = None
             if(self.__debug):
                 from matplotlib import pyplot as plt
                 fig, axes = plt.subplots(2, 1)
@@ -212,6 +213,8 @@ class efieldToVoltageConverter:
                 else:
                     channel_spectrum += voltage_fft
 
+            if trace_object is None:
+                continue
             if(self.__debug):
                 axes[0].legend(loc='upper left')
                 axes[1].legend(loc='upper left')
