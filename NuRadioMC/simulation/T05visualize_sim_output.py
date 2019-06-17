@@ -81,7 +81,7 @@ elif('rmin' in fin.attrs):
 Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights) / n_events
 print("Veff = {:.6g} km^3 sr".format(Veff / units.km ** 3))
 
-
+ 
 ###########################
 # plot neutrino direction
 ###########################
