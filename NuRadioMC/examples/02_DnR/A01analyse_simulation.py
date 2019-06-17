@@ -49,9 +49,10 @@ for iD, depth in enumerate(depths):
     eff2[iD] = np.sum(weights[~mask][C2])/ np.sum(weights[~mask][C3])
     eff3[iD] = np.sum(weights[~mask][C4])/ np.sum(weights[~mask][C3])
     
-     
-fig, (ax) = plt.subplots(1, 1, figsize=(6, 5))
 sort_mask = np.argsort(depths)
+np.savetxt("DnRefficiency_{:.0g}eV.txt".format(np.array(fin['energies']).mean()), [depths[sort_mask], eff1[sort_mask]])
+
+fig, (ax) = plt.subplots(1, 1, figsize=(6, 5))
 ax.plot(depths[sort_mask], eff1[sort_mask], 'o-', label='one pulse > 3 sigma, one pulse > 2 sigma')
 ax.plot(depths[sort_mask], eff2[sort_mask], "d--", label="both pulses > 3 sigma")
 ax.plot(depths[sort_mask], eff3[sort_mask], "^:", label="both pulses > 4 sigma")
