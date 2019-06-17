@@ -1,21 +1,22 @@
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.trigger import HighLowTrigger
+from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 import numpy as np
 import time
 import logging
-logger = logging.getLogger('ARIANNAtriggerSimulatorFast')
+logger = logging.getLogger('multiHighLowTrigger')
 
 
 def get_high_triggers(trace, threshold):
     c2 = np.array([1, -1])
     m1 = trace > threshold
-    return np.convolve(m1, c2, mode='same') > 0
+    return np.convolve(m1, c2, mode='full')[:len(m1)] > 0
 
 def get_low_triggers(trace, threshold):
     c2 = np.array([1, -1])
     m1 = trace < threshold
-    return np.convolve(m1, c2, mode='same') > 0
+    return np.convolve(m1, c2, mode='full')[:len(m1)] > 0
 
 def get_multiple_high_low_trigger(trace, high_threshold, low_threashold, n_high_lows, time_coincidence=10 * units.ns, dt=1 * units.ns):
     """
@@ -46,47 +47,13 @@ def get_multiple_high_low_trigger(trace, high_threshold, low_threashold, n_high_
     nc = int(time_coincidence/dt)
     c1 = np.ones(nc)
     
-    tsum_high = np.convolve(trig_up, c1, mode='same')
-    tsum_low = np.convolve(trig_low, c1, mode='same')
+    tsum_high = np.convolve(trig_up, c1, mode='full')[:-(nc-1)]
+    tsum_low = np.convolve(trig_low, c1, mode='full')[:-(nc-1)]
     
     c2 = np.array([1,-1])
     tsumtot = np.convolve((tsum_high + tsum_low) >= n_high_lows, c2, mode='same')
     return tsumtot > 0
 
-
-def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * units.ns, dt=1 * units.ns):
-    """
-    calculates a majority logic trigger
-
-    Parameters
-    ----------
-    tts: array/list of array of bools
-        an array of bools that indicate a single channel trigger per channel
-    number_of_coincidences: int (default: 2)
-        the number of coincidences between channels
-    time_coincidence: float
-        the time coincidence window between channels
-    dt: float
-        the width of a time bin (inverse of sampling rate)
-
-    Retruns:
-    --------
-    triggerd: bool
-        returns True if majority logic is fulfilled
-    triggerd_bins: array of ints
-        the bins that fulfilled the trigger
-    triggered_times: array of floats
-        the trigger times
-    """
-    n_bins_coincidence = np.int(np.round(time_coincidence / dt)) + 1
-    c = np.ones(n_bins_coincidence, dtype=np.bool)
-
-    for i in range(len(tts)):
-        tts[i] = np.convolve(tts[i],  c, mode='same')
-    tts = np.sum(tts, axis=0)
-    ttt = tts >= number_of_coincidences
-    triggered_bins = np.squeeze(np.argwhere(tts >= number_of_coincidences))
-    return np.any(ttt), triggered_bins, triggered_bins * dt
 
 
 class triggerSimulator:

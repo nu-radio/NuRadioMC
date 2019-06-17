@@ -35,8 +35,8 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     logger.debug("length of trace {} bins, coincidence window {} bins".format(len(trace), len(c)))
 
     c2 = np.array([1,-1])
-    m1 = np.convolve(trace > high_threshold, c, mode='same')
-    m2 = np.convolve(trace < low_threshold, c, mode='same')
+    m1 = np.convolve(trace > high_threshold, c, mode='full')[:-(n_bins_coincidence-1)]
+    m2 = np.convolve(trace < low_threshold, c, mode='full')[:-(n_bins_coincidence-1)]
     return np.convolve(m1 & m2, c2,mode='same') > 0
 
 
@@ -55,7 +55,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     dt: float
         the width of a time bin (inverse of sampling rate)
 
-    Retruns:
+    Returns:
     --------
     triggerd: bool
         returns True if majority logic is fulfilled
@@ -73,7 +73,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
 
     for i in range(len(tts)):
         logger.debug("get_majority_logic() length of trace {} bins, coincidence window {} bins".format(len(tts[i]), len(c)))
-        tts[i] = np.convolve(tts[i],  c, mode='same')
+        tts[i] = np.convolve(tts[i],  c, mode='full')[:-(n_bins_coincidence-1)]
     tts = np.sum(tts, axis=0)
     ttt = tts >= number_of_coincidences
     triggered_bins = np.squeeze(np.argwhere(tts >= number_of_coincidences))
@@ -102,7 +102,7 @@ class triggerSimulator:
             high_low_window=5 * units.ns,
             coinc_window=200 * units.ns,
             number_concidences=2,
-            triggered_channels=[0, 1, 2, 3],
+            triggered_channels=None,
             trigger_name="default_high_low",
             set_not_triggered=False):
         """
