@@ -96,15 +96,15 @@ class mySimulation(simulation.simulation):
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
-parser.add_argument('inputfilename', type=str,
-                    help='path to NuRadioMC input event list')
-parser.add_argument('detectordescription', type=str,
-                    help='path to file containing the detector description')
-parser.add_argument('config', type=str,
-                    help='NuRadioMC yaml config file')
-parser.add_argument('outputfilename', type=str,
-                    help='hdf5 output filename')
-parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
+parser.add_argument('--inputfilename', type=str,
+                    help='path to NuRadioMC input event list', default='0.00_12_00_1.00e+16_1.00e+19.hdf5')
+parser.add_argument('--detectordescription', type=str,
+                    help='path to file containing the detector description', default='proposalcompact_50m_1.5GHz.json')
+parser.add_argument('--config', type=str,
+                    help='NuRadioMC yaml config file', default='config_ARA.yaml')
+parser.add_argument('--outputfilename', type=str,
+                    help='hdf5 output filename', default='output_PA_ARA.hdf5')
+parser.add_argument('--outputfilenameNuRadioReco', type=str, nargs='?', default=None,
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
 
