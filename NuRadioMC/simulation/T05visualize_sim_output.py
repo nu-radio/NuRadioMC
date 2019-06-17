@@ -5,6 +5,7 @@ from radiotools import plthelpers as php
 from matplotlib import pyplot as plt
 from NuRadioMC.utilities import units
 from NuRadioMC.utilities import medium
+from NuRadioMC.utilities import plotting
 from six import iteritems
 import h5py
 import argparse
@@ -80,7 +81,7 @@ elif('rmin' in fin.attrs):
 Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights) / n_events
 print("Veff = {:.6g} km^3 sr".format(Veff / units.km ** 3))
 
-
+ 
 ###########################
 # plot neutrino direction
 ###########################
@@ -107,25 +108,13 @@ print("90% quantile sky coverage {:.2f} sr".format(b[0] * 2 * np.pi))
 ###########################
 # plot vertex distribution
 ###########################
-fig, ax = plt.subplots(1, 1)
+
+
 xx = np.array(fin['xx'])[triggered]
 yy = np.array(fin['yy'])[triggered]
-rr = (xx ** 2 + yy ** 2) ** 0.5
 zz = np.array(fin['zz'])[triggered]
-mask_weight = weights > 1e-2
-max_r = rr[mask_weight].max()
-max_z = np.abs(zz[mask_weight]).max()
-h = ax.hist2d(rr / units.m, zz / units.m, bins=[np.linspace(0, max_r, 50), np.linspace(-max_z, 0, 50)],
-              cmap=plt.get_cmap('Blues'), weights=weights)
-cb = plt.colorbar(h[3], ax=ax)
-cb.set_label("weighted number of events")
-ax.set_aspect('equal')
-ax.set_xlabel("r [m]")
-ax.set_ylabel("z [m]")
-ax.set_xlim(0, rmax)
-ax.set_ylim(fin.attrs['zmin'], 0)
-ax.set_title("trigger: {}".format(trigger_name))
-fig.tight_layout()
+fig, ax = plotting.plot_vertex_distribution(xx, yy, zz, weights=weights, rmax=rmax, zmin=fin.attrs['zmin'],
+                                           trigger_name=trigger_name)
 fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'), bbox='tight')
 
 
