@@ -4,7 +4,7 @@ build-backend = "flit.buildapi"
 
 [tool.flit.metadata]
 module = "NuRadioReco"
-author = "Christian Glaser, Daniel Garcia, Anna Nelles, et al."
+author = "Christian Glaser"
 author-email = "work@c-glaser.de"
 home-page = "https://github.com/nu-radio/NuRadioReco"
 classifiers = ["License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"]
