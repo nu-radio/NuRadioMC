@@ -66,6 +66,15 @@ class mooresbay_simple(medium):
         self.n_ice = 1.78
         self.z_0 = 34.5 * units.m
         self.delta_n = 0.46
+        
+class mooresbay_simple_2(medium):
+    # from https://doi.org/10.1088/1475-7516/2018/07/055 MB2 model
+    def __init__(self):
+        self.n_ice = 1.78
+        self.z_0 = 37 * units.m
+        self.delta_n = 0.481
+        
+        
 
 class greenland_simple(medium):
     # from C. Deaconu, fit to data from Hawley '08, Alley '88
