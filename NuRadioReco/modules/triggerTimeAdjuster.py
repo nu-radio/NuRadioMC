@@ -12,7 +12,7 @@ class triggerTimeAdjuster:
     def __init__(self):
         self.begin()
     
-    def begin(self, trigger_name=None, pre_trigger_time = 50.*units.ns):
+    def begin(self, trigger_name=None, pre_trigger_time = 55.*units.ns):
         """
         Setup
         ----
