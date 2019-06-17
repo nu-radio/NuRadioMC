@@ -288,8 +288,9 @@ def get_E2_limit_figure(show_ice_cube_EHE_limit=True,
         ice_cube_mu_range = get_ice_cube_mu_range()
         ax.fill_between(ice_cube_mu_range[0] / plotUnitsEnergy, ice_cube_mu_range[1] / plotUnitsFlux,
                         ice_cube_mu_range[2] / plotUnitsFlux, hatch='\\', edgecolor='dodgerblue', facecolor='azure')
-        plt.plot(ice_cube_mu_range[0] / plotUnitsEnergy, ice_cube_nu_fit(ice_cube_mu_range[0],
-                                                                         offset=0.9, slope=-2.13) * ice_cube_mu_range[0]**2 / plotUnitsFlux, color='dodgerblue')
+        plt.plot(ice_cube_mu_range[0] / plotUnitsEnergy,
+                 ice_cube_nu_fit(ice_cube_mu_range[0], offset=0.9, slope=-2.13) * ice_cube_mu_range[0]**2 / plotUnitsFlux,
+                 color='dodgerblue')
 
     if show_anita_I_III_limit:
         ax.plot(anita_limit[:, 0] / plotUnitsEnergy, anita_limit[:, 1] / plotUnitsFlux, color='darkorange')

@@ -430,13 +430,15 @@ def get_E2_limit_figure(diffuse = True,
         ice_cube_mu_range = get_ice_cube_mu_range()
         ax.fill_between(ice_cube_mu_range[0] / plotUnitsEnergy, ice_cube_mu_range[1] / plotUnitsFlux,
                         ice_cube_mu_range[2] / plotUnitsFlux, hatch='\\', edgecolor='dodgerblue', facecolor='azure',zorder=2)
-        plt.plot(ice_cube_mu_range[0] / plotUnitsEnergy, ice_cube_nu_fit(ice_cube_mu_range[0],
-                                                                         offset=1.01, slope=-2.19) * ice_cube_mu_range[0]**2 / plotUnitsFlux, color='dodgerblue')
+        plt.plot(ice_cube_mu_range[0] / plotUnitsEnergy,
+                 ice_cube_nu_fit(ice_cube_mu_range[0], offset=1.01, slope=-2.19) * ice_cube_mu_range[0]**2 / plotUnitsFlux,
+                 color='dodgerblue')
 
         # Extrapolation
         energy_placeholder =   np.array(([1e14,1e17]))*units.eV
-        plt.plot(energy_placeholder / plotUnitsEnergy, ice_cube_nu_fit(energy_placeholder,
-                                                                         offset=1.01, slope=-2.19) * energy_placeholder**2 / plotUnitsFlux, color='dodgerblue',linestyle=':')
+        plt.plot(energy_placeholder / plotUnitsEnergy,
+                 ice_cube_nu_fit(energy_placeholder, offset=1.01, slope=-2.19) * energy_placeholder**2 / plotUnitsFlux,
+                 color='dodgerblue',linestyle=':')
 
 
     if show_anita_I_III_limit:
