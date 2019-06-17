@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from NuRadioMC.utilities import units
 
-def plot_vetex_distribution(xx, yy, zz, weights=None,
+def plot_vertex_distribution(xx, yy, zz, weights=None,
                             rmax=None, zmin=None,
                             trigger_name=""):
     """
