@@ -82,7 +82,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         V[iCh] = trace.get_frequency_spectrum()
 
     efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider)
-    
+
     if(debug_cut):
         plt.show()
 
@@ -177,13 +177,14 @@ class voltageToEfieldConverter:
         t_shifts = np.zeros(V.shape[0])
         site = det.get_site(station_id)
         if(station.get_parameter(stnp.zenith) > 0.5 * np.pi):
-            refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
+            logger.warning("Module has not been optimized for neutrino reconstruction yet. Results may be nonsense.")
+            refractive_index = ice.get_refractive_index(-1, site)  # if signal comes from below, use refractivity at antenna position
         else:
             refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
         for i_ch, channel_id in enumerate(use_channels):
             antenna_position = det.get_relative_position(station.get_id(), channel_id)
             t_shifts[i_ch] = station.get_channel(channel_id).get_trace_start_time() -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
-        
+
         electric_field.set_trace_start_time(t_shifts.max())
         station.add_electric_field(electric_field)
 
