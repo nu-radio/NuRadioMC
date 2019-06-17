@@ -113,7 +113,7 @@ print("90% quantile sky coverage {:.2f} sr".format(b[0] * 2 * np.pi))
 xx = np.array(fin['xx'])[triggered]
 yy = np.array(fin['yy'])[triggered]
 zz = np.array(fin['zz'])[triggered]
-fig, ax = plotting.plot_vetex_distribution(xx, yy, zz, weights=weights, rmax=rmax, zmin=fin.attrs['zmin'],
+fig, ax = plotting.plot_vertex_distribution(xx, yy, zz, weights=weights, rmax=rmax, zmin=fin.attrs['zmin'],
                                            trigger_name=trigger_name)
 fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'), bbox='tight')
 
