@@ -7,12 +7,10 @@ import datetime
 from NuRadioReco.utilities import units
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.modules.io.eventReader
-from NuRadioReco.utilities import templates
-import NuRadioReco.modules.channelTemplateCorrelation
-import NuRadioReco.modules.voltageToEfieldConverter
 import NuRadioReco.modules.io.eventWriter
+import NuRadioReco.modules.channelSignalReconstructor
 
-from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import channelParameters as chp
 
 
 # Logging level
@@ -31,55 +29,26 @@ args = parser.parse_args()
 # read in detector positions (this is a dummy detector)
 det = detector.Detector(json_filename=args.detectordescription)
 det.update(datetime.datetime(2018, 10, 1))
-station_id = 101
 
 # initialize modules
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-#channelTemplateCorrelation = NuRadioReco.modules.channelTemplateCorrelation.channelTemplateCorrelation("example_data/templates")
-voltageToEfieldConverter = NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter()
 eventReader = NuRadioReco.modules.io.eventReader.eventReader()
+channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
 
 # Name outputfile
 output_filename = "Simple_reconstruction_results.nur"
 eventReader.begin(args.inputfilename)
-# channelTemplateCorrelation.begin(debug=False)
-voltageToEfieldConverter.begin()
 eventWriter.begin(output_filename, max_file_size=1000)
-
-# starting angles for reconstruction
-starting_zenith = 110 * units.degree
-starting_azimuth = 10 * units.degree
 
 i_events_saved = 0
 for iE, event in enumerate(eventReader.run()):
     logger.info("Event ID {}".format(event.get_id()))
-    stations = event.get_stations()
-    for st, station in enumerate(stations):
-        logger.info("Station ID {}".format(station.get_id()))
-        station.set_parameter(stnp.zenith, starting_zenith)
-        station.set_parameter(stnp.azimuth, starting_azimuth)
-
-        voltageToEfieldConverter.run(event, station, det,use_channels=[0, 1, 2])
-
-#         for ch, channel in enumerate(station.get_channels()):
-#             logger.info("Channel ID {}".format(channel.get_id()))
-#         channelTemplateCorrelation.run(event, station, det, channels_to_use=[0, 1, 2], cosmic_ray=False,
-#             n_templates=1)
-#
-#         ref_template = templates.Templates().get_nu_ref_template(station_id)
-#
-#         plt.figure()
-#         for ch, channel in enumerate(station.get_channels()):
-#             if ch == 1:
-#                 plt.plot(ref_template/np.max(np.abs(ref_template))*np.max(np.abs(channel.get_trace())),label='template')
-#             plt.plot(channel.get_times(),channel.get_trace(),label='Channel {}'.format(ch))
-#             print "Channel {0}, corr {1} at {2}".format(ch,channel['nu_ref_xcorr'],channel['nu_ref_xcorr_time'])
-#         plt.legend()
-#         plt.show()
-
+    for st, station in enumerate(event.get_stations()):
+        channelSignalReconstructor.run(event, station, det)
+        for channel in station.iter_channels():
+            signal_to_noise = channel.get_parameter(chp.SNR)['peak_2_peak_amplitude']
+            print('Event{}, Station {}, Channel {}, SNR = {:.2f}'.format(event.get_id(), station.get_id(), channel.get_id(), signal_to_noise))
     eventWriter.run(event)
-
-
     i_events_saved += 1
     if((i_events_saved % 100) == 0):
         print("saving event {}".format(i_events_saved))
