@@ -137,6 +137,7 @@ class triggerSimulator:
             raise NotImplementedError
 
         sampling_rate = station.get_channel(0).get_sampling_rate()
+        channels_that_passed_trigger = []
         if not set_not_triggered:
             max_signal = 0
 
@@ -148,7 +149,6 @@ class triggerSimulator:
                     break
             else:
                 channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
-            channels_that_passed_trigger = []
             for channel in station.iter_channels():
                 channel_id = channel.get_id()
                 if triggered_channels is not None and channel_id not in triggered_channels:
