@@ -1,7 +1,5 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.hatch import get_path
 import time
 import copy
 from scipy.optimize import fsolve, minimize, basinhopping, root
@@ -690,6 +688,7 @@ class ray_tracing_2D():
             result = optimize.root(self.obj_delta_y_square, x0=logC_0_start, args=(x1, x2), tol=tol)
 
             if(plot):
+                import matplotlib.pyplot as plt
                 fig, ax = plt.subplots(1, 1)
             if(result.fun < 1e-7):
                 if(plot):
@@ -748,6 +747,7 @@ class ray_tracing_2D():
                 self.__logger.info("no solution with logC0 < {:.3f} exists".format(result.x[0]))
 
             if(plot):
+                import matplotlib.pyplot as plt
                 plt.show()
 
             return sorted(results, key=itemgetter('type'))
@@ -941,6 +941,7 @@ class ray_tracing_2D():
         ycrit = self.get_y(gcrit, C0crit, self.get_C_1(x1, C0crit))
 
         if plot:
+            import matplotlib.pyplot as plt
             plt.figure('in_refraction_zone')
             plt.grid(True)
             plt.plot(ycrit, 0, 'ro', label='turning point')
@@ -1069,6 +1070,7 @@ class ray_tracing_2D():
             self.__logger.info(' travel time is {} ns.'.format(ttosurf / units.ns))
 
             if draw:
+                import matplotlib.pyplot as plt
                 z = np.linspace(x[1], zsurf, 1000, endpoint=True)
                 y = self.get_y(self.get_gamma(z), C0_emit, C_1=self.get_C_1(x, C0_emit))
                 if x == x1:
