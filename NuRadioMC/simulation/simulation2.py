@@ -8,7 +8,6 @@ from NuRadioMC.utilities import medium
 from NuRadioMC.utilities import fft
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
-from matplotlib import pyplot as plt
 import h5py
 import time
 import six
@@ -340,6 +339,7 @@ class simulation():
                                 r_theta, r_phi))
 
                         if(self._debug):
+                            from matplotlib import pyplot as plt
                             fig, (ax, ax2) = plt.subplots(1, 2)
                             ax.plot(self._ff, np.abs(eTheta) / units.micro / units.V * units.m)
                             ax2.plot(self._tt, fft.freq2time(eTheta) / units.micro / units.V * units.m)
