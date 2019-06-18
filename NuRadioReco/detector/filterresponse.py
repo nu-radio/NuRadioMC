@@ -3,7 +3,6 @@ from NuRadioReco.utilities import units
 from radiotools import helper as hp
 from scipy import interpolate as intp
 from scipy import integrate as int
-from matplotlib import pyplot as plt
 import os
 import glob
 
@@ -94,6 +93,8 @@ def get_filter_response(frequencies, filter_name):
 
 
 if __name__ == "__main__":
+    from matplotlib import pyplot as plt
+
     ff = np.linspace(10 * units.MHz, 500 * units.MHz, 100)
     df = ff[1] - ff[0]
     fig, (ax, ax2) = plt.subplots(1, 2)
