@@ -29,8 +29,6 @@ import os
 # import confuse
 logger = logging.getLogger("sim")
 
-VERSION = 0.1
-
 
 def merge_config(user, default):
     if isinstance(user, dict) and isinstance(default, dict):
@@ -649,6 +647,9 @@ class simulation():
 
         # save NuRadioMC and NuRadioReco versions
         from NuRadioMC.utilities import version
+        import NuRadioMC
+        fout.attrs['NuRadioMC_version'] = NuRadioMC.__version__
+        fout.attrs['NuRadioReco_version'] = NuRadioReco.__version__ 
         fout.attrs['NuRadioMC_version_hash'] = version.get_NuRadioMC_commit_hash()
         fout.attrs['NuRadioReco_version_hash'] = version.get_NuRadioReco_commit_hash()
 
