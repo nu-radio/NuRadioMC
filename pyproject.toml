@@ -12,10 +12,11 @@ requires = [
     "tinydb",
     "tinydb-serialization",
     "aenum",
-    "astropy",
+    "astropy<=2.0.14",
     "radiotools >=0.1.0",
     "h5py",
     "peakutils",
+    "requests"
 ]
 
 [tool.flit.metadata.requires-extra]
