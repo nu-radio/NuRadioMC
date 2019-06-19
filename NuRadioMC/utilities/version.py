@@ -14,9 +14,9 @@ def get_git_commit_hash(path):
         check = re.compile(r"^[a-f0-9]{40}(:.+)?$", re.IGNORECASE)
         if(not check.match(h)):
             logging.error("NuRadioMC version could not be determined, returning None")
-            return None
+            return "none"
     except:
-        return None
+        return "none"
     return h
 
 def get_NuRadioMC_commit_hash():
