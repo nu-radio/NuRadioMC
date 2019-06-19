@@ -52,7 +52,7 @@ double get_attenuation_length(double z, double frequency, int model){
 		-1330.71, -1285.18, -1194.14, -1129.64, -1061.35, -1000.64, -947.53, -883.03, -810.95, -746.46,
 		-678.19, -606.12, -537.86, -458.22, -378.59, -306.54, -238.29, -173.84, -97.98, -44.89, -3.16};
 
-		if(z < depth[0]){ return att_lenght[0]; }
+		if(z < depth[0]){ return att_length[0]; }
 		if(z > depth[89] ){ return att_length[89]; }
 
 		double att_length_75_interp;
@@ -66,7 +66,7 @@ double get_attenuation_length(double z, double frequency, int model){
 
 		att_length_75_interp = att_length[ind_left] + (att_length[ind_right]-att_length[ind_left]) *
 			(z-depth[ind_left])/(depth[ind_right]-depth[ind_left]);
-		double att_length_f = att_length_75 - 0.55*utl::m * (frequency/utl::MHz - 75);
+		double att_length_f = att_length_75_interp - 0.55*utl::m * (frequency/utl::MHz - 75);
 
 		return att_length_f;
 	} else {
