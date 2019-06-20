@@ -32,6 +32,7 @@ double get_attenuation_length(double z, double frequency, int model){
 		}
 		return 1./exp(a +bb*w);
 	} else if (model == 2) {
+    // Model for Greenland. Taken from DOI: https://doi.org/10.3189/2015JoG15J057
 		double att_length[] = {453.19, 461.92, 472.39, 483.73, 492.46, 502.05, 510.78, 519.50, 528.23,
 		534.33, 543.06, 550.91, 561.38, 575.34, 584.06, 595.40, 605.87, 617.21, 627.68, 639.90,
 		651.24, 660.83, 673.05, 683.52, 693.98, 702.71, 714.05, 728.88, 741.97, 760.29, 775.99,
