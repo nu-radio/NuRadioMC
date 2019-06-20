@@ -7,9 +7,9 @@ logging.basicConfig()
 
 
 def get_git_commit_hash(path):
-    gitproc = Popen(['git', 'show'], stdout = PIPE, cwd=path)
-    (stdout, stderr) = gitproc.communicate()
     try:
+        gitproc = Popen(['git', 'show'], stdout = PIPE, cwd=path)
+        (stdout, stderr) = gitproc.communicate()
         h = stdout.split('\n')[0].split()[1]
         check = re.compile(r"^[a-f0-9]{40}(:.+)?$", re.IGNORECASE)
         if(not check.match(h)):
