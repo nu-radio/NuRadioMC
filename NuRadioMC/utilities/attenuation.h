@@ -47,7 +47,7 @@ double get_attenuation_length(double z, double frequency, int model){
 
 		double att_length_f = fit_GL1(z/utl::m) - 0.55*utl::m * (frequency/utl::MHz - 75);
 
-		return att_length_f;
+		return 1/exp(att_length_f);
 	} else {
 		std::cout << "attenuation length model " << model << " unknown" << std::endl;
 		throw 0;
