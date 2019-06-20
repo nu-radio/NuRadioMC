@@ -55,7 +55,7 @@ def get_attenuation_length(z, frequency, model):
         return 1. / np.exp(a + bb * w)
     elif(model == "GL1"):
 
-        att_length_75 = fit_GL1(z)
+        att_length_75 = fit_GL1(z/units.m)
         att_length_f = att_length_75 - 0.55 * units.m * (frequency/units.MHz - 75)
         return att_length_f
     else:
