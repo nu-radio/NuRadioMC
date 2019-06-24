@@ -21,7 +21,6 @@ def fit_GL1(z):
             att_length = min_length
     else:
         att_length[ att_length < min_length ] = min_length
-
     return att_length
 
 def get_temperature(z):
