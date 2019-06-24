@@ -1409,7 +1409,11 @@ class ray_tracing:
 
         result = self.__results[iS]
         if analytic:
-            return self.__r2d.get_path_length_analytic(self.__x1, self.__x2, result['C0'])
+            analytic_length = self.__r2d.get_path_length_analytic(self.__x1, self.__x2, result['C0'])
+            if ( analytic_length != None ):
+                return self.__r2d.get_path_length_analytic(self.__x1, self.__x2, result['C0'])
+            else:
+                return self.__r2d.get_path_length(self.__x1, self.__x2, result['C0'])
         else:
             return self.__r2d.get_path_length(self.__x1, self.__x2, result['C0'])
 
@@ -1438,7 +1442,11 @@ class ray_tracing:
 
         result = self.__results[iS]
         if(analytic):
-            return self.__r2d.get_travel_time_analytic(self.__x1, self.__x2, result['C0'])
+            analytic_time = self.__r2d.get_travel_time_analytic(self.__x1, self.__x2, result['C0'])
+            if ( analytic_time != None ):
+                return analytic_time
+            else:
+                return self.__r2d.get_travel_time(self.__x1, self.__x2, result['C0'])
         else:
             return self.__r2d.get_travel_time(self.__x1, self.__x2, result['C0'])
 
