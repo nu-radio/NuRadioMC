@@ -269,8 +269,6 @@ class simulation():
                         else:
                             R = r.get_path_length(iS)  # calculate path length
                             T = r.get_travel_time(iS)  # calculate travel time
-                            if (R == None or T == None):
-                                continue
                         sg['travel_distances'][self._iE, channel_id, iS] = R
                         sg['travel_times'][self._iE, channel_id, iS] = T
                         Rs[iS] = R
@@ -417,7 +415,7 @@ class simulation():
     def _is_in_fiducial_volume(self):
         """
         checks wether a vertex is in the fiducial volume
-
+        
         if the fiducial volume is not specified in the input file, True is returned (this is required for the simulation
         of pulser calibration measuremens)
         """
@@ -428,7 +426,7 @@ class simulation():
                 has_fiducial = False
         if(not has_fiducial):
             return True
-
+        
         r = (self._x**2 + self._y**2)**0.5
         if(r >= self._fin_attrs['fiducial_rmin'] and r <= self._fin_attrs['fiducial_rmax']):
             if(self._z >= self._fin_attrs['fiducial_zmin'] and self._z <= self._fin_attrs['fiducial_zmax']):
@@ -631,7 +629,7 @@ class simulation():
 
         with open(self._detectorfile) as fdet:
             fout.attrs['detector'] = fdet.read()
-
+            
         # save antenna position separately to hdf5 output
         for station_id in self._mout_groups:
             n_channels = self._det.get_number_of_channels(station_id)
@@ -651,7 +649,7 @@ class simulation():
         from NuRadioMC.utilities import version
         import NuRadioMC
         fout.attrs['NuRadioMC_version'] = NuRadioMC.__version__
-        fout.attrs['NuRadioReco_version'] = NuRadioReco.__version__
+        fout.attrs['NuRadioReco_version'] = NuRadioReco.__version__ 
         fout.attrs['NuRadioMC_version_hash'] = version.get_NuRadioMC_commit_hash()
         fout.attrs['NuRadioReco_version_hash'] = version.get_NuRadioReco_commit_hash()
 

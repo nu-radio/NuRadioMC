@@ -3,25 +3,6 @@
 
 using namespace std;
 
-double fit_GL1(double z, double frequency){
-	// Model for Greenland. Taken from DOI: https://doi.org/10.3189/2015JoG15J057
-	// Returns the attenuation length at 75 MHz as a function of depth
-	double fit_values[] = {1.16052586e+03, 6.87257150e-02, -9.82378264e-05,
-									-3.50628312e-07, -2.21040482e-10, -3.63912864e-14};
-
-	double att_length = 0;
-	for (int power = 0; power < 6; power++){
-		att_length += fit_values[power] * pow(z, power);
-	}
-
-	double att_length_f = att_length - 0.55*utl::m * (frequency/utl::MHz - 75);
-
-	const double min_length = 100 * utl::m;
-	if ( att_length_f < min_length ){ att_length_f = min_length; }
-
-	return att_length_f;
-}
-
 double get_temperature(double z){
 	//return temperature as a function of depth
 	// from https://icecube.wisc.edu/~araproject/radio/#icetemperature
@@ -45,15 +26,12 @@ double get_attenuation_length(double z, double frequency, int model){
 		if(frequency<1. * utl::GHz){
 			a = (b1 * w0 - b0 * w1) / (w0 - w1);
 			bb = (b1 - b0) / (w1 - w0);
-		} else{
+		}
+		else{
 			a = (b2 * w1 - b1 * w2) / (w1 - w2);
 			bb = (b2 - b1) / (w2 - w1);
 		}
 		return 1./exp(a +bb*w);
-	} else if (model == 2) {
-
-		return fit_GL1(z, frequency);
-		
 	} else {
 		std::cout << "attenuation length model " << model << " unknown" << std::endl;
 		throw 0;
