@@ -1411,7 +1411,7 @@ class ray_tracing:
         if analytic:
             analytic_length = self.__r2d.get_path_length_analytic(self.__x1, self.__x2, result['C0'])
             if ( analytic_length != None ):
-                return self.__r2d.get_path_length_analytic(self.__x1, self.__x2, result['C0'])
+                return analytic_length
             else:
                 return self.__r2d.get_path_length(self.__x1, self.__x2, result['C0'])
         else:
