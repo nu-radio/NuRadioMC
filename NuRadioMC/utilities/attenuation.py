@@ -2,19 +2,25 @@ import numpy as np
 from NuRadioMC.utilities import units
 
 model_to_int = {"SP1" : 1, "GL1" : 2}
-cache_ice = {}
 
 def fit_GL1(z):
     # Model for Greenland. Taken from DOI: https://doi.org/10.3189/2015JoG15J057
 	# Returns the attenuation length at 75 MHz as a function of depth
     fit_values = [1.16052586e+03, 6.87257150e-02, -9.82378264e-05,
                     -3.50628312e-07, -2.21040482e-10, -3.63912864e-14]
+    min_length = 100 * units.m
     if(not hasattr(z, '__len__')):
         att_length = 0
     else:
         att_length = np.zeros_like(z)
     for power, coeff in enumerate(fit_values):
         att_length += coeff * z**power
+
+    if (not hasattr(att_length, '__len__')):
+        if ( att_length < min_length ):
+            att_length = min_length
+    else:
+        att_length[ att_length < 0 ] = min_length
 
     return att_length
 
@@ -57,6 +63,14 @@ def get_attenuation_length(z, frequency, model):
 
         att_length_75 = fit_GL1(z/units.m)
         att_length_f = att_length_75 - 0.55 * units.m * (frequency/units.MHz - 75)
-        return 1/np.exp(att_length_f)
+
+        min_length = 100 * units.m
+        if(not hasattr(frequency, '__len__')):
+            if (att_length_f < min_length):
+                att_length_f = min_length
+        else:
+            att_length_f[ att_length_f < min_length ] = min_length
+
+        return att_length_f
     else:
         raise NotImplementedError("attenuation model {} is not implemented.".format(model))
