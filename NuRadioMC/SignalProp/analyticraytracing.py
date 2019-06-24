@@ -324,7 +324,7 @@ class ray_tracing_2D():
                     #print("path:", int2 - int1 - int_diff)
                     # z0 above z_deep, z1 below z_deep
                     return int2 - int1 - int_diff
-        #print("solution", solution_type)
+
         if(solution_type == 1):
             return get_path_direct(x1[1], x2[1])
         else:
