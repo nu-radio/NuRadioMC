@@ -15,6 +15,7 @@ logging.basicConfig()
 
 # check if CPP implementation is available
 cpp_available = False
+
 try:
     from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
     cpp_available = True
@@ -51,7 +52,7 @@ class ray_tracing_2D():
                  use_optimized_start_values=False):
         """
         initialize 2D analytic ray tracing class
-        
+
         Parameters
         ----------
         medium: NuRadioMC.utilities.medium class
@@ -65,7 +66,7 @@ class ray_tracing_2D():
         use_optimized_start_value: bool
             if True, the initial C_0 paramter (launch angle) is set to the ray that skims the surface
             (default: False)
-        
+
         """
         self.medium = medium
         self.attenuation_model = attenuation_model
@@ -150,13 +151,13 @@ class ray_tracing_2D():
         """
         z = self.get_z_unmirrored(z_raw, C_0)
         c = self.medium.n_ice ** 2 - C_0 ** -2
-        B = (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n ** 
+        B = (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n **
                                           2 * np.exp(0.2e1 * z / self.medium.z_0) + c) - self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + 0.2e1 * c)
         D = self.medium.n_ice ** 2 * C_0 ** 2 - 1
         E1 = -self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0)
         E2 = self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0)
         E = (E1 + E2 + c)
-        res = (-np.sqrt(c) * np.exp(z / self.medium.z_0) * self.__b * self.medium.delta_n + 0.2e1 * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / 
+        res = (-np.sqrt(c) * np.exp(z / self.medium.z_0) * self.__b * self.medium.delta_n + 0.2e1 * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z /
                                                                                                                                                      self.medium.z_0) + self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0) + c) * c + 0.2e1 * c ** 1.5) / B * E ** -0.5 * (D ** (-0.5))
 
         if(z != z_raw):
@@ -294,22 +295,33 @@ class ray_tracing_2D():
             else:
                 #                 print(z, self.n(z), beta)
                 #                 print(alpha**0.5, l1(z), l2(z))
-                return self.medium.n_ice / alpha ** 0.5 * (-z + np.log(l1(z)) * self.medium.z_0) + np.log(l2(z)) * self.medium.z_0
+
+                path_length = self.medium.n_ice / alpha ** 0.5 * (-z + np.log(l1(z)) * self.medium.z_0) + np.log(l2(z)) * self.medium.z_0
+                if ( np.abs(path_length) == np.inf or path_length == np.nan ):
+                    path_length = None
+
+                return path_length
 
         def get_path_direct(z1, z2):
             int1 = get_s(z1, z1 < z_deep)
             int2 = get_s(z2, z2 < z_deep)
+            if ( int1 == None or int2 == None ):
+                return None
 #             print('analytic {:.4g} ({:.0f} - {:.0f}={:.4g}, {:.4g})'.format(
 #                 int2 - int1, get_s(x2[1]), x1[1], x2[1], get_s(x1[1])))
             if (z1 < z_deep) == (z2 < z_deep):
                 # z0 and z1 on same side of z_deep
                 return int2 - int1
             else:
-                int_diff = get_s(z_deep, deep=True) - get_s(z_deep, deep=False)
+                try:
+                    int_diff = get_s(z_deep, deep=True) - get_s(z_deep, deep=False)
+                except:
+                    return None
                 if z1 < z2:
                     # z0 below z_deep, z1 above z_deep
                     return int2 - int1 + int_diff
                 else:
+                    #print("path:", int2 - int1 - int_diff)
                     # z0 above z_deep, z1 below z_deep
                     return int2 - int1 - int_diff
 
@@ -321,7 +333,10 @@ class ray_tracing_2D():
             else:
                 gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
 #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
-            return get_path_direct(x1[1], z_turn) + get_path_direct(x2[1], z_turn)
+            try:
+                return get_path_direct(x1[1], z_turn) + get_path_direct(x2[1], z_turn)
+            except:
+                return None
 
     def get_travel_time(self, x1, x2, C_0):
         x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
@@ -370,20 +385,29 @@ class ray_tracing_2D():
                 gamma = np.where(gamma < 0, 0, gamma)
                 log_1 = l1(z)
                 log_2 = l2(z)
-                return (((np.sqrt(gamma) + self.medium.n_ice * np.log(log_2) + 
-                          self.medium.n_ice ** 2 * np.log(log_1) / np.sqrt(alpha)) * self.medium.z_0) - 
+                s = (((np.sqrt(gamma) + self.medium.n_ice * np.log(log_2) +
+                          self.medium.n_ice ** 2 * np.log(log_1) / np.sqrt(alpha)) * self.medium.z_0) -
                         z * self.medium.n_ice ** 2 / np.sqrt(alpha)) / speed_of_light
+                if ( np.abs(s) == np.inf or s == np.nan ):
+                    s = None
+
+                return s
 
         def get_ToF_direct(z1, z2):
             int1 = get_s(z1, z1 < z_deep)
             int2 = get_s(z2, z2 < z_deep)
+            if ( int1 == None or int2 == None ):
+                return None
 #             print('analytic {:.4g} ({:.0f} - {:.0f}={:.4g}, {:.4g})'.format(
 #                 int2 - int1, get_s(x2[1]), x1[1], x2[1], get_s(x1[1])))
             if (z1 < z_deep) == (z2 < z_deep):
                 # z0 and z1 on same side of z_deep
                 return int2 - int1
             else:
-                int_diff = get_s(z_deep, deep=True) - get_s(z_deep, deep=False)
+                try:
+                    int_diff = get_s(z_deep, deep=True) - get_s(z_deep, deep=False)
+                except:
+                    return None
                 if z1 < z2:
                     # z0 below z_deep, z1 above z_deep
                     return int2 - int1 + int_diff
@@ -399,9 +423,12 @@ class ray_tracing_2D():
             else:
                 gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
 #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
-            return get_ToF_direct(x1[1], z_turn) + get_ToF_direct(x2[1], z_turn)
+            try:
+                return get_ToF_direct(x1[1], z_turn) + get_ToF_direct(x2[1], z_turn)
+            except:
+                return None
 
-    
+
     def __get_frequencies_for_attenuation(self, frequency, max_detector_freq):
             mask = frequency > 0
             nfreqs = min(self.__n_frequencies_integration, np.sum(mask))
@@ -578,8 +605,8 @@ class ray_tracing_2D():
         if(z_turn < x2[1]):  # turning points is deeper that x2 positions, can't reach target
             # the minimizer has problems finding the minimum if inf is returned here. Therefore, we return the distance
             # between the turning point and the target point + 10 x the distance between the z position of the turning points
-            # and the target position. This results in a objective function that has the solutions as the only minima and 
-            # is smooth in C_0 
+            # and the target position. This results in a objective function that has the solutions as the only minima and
+            # is smooth in C_0
             diff = ((z_turn - x2[1])**2 + (y_turn - x2[0])**2)**0.5 + 10 * np.abs(z_turn - x2[1])
             self.__logger.debug(
                 "turning points (zturn = {:.0f} is deeper than x2 positon z2 = {:.0f}, setting distance to target position to {:.1f}".format(z_turn, x2[1], -diff))
@@ -607,7 +634,7 @@ class ray_tracing_2D():
             y2_raw = self.get_y(gamma, C_0, C_1)
             y2_fit = 2 * y_turn - y2_raw
             diff = (x2[0] - y2_fit)
-            
+
             self.__logger.debug('we have a reflected/refracted ray, y({:.1f}) = {:.1f} ({:.1f}) -> {:.1f} away from {:.1f} (gamma = {:.5g})'.format(
                 z_mirrored, y2_fit, y2_raw, diff, x2[0], gamma))
             return -1 * diff
