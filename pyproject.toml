@@ -13,6 +13,7 @@ requires = [
     "radiotools >=0.1.0",
     "h5py",
     "NuRadioReco >=0.2.1",
-    "pyyaml"
+    "pyyaml",
+    "cython"
 ]
 
