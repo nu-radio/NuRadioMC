@@ -52,9 +52,8 @@ double get_attenuation_length(double z, double frequency, int model){
 		return 1./exp(a +bb*w);
 	} else if (model == 2) {
 
-		double att_length_f = fit_GL1(z, frequency);
-
-		return att_length_f;
+		return fit_GL1(z, frequency);
+		
 	} else {
 		std::cout << "attenuation length model " << model << " unknown" << std::endl;
 		throw 0;
