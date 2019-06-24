@@ -48,6 +48,7 @@ class NuRadioRecoio(object):
             self.__open_files[iF] = {} 
             self.__open_files[iF]['file'] = open(self.__filenames[iF], 'rb')
             self.__open_files[iF]['time'] = time.time()
+            self.__check_file_version(iF)
             if(len(self.__open_files) > self.__max_open_files):
                 logger.debug("more than {} file are open, closing oldest file".format(self.__max_open_files))
                 tnow = time.time()
@@ -61,6 +62,20 @@ class NuRadioRecoio(object):
                 del self.__open_files[iF_close]
         return self.__open_files[iF]['file']
 
+    def __check_file_version(self, iF):
+        self.__file_version = int(self.__get_file(iF).read(6), 16)
+        self.__file_version_minor = int(self.__get_file(iF).read(6), 16)
+        if(self.__file_version != VERSION):
+            logger.error("data file not readable. File has version {}.{} but current version is {}.{}".format(self.__file_version, self.__file_version_minor,
+                                                                                                              VERSION, VERSION_MINOR))
+            if(self.__fail_on_version_mismatch):
+                raise IOError
+        if(self.__file_version_minor != VERSION_MINOR):
+            logger.error("data file might not readable. File has version {}.{} but current version is {}.{}".format(self.__file_version, self.__file_version_minor,
+                                                                                                              VERSION, VERSION_MINOR))
+            if(self.__fail_on_minor_version_mismatch):
+                raise IOError
+
     def openFile(self, filenames):
         self.__filenames = filenames
         self.__n_events = 0
@@ -70,20 +85,7 @@ class NuRadioRecoio(object):
         self.__bytes_start = [[]]
         self.__bytes_length = [[]]
         self.__open_files = {}
-        for iF, filename in enumerate(filenames):
-            self.__file_version = int(self.__get_file(iF).read(6), 16)
-            self.__file_version_minor = int(self.__get_file(iF).read(6), 16)
-            if(self.__file_version != VERSION):
-                logger.error("data file not readable. File has version {}.{} but current version is {}.{}".format(self.__file_version, self.__file_version_minor,
-                                                                                                                  VERSION, VERSION_MINOR))
-                if(self.__fail_on_version_mismatch):
-                    raise IOError
-            if(self.__file_version_minor != VERSION_MINOR):
-                logger.error("data file might not readable. File has version {}.{} but current version is {}.{}".format(self.__file_version, self.__file_version_minor,
-                                                                                                                  VERSION, VERSION_MINOR))
-                if(self.__fail_on_minor_version_mismatch):
-                    raise IOError
-
+        
         self.__event_headers = {}
         if(self.__parse_header):
             self.__scan_files()
