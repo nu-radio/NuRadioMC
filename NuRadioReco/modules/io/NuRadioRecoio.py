@@ -17,7 +17,7 @@ class NuRadioRecoio(object):
 
     def __init__(self, filenames, parse_header=True, fail_on_version_mismatch=True,
                  fail_on_minor_version_mismatch=False,
-                 max_open_files=10):
+                 max_open_files=10, log_level=logging.WARNING):
         """
         Initialize NuRadioReco io
         
@@ -33,6 +33,7 @@ class NuRadioRecoio(object):
         self.__file_scanned = False
         logger.info("initializing NuRadioRecoio with file {}".format(filenames))
         t = time.time()
+        logger.setLevel(log_level)
         self.__fail_on_version_mismatch = fail_on_version_mismatch
         self.__fail_on_minor_version_mismatch = fail_on_minor_version_mismatch
         self.__parse_header = parse_header
@@ -43,15 +44,19 @@ class NuRadioRecoio(object):
         
     def __get_file(self, iF):
         if(iF not in self.__open_files):
+            logger.debug("file {} is not yet open, opening file".format(iF))
             self.__open_files[iF] = {} 
             self.__open_files[iF]['file'] = open(self.__filenames[iF], 'rb')
             self.__open_files[iF]['time'] = time.time()
             if(len(self.__open_files) > self.__max_open_files):
+                logger.debug("more than {} file are open, closing oldest file".format(self.__max_open_files))
                 tnow = time.time()
                 iF_close = 0
                 for key, value in self.__open_files.iteritems():
                     if(value['time'] < tnow):
+                        tnow = value['time'] 
                         iF_close = key
+                logger.debug("closing file {} that was opened at {}".format(iF_close, tnow))
                 self.__open_files[iF_close]['file'].close()
                 del self.__open_files[iF_close]
         return self.__open_files[iF]['file']
