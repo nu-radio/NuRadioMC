@@ -20,7 +20,7 @@ def fit_GL1(z):
         if ( att_length < min_length ):
             att_length = min_length
     else:
-        att_length[ att_length < 0 ] = min_length
+        att_length[ att_length < min_length ] = min_length
 
     return att_length
 
