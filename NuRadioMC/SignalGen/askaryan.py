@@ -102,7 +102,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
         raise NotImplementedError("model {} unknown".format(model))
 
 
-def get_frequency_spectrum(energy, theta, N, dt, is_em_shower, n_index, R, model, **kwargs):
+def get_frequency_spectrum(energy, theta, N, dt, shower_type, n_index, R, model, **kwargs):
     """
     returns the complex amplitudes of the frequency spectrum of the neutrino radio signal
 
@@ -136,4 +136,4 @@ def get_frequency_spectrum(energy, theta, N, dt, is_em_shower, n_index, R, model
         the complex amplitudes for the given frequencies
 
     """
-    return fft.time2freq(get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, model, **kwargs))
+    return fft.time2freq(get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, **kwargs))
