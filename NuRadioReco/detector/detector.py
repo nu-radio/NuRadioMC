@@ -165,7 +165,7 @@ class Detector(object):
             self.__db = TinyDB(filename, storage=serialization,
                                sort_keys=True, indent=4, separators=(',', ': '))
 
-        self.__stations = self.__db.table('stations', cache_size=1000)
+        self._stations = self.__db.table('stations', cache_size=1000)
         self.__channels = self.__db.table('channels', cache_size=1000)
         self.__positions = self.__db.table('positions', cache_size=1000)
 
@@ -207,7 +207,7 @@ class Detector(object):
         Station = Query()
         if self.__current_time is None:
             raise ValueError("Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
-        res = self.__stations.get((Station.station_id == station_id)
+        res = self._stations.get((Station.station_id == station_id)
                                        & (Station.commission_time <= self.__current_time.datetime)
                                        & (Station.decommission_time > self.__current_time.datetime))
         if(res is None):
@@ -230,7 +230,7 @@ class Detector(object):
         returns a sorted list of all station ids present in the database
         """
         station_ids = []
-        res = self.__stations.all()
+        res = self._stations.all()
         if(res is None):
             logger.error("query for stations returned no results")
             raise LookupError("query for stations returned no results")
@@ -275,7 +275,7 @@ class Detector(object):
             
     def __get_t0_t1(self, station_id):
         Station = Query()
-        res = self.__stations.get(Station.station_id == station_id)
+        res = self._stations.get(Station.station_id == station_id)
         t0 = None
         t1 = None
         if(isinstance(res, list)):
@@ -305,7 +305,7 @@ class Detector(object):
         Returns bool
         """
         Station = Query()
-        res = self.__stations.get(Station.station_id == station_id)
+        res = self._stations.get(Station.station_id == station_id)
         return res != None
     
     def get_unique_time_periods(self, station_id):
