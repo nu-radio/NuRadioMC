@@ -166,7 +166,7 @@ class Detector(object):
                                sort_keys=True, indent=4, separators=(',', ': '))
 
         self._stations = self.__db.table('stations', cache_size=1000)
-        self.__channels = self.__db.table('channels', cache_size=1000)
+        self._channels = self.__db.table('channels', cache_size=1000)
         self.__positions = self.__db.table('positions', cache_size=1000)
 
         logger.info("database initialized")
@@ -187,7 +187,7 @@ class Detector(object):
         Channel = Query()
         if self.__current_time is None:
             raise ValueError("Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
-        res = self.__channels.get((Channel.station_id == station_id) & (Channel.channel_id == channel_id)
+        res = self._channels.get((Channel.station_id == station_id) & (Channel.channel_id == channel_id)
                                            & (Channel.commission_time <= self.__current_time.datetime)
                                            & (Channel.decommission_time > self.__current_time.datetime))
         if(res is None):
@@ -195,15 +195,15 @@ class Detector(object):
             raise LookupError
         return res
 
-    def __query_channels(self, station_id):
+    def _query_channels(self, station_id):
         Channel = Query()
         if self.__current_time is None:
             raise ValueError("Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
-        return self.__channels.search((Channel.station_id == station_id)
+        return self._channels.search((Channel.station_id == station_id)
                                            & (Channel.commission_time <= self.__current_time.datetime)
                                            & (Channel.decommission_time > self.__current_time.datetime))
 
-    def __query_station(self, station_id):
+    def _query_station(self, station_id):
         Station = Query()
         if self.__current_time is None:
             raise ValueError("Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
@@ -260,10 +260,10 @@ class Detector(object):
         return self.__buffered_channels[station_id][channel_id]
 
     def __buffer(self, station_id):
-        self.__buffered_stations[station_id] = self.__query_station(station_id)
+        self.__buffered_stations[station_id] = self._query_station(station_id)
         self.__valid_t0 = astropy.time.Time(self.__buffered_stations[station_id]['commission_time'])
         self.__valid_t1 = astropy.time.Time(self.__buffered_stations[station_id]['decommission_time'])
-        channels = self.__query_channels(station_id)
+        channels = self._query_channels(station_id)
         self.__buffered_channels[station_id] = {}
         for channel in channels:
             self.__buffered_channels[station_id][channel['channel_id']] = channel

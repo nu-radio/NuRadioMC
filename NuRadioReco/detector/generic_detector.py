@@ -19,9 +19,14 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
     """
     Used the same way as the main detector class, but works with incomplete
     detector descriptions.
-    The user can define a default station and a default channel. If any
-    information is missing, the value stored in the default station or default
-    channel will be used instead.
+    The user can define a default station. If any property is missing from one
+    of the other station, the value from the default station will be used instead.
+    If no channels are specified for a station, the channels from the default station
+    will be used instead.
+    For cases when the station design has a lot of channels, a default channel can
+    also be defined. The default channel has to be part of the default station.
+    It works the same way as the default station: Any property missing from one
+    of the other channels will be taken from the default channel.
     The GenericDetector also ignores commission and decommision times and should
     therefore not be used for real data, but only for simulation studies.
     This detector only accepts json detector descriptions.
@@ -51,12 +56,9 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         if not self.has_station(self.__default_station_id):
             raise ValueError('The default station {} was not found in the detector description'.format(self.__default_station_id)) 
         Station = Query()
-        #if self.__current_time is None:
-        #    raise ValueError("Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
         self.__default_station = self._stations.get((Station.station_id == self.__default_station_id))
-    def get_station(self, station_id):
-        return self.__query_station(station_id)
-    def __query_station(self, station_id):
+
+    def _query_station(self, station_id):
         Station = Query()
         res = self._stations.get((Station.station_id == station_id))
         if(res is None):
@@ -64,5 +66,13 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             raise LookupError("query for station {} returned no results".format(station_id))
         for key in self.__default_station.keys():
             if key not in res.keys():
+                #   if a property is missing, we use the value from the default station instead
                 res[key] = self.__default_station[key]
+        return res
+
+    def _query_channels(self, station_id):
+        Channel = Query()
+        res = self._channels.search((Channel.station_id == station_id))
+        if len(res) == 0:
+            res = self._channels.search((Channel.station_id == self.__default_station_id))
         return res
