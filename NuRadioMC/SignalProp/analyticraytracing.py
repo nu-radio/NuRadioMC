@@ -6,6 +6,10 @@ from scipy.optimize import fsolve, minimize, basinhopping, root
 from scipy import optimize, integrate, interpolate
 import scipy.constants
 from operator import itemgetter
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
 
 from NuRadioMC.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
@@ -93,6 +97,7 @@ class ray_tracing_2D():
     #         res[z > 0] = 1.
         return res
 
+    @lru_cache
     def get_z_deep(self):
         """
         Calculates the z_deep needed for integral along the homogeneous ice
