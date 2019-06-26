@@ -171,9 +171,9 @@ class Detector(object):
 
         logger.info("database initialized")
 
-        self.__buffered_stations = {}
+        self._buffered_stations = {}
         self.__buffered_positions = {}
-        self.__buffered_channels = {}
+        self._buffered_channels = {}
         self.__valid_t0 = astropy.time.Time('2100-1-1')
         self.__valid_t1 = astropy.time.Time('1970-1-1')
 
@@ -240,9 +240,9 @@ class Detector(object):
         return sorted(station_ids)
 
     def __get_station(self, station_id):
-        if(station_id not in self.__buffered_stations.keys()):
-            self.__buffer(station_id)
-        return self.__buffered_stations[station_id]
+        if(station_id not in self._buffered_stations.keys()):
+            self._buffer(station_id)
+        return self._buffered_stations[station_id]
     
     def __get_position(self, position_id):
         if(position_id not in self.__buffered_positions.keys()):
@@ -250,23 +250,23 @@ class Detector(object):
         return self.__buffered_positions[position_id]
 
     def __get_channels(self, station_id):
-        if(station_id not in self.__buffered_stations.keys()):
-            self.__buffer(station_id)
-        return self.__buffered_channels[station_id]
+        if(station_id not in self._buffered_stations.keys()):
+            self._buffer(station_id)
+        return self._buffered_channels[station_id]
 
     def __get_channel(self, station_id, channel_id):
-        if(station_id not in self.__buffered_stations.keys()):
-            self.__buffer(station_id)
-        return self.__buffered_channels[station_id][channel_id]
+        if(station_id not in self._buffered_stations.keys()):
+            self._buffer(station_id)
+        return self._buffered_channels[station_id][channel_id]
 
-    def __buffer(self, station_id):
-        self.__buffered_stations[station_id] = self._query_station(station_id)
-        self.__valid_t0 = astropy.time.Time(self.__buffered_stations[station_id]['commission_time'])
-        self.__valid_t1 = astropy.time.Time(self.__buffered_stations[station_id]['decommission_time'])
+    def _buffer(self, station_id):
+        self._buffered_stations[station_id] = self._query_station(station_id)
+        self.__valid_t0 = astropy.time.Time(self._buffered_stations[station_id]['commission_time'])
+        self.__valid_t1 = astropy.time.Time(self._buffered_stations[station_id]['decommission_time'])
         channels = self._query_channels(station_id)
-        self.__buffered_channels[station_id] = {}
+        self._buffered_channels[station_id] = {}
         for channel in channels:
-            self.__buffered_channels[station_id][channel['channel_id']] = channel
+            self._buffered_channels[station_id][channel['channel_id']] = channel
             self.__valid_t0 = max(self.__valid_t0, astropy.time.Time(channel['commission_time']))
             self.__valid_t1 = min(self.__valid_t1, astropy.time.Time(channel['decommission_time']))
             
@@ -325,7 +325,7 @@ class Detector(object):
         while True:
             if(len(up) > 0 and up[-1] == t1):
                 break
-            self.__buffer(station_id)
+            self._buffer(station_id)
             if(len(up) == 0):
                 up.append(self.__valid_t0)
             up.append(self.__valid_t1)
@@ -348,8 +348,8 @@ class Detector(object):
             self.__current_time = time
         logger.info("updating detector time to {}".format(self.__current_time))
         if(not ((self.__current_time > self.__valid_t0) and (self.__current_time < self.__valid_t1))):
-            self.__buffered_stations = {}
-            self.__buffered_channels = {}
+            self._buffered_stations = {}
+            self._buffered_channels = {}
             self.__valid_t0 = astropy.time.Time('2100-1-1')
             self.__valid_t1 = astropy.time.Time('1970-1-1')
             
