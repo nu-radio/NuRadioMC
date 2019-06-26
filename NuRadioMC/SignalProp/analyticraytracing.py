@@ -47,6 +47,23 @@ solution_types = {1: 'direct',
                   2: 'refracted',
                   3: 'reflected'}
 
+@lru_cache(maxsize=32)
+def get_z_deep(ice_params):
+    """
+    Calculates the z_deep needed for integral along the homogeneous ice
+    to know the path length or the times. We obtain the depth for which
+    the index of refraction is 0.035% away of that of deep ice. This
+    calculation assumes a monotonically increasing index of refraction
+    with negative depth.
+    """
+    n_ice, z_0, delta_n = ice_params
+    def diff_n_ice(z):
+
+        rel_diff = 3.5e-4
+        return delta_n * np.exp(z/z_0)/n_ice - rel_diff
+
+    return optimize.root(diff_n_ice, -100*units.m).x[0]
+
 
 class ray_tracing_2D():
 
@@ -96,23 +113,6 @@ class ray_tracing_2D():
     #     else:
     #         res[z > 0] = 1.
         return res
-
-    @lru_cache
-    def get_z_deep(self):
-        """
-        Calculates the z_deep needed for integral along the homogeneous ice
-        to know the path length or the times. We obtain the depth for which
-        the index of refraction is 0.035% away of that of deep ice. This
-        calculation assumes a monotonically increasing index of refraction
-        with negative depth.
-        """
-
-        def diff_n_ice(z):
-
-            rel_diff = 3.5e-4
-            return (self.medium.n_ice - self.n(z))/self.medium.n_ice - rel_diff
-
-        return optimize.root(diff_n_ice, -100*units.m).x[0]
 
     def get_gamma(self, z):
         return self.medium.delta_n * np.exp(z / self.medium.z_0)
@@ -294,7 +294,7 @@ class ray_tracing_2D():
         """
         solution_type = self.determine_solution_type(x1, x2, C_0)
 
-        z_deep = self.get_z_deep()
+        z_deep = get_z_deep((self.medium.n_ice, self.medium.z_0, self.medium.delta_n))
         launch_angle = self.get_launch_angle(x1, C_0)
         beta = self.n(x1[1]) * np.sin(launch_angle)
         alpha = self.medium.n_ice ** 2 - beta ** 2
@@ -382,7 +382,7 @@ class ray_tracing_2D():
         """
         solution_type = self.determine_solution_type(x1, x2, C_0)
 
-        z_deep = self.get_z_deep()
+        z_deep = get_z_deep((self.medium.n_ice, self.medium.z_0, self.medium.delta_n))
         launch_angle = self.get_launch_angle(x1, C_0)
         beta = self.n(x1[1]) * np.sin(launch_angle)
         alpha = self.medium.n_ice ** 2 - beta ** 2
