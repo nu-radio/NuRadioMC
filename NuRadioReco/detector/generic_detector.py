@@ -57,7 +57,13 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             raise ValueError('The default station {} was not found in the detector description'.format(self.__default_station_id)) 
         Station = Query()
         self.__default_station = self._stations.get((Station.station_id == self.__default_station_id))
-
+        if default_channel is not None:
+            Channel = Query()
+            self.__default_channel = self._channels.get((Channel.station_id == default_station)&(Channel.channel_id == default_channel))
+            if self.__default_channel is None:
+                raise ValueError('The default channel {} of station {} was not found in the detector description'.format(default_channel, self.__default_station_id))
+        else:
+            self.__default_channel = None
     def _query_station(self, station_id):
         Station = Query()
         res = self._stations.get((Station.station_id == station_id))
@@ -75,4 +81,16 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         res = self._channels.search((Channel.station_id == station_id))
         if len(res) == 0:
             res = self._channels.search((Channel.station_id == self.__default_station_id))
+        if self.__default_channel is not None:
+            for channel in res:
+                for key in self.__default_channel.keys():
+                    if key not in channel.keys():
+                        channel[key] = self.__default_channel[key]
         return res
+    
+    def _buffer(self, station_id):
+        self._buffered_stations[station_id] = self._query_station(station_id)
+        channels = self._query_channels(station_id)
+        self._buffered_channels[station_id] = {}
+        for channel in channels:
+            self._buffered_channels[station_id][channel['channel_id']] = channel
