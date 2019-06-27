@@ -6,6 +6,10 @@ from scipy.optimize import fsolve, minimize, basinhopping, root
 from scipy import optimize, integrate, interpolate
 import scipy.constants
 from operator import itemgetter
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
 
 from NuRadioMC.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
@@ -42,6 +46,23 @@ speed_of_light = scipy.constants.c * units.m / units.s
 solution_types = {1: 'direct',
                   2: 'refracted',
                   3: 'reflected'}
+
+@lru_cache(maxsize=32)
+def get_z_deep(ice_params):
+    """
+    Calculates the z_deep needed for integral along the homogeneous ice
+    to know the path length or the times. We obtain the depth for which
+    the index of refraction is 0.035% away of that of deep ice. This
+    calculation assumes a monotonically increasing index of refraction
+    with negative depth.
+    """
+    n_ice, z_0, delta_n = ice_params
+    def diff_n_ice(z):
+
+        rel_diff = 3.5e-4
+        return delta_n * np.exp(z/z_0)/n_ice - rel_diff
+
+    return optimize.root(diff_n_ice, -100*units.m).x[0]
 
 
 class ray_tracing_2D():
@@ -273,7 +294,7 @@ class ray_tracing_2D():
         """
         solution_type = self.determine_solution_type(x1, x2, C_0)
 
-        z_deep = -500 * units.m
+        z_deep = get_z_deep((self.medium.n_ice, self.medium.z_0, self.medium.delta_n))
         launch_angle = self.get_launch_angle(x1, C_0)
         beta = self.n(x1[1]) * np.sin(launch_angle)
         alpha = self.medium.n_ice ** 2 - beta ** 2
@@ -361,7 +382,7 @@ class ray_tracing_2D():
         """
         solution_type = self.determine_solution_type(x1, x2, C_0)
 
-        z_deep = -500 * units.m
+        z_deep = get_z_deep((self.medium.n_ice, self.medium.z_0, self.medium.delta_n))
         launch_angle = self.get_launch_angle(x1, C_0)
         beta = self.n(x1[1]) * np.sin(launch_angle)
         alpha = self.medium.n_ice ** 2 - beta ** 2
@@ -1409,7 +1430,11 @@ class ray_tracing:
 
         result = self.__results[iS]
         if analytic:
-            return self.__r2d.get_path_length_analytic(self.__x1, self.__x2, result['C0'])
+            analytic_length = self.__r2d.get_path_length_analytic(self.__x1, self.__x2, result['C0'])
+            if ( analytic_length != None ):
+                return analytic_length
+            else:
+                return self.__r2d.get_path_length(self.__x1, self.__x2, result['C0'])
         else:
             return self.__r2d.get_path_length(self.__x1, self.__x2, result['C0'])
 
@@ -1438,7 +1463,11 @@ class ray_tracing:
 
         result = self.__results[iS]
         if(analytic):
-            return self.__r2d.get_travel_time_analytic(self.__x1, self.__x2, result['C0'])
+            analytic_time = self.__r2d.get_travel_time_analytic(self.__x1, self.__x2, result['C0'])
+            if ( analytic_time != None ):
+                return analytic_time
+            else:
+                return self.__r2d.get_travel_time(self.__x1, self.__x2, result['C0'])
         else:
             return self.__r2d.get_travel_time(self.__x1, self.__x2, result['C0'])
 
