@@ -9,6 +9,6 @@ C. Glaser, D. Garcia-Fernandez, A. Nelles et al., "NuRadioMC: Simulating the rad
 
 and
 
-C. Glaser, A. Nelle, I. Plaisier, C. Welling et al., "NuRadioReco: A reconstruction framework for radio neutrino detectors", Eur. Phys. J. C (2019) 79: 464, doi:10.1140/epjc/s10052-019-6971-5, arXiv:1903.07023
+C. Glaser, A. Nelles, I. Plaisier, C. Welling et al., "NuRadioReco: A reconstruction framework for radio neutrino detectors", Eur. Phys. J. C (2019) 79: 464, doi:10.1140/epjc/s10052-019-6971-5, arXiv:1903.07023
 
 for the detector simulation part. 
