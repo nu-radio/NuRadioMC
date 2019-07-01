@@ -63,6 +63,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
         the complex amplitudes for the given frequencies
 
     """
+    if(energy == 0):
+        return np.zeros(N)
     if model in par.get_parametrizations():
         return par.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model)
     elif(model == 'HCRB2017'):
