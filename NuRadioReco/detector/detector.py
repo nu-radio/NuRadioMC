@@ -165,15 +165,15 @@ class Detector(object):
             self.__db = TinyDB(filename, storage=serialization,
                                sort_keys=True, indent=4, separators=(',', ': '))
 
-        self.__stations = self.__db.table('stations', cache_size=1000)
-        self.__channels = self.__db.table('channels', cache_size=1000)
+        self._stations = self.__db.table('stations', cache_size=1000)
+        self._channels = self.__db.table('channels', cache_size=1000)
         self.__positions = self.__db.table('positions', cache_size=1000)
 
         logger.info("database initialized")
 
-        self.__buffered_stations = {}
+        self._buffered_stations = {}
         self.__buffered_positions = {}
-        self.__buffered_channels = {}
+        self._buffered_channels = {}
         self.__valid_t0 = astropy.time.Time('2100-1-1')
         self.__valid_t1 = astropy.time.Time('1970-1-1')
 
@@ -187,7 +187,7 @@ class Detector(object):
         Channel = Query()
         if self.__current_time is None:
             raise ValueError("Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
-        res = self.__channels.get((Channel.station_id == station_id) & (Channel.channel_id == channel_id)
+        res = self._channels.get((Channel.station_id == station_id) & (Channel.channel_id == channel_id)
                                            & (Channel.commission_time <= self.__current_time.datetime)
                                            & (Channel.decommission_time > self.__current_time.datetime))
         if(res is None):
@@ -195,19 +195,19 @@ class Detector(object):
             raise LookupError
         return res
 
-    def __query_channels(self, station_id):
+    def _query_channels(self, station_id):
         Channel = Query()
         if self.__current_time is None:
             raise ValueError("Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
-        return self.__channels.search((Channel.station_id == station_id)
+        return self._channels.search((Channel.station_id == station_id)
                                            & (Channel.commission_time <= self.__current_time.datetime)
                                            & (Channel.decommission_time > self.__current_time.datetime))
 
-    def __query_station(self, station_id):
+    def _query_station(self, station_id):
         Station = Query()
         if self.__current_time is None:
             raise ValueError("Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
-        res = self.__stations.get((Station.station_id == station_id)
+        res = self._stations.get((Station.station_id == station_id)
                                        & (Station.commission_time <= self.__current_time.datetime)
                                        & (Station.decommission_time > self.__current_time.datetime))
         if(res is None):
@@ -230,7 +230,7 @@ class Detector(object):
         returns a sorted list of all station ids present in the database
         """
         station_ids = []
-        res = self.__stations.all()
+        res = self._stations.all()
         if(res is None):
             logger.error("query for stations returned no results")
             raise LookupError("query for stations returned no results")
@@ -240,9 +240,9 @@ class Detector(object):
         return sorted(station_ids)
 
     def __get_station(self, station_id):
-        if(station_id not in self.__buffered_stations.keys()):
-            self.__buffer(station_id)
-        return self.__buffered_stations[station_id]
+        if(station_id not in self._buffered_stations.keys()):
+            self._buffer(station_id)
+        return self._buffered_stations[station_id]
     
     def __get_position(self, position_id):
         if(position_id not in self.__buffered_positions.keys()):
@@ -250,23 +250,23 @@ class Detector(object):
         return self.__buffered_positions[position_id]
 
     def __get_channels(self, station_id):
-        if(station_id not in self.__buffered_stations.keys()):
-            self.__buffer(station_id)
-        return self.__buffered_channels[station_id]
+        if(station_id not in self._buffered_stations.keys()):
+            self._buffer(station_id)
+        return self._buffered_channels[station_id]
 
     def __get_channel(self, station_id, channel_id):
-        if(station_id not in self.__buffered_stations.keys()):
-            self.__buffer(station_id)
-        return self.__buffered_channels[station_id][channel_id]
+        if(station_id not in self._buffered_stations.keys()):
+            self._buffer(station_id)
+        return self._buffered_channels[station_id][channel_id]
 
-    def __buffer(self, station_id):
-        self.__buffered_stations[station_id] = self.__query_station(station_id)
-        self.__valid_t0 = astropy.time.Time(self.__buffered_stations[station_id]['commission_time'])
-        self.__valid_t1 = astropy.time.Time(self.__buffered_stations[station_id]['decommission_time'])
-        channels = self.__query_channels(station_id)
-        self.__buffered_channels[station_id] = {}
+    def _buffer(self, station_id):
+        self._buffered_stations[station_id] = self._query_station(station_id)
+        self.__valid_t0 = astropy.time.Time(self._buffered_stations[station_id]['commission_time'])
+        self.__valid_t1 = astropy.time.Time(self._buffered_stations[station_id]['decommission_time'])
+        channels = self._query_channels(station_id)
+        self._buffered_channels[station_id] = {}
         for channel in channels:
-            self.__buffered_channels[station_id][channel['channel_id']] = channel
+            self._buffered_channels[station_id][channel['channel_id']] = channel
             self.__valid_t0 = max(self.__valid_t0, astropy.time.Time(channel['commission_time']))
             self.__valid_t1 = min(self.__valid_t1, astropy.time.Time(channel['decommission_time']))
             
@@ -275,7 +275,7 @@ class Detector(object):
             
     def __get_t0_t1(self, station_id):
         Station = Query()
-        res = self.__stations.get(Station.station_id == station_id)
+        res = self._stations.get(Station.station_id == station_id)
         t0 = None
         t1 = None
         if(isinstance(res, list)):
@@ -305,7 +305,7 @@ class Detector(object):
         Returns bool
         """
         Station = Query()
-        res = self.__stations.get(Station.station_id == station_id)
+        res = self._stations.get(Station.station_id == station_id)
         return res != None
     
     def get_unique_time_periods(self, station_id):
@@ -325,7 +325,7 @@ class Detector(object):
         while True:
             if(len(up) > 0 and up[-1] == t1):
                 break
-            self.__buffer(station_id)
+            self._buffer(station_id)
             if(len(up) == 0):
                 up.append(self.__valid_t0)
             up.append(self.__valid_t1)
@@ -348,8 +348,8 @@ class Detector(object):
             self.__current_time = time
         logger.info("updating detector time to {}".format(self.__current_time))
         if(not ((self.__current_time > self.__valid_t0) and (self.__current_time < self.__valid_t1))):
-            self.__buffered_stations = {}
-            self.__buffered_channels = {}
+            self._buffered_stations = {}
+            self._buffered_channels = {}
             self.__valid_t0 = astropy.time.Time('2100-1-1')
             self.__valid_t1 = astropy.time.Time('1970-1-1')
             
