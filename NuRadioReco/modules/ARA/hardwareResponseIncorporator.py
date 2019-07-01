@@ -30,12 +30,11 @@ class hardwareResponseIncorporator:
         t = time.time()
         station_id = station.get_id()
         channels = station.iter_channels()
-        frequencies = channels[0].get_frequencies()  #the sampling rate is assumed to be the same for all channels
-        # very basic, only one system response for the whole ARA system
-        system_response = analog_components.get_system_response(frequencies)
 
         for channel in channels:
 
+            frequencies = channel.get_frequencies()
+            system_response = analog_components.get_system_response(frequencies)
             trace_fft = channel.get_frequency_spectrum()
 
             if sim_to_data:
