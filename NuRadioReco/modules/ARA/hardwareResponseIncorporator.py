@@ -45,7 +45,8 @@ class hardwareResponseIncorporator:
                 channel.set_frequency_spectrum(trace_after_system_fft, channel.get_sampling_rate())
 
             else:
-                trace_before_system_fft = trace_fft / (system_response['gain'] * system_response['phase'])
+                trace_before_system_fft = np.zeros_like(trace_fft)
+                trace_before_system_fft[np.abs(system_response['gain']) > 0] = trace_fft[np.abs(system_response['gain']) > 0] / (system_response['gain'] * system_response['phase'])[np.abs(system_response['gain']) > 0]
                 channel.set_frequency_spectrum(trace_before_system_fft, channel.get_sampling_rate())
 
         self.__t += time.time() - t
