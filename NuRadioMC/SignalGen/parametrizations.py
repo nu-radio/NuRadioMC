@@ -103,6 +103,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
                 k_E_bar = k_E_0 * np.tanh( (np.log10(E_0/units.eV)-log10_E_E)/k_E_1 )
             elif (shower_type == 'EM'):
                 k_E_bar = 4.65e-16 * units.V / units.cm / units.MHz**2
+            else:
+                raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
 
             return k_E_bar * E_0/E_C * X_0/rho * np.sin(theta) * freq
 
@@ -134,6 +136,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
                     log10_k_L_bar = log10_k_0 + gamma_1 * ( log10_E_0 - log10_E_LPM )
 
                 k_L = 10**np.random.normal(log10_k_L_bar, sigma_k_L)
+            else:
+                raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
 
             nu_L = rho/k_L/X_0
 
@@ -151,6 +155,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
                 beta = 2.57
             elif (shower_type == "EM"):
                 beta = 2.74
+            else:
+                raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
 
             return 1/(1+(freq/nu_L(E_0, theta))**beta)
 
@@ -163,6 +169,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
                 k_R_bar = k_R_0 + np.tanh( (log10_E_R-np.log10(E_0/units.eV))/k_R_1 )
             elif (shower_type == "EM"):
                 k_R_bar = 1.54
+            else:
+                raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
             nu_R = rho/k_R_bar/R_M * c/np.sqrt(n_index**2-1)
 
             alpha = 1.27
