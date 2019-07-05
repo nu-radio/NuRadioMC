@@ -168,7 +168,6 @@ class triggerSimulator:
             # set maximum signal aplitude
             max_signal = 0
             if(has_triggered):
-                logger.debug("len(triggerd_bins) = {}".format(len(triggered_bins)))
                 for channel in station.iter_channels():
                     max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
                 station.set_parameter(stnp.channels_max_amplitude, max_signal)
