@@ -45,11 +45,15 @@ class noiseImporter:
             Default is None which is 1-to-1 mapping
         log_level: loggging log level
             the log level, default logging.WARNING
+        mean_opt: boolean
+            option to subtract mean from trace. Set mean_opt=False to remove mean subtraction from trace.
         """
         logger.setLevel(log_level)
         self.__channel_mapping = channel_mapping
         if(noise_files is not None):
             self.__noise_files = noise_files
+        self.__mean_opt = mean_opt
+
         else:
             if(station_id is None):
                 logger.error("noise_files and station_id can't be both None")
@@ -114,7 +118,7 @@ class noiseImporter:
 
             trace = trace + noise_trace
 
-            if mean_opt:
+            if self.__mean_opt:
                 mean = noise_trace.mean()
                 std = noise_trace.std()
                 if(mean > 0.05 * std):
