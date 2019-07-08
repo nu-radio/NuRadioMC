@@ -50,10 +50,9 @@ class noiseImporter:
         """
         logger.setLevel(log_level)
         self.__channel_mapping = channel_mapping
+        self.__mean_opt = mean_opt
         if(noise_files is not None):
             self.__noise_files = noise_files
-        self.__mean_opt = mean_opt
-
         else:
             if(station_id is None):
                 logger.error("noise_files and station_id can't be both None")
