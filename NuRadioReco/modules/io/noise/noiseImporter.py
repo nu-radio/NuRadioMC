@@ -26,7 +26,7 @@ class noiseImporter:
         self.__station_id = None
 
     def begin(self, noise_folder, station_id=None, noise_files=None,
-              channel_mapping=None, log_level=logging.WARNING):
+              channel_mapping=None, log_level=logging.WARNING, mean_opt=True):
         """
         Parameters
         ----------
@@ -108,15 +108,19 @@ class noiseImporter:
                 sys.exit(-1)
             # check sampling rate
             if (channel.get_sampling_rate() != noise_channel.get_sampling_rate()):
-                logger.error("Mismatch in sampling rate: Noise has {0} and simulation {1} GHz".format(noise_channel.get_sampling_rate() / units.GHz, channel.get_sampling_rate() / units.GHz))
+                logger.error("Mismatch in sampling rate: Noise has {0} and simulation {1} GHz".format(
+                    noise_channel.get_sampling_rate() / units.GHz, channel.get_sampling_rate() / units.GHz))
                 sys.exit(-1)
 
-            mean = noise_trace.mean()
-            std = noise_trace.std()
-            if(mean > 0.05 * std):
-                logger.warning("the noise trace has an offset of {:.2}mV which is more than 5\% of the STD of {:.2f}mV. The module corrects for the offset but it might points to an error in the FPN subtraction.".format(mean, std))
+            trace = trace + noise_trace
 
-            trace = trace + noise_trace - mean
+            if mean_opt:
+                mean = noise_trace.mean()
+                std = noise_trace.std()
+                if(mean > 0.05 * std):
+                    logger.warning(n
+                                   "the noise trace has an offset of {:.2}mV which is more than 5\% of the STD of {:.2f}mV. The module corrects for the offset but it might points to an error in the FPN subtraction.".format(mean, std))
+                trace = trace - mean
 
             channel.set_trace(trace, channel.get_sampling_rate())
 
