@@ -41,6 +41,7 @@ attributes = [u'trigger_names',
  u'fiducial_rmin',
  u'n_events']
 for key in attributes:
+    print("checking attribute {}".format(key))
     testing.assert_equal(fin1.attrs[key], fin2.attrs[key])
 
 
@@ -60,6 +61,7 @@ keys = [u'azimuths',
  u'zeniths',
  u'zz']
 for key in keys:
+    print("checking key {}".format(key))
     testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
 
 
@@ -77,6 +79,7 @@ keys2 = [u'SNRs',
  u'travel_times',
  u'triggered']
 for key in keys2:
+    print("checking key {} of group station_101".format(key))
     testing.assert_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
     
     
