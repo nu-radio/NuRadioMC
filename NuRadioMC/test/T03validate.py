@@ -8,9 +8,11 @@ import argparse
 from NuRadioReco.utilities import units
 import logging
 
+error = 0
 
 file1 = sys.argv[1]
 file2 = sys.argv[2]
+print("Testing the files {} and {} for equality".format(file1, file2))
 
 fin1 = h5py.File(file1, 'r')
 fin2 = h5py.File(file2, 'r')
@@ -41,8 +43,11 @@ attributes = [u'trigger_names',
  u'fiducial_rmin',
  u'n_events']
 for key in attributes:
-    print("checking attribute {}".format(key))
-    testing.assert_equal(fin1.attrs[key], fin2.attrs[key])
+    try:
+        testing.assert_equal(fin1.attrs[key], fin2.attrs[key])
+    except AssertionError as e:
+        print("\n attribute {} not equal".format(key))
+        print(e)
 
 
 keys = [u'azimuths',
@@ -61,8 +66,12 @@ keys = [u'azimuths',
  u'zeniths',
  u'zz']
 for key in keys:
-    print("checking key {}".format(key))
-    testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
+    try:
+        testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
+    except AssertionError as e:
+        print("\narray {} not equal".format(key))
+        print(e)
+        error = -1
 
 
 keys2 = [u'SNRs',
@@ -79,11 +88,18 @@ keys2 = [u'SNRs',
  u'travel_times',
  u'triggered']
 for key in keys2:
-    print("checking key {} of group station_101".format(key))
-    testing.assert_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+    try:
+        testing.assert_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+    except AssertionError as e:
+        print("\narray {} of group station_101 not equal".format(key))
+        print(e)
+        error = -1
     
-    
-print("if no error occured, previous results are exactly reproduced.")
+
+if(error == -1):
+    sys.exit(error)
+else:
+    print("The two files are identical.")
 
 
 
