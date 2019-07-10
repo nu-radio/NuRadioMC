@@ -741,8 +741,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets["zeniths"] = np.arccos(u)  # generates distribution that is uniform in cos(theta)
 
     rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
-    data_sets["xx"] = rr_full * np.cos(data_sets["azimuths"])
-    data_sets["yy"] = rr_full * np.sin(data_sets["azimuths"])
+    phiphi = np.random.uniform(0, 2 * np.pi, n_events)
+    data_sets["xx"] = rr_full * np.cos(phiphi)
+    data_sets["yy"] = rr_full * np.sin(phiphi)
     data_sets["zz"] = np.random.uniform(full_zmin, full_zmax, n_events)
     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
