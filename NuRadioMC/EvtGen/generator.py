@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import numpy as np
+import NuRadioMC
 from NuRadioMC.utilities import units
 from NuRadioMC.utilities import inelasticities
+from NuRadioMC.utilities import version
 from six import iterkeys, iteritems
 from scipy import constants
 from scipy.integrate import quad
@@ -692,6 +694,12 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     """
     attributes = {}
     n_events = int(n_events)
+    
+    # save current NuRadioMC version as attribute
+    # save NuRadioMC and NuRadioReco versions
+    attributes['NuRadioMC_EvtGen_version'] = NuRadioMC.__version__
+    attributes['NuRadioMC_EvtGen_version_hash'] = version.get_NuRadioMC_commit_hash()
+    
     attributes['n_events'] = n_events
     attributes['start_event_id'] = start_event_id
 
