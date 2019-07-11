@@ -23,6 +23,7 @@ signal:
   zerosignal: False  # if True, the signal is set to zero. This is useful to study 'noise' only simulations
   polarization: auto # can be either 'auto' or 'custom'
   ePhi: 0.  # only used if 'polarization = custom', fraction of ePhi component, the eTheta component is eTheta = (1 - ePhi**2)**0.5
+  shower_type: null # optional argument to only simulate certain shower types. Arguments can be "had" or "em". 
 
 trigger:
   noise_temperature: 300  # in Kelvin
