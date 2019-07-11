@@ -172,6 +172,15 @@ class simulation():
             if not self._is_in_fiducial_volume():
                 logger.debug("event is not in fiducial volume, skipping simulation")
                 continue
+            
+            # for special cases where only EM showers are simulated, skip all events where not EM is present
+            # i.e. all first interactions that are not nu_e CC
+            if(self._cfg['signal']['shower_type'] == "em"):
+                if(self._inttype == "nc"):  # skip all neutral current interactions
+                    continue
+                else:
+                    if(self._inttype == "cc" and np.abs(self._flavor) != 12): # skip all cc interaction that are not electron neutrinos
+                        continue 
 
             # calculate weight
             # if we have a second interaction, the weight needs to be calculated from the initial neutrino
@@ -735,6 +744,12 @@ class simulation():
                 fhad = inelasticity
         else:
             raise AttributeError("interaction type {} with flavor {} is not implemented".format(inttype, flavor))
+        
+        if(self._cfg['signal']['shower_type'] is not None):
+            if(self._cfg['signal']['shower_type'] == "em"):
+                fhad = 0
+            if(self._cfg['signal']['shower_type'] == "had"):
+                fem = 0
         return fem, fhad
 
     # TODO verify that calculation of polarization vector is correct!
