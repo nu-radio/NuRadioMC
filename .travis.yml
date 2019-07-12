@@ -4,6 +4,7 @@ python:
 
 before_install:
     sudo apt-get install libgsl2
+    export GSLDIR=$(gsl-config --prefix)
 
 install:
     pip install -r NuRadioMC/test/requirements.txt
