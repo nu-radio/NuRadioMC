@@ -18,6 +18,9 @@ def deserialize(triggers_pkl):
         elif(trigger_type == 'high_low'):
             trigger = HighLowTrigger(None, None, None, None, None)
             trigger.deserialize(data_pkl)
+        elif(trigger_type == 'simple_phased'):
+            trigger = SimplePhasedTrigger(None, None)
+            trigger.deserialize(data_pkl)
         else:
             raise ValueError("unknown trigger type")
         triggers[trigger.get_name()] = trigger
