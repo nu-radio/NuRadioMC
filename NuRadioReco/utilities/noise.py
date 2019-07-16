@@ -8,7 +8,7 @@ from NuRadioReco.modules.trigger.highLowThreshold import get_high_low_triggers
 class thermalNoiseGenerator():
 
     def __init__(self, n_samples, sampling_rate, Vrms, threshold, time_coincidence, n_majority, time_coincidence_majority,
-                 n_channels, trigger_time, noise_type="rayleigh"):
+                 n_channels, trigger_time, noise_type="rayleigh", amp_type="100"):
         """
         Efficient algorithms to generate thermal noise fluctuations that fulfill a high/low trigger + a majority 
         coincidence logic (as used by ARIANNA)
@@ -54,7 +54,7 @@ class thermalNoiseGenerator():
         self.max_freq = 0.5 * self.sampling_rate
         self.dt = 1. / self.sampling_rate
         self.ff = np.fft.rfftfreq(self.n_samples, 1. / self.sampling_rate)
-        self.amp = analog_components.get_amplifier_response(self.ff, "100")
+        self.amp = analog_components.get_amplifier_response(self.ff, amp_type)
         
         self.trigger_bin = int(self.trigger_time / self.dt)
         self.trigger_bin_low = int((self.trigger_time - self.time_coincidence_majority) / self.dt)
