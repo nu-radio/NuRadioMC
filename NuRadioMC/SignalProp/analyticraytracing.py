@@ -34,6 +34,7 @@ except:
         from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
         cpp_available = True
         print("compilation was sucessful, using CPP version of ray tracer")
+        cpp_available = False
     except:
         print("compilation was not sucessful, using python version of ray tracer")
         cpp_available = False
