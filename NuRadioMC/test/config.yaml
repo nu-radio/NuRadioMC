@@ -3,7 +3,7 @@ sampling_rate: 5.  # sampling rate in GHz used internally in the simulation.
 speedup:
   minimum_weight_cut: 1.e-5
   delta_C_cut: 0.698  # 40 degree
-  redo_raytracing: True  # redo ray tracing even if previous calculated ray tracing solutions are present
+  redo_raytracing: False  # redo ray tracing even if previous calculated ray tracing solutions are present
 propagation:
   ice_model: ARAsim_southpole
 signal:
