@@ -36,7 +36,6 @@ def get_triggered(fin):
         mask_interactions = np.array(fin['event_ids']) == event_id
         multiple_interaction_indexes = np.argwhere( np.array(fin['event_ids']) == event_id )[0]
 
-        print(multiple_interaction_indexes)
         for int_index in multiple_interaction_indexes[1:]:
             triggered[int_index] = False
         triggered[multiple_interaction_indexes[0]] = True
