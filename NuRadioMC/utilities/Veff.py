@@ -42,7 +42,7 @@ def get_triggered(fin):
 
     return triggered
 
-def get_Veff(folder, trigger_combinations={}, zenithbins=False):
+def get_Veff(folder, trigger_combinations={}, zenithbins=False, aeff=False):
     """
     calculates the effective volume from NuRadioMC hdf5 files
 
@@ -60,6 +60,8 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
                 rescaling of the efficiency curve by SNR' = SNR * scale
     zenithbins: bool
         If true, returns the minimum and maximum zenith angles
+    aeff: bool
+        if True, calculates effective area. To use with proposal and surface_muons modes
 
     Returns
     ----------
@@ -153,7 +155,8 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
         if('phimax' in fin.attrs):
             fin.attrs['phimax']
         dZ = fin.attrs['zmax'] - fin.attrs['zmin']
-        V = np.pi * (rmax**2 - rmin**2) * dZ
+        area = np.pi * (rmax**2 - rmin**2)
+        V = area * dZ
         Vrms = fin.attrs['Vrms']
 
         # Solid angle needed for the effective volume calculations
@@ -161,7 +164,10 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
 
         for iT, trigger_name in enumerate(trigger_names):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
-            Veff = V * density_ice / density_water * omega * np.sum(weights[triggered]) / n_events
+            if aeff:
+                Veff = area * np.sum(weights[triggered]) / n_events
+            else:
+                Veff = V * density_ice / density_water * omega * np.sum(weights[triggered]) / n_events
             Veffs[trigger_name].append(Veff)
             try:
                 Veffs_error[trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
@@ -282,7 +288,7 @@ def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
     with open(filename, 'w') as fout:
         json.dump(output, fout, sort_keys=True, indent=4)
 
-def exportVeffPerZenith(folderlist, outputfile):
+def exportVeffPerZenith(folderlist, outputfile, aeff=False):
     """
     export effective volumes into a human readable JSON file
     We assume a binning in zenithal angles
@@ -297,8 +303,15 @@ def exportVeffPerZenith(folderlist, outputfile):
     output = {}
     for folder in folderlist:
 
-        Es, Veffs, Veffs_error, SNR, trigger_names, thetas, deposited = get_Veff(folder, zenithbins=True)
+        Es, Veffs, Veffs_error, SNR, trigger_names, thetas, deposited = get_Veff(folder, zenithbins=True, aeff=aeff)
         output[thetas[0]] = {}
+
+        if aeff:
+            eff_str = 'Aeff'
+            err_str = 'Aeff_error'
+        else:
+            eff_str = 'Veff'
+            err_str = 'Veff_error'
 
         for trigger_name in trigger_names:
             output[thetas[0]][trigger_name] = {}
@@ -306,8 +319,8 @@ def exportVeffPerZenith(folderlist, outputfile):
                 output[thetas[0]][trigger_name]['deposited_energies'] = list(Es)
             else:
                 output[thetas[0]][trigger_name]['energies'] = list(Es)
-            output[thetas[0]][trigger_name]['Veff'] = list(Veffs[trigger_name])
-            output[thetas[0]][trigger_name]['Veff_error'] = list(Veffs_error[trigger_name])
+            output[thetas[0]][trigger_name][eff_str] = list(Veffs[trigger_name])
+            output[thetas[0]][trigger_name][err_str] = list(Veffs_error[trigger_name])
 
     with open(outputfile, 'w+') as fout:
 
