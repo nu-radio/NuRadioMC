@@ -199,10 +199,10 @@ class simulation():
             # calculate weight
             # if we have a second interaction, the weight needs to be calculated from the initial neutrino
             if(self._n_interaction > 1):
-                iE_mother = np.argwhere(self._fin['event_ids'] == self._iE).min()  # get index of mother neutrino
-                self._mout['weights'][self._iE] = get_weight(self._fin['zenith'][iE_mother],
-                                                     self._fin['energy'][iE_mother],
-                                                     self._fin['flavor'][iE_mother],
+                iE_mother = np.argwhere(self._fin['event_ids'] == self._fin['event_ids'][self._iE]).min()  # get index of mother neutrino
+                self._mout['weights'][self._iE] = get_weight(self._fin['zeniths'][iE_mother],
+                                                     self._fin['energies'][iE_mother],
+                                                     self._fin['flavors'][iE_mother],
                                                      mode=self._cfg['weights']['weight_mode'],
                                                      cross_section_type = self._cfg['weights']['cross_section_type'])
             else:
@@ -651,22 +651,33 @@ class simulation():
     def _write_ouput_file(self):
         fout = h5py.File(self._outputfilename, 'w')
 
-        triggered = np.ones(len(self._mout['triggered']), dtype=np.bool)
+        saved = np.ones(len(self._mout['triggered']), dtype=np.bool)
         if (self._cfg['save_all'] == False):
             logger.info("saving only triggered events")
-            triggered = self._mout['triggered']
+            # Careful! saved should be a copy of the triggered array, and not
+            # a reference! saved indicates the interactions to be saved, while
+            # triggered should indicate if an interaction has produced a trigger
+            saved = np.copy(self._mout['triggered'])
+
+            parent_indices = np.argwhere(self._fin['n_interaction'] == 1)
+
+            for event_id in self._fin['event_ids']:
+                event_mask = self._fin['event_ids'] == event_id
+                event_indices = np.argwhere( self._fin['event_ids'] == event_id )[0]
+                if ( True in self._mout['triggered'][event_mask] ):
+                    saved[ np.intersect1d(parent_indices, event_indices)[0] ] = True
         else:
             logger.info("saving all events")
 
         # save data sets
         for (key, value) in iteritems(self._mout):
-            fout[key] = value[triggered]
+            fout[key] = value[saved]
 
         # save all data sets of the station groups
         for (key, value) in iteritems(self._mout_groups):
             sg = fout.create_group("station_{:d}".format(key))
             for (key2, value2) in iteritems(value):
-                sg[key2] = value2[triggered]
+                sg[key2] = value2[saved]
 
         # save meta arguments
         for (key, value) in iteritems(self._mout_attrs):
@@ -701,7 +712,7 @@ class simulation():
         # now we also save all input parameters back into the out file
         for key in self._fin.keys():
             if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
-                fout[key] = np.array(self._fin[key])[triggered]
+                fout[key] = np.array(self._fin[key])[saved]
 
         for key in self._fin_attrs.keys():
             if(not key in fout.attrs.keys()):  # only save atrributes sets that havn't been recomputed and saved already
