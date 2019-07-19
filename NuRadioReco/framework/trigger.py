@@ -70,7 +70,7 @@ class Trigger:
         Parameters
         ----------
         time: float
-            the trigger time in ns from the beginning of the trace
+            the trigger time from the beginning of the trace
         """
         self._trigger_time = time
 
@@ -86,7 +86,7 @@ class Trigger:
         Parameters
         ----------
         times: array
-            all trigger times in ns 
+            all trigger times 
         """
         self._trigger_times = times
 
