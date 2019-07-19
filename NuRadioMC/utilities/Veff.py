@@ -26,33 +26,19 @@ def get_triggered(fin):
        The bools indicate if the events have triggered
     """
 
-    triggered = fin['triggered'][:]
+    triggered = np.copy(fin['triggered'])
 
     if (len(triggered) == 0):
         return triggered
 
-    second_bang_indexes = np.argwhere(np.array(fin['n_interaction']) >= 2)
-    if(second_bang_indexes.shape[0] > 1):
-        second_bang_indexes = np.squeeze(second_bang_indexes)
-    elif(second_bang_indexes.shape[0] == 1):
-        second_bang_indexes = second_bang_indexes[0]
-    else:
-        return triggered
+    # We count the multiple triggering bangs as a single triggered event
+    for event_id in np.unique(fin['event_ids']):
+        mask_interactions = np.array(fin['event_ids']) == event_id
+        multiple_interaction_indexes = np.argwhere( np.array(fin['event_ids']) == event_id )[0]
 
-    for second_bang_index in second_bang_indexes:
-        # Second interactions
-        if (fin['event_ids'][second_bang_index-1] == fin['event_ids'][second_bang_index]
-            and fin['triggered'][second_bang_index-1] == True
-            and fin['triggered'][second_bang_index] == True):
-
-            triggered[second_bang_index] = False
-
-        # Third interactions
-        elif (fin['event_ids'][second_bang_index-2] == fin['event_ids'][second_bang_index]
-              and fin['triggered'][second_bang_index-2] == True
-              and fin['triggered'][second_bang_index] == True):
-
-            triggered[second_bang_index] = False
+            for int_index in multiple_interaction_indexes[1:]:
+                triggered[int_index] = False
+            triggered[multiple_interaction_indexes[0]] = True
 
     return triggered
 
@@ -154,7 +140,7 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
         density_water = 997 * units.kg / units.m ** 3
         rmin = fin.attrs['rmin']
         rmax = fin.attrs['rmax']
-        thetamin = 0 
+        thetamin = 0
         thetamax = np.pi
         phimin = 0
         phimax = 2 * np.pi
