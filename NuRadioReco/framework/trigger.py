@@ -5,6 +5,7 @@ try:
 except ImportError:
     import pickle
 
+
 def deserialize(triggers_pkl):
     triggers = {}
     for data_pkl in triggers_pkl:
@@ -25,6 +26,7 @@ def deserialize(triggers_pkl):
             raise ValueError("unknown trigger type")
         triggers[trigger.get_name()] = trigger
     return triggers
+
 
 class Trigger:
     """
@@ -48,6 +50,7 @@ class Trigger:
         self._channels = channels
         self._triggered = False
         self._trigger_time = None
+        self._trigger_times = None
         self._trigger_type = trigger_type
         self._triggered_channels = []
 
@@ -77,6 +80,22 @@ class Trigger:
         """
         return self._trigger_time
 
+    def set_trigger_times(self, times):
+        """ set the trigger times
+
+        Parameters
+        ----------
+        times: array
+            all trigger times in ns 
+        """
+        self._trigger_times = times
+
+    def get_trigger_times(self):
+        """
+        get the trigger times (time with respect to beginning of trace)
+        """
+        return self._trigger_times
+
     def get_name(self):
         """ get trigger name """
         return self._name
@@ -84,7 +103,7 @@ class Trigger:
     def get_type(self):
         """ get trigger type """
         return self._type
-        
+
     def get_triggered_channels(self):
         """ get IDs of channels that have triggered """
         return self._triggered_channels
@@ -102,7 +121,7 @@ class Trigger:
     def __str__(self):
         output = ""
         for key, value in iteritems(self.__dict__):
-            output +="{}: {}\n".format(key[1:], value)
+            output += "{}: {}\n".format(key[1:], value)
         return output
 
     def get_trigger_settings(self):
@@ -139,6 +158,7 @@ class SimpleThresholdTrigger(Trigger):
         self._number_of_coincidences = number_of_coincidences
         self._coinc_window = channel_coincidence_window
 
+
 class SimplePhasedTrigger(Trigger):
 
     def __init__(self, name, threshold, channels=None, secondary_channels=None,
@@ -167,6 +187,7 @@ class SimplePhasedTrigger(Trigger):
         self._secondary_channels = secondary_channels
         self._secondary_angles = secondary_angles
         self._threshold = threshold
+
 
 class HighLowTrigger(Trigger):
 
@@ -200,7 +221,6 @@ class HighLowTrigger(Trigger):
         self._threshold_low = threshold_low
         self._high_low_window = high_low_window
         self._coinc_window = channel_coincidence_window
-
 
 
 class IntegratedPowerTrigger(Trigger):
