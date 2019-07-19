@@ -8,6 +8,8 @@ import sys
 import os
 import logging
 import time
+from scipy import interpolate
+
 logger = logging.getLogger("readARAData")
 logging.basicConfig()
 
@@ -69,13 +71,19 @@ class readARAData:
                 graph_waveform = real_ptr.getGraphFromRFChan(iCh)
                 times = np.array(graph_waveform.GetX())*units.ns
                 voltage = np.array(graph_waveform.GetY())*units.mV
-                if voltage.shape[0]%2 !=0:
-                    voltage=voltage[:-1]
-                sampling_rate = times[1]-times[0]
-                logger.warning("ARA sampling frequency not constant. Need to add the interpolating function here!!!")
-                channel.set_trace(voltage,sampling_rate)
+
+                #interpolate to get equal sampling between data points
+                f_interpolate=interpolate.interp1d(times, voltage)
+                times_new = np.arange(times[0], times[-1], 0.625)
+                voltage_new=f_interpolate(times_new)
+                
+                if voltage_new.shape[0]%2 !=0:
+                    voltage_new=voltage_new[:-1]
+                sampling_rate = times_new[1]-times_new[0]
+                #logger.warning("ARA sampling frequency not constant. Need to add the interpolating function here!!!")
+                channel.set_trace(voltage_new,sampling_rate)
                 station.add_channel(channel)
-            evt.set_station(station)
+                evt.set_station(station)
             yield evt
     def end(self):
         pass
