@@ -66,7 +66,7 @@ def load_input_hdf5(filename):
     """
     h5fin = h5py.File(filename, 'r')
     fin = {}
-    for key, value in iteritems(h5fin):
+    for key, value in h5fin.items():
         fin[key] = np.array(value)
     h5fin.close()
     return fin
@@ -311,6 +311,23 @@ def get_tau_decay_length(energy, distmax=0, table=None):
             decay_time, decay_energy = get_decay_time_tab(table, energy)
         return decay_time * cspeed, decay_energy
 
+def get_tau_95_length(energies):
+    """
+    Returns a fit to the 95% percentile of the tau track length calculated
+    with PROPOSAL. We calculate the 95% percentile for the largest energy.
+    """
+
+    coeffs = [6.80016451e+02, -1.61902120e+02, 1.42383021e+01, -5.47388025e-01, 7.79239697e-03]
+    log_length = 0
+
+    log_energy_eV = np.log10( np.max(energies)/units.eV )
+
+    for ipow, coeff in enumerate(coeffs):
+        print(coeff, ipow)
+        log_length += coeff * (log_energy_eV)**ipow
+
+    return 10**log_length * units.m
+
 def get_decay_time_tab(table, energy, time=None):
     """
     Calculates the decay time assuming photonuclear energy losses above
@@ -443,10 +460,10 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
     n_events = len(np.unique(data_sets['event_ids']))
     logger.info("saving {} events in total".format(n_events))
     total_number_of_events = attributes['n_events']
-    
+
     if "start_event_id" not in attributes:
         attributes["start_event_id"] = 0  # backward compatibility
-    
+
     if(n_events_per_file is None):
         n_events_per_file = n_events
     else:
@@ -470,7 +487,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         fout.attrs['VERSION_MAJOR'] = VERSION_MAJOR
         fout.attrs['VERSION_MINOR'] = VERSION_MINOR
         fout.attrs['header'] = HEADER
-        for key, value in attributes.iteritems():
+        for key, value in attributes.items():
             fout.attrs[key] = value
         fout.attrs['total_number_of_events'] = total_number_of_events
 
@@ -492,7 +509,9 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
 #             else:
 #                 stop_index = tmp[0]
 
-        for key, value in data_sets.iteritems():
+        for key, value in data_sets.items():
+            if (key == 'interaction_type'):
+                value = np.array(value, dtype='S')
             fout[key] = value[start_index:stop_index]
 
         # determine the number of events in this file (which is NOT the same as the entries in the file)
@@ -550,7 +569,7 @@ def primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity):
             return Edep/inelasticity
         elif (np.abs(flavor) == 16):
             return Edep/inelasticity # TODO: change this for taus
-        
+
 def ice_cube_nu_fit(energy, slope=-2.19, offset=1.01):
     # from https://doi.org/10.22323/1.301.1005
     # ApJ slope=-2.13, offset=0.9
@@ -561,7 +580,7 @@ def ice_cube_nu_fit(energy, slope=-2.19, offset=1.01):
 def get_GZK_1(energy):
     """
     model of (van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1) of the cosmogenic neutrino ﬂux
-    for a source evolution parameter of m = 3.4, 
+    for a source evolution parameter of m = 3.4,
     a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
     and a proton fraction of 10% at E = 10^19.6 eV
     """
@@ -575,7 +594,7 @@ def get_GZK_1(energy):
 def get_energy_from_flux(Emin, Emax, n_events, flux):
     """
     returns randomly distribution of energy according to a flux
-    
+
     Parameters
     ----------
     Emin: float
@@ -586,10 +605,10 @@ def get_energy_from_flux(Emin, Emax, n_events, flux):
         number of events to generate
     flux: function
         must return flux as function of energy in units of events per energy, time, solid angle and area
-        
+
     Returns: array of energies
     """
-    
+
     xx_edges = np.linspace(Emin, Emax, 10000000)
     xx = 0.5 * (xx_edges[1:] + xx_edges[:-1])
     yy = flux(xx)
@@ -598,6 +617,15 @@ def get_energy_from_flux(Emin, Emax, n_events, flux):
     inv_cdf = interpolate.interp1d(cum_values, xx_edges)
     r = np.random.uniform(0, cum_values.max(), n_events)
     return inv_cdf(r)
+
+def get_product_position(data_sets, product, iE):
+
+    dist = product.distance
+    x = data_sets["xx"][iE] - dist * np.cos(data_sets["zeniths"][iE]) * np.cos(data_sets["azimuths"][iE])
+    y = data_sets["xx"][iE] - dist * np.cos(data_sets["zeniths"][iE]) * np.sin(data_sets["azimuths"][iE])
+    z = data_sets["zz"][iE] - dist * np.sin(data_sets["zeniths"][iE])
+
+    return x, y, z
 
 def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
@@ -611,6 +639,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 add_tau_second_bang=False,
                                 tabulated_taus=True,
                                 deposited=False,
+                                proposal=False,
+                                resample=None,
+                                surface_muons=False,
                                 start_file_id=0):
     """
     Event generator
@@ -687,19 +718,33 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     tabulated_taus: bool
         if True the tau decay properties are taken from a table
     deposited: bool
+        if True, generate deposited energies instead of primary neutrino energies
+    proposal: bool
+        if True, the tau and muon secondaries are calculated using PROPOSAL
+    resample: integer or None
+        if integer, PROPOSAL generates a number of propagations equal to resample
+        and then reuses them. Only to be used with a single kind of lepton (muon or tau)
+    surface_muons: bool
+        if True, muons are generated near the upper surface of the fiducial volume.
+        We choose muon neutrinos with cc interaction and set their inelasticities
+        to zero in order to study the muon propagation only
         If True, generate deposited energies instead of primary neutrino energies
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
+        if True, generate deposited energies instead of primary neutrino energies
     """
+    if proposal:
+        import NuRadioMC.EvtGen.NuRadioProposal as NRP
+
     attributes = {}
     n_events = int(n_events)
-    
+
     # save current NuRadioMC version as attribute
     # save NuRadioMC and NuRadioReco versions
     attributes['NuRadioMC_EvtGen_version'] = NuRadioMC.__version__
     attributes['NuRadioMC_EvtGen_version_hash'] = version.get_NuRadioMC_commit_hash()
-    
+
     attributes['n_events'] = n_events
     attributes['start_event_id'] = start_event_id
 
@@ -708,6 +753,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     attributes['fiducial_zmin'] = fiducial_zmin
     attributes['fiducial_zmax'] = fiducial_zmax
 
+    # We increase the radius of the cylinder according to the tau track length
     if(full_rmin is None):
         if(add_tau_second_bang):
             full_rmin = fiducial_rmin / 3.
@@ -715,14 +761,17 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             full_rmin = fiducial_rmin
     if(full_rmax is None):
         if(add_tau_second_bang):
-            full_rmax = fiducial_rmax * 5.
+            tau_95_length = get_tau_95_length(Emax)
+            if (tau_95_length > fiducial_rmax):
+                full_rmax = tau_95_length
+            else:
+                full_rmax = fiducial_rmax
         else:
             full_rmax = fiducial_rmax
+    # The zmin and zmax should not be touched. If zmin goes all the way down to
+    # the bedrock, tau propagation through the bedrock should be taken into account.
     if(full_zmin is None):
-        if(add_tau_second_bang):
-            full_zmin = fiducial_zmin * 5.
-        else:
-            full_zmin = fiducial_zmin
+        full_zmin = fiducial_zmin
     if(full_zmax is None):
         if(add_tau_second_bang):
             full_zmax = fiducial_zmax / 3.
@@ -752,7 +801,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     phiphi = np.random.uniform(0, 2 * np.pi, n_events)
     data_sets["xx"] = rr_full * np.cos(phiphi)
     data_sets["yy"] = rr_full * np.sin(phiphi)
-    data_sets["zz"] = np.random.uniform(full_zmin, full_zmax, n_events)
+
+    if surface_muons:
+        data_sets["zz"] = np.random.uniform(fiducial_zmax, fiducial_zmax-0.1*units.m, n_events)
+    else:
+        data_sets["zz"] = np.random.uniform(full_zmin, full_zmax, n_events)
     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
     data_sets["event_ids"] = np.arange(n_events) + start_event_id
@@ -781,7 +834,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     # generate energies randomly
     if(spectrum == 'log_uniform'):
         data_sets["energies"] = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_events)
-    elif(spectrum.startswith("E-")):  # enerate an E^gamma spectrum.  
+    elif(spectrum.startswith("E-")):  # enerate an E^gamma spectrum.
         gamma = float(spectrum[1:])
         gamma += 1
         Nmin = (Emin)**gamma
@@ -792,7 +845,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     elif(spectrum == "GZK-1"):
         """
         model of (van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1) of the cosmogenic neutrino ﬂux
-        for a source evolution parameter of m = 3.4, 
+        for a source evolution parameter of m = 3.4,
         a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
         and a proton fraction of 10% at E = 10^19.6 eV
         """
@@ -808,10 +861,17 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         raise NotImplementedError("spectrum {} not implemented".format(spectrum))
 
     # generate charged/neutral current randomly
-    data_sets["interaction_type"] = inelasticities.get_ccnc(n_events)
+    if surface_muons:
+        data_sets["interaction_type"] = [ 'cc' ] * n_events
+        data_sets["interaction_type"] = np.array(data_sets["interaction_type"])
+    else:
+        data_sets["interaction_type"] = inelasticities.get_ccnc(n_events)
 
     # generate inelasticity
-    data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(n_events)
+    if surface_muons:
+        data_sets["inelasticity"] = np.zeros(n_events)
+    else:
+        data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(n_events)
     """
     #from AraSim
     epsilon = np.log10(energies / 1e9)
@@ -826,14 +886,147 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     data_sets_fiducial = {}
 
-    if not add_tau_second_bang:
+    if proposal:
+        import time
+        init_time = time.time()
+        # Initialising data_sets_fiducial with empty values
+        for key, value in data_sets.items():
+            data_sets_fiducial[key] = []
+
+        mask_tau_cc = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 16)
+        mask_mu_cc = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 14)
+        mask_leptons = mask_tau_cc | mask_mu_cc
+
+        rhos = np.sqrt( data_sets['xx']**2 + data_sets['yy']**2 )
+
+        thetas_up = (fiducial_zmax-data_sets['zz']) / rhos
+        thetas_up = np.arctan(thetas_up)
+        thetas_down = (data_sets['zz']-fiducial_zmin) / rhos
+        thetas_down = np.arctan(thetas_down)
+        thetas = 90*units.deg - data_sets["zeniths"] # Theta is the elevation angle of the incoming neutrino
+        mask_theta = [ (theta < theta_up and theta > theta_down) or rho < fiducial_rmax
+                       for theta, theta_up, theta_down, rho in zip(thetas, thetas_up, thetas_down, rhos) ]
+
+        phis_low = 180*units.deg - np.arctan(fiducial_rmax**2/rhos**2)
+        phis_high = 360*units.deg - phis_low
+        phis_0 = np.arctan2(data_sets['yy'],data_sets['xx'])
+        phis = data_sets["azimuths"] - phis_0 # Phi is the azimuth angle of the incoming neutrino if
+                                              # we take phi = 0 as the vertex position
+        mask_phi = [ (phi > phi_low and phi < phi_high) or rho < fiducial_rmax
+                     for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
+
+        mask_theta = np.array(mask_theta)
+        mask_phi = np.array(mask_phi)
+
+        mask_leptons = mask_leptons & mask_theta & mask_phi
+
+        E_all_leptons = (1 - data_sets["inelasticity"][mask_leptons]) * data_sets["energies"][mask_leptons]
+        lepton_codes = data_sets["flavors"][mask_leptons]
+        lepton_codes[lepton_codes == 14] = 13
+        lepton_codes[lepton_codes == -14] = -13
+        lepton_codes[lepton_codes == 16] = 15
+        lepton_codes[lepton_codes == -16] = -15
+
+        if resample:
+            if ( len(np.unique(lepton_codes)) > 1 ):
+                raise ValueError('Resample must be used with one kind of leptons only')
+            n_resample = resample
+            i_resample = 0
+            E_all_leptons = E_all_leptons[:n_resample]
+            lepton_codes = lepton_codes[:n_resample]
+
+        products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes)
+
+        for event_id in data_sets["event_ids"]:
+            iE = event_id - start_event_id
+
+            first_inserted = False
+
+            x_nu = data_sets['xx'][iE]
+            y_nu = data_sets['yy'][iE]
+            z_nu = data_sets['zz'][iE]
+            r_nu = (x_nu ** 2 + y_nu ** 2)**0.5
+
+            # Appending event if it interacts within the fiducial volume
+            if ( r_nu >= fiducial_rmin and r_nu <= fiducial_rmax ):
+                if ( z_nu >= fiducial_zmin and z_nu <= fiducial_zmax ):
+
+                    for key in iterkeys(data_sets):
+                        data_sets_fiducial[key].append(data_sets[key][iE])
+
+                    first_inserted = True
+
+            tau_cc = data_sets["interaction_type"][iE] == 'cc' and np.abs(data_sets["flavors"][iE]) == 16
+            mu_cc = data_sets["interaction_type"][iE] == 'cc' and np.abs(data_sets["flavors"][iE]) == 14
+            geometry_selection = mask_theta[iE] and mask_phi[iE]
+            geometry_selection = True
+
+            if (tau_cc or mu_cc) and geometry_selection:
+
+                Elepton = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
+                if data_sets["flavors"][iE] > 0:
+                    lepton_code = data_sets["flavors"][iE]-1
+                else:
+                    lepton_code = data_sets["flavors"][iE]+1
+
+                #products = NRP.GetProds(Elepton, lepton_code)
+                if resample:
+                    products = products_array[i_resample % n_resample]
+                    i_resample += 1
+                else:
+                    products = products_array.pop(0)
+                n_interaction = 2
+
+                for product in products:
+
+                    x, y, z = get_product_position(data_sets, product, iE)
+                    r = (x ** 2 + y ** 2)**0.5
+
+                    if( r >= fiducial_rmin and r <= fiducial_rmax ):
+                        if(z >= fiducial_zmin and z <= fiducial_zmax):  # z coordinate is negative
+                            # the energy loss or particle is in our fiducial volume
+
+                            # If the energy loss or particle is in the fiducial volume but the parent
+                            # neutrino does not interact there, we add it to know its properties.
+                            if not first_inserted:
+                                copies = 2
+                                first_inserted = True
+                            else:
+                                copies = 1
+
+                            for icopy in range(copies):
+                                for key in iterkeys(data_sets):
+                                    data_sets_fiducial[key].append(data_sets[key][iE])
+
+                            data_sets_fiducial['n_interaction'][-1] = n_interaction # specify that new event is a secondary interaction
+                            n_interaction += 1
+                            data_sets_fiducial['energies'][-1] = product.energy
+                            data_sets_fiducial['inelasticity'][-1] = 1
+                            # interaction_type is either 'had' or 'em' for proposal products
+                            data_sets_fiducial['interaction_type'][-1] = product.shower_type
+
+                            data_sets_fiducial['xx'][-1] = x
+                            data_sets_fiducial['yy'][-1] = y
+                            data_sets_fiducial['zz'][-1] = z
+
+                            # Flavors are particle codes taken from NuRadioProposal.py
+                            data_sets_fiducial['flavors'][-1] = product.code
+
+        time_per_evt = (time.time()-init_time)/(iE+1)
+        print("Time per event:", time_per_evt)
+        print("Total time", time.time()-init_time)
+
+        print("number of fiducial showers", len(data_sets_fiducial['flavors']))
+
+
+    elif not add_tau_second_bang:
         # save only events with interactions in fiducial volume
-        for key, value in iteritems(data_sets):
+        for key, value in data_sets.items():
             data_sets_fiducial[key] = value[fmask]
 
     else:
         # Initialising data_sets_fiducial with empty values
-        for key, value in iteritems(data_sets):
+        for key, value in data_sets.items():
             data_sets_fiducial[key] = []
 
         if tabulated_taus:
@@ -864,7 +1057,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                     first_inserted = True
 
-            if (data_sets["interaction_type"][iE] == 'cc' and np.abs(data_sets["flavors"][iE]) == 16):
+            tau_cc = data_sets["interaction_type"][iE] == 'cc' and np.abs(data_sets["flavors"][iE]) == 16
+
+            if ( tau_cc ):
 
                 Etau = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
 
