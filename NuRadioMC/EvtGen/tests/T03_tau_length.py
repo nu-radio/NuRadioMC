@@ -1,5 +1,6 @@
 from NuRadioMC.EvtGen.generator import *
 import matplotlib.pyplot as plt
+import json
 plt.tight_layout()
 
 def get_p(p):
@@ -81,3 +82,15 @@ plt.ylabel('Tau decay energy [eV]', size=fontsize)
 plt.legend(fontsize=12)
 plt.savefig('tau_decay_energy.png', format='png')
 plt.show()
+
+output = {}
+output['energies'] = list(energies)
+output['lengths_10'] = list(lengths[user_times[0]])
+output['lengths_90'] = list(lengths[user_times[-1]])
+output['lengths_mean'] = list(lengths[user_times[2]])
+output['tau_energies_10'] = list(tau_energies[user_times[0]])
+output['tau_energies_90'] = list(tau_energies[user_times[-1]])
+output['tau_energies_mean'] = list(tau_energies[user_times[2]])
+
+with open('continuous_decay.json', 'w+') as data_file:
+    json.dump(output, data_file, sort_keys=True, indent=4)
