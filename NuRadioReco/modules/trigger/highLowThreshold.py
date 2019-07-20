@@ -34,10 +34,10 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     c = np.ones(n_bins_coincidence, dtype=np.bool)
     logger.debug("length of trace {} bins, coincidence window {} bins".format(len(trace), len(c)))
 
-    c2 = np.array([1,-1])
-    m1 = np.convolve(trace > high_threshold, c, mode='full')[:-(n_bins_coincidence-1)]
-    m2 = np.convolve(trace < low_threshold, c, mode='full')[:-(n_bins_coincidence-1)]
-    return np.convolve(m1 & m2, c2,mode='same') > 0
+    c2 = np.array([1, -1])
+    m1 = np.convolve(trace > high_threshold, c, mode='full')[:-(n_bins_coincidence - 1)]
+    m2 = np.convolve(trace < low_threshold, c, mode='full')[:-(n_bins_coincidence - 1)]
+    return np.convolve(m1 & m2, c2, mode='same') > 0
 
 
 def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * units.ns, dt=1 * units.ns):
@@ -66,14 +66,14 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     """
     n = len(tts[0])
     n_bins_coincidence = np.int(np.round(time_coincidence / dt)) + 1
-    if(n_bins_coincidence > n): # reduce coincidence window to maximum trace length
+    if(n_bins_coincidence > n):  # reduce coincidence window to maximum trace length
         n_bins_coincidence = n
         logger.debug("specified coincidence window longer than tracelenght, reducing coincidence window to trace length")
     c = np.ones(n_bins_coincidence, dtype=np.bool)
 
     for i in range(len(tts)):
         logger.debug("get_majority_logic() length of trace {} bins, coincidence window {} bins".format(len(tts[i]), len(c)))
-        tts[i] = np.convolve(tts[i],  c, mode='full')[:-(n_bins_coincidence-1)]
+        tts[i] = np.convolve(tts[i], c, mode='full')[:-(n_bins_coincidence - 1)]
     tts = np.sum(tts, axis=0)
     ttt = tts >= number_of_coincidences
     triggered_bins = np.squeeze(np.argwhere(tts >= number_of_coincidences))
@@ -145,7 +145,7 @@ class triggerSimulator:
             dt = 1. / sampling_rate
             if triggered_channels is None:
                 for channel in station.iter_channels():
-                    channel_trace_start_time = channel.get_trace_start_time()            
+                    channel_trace_start_time = channel.get_trace_start_time()
                     break
             else:
                 channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
@@ -176,8 +176,8 @@ class triggerSimulator:
             has_triggered = False
 
         trigger = HighLowTrigger(trigger_name, threshold_high, threshold_low, high_low_window,
-                                 coinc_window, channels=triggered_channels,  number_of_coincidences=number_concidences)
-        trigger.set_triggered_channels(channels_that_passed_trigger) 
+                                 coinc_window, channels=triggered_channels, number_of_coincidences=number_concidences)
+        trigger.set_triggered_channels(channels_that_passed_trigger)
         if not has_triggered:
             trigger.set_triggered(False)
             logger.info("Station has NOT passed trigger")
@@ -185,14 +185,13 @@ class triggerSimulator:
         else:
             trigger.set_triggered(True)
             trigger.set_trigger_time(triggered_times.min())
+            trigger.set_trigger_times(triggered_times)
             logger.info("Station has passed trigger, trigger time is {:.1f} ns".format(
                 trigger.get_trigger_time() / units.ns))
 
         station.set_trigger(trigger)
 
         self.__t += time.time() - t
-
-
 
     def end(self):
         from datetime import timedelta
