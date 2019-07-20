@@ -102,6 +102,19 @@ class BaseStation():
             raise ValueError("trigger with name {} not present".format(name))
         return self._triggers[name]
     
+    def has_trigger(self, trigger_name):
+        """
+        checks if station has a trigger with a certain name
+        
+        Paramters
+        ---------
+        trigger_name: string
+            the name of the trigger
+            
+        Returns bool
+        """
+        return trigger_name in self._triggers
+    
     def get_triggers(self):
         """
         returns a dictionary of the triggers. key is the trigger name, value is a trigger object
