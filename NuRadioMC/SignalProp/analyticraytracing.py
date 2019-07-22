@@ -1503,5 +1503,43 @@ class ray_tracing:
         result = self.__results[iS]
         return self.__r2d.get_attenuation_along_path(self.__x1, self.__x2, result['C0'], frequency, max_detector_freq)
 
+    def get_focusing(self, iS, dz):
+        """
+        calculate the focusing effect in the medium
+
+        Parameters
+        ----------
+        iS: int
+            choose for which solution to compute the launch vector, counting
+            starts at zero
+
+        dz: float
+            the infinitesimal change of the depth of the receiver
+
+        Returns
+        -------
+        focusing: array of floats
+            gain of the signal at the receiver due to the focusing effect:
+        """
+        recVec = self.get_receive_vector(iS)
+        recVec = -1.0 * recVec
+        recAng = np.arccos(recVec[2] / np.sqrt(recVec[0]**2 + recVec[1]**2 + recVec[2]**2))
+        lauVec = self.get_launch_vector(iS)
+        lauAng = np.arccos(lauVec[2] / np.sqrt(lauVec[0]**2 + lauVec[1]**2 + lauVec[2]**2))
+        distance = self.get_path_length(iS)
+        vetPos = self.__X1
+        recPos = self.__X2
+        recPos1 = np.array([self.__X2[0], self.__X2[1], self.__X2[2] + dz])
+        r1 = ray_tracing(vetPos, recPos1, self.__medium, self.__attenuation_model, logging.WARNING, self.__n_frequencies_integration)
+        r1.find_solutions()
+        if iS < r1.get_number_of_solutions():
+            lauVec1 = r1.get_launch_vector(iS)
+            lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0]**2 + lauVec1[1]**2 + lauVec1[2]**2))
+            focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
+        else:
+            focusing = 1.0
+        self.__logger.debug('focusing = {:.3f}'.format(focusing))
+        return focusing
+
     def get_ray_path(self, iS):
         return self.__r2d.get_path(self.__x1, self.__x2, self.__results[iS]['C0'], 10000)
