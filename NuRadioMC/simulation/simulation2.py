@@ -318,6 +318,11 @@ class simulation():
                             # add EM signal to had signal in the time domain
                             spectrum = fft.time2freq(fft.freq2time(spectrum) + fft.freq2time(spectrum_em))
 
+                        #apply the focusing effect
+                        if self._cfg['propagation']['focusing']:
+                            dZRec = -0.01 * units.m
+                            focusing = r.get_focusing(iS, dZRec)
+                            spectrum = fft.time2freq(fft.freq2time(spectrum) * focusing)
 
                         polarization_direction_onsky = self._calculate_polarization_vector()
                         cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
