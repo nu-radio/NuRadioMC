@@ -456,7 +456,7 @@ def get_WIPLD_antenna_response(path):
 #         # does not exist yet -> precalculating WIPLD simulations from raw WIPLD output
 #         preprocess_WIPLD(path)
     with open(path, 'rb') as fin:
-        res = pickle.load(fin)
+        res = pickle.load(fin, encoding='bytes')
         return res
 
 
