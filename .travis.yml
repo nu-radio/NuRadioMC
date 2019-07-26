@@ -3,7 +3,7 @@ python:
   - '3.5'
 
 install:
-    pip install -r NuRadioReco/test/requirements.txt
+    pip3 install -r NuRadioReco/test/requirements.txt --user
 
 before_script:
   - wget https://github.com/nu-radio/radiotools/archive/master.zip -O /tmp/radiotools.zip
