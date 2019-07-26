@@ -131,6 +131,7 @@ class readCoREAS:
                 distances = np.linalg.norm(core[:2] - positions_vBvvB[:, :2], axis=1)
                 index = np.argmin(distances)
                 distance = distances[index]
+                key = list(corsika['CoREAS']['observers'].keys())[index]
                 logger.info("generating core at ground ({:.0f}, {:.0f}), vBvvB({:.0f}, {:.0f}), nearest simulated station is {:.0f}m away at ground ({:.0f}, {:.0f}), vBvvB({:.0f}, {:.0f})".format(cores[iCore][0], cores[iCore][1], core[0], core[1], distance / units.m,
                                                                                                                                         positions[index][0], positions[index][1], positions_vBvvB[index][0], positions_vBvvB[index][1]))
 #                 import matplotlib.pyplot as plt
@@ -147,7 +148,7 @@ class readCoREAS:
 #                 plt.show()
 
                 t_event_structure = time.time()
-                observer = corsika['CoREAS']['observers'].values()[index]
+                observer = corsika['CoREAS']['observers'].get(key)
 
                 evt = NuRadioReco.framework.event.Event(self.__current_input_file, iCore)  # create empty event
                 station = NuRadioReco.framework.station.Station(self.__station_id)
