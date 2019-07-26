@@ -86,7 +86,7 @@ class channelResampler:
                 if(resampling_factor.numerator != 1):
                     trace = signal.resample(trace, resampling_factor.numerator * len(trace))  # , window='hann')
                 if(resampling_factor.denominator != 1):
-                    trace = signal.resample(trace, len(trace) / resampling_factor.denominator)  # , window='hann')
+                    trace = signal.resample(trace, len(trace) // resampling_factor.denominator)  # , window='hann')
                     
                 # make sure that trace has even number of samples
                 if(len(trace) % 2 != 0):
@@ -98,7 +98,7 @@ class channelResampler:
                     if(resampling_factor.denominator != 1):
                         trace2 = signal.resample(trace, resampling_factor.denominator * len(trace))  # , window='hann')
                     if(resampling_factor.numerator != 1):
-                        trace2 = signal.resample(trace, len(trace) / resampling_factor.numerator)  # , window='hann')
+                        trace2 = signal.resample(trace, len(trace) // resampling_factor.numerator)  # , window='hann')
 
                     import matplotlib.pyplot as plt
                     plt.plot(np.fft.rfftfreq(len(trace_old), orig_binning), np.abs(fft.time2freq(trace_old)))
