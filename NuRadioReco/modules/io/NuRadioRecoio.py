@@ -2,10 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import NuRadioReco.framework.event
 import numpy as np
 import logging
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
 import time
 logger = logging.getLogger('NuRadioRecoio')
 
@@ -63,8 +60,8 @@ class NuRadioRecoio(object):
         return self.__open_files[iF]['file']
 
     def __check_file_version(self, iF):
-        self.__file_version = int(self.__get_file(iF).read(6), 16)
-        self.__file_version_minor = int(self.__get_file(iF).read(6), 16)
+        self.__file_version = int.from_bytes(self.__get_file(iF).read(6), 'little')
+        self.__file_version_minor = int.from_bytes(self.__get_file(iF).read(6), 'little')
         if(self.__file_version != VERSION):
             logger.error("data file not readable. File has version {}.{} but current version is {}.{}".format(self.__file_version, self.__file_version_minor,
                                                                                                               VERSION, VERSION_MINOR))
@@ -99,10 +96,10 @@ class NuRadioRecoio(object):
 
     def __parse_event_header(self, evt_header):
         self.__event_ids.append(evt_header['event_id'])
-        for station_id, station in evt_header['stations'].iteritems():
+        for station_id, station in evt_header['stations'].items():
             if station_id not in self.__event_headers:
                 self.__event_headers[station_id] = {}
-            for key, value in station.iteritems():
+            for key, value in station.items():
                 # treat sim_station differently
                 if(key == 'sim_station'):
                     pass
@@ -122,7 +119,8 @@ class NuRadioRecoio(object):
         while True:
             self.__get_file(iF).seek(current_byte)
             bytes_to_read_hex = self.__get_file(iF).read(6)
-            if(bytes_to_read_hex == ''):
+            bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
+            if(bytes_to_read == 0):
                 # we are at the end of the file
                 if(iF < (len(self.__filenames) - 1)):  # are there more files to be parsed?
                     iF += 1
@@ -136,7 +134,6 @@ class NuRadioRecoio(object):
                 else:
                     break
             current_byte += 6
-            bytes_to_read = int(bytes_to_read_hex, 16)
             self.__bytes_start_header[iF].append(current_byte)
             self.__bytes_length_header[iF].append(bytes_to_read)
             current_byte += bytes_to_read
@@ -147,11 +144,11 @@ class NuRadioRecoio(object):
             self.__get_file(iF).seek(current_byte)
             bytes_to_read_hex = self.__get_file(iF).read(6)
             current_byte += 6
-            bytes_to_read = int(bytes_to_read_hex, 16)
+            bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
             self.__bytes_start[iF].append(current_byte)
             self.__bytes_length[iF].append(bytes_to_read)
             current_byte += bytes_to_read
-#             print("reading event {} with length {} from byte {} onwards".format(len(self.__bytes_length), bytes_to_read, self.__bytes_start[-1]))
+            #print("reading event {} with length {} from byte {} onwards".format(len(self.__bytes_length[iF]), bytes_to_read, self.__bytes_start[iF][-1]))
         self.__event_ids = np.array(self.__event_ids)
         self.__file_scanned = True
 
@@ -162,8 +159,8 @@ class NuRadioRecoio(object):
         self.__n_events = n
 
         # convert lists to numpy arrays for convenience
-        for station_id, station in self.__event_headers.iteritems():
-            for key, value in station.iteritems():
+        for station_id, station in self.__event_headers.items():
+            for key, value in station.items():
                 self.__event_headers[station_id][key] = np.array(value)
 #         print(self.__event_ids, type(self.__event_ids[0]))
 
