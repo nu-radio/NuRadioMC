@@ -29,8 +29,10 @@ class eventWriter:
 
     def __write_fout_header(self):
         b = bytearray()
-        b.extend(b'{:06x}'.format(VERSION))
-        b.extend(b'{:06x}'.format(VERSION_MINOR))
+        b.extend(VERSION.to_bytes(6, 'little'))
+        b.extend(VERSION_MINOR.to_bytes(6, 'little'))
+        #b.extend(b'{:06x}'.format(VERSION))
+        #b.extend(b'{:06x}'.format(VERSION_MINOR))
         self.__fout.write(b)
 
     def begin(self, filename, max_file_size=1024):
@@ -83,9 +85,9 @@ class eventWriter:
         evt_length = len(b)
 
         b = bytearray()
-        b.extend(b'{:06x}'.format(evt_header_length))
+        b.extend(evt_header_length.to_bytes(6, 'little'))
         b.extend(evt_header_str)
-        b.extend(b'{:06x}'.format(evt_length))
+        b.extend(evt_length.to_bytes(6, 'little'))
         b.extend(evtstr)
         self.__fout.write(b)
         self.__current_file_size += b.__sizeof__()
