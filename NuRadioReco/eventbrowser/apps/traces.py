@@ -6,6 +6,7 @@ import dash_core_components as dcc
 import plotly.graph_objs as go
 import plotly
 from plotly import tools
+from plotly import subplots
 import json
 from app import app
 import dataprovider
@@ -135,7 +136,7 @@ def update_time_efieldtrace(trigger, evt_counter, filename, station_id, juser_id
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
-    fig = tools.make_subplots(rows=1, cols=1)
+    fig = subplots.make_subplots(rows=1, cols=1)
     for electric_field in station.get_electric_fields():
         if electric_field.get_trace() is None:
             trace = np.array([[],[],[]])
@@ -196,7 +197,7 @@ def update_efield_spectrum(trigger, evt_counter, filename, station_id, juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
-    fig = tools.make_subplots(rows=1, cols=1)
+    fig = subplots.make_subplots(rows=1, cols=1)
     for electric_field in station.get_electric_fields():
         if electric_field.get_frequencies() is None:
             spectrum = np.array([[],[],[]])
@@ -245,7 +246,7 @@ def update_time_trace(trigger, evt_counter, filename, station_id, juser_id):
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     traces = []
-    fig = tools.make_subplots(rows=1, cols=1)
+    fig = subplots.make_subplots(rows=1, cols=1)
     trace_start_times = []
     for channel in station.iter_channels():
         trace_start_times.append(channel.get_trace_start_time())
@@ -292,7 +293,7 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     traces = []
-    fig = tools.make_subplots(rows=1, cols=1)
+    fig = subplots.make_subplots(rows=1, cols=1)
     maxL1 = 0
     maxY = 0
     ff=np.array([0])
@@ -381,7 +382,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
     n_channels = 0
     plot_titles = []
     trace_start_times = []
-    fig = tools.make_subplots(rows=station.get_number_of_channels(), cols=2,
+    fig = subplots.make_subplots(rows=station.get_number_of_channels(), cols=2,
         shared_xaxes=True, shared_yaxes=False,
         vertical_spacing=0.01, subplot_titles=plot_titles)
     for i, channel in enumerate(station.iter_channels()):
@@ -691,7 +692,7 @@ def update_time_traces2(evt_counter, filename, dropdown_traces, station_id, juse
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     traces = []
-    fig = tools.make_subplots(rows=4, cols=1,
+    fig = subplots.make_subplots(rows=4, cols=1,
                               shared_xaxes=True, shared_yaxes=True,
                               vertical_spacing=0.05)
     if 'trace' in dropdown_traces:
