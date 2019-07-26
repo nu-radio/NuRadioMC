@@ -7,6 +7,7 @@ import dash_core_components as dcc
 import plotly.graph_objs as go
 import plotly
 from plotly import tools
+from plotly import subplots
 import json
 from app import app
 import dataprovider
@@ -52,7 +53,7 @@ layout = html.Div([
                                     {'label': 'reflected', 'value': 'reflected'},
                                     {'label': 'refracted', 'value': 'refracted'}
                                 ],
-                                values = ['direct'],
+                                value = ['direct'],
                                 className='sim-trace-option'
                             )
                         ], className='', id='sim-traces-signal-types-container')
@@ -76,7 +77,7 @@ layout = html.Div([
                                     {'label': 'reflected', 'value': 'reflected'},
                                     {'label': 'refracted', 'value': 'refracted'}
                                 ],
-                                values = ['direct'],
+                                value = ['direct'],
                                 className='sim-trace-option'
                             )
                         ], className='', id='sim-spectrum-signal-types-container')
@@ -139,7 +140,7 @@ def show_signal_spectrum_signal_types(event_type):
     Output('sim-traces', 'figure'),
     [Input('event-counter-slider', 'value'),
     Input('filename', 'value'),
-    Input('sim-traces-signal-types', 'values'),
+    Input('sim-traces-signal-types', 'value'),
     Input('station-id-dropdown', 'value')],
     [State('user_id', 'children')]
 )
@@ -155,9 +156,10 @@ def update_sim_trace_plot(i_event, filename, signal_types, station_id, juser_id)
     visibility_settings = ['legendonly', True, True]
     if sim_station is None:
         return {}
-    fig = tools.make_subplots(rows=1, cols=1)
+    fig = subplots.make_subplots(rows=1, cols=1)
     try:
         for i_electric_field, electric_field in enumerate(sim_station.get_electric_fields()):
+            print('!!!!!', electric_field.get_parameter(efp.ray_path_type), signal_types)
             if electric_field.get_parameter(efp.ray_path_type) in signal_types:
                 for polarization in range(1,3):
                     fig.append_trace(
@@ -187,7 +189,7 @@ def update_sim_trace_plot(i_event, filename, signal_types, station_id, juser_id)
     Output('sim-spectrum', 'figure'),
     [Input('event-counter-slider', 'value'),
     Input('filename', 'value'),
-    Input('sim-spectrum-signal-types', 'values'),
+    Input('sim-spectrum-signal-types', 'value'),
     Input('station-id-dropdown', 'value')],
     [State('user_id', 'children')]
 )
@@ -202,7 +204,7 @@ def update_sim_spectrum_plot(i_event, filename, signal_types, station_id, juser_
     sim_station = station.get_sim_station()
     if sim_station is None:
         return {}
-    fig = tools.make_subplots(rows=1, cols=1)
+    fig = subplots.make_subplots(rows=1, cols=1)
     try:
         for i_electric_field, electric_field in enumerate(sim_station.get_electric_fields()):
             if electric_field.get_parameter(efp.ray_path_type) in signal_types:
