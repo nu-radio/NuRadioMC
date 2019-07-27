@@ -103,7 +103,7 @@ from scipy import integrate
 def a(theta):
     return np.sin(theta)
 b = integrate.quad(a, q1, q2)
-print("90% quantile sky coverage {:.2f} sr".format(b[0] * 2 * np.pi))
+print("90% quantile sky coverage {:.2f} sr ({:.0f} - {:.0f})".format(b[0] * 2 * np.pi, q1/units.deg, q2/units.deg))
 
 ###########################
 # plot vertex distribution

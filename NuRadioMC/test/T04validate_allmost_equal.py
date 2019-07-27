@@ -76,25 +76,14 @@ for key in keys:
 
 keys2 = [u'SNRs',
  u'maximum_amplitudes',
- u'maximum_amplitudes_envelope']
-for key in keys2:
-    try:
-        testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-3)
-#         testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
-    except AssertionError as e:
-        print("\narray {} of group station_101 not equal".format(key))
-        print(e)
-        error = -1
-        
-        
-keys2 = [
+ u'maximum_amplitudes_envelope',
  u'multiple_triggers',
  u'ray_tracing_solution_type',
  u'triggered']
 for key in keys2:
     try:
-        testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9)
-#         testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+#         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9)
+        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
     except AssertionError as e:
         print("\narray {} of group station_101 not equal".format(key))
         print(e)
@@ -105,8 +94,8 @@ keys2 = [
     u'ray_tracing_C1',]
 for key in keys2:
     try:
-        testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=1*units.mm)
-#         testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+#         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=1*units.mm)
+        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
     except AssertionError as e:
         print("\narray {} of group station_101 not equal".format(key))
         print(e)
@@ -116,8 +105,8 @@ keys2 = [
     u'travel_times']
 for key in keys2:
     try:
-        testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=10*units.ps)
-#         testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+#         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=10*units.ps)
+        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
     except AssertionError as e:
         print("\narray {} of group station_101 not equal".format(key))
         print(e)
@@ -131,8 +120,8 @@ keys2 = [
  ]
 for key in keys2:
     try:
-        testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=1e-6)
-#         testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+#         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=1e-6)
+        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
     except AssertionError as e:
         print("\narray {} of group station_101 not equal".format(key))
         print(e)
