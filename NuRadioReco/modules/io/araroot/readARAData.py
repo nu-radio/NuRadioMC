@@ -24,24 +24,24 @@ libc = CDLL("libAraKvp.so")
 libc = CDLL("libRootFftwWrapper.so")
 
 class readARAData:
-
+    
     """
     This is the AraReader. Reads ARA data in the ARARoot format.
-
-
+    
+    
     """
     def begin(self,input_file):
 
-    """
-    Begin function of the ARA reader
-
-    Parameters
-    ----------
-    input_file: string
+        """
+        Begin function of the ARA reader
+        
+        Parameters
+        ----------
+        input_file: string
         path to file to read
-
-    """
-
+        
+        """
+        
         self.__id_current_event = -1
         self.__t = time.time()
 
