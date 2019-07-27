@@ -125,13 +125,25 @@ for key in keys2:
 
 keys2 = [
  u'polarization',
- u'ray_tracing_C0',
  u'launch_vectors',
  u'receive_vectors',
  ]
 for key in keys2:
     try:
         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=1e-6)
+#         testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+    except AssertionError as e:
+        print("\narray {} of group station_101 not equal".format(key))
+        print(e)
+        error = -1
+
+
+keys2 = [
+ u'ray_tracing_C0'
+ ]
+for key in keys2:
+    try:
+        testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-6, atol=1e-9)
 #         testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
     except AssertionError as e:
         print("\narray {} of group station_101 not equal".format(key))
