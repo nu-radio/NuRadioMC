@@ -295,9 +295,13 @@ class voltageToAnalyticEfieldConverter:
             be save into the `debug_plotpath` directory
         use_channels: array of ints
             the channel ids to use for the electric field reconstruction
+            default: 0 - 3
         bandpass: [float, float]
             the lower and upper frequecy for which the analytic pulse is calculated.
             A butterworth filter of 10th order and a rectangular filter is applied.
+            default 100 - 500 MHz
+        useMCdirection: bool
+            use simulated direction instead of reconstructed direction
         """
         self.__counter += 1
         event_time = station.get_station_time()
@@ -601,7 +605,7 @@ class voltageToAnalyticEfieldConverter:
 
         electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels)
         electric_field.set_trace(station_trace, sampling_rate)
-        energy_fluence = trace_utilities.get_electric_field_energy_fluence(electric_field.get_trace(), electric_field.get_times())        
+        energy_fluence = trace_utilities.get_electric_field_energy_fluence(electric_field.get_trace(), electric_field.get_times())
         electric_field.set_parameter(efp.signal_energy_fluence, energy_fluence)
         electric_field.set_parameter_error(efp.signal_energy_fluence, np.array([0, Atheta_error, Aphi_error]))
         electric_field.set_parameter(efp.cr_spectrum_slope, slope)
@@ -643,9 +647,9 @@ class voltageToAnalyticEfieldConverter:
             voltage_trace = np.roll(np.copy(v_trace), int(time_shift*electric_field.get_sampling_rate()))
             correlation += signal.correlate(voltage_trace, channel.get_trace())
         toffset = (np.arange(0, correlation.shape[0]) - channel.get_trace().shape[0]) / electric_field.get_sampling_rate()
-        electric_field.set_trace_start_time(-toffset[np.argmax(correlation)] + average_trace_start_time)            
+        electric_field.set_trace_start_time(-toffset[np.argmax(correlation)] + average_trace_start_time)
         station.add_electric_field(electric_field)
-        
+
         if debug:
             analytic_traces = np.zeros((n_channels, n_samples_time))
             for iCh, trace in enumerate(V_timedomain):
