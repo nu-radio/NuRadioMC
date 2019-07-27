@@ -535,8 +535,11 @@ class simulation():
         self._create_trigger_structures()
         sg = self._mout_groups[self._station_id]
         for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
-            self._mout['multiple_triggers'][self._iE, iT] |= self._station.get_trigger(trigger_name).has_triggered()
-            sg['multiple_triggers'][self._iE, iT] = self._station.get_trigger(trigger_name).has_triggered()
+            if(self._station.has_trigger(trigger_name)):
+                self._mout['multiple_triggers'][self._iE, iT] |= self._station.get_trigger(trigger_name).has_triggered()
+                sg['multiple_triggers'][self._iE, iT] = self._station.get_trigger(trigger_name).has_triggered()
+            else:
+                sg['multiple_triggers'][self._iE, iT] = False
 
         self._mout['triggered'][self._iE] = np.any(self._mout['multiple_triggers'][self._iE])
         sg['triggered'][self._iE] = np.any(sg['multiple_triggers'][self._iE])
