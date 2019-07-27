@@ -29,6 +29,20 @@ import os
 # import confuse
 logger = logging.getLogger("sim")
 
+def pretty_time_delta(seconds):
+    seconds = int(seconds)
+    days, seconds = divmod(seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    if days > 0:
+        return '%dd%dh%dm%ds' % (days, hours, minutes, seconds)
+    elif hours > 0:
+        return '%dh%dm%ds' % (hours, minutes, seconds)
+    elif minutes > 0:
+        return '%dm%ds' % (minutes, seconds)
+    else:
+        return '%ds' % (seconds,)
+
 
 def merge_config(user, default):
     if isinstance(user, dict) and isinstance(default, dict):
@@ -155,7 +169,7 @@ class simulation():
         for self._iE in range(self._n_events):
             t1 = time.time()
             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 100.)) == 0):
-                eta = datetime.timedelta(seconds=(time.time() - t_start) * (self._n_events - self._iE) / self._iE)
+                eta = pretty_time_delta((time.time() - t_start) * (self._n_events - self._iE) / self._iE)
                 total_time = inputTime + rayTracingTime + detSimTime + outputTime
                 logger.warning("processing event {}/{} = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%".format(
                     self._iE, self._n_events, 100. * self._iE / self._n_events, eta, 100. * (rayTracingTime - askaryan_time) / total_time,
@@ -416,12 +430,14 @@ class simulation():
             logger.error("error in calculating effective volume")
 
         t_total = time.time() - t_start
-        logger.warning("{:d} events processed in {:.0f} seconds = {:.2f}ms/event".format(self._n_events,
-                                                                                         t_total, 1.e3 * t_total / self._n_events))
-
         outputTime = time.time() - t5
-        print("inputTime = " + str(inputTime) + "\nrayTracingTime = " + str(rayTracingTime) +
-              "\ndetSimTime = " + str(detSimTime) + "\noutputTime = " + str(outputTime))
+        logger.warning("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}%, {:.1f}% askaryan, detector simulation, {:.1f}% output)".format(self._n_events,
+                                                                                         pretty_time_delta(t_total), 1.e3 * t_total / self._n_events,
+                                                                                         100 * inputTime/t_total,
+                                                                                         100 * rayTracingTime/t_total,
+                                                                                         100 *askaryan_time/t_total,
+                                                                                         100 * detSimTime/t_total,
+                                                                                         100 * outputTime/t_total))
 
     def _is_in_fiducial_volume(self):
         """
