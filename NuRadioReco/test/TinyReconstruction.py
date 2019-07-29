@@ -88,7 +88,6 @@ except:
     print("Using default file for detector")
     detector_file = os.path.join(dir_path,"../examples/example_data/arianna_detector_db.json")
 
-print detector_file
 det = detector.Detector(json_filename=detector_file) # detector file
 det.update(datetime.datetime(2018, 10, 1))
 
