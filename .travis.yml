@@ -9,7 +9,7 @@ install:
 before_script:
   - wget https://github.com/nu-radio/radiotools/archive/python2-3compatible.zip -O /tmp/radiotools.zip
   - unzip /tmp/radiotools.zip
-  - mv radiotools-master radiotools
+  - mv radiotools-python2-3compatible radiotools
   - export PYTHONPATH=$PWD/radiotools
   - wget https://github.com/nu-radio/NuRadioMC/archive/master.zip -O /tmp/NuRadioMC.zip
   - unzip /tmp/NuRadioMC.zip
