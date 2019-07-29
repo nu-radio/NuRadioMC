@@ -52,7 +52,7 @@ layout = html.Div([
                                     {'label': 'reflected', 'value': 'reflected'},
                                     {'label': 'refracted', 'value': 'refracted'}
                                 ],
-                                values = ['direct'],
+                                value = ['direct'],
                                 className='sim-trace-option'
                             )
                         ], className='', id='sim-traces-signal-types-container')
@@ -76,7 +76,7 @@ layout = html.Div([
                                     {'label': 'reflected', 'value': 'reflected'},
                                     {'label': 'refracted', 'value': 'refracted'}
                                 ],
-                                values = ['direct'],
+                                value = ['direct'],
                                 className='sim-trace-option'
                             )
                         ], className='', id='sim-spectrum-signal-types-container')
