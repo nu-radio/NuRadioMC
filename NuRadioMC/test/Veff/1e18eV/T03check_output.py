@@ -5,7 +5,7 @@ from NuRadioMC.utilities import units
 import sys
 import os
 path = os.path.dirname(os.path.abspath(__file__))
-print path
+
 fin = h5py.File(os.path.join(path,"output.hdf5"), 'r')
 weights = np.array(fin['weights'])
 n_events = fin.attrs['n_events']
