@@ -139,7 +139,7 @@ def show_signal_spectrum_signal_types(event_type):
     Output('sim-traces', 'figure'),
     [Input('event-counter-slider', 'value'),
     Input('filename', 'value'),
-    Input('sim-traces-signal-types', 'values'),
+    Input('sim-traces-signal-types', 'value'),
     Input('station-id-dropdown', 'value')],
     [State('user_id', 'children')]
 )
@@ -187,7 +187,7 @@ def update_sim_trace_plot(i_event, filename, signal_types, station_id, juser_id)
     Output('sim-spectrum', 'figure'),
     [Input('event-counter-slider', 'value'),
     Input('filename', 'value'),
-    Input('sim-spectrum-signal-types', 'values'),
+    Input('sim-spectrum-signal-types', 'value'),
     Input('station-id-dropdown', 'value')],
     [State('user_id', 'children')]
 )
