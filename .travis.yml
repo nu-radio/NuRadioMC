@@ -28,5 +28,8 @@ before_script:
   - mv bicone_v8_InfFirn.pkl /home/travis/build/nu-radio/NuRadioMC/NuRadioReco/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
 
 script:
-  - NuRadioMC/test/T02RunSimulation.py NuRadioMC/test/1e18_output_reference.hdf5 NuRadioMC/test/surface_station_1GHz.json NuRadioMC/test/config.yaml NuRadioMC/test/1e18_output.hdf5
-  - NuRadioMC/test/T03validate.py NuRadioMC/test/1e18_output.hdf5 NuRadioMC/test/1e18_output_reference.hdf5
+  - NuRadioMC/test/SingleEvents/T02RunSimulation.py NuRadioMC/test/SingleEvents/1e18_output_reference.hdf5 NuRadioMC/test/SingleEvents/surface_station_1GHz.json NuRadioMC/test/SingleEvents/config.yaml NuRadioMC/test/SingleEvents/1e18_output.hdf5
+  - NuRadioMC/test/SingleEvents/T03validate.py NuRadioMC/test/SingleEvents/1e18_output.hdf5 NuRadioMC/test/SingleEvents/1e18_output_reference.hdf5
+  - NuRadioMC/test/Veff/1e18eV/T01generate_event_list.py
+  - NuRadioMC/test/Veff/1e18eV/T02RunSimulation.py NuRadioMC/test/Veff/1e18eV/1e18_full.hdf5  NuRadioMC/test/Veff/dipole_100m.json NuRadioMC/test/Veff/config.yaml NuRadioMC/test/Veff/1e18eV/output.hdf5
+  - NuRadioMC/test/Veff/1e18eV/T03check_output.py
