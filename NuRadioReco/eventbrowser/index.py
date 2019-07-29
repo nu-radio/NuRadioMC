@@ -41,7 +41,6 @@ else:
 if parsed_args.open_window:
     webbrowser.open('http://127.0.0.1:{}/'.format(parsed_args.port))    
 
-app.css.append_css({"external_url": "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"})
 provider = dataprovider.DataProvider()
 
 
