@@ -7,7 +7,7 @@ install:
     pip install -r NuRadioReco/test/requirements.txt
 
 before_script:
-  - wget https://github.com/nu-radio/radiotools/archive/master.zip -O /tmp/radiotools.zip
+  - wget https://github.com/nu-radio/radiotools/archive/python2-3compatible.zip -O /tmp/radiotools.zip
   - unzip /tmp/radiotools.zip
   - mv radiotools-master radiotools
   - export PYTHONPATH=$PWD/radiotools
