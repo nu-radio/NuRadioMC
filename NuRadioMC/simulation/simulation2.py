@@ -322,7 +322,8 @@ class simulation():
                         if self._cfg['propagation']['focusing']:
                             dZRec = -0.01 * units.m
                             focusing = r.get_focusing(iS, dZRec)
-                            spectrum = fft.time2freq(fft.freq2time(spectrum) * focusing)
+                            #spectrum = fft.time2freq(fft.freq2time(spectrum) * focusing)
+                            spectrum[1:] *= focusing
 
                         polarization_direction_onsky = self._calculate_polarization_vector()
                         cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))

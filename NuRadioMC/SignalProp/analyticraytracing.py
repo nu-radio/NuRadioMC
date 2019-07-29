@@ -1514,11 +1514,11 @@ class ray_tracing:
             starts at zero
 
         dz: float
-            the infinitesimal change of the depth of the receiver
+            the infinitesimal change of the depth of the receiver, 1cm by default
 
         Returns
         -------
-        focusing: array of floats
+        focusing: a float
             gain of the signal at the receiver due to the focusing effect:
         """
         recVec = self.get_receive_vector(iS)
