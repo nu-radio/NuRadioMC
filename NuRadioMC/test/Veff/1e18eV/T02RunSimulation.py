@@ -61,7 +61,6 @@ class mySimulation(simulation.simulation):
 
 
 path = os.path.dirname(os.path.abspath(__file__))
-print(path)
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('inputfilename', type=str,
@@ -75,12 +74,6 @@ parser.add_argument('outputfilename', type=str,
 parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
-
-print(os.path.join(path,args.inputfilename))
-print(os.path.join(path,args.detectordescription))
-print(os.path.join(path,args.outputfilenameNuRadioReco))
-print(os.path.join(path,args.config))
-
 
 sim = mySimulation(eventlist=os.path.join(path,args.inputfilename),
                             outputfilename=os.path.join(path,args.outputfilename),
