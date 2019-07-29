@@ -1,9 +1,12 @@
+#!/usr/bin/env python
 import numpy as np
 import h5py
 from NuRadioMC.utilities import units
 import sys
-
-fin = h5py.File("output.hdf5", 'r')
+import os
+path = os.path.dirname(os.path.abspath(__file__))
+print path
+fin = h5py.File(os.path.join(path,"output.hdf5"), 'r')
 weights = np.array(fin['weights'])
 n_events = fin.attrs['n_events']
 
@@ -32,4 +35,4 @@ print("effective volume deviates {:.1f} sigma ({:.0f}%) from the mean".format(de
 
 if(np.abs(Veff / units.km ** 3 - Veff_mean) > 2 * Veff_sigma):
     print("deviation is more than 2 sigma -> this should only happen in 5\% of the tests. Rerun the test and see if the error persists.")
-    sys.exit(-1)     
+    sys.exit(-1)
