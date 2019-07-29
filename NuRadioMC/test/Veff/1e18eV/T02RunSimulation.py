@@ -11,6 +11,7 @@ import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation2 as simulation
 import logging
+import os
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("runstrawman")
 
@@ -59,6 +60,9 @@ class mySimulation(simulation.simulation):
 #         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
 
 
+path = os.path.dirname(os.path.abspath(__file__))
+print(path)
+
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('inputfilename', type=str,
                     help='path to NuRadioMC input event list')
@@ -72,10 +76,16 @@ parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=No
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
 
-sim = mySimulation(eventlist=args.inputfilename,
-                            outputfilename=args.outputfilename,
-                            detectorfile=args.detectordescription,
-                            outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-                            config_file=args.config)
+print(os.path.join(path,args.inputfilename))
+print(os.path.join(path,args.detectordescription))
+print(os.path.join(path,args.outputfilenameNuRadioReco))
+print(os.path.join(path,args.config))
+
+
+sim = mySimulation(eventlist=os.path.join(path,args.inputfilename),
+                            outputfilename=os.path.join(path,args.outputfilename),
+                            detectorfile=os.path.join(path,args.detectordescription),
+                            outputfilenameNuRadioReco=os.path.join(path,args.outputfilenameNuRadioReco),
+                            config_file=os.path.join(path,args.config))
 sim.run()
 
