@@ -406,6 +406,7 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
     return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_station(station_id).get_station_time().datetime)
 
 if __name__ == '__main__':
-    if int(dash.__version__.split('.')[1]) < 39:
-        print('WARNING: Dash version 0.39.0 or newer is required, you are running version {}. Please update.'.format(dash.__version__))
+    if int(dash.__version__.split('.')[0]) <= 1:
+        if int(dash.__version__.split('.')[1]) < 0:
+            print('WARNING: Dash version 0.39.0 or newer is required, you are running version {}. Please update.'.format(dash.__version__))
     app.run_server(debug=False, port=parsed_args.port)
