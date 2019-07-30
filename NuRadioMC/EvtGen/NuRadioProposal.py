@@ -191,8 +191,8 @@ def create_propagator(low=0.1*pp_PeV, particle_code=13, ecut=1*pp_TeV):
     detector = geometry
 
     interpolation_def = pp.InterpolationDef()
-    interpolation_def.path_to_tables = ""
-    interpolation_def.path_to_tables_readonly = ""
+    interpolation_def.path_to_tables = os.path.join(os.path.dirname(__file__), 'PROPOSAL_tables')
+    interpolation_def.path_to_tables_readonly = os.path.join(os.path.dirname(__file__), 'PROPOSAL_tables')
 
     return pp.Propagator(mu_def, [sec_def], detector, interpolation_def)
 
