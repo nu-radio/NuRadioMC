@@ -1,6 +1,7 @@
 import pyPROPOSAL as pp
 import numpy as np
 from NuRadioMC.utilities import units
+import os
 
 """
 This module takes care of the PROPOSAL implementation. Some important things
