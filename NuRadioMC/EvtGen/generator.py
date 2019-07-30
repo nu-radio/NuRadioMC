@@ -620,6 +620,26 @@ def get_energy_from_flux(Emin, Emax, n_events, flux):
 
 def get_product_position(data_sets, product, iE):
 
+    """
+    Calculates the position of a product particle given by the NuRadioProposal
+    module that has been created by a PROPOSAL lepton propagation.
+
+    Parameters
+    ----------
+    data_sets: dictionary
+        Dictionary with the data sets from the generating functions
+        (generate_eventlist_cylinder and generate_surface_muons)
+    product: secondary_properties class from NuRadioPROPOSAL
+        Contains the properties of the shower-inducing particle given by PROPOSAL
+    iE: int
+        Number of the event in data_sets corresponding to the product particle
+
+    Returns
+    -------
+    x, y, z: tuple
+        The 3-D position of the shower-inducing product particle.
+    """
+
     dist = product.distance
     x = data_sets["xx"][iE] - dist * np.cos(data_sets["zeniths"][iE]) * np.cos(data_sets["azimuths"][iE])
     y = data_sets["xx"][iE] - dist * np.cos(data_sets["zeniths"][iE]) * np.sin(data_sets["azimuths"][iE])
