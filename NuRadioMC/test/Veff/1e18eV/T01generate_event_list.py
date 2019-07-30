@@ -12,9 +12,6 @@ rmax = 4 * units.km
 
 path = os.path.dirname(os.path.abspath(__file__))
 
-sys.exit(-1)
-1/0
-
 # generate one event list at 1e18 eV with 10000 neutrinos
 generate_eventlist_cylinder(os.path.join(path,'1e18_full.hdf5'),
                             5e4, 1e18 * units.eV, 1e18 * units.eV,
