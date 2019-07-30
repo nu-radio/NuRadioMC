@@ -29,12 +29,13 @@ before_script:
 
 jobs:
   include:
-    - stage: test single
-      script:
-      - NuRadioMC/test/SingleEvents/T02RunSimulation.py NuRadioMC/test/SingleEvents/1e18_output_reference.hdf5 NuRadioMC/test/SingleEvents/surface_station_1GHz.json NuRadioMC/test/SingleEvents/config.yaml NuRadioMC/test/SingleEvents/1e18_output.hdf5
-      - NuRadioMC/test/SingleEvents/T03validate.py NuRadioMC/test/SingleEvents/1e18_output.hdf5 NuRadioMC/test/SingleEvents/1e18_output_reference.hdf5
-    - stage: deploy
-      script:
-     - NuRadioMC/test/Veff/1e18eV/T01generate_event_list.py
-     - NuRadioMC/test/Veff/1e18eV/T02RunSimulation.py 1e18_full.hdf5  ../dipole_100m.json ../config.yaml output.hdf5 output.nur
-     - NuRadioMC/test/Veff/1e18eV/T03check_output.py
+    - stage: testsingle begin
+      script: NuRadioMC/test/SingleEvents/T02RunSimulation.py NuRadioMC/test/SingleEvents/1e18_output_reference.hdf5 NuRadioMC/test/SingleEvents/surface_station_1GHz.json NuRadioMC/test/SingleEvents/config.yaml NuRadioMC/test/SingleEvents/1e18_output.hdf5
+    - stage: testsingle check
+      script: NuRadioMC/test/SingleEvents/T03validate.py NuRadioMC/test/SingleEvents/1e18_output.hdf5 NuRadioMC/test/SingleEvents/1e18_output_reference.hdf5
+    - stage: testveff begin
+      script: NuRadioMC/test/Veff/1e18eV/T01generate_event_list.py
+    - stage: testveff run
+      script: NuRadioMC/test/Veff/1e18eV/T02RunSimulation.py 1e18_full.hdf5  ../dipole_100m.json ../config.yaml output.hdf5 output.nur
+    - stage: testveff check
+      script: NuRadioMC/test/Veff/1e18eV/T03check_output.py
