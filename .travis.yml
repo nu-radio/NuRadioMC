@@ -29,7 +29,7 @@ before_script:
 
 jobs:
   include:
-    - stage: testsingle
+    - stage: Test one single event
       script: NuRadioMC/test/SingleEvents/test_build.sh
-    - stage: testveff
+    - stage: Test Veff
       script: NuRadioMC/test/Veff/1e18eV/test_build.sh
