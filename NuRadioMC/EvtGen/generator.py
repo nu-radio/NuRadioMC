@@ -66,7 +66,7 @@ def load_input_hdf5(filename):
     """
     h5fin = h5py.File(filename, 'r')
     fin = {}
-    for key, value in h5fin.items():
+    for key, value in iteritems(h5fin):
         fin[key] = np.array(value)
     h5fin.close()
     return fin
@@ -487,7 +487,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         fout.attrs['VERSION_MAJOR'] = VERSION_MAJOR
         fout.attrs['VERSION_MINOR'] = VERSION_MINOR
         fout.attrs['header'] = HEADER
-        for key, value in attributes.items():
+        for key, value in iteritems(attributes):
             fout.attrs[key] = value
         fout.attrs['total_number_of_events'] = total_number_of_events
 
@@ -509,7 +509,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
 #             else:
 #                 stop_index = tmp[0]
 
-        for key, value in data_sets.items():
+        for key, value in iteritems(data_sets):
             if (key == 'interaction_type'):
                 value = np.array(value, dtype='S')
             fout[key] = value[start_index:stop_index]
@@ -890,7 +890,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         import time
         init_time = time.time()
         # Initialising data_sets_fiducial with empty values
-        for key, value in data_sets.items():
+        for key, value in iteritems(data_sets):
             data_sets_fiducial[key] = []
 
         mask_tau_cc = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 16)
@@ -1021,12 +1021,12 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     elif not add_tau_second_bang:
         # save only events with interactions in fiducial volume
-        for key, value in data_sets.items():
+        for key, value in iteritems(data_sets):
             data_sets_fiducial[key] = value[fmask]
 
     else:
         # Initialising data_sets_fiducial with empty values
-        for key, value in data_sets.items():
+        for key, value in iteritems(data_sets):
             data_sets_fiducial[key] = []
 
         if tabulated_taus:
@@ -1123,10 +1123,10 @@ def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_
     fin = h5py.File(input_filename, 'r')
     data_sets = {}
     attributes = {}
-    for key, value in fin.items():
+    for key, value in iteritems(fin):
         if isinstance(value, h5py.Dataset):  # the loop is also over potential subgroupu that we don't want to consider here
             data_sets[key] = np.array(value)
-    for key, value in fin.attrs.items():
+    for key, value in iteritems(fin.attrs):
         attributes[key] = value
 
     fin.close()
