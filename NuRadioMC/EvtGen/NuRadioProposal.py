@@ -154,7 +154,7 @@ def filter_particle(secondaries, particle):
     E = [p.energy for p in prods if p.particle_def == particle]
     return sum(E)
 
-def create_propagator(low=0.1*pp_PeV, particle_code=13, ecut=10*pp_GeV):
+def create_propagator(low=0.1*pp_PeV, particle_code=13, ecut=1*pp_TeV):
     mu_def_builder = pp.particle.ParticleDefBuilder()
     if (particle_code == 13):
         mu_def_builder.SetParticleDef(pp.particle.MuMinusDef.get())
@@ -179,7 +179,7 @@ def create_propagator(low=0.1*pp_PeV, particle_code=13, ecut=10*pp_GeV):
     sec_def.medium = pp.medium.Ice(1.0)
     sec_def.geometry = geometry
     sec_def.particle_location = pp.ParticleLocation.inside_detector
-    sec_def.cut_settings = pp.EnergyCutSettings(500, -1)
+    sec_def.cut_settings = pp.EnergyCutSettings(ecut, -1)
     sec_def.stopping_decay = True
 
     sec_def.scattering_model = pp.scattering.ScatteringModel.NoScattering
