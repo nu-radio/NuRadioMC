@@ -6,6 +6,9 @@ plt.tight_layout()
 """
 This file calculates some percentiles for the tau length and energy distributions
 given by the CSDA, plots them, and saves them to a json file.
+
+Just run:
+    python T03_tau_length.py
 """
 
 def get_p(p):
