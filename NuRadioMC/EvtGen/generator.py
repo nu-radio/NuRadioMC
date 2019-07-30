@@ -874,9 +874,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         E_all_leptons = E_all_leptons[:n_resample]
         lepton_codes = lepton_codes[:n_resample]
 
-    print('antes', lepton_codes[0])
     products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes)
-    print('despues')
 
     for event_id in data_sets["event_ids"]:
         iE = event_id - start_event_id
