@@ -3,6 +3,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json
 
+"""
+This file plots the tau energy and length profiles percentiles from the
+file calculated with PROPOSAL using T08_tau_PROPOSAL.py and also the profiles
+from the CSDA calculated using T03_tau_length.py. It also performs a fit to the
+tau length mean.
+
+Just run it by typing:
+    python T09_plot_PROPOSAL_diff.py
+"""
+
 def get_dict(filename):
 
     with open(filename, 'r') as datafile:

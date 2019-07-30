@@ -3,6 +3,11 @@ import matplotlib.pyplot as plt
 import json
 plt.tight_layout()
 
+"""
+This file calculates some percentiles for the tau length and energy distributions
+given by the CSDA, plots them, and saves them to a json file.
+"""
+
 def get_p(p):
 
     return -tau_rest_lifetime * np.log(1-p)

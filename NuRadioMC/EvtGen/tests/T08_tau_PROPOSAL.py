@@ -4,6 +4,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json
 
+"""
+This file calculates some percentiles for the tau length and energy distributions
+given by PROPOSAL, plots them, and saves them to a json file.
+
+Just run it by typing:
+    python T08_tau_PROPOSAL.py
+The number of simulated muons per energy can be changed with Ntries, and the number
+of energies can be changed with Nenergies
+"""
+
 Ntries = 1000
 Nenergies = 20
 
