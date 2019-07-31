@@ -620,8 +620,8 @@ class voltageToAnalyticEfieldConverter:
 
         # compute expeted polarization
         site = det.get_site(station.get_id())
-        exp_efield = hp.get_lorentzforce_vector(station[stnp.zenith], station[stnp.azimuth], hp.get_magnetic_field_vector(site))
-        cs = coordinatesystems.cstrafo(station[stnp.zenith], station[stnp.azimuth], site=site)
+        exp_efield = hp.get_lorentzforce_vector(zenith, azimuth, hp.get_magnetic_field_vector(site))
+        cs = coordinatesystems.cstrafo(zenith, azimuth, site=site)
         exp_efield_onsky = cs.transform_from_ground_to_onsky(exp_efield)
         exp_pol_angle = np.arctan2(exp_efield_onsky[2], exp_efield_onsky[1])
         logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
