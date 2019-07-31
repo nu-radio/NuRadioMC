@@ -92,11 +92,11 @@ class simulation():
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
         logger.warning('reading default config from {}'.format(config_file_default))
         with open(config_file_default, 'r') as ymlfile:
-            self._cfg = yaml.load(ymlfile)
+            self._cfg = yaml.load(ymlfile,Loader=yaml.FullLoader)
         if(config_file is not None):
             logger.warning('reading local config overrides from {}'.format(config_file))
             with open(config_file, 'r') as ymlfile:
-                local_config = yaml.load(ymlfile)
+                local_config = yaml.load(ymlfile,Loader=yaml.FullLoader)
                 new_cfg = merge_config(local_config, self._cfg)
                 self._cfg = new_cfg
 
@@ -186,7 +186,7 @@ class simulation():
             if not self._is_in_fiducial_volume():
                 logger.debug("event is not in fiducial volume, skipping simulation")
                 continue
-            
+
             # for special cases where only EM showers are simulated, skip all events where not EM is present
             # i.e. all first interactions that are not nu_e CC
             if(self._cfg['signal']['shower_type'] == "em"):
@@ -194,7 +194,7 @@ class simulation():
                     continue
                 else:
                     if(self._inttype == "cc" and np.abs(self._flavor) != 12): # skip all cc interaction that are not electron neutrinos
-                        continue 
+                        continue
 
             # calculate weight
             # if we have a second interaction, the weight needs to be calculated from the initial neutrino
@@ -763,7 +763,7 @@ class simulation():
                 fhad = inelasticity
         else:
             raise AttributeError("interaction type {} with flavor {} is not implemented".format(inttype, flavor))
-        
+
         if(self._cfg['signal']['shower_type'] is not None):
             if(self._cfg['signal']['shower_type'] == "em"):
                 fhad = 0
