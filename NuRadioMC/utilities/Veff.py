@@ -3,6 +3,7 @@ import h5py
 from scipy import interpolate
 import glob
 from NuRadioMC.utilities import units
+from six import iteritems
 import json
 import os
 
@@ -67,39 +68,189 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
     np.array(Es): numpy floats array
         Smallest energy for each bin
     Aeffs: floats list
-        Effective volumes
+        Effective volumes (m^2)
     Aeffs_error: floats list
-        Effective volume uncertainties
+        Effective volume uncertainties (m^2)
     SNR: floats list
         Signal to noise ratios
     trigger_names: string list
         Trigger names
     [thetamin, thetamax]: [float, float]
         Mimimum and maximum zenith angles
-    Veff = area * np.sum(weights[triggered]) / n_events
     """
-    dZs = []
+    trigger_names = None
+    trigger_names_dict = {}
+    Aeffs = {}
+    SNR = {}
+    Aeffs_error = {}
+    Es = []
+    prev_deposited = None
+    deposited = False
+
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
         fin = h5py.File(filename, 'r')
-        dZs.append(fin.attrs['zmax'] - fin.attrs['zmin'])
-    dZs = np.array(dZs)
+        if 'deposited' in fin.attrs:
+            deposited = fin.attrs['deposited']
+            if prev_deposited is None:
+                prev_deposited = deposited
+            elif prev_deposited != deposited:
+                print("Warning! The deposited parameter is not consistent!")
 
-    density_ice = 0.9167 * units.g / units.cm ** 3
-    density_water = 997 * units.kg / units.m ** 3
-    dZ_density = dZs * density_water/density_ice
+        if('trigger_names' in fin.attrs):
+            trigger_names = fin.attrs['trigger_names']
+        if(len(trigger_names) > 0):
+            for iT, trigger_name in enumerate(trigger_names):
+                Aeffs[trigger_name] = []
+                Aeffs_error[trigger_name] = []
+                trigger_names_dict[trigger_name] = iT
+            break
+
+    trigger_combinations['all_triggers'] = {'triggers': trigger_names}
+    print("Trigger names:", trigger_names)
+
+    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
+        print(filename)
+        fin = h5py.File(filename, 'r')
+        E = fin.attrs['Emin']
+        Es.append(E)
+
+        weights = np.array(fin['weights'])
+        #triggered = np.array(fin['triggered'])
+        triggered = get_triggered(fin)
+        n_events = fin.attrs['n_events']
+        if(trigger_names is None):
+            trigger_names = fin.attrs['trigger_names']
+            for iT, trigger_name in enumerate(trigger_names):
+                Aeffs[trigger_name] = []
+                Aeffs_error[trigger_name] = []
+                trigger_names_dict[trigger_name] = iT
+            print(trigger_names)
+        else:
+            if(np.any(trigger_names != fin.attrs['trigger_names'])):
+
+                if( triggered.size == 0 and fin.attrs['trigger_names'].size == 0 ):
+                    print("file {} has not triggering events. Using trigger names from another file".format(filename))
+                else:
+                    print("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
+                    raise
+
+        # calculate effective
+        density_ice = 0.9167 * units.g / units.cm ** 3
+        density_water = 997 * units.kg / units.m ** 3
+        rmin = fin.attrs['rmin']
+        rmax = fin.attrs['rmax']
+        thetamin = 0
+        thetamax = np.pi
+        phimin = 0
+        phimax = 2 * np.pi
+        if('thetamin' in fin.attrs):
+            thetamin = fin.attrs['thetamin']
+        if('thetamax' in fin.attrs):
+            thetamax = fin.attrs['thetamax']
+        if('phimin' in fin.attrs):
+            fin.attrs['phimin']
+        if('phimax' in fin.attrs):
+            fin.attrs['phimax']
+        dZ = fin.attrs['zmax'] - fin.attrs['zmin']
+        area = np.pi * (rmax**2 - rmin**2)
+        V = area * dZ
+        Vrms = fin.attrs['Vrms']
+
+        # Solid angle needed for the effective volume calculations
+        omega = np.abs(phimax - phimin) * np.abs( np.cos(thetamin)-np.cos(thetamax) )
+
+        for iT, trigger_name in enumerate(trigger_names):
+            triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
+            Aeff = area * np.sum(weights[triggered]) / n_events
+            Aeffs[trigger_name].append(Aeff)
+            try:
+                Aeffs_error[trigger_name].append(Aeff / np.sum(weights[triggered])**0.5)
+            except:
+                Aeffs_error[trigger_name].append(np.nan)
+
+        for trigger_name, values in trigger_combinations.iteritems():
+            indiv_triggers = values['triggers']
+            if(trigger_name not in Aeffs):
+                Aeffs[trigger_name] = []
+                Aeffs_error[trigger_name] = []
+            triggered = np.zeros_like(fin['multiple_triggers'][:, 0], dtype=np.bool)
+            if(isinstance(indiv_triggers, str)):
+                triggered = triggered | np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_triggers]], dtype=np.bool)
+            else:
+                for indiv_trigger in indiv_triggers:
+                    triggered = triggered | np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_trigger]], dtype=np.bool)
+            if 'triggerAND' in values:
+                triggered = triggered & np.array(fin['multiple_triggers'][:, trigger_names_dict[values['triggerAND']]], dtype=np.bool)
+            if 'notriggers' in values:
+                indiv_triggers = values['notriggers']
+                if(isinstance(indiv_triggers, str)):
+                    triggered = triggered & ~np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_triggers]], dtype=np.bool)
+                else:
+                    for indiv_trigger in indiv_triggers:
+                        triggered = triggered & ~np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_trigger]], dtype=np.bool)
+            if('min_sigma' in values.keys()):
+                if(isinstance(values['min_sigma'], list)):
+                    if(trigger_name not in SNR):
+                        SNR[trigger_name] = {}
+                    masks = np.zeros_like(triggered)
+                    for iS in range(len(values['min_sigma'])):
+#                         As = np.array(fin['maximum_amplitudes'])
+                        As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1) # we use the this quantity because it is always computed before noise is added!
+                        As_sorted = np.sort(As[:, values['channels'][iS]], axis=1)
+                        # the smallest of the three largest amplitudes
+                        max_amplitude = As_sorted[:, -values['n_channels'][iS]]
+                        mask = np.sum(As[:, values['channels'][iS]] >= (values['min_sigma'][iS] * Vrms), axis=1) >= values['n_channels'][iS]
+                        masks = masks | mask
+                        if(iS not in SNR[trigger_name]):
+                            SNR[trigger_name][iS] = []
+                        SNR[trigger_name][iS].append([max_amplitude[mask] / Vrms])
+                    triggered = triggered & masks
+                else:
+                    if(trigger_name not in SNR):
+                        SNR[trigger_name] = []
+#                     As = np.array(fin['maximum_amplitudes'])
+                    As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1) # we use the this quantity because it is always computed before noise is added!
+    #                 print(As.shape)
+#                     print(trigger_name, values['channels'])
+                    As_sorted = np.sort(As[:, values['channels']], axis=1)
+                    max_amplitude = As_sorted[:, -values['n_channels']]  # the smallest of the three largest amplitudes
+    #                 print(np.sum(As_sorted[:, -values['n_channels']] > (values['min_sigma'] * Vrms)))
+                    mask = np.sum(As[:, values['channels']] >= (values['min_sigma'] * Vrms), axis=1) >= values['n_channels']
+    #                 max_amplitude[~mask] = 0
+                    SNR[trigger_name].append(As_sorted[mask] / Vrms)
+    #                 print(Vrms, mask.shape, np.sum(mask))
+                    triggered = triggered & mask
+            if('ray_solution' in values.keys()):
+                As = np.array(fin['max_amp_ray_solution'])
+                max_amps = np.argmax(As[:, values['ray_channel']], axis=-1)
+                sol = np.array(fin['ray_tracing_solution_type'])
+#                 print(sol[:,values['ray_channel']][max_amps].shape)
+#                 print(max_amps.shape)
+#                 a = 1/0
+                mask = np.array([sol[i,values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=np.bool)
+                triggered = triggered & mask
+
+            Aeff = area * np.sum(weights[triggered]) / n_events
+
+            if('efficiency' in values.keys()):
+                SNReff, eff = np.loadtxt("analysis_efficiency_{}.csv".format(values['efficiency']), delimiter=",", unpack=True)
+                get_eff = interpolate.interp1d(SNReff, eff, bounds_error=False, fill_value=(0, eff[-1]))
+                As = np.max(np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)[:,np.append(range(0, 8), range(12, 20))], axis=-1) # we use the this quantity because it is always computed before noise is added!
+                if('efficiency_scale' in values.keys()):
+                    As *= values['efficiency_scale']
+                e = get_eff(As/Vrms)
+                Aeff = area * np.sum((weights*e)[triggered]) / n_events
+
+            Aeffs[trigger_name].append(Aeff)
+            Aeffs_error[trigger_name].append(Aeff / np.sum(weights[triggered])**0.5)
+    for trigger_name in Aeffs.keys():
+        Aeffs[trigger_name] = np.array(Aeffs[trigger_name])
+        Aeffs_error[trigger_name] = np.array(Aeffs_error[trigger_name])
 
     if zenithbins:
-        Es, Veffs, Veffs_error, SNR, trigger_names, [thetamin, thetamax], deposited = get_Veff(folder, trigger_combinations, zenithbins)
+        return np.array(Es), Aeffs, Aeffs_error, SNR, trigger_names, [thetamin, thetamax], deposited
     else:
-        Es, Veffs, Veffs_error, SNR, trigger_names, deposited = get_Veff(folder, trigger_combinations, zenithbins)
-
-    Aeffs = Veffs * dZ_density
-    Aeffs_error = Veffs_error * dZ_density
-
-    if zenithbins:
-        return Es, Aeffs, Aeffs_error, SNR, trigger_names, [thetamin, thetamax], deposited
-    else:
-        return Es, Aeffs, Aeffs_error, SNR, trigger_names, deposited
+        return np.array(Es), Aeffs, Aeffs_error, SNR, trigger_names, deposited
 
 def get_Veff(folder, trigger_combinations={}, zenithbins=False):
     """
@@ -125,9 +276,9 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
     np.array(Es): numpy floats array
         Smallest energy for each bin
     Veffs: floats list
-        Effective volumes
+        Effective volumes (m^3 sr)
     Veffs_error: floats list
-        Effective volume uncertainties
+        Effective volume uncertainties (m^3 sr)
     SNR: floats list
         Signal to noise ratios
     trigger_names: string list
@@ -222,6 +373,8 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
         for iT, trigger_name in enumerate(trigger_names):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
             Veff = V * density_ice / density_water * omega * np.sum(weights[triggered]) / n_events
+            # hack
+            Veff = area * np.sum(weights[triggered]) / n_events
             Veffs[trigger_name].append(Veff)
             try:
                 Veffs_error[trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
