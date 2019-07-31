@@ -12,3 +12,5 @@ and
 C. Glaser, A. Nelles, I. Plaisier, C. Welling et al., "NuRadioReco: A reconstruction framework for radio neutrino detectors", Eur. Phys. J. C (2019) 79: 464, doi:10.1140/epjc/s10052-019-6971-5, arXiv:1903.07023
 
 for the detector simulation part. 
+
+If you would like to contribute, please contact @cg-laser or @anelles for permissions to work on NuRadioMC. We work with pull requests only that can be merged after review. 
