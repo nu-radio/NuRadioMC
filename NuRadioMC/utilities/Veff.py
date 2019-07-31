@@ -42,7 +42,68 @@ def get_triggered(fin):
 
     return triggered
 
-def get_Veff(folder, trigger_combinations={}, zenithbins=False, aeff=False):
+def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
+    """
+    calculates the effective area from NuRadioMC hdf5 files calculated using
+    PROPOSAL for propagating surface muons.
+
+    Parameters
+    ----------
+    folder: string
+        folder conaining the hdf5 files, one per energy
+    trigger_combinations: dict, optional
+        keys are the names of triggers to calculate. Values are dicts again:
+            * 'triggers': list of strings
+                name of individual triggers that are combines with an OR
+            * 'efficiency': string
+                the signal efficiency vs. SNR (=Vmax/Vrms) to use. E.g. 'Chris'
+            * 'efficiency_scale': float
+                rescaling of the efficiency curve by SNR' = SNR * scale
+    zenithbins: bool
+        If true, returns the minimum and maximum zenith angles
+
+    Returns
+    ----------
+    np.array(Es): numpy floats array
+        Smallest energy for each bin
+    Aeffs: floats list
+        Effective volumes
+    Aeffs_error: floats list
+        Effective volume uncertainties
+    SNR: floats list
+        Signal to noise ratios
+    trigger_names: string list
+        Trigger names
+    [thetamin, thetamax]: [float, float]
+        Mimimum and maximum zenith angles
+    Veff = area * np.sum(weights[triggered]) / n_events
+    """
+    dZs = []
+    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
+        fin = h5py.File(filename, 'r')
+        dZs.append(fin.attrs['zmax'] - fin.attrs['zmin'])
+    dZs = np.array(dZs)
+
+    density_ice = 0.9167 * units.g / units.cm ** 3
+    density_water = 997 * units.kg / units.m ** 3
+    dZ_density = dZs * density_water/density_ice
+
+    if zenithbins:
+        Es, Veffs, Veffs_error, SNR, trigger_names, [thetamin, thetamax], deposited =
+        get_Veff(folder, trigger_combinations, zenithbins)
+    else:
+        Es, Veffs, Veffs_error, SNR, trigger_names, deposited =
+        get_Veff(folder, trigger_combinations, zenithbins)
+
+    Aeffs = Veffs * dZ_density
+    Aeffs_error = Veffs_error * dZ_density
+
+    if zenithbins:
+        return Es, Aeffs, Aeffs_error, SNR, trigger_names, [thetamin, thetamax], deposited
+    else:
+        return Es, Aeffs, Aeffs_error, SNR, trigger_names, deposited
+
+def get_Veff(folder, trigger_combinations={}, zenithbins=False):
     """
     calculates the effective volume from NuRadioMC hdf5 files
 
@@ -60,8 +121,6 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False, aeff=False):
                 rescaling of the efficiency curve by SNR' = SNR * scale
     zenithbins: bool
         If true, returns the minimum and maximum zenith angles
-    aeff: bool
-        if True, calculates effective area. To use with proposal and surface_muons modes
 
     Returns
     ----------
@@ -164,10 +223,7 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False, aeff=False):
 
         for iT, trigger_name in enumerate(trigger_names):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
-            if aeff:
-                Veff = area * np.sum(weights[triggered]) / n_events
-            else:
-                Veff = V * density_ice / density_water * omega * np.sum(weights[triggered]) / n_events
+            Veff = V * density_ice / density_water * omega * np.sum(weights[triggered]) / n_events
             Veffs[trigger_name].append(Veff)
             try:
                 Veffs_error[trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
@@ -288,7 +344,7 @@ def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
     with open(filename, 'w') as fout:
         json.dump(output, fout, sort_keys=True, indent=4)
 
-def exportVeffPerZenith(folderlist, outputfile, aeff=False):
+def exportVeffPerZenith(folderlist, outputfile):
     """
     export effective volumes into a human readable JSON file
     We assume a binning in zenithal angles
@@ -303,15 +359,8 @@ def exportVeffPerZenith(folderlist, outputfile, aeff=False):
     output = {}
     for folder in folderlist:
 
-        Es, Veffs, Veffs_error, SNR, trigger_names, thetas, deposited = get_Veff(folder, zenithbins=True, aeff=aeff)
+        Es, Veffs, Veffs_error, SNR, trigger_names, thetas, deposited = get_Veff(folder, zenithbins=True)
         output[thetas[0]] = {}
-
-        if aeff:
-            eff_str = 'Aeff'
-            err_str = 'Aeff_error'
-        else:
-            eff_str = 'Veff'
-            err_str = 'Veff_error'
 
         for trigger_name in trigger_names:
             output[thetas[0]][trigger_name] = {}
@@ -319,8 +368,39 @@ def exportVeffPerZenith(folderlist, outputfile, aeff=False):
                 output[thetas[0]][trigger_name]['deposited_energies'] = list(Es)
             else:
                 output[thetas[0]][trigger_name]['energies'] = list(Es)
-            output[thetas[0]][trigger_name][eff_str] = list(Veffs[trigger_name])
-            output[thetas[0]][trigger_name][err_str] = list(Veffs_error[trigger_name])
+            output[thetas[0]][trigger_name]['Veff'] = list(Veffs[trigger_name])
+            output[thetas[0]][trigger_name]['Veff_error'] = list(Veffs_error[trigger_name])
+
+    with open(outputfile, 'w+') as fout:
+
+        json.dump(output, fout, sort_keys=True, indent=4)
+
+def exportAeffPerZenith(folderlist, outputfile):
+    """
+    export effective areas into a human readable JSON file
+    We assume a binning in zenithal angles
+
+    Parameters
+    ----------
+    folderlist: strings list
+        list containing the input folders
+    outputfile: string
+        name for the output file
+    """
+    output = {}
+    for folder in folderlist:
+
+        Es, Aeffs, Aeffs_error, SNR, trigger_names, thetas, deposited = get_Aeff_proposal(folder, zenithbins=True)
+        output[thetas[0]] = {}
+
+        for trigger_name in trigger_names:
+            output[thetas[0]][trigger_name] = {}
+            if deposited:
+                output[thetas[0]][trigger_name]['deposited_energies'] = list(Es)
+            else:
+                output[thetas[0]][trigger_name]['energies'] = list(Es)
+            output[thetas[0]][trigger_name]['Aeff'] = list(Aeffs[trigger_name])
+            output[thetas[0]][trigger_name]['Aeff_error'] = list(Aeffs_error[trigger_name])
 
     with open(outputfile, 'w+') as fout:
 
