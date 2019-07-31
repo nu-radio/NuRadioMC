@@ -89,11 +89,9 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
     dZ_density = dZs * density_water/density_ice
 
     if zenithbins:
-        Es, Veffs, Veffs_error, SNR, trigger_names, [thetamin, thetamax], deposited =
-        get_Veff(folder, trigger_combinations, zenithbins)
+        Es, Veffs, Veffs_error, SNR, trigger_names, [thetamin, thetamax], deposited = get_Veff(folder, trigger_combinations, zenithbins)
     else:
-        Es, Veffs, Veffs_error, SNR, trigger_names, deposited =
-        get_Veff(folder, trigger_combinations, zenithbins)
+        Es, Veffs, Veffs_error, SNR, trigger_names, deposited = get_Veff(folder, trigger_combinations, zenithbins)
 
     Aeffs = Veffs * dZ_density
     Aeffs_error = Veffs_error * dZ_density
