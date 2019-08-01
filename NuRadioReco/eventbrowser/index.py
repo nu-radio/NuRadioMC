@@ -74,7 +74,7 @@ app.layout = html.Div([
             html.Div([
                 html.Div([
                         html.Button([
-                                html.Div(className='fa fa-arrow-left')
+                                html.Div(className='icon-arrow-left')
                             ],
                             id='btn-previous-event',
                             className='btn btn-primary',
@@ -86,7 +86,7 @@ app.layout = html.Div([
                             className='btn btn-primary'
                         ),
                         html.Button([
-                                html.Div(className='fa fa-arrow-right')
+                                html.Div(className='icon-arrow-right')
                             ],
                             id='btn-next-event',
                             className='btn btn-primary',
