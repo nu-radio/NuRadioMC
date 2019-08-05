@@ -25,7 +25,7 @@ class BaseStation():
         self._triggers = {}
         self._triggered = False
         self._electric_fields = []
-        self._particle_type = 'nu'
+        self._particle_type = ''
 
     def __setitem__(self, key, value):
         self.set_parameter(key, value)
@@ -174,18 +174,27 @@ class BaseStation():
                     yield e_field
                 elif ray_path_type == e_field.get_parameter(parameters.electricFieldParameters.ray_path_type):
                     yield e_field
+
     def is_neutrino(self):
+        if not self._particle_type == 'nu' and not self._particle_type == 'cr':
+            logger.error("Stations particle type was not properly set: \"{}\"".format(self._particle_type))
+            raise ValueError("Stations particle type was not properly set: \"{}\"".format(self._particle_type))
+
         return self._particle_type == 'nu'
-        
+
     def is_cosmic_ray(self):
+        if not self._particle_type == 'nu' and not self._particle_type == 'cr':
+            logger.error("Stations particle type was not properly set: \"{}\"".format(self._particle_type))
+            raise ValueError("Stations particle type was not properly set: \"{}\"".format(self._particle_type))
+
         return self._particle_type == 'cr'
-        
+
     def set_is_neutrino(self):
         """
         set station type to neutrino
         """
         self._particle_type = 'nu'
-    
+
     def set_is_cosmic_ray(self):
         """
         set station type to cosmic rays (relevant e.g. for refraction into the snow)
