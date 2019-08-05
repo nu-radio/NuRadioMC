@@ -27,6 +27,9 @@ before_script:
   - mkdir -p /home/travis/build/nu-radio/NuRadioMC/NuRadioReco/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
   - mv bicone_v8_InfFirn.pkl /home/travis/build/nu-radio/NuRadioMC/NuRadioReco/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
 
-script:
-  - NuRadioMC/test/T02RunSimulation.py NuRadioMC/test/1e18_output_reference.hdf5 NuRadioMC/test/surface_station_1GHz.json NuRadioMC/test/config.yaml NuRadioMC/test/1e18_output.hdf5
-  - NuRadioMC/test/T03validate.py NuRadioMC/test/1e18_output.hdf5 NuRadioMC/test/1e18_output_reference.hdf5
+jobs:
+  include:
+    - stage: Test one single event
+      script: NuRadioMC/test/SingleEvents/test_build.sh
+    - stage: Test Veff
+      script: NuRadioMC/test/Veff/1e18eV/test_build.sh
