@@ -176,16 +176,16 @@ class BaseStation():
                     yield e_field
 
     def is_neutrino(self):
-        if not self._particle_type == 'nu' and not self._particle_type == 'cr':
-            logger.error("Stations particle type was not properly set: \"{}\"".format(self._particle_type))
-            raise ValueError("Stations particle type was not properly set: \"{}\"".format(self._particle_type))
+        if self._particle_type == '':
+            logger.error("Stations particle type has not been set")
+            raise ValueError("Stations particle type has not been set")
 
         return self._particle_type == 'nu'
 
     def is_cosmic_ray(self):
-        if not self._particle_type == 'nu' and not self._particle_type == 'cr':
-            logger.error("Stations particle type was not properly set: \"{}\"".format(self._particle_type))
-            raise ValueError("Stations particle type was not properly set: \"{}\"".format(self._particle_type))
+        if self._particle_type == '':
+            logger.error("Stations particle type has not been set")
+            raise ValueError("Stations particle type has not been set")
 
         return self._particle_type == 'cr'
 
