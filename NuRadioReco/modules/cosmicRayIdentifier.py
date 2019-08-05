@@ -28,8 +28,6 @@ class cosmicRayIdentifier:
         """
 
         if mode == 'forced':
-            if station.is_cosmic_ray():
-                logger.warning('Event is already flagged as cosmic ray.')
             station.set_is_cosmic_ray()
         else:
             raise ValueError('Unsupported mode {}'.format(mode))
