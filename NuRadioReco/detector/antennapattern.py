@@ -460,12 +460,13 @@ def get_WIPLD_antenna_response(path):
         return res
 
 
-def get_AERA_antenna_response(path):
+def parse_AERA_XML_file(path):
     import xml.etree.ElementTree as ET
 
-    def P2R(magnitude, phase):
-        return magnitude * np.exp(1j * phase)
-
+    if not os.path.exists(path):
+        logger.error("AERA antenna file {} not found".format(path))
+        raise OSError
+    
     antenna_file = open(path, "rb")
 
     antenna_data = "<antenna>" + antenna_file.read() + "</antenna>"  # add pseudo root element
@@ -502,16 +503,29 @@ def get_AERA_antenna_response(path):
             freq_string = "%.1f" % freq
 
         theta_amp_node = root.find("./EAHTheta_amp[@idfreq='%s']" % freq_string)
-        theta_amps[iFreq] = np.array(theta_amp_node.text.strip().split(), dtype=np.float)
+        theta_amps[iFreq] = np.array(theta_amp_node.text.strip().split(), dtype=np.float) * units.m
 
         theta_phase_node = root.find("./EAHTheta_phase[@idfreq='%s']" % freq_string)
         theta_phases[iFreq] = np.deg2rad(np.array(theta_phase_node.text.strip().split(" "), dtype=np.float))
 
         phi_amp_node = root.find("./EAHPhi_amp[@idfreq='%s']" % freq_string)
-        phi_amps[iFreq] = np.array(phi_amp_node.text.strip().split(), dtype=np.float)
+        phi_amps[iFreq] = np.array(phi_amp_node.text.strip().split(), dtype=np.float) * units.m
 
         phi_phase_node = root.find("./EAHPhi_phase[@idfreq='%s']" % freq_string)
         phi_phases[iFreq] = np.deg2rad(np.array(phi_phase_node.text.strip().split(), dtype=np.float))
+
+    return frequencies, phis, thetas, phi_amps, phi_phases, theta_amps, theta_phases
+
+
+def preprocess_AERA(path):
+
+    frequencies, phis, thetas, phi_amps, phi_phases, theta_amps, theta_phases = parse_AERA_XML_file(path)
+
+    n_freqs = len(frequencies)
+    n_angles = len(phis)
+
+    def P2R(magnitude, phase):
+        return magnitude * np.exp(1j * phase)
 
     VEL_thetas = P2R(theta_amps, theta_phases)
     VEL_phis = P2R(phi_amps, phi_phases)
@@ -521,26 +535,35 @@ def get_AERA_antenna_response(path):
     phis = np.tile(phis, n_freqs)
 
     # (freq) -> (freq * angles)
-    frequencies = np.repeat(frequencies, n_angles)
+    ff = np.repeat(frequencies, n_angles)
 
     # sort with increasing frequency, increasing phi, and increasing theta
-    index = np.lexsort((thetas, phis, frequencies))
+    index = np.lexsort((thetas, phis, ff))
     VEL_thetas = VEL_thetas.flatten()[index]
     VEL_phis = VEL_phis.flatten()[index]
 
     # (angle) -> (freq * angle)
-    thetas = np.tile(thetas, n_freqs)[index]
-    phis = np.tile(phis, n_freqs)[index]
+    theta = np.tile(thetas, n_freqs)[index]
+    phi = np.tile(phis, n_freqs)[index]
 
     # to avoid issues when deviding throw H (H=0 is ignored)
     # |H| < 0.1 should not happen between 30 - 80 MHz
-    VEL_phis = np.where(np.abs(VEL_phis) > 0.1, VEL_phis, 0)
-    VEL_thetas = np.where(np.abs(VEL_thetas) > 0.1, VEL_thetas, 0)
+    H_phi = np.where(np.abs(VEL_phis) > 0.01, VEL_phis, 0)
+    H_theta = np.where(np.abs(VEL_thetas) > 0.01, VEL_thetas, 0)
 
     # values for a upwards pointing LPDA with the arm aligned to the magnetic field
     zen_boresight, azi_boresight, zen_ori, azi_ori = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg
 
-    return zen_boresight, azi_boresight, zen_ori, azi_ori, frequencies, thetas, phis, VEL_phis, VEL_thetas
+    fname = os.path.split(os.path.basename(path))[1].replace('.xml', '')
+    output_filename = '{}_InfAir.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
+
+    directory = os.path.dirname(output_filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    with open(output_filename, 'wb') as fout:
+        logger.info('saving output to {}'.format(output_filename))
+        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
 
 
 def parse_ARA_file(ara):
@@ -800,7 +823,7 @@ class AntennaPattern(AntennaPatternBase):
     """
 
     def __init__(self, antenna_model, path=path_to_antennamodels,
-                 interpolation_method='complex', source='AERA'):
+                 interpolation_method='complex'):
         """
 
         Parameters
@@ -815,7 +838,6 @@ class AntennaPattern(AntennaPatternBase):
             * 'magphase' interpolate magnitude and phase of vector effective length
         """
 
- 
         self._name = antenna_model
         self._interpolation_method = interpolation_method
         from time import time
@@ -824,14 +846,8 @@ class AntennaPattern(AntennaPatternBase):
         self._notfound = False
 
         try:
-            if source == 'WIPLD':
-                self._zen_boresight, self._azi_boresight, self._zen_ori, self._azi_ori, \
-                                     ff, thetas, phis, H_phi, H_theta = get_WIPLD_antenna_response(filename)
-            elif source == 'AERA':
-                path_to_antennamodels = \
-                    '/home/felix/Software/ape-head/offline/share/auger-offline/config/SmallBlackSpider_ground2_measured.xml'
-                self._zen_boresight, self._azi_boresight, self._zen_ori, self._azi_ori, \
-                                     ff, thetas, phis, H_phi, H_theta = get_AERA_antenna_response(path_to_antennamodels)
+            self._zen_boresight, self._azi_boresight, self._zen_ori, self._azi_ori, \
+                    ff, thetas, phis, H_phi, H_theta = get_WIPLD_antenna_response(filename)
         except IOError:
             self._notfound = True
             logger.warning("antenna response for {} not found".format(antenna_model))
