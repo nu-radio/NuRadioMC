@@ -159,7 +159,6 @@ def update_sim_trace_plot(i_event, filename, signal_types, station_id, juser_id)
     fig = subplots.make_subplots(rows=1, cols=1)
     try:
         for i_electric_field, electric_field in enumerate(sim_station.get_electric_fields()):
-            print('!!!!!', electric_field.get_parameter(efp.ray_path_type), signal_types)
             if electric_field.get_parameter(efp.ray_path_type) in signal_types:
                 for polarization in range(1,3):
                     fig.append_trace(
