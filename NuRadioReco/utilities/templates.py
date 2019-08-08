@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-import cPickle as pickle
+import pickle
 import numpy as np
 from NuRadioReco.utilities import units
 import logging
@@ -13,7 +13,7 @@ class Templates(object):
 
     def __new__(cls, path):
         if Templates.__instance is None:
-            Templates.__instance = object.__new__(cls, path)
+            Templates.__instance = object.__new__(cls)
         return Templates.__instance
 
     def __init__(self, path):
