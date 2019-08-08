@@ -282,18 +282,18 @@ if __name__=="__main__":  # this part of the code gets only executed it the scri
     veff = 2150 * units.km**3 * units.sr
     livetime = 5 *units.year
 
-    print "Cross section: {} cm^2".format(cross_sections.get_nu_cross_section(energy, cross_section_type = 'ctw'))
+    print("Cross section: {} cm^2".format(cross_sections.get_nu_cross_section(energy, cross_section_type = 'ctw')))
 
-    print "interaction length: {} km".format(get_interaction_length(energy, cross_section_type = 'ctw')/units.km)
+    print("interaction length: {} km".format(get_interaction_length(energy, cross_section_type = 'ctw')/units.km))
 
-    print "calculating flux limit for {time} years and Veff of {veff} km^3 sr".format(time=livetime/units.year,
-                            veff = veff/ (units.km**3 * units.sr))
-    print "Flux limit: {} GeV/(cm^2 s sr)".format(get_limit_e2_flux(energy,veff, livetime) / (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1))
+    print("calculating flux limit for {time} years and Veff of {veff} km^3 sr".format(time=livetime/units.year,
+                            veff = veff/ (units.km**3 * units.sr)))
+    print("Flux limit: {} GeV/(cm^2 s sr)".format(get_limit_e2_flux(energy,veff, livetime) / (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)))
 
     aeff = np.array([0.0032,0.033,0.43,3.1,21,68,167])* units.km**2 * units.sr
     energies = 10**np.array([18,18.5,19,19.5,20,20.5,21])* units.eV
 
-    print "Flux limit: {} GeV/(cm^2 s sr)".format(energies**2*get_limit_from_aeff(energies,aeff,livetime) / (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1))
+    print("Flux limit: {} GeV/(cm^2 s sr)".format(energies**2*get_limit_from_aeff(energies,aeff,livetime) / (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)))
 
 
 
