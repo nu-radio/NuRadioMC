@@ -521,7 +521,7 @@ class simulation():
             self._mout_attrs['trigger_names'] = []
 
             for trigger in six.itervalues(self._station.get_triggers()):
-                self._mout_attrs['trigger_names'].append(np.string_(trigger.get_name()))
+                self._mout_attrs['trigger_names'].append(trigger.get_name())
         # the 'multiple_triggers' output array is not initialized in the constructor because the number of
         # simulated triggers is unknown at the beginning. So we check if the key already exists and if not,
         # we first create this data structure
@@ -599,7 +599,7 @@ class simulation():
         self._event_id = self._fin['event_ids'][self._iE]
         self._flavor = self._fin['flavors'][self._iE]
         self._energy = self._fin['energies'][self._iE]
-        self._inttype = self._fin['interaction_type'][self._iE]
+        self._inttype = self._fin['interaction_type'][self._iE].astype('str')
         self._x = self._fin['xx'][self._iE]
         self._y = self._fin['yy'][self._iE]
         self._z = self._fin['zz'][self._iE]
