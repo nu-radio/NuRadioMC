@@ -1,6 +1,6 @@
 language: python
 python:
-  - '2.7'
+  - '3.6'
 
 before_install:
   - sudo apt-get install libgsl2
@@ -11,13 +11,13 @@ install:
     pip install -r NuRadioMC/test/requirements.txt
 
 before_script:
-  - wget https://github.com/nu-radio/radiotools/archive/master.zip -O /tmp/radiotools.zip
+  - wget https://github.com/nu-radio/radiotools/archive/python3.zip -O /tmp/radiotools.zip
   - unzip /tmp/radiotools.zip
-  - mv radiotools-master radiotools
+  - mv radiotools-python3 radiotools
   - export PYTHONPATH=$PWD/radiotools
-  - wget https://github.com/nu-radio/NuRadioReco/archive/master.zip -O /tmp/NuRadioReco.zip
+  - wget https://github.com/nu-radio/NuRadioReco/archive/python3.zip -O /tmp/NuRadioReco.zip
   - unzip /tmp/NuRadioReco.zip
-  - mv NuRadioReco-master NuRadioReco
+  - mv NuRadioReco-python3 NuRadioReco
   - export PYTHONPATH=$PYTHONPATH:$PWD/NuRadioReco
   - export PYTHONPATH=$PYTHONPATH:$PWD
   - wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
