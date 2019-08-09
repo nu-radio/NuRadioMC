@@ -24,6 +24,7 @@ before_script:
   - chmod +x NuRadioReco/test/trigger_tests/generate_events.py
   - chmod +x NuRadioReco/test/trigger_tests/trigger_tests.py
   - chmod +x NuRadioReco/test/trigger_tests/compare_to_reference.py
+  - chmod +x NuRadioReco/test/trigger_tests/run_trigger_test.sh
 jobs:
   include:
     - stage: TinyReconstruction
