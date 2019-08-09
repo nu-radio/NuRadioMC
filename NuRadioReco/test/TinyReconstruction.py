@@ -16,7 +16,7 @@ import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelBandPassFilter
-import NuRadioReco.modules.cosmicRayIdentifier
+import NuRadioReco.modules.eventTypeIdentifier
 import NuRadioReco.modules.channelStopFilter
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.correlationDirectionFitter
@@ -107,7 +107,7 @@ triggerSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator(
 triggerSimulator.begin()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelBandPassFilter.begin()
-cosmicRayIdentifier = NuRadioReco.modules.cosmicRayIdentifier.cosmicRayIdentifier()
+eventTypeIdentifier = NuRadioReco.modules.eventTypeIdentifier.eventTypeIdentifier()
 channelStopFilter = NuRadioReco.modules.channelStopFilter.channelStopFilter()
 channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
 channelSignalReconstructor.begin()
@@ -152,7 +152,7 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
 
             channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 500 * units.MHz], filter_type='butter', order = 10)
 
-            cosmicRayIdentifier.run(evt, station, "forced")
+            eventTypeIdentifier.run(evt, station, "forced", 'cosmic_ray')
 
             channelStopFilter.run(evt, station, det)
 
