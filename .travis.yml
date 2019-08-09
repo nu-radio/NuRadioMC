@@ -24,3 +24,6 @@ before_script:
 
 script:
   - NuRadioReco/test/TinyReconstruction.py
+  - NuRadioReco/test/trigger_tests/generate_events.py
+  - NuRadioReco/test/trigger_tests/trigger_tests.py
+  - NuRadioReco/test/trigger_tests/compare_to_reference.py
