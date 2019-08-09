@@ -37,10 +37,10 @@ class mySimulation(simulation.simulation):
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
 
 
-sim = mySimulation(eventlist='trigger_test_eventlist.hdf5',
+sim = mySimulation(eventlist='NuRadioReco/test/trigger_tests/trigger_test_eventlist.hdf5',
         outputfilename='input.hdf5',
-        detectorfile='trigger_test_detector.json',
-        outputfilenameNuRadioReco='trigger_test_input.nur',
-        config_file='config.yaml')
+        detectorfile='NuRadioReco/test/trigger_tests/trigger_test_detector.json',
+        outputfilenameNuRadioReco='NuRadioReco/test/trigger_tests/trigger_test_input.nur',
+        config_file='NuRadioReco/test/trigger_tests/config.yaml')
 sim.run()
 

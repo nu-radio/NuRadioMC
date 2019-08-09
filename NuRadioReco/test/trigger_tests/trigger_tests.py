@@ -10,11 +10,11 @@ import NuRadioReco.modules.phasedarray.triggerSimulator
 import NuRadioReco.modules.efieldToVoltageConverter
 from NuRadioReco.utilities import units
 
-det = NuRadioReco.detector.generic_detector.GenericDetector('trigger_test_detector.json', 1, 0)
+det = NuRadioReco.detector.generic_detector.GenericDetector('NuRadioReco/test/trigger_tests/trigger_test_detector.json', 1, 0)
 event_reader = NuRadioReco.modules.io.eventReader.eventReader()
-event_reader.begin('trigger_test_input.nur')
+event_reader.begin('NuRadioReco/test/trigger_tests/trigger_test_input.nur')
 event_writer = NuRadioReco.modules.io.eventWriter.eventWriter()
-event_writer.begin('trigger_test_output.nur')
+event_writer.begin('NuRadioReco/test/trigger_tests/trigger_test_output.nur')
 
 high_low_trigger = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 multi_high_low_trigger = NuRadioReco.modules.trigger.multiHighLowThreshold.triggerSimulator()
