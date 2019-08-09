@@ -21,9 +21,12 @@ before_script:
 # - wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/bicone_v8_InfFirn/bicone_v8_InfFirn.pkl
 # - mkdir -p /home/travis/build/nu-radio/NuRadioReco/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
 # - mv bicone_v8_InfFirn.pkl /home/travis/build/nu-radio/NuRadioReco/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
-
-script:
-  - NuRadioReco/test/TinyReconstruction.py
-  - NuRadioReco/test/trigger_tests/generate_events.py
-  - NuRadioReco/test/trigger_tests/trigger_tests.py
-  - NuRadioReco/test/trigger_tests/compare_to_reference.py
+jobs:
+  include:
+    - stage: FirstStage
+      script: NuRadioReco/test/TinyReconstruction.py
+      script: NuRadioReco/test/trigger_tests/generate_events.py
+    - stage: SecondStage
+      script: NuRadioReco/test/trigger_tests/trigger_tests.py
+    - stage: ThirdStage
+      script: NuRadioReco/test/trigger_tests/compare_to_reference.py
