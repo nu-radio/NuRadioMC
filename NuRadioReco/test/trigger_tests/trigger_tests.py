@@ -30,10 +30,10 @@ for event in event_reader.run():
     station = event.get_station(1)
     efield_to_voltage_converter.run(event, station, det)
     hardware_response_incorporator.run(event, station, det, True)
-    high_low_trigger.run(event, station, det)
-    multi_high_low_trigger.run(event, station, det, trigger_name="default_multi_high_low")
+    high_low_trigger.run(event, station, det, threshold_high=40 * units.mV, threshold_low=-40 * units.mV)
+    multi_high_low_trigger.run(event, station, det, trigger_name="default_multi_high_low", threshold_high=40 * units.mV, threshold_low=-40 * units.mV, n_high_lows=2)
     simple_threshold_trigger.run(event, station, det)
-    phased_array_trigger.run(event, station, det)
+    phased_array_trigger.run(event, station, det, threshold=40 * units.mV)
     
     event_writer.run(event)
 

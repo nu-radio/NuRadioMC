@@ -31,11 +31,11 @@ for event in event_reader.run():
                 trigger_results[trigger_name][property] = []
             trigger_results[trigger_name][property].append(trigger.get_trigger_settings()[property])
         
+found_error = False
 if args.create_reference:
     with open('reference.json', 'w') as f:
         json.dump(trigger_results, f)
 else:
-    found_error = False
     for trigger_name in trigger_names:
         print('1', trigger_results[trigger_name])
         print('2', reference[trigger_name])
