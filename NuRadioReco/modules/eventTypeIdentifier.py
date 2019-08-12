@@ -24,8 +24,9 @@ class eventTypeIdentifier:
 
         mode: string
             specifies which criteria the decision to flag the event as cosmic ray
-            should be based on. Currently only supports 'forced', which automatically
-            flags the event as cosmic ray. Add new modes to use different criteria
+            or neutrino should be based on. Currently only supports 'forced', 
+            which automatically flags the event to a specified type. Add new 
+            modes to use different criteria
         forced_event_type: string
             if the mode is set to forced, this is the type the event will be set to.
             Currently supported options are neutrino and cosmic_ray
