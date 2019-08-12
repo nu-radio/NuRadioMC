@@ -392,7 +392,7 @@ def save_preprocessed_WIPLD_forARA(path):
                                                                        np.angle(H_phi[mask][i])/units.deg))
 
 
-def get_WIPLD_antenna_response(path):
+def get_pickle_antenna_response(path):
     """
     opens and return the pickle file containing the preprocessed WIPL-D antenna simulation
     If the pickle file is not present on the local file system, or if the file is outdated (verified via a sha1 hash sum),
@@ -847,7 +847,7 @@ class AntennaPattern(AntennaPatternBase):
 
         try:
             self._zen_boresight, self._azi_boresight, self._zen_ori, self._azi_ori, \
-                    ff, thetas, phis, H_phi, H_theta = get_WIPLD_antenna_response(filename)
+                    ff, thetas, phis, H_phi, H_theta = get_pickle_antenna_response(filename)
         except IOError:
             self._notfound = True
             logger.warning("antenna response for {} not found".format(antenna_model))
