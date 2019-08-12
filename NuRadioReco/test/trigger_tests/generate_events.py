@@ -7,9 +7,6 @@ import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation2 as simulation
-import logging
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runstrawman")
 
 
 # initialize detector sim modules
