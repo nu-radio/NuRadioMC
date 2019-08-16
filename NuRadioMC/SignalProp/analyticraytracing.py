@@ -115,18 +115,55 @@ class ray_tracing_2D():
         return res
 
     def get_gamma(self, z):
+        """
+        transforms z coordinate into gamma
+        """
         return self.medium.delta_n * np.exp(z / self.medium.z_0)
 
     def get_turning_point(self, c):
         """
         calculate the turning point, i.e. the maximum of the ray tracing path;
         parameter is c = self.medium.n_ice ** 2 - C_0 ** -2
+        
+        This is either the point of reflection off the ice surface
+        or the point where the saddle point of the ray (transition from upward to downward going)
+        
+        Parameters
+        ----------
+        c: float
+            related to C_0 parameter via c = self.medium.n_ice ** 2 - C_0 ** -2
+            
+        Returns
+        ----------
+        typle (gamma, z coordinate of turning point)
         """
         gamma2 = self.__b * 0.5 - (0.25 * self.__b ** 2 - c) ** 0.5  # first solution discarded
         z2 = np.log(gamma2 / self.medium.delta_n) * self.medium.z_0
 
         return gamma2, z2
 
+
+    def get_y_turn(self, C_0, x1):
+        """
+        calculates the y-coordinate of the turning point. This is either the point of reflection off the ice surface
+        or the point where the saddle point of the ray (transition from upward to downward going)
+        
+        Parameters
+        ----------
+        C_0: float
+            C_0 parameter of function
+        x1: typle
+            (y, z) start position of ray
+        """
+        c = self.medium.n_ice ** 2 - C_0 ** -2
+        gamma_turn, z_turn = self.get_turning_point(c)
+        if(z_turn > 0):
+            z_turn = 0  # a reflection is just a turning point at z = 0, i.e. cases 2) and 3) are the same
+            gamma_turn = self.get_gamma(z_turn)
+        C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
+        y_turn = self.get_y(gamma_turn, C_0, C_1)
+        return y_turn
+    
     def get_C_1(self, x1, C_0):
         """
         calculates constant C_1 for a given C_0 and start point x1
@@ -501,7 +538,88 @@ class ray_tracing_2D():
                 x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation))
             return attenuation
 
-    def get_angle(self, x, x_start, C_0):
+    def get_path_segments(self, x1, x2, C_0, reflection=0, reflection_case=1):
+        """
+        Calculates the different segments of the path that makes up the full ray tracing path
+        One segment per bottom reflection. 
+        
+        Parameters
+        ----------
+        x1: tuple
+            (y, z) coordinate of start value
+        x2: tuple
+            (y, z) coordinate of stop value
+        C_0: float
+            C_0 parameter of analytic ray path function
+        reflection: int (default 0)
+            the number of bottom reflections to consider
+        reflection_case: int (default 1)
+            only relevant if `reflection` is larger than 0
+            * 1: rays start upwards
+            * 2: rays start downwards
+            
+        Returns
+        --------
+        (original x1, x1 of path segment, original x2, x2 of path segment, C_0, C_1 of path segment)
+        """
+        x1 = copy.copy(x1)
+        x11 = copy.copy(x1)
+        x22 = copy.copy(x2)
+        
+        if(reflection == 0):
+            C_1 = self.get_C_1(x1, C_0)
+            return [[x1, x1, x22, x2, C_0, C_1]]
+        
+        tmp = []
+        
+        if(reflection_case == 2):
+            # the code only allows upward going rays, thus we find a point left from x1 that has an upward going ray
+            # that will produce a downward going ray through x1
+            y_turn = self.get_y_turn(C_0, x1)
+            dy = y_turn - x1[0]
+            self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
+            x1[0] = x1[0] - 2 * dy
+        
+        for i in range(reflection+1):
+            self.__logger.debug("calculation path for reflection = {}".format(i))
+            C_1 = self.get_C_1(x1, C_0)
+            x2 = self.get_reflection_point(C_0, C_1)
+            stop_loop = False
+            if(x2[0] > x22[0]):
+                stop_loop = True
+                x2 =  x22
+            tmp.append([x11, x1, x22, x2, C_0, C_1])
+            if(stop_loop):
+                break
+#             yyy, zzz = self.get_path(x1, x2, C_0, n_points)
+#             yy.extend(yyy)
+#             zz.extend(zzz)
+            self.__logger.debug("setting x1 from {} to {}".format(x1, x2))
+            x1 = x2
+        return tmp
+    
+    def get_angle(self, x, x_start, C_0, reflection=0, reflection_case=1):
+        """
+        calculates the angle with respect to the positive z-axis of the ray path at position x
+        
+        Parameters
+        ----------
+        x: tuple
+            (y, z) coordinate to calculate the angle
+        x_start: tuple
+            (y, z) start position of the ray
+        C_0: float
+            C_0 parameter of analytic ray path function
+        reflection: int (default 0)
+            the number of bottom reflections to consider
+        reflection_case: int (default 1)
+            only relevant if `reflection` is larger than 0
+            * 1: rays start upwards
+            * 2: rays start downwards
+        """
+        last_segment = self.get_path_segments(x_start, x, C_0, reflection, reflection_case)[-1]
+        x_start = last_segment[1]
+            
         z = self.get_z_mirrored(x_start, x, C_0)[1]
         dy = self.get_y_diff(z, C_0)
         angle = np.arctan(dy)
@@ -509,25 +627,48 @@ class ray_tracing_2D():
             angle = np.pi + angle
         return angle
 
-    def get_launch_angle(self, x1, C_0):
-        return self.get_angle(x1, x1, C_0)
+    def get_launch_angle(self, x1, C_0, reflection=0, reflection_case=1):
+        return self.get_angle(x1, x1, C_0, reflection, reflection_case)
 
-    def get_receive_angle(self, x1, x2, C_0):
-        return np.pi - self.get_angle(x2, x1, C_0)
+    def get_receive_angle(self, x1, x2, C_0, reflection=0, reflection_case=1):
+        return np.pi - self.get_angle(x2, x1, C_0, reflection, reflection_case)
 
-    def get_reflection_angle(self, x1, C_0):
+    def get_reflection_angle(self, x1, x2, C_0, reflection=0, reflection_case=1):
+        """
+        calculates the angle under which the ray reflects off the surface. If not reflection occurs, None is returned
+        
+        If reflections off the bottom (e.g. Moore's Bay) are simulated, an array with reflection angles (one for 
+        each track segment) is returned
+        
+        Parameters
+        ----------
+        x1: tuple
+            (y, z) start position of ray
+        x2: tuple
+            (y, z) stop position of the ray
+        C_0: float
+            C_0 parameter of analytic ray path function
+        reflection: int (default 0)
+            the number of bottom reflections to consider
+        reflection_case: int (default 1)
+            only relevant if `reflection` is larger than 0
+            * 1: rays start upwards
+            * 2: rays start downwards
+        """
+        output = []
         c = self.medium.n_ice ** 2 - C_0 ** -2
-        C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
-        gamma_turn, z_turn = self.get_turning_point(c)
-        if(z_turn >= 0):
-            gamma_turn = self.get_gamma(0)
-            y_turn = self.get_y(gamma_turn, C_0, C_1)
-            r = self.get_angle(np.array([y_turn, 0]), x1, C_0)
-            self.__logger.debug(
-                "reflecting off surface at y = {:.1f}m, reflection angle = {:.1f}deg".format(y_turn, r / units.deg))
-            return r
-        else:
-            return None
+        for segment in self.get_path_segments(x1, x2, C_0, reflection, reflection_case):
+            x11, x1, x22, x2, C_0, C_1 = segment
+            gamma_turn, z_turn = self.get_turning_point(c)
+            y_turn = self.get_y_turn(C_0, x1)
+            if((z_turn >= 0) and (y_turn > x11[0]) and (y_turn < x22[0])):  # for the first track segment we need to check if turning point is right of start point (otherwise we have a downward going ray that does not have a turning point), and for the last track segment we need to check that the turning point is left of the stop position. 
+                r = self.get_angle(np.array([y_turn, 0]), x1, C_0)
+                self.__logger.debug(
+                    "reflecting off surface at y = {:.1f}m, reflection angle = {:.1f}deg".format(y_turn, r / units.deg))
+                output.append(r)
+            else:
+                output.append(None)
+        return np.squeeze(output)
 
     def get_path(self, x1, x2, C_0, n_points=1000):
         """
@@ -579,13 +720,43 @@ class ray_tracing_2D():
             C_0, self.__b, gamma_turn, z_turn, y_turn))
         return res, zs
     
-    def get_path_reflections(self, x1, x2, C_0, n_points=1000, reflection=0, reflection_case=2):
+    def get_path_reflections(self, x1, x2, C_0, n_points=1000, reflection=0, reflection_case=1):
+        """
+        calculates the ray path in the presence of reflections at the bottom
+        The full path is constructed by multiple calls to the `get_path()` function to put together the full path
+        
+        Parameters
+        ----------
+        x1: tuple
+            (y, z) coordinate of start value
+        x2: tuple
+            (y, z) coordinate of stop value
+        C_0: float
+            C_0 parameter of analytic ray path function
+        n_points: int (default 1000)
+            the number of points of the numeric path
+        reflection: int (default 0)
+            the number of bottom reflections to consider
+        reflection_case: int (default 1)
+            only relevant if `reflection` is larger than 0
+            * 1: rays start upwards
+            * 2: rays start downwards
+        
+        Returns
+        -------
+        yy: array
+            the y coordinates of the ray tracing path
+        zz: array
+            the z coordinates of the ray tracing path
+        """
         yy = []
         zz = []
         x1 = copy.copy(x1)
         x11 = copy.copy(x1)
         
-        if(reflection_case == 2):
+        if(reflection and reflection_case == 2):
+            # the code only allows upward going rays, thus we find a point left from x1 that has an upward going ray
+            # that will produce a downward going ray through x1
             y_turn = self.get_y_turn(C_0, x1)
             dy = y_turn - x1[0]
             self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
@@ -639,15 +810,6 @@ class ray_tracing_2D():
         C_0 = self.get_C0_from_log(logC_0)
         return self.get_delta_y(C_0, copy.copy(x1), x2, reflection=reflection, reflection_case=reflection_case)
     
-    def get_y_turn(self, C_0, x1):
-        c = self.medium.n_ice ** 2 - C_0 ** -2
-        gamma_turn, z_turn = self.get_turning_point(c)
-        if(z_turn > 0):
-            z_turn = 0  # a reflection is just a turning point at z = 0, i.e. cases 2) and 3) are the same
-            gamma_turn = self.get_gamma(z_turn)
-        C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
-        y_turn = self.get_y(gamma_turn, C_0, C_1)
-        return y_turn
 
     def get_delta_y(self, C_0, x1, x2, C0range=None, reflection=0, reflection_case=2):
         """
@@ -838,7 +1000,9 @@ class ray_tracing_2D():
                     self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                     results.append({'type': solution_type,
                                     'C0': C_0,
-                                    'C1': self.get_C_1(x1, C_0)})
+                                    'C1': self.get_C_1(x1, C_0),
+                                    'reflection': reflection,
+                                    'reflection_case': reflection_case})
 
             # check if another solution with higher logC0 exists
             logC0_start = result.x[0] + 0.0001
@@ -858,7 +1022,9 @@ class ray_tracing_2D():
                     self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                     results.append({'type': solution_type,
                                     'C0': C_0,
-                                    'C1': self.get_C_1(x1, C_0)})
+                                    'C1': self.get_C_1(x1, C_0),
+                                    'reflection': reflection,
+                                    'reflection_case': reflection_case})
             else:
                 self.__logger.info("no solution with logC0 > {:.3f} exists".format(result.x[0]))
 
@@ -880,7 +1046,9 @@ class ray_tracing_2D():
                     self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                     results.append({'type': solution_type,
                                     'C0': C_0,
-                                    'C1': self.get_C_1(x1, C_0)})
+                                    'C1': self.get_C_1(x1, C_0),
+                                    'reflection': reflection,
+                                    'reflection_case': reflection_case})
             else:
                 self.__logger.info("no solution with logC0 < {:.3f} exists".format(result.x[0]))
 
@@ -907,25 +1075,6 @@ class ray_tracing_2D():
     #     ax.plot(x2[1], x2[0], 'd')
         ax.legend()
 
-#     def get_angle_from_C_0(self,C_0, z_pos,angoff=0):
-#
-#         '''
-#         argument angoff is provided so that the function can be used for minimization in get_C_0_from_angle(),
-#         in which case angoff is the angle for which the C_0 is sought and zero is returned when it is fouund.
-#
-#         output:
-#             angle corresponding to C_0, minus offset angoff
-#         '''
-#
-#
-#         dydz = self.get_y_diff(z_pos,C_0)
-# #        dydz = self.get_dydz_analytic(C_0, z_pos)
-#
-#         angle=np.arctan(dydz)
-#
-#         if(angle < 0):
-#             angle = np.pi + angle
-#         return angle - angoff
 
     def get_angle_from_C_0(self, C_0, z_pos, angoff=0):
         logC_0 = np.log(C_0 - 1. / self.medium.n_ice)
