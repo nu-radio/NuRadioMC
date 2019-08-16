@@ -556,44 +556,61 @@ class ray_tracing_2D():
                     freqs = np.append(freqs, np.linspace(frequency[~mask2].min(), frequency[~mask2].max(), nfreqs // 2))
             return freqs
 
-    def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq):
-        if(cpp_available):
-            mask = frequency > 0
-            freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
-            tmp = np.zeros_like(freqs)
-            for i, f in enumerate(freqs):
-                tmp[i] = wrapper.get_attenuation_along_path(
-                    x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n, self.medium.z_0, self.attenuation_model_int)
+    def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq, reflection=0, reflection_case=1):
+        tmp_attenuation = None
+        for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
+            if(iS == 0 and reflection_case == 2):  # we can only integrate upward going rays, so if the ray starts downwardgoing, we need to mirror
+                x11, x1, x22, x2, C_0, C_1 = segment
+                x1t = copy.copy(x11)
+                x2t = copy.copy(x2)
+                x1t[1] = x2[1]
+                x2t[1] = x11[1]
+                x2 = x2t
+                x1 = x1t
+            else:
+                x11, x1, x22, x2, C_0, C_1 = segment
 
-            attenuation = np.ones_like(frequency)
-            attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
-            return attenuation
-        else:
-
-            x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
-
-            def dt(t, C_0, frequency):
-                z = self.get_z_unmirrored(t, C_0)
-                return self.ds(t, C_0) / attenuation_util.get_attenuation_length(z, frequency, self.attenuation_model)
-
-            # to speed up things we only calculate the attenuation for a few frequencies
-            # and interpolate linearly between them
-            mask = frequency > 0
-            freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
-            gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-            points = None
-            if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
-                points = [z_turn]
-            tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(
-                C_0, f), epsrel=5e-2, points=points)[0] for f in freqs])
-            att_func = interpolate.interp1d(freqs, tmp)
-            tmp2 = att_func(frequency[mask])
-    #         tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in frequency[mask]])
-            attenuation = np.ones_like(frequency)
-            attenuation[mask] = np.exp(-1 * tmp2)
-            self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(
-                x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation))
-            return attenuation
+            if(cpp_available):
+                mask = frequency > 0
+                freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
+                tmp = np.zeros_like(freqs)
+                for i, f in enumerate(freqs):
+                    tmp[i] = wrapper.get_attenuation_along_path(
+                        x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n, self.medium.z_0, self.attenuation_model_int)
+    
+                attenuation = np.ones_like(frequency)
+                attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
+            else:
+    
+                x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
+    
+                def dt(t, C_0, frequency):
+                    z = self.get_z_unmirrored(t, C_0)
+                    return self.ds(t, C_0) / attenuation_util.get_attenuation_length(z, frequency, self.attenuation_model)
+    
+                # to speed up things we only calculate the attenuation for a few frequencies
+                # and interpolate linearly between them
+                mask = frequency > 0
+                freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
+                gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+                points = None
+                if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
+                    points = [z_turn]
+                tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(
+                    C_0, f), epsrel=5e-2, points=points)[0] for f in freqs])
+                att_func = interpolate.interp1d(freqs, tmp)
+                tmp2 = att_func(frequency[mask])
+        #         tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in frequency[mask]])
+                attenuation = np.ones_like(frequency)
+                attenuation[mask] = np.exp(-1 * tmp2)
+                self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(
+                    x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation))
+#                 return attenuation
+            if(tmp_attenuation is None):
+                tmp_attenuation = attenuation
+            else:
+                tmp_attenuation *= attenuation
+        return attenuation
 
     def get_path_segments(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
@@ -1014,7 +1031,8 @@ class ray_tracing_2D():
 
         if(cpp_available):
             #             t = time.time()
-            solutions = wrapper.find_solutions(x1, x2, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
+            print("find solutions", x1, x2, self.medium.n_ice, self.medium.delta_n, self.medium.z_0, reflection, reflection_case, self.medium.reflection)
+            solutions = wrapper.find_solutions(x1, x2, self.medium.n_ice, self.medium.delta_n, self.medium.z_0, reflection, reflection_case, self.medium.reflection)
 #             print((time.time() -t)*1000.)
             return solutions
         else:
@@ -1498,7 +1516,8 @@ class ray_tracing:
                       3: 'reflected'}
 
     def __init__(self, x1, x2, medium, attenuation_model="SP1", log_level=logging.WARNING,
-                 n_frequencies_integration=6):
+                 n_frequencies_integration=6,
+                 n_reflections=0):
         """
         class initilization
 
@@ -1523,6 +1542,9 @@ class ray_tracing:
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
+            
+        n_reflections: int (default 0)
+            in case of a medium with a reflective layer at the bottom, how many reflections should be considered
 
         """
         self.__logger = logging.getLogger('ray_tracing')
@@ -1530,6 +1552,7 @@ class ray_tracing:
         self.__medium = medium
         self.__attenuation_model = attenuation_model
         self.__n_frequencies_integration = n_frequencies_integration
+        self.__n_reflections = n_reflections
 
         self.__swap = False
         self.__X1 = x1
@@ -1556,13 +1579,18 @@ class ray_tracing:
         self.__r2d = ray_tracing_2D(self.__medium, self.__attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self.__n_frequencies_integration)
 
-    def set_solution(self, C0s, C1s, solution_types):
+    def set_solution(self, C0s, C1s, solution_types, reflection=None, reflection_case=None):
         results = []
+        if(reflection is None):
+            reflection = np.zeros_like(C0s, dtype=np.int)
+            reflection_case = np.ones_like(C0s, dtype=np.int)
         for i in range(len(C0s)):
             if(not np.isnan(C0s[i])):
                 results.append({'type': solution_types[i],
                                 'C0': C0s[i],
-                                'C1': C1s[i]})
+                                'C1': C1s[i],
+                                'reflection': reflection[i],
+                                'reflection_case': reflection_case[i]})
         self.__results = results
 
     def find_solutions(self):
@@ -1570,6 +1598,9 @@ class ray_tracing:
         find all solutions between x1 and x2
         """
         self.__results = self.__r2d.find_solutions(self.__x1, self.__x2)
+        for i in range(self.__n_reflections):
+            for j in range(2):
+                self.__results.extend(self.__r2d.find_solutions(self.__x1, self.__x2, reflection=i + 1, reflection_case=j + 1))
 
     def has_solution(self):
         """
@@ -1613,7 +1644,9 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
         result = self.__results[iS]
-        xx, zz = self.__r2d.get_path(self.__x1, self.__x2, result['C0'], n_points=n_points)
+        xx, zz = self.__r2d.get_path_reflections(self.__x1, self.__x2, result['C0'], n_points=n_points,
+                                                 reflection=result['reflection'],
+                                                 reflection_case=result['reflection_case'])
         path_2d = np.array([xx, np.zeros_like(xx), zz]).T
         dP = path_2d - np.array([self.__X1[0], 0, self.__X1[2]])
         MM = np.matmul(self.__R.T, dP.T)
@@ -1641,10 +1674,13 @@ class ray_tracing:
             raise IndexError
 
         result = self.__results[iS]
-        alpha = self.__r2d.get_launch_angle(self.__x1, result['C0'])
+        alpha = self.__r2d.get_launch_angle(self.__x1, result['C0'], reflection=result['reflection'],
+                                            reflection_case=result['reflection_case'])
         launch_vector_2d = np.array([np.sin(alpha), 0, np.cos(alpha)])
         if self.__swap:
-            alpha = self.__r2d.get_receive_angle(self.__x1, self.__x2, result['C0'])
+            alpha = self.__r2d.get_receive_angle(self.__x1, self.__x2, result['C0'],
+                                                 reflection=result['reflection'],
+                                                 reflection_case=result['reflection_case'])
             launch_vector_2d = np.array([-np.sin(alpha), 0, np.cos(alpha)])
         self.__logger.debug(self.__R.T)
         launch_vector = np.dot(self.__R.T, launch_vector_2d)
@@ -1671,10 +1707,14 @@ class ray_tracing:
             raise IndexError
 
         result = self.__results[iS]
-        alpha = self.__r2d.get_receive_angle(self.__x1, self.__x2, result['C0'])
+        alpha = self.__r2d.get_receive_angle(self.__x1, self.__x2, result['C0'],
+                                             reflection=result['reflection'],
+                                             reflection_case=result['reflection_case'])
         receive_vector_2d = np.array([-np.sin(alpha), 0, np.cos(alpha)])
         if self.__swap:
-            alpha = self.__r2d.get_launch_angle(self.__x1, result['C0'])
+            alpha = self.__r2d.get_launch_angle(self.__x1, result['C0'],
+                                                reflection=result['reflection'],
+                                                reflection_case=result['reflection_case'])
             receive_vector_2d = np.array([np.sin(alpha), 0, np.cos(alpha)])
         receive_vector = np.dot(self.__R.T, receive_vector_2d)
         return receive_vector
@@ -1700,7 +1740,8 @@ class ray_tracing:
             raise IndexError
 
         result = self.__results[iS]
-        return self.__r2d.get_reflection_angle(self.__x1, self.__x2, result['C0'])
+        return self.__r2d.get_reflection_angle(self.__x1, self.__x2, result['C0'],
+                                               reflection=result['reflection'], reflection_case=result['reflection_case'])
 
     def get_path_length(self, iS, analytic=True):
         """
@@ -1727,13 +1768,19 @@ class ray_tracing:
 
         result = self.__results[iS]
         if analytic:
-            analytic_length = self.__r2d.get_path_length_analytic(self.__x1, self.__x2, result['C0'])
+            analytic_length = self.__r2d.get_path_length_analytic(self.__x1, self.__x2, result['C0'],
+                                                                  reflection=result['reflection'],
+                                                                  reflection_case=result['reflection_case'])
             if (analytic_length != None):
                 return analytic_length
             else:
-                return self.__r2d.get_path_length(self.__x1, self.__x2, result['C0'])
+                return self.__r2d.get_path_length(self.__x1, self.__x2, result['C0'],
+                                                  reflection=result['reflection'],
+                                                  reflection_case=result['reflection_case'])
         else:
-            return self.__r2d.get_path_length(self.__x1, self.__x2, result['C0'])
+            return self.__r2d.get_path_length(self.__x1, self.__x2, result['C0'],
+                                              reflection=result['reflection'],
+                                              reflection_case=result['reflection_case'])
 
     def get_travel_time(self, iS, analytic=True):
         """
@@ -1760,13 +1807,19 @@ class ray_tracing:
 
         result = self.__results[iS]
         if(analytic):
-            analytic_time = self.__r2d.get_travel_time_analytic(self.__x1, self.__x2, result['C0'])
+            analytic_time = self.__r2d.get_travel_time_analytic(self.__x1, self.__x2, result['C0'],
+                                                                reflection=result['reflection'],
+                                                                reflection_case=result['reflection_case'])
             if (analytic_time != None):
                 return analytic_time
             else:
-                return self.__r2d.get_travel_time(self.__x1, self.__x2, result['C0'])
+                return self.__r2d.get_travel_time(self.__x1, self.__x2, result['C0'],
+                                                  reflection=result['reflection'],
+                                                  reflection_case=result['reflection_case'])
         else:
-            return self.__r2d.get_travel_time(self.__x1, self.__x2, result['C0'])
+            return self.__r2d.get_travel_time(self.__x1, self.__x2, result['C0'],
+                                              reflection=result['reflection'],
+                                              reflection_case=result['reflection_case'])
 
     def get_attenuation(self, iS, frequency, max_detector_freq=None):
         """
@@ -1798,7 +1851,11 @@ class ray_tracing:
             raise IndexError
 
         result = self.__results[iS]
-        return self.__r2d.get_attenuation_along_path(self.__x1, self.__x2, result['C0'], frequency, max_detector_freq)
+        return self.__r2d.get_attenuation_along_path(self.__x1, self.__x2, result['C0'], frequency, max_detector_freq,
+                                                     reflection=result['reflection'],
+                                                     reflection_case=result['reflection_case'])
 
     def get_ray_path(self, iS):
-        return self.__r2d.get_path(self.__x1, self.__x2, self.__results[iS]['C0'], 10000)
+        return self.__r2d.get_path(self.__x1, self.__x2, self.__results[iS]['C0'], 10000,
+                                   reflection=self.__results[iS]['reflection'],
+                                   reflection_case=self.__results[iS]['reflection_case'])
