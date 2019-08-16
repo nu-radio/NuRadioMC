@@ -578,23 +578,78 @@ class ray_tracing_2D():
         self.__logger.debug('turning points for C_0 = {:.2f}, b= {:.2f}, gamma = {:.4f}, z = {:.1f}, y_turn = {:.0f}'.format(
             C_0, self.__b, gamma_turn, z_turn, y_turn))
         return res, zs
+    
+    def get_path_reflections(self, x1, x2, C_0, n_points=1000, reflection=0, reflection_case=2):
+        yy = []
+        zz = []
+        x1 = copy.copy(x1)
+        x11 = copy.copy(x1)
+        
+        if(reflection_case == 2):
+            y_turn = self.get_y_turn(C_0, x1)
+            dy = y_turn - x1[0]
+            self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
+            x1[0] = x1[0] - 2 * dy
+        
+        x22 = copy.copy(x2)
+        for i in range(reflection+1):
+            self.__logger.debug("calculation path for reflection = {}".format(i))
+            C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
+            x2 = self.get_reflection_point(C_0, C_1)
+            if(x2[0] > x22[0]):
+                x2 =  x22
+            yyy, zzz = self.get_path(x1, x2, C_0, n_points)
+            yy.extend(yyy)
+            zz.extend(zzz)
+            self.__logger.debug("setting x1 from {} to {}".format(x1, x2))
+            x1 = x2
 
-    def obj_delta_y_square(self, logC_0, x1, x2):
+        yy = np.array(yy)
+        zz = np.array(zz)
+        mask = yy > x11[0]
+        return yy[mask], zz[mask]
+            
+    def get_reflection_point(self, C_0, C_1):
+        """
+        calculates the point where the signal gets reflected off the bottom of the ice shelf
+        
+        Returns tuple (y,z)
+        """
+        c = self.medium.n_ice ** 2 - C_0 ** -2
+        gamma_turn, z_turn = self.get_turning_point(c)
+        if(z_turn > 0):
+            z_turn = 0  # a reflection is just a turning point at z = 0
+        x2 = [0, self.medium.reflection]
+        x2[0] = self.get_y_with_z_mirror(-x2[1] + 2 * z_turn, C_0, C_1)
+        return x2
+            
+
+    def obj_delta_y_square(self, logC_0, x1, x2, reflection=0, reflection_case=2):
         """
         objective function to find solution for C0
         """
         C_0 = self.get_C0_from_log(logC_0)
-        return self.get_delta_y(C_0, x1, x2) ** 2
+        return self.get_delta_y(C_0, copy.copy(x1), x2, reflection=reflection, reflection_case=reflection_case) ** 2
 
-    def obj_delta_y(self, logC_0, x1, x2):
+    def obj_delta_y(self, logC_0, x1, x2, reflection=0, reflection_case=2):
         """
         function to find solution for C0, returns distance in y between function and x2 position
         result is signed! (important to use a root finder)
         """
         C_0 = self.get_C0_from_log(logC_0)
-        return self.get_delta_y(C_0, x1, x2)
+        return self.get_delta_y(C_0, copy.copy(x1), x2, reflection=reflection, reflection_case=reflection_case)
+    
+    def get_y_turn(self, C_0, x1):
+        c = self.medium.n_ice ** 2 - C_0 ** -2
+        gamma_turn, z_turn = self.get_turning_point(c)
+        if(z_turn > 0):
+            z_turn = 0  # a reflection is just a turning point at z = 0, i.e. cases 2) and 3) are the same
+            gamma_turn = self.get_gamma(z_turn)
+        C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
+        y_turn = self.get_y(gamma_turn, C_0, C_1)
+        return y_turn
 
-    def get_delta_y(self, C_0, x1, x2, C0range=None):
+    def get_delta_y(self, C_0, x1, x2, C0range=None, reflection=0, reflection_case=2):
         """
         calculates the difference in the y position between the analytic ray tracing path
         specified by C_0 at the position x2
@@ -607,6 +662,30 @@ class ray_tracing_2D():
             self.__logger.debug('C0 = {:.4f} out of range {:.0f} - {:.2f}'.format(C_0, C0range[0], C0range[1]))
             return -np.inf
         c = self.medium.n_ice ** 2 - C_0 ** -2
+        
+        # we consider two cases here, 
+        # 1) the rays start rising -> the default case
+        # 2) the rays start decreasing -> we need to find the position left of the start point that
+        #    that has rising rays that go through the point x1
+        if(reflection > 0 and reflection_case == 2):
+            y_turn = self.get_y_turn(C_0, x1)
+            dy = y_turn - x1[0]
+            self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
+            x1[0] = x1[0] - 2 * dy
+
+        for i in range(reflection):
+            # we take account reflections at the bottom layer into account via
+            # 1) calculating the point where the reflection happens
+            # 2) starting a ray tracing from this new point
+            
+            # determine y translation first
+            C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
+            if(hasattr(C_1, '__len__')):
+                C_1 = C_1[0]
+    
+            self.__logger.debug("C_0 = {:.4f}, C_1 = {:.1f}".format(C_0, C_1))
+            x1 = self.get_reflection_point(C_0, C_1)
+
         # determine y translation first
         C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
         if(hasattr(C_1, '__len__')):
@@ -695,14 +774,25 @@ class ray_tracing_2D():
             else:
                 return 2
 
-    def find_solutions(self, x1, x2, plot=False):
+    def find_solutions(self, x1, x2, plot=False, reflection=0, reflection_case=1):
         """
         this function finds all ray tracing solutions
 
         prerequesite is that x2 is above and to the right of x1, this is not a violation of universality
         because this requirement can be achieved with a simple coordinate transformation
 
+        Parameters
+        -----------
+        x1: tuple
+            (y,z) coordinate of start point
+        x2: tuple
+            (y,z) coordinate of stop point
+        reflection: int (default 0)
+            how many reflections off the reflective layer (bottom of ice shelf) should be simulated
+        
+
         returns an array of the C_0 paramters of the solutions (the array might be empty)
+        
         """
 
         if(cpp_available):
@@ -733,7 +823,7 @@ class ray_tracing_2D():
             else:
                 logC_0_start = -1
 
-            result = optimize.root(self.obj_delta_y_square, x0=logC_0_start, args=(x1, x2), tol=tol)
+            result = optimize.root(self.obj_delta_y_square, x0=logC_0_start, args=(x1, x2, reflection, reflection_case), tol=tol)
 
             if(plot):
                 import matplotlib.pyplot as plt
@@ -753,12 +843,12 @@ class ray_tracing_2D():
             # check if another solution with higher logC0 exists
             logC0_start = result.x[0] + 0.0001
             logC0_stop = 100
-            delta_start = self.obj_delta_y(logC0_start, x1, x2)
-            delta_stop = self.obj_delta_y(logC0_stop, x1, x2)
+            delta_start = self.obj_delta_y(logC0_start, x1, x2, reflection, reflection_case)
+            delta_stop = self.obj_delta_y(logC0_stop, x1, x2, reflection, reflection_case)
         #     print(logC0_start, logC0_stop, delta_start, delta_stop, np.sign(delta_start), np.sign(delta_stop))
             if(np.sign(delta_start) != np.sign(delta_stop)):
                 self.__logger.info("solution with logC0 > {:.3f} exists".format(result.x[0]))
-                result2 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2))
+                result2 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
                 if(plot):
                     self.plot_result(x1, x2, self.get_C0_from_log(result2), ax)
                 if(np.round(result2, 3) not in np.round(C0s, 3)):
@@ -774,12 +864,12 @@ class ray_tracing_2D():
 
             logC0_start = -100
             logC0_stop = result.x[0] - 0.0001
-            delta_start = self.obj_delta_y(logC0_start, x1, x2)
-            delta_stop = self.obj_delta_y(logC0_stop, x1, x2)
+            delta_start = self.obj_delta_y(logC0_start, x1, x2, reflection, reflection_case)
+            delta_stop = self.obj_delta_y(logC0_stop, x1, x2, reflection, reflection_case)
         #     print(logC0_start, logC0_stop, delta_start, delta_stop, np.sign(delta_start), np.sign(delta_stop))
             if(np.sign(delta_start) != np.sign(delta_stop)):
                 self.__logger.info("solution with logC0 < {:.3f} exists".format(result.x[0]))
-                result3 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2))
+                result3 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
 
                 if(plot):
                     self.plot_result(x1, x2, self.get_C0_from_log(result3), ax)
@@ -837,11 +927,15 @@ class ray_tracing_2D():
 #             angle = np.pi + angle
 #         return angle - angoff
 
+    def get_angle_from_C_0(self, C_0, z_pos, angoff=0):
+        logC_0 = np.log(C_0 - 1. / self.medium.n_ice)
+        return self.get_angle_from_logC_0(logC_0, z_pos, angoff)
+
     def get_angle_from_logC_0(self, logC_0, z_pos, angoff=0):
 
         '''
         argument angoff is provided so that the function can be used for minimization in get_C_0_from_angle(),
-        in which case angoff is the angle for which the C_0 is sought and zero is returned when it is fouund.
+        in which case angoff is the angle for which the C_0 is sought and zero is returned when it is found.
 
         C_0 has a smallest possible value at 1./self.medium.n_ice . When it approaches this value, very
         small changes in C_0 correspond to a given change in the angle. In order to prevent the root finding
