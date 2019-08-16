@@ -1646,7 +1646,7 @@ class ray_tracing:
             raise IndexError
 
         result = self.__results[iS]
-        return self.__r2d.get_reflection_angle(self.__x1, result['C0'])
+        return self.__r2d.get_reflection_angle(self.__x1, self.__x2, result['C0'])
 
     def get_path_length(self, iS, analytic=True):
         """
