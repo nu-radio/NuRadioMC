@@ -47,6 +47,7 @@ solution_types = {1: 'direct',
                   2: 'refracted',
                   3: 'reflected'}
 
+
 @lru_cache(maxsize=32)
 def get_z_deep(ice_params):
     """
@@ -57,12 +58,13 @@ def get_z_deep(ice_params):
     with negative depth.
     """
     n_ice, z_0, delta_n = ice_params
+
     def diff_n_ice(z):
 
-        rel_diff = 3.5e-4
-        return delta_n * np.exp(z/z_0)/n_ice - rel_diff
+        rel_diff = 3.5e-5
+        return delta_n * np.exp(z / z_0) / n_ice - rel_diff
 
-    return optimize.root(diff_n_ice, -100*units.m).x[0]
+    return optimize.root(diff_n_ice, -100 * units.m).x[0]
 
 
 class ray_tracing_2D():
@@ -142,7 +144,6 @@ class ray_tracing_2D():
 
         return gamma2, z2
 
-
     def get_y_turn(self, C_0, x1):
         """
         calculates the y-coordinate of the turning point. This is either the point of reflection off the ice surface
@@ -209,13 +210,13 @@ class ray_tracing_2D():
         """
         z = self.get_z_unmirrored(z_raw, C_0)
         c = self.medium.n_ice ** 2 - C_0 ** -2
-        B = (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n **
+        B = (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n ** 
                                           2 * np.exp(0.2e1 * z / self.medium.z_0) + c) - self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + 0.2e1 * c)
         D = self.medium.n_ice ** 2 * C_0 ** 2 - 1
         E1 = -self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0)
         E2 = self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0)
         E = (E1 + E2 + c)
-        res = (-np.sqrt(c) * np.exp(z / self.medium.z_0) * self.__b * self.medium.delta_n + 0.2e1 * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z /
+        res = (-np.sqrt(c) * np.exp(z / self.medium.z_0) * self.__b * self.medium.delta_n + 0.2e1 * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / 
                                                                                                                                                      self.medium.z_0) + self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0) + c) * c + 0.2e1 * c ** 1.5) / B * E ** -0.5 * (D ** (-0.5))
 
         if(z != z_raw):
@@ -310,182 +311,238 @@ class ray_tracing_2D():
         """
         return (self.get_y_diff(t, C_0) ** 2 + 1) ** 0.5
 
-    def get_path_length(self, x1, x2, C_0):
-        x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
-        gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-        points = None
-        if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
-            points = [z_turn]
-        path_length = integrate.quad(self.ds, x1[1], x2_mirrored[1], args=(C_0), points=points)
-        self.__logger.info("calculating path length from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} m".format(x1[0], x1[1], x2[0], x2[1],
-                                                                                                                                    x2_mirrored[0],
-                                                                                                                                    x2_mirrored[1],
-                                                                                                                                    path_length[0] / units.m))
-#         print('numeric {:.2f}'.format(path_length[0]))
-        return path_length[0]
+    def get_path_length(self, x1, x2, C_0, reflection=0, reflection_case=1):
+        tmp = 0
+        for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
+            if(iS == 0 and reflection_case == 2):  # we can only integrate upward going rays, so if the ray starts downwardgoing, we need to mirror
+                x11, x1, x22, x2, C_0, C_1 = segment
+                x1t = copy.copy(x11)
+                x2t = copy.copy(x2)
+                x1t[1] = x2[1]
+                x2t[1] = x11[1]
+                x2 = x2t
+                x1 = x1t
+            else:
+                x11, x1, x22, x2, C_0, C_1 = segment
+            x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
+            gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+            points = None
+            if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
+                points = [z_turn]
+            path_length = integrate.quad(self.ds, x1[1], x2_mirrored[1], args=(C_0), points=points)
+            self.__logger.info("calculating path length from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} m".format(x1[0], x1[1], x2[0], x2[1],
+                                                                                                                                        x2_mirrored[0],
+                                                                                                                                        x2_mirrored[1],
+                                                                                                                                        path_length[0] / units.m))
+            tmp += path_length[0]
+        return tmp
 
-    def get_path_length_analytic(self, x1, x2, C_0):
+    def get_path_length_analytic(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
         analytic solution to calculate the distance along the path. This code is based on the analytic solution found
         by Ben Hokanson-Fasing and the pyrex implementation.
         """
-        solution_type = self.determine_solution_type(x1, x2, C_0)
-
-        z_deep = get_z_deep((self.medium.n_ice, self.medium.z_0, self.medium.delta_n))
-        launch_angle = self.get_launch_angle(x1, C_0)
-        beta = self.n(x1[1]) * np.sin(launch_angle)
-        alpha = self.medium.n_ice ** 2 - beta ** 2
-#         print("launchangle {:.1f} beta {:.2g} alpha {:.2g}, n(z1) = {:.2g} n(z2) = {:.2g}".format(launch_angle/units.deg, beta, alpha, self.n(x1[1]), self.n(x2[1])))
-
-        def l1(z):
-            gamma = self.n(z) ** 2 - beta ** 2
-            gamma = np.where(gamma < 0, 0, gamma)
-            return self.medium.n_ice * self.n(z) - beta ** 2 - (alpha * gamma) ** 0.5
-
-        def l2(z):
-            gamma = self.n(z) ** 2 - beta ** 2
-            gamma = np.where(gamma < 0, 0, gamma)
-            return self.n(z) + gamma ** 0.5
-
-        def get_s(z, deep=False):
-            if(deep):
-                return self.medium.n_ice * z / alpha ** 0.5
+        
+        tmp = 0
+        for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
+            if(iS == 0 and reflection_case == 2):  # we can only integrate upward going rays, so if the ray starts downwardgoing, we need to mirror
+                x11, x1, x22, x2, C_0, C_1 = segment
+                x1t = copy.copy(x11)
+                x2t = copy.copy(x2)
+                x1t[1] = x2[1]
+                x2t[1] = x11[1]
+                x2 = x2t
+                x1 = x1t
             else:
-                #                 print(z, self.n(z), beta)
-                #                 print(alpha**0.5, l1(z), l2(z))
-
-                path_length = self.medium.n_ice / alpha ** 0.5 * (-z + np.log(l1(z)) * self.medium.z_0) + np.log(l2(z)) * self.medium.z_0
-                if ( np.abs(path_length) == np.inf or path_length == np.nan ):
-                    path_length = None
-
-                return path_length
-
-        def get_path_direct(z1, z2):
-            int1 = get_s(z1, z1 < z_deep)
-            int2 = get_s(z2, z2 < z_deep)
-            if ( int1 == None or int2 == None ):
-                return None
-#             print('analytic {:.4g} ({:.0f} - {:.0f}={:.4g}, {:.4g})'.format(
-#                 int2 - int1, get_s(x2[1]), x1[1], x2[1], get_s(x1[1])))
-            if (z1 < z_deep) == (z2 < z_deep):
-                # z0 and z1 on same side of z_deep
-                return int2 - int1
-            else:
-                try:
-                    int_diff = get_s(z_deep, deep=True) - get_s(z_deep, deep=False)
-                except:
-                    return None
-                if z1 < z2:
-                    # z0 below z_deep, z1 above z_deep
-                    return int2 - int1 + int_diff
+                x11, x1, x22, x2, C_0, C_1 = segment
+        
+            solution_type = self.determine_solution_type(x1, x2, C_0)
+    
+            z_deep = get_z_deep((self.medium.n_ice, self.medium.z_0, self.medium.delta_n))
+            launch_angle = self.get_launch_angle(x1, C_0)
+            beta = self.n(x1[1]) * np.sin(launch_angle)
+            alpha = self.medium.n_ice ** 2 - beta ** 2
+    #         print("launchangle {:.1f} beta {:.2g} alpha {:.2g}, n(z1) = {:.2g} n(z2) = {:.2g}".format(launch_angle/units.deg, beta, alpha, self.n(x1[1]), self.n(x2[1])))
+    
+            def l1(z):
+                gamma = self.n(z) ** 2 - beta ** 2
+                gamma = np.where(gamma < 0, 0, gamma)
+                return self.medium.n_ice * self.n(z) - beta ** 2 - (alpha * gamma) ** 0.5
+    
+            def l2(z):
+                gamma = self.n(z) ** 2 - beta ** 2
+                gamma = np.where(gamma < 0, 0, gamma)
+                return self.n(z) + gamma ** 0.5
+    
+            def get_s(z, deep=False):
+                if(deep):
+                    return self.medium.n_ice * z / alpha ** 0.5
                 else:
-                    #print("path:", int2 - int1 - int_diff)
-                    # z0 above z_deep, z1 below z_deep
-                    return int2 - int1 - int_diff
-
-        if(solution_type == 1):
-            return get_path_direct(x1[1], x2[1])
-        else:
-            if(solution_type == 3):
-                z_turn = 0
+                    #                 print(z, self.n(z), beta)
+                    #                 print(alpha**0.5, l1(z), l2(z))
+    
+                    path_length = self.medium.n_ice / alpha ** 0.5 * (-z + np.log(l1(z)) * self.medium.z_0) + np.log(l2(z)) * self.medium.z_0
+                    if (np.abs(path_length) == np.inf or path_length == np.nan):
+                        path_length = None
+    
+                    return path_length
+    
+            def get_path_direct(z1, z2):
+                int1 = get_s(z1, z1 < z_deep)
+                int2 = get_s(z2, z2 < z_deep)
+                if (int1 == None or int2 == None):
+                    return None
+    #             print('analytic {:.4g} ({:.0f} - {:.0f}={:.4g}, {:.4g})'.format(
+    #                 int2 - int1, get_s(x2[1]), x1[1], x2[1], get_s(x1[1])))
+                if (z1 < z_deep) == (z2 < z_deep):
+                    # z0 and z1 on same side of z_deep
+                    return int2 - int1
+                else:
+                    try:
+                        int_diff = get_s(z_deep, deep=True) - get_s(z_deep, deep=False)
+                    except:
+                        return None
+                    if z1 < z2:
+                        # z0 below z_deep, z1 above z_deep
+                        return int2 - int1 + int_diff
+                    else:
+                        # print("path:", int2 - int1 - int_diff)
+                        # z0 above z_deep, z1 below z_deep
+                        return int2 - int1 - int_diff
+    
+            if(solution_type == 1):
+                tmp += get_path_direct(x1[1], x2[1])
             else:
-                gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-#             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
-            try:
-                return get_path_direct(x1[1], z_turn) + get_path_direct(x2[1], z_turn)
-            except:
-                return None
+                if(solution_type == 3):
+                    z_turn = 0
+                else:
+                    gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+    #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
+                try:
+                    tmp += get_path_direct(x1[1], z_turn) + get_path_direct(x2[1], z_turn)
+                except:
+                    tmp += None
+            
+        return tmp
+    
+    def get_travel_time(self, x1, x2, C_0, reflection=0, reflection_case=1):
+        tmp = 0
+        for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
+            if(iS == 0 and reflection_case == 2):  # we can only integrate upward going rays, so if the ray starts downwardgoing, we need to mirror
+                x11, x1, x22, x2, C_0, C_1 = segment
+                x1t = copy.copy(x11)
+                x2t = copy.copy(x2)
+                x1t[1] = x2[1]
+                x2t[1] = x11[1]
+                x2 = x2t
+                x1 = x1t
+            else:
+                x11, x1, x22, x2, C_0, C_1 = segment
+        
+            x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
+    
+            def dt(t, C_0):
+                z = self.get_z_unmirrored(t, C_0)
+                return self.ds(t, C_0) / speed_of_light * self.n(z)
+    
+            gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+            points = None
+            if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
+                points = [z_turn]
+            travel_time = integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0), points=points)
+            self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} ns".format(
+                x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], travel_time[0] / units.ns))
+            tmp += travel_time[0]
+        return tmp
 
-    def get_travel_time(self, x1, x2, C_0):
-        x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
-
-        def dt(t, C_0):
-            z = self.get_z_unmirrored(t, C_0)
-            return self.ds(t, C_0) / speed_of_light * self.n(z)
-
-        gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-        points = None
-        if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
-            points = [z_turn]
-        travel_time = integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0), points=points)
-        self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} ns".format(
-            x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], travel_time[0] / units.ns))
-        return travel_time[0]
-
-    def get_travel_time_analytic(self, x1, x2, C_0):
+    def get_travel_time_analytic(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
         analytic solution to calculate the time of flight. This code is based on the analytic solution found
         by Ben Hokanson-Fasing and the pyrex implementation.
         """
-        solution_type = self.determine_solution_type(x1, x2, C_0)
-
-        z_deep = get_z_deep((self.medium.n_ice, self.medium.z_0, self.medium.delta_n))
-        launch_angle = self.get_launch_angle(x1, C_0)
-        beta = self.n(x1[1]) * np.sin(launch_angle)
-        alpha = self.medium.n_ice ** 2 - beta ** 2
-#         print("launchangle {:.1f} beta {:.2g} alpha {:.2g}, n(z1) = {:.2g} n(z2) = {:.2g}".format(launch_angle/units.deg, beta, alpha, self.n(x1[1]), self.n(x2[1])))
-
-        def l1(z):
-            gamma = self.n(z) ** 2 - beta ** 2
-            gamma = np.where(gamma < 0, 0, gamma)
-            return self.medium.n_ice * self.n(z) - beta ** 2 - (alpha * gamma) ** 0.5
-
-        def l2(z):
-            gamma = self.n(z) ** 2 - beta ** 2
-            gamma = np.where(gamma < 0, 0, gamma)
-            return self.n(z) + gamma ** 0.5
-
-        def get_s(z, deep=False):
-            if(deep):
-                return self.medium.n_ice * (self.n(z) + self.medium.n_ice * (z / self.medium.z_0 - 1)) / (np.sqrt(alpha) / self.medium.z_0 * speed_of_light)
+        
+        tmp = 0
+        for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
+            if(iS == 0 and reflection_case == 2):  # we can only integrate upward going rays, so if the ray starts downwardgoing, we need to mirror
+                x11, x1, x22, x2, C_0, C_1 = segment
+                x1t = copy.copy(x11)
+                x2t = copy.copy(x2)
+                x1t[1] = x2[1]
+                x2t[1] = x11[1]
+                x2 = x2t
+                x1 = x1t
             else:
+                x11, x1, x22, x2, C_0, C_1 = segment
+        
+            solution_type = self.determine_solution_type(x1, x2, C_0)
+    
+            z_deep = get_z_deep((self.medium.n_ice, self.medium.z_0, self.medium.delta_n))
+            launch_angle = self.get_launch_angle(x1, C_0)
+            beta = self.n(x1[1]) * np.sin(launch_angle)
+            alpha = self.medium.n_ice ** 2 - beta ** 2
+    #         print("launchangle {:.1f} beta {:.2g} alpha {:.2g}, n(z1) = {:.2g} n(z2) = {:.2g}".format(launch_angle/units.deg, beta, alpha, self.n(x1[1]), self.n(x2[1])))
+    
+            def l1(z):
                 gamma = self.n(z) ** 2 - beta ** 2
                 gamma = np.where(gamma < 0, 0, gamma)
-                log_1 = l1(z)
-                log_2 = l2(z)
-                s = (((np.sqrt(gamma) + self.medium.n_ice * np.log(log_2) +
-                          self.medium.n_ice ** 2 * np.log(log_1) / np.sqrt(alpha)) * self.medium.z_0) -
-                        z * self.medium.n_ice ** 2 / np.sqrt(alpha)) / speed_of_light
-                if ( np.abs(s) == np.inf or s == np.nan ):
-                    s = None
-
-                return s
-
-        def get_ToF_direct(z1, z2):
-            int1 = get_s(z1, z1 < z_deep)
-            int2 = get_s(z2, z2 < z_deep)
-            if ( int1 == None or int2 == None ):
-                return None
-#             print('analytic {:.4g} ({:.0f} - {:.0f}={:.4g}, {:.4g})'.format(
-#                 int2 - int1, get_s(x2[1]), x1[1], x2[1], get_s(x1[1])))
-            if (z1 < z_deep) == (z2 < z_deep):
-                # z0 and z1 on same side of z_deep
-                return int2 - int1
-            else:
-                try:
-                    int_diff = get_s(z_deep, deep=True) - get_s(z_deep, deep=False)
-                except:
-                    return None
-                if z1 < z2:
-                    # z0 below z_deep, z1 above z_deep
-                    return int2 - int1 + int_diff
+                return self.medium.n_ice * self.n(z) - beta ** 2 - (alpha * gamma) ** 0.5
+    
+            def l2(z):
+                gamma = self.n(z) ** 2 - beta ** 2
+                gamma = np.where(gamma < 0, 0, gamma)
+                return self.n(z) + gamma ** 0.5
+    
+            def get_s(z, deep=False):
+                if(deep):
+                    return self.medium.n_ice * (self.n(z) + self.medium.n_ice * (z / self.medium.z_0 - 1)) / (np.sqrt(alpha) / self.medium.z_0 * speed_of_light)
                 else:
-                    # z0 above z_deep, z1 below z_deep
-                    return int2 - int1 - int_diff
-
-        if(solution_type == 1):
-            return get_ToF_direct(x1[1], x2[1])
-        else:
-            if(solution_type == 3):
-                z_turn = 0
+                    gamma = self.n(z) ** 2 - beta ** 2
+                    gamma = np.where(gamma < 0, 0, gamma)
+                    log_1 = l1(z)
+                    log_2 = l2(z)
+                    s = (((np.sqrt(gamma) + self.medium.n_ice * np.log(log_2) + 
+                              self.medium.n_ice ** 2 * np.log(log_1) / np.sqrt(alpha)) * self.medium.z_0) - 
+                            z * self.medium.n_ice ** 2 / np.sqrt(alpha)) / speed_of_light
+                    if (np.abs(s) == np.inf or s == np.nan):
+                        s = None
+    
+                    return s
+    
+            def get_ToF_direct(z1, z2):
+                int1 = get_s(z1, z1 < z_deep)
+                int2 = get_s(z2, z2 < z_deep)
+                if (int1 == None or int2 == None):
+                    return None
+    #             print('analytic {:.4g} ({:.0f} - {:.0f}={:.4g}, {:.4g})'.format(
+    #                 int2 - int1, get_s(x2[1]), x1[1], x2[1], get_s(x1[1])))
+                if (z1 < z_deep) == (z2 < z_deep):
+                    # z0 and z1 on same side of z_deep
+                    return int2 - int1
+                else:
+                    try:
+                        int_diff = get_s(z_deep, deep=True) - get_s(z_deep, deep=False)
+                    except:
+                        return None
+                    if z1 < z2:
+                        # z0 below z_deep, z1 above z_deep
+                        return int2 - int1 + int_diff
+                    else:
+                        # z0 above z_deep, z1 below z_deep
+                        return int2 - int1 - int_diff
+    
+            if(solution_type == 1):
+                tmp += get_ToF_direct(x1[1], x2[1])
             else:
-                gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-#             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
-            try:
-                return get_ToF_direct(x1[1], z_turn) + get_ToF_direct(x2[1], z_turn)
-            except:
-                return None
-
+                if(solution_type == 3):
+                    z_turn = 0
+                else:
+                    gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+    #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
+                try:
+                    tmp += get_ToF_direct(x1[1], z_turn) + get_ToF_direct(x2[1], z_turn)
+                except:
+                    tmp += None
+        return tmp
 
     def __get_frequencies_for_attenuation(self, frequency, max_detector_freq):
             mask = frequency > 0
@@ -580,14 +637,14 @@ class ray_tracing_2D():
             self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
             x1[0] = x1[0] - 2 * dy
         
-        for i in range(reflection+1):
+        for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i))
             C_1 = self.get_C_1(x1, C_0)
             x2 = self.get_reflection_point(C_0, C_1)
             stop_loop = False
             if(x2[0] > x22[0]):
                 stop_loop = True
-                x2 =  x22
+                x2 = x22
             tmp.append([x11, x1, x22, x2, C_0, C_1])
             if(stop_loop):
                 break
@@ -763,12 +820,12 @@ class ray_tracing_2D():
             x1[0] = x1[0] - 2 * dy
         
         x22 = copy.copy(x2)
-        for i in range(reflection+1):
+        for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i))
             C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
             x2 = self.get_reflection_point(C_0, C_1)
             if(x2[0] > x22[0]):
-                x2 =  x22
+                x2 = x22
             yyy, zzz = self.get_path(x1, x2, C_0, n_points)
             yy.extend(yyy)
             zz.extend(zzz)
@@ -793,7 +850,6 @@ class ray_tracing_2D():
         x2 = [0, self.medium.reflection]
         x2[0] = self.get_y_with_z_mirror(-x2[1] + 2 * z_turn, C_0, C_1)
         return x2
-            
 
     def obj_delta_y_square(self, logC_0, x1, x2, reflection=0, reflection_case=2):
         """
@@ -809,7 +865,6 @@ class ray_tracing_2D():
         """
         C_0 = self.get_C0_from_log(logC_0)
         return self.get_delta_y(C_0, copy.copy(x1), x2, reflection=reflection, reflection_case=reflection_case)
-    
 
     def get_delta_y(self, C_0, x1, x2, C0range=None, reflection=0, reflection_case=2):
         """
@@ -869,7 +924,7 @@ class ray_tracing_2D():
             # between the turning point and the target point + 10 x the distance between the z position of the turning points
             # and the target position. This results in a objective function that has the solutions as the only minima and
             # is smooth in C_0
-            diff = ((z_turn - x2[1])**2 + (y_turn - x2[0])**2)**0.5 + 10 * np.abs(z_turn - x2[1])
+            diff = ((z_turn - x2[1]) ** 2 + (y_turn - x2[0]) ** 2) ** 0.5 + 10 * np.abs(z_turn - x2[1])
             self.__logger.debug(
                 "turning points (zturn = {:.0f} is deeper than x2 positon z2 = {:.0f}, setting distance to target position to {:.1f}".format(z_turn, x2[1], -diff))
             return -diff
@@ -1074,7 +1129,6 @@ class ray_tracing_2D():
     #     ax.plot(x1[1], x1[0], 'ko')
     #     ax.plot(x2[1], x2[0], 'd')
         ax.legend()
-
 
     def get_angle_from_C_0(self, C_0, z_pos, angoff=0):
         logC_0 = np.log(C_0 - 1. / self.medium.n_ice)
@@ -1674,7 +1728,7 @@ class ray_tracing:
         result = self.__results[iS]
         if analytic:
             analytic_length = self.__r2d.get_path_length_analytic(self.__x1, self.__x2, result['C0'])
-            if ( analytic_length != None ):
+            if (analytic_length != None):
                 return analytic_length
             else:
                 return self.__r2d.get_path_length(self.__x1, self.__x2, result['C0'])
@@ -1707,7 +1761,7 @@ class ray_tracing:
         result = self.__results[iS]
         if(analytic):
             analytic_time = self.__r2d.get_travel_time_analytic(self.__x1, self.__x2, result['C0'])
-            if ( analytic_time != None ):
+            if (analytic_time != None):
                 return analytic_time
             else:
                 return self.__r2d.get_travel_time(self.__x1, self.__x2, result['C0'])
