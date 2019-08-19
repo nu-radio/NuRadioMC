@@ -61,7 +61,7 @@ def get_z_deep(ice_params):
 
     def diff_n_ice(z):
 
-        rel_diff = 3.5e-5
+        rel_diff = 2e-5
         return delta_n * np.exp(z / z_0) / n_ice - rel_diff
 
     return optimize.root(diff_n_ice, -100 * units.m).x[0]
@@ -332,7 +332,7 @@ class ray_tracing_2D():
             points = None
             if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
                 points = [z_turn]
-            path_length = integrate.quad(self.ds, x1[1], x2_mirrored[1], args=(C_0), points=points)
+            path_length = integrate.quad(self.ds, x1[1], x2_mirrored[1], args=(C_0), points=points, epsabs=1e-4, epsrel=1.49e-08, limit=50)
             self.__logger.info("calculating path length from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} m".format(x1[0], x1[1], x2[0], x2[1],
                                                                                                                                         x2_mirrored[0],
                                                                                                                                         x2_mirrored[1],
@@ -452,7 +452,7 @@ class ray_tracing_2D():
             points = None
             if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
                 points = [z_turn]
-            travel_time = integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0), points=points)
+            travel_time = integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0), points=points, epsabs=1e-10, epsrel=1.49e-08, limit=500)
             self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} ns".format(
                 x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], travel_time[0] / units.ns))
             tmp += travel_time[0]
