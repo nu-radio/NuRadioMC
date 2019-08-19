@@ -431,7 +431,7 @@ class simulation():
 
         t_total = time.time() - t_start
         outputTime = time.time() - t5
-        logger.warning("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}%, {:.1f}% askaryan, detector simulation, {:.1f}% output)".format(self._n_events,
+        logger.warning("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output)".format(self._n_events,
                                                                                          pretty_time_delta(t_total), 1.e3 * t_total / self._n_events,
                                                                                          100 * inputTime/t_total,
                                                                                          100 * rayTracingTime/t_total,
