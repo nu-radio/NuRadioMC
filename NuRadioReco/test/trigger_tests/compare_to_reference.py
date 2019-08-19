@@ -37,8 +37,6 @@ if args.create_reference:
         json.dump(trigger_results, f)
 else:
     for trigger_name in trigger_names:
-        print('1', trigger_results[trigger_name])
-        print('2', reference[trigger_name])
         for property in properties:
             try:
                 np.testing.assert_equal(trigger_results[trigger_name][property], reference[trigger_name][property])
