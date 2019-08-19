@@ -549,6 +549,82 @@ def preprocess_ARA(path):
         logger.info('saving output to {}'.format(output_filename))
         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
 
+def preprocess_HFSS(path):
+    
+    """
+    preprocess an antenna pattern in the HFSS file format. The vector effective length is calculated and the output is saved in the NuRadioReco pickle format. 
+    
+    The vector effective length calculation still needs to be verified. 
+    
+    The frequencies, theta, phi, magnitude theta, magnitude phi, phase theta and phase phi are read from the csv file and than ordered according to the NuRadioReco format. 
+    
+    
+    Parameters:
+    ----------
+    path: string
+        the path to the file
+        
+    """
+    
+    ff, phi, theta, mag_phi, mag_theta, phase_phi, phase_theta = [],[],[],[],[],[],[]
+    
+    with open(path) as csv_file:
+        for j, row in enumerate(csv_file.readlines()):
+        
+            if j==0:
+                array_names = row.split(',')
+            else:
+                array = row.split(',')
+                for i in range(len(array_names)):
+                    if 'Freq' in array_names[i]:
+                        freq = array[i]
+                    if 'log10(mag(rEPhi))' in array_names[i]:
+                        mag_phi.append(float(array[i]))
+                        ff.append(int(freq)*units.MHz)
+
+                        p = re.search("Phi='(.+?)deg'", array_names[i])
+                        t = re.search("Theta='(.+?)deg'", array_names[i])
+                        phi.append(np.deg2rad(int(p.group(1))))
+                        theta.append(np.deg2rad(int(t.group(1))))
+                    if 'log10(mag(rETheta))' in array_names[i]:
+                        mag_theta.append(float(array[i]))
+                    if 'ang_rad(rEPhi)' in array_names[i]:
+                        phase_phi.append(float(array[i]))
+                    if 'ang_rad(rETheta)' in array_names[i]:
+                        phase_theta.append(float(array[i]))
+
+        for i in range(len(np.unique(ff))+1):
+            for arr in [theta, mag_theta, mag_phi, phase_theta, phase_phi, ff, phi]:
+                arr[(i-1)*len(ff)/len(np.unique(ff)):i*len(ff)/len(np.unique(ff))] = [x for _, x in sorted(zip(phi[(i-1)*len(ff)/len(np.unique(ff)):i*len(ff)/len(np.unique(ff))],arr[(i-1)*len(ff)/len(np.unique(ff)):i*len(ff)/len(np.unique(ff))]), key=lambda pair: pair[0])]
+
+            
+    mag_theta = 10**(np.array(mag_theta)/10)
+    mag_phi = 10**(np.array(mag_phi)/10)
+    gain =  4.0 * np.pi * (np.array(mag_theta)**2 + np.array(mag_phi)**2) / (2 * 120 * np.pi)
+    c = constants.c * units.m / units.s
+    Z_0 = 119.9169 * np.pi
+    wavelength = c / np.array(ff)
+    n_index = 1.78
+
+    H = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain ** 0.5 * np.exp(1j * np.array(phase_theta))
+
+    H_phi = H * 1e-6
+    H_theta = H
+    zen_boresight = 0
+    azi_boresight = 0
+    zen_ori = 0
+    azi_ori = 0
+    output_filename = filename.replace('.csv','.pkl')
+
+    with open(output_filename, 'wb') as fout:
+        logger.info('saving output to {}'.format(output_filename))
+        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
+                    
+            
+
+    
+
+        
 def preprocess_XFDTD(path):
     """
     preprocess an antenna pattern in the XFDTD file format. The vector effective length is calculated and
