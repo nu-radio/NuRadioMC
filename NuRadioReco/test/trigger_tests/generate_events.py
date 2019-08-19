@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 import argparse
+import numpy as np
 # import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
@@ -15,6 +16,7 @@ efieldToVoltageConverter.begin()
 simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 
+np.random.seed(1)
 class mySimulation(simulation.simulation):
 
 
