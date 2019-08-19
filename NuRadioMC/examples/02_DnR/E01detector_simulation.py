@@ -3,8 +3,7 @@ import argparse
 from six import iteritems
 # import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverter
-import NuRadioReco.modules.ARIANNA.triggerSimulator
-import NuRadioReco.modules.triggerSimulator
+import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
@@ -21,8 +20,7 @@ logger = logging.getLogger("runDeltaTStudy")
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin(pre_pulse_time=0 * units.ns, post_pulse_time=0 * units.ns)
 calculateAmplitudePerRaySolution = NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution.calculateAmplitudePerRaySolution()
-triggerSimulator = NuRadioReco.modules.triggerSimulator.triggerSimulator()
-triggerSimulatorARIANNA = NuRadioReco.modules.ARIANNA.triggerSimulator.triggerSimulator()
+triggerSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
