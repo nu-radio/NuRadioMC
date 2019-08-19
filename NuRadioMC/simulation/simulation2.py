@@ -520,9 +520,11 @@ class simulation():
         if('trigger_names' not in self._mout_attrs):
             self._mout_attrs['trigger_names'] = []
 
+        extend_array = False
         for trigger in six.itervalues(self._station.get_triggers()):
             if(np.string_(trigger.get_name()) not in self._mout_attrs['trigger_names']): 
                 self._mout_attrs['trigger_names'].append(np.string_(trigger.get_name()))
+                extend_array = True
         # the 'multiple_triggers' output array is not initialized in the constructor because the number of
         # simulated triggers is unknown at the beginning. So we check if the key already exists and if not,
         # we first create this data structure
@@ -530,6 +532,18 @@ class simulation():
             self._mout['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             sg = self._mout_groups[self._station_id]
             sg['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+        elif(extend_array):
+            tmp = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            nx, ny = self._mout['multiple_triggers'].shape
+            tmp[:, 0:ny] = self._mout['multiple_triggers']
+            self._mout['multiple_triggers'] = tmp
+            
+            sg = self._mout_groups[self._station_id]
+            tmp = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            nx, ny = sg['multiple_triggers'].shape
+            tmp[:, 0:ny] = sg['multiple_triggers']
+            sg['multiple_triggers'] = tmp
+            
 
     def _save_triggers_to_hdf5(self):
 
