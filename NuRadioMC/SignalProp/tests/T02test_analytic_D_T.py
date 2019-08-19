@@ -11,7 +11,7 @@ logger = logging.getLogger('test_raytracing')
 ice = medium.southpole_simple()
 
 np.random.seed(0)  # set seed to have reproducible results
-n_events = int(1e4)
+n_events = int(1e3)
 rmin = 50. * units.m
 rmax = 3. * units.km
 zmin = 0. * units.m
