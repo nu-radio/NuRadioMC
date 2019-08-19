@@ -580,7 +580,6 @@ class ray_tracing_2D():
                 for i, f in enumerate(freqs):
                     tmp[i] = wrapper.get_attenuation_along_path(
                         x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n, self.medium.z_0, self.attenuation_model_int)
-    
                 attenuation = np.ones_like(frequency)
                 attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
             else:
@@ -600,15 +599,13 @@ class ray_tracing_2D():
                 if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
                     points = [z_turn]
                 tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(
-                    C_0, f), epsrel=5e-2, points=points)[0] for f in freqs])
-                att_func = interpolate.interp1d(freqs, tmp)
-                tmp2 = att_func(frequency[mask])
+                    C_0, f), epsrel=1e-2, points=points)[0] for f in freqs])
+                tmp = np.exp(-1 * tmp)
         #         tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in frequency[mask]])
                 attenuation = np.ones_like(frequency)
-                attenuation[mask] = np.exp(-1 * tmp2)
+                attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
                 self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(
                     x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation))
-#                 return attenuation
             if(tmp_attenuation is None):
                 tmp_attenuation = attenuation
             else:

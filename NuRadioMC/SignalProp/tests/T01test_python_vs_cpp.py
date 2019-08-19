@@ -1,12 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-from NuRadioMC.SignalProp import analyticraytraycing as ray
+from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import units, medium
 import logging
-import time
-from radiotools import helper as hp
-from radiotools import plthelpers as php
+from numpy import testing
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('test_raytracing')
 
@@ -62,6 +60,6 @@ for iX, x in enumerate(points):
 t_python = time.time() - t_start
 print("Python time = {:.1f} seconds = {:.2f}ms/event".format(t_python, 1000. * t_python / n_events))
 
-print("consistent results for C0: {}".format(np.allclose(results_C0s_cpp, results_C0s_python)))
-print("consistent results for attenuation length: {}".format(np.allclose(results_A_cpp, results_A_python)))
-print("consistent results for attenuation length rtol=1e-2, atol=1e-3: {}".format(np.allclose(results_A_cpp, results_A_python, rtol=1e-2, atol=1e-3)))
+testing.assert_allclose(results_C0s_cpp, results_C0s_python, atol=1e-08, rtol=1e-05)
+testing.assert_allclose(results_A_cpp, results_A_python, rtol=1e-2, atol=1e-3)
+
