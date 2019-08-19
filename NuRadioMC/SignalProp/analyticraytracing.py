@@ -64,7 +64,9 @@ def get_z_deep(ice_params):
         rel_diff = 2e-5
         return delta_n * np.exp(z / z_0) / n_ice - rel_diff
 
-    return optimize.root(diff_n_ice, -100 * units.m).x[0]
+    res =  optimize.root(diff_n_ice, -100 * units.m).x[0]
+    print("zdeep = {:.2f}".format(res))
+    return res
 
 
 class ray_tracing_2D():
@@ -133,6 +135,8 @@ class ray_tracing_2D():
         This is either the point of reflection off the ice surface
         or the point where the saddle point of the ray (transition from upward to downward going)
         
+        Technically, the turning point is set to z=0 if the saddle point is above the surface. 
+        
         Parameters
         ----------
         c: float
@@ -144,6 +148,10 @@ class ray_tracing_2D():
         """
         gamma2 = self.__b * 0.5 - (0.25 * self.__b ** 2 - c) ** 0.5  # first solution discarded
         z2 = np.log(gamma2 / self.medium.delta_n) * self.medium.z_0
+        
+        if(z2 > 0):
+            z2 = 0  # a reflection is just a turning point at z = 0, i.e. cases 2) and 3) are the same
+            gamma2 = self.get_gamma(z2)
 
         return gamma2, z2
 
@@ -161,9 +169,6 @@ class ray_tracing_2D():
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
         gamma_turn, z_turn = self.get_turning_point(c)
-        if(z_turn > 0):
-            z_turn = 0  # a reflection is just a turning point at z = 0, i.e. cases 2) and 3) are the same
-            gamma_turn = self.get_gamma(z_turn)
         C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
         return y_turn
@@ -244,11 +249,6 @@ class ray_tracing_2D():
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
         gamma_turn, z_turn = self.get_turning_point(c)
-        if(z_turn >= 0):
-            # signal reflected at surface
-            self.__logger.debug('signal reflects off surface')
-            z_turn = 0
-            gamma_turn = self.get_gamma(0)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
         if(not hasattr(z, '__len__')):
             if(z < z_turn):
@@ -279,11 +279,6 @@ class ray_tracing_2D():
         c = self.medium.n_ice ** 2 - C_0 ** -2
         C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
         gamma_turn, z_turn = self.get_turning_point(c)
-        if(z_turn >= 0):
-            # signal reflected at surface
-            self.__logger.debug('signal reflects off surface')
-            z_turn = 0
-            gamma_turn = self.get_gamma(0)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
         zstart = x1[1]
         zstop = x2[1]
@@ -298,11 +293,6 @@ class ray_tracing_2D():
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
         gamma_turn, z_turn = self.get_turning_point(c)
-        if(z_turn >= 0):
-            # signal reflected at surface
-            self.__logger.debug('signal reflects off surface')
-            z_turn = 0
-
         z_unmirrored = z
         if(z > z_turn):
             z_unmirrored = 2 * z_turn - z
@@ -333,7 +323,7 @@ class ray_tracing_2D():
             if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
                 points = [z_turn]
             path_length = integrate.quad(self.ds, x1[1], x2_mirrored[1], args=(C_0), points=points, epsabs=1e-4, epsrel=1.49e-08, limit=50)
-            self.__logger.info("calculating path length from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} m".format(x1[0], x1[1], x2[0], x2[1],
+            self.__logger.info("calculating path length ({}) from ({:.0f}, {:.0f}) to ({:.2f}, {:.2f}) = ({:.2f}, {:.2f}) = {:.2f} m".format(solution_types[self.determine_solution_type(x1, x2, C_0)], x1[0], x1[1], x2[0], x2[1],
                                                                                                                                         x2_mirrored[0],
                                                                                                                                         x2_mirrored[1],
                                                                                                                                         path_length[0] / units.m))
@@ -534,7 +524,10 @@ class ray_tracing_2D():
                         return int2 - int1 - int_diff
     
             if(solution_type == 1):
-                tmp += get_ToF_direct(x1[1], x2[1])
+                ttmp = get_ToF_direct(x1[1], x2[1])
+                tmp += ttmp
+                self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = {:.2f} ns".format(
+                    x1[0], x1[1], x2[0], x2[1], ttmp / units.ns))
             else:
                 if(solution_type == 3):
                     z_turn = 0
@@ -542,7 +535,10 @@ class ray_tracing_2D():
                     gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
     #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
                 try:
-                    tmp += get_ToF_direct(x1[1], z_turn) + get_ToF_direct(x2[1], z_turn)
+                    ttmp = get_ToF_direct(x1[1], z_turn) + get_ToF_direct(x2[1], z_turn)
+                    tmp += ttmp
+                    self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = {:.2f} ns".format(
+                        x1[0], x1[1], x2[0], x2[1], ttmp / units.ns))
                 except:
                     tmp += None
         return tmp
@@ -771,11 +767,6 @@ class ray_tracing_2D():
         c = self.medium.n_ice ** 2 - C_0 ** -2
         C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
         gamma_turn, z_turn = self.get_turning_point(c)
-        if(z_turn >= 0):
-            # signal reflected at surface
-            self.__logger.debug('signal reflects off surface')
-            z_turn = 0
-            gamma_turn = self.get_gamma(0)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
         zstart = x1[1]
         zstop = self.get_z_mirrored(x1, x2, C_0)[1]
@@ -862,8 +853,6 @@ class ray_tracing_2D():
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
         gamma_turn, z_turn = self.get_turning_point(c)
-        if(z_turn > 0):
-            z_turn = 0  # a reflection is just a turning point at z = 0
         x2 = [0, self.medium.reflection]
         x2[0] = self.get_y_with_z_mirror(-x2[1] + 2 * z_turn, C_0, C_1)
         return x2
@@ -932,9 +921,6 @@ class ray_tracing_2D():
         # 2) refracted ray, i.e. after the turning point but not touching the surface
         # 3) reflected ray, i.e. after the ray reaches the surface
         gamma_turn, z_turn = self.get_turning_point(c)
-        if(z_turn > 0):
-            z_turn = 0  # a reflection is just a turning point at z = 0, i.e. cases 2) and 3) are the same
-            gamma_turn = self.get_gamma(z_turn)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
         if(z_turn < x2[1]):  # turning points is deeper that x2 positions, can't reach target
             # the minimizer has problems finding the minimum if inf is returned here. Therefore, we return the distance
@@ -995,10 +981,6 @@ class ray_tracing_2D():
         c = self.medium.n_ice ** 2 - C_0 ** -2
         C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
         gamma_turn, z_turn = self.get_turning_point(c)
-
-        if(z_turn >= 0):
-            z_turn = 0
-            gamma_turn = self.get_gamma(0)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
         if(x2[0] < y_turn):
             return 1
@@ -1559,6 +1541,10 @@ class ray_tracing:
         self.__medium = medium
         self.__attenuation_model = attenuation_model
         self.__n_frequencies_integration = n_frequencies_integration
+        if(n_reflections):
+            if(not hasattr(self.__medium, "reflection") or self.__medium.reflection is None):
+                self.__logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
+                n_reflections = 0
         self.__n_reflections = n_reflections
 
         self.__swap = False
