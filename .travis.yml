@@ -29,3 +29,4 @@ jobs:
   include:
     - script: NuRadioReco/test/TinyReconstruction.py
     - script: NuRadioReco/test/trigger_tests/run_trigger_test.sh
+    - script: NuRadioReco/test/test_examples.sh
