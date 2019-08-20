@@ -107,11 +107,8 @@ n_beams = len(primary_angles)
 
 
 for threshold_factor in threshold_factors:
-    print('!!!', threshold_factor)
     prob_cross = 0
     for Ntry in range(Ntries):
-        print(Ntry)
-
         noise_array = []
 
         for iant in range(len(primary_channels)):
