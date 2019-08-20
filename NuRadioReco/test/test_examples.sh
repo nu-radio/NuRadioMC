@@ -1,7 +1,7 @@
 cd NuRadioReco/examples/PhasedArray/Effective_volume
-python T01generate_event_list.py
-python T02RunPhasedRNO.py
-python T02RunPhasedARA.py
+python T01generate_event_list.py minimal
+python T02RunPhasedRNO.py --inputfilename minimal_eventlist.hdf5
+python T02RunPhasedARA.py --inputfilename minimal_eventlist.hdf5
 cd ../Noise_trigger_rate
 python noise_trigger_rate.py --ntries 10
 cd ../SNR_curves
