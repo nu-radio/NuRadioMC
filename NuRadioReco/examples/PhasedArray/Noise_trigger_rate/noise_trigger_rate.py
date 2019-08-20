@@ -3,6 +3,7 @@ from NuRadioReco.utilities import units
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import constants
+import argparse
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 
 """
@@ -23,6 +24,10 @@ Increasing the number of samples is equivalent to increasing the number of
 tries, since the code calculates the probability of randomly triggering a
 single window filled with noise.
 """
+
+parser = argparse.ArgumentParser(description='calculates noise trigger rate for phased array')
+parser.add_argument('--ntries', type=int, help='number noise traces to which a trigger is applied for each threshold', default=100)
+args = parser.parse_args()
 
 main_low_angle = -53. * units.deg
 main_high_angle = 47. * units.deg
@@ -76,7 +81,7 @@ time_step = 1./sampling_rate
 bandwidth = max_freq-min_freq
 amplitude = (300 * 50 * constants.k * bandwidth / units.Hz) ** 0.5
 
-Ntries = 100 # number of tries
+Ntries = args.ntries # number of tries
 
 # threshold_factors = [2.5, 2.45, 2.4]
 threshold_factors = [1.8, 1.85, 1.9, 1.95, 2.0]
@@ -102,9 +107,10 @@ n_beams = len(primary_angles)
 
 
 for threshold_factor in threshold_factors:
-
+    print('!!!', threshold_factor)
     prob_cross = 0
     for Ntry in range(Ntries):
+        print(Ntry)
 
         noise_array = []
 
