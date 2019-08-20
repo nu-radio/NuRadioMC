@@ -27,5 +27,6 @@ before_script:
   - chmod +x NuRadioReco/test/trigger_tests/run_trigger_test.sh
 jobs:
   include:
+     -stage: First Stage
       script: NuRadioReco/test/TinyReconstruction.py
       script: NuRadioReco/test/trigger_tests/run_trigger_test.sh
