@@ -22,6 +22,7 @@ import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.correlationDirectionFitter
 import NuRadioReco.modules.voltageToEfieldConverter
 import NuRadioReco.modules.electricFieldSignalReconstructor
+import NuRadioReco.modules.electricFieldBandPassFilter
 import NuRadioReco.modules.voltageToAnalyticEfieldConverter
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.electricFieldResampler
@@ -86,7 +87,7 @@ except:
     print("Using default file for detector")
     detector_file = os.path.join(dir_path,"../../examples/example_data/arianna_detector_db.json")
 
-print detector_file
+np.random.seed(1)
 det = detector.Detector(json_filename=detector_file) # detector file
 det.update(datetime.datetime(2018, 10, 1))
 
@@ -122,6 +123,7 @@ voltageToAnalyticEfieldConverter.begin()
 
 electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
 electricFieldResampler.begin()
+electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
 
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelResampler.begin()
@@ -164,7 +166,9 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
             correlationDirectionFitter.run(evt, station, det, n_index=1., channel_pairs=channel_pairs)
 
             voltageToEfieldConverter.run(evt, station, det, use_channels=used_channels_efield)
-
+            
+            electricFieldBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 300*units.MHz])
+            
             electricFieldSignalReconstructor.run(evt, station, det)
 
             voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], useMCdirection=False)
