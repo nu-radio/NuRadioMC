@@ -40,7 +40,7 @@ for event in event_reader.run():
             parameter_values[event.get_id()]['sim_station_parameters'][param_name.name] = None
     for channel in station.iter_channels():
         for param_name in chp:
-            if param_name not in parameter_values[event.get_id()]['channel_parameters'].keys():
+            if param_name.name not in parameter_values[event.get_id()]['channel_parameters'].keys():
                 parameter_values[event.get_id()]['channel_parameters'][param_name.name] = []
             if channel.has_parameter(param_name):
                 parameter_values[event.get_id()]['channel_parameters'][param_name.name].append(channel.get_parameter(param_name))
@@ -48,7 +48,7 @@ for event in event_reader.run():
                 parameter_values[event.get_id()]['channel_parameters'][param_name.name].append(None)
     for electric_field in station.get_electric_fields():
         for param_name in efp:
-            if param_name not in parameter_values[event.get_id()]['electric_field_parameters'].keys():
+            if param_name.name not in parameter_values[event.get_id()]['electric_field_parameters'].keys():
                 parameter_values[event.get_id()]['electric_field_parameters'][param_name.name] = []
             if electric_field.has_parameter(param_name):
                 value = electric_field.get_parameter(param_name)
