@@ -385,7 +385,7 @@ double get_delta_y(double C0, double x1[2], double x2[2], double n_ice, double d
     // 1) the rays start rising -> the default case
     // 2) the rays start decreasing -> we need to find the position left of the start point that
     //    that has rising rays that go through the point x1
-    if(reflection > 0 & reflection_case == 2) {
+    if((reflection > 0) & (reflection_case == 2)) {
 	   double y_turn = get_y_turn(C0, x1, n_ice, delta_n, z_0);
 	   double dy = y_turn - x1[0];
 	   x1[0] = x1[0] - 2 * dy;
