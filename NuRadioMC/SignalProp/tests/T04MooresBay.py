@@ -11,6 +11,12 @@ logging.basicConfig(level=logging.INFO)
 
 ice = medium.mooresbay_simple()
 
+"""
+this unit test compares the numerical and analytic calculation of path length and travel time for the Moore's Bay site with additional reflections off the bottom.
+the numerical integration should be better than the analytic formula. For both calculations, the python version is used.
+"""
+
+
 np.random.seed(0)  # set seed to have reproducible results
 n_events = int(1e3)
 rmin = -10. * units.m
