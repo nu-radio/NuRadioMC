@@ -607,8 +607,8 @@ def preprocess_HFSS(path):
     wavelength = c / np.array(ff)
     n_index = 1.78
 
-    H = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * np.array(phase_theta))
-    H = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * np.array(phase_phi))
+    H_theta = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * np.array(phase_theta))
+    H_phi = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * np.array(phase_phi))
     
     zen_boresight = 0
     azi_boresight = 0
