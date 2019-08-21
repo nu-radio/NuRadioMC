@@ -1546,6 +1546,10 @@ class ray_tracing:
                 self.__logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
                 n_reflections = 0
         self.__n_reflections = n_reflections
+        if(n_reflections):
+            if(x1[2] < self.__medium.reflection  or x2[2] < self.__medium.reflection):
+                self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(self.__medium.reflection / units.m))
+                raise AttributeError("start or stop point is below the reflective layer at {:.1f}m".format(self.__medium.reflection / units.m))
 
         self.__swap = False
         self.__X1 = x1
