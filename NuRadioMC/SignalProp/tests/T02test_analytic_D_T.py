@@ -8,6 +8,12 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('test_raytracing')
 
+"""
+this unit test compares the numerical and analytic calculation of path length and travel time,
+the numerical integration should be better than the analytic formula. For both calculations, the python version is used.
+"""
+
+
 ice = medium.southpole_simple()
 
 np.random.seed(0)  # set seed to have reproducible results
