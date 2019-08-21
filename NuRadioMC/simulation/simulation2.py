@@ -18,6 +18,7 @@ import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
+from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
@@ -104,6 +105,7 @@ class simulation():
         self._outputfilename = outputfilename
         self._detectorfile = detectorfile
         self._Tnoise = float(self._cfg['trigger']['noise_temperature'])
+        self._n_reflections = int(self._cfg['propagation']['n_reflections'])
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._debug = debug
         self._evt_time = evt_time
@@ -249,8 +251,13 @@ class simulation():
 
                     if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                         sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
+                        temp_reflection = None
+                        temp_reflection_case = None
+                        if('ray_tracing_reflection' in sg_pre):  # for backward compatibility: Check if reflection layer information exists in data file
+                            temp_reflection = sg_pre['ray_tracing_reflection'][self._iE][channel_id]
+                            temp_reflection_case = sg_pre['ray_tracing_reflection_case'][self._iE][channel_id]
                         r.set_solution(sg_pre['ray_tracing_C0'][self._iE][channel_id], sg_pre['ray_tracing_C1'][self._iE][channel_id],
-                                       sg_pre['ray_tracing_solution_type'][self._iE][channel_id])
+                                       sg_pre['ray_tracing_solution_type'][self._iE][channel_id], temp_reflection, temp_reflection_case)
                     else:
                         r.find_solutions()
                     if(not r.has_solution()):
@@ -264,6 +271,8 @@ class simulation():
                     for iS in range(r.get_number_of_solutions()):
                         sg['ray_tracing_C0'][self._iE, channel_id, iS] = r.get_results()[iS]['C0']
                         sg['ray_tracing_C1'][self._iE, channel_id, iS] = r.get_results()[iS]['C1']
+                        sg['ray_tracing_reflection'][self._iE, channel_id, iS] = r.get_results()[iS]['reflection']
+                        sg['ray_tracing_reflection_case'][self._iE, channel_id, iS] = r.get_results()[iS]['reflection_case']
                         sg['ray_tracing_solution_type'][self._iE, channel_id, iS] = r.get_solution_type(iS)
                         self._launch_vector = r.get_launch_vector(iS)
                         sg['launch_vectors'][self._iE, channel_id, iS] = self._launch_vector
@@ -349,17 +358,29 @@ class simulation():
                         r_theta = None
                         r_phi = None
                         if(self._prop.solution_types[r.get_solution_type(iS)] == 'reflected'):
-                            from NuRadioReco.utilities import geometryUtilities as geo_utl
-                            zenith_reflection = r.get_reflection_angle(iS)
-                            r_theta = geo_utl.get_fresnel_r_p(
-                                zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
-                            r_phi = geo_utl.get_fresnel_r_s(
-                                zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
-
-                            eTheta *= r_theta
-                            ePhi *= r_phi
-                            logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection/units.deg,
-                                r_theta, r_phi))
+                            zenith_reflections = r.get_reflection_angle(iS)
+                            if(not hasattr(zenith_reflections, "__len__")):  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
+                                zenith_reflections = [zenith_reflections]
+                            for zenith_reflection in zenith_reflections:  # loop through all possible reflections
+                                if(zenith_reflection is None): # skip all ray segments where not reflection at surface happens
+                                    continue
+                                r_theta = geo_utl.get_fresnel_r_p(
+                                    zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
+                                r_phi = geo_utl.get_fresnel_r_s(
+                                    zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
+    
+                                eTheta *= r_theta
+                                ePhi *= r_phi
+                                logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection/units.deg,
+                                    r_theta, r_phi))
+                                
+                        if(self._n_reflections):  # take into account possible bottom reflections
+                            # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
+                            r = self._n_reflections * self._ice.reflection_coefficient
+                            phase_shift = (self._n_reflections * self._ice.reflection_phase_shift) % (2*np.pi)
+                            # we assume that both efield components are equally affected
+                            eTheta *= r * np.exp(1j * phase_shift)
+                            ePhi *= r * np.exp(1j * phase_shift)
 
                         if(self._debug):
                             from matplotlib import pyplot as plt
@@ -582,15 +603,18 @@ class simulation():
             n_antennas = self._det.get_number_of_channels(station_id)
             self._mout_groups[station_id] = {}
             sg = self._mout_groups[station_id]
+            nS = 2 + 4 * self._n_reflections  # number of possible ray-tracing solutions
             sg['triggered'] = np.zeros(self._n_events, dtype=np.bool)
-            sg['launch_vectors'] = np.zeros((self._n_events, n_antennas, 2, 3)) * np.nan
-            sg['receive_vectors'] = np.zeros((self._n_events, n_antennas, 2, 3)) * np.nan
-            sg['ray_tracing_C0'] = np.zeros((self._n_events, n_antennas, 2)) * np.nan
-            sg['ray_tracing_C1'] = np.zeros((self._n_events, n_antennas, 2)) * np.nan
-            sg['ray_tracing_solution_type'] = np.zeros((self._n_events, n_antennas, 2), dtype=np.int) * np.nan
-            sg['polarization'] = np.zeros((self._n_events, n_antennas, 2, 3)) * np.nan
-            sg['travel_times'] = np.zeros((self._n_events, n_antennas, 2)) * np.nan
-            sg['travel_distances'] = np.zeros((self._n_events, n_antennas, 2)) * np.nan
+            sg['launch_vectors'] = np.zeros((self._n_events, n_antennas, nS, 3)) * np.nan
+            sg['receive_vectors'] = np.zeros((self._n_events, n_antennas, nS, 3)) * np.nan
+            sg['ray_tracing_C0'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
+            sg['ray_tracing_C1'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
+            sg['ray_tracing_reflection'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
+            sg['ray_tracing_reflection_case'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
+            sg['ray_tracing_solution_type'] = np.zeros((self._n_events, n_antennas, nS), dtype=np.int) * np.nan
+            sg['polarization'] = np.zeros((self._n_events, n_antennas, nS, 3)) * np.nan
+            sg['travel_times'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
+            sg['travel_distances'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
             sg['SNRs'] = np.zeros(self._n_events) * np.nan
             sg['maximum_amplitudes'] = np.zeros((self._n_events, n_antennas)) * np.nan
             sg['maximum_amplitudes_envelope'] = np.zeros((self._n_events, n_antennas)) * np.nan
