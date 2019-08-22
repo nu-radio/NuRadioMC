@@ -155,7 +155,7 @@ def filter_particle(secondaries, particle):
     E = [p.energy for p in prods if p.particle_def == particle]
     return sum(E)
 
-def create_propagator(low=0.1*pp_PeV, particle_code=13, ecut=1*pp_TeV):
+def create_propagator(low=0.1*pp_PeV, particle_code=13, ecut=100*pp_TeV):
     mu_def_builder = pp.particle.ParticleDefBuilder()
     if (particle_code == 13):
         mu_def_builder.SetParticleDef(pp.particle.MuMinusDef.get())

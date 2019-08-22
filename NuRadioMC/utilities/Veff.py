@@ -32,10 +32,16 @@ def get_triggered(fin):
     if (len(triggered) == 0):
         return triggered
 
+    mask_secondaries = np.array(fin['n_interaction']) > 1
+    if ( True not in mask_secondaries ):
+        return triggered
+
     # We count the multiple triggering bangs as a single triggered event
-    for event_id in np.unique(fin['event_ids']):
+    for event_id in np.unique(np.array(fin['event_ids'])[mask_secondaries]):
         mask_interactions = np.array(fin['event_ids']) == event_id
         multiple_interaction_indexes = np.argwhere( np.array(fin['event_ids']) == event_id )[0]
+        if (len(multiple_interaction_indexes)==1):
+            continue
 
         for int_index in multiple_interaction_indexes[1:]:
             triggered[int_index] = False
@@ -168,7 +174,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
             except:
                 Aeffs_error[trigger_name].append(np.nan)
 
-        for trigger_name, values in trigger_combinations.iteritems():
+        for trigger_name, values in iteritems(trigger_combinations):
             indiv_triggers = values['triggers']
             if(trigger_name not in Aeffs):
                 Aeffs[trigger_name] = []
@@ -373,16 +379,13 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
         for iT, trigger_name in enumerate(trigger_names):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
             Veff = V * density_ice / density_water * omega * np.sum(weights[triggered]) / n_events
-            # hack
-            Veff = area * np.sum(weights[triggered]) / n_events
-            Veffs[trigger_name].append(Veff)
             try:
                 Veffs_error[trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
             except:
                 Veffs_error[trigger_name].append(np.nan)
 #             print("{}: log(E) = {:.3g}, Veff = {:.3f}km^3 st".format(trigger_name, np.log10(E), Veff / units.km**3))
 
-        for trigger_name, values in trigger_combinations.iteritems():
+        for trigger_name, values in iteritems(trigger_combinations):
             indiv_triggers = values['triggers']
             if(trigger_name not in Veffs):
                 Veffs[trigger_name] = []

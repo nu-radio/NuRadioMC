@@ -884,12 +884,12 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
         if geometry_selection:
 
-            lepton_code = lepton_codes[iE % n_resample]
-
             if resample:
+                lepton_code = lepton_codes[iE % n_resample]
                 products = products_array[i_resample % n_resample]
                 i_resample += 1
             else:
+                lepton_code = lepton_codes[iE]
                 products = products_array.pop(0)
             n_interaction = 1
 
