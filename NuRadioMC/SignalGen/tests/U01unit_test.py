@@ -6,15 +6,12 @@ import pickle
 
 np.random.seed(0)
 
-E = 1e20 * units.eV
 n_index = 1.78
 domega = 0.05 * units.deg
 theta = np.arccos(1. / n_index) + domega
 
 dt = 0.5 * units.ns
 n_samples = 256
-ff = np.fft.rfftfreq(n_samples, dt)
-tt = np.arange(0, n_samples * dt, dt)
 R = 1 * units.km
 
 models = ['Alvarez2009', 'ARZ2019', 'Alvarez2000']
