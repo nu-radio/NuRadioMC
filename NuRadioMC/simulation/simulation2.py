@@ -247,7 +247,8 @@ class simulation():
                 for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                     x2 = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
                     r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=logging.WARNING,
-                                   n_frequencies_integration=int(self._cfg['propagation']['n_freq']))
+                                   n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
+                                   n_reflections=self._n_reflections)
 
                     if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                         sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
@@ -260,6 +261,7 @@ class simulation():
                                        sg_pre['ray_tracing_solution_type'][self._iE][channel_id], temp_reflection, temp_reflection_case)
                     else:
                         r.find_solutions()
+                        
                     if(not r.has_solution()):
                         logger.debug("event {} and station {}, channel {} does not have any ray tracing solution ({} to {})".format(
                             self._event_id, self._station_id, channel_id, x1, x2))
@@ -376,11 +378,11 @@ class simulation():
                                 
                         if(self._n_reflections > 0):  # take into account possible bottom reflections
                             # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
-                            r = self._n_reflections * self._ice.reflection_coefficient
+                            reflection_coefficient = self._n_reflections * self._ice.reflection_coefficient
                             phase_shift = (self._n_reflections * self._ice.reflection_phase_shift) % (2*np.pi)
                             # we assume that both efield components are equally affected
-                            eTheta *= r * np.exp(1j * phase_shift)
-                            ePhi *= r * np.exp(1j * phase_shift)
+                            eTheta *= reflection_coefficient * np.exp(1j * phase_shift)
+                            ePhi *= reflection_coefficient * np.exp(1j * phase_shift)
 
                         if(self._debug):
                             from matplotlib import pyplot as plt
