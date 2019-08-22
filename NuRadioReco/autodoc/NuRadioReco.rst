@@ -6,6 +6,7 @@ Subpackages
 
 .. toctree::
 
+    NuRadioReco.detector
     NuRadioReco.framework
     NuRadioReco.modules
     NuRadioReco.utilities
