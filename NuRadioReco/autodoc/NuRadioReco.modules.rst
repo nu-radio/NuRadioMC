@@ -20,10 +20,10 @@ NuRadioReco.modules.channelBandPassFilter module
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.modules.channelFirstPulseSampleWindow module
+NuRadioReco.modules.channelGenericNoiseAdder module
 --------------------------------------------------------
 
-.. automodule:: NuRadioReco.modules.channelFirstPulseSampleWindow
+.. automodule:: NuRadioReco.modules.channelGenericNoiseAdder
     :members:
     :undoc-members:
     :show-inheritance:
@@ -83,6 +83,38 @@ NuRadioReco.modules.correlationDirectionFitter module
     :members:
     :undoc-members:
     :show-inheritance:
+  
+NuRadioReco.modules.cosmicRayEnergyReconstructor module
+-----------------------------------------------------
+
+.. automodule:: NuRadioReco.modules.cosmicRayEnergyReconstructor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco.modules.cosmicRayIdentifier module
+-----------------------------------------------------
+
+.. automodule:: NuRadioReco.modules.cosmicRayIdentifier
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco.modules.efieldGenericNoiseAdder module
+-----------------------------------------------------
+
+.. automodule:: NuRadioReco.modules.efieldGenericNoiseAdder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco.modules.efieldTimeDirectionFitter module
+-----------------------------------------------------
+
+.. automodule:: NuRadioReco.modules.efieldTimeDirectionFitter
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 NuRadioReco.modules.efieldToVoltageConverter module
 ---------------------------------------------------
@@ -92,45 +124,30 @@ NuRadioReco.modules.efieldToVoltageConverter module
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.modules.hardwareResponseIncorporator module
--------------------------------------------------------
+NuRadioReco.modules.electricFieldBandPassFilter module
+------------------------------------------------------
 
-.. automodule:: NuRadioReco.modules.hardwareResponseIncorporator
+.. automodule:: NuRadioReco.modules.electricFieldBandPassFilter
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    
+NuRadioReco.modules.electricFieldResampler module
+-------------------------------------------------
+
+.. automodule:: NuRadioReco.modules.electricFieldResampler
     :members:
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.modules.stationBandPassFilter module
-------------------------------------------------
-
-.. automodule:: NuRadioReco.modules.stationBandPassFilter
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-NuRadioReco.modules.stationPolarizationReconstructor module
+NuRadioReco.modules.electricFieldSignalReconstructor module
 -----------------------------------------------------------
 
-.. automodule:: NuRadioReco.modules.stationPolarizationReconstructor
+.. automodule:: NuRadioReco.modules.electricFieldSignalReconstructor
     :members:
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.modules.stationResampler module
--------------------------------------------
-
-.. automodule:: NuRadioReco.modules.stationResampler
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-NuRadioReco.modules.stationSignalReconstructor module
------------------------------------------------------
-
-.. automodule:: NuRadioReco.modules.stationSignalReconstructor
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 NuRadioReco.modules.templateDirectionFitter module
 --------------------------------------------------
@@ -140,10 +157,10 @@ NuRadioReco.modules.templateDirectionFitter module
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.modules.triggerSimulator module
--------------------------------------------
+NuRadioReco.modules.triggerTimeAdjuster module
+--------------------------------------------------
 
-.. automodule:: NuRadioReco.modules.triggerSimulator
+.. automodule:: NuRadioReco.modules.triggerTimeAdjuster
     :members:
     :undoc-members:
     :show-inheritance:
