@@ -480,8 +480,7 @@ def parse_ARA_file(ara):
             corresponding linear gain values
         * phases: array of floats
             corresponding phases
-
-    """
+     """
     with open(ara, 'r') as fin:
         ff = []
         phis = []
@@ -548,27 +547,40 @@ def preprocess_ARA(path):
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
+        
+        
 
-def preprocess_HFSS(path):
-    
+def parse_HFSS_file(hfss):
     """
-    preprocess an antenna pattern in the HFSS file format. The vector effective length is calculated and the output is saved in the NuRadioReco pickle format. 
-    
-    The vector effective length calculation still needs to be verified. 
-    
-    The frequencies, theta, phi, magnitude theta, magnitude phi, phase theta and phase phi are read from the csv file and than ordered according to the NuRadioReco format. 
-    
-    
+    Helper function that parses the HFSS files containig antenna responses
+
     Parameters:
     ----------
-    path: string
-        the path to the file
-        
-    """
-    
+    hfss: string
+        path to the file
+
+    Returns:
+        * ff: array of floats
+            frequencies
+        * thetas: array of floats
+            zenith angle of inicdent electric field
+        * phis: array of floats
+            azimuth angle of inicdent electric field
+        * magnitudes_theta: array of floats
+            corresponding logarithmic magnitude values theta component
+        * magnitudes_phi: array of floats
+            corresponding logarithmic magnitude values phi component
+        * phases_phi: array of floats
+            corresponding phases phi component  
+        * phases_theta: array of floats
+            corresponding phases theta component
+     """
     ff, phi, theta, mag_phi, mag_theta, phase_phi, phase_theta = [],[],[],[],[],[],[]
+    import re
+
     
-    with open(path) as csv_file:
+    with open(hfss, 'r') as csv_line:
+       
         for j, row in enumerate(csv_file.readlines()):
         
             if j==0:
@@ -597,25 +609,50 @@ def preprocess_HFSS(path):
             for arr in [theta, mag_theta, mag_phi, phase_theta, phase_phi, ff, phi]:
                 arr[(i-1)*len(ff)/len(np.unique(ff)):i*len(ff)/len(np.unique(ff))] = [x for _, x in sorted(zip(phi[(i-1)*len(ff)/len(np.unique(ff)):i*len(ff)/len(np.unique(ff))],arr[(i-1)*len(ff)/len(np.unique(ff)):i*len(ff)/len(np.unique(ff))]), key=lambda pair: pair[0])]
 
-            
-    mag_theta = 10**(np.array(mag_theta)/10)
-    mag_phi = 10**(np.array(mag_phi)/10)
-    gain_theta =  4.0 * np.pi * (np.array(mag_theta)**2) / (2 * 120 * np.pi)
-    gain_phi = 4.0 * np.pi * (np.array(mag_phi)**2) / (2 * 120 * np.pi)
+        return np.array(ff), np.array(phi), np.array(theta), np.array(mag_phi), np.array(mag_theta), np.array(phase_phi), np.array(phase_theta)   
+    
+
+    
+
+def preprocess_HFSS(path):
+    
+    """
+    preprocess an antenna pattern in the HFSS file format. The vector effective length is calculated and the output is saved in the NuRadioReco pickle format. 
+    
+    The vector effective length calculation still needs to be verified. 
+    
+    The frequencies, theta, phi, magnitude theta, magnitude phi, phase theta and phase phi are read from the csv file and than ordered according to the NuRadioReco format. 
+    
+    
+    Parameters:
+    ----------
+    path: string
+        the path to the file
+        
+    """
+
+
+    ff, phi, theta, mag_phi, mag_theta, phase_phi, phase_theta = parse_HFSS_file(path)
+    mag_theta = 10**(mag_theta/10)
+    mag_phi = 10**(mag_phi/10)
+    gain_theta =  4.0 * np.pi * (mag_theta**2) / (2 * 120 * np.pi)
+    gain_phi = 4.0 * np.pi * (mag_phi**2) / (2 * 120 * np.pi)
     c = constants.c * units.m / units.s
     Z_0 = 119.9169 * np.pi
     wavelength = c / np.array(ff)
     n_index = 1.78
 
-    H_theta = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * np.array(phase_theta))
-    H_phi = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * np.array(phase_phi))
+    H_theta = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
+    H_phi = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
     
-    zen_boresight = 0
+    
+    zen_boresight = 0 
     azi_boresight = 0
     zen_ori = 0
-    azi_ori = 0
-    output_filename = filename.replace('.csv','.pkl')
-
+    azi_ori = 0 
+    
+    output_filename = filename.replace('.csv','.pkl')   
+    
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
