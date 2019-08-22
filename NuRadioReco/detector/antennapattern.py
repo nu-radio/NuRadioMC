@@ -476,7 +476,7 @@ def get_AERA_antenna_response(path):
     # get frequencies and angles
     frequencies_node = root.find("./frequency")
     frequencies = np.array(frequencies_node.text.strip().split(), dtype=np.float) * units.MHz
-
+    
     theta_node = root.find("./theta")
     thetas = np.array(theta_node.text.strip().split(), dtype=np.float) * units.deg
 
@@ -496,7 +496,7 @@ def get_AERA_antenna_response(path):
         freq_string = "%.2f" % freq
 
         theta_amp_node = root.find("./EAHTheta_amp[@idfreq='%s']" % freq_string)
-
+        
         # check string
         if(theta_amp_node is None):
             freq_string = "%.1f" % freq
@@ -522,7 +522,7 @@ def get_AERA_antenna_response(path):
 
     # (freq) -> (freq * angles)
     frequencies = np.repeat(frequencies, n_angles)
-
+    
     # sort with increasing frequency, increasing phi, and increasing theta
     index = np.lexsort((thetas, phis, frequencies))
     VEL_thetas = VEL_thetas.flatten()[index]
@@ -531,11 +531,6 @@ def get_AERA_antenna_response(path):
     # (angle) -> (freq * angle)
     thetas = np.tile(thetas, n_freqs)[index]
     phis = np.tile(phis, n_freqs)[index]
-
-    # to avoid issues when deviding throw H (H=0 is ignored)
-    # |H| < 0.1 should not happen between 30 - 80 MHz
-    VEL_phis = np.where(np.abs(VEL_phis) > 0.1, VEL_phis, 0)
-    VEL_thetas = np.where(np.abs(VEL_thetas) > 0.1, VEL_thetas, 0)
 
     # values for a upwards pointing LPDA with the arm aligned to the magnetic field
     zen_boresight, azi_boresight, zen_ori, azi_ori = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg
