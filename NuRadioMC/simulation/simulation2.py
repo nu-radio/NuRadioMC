@@ -296,6 +296,11 @@ class simulation():
                     Rs = np.zeros(n)
                     Ts = np.zeros(n)
                     for iS in range(n):  # loop through all ray tracing solution
+                        # skip individual channels where the viewing angle difference is too large
+                        # discard event if delta_C (angle off cherenkov cone) is too large
+                        if(np.abs(delta_Cs[iS]) > self._cfg['speedup']['delta_C_cut']):
+                            logger.debug('delta_C too large, ray tracing solution unlikely to be observed, skipping event')
+                            continue
                         if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):
                             sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
                             R = sg_pre['travel_distances'][self._iE, channel_id, iS]
@@ -307,8 +312,6 @@ class simulation():
                                 continue
                         sg['travel_distances'][self._iE, channel_id, iS] = R
                         sg['travel_times'][self._iE, channel_id, iS] = T
-                        Rs[iS] = R
-                        Ts[iS] = T
                         self._launch_vector = r.get_launch_vector(iS)
                         receive_vector = r.get_receive_vector(iS)
                         # save receive vector
@@ -402,7 +405,7 @@ class simulation():
                         electric_field[efp.azimuth] = azimuth
                         electric_field[efp.zenith] = zenith
                         electric_field[efp.ray_path_type] = self._prop.solution_types[r.get_solution_type(iS)]
-                        electric_field[efp.nu_vertex_distance] = Rs[iS]
+                        electric_field[efp.nu_vertex_distance] = sg['travel_distances'][self._iE, channel_id, iS]
                         electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
                         electric_field[efp.reflection_coefficient_theta] = r_theta
                         electric_field[efp.reflection_coefficient_phi] = r_phi
