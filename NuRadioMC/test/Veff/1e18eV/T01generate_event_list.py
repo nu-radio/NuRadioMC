@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, print_function
 import os
 from NuRadioMC.utilities import units
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
+import numpy as np
+np.random.seed(0)
 
 # define simulation volume
 zmin = -2.7 * units.km  # the ice sheet at South Pole is 2.7km deep
