@@ -631,8 +631,11 @@ def preprocess_HFSS(path):
         
     """
 
-
-    ff, phi, theta, mag_phi, mag_theta, phase_phi, phase_theta = parse_HFSS_file(path)
+    split = os.path.split(os.path.dirname(path))
+    name = split[1]
+    path = split[0]
+    
+    ff, phi, theta, mag_phi, mag_theta, phase_phi, phase_theta = parse_HFSS_file((os.path.join(path, name, '{}.csv'.format(name))))
     mag_theta = 10**(mag_theta/10)
     mag_phi = 10**(mag_phi/10)
     gain_theta =  4.0 * np.pi * (mag_theta**2) / (2 * 120 * np.pi)
@@ -651,7 +654,7 @@ def preprocess_HFSS(path):
     zen_ori = 0
     azi_ori = 0 
     
-    output_filename = filename.replace('.csv','.pkl')   
+    output_filename = '{}.pkl'.format(os.path.join(path, name, name))
     
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
