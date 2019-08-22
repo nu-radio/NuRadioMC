@@ -359,7 +359,7 @@ class simulation():
                         r_phi = None
                         if(self._prop.solution_types[r.get_solution_type(iS)] == 'reflected'):
                             zenith_reflections = r.get_reflection_angle(iS)
-                            if(not hasattr(zenith_reflections, "__len__")):  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
+                            if(not hasattr(zenith_reflections, "__len__") or len(zenith_reflections.shape) == 0):  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
                                 zenith_reflections = [zenith_reflections]
                             for zenith_reflection in zenith_reflections:  # loop through all possible reflections
                                 if(zenith_reflection is None): # skip all ray segments where not reflection at surface happens
@@ -374,7 +374,7 @@ class simulation():
                                 logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection/units.deg,
                                     r_theta, r_phi))
                                 
-                        if(self._n_reflections):  # take into account possible bottom reflections
+                        if(self._n_reflections > 0):  # take into account possible bottom reflections
                             # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
                             r = self._n_reflections * self._ice.reflection_coefficient
                             phase_shift = (self._n_reflections * self._ice.reflection_phase_shift) % (2*np.pi)
