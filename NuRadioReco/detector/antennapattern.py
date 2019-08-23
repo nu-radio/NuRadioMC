@@ -579,7 +579,7 @@ def parse_HFSS_file(hfss):
     import re
 
     
-    with open(hfss, 'r') as csv_line:
+    with open(hfss, 'r') as csv_file:
        
         for j, row in enumerate(csv_file.readlines()):
         
