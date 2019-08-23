@@ -29,10 +29,10 @@ before_script:
 
 jobs:
   include:
-    - stage: Test one single event
+    - stage: "Test one single event"
       name: "Single event test"
       script: NuRadioMC/test/SingleEvents/test_build.sh
-    - stage: Test with multiple events
+    - stage: "Test with multiple events"
       name: "Veff test"
       script: NuRadioMC/test/Veff/1e18eV/test_build.sh
      -script: NuRadioMC/SignalProp/tests/run_signal_test.sh
