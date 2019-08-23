@@ -1,4 +1,4 @@
 #!/bin/bash
 
-NuRadioMC/test/UnitTest/U01unit_test.py NuRadioMC/test/UnitTest/reference_v1.pkl
+NuRadioMC/test/SignalGen/U01unit_test.py NuRadioMC/test/SignalGen/reference_v1.pkl
 
