@@ -45,3 +45,4 @@ with open("reference_C0.pkl", "r") as fin:
     results_C0s_cpp_ref = pickle.load(fin)
     testing.assert_allclose(results_C0s_cpp, results_C0s_cpp_ref)
 
+print('T05unit_test_c0_SP passed without issues')

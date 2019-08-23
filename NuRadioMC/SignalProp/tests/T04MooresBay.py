@@ -43,7 +43,7 @@ d_analytic = 0
 t_numeric = 0
 t_analytic = 0
 for iX, x in enumerate(points):
-    r = ray.ray_tracing(x, x_receiver, ice, log_level=logging.INFO, n_reflections=1)
+    r = ray.ray_tracing(x, x_receiver, ice, log_level=logging.WARNING, n_reflections=1)
     r.find_solutions()
     if(r.has_solution()):
         for iS in range(r.get_number_of_solutions()):
@@ -68,3 +68,4 @@ print("average deviation = {:.4f}ns".format(np.mean(results_T[mask] - results_T_
 testing.assert_allclose(results_T, results_T_analytic, atol=1e-2 * units.ns, rtol=1e-3)
 print("asserting distances")
 testing.assert_allclose(results_D, results_D_analytic, atol=4e-2 * units.m, rtol=1e-3)
+print('T04MooresBay passed without issues')

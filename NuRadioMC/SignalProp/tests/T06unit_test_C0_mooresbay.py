@@ -43,4 +43,6 @@ for iX, x in enumerate(points):
 
 with open("reference_C0_MooresBay.pkl", "r") as fin:
     results_C0s_cpp_ref = pickle.load(fin)
-    testing.assert_allclose(results_C0s_cpp, results_C0s_cpp_ref)
+    testing.assert_allclose(results_C0s_cpp, results_C0s_cpp_ref, rtol=1.e-6)
+
+print('T06unit_test_C0_mooresbay passed without issues')

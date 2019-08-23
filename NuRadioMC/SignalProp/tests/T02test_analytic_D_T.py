@@ -75,3 +75,5 @@ print("asserting travel times")
 testing.assert_allclose(results_T, results_T_analytic, atol=4e-2 * units.ns, rtol=1e-10)
 print("asserting distances")
 testing.assert_allclose(results_D, results_D_analytic, atol=3e-2 * units.m, rtol=1e-10)
+
+print('T02test_analytic_D_T passed without issues')
