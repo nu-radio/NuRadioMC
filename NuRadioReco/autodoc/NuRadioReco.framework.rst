@@ -36,10 +36,18 @@ NuRadioReco.framework.event module
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.framework.sim\_event module
----------------------------------------
+NuRadioReco.framework.electric\_field
+-------------------------------------
 
-.. automodule:: NuRadioReco.framework.sim_event
+.. automodule:: NuRadioReco.framework.electric_field
+    :members:
+    :undoc-members:
+    :show-inheritance:
+        
+NuRadioReco.framework.parameters
+--------------------------------
+
+.. automodule:: NuRadioReco.framework.parameters
     :members:
     :undoc-members:
     :show-inheritance:
