@@ -63,3 +63,5 @@ print("Python time = {:.1f} seconds = {:.2f}ms/event".format(t_python, 1000. * t
 testing.assert_allclose(results_C0s_cpp, results_C0s_python, atol=1e-08, rtol=1e-05)
 testing.assert_allclose(results_A_cpp, results_A_python, rtol=1e-2, atol=1e-3)
 
+print('T01test_python_vs_cpp passed without issues')
+
