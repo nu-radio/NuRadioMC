@@ -41,7 +41,6 @@ else:
 if parsed_args.open_window:
     webbrowser.open('http://127.0.0.1:{}/'.format(parsed_args.port))    
 
-app.css.append_css({"external_url": "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"})
 provider = dataprovider.DataProvider()
 
 
@@ -75,7 +74,7 @@ app.layout = html.Div([
             html.Div([
                 html.Div([
                         html.Button([
-                                html.Div(className='fa fa-arrow-left')
+                                html.Div(className='icon-arrow-left')
                             ],
                             id='btn-previous-event',
                             className='btn btn-primary',
@@ -87,7 +86,7 @@ app.layout = html.Div([
                             className='btn btn-primary'
                         ),
                         html.Button([
-                                html.Div(className='fa fa-arrow-right')
+                                html.Div(className='icon-arrow-right')
                             ],
                             id='btn-next-event',
                             className='btn btn-primary',
@@ -407,6 +406,7 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
     return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_station(station_id).get_station_time().datetime)
 
 if __name__ == '__main__':
-    if int(dash.__version__.split('.')[1]) < 39:
-        print('WARNING: Dash version 0.39.0 or newer is required, you are running version {}. Please update.'.format(dash.__version__))
-    app.run_server(debug=True, port=parsed_args.port)
+    if int(dash.__version__.split('.')[0]) <= 1:
+        if int(dash.__version__.split('.')[1]) < 0:
+            print('WARNING: Dash version 0.39.0 or newer is required, you are running version {}. Please update.'.format(dash.__version__))
+    app.run_server(debug=False, port=parsed_args.port)

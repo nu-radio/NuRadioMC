@@ -70,12 +70,12 @@ class readARIANNAData:
         self.calwv = ROOT.TSnCalWvData()
         if(tree == 'RawData'):
             self.calwv = ROOT.TSnRawWaveform()
-        self.data_tree.SetBranchAddress("{}.".format(tree), self.calwv)
+        self.data_tree.SetBranchAddress("{}.".format(tree), ROOT.AddressOf(self.calwv))
 #         self.data_tree.SetBranchAddress("AmpOutData.", self.calwv)
 
         self.readout_config = ROOT.TSnReadoutConfig()
 
-        self.config_tree.SetBranchAddress("ReadoutConfig.", self.readout_config)
+        self.config_tree.SetBranchAddress("ReadoutConfig.", ROOT.AddressOf(self.readout_config))
         self.skipped_events = 0
         self.skipped_events_stop = 0
 
