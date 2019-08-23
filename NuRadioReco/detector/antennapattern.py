@@ -1058,6 +1058,8 @@ class AntennaPatternProvider(object):
             documentation of this class for further information)
         """
         if(name in self._antenna_model_replacements.keys()):
+            if(self._antenna_model_replacements[name] not in self._open_antenna_patterns.keys()):
+                logger.warning("local replacement of antenna model requsted: replacing {} with {}".format(name, self._antenna_model_replacements[name]))
             name = self._antenna_model_replacements[name]
         if (name not in self._open_antenna_patterns.keys()):
             if(name.startswith("analytic")):
