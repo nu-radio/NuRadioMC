@@ -9,12 +9,46 @@ from NuRadioReco.utilities import trace_utilities
 def amp_from_energy(energy):
     """
     energy is defined as the integral of squared voltage normalized to a time window of 128 ns
+
+    Parameters
+    ----------
+    energy:
+
+
     """
     return 0.5 * np.log10(energy) + 0.12876705
 
 
 def get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_rate,
                             phase_p1=0, bandpass=None, quadratic_term=0, quadratic_term_offset = 0):
+    """
+    Analytic pulse as described in PhD thesis Glaser and NuRadioReco paper in the frequency domain
+
+    Parameters
+    ----------
+    amp_p0: float
+        amplitude parameter of analytic pulse
+    amp_p1:
+        slope parameter of analytic pulse
+    phase_p0:
+        phase parameter of analytic pulse
+    n_samples_time:
+        numer of samples in time-domain
+    sampling_rate:
+        sampling rate of trace
+    phase_p1:
+        default 0
+
+    bandpass:
+        default None
+
+    quadratic_term:
+        default 0
+
+    quadratic_term_offset:
+        default 0
+
+    """
     amp_p0 /= trace_utilities.conversion_factor_integrated_signal  # input variable is energy in eV/m^2
     dt = 1. / sampling_rate
     frequencies = np.fft.rfftfreq(n_samples_time, dt)
@@ -40,8 +74,41 @@ def get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_r
     return xx
 
 
-def get_analytic_pulse(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_rate,
-                       phase_p1=0, bandpass=None, quadratic_term=0, quadratic_term_offset=0):
-    xx = get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_rate,
-                                 phase_p1=phase_p1, bandpass=bandpass, quadratic_term=quadratic_term, quadratic_term_offset=quadratic_term_offset)
+def get_analytic_pulse(amp_p0, amp_p1, phase_p0, n_samples_time,
+                       sampling_rate,
+                       phase_p1=0, bandpass=None,
+                       quadratic_term=0, quadratic_term_offset=0):
+    """
+    Analytic pulse as described in PhD thesis Glaser and NuRadioReco paper in the time domain
+
+    Parameters
+    ----------
+    amp_p0: float
+        amplitude parameter of analytic pulse
+    amp_p1:
+        slope parameter of analytic pulse
+    phase_p0:
+        phase parameter of analytic pulse
+    n_samples_time:
+        numer of samples in time-domain
+    sampling_rate:
+        sampling rate of trace
+    phase_p1:
+        default 0
+
+    bandpass:
+        default None
+
+    quadratic_term:
+        default 0
+
+    quadratic_term_offset:
+        default 0
+
+    """
+    xx = get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time,
+                                 sampling_rate, phase_p1=phase_p1,
+                                 bandpass=bandpass,
+                                 quadratic_term=quadratic_term,
+                                 quadratic_term_offset=quadratic_term_offset)
     return fft.freq2time(xx)
