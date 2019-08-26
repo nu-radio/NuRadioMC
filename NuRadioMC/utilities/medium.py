@@ -66,6 +66,9 @@ class mooresbay_simple(medium):
         self.n_ice = 1.78
         self.z_0 = 34.5 * units.m
         self.delta_n = 0.46
+        self.reflection = -576 * units.m  # from https://doi.org/10.3189/2015JoG14J214
+        self.reflection_coefficient = 0.82 # from https://doi.org/10.3189/2015JoG14J214
+        self.reflection_phase_shift = 180 * units.deg
         
 class mooresbay_simple_2(medium):
     # from https://doi.org/10.1088/1475-7516/2018/07/055 MB2 model
@@ -73,6 +76,9 @@ class mooresbay_simple_2(medium):
         self.n_ice = 1.78
         self.z_0 = 37 * units.m
         self.delta_n = 0.481
+        self.reflection = -576 * units.m  # from https://doi.org/10.3189/2015JoG14J214
+        self.reflection_coefficient = 0.82 # from https://doi.org/10.3189/2015JoG14J214
+        self.reflection_phase_shift = 180 * units.deg
         
         
 
