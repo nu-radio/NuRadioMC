@@ -32,8 +32,12 @@ jobs:
     - stage: "Test one single event"
       name: "Single event test"
       script: NuRadioMC/test/SingleEvents/test_build.sh
+    - stage: "Test individual components"
+      name: "Signal generation test"
+      script: NuRadioMC/test/SignalGen/test_build.sh
+    - script: NuRadioMC/test/SignalProp/run_signal_test.sh
+      name: "Signal propagation tests"
     - stage: "Test with multiple events"
       name: "Veff test"
       script: NuRadioMC/test/Veff/1e18eV/test_build.sh
-    - script: NuRadioMC/test/SignalProp/run_signal_test.sh
-      name: "Signal propagation tests"
+
