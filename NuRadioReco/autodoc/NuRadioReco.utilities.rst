@@ -11,6 +11,14 @@ NuRadioReco.utilities.analytic\_pulse module
     :members:
     :undoc-members:
     :show-inheritance:
+    
+NuRadioReco.utilities.fft module
+--------------------------------
+
+.. automodule:: NuRadioReco.utilities.fft
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 NuRadioReco.utilities.geometryUtilities module
 ----------------------------------------------
@@ -20,13 +28,6 @@ NuRadioReco.utilities.geometryUtilities module
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.utilities.helpers module
-------------------------------------
-
-.. automodule:: NuRadioReco.utilities.helpers
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 NuRadioReco.utilities.ice module
 --------------------------------
@@ -48,6 +49,14 @@ NuRadioReco.utilities.timing module
 -----------------------------------
 
 .. automodule:: NuRadioReco.utilities.timing
+    :members:
+    :undoc-members:
+    :show-inheritance:
+  
+NuRadioReco.utilities.trace_utilities module
+--------------------------------------------
+
+.. automodule:: NuRadioReco.utilities.trace_utilities
     :members:
     :undoc-members:
     :show-inheritance:

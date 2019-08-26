@@ -844,10 +844,10 @@ class AntennaPattern(AntennaPatternBase):
         t = time()
         filename = os.path.join(path, antenna_model, "{}.pkl".format(antenna_model))
         self._notfound = False
-
         try:
             self._zen_boresight, self._azi_boresight, self._zen_ori, self._azi_ori, \
                     ff, thetas, phis, H_phi, H_theta = get_pickle_antenna_response(filename)
+
         except IOError:
             self._notfound = True
             logger.warning("antenna response for {} not found".format(antenna_model))
@@ -1167,6 +1167,8 @@ class AntennaPatternProvider(object):
             documentation of this class for further information)
         """
         if(name in self._antenna_model_replacements.keys()):
+            if(self._antenna_model_replacements[name] not in self._open_antenna_patterns.keys()):
+                logger.warning("local replacement of antenna model requsted: replacing {} with {}".format(name, self._antenna_model_replacements[name]))
             name = self._antenna_model_replacements[name]
         if (name not in self._open_antenna_patterns.keys()):
             if(name.startswith("analytic")):
