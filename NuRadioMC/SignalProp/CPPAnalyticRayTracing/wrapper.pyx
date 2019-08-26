@@ -11,11 +11,11 @@ cdef extern from "numpy/arrayobject.h":
     void PyArray_ENABLEFLAGS(np.ndarray arr, int flags)
 
 cdef extern from "analytic_raytracing.cpp":
-    void find_solutions2(double * &, double * &, int * &, int & , double, double, double, double, double, double, double)
+    void find_solutions2(double * &, double * &, int * &, int & , double, double, double, double, double, double, double, int, int, double)
     double get_attenuation_along_path2(double, double, double, double, double, double, double, double, double, int)
     
 
-cpdef find_solutions(x1, x2, n_ice, delta_n, z_0):
+cpdef find_solutions(x1, x2, n_ice, delta_n, z_0, reflection, reflection_case, ice_reflection):
     cdef:
         double * C0s
         double * C1s
@@ -24,7 +24,7 @@ cpdef find_solutions(x1, x2, n_ice, delta_n, z_0):
         np.npy_intp shape[1]
 
 #     t = time.time()
-    find_solutions2(C0s, C1s, types, size, x1[0], x1[1], x2[0], x2[1], n_ice, delta_n, z_0)
+    find_solutions2(C0s, C1s, types, size, x1[0], x1[1], x2[0], x2[1], n_ice, delta_n, z_0, reflection, reflection_case, ice_reflection)
 #     print((time.time() - t) * 1000)
 
     # 1. Make sure that you have called np.import_array()
@@ -45,7 +45,9 @@ cpdef find_solutions(x1, x2, n_ice, delta_n, z_0):
     for i in range(len(C0ss)):
         solutions.append({'type': typess[i],
                           'C0': C0ss[i],
-                          'C1': C1ss[i]})
+                          'C1': C1ss[i],
+                          'reflection': reflection,
+                          'reflection_case': reflection_case})
 
     s = sorted(solutions, key=itemgetter('type'))
 #     print((time.time() - t) * 1000)
