@@ -220,8 +220,9 @@ class NuRadioRecoio(object):
         iF = 0
         self.__get_file(iF).seek(12)  # skip file header
         while True:
-            bytes_to_read_hex = self.__get_file(iF).read(6)
-            if(bytes_to_read_hex == ''):
+            bytes_to_read_hex = self.__get_file(iF).read(6)            
+            bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
+            if(bytes_to_read == 0):
                 # we are at the end of the file
                 if(iF < (len(self.__filenames) - 1)):  # are there more files to be parsed?
                     iF += 1
@@ -229,11 +230,10 @@ class NuRadioRecoio(object):
                     bytes_to_read_hex = self.__get_file(iF).read(6)
                 else:
                     break
-            bytes_to_read = int(bytes_to_read_hex, 16)
             evt_header_str = self.__get_file(iF).read(bytes_to_read)
 
             bytes_to_read_hex = self.__get_file(iF).read(6)
-            bytes_to_read = int(bytes_to_read_hex, 16)
+            bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
             evtstr = self.__get_file(iF).read(bytes_to_read)
             event = NuRadioReco.framework.event.Event(0, 0)
             event.deserialize(evtstr)
