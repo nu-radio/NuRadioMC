@@ -176,7 +176,7 @@ class voltageToEfieldConverter:
         #figure out the timing of the E-field
         t_shifts = np.zeros(V.shape[0])
         site = det.get_site(station_id)
-        if(station.get_parameter(stnp.zenith) > 0.5 * np.pi):
+        if(zenith > 0.5 * np.pi):
             logger.warning("Module has not been optimized for neutrino reconstruction yet. Results may be nonsense.")
             refractive_index = ice.get_refractive_index(-1, site)  # if signal comes from below, use refractivity at antenna position
         else:
