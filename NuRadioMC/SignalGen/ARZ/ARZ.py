@@ -54,7 +54,7 @@ class ARZ(object):
 
     def __new__(cls, seed=1234, interp_factor=1, interp_factor2=100, library=None):
         if ARZ.__instance is None:
-            ARZ.__instance = object.__new__(cls, seed, interp_factor, interp_factor2, library)
+            ARZ.__instance = object.__new__(cls) #, seed, interp_factor, interp_factor2, library)
         return ARZ.__instance
 
     def __init__(self, seed=1234, interp_factor=1, interp_factor2=100, library=None):
@@ -73,8 +73,8 @@ class ARZ(object):
                 raise FileNotFoundError("user specified shower library {} not found.".format(library))
         self.__check_and_get_library()
         
-        with open(library) as fin:
-            logger.warning("loading shower library into memory")
+        with open(library, 'rb') as fin:
+            logger.warning("loading shower library ({}) into memory".format(library))
             self._library = pickle.load(fin)
             
     def __check_and_get_library(self):
