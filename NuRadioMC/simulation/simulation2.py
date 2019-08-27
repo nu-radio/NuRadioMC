@@ -543,15 +543,13 @@ class simulation():
 
     def _create_trigger_structures(self):
 
+        extend_array = False
         if('trigger_names' not in self._mout_attrs):
             self._mout_attrs['trigger_names'] = []
-
-
-        extend_array = False
-        for trigger in six.itervalues(self._station.get_triggers()):
-            if(np.string_(trigger.get_name()) not in self._mout_attrs['trigger_names']): 
-                self._mout_attrs['trigger_names'].append((trigger.get_name()))
-                extend_array = True
+            for trigger in six.itervalues(self._station.get_triggers()):
+                if(np.string_(trigger.get_name()) not in self._mout_attrs['trigger_names']): 
+                    self._mout_attrs['trigger_names'].append((trigger.get_name()))
+                    extend_array = True
         # the 'multiple_triggers' output array is not initialized in the constructor because the number of
         # simulated triggers is unknown at the beginning. So we check if the key already exists and if not,
         # we first create this data structure
