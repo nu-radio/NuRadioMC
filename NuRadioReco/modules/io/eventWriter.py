@@ -31,8 +31,6 @@ class eventWriter:
         b = bytearray()
         b.extend(VERSION.to_bytes(6, 'little'))
         b.extend(VERSION_MINOR.to_bytes(6, 'little'))
-        #b.extend(b'{:06x}'.format(VERSION))
-        #b.extend(b'{:06x}'.format(VERSION_MINOR))
         self.__fout.write(b)
 
     def begin(self, filename, max_file_size=1024):
