@@ -8,6 +8,7 @@ try:
 except ImportError:
     import pickle
 import logging
+import collections
 logger = logging.getLogger('Station')
 
 
@@ -15,7 +16,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def __init__(self, station_id):
         NuRadioReco.framework.base_station.BaseStation.__init__(self, station_id)
-        self.__channels = {}
+        self.__channels = collections.OrderedDict()
         self.__reference_reconstruction = 'RD'
         self.__sim_station = None
 
