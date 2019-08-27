@@ -71,8 +71,8 @@ def load_amp_measurement(amp_measurement):
     load individual amp measurement from file and buffer interpolation function
     """
     filename = os.path.join(os.path.dirname(__file__), 'HardwareResponses/', amp_measurement+".pkl")
-    with open(filename, 'r') as fin:
-        data = pickle.load(fin)
+    with open(filename, 'rb') as fin:
+        data = pickle.load(fin, encoding='latin1')
         if(amp_measurement not in data):
             raise AttributeError("can't find amp measurement {}".format(amp_measurement))
         ff = data[amp_measurement]['freqs']
