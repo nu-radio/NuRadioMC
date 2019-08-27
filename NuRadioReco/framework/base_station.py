@@ -11,6 +11,7 @@ try:
 except ImportError:
     import pickle
 import logging
+import collections
 logger = logging.getLogger('BaseStation')
 
 
@@ -22,7 +23,7 @@ class BaseStation():
         self._parameter_covariances = {}
         self._station_id = station_id
         self._station_time = None
-        self._triggers = {}
+        self._triggers = collections.OrderedDict()
         self._triggered = False
         self._electric_fields = []
         self._particle_type = ''
