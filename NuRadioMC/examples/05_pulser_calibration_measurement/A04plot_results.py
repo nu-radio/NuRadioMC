@@ -9,6 +9,8 @@ from datetime import datetime
 import pickle
 from NuRadioReco.utilities import units
 from radiotools import plthelpers as php
+plt.switch_backend('agg')
+
 
 i = 2
 

@@ -37,6 +37,8 @@ jobs:
       script: NuRadioMC/test/SignalGen/test_build.sh
     - script: NuRadioMC/test/SignalProp/run_signal_test.sh
       name: "Signal propagation tests"
+    - script: NuRadioMC/test/examples/test_examples.sh
+      name: "Test Examples"
     - stage: "Test with multiple events"
       name: "Veff test"
       script: NuRadioMC/test/Veff/1e18eV/test_build.sh
