@@ -19,15 +19,28 @@ from apps import cosmic_rays
 from apps.common import get_point_index
 import apps.simulation
 import os
-import sys
+import argparse
 import dataprovider
 import logging
+import datetime
+import webbrowser
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('index')
 
-data_folder = os.path.dirname(sys.argv[1])
+argparser = argparse.ArgumentParser(description="Starts the Event Display, which then can be accessed via a webbrowser")
+argparser.add_argument('file_location', type=str, help="Path of folder or filename.")
+argparser.add_argument('--open-window', const=True, default=False, action='store_const', help="Open the event display in a new browser tab on startup")
+argparser.add_argument('--port', default=8080, help="Specify the port the event display will run on")
 
-app.css.append_css({"external_url": "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"})
+parsed_args = argparser.parse_args()
+data_folder = os.path.dirname(parsed_args.file_location)
+if os.path.isfile(parsed_args.file_location):
+    starting_filename = [parsed_args.file_location]
+else:
+    starting_filename = None
+if parsed_args.open_window:
+    webbrowser.open('http://127.0.0.1:{}/'.format(parsed_args.port))    
+
 provider = dataprovider.DataProvider()
 
 
@@ -52,6 +65,7 @@ app.layout = html.Div([
                 dcc.Dropdown(id='filename',
                              options=[],
                              multi=True,
+                             value=starting_filename,
                              className='custom-dropdown'),
                  html.Div([
                     html.Button('open file', id='btn-open-file', className='btn btn-default')
@@ -60,7 +74,7 @@ app.layout = html.Div([
             html.Div([
                 html.Div([
                         html.Button([
-                                html.Div(className='fa fa-arrow-left')
+                                html.Div(className='icon-arrow-left')
                             ],
                             id='btn-previous-event',
                             className='btn btn-primary',
@@ -72,7 +86,7 @@ app.layout = html.Div([
                             className='btn btn-primary'
                         ),
                         html.Button([
-                                html.Div(className='fa fa-arrow-right')
+                                html.Div(className='icon-arrow-right')
                             ],
                             id='btn-next-event',
                             className='btn btn-primary',
@@ -155,6 +169,8 @@ def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_
     if filename is None:
         return 0
     if context.triggered[0]['prop_id'] == 'event-click-coordinator.children':
+        if context.triggered[0]['value'] is None:
+            return 0
         return json.loads(context.triggered[0]['value'])['event_i']
     else:
         if context.triggered[0]['prop_id'] != 'btn-next-event.n_clicks_timestamp' and context.triggered[0]['prop_id'] != 'btn-previous-event.n_clicks_timestamp':
@@ -387,9 +403,10 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
     evt = ariio.get_event_i(event_i)
     if evt.get_station(station_id).get_station_time() is None:
         return ''
-    return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_station(station_id).get_station_time())
+    return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_station(station_id).get_station_time().datetime)
 
 if __name__ == '__main__':
-    if int(dash.__version__.split('.')[1]) < 39:
-        print('WARNING: Dash version 0.39.0 or newer is required, you are running version {}. Please update.'.format(dash.__version__))
-    app.run_server(debug=True, port=8080)
+    if int(dash.__version__.split('.')[0]) <= 1:
+        if int(dash.__version__.split('.')[1]) < 0:
+            print('WARNING: Dash version 0.39.0 or newer is required, you are running version {}. Please update.'.format(dash.__version__))
+    app.run_server(debug=False, port=parsed_args.port)

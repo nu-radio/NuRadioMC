@@ -98,7 +98,7 @@ class efieldToVoltageConverter:
                 # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
                 if sim_station.is_cosmic_ray():
                     site = det.get_site(sim_station_id)
-                    antenna_position = det.get_relative_position(sim_station_id, iCh)
+                    antenna_position = det.get_relative_position(sim_station_id, iCh) - electric_field.get_position()
                     if sim_station.get_parameter(stnp.zenith) > 90*units.deg:   #signal is coming from below, so we take IOR of ice
                         index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                     else:   # signal is coming from above, so we take IOR of air
@@ -134,6 +134,7 @@ class efieldToVoltageConverter:
             logger.debug('channel id {}'.format(channel_id))
             channel = NuRadioReco.framework.channel.Channel(channel_id)
             channel_spectrum = None
+            trace_object = None
             if(self.__debug):
                 from matplotlib import pyplot as plt
                 fig, axes = plt.subplots(2, 1)
@@ -163,7 +164,7 @@ class efieldToVoltageConverter:
                     cab_delay = det.get_cable_delay(sim_station_id, channel_id)
                     if sim_station.is_cosmic_ray():
                         site = det.get_site(sim_station_id)
-                        antenna_position = det.get_relative_position(sim_station_id, channel_id)
+                        antenna_position = det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position()
                         if sim_station.get_parameter(stnp.zenith) > 90*units.deg:   #signal is coming from below, so we take IOR of ice
                             index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                         else:   # signal is coming from above, so we take IOR of air
@@ -177,7 +178,6 @@ class efieldToVoltageConverter:
                     new_trace[:, start_bin:(start_bin + len(trace))] = resampled_efield
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
                 trace_object.set_trace(new_trace, 1. / time_resolution)
-                trace_object.set_trace_start_time(times_min.min())
                 if(self.__debug):
                     axes[0].plot(trace_object.get_times(), new_trace[1], label="eTheta {}".format(electric_field[efp.ray_path_type]))
                     axes[0].plot(trace_object.get_times(), new_trace[2], label="ePhi {}".format(electric_field[efp.ray_path_type]))
@@ -189,13 +189,14 @@ class efieldToVoltageConverter:
                 azimuth = electric_field[efp.azimuth]
 
                 # get antenna pattern for current channel
-                try:
-                    VEL = trace_utilities.get_efield_antenna_factor(sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)[0]
-                except:
-                    logger.warning("efieldToVoltageConverter cannot continue with unphysical values, VEL is None")
+                VEL = trace_utilities.get_efield_antenna_factor(sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)
 
-                # Apply antenna response to electric field
-                voltage_fft = np.sum(VEL * np.array([efield_fft[1], efield_fft[2]]), axis=0)
+                if VEL is None: # this can happen if there is not signal path to the antenna
+                    voltage_fft = np.zeros_like(efield_fft[1])  # set voltage trace to zeros
+                else:
+                    # Apply antenna response to electric field
+                    VEL = VEL[0] # we only requested the VEL for one channel, so selecting it
+                    voltage_fft = np.sum(VEL * np.array([efield_fft[1], efield_fft[2]]), axis=0)
 
                 # Remove DC offset
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
@@ -213,11 +214,14 @@ class efieldToVoltageConverter:
                 else:
                     channel_spectrum += voltage_fft
 
+            if trace_object is None:
+                continue
             if(self.__debug):
                 axes[0].legend(loc='upper left')
                 axes[1].legend(loc='upper left')
                 plt.show()
             channel.set_frequency_spectrum(channel_spectrum, trace_object.get_sampling_rate())
+            channel.set_trace_start_time(times_min.min())
 
             station.add_channel(channel)
         self.__t += time.time() - t

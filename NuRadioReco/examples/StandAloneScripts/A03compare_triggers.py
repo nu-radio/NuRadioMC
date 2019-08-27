@@ -9,12 +9,13 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelSignalReconstructor
+import NuRadioReco.modules.channelLengthAdjuster
 
 import NuRadioReco.modules.ARA.triggerSimulator
-import NuRadioReco.modules.ARIANNA.triggerSimulator
+import NuRadioReco.modules.trigger.highLowThreshold
 
 from NuRadioReco.detector import detector
-det = detector.Detector(json_filename='example_data/dummy_detector.json')
+det = detector.Detector(json_filename='../example_data/dummy_detector.json')
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("TriggerComparison")
@@ -25,10 +26,15 @@ channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
 channelSignalReconstructor.begin(debug=False)
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
+channelLengthAdjuster = NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster()
+channelLengthAdjuster.begin(number_of_samples=400, offset=50)
+
+from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import channelParameters as chp
 
 triggerSimulator_ARA = NuRadioReco.modules.ARA.triggerSimulator.triggerSimulator()
 triggerSimulator_ARA.begin()
-triggerSimulator_ARIANNA = NuRadioReco.modules.ARIANNA.triggerSimulator.triggerSimulator()
+triggerSimulator_ARIANNA = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 triggerSimulator_ARIANNA.begin()
 
 event_ARA = NuRadioReco.framework.event.Event(1,1)
@@ -62,7 +68,7 @@ else:
     R = 100 * units.m
 
     from NuRadioMC.SignalGen import parametrizations as signalgen
-    test_pulse = signalgen.get_time_trace(energy* fhad,viewing_angle, n_samples, dt, False, n_index, R, 'Alvarez2000')
+    test_pulse = signalgen.get_time_trace(energy* fhad,viewing_angle, n_samples, dt, 'HAD', n_index, R, 'Alvarez2000')
 
 
 
@@ -99,13 +105,10 @@ for scaling in np.linspace(10*units.mV,200*units.mV,n_scaling):
         channelBandPassFilter.run(event_ARA, station_ARA, det, passband=[50 * units.MHz, 1000 * units.MHz],
             filter_type='rectangular')
 
-#         channelSignalReconstructor.run(event_ARIANNA, station_ARIANNA, det)
-# #         channelSignalReconstructor.run(event_ARA, station_ARA, det, debug=False, rms_stage='amp')
-
         channelGenericNoiseAdder.run(event_ARA,station_ARA,
-                            det,amplitude=20*units.mV,min_freq=50*units.MHz,max_freq=1000*units.MHz,type='white')
+                            det,amplitude=20*units.mV,min_freq=50*units.MHz,max_freq=1000*units.MHz,type='perfect_white')
         channelGenericNoiseAdder.run(event_ARIANNA,station_ARIANNA,
-                            det,amplitude=20*units.mV,min_freq=50*units.MHz,max_freq=1000*units.MHz,type='white')
+                            det,amplitude=20*units.mV,min_freq=50*units.MHz,max_freq=1000*units.MHz,type='perfect_white')
 
 
         channelResampler.run(event_ARA, station_ARA, det, sampling_rate=1 * units.GHz)
@@ -114,6 +117,8 @@ for scaling in np.linspace(10*units.mV,200*units.mV,n_scaling):
         channelSignalReconstructor.run(event_ARIANNA, station_ARIANNA, det)
         channelSignalReconstructor.run(event_ARA, station_ARA, det)
 
+        channelLengthAdjuster.run(event_ARIANNA, station_ARIANNA, det)
+        channelLengthAdjuster.run(event_ARA, station_ARA, det)
 
         triggerSimulator_ARA.run(event_ARA, station_ARA, det, power_threshold=6.5,
                                         coinc_window = 110 * units.ns,
@@ -128,15 +133,11 @@ for scaling in np.linspace(10*units.mV,200*units.mV,n_scaling):
                 triggered_channels=[0, 1, 2, 3])
 
 #
-        SNR_ARA +=  station_ARA.get_channels()[0]['SNR'][TYPE_SNR]
-        SNR_ARIANNA += station_ARIANNA.get_channels()[0]['SNR'][TYPE_SNR]
+        SNR_ARA +=  station_ARA.get_channel(0)[chp.SNR][TYPE_SNR]
 
-#         print station_ARIANNA.get_channels()[0]['SNR']
-#         plt.show()
-# #         1/0
-#
-#
-        max.append(np.max(np.abs(station_ARA.get_channels()[0].get_trace())))
+        SNR_ARIANNA += station_ARIANNA.get_channel(0)[chp.SNR][TYPE_SNR]
+
+        max.append(np.max(np.abs(station_ARA.get_channel(0).get_trace())))
 #         channel_ARA.clear_trace()
 
         if station_ARA.has_triggered() != False:

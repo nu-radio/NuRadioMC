@@ -9,6 +9,7 @@ from NuRadioReco.utilities import trace_utilities
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
 import matplotlib.pyplot as plt
+from scipy import signal
 
 import logging
 logger = logging.getLogger('voltageToEfieldConverter')
@@ -81,7 +82,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         V[iCh] = trace.get_frequency_spectrum()
 
     efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider)
-    
+
     if(debug_cut):
         plt.show()
 
@@ -116,7 +117,7 @@ class voltageToEfieldConverter:
         self.antenna_provider = antennapattern.AntennaPatternProvider()
         pass
 
-    def run(self, evt, station, det, debug=False, debug_plotpath=None, use_channels=[0, 1, 2, 3]):
+    def run(self, evt, station, det, debug=False, debug_plotpath=None, use_channels=[0, 1, 2, 3], use_MC_direction=False):
         """
         run method. This function is executed for each event
 
@@ -136,11 +137,11 @@ class voltageToEfieldConverter:
         event_time = station.get_station_time()
         station_id = station.get_id()
 
-        try:
+        if use_MC_direction:
             zenith = station.get_sim_station()[stnp.zenith]
             azimuth = station.get_sim_station()[stnp.azimuth]
             sim_present = True
-        except:
+        else:
             logger.info("Using reconstructed (or starting) angles as no signal arrival angles are present")
             zenith = station[stnp.zenith]
             azimuth = station[stnp.azimuth]
@@ -168,10 +169,23 @@ class voltageToEfieldConverter:
                              efield3_f[0],
                              efield3_f[1]])
 
-        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels)
+        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels, [0,0,0])
         electric_field.set_frequency_spectrum(efield3_f, station.get_channel(0).get_sampling_rate())
         electric_field.set_parameter(efp.zenith, zenith)
         electric_field.set_parameter(efp.azimuth, azimuth)
+        #figure out the timing of the E-field
+        t_shifts = np.zeros(V.shape[0])
+        site = det.get_site(station_id)
+        if(zenith > 0.5 * np.pi):
+            logger.warning("Module has not been optimized for neutrino reconstruction yet. Results may be nonsense.")
+            refractive_index = ice.get_refractive_index(-1, site)  # if signal comes from below, use refractivity at antenna position
+        else:
+            refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
+        for i_ch, channel_id in enumerate(use_channels):
+            antenna_position = det.get_relative_position(station.get_id(), channel_id)
+            t_shifts[i_ch] = station.get_channel(channel_id).get_trace_start_time() -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
+
+        electric_field.set_trace_start_time(t_shifts.max())
         station.add_electric_field(electric_field)
 
         if debug:

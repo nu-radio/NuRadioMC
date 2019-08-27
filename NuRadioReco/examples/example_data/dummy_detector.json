@@ -164,6 +164,7 @@
             "station_id": 101
         }
     },
+    "positions": {},
     "stations": {
         "1": {
             "MAC_address": "0002F7F2E7B9",

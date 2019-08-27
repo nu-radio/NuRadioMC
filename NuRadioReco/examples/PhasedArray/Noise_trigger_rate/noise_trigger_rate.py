@@ -3,6 +3,7 @@ from NuRadioReco.utilities import units
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import constants
+import argparse
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 
 """
@@ -23,6 +24,10 @@ Increasing the number of samples is equivalent to increasing the number of
 tries, since the code calculates the probability of randomly triggering a
 single window filled with noise.
 """
+
+parser = argparse.ArgumentParser(description='calculates noise trigger rate for phased array')
+parser.add_argument('--ntries', type=int, help='number noise traces to which a trigger is applied for each threshold', default=100)
+args = parser.parse_args()
 
 main_low_angle = -53. * units.deg
 main_high_angle = 47. * units.deg
@@ -76,8 +81,9 @@ time_step = 1./sampling_rate
 bandwidth = max_freq-min_freq
 amplitude = (300 * 50 * constants.k * bandwidth / units.Hz) ** 0.5
 
-Ntries = 100 # number of tries
-threshold_factors = [2.5, 2.45, 2.4] # Factors used for calculating the threshold
+Ntries = args.ntries # number of tries
+
+# threshold_factors = [2.5, 2.45, 2.4]
 threshold_factors = [1.8, 1.85, 1.9, 1.95, 2.0]
 
 ratios = []
@@ -99,15 +105,10 @@ else:
 
 n_beams = len(primary_angles)
 
-print("Threshold factor --- Probability --- Noise trigger rate [Hz]")
 
 for threshold_factor in threshold_factors:
-
     prob_cross = 0
     for Ntry in range(Ntries):
-
-        if(Ntry % 100 == 0):
-            print("Trying", Ntry)
         noise_array = []
 
         for iant in range(len(primary_channels)):
@@ -147,6 +148,6 @@ for threshold_factor in threshold_factors:
 
     ratio = float(prob_cross)/Ntries
     trigger_frequency = 2*ratio/window_width / units.Hz
-    print(threshold_factor, ratio, trigger_frequency)
+    print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.5f}%, Noise trigger rate: {:.2f}'.format(threshold_factor, ratio*100., trigger_frequency))
 
     ratios.append(ratio)
