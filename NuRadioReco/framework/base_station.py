@@ -3,12 +3,15 @@ import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.trigger
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.parameters as parameters
+import datetime
+import astropy.time
 import NuRadioReco.framework.parameter_serialization
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
 import logging
+import collections
 logger = logging.getLogger('BaseStation')
 
 
@@ -20,10 +23,10 @@ class BaseStation():
         self._parameter_covariances = {}
         self._station_id = station_id
         self._station_time = None
-        self._triggers = {}
+        self._triggers = collections.OrderedDict()
         self._triggered = False
         self._electric_fields = []
-        self._particle_type = 'nu'
+        self._particle_type = ''
 
     def __setitem__(self, key, value):
         self.set_parameter(key, value)
@@ -71,11 +74,14 @@ class BaseStation():
         self._parameters.pop(key, None)
 
     def set_station_time(self, time):
-        self._station_time = time
+        if isinstance(time, datetime.datetime):
+            self._station_time = astropy.time.Time(time)
+        else:
+            self._station_time = time
 
     def get_station_time(self):
         return self._station_time
-
+    
 #     def get_trace(self):
 #         return self._time_trace
 #
@@ -96,6 +102,19 @@ class BaseStation():
         if(name not in self._triggers):
             raise ValueError("trigger with name {} not present".format(name))
         return self._triggers[name]
+    
+    def has_trigger(self, trigger_name):
+        """
+        checks if station has a trigger with a certain name
+        
+        Paramters
+        ---------
+        trigger_name: string
+            the name of the trigger
+            
+        Returns bool
+        """
+        return trigger_name in self._triggers
     
     def get_triggers(self):
         """
@@ -156,18 +175,27 @@ class BaseStation():
                     yield e_field
                 elif ray_path_type == e_field.get_parameter(parameters.electricFieldParameters.ray_path_type):
                     yield e_field
+
     def is_neutrino(self):
+        if self._particle_type == '':
+            logger.error("Stations particle type has not been set")
+            raise ValueError("Stations particle type has not been set")
+
         return self._particle_type == 'nu'
-        
+
     def is_cosmic_ray(self):
+        if self._particle_type == '':
+            logger.error("Stations particle type has not been set")
+            raise ValueError("Stations particle type has not been set")
+
         return self._particle_type == 'cr'
-        
+
     def set_is_neutrino(self):
         """
         set station type to neutrino
         """
         self._particle_type = 'nu'
-    
+
     def set_is_cosmic_ray(self):
         """
         set station type to cosmic rays (relevant e.g. for refraction into the snow)
@@ -233,5 +261,5 @@ class BaseStation():
         if('_ARIANNA_parameters') in data:
             self._ARIANNA_parameters = data['_ARIANNA_parameters']
         self._station_id = data['_station_id']
-        self._station_time = data['_station_time']
+        self.set_station_time(data['_station_time'])
         self._particle_type = data['_particle_type']

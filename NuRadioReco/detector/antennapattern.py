@@ -36,7 +36,7 @@ def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
     x1, y1: float, complex float
         the second data point
     interpolation_method: string
-        specifies if interpolation is in 
+        specifies if interpolation is in
         * complex (default) i.e. real and imaginary part
         * magnitude and phase
 
@@ -99,9 +99,9 @@ def get_group_delay(vector_effective_length, df):
         the vector effective length of an antenna
     df: float
         the size of a frequency bin
-    
+
     Returns: float (the group delay)
-        
+
 
     """
     return -np.diff(np.unwrap(np.angle(vector_effective_length))) / df / units.ns / 2 / np.pi
@@ -123,7 +123,7 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
         which antenna (one or two) to pull from
     s_parameters: list of 2 ints
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
-        
+
     Returns: all parameters of the files
     """
     boresight, tines = np.loadtxt(orientation, delimiter=',')
@@ -193,7 +193,7 @@ def preprocess_WIPLD_old(path, gen_num=1, s_paramateres=[1, 1]):
         which antenna (one or two) to pull from
     s_parameters: list of 2 ints
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
-        
+
     Returns:
         * zen_boresight: zenith angle of the boresight direction of the antenna
         * azi_boresight: azimuth angle of the boresight direction of the antenna
@@ -269,7 +269,7 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
         which antenna (one or two) to pull from
     s_parameters: list of 2 ints
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
-        
+
     Returns:
         * zen_boresight: zenith angle of the boresight direction of the antenna
         * azi_boresight: azimuth angle of the boresight direction of the antenna
@@ -340,7 +340,7 @@ def save_preprocessed_WIPLD(path):
 def save_preprocessed_WIPLD_forARA(path):
     """
     this function saves the realized gain in an ARASim readable format
-    
+
     Parameters
     ----------
     path: string
@@ -392,12 +392,12 @@ def save_preprocessed_WIPLD_forARA(path):
                                                                        np.angle(H_phi[mask][i])/units.deg))
 
 
-def get_WIPLD_antenna_response(path):
+def get_pickle_antenna_response(path):
     """
     opens and return the pickle file containing the preprocessed WIPL-D antenna simulation
     If the pickle file is not present on the local file system, or if the file is outdated (verified via a sha1 hash sum),
     the file will be downloaded from a central data server
-    
+
 
     Parameters:
     ----------
@@ -451,13 +451,119 @@ def get_WIPLD_antenna_response(path):
             raise IOError
         with open(path, "wb") as code:
             code.write(r.content)
-        logger.info("...download finished.")
+        logger.warning("...download finished.")
 
 #         # does not exist yet -> precalculating WIPLD simulations from raw WIPLD output
 #         preprocess_WIPLD(path)
     with open(path, 'rb') as fin:
         res = pickle.load(fin)
         return res
+
+
+def parse_AERA_XML_file(path):
+    import xml.etree.ElementTree as ET
+
+    if not os.path.exists(path):
+        logger.error("AERA antenna file {} not found".format(path))
+        raise OSError
+    
+    antenna_file = open(path, "rb")
+
+    antenna_data = "<antenna>" + antenna_file.read() + "</antenna>"  # add pseudo root element
+
+    # get root element
+    root = ET.fromstring(antenna_data)
+
+    # get frequencies and angles
+    frequencies_node = root.find("./frequency")
+    frequencies = np.array(frequencies_node.text.strip().split(), dtype=np.float) * units.MHz
+
+    theta_node = root.find("./theta")
+    thetas = np.array(theta_node.text.strip().split(), dtype=np.float) * units.deg
+
+    phi_node = root.find("./phi")
+    phis = np.array(phi_node.text.strip().split(), dtype=np.float) * units.deg
+
+    n_freqs = len(frequencies)
+    n_angles = len(phis)
+
+    # get amplitude and phase
+    theta_amps = np.zeros((n_freqs, n_angles))
+    theta_phases = np.zeros((n_freqs, n_angles))
+    phi_amps = np.zeros((n_freqs, n_angles))
+    phi_phases = np.zeros((n_freqs, n_angles))
+
+    for iFreq, freq in enumerate(frequencies / units.MHz):
+        freq_string = "%.2f" % freq
+
+        theta_amp_node = root.find("./EAHTheta_amp[@idfreq='%s']" % freq_string)
+
+        # check string
+        if(theta_amp_node is None):
+            freq_string = "%.1f" % freq
+
+        theta_amp_node = root.find("./EAHTheta_amp[@idfreq='%s']" % freq_string)
+        theta_amps[iFreq] = np.array(theta_amp_node.text.strip().split(), dtype=np.float) * units.m
+
+        theta_phase_node = root.find("./EAHTheta_phase[@idfreq='%s']" % freq_string)
+        theta_phases[iFreq] = np.deg2rad(np.array(theta_phase_node.text.strip().split(" "), dtype=np.float))
+
+        phi_amp_node = root.find("./EAHPhi_amp[@idfreq='%s']" % freq_string)
+        phi_amps[iFreq] = np.array(phi_amp_node.text.strip().split(), dtype=np.float) * units.m
+
+        phi_phase_node = root.find("./EAHPhi_phase[@idfreq='%s']" % freq_string)
+        phi_phases[iFreq] = np.deg2rad(np.array(phi_phase_node.text.strip().split(), dtype=np.float))
+
+    return frequencies, phis, thetas, phi_amps, phi_phases, theta_amps, theta_phases
+
+
+def preprocess_AERA(path):
+
+    frequencies, phis, thetas, phi_amps, phi_phases, theta_amps, theta_phases = parse_AERA_XML_file(path)
+
+    n_freqs = len(frequencies)
+    n_angles = len(phis)
+
+    def P2R(magnitude, phase):
+        return magnitude * np.exp(1j * phase)
+
+    VEL_thetas = P2R(theta_amps, theta_phases)
+    VEL_phis = P2R(phi_amps, phi_phases)
+
+    # (angle) -> (freq * angle)
+    thetas = np.tile(thetas, n_freqs)
+    phis = np.tile(phis, n_freqs)
+
+    # (freq) -> (freq * angles)
+    ff = np.repeat(frequencies, n_angles)
+
+    # sort with increasing frequency, increasing phi, and increasing theta
+    index = np.lexsort((thetas, phis, ff))
+    VEL_thetas = VEL_thetas.flatten()[index]
+    VEL_phis = VEL_phis.flatten()[index]
+
+    # (angle) -> (freq * angle)
+    theta = np.tile(thetas, n_freqs)[index]
+    phi = np.tile(phis, n_freqs)[index]
+
+    # to avoid issues when deviding throw H (H=0 is ignored)
+    # |H| < 0.1 should not happen between 30 - 80 MHz
+    H_phi = np.where(np.abs(VEL_phis) > 0.01, VEL_phis, 0)
+    H_theta = np.where(np.abs(VEL_thetas) > 0.01, VEL_thetas, 0)
+
+    # values for a upwards pointing LPDA with the arm aligned to the magnetic field
+    zen_boresight, azi_boresight, zen_ori, azi_ori = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg
+
+    fname = os.path.split(os.path.basename(path))[1].replace('.xml', '')
+    output_filename = '{}_InfAir.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
+
+    directory = os.path.dirname(output_filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    with open(output_filename, 'wb') as fout:
+        logger.info('saving output to {}'.format(output_filename))
+        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
 
 
 def parse_ARA_file(ara):
@@ -468,7 +574,7 @@ def parse_ARA_file(ara):
     ----------
     ara: string
         path to the file
-    
+
     Returns:
         * ff: array of floats
             frequencies
@@ -525,7 +631,7 @@ def parse_ARA_file(ara):
 def preprocess_ARA(path):
     """
     preprocess an antenna pattern in the ARASim ASCII file format. The vector effective length is calculated and
-    the output is saved to the NuRadioReco pickle format. 
+    the output is saved to the NuRadioReco pickle format.
 
     Parameters:
     ----------
@@ -552,7 +658,7 @@ def preprocess_ARA(path):
 def preprocess_XFDTD(path):
     """
     preprocess an antenna pattern in the XFDTD file format. The vector effective length is calculated and
-    the output is saved to the NuRadioReco pickle format. 
+    the output is saved to the NuRadioReco pickle format.
 
     Parameters:
     ----------
@@ -731,6 +837,7 @@ class AntennaPattern(AntennaPatternBase):
             * 'complex' (default) interpolate real and imaginary part of vector effective length
             * 'magphase' interpolate magnitude and phase of vector effective length
         """
+
         self._name = antenna_model
         self._interpolation_method = interpolation_method
         from time import time
@@ -738,7 +845,9 @@ class AntennaPattern(AntennaPatternBase):
         filename = os.path.join(path, antenna_model, "{}.pkl".format(antenna_model))
         self._notfound = False
         try:
-            self._zen_boresight, self._azi_boresight, self._zen_ori, self._azi_ori, ff, thetas, phis, H_phi, H_theta = get_WIPLD_antenna_response(filename)
+            self._zen_boresight, self._azi_boresight, self._zen_ori, self._azi_ori, \
+                    ff, thetas, phis, H_phi, H_theta = get_pickle_antenna_response(filename)
+
         except IOError:
             self._notfound = True
             logger.warning("antenna response for {} not found".format(antenna_model))
@@ -1033,8 +1142,8 @@ class AntennaPatternProvider(object):
     def __init__(self):
         """
         Provider class for antenna pattern. The usage of antenna pattern through this class ensures
-        that an antenna pattern is loaded only once into memory which takes a significant time and occupies a 
-        significant amount of memory. 
+        that an antenna pattern is loaded only once into memory which takes a significant time and occupies a
+        significant amount of memory.
         """
         self._open_antenna_patterns = {}
         self._antenna_model_replacements = {}
@@ -1048,16 +1157,18 @@ class AntennaPatternProvider(object):
     def load_antenna_pattern(self, name, **kwargs):
         """
         loads an antenna pattern and returns the antenna pattern class
-        
+
         Paramters
         ----------
         name: string
             the name of the antenna pattern
         **kwargs: dict
-            key word arguments that are passed to the init function of the `AntennaPattern` class (see 
+            key word arguments that are passed to the init function of the `AntennaPattern` class (see
             documentation of this class for further information)
         """
         if(name in self._antenna_model_replacements.keys()):
+            if(self._antenna_model_replacements[name] not in self._open_antenna_patterns.keys()):
+                logger.warning("local replacement of antenna model requsted: replacing {} with {}".format(name, self._antenna_model_replacements[name]))
             name = self._antenna_model_replacements[name]
         if (name not in self._open_antenna_patterns.keys()):
             if(name.startswith("analytic")):

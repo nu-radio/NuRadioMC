@@ -139,7 +139,7 @@ class triggerSimulator:
 
             long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=50 * units.MHz,
                                             max_freq=1000 * units.MHz,
-                                            n_samples=10001,
+                                            n_samples=10000,
                                             sampling_rate=channel.get_sampling_rate(),
                                             amplitude=20.*units.mV,
                                             type='perfect_white')
@@ -208,7 +208,7 @@ class triggerSimulator:
         trigger_time_sample = None
         # loop over the trace with a sliding window of "coinc_window"
         coinc_window_samples = np.int(np.round(coinc_window * channel.get_sampling_rate()))
-        trace_length = len(station.get_number_of_channels().get_trace())
+        trace_length = len(station.get_channel(0).get_trace())
         sampling_rate = station.get_channel(0).get_sampling_rate()
 
         for i in range(0, trace_length - coinc_window_samples):
@@ -241,7 +241,7 @@ class triggerSimulator:
             trigger.set_trigger_time(trigger_time_sample / sampling_rate)
             logger.info("Station has passed trigger, trigger time is {:.1f} ns (sample {})".format(
                 trigger.get_trigger_time() / units.ns, trigger_time_sample))
-            
+
         station.set_trigger(trigger)
 
     def end(self):

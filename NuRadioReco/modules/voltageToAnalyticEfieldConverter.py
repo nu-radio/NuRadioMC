@@ -295,9 +295,13 @@ class voltageToAnalyticEfieldConverter:
             be save into the `debug_plotpath` directory
         use_channels: array of ints
             the channel ids to use for the electric field reconstruction
+            default: 0 - 3
         bandpass: [float, float]
             the lower and upper frequecy for which the analytic pulse is calculated.
             A butterworth filter of 10th order and a rectangular filter is applied.
+            default 100 - 500 MHz
+        useMCdirection: bool
+            use simulated direction instead of reconstructed direction
         """
         self.__counter += 1
         event_time = station.get_station_time()
@@ -361,7 +365,6 @@ class voltageToAnalyticEfieldConverter:
             elif(len(params) == 1):
                 ampPhi = params[0]
                 ampTheta = 0
-
             analytic_pulse_theta = pulse.get_analytic_pulse_freq(ampTheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
             analytic_pulse_phi = pulse.get_analytic_pulse_freq(ampPhi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
             chi2 = 0
@@ -438,6 +441,67 @@ class voltageToAnalyticEfieldConverter:
             logger.debug("amp phi = {:.4g}, amp theta = {:.4g}, slope = {:.4g} chi2 = {:.8g}".format(ampPhi, ampTheta, slope, chi2))
             if(debug_obj and self.i_slope_fit_iterations%25==0):
 #                 ax[0][0].set_title("ratio = {:.2f} ({:.2f}), slope = {:.2g}, phase = {:.0f} ({:.2f}), chi2 = {:.2g}".format(ratio, ratio2, slope, phase / units.deg, phase2, chi2))
+                fig.tight_layout()
+                plt.show()
+                self.i_slope_fit_iterations = 0
+            self.i_slope_fit_iterations += 1
+            return chi2
+
+        def obj_amplitude_second_order(params, slope, phase, pos, compare='hilbert', debug_obj=0):
+            ampPhi, ampTheta, second_order = params
+            analytic_pulse_theta = pulse.get_analytic_pulse_freq(ampTheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, quadratic_term=second_order, quadratic_term_offset = bandpass[0])
+            analytic_pulse_phi = pulse.get_analytic_pulse_freq(ampPhi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, quadratic_term=second_order, quadratic_term_offset = bandpass[0])
+            chi2 = 0
+            if(debug_obj and self.i_slope_fit_iterations%50 == 0):
+                fig, ax = plt.subplots(5, 2, sharex=False, figsize=(20,10))
+
+            n_channels = len(V_timedomain)
+            analytic_traces = np.zeros((n_channels, n_samples_time))
+            # first determine the position with the larges xcorr
+            channel_max = 0
+            for trace in V_timedomain:
+                if np.max(np.abs(trace))>channel_max:
+                    channel_max = np.max(np.abs(trace))
+                    argmax = np.argmax(np.abs(trace))
+                    imin = np.int(max(argmax - 50 * sampling_rate, 0))
+                    imax = np.int(argmax + 50 * sampling_rate)
+            for iCh, trace in enumerate(V_timedomain):
+                analytic_trace_fft = np.sum(efield_antenna_factor[iCh] * np.array([analytic_pulse_theta, analytic_pulse_phi]), axis=0)
+                analytic_traces[iCh] = fft.freq2time(analytic_trace_fft)
+                if compare == 'trace':
+                    tmp = np.sum(np.abs(trace[imin:imax] - np.roll(analytic_traces[iCh], pos)[imin:imax])**2) / noise_RMS**2
+                elif compare == 'abs':
+                    tmp = np.sum(np.abs(np.abs(trace[imin:imax]) - np.abs(np.roll(analytic_traces[iCh], pos)[imin:imax]))**2) / noise_RMS**2
+                elif compare == 'hilbert':
+                    tmp = np.sum(np.abs(np.abs(signal.hilbert(trace[imin:imax])) - np.abs(signal.hilbert(np.roll(analytic_traces[iCh], pos)[imin:imax])))**2) / noise_RMS**2
+                else:
+                    raise NameError('Unsupported value for parameter "compare": {}. Value must be "trace", "abs" or "hilbert".'.format(compare))
+                chi2 += tmp
+                if(debug_obj and self.i_slope_fit_iterations%50==0):
+                    ax[iCh][1].plot(np.array(trace)/units.mV, label='measurement', color='blue')
+                    ax[iCh][1].plot(np.roll(analytic_traces[iCh], pos)/units.mV, '--', label='fit', color='orange')
+                    ax[iCh][1].plot(np.abs(signal.hilbert(trace))/units.mV, linestyle=':', color='blue')
+                    ax[iCh][1].plot(np.abs(signal.hilbert(np.roll(analytic_traces[iCh], pos)))/units.mV, ':', label='fit', color='orange')
+                    #ax[iCh][1].plot(trace - np.roll(analytic_traces[iCh], pos), label='delta')
+                    ax[iCh][0].plot(np.abs(fft.time2freq(trace))/units.mV, label='measurement')
+                    ax[iCh][0].plot(np.abs(fft.time2freq(np.roll(analytic_traces[iCh], pos)))/units.mV, '--', label='fit')
+                    ax[iCh][0].set_xlim([0, 600])
+                    ax[iCh][1].set_xlim([imin-500,imax+500])
+                    ax[iCh][1].axvline(imin, linestyle='--', alpha=.8)
+                    ax[iCh][1].axvline(imax, linestyle='--', alpha=.8)
+            if(debug_obj and self.i_slope_fit_iterations%50 == 0):
+                sim_channel = station.get_sim_station().get_channel(0)[0]
+                ax[4][0].plot(sim_channel.get_frequencies()/units.MHz, np.abs(pulse.get_analytic_pulse_freq(ampTheta, slope, phase, len(sim_channel.get_times()), sim_channel.get_sampling_rate(), bandpass=bandpass, quadratic_term=second_order)), '--', color='orange')
+                ax[4][0].plot(sim_channel.get_frequencies()/units.MHz, np.abs(station.get_sim_station().get_channel(0)[0].get_frequency_spectrum()[1]), color='blue')
+                ax[4][1].plot(sim_channel.get_frequencies()/units.MHz, np.abs(pulse.get_analytic_pulse_freq(ampPhi, slope, phase, len(sim_channel.get_times()), sim_channel.get_sampling_rate(), bandpass=bandpass, quadratic_term=second_order)), '--', color='orange')
+                ax[4][1].plot(sim_channel.get_frequencies()/units.MHz, np.abs(sim_channel.get_frequency_spectrum()[2]), color='blue')
+                ax[4][0].set_xlim([20,500])
+                ax[4][1].set_xlim([20,500])
+                #ax[4][0].set_yscale('log')
+                #ax[4][1].set_yscale('log')
+            logger.debug("amp phi = {:.4g}, amp theta = {:.4g}, slope = {:.4g} chi2 = {:.8g}".format(ampPhi, ampTheta, slope, chi2))
+            if(debug_obj and self.i_slope_fit_iterations%50==0):
+        #                 ax[0][0].set_title("ratio = {:.2f} ({:.2f}), slope = {:.2g}, phase = {:.0f} ({:.2f}), chi2 = {:.2g}".format(ratio, ratio2, slope, phase / units.deg, phase2, chi2))
                 fig.tight_layout()
                 plt.show()
                 self.i_slope_fit_iterations = 0
@@ -541,7 +605,7 @@ class voltageToAnalyticEfieldConverter:
 
         electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels)
         electric_field.set_trace(station_trace, sampling_rate)
-        energy_fluence = trace_utilities.get_electric_field_energy_fluence(electric_field.get_trace(), electric_field.get_times())        
+        energy_fluence = trace_utilities.get_electric_field_energy_fluence(electric_field.get_trace(), electric_field.get_times())
         electric_field.set_parameter(efp.signal_energy_fluence, energy_fluence)
         electric_field.set_parameter_error(efp.signal_energy_fluence, np.array([0, Atheta_error, Aphi_error]))
         electric_field.set_parameter(efp.cr_spectrum_slope, slope)
@@ -560,13 +624,32 @@ class voltageToAnalyticEfieldConverter:
 
         # compute expeted polarization
         site = det.get_site(station.get_id())
-        exp_efield = hp.get_lorentzforce_vector(station[stnp.zenith], station[stnp.azimuth], hp.get_magnetic_field_vector(site))
-        cs = coordinatesystems.cstrafo(station[stnp.zenith], station[stnp.azimuth], site=site)
+        exp_efield = hp.get_lorentzforce_vector(zenith, azimuth, hp.get_magnetic_field_vector(site))
+        cs = coordinatesystems.cstrafo(zenith, azimuth, site=site)
         exp_efield_onsky = cs.transform_from_ground_to_onsky(exp_efield)
         exp_pol_angle = np.arctan2(exp_efield_onsky[2], exp_efield_onsky[1])
         logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
         electric_field.set_parameter(efp.polarization_angle_expectation, exp_pol_angle)
+        res_amp_second_order = opt.minimize(obj_amplitude_second_order, x0=[res_amp_slope.x[0], res_amp_slope.x[1], 0], args=(slope, phase, pos, 'hilbert', False),
+                                     method=method, options=options)
+        second_order_correction = res_amp_second_order.x[2]
+        electric_field.set_parameter(efp.cr_spectrum_quadratic_term, second_order_correction)
+        # figure out the timing of the electric field
+        voltages_from_efield = trace_utilities.get_channel_voltage_from_efield(station, electric_field, use_channels, det, zenith, azimuth, self.antenna_provider, False)
+        correlation = np.zeros(voltages_from_efield.shape[1] + station.get_channel(use_channels[0]).get_trace().shape[0]-1)
+        channel_trace_start_times = []
+        for channel_id in use_channels:
+            channel_trace_start_times.append(station.get_channel(channel_id).get_trace_start_time())
+        average_trace_start_time = np.average(channel_trace_start_times)
+        for i_trace, v_trace in enumerate(voltages_from_efield):
+            channel = station.get_channel(use_channels[i_trace])
+            time_shift = geo_utl.get_time_delay_from_direction(zenith, azimuth, det.get_relative_position(station.get_id(), use_channels[i_trace])) - (channel.get_trace_start_time() - average_trace_start_time)
+            voltage_trace = np.roll(np.copy(v_trace), int(time_shift*electric_field.get_sampling_rate()))
+            correlation += signal.correlate(voltage_trace, channel.get_trace())
+        toffset = (np.arange(0, correlation.shape[0]) - channel.get_trace().shape[0]) / electric_field.get_sampling_rate()
+        electric_field.set_trace_start_time(-toffset[np.argmax(correlation)] + average_trace_start_time)
         station.add_electric_field(electric_field)
+
         if debug:
             analytic_traces = np.zeros((n_channels, n_samples_time))
             for iCh, trace in enumerate(V_timedomain):

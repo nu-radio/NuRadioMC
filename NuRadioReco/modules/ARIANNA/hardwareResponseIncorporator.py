@@ -62,12 +62,12 @@ class hardwareResponseIncorporator:
             
         t = time.time()
         station_id = station.get_id()
-        frequencies = station.get_channel(0).get_frequencies()  # get frequencies, the sampling rate is assumed to be the same for all channels
         # buffer amplifier and cable responses
 #         cable_time_delay = self.__calculate_time_delays_cable()
 #         logger.debug("cable time delay is {}ns".format(cable_time_delay / units.ns))
 
         for channel in station.iter_channels():
+            frequencies = channel.get_frequencies()
             amp_type = det.get_amplifier_type(station_id, channel.get_id())
             amp_measurement = det.get_amplifier_measurement(station_id, channel.get_id())
             trace_fft = channel.get_frequency_spectrum()

@@ -16,18 +16,65 @@ VERSION_MINOR = 1
 class NuRadioRecoio(object):
 
     def __init__(self, filenames, parse_header=True, fail_on_version_mismatch=True,
-                 fail_on_minor_version_mismatch=False):
+                 fail_on_minor_version_mismatch=False,
+                 max_open_files=10, log_level=logging.WARNING):
+        """
+        Initialize NuRadioReco io
+        
+        Parameters
+        ----------
+        filenames: string or list of strings
+            the input file/files
+        max_open_files: int
+            the maximum number of files that remain open simultaneously
+        """
         if(not isinstance(filenames, list)):
             filenames = [filenames]
         self.__file_scanned = False
         logger.info("initializing NuRadioRecoio with file {}".format(filenames))
         t = time.time()
+        logger.setLevel(log_level)
         self.__fail_on_version_mismatch = fail_on_version_mismatch
         self.__fail_on_minor_version_mismatch = fail_on_minor_version_mismatch
         self.__parse_header = parse_header
         self.__read_lock = False
+        self.__max_open_files = max_open_files
         self.openFile(filenames)
         logger.info("... finished in {:.0f} seconds".format(time.time() - t))
+        
+    def __get_file(self, iF):
+        if(iF not in self.__open_files):
+            logger.debug("file {} is not yet open, opening file".format(iF))
+            self.__open_files[iF] = {} 
+            self.__open_files[iF]['file'] = open(self.__filenames[iF], 'rb')
+            self.__open_files[iF]['time'] = time.time()
+            self.__check_file_version(iF)
+            if(len(self.__open_files) > self.__max_open_files):
+                logger.debug("more than {} file are open, closing oldest file".format(self.__max_open_files))
+                tnow = time.time()
+                iF_close = 0
+                for key, value in self.__open_files.iteritems():
+                    if(value['time'] < tnow):
+                        tnow = value['time'] 
+                        iF_close = key
+                logger.debug("closing file {} that was opened at {}".format(iF_close, tnow))
+                self.__open_files[iF_close]['file'].close()
+                del self.__open_files[iF_close]
+        return self.__open_files[iF]['file']
+
+    def __check_file_version(self, iF):
+        self.__file_version = int(self.__get_file(iF).read(6), 16)
+        self.__file_version_minor = int(self.__get_file(iF).read(6), 16)
+        if(self.__file_version != VERSION):
+            logger.error("data file not readable. File has version {}.{} but current version is {}.{}".format(self.__file_version, self.__file_version_minor,
+                                                                                                              VERSION, VERSION_MINOR))
+            if(self.__fail_on_version_mismatch):
+                raise IOError
+        if(self.__file_version_minor != VERSION_MINOR):
+            logger.error("data file might not readable. File has version {}.{} but current version is {}.{}".format(self.__file_version, self.__file_version_minor,
+                                                                                                              VERSION, VERSION_MINOR))
+            if(self.__fail_on_minor_version_mismatch):
+                raise IOError
 
     def openFile(self, filenames):
         self.__filenames = filenames
@@ -37,29 +84,15 @@ class NuRadioRecoio(object):
         self.__bytes_length_header = [[]]
         self.__bytes_start = [[]]
         self.__bytes_length = [[]]
-        self.__fin = []
-        for iF, filename in enumerate(filenames):
-            self.__fin.append(open(filename, 'rb'))
-            self.__file_version = int(self.__fin[iF].read(6), 16)
-            self.__file_version_minor = int(self.__fin[iF].read(6), 16)
-            if(self.__file_version != VERSION):
-                logger.error("data file not readable. File has version {}.{} but current version is {}.{}".format(self.__file_version, self.__file_version_minor,
-                                                                                                                  VERSION, VERSION_MINOR))
-                if(self.__fail_on_version_mismatch):
-                    raise IOError
-            if(self.__file_version_minor != VERSION_MINOR):
-                logger.error("data file might not readable. File has version {}.{} but current version is {}.{}".format(self.__file_version, self.__file_version_minor,
-                                                                                                                  VERSION, VERSION_MINOR))
-                if(self.__fail_on_minor_version_mismatch):
-                    raise IOError
-
+        self.__open_files = {}
+        
         self.__event_headers = {}
         if(self.__parse_header):
             self.__scan_files()
 
     def close_files(self):
-        for f in self.__fin:
-            f.close()
+        for f in self.__open_files:
+            f['file'].close()
 
     def get_filenames(self):
         return self.__filenames
@@ -87,15 +120,15 @@ class NuRadioRecoio(object):
         current_byte = 12  # skip datafile header
         iF = 0
         while True:
-            self.__fin[iF].seek(current_byte)
-            bytes_to_read_hex = self.__fin[iF].read(6)
+            self.__get_file(iF).seek(current_byte)
+            bytes_to_read_hex = self.__get_file(iF).read(6)
             if(bytes_to_read_hex == ''):
                 # we are at the end of the file
-                if(iF < (len(self.__fin) - 1)):  # are there more files to be parsed?
+                if(iF < (len(self.__filenames) - 1)):  # are there more files to be parsed?
                     iF += 1
                     current_byte = 12  # skip datafile header
-                    self.__fin[iF].seek(current_byte)
-                    bytes_to_read_hex = self.__fin[iF].read(6)
+                    self.__get_file(iF).seek(current_byte)
+                    bytes_to_read_hex = self.__get_file(iF).read(6)
                     self.__bytes_start_header.append([])
                     self.__bytes_length_header.append([])
                     self.__bytes_start.append([])
@@ -108,11 +141,11 @@ class NuRadioRecoio(object):
             self.__bytes_length_header[iF].append(bytes_to_read)
             current_byte += bytes_to_read
 
-            evt_header = pickle.loads(self.__fin[iF].read(bytes_to_read))
+            evt_header = pickle.loads(self.__get_file(iF).read(bytes_to_read))
             self.__parse_event_header(evt_header)
 
-            self.__fin[iF].seek(current_byte)
-            bytes_to_read_hex = self.__fin[iF].read(6)
+            self.__get_file(iF).seek(current_byte)
+            bytes_to_read_hex = self.__get_file(iF).read(6)
             current_byte += 6
             bytes_to_read = int(bytes_to_read_hex, 16)
             self.__bytes_start[iF].append(current_byte)
@@ -140,6 +173,9 @@ class NuRadioRecoio(object):
         return self.__event_headers
 
     def get_event_ids(self):
+        """
+        returns a list of (run, eventid) tuples of all events contained in the data file
+        """
         if(not self.__file_scanned):
             self.__scan_files()
         return self.__event_ids
@@ -158,7 +194,7 @@ class NuRadioRecoio(object):
         # determine in which file event i is
         istart = 0
         file_id = 0
-        for iF in range(len(self.__fin)):
+        for iF in range(len(self.__filenames)):
             istop = istart + len(self.__bytes_start[iF])
             if((event_number >= istart) and (event_number < istop)):
                 file_id = iF
@@ -167,8 +203,8 @@ class NuRadioRecoio(object):
             else:
                 istart = istop
 
-        self.__fin[file_id].seek(self.__bytes_start[file_id][event_id])
-        evtstr = self.__fin[file_id].read(self.__bytes_length[file_id][event_id])
+        self.__get_file(file_id).seek(self.__bytes_start[file_id][event_id])
+        evtstr = self.__get_file(file_id).read(self.__bytes_length[file_id][event_id])
         event = NuRadioReco.framework.event.Event(0, 0)
         event.deserialize(evtstr)
         self.__read_lock = False
@@ -181,26 +217,27 @@ class NuRadioRecoio(object):
             if self.__event_ids[i][0] == event_id[0] and self.__event_ids[i][1] == event_id[1]:
                 return self.get_event_i(i)
         logger.error('event number {} not found in file'.format(event_id))
+        return None
 
     def get_events(self):
         iF = 0
-        self.__fin[iF].seek(12)  # skip file header
+        self.__get_file(iF).seek(12)  # skip file header
         while True:
-            bytes_to_read_hex = self.__fin[iF].read(6)
+            bytes_to_read_hex = self.__get_file(iF).read(6)
             if(bytes_to_read_hex == ''):
                 # we are at the end of the file
-                if(iF < (len(self.__fin) - 1)):  # are there more files to be parsed?
+                if(iF < (len(self.__filenames) - 1)):  # are there more files to be parsed?
                     iF += 1
-                    self.__fin[iF].seek(12)  # skip datafile header
-                    bytes_to_read_hex = self.__fin[iF].read(6)
+                    self.__get_file(iF).seek(12)  # skip datafile header
+                    bytes_to_read_hex = self.__get_file(iF).read(6)
                 else:
                     break
             bytes_to_read = int(bytes_to_read_hex, 16)
-            evt_header_str = self.__fin[iF].read(bytes_to_read)
+            evt_header_str = self.__get_file(iF).read(bytes_to_read)
 
-            bytes_to_read_hex = self.__fin[iF].read(6)
+            bytes_to_read_hex = self.__get_file(iF).read(6)
             bytes_to_read = int(bytes_to_read_hex, 16)
-            evtstr = self.__fin[iF].read(bytes_to_read)
+            evtstr = self.__get_file(iF).read(bytes_to_read)
             event = NuRadioReco.framework.event.Event(0, 0)
             event.deserialize(evtstr)
             yield event

@@ -26,7 +26,7 @@ class noiseImporter:
         self.__station_id = None
 
     def begin(self, noise_folder, station_id=None, noise_files=None,
-              channel_mapping=None):
+              channel_mapping=None, log_level=logging.WARNING, mean_opt=True):
         """
         Parameters
         ----------
@@ -43,8 +43,14 @@ class noiseImporter:
             have forced triggers for. The channel_mapping dictionary maps the channel
             ids of the MC station to the channel ids of the noise data
             Default is None which is 1-to-1 mapping
+        log_level: loggging log level
+            the log level, default logging.WARNING
+        mean_opt: boolean
+            option to subtract mean from trace. Set mean_opt=False to remove mean subtraction from trace.
         """
+        logger.setLevel(log_level)
         self.__channel_mapping = channel_mapping
+        self.__mean_opt = mean_opt
         if(noise_files is not None):
             self.__noise_files = noise_files
         else:
@@ -89,7 +95,9 @@ class noiseImporter:
         noise_station = noise_event.get_station(station_id)
         if noise_station is None:
             raise KeyError('Station whith ID {} not found in noise file'.format(station_id))
-        logger.info("choosing noise event {} ({}) randomly".format(i_noise, noise_station.get_station_time()))
+        logger.info("choosing noise event {} ({}, run {}, event {}) randomly".format(i_noise, noise_station.get_station_time(),
+                                                                                     noise_event.get_run_number(),
+                                                                                     noise_event.get_id()))
 
         for channel in station.iter_channels():
             channel_id = channel.get_id()
@@ -103,15 +111,19 @@ class noiseImporter:
                 sys.exit(-1)
             # check sampling rate
             if (channel.get_sampling_rate() != noise_channel.get_sampling_rate()):
-                logger.error("Mismatch in sampling rate: Noise has {0} and simulation {1} GHz".format(noise_channel.get_sampling_rate() / units.GHz, channel.get_sampling_rate() / units.GHz))
+                logger.error("Mismatch in sampling rate: Noise has {0} and simulation {1} GHz".format(
+                    noise_channel.get_sampling_rate() / units.GHz, channel.get_sampling_rate() / units.GHz))
                 sys.exit(-1)
 
-            mean = noise_trace.mean()
-            std = noise_trace.std()
-            if(mean > 0.05 * std):
-                logger.warning("the noise trace has an offset of {:.2}mV which is more than 5\% of the STD of {:.2f}mV. The module corrects for the offset but it might points to an error in the FPN subtraction.".format(mean, std))
+            trace = trace + noise_trace
 
-            trace = trace + noise_trace - mean
+            if self.__mean_opt:
+                mean = noise_trace.mean()
+                std = noise_trace.std()
+                if(mean > 0.05 * std):
+                    logger.warning(
+                        "the noise trace has an offset of {:.2}mV which is more than 5\% of the STD of {:.2f}mV. The module corrects for the offset but it might points to an error in the FPN subtraction.".format(mean, std))
+                trace = trace - mean
 
             channel.set_trace(trace, channel.get_sampling_rate())
 

@@ -90,17 +90,15 @@ class electricFieldSignalReconstructor:
             if(debug):
                 fig, ax = plt.subplots(1, 1)
                 tt = electric_field.get_times()
-                t0 = electric_field.get_trace_start_time()
                 dt = 1. / electric_field.get_sampling_rate()
                 ax.plot(tt / units.ns, trace[1] / units.mV * units.m)
                 ax.plot(tt / units.ns, trace[2] / units.mV * units.m)
                 ax.plot(tt / units.ns, envelope_mag / units.mV * units.m)
-                ax.vlines([low_pos * dt + t0, up_pos * dt + t0], 0, envelope_mag.max() / units.mV * units.m)
-                ax.vlines([signal_time - self.__signal_window_pre + t0, signal_time + self.__signal_window_post + t0], 0, envelope_mag.max() / units.mV * units.m, linestyles='dashed')
+                ax.vlines([low_pos * dt, up_pos * dt], 0, envelope_mag.max() / units.mV * units.m)
+                ax.vlines([signal_time - self.__signal_window_pre, signal_time + self.__signal_window_post], 0, envelope_mag.max() / units.mV * units.m, linestyles='dashed')
 
-            t0 = electric_field.get_trace_start_time()
             times = electric_field.get_times()
-            mask_signal_window = (times > (signal_time - self.__signal_window_pre + t0)) & (times < (signal_time + self.__signal_window_post + t0))
+            mask_signal_window = (times > (signal_time - self.__signal_window_pre )) & (times < (signal_time + self.__signal_window_post))
             mask_noise_window = np.zeros_like(mask_signal_window, dtype=np.bool)
             if(self.__noise_window > 0):
                 mask_noise_window[np.int(np.round((-self.__noise_window - 141.) * electric_field.get_sampling_rate())):np.int(np.round(-141. * electric_field.get_sampling_rate()))] = np.ones(np.int(np.round(self.__noise_window * electric_field.get_sampling_rate())), dtype=np.bool)  # the last n bins
