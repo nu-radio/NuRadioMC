@@ -26,7 +26,7 @@ points = np.array([xx, yy, zz]).T
 x_receiver = np.array([0., 0., -5.])
 
 results_C0s_cpp = np.zeros((n_events, 2))
-n_freqs = 256/2 + 1
+n_freqs = 256//2 + 1
 # n_freqs = 5
 results_A_cpp = np.zeros((n_events, 2, n_freqs))
 t_start = time.time()
@@ -41,8 +41,8 @@ for iX, x in enumerate(points):
         for iS in range(r.get_number_of_solutions()):
             results_C0s_cpp[iX, iS] = r.get_results()[iS]['C0']
 
-with open("reference_C0.pkl", "r") as fin:
-    results_C0s_cpp_ref = pickle.load(fin)
+with open("reference_C0.pkl", "rb") as fin:
+    results_C0s_cpp_ref = pickle.load(fin, encoding='latin1')
     testing.assert_allclose(results_C0s_cpp, results_C0s_cpp_ref)
 
 print('T05unit_test_c0_SP passed without issues')
