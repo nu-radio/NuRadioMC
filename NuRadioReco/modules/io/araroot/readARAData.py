@@ -89,7 +89,7 @@ class readARAData:
             real_ptr=ROOT.UsefulAtriStationEvent(self.raw_ptr,ROOT.AraCalType.kLatestCalib)
 
             # Loop over all channels in data
-            for iCh in xrange(n_channels):
+            for iCh in range(n_channels):
 
                 channel =NuRadioReco.framework.channel.Channel(iCh)
 
