@@ -14,8 +14,8 @@ plt.switch_backend('agg')
 
 i = 2
 
-with open("sim_results_{:02d}.pkl".format(i), 'r') as fin:
-    results = pickle.load(fin)
+with open("sim_results_{:02d}.pkl".format(i), 'rb') as fin:
+    results = pickle.load(fin, encoding='latin1')
     d = results['depth']
     zen = np.array(results['exp'])[:, 0]
     az = np.array(results['exp'])[:, 1]
