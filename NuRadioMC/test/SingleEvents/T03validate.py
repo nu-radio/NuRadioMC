@@ -17,7 +17,8 @@ print("Testing the files {} and {} for equality".format(file1, file2))
 fin1 = h5py.File(file1, 'r')
 fin2 = h5py.File(file2, 'r')
 
-attributes = [u'trigger_names',
+attributes = [
+ u'trigger_names',
  u'Tnoise',
  u'Vrms',
  u'dt',

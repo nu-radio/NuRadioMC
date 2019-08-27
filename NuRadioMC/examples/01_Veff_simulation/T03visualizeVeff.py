@@ -13,6 +13,7 @@ from NuRadioReco.detector import detector
 from NuRadioMC.utilities import fluxes
 from NuRadioMC.utilities.Veff import get_Veff
 from NuRadioMC.examples.Sensitivities import E2_fluxes3 as limits
+plt.switch_backend('agg')
 
 
 
