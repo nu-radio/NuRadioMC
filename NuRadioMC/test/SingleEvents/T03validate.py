@@ -49,6 +49,7 @@ for key in attributes:
     except AssertionError as e:
         print("\n attribute {} not equal".format(key))
         print(e)
+        error = -1
 
 
 keys = [u'azimuths',
