@@ -11,7 +11,7 @@ import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation2 as simulation
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("runstrawman")
 
 # initialize detector sim modules
@@ -77,7 +77,7 @@ sim = mySimulation(eventlist=args.inputfilename,
                             detectorfile=args.detectordescription,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
                             config_file=args.config,
-                            log_level=logging.DEBUG,
+                            log_level=logging.WARNING,
                             evt_time=datetime.datetime(2018, 12, 30))
 sim.run()
 

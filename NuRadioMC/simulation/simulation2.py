@@ -27,6 +27,7 @@ import logging
 from six import iteritems
 import yaml
 import os
+import collections
 # import confuse
 logger = logging.getLogger("sim")
 
@@ -116,10 +117,10 @@ class simulation():
 
         self._ice = medium.get_ice_model(self._cfg['propagation']['ice_model'])
 
-        self._mout = {}
-        self._mout_groups = {}
-        self._mout_attrs = {}
-
+        self._mout = collections.OrderedDict()
+        self._mout_groups = collections.OrderedDict()
+        self._mout_attrs = collections.OrderedDict()
+        
         # read in detector positions
         logger.warning("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
         self._det = detector.Detector(json_filename=self._detectorfile)

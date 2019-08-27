@@ -11,6 +11,7 @@ import json
 import time
 import os
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+plt.switch_backend('agg')
 
 
 parser = argparse.ArgumentParser(description='Plot NuRadioMC event list output.')
