@@ -11,7 +11,7 @@ try:
 except:
     reference_file = "reference_v1.pkl"
 
-print('Using reference file {}'). format(reference_file)
+print('Using reference file {}'.format(reference_file))
 
 np.random.seed(0)
 
@@ -31,7 +31,7 @@ domegas = np.linspace(-5,5,10) * units.deg
 thetas = np.arccos(1./n_index) + domegas
 
 with open(reference_file, "rb") as fin:
-    reference = pickle.load(fin)
+    reference = pickle.load(fin, encoding='latin1')
     i = -1
     for model in models:
         for E in Es:
@@ -40,3 +40,4 @@ with open(reference_file, "rb") as fin:
                     i+=1
                     trace = get_time_trace(E, theta, n_samples, dt, shower_type, n_index, R, model)
                     testing.assert_almost_equal(trace, reference[i])
+print('SignalGen test passed without any issues!')

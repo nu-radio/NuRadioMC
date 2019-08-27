@@ -75,7 +75,7 @@ class ARZ(object):
         
         with open(library, 'rb') as fin:
             logger.warning("loading shower library ({}) into memory".format(library))
-            self._library = pickle.load(fin)
+            self._library = pickle.load(fin, encoding='latin1')
             
     def __check_and_get_library(self):
         """
@@ -195,7 +195,7 @@ class ARZ(object):
             raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
     
         # determine closes available energy in shower library
-        energies = np.array(self._library[shower_type].keys())
+        energies = np.array([*self._library[shower_type]])
         iE = np.argmin(np.abs(energies - shower_energy))
         rescaling_factor = shower_energy / energies[iE]
         logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}".format(shower_energy / units.eV, energies[iE] / units.eV, rescaling_factor))
