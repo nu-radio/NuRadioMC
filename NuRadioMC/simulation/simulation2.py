@@ -557,7 +557,7 @@ class simulation():
             self._mout_attrs['trigger_names'] = []
         extend_array = False
         for trigger in six.itervalues(self._station.get_triggers()):
-            if(np.string_(trigger.get_name()) not in self._mout_attrs['trigger_names']): 
+            if(trigger.get_name() not in self._mout_attrs['trigger_names']):
                 self._mout_attrs['trigger_names'].append((trigger.get_name()))
                 extend_array = True
         # the 'multiple_triggers' output array is not initialized in the constructor because the number of
