@@ -685,6 +685,10 @@ class simulation():
         self._sim_station.add_electric_field(electric_field)
 
     def _write_ouput_file(self):
+        folder = os.path.dirname(self._outputfilename)
+        if(not os.path.exists(folder)):
+            logger.warning(f"output folder {folder} does not exist, creating folder...")
+            os.makedirs(folder)
         fout = h5py.File(self._outputfilename, 'w')
 
         saved = np.ones(len(self._mout['triggered']), dtype=np.bool)
