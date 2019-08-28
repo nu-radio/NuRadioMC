@@ -42,6 +42,6 @@ for iX, x in enumerate(points):
             results_C0s_cpp[iX, iS] = r.get_results()[iS]['C0']
 
 results_C0s_cpp_ref = io_utilities.read_pickle("reference_C0_MooresBay.pkl", encoding='latin1')
-    testing.assert_allclose(results_C0s_cpp, results_C0s_cpp_ref, rtol=1.e-6)
+testing.assert_allclose(results_C0s_cpp, results_C0s_cpp_ref, rtol=1.e-6)
 
 print('T06unit_test_C0_mooresbay passed without issues')
