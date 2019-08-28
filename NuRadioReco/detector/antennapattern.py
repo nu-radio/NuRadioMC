@@ -7,6 +7,7 @@ from radiotools import helper as hp
 from radiotools import coordinatesystems as cs
 from scipy import constants
 import logging
+import pickle
 logger = logging.getLogger('antennapattern')
 logging.basicConfig()
 
