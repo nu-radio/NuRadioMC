@@ -1,8 +1,8 @@
 import numpy as np
-import pickle
 import time
 from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import units, medium
+from NuRadioReco.utilities import io_utilities
 import logging
 from numpy import testing
 logging.basicConfig(level=logging.INFO)
@@ -41,8 +41,7 @@ for iX, x in enumerate(points):
         for iS in range(r.get_number_of_solutions()):
             results_C0s_cpp[iX, iS] = r.get_results()[iS]['C0']
 
-with open("reference_C0_MooresBay.pkl", "rb") as fin:
-    results_C0s_cpp_ref = pickle.load(fin, encoding='latin1')
+results_C0s_cpp_ref = io_utilities.read_pickle("reference_C0_MooresBay.pkl", encoding='latin1')
     testing.assert_allclose(results_C0s_cpp, results_C0s_cpp_ref, rtol=1.e-6)
 
 print('T06unit_test_C0_mooresbay passed without issues')

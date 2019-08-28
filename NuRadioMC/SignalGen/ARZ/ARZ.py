@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function
 import numpy as np
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, io_utilities
 from scipy import interpolate as intp
 from scipy import integrate as int
 from scipy import constants
@@ -10,7 +10,6 @@ from matplotlib import pyplot as plt
 from radiotools import coordinatesystems as cstrafo
 import os
 import copy
-import pickle
 import logging
 logger = logging.getLogger("SignalGen.ARZ")
 logging.basicConfig()
@@ -73,9 +72,8 @@ class ARZ(object):
                 raise FileNotFoundError("user specified shower library {} not found.".format(library))
         self.__check_and_get_library()
         
-        with open(library, 'rb') as fin:
-            logger.warning("loading shower library ({}) into memory".format(library))
-            self._library = pickle.load(fin, encoding='latin1')
+        logger.warning("loading shower library ({}) into memory".format(library))
+        self._library = io_utilities.read_pickle(library)
             
     def __check_and_get_library(self):
         """
@@ -678,9 +676,8 @@ class ARZ_tabulated(object):
                 raise FileNotFoundError("user specified pulse library {} not found.".format(library))
         self.__check_and_get_library()
         
-        with open(library) as fin:
-            logger.warning("loading pulse library into memory")
-            self._library = pickle.load(fin)
+        logger.warning("loading pulse library into memory")
+        self._library = io_utilities.read_pickle(library)
             
     def __check_and_get_library(self):
         """
