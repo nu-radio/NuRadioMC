@@ -16,6 +16,7 @@ from scipy import constants
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.detector.detector as detector
+import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 from NuRadioReco.utilities import geometryUtilities as geo_utl
@@ -65,7 +66,9 @@ class simulation():
                  debug=False,
                  evt_time=datetime.datetime(2018, 1, 1),
                  config_file=None,
-                 log_level=logging.WARNING):
+                 log_level=logging.WARNING,
+                 default_detector_station=None,
+                 default_detector_channel=None):
         """
         initialize the NuRadioMC end-to-end simulation
 
@@ -123,7 +126,13 @@ class simulation():
         
         # read in detector positions
         logger.warning("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
-        self._det = detector.Detector(json_filename=self._detectorfile)
+        self.det = None
+        if(default_detector_station):
+            logger.warning(f"Default detector station provided (station {default_detector_station}) -> Using generic detector")
+            self._det = gdetector.GenericDetector(json_filename=self._detectorfile, default_station=default_detector_station,
+                                                 default_channel=default_detector_channel)
+        else:
+            self._det = detector.Detector(json_filename=self._detectorfile)
         self._det.update(evt_time)
 
         self._station_ids = self._det.get_station_ids()
@@ -141,7 +150,7 @@ class simulation():
         else:
             self._bandwidth = bandwidth
         self._Vrms = (self._Tnoise * 50 * constants.k *
-                       self._bandwidth / units.Hz) ** 0.5
+                       self._bandwidth / units.Hz) ** 0.5  # from elog:1566
         logger.warning('noise temperature = {}, bandwidth = {:.0f} MHz, Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
 
     def run(self):
@@ -174,8 +183,8 @@ class simulation():
             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 100.)) == 0):
                 eta = pretty_time_delta((time.time() - t_start) * (self._n_events - self._iE) / self._iE)
                 total_time = inputTime + rayTracingTime + detSimTime + outputTime
-                logger.warning("processing event {}/{} = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%".format(
-                    self._iE, self._n_events, 100. * self._iE / self._n_events, eta, 100. * (rayTracingTime - askaryan_time) / total_time,
+                logger.warning("processing event {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%".format(
+                    self._iE, self._n_events, np.sum(self._mout['triggered']),  100. * self._iE / self._n_events, eta, 100. * (rayTracingTime - askaryan_time) / total_time,
                     100. * time_attenuation_length / (rayTracingTime - askaryan_time),
                     100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*inputTime / total_time))
 #             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 10000.)) == 0):
@@ -544,13 +553,13 @@ class simulation():
 
     def _create_trigger_structures(self):
 
-        extend_array = False
         if('trigger_names' not in self._mout_attrs):
             self._mout_attrs['trigger_names'] = []
-            for trigger in six.itervalues(self._station.get_triggers()):
-                if(np.string_(trigger.get_name()) not in self._mout_attrs['trigger_names']): 
-                    self._mout_attrs['trigger_names'].append((trigger.get_name()))
-                    extend_array = True
+        extend_array = False
+        for trigger in six.itervalues(self._station.get_triggers()):
+            if(np.string_(trigger.get_name()) not in self._mout_attrs['trigger_names']): 
+                self._mout_attrs['trigger_names'].append((trigger.get_name()))
+                extend_array = True
         # the 'multiple_triggers' output array is not initialized in the constructor because the number of
         # simulated triggers is unknown at the beginning. So we check if the key already exists and if not,
         # we first create this data structure
