@@ -4,7 +4,6 @@ import sys
 import numpy as np
 from collections import OrderedDict
 import h5py
-from NuRadioMC.utilities.hdf5_manipulator import merge
 
 
 def merge2(filenames, output_filename):
@@ -51,7 +50,7 @@ def merge2(filenames, output_filename):
             else:
                 if(key == "n_events"):
                     attrs['n_events'] += fin.attrs['n_events']
-            if len(attrs['trigger_names']) == 0 and 'trigger_names' in fin.attrs:
+            if((('trigger_names' not in attrs) or (len(attrs['trigger_names']) == 0)) and 'trigger_names' in fin.attrs):
                 attrs['trigger_names'] = fin.attrs['trigger_names']
 #             if len(data[f]['triggered']) == 0:
 #                 attrs['n_events'] += fin.attrs['n_events']
