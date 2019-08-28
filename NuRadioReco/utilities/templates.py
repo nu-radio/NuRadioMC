@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-import pickle
 import numpy as np
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.io_utilities import read_pickle
 import logging
 from six import iteritems
 import os
@@ -34,11 +34,10 @@ class Templates(object):
     def __load_cr_template(self, station_id):
         path= os.path.join(self.__path, 'templates_cr_station_{}.pickle'.format(station_id))
         if(os.path.exists(path)):
-            with open(path, 'rb') as fin:
-                self.__cr_templates[station_id] = pickle.load(fin, encoding='latin1')
-                zen_ref = np.deg2rad(60)
-                az_ref = np.deg2rad(0)
-                self.__ref_cr_templates[station_id] = self.__cr_templates[station_id][0][zen_ref][az_ref]
+            self.__cr_templates[station_id] = read_pickle(path)
+            zen_ref = np.deg2rad(60)
+            az_ref = np.deg2rad(0)
+            self.__ref_cr_templates[station_id] = self.__cr_templates[station_id][0][zen_ref][az_ref]
         else:
             logger.error("template file {} not found".format(path))
             raise IOError
@@ -144,11 +143,10 @@ class Templates(object):
     def __load_nu_template(self, station_id):
         path= os.path.join(self.__path, 'templates_nu_station_{}.pickle'.format(station_id))
         if(os.path.exists(path)):
-            with open(path, 'rb') as fin:
-                self.__nu_templates[station_id] = pickle.load(fin, encoding='latin1')
-                zen_ref = np.deg2rad(140)
-                az_ref = np.deg2rad(45)
-                self.__ref_nu_templates[station_id] = self.__nu_templates[station_id][zen_ref][az_ref]
+            self.__nu_templates[station_id] = read_pickle(path)
+            zen_ref = np.deg2rad(140)
+            az_ref = np.deg2rad(45)
+            self.__ref_nu_templates[station_id] = self.__nu_templates[station_id][zen_ref][az_ref]
         else:
             logger.error("template file {} not found".format(path))
             raise IOError
