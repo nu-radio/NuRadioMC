@@ -373,9 +373,7 @@ class simulation():
                         r_theta = None
                         r_phi = None
                         if(self._prop.solution_types[r.get_solution_type(iS)] == 'reflected'):
-                            zenith_reflections = r.get_reflection_angle(iS)
-                            if(not hasattr(zenith_reflections, "__len__") or len(zenith_reflections.shape) == 0):  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
-                                zenith_reflections = [zenith_reflections]
+                            zenith_reflections = np.atleast_1d(r.get_reflection_angle(iS)) # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
                             for zenith_reflection in zenith_reflections:  # loop through all possible reflections
                                 if(zenith_reflection is None): # skip all ray segments where not reflection at surface happens
                                     continue
