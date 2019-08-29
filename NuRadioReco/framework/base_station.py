@@ -257,6 +257,7 @@ class BaseStation():
             efield.deserialize(electric_field)
             self.add_electric_field(efield)
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'], parameters.stationParameters)
+        self._parameters.update(NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'], parameters.array_stationParameters))
         self._parameter_covariances = data['_parameter_covariances']
         if('_ARIANNA_parameters') in data:
             self._ARIANNA_parameters = data['_ARIANNA_parameters']
