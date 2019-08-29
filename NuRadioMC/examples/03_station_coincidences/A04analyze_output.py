@@ -9,26 +9,47 @@ from radiotools import plthelpers as php
 import sys
 import os
 
+"""
+This file analyzes the output from the example simulations. The output files
+must be merged using the code found in utilities. Run before this code:
+
+python {your_software_dir}/NuRadioMC/NuRadioMC/utilities/merge_hdf5.py output_dir
+
+When the files are merged, use to run this code:
+
+python A04analyze_output output_dir
+
+This code creates a coincidence.png file with a plot presenting the coincidences
+between stations at different distances.
+"""
+
+try:
+    output_dir = sys.argv[1]
+except:
+    print("Usage: python output_dir")
+    print("Using 'output' as default output directory")
+    output_dir = 'output'
+
 Tnoise = 300
 Vrms = (Tnoise * 50 * constants.k * 500 * units.MHz / units.Hz) ** 0.5
 
 counter = -1
 fig, ax = plt.subplots(1, 1, figsize=(7,7))
-for iF, filename in enumerate(sorted(glob.glob(os.path.join(sys.argv[1], "*.hdf5")))):
+for iF, filename in enumerate(sorted(glob.glob(os.path.join(output, "*.hdf5")))):
 
     fin = h5py.File(filename)
     print(np.log10(fin.attrs['Emin']))
     if(np.log10(fin.attrs['Emin']) not in [17.0, 18.0, 19.0, 20.0]):
         continue
     counter += 1
-    
+
     with open('det.json', 'w') as fout:
         fout.write(fin.attrs['detector'])
         fout.close()
     det = detector.Detector(json_filename="det.json")
     max_amps_env = np.array(fin['station_101']['maximum_amplitudes_envelope'])
     weights = fin['weights']
-    
+
 
     n_stations = det.get_number_of_channels(101) / 4  # (we had 4 antennas per station)
     xs = np.zeros(n_stations)
@@ -38,7 +59,7 @@ for iF, filename in enumerate(sorted(glob.glob(os.path.join(sys.argv[1], "*.hdf5
     triggered_near_deep = max_amps_env[:, 3] > (3 * Vrms) # triggered deep dipole
     triggered_surface = np.zeros((max_amps_env.shape[0], n_stations)) # create empy array of shape (n events, n stations)
     triggered_deep = np.zeros((max_amps_env.shape[0], n_stations)) # create empy array of shape (n events, n stations)
-    # loop through all stations with different distances 
+    # loop through all stations with different distances
     for i in range(n_stations):
         # select the 2 LPDA + 1 dipole channel and check if they fulfill the trigger condition
         triggered_surface[:, i] = np.any(max_amps_env[:, i * 4:(i * 4 + 3)] > (3 * Vrms), axis=1)
