@@ -5,6 +5,13 @@ import numpy as np
 from NuRadioMC.utilities import units
 from radiotools import plthelpers as php
 
+"""
+This file creates a detector with stations at different distances in order to
+run the coincidence analysis. The requested distances can be changed below.
+
+The result is saved to horizontal_spacing_detector.json
+"""
+
 with open("single_position.json") as fin:
     detector_single = json.load(fin)
 
