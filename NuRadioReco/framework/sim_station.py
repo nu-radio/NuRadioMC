@@ -1,5 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_station
+from NuRadioReco.framework.parameters import array_stationParameters as astP
+import numpy as np
 from six import iteritems
 try:
     import cPickle as pickle
@@ -33,6 +35,14 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
 
     def set_simulation_weight(self, simulation_weight):
         self.__simulation_weight = simulation_weight
+
+    def get_axis_distance(self):
+        if not self.has_parameter(astP.position_vB_vvB):
+            logger.error("sim station position in vB vvB v system is not set")
+            raise ValueError("sim station position in vB vvB v system is not set")
+
+        position_vB_vvB = self.get_parameter(astP.position_vB_vvB)
+        return np.sqrt(position_vB_vvB[0] ** 2 + position_vB_vvB[1] ** 2)
 
     def serialize(self, mode):
         base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(self, mode)
