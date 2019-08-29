@@ -69,17 +69,20 @@ class ARIANNAParameters(Enum):  # this class stores parameters specific to the A
 
 
 class eventParameters(Enum):
-    # shower class object to store CoREAS simulations
-    # (the simulated pulses are in station.sim_station)
-    sim_shower = 1  # shower class object to store CoREAS simulations
-    radio_shower = 2  # shower class object to store reconstructed values
-    particle_shower = 3  # shower class object to store data from a particle detector
-    reference_shower = 4  # flag to choose between different reference showers
+    reference_shower = 1  # flag to choose between different reference showers
 
     # magentic field parameter at the location of the event
     magnetic_field_inclination = 10
     magnetic_field_declination = 11
     magnetic_field_strength = 12
+
+
+class showerTypes(Enum):
+    # shower class object to store CoREAS simulations
+    # (the simulated pulses are in station.sim_station)
+    sim_shower = 1  # shower class object to store CoREAS simulations
+    radio_shower = 2  # shower class object to store reconstructed values
+    particle_shower = 3  # shower class object to store data from a particle detector
 
 
 class showerParameters(Enum):
