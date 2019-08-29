@@ -6,6 +6,7 @@ from radiotools import helper as hp
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import eventParameters as evtP
 from NuRadioReco.framework.parameters import showerParameters as shP
+from NuRadioReco.framework.parameters import showerTypes as shT
 from NuRadioReco.framework.parameters import array_stationParameters as astP
 import numpy as np
 import logging
@@ -62,7 +63,7 @@ class readCoREASShower:
             evt = NuRadioReco.framework.event.Event(evt_run_number, 1)  # create empty event
             evt.__event_time = f_coreas.attrs["GPSSecs"]
 
-            sim_shower = NuRadioReco.framework.shower.Shower(evtP.sim_shower)
+            sim_shower = NuRadioReco.framework.shower.Shower(shT.sim_shower)
 
             try:
                 sim_shower.set_parameter(shP.primary_particle, f_coreas.attrs["PrimaryParticleType"])
@@ -135,7 +136,7 @@ class readCoREASShower:
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
 
-            evt.set_parameter(evtP.sim_shower, sim_shower)
+            evt.set_shower(sim_shower)
 
             self.__t_per_event += time.time() - t_per_event
             self.__t += time.time() - t

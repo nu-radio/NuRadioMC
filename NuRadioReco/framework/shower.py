@@ -1,4 +1,6 @@
 from __future__ import absolute_import, division, print_function
+from NuRadioReco.framework.parameters import showerTypes
+
 try:
     import cPickle as pickle
 except ImportError:
@@ -11,6 +13,12 @@ class Shower:
 
     def __init__(self, shower_type):
         self._parameters = {}
+
+        # not None request for event deserialization
+        if not isinstance(shower_type, showerTypes) and shower_type is not None:
+            logger.error("Invalid shower type")
+            raise ValueError("Invalid shower type")
+
         self._shower_type = shower_type
 
     def get_parameter(self, attribute):
