@@ -35,7 +35,7 @@ class BaseStation():
         return self.get_parameter(key)
 
     def get_parameter(self, key):
-        if not isinstance(key, parameters.stationParameters):
+        if not isinstance(key, parameters.stationParameters) and not isinstance(key, parameters.array_stationParameters):
             logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
         return self._parameters[key]
@@ -44,13 +44,13 @@ class BaseStation():
         return self._parameters
 
     def has_parameter(self, key):
-        if not isinstance(key, parameters.stationParameters):
+        if not isinstance(key, parameters.stationParameters) and not isinstance(key, parameters.array_stationParameters):
             logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
         return key in self._parameters.keys()
 
     def set_parameter(self, key, value):
-        if not isinstance(key, parameters.stationParameters):
+        if not isinstance(key, parameters.stationParameters) and not isinstance(key, parameters.array_stationParameters):
             logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
         self._parameters[key] = value

@@ -27,6 +27,7 @@ class stationParameters(Enum):
     ndf_efield_time_direction_fit = 27  # the number of degrees of freedom of the direction fitter that used the maximum pulse times of the efields
     cr_xmax = 28 # Depth of shower maximum of the air shower
 
+
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
     azimuth = 2  # azimuth angle of the incoming signal direction
@@ -38,22 +39,24 @@ class channelParameters(Enum):
     nu_xcorrelations = 9 #  dict of result of crosscorrelations with nu templates
     signal_time = 10  # the time of the maximum amplitude of the envelope
 
+
 class electricFieldParameters(Enum):
     ray_path_type = 1  # the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
-    polarization_angle = 2 # electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
-    polarization_angle_expectation = 3 # expected polarization based on shower geometry. Defined analogous to polarization_angle
-    signal_energy_fluence = 4 # Energy/area in the radio signal
-    cr_spectrum_slope = 5 # Slope of the radio signal's spectrum as reconstructed by the voltageToAnalyticEfieldConverter
+    polarization_angle = 2  # electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
+    polarization_angle_expectation = 3  # expected polarization based on shower geometry. Defined analogous to polarization_angle
+    signal_energy_fluence = 4  # Energy/area in the radio signal
+    cr_spectrum_slope = 5  # Slope of the radio signal's spectrum as reconstructed by the voltageToAnalyticEfieldConverter
     zenith = 7  # zenith angle of the signal. Note that refraction at the air/ice boundary is not taken into account
     azimuth = 8  # azimuth angle of the signal. Note that refraction at the air/ice boundary is not taken into account
     signal_time = 9
-    nu_vertex_distance = 10 # the distance along the ray path from the vertex to the channel
-    nu_viewing_angle = 11 # the angle between shower axis and launch vector
+    nu_vertex_distance = 10  # the distance along the ray path from the vertex to the channel
+    nu_viewing_angle = 11  # the angle between shower axis and launch vector
     max_amp_antenna = 12  # the maximum amplitude of the signal after convolution with the antenna response pattern, dict with channelid as key
     max_amp_antenna_envelope = 13  # the maximum amplitude of the signal envelope after convolution with the antenna response pattern, dict with channelid as key
     reflection_coefficient_theta = 14  # for reflected rays: the complex Fresnel reflection coefficient of the eTheta component
     reflection_coefficient_phi = 15  # for reflected rays: the complex Fresnel reflection coefficient of the ePhi component
-    cr_spectrum_quadratic_term = 16 # result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
+    cr_spectrum_quadratic_term = 16  # result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
+
 
 class ARIANNAParameters(Enum):  # this class stores parameters specific to the ARIANNA data taking
     seq_start_time = 1  # the start time of a sequence
@@ -62,4 +65,47 @@ class ARIANNAParameters(Enum):  # this class stores parameters specific to the A
     comm_period = 4  # length of data taking window
     comm_duration = 5  # maximum diration of communication window
     trigger_thresholds = 6  # trigger thresholds converted to voltage
-    l1_supression_value = 7 # This provieds the L1 supression value for given event
+    l1_supression_value = 7  # This provieds the L1 supression value for given event
+
+
+class eventParameters(Enum):
+    # shower class object to store CoREAS simulations
+    # (the simulated pulses are in station.sim_station)
+    sim_shower = 1  # shower class object to store CoREAS simulations
+    radio_shower = 2  # shower class object to store reconstructed values
+    particle_shower = 3  # shower class object to store data from a particle detector
+    reference_shower = 4  # flag to choose between different reference showers
+
+    # magentic field parameter at the location of the event
+    magnetic_field_inclination = 10
+    magnetic_field_declination = 11
+    magnetic_field_strength = 12
+
+
+class showerParameters(Enum):
+    zenith = 1  # zenith angle of the shower axis pointing towards xmax
+    azimuth = 2  # azimuth angle of the shower axis pointing towards xmax
+    core = 3  # position of the intersection between shower axis and an observer plane
+    energy = 4  # total energy of a shower, e.g., of the primary particle
+    electromagnetic_energy = 5  # energy of the electromagnetic shower component
+    radiation_energy = 6  # totally emitted radiation energy
+    electromagnetic_radiation_energy = 7  # radiation energy originated from the electromagnetic emission
+    primary_particle = 8  # particle id of the primary particle
+    shower_maximum = 9  # position of shower maximum in slant depth, e.g., Xmax
+    distance_shower_maximum_geometric = 10  # distance to xmax in meter
+    distance_shower_maximum_grammage = 11  # distance to xmax in g / cm^2
+
+    # dedicated parameter for sim showers
+    refractive_index_at_ground = 100  # refractivity at sea level
+    atmospheric_model = 101  # atmospheric model used in simulation
+    # offset between magnetic field and north in reconstruction corrdinatesystem
+    magnetic_field_rotation = 102
+    observation_level = 103  # altitude a.s.l where the particles are stored
+
+
+class array_stationParameters(Enum):
+    name = 1  # antenna (station) name
+    position_vB_vvB = 2  # position in the showers vxB vxvxB v coordinate system
+    signal_energy_fluence = 3  # signal energy fluence, sum over all polaristations
+    signal_energy_fluence_vector = 4  # signal energy fluence per polaristation
+    frequency_slope = 5  # slope of the frequency spectrum per polaristation
