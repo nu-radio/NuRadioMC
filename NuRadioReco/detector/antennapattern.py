@@ -592,7 +592,7 @@ def parse_HFSS_file(hfss):
                         freq = array[i]
                     if 'log10(mag(rEPhi))' in array_names[i]:
                         mag_phi.append(float(array[i]))
-                        ff.append(int(freq)*units.MHz)
+                        ff.append(float(freq)*units.MHz)
 
                         p = re.search("Phi='(.+?)deg'", array_names[i])
                         t = re.search("Theta='(.+?)deg'", array_names[i])
