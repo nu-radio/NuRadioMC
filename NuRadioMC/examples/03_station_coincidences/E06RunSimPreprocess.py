@@ -8,7 +8,7 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
-from NuRadioMC.simulation import simulation2 as simulation
+from NuRadioMC.simulation import as simulation
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("runstrawman")
