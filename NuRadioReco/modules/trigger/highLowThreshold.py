@@ -76,7 +76,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         tts[i] = np.convolve(tts[i], c, mode='full')[:-(n_bins_coincidence - 1)]
     tts = np.sum(tts, axis=0)
     ttt = tts >= number_of_coincidences
-    triggered_bins = np.squeeze(np.argwhere(tts >= number_of_coincidences))
+    triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(tts >= number_of_coincidences)))
     return np.any(ttt), triggered_bins, triggered_bins * dt
 
 
