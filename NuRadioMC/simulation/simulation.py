@@ -126,7 +126,7 @@ class simulation():
         
         # read in detector positions
         logger.warning("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
-        self.det = None
+        self._det = None
         if(default_detector_station):
             logger.warning(f"Default detector station provided (station {default_detector_station}) -> Using generic detector")
             self._det = gdetector.GenericDetector(json_filename=self._detectorfile, default_station=default_detector_station,
