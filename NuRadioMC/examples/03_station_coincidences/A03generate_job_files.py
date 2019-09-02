@@ -27,6 +27,10 @@ changed below.
 
 *** IMPORTANT ***
 
+This file is to be used only if the central station has not been presimulated.
+If central station has already been presimulated, one should use
+A03generate_job_files_presim.py.
+
 Do not forget to change the header variable to include all the instructions
 and paths that are needed to operate your cluster. Otherwise the example will
 not work.

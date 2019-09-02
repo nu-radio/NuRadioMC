@@ -10,6 +10,10 @@ The energies and the number of events can be changed below.
 
 The working directory can be passed as an argument. By default, the current
 directory is used.
+
+IMPORTANT: This step is not necessary is the central station has already been
+presimulated. Presimulating the central station saves a lot of time. See
+https://github.com/nu-radio/NuRadioMC/wiki/Example:-Multi-station-coincidences
 """
 
 # define simulation volume
