@@ -866,6 +866,9 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     E_all_leptons = data_sets["energies"]
     lepton_codes = data_sets["flavors"]
+    lepton_positions = [ (x*NRP.pp_m,y*NRP.pp_m,z*NRP.pp_m) for x,y,z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
+    lepton_directions = [ (-np.sin(theta)*np.cos(phi), -np.sin(theta)*np.sin(phi), -np.cos(theta))
+                        for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
 
     if resample:
         if ( len(np.unique(lepton_codes)) > 1 ):
@@ -874,8 +877,10 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         i_resample = 0
         E_all_leptons = E_all_leptons[:n_resample]
         lepton_codes = lepton_codes[:n_resample]
+        lepton_positions = None
+        lepton_directions = None
 
-    products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes)
+    products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes, lepton_positions, lepton_directions)
 
     for event_id in data_sets["event_ids"]:
         iE = event_id - start_event_id
@@ -1215,6 +1220,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         lepton_codes[lepton_codes == 16] = 15
         lepton_codes[lepton_codes == -16] = -15
 
+        lepton_positions = [ (x*NRP.pp_m,y*NRP.pp_m,z*NRP.pp_m) for x,y,z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
+        lepton_directions = [ (-np.sin(theta)*np.cos(phi), -np.sin(theta)*np.sin(phi), -np.cos(theta))
+                            for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
+
         if resample:
             if ( len(np.unique(lepton_codes)) > 1 ):
                 raise ValueError('Resample must be used with one kind of leptons only')
@@ -1222,8 +1231,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             i_resample = 0
             E_all_leptons = E_all_leptons[:n_resample]
             lepton_codes = lepton_codes[:n_resample]
+            lepton_positions = None
+            lepton_directions = None
 
-        products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes)
+        products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes, lepton_positions, lepton_directions)
 
         for event_id in data_sets["event_ids"]:
             iE = event_id - start_event_id

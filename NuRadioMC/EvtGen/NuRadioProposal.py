@@ -173,29 +173,12 @@ def create_propagator(low=0.1*pp_PeV, particle_code=13, ecut=100*pp_TeV):
     mu_def_builder.SetLow(low)
     mu_def = mu_def_builder.build()
 
-    geometry = pp.geometry.Sphere(pp.Vector3D(), 1.e20, 0.0)
-    medium = pp.medium.Ice(1.0)
+    propagator = pp.Propagator(
+                particle_def=mu_def,
+                config_file=os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_infice.json')
+    )
 
-    sec_def = pp.SectorDefinition()
-    sec_def.medium = pp.medium.Ice(1.0)
-    sec_def.geometry = geometry
-    sec_def.particle_location = pp.ParticleLocation.inside_detector
-    sec_def.cut_settings = pp.EnergyCutSettings(ecut, -1)
-    sec_def.stopping_decay = True
-
-    sec_def.scattering_model = pp.scattering.ScatteringModel.NoScattering
-    sec_def.crosssection_defs.brems_def.lpm_effect = True
-    sec_def.crosssection_defs.epair_def.lpm_effect = True
-    # if another parametrization is wanted, it can be changed like this
-    # sec_def.crosssection_defs.photo_def.parametrization = pp.parametrization.photonuclear.PhotoParametrization.BezrukovBugaev
-
-    detector = geometry
-
-    interpolation_def = pp.InterpolationDef()
-    interpolation_def.path_to_tables = os.path.join(os.path.dirname(__file__), 'PROPOSAL_tables')
-    interpolation_def.path_to_tables_readonly = os.path.join(os.path.dirname(__file__), 'PROPOSAL_tables')
-
-    return pp.Propagator(mu_def, [sec_def], detector, interpolation_def)
+    return propagator
 
 def get_compact_sub_pev_losses(energy_arr, distance_arr, compact_dist, min_energy_loss):
     r""" return biggest compact loss if above min_energy_cut
@@ -290,7 +273,7 @@ def GetSecondaries(Elepton, lepton_code, random_seed=None):
 
     return secondaries
 
-def GetSecondariesArray(Eleptons, lepton_codes, random_seed=None):
+def GetSecondariesArray(Eleptons, lepton_codes, lepton_positions = None, lepton_directions = None, random_seed=None):
 
     low = 0.1*pp_PeV # Low energy limit for the propagating particle
     propagation_length = 100*pp_km # Maximum propagation length
@@ -307,10 +290,18 @@ def GetSecondariesArray(Eleptons, lepton_codes, random_seed=None):
 
     secondaries_array = []
 
-    for Elepton, lepton_code in zip(Eleptons, lepton_codes):
+    if lepton_positions is None:
+        lepton_positions = [(0, 0, 0)] * len(Eleptons)
+    if lepton_directions is None:
+        lepton_directions = [(0, 0, -1)] * len(Eleptons)
 
-        propagators[lepton_code].particle.position = pp.Vector3D(0, 0, 0)
-        propagators[lepton_code].particle.direction = pp.Vector3D(0, 0, 1)
+    for Elepton, lepton_code, lepton_position, lepton_direction in zip(Eleptons,
+        lepton_codes, lepton_positions, lepton_directions):
+
+        x, y, z = lepton_position
+        px, py, pz = lepton_direction
+        propagators[lepton_code].particle.position = pp.Vector3D(x, y, z)
+        propagators[lepton_code].particle.direction = pp.Vector3D(px, py, pz)
         propagators[lepton_code].particle.propagated_distance = 0
         propagators[lepton_code].particle.energy = Elepton / units.MeV # Proposal's energy unit is the MeV
 
@@ -324,7 +315,10 @@ def GetSecondariesArray(Eleptons, lepton_codes, random_seed=None):
             # Muons and neutrinos resulting from decays are ignored
             if produces_shower(sec, min_energy_loss):
 
-                distance = sec.position.z * units.cm
+                distance  = ( (sec.position.x - x) * units.cm )**2
+                distance += ( (sec.position.y - y) * units.cm )**2
+                distance += ( (sec.position.z - z) * units.cm )**2
+                distance  = np.sqrt(distance)
                 energy = sec.energy * units.MeV
 
                 shower_type, code, name = shower_properties(sec)
