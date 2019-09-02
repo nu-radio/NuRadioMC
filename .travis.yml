@@ -29,6 +29,9 @@ before_script:
 jobs:
   include:
     - script: NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
+      name: "Tiny reconstrucution"
     - script: NuRadioReco/test/trigger_tests/run_trigger_test.sh
+      name: "Trigger tests"
     - script: NuRadioReco/test/test_examples.sh
+      name: "Test all examples"
 
