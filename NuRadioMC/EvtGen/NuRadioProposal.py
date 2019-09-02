@@ -155,7 +155,9 @@ def filter_particle(secondaries, particle):
     E = [p.energy for p in prods if p.particle_def == particle]
     return sum(E)
 
-def create_propagator(low=0.1*pp_PeV, particle_code=13, ecut=100*pp_TeV):
+def create_propagator(low=0.1*pp_PeV, particle_code=13, ecut=100*pp_TeV,
+                      config_file='config_PROPOSAL.json'):
+
     mu_def_builder = pp.particle.ParticleDefBuilder()
     if (particle_code == 13):
         mu_def_builder.SetParticleDef(pp.particle.MuMinusDef.get())
@@ -173,10 +175,9 @@ def create_propagator(low=0.1*pp_PeV, particle_code=13, ecut=100*pp_TeV):
     mu_def_builder.SetLow(low)
     mu_def = mu_def_builder.build()
 
-    propagator = pp.Propagator(
-                particle_def=mu_def,
-                config_file=os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_infice.json')
-    )
+    config_file_full_path=os.path.join(os.path.dirname(__file__), config_file)
+
+    propagator = pp.Propagator(particle_def=mu_def, config_file=config_file_full_path)
 
     return propagator
 
@@ -252,7 +253,7 @@ def shower_properties(particle):
 
     return shower_type, code, name
 
-def GetSecondaries(Elepton, lepton_code, random_seed=None):
+def GetSecondaries(Elepton, lepton_code, random_seed=None, config_file='config_PROPOSAL.json'):
 
     low = 0.1*pp_PeV # Low energy limit for the propagating particle
     propagation_length = 100*pp_km # Maximum propagation length
@@ -263,7 +264,7 @@ def GetSecondaries(Elepton, lepton_code, random_seed=None):
 
     pp.RandomGenerator.get().set_seed( random_seed )
 
-    prop = create_propagator(low=low, particle_code=lepton_code)
+    prop = create_propagator(low=low, particle_code=lepton_code, config_file=config_file)
     prop.particle.position = pp.Vector3D(0, 0, 0)
     prop.particle.direction = pp.Vector3D(0, 0, 1)
     prop.particle.propagated_distance = 0
@@ -273,7 +274,8 @@ def GetSecondaries(Elepton, lepton_code, random_seed=None):
 
     return secondaries
 
-def GetSecondariesArray(Eleptons, lepton_codes, lepton_positions = None, lepton_directions = None, random_seed=None):
+def GetSecondariesArray(Eleptons, lepton_codes, lepton_positions = None, lepton_directions = None,
+                        random_seed=None, config_file='config_PROPOSAL.json'):
 
     low = 0.1*pp_PeV # Low energy limit for the propagating particle
     propagation_length = 100*pp_km # Maximum propagation length
@@ -286,7 +288,8 @@ def GetSecondariesArray(Eleptons, lepton_codes, lepton_positions = None, lepton_
     propagators = {}
     for lepton_code in np.unique(lepton_codes):
         if lepton_code not in propagators:
-            propagators[lepton_code] = create_propagator(low=low, particle_code=lepton_code)
+            propagators[lepton_code] = create_propagator(low=low, particle_code=lepton_code,
+                                                         config_file=config_file)
 
     secondaries_array = []
 
@@ -329,7 +332,7 @@ def GetSecondariesArray(Eleptons, lepton_codes, lepton_positions = None, lepton_
 
     return secondaries_array
 
-def GetDecays(Eleptons, lepton_codes, random_seed=None):
+def GetDecays(Eleptons, lepton_codes, random_seed=None, config_file='config_PROPOSAL_infice.json'):
 
     low = 0.1*pp_PeV # Low energy limit for the propagating particle
     propagation_length = 100*pp_km # Maximum propagation length
@@ -342,7 +345,8 @@ def GetDecays(Eleptons, lepton_codes, random_seed=None):
     propagators = {}
     for lepton_code in lepton_codes:
         if lepton_code not in propagators:
-            propagators[lepton_code] = create_propagator(low=low, particle_code=lepton_code)
+            propagators[lepton_code] = create_propagator(low=low, particle_code=lepton_code,
+                                                         config_file=config_file)
 
     decays_array = []
 
