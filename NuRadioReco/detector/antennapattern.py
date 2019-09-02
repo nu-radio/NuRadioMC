@@ -1,16 +1,13 @@
 import numpy as np
 import json
 import os
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, io_utilities
 import gzip
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
 from radiotools import helper as hp
 from radiotools import coordinatesystems as cs
 from scipy import constants
 import logging
+import pickle
 logger = logging.getLogger('antennapattern')
 logging.basicConfig()
 
@@ -455,9 +452,8 @@ def get_pickle_antenna_response(path):
 
 #         # does not exist yet -> precalculating WIPLD simulations from raw WIPLD output
 #         preprocess_WIPLD(path)
-    with open(path, 'rb') as fin:
-        res = pickle.load(fin)
-        return res
+    res = io_utilities.read_pickle(path, encoding='bytes')
+    return res
 
 
 def parse_AERA_XML_file(path):

@@ -2,8 +2,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 import os
 from radiotools import helper as hp
-from NuRadioReco.utilities import units
-import pickle
+from NuRadioReco.utilities import units, io_utilities
 import logging
 logger = logging.getLogger('analog_components')
 
@@ -71,21 +70,20 @@ def load_amp_measurement(amp_measurement):
     load individual amp measurement from file and buffer interpolation function
     """
     filename = os.path.join(os.path.dirname(__file__), 'HardwareResponses/', amp_measurement+".pkl")
-    with open(filename, 'r') as fin:
-        data = pickle.load(fin)
-        if(amp_measurement not in data):
-            raise AttributeError("can't find amp measurement {}".format(amp_measurement))
-        ff = data[amp_measurement]['freqs']
-        response = data[amp_measurement]['response']
-        gain = np.abs(response)
-        phase = np.unwrap(np.angle(response))
-        amp_phase_f = interp1d(ff, phase, bounds_error=False, fill_value=0)  # all requests outside of measurement range are set to 0
-        amp_gain_f = interp1d(ff, gain, bounds_error=False, fill_value=1)  # all requests outside of measurement range are set to 1
-        
-        def get_response(ff):
-            return amp_gain_f(ff) * np.exp(1j * amp_phase_f(ff))
-        
-        amp_measurements[amp_measurement] = get_response
+    data = io_utilities.read_pickle(filename, encoding='latin1')
+    if(amp_measurement not in data):
+        raise AttributeError("can't find amp measurement {}".format(amp_measurement))
+    ff = data[amp_measurement]['freqs']
+    response = data[amp_measurement]['response']
+    gain = np.abs(response)
+    phase = np.unwrap(np.angle(response))
+    amp_phase_f = interp1d(ff, phase, bounds_error=False, fill_value=0)  # all requests outside of measurement range are set to 0
+    amp_gain_f = interp1d(ff, gain, bounds_error=False, fill_value=1)  # all requests outside of measurement range are set to 1
+    
+    def get_response(ff):
+        return amp_gain_f(ff) * np.exp(1j * amp_phase_f(ff))
+    
+    amp_measurements[amp_measurement] = get_response
 
 # amp responses do not occupy a lot of memory, pre load all responses
 amplifier_response = {}
