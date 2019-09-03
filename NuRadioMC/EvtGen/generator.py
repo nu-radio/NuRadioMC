@@ -1280,7 +1280,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     products = products_array[i_resample % n_resample]
                     i_resample += 1
                 else:
-                    print("jarl", products_array[0])
                     products = products_array.pop(0)
                 n_interaction = 2
 
@@ -1326,8 +1325,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         print("number of fiducial showers", len(data_sets_fiducial['flavors']))
         array_int = np.array(data_sets_fiducial['n_interaction'])
         array_code = np.array(data_sets_fiducial['flavors'])
-        print(array_int[ array_int > 1 ])
-        print(array_code[ array_int > 1 ])
 
 
     elif not add_tau_second_bang:
