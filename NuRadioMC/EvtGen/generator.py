@@ -649,16 +649,17 @@ def get_product_position(data_sets, product, iE):
     return x, y, z
 
 def generate_surface_muons(filename, n_events, Emin, Emax,
-                            fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
-                            full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
-                            thetamin=0.*units.rad, thetamax=np.pi*units.rad,
-                            phimin=0.*units.rad, phimax=2*np.pi*units.rad,
-                            start_event_id=1,
-                            plus_minus='mix',
-                            n_events_per_file=None,
-                            spectrum='log_uniform',
-                            resample=False,
-                            start_file_id=0):
+                           fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
+                           full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
+                           thetamin=0.*units.rad, thetamax=np.pi*units.rad,
+                           phimin=0.*units.rad, phimax=2*np.pi*units.rad,
+                           start_event_id=1,
+                           plus_minus='mix',
+                           n_events_per_file=None,
+                           spectrum='log_uniform',
+                           resample=False,
+                           start_file_id=0,
+                           config_file='config_PROPOSAL.json'):
 
     """
     Event generator for surface muons
@@ -726,6 +727,9 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
         if True, generate deposited energies instead of primary neutrino energies
+    config_file: string
+        Name of the PROPOSAL config file. Must be in the same folder as the
+        NuRadioProposal.py module
     """
 
     import NuRadioMC.EvtGen.NuRadioProposal as NRP
@@ -880,7 +884,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         lepton_positions = None
         lepton_directions = None
 
-    products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes, lepton_positions, lepton_directions)
+    products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes, lepton_positions,
+                                             lepton_directions, config_file=config_file)
 
     for event_id in data_sets["event_ids"]:
         iE = event_id - start_event_id
@@ -948,6 +953,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 tabulated_taus=True,
                                 deposited=False,
                                 proposal=False,
+                                proposal_config='config_PROPOSAL.json',
                                 resample=None,
                                 start_file_id=0):
     """
@@ -1028,6 +1034,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         if True, generate deposited energies instead of primary neutrino energies
     proposal: bool
         if True, the tau and muon secondaries are calculated using PROPOSAL
+    proposal_config: string
+        The name of the json file describing the PROPOSAL configuration. It must
+        be in the same folder as the NuRadioProposal.py module
     resample: integer or None
         if integer, PROPOSAL generates a number of propagations equal to resample
         and then reuses them. Only to be used with a single kind of lepton (muon or tau)
@@ -1234,7 +1243,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             lepton_positions = None
             lepton_directions = None
 
-        products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes, lepton_positions, lepton_directions)
+        products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes, lepton_positions,
+                                                 lepton_directions, config_file=proposal_config)
 
         for event_id in data_sets["event_ids"]:
             iE = event_id - start_event_id
@@ -1316,6 +1326,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         print("Total time", time.time()-init_time)
 
         print("number of fiducial showers", len(data_sets_fiducial['flavors']))
+        array_int = np.array(data_sets_fiducial['n_interaction'])
+        array_code = np.array(data_sets_fiducial['flavors'])
+        print(array_int[ array_int > 1 ])
+        print(array_code[ array_int > 1 ])
 
 
     elif not add_tau_second_bang:
