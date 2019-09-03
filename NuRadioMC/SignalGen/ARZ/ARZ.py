@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function
 import numpy as np
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, io_utilities
 from scipy import interpolate as intp
 from scipy import integrate as int
 from scipy import constants
@@ -10,7 +10,6 @@ from matplotlib import pyplot as plt
 from radiotools import coordinatesystems as cstrafo
 import os
 import copy
-import pickle
 import logging
 logger = logging.getLogger("SignalGen.ARZ")
 logging.basicConfig()
@@ -73,9 +72,8 @@ class ARZ(object):
                 raise FileNotFoundError("user specified shower library {} not found.".format(library))
         self.__check_and_get_library()
         
-        with open(library, 'rb') as fin:
-            logger.warning("loading shower library ({}) into memory".format(library))
-            self._library = pickle.load(fin)
+        logger.warning("loading shower library ({}) into memory".format(library))
+        self._library = io_utilities.read_pickle(library)
             
     def __check_and_get_library(self):
         """
@@ -195,7 +193,7 @@ class ARZ(object):
             raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
     
         # determine closes available energy in shower library
-        energies = np.array(self._library[shower_type].keys())
+        energies = np.array([*self._library[shower_type]])
         iE = np.argmin(np.abs(energies - shower_energy))
         rescaling_factor = shower_energy / energies[iE]
         logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}".format(shower_energy / units.eV, energies[iE] / units.eV, rescaling_factor))
@@ -678,9 +676,8 @@ class ARZ_tabulated(object):
                 raise FileNotFoundError("user specified pulse library {} not found.".format(library))
         self.__check_and_get_library()
         
-        with open(library) as fin:
-            logger.warning("loading pulse library into memory")
-            self._library = pickle.load(fin)
+        logger.warning("loading pulse library into memory")
+        self._library = io_utilities.read_pickle(library)
             
     def __check_and_get_library(self):
         """

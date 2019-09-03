@@ -487,7 +487,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         fout.attrs['VERSION_MAJOR'] = VERSION_MAJOR
         fout.attrs['VERSION_MINOR'] = VERSION_MINOR
         fout.attrs['header'] = HEADER
-        for key, value in iteritems(attributes):
+        for key, value in attributes.items():
             fout.attrs[key] = value
         fout.attrs['total_number_of_events'] = total_number_of_events
 
@@ -509,10 +509,11 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
 #             else:
 #                 stop_index = tmp[0]
 
-        for key, value in iteritems(data_sets):
-            if (key == 'interaction_type'):
-                value = np.array(value, dtype='S')
-            fout[key] = value[start_index:stop_index]
+        for key, value in data_sets.items():
+            if value.dtype.kind == 'U':
+                fout[key] = [np.char.encode(c, 'utf8') for c in value[start_index:stop_index]]
+            else:
+                fout[key] = value[start_index:stop_index]
 
         # determine the number of events in this file (which is NOT the same as the entries in the file)
         # case 1) this is not the last file -> number of events is difference between last event id of the current and previous file + 1

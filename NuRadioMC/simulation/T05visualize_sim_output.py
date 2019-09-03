@@ -247,20 +247,20 @@ for key, station in iteritems(fin):
                    '$\mu$ cc', r'$\bar{\mu}$ cc', '$\mu$ nc', r'$\bar{\mu}$ nc',
                    r'$\tau$ cc', r'$\bar{\tau}$ cc', r'$\tau$ nc', r'$\bar{\tau}$ nc']
         yy = np.zeros(len(flavor_labels))
-        yy[0] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == 'cc')])
-        yy[1] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == 'cc')])
-        yy[2] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == 'nc')])
-        yy[3] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == 'nc')])
+        yy[0] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == b'cc')])
+        yy[1] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == b'cc')])
+        yy[2] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == b'nc')])
+        yy[3] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == b'nc')])
         
-        yy[4] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == 'cc')])
-        yy[5] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == 'cc')])
-        yy[6] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == 'nc')])
-        yy[7] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == 'nc')])
+        yy[4] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == b'cc')])
+        yy[5] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == b'cc')])
+        yy[6] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == b'nc')])
+        yy[7] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == b'nc')])
         
-        yy[8] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == 'cc')])
-        yy[9] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == 'cc')])
-        yy[10] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == 'nc')])
-        yy[11] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == 'nc')])
+        yy[8] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == b'cc')])
+        yy[9] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == b'cc')])
+        yy[10] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == b'nc')])
+        yy[11] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == b'nc')])
         
         fig, ax = plt.subplots(1, 1, figsize=(8, 6))
         ax.bar(range(len(flavor_labels)), yy)

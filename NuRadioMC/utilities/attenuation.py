@@ -1,7 +1,7 @@
 import numpy as np
 from NuRadioMC.utilities import units
 
-model_to_int = {"SP1" : 1, "GL1" : 2}
+model_to_int = {"SP1" : 1, "GL1" : 2, "MB1" : 3}
 
 def fit_GL1(z):
     # Model for Greenland. Taken from DOI: https://doi.org/10.3189/2015JoG15J057
@@ -71,5 +71,11 @@ def get_attenuation_length(z, frequency, model):
             att_length_f[ att_length_f < min_length ] = min_length
 
         return att_length_f
+    elif(model == "MB1"): # from 10.3189/2015JoG14J214
+        R = 0.82
+        d_ice = 576 * units.m
+        att_length = 460 * units.m - 180 * units.m /units.GHz * frequency
+        att_length *= (1 + att_length / (2 * d_ice) * np.log(R)) ** -1  # additional correction for reflection coefficient being less than 1. 
+        return att_length 
     else:
         raise NotImplementedError("attenuation model {} is not implemented.".format(model))

@@ -1,8 +1,8 @@
 from NuRadioMC.SignalGen.askaryan import get_time_trace, get_frequency_spectrum
 from NuRadioMC.utilities import units, fft
+from NuRadioReco.utilities import io_utilities
 import numpy as np
 from numpy import testing
-import pickle
 
 np.random.seed(0)
 
@@ -21,13 +21,12 @@ Es = 10**np.linspace(15,19,5) * units.eV
 domegas = np.linspace(-5,5,10) * units.deg
 thetas = np.arccos(1./n_index) + domegas
 
-with open("reference_v1.pkl", "rb") as fin:
-    reference = pickle.load(fin)
-    i = -1
-    for model in models:
-        for E in Es:
-            for shower_type in shower_types:
-                for theta in thetas:
-                    i+=1
-                    trace = get_time_trace(E, theta, n_samples, dt, shower_type, n_index, R, model)
-                    testing.assert_almost_equal(trace, reference[i])
+reference = io_utilities.read_pickle("reference_v1.pkl")
+i = -1
+for model in models:
+    for E in Es:
+        for shower_type in shower_types:
+            for theta in thetas:
+                i+=1
+                trace = get_time_trace(E, theta, n_samples, dt, shower_type, n_index, R, model)
+                testing.assert_almost_equal(trace, reference[i])
