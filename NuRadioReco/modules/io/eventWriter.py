@@ -73,22 +73,9 @@ class eventWriter:
             logger.error("output mode must be one of ['full', 'mini', 'micro'] but is {}".format(mode))
             raise NotImplementedError
         evt_header_str = pickle.dumps(get_header(evt), protocol=2)
-        b = bytearray()
-        b.extend(evt_header_str)
-        evt_header_length = len(b)
-
-        evtstr = evt.serialize(mode)
-        b = bytearray()
-        b.extend(evtstr)
-        evt_length = len(b)
-
-        b = bytearray()
-        b.extend(evt_header_length.to_bytes(6, 'little'))
-        b.extend(evt_header_str)
-        b.extend(evt_length.to_bytes(6, 'little'))
-        b.extend(evtstr)
-        self.__fout.write(b)
-        self.__current_file_size += b.__sizeof__()
+        event_bytearray = self.__get_event_bytearray(evt, mode)
+        self.__fout.write(event_bytearray)
+        self.__current_file_size += event_bytearray.__sizeof__()
         self.__number_of_events += 1
         logger.debug("current file size is {} bytes, event number {}".format(self.__current_file_size,
                      self.__number_of_events))
@@ -99,6 +86,24 @@ class eventWriter:
             self.__number_of_files += 1
             self.__fout = open("{}_part{:02d}.nur".format(self.__filename, self.__number_of_files), 'wb')
             self.__write_fout_header()
+
+    def __get_event_bytearray(self, event, mode):
+        evt_header_str = pickle.dumps(get_header(event), protocol=2)
+        b = bytearray()
+        b.extend(evt_header_str)
+        evt_header_length = len(b)
+        evt_string = event.serialize(mode)
+        b = bytearray()
+        b.extend(evt_string)
+        evt_length = len(b)
+        event_bytearray = bytearray()
+        type_marker = 0
+        event_bytearray.extend(type_marker.to_bytes(6, 'little'))
+        event_bytearray.extend(evt_header_length.to_bytes(6, 'little'))
+        event_bytearray.extend(evt_header_str)
+        event_bytearray.extend(evt_length.to_bytes(6, 'little'))
+        event_bytearray.extend(evt_string)
+        return event_bytearray
 
     def end(self):
         self.__fout.close()
