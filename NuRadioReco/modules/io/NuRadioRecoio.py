@@ -120,7 +120,6 @@ class NuRadioRecoio(object):
             self.__get_file(iF).seek(current_byte)
             object_type = self.__get_file(iF).read(6)
             current_byte += 6
-            self.__get_file(iF).seek(current_byte)
             bytes_to_read_hex = self.__get_file(iF).read(6)
             bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
             if(bytes_to_read == 0):
@@ -223,6 +222,7 @@ class NuRadioRecoio(object):
         iF = 0
         self.__get_file(iF).seek(12)  # skip file header
         while True:
+            object_type = self.__get_file(iF).read(6)
             bytes_to_read_hex = self.__get_file(iF).read(6)
             bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
             if(bytes_to_read == 0):
