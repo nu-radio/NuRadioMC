@@ -30,8 +30,7 @@ voltageToEfieldConverterPerChannel.begin()
 
 def get_array_of_channels(station, det, zenith, azimuth, polarization):
     """
-    reconstruct signal arrival direction for all events through beam forming.
-    https://arxiv.org/pdf/1009.0345.pdf
+    Returns an array of the channel traces that is cut to the physical overlapping time
 
     Parameters
     ----------
@@ -221,17 +220,4 @@ class beamFormingDirectionFitter:
             plt.show()
 
     def end(self):
-        fig, ax = plt.subplots(1, 1)
-        mask = np.abs(self.__delta_azimuth) < (1 * units.deg)
-        ax.scatter(np.array(self.__zenith)[mask] / units.deg, np.array(self.__delta_zenith)[mask] / units.deg, s=20)
-        ax.set_xlabel("zenith angle (MC) [deg]")
-        ax.set_ylabel("(zenith_rec - zenith_MC) [deg]")
-        fig.tight_layout()
-        fig.savefig("zenith_bias.png")
-
-        from radiotools import plthelpers as php
-        bins = np.arange(-10, 10, .1)
-        fig, ax = php.get_histogram(np.array(self.__delta_azimuth) / units.deg, bins=bins, xlabel="delta azimuth [deg]")
-        fig.savefig("azimuth.png")
-        plt.show()
         pass
