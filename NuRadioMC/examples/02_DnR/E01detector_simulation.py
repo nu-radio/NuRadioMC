@@ -9,7 +9,7 @@ import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution
 from NuRadioReco.utilities import units
-from NuRadioMC.simulation import simulation2 as simulation
+from NuRadioMC.simulation import simulation
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import logging
 import numpy as np

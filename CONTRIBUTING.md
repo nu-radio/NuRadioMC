@@ -14,6 +14,7 @@ please provide your fix in a branch and make a pull request.
 We works with continous integration, so you will immediately see, whether your code causes problems. 
 The core team of developers will review your pull request as soon as possible and provide feedback. 
 Once approved, you can merge your code into the master and delete the branch. Allow for at least 24h review time between the last change (commit) and the merge even if the pull request was approved quickly. 
+Before the pull request merge, document the relevant changes in "changelog.txt".
 
 This is following general coding workflow conventions. 
 

@@ -53,7 +53,13 @@ double get_attenuation_length(double z, double frequency, int model){
 	} else if (model == 2) {
 
 		return fit_GL1(z, frequency);
-		
+
+	} else if (model == 3) {
+		double R = 0.82;
+		double d_ice = 576 * utl::m;
+		double att_length = 460 * utl::m - 180 * utl::m /utl::GHz * frequency;
+		att_length *= 1./(1 + att_length / (2 * d_ice) * log(R));  // additional correction for reflection coefficient being less than 1.
+		return att_length;
 	} else {
 		std::cout << "attenuation length model " << model << " unknown" << std::endl;
 		throw 0;

@@ -26,7 +26,7 @@ points = np.array([xx, yy, zz]).T
 x_receiver = np.array([0., 0., -5.])
 
 results_C0s_cpp = np.zeros((n_events, 2))
-n_freqs = 256/2 + 1
+n_freqs = 256//2 + 1
 # n_freqs = 5
 results_A_cpp = np.zeros((n_events, 2, n_freqs))
 t_start = time.time()
