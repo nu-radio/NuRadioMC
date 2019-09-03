@@ -22,7 +22,7 @@ class readCoREASShower:
         self.__t_event_structure = 0
         self.__t_per_event = 0
 
-    def begin(self, input_files):
+    def begin(self, input_files, verbose=False):
         """
         begin method
 
@@ -35,6 +35,7 @@ class readCoREASShower:
         """
         self.__input_files = input_files
         self.__current_input_file = 0
+        self.__verbose = verbose
 
     def run(self):
         """
@@ -51,6 +52,9 @@ class readCoREASShower:
             #            self.__input_files[self.__current_input_file]))
             #     self.__current_input_file += 1
             #     continue
+
+            if self.__verbose:
+                print('Reading %s ...' % self.__input_files[self.__current_input_file])
 
             corsika = h5py.File(self.__input_files[self.__current_input_file], "r")
             logger.info("using coreas simulation {} with E={:2g} theta = {:.0f}".format(
@@ -119,19 +123,26 @@ class readCoREASShower:
             except KeyError:
                 pass
 
+            antenna_position = obs_plane["antenna_position"]
+            antenna_position_vBvvB = obs_plane["antenna_position_vBvvB"]
+            energy_fluence = obs_plane["energy_fluence"]
+            energy_fluence_vector = obs_plane["energy_fluence_vector"]
+            frequency_slope = obs_plane["frequency_slope"]
+            antenna_names = obs_plane["antenna_names"]
+
             # later parse station id from antenna name if possible
-            for idx, name in enumerate(np.array(obs_plane["antenna_names"])):
+            for idx, name in enumerate(np.array(antenna_names)):
 
                 station_id = antenna_id(name, idx)
                 station = NuRadioReco.framework.station.Station(station_id)
                 station.set_parameter(astP.name, name)
 
-                sim_station = NuRadioReco.framework.sim_station.SimStation(station_id, position=obs_plane["antenna_position"][idx])
+                sim_station = NuRadioReco.framework.sim_station.SimStation(station_id, position=antenna_position[idx])
                 sim_station.set_parameter(astP.name, name)
-                sim_station.set_parameter(astP.position_vB_vvB, obs_plane["antenna_position_vBvvB"][idx])
-                sim_station.set_parameter(astP.signal_energy_fluence, obs_plane["energy_fluence"][idx])
-                sim_station.set_parameter(astP.signal_energy_fluence_vector, obs_plane["energy_fluence_vector"][idx])
-                sim_station.set_parameter(astP.frequency_slope, obs_plane["frequency_slope"][idx])
+                sim_station.set_parameter(astP.position_vB_vvB, antenna_position_vBvvB[idx])
+                sim_station.set_parameter(astP.signal_energy_fluence, energy_fluence[idx])
+                sim_station.set_parameter(astP.signal_energy_fluence_vector, energy_fluence_vector[idx])
+                sim_station.set_parameter(astP.frequency_slope, frequency_slope[idx])
 
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
