@@ -71,11 +71,19 @@ def get_attenuation_length(z, frequency, model):
             att_length_f[ att_length_f < min_length ] = min_length
 
         return att_length_f
-    elif(model == "MB1"): # from 10.3189/2015JoG14J214
+    elif(model == "MB1"): # from 10.3189/2015JoG14J214 and Phd Thesis C. Persichilli (depth dependence)
+#         from NuRadioMC.utilities import medium
+#         ice = medium.mooresbay_simple()
+
         R = 0.82
         d_ice = 576 * units.m
         att_length = 460 * units.m - 180 * units.m /units.GHz * frequency
         att_length *= (1 + att_length / (2 * d_ice) * np.log(R)) ** -1  # additional correction for reflection coefficient being less than 1. 
+        
+        d = -z * 420. / d_ice;
+        L = (1250.*0.08886 * np.exp(-0.048827 * (225.6746 - 86.517596 * np.log10(848.870 - (d)))))
+        att_length *= L/262.0
+        
         return att_length 
     else:
         raise NotImplementedError("attenuation model {} is not implemented.".format(model))
