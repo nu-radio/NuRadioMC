@@ -123,7 +123,7 @@ class simulation():
         self._mout = collections.OrderedDict()
         self._mout_groups = collections.OrderedDict()
         self._mout_attrs = collections.OrderedDict()
-        
+
         # read in detector positions
         logger.warning("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
         self._det = None
@@ -271,7 +271,7 @@ class simulation():
                                        sg_pre['ray_tracing_solution_type'][self._iE][channel_id], temp_reflection, temp_reflection_case)
                     else:
                         r.find_solutions()
-                        
+
                     if(not r.has_solution()):
                         logger.debug("event {} and station {}, channel {} does not have any ray tracing solution ({} to {})".format(
                             self._event_id, self._station_id, channel_id, x1, x2))
@@ -381,12 +381,12 @@ class simulation():
                                     zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
                                 r_phi = geo_utl.get_fresnel_r_s(
                                     zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
-    
+
                                 eTheta *= r_theta
                                 ePhi *= r_phi
                                 logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection/units.deg,
                                     r_theta, r_phi))
-                                
+
                         if(self._n_reflections > 0):  # take into account possible bottom reflections
                             # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
                             reflection_coefficient = self._n_reflections * self._ice.reflection_coefficient
@@ -570,13 +570,13 @@ class simulation():
             nx, ny = self._mout['multiple_triggers'].shape
             tmp[:, 0:ny] = self._mout['multiple_triggers']
             self._mout['multiple_triggers'] = tmp
-            
+
             sg = self._mout_groups[self._station_id]
             tmp = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             nx, ny = sg['multiple_triggers'].shape
             tmp[:, 0:ny] = sg['multiple_triggers']
             sg['multiple_triggers'] = tmp
-            
+
 
     def _save_triggers_to_hdf5(self):
 
@@ -686,7 +686,7 @@ class simulation():
 
     def _write_ouput_file(self):
         folder = os.path.dirname(self._outputfilename)
-        if(not os.path.exists(folder)):
+        if(not os.path.exists(folder) and folder != ''):
             logger.warning(f"output folder {folder} does not exist, creating folder...")
             os.makedirs(folder)
         fout = h5py.File(self._outputfilename, 'w')
