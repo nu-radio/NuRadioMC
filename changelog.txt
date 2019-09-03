@@ -1,0 +1,9 @@
+version 1.0.0
+
+new features:
+added the internal clock parameter (time since last trigger with ms precision) to ARIANNA paremeters (key number 8)
+
+bugfixes:
+No bug fixes
+
+version 1.0.0 - 2019/09/03 - New parameter added
