@@ -1220,7 +1220,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         mask_theta = np.array(mask_theta)
         mask_phi = np.array(mask_phi)
 
-        mask_leptons = mask_leptons & mask_theta & mask_phi
+        #mask_leptons = mask_leptons & mask_theta & mask_phi
 
         E_all_leptons = (1 - data_sets["inelasticity"][mask_leptons]) * data_sets["energies"][mask_leptons]
         lepton_codes = data_sets["flavors"][mask_leptons]
@@ -1242,9 +1242,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             lepton_codes = lepton_codes[:n_resample]
             lepton_positions = None
             lepton_directions = None
+            proposal_config = 'config_PROPOSAL_infice.json'
 
         products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes, lepton_positions,
                                                  lepton_directions, config_file=proposal_config)
+        print("check?", len(products_array), len(E_all_leptons))
 
         for event_id in data_sets["event_ids"]:
             iE = event_id - start_event_id
@@ -1265,12 +1267,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                     first_inserted = True
 
-            tau_cc = data_sets["interaction_type"][iE] == 'cc' and np.abs(data_sets["flavors"][iE]) == 16
-            mu_cc = data_sets["interaction_type"][iE] == 'cc' and np.abs(data_sets["flavors"][iE]) == 14
-            geometry_selection = mask_theta[iE] and mask_phi[iE]
-            geometry_selection = True
-
-            if (tau_cc or mu_cc) and geometry_selection:
+            if mask_leptons[iE]:
 
                 Elepton = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
                 if data_sets["flavors"][iE] > 0:
@@ -1283,6 +1280,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     products = products_array[i_resample % n_resample]
                     i_resample += 1
                 else:
+                    print("jarl", products_array[0])
                     products = products_array.pop(0)
                 n_interaction = 2
 
