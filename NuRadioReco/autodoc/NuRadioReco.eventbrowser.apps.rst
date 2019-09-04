@@ -1,19 +1,43 @@
-NuRadioReco.eventbrowser.apps package
-=====================================
+NuRadioReco\.eventbrowser\.apps package
+=======================================
 
 Submodules
 ----------
 
-NuRadioReco.eventbrowser.apps.summary module
---------------------------------------------
+NuRadioReco\.eventbrowser\.apps\.common module
+----------------------------------------------
 
-.. automodule:: NuRadioReco.eventbrowser.apps.summary
+.. automodule:: NuRadioReco.eventbrowser.apps.common
     :members:
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.eventbrowser.apps.traces module
--------------------------------------------
+NuRadioReco\.eventbrowser\.apps\.cosmic\_rays module
+----------------------------------------------------
+
+.. automodule:: NuRadioReco.eventbrowser.apps.cosmic_rays
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco\.eventbrowser\.apps\.overview module
+------------------------------------------------
+
+.. automodule:: NuRadioReco.eventbrowser.apps.overview
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco\.eventbrowser\.apps\.simulation module
+--------------------------------------------------
+
+.. automodule:: NuRadioReco.eventbrowser.apps.simulation
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco\.eventbrowser\.apps\.traces module
+----------------------------------------------
 
 .. automodule:: NuRadioReco.eventbrowser.apps.traces
     :members:
