@@ -103,6 +103,8 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+html_css_files = [os.path.abspath('custom_scripts/styling.css')]
+
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
 #
