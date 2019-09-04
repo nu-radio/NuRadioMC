@@ -57,7 +57,7 @@ class simulationSelector:
             # identify the largest polarization
             max_pol = 0
             max_    = 0
-            for i in xrange(3):
+            for i in range(3):
                 if np.sum(fft[i]) > max_:
                     max_pol = i
                     max_ = np.sum(fft[i])

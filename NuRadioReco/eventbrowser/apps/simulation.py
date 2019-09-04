@@ -7,6 +7,7 @@ import dash_core_components as dcc
 import plotly.graph_objs as go
 import plotly
 from plotly import tools
+from plotly import subplots
 import json
 from app import app
 import dataprovider
@@ -155,7 +156,7 @@ def update_sim_trace_plot(i_event, filename, signal_types, station_id, juser_id)
     visibility_settings = ['legendonly', True, True]
     if sim_station is None:
         return {}
-    fig = tools.make_subplots(rows=1, cols=1)
+    fig = subplots.make_subplots(rows=1, cols=1)
     try:
         for i_electric_field, electric_field in enumerate(sim_station.get_electric_fields()):
             if electric_field.get_parameter(efp.ray_path_type) in signal_types:
@@ -202,7 +203,7 @@ def update_sim_spectrum_plot(i_event, filename, signal_types, station_id, juser_
     sim_station = station.get_sim_station()
     if sim_station is None:
         return {}
-    fig = tools.make_subplots(rows=1, cols=1)
+    fig = subplots.make_subplots(rows=1, cols=1)
     try:
         for i_electric_field, electric_field in enumerate(sim_station.get_electric_fields()):
             if electric_field.get_parameter(efp.ray_path_type) in signal_types:

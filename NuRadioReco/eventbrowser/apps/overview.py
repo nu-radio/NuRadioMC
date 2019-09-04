@@ -8,6 +8,7 @@ import dash_core_components as dcc
 import plotly.graph_objs as go
 import plotly
 from plotly import tools
+from plotly import subplots
 import json
 from app import app
 import dataprovider
@@ -420,7 +421,7 @@ def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, station_id, event_ty
         return {}
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
-    fig = tools.make_subplots(rows=1, cols=1)
+    fig = subplots.make_subplots(rows=1, cols=1)
     keys = ariio.get_header()[station_id].keys()
     if event_type == 'nu':
         if not stnp.nu_xcorrelations in keys:
@@ -463,7 +464,7 @@ def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, event_type
         return {}
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
-    fig = tools.make_subplots(rows=1, cols=1)
+    fig = subplots.make_subplots(rows=1, cols=1)
     keys = ariio.get_header()[station_id].keys()
     if event_type == 'nu':
         if not stnp.nu_xcorrelations in keys:
