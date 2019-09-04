@@ -1,5 +1,5 @@
 from __future__ import print_function 
-from NuRadioReco.modules.base.module import run_decorator, ModuleDecorator
+from NuRadioReco.modules.base.module import run_decorator
 
 import numpy as np
 from scipy import signal
