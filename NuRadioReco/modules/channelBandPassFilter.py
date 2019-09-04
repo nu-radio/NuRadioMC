@@ -78,12 +78,18 @@ class channelBandPassFilter:
             f[np.where(frequencies > passband[1])] = 0.
             return f
         elif(filter_type == 'butter'):
+            f = np.zeros_like(frequencies, dtype=np.complex)
+            mask = frequencies > 0
             b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
-            w, h = scipy.signal.freqs(b, a, frequencies)
-            return h
+            w, h = scipy.signal.freqs(b, a, frequencies[mask])
+            f[mask] = h
+            return f
         elif(filter_type == 'butterabs'):
+            f = np.zeros_like(frequencies, dtype=np.complex)
+            mask = frequencies > 0
             b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
-            w, h = scipy.signal.freqs(b, a, frequencies)
+            w, h = scipy.signal.freqs(b, a, frequencies[mask])
+            f[mask] = h
             return np.abs(h)
         elif(filter_type.find('FIR')>=0):
             raise NotImplementedError("FIR filter not yet implemented")
