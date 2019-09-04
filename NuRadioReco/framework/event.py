@@ -17,6 +17,16 @@ class Event:
         self._id = event_id
         self.__stations = {}
         self.__event_time = 0
+        self.__modules = []  # saves which modules were executed with what parameters
+    
+    def register_module(self, instance, name, kwargs):
+        """
+        registers modules applied to this event
+        """
+        self.__modules.append([name, instance, kwargs])
+    
+    def get_module_list(self):
+        return self.__modules
 
     def get_parameter(self, attribute):
         return self._parameters[attribute]
