@@ -520,6 +520,19 @@ class simulation():
 
         t_total = time.time() - t_start
         outputTime = time.time() - t5
+        
+        output_NuRadioRecoTime = "Timing of NuRadioReco modules \n"
+        ts = []
+        for name, instance, kwargs in self._evt.get_module_list():
+            ts.append(instance.run.time[instance])
+        ttot = np.sum(np.array(ts))
+        for i, (name, instance, kwargs) in enumerate(self._evt.get_module_list()):
+            t = pretty_time_delta(ts[i])
+            trel = 100.*ts[i]/ttot
+            output_NuRadioRecoTime += f"{name}: {t} {trel:.1f}%\n"
+        logger.warning(output_NuRadioRecoTime)
+            
+        
         logger.warning("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output)".format(self._n_events,
                                                                                          pretty_time_delta(t_total), 1.e3 * t_total / self._n_events,
                                                                                          100 * inputTime/t_total,
