@@ -85,6 +85,11 @@ class channelBandPassFilter:
             b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
             w, h = scipy.signal.freqs(b, a)
             return np.abs(h)
+        elif(filter_type.find('FIR')>=0):
+            raise NotImplementedError("FIR filter not yet implemented")
+        else:
+            return filterresponse.get_filter_response(frequencies, filter_type)
+            
             
         
     
@@ -162,13 +167,7 @@ class channelBandPassFilter:
 #             trace_fft = channel.get_frequency_spectrum()
             isFIR = True
         else:
-            mask = frequencies > 0
-            filt = filterresponse.get_filter_response(frequencies[mask], filter_type)
-            if is_efield:
-                for polarization in trace_fft:
-                    polarization[mask] *= filt
-            else:
-                trace_fft[mask] *= filt
+            trace_fft *= self._get_filter(frequencies, passband, filter_type)
         if isFIR:
             channel.set_trace(trace_fir, sample_rate)
             #print('set trace for fir')
