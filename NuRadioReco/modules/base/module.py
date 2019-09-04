@@ -12,7 +12,6 @@ def run_decorator(run):
             register_run_method.time[self] = 0
         register_run_method.time[self] += (end - start)
         return res
-    print(run.__class__)
     register_run_method.time = {}
     return register_run_method
        

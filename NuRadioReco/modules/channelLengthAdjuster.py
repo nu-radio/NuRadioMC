@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import run_decorator
 import numpy as np
 import copy
 import logging
@@ -28,7 +29,8 @@ class channelLengthAdjuster:
 
         self.number_of_samples = number_of_samples
         self.offset = offset
-
+    
+    @run_decorator
     def run(self, evt, station, det):
         max_pos = []
         for channel in station.iter_channels():

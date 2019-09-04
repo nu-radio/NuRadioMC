@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import run_decorator
 import numpy as np
 import fractions
 from decimal import Decimal
@@ -38,6 +39,7 @@ class channelTemplateCorrelation:
             ref_template_resampled = signal.resample(ref_template_resampled, len(ref_template_resampled) / resampling_factor.denominator)
         return ref_template_resampled
 
+    @run_decorator
     def run(self, evt, station, det, channels_to_use=[0, 1, 2, 3], cosmic_ray=False,
             n_templates=1):
         """

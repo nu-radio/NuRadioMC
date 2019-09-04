@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import run_decorator
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.trigger import HighLowTrigger
@@ -96,6 +97,7 @@ class triggerSimulator:
             logger.setLevel(log_level)
         return
 
+    @run_decorator
     def run(self, evt, station, det,
             threshold_high=60 * units.mV,
             threshold_low=-60 * units.mV,
