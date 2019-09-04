@@ -53,6 +53,9 @@ flavours = [12] # +/-12: electronic neutrino. +/-14: muonic neutrino. +/-16: tau
 if ( mode == 'full' ):
 	nevt = 1e6
 	nevt_perfile = 1e5
+elif mode == 'minimal':
+	nevt = 1e2
+	nevt_perfile = 1e3
 else:
 	nevt = 1e4
 	nevt_perfile = 1e4
@@ -83,8 +86,10 @@ for thetamin, thetamax in zip(thetamins, thetamaxs):
 				os.mkdir(input_dir)
 			except:
 				pass
-			if ( mode == 'simple' ):
+			if mode == 'simple':
 				outname = folder+'.hdf5'
+			elif mode == 'minimal':
+				outname = 'minimal_eventlist.hdf5'
 			else:
 				outname = folder_angle+'/'+folder+'/input/'+folder+'.hdf5'
 			print(Emin/units.PeV, Emax/units.PeV)

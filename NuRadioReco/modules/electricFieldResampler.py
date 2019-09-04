@@ -55,7 +55,7 @@ class electricFieldResampler:
                 if(resampling_factor.numerator != 1):
                     trace = signal.resample(trace, resampling_factor.numerator * len(trace))  # , window='hann')
                 if(resampling_factor.denominator != 1):
-                    trace = signal.resample(trace, len(trace) / resampling_factor.denominator)  # , window='hann')
+                    trace = signal.resample(trace, len(trace) // resampling_factor.denominator)  # , window='hann')
 
                 resampled_efield[iE] = trace
             # prevent traces to get an odd number of samples. If the trae has an odd number of samples, the last sample is discarded.

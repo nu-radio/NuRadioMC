@@ -1,8 +1,11 @@
+#!/usr/bin/env python
 import numpy as np
 import os, scipy, sys
 import copy
 import datetime
 import glob
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from NuRadioReco.utilities import units
@@ -21,6 +24,7 @@ import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.correlationDirectionFitter
 import NuRadioReco.modules.voltageToEfieldConverter
 import NuRadioReco.modules.electricFieldSignalReconstructor
+import NuRadioReco.modules.electricFieldBandPassFilter
 import NuRadioReco.modules.voltageToAnalyticEfieldConverter
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.electricFieldResampler
@@ -32,8 +36,8 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 
 # Logging level
 import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('FullExample')
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('TinyReconstruction')
 
 plt.switch_backend('agg')
 
@@ -46,7 +50,7 @@ Input parameters (all with a default provided)
 ---------------------
 
 Command line input:
-    python FullReconstruction.py station_id input_file detector_file
+    python FullReconstruction.py station_id input_file detector_file templates
 
 station_id: int
             station id to be used, default 32
@@ -54,15 +58,20 @@ input_file: str
             CoREAS simulation file, default example data
 detector_file: str
             path to json detector database, default given
+template_path: str
+            path to signal templates, default given
+
 """
+
+dir_path = os.path.dirname(os.path.realpath(__file__)) # get the directory of this file
 
 try:
     station_id = int(sys.argv[1])  # specify station id
     input_file = sys.argv[2] # file with coreas simulations
 except:
-    print("Usage: python FullReconstruction.py station_id input_file detector")
+    print("Usage: python FullReconstruction.py station_id input_file detector templates")
     station_id = 32
-    input_file = "example_data/example_event.h5"
+    input_file = os.path.join(dir_path, "../../examples/example_data/example_event.h5")
     print("Using default station {}".format(32))
 
 if(station_id == 32):
@@ -75,16 +84,16 @@ else:
 
 try:
     detector_file = sys.argv[3]
-    print("Using {0} as detector".format(detector_file))
+    print("Using {0} as detector ".format(detector_file))
 except:
     print("Using default file for detector")
-    detector_file = '../examples/example_data/arianna_detector_db.json'
+    detector_file = os.path.join(dir_path,"../../examples/example_data/arianna_detector_db.json")
 
-
+np.random.seed(1)
 det = detector.Detector(json_filename=detector_file) # detector file
 det.update(datetime.datetime(2018, 10, 1))
 
-dir_path = os.path.dirname(os.path.realpath(__file__)) # get the directory of this file
+
 
 # initialize all modules that are needed for processing
 # provide input parameters that are to remain constant during processung
@@ -116,6 +125,7 @@ voltageToAnalyticEfieldConverter.begin()
 
 electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
 electricFieldResampler.begin()
+electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
 
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelResampler.begin()
@@ -123,10 +133,14 @@ eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 output_filename = "MC_example_station_{}.nur".format(station_id)
 eventWriter.begin(output_filename)
 
+
+event_counter = 0
 # Loop over all events in file as initialized in readCoRREAS and perform analysis
 for iE, evt in enumerate(readCoREAS.run(detector=det)):
+    print("Processing {}".format(event_counter))
     logger.info("processing event {:d} with id {:d}".format(iE, evt.get_id()))
     station = evt.get_station(station_id)
+
 
     if simulationSelector.run(evt, station.get_sim_station(), det):
 
@@ -147,7 +161,6 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
             channelStopFilter.run(evt, station, det)
 
             channelBandPassFilter.run(evt, station, det, passband=[60 * units.MHz, 600 * units.MHz], filter_type='rectangular')
-
             channelSignalReconstructor.run(evt, station, det)
 
             hardwareResponseIncorporator.run(evt, station, det)
@@ -155,19 +168,24 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
             correlationDirectionFitter.run(evt, station, det, n_index=1., channel_pairs=channel_pairs)
 
             voltageToEfieldConverter.run(evt, station, det, use_channels=used_channels_efield)
-
+            
+            electricFieldBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 300*units.MHz])
+            
             electricFieldSignalReconstructor.run(evt, station, det)
+
             voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], useMCdirection=False)
 
             channelResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
-            
+
             electricFieldResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
 
             eventWriter.run(evt)
 
-
+    event_counter += 1
+    if event_counter > 2:
+        break
 nevents = eventWriter.end()
-print("Finished processing, {} events".format(nevents))
+print("Finished processing, {} events".format(event_counter))
 
 
 

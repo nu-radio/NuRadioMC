@@ -30,7 +30,7 @@ def get_time_delay_from_direction(zenith, azimuth, positions, n=None):
         times = -(1 / (constants.c / n)) * np.dot(shower_axis, positions) * units.s
     else:
         times = np.zeros(positions.shape[0])
-        for i in xrange(positions.shape[0]):
+        for i in range(positions.shape[0]):
             times[i] = -(1 / (constants.c / n)) * np.dot(shower_axis, positions[i, :]) * units.s
 
     return times
