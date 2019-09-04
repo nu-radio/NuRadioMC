@@ -55,7 +55,7 @@ class eventWriter:
         self.__number_of_files = 1
         self.__max_file_size = max_file_size * 1024 * 1024  # in bytes
 
-    def run(self, evt, mode='full'):
+    def run(self, evt, det, mode='full', store_detector = True):
         """
         writes NuRadioReco event into a file
 
@@ -77,6 +77,12 @@ class eventWriter:
         self.__fout.write(event_bytearray)
         self.__current_file_size += event_bytearray.__sizeof__()
         self.__number_of_events += 1
+        if store_detector:
+            detector_dict = self.__get_detector_dict(evt, det)
+            detector_bytearray = self.__get_detector_bytearray(detector_dict)
+            self.__fout.write(detector_bytearray)
+            self.__current_file_size += detector_bytearray.__sizeof__()
+
         logger.debug("current file size is {} bytes, event number {}".format(self.__current_file_size,
                      self.__number_of_events))
         if(self.__current_file_size > self.__max_file_size):
@@ -86,6 +92,7 @@ class eventWriter:
             self.__number_of_files += 1
             self.__fout = open("{}_part{:02d}.nur".format(self.__filename, self.__number_of_files), 'wb')
             self.__write_fout_header()
+
 
     def __get_event_bytearray(self, event, mode):
         evt_header_str = pickle.dumps(get_header(event), protocol=2)
@@ -104,6 +111,36 @@ class eventWriter:
         event_bytearray.extend(evt_length.to_bytes(6, 'little'))
         event_bytearray.extend(evt_string)
         return event_bytearray
+
+    def __get_detector_dict(self, event, det):
+        det_dict = {
+            "channels": {},
+            "stations": {}
+        }
+        i_station = 0
+        i_channel = 0
+        for station in event.get_stations():
+            det.update(station.get_station_time())
+            station_description = det.get_station(station.get_id())
+            det_dict['stations'][str(i_station)] = station_description
+            i_station += 1
+            for channel in station.iter_channels():
+                channel_description = det.get_channel(station.get_id(), channel.get_id())
+                det_dict['channels'][str(i_channel)] = channel_description
+                i_channel += 1
+        return det_dict
+
+    def __get_detector_bytearray(self, detector_dict):
+        detector_string = pickle.dumps(detector_dict, protocol=2)
+        b = bytearray()
+        b.extend(detector_string)
+        detector_length = len(b)
+        detector_bytearray = bytearray()
+        type_marker = 1
+        detector_bytearray.extend(type_marker.to_bytes(6, 'little'))
+        detector_bytearray.extend(detector_length.to_bytes(6, 'little'))
+        detector_bytearray.extend(detector_string)
+        return detector_bytearray
 
     def end(self):
         self.__fout.close()
