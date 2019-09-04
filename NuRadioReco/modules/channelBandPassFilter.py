@@ -1,4 +1,5 @@
 from __future__ import print_function 
+from NuRadioReco.modules.base.module import run_decorator
 
 import numpy as np
 from scipy import signal
@@ -7,7 +8,7 @@ import scipy.signal
 from NuRadioReco.detector import filterresponse
 import NuRadioReco.framework.sim_station
 
-
+# @ModuleDecorator
 class channelBandPassFilter:
     """
     Band pass filters the channels using different band-pass filters.
@@ -16,6 +17,7 @@ class channelBandPassFilter:
     def begin(self):
         pass
 
+    @run_decorator
     def run(self, evt, station, det, passband=[55 * units.MHz, 1000 * units.MHz],
             filter_type='rectangular', order=2):
         """
@@ -62,11 +64,16 @@ class channelBandPassFilter:
         for channel in station.iter_channels():
             if isinstance(station, NuRadioReco.framework.sim_station.SimStation):
                 for sub_channel in channel:
-                    self.__apply_filter(sub_channel, passband, filter_type, order, True)
+                    self._apply_filter(sub_channel, passband, filter_type, order, True)
             else:
-                self.__apply_filter(channel, passband, filter_type, order, False)
+#                 print(channel)
+#                 print(self)
+#                 print(self._apply_filter)
+                self._apply_filter(channel, passband, filter_type, order, False)
             
-    def __apply_filter(self, channel, passband, filter_type, order, is_efield=False):
+    def _apply_filter(self, channel, passband, filter_type, order, is_efield=False):
+#         print(f"apply_filter self {self}")
+#         print(channel)
         frequencies = channel.get_frequencies()
         trace_fft = channel.get_frequency_spectrum()
         sample_rate = channel.get_sampling_rate()
