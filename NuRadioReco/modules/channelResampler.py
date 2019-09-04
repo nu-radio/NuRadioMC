@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import run_decorator
 import numpy as np
 import fractions
 from scipy import signal
@@ -33,7 +34,7 @@ class channelResampler:
 
         """
 
-
+    @run_decorator
     def run(self, evt, station, det, sampling_rate):
         """
         Run the channelResampler

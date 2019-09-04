@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import run_decorator
 import numpy as np
 import copy
 import logging
@@ -15,6 +16,7 @@ class channelStopFilter:
     def begin(self):
         pass
 
+    @run_decorator
     def run(self, evt, station, det, filter_size=0.1, prepend=128 * units.ns, append=128 * units.ns):
         """
         parameters

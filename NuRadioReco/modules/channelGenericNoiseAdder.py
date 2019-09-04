@@ -1,4 +1,5 @@
 from __future__ import print_function
+from NuRadioReco.modules.base.module import run_decorator
 import numpy as np
 from NuRadioReco.utilities import units, fft
 import logging
@@ -151,6 +152,7 @@ class channelGenericNoiseAdder:
             #logger = logging.getLogger("channelGenericNoiseAdder")
             logger.setLevel(logging.DEBUG)
 
+    @run_decorator
     def run(self, event, station, detector,
                             amplitude=1 * units.mV,
                             min_freq=50 * units.MHz,
