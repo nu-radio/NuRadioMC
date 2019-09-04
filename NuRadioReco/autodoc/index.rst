@@ -7,10 +7,11 @@ Welcome to NuRadioReco's documentation!
 =======================================
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    NuRadioReco.framework
    NuRadioReco.modules
+   NuRadioReco.detector
    NuRadioReco.utilities
 
 Indices and tables
