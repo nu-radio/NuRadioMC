@@ -95,7 +95,7 @@ def buffer_db(in_memory, filename=None):
                                 'adc_nbits': channel['adcs.nbits'],
                                 'adc_n_samples': channel['adcs.n_samples'],
                                 'adc_sampling_frequency': channel['adcs.sampling_frequency']})
-        
+
     results = sqldet.get_everything_positions()
     table_positions = db.table('positions')
     table_positions.purge()
@@ -108,7 +108,7 @@ def buffer_db(in_memory, filename=None):
                                'pos_altitude': result['pos.altitude'],
                                'pos_zone': result['pos.zone'],
                                'pos_site': result['pos.site']})
-        
+
     logger.info("sql database buffered")
     return db
 
@@ -126,8 +126,8 @@ class Singleton(type):
 class Detector(object):
     """
     main detector class which provides access to the detector description
-    
-    This class provides functions for all relevant detector properties. 
+
+    This class provides functions for all relevant detector properties.
     """
 
     def __init__(self, source='json', json_filename='ARIANNA/arianna_detector_db.json',
@@ -214,7 +214,7 @@ class Detector(object):
             logger.error("query for station {} at time {} returned no results".format(station_id, self.__current_time.datetime))
             raise LookupError("query for station {} at time {} returned no results".format(station_id, self.__current_time.datetime))
         return res
-    
+
     def __query_position(self, position_id):
         Position = Query()
         res = self.__positions.get((Position.pos_position == position_id))
@@ -243,7 +243,10 @@ class Detector(object):
         if(station_id not in self._buffered_stations.keys()):
             self._buffer(station_id)
         return self._buffered_stations[station_id]
-    
+
+    def get_station(self, station_id):
+        return self.__get_station(station_id)
+
     def __get_position(self, position_id):
         if(position_id not in self.__buffered_positions.keys()):
             self.__buffer_position(position_id)
@@ -269,10 +272,10 @@ class Detector(object):
             self._buffered_channels[station_id][channel['channel_id']] = channel
             self.__valid_t0 = max(self.__valid_t0, astropy.time.Time(channel['commission_time']))
             self.__valid_t1 = min(self.__valid_t1, astropy.time.Time(channel['decommission_time']))
-            
+
     def __buffer_position(self, position_id):
         self.__buffered_positions[position_id] = self.__query_position(position_id)
-            
+
     def __get_t0_t1(self, station_id):
         Station = Query()
         res = self._stations.get(Station.station_id == station_id)
@@ -292,11 +295,11 @@ class Detector(object):
             t0 = res['commission_time']
             t1 = res['decommission_time']
         return astropy.time.Time(t0), astropy.time.Time(t1)
-    
+
     def has_station(self, station_id):
         """
         checks if a station is present in the database
-        
+
         Parameters
         ----------
         station_id: int
@@ -307,16 +310,16 @@ class Detector(object):
         Station = Query()
         res = self._stations.get(Station.station_id == station_id)
         return res != None
-    
+
     def get_unique_time_periods(self, station_id):
         """
         returns the time periods in which the station configuration (including all channels) was constant
-        
+
         Parameters
         ----------
         station_id: int
             the station id
-        
+
         Returns datetime tuple
         """
         up = []
@@ -335,7 +338,7 @@ class Detector(object):
     def update(self, time):
         """
         updates the detector description to a new time
-        
+
         Parameters
         ----------
         timestamp: astropy.time.Time
@@ -352,33 +355,33 @@ class Detector(object):
             self._buffered_channels = {}
             self.__valid_t0 = astropy.time.Time('2100-1-1')
             self.__valid_t1 = astropy.time.Time('1970-1-1')
-            
+
     def get_channel(self, station_id, channel_id):
         """
         returns a dictionary of all channel parameters
-        
+
         Parameters
         ---------
         station_id: int
             the station id
         channel_id: int
             the channel id
-            
+
         Returns: dict of channel parameters
         """
         return self.__get_channel(station_id, channel_id)
-    
+
     def get_absolute_position(self, station_id):
         """
         get the absolute position of a specific station
-        
+
         Parameters
         ---------
         station_id: int
             the station id
-            
-        Returns: 3-dim array of absolute station position in easting, northing and depth wrt. to snow level at 
-        time of measurement 
+
+        Returns: 3-dim array of absolute station position in easting, northing and depth wrt. to snow level at
+        time of measurement
         """
         res = self.__get_station(station_id)
         easting, northing, altitude = 0, 0, 0
@@ -388,20 +391,20 @@ class Detector(object):
         if(res['pos_easting'] is not None):
             easting = res['pos_easting'] * unit_xy
         if(res['pos_northing'] is not None):
-            northing = res['pos_northing'] * unit_xy 
+            northing = res['pos_northing'] * unit_xy
         return np.array([easting, northing, altitude])
-    
+
     def get_absolute_position_site(self, site):
         """
         get the absolute position of a specific station
-        
+
         Parameters
         ---------
         site: string
             the position identifier e.g. "G"
-            
-        Returns: 3-dim array of absolute station position in easting, northing and depth wrt. to snow level at 
-        time of measurement 
+
+        Returns: 3-dim array of absolute station position in easting, northing and depth wrt. to snow level at
+        time of measurement
         """
         res = self.__get_position(site)
         unit_xy = units.m
@@ -413,22 +416,22 @@ class Detector(object):
         if(res['pos_northing'] is not None):
             northing = res['pos_northing'] * unit_xy
         if(res['pos_altitude'] is not None):
-            altitude = res['pos_altitude'] * units.m 
+            altitude = res['pos_altitude'] * units.m
         return np.array([easting, northing, altitude])
 
 
     def get_relative_position(self, station_id, channel_id):
         """
         get the relative position of a specific channels/antennas with respeect to the station center
-        
+
         Parameters
         ---------
         station_id: int
             the station id
         channel_id: int
             the channel id
-            
-        Returns: 3-dim array of relative station position 
+
+        Returns: 3-dim array of relative station position
         """
         res = self.__get_channel(station_id, channel_id)
         return np.array([res['ant_position_x'], res['ant_position_y'], res['ant_position_z']])
@@ -436,13 +439,13 @@ class Detector(object):
     def get_relative_positions(self, station_id):
         """
         get the relative positions of all channels/antennas with respeect to the station center
-        
+
         Parameters
         ---------
         station_id: int
             the station id
-            
-        Returns: List of 3-dim array of relative station positions 
+
+        Returns: List of 3-dim array of relative station positions
         """
         res = self.__get_channels(station_id)
         positions = np.zeros((len(res), 3))
@@ -454,57 +457,57 @@ class Detector(object):
     def get_site(self, station_id):
         """
         get the site where the station is deployed (e.g. MooresBay or South Pole)
-        
+
         Parameters
         ---------
         station_id: int
             the station id
-            
+
         Returns string
         """
-        
+
         res = self.__get_station(station_id)
         return res['pos_site']
 
     def get_number_of_channels(self, station_id):
         """
         Get the number of channels per statoin
-        
+
         Parameters
         ---------
         station_id: int
             the station id
-            
+
         Returns int
         """
         res = self.__get_channels(station_id)
         return len(res)
-    
+
     def get_channel_ids(self, station_id):
         """
         get the channel ids of a station
-        
+
         Parameters
         ---------
         station_id: int
             the station id
-            
+
         Returns list of ints
         """
         channel_ids = []
         for channel in self.__get_channels(station_id).values():
             channel_ids.append(channel['channel_id'])
         return channel_ids
-    
+
     def get_parallel_channels(self, station_id):
         """
         get a list of parallel antennas
-        
+
         Parameters
         ---------
         station_id: int
             the station id
-            
+
         Returns list of list of ints
         """
         res = self.__get_channels(station_id)
@@ -536,14 +539,14 @@ class Detector(object):
     def get_cable_delay(self, station_id, channel_id):
         """
         returns the cable delay of a channel
-        
+
         Parameters
         ---------
         station_id: int
             the station id
         channel_id: int
             the channel id
-            
+
         Returns float (delay time)
         """
         res = self.__get_channel(station_id, channel_id)
@@ -552,14 +555,14 @@ class Detector(object):
     def get_cable_type_and_length(self, station_id, channel_id):
         """
         returns the cable type (e.g. LMR240) and its length
-        
+
         Parameters
         ---------
         station_id: int
             the station id
         channel_id: int
             the channel id
-            
+
         Returns typle (string, float)
         """
         res = self.__get_channel(station_id, channel_id)
@@ -568,14 +571,14 @@ class Detector(object):
     def get_antenna_type(self, station_id, channel_id):
         """
         returns the antenna type
-        
+
         Parameters
         ---------
         station_id: int
             the station id
         channel_id: int
             the channel id
-            
+
         Returns string
         """
         res = self.__get_channel(station_id, channel_id)
@@ -584,14 +587,14 @@ class Detector(object):
     def get_antenna_deployment_time(self, station_id, channel_id):
         """
         returns the time of antenna deployment
-        
+
         Parameters
         ---------
         station_id: int
             the station id
         channel_id: int
             the channel id
-            
+
         Returns datetime
         """
         res = self.__get_channel(station_id, channel_id)
@@ -600,14 +603,14 @@ class Detector(object):
     def get_antanna_orientation(self, station_id, channel_id):
         """
         returns the orientation of a specific antenna
-        
+
         Parameters
         ---------
         station_id: int
             the station id
         channel_id: int
             the channel id
-            
+
         Returns typle of floats
             * orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
             * orientation phi: boresight direction (azimuth angle counting from East counterclockwise)
@@ -620,30 +623,30 @@ class Detector(object):
     def get_amplifier_type(self, station_id, channel_id):
         """
         returns the type of the amplifier
-        
+
         Parameters
         ---------
         station_id: int
             the station id
         channel_id: int
             the channel id
-            
+
         Returns string
         """
         res = self.__get_channel(station_id, channel_id)
         return res['amp_type']
-    
+
     def get_amplifier_measurement(self, station_id, channel_id):
         """
         returns a unique reference to the amplifier measurement
-        
+
         Parameters
         ---------
         station_id: int
             the station id
         channel_id: int
             the channel id
-            
+
         Returns string
         """
         res = self.__get_channel(station_id, channel_id)
@@ -652,14 +655,14 @@ class Detector(object):
     def get_sampling_frequency(self, station_id, channel_id):
         """
         returns the sampling frequency
-        
+
         Parameters
         ---------
         station_id: int
             the station id
         channel_id: int
             the channel id
-            
+
         Returns float
         """
         res = self.__get_channel(station_id, channel_id)
@@ -668,14 +671,14 @@ class Detector(object):
     def get_number_of_samples(self, station_id, channel_id):
         """
         returns the number of samples of a channel
-        
+
         Parameters
         ---------
         station_id: int
             the station id
         channel_id: int
             the channel id
-            
+
         Returns int
         """
         res = self.__get_channel(station_id, channel_id)
@@ -684,9 +687,9 @@ class Detector(object):
     def get_antenna_model(self, station_id, channel_id, zenith=None):
         """
         determines the correct antenna model from antenna type, position and orientation of antenna
-        
+
         so far only infinite firn and infinite air cases are differentiated
-        
+
         Parameters
         ---------
         station_id: int
@@ -695,7 +698,7 @@ class Detector(object):
             the channel id
         zenith: float or None (default)
             the zenith angle of the incoming signal direction
-            
+
         Returns string
         """
         antenna_type = self.get_antenna_type(station_id, channel_id)

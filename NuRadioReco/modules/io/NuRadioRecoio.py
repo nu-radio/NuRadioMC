@@ -118,7 +118,8 @@ class NuRadioRecoio(object):
         iF = 0
         while True:
             self.__get_file(iF).seek(current_byte)
-            object_type = self.__get_file(iF).read(6)
+            object_type_hex = self.__get_file(iF).read(6)
+            object_type = int.from_bytes(object_type_hex, 'little')
             current_byte += 6
             bytes_to_read_hex = self.__get_file(iF).read(6)
             bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
@@ -136,19 +137,20 @@ class NuRadioRecoio(object):
                 else:
                     break
             current_byte += 6
-            self.__bytes_start_header[iF].append(current_byte)
-            self.__bytes_length_header[iF].append(bytes_to_read)
-            current_byte += bytes_to_read
+            if object_type == 0:
+                self.__bytes_start_header[iF].append(current_byte)
+                self.__bytes_length_header[iF].append(bytes_to_read)
+                current_byte += bytes_to_read
 
-            evt_header = pickle.loads(self.__get_file(iF).read(bytes_to_read))
-            self.__parse_event_header(evt_header)
+                evt_header = pickle.loads(self.__get_file(iF).read(bytes_to_read))
+                self.__parse_event_header(evt_header)
 
-            self.__get_file(iF).seek(current_byte)
-            bytes_to_read_hex = self.__get_file(iF).read(6)
-            current_byte += 6
-            bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
-            self.__bytes_start[iF].append(current_byte)
-            self.__bytes_length[iF].append(bytes_to_read)
+                self.__get_file(iF).seek(current_byte)
+                bytes_to_read_hex = self.__get_file(iF).read(6)
+                current_byte += 6
+                bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
+                self.__bytes_start[iF].append(current_byte)
+                self.__bytes_length[iF].append(bytes_to_read)
             current_byte += bytes_to_read
             #print("reading event {} with length {} from byte {} onwards".format(len(self.__bytes_length[iF]), bytes_to_read, self.__bytes_start[iF][-1]))
         self.__event_ids = np.array(self.__event_ids)
@@ -222,7 +224,8 @@ class NuRadioRecoio(object):
         iF = 0
         self.__get_file(iF).seek(12)  # skip file header
         while True:
-            object_type = self.__get_file(iF).read(6)
+            object_type_hex = self.__get_file(iF).read(6)
+            object_type = int.from_bytes(object_type_hex, 'little')
             bytes_to_read_hex = self.__get_file(iF).read(6)
             bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
             if(bytes_to_read == 0):
@@ -233,14 +236,17 @@ class NuRadioRecoio(object):
                     bytes_to_read_hex = self.__get_file(iF).read(6)
                 else:
                     break
-            evt_header_str = self.__get_file(iF).read(bytes_to_read)
+            if object_type == 0:
+                evt_header_str = self.__get_file(iF).read(bytes_to_read)
+                bytes_to_read_hex = self.__get_file(iF).read(6)
+                bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
+                evtstr = self.__get_file(iF).read(bytes_to_read)
+                event = NuRadioReco.framework.event.Event(0, 0)
+                event.deserialize(evtstr)
+                yield event
+            elif object_type == 1:
+                self.__get_file(iF).read(bytes_to_read)
 
-            bytes_to_read_hex = self.__get_file(iF).read(6)
-            bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
-            evtstr = self.__get_file(iF).read(bytes_to_read)
-            event = NuRadioReco.framework.event.Event(0, 0)
-            event.deserialize(evtstr)
-            yield event
 
     def get_n_events(self):
         if(not self.__file_scanned):
