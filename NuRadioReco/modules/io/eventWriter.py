@@ -89,7 +89,6 @@ class eventWriter:
                 detector_bytearray = self.__get_detector_bytearray(detector_dict)
                 self.__fout.write(detector_bytearray)
                 self.__current_file_size += detector_bytearray.__sizeof__()
-            else:
         logger.debug("current file size is {} bytes, event number {}".format(self.__current_file_size,
                      self.__number_of_events))
         if(self.__current_file_size > self.__max_file_size):
