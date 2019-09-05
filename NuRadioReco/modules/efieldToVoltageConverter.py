@@ -1,4 +1,4 @@
-from NuRadioReco.modules.base.module import run_decorator
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units, fft
@@ -79,7 +79,7 @@ class efieldToVoltageConverter:
                 self.__uncertainty['sys_amp'][iCh] = np.random.normal(1, self.__uncertainty['sys_amp'][iCh])
         self.antenna_provider = antennapattern.AntennaPatternProvider()
 
-    @run_decorator
+    @register_run("station")
     def run(self, evt, station, det):
         t = time.time()
 

@@ -1,4 +1,4 @@
-from NuRadioReco.modules.base.module import run_decorator
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from scipy import signal
 import time
@@ -133,7 +133,7 @@ class channelSignalReconstructor:
 
         return SNR
 
-    @run_decorator
+    @register_run("station")
     def run(self, evt, station, det, stored_noise=False, rms_stage='amp'):
         """
         Parameters
