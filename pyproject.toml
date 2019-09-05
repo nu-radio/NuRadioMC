@@ -13,11 +13,12 @@ requires = [
     "tinydb-serialization",
     "aenum",
     "astropy<=2.0.14",
-    "radiotools >=0.1.0",
+    "radiotools >=0.2.0",
     "h5py",
     "peakutils",
     "requests"
 ]
+requires-python=">3.4"
 
 [tool.flit.metadata.requires-extra]
 doc = ["sphinx"]
