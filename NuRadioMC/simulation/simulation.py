@@ -523,10 +523,10 @@ class simulation():
         
         output_NuRadioRecoTime = "Timing of NuRadioReco modules \n"
         ts = []
-        for name, instance, kwargs in self._evt.get_module_list():
+        for name, instance, kwargs in self._station.get_module_list():
             ts.append(instance.run.time[instance])
         ttot = np.sum(np.array(ts))
-        for i, (name, instance, kwargs) in enumerate(self._evt.get_module_list()):
+        for i, (name, instance, kwargs) in enumerate(self._station.get_module_list()):
             t = pretty_time_delta(ts[i])
             trel = 100.*ts[i]/ttot
             output_NuRadioRecoTime += f"{name}: {t} {trel:.1f}%\n"
