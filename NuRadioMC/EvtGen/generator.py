@@ -323,7 +323,6 @@ def get_tau_95_length(energies):
     log_energy_eV = np.log10( np.max(energies)/units.eV )
 
     for ipow, coeff in enumerate(coeffs):
-        print(coeff, ipow)
         log_length += coeff * (log_energy_eV)**ipow
 
     return 10**log_length * units.m
@@ -761,6 +760,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
             tau_95_length = get_tau_95_length(Emax)
             if (tau_95_length > fiducial_rmax):
                 full_rmax = tau_95_length
+                n_events = n_events * int( (full_rmax/fiducial_rmax)**2 )
             else:
                 full_rmax = fiducial_rmax
         else:
@@ -1075,6 +1075,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             tau_95_length = get_tau_95_length(Emax)
             if (tau_95_length > fiducial_rmax):
                 full_rmax = tau_95_length
+                n_events = n_events * int( (full_rmax/fiducial_rmax)**2 )
+                attributes['n_events'] = n_events
             else:
                 full_rmax = fiducial_rmax
         else:
@@ -1220,7 +1222,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         mask_theta = np.array(mask_theta)
         mask_phi = np.array(mask_phi)
 
-        #mask_leptons = mask_leptons & mask_theta & mask_phi
+        mask_leptons = mask_leptons & mask_theta & mask_phi
 
         E_all_leptons = (1 - data_sets["inelasticity"][mask_leptons]) * data_sets["energies"][mask_leptons]
         lepton_codes = data_sets["flavors"][mask_leptons]
@@ -1246,7 +1248,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
         products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes, lepton_positions,
                                                  lepton_directions, config_file=proposal_config)
-        print("check?", len(products_array), len(E_all_leptons))
 
         for event_id in data_sets["event_ids"]:
             iE = event_id - start_event_id
