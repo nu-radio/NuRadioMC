@@ -4,8 +4,16 @@ from NuRadioMC.utilities import units
 model_to_int = {"SP1" : 1, "GL1" : 2, "MB1" : 3}
 
 def fit_GL1(z):
+    """
+    Returns the attenuation length at 75 MHz as a function of depth for Greenland
     # Model for Greenland. Taken from DOI: https://doi.org/10.3189/2015JoG15J057
-	# Returns the attenuation length at 75 MHz as a function of depth
+
+    Parameters
+    ----------
+    z: float
+        depth in default units
+    """
+
     fit_values = [1.16052586e+03, 6.87257150e-02, -9.82378264e-05,
                     -3.50628312e-07, -2.21040482e-10, -3.63912864e-14]
     min_length = 100 * units.m
@@ -25,7 +33,12 @@ def fit_GL1(z):
 
 def get_temperature(z):
     """
-    returns the temperature in Celsius as a function of depth
+    returns the temperature in Celsius as a function of depth for South Pole
+
+    Parameters
+    ----------
+    z: float
+        depth in default units
     """
     # from https://icecube.wisc.edu/~araproject/radio/#icetabsorption
 
@@ -33,6 +46,22 @@ def get_temperature(z):
     return 1.83415e-09 * z2**3 + (-1.59061e-08 * z2**2) + 0.00267687 * z2 + (-51.0696)
 
 def get_attenuation_length(z, frequency, model):
+    """
+    Get attenuation length in ice for different ice models
+
+    Parameters
+    ----------
+    z: float
+        depth in default units
+    frequency: float
+        frequency of signal in default units
+    model: string
+        Ice model for attenuation length
+        SP1: South Pole model, see various compilation
+        GL1: Greenland model, see https://arxiv.org/abs/1409.5413
+        MB1: Moore's Bay Model, from 10.3189/2015JoG14J214 and
+            Phd Thesis C. Persichilli (depth dependence)
+    """
     if(model == "SP1"):
         t = get_temperature(z)
         f0 = 0.0001
@@ -71,11 +100,25 @@ def get_attenuation_length(z, frequency, model):
             att_length_f[ att_length_f < min_length ] = min_length
 
         return att_length_f
-    elif(model == "MB1"): # from 10.3189/2015JoG14J214
+    elif(model == "MB1"):
+        # 10.3189/2015JoG14J214 measured the depth-averaged attenuation length as a function of frequency
+        # the derived parameterization assumed a reflection coefficient of 1
+        # however a reflection coefficient of 0.82 was measured which results in a slight increase of the derived 
+        # attenution length (correction factor below)
         R = 0.82
         d_ice = 576 * units.m
         att_length = 460 * units.m - 180 * units.m /units.GHz * frequency
-        att_length *= (1 + att_length / (2 * d_ice) * np.log(R)) ** -1  # additional correction for reflection coefficient being less than 1. 
-        return att_length 
+        att_length *= (1 + att_length / (2 * d_ice) * np.log(R)) ** -1  # additional correction for reflection coefficient being less than 1.
+
+        # The temperature dependence of the attenuation length is independent of the frequency dependence
+        # the relationship between temparature and L is from 10.1063/1.363582
+        # the temparature profile of the Ross Ice shelf is from 10.1126/science.203.4379.433 and rescaled to the shelf 
+        # thickness of the ARIANNA site (almost linear from -28 - -2deg C. 
+        # this theoretical depth dependence is scaled to match the depth-averaged measurement of the attenuation length.
+        d = -z * 420. / d_ice;
+        L = (1250.*0.08886 * np.exp(-0.048827 * (225.6746 - 86.517596 * np.log10(848.870 - (d)))))
+        att_length *= L/262.0
+
+        return att_length
     else:
         raise NotImplementedError("attenuation model {} is not implemented.".format(model))
