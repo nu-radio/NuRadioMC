@@ -5,6 +5,7 @@ except ImportError:
     import pickle
 from NuRadioReco.modules.io.NuRadioRecoio import VERSION, VERSION_MINOR
 import logging
+import datetime
 from NuRadioReco.framework.parameters import stationParameters as stnp
 logger = logging.getLogger("eventWriter")
 
@@ -54,6 +55,8 @@ class eventWriter:
         self.__current_file_size = 0
         self.__number_of_files = 1
         self.__max_file_size = max_file_size * 1024 * 1024  # in bytes
+        self.__stored_stations = []
+        self.__stored_channels = []
 
     def run(self, evt, det = None, mode='full'):
         """
@@ -81,11 +84,12 @@ class eventWriter:
         self.__current_file_size += event_bytearray.__sizeof__()
         self.__number_of_events += 1
         if det is not None:
-            detector_dict = self.__get_detector_dict(evt, det)
-            detector_bytearray = self.__get_detector_bytearray(detector_dict)
-            self.__fout.write(detector_bytearray)
-            self.__current_file_size += detector_bytearray.__sizeof__()
-
+            detector_dict = self.__get_detector_dict(evt, det)  #returns None if detector is already saved
+            if detector_dict is not None:
+                detector_bytearray = self.__get_detector_bytearray(detector_dict)
+                self.__fout.write(detector_bytearray)
+                self.__current_file_size += detector_bytearray.__sizeof__()
+            else:
         logger.debug("current file size is {} bytes, event number {}".format(self.__current_file_size,
                      self.__number_of_events))
         if(self.__current_file_size > self.__max_file_size):
@@ -94,6 +98,8 @@ class eventWriter:
             self.__fout.close()
             self.__number_of_files += 1
             self.__fout = open("{}_part{:02d}.nur".format(self.__filename, self.__number_of_files), 'wb')
+            self.__stored_stations = []
+            self.__stored_channels = []
             self.__write_fout_header()
 
 
@@ -123,15 +129,31 @@ class eventWriter:
         i_station = 0
         i_channel = 0
         for station in event.get_stations():
-            det.update(station.get_station_time())
-            station_description = det.get_station(station.get_id())
-            det_dict['stations'][str(i_station)] = station_description
-            i_station += 1
+            if not self.__is_station_already_in_file(station):
+                det.update(station.get_station_time())
+                station_description = det.get_station(station.get_id())
+                det_dict['stations'][str(i_station)] = station_description
+                self.__stored_stations.append({
+                    'station_id': station.get_id(),
+                    'commission_time': station_description['commission_time'],
+                    'decommission_time': station_description['decommission_time']
+                })
+                i_station += 1
             for channel in station.iter_channels():
-                channel_description = det.get_channel(station.get_id(), channel.get_id())
-                det_dict['channels'][str(i_channel)] = channel_description
-                i_channel += 1
-        return det_dict
+                if not self.__is_channel_already_in_file(station, channel):
+                    channel_description = det.get_channel(station.get_id(), channel.get_id())
+                    det_dict['channels'][str(i_channel)] = channel_description
+                    self.__stored_channels.append({
+                        'station_id': station.get_id(),
+                        'channel_id': channel.get_id(),
+                        'commission_time': channel_description['commission_time'],
+                        'decommission_time': channel_description['decommission_time']
+                    })
+                    i_channel += 1
+        if i_station == 0 and i_channel == 0:   #All stations and channels have already been saved
+            return None
+        else:
+            return det_dict
 
     def __get_detector_bytearray(self, detector_dict):
         detector_string = pickle.dumps(detector_dict, protocol=2)
@@ -144,6 +166,20 @@ class eventWriter:
         detector_bytearray.extend(detector_length.to_bytes(6, 'little'))
         detector_bytearray.extend(detector_string)
         return detector_bytearray
+
+    def __is_station_already_in_file(self, station):
+        for entry in self.__stored_stations:
+            if entry['station_id'] == station.get_id():
+                if entry['commission_time'] < station.get_station_time() and entry['decommission_time'] > station.get_station_time():
+                    return True
+        return False
+
+    def __is_channel_already_in_file(self, station, channel):
+        for entry in self.__stored_channels:
+            if entry['station_id'] == station.get_id() and entry['channel_id'] == channel.get_id():
+                if entry['commission_time'] < station.get_station_time() and entry['decommission_time'] > station.get_station_time():
+                    return True
+        return False
 
     def end(self):
         self.__fout.close()
