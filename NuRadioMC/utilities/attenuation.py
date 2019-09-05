@@ -33,6 +33,22 @@ def get_temperature(z):
     return 1.83415e-09 * z2**3 + (-1.59061e-08 * z2**2) + 0.00267687 * z2 + (-51.0696)
 
 def get_attenuation_length(z, frequency, model):
+    """
+    Get attenuation length in ice for different ice models
+
+    Parameters
+    ----------
+    z: float
+        depth in default units
+    frequency: float
+        frequency of signal in default units
+    model: string
+        Ice model for attenuation length
+        SP1: South Pole model, see various compilation
+        GL1: Greenland model, see https://arxiv.org/abs/1409.5413
+        MB1: Moore's Bay Model, from 10.3189/2015JoG14J214 and
+            Phd Thesis C. Persichilli (depth dependence)
+    """
     if(model == "SP1"):
         t = get_temperature(z)
         f0 = 0.0001
@@ -71,19 +87,17 @@ def get_attenuation_length(z, frequency, model):
             att_length_f[ att_length_f < min_length ] = min_length
 
         return att_length_f
-    elif(model == "MB1"): # from 10.3189/2015JoG14J214 and Phd Thesis C. Persichilli (depth dependence)
-#         from NuRadioMC.utilities import medium
-#         ice = medium.mooresbay_simple()
+    elif(model == "MB1"):
 
         R = 0.82
         d_ice = 576 * units.m
         att_length = 460 * units.m - 180 * units.m /units.GHz * frequency
-        att_length *= (1 + att_length / (2 * d_ice) * np.log(R)) ** -1  # additional correction for reflection coefficient being less than 1. 
-        
+        att_length *= (1 + att_length / (2 * d_ice) * np.log(R)) ** -1  # additional correction for reflection coefficient being less than 1.
+
         d = -z * 420. / d_ice;
         L = (1250.*0.08886 * np.exp(-0.048827 * (225.6746 - 86.517596 * np.log10(848.870 - (d)))))
         att_length *= L/262.0
-        
-        return att_length 
+
+        return att_length
     else:
         raise NotImplementedError("attenuation model {} is not implemented.".format(model))
