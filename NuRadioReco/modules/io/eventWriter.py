@@ -55,13 +55,16 @@ class eventWriter:
         self.__number_of_files = 1
         self.__max_file_size = max_file_size * 1024 * 1024  # in bytes
 
-    def run(self, evt, det, mode='full', store_detector = True):
+    def run(self, evt, det = None, mode='full'):
         """
         writes NuRadioReco event into a file
 
         Parameters
         ----------
         evt: NuRadioReco event object
+        det: detector object
+            If a detector object is passed, the detector description for the
+            events is written in the file as well
         mode: string
             specifies the output mode:
             * 'full' (default): the full event content is written to disk
@@ -77,7 +80,7 @@ class eventWriter:
         self.__fout.write(event_bytearray)
         self.__current_file_size += event_bytearray.__sizeof__()
         self.__number_of_events += 1
-        if store_detector:
+        if det is not None:
             detector_dict = self.__get_detector_dict(evt, det)
             detector_bytearray = self.__get_detector_bytearray(detector_dict)
             self.__fout.write(detector_bytearray)
