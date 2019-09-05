@@ -57,12 +57,16 @@ class Event:
         stations_pkl = []
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
+            
+        for m in self.__modules:  # remove module instances (this will just blow up the file size)
+            m[1] = None
 
         data = {'_parameters': self._parameters,
                 '__run_number': self.__run_number,
                 '_id': self._id,
                 '__event_time': self.__event_time,
-                'stations': stations_pkl}
+                'stations': stations_pkl,
+                '__modules': self.__modules}
         return pickle.dumps(data, protocol=2)
 
     def deserialize(self, data_pkl):
@@ -75,3 +79,5 @@ class Event:
         self.__run_number = data['__run_number']
         self._id = data['_id']
         self.__event_time = data['__event_time']
+        if("__modules" in data):
+            self.__modules = data['__modules']

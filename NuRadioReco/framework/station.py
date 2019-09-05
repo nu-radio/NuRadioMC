@@ -98,11 +98,15 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         sim_station_pkl = None
         if(self.has_sim_station()):
             sim_station_pkl = self.get_sim_station().serialize(mode)
+        
+        for m in self.__modules:  # remove module instances (this will just blow up the file size)
+            m[1] = None
 
         data = {'__reference_reconstruction': self.__reference_reconstruction,
                 'channels': channels_pkl,
                 'base_station': base_station_pkl,
-                'sim_station': sim_station_pkl}
+                'sim_station': sim_station_pkl,
+                '__modules': self.__modules}
         return pickle.dumps(data, protocol=2)
 
     def deserialize(self, data_pkl):
@@ -119,3 +123,5 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
             self.add_channel(channel)
 
         self.__reference_reconstruction = data['__reference_reconstruction']
+        if("__modules" in data):
+            self.__modules = data['__modules']
