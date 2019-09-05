@@ -101,12 +101,20 @@ def get_attenuation_length(z, frequency, model):
 
         return att_length_f
     elif(model == "MB1"):
-
+        # 10.3189/2015JoG14J214 measured the depth-averaged attenuation length as a function of frequency
+        # the derived parameterization assumed a reflection coefficient of 1
+        # however a reflection coefficient of 0.82 was measured which results in a slight increase of the derived 
+        # attenution length (correction factor below)
         R = 0.82
         d_ice = 576 * units.m
         att_length = 460 * units.m - 180 * units.m /units.GHz * frequency
         att_length *= (1 + att_length / (2 * d_ice) * np.log(R)) ** -1  # additional correction for reflection coefficient being less than 1.
 
+        # The temperature dependence of the attenuation length is independent of the frequency dependence
+        # the relationship between temparature and L is from 10.1063/1.363582
+        # the temparature profile of the Ross Ice shelf is from 10.1126/science.203.4379.433 and rescaled to the shelf 
+        # thickness of the ARIANNA site (almost linear from -28 - -2deg C. 
+        # this theoretical depth dependence is scaled to match the depth-averaged measurement of the attenuation length.
         d = -z * 420. / d_ice;
         L = (1250.*0.08886 * np.exp(-0.048827 * (225.6746 - 86.517596 * np.log10(848.870 - (d)))))
         att_length *= L/262.0
