@@ -4,8 +4,16 @@ from NuRadioMC.utilities import units
 model_to_int = {"SP1" : 1, "GL1" : 2, "MB1" : 3}
 
 def fit_GL1(z):
+    """
+    Returns the attenuation length at 75 MHz as a function of depth for Greenland
     # Model for Greenland. Taken from DOI: https://doi.org/10.3189/2015JoG15J057
-	# Returns the attenuation length at 75 MHz as a function of depth
+
+    Parameters
+    ----------
+    z: float
+        depth in default units
+    """
+
     fit_values = [1.16052586e+03, 6.87257150e-02, -9.82378264e-05,
                     -3.50628312e-07, -2.21040482e-10, -3.63912864e-14]
     min_length = 100 * units.m
@@ -25,7 +33,12 @@ def fit_GL1(z):
 
 def get_temperature(z):
     """
-    returns the temperature in Celsius as a function of depth
+    returns the temperature in Celsius as a function of depth for South Pole
+
+    Parameters
+    ----------
+    z: float
+        depth in default units
     """
     # from https://icecube.wisc.edu/~araproject/radio/#icetabsorption
 
