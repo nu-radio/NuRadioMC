@@ -1,5 +1,5 @@
 from __future__ import print_function 
-from NuRadioReco.modules.base.module import run_decorator
+from NuRadioReco.modules.base.module import register_run
 
 import numpy as np
 from scipy import signal
@@ -17,7 +17,7 @@ class channelBandPassFilter:
     def begin(self):
         pass
 
-    @run_decorator
+    @register_run("station")
     def run(self, evt, station, det, passband=[55 * units.MHz, 1000 * units.MHz],
             filter_type='rectangular', order=2):
         """

@@ -19,6 +19,16 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         self.__channels = collections.OrderedDict()
         self.__reference_reconstruction = 'RD'
         self.__sim_station = None
+        self.__modules = []  # saves which modules were executed with what parameters
+        
+    def register_module(self, instance, name, kwargs):
+        """
+        registers modules applied to this event
+        """
+        self.__modules.append([name, instance, kwargs])
+    
+    def get_module_list(self):
+        return self.__modules
 
     def set_sim_station(self, sim_station):
         self.__sim_station = sim_station

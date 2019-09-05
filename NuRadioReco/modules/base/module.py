@@ -1,19 +1,29 @@
 from functools import wraps
 from timeit import default_timer as timer
 
-def run_decorator(run):
-    @wraps(run)
-    def register_run_method(self, evt, station, det, **kwargs):
-        evt.register_module(self, self.__class__.__name__, kwargs)
-        start = timer()
-        res =  run(self, evt, station, det, **kwargs)
-        end = timer()
-        if not self in register_run_method.time:
-            register_run_method.time[self] = 0
-        register_run_method.time[self] += (end - start)
-        return res
-    register_run_method.time = {}
-    return register_run_method
+def register_run(level):
+    if level not in ["station", "event"]:
+        raise NotImplementedError("The level needs to be either 'station' or 'event'")
+    def run_decorator(run):
+        @wraps(run)
+        def register_run_method(self, evt, station, det, **kwargs):
+            if(level == "event"):
+                evt.register_module(self, self.__class__.__name__, kwargs)
+            elif(level == "station"):
+                station.register_module(self, self.__class__.__name__, kwargs)
+            start = timer()
+            res =  run(self, evt, station, det, **kwargs)
+            end = timer()
+            if not self in register_run_method.time:
+                register_run_method.time[self] = 0
+            register_run_method.time[self] += (end - start)
+            return res
+        register_run_method.time = {}
+        
+        return register_run_method
+    return run_decorator
+
+
        
 
 
