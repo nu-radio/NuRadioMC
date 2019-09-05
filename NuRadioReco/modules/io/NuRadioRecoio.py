@@ -12,7 +12,7 @@ VERSION_MINOR = 1
 
 class NuRadioRecoio(object):
 
-    def __init__(self, filenames, parse_header=True, fail_on_version_mismatch=True,
+    def __init__(self, filenames, parse_header=True, parse_detector=True, fail_on_version_mismatch=True,
                  fail_on_minor_version_mismatch=False,
                  max_open_files=10, log_level=logging.WARNING):
         """
@@ -34,6 +34,7 @@ class NuRadioRecoio(object):
         self.__fail_on_version_mismatch = fail_on_version_mismatch
         self.__fail_on_minor_version_mismatch = fail_on_minor_version_mismatch
         self.__parse_header = parse_header
+        self.__parse_detector = parse_detector
         self.__read_lock = False
         self.__max_open_files = max_open_files
         self.openFile(filenames)
@@ -82,6 +83,8 @@ class NuRadioRecoio(object):
         self.__bytes_start = [[]]
         self.__bytes_length = [[]]
         self.__open_files = {}
+        self.__detector_dicts = {}
+        self.__detectors = {}
 
         self.__event_headers = {}
         if(self.__parse_header):
@@ -137,7 +140,7 @@ class NuRadioRecoio(object):
                 else:
                     break
             current_byte += 6
-            if object_type == 0:
+            if object_type == 0:    #object is an event
                 self.__bytes_start_header[iF].append(current_byte)
                 self.__bytes_length_header[iF].append(bytes_to_read)
                 current_byte += bytes_to_read
@@ -151,6 +154,25 @@ class NuRadioRecoio(object):
                 bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
                 self.__bytes_start[iF].append(current_byte)
                 self.__bytes_length[iF].append(bytes_to_read)
+            elif object_type == 1:  #object is detector info
+                detector_dict = pickle.loads(self.__get_file(iF).read(bytes_to_read))
+                if iF not in self.__detector_dicts.keys():
+                    self.__detector_dicts[iF] = {
+                        'channels': {},
+                        'stations': {}
+                    }
+                for station in detector_dict['stations'].values():
+                    if len(self.__detector_dicts[iF]['stations'].keys()) == 0:
+                        index = 0
+                    else:
+                        index = max(self.__detector_dicts[iF]['stations'].keys()) + 1
+                    self.__detector_dicts[iF]['stations'][index] = station
+                for channel in detector_dict['channels'].values():
+                    if len(self.__detector_dicts[iF]['channels'].keys()) == 0:
+                        index = 0
+                    else:
+                        index = max(self.__detector_dicts[iF]['channels'].keys()) + 1
+                    self.__detector_dicts[iF]['channels'][index] = channel
             current_byte += bytes_to_read
             #print("reading event {} with length {} from byte {} onwards".format(len(self.__bytes_length[iF]), bytes_to_read, self.__bytes_start[iF][-1]))
         self.__event_ids = np.array(self.__event_ids)
