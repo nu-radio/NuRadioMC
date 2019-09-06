@@ -386,7 +386,7 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
                 Veffs_error[trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
             except:
                 Veffs_error[trigger_name].append(np.nan)
-            print("{}: log(E) = {:.3g}, Veff = {:.3f}km^3 st".format(trigger_name, np.log10(E), Veff / units.km**3))
+#             print("{}: log(E) = {:.3g}, Veff = {:.3f}km^3 st".format(trigger_name, np.log10(E), Veff / units.km**3))
 
         for trigger_name, values in iteritems(trigger_combinations):
             indiv_triggers = values['triggers']
