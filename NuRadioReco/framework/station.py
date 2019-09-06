@@ -19,16 +19,22 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         self.__channels = collections.OrderedDict()
         self.__reference_reconstruction = 'RD'
         self.__sim_station = None
-        self.__modules = []  # saves which modules were executed with what parameters
+        self.__modules = collections.OrderedDict()  # saves which modules were executed with what parameters
         
-    def register_module(self, instance, name, kwargs):
+    def register_module(self, i, instance, name, kwargs):
         """
         registers modules applied to this event
         """
-        self.__modules.append([name, instance, kwargs])
+        self.__modules[i] = [name, instance, kwargs]
     
     def get_module_list(self):
         return self.__modules
+    
+    def has_modules(self):
+        return len(self.__modules) > 0
+    
+    def get_number_of_modules(self):
+        return len(self.__modules)
 
     def set_sim_station(self, sim_station):
         self.__sim_station = sim_station
@@ -99,14 +105,15 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         if(self.has_sim_station()):
             sim_station_pkl = self.get_sim_station().serialize(mode)
         
+        modules_out = []
         for m in self.__modules:  # remove module instances (this will just blow up the file size)
-            m[1] = None
+            modules_out.append([m[0], None, m[2]])
 
         data = {'__reference_reconstruction': self.__reference_reconstruction,
                 'channels': channels_pkl,
                 'base_station': base_station_pkl,
                 'sim_station': sim_station_pkl,
-                '__modules': self.__modules}
+                '__modules': modules_out}
         return pickle.dumps(data, protocol=2)
 
     def deserialize(self, data_pkl):

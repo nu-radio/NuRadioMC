@@ -5,6 +5,7 @@ except ImportError:
     import pickle
 import NuRadioReco.framework.station
 from six import itervalues
+import collections
 import logging
 logger = logging.getLogger('Event')
 
@@ -15,18 +16,24 @@ class Event:
         self._parameters = {}
         self.__run_number = run_number
         self._id = event_id
-        self.__stations = {}
+        self.__stations = collections.OrderedDict()
         self.__event_time = 0
-        self.__modules = []  # saves which modules were executed with what parameters
-    
-    def register_module(self, instance, name, kwargs):
+        self.__modules = collections.OrderedDict()  # saves which modules were executed with what parameters
+        
+    def register_module(self, i, instance, name, kwargs):
         """
         registers modules applied to this event
         """
-        self.__modules.append([name, instance, kwargs])
+        self.__modules[i] = [name, instance, kwargs]
     
     def get_module_list(self):
         return self.__modules
+    
+    def has_modules(self):
+        return len(self.__modules) > 0
+
+    def get_number_of_modules(self):
+        return len(self.__modules)
 
     def get_parameter(self, attribute):
         return self._parameters[attribute]
@@ -58,15 +65,17 @@ class Event:
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
             
+        modules_out = []
         for m in self.__modules:  # remove module instances (this will just blow up the file size)
-            m[1] = None
+            modules_out.append([m[0], None, m[2]])
+
 
         data = {'_parameters': self._parameters,
                 '__run_number': self.__run_number,
                 '_id': self._id,
                 '__event_time': self.__event_time,
                 'stations': stations_pkl,
-                '__modules': self.__modules}
+                '__modules': modules_out}
         return pickle.dumps(data, protocol=2)
 
     def deserialize(self, data_pkl):

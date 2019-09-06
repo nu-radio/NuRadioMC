@@ -1,4 +1,4 @@
-from NuRadioReco.modules.base.module import run_decorator
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector.ARIANNA import analog_components
 import numpy as np
 from NuRadioReco.utilities import units, fft
@@ -53,7 +53,7 @@ class hardwareResponseIncorporator:
         else:
             return 1./ (amp_response * cable_response)
         
-    @run_decorator   
+    @register_run("station")   
     def run(self, evt, station, det, sim_to_data=False, phase_only=False,mode=None,mingainlin=None):
         """
         Switch sim_to_data to go from simulation to data or otherwise.

@@ -100,6 +100,7 @@ class channelGenericNoiseAdder:
 
         """
         frequencies = np.fft.rfftfreq(n_samples, 1./sampling_rate)
+        print(f"max freq {frequencies[-1]}")
         n_samples_freq = len(frequencies)
         
         if min_freq == None or min_freq == 0:
@@ -108,15 +109,15 @@ class channelGenericNoiseAdder:
             # to take the difference between two frequencies to determine the minimum frequency, in case
             # future versions of numpy change the order and maybe put the negative frequencies first 
             min_freq = 0.5*(frequencies[2]-frequencies[1]) 
-            logger.info(' Set min_freq from None to {} MHz!'.format(min_freq/units.MHz))
+            logger.warning(' Set min_freq from None to {} MHz!'.format(min_freq/units.MHz))
         if max_freq == None:
             # sample up to Nyquist frequency
             max_freq = max(frequencies)
             logger.info(' Set max_freq from None to {} GHz!'.format(max_freq/units.GHz))
         selection = (frequencies >= min_freq) & (frequencies <= max_freq)
-        
+        print(f"fmax = {max_freq/units.MHz:.2f}")
         nbinsactive = np.sum(selection)
-        logger.debug('Total number of frequency bins (bilateral spectrum) : {} , of those active: {} '.format(n_samples,nbinsactive))
+        logger.warning('Total number of frequency bins (bilateral spectrum) : {} , of those active: {} '.format(n_samples,nbinsactive))
         
         # Debug plots
 #         f1 = plt.figure()
