@@ -6,14 +6,14 @@ def register_run(level):
         raise NotImplementedError("The level needs to be either 'station' or 'event'")
     def run_decorator(run):
         @wraps(run)
-        def register_run_method(self, evt, station, det, **kwargs):
+        def register_run_method(self, evt, station, det, *args, **kwargs):
             i = evt.get_number_of_modules() + station.get_number_of_modules()
             if(level == "event"):
                 evt.register_module(i, self, self.__class__.__name__, kwargs)
             elif(level == "station"):
                 station.register_module(i, self, self.__class__.__name__, kwargs)
             start = timer()
-            res =  run(self, evt, station, det, **kwargs)
+            res =  run(self, evt, station, det, *args, **kwargs)
             end = timer()
             if not self in register_run_method.time:
                 register_run_method.time[self] = 0
