@@ -28,6 +28,5 @@ signal:
 
 trigger:
   noise_temperature: 300  # in Kelvin
-  bandwidth: null  # null or float in GHz (the effective bandwidth. It is used to calculate the Vrms from the noise temperature. If None, the bandwidth is calculated from the sampling rate assuming that the bandwidth is 0Hz to the Nyquist frequency
 
 save_all: False # if True, save all events
