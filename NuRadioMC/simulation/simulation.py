@@ -227,24 +227,16 @@ class simulation():
                                 name, instance, kwargs = self._station.get_module_list()[i]
                                 if(hasattr(instance, "get_filter")):
                                     filt_noise *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
-                        norm = np.trapz(np.abs(filt_noise), ff)
-                        print(np.abs(filt_noise).max())
+                        norm = np.trapz(np.abs(filt_noise)**2, ff)
                         self._noise_adder_normalization[self._station_id][channel_id] = norm
-                        print(f"noise normalization = {norm/units.MHz:.4f}")
-                            
-                
+                        logger.info(f"noise normalization of station {self._station_id} channel {channel_id} is {norm/units.MHz:.1g}MHz")
         ################################
 
-#         bandwidth = self._cfg['trigger']['bandwidth']
-#         if(bandwidth is None):
-#             self._bandwidth = 0.5 / self._dt
-#         else:
-#             self._bandwidth = bandwidth
         # for now just assume that bandwidth is the same for all stations and channels
         self._bandwidth = next(iter(next(iter(self._bandwidth_per_channel.values())).values()))
 
         self._Vrms = (self._Tnoise * 50 * constants.k *
-                       self._bandwidth / units.Hz) ** 0.5  # from elog:1566
+                       self._bandwidth / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
         logger.warning('noise temperature = {}, bandwidth = {:.2f} MHz, Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
 
     def run(self):
@@ -561,10 +553,10 @@ class simulation():
         
         output_NuRadioRecoTime = "Timing of NuRadioReco modules \n"
         ts = []
-        for name, instance, kwargs in self._station.get_module_list():
+        for iM, (name, instance, kwargs) in self._station.get_module_list().items():
             ts.append(instance.run.time[instance])
         ttot = np.sum(np.array(ts))
-        for i, (name, instance, kwargs) in enumerate(self._station.get_module_list()):
+        for i, (name, instance, kwargs) in enumerate(self._station.get_module_list().values()):
             t = pretty_time_delta(ts[i])
             trel = 100.*ts[i]/ttot
             output_NuRadioRecoTime += f"{name}: {t} {trel:.1f}%\n"
