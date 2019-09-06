@@ -94,6 +94,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
     deposited = False
 
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
+        print(f"reading {filename}")
         fin = h5py.File(filename, 'r')
         if 'deposited' in fin.attrs:
             deposited = fin.attrs['deposited']
@@ -115,7 +116,6 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
     print("Trigger names:", trigger_names)
 
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
-        print(filename)
         fin = h5py.File(filename, 'r')
         E = fin.attrs['Emin']
         Es.append(E)
@@ -304,7 +304,10 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
     prev_deposited = None
     deposited = False
 
+    if(len(glob.glob(os.path.join(folder, '*.hdf5'))) == 0):
+        raise FileNotFoundError(f"couldnt find any hdf5 file in folder {folder}")
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
+        print(f"reading {filename}")
         fin = h5py.File(filename, 'r')
         if 'deposited' in fin.attrs:
             deposited = fin.attrs['deposited']
@@ -326,7 +329,6 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
     print("Trigger names:", trigger_names)
 
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
-        print(filename)
         fin = h5py.File(filename, 'r')
         E = fin.attrs['Emin']
         Es.append(E)
@@ -379,11 +381,12 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
         for iT, trigger_name in enumerate(trigger_names):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
             Veff = V * density_ice / density_water * omega * np.sum(weights[triggered]) / n_events
+            Veffs[trigger_name].append(Veff)
             try:
                 Veffs_error[trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
             except:
                 Veffs_error[trigger_name].append(np.nan)
-#             print("{}: log(E) = {:.3g}, Veff = {:.3f}km^3 st".format(trigger_name, np.log10(E), Veff / units.km**3))
+            print("{}: log(E) = {:.3g}, Veff = {:.3f}km^3 st".format(trigger_name, np.log10(E), Veff / units.km**3))
 
         for trigger_name, values in iteritems(trigger_combinations):
             indiv_triggers = values['triggers']
