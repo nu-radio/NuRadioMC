@@ -27,12 +27,26 @@ class Event:
         self.__modules[i] = [name, instance, kwargs]
     
     def get_module_list(self):
+        """
+        returns list (actually a dictionary) of modules that have been executed on this station
+        
+        modules are stored in an ordered dictionary where the key is an integer specifying the order
+        of module execution. This is needed because event and station modules can both be executed in arbitrary
+        orders. 
+        Each entry is a list of ['module name', 'module instance', 'dictionary of the kwargs of the run method']
+        """
         return self.__modules
     
     def has_modules(self):
+        """
+        returns True if at least one module has been executed on event level so far for this event
+        """
         return len(self.__modules) > 0
 
     def get_number_of_modules(self):
+        """
+        returns the numbers of modules executed on event level so far for this event
+        """
         return len(self.__modules)
 
     def get_parameter(self, attribute):
@@ -65,9 +79,9 @@ class Event:
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
             
-        modules_out = []
-        for m in self.__modules:  # remove module instances (this will just blow up the file size)
-            modules_out.append([m[0], None, m[2]])
+        modules_out = collections.OrderedDict()
+        for key, value in self.__modules.items():  # remove module instances (this will just blow up the file size)
+            modules_out[key] = [value[0], None, value[2]]
 
 
         data = {'_parameters': self._parameters,
