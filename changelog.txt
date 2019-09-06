@@ -8,5 +8,6 @@ version 1.0.1 - ????/??/??
 new features:
 
 bugfixes:
+	- fixed that Veff utility script didn't calculate effective volumes for individual triggers
 
 version 1.0.0 - 2019/08/30 - first python 3 release
