@@ -38,7 +38,7 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
-from NuRadioMC.simulation import simulation2 as simulation
+from NuRadioMC.simulation import simulation
 import json
 import numpy as np
 import logging

@@ -91,7 +91,7 @@ for scaling in np.linspace(10*units.mV,200*units.mV,n_scaling):
     SNR_ARIANNA = 0
 
     max = []
-    for n in xrange(n_iter):
+    for n in range(n_iter):
 
         channel_ARA.set_trace(test_pulse_sc,10*units.GHz)
         station_ARA.add_channel(channel_ARA)

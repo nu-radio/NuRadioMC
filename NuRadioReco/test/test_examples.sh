@@ -1,3 +1,4 @@
+set -e
 cd NuRadioReco/examples/PhasedArray/Effective_volume
 python T01generate_event_list.py minimal
 python T02RunPhasedRNO.py --inputfilename minimal_eventlist.hdf5
