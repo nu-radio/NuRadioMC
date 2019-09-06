@@ -7,6 +7,8 @@ version 1.0.1 - ????/??/??
 
 new features:
 
+Detector description can be stored in .nur files
+
 bugfixes:
 
 version 1.0.0 - 2019/08/30 - first python 3 release
