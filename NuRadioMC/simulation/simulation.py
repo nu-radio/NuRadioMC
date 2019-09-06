@@ -150,6 +150,7 @@ class simulation():
         ################################
         # perfom a dummy detector simulation to determine how the signals are filtered
         self._bandwidth_per_channel = {}
+        self._noise_adder_normalization = {}
         
         # first create dummy event and station with channels
         self._Vrms = 1
@@ -184,10 +185,22 @@ class simulation():
 
             self._detector_simulation()
             self._bandwidth_per_channel[self._station_id] = {}
+            self._noise_adder_normalization[self._station_id] = {}
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
-                ff = np.linspace(0, 0.5 / self._dt, 10000)
+                ff = np.linspace(0, 0.5 / self._dt, 1000)
                 filt = np.ones_like(ff, dtype=np.complex)
-                for name, instance, kwargs in self._evt.get_module_list():
+                noise_module_index = []
+                n_modules = 0
+                for i, (name, instance, kwargs) in self._evt.get_module_list().items():
+                    n_modules += 1
+                    if(name in ['channelGenericNoiseAdder']):
+                        noise_module_index.append(i)
+                    if hasattr(instance, "get_filter"):
+                        filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
+                for i, (name, instance, kwargs) in self._station.get_module_list().items():
+                    n_modules += 1
+                    if(name in ['channelGenericNoiseAdder']):
+                        noise_module_index.append(i)
                     if hasattr(instance, "get_filter"):
                         filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
                 filt = np.abs(filt)
@@ -195,6 +208,31 @@ class simulation():
                 bandwidth = np.trapz(np.abs(filt)**2, ff)**0.5
                 self._bandwidth_per_channel[self._station_id][channel_id] = bandwidth
                 logger.info(f"bandwidth of station {self._station_id} channel {channel_id} is {bandwidth/units.MHz:.1f}MHz")
+                
+                # in case noise is added, we need to determine what filters are applied after noise is added to 
+                # rescale the noise level accordingly
+                if((not bool(self._cfg['noise'])) or len(noise_module_index) == 0):
+                    logger.debug("no noise is added")
+                else:
+                    if(len(noise_module_index) > 1):
+                        raise NotImplementedError("more than 1 noise importer module -> not supported")
+                    else:
+                        filt_noise = np.ones_like(ff, dtype=np.complex)
+                        for i in range(noise_module_index[0], n_modules):
+                            if(i in self._evt.get_module_list()):
+                                name, instance, kwargs = self._evt.get_module_list()[i]
+                                if(hasattr(instance, "get_filter")):
+                                    filt_noise *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
+                            if(i in self._station.get_module_list()):
+                                name, instance, kwargs = self._station.get_module_list()[i]
+                                if(hasattr(instance, "get_filter")):
+                                    filt_noise *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
+                        norm = np.trapz(np.abs(filt_noise), ff)
+                        print(np.abs(filt_noise).max())
+                        self._noise_adder_normalization[self._station_id][channel_id] = norm
+                        print(f"noise normalization = {norm/units.MHz:.4f}")
+                            
+                
         ################################
 
 #         bandwidth = self._cfg['trigger']['bandwidth']
@@ -207,7 +245,7 @@ class simulation():
 
         self._Vrms = (self._Tnoise * 50 * constants.k *
                        self._bandwidth / units.Hz) ** 0.5  # from elog:1566
-        logger.warning('noise temperature = {}, bandwidth = {:.0f} MHz, Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
+        logger.warning('noise temperature = {}, bandwidth = {:.2f} MHz, Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
 
     def run(self):
         """
