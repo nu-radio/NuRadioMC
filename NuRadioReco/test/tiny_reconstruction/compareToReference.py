@@ -67,25 +67,25 @@ else:
         found_error = False
         for event in event_reader.run():
             try:
-                np.testing.assert_equal(parameter_values[event.get_id()]['station_parameters'], parameter_reference[str(event.get_id())]['station_parameters'])
+                np.testing.assert_almost_equal(parameter_values[event.get_id()]['station_parameters'], parameter_reference[str(event.get_id())]['station_parameters'])
             except AssertionError as e:
                 print('station paramters of event {} differ from reference'.format(event.get_id()))
                 print(e)
                 found_error = True
             try:
-                np.testing.assert_equal(parameter_values[event.get_id()]['sim_station_parameters'], parameter_reference[str(event.get_id())]['sim_station_parameters'])
+                np.testing.assert_almost_equal(parameter_values[event.get_id()]['sim_station_parameters'], parameter_reference[str(event.get_id())]['sim_station_parameters'])
             except AssertionError as e:
                 print('sim station paramters of event {} differ from reference'.format(event.get_id()))
                 print(e)
                 found_error = True
             try:
-                np.testing.assert_equal(parameter_values[event.get_id()]['channel_parameters'], parameter_reference[str(event.get_id())]['channel_parameters'])
+                np.testing.assert_almost_equal(parameter_values[event.get_id()]['channel_parameters'], parameter_reference[str(event.get_id())]['channel_parameters'])
             except AssertionError as e:
                 print('channel paramters of event {} differ from reference'.format(event.get_id()))
                 print(e)
                 found_error = True
             try:
-                np.testing.assert_equal(parameter_values[event.get_id()]['electric_field_parameters'], parameter_reference[str(event.get_id())]['electric_field_parameters'])
+                np.testing.assert_almost_equal(parameter_values[event.get_id()]['electric_field_parameters'], parameter_reference[str(event.get_id())]['electric_field_parameters'])
             except AssertionError as e:
                 print('E-field paramters of event {} differ from reference'.format(event.get_id()))
                 print(e)
