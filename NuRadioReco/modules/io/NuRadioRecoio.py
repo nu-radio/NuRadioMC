@@ -23,6 +23,16 @@ class NuRadioRecoio(object):
         ----------
         filenames: string or list of strings
             the input file/files
+        parse_header: boolean
+            If True, the event headers are parsed and can be accessed through
+            the get_header() function
+        parse_detector: boolean
+            If True, detector information in the files is parsed and can be
+            accessed through the get_detector() function
+        fail_on_version_mismatch: boolean
+            Controls if the module should try to read files with a different major version
+        fail_on_minor_version_mismatch: boolean
+            Controls if the module should try to read files with a different minor version
         max_open_files: int
             the maximum number of files that remain open simultaneously
         """
@@ -279,6 +289,12 @@ class NuRadioRecoio(object):
                 self.__get_file(self.__current_file_id).read(bytes_to_read)
 
     def get_detector(self):
+        """
+        If parse_detector was set True in the __init__() function, this function return
+        the detector description (assuming there is one in the files). If several
+        files with different detectors are read, the detector for the last returned
+        event is given.
+        """
         if self.__current_file_id not in self.__detectors.keys():
             self.__detectors[self.__current_file_id] = NuRadioReco.detector.detector.Detector.__new__(NuRadioReco.detector.detector.Detector)
             self.__detectors[self.__current_file_id].__init__(source='dictionary', json_filename='', dictionary=self.__detector_dicts[self.__current_file_id])
