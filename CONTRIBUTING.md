@@ -1,4 +1,4 @@
-#Contributing guidelines
+# Contributing guidelines
 
 Great that you want to contribute to NuRadioMC.
 
