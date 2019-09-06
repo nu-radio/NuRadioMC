@@ -258,7 +258,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
     else:
         return np.array(Es), Aeffs, Aeffs_error, SNR, trigger_names, deposited
 
-def get_Veff(folder, trigger_combinations={}, zenithbins=False):
+def get_Veff(folder, trigger_combinations={}, zenithbins=False, station=101):
     """
     calculates the effective volume from NuRadioMC hdf5 files
 
@@ -270,12 +270,19 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
         keys are the names of triggers to calculate. Values are dicts again:
             * 'triggers': list of strings
                 name of individual triggers that are combines with an OR
+            the following additional options are optional
             * 'efficiency': string
                 the signal efficiency vs. SNR (=Vmax/Vrms) to use. E.g. 'Chris'
             * 'efficiency_scale': float
                 rescaling of the efficiency curve by SNR' = SNR * scale
+            * 'n_reflections': int
+                the number of bottom reflections of the ray tracing solution that likely triggered
+                assuming that the solution with the shortest travel time caused the trigger, only considering channel 0
+            
     zenithbins: bool
         If true, returns the minimum and maximum zenith angles
+    station: int
+        the station that should be considered
 
     Returns
     ----------
@@ -449,6 +456,9 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False):
 #                 a = 1/0
                 mask = np.array([sol[i,values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=np.bool)
                 triggered = triggered & mask
+                
+            if('n_reflections' in values.keys()):
+                triggered = triggered & (np.array(fin[f'station_{station:d}/ray_tracing_reflection'])[:,0,0] == values['n_reflections'])
 
             Veff = V * density_ice / density_water * omega * np.sum(weights[triggered]) / n_events
 
