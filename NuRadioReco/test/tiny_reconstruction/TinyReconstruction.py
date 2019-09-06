@@ -4,6 +4,8 @@ import os, scipy, sys
 import copy
 import datetime
 import glob
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from NuRadioReco.utilities import units
