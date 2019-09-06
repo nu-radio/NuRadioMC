@@ -142,11 +142,13 @@ day = 24 * hour
 year = 356 * day
 
 hertz = 1 / second
+millihertz = milli * hertz
 kilohertz = kilo * hertz
 megahertz = mega * hertz
 gigahertz = giga * hertz
 
 Hz = hertz
+mHz = millihertz
 kHz = kilohertz
 MHz = megahertz
 GHz = gigahertz
