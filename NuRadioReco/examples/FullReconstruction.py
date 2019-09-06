@@ -129,7 +129,7 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
     logger.info("processing event {:d} with id {:d}".format(iE, evt.get_id()))
     station = evt.get_station(station_id)
     station.set_station_time(astropy.time.Time('2019-01-01T00:00:00'))
-
+    det.update(station.get_station_time())
     if simulationSelector.run(evt, station.get_sim_station(), det):
 
         efieldToVoltageConverter.run(evt, station, det)

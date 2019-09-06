@@ -9,8 +9,8 @@ class eventReader:
     read events from file
     """
 
-    def begin(self, filename, log_level=logging.WARNING):
-        self.__fin = NuRadioRecoio.NuRadioRecoio(filename, parse_header=False, log_level=log_level)
+    def begin(self, filename, read_detector=False, log_level=logging.WARNING):
+        self.__fin = NuRadioRecoio.NuRadioRecoio(filename, parse_header=read_detector, log_level=log_level)
 
     def run(self):
         return self.__fin.get_events()
@@ -20,7 +20,9 @@ class eventReader:
 
     def get_header(self):
         """
-        returns the header information of all events, useful to get a quick overview of all events without 
+        returns the header information of all events, useful to get a quick overview of all events without
         looping through all events
         """
         return self.__fin.get_header()
+    def get_detector(self):
+        return self.__fin.get_detector()
