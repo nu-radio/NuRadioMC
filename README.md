@@ -1,13 +1,16 @@
 # NuRadioReco
-Reconstruction framework for radio detectors of high-energy neutrinos
+
+Reconstruction framework for radio detectors of high-energy neutrinos and cosmic-rays
 
 Please see
 
 Glaser, C., Nelles, A., Plaisier, I. et al. Eur. Phys. J. C (2019) 79: 464. https://doi.org/10.1140/epjc/s10052-019-6971-5
 
-for a peer-reviewed description. Please reference this article, if you use NuRadioReco for your analysis. 
+for a peer-reviewed description of the contents of NuRadioReco. Please reference this article, if you use NuRadioReco for your analysis.
 
-For installation instructions and additional information please see the https://github.com/nu-radio/NuRadioReco/wiki
+For installation instructions and additional documentation/information please see the https://github.com/nu-radio/NuRadioReco/wiki
 
-If you would like to contribute, report of fix a bug, please contact @cg-laser or @anelles for permissions. 
-We work with pull requests only. They will be reviewed and after review can be merged into the master. 
+If you would like to contribute, report or fix a bug, please contact @cg-laser or @anelles for permissions.
+We work with pull requests only. They will be reviewed and after review can be merged into the master.
+
+See also CONTRIBUTING.md for contributing guidelines.
