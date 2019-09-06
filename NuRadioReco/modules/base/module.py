@@ -7,10 +7,11 @@ def register_run(level):
     def run_decorator(run):
         @wraps(run)
         def register_run_method(self, evt, station, det, **kwargs):
+            i = evt.get_number_of_modules() + station.get_number_of_modules()
             if(level == "event"):
-                evt.register_module(self, self.__class__.__name__, kwargs)
+                evt.register_module(i, self, self.__class__.__name__, kwargs)
             elif(level == "station"):
-                station.register_module(self, self.__class__.__name__, kwargs)
+                station.register_module(i, self, self.__class__.__name__, kwargs)
             start = timer()
             res =  run(self, evt, station, det, **kwargs)
             end = timer()

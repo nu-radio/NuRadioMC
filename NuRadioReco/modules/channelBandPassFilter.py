@@ -90,7 +90,7 @@ class channelBandPassFilter:
             b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
             w, h = scipy.signal.freqs(b, a, frequencies[mask])
             f[mask] = h
-            return np.abs(h)
+            return np.abs(f)
         elif(filter_type.find('FIR')>=0):
             raise NotImplementedError("FIR filter not yet implemented")
         else:
