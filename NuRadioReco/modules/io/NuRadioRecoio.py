@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import NuRadioReco.framework.event
+import NuRadioReco.detector.detector
 import numpy as np
 import logging
 import pickle
@@ -132,11 +133,15 @@ class NuRadioRecoio(object):
                     iF += 1
                     current_byte = 12  # skip datafile header
                     self.__get_file(iF).seek(current_byte)
+                    object_type_hex = self.__get_file(iF).read(6)
+                    object_type = int.from_bytes(object_type_hex, 'little')
                     bytes_to_read_hex = self.__get_file(iF).read(6)
+                    bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
                     self.__bytes_start_header.append([])
                     self.__bytes_length_header.append([])
                     self.__bytes_start.append([])
                     self.__bytes_length.append([])
+                    current_byte += 6
                 else:
                     break
             current_byte += 6
@@ -231,6 +236,7 @@ class NuRadioRecoio(object):
         event = NuRadioReco.framework.event.Event(0, 0)
         event.deserialize(evtstr)
         self.__read_lock = False
+        self.__current_file_id = file_id
         return event
 
     def get_event(self, event_id):
@@ -243,33 +249,40 @@ class NuRadioRecoio(object):
         return None
 
     def get_events(self):
-        iF = 0
-        self.__get_file(iF).seek(12)  # skip file header
+        self.__current_file_id = 0
+        self.__get_file(self.__current_file_id).seek(12)  # skip file header
         while True:
-            object_type_hex = self.__get_file(iF).read(6)
+            object_type_hex = self.__get_file(self.__current_file_id).read(6)
             object_type = int.from_bytes(object_type_hex, 'little')
-            bytes_to_read_hex = self.__get_file(iF).read(6)
+            bytes_to_read_hex = self.__get_file(self.__current_file_id).read(6)
             bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
             if(bytes_to_read == 0):
                 # we are at the end of the file
-                if(iF < (len(self.__filenames) - 1)):  # are there more files to be parsed?
-                    iF += 1
-                    self.__get_file(iF).seek(12)  # skip datafile header
-                    bytes_to_read_hex = self.__get_file(iF).read(6)
+                if(self.__current_file_id < (len(self.__filenames) - 1)):  # are there more files to be parsed?
+                    self.__current_file_id += 1
+                    self.__get_file(self.__current_file_id).seek(12)  # skip datafile header
+                    object_type_hex = self.__get_file(self.__current_file_id).read(6)
+                    object_type = int.from_bytes(object_type_hex, 'little')
+                    bytes_to_read_hex = self.__get_file(self.__current_file_id).read(6)
+                    bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
                 else:
                     break
             if object_type == 0:
-                evt_header_str = self.__get_file(iF).read(bytes_to_read)
-                bytes_to_read_hex = self.__get_file(iF).read(6)
+                evt_header_str = self.__get_file(self.__current_file_id).read(bytes_to_read)
+                bytes_to_read_hex = self.__get_file(self.__current_file_id).read(6)
                 bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
-                evtstr = self.__get_file(iF).read(bytes_to_read)
+                evtstr = self.__get_file(self.__current_file_id).read(bytes_to_read)
                 event = NuRadioReco.framework.event.Event(0, 0)
                 event.deserialize(evtstr)
                 yield event
             elif object_type == 1:
-                self.__get_file(iF).read(bytes_to_read)
+                self.__get_file(self.__current_file_id).read(bytes_to_read)
 
-
+    def get_detector(self):
+        if self.__current_file_id not in self.__detectors.keys():
+            self.__detectors[self.__current_file_id] = NuRadioReco.detector.detector.Detector.__new__(NuRadioReco.detector.detector.Detector)
+            self.__detectors[self.__current_file_id].__init__(source='dictionary', json_filename='', dictionary=self.__detector_dicts[self.__current_file_id])
+        return self.__detectors[self.__current_file_id]
     def get_n_events(self):
         if(not self.__file_scanned):
             self.__scan_files()
