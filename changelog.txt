@@ -1,9 +1,13 @@
-version 1.0.0
+Changelog - to keep track of all relevant changes
+
+please update the categories "new features" and "bugfixes" before a pull request merge!
+
+
+version 1.0.1 - ????/??/??
 
 new features:
-added the internal clock parameter (time since last trigger with ms precision) to ARIANNA paremeters (key number 8)
+  added the internal clock parameter (time since last trigger with ms precision) to ARIANNA paremeters (key number 8)
 
 bugfixes:
-No bug fixes
 
-version 1.0.0 - 2019/09/03 - New parameter added
+version 1.0.0 - 2019/08/30 - first python 3 release
