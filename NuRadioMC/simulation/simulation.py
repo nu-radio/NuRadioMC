@@ -108,7 +108,6 @@ class simulation():
         self._eventlist = eventlist
         self._outputfilename = outputfilename
         self._detectorfile = detectorfile
-        self._Tnoise = float(self._cfg['trigger']['noise_temperature'])
         self._n_reflections = int(self._cfg['propagation']['n_reflections'])
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._debug = debug
@@ -234,10 +233,22 @@ class simulation():
 
         # for now just assume that bandwidth is the same for all stations and channels
         self._bandwidth = next(iter(next(iter(self._bandwidth_per_channel.values())).values()))
-
-        self._Vrms = (self._Tnoise * 50 * constants.k *
-                       self._bandwidth / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
-        logger.warning('noise temperature = {}, bandwidth = {:.2f} MHz, Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
+        Tnoise = self._cfg['trigger']['noise_temperature']
+        Vrms = self._cfg['trigger']['Vrms']
+        if(Tnoise is not None and Vrms is not None):
+            raise AttributeError(f"Specifying noise temperature (set to {Tnoise}) and Vrms (set to {Vrms} is not allowed.")
+        if(Tnoise is not None):
+            self._Tnoise = float(Tnoise)
+            self._Vrms = (self._Tnoise * 50 * constants.k *
+                           self._bandwidth / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
+            logger.warning('noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
+        elif(Vrms is not None):
+            self._Vrms = float(Vrms)
+            self._Tnoise = None
+            Tnoise = self._Vrms**2 / (50 * constants.k * self._bandwidth / units.Hz)
+            logger.warning(f"setting Vrms to {self._Vrms/units.V:.2g}V, bandwidth/amplification of the system is {self._bandwidth/units.MHz:.2g}MHz -> noise temperature = {Tnoise:.0f}K")
+        else:
+            raise AttributeError(f"noise temperature and Vrms are both set to None")
 
     def run(self):
         """
