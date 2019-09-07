@@ -28,5 +28,6 @@ signal:
 
 trigger:
   noise_temperature: 300  # in Kelvin
+  Vrms: null  # the RMS noise value in volts. Not compatible with 'noise_temperature', if Vrms is set, 'noise_temperature' must be None
 
 save_all: False # if True, save all events
