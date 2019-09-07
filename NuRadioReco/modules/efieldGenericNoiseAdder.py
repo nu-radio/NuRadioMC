@@ -1,4 +1,5 @@
 from NuRadioReco.utilities import units
+from NuRadioReco.modules.base.module import register_run
 import logging
 import copy
 import NuRadioReco.framework.channel
@@ -20,6 +21,7 @@ class efieldGenericNoiseAdder:
     def begin(self, debug=False):
         self.__debug = debug
 
+    @register_run("station")
     def run(self, evt, station, det, type, narrowband_freq, narrowband_power, passband):
         """
         

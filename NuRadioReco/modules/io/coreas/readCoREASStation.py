@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import h5py
 import numpy as np
 import NuRadioReco.framework.event
@@ -26,6 +27,7 @@ class readCoREASStation:
         self.__station_id = station_id
         self.__current_input_file = 0
 
+    @register_run("station")
     def run(self, detector):
         """
         run method

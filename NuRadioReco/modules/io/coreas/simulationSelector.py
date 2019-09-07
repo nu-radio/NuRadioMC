@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import logging
 import time
@@ -22,6 +23,7 @@ class simulationSelector:
     def begin(self, debug=False):
         pass
 
+    @register_run("station")
     def run(self, evt, sim_station, det, frequency_window = [100*units.MHz,500*units.MHz],n_std = 8):
 
         """

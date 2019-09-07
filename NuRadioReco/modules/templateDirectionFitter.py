@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from scipy import constants
 
@@ -22,6 +23,7 @@ class templateDirectionFitter:
     def begin(self):
         pass
 
+    @register_run("station")
     def run(self, evt, station, det, debug=True, channels_to_use=[0, 1, 2, 3], cosmic_ray=False):
         """
         Fits the direction using templates

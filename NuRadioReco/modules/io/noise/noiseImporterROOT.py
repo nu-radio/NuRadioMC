@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import ROOT
 import random
 from NuRadioReco.utilities import units
@@ -31,6 +32,7 @@ class noiseImporter:
 
         self.nevts = self.nt.GetEntries()
 
+    @register_run("station")
     def run(self, evt, station, det):
         # loop over stations in simulation
         for channel in station.iter_channels():

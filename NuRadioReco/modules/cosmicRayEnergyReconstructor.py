@@ -1,4 +1,5 @@
 import numpy as np
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.utilities import units
@@ -48,7 +49,7 @@ class cosmicRayEnergyReconstructor:
         self.__parametrization_for_site = self.__parametrizations[site]
         self.__elevation = self.__elevations[site]
         
-        
+    @register_run("station")    
     def run(self, event, station, detector):
         
         if not station.is_cosmic_ray():

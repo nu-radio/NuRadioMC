@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import logging
 from NuRadioReco.utilities import units
@@ -30,6 +31,7 @@ class triggerTimeAdjuster:
         self.__trigger_name = trigger_name
         self.__pre_trigger_time = pre_trigger_time
     
+    @register_run("station")
     def run(self, event, station, detector):
         trigger = None
         if self.__trigger_name is not None:

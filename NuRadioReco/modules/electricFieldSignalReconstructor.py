@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import copy
 from numpy import fft
@@ -35,6 +36,7 @@ class electricFieldSignalReconstructor:
         if(log_level is not None):
             logger.setLevel(log_level)
 
+    @register_run("station")
     def run(self, evt, station, det, debug=False):
         """
         reconstructs quantities for electric field

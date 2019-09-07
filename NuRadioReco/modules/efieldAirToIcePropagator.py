@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import time
 
@@ -22,6 +23,7 @@ class efieldAirToIcePropagator:
     def begin(self,debug=False):
         self.__debug = debug
 
+    @register_run("station")
     def run(self, evt, station, det):
         t = time.time()
 
