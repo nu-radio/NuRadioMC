@@ -59,8 +59,8 @@ class thermalNoiseGenerator():
         self.trigger_bin = int(self.trigger_time / self.dt)
         self.trigger_bin_low = int((self.trigger_time - self.time_coincidence_majority) / self.dt)
         
-        self.norm = np.trapz(np.abs(self.amp) ** 2, self.ff) ** 0.5
-        self.amplitude = (self.max_freq - self.min_freq) / self.norm * self.Vrms
+        self.norm = np.trapz(np.abs(self.amp) ** 2, self.ff)
+        self.amplitude = (self.max_freq - self.min_freq)**0.5 / self.norm**0.5 * self.Vrms
         
         self.noise = channelGenericNoiseAdder.channelGenericNoiseAdder()
     
