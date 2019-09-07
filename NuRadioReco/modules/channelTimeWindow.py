@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import channelParameters as chp
@@ -16,6 +17,7 @@ class channelTimeWindow:
         if(debug):
             logger.setLevel(logging.DEBUG)
 
+    @register_run("station")
     def run(self, evt, station, det, window=None,
             window_function='rectangular',
             around_pulse=True,

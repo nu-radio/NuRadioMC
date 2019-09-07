@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 import numpy as np
 import logging
@@ -84,6 +85,7 @@ class noiseImporter:
         else:
             return self.__channel_mapping[channel_id]
 
+    @register_run("station")
     def run(self, evt, station, det):
         # loop over stations in simulation
         i_noise = np.random.randint(0, self.__n_tot)

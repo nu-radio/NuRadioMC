@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.trigger import SimpleThresholdTrigger
@@ -38,6 +39,7 @@ class triggerSimulator:
     def begin(self, debug=False):
         self.__debug = debug
 
+    @register_run("station")
     def run(self, evt, station, det,
             threshold=60 * units.mV,
             number_concidences=1,

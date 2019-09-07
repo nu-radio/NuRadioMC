@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import h5py
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
@@ -44,6 +45,7 @@ class readCoREAS:
         self.__current_input_file = 0
         np.random.seed(seed)
 
+    @register_run("event")
     def run(self, detector, output_mode=0):
         """
         read in CoREAS simulation

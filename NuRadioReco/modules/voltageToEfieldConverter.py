@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import os
 import copy
@@ -117,6 +118,7 @@ class voltageToEfieldConverter:
         self.antenna_provider = antennapattern.AntennaPatternProvider()
         pass
 
+    @register_run("station")
     def run(self, evt, station, det, debug=False, debug_plotpath=None, use_channels=[0, 1, 2, 3], use_MC_direction=False):
         """
         run method. This function is executed for each event

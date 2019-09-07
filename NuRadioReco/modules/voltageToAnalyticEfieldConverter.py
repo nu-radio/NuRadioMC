@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from NuRadioReco.modules.base.module import register_run
 import os
 import time
 import numpy as np
@@ -276,6 +277,7 @@ class voltageToAnalyticEfieldConverter:
         self.antenna_provider = antennapattern.AntennaPatternProvider()
         pass
 
+    @register_run("station")
     def run(self, evt, station, det, debug=False, debug_plotpath=None,
             use_channels=[0, 1, 2, 3],
             bandpass=[100 * units.MHz, 500 * units.MHz],

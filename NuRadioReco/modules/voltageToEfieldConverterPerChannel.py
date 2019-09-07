@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from numpy.polynomial import polynomial as poly
 from scipy import signal
@@ -42,6 +43,7 @@ class voltageToEfieldConverterPerChannel:
         self.antenna_provider = antennapattern.AntennaPatternProvider()
         pass
 
+    @register_run("station")
     def run(self, evt, station, det, pol=0, debug=True):
         """
         Performs computation for voltage trace to electric field per channel

@@ -1,4 +1,5 @@
 import numpy as np
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 import scipy.signal
 
@@ -10,6 +11,7 @@ class electricFieldBandPassFilter:
     def begin(self):
         pass
 
+    @register_run("station")
     def run(self, evt, station, det, passband=[55 * units.MHz, 1000 * units.MHz],
             filter_type='rectangular',
             debug=False):

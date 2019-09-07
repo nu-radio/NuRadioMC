@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from NuRadioReco.modules.base.module import register_run
 from scipy import signal, fftpack
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,6 +31,7 @@ class correlationDirectionFitter:
             logger.setLevel(log_level)
         self.__debug = debug
 
+    @register_run("station")
     def run(self, evt, station, det, n_index=None, ZenLim=[0 * units.deg, 90 * units.deg],
             AziLim=[0 * units.deg, 360 * units.deg],
             channel_pairs=((0, 2), (1, 3)),

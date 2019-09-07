@@ -1,4 +1,5 @@
 import numpy as np
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import ice
@@ -36,6 +37,7 @@ class calculateAmplitudePerRaySolution:
         self.__debug = debug
         self.antenna_provider = antennapattern.AntennaPatternProvider()
 
+    @register_run("station")
     def run(self, evt, station, det):
         t = time.time()
 

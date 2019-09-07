@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import SimplePhasedTrigger
 import numpy as np
@@ -158,6 +159,7 @@ class triggerSimulator:
 
         return False
 
+    @register_run("station")
     def run(self, evt, station, det,
             threshold=60 * units.mV,
             triggered_channels=None,
