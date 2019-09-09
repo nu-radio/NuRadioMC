@@ -68,23 +68,6 @@ class ARIANNAParameters(Enum):  # this class stores parameters specific to the A
     l1_supression_value = 7  # This provieds the L1 supression value for given event
     internal_clock_time = 8 # time since last trigger with ms precision
 
-class eventParameters(Enum):
-    reference_shower = 1  # flag to choose between different reference showers
-
-    # magentic field parameter at the location of the event
-    magnetic_field_inclination = 10
-    magnetic_field_declination = 11
-    magnetic_field_strength = 12
-
-
-class showerTypes(Enum):
-    # shower class object to store CoREAS simulations
-    # (the simulated pulses are in station.sim_station)
-    sim_shower = 1  # shower class object to store CoREAS simulations
-    radio_shower = 2  # shower class object to store reconstructed values
-    particle_shower = 3  # shower class object to store data from a particle detector
-
-
 class showerParameters(Enum):
     zenith = 1  # zenith angle of the shower axis pointing towards xmax
     azimuth = 2  # azimuth angle of the shower axis pointing towards xmax
@@ -104,11 +87,3 @@ class showerParameters(Enum):
     # offset between magnetic field and north in reconstruction corrdinatesystem
     magnetic_field_rotation = 102
     observation_level = 103  # altitude a.s.l where the particles are stored
-
-
-class array_stationParameters(Enum):
-    name = 1  # antenna (station) name
-    position_vB_vvB = 2  # position in the showers vxB vxvxB v coordinate system
-    signal_energy_fluence = 3  # signal energy fluence, sum over all polaristations
-    signal_energy_fluence_vector = 4  # signal energy fluence per polaristation
-    frequency_slope = 5  # slope of the frequency spectrum per polaristation
