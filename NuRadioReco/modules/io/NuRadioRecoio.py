@@ -127,6 +127,7 @@ class NuRadioRecoio(object):
                     current_byte = 12  # skip datafile header
                     self.__get_file(iF).seek(current_byte)
                     bytes_to_read_hex = self.__get_file(iF).read(6)
+                    bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
                     self.__bytes_start_header.append([])
                     self.__bytes_length_header.append([])
                     self.__bytes_start.append([])
