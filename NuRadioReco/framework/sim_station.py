@@ -1,6 +1,5 @@
 from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_station
-from NuRadioReco.framework.parameters import array_stationParameters as astP
 import numpy as np
 from six import iteritems
 try:
