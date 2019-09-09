@@ -13,6 +13,7 @@ Welcome to NuRadioReco's documentation!
    NuRadioReco.modules
    NuRadioReco.detector
    NuRadioReco.utilities
+   includeme
 
 Indices and tables
 ==================
