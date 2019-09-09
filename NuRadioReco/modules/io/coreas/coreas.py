@@ -128,3 +128,4 @@ def make_sim_shower(corsika):
         sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"])
     except:
         logger.warning("No high-level quantities in HDF5 file, not setting EM energy")
+    return sim_shower
