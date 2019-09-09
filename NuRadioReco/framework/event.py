@@ -1,10 +1,8 @@
 from __future__ import absolute_import, division, print_function
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
 import NuRadioReco.framework.station
-import NuRadioReco.framework.shower
+import NuRadioReco.framework.radio_shower
+import NuRadioreco.framework.hybrid_information
 from six import itervalues
 import logging
 logger = logging.getLogger('Event')
@@ -17,8 +15,9 @@ class Event:
         self.__run_number = run_number
         self._id = event_id
         self.__stations = {}
-        self.__showers = {}
+        self.__radio_showers = []
         self.__event_time = 0
+        self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
 
     def get_parameter(self, attribute):
         return self._parameters[attribute]
@@ -45,15 +44,15 @@ class Event:
     def set_station(self, station):
         self.__stations[station.get_id()] = station
 
-    def set_shower(self, shower):
-        self.__showers[shower.get_shower_type()] = shower
+    def add_shower(self, shower):
+        self.__radio_showers.append(shower)
 
-    def get_shower(self, shower_type):
-        return self.__showers[shower_type]
-
-    def get_showers(self):
-        for shower in itervalues(self.__showers):
-            yield shower
+    def get_showers(self, ids=None):
+        for shower in self.__radio_showers:
+            if ids is None:
+                yield shower
+            elif shower.has_station_ids(ids):
+                yield shower
 
     def serialize(self, mode):
         stations_pkl = []
