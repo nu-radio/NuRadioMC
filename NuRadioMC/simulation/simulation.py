@@ -851,10 +851,10 @@ class simulation():
                 positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
             fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
 
-        fout.attrs['Tnoise'] = self._Tnoise
-        fout.attrs['Vrms'] = self._Vrms
-        fout.attrs['dt'] = self._dt
-        fout.attrs['bandwidth'] = self._bandwidth
+        fout.attrs.create("Tnoise", self._Tnoise, dtype=np.float)
+        fout.attrs.create("Vrms", self._Vrms, dtype=np.float)
+        fout.attrs.create("dt", self._dt, dtype=np.float)
+        fout.attrs.create("bandwidth", self._bandwidth, dtype=np.float)
         fout.attrs['n_samples'] = self._n_samples
         fout.attrs['config'] = yaml.dump(self._cfg)
 
