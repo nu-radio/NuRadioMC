@@ -210,7 +210,7 @@ class simulation():
                         print(f"{name} has get_filter")
                         filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
                 self._amplification_per_channel[self._station_id][channel_id] = np.abs(filt).max()
-                bandwidth = np.trapz(np.abs(filt)**2, ff)**0.5
+                bandwidth = np.trapz(np.abs(filt)**2, ff)
                 self._bandwidth_per_channel[self._station_id][channel_id] = bandwidth
                 logger.info(f"bandwidth of station {self._station_id} channel {channel_id} is {bandwidth/units.MHz:.1f}MHz")
                 
