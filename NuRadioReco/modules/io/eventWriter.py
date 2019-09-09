@@ -29,10 +29,12 @@ class eventWriter:
     """
 
     def __write_fout_header(self):
+        self.__fout = open('{}.nur'.format(self.__filename), 'wb')
         b = bytearray()
         b.extend(VERSION.to_bytes(6, 'little'))
         b.extend(VERSION_MINOR.to_bytes(6, 'little'))
         self.__fout.write(b)
+        self.__header_written = True
 
     def begin(self, filename, max_file_size=1024):
         """
@@ -50,13 +52,12 @@ class eventWriter:
         if filename[-4:] == '.ari':
             logger.warning('The file ending .ari for NuRadioReco files is deprecated. Please use .nur instead.')
         self.__number_of_events = 0
-        self.__fout = open('{}.nur'.format(self.__filename), 'wb')
-        self.__write_fout_header()
         self.__current_file_size = 0
         self.__number_of_files = 1
         self.__max_file_size = max_file_size * 1024 * 1024  # in bytes
         self.__stored_stations = []
         self.__stored_channels = []
+        self.__header_written = False   #Remember if we still have to write the current file header
 
     def run(self, evt, det = None, mode='full'):
         """
@@ -78,6 +79,8 @@ class eventWriter:
         if(mode not in ['full', 'mini', 'micro']):
             logger.error("output mode must be one of ['full', 'mini', 'micro'] but is {}".format(mode))
             raise NotImplementedError
+        if not self.__header_written:
+            self.__write_fout_header()
         evt_header_str = pickle.dumps(get_header(evt), protocol=2)
         event_bytearray = self.__get_event_bytearray(evt, mode)
         self.__fout.write(event_bytearray)
@@ -96,10 +99,10 @@ class eventWriter:
             self.__current_file_size = 0
             self.__fout.close()
             self.__number_of_files += 1
-            self.__fout = open("{}_part{:02d}.nur".format(self.__filename, self.__number_of_files), 'wb')
+            self.__filename = "{}_part{:02d}.nur".format(self.__filename, self.__number_of_files)
             self.__stored_stations = []
             self.__stored_channels = []
-            self.__write_fout_header()
+            self.__header_written = False
 
 
     def __get_event_bytearray(self, event, mode):
