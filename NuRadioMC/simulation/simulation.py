@@ -207,7 +207,6 @@ class simulation():
                     if(name in ['channelGenericNoiseAdder']):
                         noise_module_index.append(i)
                     if hasattr(instance, "get_filter"):
-                        print(f"{name} has get_filter")
                         filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
                 self._amplification_per_channel[self._station_id][channel_id] = np.abs(filt).max()
                 bandwidth = np.trapz(np.abs(filt)**2, ff)
@@ -239,6 +238,7 @@ class simulation():
 
         # for now just assume that bandwidth is the same for all stations and channels
         self._bandwidth = next(iter(next(iter(self._bandwidth_per_channel.values())).values()))
+        amplification = next(iter(next(iter(self._amplification_per_channel.values())).values()))
         Tnoise = self._cfg['trigger']['noise_temperature']
         Vrms = self._cfg['trigger']['Vrms']
         if(Tnoise is not None and Vrms is not None):
@@ -251,12 +251,15 @@ class simulation():
         elif(Vrms is not None):
             self._Vrms = float(Vrms) * units.V
             self._Tnoise = None
-#             amplification = next(iter(next(iter(self._amplification_per_channel.values())).values()))
 #             Vrms_before_amplification = self._Vrms / amplification
 #             Tnoise = self._Vrms**2  /amplification / (50 * constants.k * self._bandwidth / units.Hz)
 #             logger.warning(f"setting Vrms to {self._Vrms/units.mV:.2g}mV, bandwidth/amplification of the system is {self._bandwidth/units.MHz:.2g}MHz -> noise temperature = {Tnoise:.0f}K")
         else:
             raise AttributeError(f"noise temperature and Vrms are both set to None")
+        
+        self._Vrms_efield = self._Vrms / amplification / units.m
+        tmp_cut = float(self._cfg['speedup']['min_efield_amplitude'])
+        logger.warning(f"final Vrms {self._Vrms/units.V:.2g}V corresponds to an efield of {self._Vrms_efield/units.V/units.m/units.micro:.2g} muV/m for a VEL = 1m (amplification factor of system is {amplification:.1f}).\n -> all signals with less then {tmp_cut:.1f} x Vrms_efield = {tmp_cut * self._Vrms_efield/units.m/units.V/units.micro:.2g}muV/m will be skipped")
 
     def run(self):
         """
@@ -526,7 +529,7 @@ class simulation():
                         # apply a simple threshold cut to speed up the simulation,
                         # application of antenna response will just decrease the
                         # signal amplitude
-                        if(np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms):
+                        if(np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield):
                             candidate_event = True
 
                 #print("start detector simulation. time: " + str(time.time()))
