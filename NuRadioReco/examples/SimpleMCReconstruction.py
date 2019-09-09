@@ -151,7 +151,7 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
 
         # traditional
         voltageToEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, use_MC_direction=True)
-        electricFieldBandPassFilter.run(evt, station, det, passband=[30 * units.MHz, 80 * units.MHz])
+        electricFieldBandPassFilter.run(evt, station, det, passband=[30 * units.MHz, 80 * units.MHz], filter_type='butter', order=10)
         electricFieldSignalReconstructor.run(evt, station, det)
 
         # channelSignalReconstructor.run(evt, station, det)
