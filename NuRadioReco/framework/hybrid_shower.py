@@ -1,10 +1,10 @@
 import NuRadioReco.framework.base_shower
 
-class HybridShower(NuRadioReco.framework.base_shower):
+class HybridShower(NuRadioReco.framework.base_shower.BaseShower):
     def __init__(self, name):
         self.__name = name
         self.__hybrid_detector = None
-        super().__init__
+        super().__init__()
 
     def get_name(self):
         return self.__name
