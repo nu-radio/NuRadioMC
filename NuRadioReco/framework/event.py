@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import pickle
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
-import NuRadioreco.framework.hybrid_information
+import NuRadioReco.framework.hybrid_information
 from six import itervalues
 import logging
 logger = logging.getLogger('Event')
