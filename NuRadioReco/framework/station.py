@@ -3,10 +3,7 @@ import NuRadioReco.framework.base_station
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.channel
 from six import iteritems
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
 import logging
 import collections
 logger = logging.getLogger('Station')
@@ -39,7 +36,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def get_channel(self, channel_id):
         return self.__channels[channel_id]
-        
+
     def get_number_of_channels(self):
         return len(self.__channels)
 

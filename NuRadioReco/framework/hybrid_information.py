@@ -1,3 +1,5 @@
+import pickle
+import NuRadioReco.framework.hybrid_shower
 
 class HybridInformation():
     def __init__(self):
@@ -18,3 +20,18 @@ class HybridInformation():
         if name not in self.__hybrid_shower_names:
             raise ValueError('Could not find hybrid shower with name {}'.format(name))
         return self.__hybrid_showers[self.__hybrid_shower_names.index(name)]
+
+    def serialize(self):
+        shower_pickles = []
+        for shower in self.get_hybrid_showers():
+            shower_pickles.append(shower.serialize())
+        data = {
+            'shower_pickles': shower_pickles
+        }
+        return pickle.dumps(data, protocol=2)
+
+    def deserialize(self, data_pkl):
+        for shower_pkl in pickle.loads(data_pkl)['shower_pickles']:
+            shower = NuRadioReco.framework.hybrid_shower.HybridShower('')
+            shower.deserialize(shower_pkl)
+            self.add_hybrid_shower(shower)

@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.parameters as parameters
-
+import NuRadioReco.framework.parameter_serialization
+import pickle
 import logging
 logger = logging.getLogger('Shower')
 
@@ -28,10 +29,11 @@ class BaseShower:
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.showerParameters")
         return key in self._parameters
 
-    def serialize(self, mode):
-        data = {'_parameters': self._parameters}
+    def serialize(self):
+        data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters)}
         return pickle.dumps(data, protocol=2)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        self._parameters = data['_parameters']
+        self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'],
+                                    parameters.showerParameters)

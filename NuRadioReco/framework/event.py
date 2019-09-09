@@ -59,8 +59,10 @@ class Event:
         self.__sim_showers.append(sim_shower)
 
     def get_sim_showers(self):
-        for shower in self.__sim_showers():
+        for shower in self.__sim_showers:
             yield shower
+    def get_hybrid_information(self):
+        return self.__hybrid_information
 
     def serialize(self, mode):
         stations_pkl = []
@@ -69,14 +71,19 @@ class Event:
 
         showers_pkl = []
         for shower in self.get_showers():
-            showers_pkl.append(shower.serialize(mode))
-
+            showers_pkl.append(shower.serialize())
+        sim_showers_pkl = []
+        for shower in self.get_sim_showers():
+            sim_showers_pkl.append(shower.serialize())
+        hybrid_info = self.__hybrid_information.serialize()
         data = {'_parameters': self._parameters,
                 '__run_number': self.__run_number,
                 '_id': self._id,
                 '__event_time': self.__event_time,
                 'stations': stations_pkl,
-                'showers': showers_pkl}
+                'showers': showers_pkl,
+                'sim_showers': sim_showers_pkl,
+                'hybrid_info': hybrid_info}
 
         return pickle.dumps(data, protocol=2)
 
@@ -89,10 +96,15 @@ class Event:
             self.set_station(station)
 
         for shower_pkl in data['showers']:
-            shower = NuRadioReco.framework.shower.Shower(None)
+            shower = NuRadioReco.framework.radio_shower.RadioShower(None)
             shower.deserialize(shower_pkl)
-            self.set_shower(shower)
-
+            self.add_shower(shower)
+        for shower_pkl in data['sim_showers']:
+            shower = NuRadioReco.framework.radio_shower.RadioShower(None)
+            shower.deserialize(shower_pkl)
+            self.add_sim_shower(shower)
+        self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
+        self.__hybrid_information.deserialize(data['hybrid_info'])
         self._parameters = data['_parameters']
         self.__run_number = data['__run_number']
         self._id = data['_id']
