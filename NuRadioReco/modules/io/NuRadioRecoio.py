@@ -50,7 +50,7 @@ class NuRadioRecoio(object):
                 logger.debug("more than {} file are open, closing oldest file".format(self.__max_open_files))
                 tnow = time.time()
                 iF_close = 0
-                for key, value in self.__open_files.iteritems():
+                for key, value in self.__open_files.items():
                     if(value['time'] < tnow):
                         tnow = value['time'] 
                         iF_close = key
