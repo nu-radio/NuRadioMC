@@ -1,0 +1,14 @@
+Changelog - to keep track of all relevant changes
+
+please update the categories "new features" and "bugfixes" before a pull request merge!
+
+
+version 1.0.1 - ????/??/??
+
+new features:
+-Added new module called "beamFormingDirectionFitter" that fits direction through an interferometry method (dubbed beamForming)
+-Added the internal clock parameter (time since last trigger with ms precision) to ARIANNA paremeters (key number 8)
+
+bugfixes:
+
+version 1.0.0 - 2019/08/30 - first python 3 release

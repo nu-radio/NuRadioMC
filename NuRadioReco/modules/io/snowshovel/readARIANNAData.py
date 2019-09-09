@@ -55,7 +55,7 @@ class readARIANNAData:
             station.set_station_time(evt_time)
             station.set_triggered(evt_triggered)
 
-            for iCh in xrange(nChan):
+            for iCh in range(nChan):
                 channel = NuRadioReco.framework.channel.Channel(iCh)
                 voltage = np.array(self.calwv.GetDataOnCh(iCh)) * units.mV
                 channel.set_trace(voltage, self.sampling_rate)

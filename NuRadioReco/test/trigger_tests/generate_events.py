@@ -7,7 +7,7 @@ import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
 from NuRadioReco.utilities import units
-from NuRadioMC.simulation import simulation2 as simulation
+from NuRadioMC.simulation import simulation
 
 
 # initialize detector sim modules
