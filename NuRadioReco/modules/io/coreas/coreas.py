@@ -7,10 +7,11 @@ from NuRadioReco.utilities import units
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
+import NuRadioReco.framework.radio_shower
 
 from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.framework.parameters import showerParameters as shp
 
 conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
 
@@ -113,3 +114,17 @@ def make_sim_station(station_id, corsika, observer, channel_ids,  weight=None):
     sim_station.set_is_cosmic_ray()
     sim_station.set_simulation_weight(weight)
     return sim_station
+
+def make_sim_shower(corsika):
+    zenith, azimuth, magnetic_field_vector = get_angles(corsika)
+    sim_shower = NuRadioReco.framework.radio_shower.RadioShower()
+    sim_shower.set_parameter(shp.zenith, zenith)
+    sim_shower.set_parameter(shp.azimuth, azimuth)
+    energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV
+    sim_shower.set_parameter(shp.energy, energy)
+    sim_shower.set_parameter(shp.shower_maximum, corsika['CoREAS'].attrs['DepthOfShowerMaximum'])
+    sim_shower.set_parameter(shp.core, np.array([0,0,0]))
+    try:
+        sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"])
+    except:
+        logger.warning("No high-level quantities in HDF5 file, not setting EM energy")

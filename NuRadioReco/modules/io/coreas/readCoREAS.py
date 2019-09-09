@@ -154,9 +154,10 @@ class readCoREAS:
                 station = NuRadioReco.framework.station.Station(self.__station_id)
                 channel_ids = detector.get_channel_ids(self.__station_id)
                 sim_station = coreas.make_sim_station(self.__station_id, corsika, observer, channel_ids)
-
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
+                sim_shower = coreas.make_sim_shower(corsika)
+                evt.add_sim_shower(sim_shower)
                 if(output_mode == 0):
                     self.__t += time.time() - t
                     self.__t_event_structure += time.time() - t_event_structure

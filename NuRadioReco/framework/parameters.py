@@ -72,7 +72,7 @@ class showerParameters(Enum):
     zenith = 1  # zenith angle of the shower axis pointing towards xmax
     azimuth = 2  # azimuth angle of the shower axis pointing towards xmax
     core = 3  # position of the intersection between shower axis and an observer plane
-    energy = 4  # total energy of a shower, e.g., of the primary particle
+    energy = 4  # total energy of the primary particle
     electromagnetic_energy = 5  # energy of the electromagnetic shower component
     radiation_energy = 6  # totally emitted radiation energy
     electromagnetic_radiation_energy = 7  # radiation energy originated from the electromagnetic emission
