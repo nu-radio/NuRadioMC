@@ -107,6 +107,10 @@ class simulation():
 
         self._eventlist = eventlist
         self._outputfilename = outputfilename
+        if(os.path.exists(self._outputfilename)):
+            msg = f"hdf5 output file {self._outputfilename} already exists"
+            logger.error(msg)
+            raise FileExistsError(msg)
         self._detectorfile = detectorfile
         self._n_reflections = int(self._cfg['propagation']['n_reflections'])
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
@@ -149,6 +153,7 @@ class simulation():
         ################################
         # perfom a dummy detector simulation to determine how the signals are filtered
         self._bandwidth_per_channel = {}
+        self._amplification_per_channel = {}
         self._noise_adder_normalization = {}
         
         # first create dummy event and station with channels
@@ -184,9 +189,10 @@ class simulation():
 
             self._detector_simulation()
             self._bandwidth_per_channel[self._station_id] = {}
+            self._amplification_per_channel[self._station_id] = {}
             self._noise_adder_normalization[self._station_id] = {}
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
-                ff = np.linspace(0, 0.5 / self._dt, 1000)
+                ff = np.linspace(0, 0.5 / self._dt, 10000)
                 filt = np.ones_like(ff, dtype=np.complex)
                 noise_module_index = []
                 n_modules = 0
@@ -201,9 +207,9 @@ class simulation():
                     if(name in ['channelGenericNoiseAdder']):
                         noise_module_index.append(i)
                     if hasattr(instance, "get_filter"):
+                        print(f"{name} has get_filter")
                         filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
-                filt = np.abs(filt)
-                filt /= filt.max()
+                self._amplification_per_channel[self._station_id][channel_id] = np.abs(filt).max()
                 bandwidth = np.trapz(np.abs(filt)**2, ff)**0.5
                 self._bandwidth_per_channel[self._station_id][channel_id] = bandwidth
                 logger.info(f"bandwidth of station {self._station_id} channel {channel_id} is {bandwidth/units.MHz:.1f}MHz")
@@ -243,10 +249,12 @@ class simulation():
                            self._bandwidth / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
             logger.warning('noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
         elif(Vrms is not None):
-            self._Vrms = float(Vrms)
+            self._Vrms = float(Vrms) * units.V
             self._Tnoise = None
-            Tnoise = self._Vrms**2 / (50 * constants.k * self._bandwidth / units.Hz)
-            logger.warning(f"setting Vrms to {self._Vrms/units.V:.2g}V, bandwidth/amplification of the system is {self._bandwidth/units.MHz:.2g}MHz -> noise temperature = {Tnoise:.0f}K")
+#             amplification = next(iter(next(iter(self._amplification_per_channel.values())).values()))
+#             Vrms_before_amplification = self._Vrms / amplification
+#             Tnoise = self._Vrms**2  /amplification / (50 * constants.k * self._bandwidth / units.Hz)
+#             logger.warning(f"setting Vrms to {self._Vrms/units.mV:.2g}mV, bandwidth/amplification of the system is {self._bandwidth/units.MHz:.2g}MHz -> noise temperature = {Tnoise:.0f}K")
         else:
             raise AttributeError(f"noise temperature and Vrms are both set to None")
 
