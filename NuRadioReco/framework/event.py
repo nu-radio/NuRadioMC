@@ -16,6 +16,7 @@ class Event:
         self._id = event_id
         self.__stations = {}
         self.__radio_showers = []
+        self.__sim_showers = []
         self.__event_time = 0
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
 
@@ -53,6 +54,13 @@ class Event:
                 yield shower
             elif shower.has_station_ids(ids):
                 yield shower
+
+    def add_sim_shower(self, sim_shower):
+        self.__sim_showers.append(sim_shower)
+
+    def get_sim_showers(self):
+        for shower in self.__sim_showers():
+            yield shower
 
     def serialize(self, mode):
         stations_pkl = []
