@@ -81,7 +81,7 @@ class BaseStation():
 
     def get_station_time(self):
         return self._station_time
-    
+
 #     def get_trace(self):
 #         return self._time_trace
 #
@@ -102,20 +102,20 @@ class BaseStation():
         if(name not in self._triggers):
             raise ValueError("trigger with name {} not present".format(name))
         return self._triggers[name]
-    
+
     def has_trigger(self, trigger_name):
         """
         checks if station has a trigger with a certain name
-        
+
         Paramters
         ---------
         trigger_name: string
             the name of the trigger
-            
+
         Returns bool
         """
         return trigger_name in self._triggers
-    
+
     def get_triggers(self):
         """
         returns a dictionary of the triggers. key is the trigger name, value is a trigger object
@@ -131,10 +131,10 @@ class BaseStation():
 
     def has_triggered(self, trigger_name=None):
         """
-        convenience function. 
-        
+        convenience function.
+
         Parameters
-        ---------- 
+        ----------
         trigger_name: string or None (default None)
             * if None: The function returns False if not trigger was set. If one or multiple triggers were set,
                        it returns True if any of those triggers triggered
@@ -147,7 +147,7 @@ class BaseStation():
 
     def set_triggered(self, triggered=True):
         """
-        convenience function to set a simple trigger. The recommended interface is to set triggers through the 
+        convenience function to set a simple trigger. The recommended interface is to set triggers through the
         set_trigger() interface.
         """
         if(len(self._triggers) > 1):
@@ -158,13 +158,13 @@ class BaseStation():
 
     def set_electric_fields(self, electric_fields):
         self._electric_fields = electric_fields
-    
+
     def get_electric_fields(self):
         return self._electric_fields
-    
+
     def add_electric_field(self, electric_field):
         self._electric_fields.append(electric_field)
-    
+
     def get_electric_fields_for_channels(self, channel_ids=None, ray_path_type=None):
         for e_field in self._electric_fields:
             channel_ids2 = channel_ids
@@ -201,8 +201,8 @@ class BaseStation():
         set station type to cosmic rays (relevant e.g. for refraction into the snow)
         """
         self._particle_type = 'cr'
-        
-        
+
+
     # provide interface to ARIANNA specific parameters
     def get_ARIANNA_parameter(self, key):
         if not isinstance(key, parameters.ARIANNAParameters):
@@ -244,7 +244,7 @@ class BaseStation():
                 'triggers': trigger_pkls,
                 '_triggered': self._triggered,
                 'electric_fields': efield_pkls}
-        return pickle.dumps(data, protocol=2)
+        return pickle.dumps(data, protocol=3)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)

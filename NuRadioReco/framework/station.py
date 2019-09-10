@@ -39,7 +39,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def get_channel(self, channel_id):
         return self.__channels[channel_id]
-        
+
     def get_number_of_channels(self):
         return len(self.__channels)
 
@@ -93,7 +93,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
                 'channels': channels_pkl,
                 'base_station': base_station_pkl,
                 'sim_station': sim_station_pkl}
-        return pickle.dumps(data, protocol=2)
+        return pickle.dumps(data, protocol=3)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
