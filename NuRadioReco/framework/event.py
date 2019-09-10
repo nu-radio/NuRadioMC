@@ -53,7 +53,7 @@ class Event:
                 '_id': self._id,
                 '__event_time': self.__event_time,
                 'stations': stations_pkl}
-        return pickle.dumps(data, protocol=2)
+        return pickle.dumps(data, protocol=3)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)

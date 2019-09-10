@@ -86,7 +86,7 @@ class Trigger:
         Parameters
         ----------
         times: array
-            all trigger times 
+            all trigger times
         """
         self._trigger_times = times
 
@@ -112,7 +112,7 @@ class Trigger:
         self._triggered_channels = triggered_channels
 
     def serialize(self):
-        return pickle.dumps(self.__dict__, protocol=2)
+        return pickle.dumps(self.__dict__, protocol=3)
 
     def deserialize(self, data_pkl):
         for key, value in iteritems(pickle.loads(data_pkl)):

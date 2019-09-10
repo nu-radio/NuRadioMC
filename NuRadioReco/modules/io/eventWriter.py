@@ -81,7 +81,7 @@ class eventWriter:
             raise NotImplementedError
         if not self.__header_written:
             self.__write_fout_header()
-        evt_header_str = pickle.dumps(get_header(evt), protocol=2)
+        evt_header_str = pickle.dumps(get_header(evt), protocol=3)
         event_bytearray = self.__get_event_bytearray(evt, mode)
         self.__fout.write(event_bytearray)
         self.__current_file_size += event_bytearray.__sizeof__()
@@ -106,7 +106,7 @@ class eventWriter:
 
 
     def __get_event_bytearray(self, event, mode):
-        evt_header_str = pickle.dumps(get_header(event), protocol=2)
+        evt_header_str = pickle.dumps(get_header(event), protocol=3)
         b = bytearray()
         b.extend(evt_header_str)
         evt_header_length = len(b)
@@ -158,7 +158,7 @@ class eventWriter:
             return det_dict
 
     def __get_detector_bytearray(self, detector_dict):
-        detector_string = pickle.dumps(detector_dict, protocol=2)
+        detector_string = pickle.dumps(detector_dict, protocol=3)
         b = bytearray()
         b.extend(detector_string)
         detector_length = len(b)
