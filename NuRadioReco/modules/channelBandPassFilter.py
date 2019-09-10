@@ -51,7 +51,7 @@ class channelBandPassFilter:
         In principal, window names are just passed on to signal.firwin(), but if parameters
         are required, then these cases must be explicitly implemented in the code below.
 
-        The for main filter types can be implemented:
+        The four main filter types can be implemented:
         LP: passband[0]=None, passband[1]  = f_cut
         HP: passband[0]=f_cut, passband[1] = None
         BP: passband[0]=f_cut_low, passband[1] = f_cut_high
