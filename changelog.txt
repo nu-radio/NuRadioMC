@@ -8,6 +8,7 @@ version 1.0.1 - ????/??/??
 new features:
 -Added new module called "beamFormingDirectionFitter" that fits direction through an interferometry method (dubbed beamForming)
 -Added the internal clock parameter (time since last trigger with ms precision) to ARIANNA paremeters (key number 8)
+-Updated documentation and made it deployable on github
 
 bugfixes:
 

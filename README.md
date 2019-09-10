@@ -8,6 +8,8 @@ Glaser, C., Nelles, A., Plaisier, I. et al. Eur. Phys. J. C (2019) 79: 464. http
 
 for a peer-reviewed description of the contents of NuRadioReco. Please reference this article, if you use NuRadioReco for your analysis.
 
+The code documentation can be found here: https://nu-radio.github.io/NuRadioReco/
+
 For installation instructions and additional documentation/information please see the https://github.com/nu-radio/NuRadioReco/wiki
 
 If you would like to contribute, report or fix a bug, please contact @cg-laser or @anelles for permissions.
