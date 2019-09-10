@@ -18,9 +18,19 @@ class HybridShower(NuRadioReco.framework.base_shower.BaseShower):
 
     def serialize(self):
         base_shower_pickle = NuRadioReco.framework.base_shower.BaseShower.serialize(self)
+        if self.__hybrid_detector is not None:
+            det_pickle = self.__hybrid_detector.serialize()
+            det_class = self.__hybrid_detector.__class__
+            detector_info = {
+                'data': det_pickle,
+                'class': det_class
+            }
+        else:
+            detector_info=None
         data = {
             'base_shower': base_shower_pickle,
-            'name': self.__name
+            'name': self.__name,
+            'detector': detector_info
         }
         return pickle.dumps(data, protocol=2)
 
@@ -28,3 +38,7 @@ class HybridShower(NuRadioReco.framework.base_shower.BaseShower):
         data = pickle.loads(data_pkl)
         NuRadioReco.framework.base_shower.BaseShower.deserialize(self, data['base_shower'])
         self.__name = data['name']
+        if data['detector'] is not None:
+            det = data['detector']['class']()
+            det.deserialize(data['detector']['data'])
+            self.set_hybrid_detector(det)
