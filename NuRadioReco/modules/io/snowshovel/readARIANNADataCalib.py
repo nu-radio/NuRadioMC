@@ -196,8 +196,8 @@ class readARIANNAData:
 
             station.set_ARIANNA_parameter(ARIpar.seq_num, seq_number)
             # read and save start and stop time of a sequence
-            start = datetime.datetime.fromtimestamp(self.config_tree.TrigStartClock.GetCurrTime())
-            stop = datetime.datetime.fromtimestamp(self.config_tree.TrigStopClock.GetCurrTime())
+            start = datetime.datetime.fromtimestamp(self.config_tree.TrigStartClock.GetCurrTime().GetSec())
+            stop = datetime.datetime.fromtimestamp(self.config_tree.TrigStopClock.GetCurrTime().GetSec())
             if(start < datetime.datetime(1971, 1, 1)):
                 start = None
             if(stop < datetime.datetime(1971, 1, 1)):
