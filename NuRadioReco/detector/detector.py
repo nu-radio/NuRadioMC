@@ -158,6 +158,9 @@ class Detector(object):
             stations_table = self.__db.table('stations', cache_size=1000)
             for station in dictionary['stations'].values():
                 stations_table.insert(station)
+            channels_table = self.__db.table('channels', cache_size=1000)
+            for channel in dictionary['channels'].values():
+                channels_table.insert(channel)
         else:
             dir_path = os.path.dirname(os.path.realpath(__file__))  # get the directory of this file
             filename = os.path.join(dir_path, json_filename)
