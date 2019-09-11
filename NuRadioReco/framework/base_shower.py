@@ -11,6 +11,12 @@ class BaseShower:
     def __init__(self):
         self._parameters = {}
 
+    def __setitem__(self, key, value):
+        self.set_parameter(key, value)
+
+    def __getitem__(self, key):
+        return self.get_parameter(key)
+
     def get_parameter(self, key):
         if not isinstance(key, parameters.showerParameters):
             logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.showerParameters")
