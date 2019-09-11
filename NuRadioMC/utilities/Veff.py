@@ -258,7 +258,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
     else:
         return np.array(Es), Aeffs, Aeffs_error, SNR, trigger_names, deposited
 
-def get_Veff(folder, trigger_combinations={}, zenithbins=False, station=101):
+def get_Veff(folder, trigger_combinations={}, station=101):
     """
     calculates the effective volume from NuRadioMC hdf5 files
 
@@ -288,15 +288,17 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False, station=101):
     ----------
     np.array(Es): numpy floats array
         Smallest energy for each bin
-    Veffs: floats list
-        Effective volumes (m^3 sr)
-    Veffs_error: floats list
-        Effective volume uncertainties (m^3 sr)
+    Veffs: dict of floats list
+        Effective volumes (m^3)
+    Veffs_error: dict of floats list
+        Effective volume uncertainties (m^3)
     SNR: floats list
         Signal to noise ratios
     trigger_names: string list
         Trigger names
-    [thetamin, thetamax]: [float, float]
+    dOmegas: numpy floats array
+        the solid angle the effective volume is calculated for
+    thetamin/max: numpy array of [float, float] tuples
         Mimimum and maximum zenith angles
     deposited: bool
         True if the energies are deposited energies
@@ -307,6 +309,8 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False, station=101):
     Veffs = {}
     SNR = {}
     Veffs_error = {}
+    dOmegas = []
+    zenith_bins = []
     Es = []
     prev_deposited = None
     deposited = False
@@ -361,8 +365,6 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False, station=101):
                     raise
 
         # calculate effective
-        density_ice = 0.9167 * units.g / units.cm ** 3
-        density_water = 997 * units.kg / units.m ** 3
         rmin = fin.attrs['rmin']
         rmax = fin.attrs['rmax']
         thetamin = 0
@@ -384,10 +386,12 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False, station=101):
 
         # Solid angle needed for the effective volume calculations
         omega = np.abs(phimax - phimin) * np.abs( np.cos(thetamin)-np.cos(thetamax) )
+        dOmegas.append(omega)
+        zenith_bins.append((thetamin, thetamax))
 
         for iT, trigger_name in enumerate(trigger_names):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
-            Veff = V * density_ice / density_water * omega * np.sum(weights[triggered]) / n_events
+            Veff = V * np.sum(weights[triggered]) / n_events
             Veffs[trigger_name].append(Veff)
             try:
                 Veffs_error[trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
@@ -460,7 +464,7 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False, station=101):
             if('n_reflections' in values.keys()):
                 triggered = triggered & (np.array(fin[f'station_{station:d}/ray_tracing_reflection'])[:,0,0] == values['n_reflections'])
 
-            Veff = V * density_ice / density_water * omega * np.sum(weights[triggered]) / n_events
+            Veff = V * np.sum(weights[triggered]) / n_events
 
             if('efficiency' in values.keys()):
                 SNReff, eff = np.loadtxt("analysis_efficiency_{}.csv".format(values['efficiency']), delimiter=",", unpack=True)
@@ -469,7 +473,7 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False, station=101):
                 if('efficiency_scale' in values.keys()):
                     As *= values['efficiency_scale']
                 e = get_eff(As/Vrms)
-                Veff = V * density_ice / density_water * omega * np.sum((weights*e)[triggered]) / n_events
+                Veff = V * np.sum((weights*e)[triggered]) / n_events
 
             Veffs[trigger_name].append(Veff)
             Veffs_error[trigger_name].append(Veff / np.sum(weights[triggered])**0.5)
@@ -477,10 +481,7 @@ def get_Veff(folder, trigger_combinations={}, zenithbins=False, station=101):
         Veffs[trigger_name] = np.array(Veffs[trigger_name])
         Veffs_error[trigger_name] = np.array(Veffs_error[trigger_name])
 
-    if zenithbins:
-        return np.array(Es), Veffs, Veffs_error, SNR, trigger_names, [thetamin, thetamax], deposited
-    else:
-        return np.array(Es), Veffs, Veffs_error, SNR, trigger_names, deposited
+    return np.array(Es), Veffs, Veffs_error, SNR, trigger_names, np.array(dOmegas), np.array(zenith_bins), deposited
 
 def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
     """
