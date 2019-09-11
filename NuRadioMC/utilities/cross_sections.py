@@ -1,6 +1,7 @@
 import numpy as np
 from NuRadioMC.utilities import units
 from scipy.interpolate import interp1d
+from scipy import constants
 
 
 def param(energy, inttype='cc'):
@@ -232,6 +233,15 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type = 
         raise NotImplementedError
 
     return crscn
+
+def get_interaction_length(Enu, flavor):
+    """
+    calculates interaction length from cross section
+    """
+    m_n = constants.m_p *units.kg  # nucleon mass, assuming proton mass
+    density_ice = .917 * units.g/units.cm**3
+    L_int = m_n / get_nu_cross_section(Enu, flavor) / density_ice
+    return L_int
 
 
 if __name__=="__main__":  # this part of the code gets only executed it the script is directly called
