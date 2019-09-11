@@ -482,7 +482,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
             break
 
         if((iFile > 0) or (n_events_per_file < n_events)):
-            filename2 = filename + ".part{:04}".format(iFile + 1 + start_file_id)
+            filename2 = filename + ".part{:04}".format(iFile + start_file_id)
         fout = h5py.File(filename2, 'w')
         fout.attrs['VERSION_MAJOR'] = VERSION_MAJOR
         fout.attrs['VERSION_MINOR'] = VERSION_MINOR
