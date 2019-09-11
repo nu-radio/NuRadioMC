@@ -1,3 +1,4 @@
+set -e
 cd NuRadioMC/test/SignalProp/
 python T01test_python_vs_cpp.py
 python T02test_analytic_D_T.py
