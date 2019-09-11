@@ -39,7 +39,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def get_channel(self, channel_id):
         return self.__channels[channel_id]
-        
+
     def get_number_of_channels(self):
         return len(self.__channels)
 
