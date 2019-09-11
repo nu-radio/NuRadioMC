@@ -15,7 +15,6 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
         self._parameters = {}
         self._id = channel_id
-        self.__electric_field = None
 
     def get_parameter(self, key):
         if not isinstance(key, parameters.channelParameters):
@@ -63,5 +62,4 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.channelParameters)
         self._id = data['id']
-        if 'electric_field' in data.keys():
-            self.__electric_field = NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['electric_field'])
+
