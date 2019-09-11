@@ -55,12 +55,26 @@ class Event:
             elif shower.has_station_ids(ids):
                 yield shower
 
+    def get_first_shower(self, ids=None):
+        if len(self.__radio_showers) == 0:
+            return None
+        if ids is None:
+            return self.__radio_showers[0]
+        for shower in self.__radio_showers:
+            if shower.has_station_ids(ids):
+                return shower
+        return None
+
     def add_sim_shower(self, sim_shower):
         self.__sim_showers.append(sim_shower)
 
     def get_sim_showers(self):
         for shower in self.__sim_showers:
             yield shower
+
+    def has_sim_shower(self):
+        return len(self.__sim_showers) > 0
+
     def get_hybrid_information(self):
         return self.__hybrid_information
 
