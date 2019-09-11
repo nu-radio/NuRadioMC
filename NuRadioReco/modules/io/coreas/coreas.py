@@ -13,6 +13,10 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
 
+import logging
+logger = logging.getLogger('coreas')
+
+
 conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
 
 
@@ -27,8 +31,10 @@ def get_angles(corsika):
     B_inclination = np.arctan2(Bz, Bx)
 
     B_strength = (Bx ** 2 + Bz ** 2) ** 0.5 * units.micro * units.tesla
+
+    # in local coordinates north is + 90 deg
     magnetic_field_vector = B_strength * hp.spherical_to_cartesian(np.pi * 0.5 + B_inclination, 0 + np.pi * 0.5)
-     # in local coordinates north is + 90 deg
+
     return zenith, azimuth, magnetic_field_vector
 
 
@@ -115,17 +121,28 @@ def make_sim_station(station_id, corsika, observer, channel_ids,  weight=None):
     sim_station.set_simulation_weight(weight)
     return sim_station
 
+
 def make_sim_shower(corsika):
-    zenith, azimuth, magnetic_field_vector = get_angles(corsika)
     sim_shower = NuRadioReco.framework.radio_shower.RadioShower()
+
+    zenith, azimuth, magnetic_field_vector = get_angles(corsika)
     sim_shower.set_parameter(shp.zenith, zenith)
     sim_shower.set_parameter(shp.azimuth, azimuth)
+    sim_shower.set_parameter(shp.magnetic_field_vector, magnetic_field_vector)
+
     energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV
     sim_shower.set_parameter(shp.energy, energy)
-    sim_shower.set_parameter(shp.shower_maximum, corsika['CoREAS'].attrs['DepthOfShowerMaximum'])
-    sim_shower.set_parameter(shp.core, np.array([0,0,0]))
+    sim_shower.set_parameter(shp.shower_maximum, corsika['CoREAS'].attrs['DepthOfShowerMaximum'] * units.g / units.cm2)
+    sim_shower.set_parameter(shp.core, np.array([0, 0, 0]))
+    sim_shower.set_parameter(shp.refractive_index_at_ground, corsika['CoREAS'].attrs["GroundLevelRefractiveIndex"])
+    sim_shower.set_parameter(shp.magnetic_field_rotation,
+                             corsika['CoREAS'].attrs["RotationAngleForMagfieldDeclination"] * units.degree)
+    sim_shower.set_parameter(shp.distance_shower_maximum_geometric,
+                             corsika['CoREAS'].attrs["DistanceOfShowerMaximum"] * units.cm)
+
     try:
-        sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"])
+        sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"] * units.eV)
     except:
         logger.warning("No high-level quantities in HDF5 file, not setting EM energy")
+
     return sim_shower

@@ -18,14 +18,14 @@ class stationParameters(Enum):
     azimuth = 14  # the azimuth angle of the incoming signal direction (WARNING: this parameter is not well defined as the incoming signal direction might be different for different channels)
     zenith_cr_templatefit = 15
     zenith_nu_templatefit = 16
-    cr_xcorrelations = 19 # dict of result of crosscorrelations with cr templates
-    nu_xcorrelations = 20 #  dict of result of crosscorrelations with nu templates
+    cr_xcorrelations = 19  # dict of result of crosscorrelations with cr templates
+    nu_xcorrelations = 20  # dict of result of crosscorrelations with nu templates
     station_time = 21
     cr_energy_em = 24  # the electromagnetic shower energy (the cosmic ray energy that ends up in electrons, positrons and gammas)
     nu_inttype = 25  # interaction type, e.g., cc, nc, tau_em, tau_had
     chi2_efield_time_direction_fit = 26  # the chi2 of the direction fitter that used the maximum pulse times of the efields
     ndf_efield_time_direction_fit = 27  # the number of degrees of freedom of the direction fitter that used the maximum pulse times of the efields
-    cr_xmax = 28 # Depth of shower maximum of the air shower
+    cr_xmax = 28  # Depth of shower maximum of the air shower
 
 
 class channelParameters(Enum):
@@ -35,8 +35,8 @@ class channelParameters(Enum):
     SNR = 5  # an dictionary of various signal-to-noise ratio definitions
     maximum_amplitude_envelope = 6  # the maximum ampliude of the hilbert envelope of the trace
     P2P_amplitude = 7  # the peak to peak amplitude
-    cr_xcorrelations = 8 # dict of result of crosscorrelations with cr templates
-    nu_xcorrelations = 9 #  dict of result of crosscorrelations with nu templates
+    cr_xcorrelations = 8  # dict of result of crosscorrelations with cr templates
+    nu_xcorrelations = 9  # dict of result of crosscorrelations with nu templates
     signal_time = 10  # the time of the maximum amplitude of the envelope
 
 
@@ -68,6 +68,7 @@ class ARIANNAParameters(Enum):  # this class stores parameters specific to the A
     l1_supression_value = 7  # This provieds the L1 supression value for given event
     internal_clock_time = 8 # time since last trigger with ms precision
 
+
 class showerParameters(Enum):
     zenith = 1  # zenith angle of the shower axis pointing towards xmax
     azimuth = 2  # azimuth angle of the shower axis pointing towards xmax
@@ -86,4 +87,5 @@ class showerParameters(Enum):
     atmospheric_model = 101  # atmospheric model used in simulation
     # offset between magnetic field and north in reconstruction corrdinatesystem
     magnetic_field_rotation = 102
-    observation_level = 103  # altitude a.s.l where the particles are stored
+    magnetic_field_vector = 103  # magnetic field used in simulation in local coordinate system
+    observation_level = 104  # altitude a.s.l where the particles are stored
