@@ -14,3 +14,5 @@ C. Glaser, A. Nelles, I. Plaisier, C. Welling et al., "NuRadioReco: A reconstruc
 for the detector simulation part. 
 
 If you would like to contribute, please contact @cg-laser or @anelles for permissions to work on NuRadioMC. We work with pull requests only that can be merged after review. 
+
+Also please visit https://github.com/nu-radio/NuRadioMC/blob/master/CONTRIBUTING.md

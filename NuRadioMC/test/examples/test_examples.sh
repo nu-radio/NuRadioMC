@@ -1,3 +1,4 @@
+set -e
 cd NuRadioMC/examples/01_Veff_simulation
 mkdir output
 python T01generate_event_list.py

@@ -190,10 +190,11 @@ class simulation():
             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 100.)) == 0):
                 eta = pretty_time_delta((time.time() - t_start) * (self._n_events - self._iE) / self._iE)
                 total_time = inputTime + rayTracingTime + detSimTime + outputTime
-                logger.warning("processing event {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%".format(
-                    self._iE, self._n_events, np.sum(self._mout['triggered']),  100. * self._iE / self._n_events, eta, 100. * (rayTracingTime - askaryan_time) / total_time,
-                    100. * time_attenuation_length / (rayTracingTime - askaryan_time),
-                    100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*inputTime / total_time))
+                if total_time > 0:
+                    logger.warning("processing event {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%".format(
+                        self._iE, self._n_events, np.sum(self._mout['triggered']),  100. * self._iE / self._n_events, eta, 100. * (rayTracingTime - askaryan_time) / total_time,
+                        100. * time_attenuation_length / (rayTracingTime - askaryan_time),
+                        100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*inputTime / total_time))
 #             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 10000.)) == 0):
 #                 print("*", end='')
 
@@ -693,7 +694,7 @@ class simulation():
 
     def _write_ouput_file(self):
         folder = os.path.dirname(self._outputfilename)
-        if(not os.path.exists(folder)):
+        if(not os.path.exists(folder) and folder != ''):
             logger.warning(f"output folder {folder} does not exist, creating folder...")
             os.makedirs(folder)
         fout = h5py.File(self._outputfilename, 'w')
