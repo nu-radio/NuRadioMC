@@ -2,6 +2,8 @@ import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.shower
 from NuRadioReco.framework.parameters import showerParameters as shP
+from NuRadioReco.framework.parameters import stationParameters as stP
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 from NuRadioReco.modules.io.coreas import coreas
 
@@ -95,18 +97,23 @@ class readCoREASShower:
             energy_fluence = obs_plane["energy_fluence"]
             energy_fluence_vector = obs_plane["energy_fluence_vector"]
             frequency_slope = obs_plane["frequency_slope"]
+            names = obs_plane["antenna_names"]
 
             # later parse station id from antenna name if possible
             for idx, pos in enumerate(np.array(antenna_position)):
 
-                station_id = antenna_id(name, idx)
+                station_id = antenna_id(names[idx], idx)  # return proper station id if possible
                 station = NuRadioReco.framework.station.Station(station_id)
 
                 sim_station = NuRadioReco.framework.sim_station.SimStation(station_id, position=pos)
-                sim_station.set_parameter(astP.position_vB_vvB, antenna_position_vBvvB[idx])
-                sim_station.set_parameter(astP.signal_energy_fluence, energy_fluence[idx])
-                sim_station.set_parameter(astP.signal_energy_fluence_vector, energy_fluence_vector[idx])
-                sim_station.set_parameter(astP.frequency_slope, frequency_slope[idx])
+                electric_field = NuRadioReco.framework.electric_field.ElectricField([0, 1, 2])
+                electric_field.set_parameter(efp.ray_path_type, 'direct')
+                sim_station.set_parameter(efp.signal_energy_fluence, energy_fluence_vector[idx])
+
+                sim_station.add_electric_field(electric_field)
+                # sim_station.set_parameter(stP.position_vB_vvB, antenna_position_vBvvB[idx])
+                # sim_station.set_parameter(stP.signal_energy_fluence, energy_fluence[idx])
+                # sim_station.set_parameter(efp.frequency_slope, frequency_slope[idx])
 
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
