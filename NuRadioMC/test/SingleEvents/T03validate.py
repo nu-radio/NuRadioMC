@@ -86,8 +86,8 @@ for key in keys2:
         print("\narray {} of group station_101 not equal".format(key))
         print(e)
         error = -1
-        
-        
+
+
 keys2 = [
  u'multiple_triggers',
  u'ray_tracing_solution_type',
@@ -100,7 +100,7 @@ for key in keys2:
         print("\narray {} of group station_101 not equal".format(key))
         print(e)
         error = -1
-        
+
 keys2 = [
     u'travel_distances',
     u'ray_tracing_C1',]
@@ -112,7 +112,7 @@ for key in keys2:
         print("\narray {} of group station_101 not equal".format(key))
         print(e)
         error = -1
-        
+
 keys2 = [
     u'travel_times']
 for key in keys2:
@@ -151,12 +151,12 @@ for key in keys2:
         print(e)
         error = -1
 
-    
+
 
 if(error == -1):
     sys.exit(error)
 else:
-    print("The two files are identical.")
+    print("The two hdf5 files are identical.")
 
 
 
