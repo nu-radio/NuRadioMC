@@ -35,5 +35,6 @@ try:
     testing.assert_equal(all_traces_1, all_traces_2)
     print("All traces in .nur file are identical.")
 except:
+    print("Traces in .nur file are NOT identical.")
     sys.exit(-1)
 
