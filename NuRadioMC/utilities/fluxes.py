@@ -16,6 +16,11 @@ def get_interaction_length(energy,flavors=12, inttype='total', cross_section_typ
     L = 1./(N_A * ice_density * cross_sections.get_nu_cross_section(energy, flavors=flavors,inttype=inttype,cross_section_type=cross_section_type))
     return L
 
+    m_n = constants.m_p *units.kg  # nucleon mass, assuming proton mass
+    density_ice = .917 * units.g/units.cm**3
+    L_int = m_n / cross_sections.get_nu_cross_section(Enu, flavor) / density_ice
+    return L_int
+
 def get_limit_from_aeff(energy, aeff,
                         livetime,
                         signalEff = 1.00,
@@ -54,7 +59,7 @@ def get_limit_from_aeff(energy, aeff,
 
 
 
-def get_limit_flux(energy, veff,
+def get_limit_flux(energy, veff_sr,
                     livetime,
                     signalEff = 1.00,
                     energyBinsPerDecade=1.000,
@@ -68,8 +73,8 @@ def get_limit_flux(energy, veff,
         --------------
     energy: array of floats
         neutrino energy
-    veff: array of floats
-        effective volumes
+    veff_sr: array of floats
+        effective volume x solid angle
     livetime: float
         time used
     signalEff: float
@@ -85,7 +90,7 @@ def get_limit_flux(energy, veff,
 
     """
 
-    evtsPerFluxPerEnergy = veff * signalEff
+    evtsPerFluxPerEnergy = veff_sr * signalEff
     evtsPerFluxPerEnergy *= livetime
     evtsPerFluxPerEnergy /= get_interaction_length(energy, cross_section_type = nuCrsScn)
 
@@ -135,7 +140,7 @@ def get_limit_flux(energy, veff,
 #
 #     return ul
 
-def get_limit_e1_flux(energy, veff,
+def get_limit_e1_flux(energy, veff_sr,
                     livetime,
                     signalEff = 1.00,
                     energyBinsPerDecade=1.000,
@@ -149,8 +154,8 @@ def get_limit_e1_flux(energy, veff,
         --------------
     energy: array of floats
         neutrino energy
-    veff: array of floats
-        effective volumes
+    veff_sr: array of floats
+        effective volume x solid angle
     livetime: float
         time used
     signalEff: float
@@ -166,7 +171,7 @@ def get_limit_e1_flux(energy, veff,
 
     """
 
-    evtsPerFluxPerEnergy = veff * signalEff
+    evtsPerFluxPerEnergy = veff_sr * signalEff
     evtsPerFluxPerEnergy *= livetime
     evtsPerFluxPerEnergy /= get_interaction_length(energy, cross_section_type = nuCrsScn)
 
@@ -175,7 +180,7 @@ def get_limit_e1_flux(energy, veff,
 
     return ul
 
-def get_limit_e2_flux(energy, veff,
+def get_limit_e2_flux(energy, veff_sr,
                     livetime,
                     signalEff = 1.00,
                     energyBinsPerDecade=1.000,
@@ -188,8 +193,8 @@ def get_limit_e2_flux(energy, veff,
         --------------
     energy: array of floats
         neutrino energy
-    veff: array of floats
-        effective volumes
+    veff_sr: array of floats
+        effective volumes x solid angle
     livetime: float
         time used
     signalEff: float
@@ -204,7 +209,7 @@ def get_limit_e2_flux(energy, veff,
 
 
     """
-    return energy**2 * get_limit_flux(energy, veff, livetime, signalEff, energyBinsPerDecade, upperLimOnEvents,nuCrsScn)
+    return energy**2 * get_limit_flux(energy, veff_sr, livetime, signalEff, energyBinsPerDecade, upperLimOnEvents,nuCrsScn)
 
 
 def get_number_of_events_for_flux(energies, flux, Veff, livetime, nuCrsScn='ctw'):

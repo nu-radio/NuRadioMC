@@ -491,21 +491,24 @@ def get_E2_limit_figure(diffuse = True,
     plt.tight_layout()
     return fig, ax
 
-def add_limit(ax, limit_labels, E, Veff, n_stations, label, livetime=3*units.year, linestyle='-',color='r',linewidth=3,band=False):
+def add_limit(ax, limit_labels, E, Veffsr, n_stations, label, livetime=3*units.year, linestyle='-',color='r',linewidth=3,band=False):
+    """
+    add limit curve to limit plot
+    """
     E = np.array(E)
-    Veff = np.array(Veff)
+    Veffsr = np.array(Veffsr)
 
     if band:
 
         limit_lower = fluxes.get_limit_e2_flux(energy = E,
-                                         veff = Veff[0],
+                                         veff = Veffsr[0],
                                          livetime = livetime,
                                          signalEff = n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
                                          nuCrsScn='ctw')
         limit_upper = fluxes.get_limit_e2_flux(energy = E,
-                                         veff = Veff[1],
+                                         veff = Veffsr[1],
                                          livetime = livetime,
                                          signalEff = n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
@@ -518,7 +521,7 @@ def add_limit(ax, limit_labels, E, Veff, n_stations, label, livetime=3*units.yea
     else:
 
         limit = fluxes.get_limit_e2_flux(energy = E,
-                                         veff = Veff,
+                                         veff = Veffsr,
                                          livetime = livetime,
                                          signalEff = n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
