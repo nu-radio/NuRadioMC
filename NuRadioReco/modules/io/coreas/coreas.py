@@ -132,13 +132,18 @@ def make_sim_shower(corsika):
 
     energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV
     sim_shower.set_parameter(shp.energy, energy)
-    sim_shower.set_parameter(shp.shower_maximum, corsika['CoREAS'].attrs['DepthOfShowerMaximum'] * units.g / units.cm2)
     sim_shower.set_parameter(shp.core, np.array([0, 0, 0]))
+
+    sim_shower.set_parameter(shp.shower_maximum, corsika['CoREAS'].attrs['DepthOfShowerMaximum'] * units.g / units.cm2)
     sim_shower.set_parameter(shp.refractive_index_at_ground, corsika['CoREAS'].attrs["GroundLevelRefractiveIndex"])
     sim_shower.set_parameter(shp.magnetic_field_rotation,
                              corsika['CoREAS'].attrs["RotationAngleForMagfieldDeclination"] * units.degree)
     sim_shower.set_parameter(shp.distance_shower_maximum_geometric,
                              corsika['CoREAS'].attrs["DistanceOfShowerMaximum"] * units.cm)
+
+    sim_shower.set_parameter(shp.observation_level, corsika["inputs"].attrs["OBSLEV"] * units.cm)
+    sim_shower.set_parameter(shp.primary_particle, corsika["inputs"].attrs["PRMPAR"])
+    sim_shower.set_parameter(shp.atmospheric_model, corsika["inputs"].attrs["ATMOD"])
 
     try:
         sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"] * units.eV)
