@@ -143,7 +143,8 @@ def make_sim_shower(corsika):
 
     sim_shower.set_parameter(shp.observation_level, corsika["inputs"].attrs["OBSLEV"] * units.cm)
     sim_shower.set_parameter(shp.primary_particle, corsika["inputs"].attrs["PRMPAR"])
-    sim_shower.set_parameter(shp.atmospheric_model, corsika["inputs"].attrs["ATMOD"])
+    if 'ATMOD' in corsika['inputs'].attrs.keys():
+        sim_shower.set_parameter(shp.atmospheric_model, corsika["inputs"].attrs["ATMOD"])
 
     try:
         sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"] * units.eV)
