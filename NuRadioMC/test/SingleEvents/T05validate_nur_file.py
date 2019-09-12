@@ -30,7 +30,7 @@ def all_traces(file):
 all_traces_1 = all_traces(file1)
 all_traces_2 = all_traces(file2)
 
-diff = all_traces_1 - all_traces2
+diff = all_traces_1 - all_traces_2
 
 print("Difference in traces:", diff)
 print("Maximum difference", np.max(np.abs(diff)))
