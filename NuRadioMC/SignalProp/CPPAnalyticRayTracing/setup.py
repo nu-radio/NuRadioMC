@@ -15,7 +15,7 @@ extensions = [
     Extension('wrapper', ['wrapper.pyx'],
               #include_dirs=[numpy.get_include(), '../../utilities/'],
               include_dirs=[numpy.get_include(), '../../utilities/', str(os.environ['GSLDIR']) + '/include/'],
-              extra_compile_args=['-O3'],
+              extra_compile_args=['-O3',"-mfpmath=sse"],
               libraries=['gsl', 'gslcblas'],
               language='c++'
               ),
@@ -24,5 +24,5 @@ extensions = [
 setup(
     ext_modules=cythonize(extensions),
     cmdclass = {'build_ext': build_ext}
-#     extra_compile_args=["-w", '-g']
+   # extra_compile_args=["-mfpmath=sse"]
 )
