@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 from numpy import testing
+import numpy as np
 
 import NuRadioReco.modules.io.eventReader
 
