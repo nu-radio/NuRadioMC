@@ -1,82 +1,117 @@
 from functools import wraps
 from timeit import default_timer as timer
+import NuRadioReco.framework.event
+import NuRadioReco.framework.base_station
 
-def register_run(level):
+
+def register_run(level=None):
     if level not in ["station", "event"]:
         raise NotImplementedError("The level needs to be either 'station' or 'event'")
+
     def run_decorator(run):
+
         @wraps(run)
-        def register_run_method(self, evt, station, det, *args, **kwargs):
-            i = evt.get_number_of_modules() + station.get_number_of_modules()
+        def register_run_method(self, *args, **kwargs):
+
+            evt = None
+            station = None
+            level = None
+            # find out type of module automatically
+            if(len(args) == 1):
+                if(isinstance(args[0], NuRadioReco.framework.event.Event)):
+                    level = "event"
+                    evt = args[0]
+                else:
+                    raise AttributeError("first argument of run method is not of type NuRadioReco.framework.event.Event")
+            elif(len(args) >= 2):
+                if(isinstance(args[0], NuRadioReco.framework.event.Event) and isinstance(args[1], NuRadioReco.framework.base_station.BaseStation)):
+                    level = "station"
+                    evt = args[0]
+                    station = args[1]
+                elif(isinstance(args[0], NuRadioReco.framework.event.Event)):
+                    level = "station"
+                    evt = args[0]
+                else:
+                    raise AttributeError("first argument of run method is not of type NuRadioReco.framework.event.Event")
+            else:
+                # this is a module that creats events, not sure how to register such modules because an event is not yet available when the module is called
+                pass
+#                 raise AttributeError("run method has no argument")
+
             if(level == "event"):
-                evt.register_module(i, self, self.__class__.__name__, kwargs)
+                evt.register_module_event(self, self.__class__.__name__, kwargs)
             elif(level == "station"):
-                station.register_module(i, self, self.__class__.__name__, kwargs)
+                evt.register_module_station(station.get_id(), self, self.__class__.__name__, kwargs)
             start = timer()
-            res =  run(self, evt, station, det, *args, **kwargs)
+            res = run(self, *args, **kwargs)
             end = timer()
             if not self in register_run_method.time:
                 register_run_method.time[self] = 0
             register_run_method.time[self] += (end - start)
             return res
+
         register_run_method.time = {}
-        
+
         return register_run_method
+
     return run_decorator
 
 
-       
-
-
-def time_this(original_function):      
+def time_this(original_function):
     print("decorating")
-    def new_function(*args,**kwargs):
+
+    def new_function(*args, **kwargs):
         print("starting timer")
-        import datetime                 
-        before = datetime.datetime.now()                     
-        x = original_function(*args,**kwargs)                
-        after = datetime.datetime.now()                      
-        print("Elapsed Time = {0}".format(after-before))
-        return x                                             
-    return new_function  
+        import datetime
+        before = datetime.datetime.now()
+        x = original_function(*args, **kwargs)
+        after = datetime.datetime.now()
+        print("Elapsed Time = {0}".format(after - before))
+        return x
+
+    return new_function
+
 
 def ModuleDecorator(Cls):
+
     class NewCls(object):
-        def __init__(self,*args,**kwargs):
-            self.oInstance = Cls(*args,**kwargs)
-        def __getattribute__(self,s):
+
+        def __init__(self, *args, **kwargs):
+            self.oInstance = Cls(*args, **kwargs)
+
+        def __getattribute__(self, s):
             """
             this is called whenever any attribute of a NewCls object is accessed. This function first tries to 
             get the attribute off NewCls. If it fails then it tries to fetch the attribute from self.oInstance (an
             instance of the decorated class). If it manages to fetch the attribute from self.oInstance, and 
             the attribute is an instance method then `time_this` is applied.
             """
-            try:    
-                x = super(NewCls,self).__getattribute__(s)
-            except AttributeError:      
+            try:
+                x = super(NewCls, self).__getattribute__(s)
+            except AttributeError:
                 pass
             else:
                 return x
             print(s)
             x = self.oInstance.__getattribute__(s)
             print(x)
-            if type(x) == type(self.__init__): # it is an instance method
-                return run_decorator(x)                 # this is equivalent of just decorating the method with time_this
+            if type(x) == type(self.__init__):  # it is an instance method
+                return run_decorator(x)  # this is equivalent of just decorating the method with time_this
             else:
                 return x
-    return NewCls
 
+    return NewCls
 
 # class ModuleDecorator(object):
 #     def __init__(self, klas):
 #         self.klas = klas
 #         self.org_run = self.klas.run
 #         self.klas.run = self.run
-# 
+#
 #     def __call__(self, *arg, **kwargs):
 #         print("calling __call__")
 #         return self.klas.__call__(*arg, **kwargs)
-# 
+#
 #     def run(self, *args, **kwargs):
 #         print("registry")
 #         args[0].register_module(self.klas.__class__.__name__, kwargs)
