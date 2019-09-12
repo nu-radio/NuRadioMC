@@ -1,6 +1,5 @@
 import numpy as np
 from NuRadioReco.modules import channelGenericNoiseAdder
-from NuRadioReco.detector.ARIANNA import analog_components
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.modules.trigger.highLowThreshold import get_high_low_triggers
 
