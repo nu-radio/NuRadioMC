@@ -227,7 +227,6 @@ class NuRadioRecoio(object):
                 # we are at the end of the file
                 if(iF < (len(self.__filenames) - 1)):  # are there more files to be parsed?
                     iF += 1
-                    print("end of file... starting with next file")
                     self.__get_file(iF).seek(12)  # skip datafile header
                     bytes_to_read_hex = self.__get_file(iF).read(6)
                     bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
