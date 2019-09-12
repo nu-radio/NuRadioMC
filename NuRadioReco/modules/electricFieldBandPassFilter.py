@@ -11,8 +11,7 @@ class electricFieldBandPassFilter:
         pass
 
     def run(self, evt, station, det, passband=[55 * units.MHz, 1000 * units.MHz],
-            filter_type='rectangular',
-            debug=False):
+            filter_type='rectangular', order=2, debug=False):
         """
         Applies bandpass filter to electric field
 
@@ -26,8 +25,12 @@ class electricFieldBandPassFilter:
 
         passband: seq, array
             passband for filter, in phys units
-        filter_type: str
-            chose filter type, rectangular, butter10, butter10abs
+        filter_type: string
+            'rectangular': perfect straight line filter
+            'butter': butterworth filter from scipy
+            'butterabs': absolute of butterworth filter from scipy
+        order: int (optional, default 2)
+            for a butterworth filter: specifies the order of the filter
         debug: bool
             set debug
 
@@ -39,12 +42,12 @@ class electricFieldBandPassFilter:
             if(filter_type == 'rectangular'):
                 trace_fft[:, np.where(frequencies < passband[0])] = 0.
                 trace_fft[:, np.where(frequencies > passband[1])] = 0.
-            elif(filter_type == 'butter10'):
-                b, a = scipy.signal.butter(10, passband, 'bandpass', analog=True)
+            elif(filter_type == 'butter'):
+                b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
                 w, h = scipy.signal.freqs(b, a, frequencies)
                 trace_fft *= h
-            elif(filter_type == 'butter10abs'):
-                b, a = scipy.signal.butter(10, passband, 'bandpass', analog=True)
+            elif(filter_type == 'butterabs'):
+                b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
                 w, h = scipy.signal.freqs(b, a, frequencies)
                 trace_fft *= np.abs(h)
             efield.set_frequency_spectrum(trace_fft, efield.get_sampling_rate())
