@@ -6,21 +6,6 @@ import logging
 logger = logging.getLogger('fluxes')
 
 
-
-def get_interaction_length(energy,flavors=12, inttype='total', cross_section_type = 'ctw'):
-    """
-    return interaction length at given energy, assuming a constant ice density
-    """
-    ice_density = 0.917 # units.g/units.cm**3 water equivalent is 1, so unitless
-    N_A = scipy.constants.Avogadro * units.cm**-3
-    L = 1./(N_A * ice_density * cross_sections.get_nu_cross_section(energy, flavors=flavors,inttype=inttype,cross_section_type=cross_section_type))
-    return L
-
-    m_n = constants.m_p *units.kg  # nucleon mass, assuming proton mass
-    density_ice = .917 * units.g/units.cm**3
-    L_int = m_n / cross_sections.get_nu_cross_section(Enu, flavor) / density_ice
-    return L_int
-
 def get_limit_from_aeff(energy, aeff,
                         livetime,
                         signalEff = 1.00,
@@ -92,7 +77,7 @@ def get_limit_flux(energy, veff_sr,
 
     evtsPerFluxPerEnergy = veff_sr * signalEff
     evtsPerFluxPerEnergy *= livetime
-    evtsPerFluxPerEnergy /= get_interaction_length(energy, cross_section_type = nuCrsScn)
+    evtsPerFluxPerEnergy /= cross_sections.get_interaction_length(energy, cross_section_type = nuCrsScn)
 
     ul  = upperLimOnEvents / evtsPerFluxPerEnergy
     ul *= energyBinsPerDecade / np.log(10)
@@ -173,7 +158,7 @@ def get_limit_e1_flux(energy, veff_sr,
 
     evtsPerFluxPerEnergy = veff_sr * signalEff
     evtsPerFluxPerEnergy *= livetime
-    evtsPerFluxPerEnergy /= get_interaction_length(energy, cross_section_type = nuCrsScn)
+    evtsPerFluxPerEnergy /= cross_sections.get_interaction_length(energy, cross_section_type = nuCrsScn)
 
     ul  = upperLimOnEvents / evtsPerFluxPerEnergy
     ul *= energyBinsPerDecade / np.log(10)
@@ -235,7 +220,7 @@ def get_number_of_events_for_flux(energies, flux, Veff, livetime, nuCrsScn='ctw'
     Veff = np.array(Veff)
     logE = np.log10(energies)
     dlogE = logE[1] - logE[0]
-    return np.log(10) * livetime * flux * energies * Veff / get_interaction_length(energies, cross_section_type = nuCrsScn) * dlogE
+    return np.log(10) * livetime * flux * energies * Veff / cross_sections.get_interaction_length(energies, cross_section_type = nuCrsScn) * dlogE
 
 
 def get_exposure(energy, Veff, field_of_view=2*np.pi):
@@ -254,7 +239,7 @@ def get_exposure(energy, Veff, field_of_view=2*np.pi):
     Returns
     float: exposure
     """
-    return Veff / field_of_view / get_interaction_length(energy)
+    return Veff / field_of_view / cross_sections.get_interaction_length(energy)
 
 def get_integrated_exposure(exp_func, E_low, E_high):
     """
@@ -289,7 +274,7 @@ if __name__=="__main__":  # this part of the code gets only executed it the scri
 
     print("Cross section: {} cm^2".format(cross_sections.get_nu_cross_section(energy, cross_section_type = 'ctw')))
 
-    print("interaction length: {} km".format(get_interaction_length(energy, cross_section_type = 'ctw')/units.km))
+    print("interaction length: {} km".format(cross_sections.get_interaction_length(energy, cross_section_type = 'ctw')/units.km))
 
     print("calculating flux limit for {time} years and Veff of {veff} km^3 sr".format(time=livetime/units.year,
                             veff = veff/ (units.km**3 * units.sr)))
