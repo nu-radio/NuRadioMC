@@ -4,6 +4,7 @@ from numpy import testing
 import numpy as np
 
 import NuRadioReco.modules.io.eventReader
+from NuRadioReco.utilities import units
 
 try:
     file1 = sys.argv[1]
@@ -33,8 +34,10 @@ all_traces_2 = all_traces(file2)
 
 diff = all_traces_1 - all_traces_2
 
-print("Difference in traces:", diff)
-print("Maximum difference", np.max(np.abs(diff)))
+if np.any(diff != 0):
+    print("The arrays are different, difference in traces:", diff)
+
+print("Maximum difference between traces [mV]", np.max(np.abs(diff))/units.mV)
 
 precision = 7
 testing.assert_almost_equal(all_traces_1, all_traces_2,decimal=precision)
@@ -44,4 +47,5 @@ try:
 except:
     print("Traces agree within {} decimals, but not completely identical".format(precision))
 
+print("Traces are identical")
 
