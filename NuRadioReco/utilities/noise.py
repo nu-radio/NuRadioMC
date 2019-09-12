@@ -89,7 +89,7 @@ class thermalNoiseGenerator():
                             tmp = np.random.randint(self.trigger_bin_low, self.trigger_bin)
                             n_traces[iCh] = np.roll(trace, tmp - np.argwhere(triggered_bins == True)[0])
         traces = np.zeros((self.n_channels, self.n_samples))
-        rnd_iterator = range(self.n_channels)
+        rnd_iterator = list(range(self.n_channels))
         np.random.shuffle(rnd_iterator)
         for i, iCh in enumerate(rnd_iterator):
             if(i < self.n_majority):
