@@ -30,11 +30,17 @@ def all_traces(file):
 all_traces_1 = all_traces(file1)
 all_traces_2 = all_traces(file2)
 
+diff = all_traces_1 - all_traces2
 
-# try:
-testing.assert_almost_equal(all_traces_1, all_traces_2)
-#     print("All traces in .nur file are identical.")
-# except:
-#     print("Traces in .nur file are NOT identical.")
-#     sys.exit(-1)
+print("Difference in traces:", diff)
+print("Maximum difference", np.max(np.abs(diff)))
+
+precision = 7
+testing.assert_almost_equal(all_traces_1, all_traces_2,decimal=precision)
+
+try:
+    testing.assert_equal(all_traces_1, all_traces_2)
+except:
+    print("Traces agree within {} decimals, but not completely identical".format(precision))
+
 
