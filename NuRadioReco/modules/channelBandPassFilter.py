@@ -1,4 +1,4 @@
-from __future__ import print_function 
+from __future__ import print_function
 
 import numpy as np
 from scipy import signal
@@ -37,7 +37,7 @@ class channelBandPassFilter:
             or 'FIR <type> <parameter>' - see below for FIR filter options
         order: int (optional, default 2)
             for a butterworth filter: specifies the order of the filter
-        
+
         Added Jan-07-2018 by robert.lahmann@fau.de:
         FIR filter:
         see https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.get_window.html
@@ -47,38 +47,34 @@ class channelBandPassFilter:
         filter_type='FIR hamming': same as above
         filter_type='FIR kaiser 10' : Use Kaiser window with beta parameter 10
         filter_type='FIR kaiser' : Use Kaiser window with default beta parameter 6
-        
+
         In principal, window names are just passed on to signal.firwin(), but if parameters
         are required, then these cases must be explicitly implemented in the code below.
-        
-        The for main filter types can be implemented: 
+
+        The four main filter types can be implemented:
         LP: passband[0]=None, passband[1]  = f_cut
         HP: passband[0]=f_cut, passband[1] = None
         BP: passband[0]=f_cut_low, passband[1] = f_cut_high
         BS: passband[0]=f_cut_high, passband[1] = f_cut_low (i.e. passband[0] > passband[1])
-        
+
         """
-        
+
         for channel in station.iter_channels():
-            if isinstance(station, NuRadioReco.framework.sim_station.SimStation):
-                for sub_channel in channel:
-                    self.__apply_filter(sub_channel, passband, filter_type, order, True)
-            else:
-                self.__apply_filter(channel, passband, filter_type, order, False)
-            
+            self.__apply_filter(channel, passband, filter_type, order, False)
+
     def __apply_filter(self, channel, passband, filter_type, order, is_efield=False):
         frequencies = channel.get_frequencies()
         trace_fft = channel.get_frequency_spectrum()
         sample_rate = channel.get_sampling_rate()
-        
+
         # for FIR filters, it is easier to set the trace rather than the FFT to apply the
         # filter response. Eventually, I (Robert Lahmann) might figure out a way to set the
         # FFT (as is done for the IIR filters corresponding to analog filters) but for now
-        # I am setting a variable to decide whether the FFT or time trace shall be used to 
-        # set the trace. 
+        # I am setting a variable to decide whether the FFT or time trace shall be used to
+        # set the trace.
 
         isFIR = False
-        
+
         if(filter_type == 'rectangular'):
             if is_efield:
                 for polarization in trace_fft:
@@ -144,10 +140,10 @@ class channelBandPassFilter:
             #print('fcut = ',fcut)
             taps = signal.firwin(Nfir, fcut, window=wtype,scale=False,pass_zero=pass_zero,fs=sample_rate)
             wfilt, hfilt = signal.freqz(taps, worN=len(frequencies))
-            
+
             if ((Nfir//2)*2==Nfir):
                 print("odd filter order, rolling is off by T_s/2")
-                
+
             ndelay = int(0.5 * (Nfir-1))
             trace_fir = signal.lfilter(taps, 1.0, channel.get_trace())
             #print('len(trace_fir)',len(trace_fir))
