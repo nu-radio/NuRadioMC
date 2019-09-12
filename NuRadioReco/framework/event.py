@@ -18,14 +18,25 @@ class Event:
         self._id = event_id
         self.__stations = collections.OrderedDict()
         self.__event_time = 0
-        self.__modules = collections.OrderedDict()  # saves which modules were executed with what parameters
-        
-    def register_module(self, i, instance, name, kwargs):
+        self.__modules_event = []  # saves which modules were executed with what parameters on event level
+        self.__modules_station = {}  # saves which modules were executed with what parameters on station level
+
+    def register_module_event(self, instance, name, kwargs):
         """
         registers modules applied to this event
         """
-        self.__modules[i] = [name, instance, kwargs]
-    
+
+        self.__modules_event.append([name, instance, kwargs])
+
+    def register_module_station(self, station_id, instance, name, kwargs):
+        """
+        registers modules applied to this event
+        """
+        if(station_id not in self.__modules_station):
+            self.__modules_station[station_id] = []
+        iE = len(self.__modules_event)
+        self.__modules_station[station_id].append([iE, name, instance, kwargs])
+
     def get_module_list(self):
         """
         returns list (actually a dictionary) of modules that have been executed on this station
@@ -36,18 +47,37 @@ class Event:
         Each entry is a list of ['module name', 'module instance', 'dictionary of the kwargs of the run method']
         """
         return self.__modules
-    
+
+    def iter_modules(self, station_id=None):
+        """
+        returns an interator that loops over all modules. If a station id is provided it loops
+        over all modules that are applied on event or station level (on this particular station). If no 
+        station_id is provided, the loop is only over the event modules. 
+        The order follows the sequence these modules were applied
+        """
+        iE = 0
+        iS = 0
+        while True:
+            if(station_id in self.__modules_station and (len(self.__modules_station[station_id]) >= iS) and self.__modules_station[station_id][iS][0] == iE):
+                iS += 1
+                yield self.__modules_station[station_id][iS - 1]
+            else:
+                if(len(self.__modules_event) == iE):
+                    break
+                iE += 1
+                yield self.__modules_event[iE - 1]
+
     def has_modules(self):
         """
         returns True if at least one module has been executed on event level so far for this event
         """
-        return len(self.__modules) > 0
+        return len(self.__modules_event) > 0
 
     def get_number_of_modules(self):
         """
         returns the numbers of modules executed on event level so far for this event
         """
-        return len(self.__modules)
+        return len(self.__modules_event)
 
     def get_parameter(self, attribute):
         return self._parameters[attribute]
@@ -78,18 +108,25 @@ class Event:
         stations_pkl = []
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
-            
-        modules_out = collections.OrderedDict()
-        for key, value in self.__modules.items():  # remove module instances (this will just blow up the file size)
-            modules_out[key] = [value[0], None, value[2]]
 
+        modules_out_event = []
+        for value in self.__modules_event:  # remove module instances (this will just blow up the file size)
+            modules_out_event.append([value[0], None, value[2]])
+
+        modules_out_station = {}
+        for key in self.__modules_station:  # remove module instances (this will just blow up the file size)
+            modules_out_station[key] = []
+            for value in self.__modules_station[key]:
+                modules_out_station[key].append([value[0], None, value[2]])
 
         data = {'_parameters': self._parameters,
                 '__run_number': self.__run_number,
                 '_id': self._id,
                 '__event_time': self.__event_time,
                 'stations': stations_pkl,
-                '__modules': modules_out}
+                '__modules_event': modules_out_event,
+                '__modules_station': modules_out_station
+                }
         return pickle.dumps(data, protocol=2)
 
     def deserialize(self, data_pkl):
@@ -102,5 +139,7 @@ class Event:
         self.__run_number = data['__run_number']
         self._id = data['_id']
         self.__event_time = data['__event_time']
-        if("__modules" in data):
-            self.__modules = data['__modules']
+        if("__modules_event" in data):
+            self.__modules_event = data['__modules_event']
+        if("__modules_station" in data):
+            self.__modules_station = data['__modules_station']
