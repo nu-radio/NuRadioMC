@@ -21,7 +21,7 @@ class electricFieldResampler:
         self.__debug = debug
         pass
 
-    @register_run("station")
+    @register_run()
     def run(self, event, station, det, sampling_rate):
         """
         resample electric field

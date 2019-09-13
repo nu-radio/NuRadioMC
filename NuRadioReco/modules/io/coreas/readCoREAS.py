@@ -45,7 +45,7 @@ class readCoREAS:
         self.__current_input_file = 0
         np.random.seed(seed)
 
-    @register_run("event")
+    @register_run()
     def run(self, detector, output_mode=0):
         """
         read in CoREAS simulation

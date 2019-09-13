@@ -32,7 +32,7 @@ class noiseImporter:
 
         self.nevts = self.nt.GetEntries()
 
-    @register_run("station")
+    @register_run()
     def run(self, evt, station, det):
         # loop over stations in simulation
         for channel in station.iter_channels():

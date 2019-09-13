@@ -5,15 +5,16 @@ from NuRadioReco.utilities import units
 
 logger = logging.getLogger('triggerTimeAdjuster')
 
+
 class triggerTimeAdjuster:
     """
     Modifies channel traces to simulate the effects of the trigger
     """
-    
+
     def __init__(self):
         self.begin()
-    
-    def begin(self, trigger_name=None, pre_trigger_time = 55.*units.ns):
+
+    def begin(self, trigger_name=None, pre_trigger_time=55.*units.ns):
         """
         Setup
         ----
@@ -30,8 +31,8 @@ class triggerTimeAdjuster:
         """
         self.__trigger_name = trigger_name
         self.__pre_trigger_time = pre_trigger_time
-    
-    @register_run("station")
+
+    @register_run()
     def run(self, event, station, detector):
         trigger = None
         if self.__trigger_name is not None:
@@ -43,7 +44,7 @@ class triggerTimeAdjuster:
                     min_trigger_time = trig.get_trigger_time()
                     trigger = trig
         if trigger is None:
-            logger.warning('No trigger found! Channel timings will not be changed.') 
+            logger.warning('No trigger found! Channel timings will not be changed.')
             return
         if trigger.has_triggered():
             trigger_time = trigger.get_trigger_time()
@@ -86,5 +87,4 @@ class triggerTimeAdjuster:
             trigger.set_trigger_time(self.__pre_trigger_time)
         else:
             logger.debug('Trigger {} has not triggered. Channel timings will not be changed.'.format(self.__trigger_name))
-
 

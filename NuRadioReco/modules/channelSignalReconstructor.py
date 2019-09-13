@@ -133,7 +133,7 @@ class channelSignalReconstructor:
 
         return SNR
 
-    @register_run("station")
+    @register_run()
     def run(self, evt, station, det, stored_noise=False, rms_stage='amp'):
         """
         Parameters

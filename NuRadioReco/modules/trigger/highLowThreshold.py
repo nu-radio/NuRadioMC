@@ -97,7 +97,7 @@ class triggerSimulator:
             logger.setLevel(log_level)
         return
 
-    @register_run("station")
+    @register_run()
     def run(self, evt, station, det,
             threshold_high=60 * units.mV,
             threshold_low=-60 * units.mV,

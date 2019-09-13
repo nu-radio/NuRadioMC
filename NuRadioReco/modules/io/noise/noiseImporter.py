@@ -85,7 +85,7 @@ class noiseImporter:
         else:
             return self.__channel_mapping[channel_id]
 
-    @register_run("station")
+    @register_run()
     def run(self, evt, station, det):
         # loop over stations in simulation
         i_noise = np.random.randint(0, self.__n_tot)
