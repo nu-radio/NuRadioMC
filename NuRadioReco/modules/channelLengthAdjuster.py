@@ -30,7 +30,7 @@ class channelLengthAdjuster:
         self.number_of_samples = number_of_samples
         self.offset = offset
     
-    @register_run("station")
+    @register_run()
     def run(self, evt, station, det):
         max_pos = []
         for channel in station.iter_channels():

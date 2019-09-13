@@ -79,7 +79,7 @@ class efieldToVoltageConverter:
                 self.__uncertainty['sys_amp'][iCh] = np.random.normal(1, self.__uncertainty['sys_amp'][iCh])
         self.antenna_provider = antennapattern.AntennaPatternProvider()
 
-    @register_run("station")
+    @register_run()
     def run(self, evt, station, det):
         t = time.time()
 
@@ -94,16 +94,16 @@ class efieldToVoltageConverter:
         times_max = []
         for iCh in det.get_channel_ids(sim_station_id):
             for electric_field in sim_station.get_electric_fields_for_channels([iCh]):
-                original_binning = 1./ electric_field.get_sampling_rate()
+                original_binning = 1. / electric_field.get_sampling_rate()
                 cab_delay = det.get_cable_delay(sim_station_id, iCh)
                 t0 = electric_field.get_trace_start_time() + cab_delay
                 # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
                 if sim_station.is_cosmic_ray():
                     site = det.get_site(sim_station_id)
                     antenna_position = det.get_relative_position(sim_station_id, iCh) - electric_field.get_position()
-                    if sim_station.get_parameter(stnp.zenith) > 90*units.deg:   #signal is coming from below, so we take IOR of ice
+                    if sim_station.get_parameter(stnp.zenith) > 90 * units.deg:  # signal is coming from below, so we take IOR of ice
                         index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
-                    else:   # signal is coming from above, so we take IOR of air
+                    else:  # signal is coming from above, so we take IOR of air
                         index_of_refraction = ice.get_refractive_index(1, site)
                     travel_time_shift = geo_utl.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith),
                         sim_station.get_parameter(stnp.azimuth), antenna_position, index_of_refraction)
@@ -124,7 +124,7 @@ class efieldToVoltageConverter:
         trace_length_samples = int(round(trace_length / time_resolution))
         if trace_length_samples % 2 != 0:
             trace_length_samples += 1
-        logger.debug("smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d} {:.0f}ns)".format(times_min.min(), times_max.max(), trace_length_samples,trace_length/units.ns))
+        logger.debug("smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d} {:.0f}ns)".format(times_min.min(), times_max.max(), trace_length_samples, trace_length / units.ns))
 
         # loop over all channels
         for channel_id in det.get_channel_ids(station.get_id()):
@@ -167,9 +167,9 @@ class efieldToVoltageConverter:
                     if sim_station.is_cosmic_ray():
                         site = det.get_site(sim_station_id)
                         antenna_position = det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position()
-                        if sim_station.get_parameter(stnp.zenith) > 90*units.deg:   #signal is coming from below, so we take IOR of ice
+                        if sim_station.get_parameter(stnp.zenith) > 90 * units.deg:  # signal is coming from below, so we take IOR of ice
                             index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
-                        else:   # signal is coming from above, so we take IOR of air
+                        else:  # signal is coming from above, so we take IOR of air
                             index_of_refraction = ice.get_refractive_index(1, site)
                         travel_time_shift = geo_utl.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith),
                             sim_station.get_parameter(stnp.azimuth), antenna_position, index_of_refraction)
@@ -193,11 +193,11 @@ class efieldToVoltageConverter:
                 # get antenna pattern for current channel
                 VEL = trace_utilities.get_efield_antenna_factor(sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)
 
-                if VEL is None: # this can happen if there is not signal path to the antenna
+                if VEL is None:  # this can happen if there is not signal path to the antenna
                     voltage_fft = np.zeros_like(efield_fft[1])  # set voltage trace to zeros
                 else:
                     # Apply antenna response to electric field
-                    VEL = VEL[0] # we only requested the VEL for one channel, so selecting it
+                    VEL = VEL[0]  # we only requested the VEL for one channel, so selecting it
                     voltage_fft = np.sum(VEL * np.array([efield_fft[1], efield_fft[2]]), axis=0)
 
                 # Remove DC offset

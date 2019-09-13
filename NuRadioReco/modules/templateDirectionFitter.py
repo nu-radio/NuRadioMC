@@ -23,7 +23,7 @@ class templateDirectionFitter:
     def begin(self):
         pass
 
-    @register_run("station")
+    @register_run()
     def run(self, evt, station, det, debug=True, channels_to_use=[0, 1, 2, 3], cosmic_ray=False):
         """
         Fits the direction using templates
@@ -95,7 +95,7 @@ class templateDirectionFitter:
         if cosmic_ray:
             zenith_start = 45 * units.deg
         starting_chi2 = {}
-        for starting_az in np.array([0, 90, 180, 270])*units.degree:
+        for starting_az in np.array([0, 90, 180, 270]) * units.degree:
             starting_chi2[starting_az] = obj_plane((zenith_start, starting_az), positions, times)
         azimuth_start = min(starting_chi2, key=starting_chi2.get)
         res = opt.minimize(obj_plane, x0=[zenith_start, azimuth_start], args=(positions, times), method=method, options=options)

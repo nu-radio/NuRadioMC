@@ -71,7 +71,7 @@ class hardwareResponseIncorporator:
         else:
             return 1./ (amp_response * cable_response)
         
-    @register_run("station")   
+    @register_run()   
     def run(self, evt, station, det, sim_to_data=False, phase_only=False,mode=None,mingainlin=None):
         """
         Switch sim_to_data to go from simulation to data or otherwise.

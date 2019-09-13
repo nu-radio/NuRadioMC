@@ -35,7 +35,7 @@ class channelResampler:
 
         """
 
-    @register_run("station")
+    @register_run()
     def run(self, evt, station, det, sampling_rate):
         """
         Run the channelResampler

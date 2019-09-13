@@ -34,7 +34,7 @@ class readARIANNAData:
 
         return self.n_events
 
-    @register_run("event")
+    @register_run()
     def run(self):
         while True:
             if(self.__id_current_event >= self.n_events):

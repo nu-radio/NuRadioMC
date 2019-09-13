@@ -20,16 +20,14 @@ class efieldAirToIcePropagator:
         self.__t = 0
         self.begin()
 
-    def begin(self,debug=False):
+    def begin(self, debug=False):
         self.__debug = debug
 
-    @register_run("station")
+    @register_run()
     def run(self, evt, station, det):
         t = time.time()
 
         logger.warning("Nothing implemented yet")
-
-
 
         self.__t += time.time() - t
 

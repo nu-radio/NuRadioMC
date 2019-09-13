@@ -8,6 +8,7 @@ import time
 import logging
 logger = logging.getLogger('simpleThresholdTrigger')
 
+
 def get_threshold_triggers(trace, threshold):
     """
     calculats a simple threshold trigger
@@ -39,7 +40,7 @@ class triggerSimulator:
     def begin(self, debug=False):
         self.__debug = debug
 
-    @register_run("station")
+    @register_run()
     def run(self, evt, station, det,
             threshold=60 * units.mV,
             number_concidences=1,
@@ -69,7 +70,7 @@ class triggerSimulator:
         triggerd_bins_channels = []
         if triggered_channels is None:
             for channel in station.iter_channels():
-                channel_trace_start_time = channel.get_trace_start_time()            
+                channel_trace_start_time = channel.get_trace_start_time()
                 break
         else:
             channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
@@ -97,7 +98,7 @@ class triggerSimulator:
             station.set_parameter(stnp.channels_max_amplitude, max_signal)
         trigger = SimpleThresholdTrigger(trigger_name, threshold, triggered_channels,
                                          number_concidences)
-        trigger.set_triggered_channels(channels_that_passed_trigger) 
+        trigger.set_triggered_channels(channels_that_passed_trigger)
         if has_triggered:
             trigger.set_triggered(True)
             trigger.set_trigger_time(triggered_times.min())
@@ -109,7 +110,6 @@ class triggerSimulator:
         station.set_trigger(trigger)
 
         self.__t += time.time() - t
-
 
     def end(self):
         from datetime import timedelta

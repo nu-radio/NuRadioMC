@@ -11,7 +11,7 @@ class electricFieldBandPassFilter:
     def begin(self):
         pass
 
-    @register_run("station")
+    @register_run()
     def run(self, evt, station, det, passband=[55 * units.MHz, 1000 * units.MHz],
             filter_type='rectangular',
             debug=False):

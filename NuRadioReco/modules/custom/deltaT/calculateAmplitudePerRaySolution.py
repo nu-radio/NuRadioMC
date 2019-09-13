@@ -37,7 +37,7 @@ class calculateAmplitudePerRaySolution:
         self.__debug = debug
         self.antenna_provider = antennapattern.AntennaPatternProvider()
 
-    @register_run("station")
+    @register_run()
     def run(self, evt, station, det):
         t = time.time()
 
@@ -56,7 +56,7 @@ class calculateAmplitudePerRaySolution:
 
                 zenith = efield[efp.zenith]
                 azimuth = efield[efp.azimuth]
-                
+
                 ff = efield.get_frequencies()
                 efield_fft = efield.get_frequency_spectrum()
 
@@ -72,18 +72,18 @@ class calculateAmplitudePerRaySolution:
 
                 # Remove DC offset
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
-                
+
                 voltage = fft.freq2time(voltage_fft)
                 h = np.abs(signal.hilbert(voltage))
                 maximum = np.abs(voltage).max()
                 maximum_envelope = h.max()
-                
+
                 if not efield.has_parameter(efp.max_amp_antenna):
                     efield[efp.max_amp_antenna] = {}
                     efield[efp.max_amp_antenna_envelope] = {}
                 efield[efp.max_amp_antenna][channel_id] = maximum
                 efield[efp.max_amp_antenna_envelope][channel_id] = maximum_envelope
-                
+
         self.__t += time.time() - t
 
     def end(self):

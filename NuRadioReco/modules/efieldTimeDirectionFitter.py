@@ -26,7 +26,7 @@ class efieldTimeDirectionFitter:
         self.__time_uncertainty = time_uncertainty
         pass
 
-    @register_run("station")
+    @register_run()
     def run(self, evt, station, det, debug=True, channels_to_use=[0, 1, 2, 3], cosmic_ray=False):
         station_id = station.get_id()
 
@@ -54,7 +54,7 @@ class efieldTimeDirectionFitter:
         n_ice = ice.get_refractive_index(-0.01, site)
 
         from scipy import optimize as opt
-        
+
         def get_expected_times(params, positions):
             zenith, azimuth = params
             if cosmic_ray:
@@ -88,7 +88,7 @@ class efieldTimeDirectionFitter:
             starting_chi2[starting_az] = obj_plane((zenith_start, starting_az), positions, times)
         azimuth_start = min(starting_chi2, key=starting_chi2.get)
         res = opt.minimize(obj_plane, x0=[zenith_start, azimuth_start], args=(positions, times), method=method, options=options)
-        
+
         chi2 = res.fun
         df = len(channels_to_use) - 3
         if(df == 0):
@@ -103,7 +103,7 @@ class efieldTimeDirectionFitter:
                                                                                               res.fun, df,
                                                                                               chi2ndf,
                                                                                               chi2prob)
-        
+
         logger.info(output_str)
         station[stnp.zenith] = res.x[0]
         station[stnp.azimuth] = hp.get_normalized_angle(res.x[1])
@@ -112,17 +112,17 @@ class efieldTimeDirectionFitter:
         if(cosmic_ray):
             station[stnp.cr_zenith] = res.x[0]
             station[stnp.cr_azimuth] = hp.get_normalized_angle(res.x[1])
-            
+
         if(self.__debug):
             # calculate residuals
             t_exp = get_expected_times(res.x, positions)
             from matplotlib import pyplot as plt
             fig, ax = plt.subplots(1, 1)
-            ax.errorbar(channels_to_use, ((times - times.mean()) - (t_exp - t_exp.mean())) / units.ns,  fmt='o', 
-                        yerr=times_error/units.ns)
+            ax.errorbar(channels_to_use, ((times - times.mean()) - (t_exp - t_exp.mean())) / units.ns, fmt='o',
+                        yerr=times_error / units.ns)
             ax.set_xlabel("channel id")
             ax.set_ylabel(r"$t_\mathrm{meas} - t_\mathrm{exp}$ [ns]")
-            pass 
+            pass
 
     def end(self):
         pass
