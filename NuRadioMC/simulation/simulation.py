@@ -195,19 +195,12 @@ class simulation():
                 ff = np.linspace(0, 0.5 / self._dt, 10000)
                 filt = np.ones_like(ff, dtype=np.complex)
                 noise_module_index = []
-                n_modules = 0
-                for i, (name, instance, kwargs) in self._evt.get_module_list().items():
-                    n_modules += 1
+                for i, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station_id)):
                     if(name in ['channelGenericNoiseAdder']):
                         noise_module_index.append(i)
                     if hasattr(instance, "get_filter"):
                         filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
-                for i, (name, instance, kwargs) in self._station.get_module_list().items():
-                    n_modules += 1
-                    if(name in ['channelGenericNoiseAdder']):
-                        noise_module_index.append(i)
-                    if hasattr(instance, "get_filter"):
-                        filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
+
                 self._amplification_per_channel[self._station_id][channel_id] = np.abs(filt).max()
                 bandwidth = np.trapz(np.abs(filt)**2, ff)
                 self._bandwidth_per_channel[self._station_id][channel_id] = bandwidth
@@ -222,15 +215,12 @@ class simulation():
                         raise NotImplementedError("more than 1 noise importer module -> not supported")
                     else:
                         filt_noise = np.ones_like(ff, dtype=np.complex)
-                        for i in range(noise_module_index[0], n_modules):
-                            if(i in self._evt.get_module_list()):
-                                name, instance, kwargs = self._evt.get_module_list()[i]
-                                if(hasattr(instance, "get_filter")):
-                                    filt_noise *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
-                            if(i in self._station.get_module_list()):
-                                name, instance, kwargs = self._station.get_module_list()[i]
-                                if(hasattr(instance, "get_filter")):
-                                    filt_noise *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
+                        for i, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station_id)):
+                            if(i < noise_module_index[0]):  # skip all modules that come before the noise adder module
+                                continue
+                            name, instance, kwargs = self._evt.get_module_list()[i]
+                            if(hasattr(instance, "get_filter")):
+                                filt_noise *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
                         norm = np.trapz(np.abs(filt_noise)**2, ff)
                         self._noise_adder_normalization[self._station_id][channel_id] = norm
                         logger.info(f"noise normalization of station {self._station_id} channel {channel_id} is {norm/units.MHz:.1g}MHz")
@@ -576,10 +566,10 @@ class simulation():
         
         output_NuRadioRecoTime = "Timing of NuRadioReco modules \n"
         ts = []
-        for iM, (name, instance, kwargs) in self._station.get_module_list().items():
+        for iM, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station.get_id())):
             ts.append(instance.run.time[instance])
         ttot = np.sum(np.array(ts))
-        for i, (name, instance, kwargs) in enumerate(self._station.get_module_list().values()):
+        for i, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station.get_id())):
             t = pretty_time_delta(ts[i])
             trel = 100.*ts[i]/ttot
             output_NuRadioRecoTime += f"{name}: {t} {trel:.1f}%\n"
