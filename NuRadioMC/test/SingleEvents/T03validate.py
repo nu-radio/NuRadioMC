@@ -68,7 +68,7 @@ keys = [u'azimuths',
  u'zz']
 for key in keys:
     try:
-        testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
+        testing.assert_allclose(np.array(fin1[key]), np.array(fin2[key]))
     except AssertionError as e:
         print("\narray {} not equal".format(key))
         print(e)
