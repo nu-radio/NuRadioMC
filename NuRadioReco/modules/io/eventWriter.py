@@ -1,8 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
 from NuRadioReco.modules.io.NuRadioRecoio import VERSION, VERSION_MINOR
 import logging
 import datetime
