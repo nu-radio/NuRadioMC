@@ -285,11 +285,11 @@ class correlationDirectionFitter:
             import peakutils
             # access simulated efield and high level parameters
             sim_present = False
-            if(station.has_sim_station()):
-                if(station.get_sim_station().has_parameter(stnp.zenith)):
-                    sim_station = station.get_sim_station()
-                    azimuth_orig = sim_station[stnp.azimuth]
-                    zenith_orig = sim_station[stnp.zenith]
+            if(evt.has_sim_shower()):
+                sim_shower = list(evt.get_sim_showers())[0]
+                if(sim_shower.has_parameter(shp.zenith)):
+                    azimuth_orig = sim_shower[shp.azimuth]
+                    zenith_orig = sim_shower[shp.zenith]
                     sim_present = True
 
             if sim_present:
