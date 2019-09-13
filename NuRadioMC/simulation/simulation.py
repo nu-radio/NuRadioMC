@@ -64,6 +64,7 @@ class simulation():
                  detectorfile,
                  outputfilenameNuRadioReco=None,
                  debug=False,
+                 write_mode='full',
                  evt_time=datetime.datetime(2018, 1, 1),
                  config_file=None,
                  log_level=logging.WARNING,
@@ -90,6 +91,12 @@ class simulation():
             effective volume calculations
         debug: bool
             True activates debug mode, default False
+        write_mode: str
+            Detail level of eventWriter
+            specifies the output mode:
+            * 'full' (default): the full event content is written to disk
+            * 'mini': only station traces are written to disc
+            * 'micro': no traces are written to disc
         evt_time: datetime object
             the time of the events, default 1/1/2018
         """
