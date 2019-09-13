@@ -228,7 +228,6 @@ class simulation():
 
         # for now just assume that bandwidth is the same for all stations and channels
         self._bandwidth = next(iter(next(iter(self._bandwidth_per_channel.values())).values()))
-        self._bandwidth = 0.42  # force bandwith to old value to check test
         amplification = next(iter(next(iter(self._amplification_per_channel.values())).values()))
         Tnoise = self._cfg['trigger']['noise_temperature']
         Vrms = self._cfg['trigger']['Vrms']
