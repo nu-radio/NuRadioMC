@@ -94,7 +94,7 @@ class Event:
         for key in self.__modules_station:  # remove module instances (this will just blow up the file size)
             modules_out_station[key] = []
             for value in self.__modules_station[key]:
-                modules_out_station[key].append([value[0], None, value[2]])
+                modules_out_station[key].append([value[0], value[1], None, value[3]])
 
         data = {'_parameters': self._parameters,
                 '__run_number': self.__run_number,
@@ -104,7 +104,7 @@ class Event:
                 '__modules_event': modules_out_event,
                 '__modules_station': modules_out_station
                 }
-        return pickle.dumps(data, protocol=2)
+        return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
