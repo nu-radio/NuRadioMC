@@ -15,6 +15,7 @@ from scipy import constants
 # import detector simulation modules
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.channelSignalReconstructor
+import NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
@@ -186,6 +187,8 @@ class simulation():
             self._station.set_sim_station(self._sim_station)
             self._station.set_station_time(self._evt_time)
             self._evt.set_station(self._station)
+            if(bool(self._cfg['signal']['zerosignal'])):
+                self._increase_signal(None, 0)
 
             self._detector_simulation()
             self._bandwidth_per_channel[self._station_id] = {}
@@ -538,7 +541,8 @@ class simulation():
 
                 self._station.set_station_time(self._evt_time)
                 self._evt.set_station(self._station)
-
+                if(self._cfg['speedup']['amp_per_ray_solution']):
+                    self._calculate_amplitude_per_ray_tracing_solution()
                 self._detector_simulation()
                 self._calculate_signal_properties()
                 self._save_triggers_to_hdf5()
@@ -584,6 +588,23 @@ class simulation():
                                                                                          100 * detSimTime/t_total,
                                                                                          100 * outputTime/t_total))
 
+    def _calculate_amplitude_per_ray_tracing_solution(self):
+        if(not hasattr(self, "_calculateAmplitudePerRaySolution")):
+            self._calculateAmplitudePerRaySolution = NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution.calculateAmplitudePerRaySolution()
+        self._calculateAmplitudePerRaySolution.run(self._evt, self._station, self._det)
+        # save the amplitudes to output hdf5 file
+        # save amplitudes per ray tracing solution to hdf5 data output
+        sg = self._mout_groups[self._station_id]
+        n_antennas = self._det.get_number_of_channels(self._station_id)
+        if('max_amp_ray_solution' not in sg):
+            sg['max_amp_ray_solution'] = np.zeros((self._n_events, n_antennas, 2)) * np.nan
+        ch_counter = np.zeros(n_antennas, dtype=np.int)
+        for efield in self._station.get_sim_station().get_electric_fields():
+            for channel_id, maximum in iteritems(efield[efp.max_amp_antenna]):
+                sg['max_amp_ray_solution'][self._iE, channel_id, ch_counter[channel_id]] = maximum
+                ch_counter[channel_id] += 1
+    
+    
     def _is_in_fiducial_volume(self):
         """
         checks wether a vertex is in the fiducial volume
