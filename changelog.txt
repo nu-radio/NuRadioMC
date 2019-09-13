@@ -11,3 +11,4 @@ production includes testing of NuRadioReco files
 bugfixes:
 
 version 1.0.0 - 2019/08/30 - first python 3 release
+version 1.0.0 - 2019/09/13 - Minor cleanup and documentation upgrade
