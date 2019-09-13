@@ -216,13 +216,15 @@ class efieldToVoltageConverter:
                 else:
                     channel_spectrum += voltage_fft
 
-            if trace_object is None:
-                continue
             if(self.__debug):
                 axes[0].legend(loc='upper left')
                 axes[1].legend(loc='upper left')
                 plt.show()
-            channel.set_frequency_spectrum(channel_spectrum, trace_object.get_sampling_rate())
+            if trace_object is None:  # this happens if don't have any efield for this channel
+                # set the trace to zeros
+                channel.set_trace(np.zeros(trace_length_samples), 1. / time_resolution)
+            else:
+                channel.set_frequency_spectrum(channel_spectrum, trace_object.get_sampling_rate())
             channel.set_trace_start_time(times_min.min())
 
             station.add_channel(channel)
