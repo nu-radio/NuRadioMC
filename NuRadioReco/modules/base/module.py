@@ -5,14 +5,23 @@ import NuRadioReco.framework.base_station
 
 
 def register_run(level=None):
-    if level not in ["station", "event"]:
-        raise NotImplementedError("The level needs to be either 'station' or 'event'")
-
+    """
+    Decorator for run methods. This decorator registers the run methods. It allows to keep track of 
+    which module is executed in which order and with what parameters. Also the execution time of each 
+    module is tracked. 
+    """
     def run_decorator(run):
 
         @wraps(run)
         def register_run_method(self, *args, **kwargs):
 
+            # the following if/else part finds out if this is a module that operates on full events or a specific station
+            # In principle, different modules can be executed on different stations, so we keep it general and save the 
+            # modules station specific. 
+            # The logic is: If the first two arguments are event and station -> station module
+            # if the first argument is an event and the second not a station -> event module
+            # if the first argument is not an event -> reader module that creates events. In this case, the module 
+            # returns an event and we use this event to store the module information
             evt = None
             station = None
             level = None
@@ -22,7 +31,8 @@ def register_run(level=None):
                     level = "event"
                     evt = args[0]
                 else:
-                    raise AttributeError("first argument of run method is not of type NuRadioReco.framework.event.Event")
+                    # this is a module that creats events
+                    level = "reader"
             elif(len(args) >= 2):
                 if(isinstance(args[0], NuRadioReco.framework.event.Event) and isinstance(args[1], NuRadioReco.framework.base_station.BaseStation)):
                     level = "station"
@@ -32,18 +42,26 @@ def register_run(level=None):
                     level = "station"
                     evt = args[0]
                 else:
+                    # this is a module that creats events
+                    level = "reader"
                     raise AttributeError("first argument of run method is not of type NuRadioReco.framework.event.Event")
             else:
-                # this is a module that creats events, not sure how to register such modules because an event is not yet available when the module is called
-                pass
-#                 raise AttributeError("run method has no argument")
+                # this is a module that creats events
+                level = "reader"
 
+            start = timer()
+            res = run(self, *args, **kwargs)
             if(level == "event"):
                 evt.register_module_event(self, self.__class__.__name__, kwargs)
             elif(level == "station"):
                 evt.register_module_station(station.get_id(), self, self.__class__.__name__, kwargs)
-            start = timer()
-            res = run(self, *args, **kwargs)
+            elif(level == "reader"):
+                if(isinstance(res,  NuRadioReco.framework.event.Event)):
+                    res.register_module_event(self, self.__class__.__name__, kwargs)
+                elif(isinstance(res[0],  NuRadioReco.framework.event.Event)): # some reader module can return not only the event but additional arguments. 
+                    res[0].register_module_event(self, self.__class__.__name__, kwargs)
+                else:
+                    raise AttributeError("reader modules does not return an event")
             end = timer()
             if not self in register_run_method.time:
                 register_run_method.time[self] = 0
