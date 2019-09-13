@@ -37,17 +37,6 @@ class Event:
         iE = len(self.__modules_event)
         self.__modules_station[station_id].append([iE, name, instance, kwargs])
 
-    def get_module_list(self):
-        """
-        returns list (actually a dictionary) of modules that have been executed on this station
-        
-        modules are stored in an ordered dictionary where the key is an integer specifying the order
-        of module execution. This is needed because event and station modules can both be executed in arbitrary
-        orders. 
-        Each entry is a list of ['module name', 'module instance', 'dictionary of the kwargs of the run method']
-        """
-        return self.__modules
-
     def iter_modules(self, station_id=None):
         """
         returns an interator that loops over all modules. If a station id is provided it loops
@@ -58,26 +47,14 @@ class Event:
         iE = 0
         iS = 0
         while True:
-            if(station_id in self.__modules_station and (len(self.__modules_station[station_id]) >= iS) and self.__modules_station[station_id][iS][0] == iE):
+            if(station_id in self.__modules_station and (len(self.__modules_station[station_id]) > iS) and self.__modules_station[station_id][iS][0] == iE):
                 iS += 1
-                yield self.__modules_station[station_id][iS - 1]
+                yield self.__modules_station[station_id][iS - 1][1:]
             else:
                 if(len(self.__modules_event) == iE):
                     break
                 iE += 1
                 yield self.__modules_event[iE - 1]
-
-    def has_modules(self):
-        """
-        returns True if at least one module has been executed on event level so far for this event
-        """
-        return len(self.__modules_event) > 0
-
-    def get_number_of_modules(self):
-        """
-        returns the numbers of modules executed on event level so far for this event
-        """
-        return len(self.__modules_event)
 
     def get_parameter(self, attribute):
         return self._parameters[attribute]
