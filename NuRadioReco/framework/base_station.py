@@ -30,7 +30,9 @@ deprecated_parameters = [
     parameters.stationParameters.azimuth,
     parameters.stationParameters.cr_energy_em,
     parameters.stationParameters.nu_inttype,
-    parameters.stationParameters.cr_xmax
+    parameters.stationParameters.cr_xmax,
+    parameters.stationParameters.chi2_efield_time_direction_fit,
+    parameters.stationParameters.ndf_efield_time_direction_fit
 ]
 
 class BaseStation():

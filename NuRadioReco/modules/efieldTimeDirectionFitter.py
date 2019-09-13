@@ -6,7 +6,8 @@ from radiotools import helper as hp
 from NuRadioReco.utilities import units, ice
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-
+from NuRadioReco.framework.parameters import showerParameters as shp
+import NuRadioReco.framework.radio_shower
 import logging
 logger = logging.getLogger('efieldTimeDirectionFitter')
 
@@ -52,7 +53,7 @@ class efieldTimeDirectionFitter:
         n_ice = ice.get_refractive_index(-0.01, site)
 
         from scipy import optimize as opt
-        
+
         def get_expected_times(params, positions):
             zenith, azimuth = params
             if cosmic_ray:
@@ -86,7 +87,7 @@ class efieldTimeDirectionFitter:
             starting_chi2[starting_az] = obj_plane((zenith_start, starting_az), positions, times)
         azimuth_start = min(starting_chi2, key=starting_chi2.get)
         res = opt.minimize(obj_plane, x0=[zenith_start, azimuth_start], args=(positions, times), method=method, options=options)
-        
+
         chi2 = res.fun
         df = len(channels_to_use) - 3
         if(df == 0):
@@ -101,26 +102,28 @@ class efieldTimeDirectionFitter:
                                                                                               res.fun, df,
                                                                                               chi2ndf,
                                                                                               chi2prob)
-        
+
         logger.info(output_str)
-        station[stnp.zenith] = res.x[0]
-        station[stnp.azimuth] = hp.get_normalized_angle(res.x[1])
-        station[stnp.chi2_efield_time_direction_fit] = chi2
-        station[stnp.ndf_efield_time_direction_fit] = df
-        if(cosmic_ray):
-            station[stnp.cr_zenith] = res.x[0]
-            station[stnp.cr_azimuth] = hp.get_normalized_angle(res.x[1])
-            
+        rec_shower = evt.get_first_shower([station_id])
+        if rec_shower is None:
+            rec_shower = NuRadioReco.framework.radio_shower.RadioShower([station_id])
+            evt.add_shower(rec_shower)
+        rec_shower[shp.zenith] = res.x[0]
+        rec_shower[shp.azimuth] = hp.get_normalized_angle(res.x[1])
+        rec_shower[shp.chi2_efield_time_direction_fit] = chi2
+        rec_shower[shp.ndf_efield_time_direction_fit] = df
+
+
         if(self.__debug):
             # calculate residuals
             t_exp = get_expected_times(res.x, positions)
             from matplotlib import pyplot as plt
             fig, ax = plt.subplots(1, 1)
-            ax.errorbar(channels_to_use, ((times - times.mean()) - (t_exp - t_exp.mean())) / units.ns,  fmt='o', 
+            ax.errorbar(channels_to_use, ((times - times.mean()) - (t_exp - t_exp.mean())) / units.ns,  fmt='o',
                         yerr=times_error/units.ns)
             ax.set_xlabel("channel id")
             ax.set_ylabel(r"$t_\mathrm{meas} - t_\mathrm{exp}$ [ns]")
-            pass 
+            pass
 
     def end(self):
         pass
