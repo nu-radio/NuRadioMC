@@ -6,6 +6,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 version 1.0.1 - ????/??/??
 
 new features:
+production includes testing of NuRadioReco files
 
 bugfixes:
 
