@@ -33,6 +33,7 @@ import collections
 # import confuse
 logger = logging.getLogger("sim")
 
+
 def pretty_time_delta(seconds):
     seconds = int(seconds)
     days, seconds = divmod(seconds, 86400)
@@ -98,11 +99,11 @@ class simulation():
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
         logger.warning('reading default config from {}'.format(config_file_default))
         with open(config_file_default, 'r') as ymlfile:
-            self._cfg = yaml.load(ymlfile,Loader=yaml.FullLoader)
+            self._cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
         if(config_file is not None):
             logger.warning('reading local config overrides from {}'.format(config_file))
             with open(config_file, 'r') as ymlfile:
-                local_config = yaml.load(ymlfile,Loader=yaml.FullLoader)
+                local_config = yaml.load(ymlfile, Loader=yaml.FullLoader)
                 new_cfg = merge_config(local_config, self._cfg)
                 self._cfg = new_cfg
 
@@ -147,8 +148,7 @@ class simulation():
 
         # read sampling rate from config (this sampling rate will be used internally)
         self._dt = 1. / (self._cfg['sampling_rate'] * units.GHz)
-        
-        
+
         self._read_input_hdf5()  # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
 
         ################################
@@ -156,7 +156,7 @@ class simulation():
         self._bandwidth_per_channel = {}
         self._amplification_per_channel = {}
         self._noise_adder_normalization = {}
-        
+
         # first create dummy event and station with channels
         self._Vrms = 1
         for iSt, self._station_id in enumerate(self._station_ids):
@@ -164,25 +164,27 @@ class simulation():
             self._evt = NuRadioReco.framework.event.Event(0, self._iE)
             # read all quantities from hdf5 file and store them in local variables
             self._read_input_neutrino_properties()
-            
+
             self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
 #                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
             self._n_samples = self._det.get_number_of_samples(self._station_id, 0) / self._sampling_rate_detector / self._dt
             self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to nearest even integer
             self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
             self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
-            
+
             self._create_sim_station()
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                 electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id], self._det.get_relative_position(self._sim_station.get_id(), channel_id))
-                trace = np.zeros_like(self._ff, dtype=np.complex)
-                electric_field.set_frequency_spectrum(np.array([trace, trace, trace]), 1. / self._dt)
+                trace = np.zeros_like(self._tt)
+                trace[self._n_samples // 2] = 100 * units.V  # set a signal that will satifsy any high/low trigger
+                trace[self._n_samples // 2 + 1] = -100 * units.V
+                electric_field.set_trace(np.array([np.zeros_like(self._tt), trace, trace]), 1. / self._dt)
                 electric_field.set_trace_start_time(0)
                 electric_field[efp.azimuth] = 0
                 electric_field[efp.zenith] = 100 * units.deg
                 electric_field[efp.ray_path_type] = 0
                 self._sim_station.add_electric_field(electric_field)
-                
+
             self._station = NuRadioReco.framework.station.Station(self._station_ids[0])
             self._station.set_sim_station(self._sim_station)
             self._station.set_station_time(self._evt_time)
@@ -205,11 +207,11 @@ class simulation():
                         filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
 
                 self._amplification_per_channel[self._station_id][channel_id] = np.abs(filt).max()
-                bandwidth = np.trapz(np.abs(filt)**2, ff)
+                bandwidth = np.trapz(np.abs(filt) ** 2, ff)
                 self._bandwidth_per_channel[self._station_id][channel_id] = bandwidth
                 logger.info(f"bandwidth of station {self._station_id} channel {channel_id} is {bandwidth/units.MHz:.1f}MHz")
-                
-                # in case noise is added, we need to determine what filters are applied after noise is added to 
+
+                # in case noise is added, we need to determine what filters are applied after noise is added to
                 # rescale the noise level accordingly
                 if((not bool(self._cfg['noise'])) or len(noise_module_index) == 0):
                     logger.debug("no noise is added")
@@ -224,7 +226,7 @@ class simulation():
                             name, instance, kwargs = self._evt.get_module_list()[i]
                             if(hasattr(instance, "get_filter")):
                                 filt_noise *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
-                        norm = np.trapz(np.abs(filt_noise)**2, ff)
+                        norm = np.trapz(np.abs(filt_noise) ** 2, ff)
                         self._noise_adder_normalization[self._station_id][channel_id] = norm
                         logger.info(f"noise normalization of station {self._station_id} channel {channel_id} is {norm/units.MHz:.1g}MHz")
         ################################
@@ -249,7 +251,7 @@ class simulation():
 #             logger.warning(f"setting Vrms to {self._Vrms/units.mV:.2g}mV, bandwidth/amplification of the system is {self._bandwidth/units.MHz:.2g}MHz -> noise temperature = {Tnoise:.0f}K")
         else:
             raise AttributeError(f"noise temperature and Vrms are both set to None")
-        
+
         self._Vrms_efield = self._Vrms / amplification / units.m
         tmp_cut = float(self._cfg['speedup']['min_efield_amplitude'])
         logger.warning(f"final Vrms {self._Vrms/units.V:.2g}V corresponds to an efield of {self._Vrms_efield/units.V/units.m/units.micro:.2g} muV/m for a VEL = 1m (amplification factor of system is {amplification:.1f}).\n -> all signals with less then {tmp_cut:.1f} x Vrms_efield = {tmp_cut * self._Vrms_efield/units.m/units.V/units.micro:.2g}muV/m will be skipped")
@@ -285,7 +287,7 @@ class simulation():
                 total_time = inputTime + rayTracingTime + detSimTime + outputTime
                 if total_time > 0:
                     logger.warning("processing event {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%".format(
-                        self._iE, self._n_events, np.sum(self._mout['triggered']),  100. * self._iE / self._n_events, eta, 100. * (rayTracingTime - askaryan_time) / total_time,
+                        self._iE, self._n_events, np.sum(self._mout['triggered']), 100. * self._iE / self._n_events, eta, 100. * (rayTracingTime - askaryan_time) / total_time,
                         100. * time_attenuation_length / (rayTracingTime - askaryan_time),
                         100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*inputTime / total_time))
 #             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 10000.)) == 0):
@@ -306,7 +308,7 @@ class simulation():
                 if(self._inttype == "nc"):  # skip all neutral current interactions
                     continue
                 else:
-                    if(self._inttype == "cc" and np.abs(self._flavor) != 12): # skip all cc interaction that are not electron neutrinos
+                    if(self._inttype == "cc" and np.abs(self._flavor) != 12):  # skip all cc interaction that are not electron neutrinos
                         continue
 
             # calculate weight
@@ -317,9 +319,9 @@ class simulation():
                                                      self._fin['energies'][iE_mother],
                                                      self._fin['flavors'][iE_mother],
                                                      mode=self._cfg['weights']['weight_mode'],
-                                                     cross_section_type = self._cfg['weights']['cross_section_type'])
+                                                     cross_section_type=self._cfg['weights']['cross_section_type'])
             else:
-                self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, mode=self._cfg['weights']['weight_mode'],cross_section_type = self._cfg['weights']['cross_section_type'])
+                self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, mode=self._cfg['weights']['weight_mode'], cross_section_type=self._cfg['weights']['cross_section_type'])
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if(self._mout['weights'][self._iE] < self._cfg['speedup']['minimum_weight_cut']):
@@ -457,7 +459,6 @@ class simulation():
                             # add EM signal to had signal in the time domain
                             spectrum = fft.time2freq(fft.freq2time(spectrum) + fft.freq2time(spectrum_em))
 
-
                         polarization_direction_onsky = self._calculate_polarization_vector()
                         cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
                         polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
@@ -474,9 +475,9 @@ class simulation():
                         r_theta = None
                         r_phi = None
                         if(self._prop.solution_types[r.get_solution_type(iS)] == 'reflected'):
-                            zenith_reflections = np.atleast_1d(r.get_reflection_angle(iS)) # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
+                            zenith_reflections = np.atleast_1d(r.get_reflection_angle(iS))  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
                             for zenith_reflection in zenith_reflections:  # loop through all possible reflections
-                                if(zenith_reflection is None): # skip all ray segments where not reflection at surface happens
+                                if(zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
                                     continue
                                 r_theta = geo_utl.get_fresnel_r_p(
                                     zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
@@ -485,13 +486,13 @@ class simulation():
 
                                 eTheta *= r_theta
                                 ePhi *= r_phi
-                                logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection/units.deg,
+                                logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection / units.deg,
                                     r_theta, r_phi))
 
                         if(self._n_reflections > 0):  # take into account possible bottom reflections
                             # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
                             reflection_coefficient = self._n_reflections * self._ice.reflection_coefficient
-                            phase_shift = (self._n_reflections * self._ice.reflection_phase_shift) % (2*np.pi)
+                            phase_shift = (self._n_reflections * self._ice.reflection_phase_shift) % (2 * np.pi)
                             # we assume that both efield components are equally affected
                             eTheta *= reflection_coefficient * np.exp(1j * phase_shift)
                             ePhi *= reflection_coefficient * np.exp(1j * phase_shift)
@@ -526,7 +527,7 @@ class simulation():
                         if(np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield):
                             candidate_event = True
 
-                #print("start detector simulation. time: " + str(time.time()))
+                # print("start detector simulation. time: " + str(time.time()))
                 t3 = time.time()
                 rayTracingTime += t3 - t2
                 # perform only a detector simulation if event had at least one
@@ -567,7 +568,7 @@ class simulation():
 
         t_total = time.time() - t_start
         outputTime = time.time() - t5
-        
+
         output_NuRadioRecoTime = "Timing of NuRadioReco modules \n"
         ts = []
         for iM, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station.get_id())):
@@ -575,18 +576,17 @@ class simulation():
         ttot = np.sum(np.array(ts))
         for i, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station.get_id())):
             t = pretty_time_delta(ts[i])
-            trel = 100.*ts[i]/ttot
+            trel = 100.*ts[i] / ttot
             output_NuRadioRecoTime += f"{name}: {t} {trel:.1f}%\n"
         logger.warning(output_NuRadioRecoTime)
-            
-        
+
         logger.warning("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output)".format(self._n_events,
                                                                                          pretty_time_delta(t_total), 1.e3 * t_total / self._n_events,
-                                                                                         100 * inputTime/t_total,
-                                                                                         100 * rayTracingTime/t_total,
-                                                                                         100 *askaryan_time/t_total,
-                                                                                         100 * detSimTime/t_total,
-                                                                                         100 * outputTime/t_total))
+                                                                                         100 * inputTime / t_total,
+                                                                                         100 * rayTracingTime / t_total,
+                                                                                         100 * askaryan_time / t_total,
+                                                                                         100 * detSimTime / t_total,
+                                                                                         100 * outputTime / t_total))
 
     def _calculate_amplitude_per_ray_tracing_solution(self):
         if(not hasattr(self, "_calculateAmplitudePerRaySolution")):
@@ -603,8 +603,7 @@ class simulation():
             for channel_id, maximum in iteritems(efield[efp.max_amp_antenna]):
                 sg['max_amp_ray_solution'][self._iE, channel_id, ch_counter[channel_id]] = maximum
                 ch_counter[channel_id] += 1
-    
-    
+
     def _is_in_fiducial_volume(self):
         """
         checks wether a vertex is in the fiducial volume
@@ -620,7 +619,7 @@ class simulation():
         if(not has_fiducial):
             return True
 
-        r = (self._x**2 + self._y**2)**0.5
+        r = (self._x ** 2 + self._y ** 2) ** 0.5
         if(r >= self._fin_attrs['fiducial_rmin'] and r <= self._fin_attrs['fiducial_rmax']):
             if(self._z >= self._fin_attrs['fiducial_zmin'] and self._z <= self._fin_attrs['fiducial_zmax']):
                 return True
@@ -708,7 +707,6 @@ class simulation():
             nx, ny = sg['multiple_triggers'].shape
             tmp[:, 0:ny] = sg['multiple_triggers']
             sg['multiple_triggers'] = tmp
-
 
     def _save_triggers_to_hdf5(self):
 
@@ -835,8 +833,8 @@ class simulation():
 
             for event_id in self._fin['event_ids']:
                 event_mask = self._fin['event_ids'] == event_id
-                event_indices = np.argwhere( self._fin['event_ids'] == event_id )[0]
-                if ( True in self._mout['triggered'][event_mask] ):
+                event_indices = np.argwhere(self._fin['event_ids'] == event_id)[0]
+                if (True in self._mout['triggered'][event_mask]):
                     saved[ np.intersect1d(parent_indices, event_indices)[0] ] = True
         else:
             logger.info("saving all events")
