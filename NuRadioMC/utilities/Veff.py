@@ -7,8 +7,8 @@ from six import iteritems
 import json
 import os
 
-
 # collection of utility function regarding the calculation of the effective volume of a neutrino detector
+
 
 def get_triggered(fin):
     """
@@ -33,14 +33,14 @@ def get_triggered(fin):
         return triggered
 
     mask_secondaries = np.array(fin['n_interaction']) > 1
-    if ( True not in mask_secondaries ):
+    if (True not in mask_secondaries):
         return triggered
 
     # We count the multiple triggering bangs as a single triggered event
     for event_id in np.unique(np.array(fin['event_ids'])[mask_secondaries]):
         mask_interactions = np.array(fin['event_ids']) == event_id
-        multiple_interaction_indexes = np.argwhere( np.array(fin['event_ids']) == event_id )[0]
-        if (len(multiple_interaction_indexes)==1):
+        multiple_interaction_indexes = np.argwhere(np.array(fin['event_ids']) == event_id)[0]
+        if (len(multiple_interaction_indexes) == 1):
             continue
 
         for int_index in multiple_interaction_indexes[1:]:
@@ -48,6 +48,7 @@ def get_triggered(fin):
         triggered[multiple_interaction_indexes[0]] = True
 
     return triggered
+
 
 def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
     """
@@ -121,7 +122,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
         Es.append(E)
 
         weights = np.array(fin['weights'])
-        #triggered = np.array(fin['triggered'])
+        # triggered = np.array(fin['triggered'])
         triggered = get_triggered(fin)
         n_events = fin.attrs['n_events']
         if(trigger_names is None):
@@ -134,7 +135,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
         else:
             if(np.any(trigger_names != fin.attrs['trigger_names'])):
 
-                if( triggered.size == 0 and fin.attrs['trigger_names'].size == 0 ):
+                if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
                     print("file {} has not triggering events. Using trigger names from another file".format(filename))
                 else:
                     print("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
@@ -158,19 +159,19 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
         if('phimax' in fin.attrs):
             fin.attrs['phimax']
         dZ = fin.attrs['zmax'] - fin.attrs['zmin']
-        area = np.pi * (rmax**2 - rmin**2)
+        area = np.pi * (rmax ** 2 - rmin ** 2)
         V = area * dZ
         Vrms = fin.attrs['Vrms']
 
         # Solid angle needed for the effective volume calculations
-        omega = np.abs(phimax - phimin) * np.abs( np.cos(thetamin)-np.cos(thetamax) )
+        omega = np.abs(phimax - phimin) * np.abs(np.cos(thetamin) - np.cos(thetamax))
 
         for iT, trigger_name in enumerate(trigger_names):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
             Aeff = area * np.sum(weights[triggered]) / n_events
             Aeffs[trigger_name].append(Aeff)
             try:
-                Aeffs_error[trigger_name].append(Aeff / np.sum(weights[triggered])**0.5)
+                Aeffs_error[trigger_name].append(Aeff / np.sum(weights[triggered]) ** 0.5)
             except:
                 Aeffs_error[trigger_name].append(np.nan)
 
@@ -201,7 +202,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
                     masks = np.zeros_like(triggered)
                     for iS in range(len(values['min_sigma'])):
 #                         As = np.array(fin['maximum_amplitudes'])
-                        As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1) # we use the this quantity because it is always computed before noise is added!
+                        As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)  # we use the this quantity because it is always computed before noise is added!
                         As_sorted = np.sort(As[:, values['channels'][iS]], axis=1)
                         # the smallest of the three largest amplitudes
                         max_amplitude = As_sorted[:, -values['n_channels'][iS]]
@@ -215,7 +216,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
                     if(trigger_name not in SNR):
                         SNR[trigger_name] = []
 #                     As = np.array(fin['maximum_amplitudes'])
-                    As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1) # we use the this quantity because it is always computed before noise is added!
+                    As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)  # we use the this quantity because it is always computed before noise is added!
     #                 print(As.shape)
 #                     print(trigger_name, values['channels'])
                     As_sorted = np.sort(As[:, values['channels']], axis=1)
@@ -233,7 +234,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
 #                 print(sol[:,values['ray_channel']][max_amps].shape)
 #                 print(max_amps.shape)
 #                 a = 1/0
-                mask = np.array([sol[i,values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=np.bool)
+                mask = np.array([sol[i, values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=np.bool)
                 triggered = triggered & mask
 
             Aeff = area * np.sum(weights[triggered]) / n_events
@@ -241,14 +242,14 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
             if('efficiency' in values.keys()):
                 SNReff, eff = np.loadtxt("analysis_efficiency_{}.csv".format(values['efficiency']), delimiter=",", unpack=True)
                 get_eff = interpolate.interp1d(SNReff, eff, bounds_error=False, fill_value=(0, eff[-1]))
-                As = np.max(np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)[:,np.append(range(0, 8), range(12, 20))], axis=-1) # we use the this quantity because it is always computed before noise is added!
+                As = np.max(np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)[:, np.append(range(0, 8), range(12, 20))], axis=-1)  # we use the this quantity because it is always computed before noise is added!
                 if('efficiency_scale' in values.keys()):
                     As *= values['efficiency_scale']
-                e = get_eff(As/Vrms)
-                Aeff = area * np.sum((weights*e)[triggered]) / n_events
+                e = get_eff(As / Vrms)
+                Aeff = area * np.sum((weights * e)[triggered]) / n_events
 
             Aeffs[trigger_name].append(Aeff)
-            Aeffs_error[trigger_name].append(Aeff / np.sum(weights[triggered])**0.5)
+            Aeffs_error[trigger_name].append(Aeff / np.sum(weights[triggered]) ** 0.5)
     for trigger_name in Aeffs.keys():
         Aeffs[trigger_name] = np.array(Aeffs[trigger_name])
         Aeffs_error[trigger_name] = np.array(Aeffs_error[trigger_name])
@@ -258,9 +259,31 @@ def get_Aeff_proposal(folder, trigger_combinations={}, zenithbins=False):
     else:
         return np.array(Es), Aeffs, Aeffs_error, SNR, trigger_names, deposited
 
+
+def get_Veff_water_equivalent(Veff, density_medium=0.917 * units.g / units.cm ** 3, density_water=1 * units.g / units.cm ** 3):
+    """
+    convenience function to converte the effective volume of a medium with density `density_medium` to the 
+    water equivalent effective volume
+    
+    Parameters
+    ----------
+    Veff: float or array
+        the effective volume
+    dentity_medium: float (optional)
+        the density of the medium of the Veff simulation (default deep ice)
+    density water: float (optional)
+        the density of water
+        
+    Returns: water equivalen effective volume
+    """
+    return Veff * density_water / density_medium
+
+
 def get_Veff(folder, trigger_combinations={}, station=101):
     """
     calculates the effective volume from NuRadioMC hdf5 files
+    
+    the effective volume is NOT normalized to a water equivalent. 
 
     Parameters
     ----------
@@ -323,7 +346,7 @@ def get_Veff(folder, trigger_combinations={}, station=101):
         out['energy'] = E
 
         weights = np.array(fin['weights'])
-        #triggered = np.array(fin['triggered'])
+        # triggered = np.array(fin['triggered'])
         triggered = get_triggered(fin)
         n_events = fin.attrs['n_events']
         if(trigger_names is None):
@@ -332,7 +355,7 @@ def get_Veff(folder, trigger_combinations={}, station=101):
                 trigger_names_dict[trigger_name] = iT
         else:
             if(np.any(trigger_names != fin.attrs['trigger_names'])):
-                if( triggered.size == 0 and fin.attrs['trigger_names'].size == 0 ):
+                if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
                     print("file {} has no triggering events. Using trigger names from another file".format(filename))
                 else:
                     print("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
@@ -354,19 +377,19 @@ def get_Veff(folder, trigger_combinations={}, station=101):
         if('phimax' in fin.attrs):
             fin.attrs['phimax']
         dZ = fin.attrs['zmax'] - fin.attrs['zmin']
-        area = np.pi * (rmax**2 - rmin**2)
+        area = np.pi * (rmax ** 2 - rmin ** 2)
         V = area * dZ
         Vrms = fin.attrs['Vrms']
 
         # Solid angle needed for the effective volume calculations
-        out['domega'] = np.abs(phimax - phimin) * np.abs( np.cos(thetamin)-np.cos(thetamax) )
+        out['domega'] = np.abs(phimax - phimin) * np.abs(np.cos(thetamin) - np.cos(thetamax))
         out['thetamin'] = thetamin
         out['thetamax'] = thetamax
         out['deposited'] = deposited
         out['Veffs'] = {}
         out['n_triggered_weighted'] = {}
         out['SNRs'] = {}
-        
+
         if(triggered.size == 0):
             for iT, trigger_name in enumerate(trigger_names):
                 out['Veffs'][trigger_name] = [0, 0, 0]
@@ -378,7 +401,7 @@ def get_Veff(folder, trigger_combinations={}, station=101):
                 Veff = V * np.sum(weights[triggered]) / n_events
                 Veff_error = 0
                 if(np.sum(weights[triggered]) > 0):
-                    Veff_error = Veff / np.sum(weights[triggered])**0.5
+                    Veff_error = Veff / np.sum(weights[triggered]) ** 0.5
                 out['Veffs'][trigger_name] = [Veff, Veff_error, np.sum(weights[triggered])]
 
             for trigger_name, values in iteritems(trigger_combinations):
@@ -405,7 +428,7 @@ def get_Veff(folder, trigger_combinations={}, station=101):
                         masks = np.zeros_like(triggered)
                         for iS in range(len(values['min_sigma'])):
     #                         As = np.array(fin['maximum_amplitudes'])
-                            As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1) # we use the this quantity because it is always computed before noise is added!
+                            As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)  # we use the this quantity because it is always computed before noise is added!
                             As_sorted = np.sort(As[:, values['channels'][iS]], axis=1)
                             # the smallest of the three largest amplitudes
                             max_amplitude = As_sorted[:, -values['n_channels'][iS]]
@@ -415,7 +438,7 @@ def get_Veff(folder, trigger_combinations={}, station=101):
                         triggered = triggered & masks
                     else:
     #                     As = np.array(fin['maximum_amplitudes'])
-                        As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1) # we use the this quantity because it is always computed before noise is added!
+                        As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)  # we use the this quantity because it is always computed before noise is added!
         #                 print(As.shape)
     #                     print(trigger_name, values['channels'])
                         As_sorted = np.sort(As[:, values['channels']], axis=1)
@@ -433,24 +456,24 @@ def get_Veff(folder, trigger_combinations={}, station=101):
     #                 print(sol[:,values['ray_channel']][max_amps].shape)
     #                 print(max_amps.shape)
     #                 a = 1/0
-                    mask = np.array([sol[i,values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=np.bool)
+                    mask = np.array([sol[i, values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=np.bool)
                     triggered = triggered & mask
-                    
+
                 if('n_reflections' in values.keys()):
-                    triggered = triggered & (np.array(fin[f'station_{station:d}/ray_tracing_reflection'])[:,0,0] == values['n_reflections'])
-    
+                    triggered = triggered & (np.array(fin[f'station_{station:d}/ray_tracing_reflection'])[:, 0, 0] == values['n_reflections'])
+
                 Veff = V * np.sum(weights[triggered]) / n_events
-    
+
                 if('efficiency' in values.keys()):
                     SNReff, eff = np.loadtxt("analysis_efficiency_{}.csv".format(values['efficiency']), delimiter=",", unpack=True)
                     get_eff = interpolate.interp1d(SNReff, eff, bounds_error=False, fill_value=(0, eff[-1]))
-                    As = np.max(np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)[:,np.append(range(0, 8), range(12, 20))], axis=-1) # we use the this quantity because it is always computed before noise is added!
+                    As = np.max(np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)[:, np.append(range(0, 8), range(12, 20))], axis=-1)  # we use the this quantity because it is always computed before noise is added!
                     if('efficiency_scale' in values.keys()):
                         As *= values['efficiency_scale']
-                    e = get_eff(As/Vrms)
-                    Veff = V * np.sum((weights*e)[triggered]) / n_events
-    
-                out['Veffs'][trigger_name] = [Veff, Veff / np.sum(weights[triggered])**0.5, np.sum(weights[triggered])]
+                    e = get_eff(As / Vrms)
+                    Veff = V * np.sum((weights * e)[triggered]) / n_events
+
+                out['Veffs'][trigger_name] = [Veff, Veff / np.sum(weights[triggered]) ** 0.5, np.sum(weights[triggered])]
         Veff_output.append(out)
 
     return Veff_output
@@ -539,7 +562,7 @@ def get_Veff_array(data):
         zenith_bins.append([d['thetamin'], d['thetamax']])
         for triggername in d['Veffs']:
             trigger_names.append(triggername)
-            
+
     energies = np.array(energies)
     zenith_bins = np.array(zenith_bins)
     trigger_names = np.array(trigger_names)
@@ -550,7 +573,7 @@ def get_Veff_array(data):
     print(f"unique energies {uenergies}")
     print(f"unique zenith angle bins {uzenith_bins/units.deg}")
     print(f"unique energies {utrigger_names}")
-    
+
     for d in data:
         iE = np.squeeze(np.argwhere(d['energy'] == uenergies))
         iT = np.squeeze(np.argwhere([d['thetamin'], d['thetamax']] == uzenith_bins))[0][0]
@@ -560,8 +583,10 @@ def get_Veff_array(data):
 #                 print(f"{iE}  {iT} {iTrig} {Veff}")
     return output, uenergies, uzenith_bins, utrigger_names
 
+
 def get_index(value, array):
-    return np.squeeze(np.argwhere(value==array))
+    return np.squeeze(np.argwhere(value == array))
+
 
 def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
     """
@@ -591,6 +616,7 @@ def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
 
     with open(filename, 'w') as fout:
         json.dump(output, fout, sort_keys=True, indent=4)
+
 
 def exportVeffPerZenith(folderlist, outputfile):
     """
@@ -622,6 +648,7 @@ def exportVeffPerZenith(folderlist, outputfile):
     with open(outputfile, 'w+') as fout:
 
         json.dump(output, fout, sort_keys=True, indent=4)
+
 
 def exportAeffPerZenith(folderlist, outputfile):
     """
