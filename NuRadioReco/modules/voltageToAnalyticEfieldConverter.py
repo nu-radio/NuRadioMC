@@ -698,8 +698,7 @@ class voltageToAnalyticEfieldConverter:
             ax2f.set_xlim(100, 500)
             ax2f.semilogy(True)
             if sim_present:
-                sim = station.get_sim_station()
-                fig.suptitle("Simulation: Zenith {:.1f}, Azimuth {:.1f}".format(np.rad2deg(sim[stnp.zenith]), np.rad2deg(sim[stnp.azimuth])))
+                fig.suptitle("Simulation: Zenith {:.1f}, Azimuth {:.1f}".format(np.rad2deg(sim_shower[shp.zenith]), np.rad2deg(sim_shower[shp.azimuth])))
             else:
                 fig.suptitle("Data: reconstructed zenith {:.1f}, azimuth {:.1f}".format(np.rad2deg(zenith), np.rad2deg(azimuth)))
             fig.tight_layout()

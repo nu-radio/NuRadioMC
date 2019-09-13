@@ -20,6 +20,7 @@ import NuRadioReco.framework.base_trace
 
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.framework.parameters import showerParameters as shp
 
 from NuRadioReco.framework import electric_field as ef
 
@@ -65,13 +66,14 @@ class voltageToEfieldConverterPerChannel:
         event_time = station.get_station_time()
         station_id = station.get_id()
         logger.debug("event {}, station {}".format(evt.get_id(), station_id))
-        if station.get_sim_station() is not None and station.get_sim_station().has_parameter(stnp.zenith):
-            zenith = station.get_sim_station()[stnp.zenith]
-            azimuth = station.get_sim_station()[stnp.azimuth]
+        if evt.has_sim_shower() and list(evt.get_sim_showers())[0].has_parameter(shp.zenith):
+            sim_shower = list(evt.get_sim_showers())[0]
+            zenith = sim_shower[shp.zenith]
+            azimuth = sim_shower[shp.azimuth]
         else:
             logger.debug("Using reconstructed angles as no simulation present")
-            zenith = station[stnp.zenith]
-            azimuth = station[stnp.azimuth]
+            zenith = evt.get_first_shower()[shp.zenith]
+            azimuth = evt.get_first_shower()[shp.azimuth]
 
         frequencies = station.get_channel(0).get_frequencies()  # assuming that all channels have the  same sampling rate and length
         use_channels = det.get_channel_ids(station.get_id())
