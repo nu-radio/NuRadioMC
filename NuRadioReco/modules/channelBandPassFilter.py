@@ -72,6 +72,24 @@ class channelBandPassFilter:
                 self._apply_filter(channel, passband, filter_type, order, False)
             
     def get_filter(self, frequencies, station_id, channel_id, det, passband, filter_type, order=2):
+        """
+        helper function to return the filter that the module applies. 
+        
+        Parameters
+        -----------
+        frequencies: array of floats
+            the frequency array for which the filter should be returned
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+        det: detector instance
+            the detector
+        the remaining arguments are the arguments of the run method!
+        
+        Returns: array of complex floats
+            the complex filter amplitudes
+        """
         if(filter_type == 'rectangular'):
             f = np.ones_like(frequencies)
             f[np.where(frequencies < passband[0])] = 0.

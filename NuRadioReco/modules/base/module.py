@@ -63,7 +63,7 @@ def register_run(level=None):
                 else:
                     raise AttributeError("reader modules does not return an event")
             end = timer()
-            if not self in register_run_method.time:
+            if not self in register_run_method.time:  # keep track of timing of modules. We use the module instance as key to time different module instances separately. 
                 register_run_method.time[self] = 0
             register_run_method.time[self] += (end - start)
             return res
