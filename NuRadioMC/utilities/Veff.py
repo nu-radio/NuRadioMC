@@ -588,66 +588,47 @@ def get_index(value, array):
     return np.squeeze(np.argwhere(value == array))
 
 
-def exportVeff(filename, trigger_names, Es, Veffs, Veffs_error):
+def export(filename, data, trigger_names=None, export_format='yaml'):
     """
-    export effective volumes into a human readable JSON file
+    export effective volumes into a human readable JSON or YAML file
 
     Parameters
     ----------
     filename: string
         the output filename of the JSON file
-    trigger_names: list of strings
-        the triggers for which the effective volume is exported
-    Es: list or array of floats
-        the energies
-    Veffs: dictionary
-        dictionary containing Veffs for each trigger
-    Veffs_error: dictionary
-        dictionary containing Veff_errors for each trigger
-
-
+    data: array
+        the output of the `getVeff` function
+    trigger_names: list of strings (optional, default None)
+        save only specific trigger names, if None all triggers are exported
+    export_format: string (default "yaml")
+        specify output format, choose
+        * "yaml"
+        * "json"
     """
-    output = {}
-    for trigger_name in trigger_names:
-        output[trigger_name] = {}
-        output[trigger_name]['energies'] = list(Es)
-        output[trigger_name]['Veff'] = list(Veffs[trigger_name])
-        output[trigger_name]['Veff_error'] = list(Veffs_error[trigger_name])
+    output = []
+    for i in range(len(data)):
+        tmp = {}
+        for key in data[i]:
+            if (key != 'Veffs'):
+                if isinstance(data[i][key], np.generic):
+                    tmp[key] = data[i][key].item()
+                else:
+                    tmp[key] = data[i][key]
+        tmp['Veffs'] = {}
+        for trigger_name in data[i]['Veffs']:
+            if(trigger_names is None or trigger_name in trigger_names):
+                print(trigger_name)
+                tmp['Veffs'][trigger_name] = []
+                for value in data[i]['Veffs'][trigger_name]:
+                    tmp['Veffs'][trigger_name].append(float(value))
+        output.append(tmp)
 
     with open(filename, 'w') as fout:
-        json.dump(output, fout, sort_keys=True, indent=4)
-
-
-def exportVeffPerZenith(folderlist, outputfile):
-    """
-    export effective volumes into a human readable JSON file
-    We assume a binning in zenithal angles
-
-    Parameters
-    ----------
-    folderlist: strings list
-        list containing the input folders
-    outputfile: string
-        name for the output file
-    """
-    output = {}
-    for folder in folderlist:
-
-        Es, Veffs, Veffs_error, SNR, trigger_names, thetas, deposited = get_Veff(folder, zenithbins=True)
-        output[thetas[0]] = {}
-
-        for trigger_name in trigger_names:
-            output[thetas[0]][trigger_name] = {}
-            if deposited:
-                output[thetas[0]][trigger_name]['deposited_energies'] = list(Es)
-            else:
-                output[thetas[0]][trigger_name]['energies'] = list(Es)
-            output[thetas[0]][trigger_name]['Veff'] = list(Veffs[trigger_name])
-            output[thetas[0]][trigger_name]['Veff_error'] = list(Veffs_error[trigger_name])
-
-    with open(outputfile, 'w+') as fout:
-
-        json.dump(output, fout, sort_keys=True, indent=4)
+        if(export_format == 'yaml'):
+            import yaml
+            yaml.dump(output, fout)
+        elif(export_format == 'json'):
+            json.dump(output, fout, sort_keys=True, indent=4)
 
 
 def exportAeffPerZenith(folderlist, outputfile):
