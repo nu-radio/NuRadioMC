@@ -15,7 +15,7 @@ before_script:
   - unzip /tmp/radiotools.zip
   - mv radiotools-master radiotools
   - export PYTHONPATH=$PWD/radiotools
-  - wget https://github.com/nu-radio/NuRadioReco/archive/master.zip -O /tmp/NuRadioReco.zip
+  - wget https://github.com/nu-radio/NuRadioReco/archive/saving-module-sequence.zip -O /tmp/NuRadioReco.zip
   - unzip /tmp/NuRadioReco.zip
   - mv NuRadioReco-master NuRadioReco
   - export PYTHONPATH=$PYTHONPATH:$PWD/NuRadioReco
