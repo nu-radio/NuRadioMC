@@ -378,7 +378,7 @@ class simulation():
                     if(not r.has_solution()):
                         logger.debug("event {} and station {}, channel {} does not have any ray tracing solution ({} to {})".format(
                             self._event_id, self._station_id, channel_id, x1, x2))
-                        self._add_empty_electric_field(channel_id)
+#                         self._add_empty_electric_field(channel_id)
                         continue
                     delta_Cs = []
                     viewing_angles = []
@@ -402,7 +402,7 @@ class simulation():
                     # discard event if delta_C (angle off cherenkov cone) is too large
                     if(min(np.abs(delta_Cs)) > self._cfg['speedup']['delta_C_cut']):
                         logger.debug('delta_C too large, event unlikely to be observed, skipping event')
-                        self._add_empty_electric_field(channel_id)
+#                         self._add_empty_electric_field(channel_id)
                         continue
 
                     n = r.get_number_of_solutions()
