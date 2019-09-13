@@ -7,7 +7,7 @@ from tinydb.storages import MemoryStorage
 from tinydb_serialization import Serializer
 import NuRadioReco.detector.detector
 from NuRadioReco.detector.detector import DateTimeSerializer
-
+import copy
 logger = logging.getLogger('genericDetector')
 logging.basicConfig()
 
@@ -80,11 +80,16 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         Channel = Query()
         res = self._channels.search((Channel.station_id == station_id))
         if len(res) == 0:
-            res = self._channels.search((Channel.station_id == self.__default_station_id))
+            default_channels = self._channels.search((Channel.station_id == self.__default_station_id))
+            res = []
+            for channel in default_channels:
+                new_channel = copy.copy(channel)
+                new_channel['station_id'] = station_id
+                res.append(new_channel)
         if self.__default_channel is not None:
             for channel in res:
                 for key in self.__default_channel.keys():
-                    if key not in channel.keys():
+                    if key not in channel.keys() and key != 'station_id':
                         channel[key] = self.__default_channel[key]
         return res
 
@@ -118,4 +123,8 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         self._buffered_stations[station_dict['station_id']] = station_dict
         if self.__default_station_id not in self._buffered_channels.keys():
             self._buffer(self.__default_station_id)
-        self._buffered_channels[station_dict['station_id']] = self._buffered_channels[self.__default_station_id]
+        self._buffered_channels[station_dict['station_id']] = {}
+        for i_channel, channel in self._buffered_channels[self.__default_station_id].items():
+            new_channel = copy.copy(channel)
+            new_channel['station_id'] = station_dict['station_id']
+            self._buffered_channels[station_dict['station_id']][channel['channel_id']] = new_channel
