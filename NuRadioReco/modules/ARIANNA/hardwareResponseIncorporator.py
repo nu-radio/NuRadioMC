@@ -28,6 +28,24 @@ class hardwareResponseIncorporator:
         #analog_components
         
     def get_filter(self, frequencies, station_id, channel_id, det, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
+        """
+        helper function to return the filter that the module applies. 
+        
+        Parameters
+        -----------
+        frequencies: array of floats
+            the frequency array for which the filter should be returned
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+        det: detector instance
+            the detector
+        the remaining arguments are the arguments of the run method!
+        
+        Returns: array of complex floats
+            the complex filter amplitudes
+        """
         amp_type = det.get_amplifier_type(station_id, channel_id)
         amp_measurement = det.get_amplifier_measurement(station_id, channel_id)
         amp_response = analog_components.get_amplifier_response(frequencies, amp_type=amp_type,
