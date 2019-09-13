@@ -276,7 +276,7 @@ def get_Veff_water_equivalent(Veff, density_medium=0.917 * units.g / units.cm **
         
     Returns: water equivalen effective volume
     """
-    return Veff * density_water / density_medium
+    return Veff * density_medium / density_water
 
 
 def get_Veff(folder, trigger_combinations={}, station=101):
