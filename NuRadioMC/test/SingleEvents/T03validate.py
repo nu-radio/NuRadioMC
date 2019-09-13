@@ -61,11 +61,21 @@ keys = [u'azimuths',
  u'multiple_triggers',
  u'n_interaction',
  u'triggered',
- u'weights',
  u'xx',
  u'yy',
  u'zeniths',
  u'zz']
+for key in keys:
+    try:
+        testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
+    except AssertionError as e:
+        print("\narray {} not equal".format(key))
+        print(e)
+        error = -1
+        
+        
+keys = [
+ u'weights']
 for key in keys:
     try:
         testing.assert_allclose(np.array(fin1[key]), np.array(fin2[key]), rtol=1e-12)
