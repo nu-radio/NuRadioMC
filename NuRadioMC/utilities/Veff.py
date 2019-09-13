@@ -283,7 +283,7 @@ def get_Veff(folder, trigger_combinations={}, station=101):
     """
     calculates the effective volume from NuRadioMC hdf5 files
     
-    the effective volume is NOT normalized to a water equivalent. 
+    the effective volume is NOT normalized to a water equivalent. It is also NOT multiplied with the solid angle (typically 4pi).
 
     Parameters
     ----------
