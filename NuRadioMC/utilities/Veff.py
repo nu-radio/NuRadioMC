@@ -572,6 +572,7 @@ def get_Veff_array(data):
 #                 print(f"{iE}  {iT} {iTrig} {Veff}")
     return output, uenergies, uzenith_bins, utrigger_names
 
+
 def get_Aeff_array(data):
     """
     calculates a multi dimensional array of effective area calculations for fast slicing
@@ -670,11 +671,12 @@ def get_Aeff_array(data):
     for d in data:
         iE = np.squeeze(np.argwhere(d['energy'] == uenergies))
         iT = np.squeeze(np.argwhere([d['thetamin'], d['thetamax']] == uzenith_bins))[0][0]
-        for triggername, Veff in d['Aeffs'].items():
+        for triggername, Aeff in d['Aeffs'].items():
             iTrig = np.squeeze(np.argwhere(triggername == utrigger_names))
             output[iE, iT, iTrig] = Aeff
 #                 print(f"{iE}  {iT} {iTrig} {Aeff}")
     return output, uenergies, uzenith_bins, utrigger_names
+
 
 def get_index(value, array):
     return np.squeeze(np.argwhere(value == array))
@@ -682,7 +684,7 @@ def get_index(value, array):
 
 def export(filename, data, trigger_names=None, export_format='yaml'):
     """
-    export effective volumes into a human readable JSON or YAML file
+    export effective volumes (or effective areas) into a human readable JSON or YAML file
 
     Parameters
     ----------
@@ -701,18 +703,20 @@ def export(filename, data, trigger_names=None, export_format='yaml'):
     for i in range(len(data)):
         tmp = {}
         for key in data[i]:
-            if (key != 'Veffs'):
+            if (key not in  ['Veffs', 'Aeffs']):
                 if isinstance(data[i][key], np.generic):
                     tmp[key] = data[i][key].item()
                 else:
                     tmp[key] = data[i][key]
-        tmp['Veffs'] = {}
-        for trigger_name in data[i]['Veffs']:
-            if(trigger_names is None or trigger_name in trigger_names):
-                print(trigger_name)
-                tmp['Veffs'][trigger_name] = []
-                for value in data[i]['Veffs'][trigger_name]:
-                    tmp['Veffs'][trigger_name].append(float(value))
+        for key in ["Veffs", "Aeffs"]:
+            if(key in data[i]):
+                tmp[key] = {}
+                for trigger_name in data[i][key]:
+                    if(trigger_names is None or trigger_name in trigger_names):
+                        print(trigger_name)
+                        tmp[key][trigger_name] = []
+                        for value in data[i][key][trigger_name]:
+                            tmp[key][trigger_name].append(float(value))
         output.append(tmp)
 
     with open(filename, 'w') as fout:
@@ -722,45 +726,3 @@ def export(filename, data, trigger_names=None, export_format='yaml'):
         elif(export_format == 'json'):
             json.dump(output, fout, sort_keys=True, indent=4)
 
-def export_Aeff(filename, data, trigger_names=None, export_format='yaml'):
-    """
-    export effective areas into a human readable JSON or YAML file
-
-    Parameters
-    ----------
-    filename: string
-        the output filename of the JSON file
-    data: array
-        the output of the `getAeff` function
-    trigger_names: list of strings (optional, default None)
-        save only specific trigger names, if None all triggers are exported
-    export_format: string (default "yaml")
-        specify output format, choose
-        * "yaml"
-        * "json"
-    """
-    output = []
-    for i in range(len(data)):
-        tmp = {}
-        for key in data[i]:
-            if (key != 'Aeffs'):
-                if isinstance(data[i][key], np.generic):
-                    tmp[key] = data[i][key].item()
-                else:
-                    tmp[key] = data[i][key]
-        tmp['Aeffs'] = {}
-        for trigger_name in data[i]['Aeffs']:
-            if(trigger_names is None or trigger_name in trigger_names):
-                print(trigger_name)
-                tmp['Aeffs'][trigger_name] = []
-                for value in data[i]['Aeffs'][trigger_name]:
-                    tmp['Aeffs'][trigger_name].append(float(value))
-        output.append(tmp)
-    for key in output:
-        print("miau", key)
-    with open(filename, 'w') as fout:
-        if(export_format == 'yaml'):
-            import yaml
-            yaml.dump(output, fout)
-        elif(export_format == 'json'):
-            json.dump(output, fout, sort_keys=True, indent=4)
