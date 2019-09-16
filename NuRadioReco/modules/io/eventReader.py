@@ -18,9 +18,8 @@ class eventReader:
         filename: array if strings
             names of the input files
         read_detector: boolean
-            If True, the eventReader will parse the detector description in the
-            event files and make them accessible through the get_detector function,
-            assuming the file contains a detector
+            If True, the eventReader will parse the detector description and event event headers
+             in the event files. This is necessary to use the get_detector functions
         log_level: logging enum
         """
 
