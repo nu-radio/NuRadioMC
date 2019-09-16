@@ -9,7 +9,6 @@ new features:
 -Added new module called "beamFormingDirectionFitter" that fits direction through an interferometry method (dubbed beamForming)
 -Added the internal clock parameter (time since last trigger with ms precision) to ARIANNA paremeters (key number 8)
 -Changed import "detector_sql" to "from NuRadioReco.detector import detector_sql" and .GetSec() to datetime.datetime.fromtimestamp(self.config_tree.TrigStartClock.GetCurrTime()) in the detector.py and readARIANNAdataCalin.py files respectively in order to make it python3 compatible.
-
-bugfixes:
+-Updated documentation and made it deployable on github
 
 version 1.0.0 - 2019/08/30 - first python 3 release

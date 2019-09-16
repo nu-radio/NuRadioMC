@@ -1,75 +1,83 @@
-NuRadioReco.framework package
-=============================
+NuRadioReco\.framework package
+==============================
 
 Submodules
 ----------
 
-NuRadioReco.framework.base\_station module
-------------------------------------------
+NuRadioReco\.framework\.base\_station module
+--------------------------------------------
 
 .. automodule:: NuRadioReco.framework.base_station
     :members:
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.framework.base\_trace module
-----------------------------------------
+NuRadioReco\.framework\.base\_trace module
+------------------------------------------
 
 .. automodule:: NuRadioReco.framework.base_trace
     :members:
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.framework.channel module
-------------------------------------
+NuRadioReco\.framework\.channel module
+--------------------------------------
 
 .. automodule:: NuRadioReco.framework.channel
     :members:
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.framework.event module
-----------------------------------
+NuRadioReco\.framework\.electric\_field module
+----------------------------------------------
+
+.. automodule:: NuRadioReco.framework.electric_field
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco\.framework\.event module
+------------------------------------
 
 .. automodule:: NuRadioReco.framework.event
     :members:
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.framework.electric\_field
--------------------------------------
+NuRadioReco\.framework\.parameter\_serialization module
+-------------------------------------------------------
 
-.. automodule:: NuRadioReco.framework.electric_field
+.. automodule:: NuRadioReco.framework.parameter_serialization
     :members:
     :undoc-members:
     :show-inheritance:
-        
-NuRadioReco.framework.parameters
---------------------------------
+
+NuRadioReco\.framework\.parameters module
+-----------------------------------------
 
 .. automodule:: NuRadioReco.framework.parameters
     :members:
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.framework.sim\_station module
------------------------------------------
+NuRadioReco\.framework\.sim\_station module
+-------------------------------------------
 
 .. automodule:: NuRadioReco.framework.sim_station
     :members:
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.framework.station module
-------------------------------------
+NuRadioReco\.framework\.station module
+--------------------------------------
 
 .. automodule:: NuRadioReco.framework.station
     :members:
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.framework.trigger module
-------------------------------------
+NuRadioReco\.framework\.trigger module
+--------------------------------------
 
 .. automodule:: NuRadioReco.framework.trigger
     :members:
