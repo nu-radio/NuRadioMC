@@ -95,7 +95,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
                 'channel_ids': self._channel_ids,
                 'position': self._position,
                 'base_trace': base_trace_pkl}
-        return pickle.dumps(data, protocol=3)
+        return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
