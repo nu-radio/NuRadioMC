@@ -838,6 +838,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     data_sets["inelasticity"] = np.zeros(n_events)
 
     data_sets["energies"] = np.array(data_sets["energies"])
+    data_sets["muon_energies"] = np.copy(data_sets["energies"])
 
     data_sets_fiducial = {}
 
