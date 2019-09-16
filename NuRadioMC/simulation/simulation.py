@@ -596,12 +596,14 @@ class simulation():
         # save amplitudes per ray tracing solution to hdf5 data output
         sg = self._mout_groups[self._station_id]
         n_antennas = self._det.get_number_of_channels(self._station_id)
+        nS = 2 + 4 * self._n_reflections  # number of possible ray-tracing solutions
         if('max_amp_ray_solution' not in sg):
-            sg['max_amp_ray_solution'] = np.zeros((self._n_events, n_antennas, 2))
+            sg['max_amp_ray_solution'] = np.zeros((self._n_events, n_antennas, nS))
         ch_counter = np.zeros(n_antennas, dtype=np.int)
         for efield in self._station.get_sim_station().get_electric_fields():
             for channel_id, maximum in iteritems(efield[efp.max_amp_antenna]):
                 sg['max_amp_ray_solution'][self._iE, channel_id, ch_counter[channel_id]] = maximum
+#                 print(f"efield {ch_counter[channel_id]} for channel {channel_id}")
                 ch_counter[channel_id] += 1
 
     def _is_in_fiducial_volume(self):
