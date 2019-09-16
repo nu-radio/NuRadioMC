@@ -58,7 +58,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         if(self.__electric_field is not None):
             if(not(mode == 'micro' or mode == 'mini')):
                 data['electric_field'] = self.__electric_field.serialize()
-        return pickle.dumps(data, protocol=3)
+        return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)

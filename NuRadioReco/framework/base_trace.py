@@ -128,7 +128,7 @@ class BaseTrace:
         data = {'sampling_rate': self.get_sampling_rate(),
                 'time_trace': self.get_trace(),
                 'trace_start_time': self.get_trace_start_time()}
-        return pickle.dumps(data, protocol=3)
+        return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)

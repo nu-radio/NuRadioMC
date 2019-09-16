@@ -15,7 +15,7 @@ def save_preprocessed_Amps(response, amp_name):
     output_filename = '{}.pkl'.format(amp_name)
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
-        pickle.dump(response, fout, protocol=2)
+        pickle.dump(response, fout, protocol=4)
 
 def preprocess_300Amp(amp, channel, path="HardwareResponses/"):
     """
@@ -29,8 +29,8 @@ def preprocess_300Amp(amp, channel, path="HardwareResponses/"):
         channel id
     path: string
         directory where amp responses are located. Default is "HardwareResponses/"
-    """            
-    
+    """
+
     # load null measurement
     amp_gain_db = np.loadtxt(os.path.join(path, 'LOGMAG_NULL.CSV'), skiprows=3, delimiter=',')
     ph = os.path.join(path, 'PHASE_NULL.CSV')
@@ -45,7 +45,7 @@ def preprocess_300Amp(amp, channel, path="HardwareResponses/"):
     amp_gain_db[:, 1] += 40  # 300 series amps
     gain_lin = 10 ** (amp_gain_db[:, 1] / 20.)
     response_null = gain_lin * np.exp(1j * amp_phase_discrete[:, 1])
-    
+
 
     # read in individual amp measurement
     path = os.path.join(path, 'Box' + amp)
@@ -63,7 +63,7 @@ def preprocess_300Amp(amp, channel, path="HardwareResponses/"):
         raise ValueError("frequencies of gain and phase measurement are not equal for {}-{:02d}".format(amp, channel))
 
     amp_gain_db[:, 1] += 40  # 300 series amps
-    
+
     gain_lin = 10 ** (amp_gain_db[:, 1] / 20.)
     r = gain_lin * np.exp(1j * amp_phase_discrete[:, 1])
 
@@ -73,11 +73,10 @@ def preprocess_300Amp(amp, channel, path="HardwareResponses/"):
     amplifier_response = {}
     amp_name = '{}-{:02d}'.format(amp, channel)
     amplifier_response[amp_name] = response
-    
+
     # checkGroupDelay(get_amp_gain(ff)*get_amp_phase(ff),ff,ch_name,path)
     save_preprocessed_Amps(amplifier_response, amp_name)
 
 
 for i in range(8):
     preprocess_300Amp('300-03', i, path='HardwareResponses/300SeriesAmpBoxes')
-

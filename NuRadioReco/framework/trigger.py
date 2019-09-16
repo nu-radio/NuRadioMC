@@ -112,7 +112,7 @@ class Trigger:
         self._triggered_channels = triggered_channels
 
     def serialize(self):
-        return pickle.dumps(self.__dict__, protocol=3)
+        return pickle.dumps(self.__dict__, protocol=4)
 
     def deserialize(self, data_pkl):
         for key, value in iteritems(pickle.loads(data_pkl)):
