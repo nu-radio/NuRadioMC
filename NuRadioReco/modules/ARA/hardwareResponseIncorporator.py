@@ -1,4 +1,5 @@
 from NuRadioReco.detector.ARA import analog_components
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from NuRadioReco.utilities import units
 import time
@@ -23,6 +24,7 @@ class hardwareResponseIncorporator:
     def begin(self, debug=False):
         self.__debug = debug
 
+    @register_run()
     def run(self, evt, station, det, sim_to_data=False):
         """
         Switch sim_to_data to go from simulation to data or otherwise.

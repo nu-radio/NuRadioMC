@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import fractions
 from scipy import signal
@@ -20,6 +21,7 @@ class electricFieldResampler:
         self.__debug = debug
         pass
 
+    @register_run()
     def run(self, event, station, det, sampling_rate):
         """
         resample electric field

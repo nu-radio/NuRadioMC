@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import os
 import copy
@@ -17,6 +18,7 @@ logger = logging.getLogger('voltageToEfieldConverter')
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+
 
 def get_array_of_channels(station, use_channels, det, zenith, azimuth,
                           antenna_pattern_provider, time_domain=False):
@@ -117,6 +119,7 @@ class voltageToEfieldConverter:
         self.antenna_provider = antennapattern.AntennaPatternProvider()
         pass
 
+    @register_run()
     def run(self, evt, station, det, debug=False, debug_plotpath=None, use_channels=[0, 1, 2, 3], use_MC_direction=False):
         """
         run method. This function is executed for each event
@@ -147,7 +150,6 @@ class voltageToEfieldConverter:
             azimuth = station[stnp.azimuth]
             sim_present = False
 
-
         efield_antenna_factor, V = get_array_of_channels(station, use_channels, det, zenith, azimuth, self.antenna_provider)
         n_frequencies = len(V[0])
         denom = (efield_antenna_factor[0][0] * efield_antenna_factor[1][1] - efield_antenna_factor[0][1] * efield_antenna_factor[1][0])
@@ -169,11 +171,11 @@ class voltageToEfieldConverter:
                              efield3_f[0],
                              efield3_f[1]])
 
-        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels, [0,0,0])
+        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels, [0, 0, 0])
         electric_field.set_frequency_spectrum(efield3_f, station.get_channel(0).get_sampling_rate())
         electric_field.set_parameter(efp.zenith, zenith)
         electric_field.set_parameter(efp.azimuth, azimuth)
-        #figure out the timing of the E-field
+        # figure out the timing of the E-field
         t_shifts = np.zeros(V.shape[0])
         site = det.get_site(station_id)
         if(zenith > 0.5 * np.pi):
@@ -183,7 +185,7 @@ class voltageToEfieldConverter:
             refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
         for i_ch, channel_id in enumerate(use_channels):
             antenna_position = det.get_relative_position(station.get_id(), channel_id)
-            t_shifts[i_ch] = station.get_channel(channel_id).get_trace_start_time() -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
+            t_shifts[i_ch] = station.get_channel(channel_id).get_trace_start_time() - geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
 
         electric_field.set_trace_start_time(t_shifts.max())
         station.add_electric_field(electric_field)

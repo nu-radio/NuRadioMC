@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import SimplePhasedTrigger
 import numpy as np
@@ -10,10 +11,11 @@ cspeed = constants.c * units.m / units.s
 
 main_low_angle = -53. * units.deg
 main_high_angle = 47. * units.deg
-default_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 15) )
+default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 15))
 
-default_sec_angles = 0.5*(default_angles[:-1]+default_angles[1:])
-default_sec_angles = np.insert(default_sec_angles, len(default_sec_angles), default_angles[-1] + 3.5*units.deg)
+default_sec_angles = 0.5 * (default_angles[:-1] + default_angles[1:])
+default_sec_angles = np.insert(default_sec_angles, len(default_sec_angles), default_angles[-1] + 3.5 * units.deg)
+
 
 class triggerSimulator:
     """
@@ -49,20 +51,20 @@ class triggerSimulator:
         Calculates the delays needed for phasing the array.
         """
         sampling_rate = station.get_channel(0).get_sampling_rate()
-        time_step = 1./sampling_rate
+        time_step = 1. / sampling_rate
 
         ant_z = self.get_antenna_positions(station, det, triggered_channels, 2)
         self.check_vertical_string(station, det, triggered_channels)
         beam_rolls = []
-        ref_z = (np.max(ant_z)+np.min(ant_z))/2
+        ref_z = (np.max(ant_z) + np.min(ant_z)) / 2
 
         for angle in phasing_angles:
             subbeam_rolls = {}
             for z, channel_id in zip(ant_z, triggered_channels):
-                delay = (z-ref_z)/cspeed * ref_index * np.sin(angle)
-                roll = int(delay/time_step)
+                delay = (z - ref_z) / cspeed * ref_index * np.sin(angle)
+                roll = int(delay / time_step)
                 subbeam_rolls[channel_id] = roll
-            logger.debug("angle:", angle/units.deg)
+            logger.debug("angle:", angle / units.deg)
             logger.debug(subbeam_rolls)
             beam_rolls.append(subbeam_rolls)
 
@@ -73,15 +75,15 @@ class triggerSimulator:
         Checks if the triggering antennas lie in a straight vertical line
         """
 
-        cut = 1.e-3*units.m
+        cut = 1.e-3 * units.m
         ant_x = self.get_antenna_positions(station, det, triggered_channels, 0)
         diff_x = np.abs(ant_x - ant_x[0])
         ant_y = self.get_antenna_positions(station, det, triggered_channels, 1)
         diff_y = np.abs(ant_y - ant_y[0])
-        if ( sum(diff_x) > cut or sum(diff_y) > cut ):
+        if (sum(diff_x) > cut or sum(diff_y) > cut):
             raise NotImplementedError('The phased triggering array should lie on a vertical line')
 
-    def phased_trigger(self, station, beam_rolls, sec_beam_rolls, triggered_channels, threshold, window_time=10.67*units.ns):
+    def phased_trigger(self, station, beam_rolls, sec_beam_rolls, triggered_channels, threshold, window_time=10.67 * units.ns):
         """
         Calculates the trigger for a certain phasing configuration.
         Beams are formed. A set of overlapping time windows is created and
@@ -112,7 +114,7 @@ class triggerSimulator:
             True if the triggering condition is met
         """
         sampling_rate = station.get_channel(0).get_sampling_rate()
-        time_step = 1./sampling_rate
+        time_step = 1. / sampling_rate
 
         for subbeam_rolls, sec_subbeam_rolls in zip(beam_rolls, sec_beam_rolls):
 
@@ -135,22 +137,22 @@ class triggerSimulator:
                     phased_trace += np.roll(trace, subbeam_rolls[channel_id])
 
                 if(channel_id in sec_subbeam_rolls):
-                    #pass
+                    # pass
                     phased_trace += np.roll(trace, sec_subbeam_rolls[channel_id])
 
             # Implmentation of the ARA-like power trigger
-            window_width = int(window_time/time_step)
-            n_windows = int(len(trace)/window_width)
-            n_windows = 2*n_windows - 1
-            squared_mean_threshold = Nant * threshold**2
+            window_width = int(window_time / time_step)
+            n_windows = int(len(trace) / window_width)
+            n_windows = 2 * n_windows - 1
+            squared_mean_threshold = Nant * threshold ** 2
 
             # Create a sliding window
             strides = phased_trace.strides
             windowed_traces = np.lib.stride_tricks.as_strided(phased_trace, \
-                              shape=(n_windows,window_width), \
-                              strides=(int(window_width/2)*strides[0], strides[0]))
+                              shape=(n_windows, window_width), \
+                              strides=(int(window_width / 2) * strides[0], strides[0]))
 
-            squared_mean = np.sum(windowed_traces**2/window_width, axis=1)
+            squared_mean = np.sum(windowed_traces ** 2 / window_width, axis=1)
 
             if True in (squared_mean > squared_mean_threshold):
                 logger.debug("Station has triggered")
@@ -158,6 +160,7 @@ class triggerSimulator:
 
         return False
 
+    @register_run()
     def run(self, evt, station, det,
             threshold=60 * units.mV,
             triggered_channels=None,
@@ -166,7 +169,7 @@ class triggerSimulator:
             phasing_angles=default_angles,
             secondary_phasing_angles=default_sec_angles,
             set_not_triggered=False,
-            window_time=10.67*units.ns,
+            window_time=10.67 * units.ns,
             only_primary=False,
             coupled=True,
             ref_index=1.55):

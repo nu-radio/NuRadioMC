@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import copy
 from numpy import fft
@@ -18,6 +19,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import logging
 logger = logging.getLogger('stationSignalReconstructor')
 
+
 class electricFieldSignalReconstructor:
     """
     Calculates basic signal parameters.
@@ -35,6 +37,7 @@ class electricFieldSignalReconstructor:
         if(log_level is not None):
             logger.setLevel(log_level)
 
+    @register_run()
     def run(self, evt, station, det, debug=False):
         """
         reconstructs quantities for electric field
@@ -98,7 +101,7 @@ class electricFieldSignalReconstructor:
                 ax.vlines([signal_time - self.__signal_window_pre, signal_time + self.__signal_window_post], 0, envelope_mag.max() / units.mV * units.m, linestyles='dashed')
 
             times = electric_field.get_times()
-            mask_signal_window = (times > (signal_time - self.__signal_window_pre )) & (times < (signal_time + self.__signal_window_post))
+            mask_signal_window = (times > (signal_time - self.__signal_window_pre)) & (times < (signal_time + self.__signal_window_post))
             mask_noise_window = np.zeros_like(mask_signal_window, dtype=np.bool)
             if(self.__noise_window > 0):
                 mask_noise_window[np.int(np.round((-self.__noise_window - 141.) * electric_field.get_sampling_rate())):np.int(np.round(-141. * electric_field.get_sampling_rate()))] = np.ones(np.int(np.round(self.__noise_window * electric_field.get_sampling_rate())), dtype=np.bool)  # the last n bins
@@ -108,7 +111,7 @@ class electricFieldSignalReconstructor:
             signal_energy_fluence_error = np.zeros(3)
             if(np.sum(mask_noise_window)):
                 RMSNoise = np.sqrt(np.mean(trace[:, mask_noise_window] ** 2, axis=1))
-                signal_energy_fluence_error = (4 * np.abs(signal_energy_fluence/self.__conversion_factor_integrated_signal) * RMSNoise ** 2 * dt + 2 * (self.__signal_window_pre + self.__signal_window_post) * RMSNoise ** 4 * dt) ** 0.5
+                signal_energy_fluence_error = (4 * np.abs(signal_energy_fluence / self.__conversion_factor_integrated_signal) * RMSNoise ** 2 * dt + 2 * (self.__signal_window_pre + self.__signal_window_post) * RMSNoise ** 4 * dt) ** 0.5
             signal_energy_fluence_error *= self.__conversion_factor_integrated_signal
             electric_field.set_parameter(efp.signal_energy_fluence, signal_energy_fluence)
             electric_field.set_parameter_error(efp.signal_energy_fluence, signal_energy_fluence_error)
@@ -134,7 +137,6 @@ class electricFieldSignalReconstructor:
             exp_pol_angle = np.arctan2(np.abs(exp_efield_onsky[2]), np.abs(exp_efield_onsky[1]))
             logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
             electric_field.set_parameter(efp.polarization_angle_expectation, exp_pol_angle)
-
 
     def end(self):
         pass

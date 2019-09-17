@@ -1,4 +1,5 @@
 import NuRadioReco.framework.event
+from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
 import ROOT
@@ -23,14 +24,16 @@ libc = CDLL("libAraDisplay.so")
 libc = CDLL("libAraKvp.so")
 libc = CDLL("libRootFftwWrapper.so")
 
+
 class readARAData:
-    
+
     """
     This is the AraReader. Reads ARA data in the ARARoot format.
     
     
     """
-    def begin(self,input_file):
+
+    def begin(self, input_file):
 
         """
         Begin function of the ARA reader
@@ -41,19 +44,20 @@ class readARAData:
         path to file to read
         
         """
-        
+
         self.__id_current_event = -1
         self.__t = time.time()
 
         self.f = ROOT.TFile.Open(input_file)
-        self.raw_ptr=ROOT.RawAtriStationEvent()
+        self.raw_ptr = ROOT.RawAtriStationEvent()
         self.data_tree = self.f.Get("eventTree")
-        self.data_tree.SetBranchAddress("event",self.raw_ptr)
+        self.data_tree.SetBranchAddress("event", self.raw_ptr)
         self.n_events = self.data_tree.GetEntries()
 
         return self.n_events
 
-    def run(self, n_channels = 16, sampling = 0.625*units.ns):
+    @register_run()
+    def run(self, n_channels=16, sampling=0.625 * units.ns):
         """
         Run function of the ARA reader
 
@@ -76,42 +80,41 @@ class readARAData:
                 eta = 0
                 if(self.__id_current_event > 0):
                     eta = (time.time() - self.__t) / self.__id_current_event * (self.n_events - self.__id_current_event) / 60.
-                logger.warning("reading in event {}/{} ({:.0f}%) ETA: {:.1f} minutes".format(self.__id_current_event, self.n_events,100 * progress, eta))
+                logger.warning("reading in event {}/{} ({:.0f}%) ETA: {:.1f} minutes".format(self.__id_current_event, self.n_events, 100 * progress, eta))
 
             self.data_tree.GetEntry(self.__id_current_event)
             run_number = self.data_tree.run
             evt_number = self.raw_ptr.eventNumber
             station_id = bytearray(self.raw_ptr.stationId)[0]
-            logger.info("Reading Run: {0}, Event {1}, Station {2}".format(run_number,evt_number,station_id))
+            logger.info("Reading Run: {0}, Event {1}, Station {2}".format(run_number, evt_number, station_id))
 
             evt = NuRadioReco.framework.event.Event(run_number, evt_number)
             station = NuRadioReco.framework.station.Station(station_id)
-            real_ptr=ROOT.UsefulAtriStationEvent(self.raw_ptr,ROOT.AraCalType.kLatestCalib)
+            real_ptr = ROOT.UsefulAtriStationEvent(self.raw_ptr, ROOT.AraCalType.kLatestCalib)
 
             # Loop over all channels in data
             for iCh in range(n_channels):
 
-                channel =NuRadioReco.framework.channel.Channel(iCh)
+                channel = NuRadioReco.framework.channel.Channel(iCh)
 
                 # Get data from array via graph method
                 graph_waveform = real_ptr.getGraphFromRFChan(iCh)
-                times = np.array(graph_waveform.GetX())*units.ns
-                voltage = np.array(graph_waveform.GetY())*units.mV
+                times = np.array(graph_waveform.GetX()) * units.ns
+                voltage = np.array(graph_waveform.GetY()) * units.mV
 
-                #interpolate to get equal sampling between data points
-                f_interpolate=interpolate.interp1d(times, voltage)
+                # interpolate to get equal sampling between data points
+                f_interpolate = interpolate.interp1d(times, voltage)
                 times_new = np.arange(times[0], times[-1], sampling)
-                voltage_new=f_interpolate(times_new)
+                voltage_new = f_interpolate(times_new)
 
-                if voltage_new.shape[0]%2 !=0:
-                    voltage_new=voltage_new[:-1]
-                sampling_rate = times_new[1]-times_new[0]
+                if voltage_new.shape[0] % 2 != 0:
+                    voltage_new = voltage_new[:-1]
+                sampling_rate = times_new[1] - times_new[0]
 
-                channel.set_trace(voltage_new,sampling_rate)
+                channel.set_trace(voltage_new, sampling_rate)
                 station.add_channel(channel)
                 evt.set_station(station)
             yield evt
-
 
     def end(self):
         pass

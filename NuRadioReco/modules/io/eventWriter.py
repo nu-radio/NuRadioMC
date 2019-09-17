@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from NuRadioReco.modules.base.module import register_run
 try:
     import cPickle as pickle
 except ImportError:
@@ -55,6 +56,7 @@ class eventWriter:
         self.__number_of_files = 1
         self.__max_file_size = max_file_size * 1024 * 1024  # in bytes
 
+    @register_run()
     def run(self, evt, mode='full'):
         """
         writes NuRadioReco event into a file

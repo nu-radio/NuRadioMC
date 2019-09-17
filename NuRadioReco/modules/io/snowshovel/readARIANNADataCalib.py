@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
@@ -99,6 +100,7 @@ class readARIANNAData:
 
         return self.n_events
 
+    @register_run()
     def run(self):
         while True:
             self.__id_current_event += 1
@@ -164,13 +166,13 @@ class readARIANNAData:
             evt = NuRadioReco.framework.event.Event(run_number, evt_number)
 
             if(self.__id_current_event % 1000 == 0):
-                logger.info("reading in station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id,run_number=run_number, evt_number=evt_number, time=evt_time))
-            logger.debug("reading in station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id,run_number=run_number,evt_number=evt_number,time=evt_time))
+                logger.info("reading in station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id, run_number=run_number, evt_number=evt_number, time=evt_time))
+            logger.debug("reading in station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id, run_number=run_number, evt_number=evt_number, time=evt_time))
 
             nChan = ord(self.readout_config.GetNchans())  # convert char to int
             name = self.readout_config.GetTypeName()
             if name == 'Custom':
-                logger.warning("Event {event} of run {run} is skipped, as ReadoutConfig seems empty".format(event=evt_number,run=run_number))
+                logger.warning("Event {event} of run {run} is skipped, as ReadoutConfig seems empty".format(event=evt_number, run=run_number))
                 self.skipped_events += 1
                 continue
 
@@ -182,7 +184,7 @@ class readARIANNAData:
             stop = np.array(self.data_tree.RawData.GetStopSamples())
 
             # skip events that don't have a proper information of the stop point
-            if (stop.size!=0):
+            if (stop.size != 0):
                 for iCh in range(nChan):
                     channel = NuRadioReco.framework.channel.Channel(iCh)
                     voltage = np.array(self.calwv.GetDataOnCh(iCh)) * units.mV
@@ -190,7 +192,7 @@ class readARIANNAData:
                     channel.set_trace(voltage, self.sampling_rate)
                     station.add_channel(channel)
             else:
-                logger.warning(" Event {event} of run {run} is skipped, no stop point for rolling array!".format(event=evt_number,run=run_number))
+                logger.warning(" Event {event} of run {run} is skipped, no stop point for rolling array!".format(event=evt_number, run=run_number))
                 self.skipped_events_stop += 1
                 continue
 
