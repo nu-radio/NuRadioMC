@@ -6,6 +6,7 @@ from NuRadioMC.utilities import units
 from six import iteritems
 import json
 import os
+import copy
 
 # collection of utility function regarding the calculation of the effective volume of a neutrino detector
 
@@ -230,6 +231,9 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
                     triggered = triggered & mask
 
                 if('n_reflections' in values.keys()):
+                    As = np.array(fin['max_amp_ray_solution'])
+                    max_amps = np.argmax(np.argmax(As[:, :], axis=-1), axis=-1)
+                    print(max_amps.shape)
                     triggered = triggered & (np.array(fin[f'station_{station:d}/ray_tracing_reflection'])[:, 0, 0] == values['n_reflections'])
 
                 Aeff = area * np.sum(weights[triggered]) / n_events
@@ -298,6 +302,7 @@ def get_Veff(folder, trigger_combinations={}, station=101):
     ----------
     list of dictionary. Each file is one entry. The dictionary keys store all relevant properties
     """
+    trigger_combinations = copy.copy(trigger_combinations)
     Veff_output = []
     trigger_names = None
     trigger_names_dict = {}
@@ -442,14 +447,16 @@ def get_Veff(folder, trigger_combinations={}, station=101):
                     As = np.array(fin['max_amp_ray_solution'])
                     max_amps = np.argmax(As[:, values['ray_channel']], axis=-1)
                     sol = np.array(fin['ray_tracing_solution_type'])
-    #                 print(sol[:,values['ray_channel']][max_amps].shape)
-    #                 print(max_amps.shape)
-    #                 a = 1/0
                     mask = np.array([sol[i, values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=np.bool)
                     triggered = triggered & mask
 
                 if('n_reflections' in values.keys()):
-                    triggered = triggered & (np.array(fin[f'station_{station:d}/ray_tracing_reflection'])[:, 0, 0] == values['n_reflections'])
+                    if(np.sum(triggered)):
+                        As = np.array(fin[f'station_{station:d}/max_amp_ray_solution'])
+                        # find the ray tracing solution that produces the largest amplitude
+                        max_amps = np.argmax(np.argmax(As[:, :], axis=-1), axis=-1)
+                        # advanced indexing: selects the ray tracing solution per event with the highest amplitude
+                        triggered = triggered & (np.array(fin[f'station_{station:d}/ray_tracing_reflection'])[..., max_amps, 0][:, 0] == values['n_reflections'])
 
                 Veff = V * np.sum(weights[triggered]) / n_events
 
@@ -462,7 +469,10 @@ def get_Veff(folder, trigger_combinations={}, station=101):
                     e = get_eff(As / Vrms)
                     Veff = V * np.sum((weights * e)[triggered]) / n_events
 
-                out['Veffs'][trigger_name] = [Veff, Veff / np.sum(weights[triggered]) ** 0.5, np.sum(weights[triggered])]
+                Vefferror = 0
+                if(np.sum(weights[triggered]) > 0):
+                    Vefferror = Veff / np.sum(weights[triggered]) ** 0.5
+                out['Veffs'][trigger_name] = [Veff, Vefferror, np.sum(weights[triggered])]
         Veff_output.append(out)
 
     return Veff_output
