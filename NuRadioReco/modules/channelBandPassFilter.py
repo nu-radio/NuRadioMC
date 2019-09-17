@@ -1,5 +1,4 @@
-from __future__ import print_function
-
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from scipy import signal
 from NuRadioReco.utilities import units
@@ -16,6 +15,7 @@ class channelBandPassFilter:
     def begin(self):
         pass
 
+    @register_run()
     def run(self, evt, station, det, passband=[55 * units.MHz, 1000 * units.MHz],
             filter_type='rectangular', order=2):
         """
@@ -60,9 +60,62 @@ class channelBandPassFilter:
         """
 
         for channel in station.iter_channels():
-            self.__apply_filter(channel, passband, filter_type, order, False)
+            if isinstance(station, NuRadioReco.framework.sim_station.SimStation):
+                for sub_channel in channel:
+                    self._apply_filter(sub_channel, passband, filter_type, order, True)
+            else:
+#                 print(channel)
+#                 print(self)
+#                 print(self._apply_filter)
+                self._apply_filter(channel, passband, filter_type, order, False)
 
-    def __apply_filter(self, channel, passband, filter_type, order, is_efield=False):
+    def get_filter(self, frequencies, station_id, channel_id, det, passband, filter_type, order=2):
+        """
+        helper function to return the filter that the module applies. 
+        
+        Parameters
+        -----------
+        frequencies: array of floats
+            the frequency array for which the filter should be returned
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+        det: detector instance
+            the detector
+        the remaining arguments are the arguments of the run method!
+        
+        Returns: array of complex floats
+            the complex filter amplitudes
+        """
+        if(filter_type == 'rectangular'):
+            f = np.ones_like(frequencies)
+            f[np.where(frequencies < passband[0])] = 0.
+            f[np.where(frequencies > passband[1])] = 0.
+            return f
+        elif(filter_type == 'butter'):
+            f = np.zeros_like(frequencies, dtype=np.complex)
+            mask = frequencies > 0
+            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
+            w, h = scipy.signal.freqs(b, a, frequencies[mask])
+            f[mask] = h
+            return f
+        elif(filter_type == 'butterabs'):
+            f = np.zeros_like(frequencies, dtype=np.complex)
+            mask = frequencies > 0
+            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
+            w, h = scipy.signal.freqs(b, a, frequencies[mask])
+            f[mask] = h
+            return np.abs(f)
+        elif(filter_type.find('FIR') >= 0):
+            raise NotImplementedError("FIR filter not yet implemented")
+        else:
+            return filterresponse.get_filter_response(frequencies, filter_type)
+
+    def _apply_filter(self, channel, passband, filter_type, order, is_efield=False):
+#         print(f"apply_filter self {self}")
+#         print(channel)
+
         frequencies = channel.get_frequencies()
         trace_fft = channel.get_frequency_spectrum()
         sample_rate = channel.get_sampling_rate()
@@ -76,94 +129,68 @@ class channelBandPassFilter:
         isFIR = False
 
         if(filter_type == 'rectangular'):
-            if is_efield:
-                for polarization in trace_fft:
-                    polarization[np.where(frequencies < passband[0])] = 0.
-                    polarization[np.where(frequencies > passband[1])] = 0.
-            else:
-                trace_fft[np.where(frequencies < passband[0])] = 0.
-                trace_fft[np.where(frequencies > passband[1])] = 0.
+            trace_fft *= self.get_filter(frequencies, 0, 0, None, passband, filter_type)
         elif(filter_type == 'butter'):
-            mask = frequencies > 0
-            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
-            w, h = scipy.signal.freqs(b, a, frequencies[mask])
-            if is_efield:
-                for polarization in trace_fft:
-                    polarization[mask] *= h
-            else:
-                trace_fft[mask] *= h
+            trace_fft *= self.get_filter(frequencies, 0, 0, None, passband, filter_type, order)
         elif(filter_type == 'butterabs'):
-            mask = frequencies > 0
-            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
-            w, h = scipy.signal.freqs(b, a, frequencies[mask])
-            if is_efield:
-                for polarization in trace_fft:
-                    polarization[mask] *= h
-            else:
-                trace_fft[mask] *= np.abs(h)
-        elif(filter_type.find('FIR')>=0):
-            #print('This is a FIR filter')
+            trace_fft *= self.get_filter(frequencies, 0, 0, None, passband, filter_type, order)
+        elif(filter_type.find('FIR') >= 0):
+            # print('This is a FIR filter')
             firarray = filter_type.split()
-            if (len(firarray)==1):
+            if (len(firarray) == 1):
                 wtype = 'hamming'
-                #print('hamming window')
+                # print('hamming window')
             else:
                 wtype = firarray[1]
-                if wtype.find('kaiser')>=0:
-                    if len(firarray)>2:
+                if wtype.find('kaiser') >= 0:
+                    if len(firarray) > 2:
                         beta = float(firarray[2])
                     else:
                         beta = 6.0
-                    wtype = ('kaiser',beta)
-            #print('window type: ', wtype)
-            Nfir = order+1
-            if (passband[0]==None):
+                    wtype = ('kaiser', beta)
+            # print('window type: ', wtype)
+            Nfir = order + 1
+            if (passband[0] == None):
                 # this is a low pass filter
-                pass_zero=True
-                fcut=passband[1]
-            elif (passband[1]==None or passband[1]/sample_rate>=0.5):
+                pass_zero = True
+                fcut = passband[1]
+            elif (passband[1] == None or passband[1] / sample_rate >= 0.5):
                 # this is a high pass filter
-                pass_zero=False
-                fcut=passband[0]
-            elif (passband[1]>passband[0]):
+                pass_zero = False
+                fcut = passband[0]
+            elif (passband[1] > passband[0]):
                 # this is a bandpass filter
-                pass_zero=False
-                fcut=passband
-            elif(passband[0]>passband[1]):
+                pass_zero = False
+                fcut = passband
+            elif(passband[0] > passband[1]):
                 # this is a bandstop filter
-                pass_zero=True
-                fcut=[passband[1],passband[0]]
-                #print('bandstop with fcut = ',fcut)
+                pass_zero = True
+                fcut = [passband[1], passband[0]]
+                # print('bandstop with fcut = ',fcut)
             else:
                 # something went wrong!!
                 print("Error, could not define filter type")
-            #print('fcut = ',fcut)
-            taps = signal.firwin(Nfir, fcut, window=wtype,scale=False,pass_zero=pass_zero,fs=sample_rate)
+            # print('fcut = ',fcut)
+            taps = signal.firwin(Nfir, fcut, window=wtype, scale=False, pass_zero=pass_zero, fs=sample_rate)
             wfilt, hfilt = signal.freqz(taps, worN=len(frequencies))
 
-            if ((Nfir//2)*2==Nfir):
+            if ((Nfir // 2) * 2 == Nfir):
                 print("odd filter order, rolling is off by T_s/2")
 
-            ndelay = int(0.5 * (Nfir-1))
+            ndelay = int(0.5 * (Nfir - 1))
             trace_fir = signal.lfilter(taps, 1.0, channel.get_trace())
-            #print('len(trace_fir)',len(trace_fir))
-            trace_fir = np.roll(trace_fir,-ndelay)
+            # print('len(trace_fir)',len(trace_fir))
+            trace_fir = np.roll(trace_fir, -ndelay)
 #             channel.set_trace(trace_fir, sample_rate)
 #             #channel.set_trace(trace_fir, sample_rate)
 #             #trace_fft = hfilt
 #             trace_fft = channel.get_frequency_spectrum()
             isFIR = True
         else:
-            mask = frequencies > 0
-            filt = filterresponse.get_filter_response(frequencies[mask], filter_type)
-            if is_efield:
-                for polarization in trace_fft:
-                    polarization[mask] *= filt
-            else:
-                trace_fft[mask] *= filt
+            trace_fft *= self.get_filter(frequencies, 0, 0, None, passband, filter_type)
         if isFIR:
             channel.set_trace(trace_fir, sample_rate)
-            #print('set trace for fir')
+            # print('set trace for fir')
         else:
             channel.set_frequency_spectrum(trace_fft, sample_rate)
 

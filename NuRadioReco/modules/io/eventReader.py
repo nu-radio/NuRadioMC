@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.io import NuRadioRecoio
 import logging
 logger = logging.getLogger('eventReader')
@@ -12,6 +13,7 @@ class eventReader:
     def begin(self, filename, log_level=logging.WARNING):
         self.__fin = NuRadioRecoio.NuRadioRecoio(filename, parse_header=False, log_level=log_level)
 
+    @register_run()
     def run(self):
         return self.__fin.get_events()
 

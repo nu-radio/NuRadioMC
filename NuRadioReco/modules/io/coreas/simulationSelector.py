@@ -1,11 +1,12 @@
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import logging
 import time
 
 from NuRadioReco.utilities import units
 
-
 logger = logging.getLogger('simulationSelector')
+
 
 class simulationSelector:
 
@@ -22,7 +23,8 @@ class simulationSelector:
     def begin(self, debug=False):
         pass
 
-    def run(self, evt, sim_station, det, frequency_window = [100*units.MHz,500*units.MHz],n_std = 8):
+    @register_run()
+    def run(self, evt, sim_station, det, frequency_window=[100 * units.MHz, 500 * units.MHz], n_std=8):
 
         """
         run method, selects CoREAS simulations that have any signal in
@@ -56,7 +58,7 @@ class simulationSelector:
 
             # identify the largest polarization
             max_pol = 0
-            max_    = 0
+            max_ = 0
             for i in range(3):
                 if np.sum(fft[i]) > max_:
                     max_pol = i
@@ -82,7 +84,7 @@ class simulationSelector:
 
             noise += n_std * noise_std
 
-            mask = np.array((freq >= np.min(frequency_window))  & (freq <= np.max(frequency_window)))
+            mask = np.array((freq >= np.min(frequency_window)) & (freq <= np.max(frequency_window)))
 
             if(np.any(fft[:, mask] > noise)):
                 selected_sim = True
@@ -90,7 +92,6 @@ class simulationSelector:
 
         self.__t += time.time() - t
         return selected_sim
-
 
     def end(self):
         from datetime import timedelta

@@ -244,7 +244,7 @@ class BaseStation():
                 'triggers': trigger_pkls,
                 '_triggered': self._triggered,
                 'electric_fields': efield_pkls}
-        return pickle.dumps(data, protocol=2)
+        return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
