@@ -198,8 +198,8 @@ class readARIANNAData:
 
             station.set_ARIANNA_parameter(ARIpar.seq_num, seq_number)
             # read and save start and stop time of a sequence
-            start = datetime.datetime.fromtimestamp(self.config_tree.TrigStartClock.GetCurrTime())
-            stop = datetime.datetime.fromtimestamp(self.config_tree.TrigStopClock.GetCurrTime())
+            start = datetime.datetime.fromtimestamp(self.config_tree.TrigStartClock.GetCurrTime().GetSec())
+            stop = datetime.datetime.fromtimestamp(self.config_tree.TrigStopClock.GetCurrTime().GetSec())
             if(start < datetime.datetime(1971, 1, 1)):
                 start = None
             if(stop < datetime.datetime(1971, 1, 1)):
@@ -210,6 +210,7 @@ class readARIANNAData:
             station.set_ARIANNA_parameter(ARIpar.comm_duration, self.config_tree.DAQConfig.GetCommWinDuration() * units.s)
             station.set_ARIANNA_parameter(ARIpar.comm_period, self.config_tree.DAQConfig.GetCommWinPeriod() * units.s)
             station.set_ARIANNA_parameter(ARIpar.l1_supression_value, self.config_tree.DAQConfig.GetL1SingleFreqRatioCut())
+            station.set_ARIANNA_parameter(ARIpar.internal_clock_time, self.data_tree.EventHeader.GetDTms() * units.ms)
             dacset = self.config_tree.DAQConfig.GetDacSet().GetDacs()
             dacsV = {}
             for iCh in range(len(dacset)):
