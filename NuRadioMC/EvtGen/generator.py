@@ -933,9 +933,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                         # Flavors are particle codes taken from NuRadioProposal.py
                         data_sets_fiducial['flavors'][-1] = product.code
 
-    for key,value in data_sets_fiducial:
-        data_sets_fiducial[key] = np.array(data_sets_fiducial[key])
-
     time_per_evt = (time.time()-init_time)/(iE+1)
     print("Time per event:", time_per_evt)
     print("Total time", time.time()-init_time)
