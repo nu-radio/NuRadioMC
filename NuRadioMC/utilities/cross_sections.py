@@ -269,7 +269,7 @@ def get_interaction_length(Enu, density=.917 * units.g / units.cm ** 3, flavor=1
         
     """
     m_n = constants.m_p * units.kg  # nucleon mass, assuming proton mass
-    L_int = m_n / get_nu_cross_section(Enu, flavor=flavor, inttype=inttype, cross_section_type=cross_section_type) / density
+    L_int = m_n / get_nu_cross_section(Enu, flavors=flavor, inttype=inttype, cross_section_type=cross_section_type) / density
     return L_int
 
 
