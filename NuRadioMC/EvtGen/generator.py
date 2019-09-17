@@ -508,6 +508,8 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
 #             else:
 #                 stop_index = tmp[0]
 
+        for key in data_sets:
+            data_sets[key] = np.array(data_sets[key])
         for key, value in data_sets.items():
             if value.dtype.kind == 'U':
                 fout[key] = [np.char.encode(c, 'utf8') for c in value[start_index:stop_index]]
@@ -930,6 +932,9 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
                         # Flavors are particle codes taken from NuRadioProposal.py
                         data_sets_fiducial['flavors'][-1] = product.code
+
+    for key,value in data_sets_fiducial:
+        data_sets_fiducial[key] = np.array(data_sets_fiducial[key])
 
     time_per_evt = (time.time()-init_time)/(iE+1)
     print("Time per event:", time_per_evt)
