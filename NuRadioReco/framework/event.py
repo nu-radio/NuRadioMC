@@ -24,6 +24,15 @@ class Event:
     def register_module_event(self, instance, name, kwargs):
         """
         registers modules applied to this event
+        
+        Parameters
+        -----------
+        instance: module instance
+            the instance of the module that should be registered
+        name: module name
+            the name of the module
+        kwargs:
+            the key word arguments of the run method
         """
 
         self.__modules_event.append([name, instance, kwargs])
@@ -31,6 +40,17 @@ class Event:
     def register_module_station(self, station_id, instance, name, kwargs):
         """
         registers modules applied to this event
+        
+        Parameters
+        -----------
+        station_id: int
+            the station id
+        instance: module instance
+            the instance of the module that should be registered
+        name: module name
+            the name of the module
+        kwargs:
+            the key word arguments of the run method
         """
         if(station_id not in self.__modules_station):
             self.__modules_station[station_id] = []
