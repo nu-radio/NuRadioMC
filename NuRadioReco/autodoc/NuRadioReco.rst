@@ -1,12 +1,10 @@
 NuRadioReco package
 ===================
 
-Subpackages
------------
-
 .. toctree::
 
     NuRadioReco.detector
+    NuRadioReco.eventbrowser
     NuRadioReco.framework
     NuRadioReco.modules
     NuRadioReco.utilities
