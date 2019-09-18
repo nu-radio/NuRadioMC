@@ -65,7 +65,6 @@ def get_z_deep(ice_params):
         return delta_n * np.exp(z / z_0) / n_ice - rel_diff
 
     res =  optimize.root(diff_n_ice, -100 * units.m).x[0]
-    print("zdeep = {:.2f}".format(res))
     return res
 
 

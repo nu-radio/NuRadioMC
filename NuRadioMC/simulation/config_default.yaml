@@ -10,6 +10,7 @@ speedup:
   delta_C_cut: 0.698  # 40 degree
   redo_raytracing: False  # redo ray tracing even if previous calculated ray tracing solutions are present
   min_efield_amplitude: 2  # the minimum signal amplitude of the efield as a factor of the noise RMS. If the value is smaller, no detector simulation is performed. As the vector effecive length of antennas is typically less than 1, this cut does not introduce any bias as long as the value is smaller than the trigger threshold.
+  amp_per_ray_solution: True  # if False, the maximum aplitude for each ray tracing solution is not calculated
 
 propagation:
   module: analytic
@@ -28,6 +29,6 @@ signal:
 
 trigger:
   noise_temperature: 300  # in Kelvin
-  bandwidth: null  # null or float in GHz (the effective bandwidth. It is used to calculate the Vrms from the noise temperature. If None, the bandwidth is calculated from the sampling rate assuming that the bandwidth is 0Hz to the Nyquist frequency
+  Vrms: null  # the RMS noise value in volts. Not compatible with 'noise_temperature', if Vrms is set, 'noise_temperature' must be None
 
 save_all: False # if True, save all events

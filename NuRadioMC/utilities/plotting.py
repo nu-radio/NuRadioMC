@@ -38,7 +38,7 @@ def plot_vertex_distribution(xx, yy, zz, weights=None,
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="5%", pad=0.05)
     cb = plt.colorbar(h[3], ax=ax, cax=cax)
-    cb.set_label("weighted number of events")
+    cb.set_label("# (weighted)")
     ax.set_aspect('equal')
     ax.set_xlabel("r [m]")
     ax.set_ylabel("z [m]")
