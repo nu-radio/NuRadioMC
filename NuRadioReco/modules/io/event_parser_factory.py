@@ -1,4 +1,5 @@
 import pickle
+import NuRadioReco.framework.event
 
 def scan_files_function(version_major, version_minor):
     """
@@ -105,3 +106,59 @@ def scan_files_function(version_major, version_minor):
         return scan_files_2_0
     else:
         return scan_files_2_2
+
+def iter_events_function(version_major, version_minor):
+
+    def iter_events_2_0(self):
+        while True:
+            bytes_to_read_hex = self._get_file(self._current_file_id).read(6)
+            bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
+            if(bytes_to_read == 0):
+                # we are at the end of the file
+                if(self._current_file_id < (len(self._filenames) - 1)):  # are there more files to be parsed?
+                    self._current_file_id += 1
+                    self._get_file(self._current_file_id).seek(12)  # skip datafile header
+                    bytes_to_read_hex = self._get_file(self._current_file_id).read(6)
+                    bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
+                else:
+                    break
+            evt_header_str = self._get_file(self._current_file_id).read(bytes_to_read)
+
+            bytes_to_read_hex = self._get_file(self._current_file_id).read(6)
+            bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
+            evtstr = self._get_file(self._current_file_id).read(bytes_to_read)
+            event = NuRadioReco.framework.event.Event(0, 0)
+            event.deserialize(evtstr)
+            yield event
+
+    def iter_events_2_2(self):
+        while True:
+            object_type_hex = self._get_file(self._current_file_id).read(6)
+            object_type = int.from_bytes(object_type_hex, 'little')
+            bytes_to_read_hex = self._get_file(self._current_file_id).read(6)
+            bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
+            if(bytes_to_read == 0):
+                # we are at the end of the file
+                if(self._current_file_id < (len(self._filenames) - 1)):  # are there more files to be parsed?
+                    self._current_file_id += 1
+                    self._get_file(self._current_file_id).seek(12)  # skip datafile header
+                    object_type_hex = self._get_file(self._current_file_id).read(6)
+                    object_type = int.from_bytes(object_type_hex, 'little')
+                    bytes_to_read_hex = self._get_file(self._current_file_id).read(6)
+                    bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
+                else:
+                    break
+            if object_type == 0:
+                evt_header_str = self._get_file(self._current_file_id).read(bytes_to_read)
+                bytes_to_read_hex = self._get_file(self._current_file_id).read(6)
+                bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
+                evtstr = self._get_file(self._current_file_id).read(bytes_to_read)
+                event = NuRadioReco.framework.event.Event(0, 0)
+                event.deserialize(evtstr)
+                yield event
+            elif object_type == 1:
+                self._get_file(self._current_file_id).read(bytes_to_read)
+    if version_minor < 2:
+        return iter_events_2_0
+    else:
+        return iter_events_2_2
