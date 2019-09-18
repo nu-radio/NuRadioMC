@@ -16,6 +16,8 @@ from scipy import constants
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution
+import NuRadioReco.modules.efieldToVoltageConverter
+import NuRadioReco.modules.channelResampler
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
@@ -162,7 +164,7 @@ class simulation():
         # perfom a dummy detector simulation to determine how the signals are filtered
         self._bandwidth_per_channel = {}
         self._amplification_per_channel = {}
-        self._noise_adder_normalization = {}
+        self.__noise_adder_normalization = {}
 
         # first create dummy event and station with channels
         self._Vrms = 1
@@ -192,17 +194,15 @@ class simulation():
                 electric_field[efp.ray_path_type] = 0
                 self._sim_station.add_electric_field(electric_field)
 
-            self._station = NuRadioReco.framework.station.Station(self._station_ids[0])
+            self._station = NuRadioReco.framework.station.Station(self._station_id)
             self._station.set_sim_station(self._sim_station)
             self._station.set_station_time(self._evt_time)
             self._evt.set_station(self._station)
-            if(bool(self._cfg['signal']['zerosignal'])):
-                self._increase_signal(None, 0)
 
             self._detector_simulation()
             self._bandwidth_per_channel[self._station_id] = {}
             self._amplification_per_channel[self._station_id] = {}
-            self._noise_adder_normalization[self._station_id] = {}
+            self.__noise_adder_normalization[self._station_id] = {}
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                 ff = np.linspace(0, 0.5 / self._dt, 10000)
                 filt = np.ones_like(ff, dtype=np.complex)
@@ -233,7 +233,7 @@ class simulation():
                             if(hasattr(instance, "get_filter")):
                                 filt_noise *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
                         norm = np.trapz(np.abs(filt_noise) ** 2, ff)
-                        self._noise_adder_normalization[self._station_id][channel_id] = norm
+                        self.__noise_adder_normalization[self._station_id][channel_id] = norm
                         logger.info(f"noise normalization of station {self._station_id} channel {channel_id} is {norm/units.MHz:.1g}MHz")
         ################################
 
@@ -538,8 +538,11 @@ class simulation():
 
                 self._station.set_station_time(self._evt_time)
                 self._evt.set_station(self._station)
+                if(bool(self._cfg['signal']['zerosignal'])):
+                    self._increase_signal(None, 0)
                 if(self._cfg['speedup']['amp_per_ray_solution']):
                     self._calculate_amplitude_per_ray_tracing_solution()
+
                 self._detector_simulation()
                 self._calculate_signal_properties()
                 self._save_triggers_to_hdf5()
@@ -583,6 +586,20 @@ class simulation():
                                                                                          100 * askaryan_time / t_total,
                                                                                          100 * detSimTime / t_total,
                                                                                          100 * outputTime / t_total))
+
+    def _is_simulate_noise(self):
+        return bool(self._cfg['noise'])
+
+    def _get_noise_normalization(self, station_id, channel_id=0):
+        """
+        returns the normalization of the Vrms of the noise generator module. 
+        The normalization is 
+        Vrms = self._Vrms / (norm / (max_freq - min_freq))**0.5
+        """
+        if(station_id in self.__noise_adder_normalization and channel_id in self.__noise_adder_normalization[station_id]):
+            return self.__noise_adder_normalization[station_id][channel_id]
+        else:
+            return 1.
 
     def _calculate_amplitude_per_ray_tracing_solution(self):
         if(not hasattr(self, "_calculateAmplitudePerRaySolution")):
