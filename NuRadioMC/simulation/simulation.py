@@ -230,7 +230,6 @@ class simulation():
                         for i, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station_id)):
                             if(i < noise_module_index[0]):  # skip all modules that come before the noise adder module
                                 continue
-                            name, instance, kwargs = self._evt.get_module_list()[i]
                             if(hasattr(instance, "get_filter")):
                                 filt_noise *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
                         norm = np.trapz(np.abs(filt_noise) ** 2, ff)
