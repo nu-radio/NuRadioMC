@@ -102,10 +102,13 @@ def scan_files_function(version_major, version_minor):
         current_byte += bytes_to_read
         return True, iF, current_byte
 
-    if version_minor < 2:
-        return scan_files_2_0
+    if version_major == 2:
+        if version_minor < 2:
+            return scan_files_2_0
+        else:
+            return scan_files_2_2
     else:
-        return scan_files_2_2
+        raise ValueError('File version {}.{} is not supported. Major version needs to be 2 but is {}'.format(version_major, version_minor, version_major))
 
 def iter_events_function(version_major, version_minor):
 
@@ -158,7 +161,10 @@ def iter_events_function(version_major, version_minor):
                 yield event
             elif object_type == 1:
                 self._get_file(self._current_file_id).read(bytes_to_read)
-    if version_minor < 2:
-        return iter_events_2_0
+    if version_major == 2:
+        if version_minor < 2:
+            return iter_events_2_0
+        else:
+            return iter_events_2_2
     else:
-        return iter_events_2_2
+        raise ValueError('File version {}.{} is not supported. Major version needs to be 2 but is {}'.format(version_major, version_minor, version_major))
