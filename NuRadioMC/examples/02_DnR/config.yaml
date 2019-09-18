@@ -9,7 +9,6 @@ signal:
   model: Alvarez2009
 trigger:
   noise_temperature: 300  # in Kelvin
-  bandwidth: 0.42  # effective bandwidth in GHz 
 weights:
   weight_mode: core_mantle_crust # core_mantle_crust: use the three
   #layer earth model, which considers the different densities of the
