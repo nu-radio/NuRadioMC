@@ -6,9 +6,9 @@ import NuRadioReco.framework.base_station
 
 def register_run(level=None):
     """
-    Decorator for run methods. This decorator registers the run methods. It allows to keep track of 
-    which module is executed in which order and with what parameters. Also the execution time of each 
-    module is tracked. 
+    Decorator for run methods. This decorator registers the run methods. It allows to keep track of
+    which module is executed in which order and with what parameters. Also the execution time of each
+    module is tracked.
     """
 
     def run_decorator(run):
@@ -41,7 +41,7 @@ def register_run(level=None):
                     evt = args[0]
                     station = args[1]
                 elif(isinstance(args[0], NuRadioReco.framework.event.Event)):
-                    level = "station"
+                    level = "event"
                     evt = args[0]
                 else:
                     # this is a module that creats events
