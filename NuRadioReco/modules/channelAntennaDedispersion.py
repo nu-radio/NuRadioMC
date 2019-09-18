@@ -33,7 +33,6 @@ class channelAntennaDedispersion:
             az = 0
         else:
             raise AttributeError(f"antenna name {antenna_name} can't be interpreted")
-        print(zen, az, zen_ori, az_ori, zen_rot, az_rot)
         VEL = antenna.get_antenna_response_vectorized(ff, zen, az, zen_ori, az_ori, zen_rot, az_rot)
         polarization = "phi"
         if(np.sum(np.abs(VEL['theta'])) > np.sum(np.abs(VEL['phi']))):
@@ -54,7 +53,6 @@ class channelAntennaDedispersion:
         ----------
         """
         for channel in station.iter_channels():
-            print(channel.get_id())
             ff = channel.get_frequencies()
             response = self._get_response(det, station.get_id(), channel.get_id(), tuple(ff))
 
