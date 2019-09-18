@@ -36,10 +36,12 @@ class mySimulation(simulation.simulation):
         # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
 
-        if bool(self._cfg['noise']):
-            Vrms = self._Vrms / (self._bandwidth / (2.5 * units.GHz)) ** 0.5  # normalize noise level to the bandwidth its generated for
+        if self._is_simulate_noise():
+            max_freq = 0.5 / self._dt
+            norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
+            Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
-                                         max_freq=2.5 * units.GHz, type='rayleigh')
+                                         max_freq=max_freq, type='rayleigh')
 
         hardwareResponseIncorporator.run(self._evt, self._station, self._det, sim_to_data=True)
 
