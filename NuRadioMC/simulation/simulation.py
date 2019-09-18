@@ -695,8 +695,6 @@ class simulation():
             for station_id in self._station_ids:
                 sg = self._mout_groups[station_id]
                 sg['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-#            sg = self._mout_groups[self._station_id]
-#            sg['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
         elif(extend_array):
             tmp = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             nx, ny = self._mout['multiple_triggers'].shape
@@ -704,7 +702,6 @@ class simulation():
             self._mout['multiple_triggers'] = tmp
 
             for station_id in self._station_ids:
-            #sg = self._mout_groups[self._station_id]
                 sg = self._mout_groups[station_id]
                 tmp = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
                 nx, ny = sg['multiple_triggers'].shape
