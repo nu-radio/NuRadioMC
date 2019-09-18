@@ -1,5 +1,5 @@
 #!/bin/bash
 
-python T02RunSimulation.py MB_1e18_reference.hdf5 surface_station_1GHz.json config_MB.yaml MB_1e18_output.hdf5
+NuRadioMC/test/SingleEvents/T02RunSimulation.py NuRadioMC/test/SingleEvents/MB_1e18_reference.hdf5 NuRadioMC/test/SingleEvents/surface_station_1GHz.json config_MB.yaml NuRadioMC/test/SingleEvents/MB_1e18_output.hdf5
 
-python T03validate.py MB_1e18_output.hdf5 MB_1e18_reference.hdf5
+NuRadioMC/test/SingleEvents/T03validate.py NuRadioMC/test/SingleEvents/MB_1e18_output.hdf5 NuRadioMC/test/SingleEvents/MB_1e18_reference.hdf5
