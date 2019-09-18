@@ -10,5 +10,5 @@ rmin = 0 * units.km
 rmax = 2 * units.km
 
 # generate one event list at 1e18 eV with 10000 neutrinos
-generate_eventlist_cylinder('1e18_full.hdf5', 1e4, 1e18 * units.eV, 1e18 * units.eV, rmin, rmax, zmin, zmax,
+generate_eventlist_cylinder('1e18_full.hdf5', 2000, 1e18 * units.eV, 1e18 * units.eV, rmin, rmax, zmin, zmax,
                             full_rmin=rmin, full_rmax=rmax, full_zmin=zmin, full_zmax=zmax)

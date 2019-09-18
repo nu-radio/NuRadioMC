@@ -12,7 +12,7 @@ import os
 
 energyBinsPerDecade = 1.
 plotUnitsEnergy = units.GeV
-plotUnitsFlux = units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1
+plotUnitsFlux = units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
 DIFFUSE = True
 
 # Unless you would like to work with the layout or the models/data from other experiments,
@@ -38,8 +38,8 @@ GRAND_10k = np.array(([8.41513361e-08, 7.38147706e-08, 5.69225180e-08, 3.4664793
                        1.14294614e-02, 1.72447830e-02, 7.48579143e-02, 3.31883351e-01,
                        8.57786094e-01, 1.24824516e+00, 1.42294586e+00, 1.80135089e+00]))
 
-GRAND_10k *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
-#GRAND_10k /= 2 #halfdecade bins
+GRAND_10k *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+# GRAND_10k /= 2 #halfdecade bins
 GRAND_10k *= energyBinsPerDecade
 
 GRAND_200k = np.array(([4.26219753e-09, 3.58147708e-09, 2.75670137e-09, 1.85254042e-09,
@@ -53,8 +53,8 @@ GRAND_200k = np.array(([4.26219753e-09, 3.58147708e-09, 2.75670137e-09, 1.852540
                         6.68381070e-04, 1.72553598e-03, 7.06643413e-03, 2.10754560e-02,
                         4.06319101e-02, 5.88162853e-02, 7.45423652e-02, 8.83700084e-02]))
 
-GRAND_200k *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
-#GRAND_200k /= 2 #halfdecade bins
+GRAND_200k *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+# GRAND_200k /= 2 #halfdecade bins
 GRAND_200k *= energyBinsPerDecade
 
 # RADAR proposed from https://arxiv.org/pdf/1710.02883.pdf
@@ -70,12 +70,12 @@ Radar = np.array(([
     (1.875e+01, 5.562e-08, 8.253e-06),
     (1.925e+01, 1.072e-07, 1.849e-05)]))
 
-Radar[:, 0] = 10**Radar[:, 0] * units.eV
-Radar[:, 1] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
-Radar[:, 1] /= 2 #halfdecade bins
+Radar[:, 0] = 10 ** Radar[:, 0] * units.eV
+Radar[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+Radar[:, 1] /= 2  # halfdecade bins
 Radar[:, 1] *= energyBinsPerDecade
-Radar[:, 2] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
-Radar[:, 2] /= 2 #halfdecade bins
+Radar[:, 2] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+Radar[:, 2] /= 2  # halfdecade bins
 Radar[:, 2] *= energyBinsPerDecade
 # --------------------------------------------------------------------
 # Published data and limits
@@ -105,8 +105,8 @@ ice_cube_limit = np.array(([
     (10.89999987, -6.576523031)
 ]))
 
-ice_cube_limit[:, 0] = 10**ice_cube_limit[:, 0] * units.GeV
-ice_cube_limit[:, 1] = 10**ice_cube_limit[:, 1] * (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
+ice_cube_limit[:, 0] = 10 ** ice_cube_limit[:, 0] * units.GeV
+ice_cube_limit[:, 1] = 10 ** ice_cube_limit[:, 1] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 ice_cube_limit[:, 1] *= energyBinsPerDecade
 
 # Fig. 2 from PoS ICRC2017 (2018) 981
@@ -135,44 +135,39 @@ ice_cube_limit[:, 1] *= energyBinsPerDecade
 # ice_cube_hese[:, 3] = ice_cube_hese[:, 3] * (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
 # ice_cube_hese[:, 3] *= 3
 
-
 # HESE 8 years
-#log(E (GeV)); log(E^2 dN/dE (GeV cm^-2 s-1 sr-1)); format x y -dy +dy
+# log(E (GeV)); log(E^2 dN/dE (GeV cm^-2 s-1 sr-1)); format x y -dy +dy
 ice_cube_hese = np.array(([
-(4.78516,	-7.63256,		0.223256,	0.167442),
-(5.10938,	-7.66977,		0.139535,	0.102326),
-(5.42969,	-8.36744,		0.930233,	0.297674),
-(5.75391,	-8.51628,		0.2,       	0.	),
-(6.07813,	-8.38605,		0.604651,	0.288372),
-(6.39844,	-8.35814,		0.455814,	0.334884),
-(6.72266,	-9.0,    		0.2 ,    	0)
+(4.78516, 	 -7.63256, 		0.223256, 	0.167442),
+(5.10938, 	 -7.66977, 		0.139535, 	0.102326),
+(5.42969, 	 -8.36744, 		0.930233, 	0.297674),
+(5.75391, 	 -8.51628, 		0.2, 	0.),
+(6.07813, 	 -8.38605, 		0.604651, 	0.288372),
+(6.39844, 	 -8.35814, 		0.455814, 	0.334884),
+(6.72266, 	 -9.0, 		0.2 , 	0)
 ]))
 
 # get uncertainties in right order
-ice_cube_hese[:, 2] = 10**ice_cube_hese[:, 1] - 10**(ice_cube_hese[:, 1]-ice_cube_hese[:, 2])
-ice_cube_hese[:, 3] = 10**(ice_cube_hese[:, 1]+ice_cube_hese[:, 3]) - 10**ice_cube_hese[:, 1]
+ice_cube_hese[:, 2] = 10 ** ice_cube_hese[:, 1] - 10 ** (ice_cube_hese[:, 1] - ice_cube_hese[:, 2])
+ice_cube_hese[:, 3] = 10 ** (ice_cube_hese[:, 1] + ice_cube_hese[:, 3]) - 10 ** ice_cube_hese[:, 1]
 
-
-ice_cube_hese[:, 0] = 10**ice_cube_hese[:, 0] * units.GeV
-ice_cube_hese[:, 1] = 10**ice_cube_hese[:, 1] * (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
+ice_cube_hese[:, 0] = 10 ** ice_cube_hese[:, 0] * units.GeV
+ice_cube_hese[:, 1] = 10 ** ice_cube_hese[:, 1] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 ice_cube_hese[:, 1] *= 3
 
-ice_cube_hese[:, 2] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
-ice_cube_hese[:, 2] *=  3
+ice_cube_hese[:, 2] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+ice_cube_hese[:, 2] *= 3
 
-ice_cube_hese[:, 3] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
+ice_cube_hese[:, 3] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 ice_cube_hese[:, 3] *= 3
-
-
-
 
 # Ice cube
 
 
 def ice_cube_nu_fit(energy, slope=-2.19, offset=1.01):
     # ApJ slope=-2.13, offset=0.9
-    flux = 3 * offset * (energy / (100 * units.TeV))**slope * 1e-18 * \
-        (units.GeV**-1 * units.cm**-2 * units.second**-1 * units.sr**-1)
+    flux = 3 * offset * (energy / (100 * units.TeV)) ** slope * 1e-18 * \
+        (units.GeV ** -1 * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
     return flux
 
 
@@ -180,13 +175,13 @@ def get_ice_cube_mu_range():
     energy = np.arange(1e5, 5e6, 1e5) * units.GeV
 #     upper = np.maximum(ice_cube_nu_fit(energy, offset=0.9, slope=-2.), ice_cube_nu_fit(energy, offset=1.2, slope=-2.13)) # APJ
     upper = np.maximum(ice_cube_nu_fit(energy, offset=1.01, slope=-2.09),
-                    ice_cube_nu_fit(energy, offset=1.27, slope=-2.19),ice_cube_nu_fit(energy, offset=1.27, slope=-2.09)) # ICRC
-    upper *= energy**2
+                    ice_cube_nu_fit(energy, offset=1.27, slope=-2.19), ice_cube_nu_fit(energy, offset=1.27, slope=-2.09))  # ICRC
+    upper *= energy ** 2
 #     lower = np.minimum(ice_cube_nu_fit(energy, offset=0.9, slope=-2.26),
 #                        ice_cube_nu_fit(energy, offset=0.63, slope=-2.13)) #ApJ
     lower = np.minimum(ice_cube_nu_fit(energy, offset=1.01, slope=-2.29),
-                       ice_cube_nu_fit(energy, offset=0.78, slope=-2.19)) #ICRC
-    lower *= energy**2
+                       ice_cube_nu_fit(energy, offset=0.78, slope=-2.19))  # ICRC
+    lower *= energy ** 2
     return energy, upper, lower
 
 
@@ -194,31 +189,30 @@ def get_ice_cube_hese_range():
     energy = np.arange(1e5, 5e6, 1e5) * units.GeV
     upper = np.maximum(ice_cube_nu_fit(energy, offset=2.46, slope=-2.63),
                        ice_cube_nu_fit(energy, offset=2.76, slope=-2.92))
-    upper *= energy**2
+    upper *= energy ** 2
     lower = np.minimum(ice_cube_nu_fit(energy, offset=2.46, slope=-3.25),
                        ice_cube_nu_fit(energy, offset=2.16, slope=-2.92))
-    lower *= energy**2
+    lower *= energy ** 2
     return energy, upper, lower
 
 
 # ANITA I - III
 # Phys. Rev. D 98, 022001 (2018)
 anita_limit = np.array(([
-    (9.94e17,	3.79e-14 * 9.94e17 / 1e9),
-    (2.37e18,	2.15e-15 * 2.37e18 / 1e9),
-    (5.19e18,	2.33e-16 * 5.19e18 / 1e9),
-    (1.10e19,	3.64e-17 * 1.10e19 / 1e9),
-    (3.55e19,	4.45e-18 * 3.55e19 / 1e9),
-    (1.11e20,	9.22e-19 * 1.11e20 / 1e9),
-    (4.18e20,	2.97e-19 * 4.18e20 / 1e9),
-    (9.70e20,	1.62e-19 * 9.70e20 / 1e9)
+    (9.94e17, 	3.79e-14 * 9.94e17 / 1e9),
+    (2.37e18, 	2.15e-15 * 2.37e18 / 1e9),
+    (5.19e18, 	2.33e-16 * 5.19e18 / 1e9),
+    (1.10e19, 	3.64e-17 * 1.10e19 / 1e9),
+    (3.55e19, 	4.45e-18 * 3.55e19 / 1e9),
+    (1.11e20, 	9.22e-19 * 1.11e20 / 1e9),
+    (4.18e20, 	2.97e-19 * 4.18e20 / 1e9),
+    (9.70e20, 	1.62e-19 * 9.70e20 / 1e9)
 ]))
 
 anita_limit[:, 0] *= units.eV
-anita_limit[:, 1] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
+anita_limit[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 anita_limit[:, 1] /= 2
 anita_limit[:, 1] *= energyBinsPerDecade
-
 
 # Auger neutrino limit
 # Auger 9 years, all flavour (x3)
@@ -233,7 +227,7 @@ auger_limit = np.array(([
     (20.2476190476, 1.998499395e-06)
 ]))
 auger_limit[:, 0] = 10 ** auger_limit[:, 0] * units.eV
-auger_limit[:, 1] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
+auger_limit[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 auger_limit[:, 1] /= 2  # half-decade binning
 auger_limit[:, 1] *= energyBinsPerDecade
 
@@ -247,43 +241,41 @@ ara_1year = np.array((
 
 ara_1year = ara_1year.T
 
-ara_1year[:,0] *= units.eV
-ara_1year[:,1] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
-ara_1year[:,1] /= 2 #half-decade binning
-ara_1year[:,1] *= energyBinsPerDecade
+ara_1year[:, 0] *= units.eV
+ara_1year[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+ara_1year[:, 1] /= 2  # half-decade binning
+ara_1year[:, 1] *= energyBinsPerDecade
 
 # Ongoing analysis 2sta x 4yr *trigger* level projected limit (analysis
 # level not fully defined yet)
 
 ara_4year = np.array((
 
-[9.91245E+15,3.11814E+16,9.80021E+16,3.10745E+17,9.94099E+17,3.0936E+18,9.71449E+18,3.07805E+19,9.75192E+19],
+[9.91245E+15, 3.11814E+16, 9.80021E+16, 3.10745E+17, 9.94099E+17, 3.0936E+18, 9.71449E+18, 3.07805E+19, 9.75192E+19],
 # [1.01518E+16,1.01357E+17,1.01748E+18,1.0234E+19,1.03113E+20],
 # [7.27626e-06,5.06909e-07,2.13658e-07,2.02468e-07,4.46012e-07]
-[5.35394e-06,1.24309e-06,4.20315e-07,2.24199e-07,1.61582e-07,1.50329e-07,1.63715e-07,2.24543e-07,3.36398e-07]
+[5.35394e-06, 1.24309e-06, 4.20315e-07, 2.24199e-07, 1.61582e-07, 1.50329e-07, 1.63715e-07, 2.24543e-07, 3.36398e-07]
 ))
 
 ara_4year = ara_4year.T
 
-ara_4year[:,0] *= units.eV
-ara_4year[:,1] *= (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)
-ara_4year[:,1] /= 2 #half-decade binning
-ara_4year[:,1] *= energyBinsPerDecade
-
+ara_4year[:, 0] *= units.eV
+ara_4year[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+ara_4year[:, 1] /= 2  # half-decade binning
+ara_4year[:, 1] *= energyBinsPerDecade
 
 
 # get 10% proton flux
 def get_proton_10(energy):
     vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), "ReasonableNeutrinos1.txt"))
     E = vanVliet_reas[0, :] * plotUnitsEnergy
-    f = vanVliet_reas[1, :] * plotUnitsFlux / E**2
+    f = vanVliet_reas[1, :] * plotUnitsFlux / E ** 2
     from scipy.interpolate import interp1d
     getE = interp1d(E, f)
     return getE(energy)
 
 
-
-def get_E2_limit_figure(diffuse = True,
+def get_E2_limit_figure(diffuse=True,
                         show_ice_cube_EHE_limit=True,
                         show_ice_cube_HESE_data=True,
                         show_ice_cube_HESE_fit=True,
@@ -306,12 +298,12 @@ def get_E2_limit_figure(diffuse = True,
     # Version for a diffuse flux and for a source dominated flux
     if diffuse:
         Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_bands.out"))
-        best_fit, = ax.plot(Heinze_band[:, 0], Heinze_band[:, 1] * Heinze_band[:, 0]**2, c='k',
+        best_fit, = ax.plot(Heinze_band[:, 0], Heinze_band[:, 1] * Heinze_band[:, 0] ** 2, c='k',
                             label=r'Best fit UHECR, Heinze et al.', linestyle='-.')
 
         Heinze_evo = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_evolutions.out"))
-        best_fit_3s, = ax.plot(Heinze_evo[:, 0]*units.GeV/plotUnitsEnergy, Heinze_evo[:, 6] * Heinze_evo[:, 0] **
-                        2, color='0.5',label=r'Best fit UHECR + 3$\sigma$, Heinze et al.', linestyle='-.')
+        best_fit_3s, = ax.plot(Heinze_evo[:, 0] * units.GeV / plotUnitsEnergy, Heinze_evo[:, 6] * Heinze_evo[:, 0] **
+                        2, color='0.5', label=r'Best fit UHECR + 3$\sigma$, Heinze et al.', linestyle='-.')
 
         vanVliet_max_1 = np.loadtxt(os.path.join(os.path.dirname(__file__), "MaxNeutrinos1.txt"))
         vanVliet_max_2 = np.loadtxt(os.path.join(os.path.dirname(__file__), "MaxNeutrinos2.txt"))
@@ -319,19 +311,19 @@ def get_E2_limit_figure(diffuse = True,
 
         vanVliet_max = np.maximum(vanVliet_max_1[1, :], vanVliet_max_2[1, :])
 
-        prot10, = ax.plot(vanVliet_reas[0, :]*units.GeV/plotUnitsEnergy, vanVliet_reas[1, :],
+        prot10, = ax.plot(vanVliet_reas[0, :] * units.GeV / plotUnitsEnergy, vanVliet_reas[1, :],
                           label=r'10% protons in UHECRs, van Vliet et al.', linestyle='--', color='k')
 
-        prot = ax.fill_between(vanVliet_max_1[0,:]*units.GeV/plotUnitsEnergy,vanVliet_max,vanVliet_reas[1,:]/50,color='0.9',label=r'allowed from UHECRs, van Vliet et al.')
+        prot = ax.fill_between(vanVliet_max_1[0, :] * units.GeV / plotUnitsEnergy, vanVliet_max, vanVliet_reas[1, :] / 50, color='0.9', label=r'allowed from UHECRs, van Vliet et al.')
 
-        first_legend = plt.legend(handles=[best_fit, best_fit_3s, prot10, prot], loc=4,fontsize=legendfontsize, handlelength=4)
+        first_legend = plt.legend(handles=[best_fit, best_fit_3s, prot10, prot], loc=4, fontsize=legendfontsize, handlelength=4)
 
         plt.gca().add_artist(first_legend)
     else:
-        tde = np.loadtxt(os.path.join(os.path.dirname(__file__),"TDEneutrinos.txt"))
-        ll_grb = np.loadtxt(os.path.join(os.path.dirname(__file__),"LLGRBneutrinos.txt"))
-        pulsars = np.loadtxt(os.path.join(os.path.dirname(__file__),"Pulsar_Fang+_2014.txt"))
-        clusters = np.loadtxt(os.path.join(os.path.dirname(__file__),"cluster_Fang_Murase_2018.txt"))
+        tde = np.loadtxt(os.path.join(os.path.dirname(__file__), "TDEneutrinos.txt"))
+        ll_grb = np.loadtxt(os.path.join(os.path.dirname(__file__), "LLGRBneutrinos.txt"))
+        pulsars = np.loadtxt(os.path.join(os.path.dirname(__file__), "Pulsar_Fang+_2014.txt"))
+        clusters = np.loadtxt(os.path.join(os.path.dirname(__file__), "cluster_Fang_Murase_2018.txt"))
 
         # Fang & Metzger
         data_ns_merger = np.array((
@@ -352,21 +344,21 @@ def get_E2_limit_figure(diffuse = True,
         [1948716060.6917415, 1.358461111073226e-10],
         [2344547243.608689, 5.26053655617631e-11]))
 
-        data_ns_merger[:,0] *= units.GeV
-        data_ns_merger[:,1] *= units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1
+        data_ns_merger[:, 0] *= units.GeV
+        data_ns_merger[:, 1] *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
 
-        ns_merger, = ax.plot(data_ns_merger[:,0]/plotUnitsEnergy,data_ns_merger[:,1]/plotUnitsFlux,color='palevioletred',label='NS-NS merger, Fang & Metzger 1707.04263',linestyle=(0, (3, 5, 1, 5)))
+        ns_merger, = ax.plot(data_ns_merger[:, 0] / plotUnitsEnergy, data_ns_merger[:, 1] / plotUnitsFlux, color='palevioletred', label='NS-NS merger, Fang & Metzger 1707.04263', linestyle=(0, (3, 5, 1, 5)))
 
-        ax.fill_between(tde[:,0]*units.GeV/plotUnitsEnergy,tde[:,2]*3,tde[:,3]*3,color='thistle',alpha=0.5)
-        p_tde, = ax.plot(tde[:,0]*units.GeV/plotUnitsEnergy,tde[:,1]*3,label="TDE, Biehl et al. (1711.03555)", color='darkmagenta', linestyle=':',zorder=1)
+        ax.fill_between(tde[:, 0] * units.GeV / plotUnitsEnergy, tde[:, 2] * 3, tde[:, 3] * 3, color='thistle', alpha=0.5)
+        p_tde, = ax.plot(tde[:, 0] * units.GeV / plotUnitsEnergy, tde[:, 1] * 3, label="TDE, Biehl et al. (1711.03555)", color='darkmagenta', linestyle=':', zorder=1)
 
-        ax.fill_between(ll_grb[:,0]*units.GeV/plotUnitsEnergy,ll_grb[:,2]*3,ll_grb[:,3]*3, color='0.8')
-        p_ll_grb, = ax.plot(ll_grb[:,0]*units.GeV/plotUnitsEnergy,ll_grb[:,1]*3,label="LLGRB, Boncioli et al. (1808.07481)",linestyle='-.',c='k',zorder=1)
+        ax.fill_between(ll_grb[:, 0] * units.GeV / plotUnitsEnergy, ll_grb[:, 2] * 3, ll_grb[:, 3] * 3, color='0.8')
+        p_ll_grb, = ax.plot(ll_grb[:, 0] * units.GeV / plotUnitsEnergy, ll_grb[:, 1] * 3, label="LLGRB, Boncioli et al. (1808.07481)", linestyle='-.', c='k', zorder=1)
 
-        p_pulsar = ax.fill_between(pulsars[:,0]*units.GeV/plotUnitsEnergy,pulsars[:,1],pulsars[:,2],label="Pulsar, Fang et al. (1311.2044)",color='wheat',alpha=0.5)
-        p_cluster, = ax.plot(clusters[:,0]*units.GeV/plotUnitsEnergy,clusters[:,1],label="Clusters, Fang & Murase, (1704.00015)",color="olive",zorder=1,linestyle=(0, (5, 10)))
+        p_pulsar = ax.fill_between(pulsars[:, 0] * units.GeV / plotUnitsEnergy, pulsars[:, 1], pulsars[:, 2], label="Pulsar, Fang et al. (1311.2044)", color='wheat', alpha=0.5)
+        p_cluster, = ax.plot(clusters[:, 0] * units.GeV / plotUnitsEnergy, clusters[:, 1], label="Clusters, Fang & Murase, (1704.00015)", color="olive", zorder=1, linestyle=(0, (5, 10)))
 
-        first_legend = plt.legend(handles=[p_tde, p_ll_grb, p_pulsar,p_cluster,ns_merger], loc=3,fontsize=legendfontsize, handlelength=4)
+        first_legend = plt.legend(handles=[p_tde, p_ll_grb, p_pulsar, p_cluster, ns_merger], loc=3, fontsize=legendfontsize, handlelength=4)
 
         plt.gca().add_artist(first_legend)
 
@@ -377,36 +369,34 @@ def get_E2_limit_figure(diffuse = True,
         if energyBinsPerDecade == 2:
             ax.annotate('GRAND 10k',
                             xy=(1e10, 1.1e-7), xycoords='data',
-                            horizontalalignment='left', color='saddlebrown', rotation=40,fontsize=legendfontsize)
+                            horizontalalignment='left', color='saddlebrown', rotation=40, fontsize=legendfontsize)
         else:
             ax.annotate('GRAND 10k',
                 xy=(5e9, 7e-8), xycoords='data',
-                horizontalalignment='left', color='saddlebrown', rotation=40,fontsize=legendfontsize)
-
-
+                horizontalalignment='left', color='saddlebrown', rotation=40, fontsize=legendfontsize)
 
     if show_grand_200k:
         ax.plot(GRAND_energy / plotUnitsEnergy, GRAND_200k / plotUnitsFlux, linestyle=":", color='saddlebrown')
         ax.annotate('GRAND 200k',
                     xy=(1e10, 6e-9), xycoords='data',
-                    horizontalalignment='left', color='saddlebrown', rotation=40,fontsize=legendfontsize)
+                    horizontalalignment='left', color='saddlebrown', rotation=40, fontsize=legendfontsize)
     if show_radar:
         ax.fill_between(Radar[:, 0] / plotUnitsEnergy, Radar[:, 1] / plotUnitsFlux,
                         Radar[:, 2] / plotUnitsFlux, facecolor='None', hatch='x', edgecolor='0.8')
         ax.annotate('Radar',
                     xy=(1e9, 4.5e-8), xycoords='data',
-                    horizontalalignment='left', color='0.7', rotation=45,fontsize=legendfontsize)
+                    horizontalalignment='left', color='0.7', rotation=45, fontsize=legendfontsize)
 
     if show_ice_cube_EHE_limit:
         ax.plot(ice_cube_limit[:, 0] / plotUnitsEnergy, ice_cube_limit[:, 1] / plotUnitsFlux, color='dodgerblue')
         if energyBinsPerDecade == 2:
             ax.annotate('IceCube',
                     xy=(0.7e7, 4e-8), xycoords='data',
-                    horizontalalignment='center', color='dodgerblue', rotation=0,fontsize=legendfontsize)
+                    horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('IceCube',
                     xy=(4e6, 4e-8), xycoords='data',
-                    horizontalalignment='center', color='dodgerblue', rotation=0,fontsize=legendfontsize)
+                    horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
 
     if show_ice_cube_HESE_data:
         # data points
@@ -414,66 +404,63 @@ def get_E2_limit_figure(diffuse = True,
         uplimit[np.where(ice_cube_hese[:, 3] == 0)] = 1
         uplimit[np.where(ice_cube_hese[:, 3] != 0.)] = 0
 
-
-        ax.errorbar(ice_cube_hese[:, 0] / plotUnitsEnergy, ice_cube_hese[:, 1] / plotUnitsFlux, yerr=ice_cube_hese[:,2:].T / plotUnitsFlux, uplims=uplimit, color='dodgerblue', marker='o', ecolor='dodgerblue', linestyle='None',zorder=3)
-
+        ax.errorbar(ice_cube_hese[:, 0] / plotUnitsEnergy, ice_cube_hese[:, 1] / plotUnitsFlux, yerr=ice_cube_hese[:, 2:].T / plotUnitsFlux, uplims=uplimit, color='dodgerblue', marker='o', ecolor='dodgerblue', linestyle='None', zorder=3)
 
     if show_ice_cube_HESE_fit:
         ice_cube_hese_range = get_ice_cube_hese_range()
         ax.fill_between(ice_cube_hese_range[0] / plotUnitsEnergy, ice_cube_hese_range[1] / plotUnitsFlux,
-                        ice_cube_hese_range[2] / plotUnitsFlux, hatch='//', edgecolor='dodgerblue', facecolor='azure',zorder=2)
+                        ice_cube_hese_range[2] / plotUnitsFlux, hatch='//', edgecolor='dodgerblue', facecolor='azure', zorder=2)
         plt.plot(ice_cube_hese_range[0] / plotUnitsEnergy, ice_cube_nu_fit(ice_cube_hese_range[0],
-                                                                           offset=2.46, slope=-2.92) * ice_cube_hese_range[0]**2 / plotUnitsFlux, color='dodgerblue')
+                                                                           offset=2.46, slope=-2.92) * ice_cube_hese_range[0] ** 2 / plotUnitsFlux, color='dodgerblue')
 
     if show_ice_cube_mu:
         # mu fit
         ice_cube_mu_range = get_ice_cube_mu_range()
         ax.fill_between(ice_cube_mu_range[0] / plotUnitsEnergy, ice_cube_mu_range[1] / plotUnitsFlux,
-                        ice_cube_mu_range[2] / plotUnitsFlux, hatch='\\', edgecolor='dodgerblue', facecolor='azure',zorder=2)
+                        ice_cube_mu_range[2] / plotUnitsFlux, hatch='\\', edgecolor='dodgerblue', facecolor='azure', zorder=2)
         plt.plot(ice_cube_mu_range[0] / plotUnitsEnergy,
-                 ice_cube_nu_fit(ice_cube_mu_range[0], offset=1.01, slope=-2.19) * ice_cube_mu_range[0]**2 / plotUnitsFlux,
+                 ice_cube_nu_fit(ice_cube_mu_range[0], offset=1.01, slope=-2.19) * ice_cube_mu_range[0] ** 2 / plotUnitsFlux,
                  color='dodgerblue')
 
         # Extrapolation
-        energy_placeholder =   np.array(([1e14,1e17]))*units.eV
+        energy_placeholder = np.array(([1e14, 1e17])) * units.eV
         plt.plot(energy_placeholder / plotUnitsEnergy,
-                 ice_cube_nu_fit(energy_placeholder, offset=1.01, slope=-2.19) * energy_placeholder**2 / plotUnitsFlux,
-                 color='dodgerblue',linestyle=':')
-
+                 ice_cube_nu_fit(energy_placeholder, offset=1.01, slope=-2.19) * energy_placeholder ** 2 / plotUnitsFlux,
+                 color='dodgerblue', linestyle=':')
 
     if show_anita_I_III_limit:
         ax.plot(anita_limit[:, 0] / plotUnitsEnergy, anita_limit[:, 1] / plotUnitsFlux, color='darkorange')
         if energyBinsPerDecade == 2:
             ax.annotate('ANITA I - III',
                         xy=(7e9, 1e-6), xycoords='data',
-                        horizontalalignment='left', color='darkorange',fontsize=legendfontsize)
+                        horizontalalignment='left', color='darkorange', fontsize=legendfontsize)
         else:
             ax.annotate('ANITA I - III',
                         xy=(7e9, 5e-7), xycoords='data',
-                        horizontalalignment='left', color='darkorange',fontsize=legendfontsize)
+                        horizontalalignment='left', color='darkorange', fontsize=legendfontsize)
 
     if show_auger_limit:
         ax.plot(auger_limit[:, 0] / plotUnitsEnergy, auger_limit[:, 1] / plotUnitsFlux, color='forestgreen')
         if energyBinsPerDecade == 2:
             ax.annotate('Auger',
                         xy=(1.1e8, 2.1e-7), xycoords='data',
-                        horizontalalignment='left', color='forestgreen', rotation=0,fontsize=legendfontsize)
+                        horizontalalignment='left', color='forestgreen', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('Auger',
                         xy=(2e8, 6e-8), xycoords='data',
-                        horizontalalignment='left', color='forestgreen', rotation=0,fontsize=legendfontsize)
+                        horizontalalignment='left', color='forestgreen', rotation=0, fontsize=legendfontsize)
 
     if show_ara:
-        ax.plot(ara_1year[:,0]/plotUnitsEnergy,ara_1year[:,1]/ plotUnitsFlux,color='indigo')
+        ax.plot(ara_1year[:, 0] / plotUnitsEnergy, ara_1year[:, 1] / plotUnitsFlux, color='indigo')
 #         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
         if energyBinsPerDecade == 2:
             ax.annotate('ARA',
                         xy=(5e8, 6e-7), xycoords='data',
-                        horizontalalignment='left', color='indigo', rotation=0,fontsize=legendfontsize)
+                        horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('ARA',
                     xy=(1e10, 1.05e-6), xycoords='data',
-                    horizontalalignment='left', color='indigo', rotation=0,fontsize=legendfontsize)
+                    horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
 
     ax.set_yscale('log')
     ax.set_xscale('log')
@@ -491,66 +478,67 @@ def get_E2_limit_figure(diffuse = True,
     plt.tight_layout()
     return fig, ax
 
-def add_limit(ax, limit_labels, E, Veff, n_stations, label, livetime=3*units.year, linestyle='-',color='r',linewidth=3,band=False):
+
+def add_limit(ax, limit_labels, E, Veffsr, n_stations, label, livetime=3 * units.year, linestyle='-', color='r', linewidth=3, band=False):
+    """
+    add limit curve to limit plot
+    """
     E = np.array(E)
-    Veff = np.array(Veff)
+    Veffsr = np.array(Veffsr)
 
     if band:
 
-        limit_lower = fluxes.get_limit_e2_flux(energy = E,
-                                         veff = Veff[0],
-                                         livetime = livetime,
-                                         signalEff = n_stations,
+        limit_lower = fluxes.get_limit_e2_flux(energy=E,
+                                         veff_sr=Veffsr[0],
+                                         livetime=livetime,
+                                         signalEff=n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
                                          nuCrsScn='ctw')
-        limit_upper = fluxes.get_limit_e2_flux(energy = E,
-                                         veff = Veff[1],
-                                         livetime = livetime,
-                                         signalEff = n_stations,
+        limit_upper = fluxes.get_limit_e2_flux(energy=E,
+                                         veff_sr=Veffsr[1],
+                                         livetime=livetime,
+                                         signalEff=n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
                                          nuCrsScn='ctw')
 
-        plt1 = ax.fill_between(E/plotUnitsEnergy,limit_upper/ plotUnitsFlux,
-        limit_lower/plotUnitsFlux,color=color,alpha=0.2)
+        plt1 = ax.fill_between(E / plotUnitsEnergy, limit_upper / plotUnitsFlux,
+        limit_lower / plotUnitsFlux, color=color, alpha=0.2)
 
     else:
 
-        limit = fluxes.get_limit_e2_flux(energy = E,
-                                         veff = Veff,
-                                         livetime = livetime,
-                                         signalEff = n_stations,
+        limit = fluxes.get_limit_e2_flux(energy=E,
+                                         veff_sr=Veffsr,
+                                         livetime=livetime,
+                                         signalEff=n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
                                          nuCrsScn='ctw')
 
-        print(E/plotUnitsEnergy,limit/ plotUnitsFlux)
+        print(E / plotUnitsEnergy, limit / plotUnitsFlux)
 
     #         _plt, = ax.plot(E/plotUnitsEnergy,limit/ plotUnitsFlux, linestyle=linestyle, color=color,
     #                         label="{2}: {0} stations, {1} years".format(n_stations,int(livetime/units.year),label),
     #                         linewidth=linewidth)
-        _plt, = ax.plot(E/plotUnitsEnergy,limit/ plotUnitsFlux, linestyle=linestyle, color=color,
-                        label="{1}: {0} years".format(int(livetime/units.year),label),
+        _plt, = ax.plot(E / plotUnitsEnergy, limit / plotUnitsFlux, linestyle=linestyle, color=color,
+                        label="{1}: {0} years".format(int(livetime / units.year), label),
                         linewidth=linewidth)
 
         limit_labels.append(_plt)
 
-
     return limit_labels
 
 
-
-
-if __name__=="__main__":
+if __name__ == "__main__":
     # 50 meter
     veff = np.array((
     [1e+16, 3.162277660168379e+16, 1e+17, 3.1622776601683795e+17, 1e+18, 3.1622776601683794e+18, 1e+19, 3.162277660168379e+19],
     [0.007467602898257461, 0.06986834193426224, 0.5333379226865426, 2.1410489793474383, 5.896654567671568, 11.343574036186226, 18.415350759353128, 27.81614390854279]
     )).T
 
-    veff[:,0] *= units.eV
-    veff[:,1] *= units.km**3 * units.sr
+    veff[:, 0] *= units.eV
+    veff[:, 1] *= units.km ** 3 * units.sr
     veff_label = 'One current design'
 
 #     strawman_veff_pa = np.array(( [1.00000000e+16, 3.16227766e+16, 1.00000000e+17, 3.16227766e+17, 1.00000000e+18, 3.16227766e+18, 1.00000000e+19, 3.16227766e+19],
@@ -562,9 +550,9 @@ if __name__=="__main__":
 #     strawman_pa_label = 'Strawman + PA@15m@2s'
 #     strawman_pa_label = 'One current design'
     fig, ax = get_E2_limit_figure(diffuse=DIFFUSE)
-    labels =[]
-    labels = add_limit(ax, labels, veff[:,0],veff[:,1], n_stations = 100, livetime=5*units.year, label= veff_label)
-    labels = add_limit(ax, labels, veff[:,0],veff[:,1], n_stations = 1000, livetime=5*units.year, label= veff_label)
+    labels = []
+    labels = add_limit(ax, labels, veff[:, 0], veff[:, 1], n_stations=100, livetime=5 * units.year, label=veff_label)
+    labels = add_limit(ax, labels, veff[:, 0], veff[:, 1], n_stations=1000, livetime=5 * units.year, label=veff_label)
     plt.legend(handles=labels, loc=2)
     if DIFFUSE:
         name_plot = "Limit_diffuse.pdf"

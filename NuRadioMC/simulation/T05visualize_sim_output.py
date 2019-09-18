@@ -93,6 +93,16 @@ ax.set_title(trigger_name)
 fig.tight_layout()
 fig.savefig(os.path.join(plot_folder, 'neutrino_direction.png'))
 
+czen = np.cos(np.array(fin['zeniths'])[triggered])
+bins = np.linspace(-1, 1, 21)
+fig, ax = php.get_histogram(czen, weights=weights,
+                            ylabel='weighted entries', xlabel='cos(zenith angle)',
+                            bins=bins, figsize=(6, 6))
+# ax.set_xticks(np.arange(0, 181, 45))
+ax.set_title(trigger_name)
+fig.tight_layout()
+fig.savefig(os.path.join(plot_folder, 'neutrino_direction_cos.png'))
+
 ###########################
 # calculate sky coverage of 90% quantile
 ###########################
