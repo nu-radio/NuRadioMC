@@ -340,13 +340,13 @@ class simulation():
             cherenkov_angle = np.arccos(1. / n_index)
 
             self._evt = NuRadioReco.framework.event.Event(0, self._event_id)
-            candidate_event = False
 
             # first step: peorform raytracing to see if solution exists
             t2 = time.time()
             inputTime += (time.time() - t1)
 
             for iSt, self._station_id in enumerate(self._station_ids):
+                candidate_station = False
                 self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
 #                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
                 self._n_samples = self._det.get_number_of_samples(self._station_id, 0) / self._sampling_rate_detector / self._dt
@@ -522,13 +522,13 @@ class simulation():
                         # application of antenna response will just decrease the
                         # signal amplitude
                         if(np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield):
-                            candidate_event = True
+                            candidate_station = True
 
                 t3 = time.time()
                 rayTracingTime += t3 - t2
                 # perform only a detector simulation if event had at least one
                 # candidate channel
-                if(not candidate_event):
+                if(not candidate_station):
                     logger.debug("electric field amplitude too small in all channels, skipping to next event")
                     continue
                 logger.debug("performing detector simulation")
