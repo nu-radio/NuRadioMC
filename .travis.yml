@@ -30,8 +30,10 @@ before_script:
 jobs:
   include:
     - stage: "Test one single event"
-      name: "Single event test"
+      name: "Single event test (South Pole)"
       script: NuRadioMC/test/SingleEvents/test_build.sh
+    - script: NuRadioMC/test/SingleEvents/validate_MB.sh
+      name: "Single event test (Moore's Bay)"
     - stage: "Test individual components"
       name: "Signal generation test"
       script: NuRadioMC/test/SignalGen/test_build.sh
