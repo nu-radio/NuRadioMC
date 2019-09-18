@@ -224,17 +224,8 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
                     As = np.array(fin['max_amp_ray_solution'])
                     max_amps = np.argmax(As[:, values['ray_channel']], axis=-1)
                     sol = np.array(fin['ray_tracing_solution_type'])
-    #                 print(sol[:,values['ray_channel']][max_amps].shape)
-    #                 print(max_amps.shape)
-    #                 a = 1/0
                     mask = np.array([sol[i, values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=np.bool)
                     triggered = triggered & mask
-
-                if('n_reflections' in values.keys()):
-                    As = np.array(fin['max_amp_ray_solution'])
-                    max_amps = np.argmax(np.argmax(As[:, :], axis=-1), axis=-1)
-                    print(max_amps.shape)
-                    triggered = triggered & (np.array(fin[f'station_{station:d}/ray_tracing_reflection'])[:, 0, 0] == values['n_reflections'])
 
                 Aeff = area * np.sum(weights[triggered]) / n_events
 

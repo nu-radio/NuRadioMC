@@ -246,9 +246,6 @@ class simulation():
         elif(Vrms is not None):
             self._Vrms = float(Vrms) * units.V
             self._Tnoise = None
-#             Vrms_before_amplification = self._Vrms / amplification
-#             Tnoise = self._Vrms**2  /amplification / (50 * constants.k * self._bandwidth / units.Hz)
-#             logger.warning(f"setting Vrms to {self._Vrms/units.mV:.2g}mV, bandwidth/amplification of the system is {self._bandwidth/units.MHz:.2g}MHz -> noise temperature = {Tnoise:.0f}K")
         else:
             raise AttributeError(f"noise temperature and Vrms are both set to None")
 
@@ -290,8 +287,6 @@ class simulation():
                         self._iE, self._n_events, np.sum(self._mout['triggered']), 100. * self._iE / self._n_events, eta, 100. * (rayTracingTime - askaryan_time) / total_time,
                         100. * time_attenuation_length / (rayTracingTime - askaryan_time),
                         100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*inputTime / total_time))
-#             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 10000.)) == 0):
-#                 print("*", end='')
 
             # read all quantities from hdf5 file and store them in local variables
             self._read_input_neutrino_properties()
@@ -342,7 +337,6 @@ class simulation():
             candidate_event = False
 
             # first step: peorform raytracing to see if solution exists
-            # print("start raytracing. time: " + str(time.time()))
             t2 = time.time()
             inputTime += (time.time() - t1)
 
@@ -378,7 +372,6 @@ class simulation():
                     if(not r.has_solution()):
                         logger.debug("event {} and station {}, channel {} does not have any ray tracing solution ({} to {})".format(
                             self._event_id, self._station_id, channel_id, x1, x2))
-#                         self._add_empty_electric_field(channel_id)
                         continue
                     delta_Cs = []
                     viewing_angles = []
@@ -402,7 +395,6 @@ class simulation():
                     # discard event if delta_C (angle off cherenkov cone) is too large
                     if(min(np.abs(delta_Cs)) > self._cfg['speedup']['delta_C_cut']):
                         logger.debug('delta_C too large, event unlikely to be observed, skipping event')
-#                         self._add_empty_electric_field(channel_id)
                         continue
 
                     n = r.get_number_of_solutions()
@@ -468,7 +460,6 @@ class simulation():
                             *polarization_direction_at_antenna))
                         sg['polarization'][self._iE, channel_id, iS] = polarization_direction_at_antenna
                         eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
-            #             print("{} {:.2f} {:.0f}".format(polarization_direction_onsky, np.linalg.norm(polarization_direction_onsky), np.arctan2(np.abs(polarization_direction_onsky[1]), np.abs(polarization_direction_onsky[2])) / units.deg))
 
                         # in case of a reflected ray we need to account for fresnel
                         # reflection at the surface
@@ -527,7 +518,6 @@ class simulation():
                         if(np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield):
                             candidate_event = True
 
-                # print("start detector simulation. time: " + str(time.time()))
                 t3 = time.time()
                 rayTracingTime += t3 - t2
                 # perform only a detector simulation if event had at least one
@@ -603,7 +593,6 @@ class simulation():
         for efield in self._station.get_sim_station().get_electric_fields():
             for channel_id, maximum in iteritems(efield[efp.max_amp_antenna]):
                 sg['max_amp_ray_solution'][self._iE, channel_id, ch_counter[channel_id]] = maximum
-#                 print(f"efield {ch_counter[channel_id]} for channel {channel_id}")
                 ch_counter[channel_id] += 1
 
     def _is_in_fiducial_volume(self):
@@ -806,15 +795,6 @@ class simulation():
         self._sim_station[stnp.nu_inttype] = self._inttype
         self._sim_station[stnp.nu_vertex] = np.array([self._x, self._y, self._z])
         self._sim_station[stnp.inelasticity] = self._inelasticity
-
-    def _add_empty_electric_field(self, channel_id):
-        electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id])
-        electric_field.set_frequency_spectrum(np.zeros((3, len(self._ff)), dtype=np.complex), 1. / self._dt)
-        electric_field[efp.azimuth] = 0
-        electric_field[efp.zenith] = 180 * units.deg
-        electric_field[efp.ray_path_type] = 'none'
-        electric_field.set_trace_start_time(np.nan)
-        self._sim_station.add_electric_field(electric_field)
 
     def _write_ouput_file(self):
         folder = os.path.dirname(self._outputfilename)
