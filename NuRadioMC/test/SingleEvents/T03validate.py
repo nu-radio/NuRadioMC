@@ -51,7 +51,6 @@ for key in attributes:
         print(e)
         error = -1
 
-
 keys = [u'azimuths',
  u'energies',
  u'event_ids',
@@ -72,8 +71,7 @@ for key in keys:
         print("\narray {} not equal".format(key))
         print(e)
         error = -1
-        
-        
+
 keys = [
  u'weights']
 for key in keys:
@@ -83,7 +81,6 @@ for key in keys:
         print("\narray {} not equal".format(key))
         print(e)
         error = -1
-
 
 keys2 = [u'SNRs',
  u'maximum_amplitudes',
@@ -96,7 +93,6 @@ for key in keys2:
         print("\narray {} of group station_101 not equal".format(key))
         print(e)
         error = -1
-
 
 keys2 = [
  u'multiple_triggers',
@@ -113,10 +109,10 @@ for key in keys2:
 
 keys2 = [
     u'travel_distances',
-    u'ray_tracing_C1',]
+    u'ray_tracing_C1', ]
 for key in keys2:
     try:
-        testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=1*units.mm)
+        testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=2 * units.mm)
 #         testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
     except AssertionError as e:
         print("\narray {} of group station_101 not equal".format(key))
@@ -127,7 +123,7 @@ keys2 = [
     u'travel_times']
 for key in keys2:
     try:
-        testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=10*units.ps)
+        testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=10 * units.ps)
 #         testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
     except AssertionError as e:
         print("\narray {} of group station_101 not equal".format(key))
@@ -148,7 +144,6 @@ for key in keys2:
         print(e)
         error = -1
 
-
 keys2 = [
  u'ray_tracing_C0'
  ]
@@ -161,12 +156,8 @@ for key in keys2:
         print(e)
         error = -1
 
-
-
 if(error == -1):
     sys.exit(error)
 else:
     print("The two hdf5 files are identical.")
-
-
 
