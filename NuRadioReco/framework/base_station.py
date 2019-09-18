@@ -232,7 +232,7 @@ class BaseStation():
         for trigger in self._triggers.values():
             trigger_pkls.append(trigger.serialize())
         efield_pkls = []
-        if(mode != 'micro'):
+        if(mode == 'full'):
             for efield in self.get_electric_fields():
                 efield_pkls.append(efield.serialize(self))
         data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),

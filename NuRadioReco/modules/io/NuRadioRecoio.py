@@ -63,7 +63,7 @@ class NuRadioRecoio(object):
                 logger.debug("more than {} file are open, closing oldest file".format(self.__max_open_files))
                 tnow = time.time()
                 iF_close = 0
-                for key, value in self.__open_files.iteritems():
+                for key, value in self.__open_files.items():
                     if(value['time'] < tnow):
                         tnow = value['time']
                         iF_close = key
@@ -82,7 +82,7 @@ class NuRadioRecoio(object):
                 raise IOError
         if(self.__file_version_minor != VERSION_MINOR):
             logger.error("data file might not readable. File has version {}.{} but current version is {}.{}".format(self.__file_version, self.__file_version_minor,
-                                                                                                              VERSION, VERSION_MINOR))
+                                                                                                                    VERSION, VERSION_MINOR))
             if(self.__fail_on_minor_version_mismatch):
                 raise IOError
         self.__scan_files = NuRadioReco.modules.io.event_parser_factory.scan_files_function(self.__file_version, self.__file_version_minor)

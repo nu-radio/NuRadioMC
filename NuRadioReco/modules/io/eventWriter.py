@@ -56,6 +56,7 @@ class eventWriter:
         self.__stored_channels = []
         self.__header_written = False   #Remember if we still have to write the current file header
 
+    @register_run()
     def run(self, evt, det = None, mode='full'):
         """
         writes NuRadioReco event into a file

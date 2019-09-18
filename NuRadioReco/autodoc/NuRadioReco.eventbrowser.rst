@@ -1,5 +1,5 @@
-NuRadioReco.eventbrowser package
-================================
+NuRadioReco\.eventbrowser package
+=================================
 
 Subpackages
 -----------
@@ -11,24 +11,32 @@ Subpackages
 Submodules
 ----------
 
-NuRadioReco.eventbrowser.app module
------------------------------------
+NuRadioReco\.eventbrowser\.app module
+-------------------------------------
 
 .. automodule:: NuRadioReco.eventbrowser.app
     :members:
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.eventbrowser.dataprovider module
---------------------------------------------
+NuRadioReco\.eventbrowser\.dataprovider module
+----------------------------------------------
 
 .. automodule:: NuRadioReco.eventbrowser.dataprovider
     :members:
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.eventbrowser.index module
--------------------------------------
+NuRadioReco\.eventbrowser\.default\_layout module
+-------------------------------------------------
+
+.. automodule:: NuRadioReco.eventbrowser.default_layout
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+NuRadioReco\.eventbrowser\.index module
+---------------------------------------
 
 .. automodule:: NuRadioReco.eventbrowser.index
     :members:

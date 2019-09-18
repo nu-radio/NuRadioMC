@@ -1,6 +1,5 @@
 import numpy as np
 from NuRadioReco.modules import channelGenericNoiseAdder
-from NuRadioReco.detector.ARIANNA import analog_components
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.modules.trigger.highLowThreshold import get_high_low_triggers
 
@@ -8,7 +7,7 @@ from NuRadioReco.modules.trigger.highLowThreshold import get_high_low_triggers
 class thermalNoiseGenerator():
 
     def __init__(self, n_samples, sampling_rate, Vrms, threshold, time_coincidence, n_majority, time_coincidence_majority,
-                 n_channels, trigger_time, noise_type="rayleigh", amp_type="100"):
+                 n_channels, trigger_time, filt, noise_type="rayleigh"):
         """
         Efficient algorithms to generate thermal noise fluctuations that fulfill a high/low trigger + a majority 
         coincidence logic (as used by ARIANNA)
@@ -33,6 +32,8 @@ class thermalNoiseGenerator():
             number of channels to generate
         trigger_time: float
             the trigger time (time when the trigger completes)
+        filt: array of floats
+            the filter that should be applied after noise generation (needs to match frequency binning)
         noise_type: string
             the type of the noise, can be
             * "rayleigh" (default)
@@ -54,13 +55,13 @@ class thermalNoiseGenerator():
         self.max_freq = 0.5 * self.sampling_rate
         self.dt = 1. / self.sampling_rate
         self.ff = np.fft.rfftfreq(self.n_samples, 1. / self.sampling_rate)
-        self.amp = analog_components.get_amplifier_response(self.ff, amp_type)
+        self.filt = filt
         
         self.trigger_bin = int(self.trigger_time / self.dt)
         self.trigger_bin_low = int((self.trigger_time - self.time_coincidence_majority) / self.dt)
         
-        self.norm = np.trapz(np.abs(self.amp) ** 2, self.ff) ** 0.5
-        self.amplitude = (self.max_freq - self.min_freq) / self.norm * self.Vrms
+        self.norm = np.trapz(np.abs(self.filt) ** 2, self.ff)
+        self.amplitude = (self.max_freq - self.min_freq)**0.5 / self.norm**0.5 * self.Vrms
         
         self.noise = channelGenericNoiseAdder.channelGenericNoiseAdder()
     
@@ -76,7 +77,7 @@ class thermalNoiseGenerator():
             while n_traces[iCh] is None:
                 spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples, self.sampling_rate,
                                                     self.amplitude, self.noise_type, time_domain=False)
-                spec *= self.amp
+                spec *= self.filt
                 trace = fft.freq2time(spec)
                 if(np.any(trace > self.threshold) and np.any(trace < -self.threshold)):
                     triggered_bins = get_high_low_triggers(trace, self.threshold, -self.threshold, self.time_coincidence, self.dt)
@@ -88,7 +89,7 @@ class thermalNoiseGenerator():
                             tmp = np.random.randint(self.trigger_bin_low, self.trigger_bin)
                             n_traces[iCh] = np.roll(trace, tmp - np.argwhere(triggered_bins == True)[0])
         traces = np.zeros((self.n_channels, self.n_samples))
-        rnd_iterator = range(self.n_channels)
+        rnd_iterator = list(range(self.n_channels))
         np.random.shuffle(rnd_iterator)
         for i, iCh in enumerate(rnd_iterator):
             if(i < self.n_majority):
@@ -96,6 +97,6 @@ class thermalNoiseGenerator():
             else:
                 spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples, self.sampling_rate,
                                                     self.amplitude, type=self.noise_type, time_domain=False)
-                spec *= self.amp
+                spec *= self.filt
                 traces[iCh] = fft.freq2time(spec)
         return traces

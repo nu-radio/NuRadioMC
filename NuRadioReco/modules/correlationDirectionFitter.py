@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from NuRadioReco.modules.base.module import register_run
 from scipy import signal, fftpack
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,6 +31,7 @@ class correlationDirectionFitter:
             logger.setLevel(log_level)
         self.__debug = debug
 
+    @register_run()
     def run(self, evt, station, det, n_index=None, ZenLim=[0 * units.deg, 90 * units.deg],
             AziLim=[0 * units.deg, 360 * units.deg],
             channel_pairs=((0, 2), (1, 3)),
@@ -74,7 +76,7 @@ class correlationDirectionFitter:
 
             delta_t_02 = times[0][1] - times[0][0]
             delta_t_13 = times[1][1] - times[1][0]
-            #take different trace start times into account
+            # take different trace start times into account
             delta_t_02 -= (trace_start_times[0][1] - trace_start_times[0][0])
             delta_t_13 -= (trace_start_times[1][1] - trace_start_times[1][0])
             delta_t_02 *= sampling_rate
@@ -113,8 +115,8 @@ class correlationDirectionFitter:
                 tmp.append(geo_utl.get_time_delay_from_direction(zenith, azimuth, pos[1], n=n_index) * sampling_rate)
                 times.append(tmp)
 
-            delta_t_02 = (times[0][1] + trace_start_times[0][1]*sampling_rate) - (times[0][0] + trace_start_times[0][0]*sampling_rate)
-            delta_t_13 = (times[1][1] + trace_start_times[1][1]*sampling_rate) - (times[1][0] + trace_start_times[1][0]*sampling_rate)
+            delta_t_02 = (times[0][1] + trace_start_times[0][1] * sampling_rate) - (times[0][0] + trace_start_times[0][0] * sampling_rate)
+            delta_t_13 = (times[1][1] + trace_start_times[1][1] * sampling_rate) - (times[1][0] + trace_start_times[1][0] * sampling_rate)
 
             if delta_t_02 < 0:
                 pos_02 = int(delta_t_02 + corr_02_fft.shape[0])
@@ -161,8 +163,6 @@ class correlationDirectionFitter:
                                            np.abs(signal.hilbert(station.get_channel(channel_pairs[0][1]).get_trace())))
                 corr_13 = signal.correlate(np.abs(signal.hilbert(station.get_channel(channel_pairs[1][0]).get_trace())),
                                            np.abs(signal.hilbert(station.get_channel(channel_pairs[1][1]).get_trace())))
-                        
-                        
 
         else:
             # FFT convolution
@@ -203,7 +203,7 @@ class correlationDirectionFitter:
 
             delta_t_02 = times[0][1] - times[0][0]
             delta_t_13 = times[1][1] - times[1][0]
-            #take different trace start times into account
+            # take different trace start times into account
             delta_t_02 -= (trace_start_time_pairs[0][1] - trace_start_time_pairs[0][0])
             delta_t_13 -= (trace_start_time_pairs[1][1] - trace_start_time_pairs[1][0])
             delta_t_02 *= sampling_rate
@@ -227,7 +227,7 @@ class correlationDirectionFitter:
 #             print("offset 13= {:.3f}".format(toffset[indices[imax]] -  (delta_t_13 / sampling_rate)))
 
             ax2.axvline(delta_t_13 / sampling_rate, label='time', c='k')
-            
+
             ax2.set_xlabel("time")
             ax2.set_ylabel("Correlation Ch 1/ Ch3", fontsize='small')
             ax.set_ylabel("Correlation Ch 0/ Ch2", fontsize='small')
@@ -251,16 +251,16 @@ class correlationDirectionFitter:
                     sim_az.append(efield[efp.azimuth])
                 sim_zen = np.array(sim_zen)
                 sim_az = hp.get_normalized_angle(np.array(sim_az))
-                ops = "average incident zenith {:.1f} +- {:.1f}".format(np.mean(sim_zen) /units.deg, np.std(sim_zen)/units.deg)
+                ops = "average incident zenith {:.1f} +- {:.1f}".format(np.mean(sim_zen) / units.deg, np.std(sim_zen) / units.deg)
                 ops += " (individual: "
                 for x in sim_zen:
-                    ops += "{:.1f}, ".format(x/units.deg)
+                    ops += "{:.1f}, ".format(x / units.deg)
                 ops += ")"
                 logger.debug(ops)
-                ops = "average incident azimuth {:.1f} +- {:.1f}".format(np.mean(sim_az) /units.deg, np.std(sim_az)/units.deg)
+                ops = "average incident azimuth {:.1f} +- {:.1f}".format(np.mean(sim_az) / units.deg, np.std(sim_az) / units.deg)
                 ops += " (individual: "
                 for x in sim_az:
-                    ops += "{:.1f}, ".format(x/units.deg)
+                    ops += "{:.1f}, ".format(x / units.deg)
                 ops += ")"
 
                 logger.debug(ops)

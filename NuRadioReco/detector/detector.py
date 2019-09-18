@@ -43,7 +43,7 @@ def buffer_db(in_memory, filename=None):
         db = TinyDB(filename, storage=serialization, sort_keys=True, indent=4, separators=(',', ': '))
     db.purge()
 
-    import detector_sql
+    from NuRadioReco.detector import detector_sql
     sqldet = detector_sql.Detector()
     results = sqldet.get_everything_stations()
     table_stations = db.table('stations')

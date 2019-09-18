@@ -1,17 +1,12 @@
-NuRadioReco.modules.custom package
-==================================
+NuRadioReco\.modules\.custom package
+====================================
 
-Submodules
-----------
+Subpackages
+-----------
 
-NuRadioReco.modules.custom.horizontalDirectionFitter module
------------------------------------------------------------
+.. toctree::
 
-.. automodule:: NuRadioReco.modules.custom.horizontalDirectionFitter
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+    NuRadioReco.modules.custom.deltaT
 
 Module contents
 ---------------

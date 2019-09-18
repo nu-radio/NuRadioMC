@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import fractions
 from scipy import signal
@@ -18,9 +19,10 @@ class channelResampler:
     def __init__(self):
         self.begin()
 
-    def begin(self, debug=False):
+    def begin(self, debug=False, log_level=logging.WARNING):
         self.__max_upsampling_factor = 5000
         self.__debug = debug
+        logger.setLevel(log_level)
 
         """
         Begin the channelResampler
@@ -33,7 +35,7 @@ class channelResampler:
 
         """
 
-
+    @register_run()
     def run(self, evt, station, det, sampling_rate):
         """
         Run the channelResampler
