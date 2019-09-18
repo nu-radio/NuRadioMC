@@ -692,19 +692,24 @@ class simulation():
         # we first create this data structure
         if('multiple_triggers' not in self._mout):
             self._mout['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-            sg = self._mout_groups[self._station_id]
-            sg['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            for station_id in self._station_ids:
+                sg = self._mout_groups[station_id]
+                sg['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+#            sg = self._mout_groups[self._station_id]
+#            sg['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
         elif(extend_array):
             tmp = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             nx, ny = self._mout['multiple_triggers'].shape
             tmp[:, 0:ny] = self._mout['multiple_triggers']
             self._mout['multiple_triggers'] = tmp
 
-            sg = self._mout_groups[self._station_id]
-            tmp = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-            nx, ny = sg['multiple_triggers'].shape
-            tmp[:, 0:ny] = sg['multiple_triggers']
-            sg['multiple_triggers'] = tmp
+            for station_id in self._station_ids:
+            #sg = self._mout_groups[self._station_id]
+                sg = self._mout_groups[station_id]
+                tmp = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+                nx, ny = sg['multiple_triggers'].shape
+                tmp[:, 0:ny] = sg['multiple_triggers']
+                sg['multiple_triggers'] = tmp
 
     def _save_triggers_to_hdf5(self):
 
