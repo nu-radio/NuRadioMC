@@ -560,9 +560,9 @@ def get_Veff_array(data):
     uzenith_bins = np.unique(zenith_bins, axis=0)
     utrigger_names = np.unique(trigger_names)
     output = np.zeros((len(uenergies), len(uzenith_bins), len(utrigger_names), 3))
-    print(f"unique energies {uenergies}")
-    print(f"unique zenith angle bins {uzenith_bins/units.deg}")
-    print(f"unique energies {utrigger_names}")
+#     print(f"unique energies {uenergies}")
+#     print(f"unique zenith angle bins {uzenith_bins/units.deg}")
+#     print(f"unique energies {utrigger_names}")
 
     for d in data:
         iE = np.squeeze(np.argwhere(d['energy'] == uenergies))
