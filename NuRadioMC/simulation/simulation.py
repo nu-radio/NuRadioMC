@@ -588,6 +588,9 @@ class simulation():
                                                                                          100 * outputTime / t_total))
 
     def _is_simulate_noise(self):
+        """
+        returns True if noise should be added
+        """
         return bool(self._cfg['noise'])
 
     def _get_noise_normalization(self, station_id, channel_id=0):
