@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import h5py
 import numpy as np
 import NuRadioReco.framework.event
@@ -6,6 +7,7 @@ from NuRadioReco.modules.io.coreas import coreas
 
 import logging
 logger = logging.getLogger('readCoREASStation')
+
 
 class readCoREASStation:
 
@@ -26,6 +28,7 @@ class readCoREASStation:
         self.__station_id = station_id
         self.__current_input_file = 0
 
+    @register_run()
     def run(self, detector):
         """
         run method
@@ -56,7 +59,6 @@ class readCoREASStation:
                     station.set_sim_station(sim_station)
                     evt.set_station(station)
                     yield evt
-
 
     def end(self):
         pass

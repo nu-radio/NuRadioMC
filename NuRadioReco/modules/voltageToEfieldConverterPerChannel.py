@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from numpy.polynomial import polynomial as poly
 from scipy import signal
@@ -27,6 +28,7 @@ import logging
 logger = logging.getLogger('voltageToEfieldConverterPerChannel')
 logging.basicConfig()
 
+
 class voltageToEfieldConverterPerChannel:
     """
     Converts voltage trace to electric field per channel
@@ -42,6 +44,7 @@ class voltageToEfieldConverterPerChannel:
         self.antenna_provider = antennapattern.AntennaPatternProvider()
         pass
 
+    @register_run()
     def run(self, evt, station, det, pol=0, debug=True):
         """
         Performs computation for voltage trace to electric field per channel
@@ -85,16 +88,14 @@ class voltageToEfieldConverterPerChannel:
             trace = channel.get_frequency_spectrum()
             mask1 = np.abs(efield_antenna_factor[iCh][0]) != 0
             mask2 = np.abs(efield_antenna_factor[iCh][1]) != 0
-            efield_spectrum = np.zeros((3,len(trace)), dtype=np.complex)
-            efield_spectrum[1][mask1] = (1.0-pol)**2 * trace[mask1] / efield_antenna_factor[iCh][0][mask1]
-            efield_spectrum[2][mask2] = pol**2 * trace[mask2] / efield_antenna_factor[iCh][1][mask2]
+            efield_spectrum = np.zeros((3, len(trace)), dtype=np.complex)
+            efield_spectrum[1][mask1] = (1.0 - pol) ** 2 * trace[mask1] / efield_antenna_factor[iCh][0][mask1]
+            efield_spectrum[2][mask2] = pol ** 2 * trace[mask2] / efield_antenna_factor[iCh][1][mask2]
             efield.set_frequency_spectrum(efield_spectrum, sampling_rate)
             efield.set_trace_start_time(channel.get_trace_start_time())
             efield[efp.zenith] = zenith
             efield[efp.azimuth] = azimuth
             station.add_electric_field(efield)
-
-
 
     def end(self):
         pass

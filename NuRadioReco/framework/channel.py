@@ -15,7 +15,6 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
         self._parameters = {}
         self._id = channel_id
-        self.__electric_field = None
 
     def get_parameter(self, key):
         if not isinstance(key, parameters.channelParameters):
@@ -55,9 +54,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 'id': self.get_id(),
                 'base_trace': base_trace_pkl}
-        if(self.__electric_field is not None):
-            if(not(mode == 'micro' or mode == 'mini')):
-                data['electric_field'] = self.__electric_field.serialize()
+
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
@@ -66,5 +63,3 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.channelParameters)
         self._id = data['id']
-        if 'electric_field' in data.keys():
-            self.__electric_field = NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['electric_field'])

@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import logging
 logger = logging.getLogger('eventTypeIdentifier')
 
@@ -10,6 +11,7 @@ class eventTypeIdentifier:
     def begin(self):
         pass
 
+    @register_run()
     def run(self, event, station, mode, forced_event_type='neutrino'):
         """
         Determines the type of event so that the correct modules can be
@@ -40,5 +42,4 @@ class eventTypeIdentifier:
                 ValueError('Unsupported event type {}'.format(forced_event_type))
         else:
             raise ValueError('Unsupported mode {}'.format(mode))
-
 

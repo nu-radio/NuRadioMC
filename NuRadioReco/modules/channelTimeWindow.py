@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import channelParameters as chp
@@ -16,6 +17,7 @@ class channelTimeWindow:
         if(debug):
             logger.setLevel(logging.DEBUG)
 
+    @register_run()
     def run(self, evt, station, det, window=None,
             window_function='rectangular',
             around_pulse=True,
@@ -41,7 +43,7 @@ class channelTimeWindow:
         for channel in station.iter_channels():
             times = channel.get_times()
             trace = channel.get_trace()
-            
+
             if(around_pulse is not None):
                 if(not channel.has_parameter(chp.signal_time)):
                     raise AttributeError("channel parameter 'signal_time' is not set. Did you forget to run the channelSignalReconstructor?")

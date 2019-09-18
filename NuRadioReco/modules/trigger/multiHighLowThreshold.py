@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.trigger import HighLowTrigger
@@ -13,10 +14,12 @@ def get_high_triggers(trace, threshold):
     m1 = trace > threshold
     return np.convolve(m1, c2, mode='full')[:len(m1)] > 0
 
+
 def get_low_triggers(trace, threshold):
     c2 = np.array([1, -1])
     m1 = trace < threshold
     return np.convolve(m1, c2, mode='full')[:len(m1)] > 0
+
 
 def get_multiple_high_low_trigger(trace, high_threshold, low_threashold, n_high_lows, time_coincidence=10 * units.ns, dt=1 * units.ns):
     """
@@ -44,16 +47,15 @@ def get_multiple_high_low_trigger(trace, high_threshold, low_threashold, n_high_
     """
     trig_up = get_high_triggers(trace, high_threshold)
     trig_low = get_low_triggers(trace, low_threashold)
-    nc = int(time_coincidence/dt)
+    nc = int(time_coincidence / dt)
     c1 = np.ones(nc)
-    
-    tsum_high = np.convolve(trig_up, c1, mode='full')[:-(nc-1)]
-    tsum_low = np.convolve(trig_low, c1, mode='full')[:-(nc-1)]
-    
-    c2 = np.array([1,-1])
+
+    tsum_high = np.convolve(trig_up, c1, mode='full')[:-(nc - 1)]
+    tsum_low = np.convolve(trig_low, c1, mode='full')[:-(nc - 1)]
+
+    c2 = np.array([1, -1])
     tsumtot = np.convolve((tsum_high + tsum_low) >= n_high_lows, c2, mode='same')
     return tsumtot > 0
-
 
 
 class triggerSimulator:
@@ -70,6 +72,7 @@ class triggerSimulator:
     def begin(self):
         return
 
+    @register_run()
     def run(self, evt, station, det,
             threshold_high=60 * units.mV,
             threshold_low=-60 * units.mV,
@@ -121,7 +124,7 @@ class triggerSimulator:
             dt = 1. / sampling_rate
             if triggered_channels is None:
                 for channel in station.iter_channels():
-                    channel_trace_start_time = channel.get_trace_start_time()            
+                    channel_trace_start_time = channel.get_trace_start_time()
                     break
             else:
                 channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
@@ -151,8 +154,8 @@ class triggerSimulator:
             has_triggered = False
 
         trigger = HighLowTrigger(trigger_name, threshold_high, threshold_low, high_low_window,
-                                 coinc_window, channels=triggered_channels,  number_of_coincidences=number_concidences)
-        trigger.set_triggered_channels(channels_that_passed_trigger) 
+                                 coinc_window, channels=triggered_channels, number_of_coincidences=number_concidences)
+        trigger.set_triggered_channels(channels_that_passed_trigger)
 
         if not has_triggered:
             trigger.set_triggered(False)
