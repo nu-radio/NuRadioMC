@@ -63,7 +63,7 @@ class calculateAmplitudePerRaySolution:
                 # get antenna pattern for current channel
                 antenna_model = det.get_antenna_model(sim_station_id, channel_id, zenith)
                 antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model, interpolation_method='complex')
-                ori = det.get_antanna_orientation(sim_station_id, channel_id)
+                ori = det.get_antenna_orientation(sim_station_id, channel_id)
                 logger.debug("zen {:.0f}, az {:.0f}".format(zenith / units.deg, azimuth / units.deg))
                 VEL = antenna_pattern.get_antenna_response_vectorized(ff, zenith, azimuth, *ori)
 

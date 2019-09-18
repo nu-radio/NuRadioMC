@@ -146,8 +146,8 @@ class correlationDirectionFitter:
         for iPair, pair in enumerate(channel_pairs):
             antenna_type = det.get_antenna_type(station_id, pair[0])
             if("LPDA" in antenna_type):
-                otheta, ophi, rot_theta, rot_azimuth = det.get_antanna_orientation(station_id, pair[0])
-                otheta2, ophi2, rot_theta2, rot_azimuth2 = det.get_antanna_orientation(station_id, pair[1])
+                otheta, ophi, rot_theta, rot_azimuth = det.get_antenna_orientation(station_id, pair[0])
+                otheta2, ophi2, rot_theta2, rot_azimuth2 = det.get_antenna_orientation(station_id, pair[1])
                 if(np.isclose(np.abs(rot_azimuth - rot_azimuth2), 180 * units.deg, atol=1 * units.deg)):
                     signs[iPair] = -1
 

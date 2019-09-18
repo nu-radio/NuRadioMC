@@ -14,6 +14,7 @@ import six  # # used for compatibility between py2 and py3
 logger = logging.getLogger('detector')
 logging.basicConfig()
 
+
 class DateTimeSerializer(Serializer):
     """
     helper class to serialize datetime objects with TinyDB
@@ -416,7 +417,6 @@ class Detector(object):
             altitude = res['pos_altitude'] * units.m
         return np.array([easting, northing, altitude])
 
-
     def get_relative_position(self, station_id, channel_id):
         """
         get the relative position of a specific channels/antennas with respeect to the station center
@@ -515,7 +515,7 @@ class Detector(object):
             channel_id = ch['channel_id']
             channel_ids.append(channel_id)
             antenna_types.append(self.get_antenna_type(station_id, channel_id))
-            orientations[iCh] = self.get_antanna_orientation(station_id, channel_id)
+            orientations[iCh] = self.get_antenna_orientation(station_id, channel_id)
             orientations[iCh][3] = hp.get_normalized_angle(orientations[iCh][3], interval=np.deg2rad([0, 180]))
         channel_ids = np.array(channel_ids)
         antenna_types = np.array(antenna_types)
@@ -597,7 +597,7 @@ class Detector(object):
         res = self.__get_channel(station_id, channel_id)
         return res['ant_deployment_time']
 
-    def get_antanna_orientation(self, station_id, channel_id):
+    def get_antenna_orientation(self, station_id, channel_id):
         """
         returns the orientation of a specific antenna
 
