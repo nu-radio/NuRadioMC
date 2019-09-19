@@ -6,7 +6,8 @@ please update the categories "new features" and "bugfixes" before a pull request
 version 1.0.1 - ????/??/??
 
 new features:
-production includes testing of NuRadioReco files
+- production includes testing of NuRadioReco files
+- NuRadioMC simulations with noise and at Moore's Bay site are tested in our CI test suite
 
 bugfixes:
 	- fixed that Veff utility script didn't calculate effective volumes for individual triggers
