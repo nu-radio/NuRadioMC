@@ -7,7 +7,7 @@ from tinydb.storages import MemoryStorage
 from tinydb_serialization import Serializer
 import NuRadioReco.detector.detector
 from NuRadioReco.detector.detector import DateTimeSerializer
-
+import copy
 logger = logging.getLogger('genericDetector')
 logging.basicConfig()
 
@@ -46,7 +46,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             description. If a property is missing in any of the other stations, the value from the default station will be used instead
         default_channel:
             ID of the channel that should be used as the default channel. This channel has to be part of the default station and have a
-            complete detector description. If a property is missing in any of the other channels, the value from the default channel 
+            complete detector description. If a property is missing in any of the other channels, the value from the default channel
             will be used instead.
         assume_inf : Bool
             Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
@@ -54,7 +54,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         super(GenericDetector, self).__init__('json', json_filename, assume_inf)
         self.__default_station_id = default_station
         if not self.has_station(self.__default_station_id):
-            raise ValueError('The default station {} was not found in the detector description'.format(self.__default_station_id)) 
+            raise ValueError('The default station {} was not found in the detector description'.format(self.__default_station_id))
         Station = Query()
         self.__default_station = self._stations.get((Station.station_id == self.__default_station_id))
         if default_channel is not None:
@@ -80,17 +80,51 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         Channel = Query()
         res = self._channels.search((Channel.station_id == station_id))
         if len(res) == 0:
-            res = self._channels.search((Channel.station_id == self.__default_station_id))
+            default_channels = self._channels.search((Channel.station_id == self.__default_station_id))
+            res = []
+            for channel in default_channels:
+                new_channel = copy.copy(channel)
+                new_channel['station_id'] = station_id
+                res.append(new_channel)
         if self.__default_channel is not None:
             for channel in res:
                 for key in self.__default_channel.keys():
-                    if key not in channel.keys():
+                    if key not in channel.keys() and key != 'station_id':
                         channel[key] = self.__default_channel[key]
         return res
-    
+
     def _buffer(self, station_id):
         self._buffered_stations[station_id] = self._query_station(station_id)
         channels = self._query_channels(station_id)
         self._buffered_channels[station_id] = {}
         for channel in channels:
             self._buffered_channels[station_id][channel['channel_id']] = channel
+
+    def add_generic_station(self, station_dict):
+        """
+        Add a generic station to the detector. The station is treated like a
+        generic station in the original detector description file, i.e. all missing
+        properties and all channels will be taken from the default station.
+        If a station with the same ID already exists, this function does nothing.
+
+        Parameters
+        --------------
+        station_dict: dictionary
+            dictionary containing the station properties. Needs to at least include
+            a station_id, any other missing parameters will be taken from the
+            default station
+        """
+        if station_dict['station_id'] in self._buffered_stations.keys():
+            logger.warning('Station with ID {} already exists in buffer. Cannot add station with same ID'.format(station_dict['station_id']))
+            return
+        for key in self.__default_station.keys():
+            if key not in station_dict.keys():
+                station_dict[key] = self.__default_station[key]
+        self._buffered_stations[station_dict['station_id']] = station_dict
+        if self.__default_station_id not in self._buffered_channels.keys():
+            self._buffer(self.__default_station_id)
+        self._buffered_channels[station_dict['station_id']] = {}
+        for i_channel, channel in self._buffered_channels[self.__default_station_id].items():
+            new_channel = copy.copy(channel)
+            new_channel['station_id'] = station_dict['station_id']
+            self._buffered_channels[station_dict['station_id']][channel['channel_id']] = new_channel
