@@ -131,15 +131,16 @@ class Detector(object):
     """
 
     def __init__(self, source='json', json_filename='ARIANNA/arianna_detector_db.json',
-                 assume_inf=True):
+                 dictionary=None, assume_inf=True):
         """
         Initialize the stations detector properties.
 
         Parameters
         ----------
         source : str
-            'json' or 'sql'
+            'json', 'dictionary' or 'sql'
             default value is 'json'
+            if dictionary is specified, the dictionary passed to __init__ is used
             if 'sql' is specified, the file 'detector_sql_auth.json' file needs to be present in this folder that
             specifies the sql server credentials (see 'detector_sql_auth.json.sample' for an example of the syntax)
         json_filename : str
@@ -151,6 +152,15 @@ class Detector(object):
         """
         if(source == 'sql'):
             self.__db = buffer_db(in_memory=True)
+        elif source == 'dictionary':
+            self.__db = TinyDB(storage=MemoryStorage)
+            self.__db.purge()
+            stations_table = self.__db.table('stations', cache_size=1000)
+            for station in dictionary['stations'].values():
+                stations_table.insert(station)
+            channels_table = self.__db.table('channels', cache_size=1000)
+            for channel in dictionary['channels'].values():
+                channels_table.insert(channel)
         else:
             dir_path = os.path.dirname(os.path.realpath(__file__))  # get the directory of this file
             filename = os.path.join(dir_path, json_filename)
@@ -243,6 +253,9 @@ class Detector(object):
         if(station_id not in self._buffered_stations.keys()):
             self._buffer(station_id)
         return self._buffered_stations[station_id]
+
+    def get_station(self, station_id):
+        return self.__get_station(station_id)
 
     def __get_position(self, position_id):
         if(position_id not in self.__buffered_positions.keys()):

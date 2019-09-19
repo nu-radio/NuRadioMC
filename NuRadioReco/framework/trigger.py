@@ -86,7 +86,7 @@ class Trigger:
         Parameters
         ----------
         times: array
-            all trigger times 
+            all trigger times
         """
         self._trigger_times = times
 

@@ -24,7 +24,7 @@ class Event:
     def register_module_event(self, instance, name, kwargs):
         """
         registers modules applied to this event
-        
+
         Parameters
         -----------
         instance: module instance
@@ -40,7 +40,7 @@ class Event:
     def register_module_station(self, station_id, instance, name, kwargs):
         """
         registers modules applied to this event
-        
+
         Parameters
         -----------
         station_id: int
@@ -60,8 +60,8 @@ class Event:
     def iter_modules(self, station_id=None):
         """
         returns an interator that loops over all modules. If a station id is provided it loops
-        over all modules that are applied on event or station level (on this particular station). If no 
-        station_id is provided, the loop is only over the event modules. 
+        over all modules that are applied on event or station level (on this particular station). If no
+        station_id is provided, the loop is only over the event modules.
         The order follows the sequence these modules were applied
         """
         iE = 0

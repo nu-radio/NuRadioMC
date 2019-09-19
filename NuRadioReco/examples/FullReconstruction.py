@@ -4,6 +4,7 @@ import copy
 import datetime
 import glob
 import matplotlib.pyplot as plt
+import astropy
 
 from NuRadioReco.utilities import units
 from NuRadioReco.detector import detector
@@ -127,7 +128,8 @@ eventWriter.begin(output_filename)
 for iE, evt in enumerate(readCoREAS.run(detector=det)):
     logger.info("processing event {:d} with id {:d}".format(iE, evt.get_id()))
     station = evt.get_station(station_id)
-
+    station.set_station_time(astropy.time.Time('2019-01-01T00:00:00'))
+    det.update(station.get_station_time())
     if simulationSelector.run(evt, station.get_sim_station(), det):
 
         efieldToVoltageConverter.run(evt, station, det)
@@ -160,19 +162,11 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
             voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], useMCdirection=False)
 
             channelResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
-            
+
             electricFieldResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
 
-            eventWriter.run(evt)
+            eventWriter.run(evt, det)
 
 
 nevents = eventWriter.end()
 print("Finished processing, {} events".format(nevents))
-
-
-
-
-
-
-
-
