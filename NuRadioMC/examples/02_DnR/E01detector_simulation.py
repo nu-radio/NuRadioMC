@@ -26,20 +26,21 @@ channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelG
 
 class mySimulation(simulation.simulation):
 
-
     def _detector_simulation(self):
-        
+
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
-        
+
         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
-        # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added) 
+        # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
-        
-        if bool(self._cfg['noise']):
-            Vrms = self._Vrms / (self._bandwidth /( 2.5 * units.GHz))** 0.5  # normalize noise level to the bandwidth its generated for
+
+        if self._is_simulate_noise():
+            max_freq = 0.5 / self._dt
+            norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
+            Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
-                                         max_freq=2.5 * units.GHz, type='rayleigh')
+                                         max_freq=max_freq, type='rayleigh')
 
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[80 * units.MHz, 1000 * units.GHz],
@@ -51,7 +52,7 @@ class mySimulation(simulation.simulation):
                              triggered_channels=None,
                              number_concidences=1,
                              trigger_name='pre_trigger_2sigma')
-        
+
         # downsample trace back to detector sampling rate
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
 

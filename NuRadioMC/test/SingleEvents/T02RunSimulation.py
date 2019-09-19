@@ -11,6 +11,8 @@ import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
+import numpy as np
+np.random.seed(0)
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("runstrawman")
 
@@ -23,23 +25,22 @@ channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 
+
 class mySimulation(simulation.simulation):
 
-
     def _detector_simulation(self):
-        # start detector simulation
-        if(bool(self._cfg['signal']['zerosignal'])):
-            self._increase_signal(None, 0)
 
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
         # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
 
-        if bool(self._cfg['noise']):
-            Vrms = self._Vrms / (self._bandwidth /( 2.5 * units.GHz))** 0.5  # normalize noise level to the bandwidth its generated for
+        if self._is_simulate_noise():
+            max_freq = 0.5 / self._dt
+            norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
+            Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
-                                         max_freq=2.5 * units.GHz, type='rayleigh')
+                                         max_freq=max_freq, type='rayleigh')
 
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[80 * units.MHz, 1000 * units.GHz],
@@ -60,16 +61,16 @@ class mySimulation(simulation.simulation):
                                     triggered_channels=[0, 1, 2, 3],  # select the LPDA channels
                                     number_concidences=2,  # 2/4 majority logic
                                     trigger_name='LPDA_2of4_4.1sigma',
-                                    set_not_triggered=(not self._station.has_triggered("simple_threshold"))) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
+                                    set_not_triggered=(not self._station.has_triggered("simple_threshold")))  # calculate more time consuming ARIANNA trigger only if station passes simple trigger
 
         # run a high/low trigger on the 4 surface dipoles
         triggerSimulatorHighLow.run(self._evt, self._station, self._det,
                                     threshold_high=3 * self._Vrms,
                                     threshold_low=-3 * self._Vrms,
-                                    triggered_channels=[4, 5, 6, 7], # select the bicone channels
-                                    number_concidences=4, # 4/4 majority logic
+                                    triggered_channels=[4, 5, 6, 7],  # select the bicone channels
+                                    number_concidences=4,  # 4/4 majority logic
                                     trigger_name='surface_dipoles_4of4_3sigma',
-                                    set_not_triggered=(not self._station.has_triggered("simple_threshold"))) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
+                                    set_not_triggered=(not self._station.has_triggered("simple_threshold")))  # calculate more time consuming ARIANNA trigger only if station passes simple trigger
 
         # downsample trace back to detector sampling rate
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
@@ -93,6 +94,7 @@ sim = mySimulation(eventlist=args.inputfilename,
                             detectorfile=args.detectordescription,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
                             config_file=args.config,
-                            write_mode='mini')
+                            write_mode='mini',
+                            default_detector_station=101)
 sim.run()
 
