@@ -64,7 +64,7 @@ def get_z_deep(ice_params):
         rel_diff = 2e-5
         return delta_n * np.exp(z / z_0) / n_ice - rel_diff
 
-    res =  optimize.root(diff_n_ice, -100 * units.m).x[0]
+    res = optimize.root(diff_n_ice, -100 * units.m).x[0]
     return res
 
 
@@ -95,7 +95,7 @@ class ray_tracing_2D():
         self.medium = medium
         if(not hasattr(self.medium, "reflection")):
             self.medium.reflection = None
-        
+
         self.attenuation_model = attenuation_model
         if(not self.attenuation_model in attenuation_util.model_to_int):
             raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
@@ -147,7 +147,7 @@ class ray_tracing_2D():
         """
         gamma2 = self.__b * 0.5 - (0.25 * self.__b ** 2 - c) ** 0.5  # first solution discarded
         z2 = np.log(gamma2 / self.medium.delta_n) * self.medium.z_0
-        
+
         if(z2 > 0):
             z2 = 0  # a reflection is just a turning point at z = 0, i.e. cases 2) and 3) are the same
             gamma2 = self.get_gamma(z2)
@@ -171,7 +171,7 @@ class ray_tracing_2D():
         C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
         return y_turn
-    
+
     def get_C_1(self, x1, C_0):
         """
         calculates constant C_1 for a given C_0 and start point x1
@@ -217,13 +217,13 @@ class ray_tracing_2D():
         """
         z = self.get_z_unmirrored(z_raw, C_0)
         c = self.medium.n_ice ** 2 - C_0 ** -2
-        B = (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n ** 
+        B = (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n **
                                           2 * np.exp(0.2e1 * z / self.medium.z_0) + c) - self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + 0.2e1 * c)
         D = self.medium.n_ice ** 2 * C_0 ** 2 - 1
         E1 = -self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0)
         E2 = self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0)
         E = (E1 + E2 + c)
-        res = (-np.sqrt(c) * np.exp(z / self.medium.z_0) * self.__b * self.medium.delta_n + 0.2e1 * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / 
+        res = (-np.sqrt(c) * np.exp(z / self.medium.z_0) * self.__b * self.medium.delta_n + 0.2e1 * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z /
                                                                                                                                                      self.medium.z_0) + self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0) + c) * c + 0.2e1 * c ** 1.5) / B * E ** -0.5 * (D ** (-0.5))
 
         if(z != z_raw):
@@ -334,7 +334,7 @@ class ray_tracing_2D():
         analytic solution to calculate the distance along the path. This code is based on the analytic solution found
         by Ben Hokanson-Fasing and the pyrex implementation.
         """
-        
+
         tmp = 0
         for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
             if(iS == 0 and reflection_case == 2):  # we can only integrate upward going rays, so if the ray starts downwardgoing, we need to mirror
@@ -347,38 +347,39 @@ class ray_tracing_2D():
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
-        
+
             solution_type = self.determine_solution_type(x1, x2, C_0)
-    
+
             z_deep = get_z_deep((self.medium.n_ice, self.medium.z_0, self.medium.delta_n))
             launch_angle = self.get_launch_angle(x1, C_0)
             beta = self.n(x1[1]) * np.sin(launch_angle)
             alpha = self.medium.n_ice ** 2 - beta ** 2
     #         print("launchangle {:.1f} beta {:.2g} alpha {:.2g}, n(z1) = {:.2g} n(z2) = {:.2g}".format(launch_angle/units.deg, beta, alpha, self.n(x1[1]), self.n(x2[1])))
-    
+
             def l1(z):
                 gamma = self.n(z) ** 2 - beta ** 2
                 gamma = np.where(gamma < 0, 0, gamma)
                 return self.medium.n_ice * self.n(z) - beta ** 2 - (alpha * gamma) ** 0.5
-    
+
             def l2(z):
                 gamma = self.n(z) ** 2 - beta ** 2
                 gamma = np.where(gamma < 0, 0, gamma)
                 return self.n(z) + gamma ** 0.5
-    
+
             def get_s(z, deep=False):
                 if(deep):
                     return self.medium.n_ice * z / alpha ** 0.5
                 else:
                     #                 print(z, self.n(z), beta)
                     #                 print(alpha**0.5, l1(z), l2(z))
-    
+
                     path_length = self.medium.n_ice / alpha ** 0.5 * (-z + np.log(l1(z)) * self.medium.z_0) + np.log(l2(z)) * self.medium.z_0
                     if (np.abs(path_length) == np.inf or path_length == np.nan):
                         path_length = None
-    
+                        raise ArithmeticError(f"analytic calculation travel time failed for x1 = {x1}, x2 = {x2} and C0 = {C_0:.4f}")
+
                     return path_length
-    
+
             def get_path_direct(z1, z2):
                 int1 = get_s(z1, z1 < z_deep)
                 int2 = get_s(z2, z2 < z_deep)
@@ -401,7 +402,7 @@ class ray_tracing_2D():
                         # print("path:", int2 - int1 - int_diff)
                         # z0 above z_deep, z1 below z_deep
                         return int2 - int1 - int_diff
-    
+
             if(solution_type == 1):
                 tmp += get_path_direct(x1[1], x2[1])
             else:
@@ -414,9 +415,9 @@ class ray_tracing_2D():
                     tmp += get_path_direct(x1[1], z_turn) + get_path_direct(x2[1], z_turn)
                 except:
                     tmp += None
-            
+
         return tmp
-    
+
     def get_travel_time(self, x1, x2, C_0, reflection=0, reflection_case=1):
         tmp = 0
         for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
@@ -430,13 +431,13 @@ class ray_tracing_2D():
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
-        
+
             x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
-    
+
             def dt(t, C_0):
                 z = self.get_z_unmirrored(t, C_0)
                 return self.ds(t, C_0) / speed_of_light * self.n(z)
-    
+
             gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
             points = None
             if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
@@ -452,7 +453,7 @@ class ray_tracing_2D():
         analytic solution to calculate the time of flight. This code is based on the analytic solution found
         by Ben Hokanson-Fasing and the pyrex implementation.
         """
-        
+
         tmp = 0
         for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
             if(iS == 0 and reflection_case == 2):  # we can only integrate upward going rays, so if the ray starts downwardgoing, we need to mirror
@@ -465,25 +466,25 @@ class ray_tracing_2D():
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
-        
+
             solution_type = self.determine_solution_type(x1, x2, C_0)
-    
+
             z_deep = get_z_deep((self.medium.n_ice, self.medium.z_0, self.medium.delta_n))
             launch_angle = self.get_launch_angle(x1, C_0)
             beta = self.n(x1[1]) * np.sin(launch_angle)
             alpha = self.medium.n_ice ** 2 - beta ** 2
     #         print("launchangle {:.1f} beta {:.2g} alpha {:.2g}, n(z1) = {:.2g} n(z2) = {:.2g}".format(launch_angle/units.deg, beta, alpha, self.n(x1[1]), self.n(x2[1])))
-    
+
             def l1(z):
                 gamma = self.n(z) ** 2 - beta ** 2
                 gamma = np.where(gamma < 0, 0, gamma)
                 return self.medium.n_ice * self.n(z) - beta ** 2 - (alpha * gamma) ** 0.5
-    
+
             def l2(z):
                 gamma = self.n(z) ** 2 - beta ** 2
                 gamma = np.where(gamma < 0, 0, gamma)
                 return self.n(z) + gamma ** 0.5
-    
+
             def get_s(z, deep=False):
                 if(deep):
                     return self.medium.n_ice * (self.n(z) + self.medium.n_ice * (z / self.medium.z_0 - 1)) / (np.sqrt(alpha) / self.medium.z_0 * speed_of_light)
@@ -492,14 +493,15 @@ class ray_tracing_2D():
                     gamma = np.where(gamma < 0, 0, gamma)
                     log_1 = l1(z)
                     log_2 = l2(z)
-                    s = (((np.sqrt(gamma) + self.medium.n_ice * np.log(log_2) + 
-                              self.medium.n_ice ** 2 * np.log(log_1) / np.sqrt(alpha)) * self.medium.z_0) - 
+                    s = (((np.sqrt(gamma) + self.medium.n_ice * np.log(log_2) +
+                              self.medium.n_ice ** 2 * np.log(log_1) / np.sqrt(alpha)) * self.medium.z_0) -
                             z * self.medium.n_ice ** 2 / np.sqrt(alpha)) / speed_of_light
                     if (np.abs(s) == np.inf or s == np.nan):
+                        raise ArithmeticError(f"analytic calculation travel time failed for x1 = {x1}, x2 = {x2} and C0 = {C_0:.4f}")
                         s = None
-    
+
                     return s
-    
+
             def get_ToF_direct(z1, z2):
                 int1 = get_s(z1, z1 < z_deep)
                 int2 = get_s(z2, z2 < z_deep)
@@ -521,7 +523,7 @@ class ray_tracing_2D():
                     else:
                         # z0 above z_deep, z1 below z_deep
                         return int2 - int1 - int_diff
-    
+
             if(solution_type == 1):
                 ttmp = get_ToF_direct(x1[1], x2[1])
                 tmp += ttmp
@@ -578,13 +580,13 @@ class ray_tracing_2D():
                 attenuation = np.ones_like(frequency)
                 attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
             else:
-    
+
                 x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
-    
+
                 def dt(t, C_0, frequency):
                     z = self.get_z_unmirrored(t, C_0)
                     return self.ds(t, C_0) / attenuation_util.get_attenuation_length(z, frequency, self.attenuation_model)
-    
+
                 # to speed up things we only calculate the attenuation for a few frequencies
                 # and interpolate linearly between them
                 mask = frequency > 0
@@ -634,13 +636,13 @@ class ray_tracing_2D():
         x1 = copy.copy(x1)
         x11 = copy.copy(x1)
         x22 = copy.copy(x2)
-        
+
         if(reflection == 0):
             C_1 = self.get_C_1(x1, C_0)
             return [[x1, x1, x22, x2, C_0, C_1]]
-        
+
         tmp = []
-        
+
         if(reflection_case == 2):
             # the code only allows upward going rays, thus we find a point left from x1 that has an upward going ray
             # that will produce a downward going ray through x1
@@ -648,7 +650,7 @@ class ray_tracing_2D():
             dy = y_turn - x1[0]
             self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
             x1[0] = x1[0] - 2 * dy
-        
+
         for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i))
             C_1 = self.get_C_1(x1, C_0)
@@ -666,7 +668,7 @@ class ray_tracing_2D():
             self.__logger.debug("setting x1 from {} to {}".format(x1, x2))
             x1 = x2
         return tmp
-    
+
     def get_angle(self, x, x_start, C_0, reflection=0, reflection_case=1):
         """
         calculates the angle with respect to the positive z-axis of the ray path at position x
@@ -688,7 +690,7 @@ class ray_tracing_2D():
         """
         last_segment = self.get_path_segments(x_start, x, C_0, reflection, reflection_case)[-1]
         x_start = last_segment[1]
-            
+
         z = self.get_z_mirrored(x_start, x, C_0)[1]
         dy = self.get_y_diff(z, C_0)
         angle = np.arctan(dy)
@@ -730,7 +732,7 @@ class ray_tracing_2D():
             x11, x1, x22, x2, C_0, C_1 = segment
             gamma_turn, z_turn = self.get_turning_point(c)
             y_turn = self.get_y_turn(C_0, x1)
-            if((z_turn >= 0) and (y_turn > x11[0]) and (y_turn < x22[0])):  # for the first track segment we need to check if turning point is right of start point (otherwise we have a downward going ray that does not have a turning point), and for the last track segment we need to check that the turning point is left of the stop position. 
+            if((z_turn >= 0) and (y_turn > x11[0]) and (y_turn < x22[0])):  # for the first track segment we need to check if turning point is right of start point (otherwise we have a downward going ray that does not have a turning point), and for the last track segment we need to check that the turning point is left of the stop position.
                 r = self.get_angle(np.array([y_turn, 0]), x1, C_0)
                 self.__logger.debug(
                     "reflecting off surface at y = {:.1f}m, reflection angle = {:.1f}deg".format(y_turn, r / units.deg))
@@ -783,7 +785,7 @@ class ray_tracing_2D():
         self.__logger.debug('turning points for C_0 = {:.2f}, b= {:.2f}, gamma = {:.4f}, z = {:.1f}, y_turn = {:.0f}'.format(
             C_0, self.__b, gamma_turn, z_turn, y_turn))
         return res, zs
-    
+
     def get_path_reflections(self, x1, x2, C_0, n_points=1000, reflection=0, reflection_case=1):
         """
         calculates the ray path in the presence of reflections at the bottom
@@ -817,7 +819,7 @@ class ray_tracing_2D():
         zz = []
         x1 = copy.copy(x1)
         x11 = copy.copy(x1)
-        
+
         if(reflection and reflection_case == 2):
             # the code only allows upward going rays, thus we find a point left from x1 that has an upward going ray
             # that will produce a downward going ray through x1
@@ -825,7 +827,7 @@ class ray_tracing_2D():
             dy = y_turn - x1[0]
             self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
             x1[0] = x1[0] - 2 * dy
-        
+
         x22 = copy.copy(x2)
         for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i))
@@ -843,7 +845,7 @@ class ray_tracing_2D():
         zz = np.array(zz)
         mask = yy > x11[0]
         return yy[mask], zz[mask]
-            
+
     def get_reflection_point(self, C_0, C_1):
         """
         calculates the point where the signal gets reflected off the bottom of the ice shelf
@@ -884,8 +886,8 @@ class ray_tracing_2D():
             self.__logger.debug('C0 = {:.4f} out of range {:.0f} - {:.2f}'.format(C_0, C0range[0], C0range[1]))
             return -np.inf
         c = self.medium.n_ice ** 2 - C_0 ** -2
-        
-        # we consider two cases here, 
+
+        # we consider two cases here,
         # 1) the rays start rising -> the default case
         # 2) the rays start decreasing -> we need to find the position left of the start point that
         #    that has rising rays that go through the point x1
@@ -899,12 +901,12 @@ class ray_tracing_2D():
             # we take account reflections at the bottom layer into account via
             # 1) calculating the point where the reflection happens
             # 2) starting a ray tracing from this new point
-            
+
             # determine y translation first
             C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
             if(hasattr(C_1, '__len__')):
                 C_1 = C_1[0]
-    
+
             self.__logger.debug("C_0 = {:.4f}, C_1 = {:.1f}".format(C_0, C_1))
             x1 = self.get_reflection_point(C_0, C_1)
 
@@ -1009,7 +1011,7 @@ class ray_tracing_2D():
         returns an array of the C_0 paramters of the solutions (the array might be empty)
         
         """
-        
+
         if(reflection > 0 and self.medium.reflection is None):
             self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(reflection))
             raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(reflection))
@@ -1764,12 +1766,14 @@ class ray_tracing:
 
         result = self.__results[iS]
         if analytic:
-            analytic_length = self.__r2d.get_path_length_analytic(self.__x1, self.__x2, result['C0'],
-                                                                  reflection=result['reflection'],
-                                                                  reflection_case=result['reflection_case'])
-            if (analytic_length != None):
-                return analytic_length
-            else:
+            try:
+                analytic_length = self.__r2d.get_path_length_analytic(self.__x1, self.__x2, result['C0'],
+                                                                      reflection=result['reflection'],
+                                                                      reflection_case=result['reflection_case'])
+                if (analytic_length != None):
+                    return analytic_length
+            except:
+                self._logger.warning("analytic calculation of travel time failed, switching to numerical integration")
                 return self.__r2d.get_path_length(self.__x1, self.__x2, result['C0'],
                                                   reflection=result['reflection'],
                                                   reflection_case=result['reflection_case'])
@@ -1803,12 +1807,14 @@ class ray_tracing:
 
         result = self.__results[iS]
         if(analytic):
-            analytic_time = self.__r2d.get_travel_time_analytic(self.__x1, self.__x2, result['C0'],
+            try:
+                analytic_time = self.__r2d.get_travel_time_analytic(self.__x1, self.__x2, result['C0'],
                                                                 reflection=result['reflection'],
                                                                 reflection_case=result['reflection_case'])
-            if (analytic_time != None):
-                return analytic_time
-            else:
+                if (analytic_time != None):
+                    return analytic_time
+            except:
+                self._logger.warning("analytic calculation of travel time failed, switching to numerical integration")
                 return self.__r2d.get_travel_time(self.__x1, self.__x2, result['C0'],
                                                   reflection=result['reflection'],
                                                   reflection_case=result['reflection_case'])
