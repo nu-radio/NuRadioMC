@@ -13,13 +13,22 @@ def merge2(filenames, output_filename):
     group_attrs = OrderedDict()
     n_data = {}
     n_groups = {}
+    non_empty_filenames = []
+    n_events_total = 0
 
     for f in filenames:
         print("adding file {}".format(f))
+        fin = h5py.File(f, 'r')
+        if(np.sum(np.array(fin['triggered'])) == 0):
+            n_events_total += fin.attrs['n_events']
+            print(f"file {f} contains no events, skipping file but still keeping track of total number of simulated events")
+            continue
+
+        non_empty_filenames.append(f)
+
         data[f] = {}
         groups[f] = {}
-        
-        fin = h5py.File(f, 'r')
+
         for key in fin:
             if isinstance(fin[key], h5py._hl.group.Group):
                 groups[f][key] = {}
@@ -43,13 +52,14 @@ def merge2(filenames, output_filename):
                 if(key not in n_data):
                     n_data[key] = 0
                 n_data[key] += len(data[f][key])
-            
+
         for key in fin.attrs:
             if(key not in attrs):
                 attrs[key] = fin.attrs[key]
             else:
                 if(key == "n_events"):
-                    attrs['n_events'] += fin.attrs['n_events']
+                    n_events_total += fin.attrs['n_events']
+                    attrs['n_events'] = n_events_total
             if((('trigger_names' not in attrs) or (len(attrs['trigger_names']) == 0)) and 'trigger_names' in fin.attrs):
                 attrs['trigger_names'] = fin.attrs['trigger_names']
 #             if len(data[f]['triggered']) == 0:
@@ -65,14 +75,14 @@ def merge2(filenames, output_filename):
         print(key)
         shape = list(data[filenames[0]][key].shape)
         shape[0] = n_data[key]
-        
+
         tmp = np.zeros(shape, dtype=data[filenames[0]][key].dtype)
-        
+
         i = 0
         for f in data:
-            tmp[i:(i+len(data[f][key]))] = data[f][key]
+            tmp[i:(i + len(data[f][key]))] = data[f][key]
             i += len(data[f][key])
-        
+
         fout.create_dataset(key, tmp.shape, dtype=tmp.dtype,
                          compression='gzip')[...] = tmp
     for key in groups[filenames[0]]:
@@ -82,19 +92,19 @@ def merge2(filenames, output_filename):
             print("writing data set {}".format(key2))
             shape = list(groups[filenames[0]][key][key2].shape)
             shape[0] = n_groups[key][key2]
-            
+
             tmp = np.zeros(shape, dtype=groups[filenames[0]][key][key2].dtype)
             i = 0
             for f in groups:
-                tmp[i:(i+len(groups[f][key][key2]))] = groups[f][key][key2]
+                tmp[i:(i + len(groups[f][key][key2]))] = groups[f][key][key2]
                 i += len(groups[f][key][key2])
-            
+
             g.create_dataset(key2, shape, dtype=groups[filenames[0]][key][key2].dtype,
                              compression='gzip')[...] = tmp
         # save group attributes
         for key2 in group_attrs[key]:
             fout[key].attrs[key2] = group_attrs[key][key2]
-    
+
 #     # save all data to hdf5
 #     for key in data[filenames[0]]:
 #         print("writing data set {}".format(key))
@@ -114,15 +124,15 @@ def merge2(filenames, output_filename):
 #         # save group attributes
 #         for key2 in group_attrs[key]:
 #             fout[key].attrs[key2] = group_attrs[key][key2]
-#             
+#
     # save all atrributes
     for key in attrs:
         fout.attrs[key] = attrs[key]
-    
-    fout.close()
-    
 
-if __name__== "__main__":
+    fout.close()
+
+
+if __name__ == "__main__":
     """
     merges multiple hdf5 output files into one single files.
     The merger module automatically keeps track of the total number
@@ -143,12 +153,12 @@ if __name__== "__main__":
                     d = os.path.split(filename)
                     a, b = os.path.split(d[0])
                     filenames2.append(filename)
-    
+
         for filename in filenames2:
             if(os.path.splitext(filename)[1] == '.hdf5'):
                 d = os.path.split(filename)
                 a, b = os.path.split(d[0])
-                output_filename = os.path.join(a, d[1])  #remove subfolder from filename
+                output_filename = os.path.join(a, d[1])  # remove subfolder from filename
                 if(os.path.exists(output_filename)):
                     print('file {} already exists, skipping'.format(output_filename))
                 else:
@@ -157,8 +167,7 @@ if __name__== "__main__":
                         mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=np.bool)
                         if(np.sum(~mask)):
                             print("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
-    
-    
+
                         merge2(input_files[mask], output_filename)
     #                 except:
     #                     print("failed to merge {}".format(filename))
