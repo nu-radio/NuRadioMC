@@ -8,6 +8,7 @@ import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
+import NuRadioReco.modules.electricFieldResampler
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
@@ -24,6 +25,7 @@ triggerSimulatorSimple = NuRadioReco.modules.trigger.simpleThreshold.triggerSimu
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
 
 
 class mySimulation(simulation.simulation):
@@ -74,6 +76,7 @@ class mySimulation(simulation.simulation):
 
         # downsample trace back to detector sampling rate
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
+        electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
