@@ -98,7 +98,7 @@ def merge2(filenames, output_filename):
         for key2 in groups[non_empty_filenames[0]][key]:
             print("writing data set {}".format(key2))
             all_files_have_key = True
-            for f in data:
+            for f in groups:
                 if(not key2 in groups[f][key]):
                     all_files_have_key = False
             if(not all_files_have_key):
