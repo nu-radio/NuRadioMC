@@ -7,6 +7,7 @@ import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
+
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
