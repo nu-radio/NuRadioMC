@@ -6,7 +6,14 @@ please update the categories "new features" and "bugfixes" before a pull request
 version 1.0.1 - ????/??/??
 
 new features:
-production includes testing of NuRadioReco files
+- specifying the bandwidth of the detector is no longer required. Now, the bandwidth is calculated automatically from the
+  detector_simulation that the user defines by examining the NuRadioReco modules that alter the bandwidth (i.e. bandpass filters
+  and hardware respone incoroprator) using the new module registry feature of NuRadioReco. The noise RMS is then calculated
+  from the noise temperature and the bandwidth of the detector. 
+  Alternatively, the user can specify the RMS noise value manually which is useful to simulate an existing detector where
+  the noise RMS is known. 
+- production includes testing of NuRadioReco files
+- NuRadioMC simulations with noise and at Moore's Bay site are tested in our CI test suite
 
 bugfixes:
 	- fixed that Veff utility script didn't calculate effective volumes for individual triggers
