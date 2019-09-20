@@ -72,7 +72,14 @@ def merge2(filenames, output_filename):
     print("creating data sets")
     fout = h5py.File(output_filename, 'w')
     for key in data[non_empty_filenames[0]]:
-        print(key)
+        print(f"merging key {key}")
+        all_files_have_key = True
+        for f in data:
+            if(not key in data[f]):
+                all_files_have_key = False
+        if(not all_files_have_key):
+            print(f"not all files have the key {key}. This key will not be present in the merged file.")
+            continue
         shape = list(data[non_empty_filenames[0]][key].shape)
         shape[0] = n_data[key]
 
@@ -90,6 +97,14 @@ def merge2(filenames, output_filename):
         g = fout.create_group(key)
         for key2 in groups[non_empty_filenames[0]][key]:
             print("writing data set {}".format(key2))
+            all_files_have_key = True
+            for f in data:
+                if(not key2 in groups[f][key]):
+                    all_files_have_key = False
+            if(not all_files_have_key):
+                print(f"not all files have the key {key2}. This key will not be present in the merged file.")
+                continue
+
             shape = list(groups[non_empty_filenames[0]][key][key2].shape)
             shape[0] = n_groups[key][key2]
 
