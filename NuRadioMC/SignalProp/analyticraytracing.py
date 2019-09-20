@@ -376,7 +376,7 @@ class ray_tracing_2D():
                     path_length = self.medium.n_ice / alpha ** 0.5 * (-z + np.log(l1(z)) * self.medium.z_0) + np.log(l2(z)) * self.medium.z_0
                     if (np.abs(path_length) == np.inf or path_length == np.nan):
                         path_length = None
-                        raise ArithmeticError(f"analytic calculation travel time failed for x1 = {x1}, x2 = {} and C0 = {C_0:.4f}")
+                        raise ArithmeticError(f"analytic calculation travel time failed for x1 = {x1}, x2 = {x2} and C0 = {C_0:.4f}")
 
                     return path_length
 
@@ -497,7 +497,7 @@ class ray_tracing_2D():
                               self.medium.n_ice ** 2 * np.log(log_1) / np.sqrt(alpha)) * self.medium.z_0) -
                             z * self.medium.n_ice ** 2 / np.sqrt(alpha)) / speed_of_light
                     if (np.abs(s) == np.inf or s == np.nan):
-                        raise ArithmeticError(f"analytic calculation travel time failed for x1 = {x1}, x2 = {} and C0 = {C_0:.4f}")
+                        raise ArithmeticError(f"analytic calculation travel time failed for x1 = {x1}, x2 = {x2} and C0 = {C_0:.4f}")
                         s = None
 
                     return s
