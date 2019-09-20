@@ -71,12 +71,12 @@ def merge2(filenames, output_filename):
     # create data sets
     print("creating data sets")
     fout = h5py.File(output_filename, 'w')
-    for key in data[filenames[0]]:
+    for key in data[non_empty_filenames[0]]:
         print(key)
-        shape = list(data[filenames[0]][key].shape)
+        shape = list(data[non_empty_filenames[0]][key].shape)
         shape[0] = n_data[key]
 
-        tmp = np.zeros(shape, dtype=data[filenames[0]][key].dtype)
+        tmp = np.zeros(shape, dtype=data[non_empty_filenames[0]][key].dtype)
 
         i = 0
         for f in data:
@@ -85,21 +85,21 @@ def merge2(filenames, output_filename):
 
         fout.create_dataset(key, tmp.shape, dtype=tmp.dtype,
                          compression='gzip')[...] = tmp
-    for key in groups[filenames[0]]:
+    for key in groups[non_empty_filenames[0]]:
         print("writing group {}".format(key))
         g = fout.create_group(key)
-        for key2 in groups[filenames[0]][key]:
+        for key2 in groups[non_empty_filenames[0]][key]:
             print("writing data set {}".format(key2))
-            shape = list(groups[filenames[0]][key][key2].shape)
+            shape = list(groups[non_empty_filenames[0]][key][key2].shape)
             shape[0] = n_groups[key][key2]
 
-            tmp = np.zeros(shape, dtype=groups[filenames[0]][key][key2].dtype)
+            tmp = np.zeros(shape, dtype=groups[non_empty_filenames[0]][key][key2].dtype)
             i = 0
             for f in groups:
                 tmp[i:(i + len(groups[f][key][key2]))] = groups[f][key][key2]
                 i += len(groups[f][key][key2])
 
-            g.create_dataset(key2, shape, dtype=groups[filenames[0]][key][key2].dtype,
+            g.create_dataset(key2, shape, dtype=groups[non_empty_filenames[0]][key][key2].dtype,
                              compression='gzip')[...] = tmp
         # save group attributes
         for key2 in group_attrs[key]:
