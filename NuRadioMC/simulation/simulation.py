@@ -359,7 +359,7 @@ class simulation():
                 self._create_sim_station()
                 for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                     x2 = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
-                    r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=logging.WARNING,
+                    r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=logging.INFO,
                                    n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
                                    n_reflections=self._n_reflections)
 
@@ -428,8 +428,6 @@ class simulation():
                         # save receive vector
                         sg['receive_vectors'][self._iE, channel_id, iS] = receive_vector
                         zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
-                        logger.debug("st {}, ch {}, s {} R = {:.1f} m, t = {:.1f}ns, receive angles {:.0f} {:.0f}".format(self._station_id,
-                            channel_id, iS, R / units.m, T / units.ns, zenith / units.deg, azimuth / units.deg))
 
                         fem, fhad = self._get_em_had_fraction(self._inelasticity, self._inttype, self._flavor)
                         # get neutrino pulse from Askaryan module
@@ -471,28 +469,41 @@ class simulation():
                         # reflection at the surface
                         r_theta = None
                         r_phi = None
-                        if(self._prop.solution_types[r.get_solution_type(iS)] == 'reflected'):
-                            zenith_reflections = np.atleast_1d(r.get_reflection_angle(iS))  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
-                            for zenith_reflection in zenith_reflections:  # loop through all possible reflections
-                                if(zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
-                                    continue
-                                r_theta = geo_utl.get_fresnel_r_p(
-                                    zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
-                                r_phi = geo_utl.get_fresnel_r_s(
-                                    zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
+                        i_reflections = r.get_results()[iS]['reflection']
+                        zenith_reflections = np.atleast_1d(r.get_reflection_angle(iS))  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
+                        n_surface_reflections = np.sum(zenith_reflections != None)
+                        logger.debug(f"st {self._station_id}, ch {channel_id}, solutino {iS}: n_ref bottom = {i_reflections:d}," + \
+                                     f" n_ref surface = {n_surface_reflections:d},  R = {R / units.m:.1f} m, T = {T / units.ns:.1f}ns," + \
+                                     f" receive angles zen={zenith / units.deg:.0f}deg, az={azimuth / units.deg:.0f}deg")
+                        tmp_output = "attenuation factor"
+                        iF = len(self._ff) // 4
+                        tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
+                        iF = len(self._ff) // 3
+                        tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
+                        iF = len(self._ff) // 2
+                        tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
+                        logger.debug(tmp_output)
+                        for zenith_reflection in zenith_reflections:  # loop through all possible reflections
+                            if(zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
+                                continue
+                            r_theta = geo_utl.get_fresnel_r_p(
+                                zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
+                            r_phi = geo_utl.get_fresnel_r_s(
+                                zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
 
-                                eTheta *= r_theta
-                                ePhi *= r_phi
-                                logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection / units.deg,
-                                    r_theta, r_phi))
+                            eTheta *= r_theta
+                            ePhi *= r_phi
+                            logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection / units.deg,
+                                r_theta, r_phi))
 
-                        if(self._n_reflections > 0):  # take into account possible bottom reflections
+                        if(i_reflections > 0):  # take into account possible bottom reflections
                             # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
-                            reflection_coefficient = self._n_reflections * self._ice.reflection_coefficient
-                            phase_shift = (self._n_reflections * self._ice.reflection_phase_shift) % (2 * np.pi)
+                            reflection_coefficient = self._ice.reflection_coefficient ** i_reflections
+                            phase_shift = (i_reflections * self._ice.reflection_phase_shift) % (2 * np.pi)
                             # we assume that both efield components are equally affected
                             eTheta *= reflection_coefficient * np.exp(1j * phase_shift)
                             ePhi *= reflection_coefficient * np.exp(1j * phase_shift)
+                            logger.debug(f"ray is reflecting {i_reflections:d} times at the bottom -> reducing the signal by a factor of {reflection_coefficient:.2f}")
 
                         if(self._debug):
                             from matplotlib import pyplot as plt
