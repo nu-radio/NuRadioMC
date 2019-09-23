@@ -321,6 +321,14 @@ def get_Veff(folder, trigger_combinations={}, station=101):
 
     trigger_combinations['all_triggers'] = {'triggers': trigger_names}
     print("Trigger names:", trigger_names)
+    for key in trigger_combinations:
+        i = -1
+        for value in trigger_combinations[key]['triggers']:
+            i += 1
+            if value not in trigger_names:
+                print(f"trigger {value} not available, removing this trigger from the trigger combination {key}")
+                trigger_combinations[key]['triggers'].pop(i)
+                i -= 1
 
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
         fin = h5py.File(filename, 'r')
