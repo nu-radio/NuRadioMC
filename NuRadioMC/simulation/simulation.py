@@ -73,7 +73,8 @@ class simulation():
                  config_file=None,
                  log_level=logging.WARNING,
                  default_detector_station=None,
-                 default_detector_channel=None):
+                 default_detector_channel=None,
+                 log_level_propagation=logging.WARNING):
         """
         initialize the NuRadioMC end-to-end simulation
 
@@ -103,8 +104,19 @@ class simulation():
             * 'micro': no traces are written to disc
         evt_time: datetime object
             the time of the events, default 1/1/2018
+        config_file: string
+            path to config file
+        log_level: logging.LEVEL
+            the log level
+        default_detector_station: int or None
+            if station parameters are not defined, the parameters of the default station are used
+        default_detector_channel: int or None
+            if channel parameters are not defined, the parameters of the default channel are used
+        default_detector_channel: logging.LEVEL
+            the log level of the propagation module
         """
         logger.setLevel(log_level)
+        self._log_level_ray_propagation = log_level_ray_propagation
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
         logger.warning('reading default config from {}'.format(config_file_default))
         with open(config_file_default, 'r') as ymlfile:
@@ -359,7 +371,7 @@ class simulation():
                 self._create_sim_station()
                 for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                     x2 = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
-                    r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=logging.INFO,
+                    r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=self._log_level_ray_propagation,
                                    n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
                                    n_reflections=self._n_reflections)
 
