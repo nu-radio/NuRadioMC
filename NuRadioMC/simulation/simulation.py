@@ -116,7 +116,7 @@ class simulation():
             the log level of the propagation module
         """
         logger.setLevel(log_level)
-        self._log_level_ray_propagation = log_level_ray_propagation
+        self._log_level_ray_propagation = log_level_propagation
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
         logger.warning('reading default config from {}'.format(config_file_default))
         with open(config_file_default, 'r') as ymlfile:
