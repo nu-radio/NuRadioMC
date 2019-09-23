@@ -558,6 +558,7 @@ class ray_tracing_2D():
 
     def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq, reflection=0, reflection_case=1):
         tmp_attenuation = None
+        output = f"calculating attenuation for n_ref = {reflection:d}: "
         for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
             if(iS == 0 and reflection_case == 2):  # we can only integrate upward going rays, so if the ray starts downwardgoing, we need to mirror
                 x11, x1, x22, x2, C_0, C_1 = segment
@@ -603,11 +604,14 @@ class ray_tracing_2D():
                 attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
                 self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(
                     x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation))
+            iF = len(frequency) // 3
+            output += f"adding attenuation for path segment {iS:d} -> {attenuation[iF]:.2g} at {frequency[iF]/units.MHz:.0f} MHz, "
             if(tmp_attenuation is None):
                 tmp_attenuation = attenuation
             else:
                 tmp_attenuation *= attenuation
-        return attenuation
+        self.__logger.info(output)
+        return tmp_attenuation
 
     def get_path_segments(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
