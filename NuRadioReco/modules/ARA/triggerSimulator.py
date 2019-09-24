@@ -1,4 +1,5 @@
 from NuRadioReco.utilities import units
+from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import time
 import logging
@@ -45,9 +46,9 @@ class triggerSimulator:
     # logical to assume that the units of the two middle parameters are seconds and that the
     # other parameters are unitless
     _td_args = {
-        'down1': (-0.8, 15e-9*units.s, 2.3e-9*units.s, 0),
-        'down2': (-0.2, 15e-9*units.s, 4e-9*units.s, 0),
-        'up': (1, 18e-9*units.s, 7e-9*units.s, 1e9)
+        'down1': (-0.8, 15e-9 * units.s, 2.3e-9 * units.s, 0),
+        'down2': (-0.2, 15e-9 * units.s, 4e-9 * units.s, 0),
+        'up': (1, 18e-9 * units.s, 7e-9 * units.s, 1e9)
     }
     # Set td_args['up'][0] based on the other args, like in arasim
     _td_args['up'] = (-np.sqrt(2 * np.pi) *
@@ -155,8 +156,9 @@ class triggerSimulator:
         after_tunnel_diode = self.tunnel_diode(channel)
         low_trigger = (self._power_mean -
                        self._power_std * np.abs(self.power_threshold))
-        return np.min(after_tunnel_diode)<low_trigger
+        return np.min(after_tunnel_diode) < low_trigger
 
+    @register_run()
     def run(self, evt, station, det,
             power_threshold=6.5,
             coinc_window=110 * units.ns,

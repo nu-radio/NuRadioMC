@@ -49,7 +49,7 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
                 '__simulation_weight': self.__simulation_weight,
                 '__position': self.__position,
                 'base_station': base_station_pkl}
-        return pickle.dumps(data, protocol=2)
+        return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)

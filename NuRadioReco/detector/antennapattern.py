@@ -249,7 +249,7 @@ def save_preprocessed_WIPLD_old(path):
     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
-        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)
+        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=4)
 
 def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
     """
@@ -314,7 +314,7 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
 #     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
 #     with open(output_filename, 'wb') as fout:
 #         logger.info('saving output to {}'.format(output_filename))
-#         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)
+#         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=4)
 
 def save_preprocessed_WIPLD(path):
     """
@@ -332,7 +332,7 @@ def save_preprocessed_WIPLD(path):
     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
-        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=2)
+        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=4)
 
 def save_preprocessed_WIPLD_forARA(path):
     """
@@ -462,7 +462,7 @@ def parse_AERA_XML_file(path):
     if not os.path.exists(path):
         logger.error("AERA antenna file {} not found".format(path))
         raise OSError
-    
+
     antenna_file = open(path, "rb")
 
     antenna_data = "<antenna>" + antenna_file.read() + "</antenna>"  # add pseudo root element
@@ -559,7 +559,7 @@ def preprocess_AERA(path):
 
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
-        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
+        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=4)
 
 
 def parse_ARA_file(ara):
@@ -648,9 +648,9 @@ def preprocess_ARA(path):
     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
-        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
-        
-        
+        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=4)
+
+
 
 def parse_HFSS_file(hfss):
     """
@@ -673,18 +673,18 @@ def parse_HFSS_file(hfss):
         * magnitudes_phi: array of floats
             corresponding logarithmic magnitude values phi component
         * phases_phi: array of floats
-            corresponding phases phi component  
+            corresponding phases phi component
         * phases_theta: array of floats
             corresponding phases theta component
      """
     ff, phi, theta, mag_phi, mag_theta, phase_phi, phase_theta = [],[],[],[],[],[],[]
     import re
 
-    
+
     with open(hfss, 'r') as csv_file:
-       
+
         for j, row in enumerate(csv_file.readlines()):
-        
+
             if j==0:
                 array_names = row.split(',')
             else:
@@ -711,32 +711,32 @@ def parse_HFSS_file(hfss):
             for arr in [theta, mag_theta, mag_phi, phase_theta, phase_phi, ff, phi]:
                 arr[(i-1)*len(ff)/len(np.unique(ff)):i*len(ff)/len(np.unique(ff))] = [x for _, x in sorted(zip(phi[(i-1)*len(ff)/len(np.unique(ff)):i*len(ff)/len(np.unique(ff))],arr[(i-1)*len(ff)/len(np.unique(ff)):i*len(ff)/len(np.unique(ff))]), key=lambda pair: pair[0])]
 
-        return np.array(ff), np.array(phi), np.array(theta), np.array(mag_phi), np.array(mag_theta), np.array(phase_phi), np.array(phase_theta)   
-    
+        return np.array(ff), np.array(phi), np.array(theta), np.array(mag_phi), np.array(mag_theta), np.array(phase_phi), np.array(phase_theta)
 
-    
+
+
 
 def preprocess_HFSS(path):
-    
+
     """
-    preprocess an antenna pattern in the HFSS file format. The vector effective length is calculated and the output is saved in the NuRadioReco pickle format. 
-    
-    The vector effective length calculation still needs to be verified. 
-    
-    The frequencies, theta, phi, magnitude theta, magnitude phi, phase theta and phase phi are read from the csv file and than ordered according to the NuRadioReco format. 
-    
-    
+    preprocess an antenna pattern in the HFSS file format. The vector effective length is calculated and the output is saved in the NuRadioReco pickle format.
+
+    The vector effective length calculation still needs to be verified.
+
+    The frequencies, theta, phi, magnitude theta, magnitude phi, phase theta and phase phi are read from the csv file and than ordered according to the NuRadioReco format.
+
+
     Parameters:
     ----------
     path: string
         the path to the file
-        
+
     """
 
     split = os.path.split(os.path.dirname(path))
     name = split[1]
     path = split[0]
-    
+
     ff, phi, theta, mag_phi, mag_theta, phase_phi, phase_theta = parse_HFSS_file((os.path.join(path, name, '{}.csv'.format(name))))
     mag_theta = 10**(mag_theta/10)
     mag_phi = 10**(mag_phi/10)
@@ -749,24 +749,24 @@ def preprocess_HFSS(path):
 
     H_theta = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
     H_phi = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
-    
-    
-    zen_boresight = 0 
+
+
+    zen_boresight = 0
     azi_boresight = 0
     zen_ori = 0
-    azi_ori = 0 
-    
+    azi_ori = 0
+
     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
-    
+
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
-        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
-                    
-            
+        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=4)
 
-    
 
-        
+
+
+
+
 def preprocess_XFDTD(path):
     """
     preprocess an antenna pattern in the XFDTD file format. The vector effective length is calculated and
@@ -807,7 +807,7 @@ def preprocess_XFDTD(path):
         output_filename = '{}.pkl'.format(os.path.join(path, name, name))
         with open(output_filename, 'wb') as fout:
             logger.info('saving output to {}'.format(output_filename))
-            pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
+            pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=4)
 
 
 class AntennaPatternBase():
