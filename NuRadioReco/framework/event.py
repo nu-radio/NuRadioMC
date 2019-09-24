@@ -4,6 +4,7 @@ import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.framework.hybrid_information
 from six import itervalues
+import collections
 import logging
 logger = logging.getLogger('Event')
 
@@ -19,6 +20,63 @@ class Event:
         self.__sim_showers = []
         self.__event_time = 0
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
+        self.__modules_event = []  # saves which modules were executed with what parameters on event level
+        self.__modules_station = {}  # saves which modules were executed with what parameters on station level
+
+    def register_module_event(self, instance, name, kwargs):
+        """
+        registers modules applied to this event
+
+        Parameters
+        -----------
+        instance: module instance
+            the instance of the module that should be registered
+        name: module name
+            the name of the module
+        kwargs:
+            the key word arguments of the run method
+        """
+
+        self.__modules_event.append([name, instance, kwargs])
+
+    def register_module_station(self, station_id, instance, name, kwargs):
+        """
+        registers modules applied to this event
+
+        Parameters
+        -----------
+        station_id: int
+            the station id
+        instance: module instance
+            the instance of the module that should be registered
+        name: module name
+            the name of the module
+        kwargs:
+            the key word arguments of the run method
+        """
+        if(station_id not in self.__modules_station):
+            self.__modules_station[station_id] = []
+        iE = len(self.__modules_event)
+        self.__modules_station[station_id].append([iE, name, instance, kwargs])
+
+    def iter_modules(self, station_id=None):
+        """
+        returns an interator that loops over all modules. If a station id is provided it loops
+        over all modules that are applied on event or station level (on this particular station). If no
+        station_id is provided, the loop is only over the event modules.
+        The order follows the sequence these modules were applied
+        """
+        iE = 0
+        iS = 0
+        while True:
+            if(station_id in self.__modules_station and (len(self.__modules_station[station_id]) > iS) and self.__modules_station[station_id][iS][0] == iE):
+                iS += 1
+                yield self.__modules_station[station_id][iS - 1][1:]
+            else:
+                if(len(self.__modules_event) == iE):
+                    break
+                iE += 1
+                yield self.__modules_event[iE - 1]
 
     def get_parameter(self, attribute):
         return self._parameters[attribute]
@@ -83,6 +141,7 @@ class Event:
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
 
+<<<<<<< HEAD
         showers_pkl = []
         for shower in self.get_showers():
             showers_pkl.append(shower.serialize())
@@ -90,16 +149,35 @@ class Event:
         for shower in self.get_sim_showers():
             sim_showers_pkl.append(shower.serialize())
         hybrid_info = self.__hybrid_information.serialize()
+=======
+        modules_out_event = []
+        for value in self.__modules_event:  # remove module instances (this will just blow up the file size)
+            modules_out_event.append([value[0], None, value[2]])
+
+        modules_out_station = {}
+        for key in self.__modules_station:  # remove module instances (this will just blow up the file size)
+            modules_out_station[key] = []
+            for value in self.__modules_station[key]:
+                modules_out_station[key].append([value[0], value[1], None, value[3]])
+
+>>>>>>> 90fa55ce35adffba33c14df0b49fb6ab05b75eb7
         data = {'_parameters': self._parameters,
                 '__run_number': self.__run_number,
                 '_id': self._id,
                 '__event_time': self.__event_time,
                 'stations': stations_pkl,
+<<<<<<< HEAD
                 'showers': showers_pkl,
                 'sim_showers': sim_showers_pkl,
                 'hybrid_info': hybrid_info}
 
         return pickle.dumps(data, protocol=2)
+=======
+                '__modules_event': modules_out_event,
+                '__modules_station': modules_out_station
+                }
+        return pickle.dumps(data, protocol=4)
+>>>>>>> 90fa55ce35adffba33c14df0b49fb6ab05b75eb7
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
@@ -123,3 +201,7 @@ class Event:
         self.__run_number = data['__run_number']
         self._id = data['_id']
         self.__event_time = data['__event_time']
+        if("__modules_event" in data):
+            self.__modules_event = data['__modules_event']
+        if("__modules_station" in data):
+            self.__modules_station = data['__modules_station']

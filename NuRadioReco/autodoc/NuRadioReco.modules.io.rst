@@ -1,11 +1,12 @@
-NuRadioReco.modules.io package
-==============================
+NuRadioReco\.modules\.io package
+================================
 
 Subpackages
 -----------
 
 .. toctree::
 
+    NuRadioReco.modules.io.araroot
     NuRadioReco.modules.io.coreas
     NuRadioReco.modules.io.noise
     NuRadioReco.modules.io.snowshovel
@@ -13,24 +14,24 @@ Subpackages
 Submodules
 ----------
 
-NuRadioReco.modules.io.ARIANNAio module
----------------------------------------
+NuRadioReco\.modules\.io\.NuRadioRecoio module
+----------------------------------------------
 
-.. automodule:: NuRadioReco.modules.io.ARIANNAio
+.. automodule:: NuRadioReco.modules.io.NuRadioRecoio
     :members:
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.modules.io.eventReader module
------------------------------------------
+NuRadioReco\.modules\.io\.eventReader module
+--------------------------------------------
 
 .. automodule:: NuRadioReco.modules.io.eventReader
     :members:
     :undoc-members:
     :show-inheritance:
 
-NuRadioReco.modules.io.eventWriter module
------------------------------------------
+NuRadioReco\.modules\.io\.eventWriter module
+--------------------------------------------
 
 .. automodule:: NuRadioReco.modules.io.eventWriter
     :members:

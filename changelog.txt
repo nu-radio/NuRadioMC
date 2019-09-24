@@ -6,9 +6,15 @@ please update the categories "new features" and "bugfixes" before a pull request
 version 1.0.1 - ????/??/??
 
 new features:
+- added module registry. By adding a decorator to the run methods of every module, we keep track of the modules applied to an event
 -Added new module called "beamFormingDirectionFitter" that fits direction through an interferometry method (dubbed beamForming)
 -Added the internal clock parameter (time since last trigger with ms precision) to ARIANNA paremeters (key number 8)
+-Changed import "detector_sql" to "from NuRadioReco.detector import detector_sql" and .GetSec() to datetime.datetime.fromtimestamp(self.config_tree.TrigStartClock.GetCurrTime()) in the detector.py and readARIANNAdataCalin.py files respectively in order to make it python3 compatible.
+-Updated documentation and made it deployable on github
+
+Detector description can be stored in .nur files
 
 bugfixes:
+-Fixes increase in filesize caused by switch to python3
 
 version 1.0.0 - 2019/08/30 - first python 3 release
