@@ -81,11 +81,6 @@ class showerParameters(Enum):
     shower_maximum = 9  # position of shower maximum in slant depth, e.g., Xmax
     distance_shower_maximum_geometric = 10  # distance to xmax in meter
     distance_shower_maximum_grammage = 11  # distance to xmax in g / cm^2
-    nu_inttype = 12    #interaction type for neutino events. Can be "cc", "nc" for charged/neutral current interactions or "tau_had", "tau_em" for hadronic/electrimagnetic tau interactions
-    vertex = 13        #location of the primary particle's interaction vertex. Has the form of a 3D vector
-    inelasticity = 14  #inelasticity, i.e. fraction of the primary particle energy dumped into the hadronic cascade
-    chi2_efield_time_direction_fit = 15  # the chi2 of the direction fitter that used the maximum pulse times of the efields
-    ndf_efield_time_direction_fit = 16  # the number of degrees of freedom of the direction fitter that used the maximum pulse times of the efields
 
     # dedicated parameter for sim showers
     refractive_index_at_ground = 100  # refractivity at sea level

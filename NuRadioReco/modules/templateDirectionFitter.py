@@ -6,7 +6,6 @@ from radiotools import helper as hp
 from NuRadioReco.utilities import units, ice
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
-from NuRadioReco.framework.parameters import showerParameters as shp
 
 import logging
 logger = logging.getLogger('templateDirectionFitter')
@@ -100,19 +99,20 @@ class templateDirectionFitter:
         res = opt.minimize(obj_plane, x0=[zenith_start, azimuth_start], args=(positions, times), method=method, options=options)
 
         output_str = "reconstucted angles theta = {:.1f}, phi = {:.1f}".format(res.x[0] / units.deg, hp.get_normalized_angle(res.x[1]) / units.deg)
-        if evt.has_sim_shower():
-            sim_shower = list(evt.get_sim_showers())[0]
-            sim_zen = sim_shower[shp.zenith]
-            sim_az = sim_shower[shp.azimuth]
+        if station.has_sim_station():
+            sim_zen = station.get_sim_station()[stnp.zenith]
+            sim_az = station.get_sim_station()[stnp.azimuth]
             dOmega = hp.get_angle(hp.spherical_to_cartesian(sim_zen, sim_az), hp.spherical_to_cartesian(res.x[0], res.x[1]))
             output_str += "  MC theta = {:.1f}, phi = {:.1f},  dOmega = {:.2f}".format(sim_zen / units.deg, sim_az / units.deg, dOmega / units.deg)
         logger.info(output_str)
-        rec_shower = evt.get_first_shower([station.get_id()])
-        if rec_shower is None:
-            evt.add_shower(NuRadioReco.framework.radio_shower.RadioShower([station.get_id()]))
-            rec_shower = evt.get_first_shower([station.get_id()])
-        rec_shower[shp.zenith] = res.x[0]
-        rec_shower[shp.azimuth] = hp.get_normalized_angle(res.x[1])
+        station[stnp.zenith] = res.x[0]
+        station[stnp.azimuth] = hp.get_normalized_angle(res.x[1])
+        if(cosmic_ray):
+            station[stnp.cr_zenith] = res.x[0]
+            station[stnp.cr_azimuth] = hp.get_normalized_angle(res.x[1])
+        else:
+            station[stnp.nu_zenith] = res.x[0]
+            station[stnp.nu_azimuth] = hp.get_normalized_angle(res.x[1])
 
     def end(self):
         pass
