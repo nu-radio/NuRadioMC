@@ -279,7 +279,7 @@ class voltageToAnalyticEfieldConverter:
     def run(self, evt, station, det, debug=False, debug_plotpath=None,
             use_channels=[0, 1, 2, 3],
             bandpass=[100 * units.MHz, 500 * units.MHz],
-            useMCdirection=False):
+            use_MC_direction=False):
         """
         run method. This function is executed for each event
 
@@ -300,14 +300,14 @@ class voltageToAnalyticEfieldConverter:
             the lower and upper frequecy for which the analytic pulse is calculated.
             A butterworth filter of 10th order and a rectangular filter is applied.
             default 100 - 500 MHz
-        useMCdirection: bool
+        use_MC_direction: bool
             use simulated direction instead of reconstructed direction
         """
         self.__counter += 1
         event_time = station.get_station_time()
         station_id = station.get_id()
         logger.info("event {}, station {}".format(evt.get_id(), station_id))
-        if useMCdirection and (station.get_sim_station() is not None):
+        if use_MC_direction and (station.get_sim_station() is not None):
             zenith = station.get_sim_station()[stnp.zenith]
             azimuth = station.get_sim_station()[stnp.azimuth]
             sim_present = True
