@@ -6,7 +6,6 @@ from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.framework.parameters import showerParameters as shp
 import scipy.optimize as opt
 from radiotools import helper as hp
 import logging
@@ -162,8 +161,8 @@ class correlationDirectionFitter:
                                            np.abs(signal.hilbert(station.get_channel(channel_pairs[0][1]).get_trace())))
                 corr_13 = signal.correlate(np.abs(signal.hilbert(station.get_channel(channel_pairs[1][0]).get_trace())),
                                            np.abs(signal.hilbert(station.get_channel(channel_pairs[1][1]).get_trace())))
-
-
+                        
+                        
 
         else:
             # FFT convolution
@@ -228,24 +227,22 @@ class correlationDirectionFitter:
 #             print("offset 13= {:.3f}".format(toffset[indices[imax]] -  (delta_t_13 / sampling_rate)))
 
             ax2.axvline(delta_t_13 / sampling_rate, label='time', c='k')
-
+            
             ax2.set_xlabel("time")
             ax2.set_ylabel("Correlation Ch 1/ Ch3", fontsize='small')
             ax.set_ylabel("Correlation Ch 0/ Ch2", fontsize='small')
             plt.tight_layout()
 #             plt.close("all")
 
-        shower = evt.get_first_shower([station.get_id()])
-        shower.set_parameter(shp.zenith, max(ZenLim[0], min(ZenLim[1], ll[0][0])))
-        shower.set_parameter(shp.azimuth, ll[0][1])
-        output_str = "reconstucted angles theta = {:.1f}, phi = {:.1f}".format(shower[shp.zenith] / units.deg, shower[shp.azimuth] / units.deg)
-        if evt.has_sim_shower():
+        station[stnp.zenith] = max(ZenLim[0], min(ZenLim[1], ll[0][0]))
+        station[stnp.azimuth] = ll[0][1]
+        output_str = "reconstucted angles theta = {:.1f}, phi = {:.1f}".format(station[stnp.zenith] / units.deg, station[stnp.azimuth] / units.deg)
+        if station.has_sim_station():
             sim_zen = None
             sim_az = None
-            sim_shower = list(evt.get_sim_showers())[0]
             if(station.get_sim_station().is_cosmic_ray()):
-                sim_zen = sim_shower[shp.zenith]
-                sim_az = sim_shower[shp.azimuth]
+                sim_zen = station.get_sim_station()[stnp.zenith]
+                sim_az = station.get_sim_station()[stnp.azimuth]
             elif(station.get_sim_station().is_neutrino()):  # in case of a neutrino simulation, each channel has a slightly different arrival direction -> compute the average
                 sim_zen = []
                 sim_az = []
@@ -271,12 +268,12 @@ class correlationDirectionFitter:
                 sim_az = np.mean(np.array(sim_az))
 
             if(sim_zen is not None):
-                dOmega = hp.get_angle(hp.spherical_to_cartesian(sim_zen, sim_az), hp.spherical_to_cartesian(shower[shp.zenith], shower[shp.azimuth]))
-                output_str += "  MC theta = {:.2f}, phi = {:.2f},  dOmega = {:.2f}, dZen = {:.1f}, dAz = {:.1f}".format(sim_zen / units.deg, hp.get_normalized_angle(sim_az) / units.deg, dOmega / units.deg, (shower[shp.zenith] - sim_zen) / units.deg, (shower[shp.azimuth] - hp.get_normalized_angle(sim_az)) / units.deg)
+                dOmega = hp.get_angle(hp.spherical_to_cartesian(sim_zen, sim_az), hp.spherical_to_cartesian(station[stnp.zenith], station[stnp.azimuth]))
+                output_str += "  MC theta = {:.2f}, phi = {:.2f},  dOmega = {:.2f}, dZen = {:.1f}, dAz = {:.1f}".format(sim_zen / units.deg, hp.get_normalized_angle(sim_az) / units.deg, dOmega / units.deg, (station[stnp.zenith] - sim_zen) / units.deg, (station[stnp.azimuth] - hp.get_normalized_angle(sim_az)) / units.deg)
                 self.__zenith.append(sim_zen)
                 self.__azimuth.append(sim_az)
-                self.__delta_zenith.append(shower[shp.zenith] - sim_zen)
-                self.__delta_azimuth.append(shower[shp.azimuth] - hp.get_normalized_angle(sim_az))
+                self.__delta_zenith.append(station[stnp.zenith] - sim_zen)
+                self.__delta_azimuth.append(station[stnp.azimuth] - hp.get_normalized_angle(sim_az))
 
         logger.info(output_str)
         # Still have to add fit quality parameter to output
@@ -285,11 +282,11 @@ class correlationDirectionFitter:
             import peakutils
             # access simulated efield and high level parameters
             sim_present = False
-            if(evt.has_sim_shower()):
-                sim_shower = list(evt.get_sim_showers())[0]
-                if(sim_shower.has_parameter(shp.zenith)):
-                    azimuth_orig = sim_shower[shp.azimuth]
-                    zenith_orig = sim_shower[shp.zenith]
+            if(station.has_sim_station()):
+                if(station.get_sim_station().has_parameter(stnp.zenith)):
+                    sim_station = station.get_sim_station()
+                    azimuth_orig = sim_station[stnp.azimuth]
+                    zenith_orig = sim_station[stnp.zenith]
                     sim_present = True
 
             if sim_present:

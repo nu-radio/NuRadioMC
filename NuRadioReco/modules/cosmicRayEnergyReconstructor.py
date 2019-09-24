@@ -1,8 +1,6 @@
 import numpy as np
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.framework.parameters import showerParameters as shp
-import NuRadioReco.framework.radio_shower
 from NuRadioReco.utilities import units
 import NuRadioReco.utilities.trace_utilities
 import logging
@@ -41,7 +39,7 @@ class cosmicRayEnergyReconstructor:
             'southpole': 2800.,
             'auger': 1560.
         }
-
+    
     def begin(self, site='mooresbay'):
         self.__site = site
         if site not in self.__parametrizations.keys():
@@ -49,21 +47,17 @@ class cosmicRayEnergyReconstructor:
             raise ValueError
         self.__parametrization_for_site = self.__parametrizations[site]
         self.__elevation = self.__elevations[site]
-
-
+        
+        
     def run(self, event, station, detector):
-
+        
         if not station.is_cosmic_ray():
             logger.warning('Event is not a cosmic ray!')
-        shower = event.get_first_shower([station.get_id()])
-        if shower is None:
-            evemt.add_shower(NuRadioReco.modules.radio_shower.RadioShower([station.get_id()]))
-            shower = event.get_first_shower([station.get_id()])
-        if not shower.has_parameter(shp.zenith) or not shower.has_parameter(shp.azimuth):
+        if not station.has_parameter(stnp.zenith) or not station.has_parameter(stnp.azimuth):
             logger.error('No incoming direction available. Energy can not be reconstructed!')
             return
-        zenith = shower.get_parameter(shp.zenith)
-        azimuth = shower.get_parameter(shp.azimuth)
+        zenith = station.get_parameter(stnp.zenith)
+        azimuth = station.get_parameter(stnp.azimuth)
         if zenith < 30.*units.deg:
             logger.warning('Zenith angle is smaller than 30deg. Energy reconstruction is likely to be inaccurate!')
         n_efields =  len(station.get_electric_fields())
@@ -90,4 +84,7 @@ class cosmicRayEnergyReconstructor:
             scale_parameter = self.__parametrization_for_site['scale'][1][0] * zenith **2 + self.__parametrization_for_site['scale'][1][1] * zenith + self.__parametrization_for_site['scale'][1][0]
             falloff_parameter = self.__parametrization_for_site['falloff'][1][0] * zenith + self.__parametrization_for_site['falloff'][1][1]
         rec_energy = 1.e18 * np.sqrt(energy_fluence) * (xmax_distance/units.km) / (scale_parameter * np.exp(falloff_parameter * np.abs(spectrum_slope)**0.8))
-        shower.set_parameter(shp.electromagnetic_energy, rec_energy)
+        station.set_parameter(stnp.cr_energy_em, rec_energy)
+        
+        
+        

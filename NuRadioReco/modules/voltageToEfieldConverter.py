@@ -17,7 +17,6 @@ logger = logging.getLogger('voltageToEfieldConverter')
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.framework.parameters import showerParameters as shp
 
 def get_array_of_channels(station, use_channels, det, zenith, azimuth,
                           antenna_pattern_provider, time_domain=False):
@@ -138,15 +137,14 @@ class voltageToEfieldConverter:
         event_time = station.get_station_time()
         station_id = station.get_id()
 
-        if use_MC_direction and evt.has_sim_shower():
-            sim_shower = list(evt.get_sim_showers())[0]
-            zenith = sim_shower[shp.zenith]
-            azimuth = sim_shower[shp.azimuth]
+        if use_MC_direction:
+            zenith = station.get_sim_station()[stnp.zenith]
+            azimuth = station.get_sim_station()[stnp.azimuth]
             sim_present = True
         else:
-            shower = evt.get_first_shower()
-            zenith = shower[shp.zenith]
-            azimuth = shower[shp.azimuth]
+            logger.info("Using reconstructed (or starting) angles as no signal arrival angles are present")
+            zenith = station[stnp.zenith]
+            azimuth = station[stnp.azimuth]
             sim_present = False
 
 
@@ -217,7 +215,8 @@ class voltageToEfieldConverter:
             ax2f.set_xlim(100, 500)
             ax2f.semilogy(True)
             if sim_present:
-                fig.suptitle("Simulation: Zenith {:.1f}, Azimuth {:.1f}".format(np.rad2deg(sim_shower[shp.zenith]), np.rad2deg(sim_shower[shp.azimuth])))
+                sim = station.get_sim_station()
+                fig.suptitle("Simulation: Zenith {:.1f}, Azimuth {:.1f}".format(np.rad2deg(sim[stnp.zenith]), np.rad2deg(sim[stnp.azimuth])))
             else:
                 fig.suptitle("Data: reconstructed zenith {:.1f}, azimuth {:.1f}".format(np.rad2deg(zenith), np.rad2deg(azimuth)))
             fig.tight_layout()

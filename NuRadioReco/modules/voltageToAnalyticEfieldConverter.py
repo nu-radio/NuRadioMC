@@ -22,7 +22,6 @@ from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.framework.parameters import showerParameters as shp
 import NuRadioReco.framework.electric_field
 
 import logging
@@ -280,7 +279,7 @@ class voltageToAnalyticEfieldConverter:
     def run(self, evt, station, det, debug=False, debug_plotpath=None,
             use_channels=[0, 1, 2, 3],
             bandpass=[100 * units.MHz, 500 * units.MHz],
-            use_MC_direction=False):
+            useMCdirection=False):
         """
         run method. This function is executed for each event
 
@@ -308,17 +307,15 @@ class voltageToAnalyticEfieldConverter:
         event_time = station.get_station_time()
         station_id = station.get_id()
         logger.info("event {}, station {}".format(evt.get_id(), station_id))
-        if use_MC_direction and evt.has_sim_shower():
-            sim_shower = list(evt.get_sim_showers())[0]
-            zenith = sim_shower[shp.zenith]
-            azimuth = sim_shower[shp.azimuth]
+        if useMCdirection and (station.get_sim_station() is not None):
+            zenith = station.get_sim_station()[stnp.zenith]
+            azimuth = station.get_sim_station()[stnp.azimuth]
             sim_present = True
         else:
-            shower = evt.get_first_shower()
-            zenith = shower[shp.zenith]
-            azimuth = shower[shp.azimuth]
+            logger.warning("Using reconstructed angles as no simulation present")
+            zenith = station[stnp.zenith]
+            azimuth = station[stnp.azimuth]
             sim_present = False
-
 
         efield_antenna_factor, V, V_timedomain = get_array_of_channels(station, use_channels,
                                                                        det, zenith, azimuth, self.antenna_provider,
@@ -698,7 +695,8 @@ class voltageToAnalyticEfieldConverter:
             ax2f.set_xlim(100, 500)
             ax2f.semilogy(True)
             if sim_present:
-                fig.suptitle("Simulation: Zenith {:.1f}, Azimuth {:.1f}".format(np.rad2deg(sim_shower[shp.zenith]), np.rad2deg(sim_shower[shp.azimuth])))
+                sim = station.get_sim_station()
+                fig.suptitle("Simulation: Zenith {:.1f}, Azimuth {:.1f}".format(np.rad2deg(sim[stnp.zenith]), np.rad2deg(sim[stnp.azimuth])))
             else:
                 fig.suptitle("Data: reconstructed zenith {:.1f}, azimuth {:.1f}".format(np.rad2deg(zenith), np.rad2deg(azimuth)))
             fig.tight_layout()

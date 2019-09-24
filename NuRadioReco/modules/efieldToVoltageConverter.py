@@ -99,12 +99,12 @@ class efieldToVoltageConverter:
                 if sim_station.is_cosmic_ray():
                     site = det.get_site(sim_station_id)
                     antenna_position = det.get_relative_position(sim_station_id, iCh) - electric_field.get_position()
-                    if electric_field.get_parameter(efp.zenith) > 90*units.deg:   #signal is coming from below, so we take IOR of ice
+                    if sim_station.get_parameter(stnp.zenith) > 90*units.deg:   #signal is coming from below, so we take IOR of ice
                         index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                     else:   # signal is coming from above, so we take IOR of air
                         index_of_refraction = ice.get_refractive_index(1, site)
-                    travel_time_shift = geo_utl.get_time_delay_from_direction(electric_field.get_parameter(efp.zenith),
-                        electric_field.get_parameter(efp.azimuth), antenna_position, index_of_refraction)
+                    travel_time_shift = geo_utl.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith),
+                        sim_station.get_parameter(stnp.azimuth), antenna_position, index_of_refraction)
                     t0 += travel_time_shift
                 if(not np.isnan(t0)):  # trace start time is None if no ray tracing solution was found and channel contains only zeros
                     times_min.append(t0)
@@ -165,12 +165,12 @@ class efieldToVoltageConverter:
                     if sim_station.is_cosmic_ray():
                         site = det.get_site(sim_station_id)
                         antenna_position = det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position()
-                        if electric_field.get_parameter(efp.zenith) > 90*units.deg:   #signal is coming from below, so we take IOR of ice
+                        if sim_station.get_parameter(stnp.zenith) > 90*units.deg:   #signal is coming from below, so we take IOR of ice
                             index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                         else:   # signal is coming from above, so we take IOR of air
                             index_of_refraction = ice.get_refractive_index(1, site)
-                        travel_time_shift = geo_utl.get_time_delay_from_direction(electric_field.get_parameter(efp.zenith),
-                            electric_field.get_parameter(efp.azimuth), antenna_position, index_of_refraction)
+                        travel_time_shift = geo_utl.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith),
+                            sim_station.get_parameter(stnp.azimuth), antenna_position, index_of_refraction)
                         start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift) / time_resolution))
                     else:
                         start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min()) / time_resolution))
