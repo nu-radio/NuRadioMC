@@ -141,7 +141,6 @@ class Event:
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
 
-<<<<<<< HEAD
         showers_pkl = []
         for shower in self.get_showers():
             showers_pkl.append(shower.serialize())
@@ -149,7 +148,6 @@ class Event:
         for shower in self.get_sim_showers():
             sim_showers_pkl.append(shower.serialize())
         hybrid_info = self.__hybrid_information.serialize()
-=======
         modules_out_event = []
         for value in self.__modules_event:  # remove module instances (this will just blow up the file size)
             modules_out_event.append([value[0], None, value[2]])
@@ -160,24 +158,18 @@ class Event:
             for value in self.__modules_station[key]:
                 modules_out_station[key].append([value[0], value[1], None, value[3]])
 
->>>>>>> 90fa55ce35adffba33c14df0b49fb6ab05b75eb7
         data = {'_parameters': self._parameters,
                 '__run_number': self.__run_number,
                 '_id': self._id,
                 '__event_time': self.__event_time,
                 'stations': stations_pkl,
-<<<<<<< HEAD
                 'showers': showers_pkl,
                 'sim_showers': sim_showers_pkl,
-                'hybrid_info': hybrid_info}
-
-        return pickle.dumps(data, protocol=2)
-=======
+                'hybrid_info': hybrid_info,
                 '__modules_event': modules_out_event,
                 '__modules_station': modules_out_station
                 }
         return pickle.dumps(data, protocol=4)
->>>>>>> 90fa55ce35adffba33c14df0b49fb6ab05b75eb7
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
