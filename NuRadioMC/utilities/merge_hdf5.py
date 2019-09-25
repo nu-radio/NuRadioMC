@@ -21,7 +21,10 @@ def merge2(filenames, output_filename):
         fin = h5py.File(f, 'r')
         if(not "triggered" in fin or np.sum(np.array(fin['triggered'])) == 0):
             n_events_total += fin.attrs['n_events']
-            print(f"file {f} contains no events, skipping file but still keeping track of total number of simulated events")
+            for key in fin.attrs:
+                if(key not in attrs):
+                    attrs[key] = fin.attrs[key]
+            print(f"file {f} contains no events, skipping file but still keeping track of total number of simulated events and all attributes")
             continue
 
         non_empty_filenames.append(f)
@@ -145,6 +148,7 @@ def merge2(filenames, output_filename):
 #             fout[key].attrs[key2] = group_attrs[key][key2]
 #
     # save all atrributes
+    attrs['n_events'] = n_events_total
     for key in attrs:
         fout.attrs[key] = attrs[key]
 
