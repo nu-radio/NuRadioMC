@@ -19,7 +19,7 @@ def merge2(filenames, output_filename):
     for f in filenames:
         print("adding file {}".format(f))
         fin = h5py.File(f, 'r')
-        if("triggered" in fin and np.sum(np.array(fin['triggered'])) == 0):
+        if(not "triggered" in fin or np.sum(np.array(fin['triggered'])) == 0):
             n_events_total += fin.attrs['n_events']
             print(f"file {f} contains no events, skipping file but still keeping track of total number of simulated events")
             continue
