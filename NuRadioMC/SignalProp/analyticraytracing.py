@@ -1777,7 +1777,7 @@ class ray_tracing:
                 if (analytic_length != None):
                     return analytic_length
             except:
-                self._logger.warning("analytic calculation of travel time failed, switching to numerical integration")
+                self.__logger.warning("analytic calculation of travel time failed, switching to numerical integration")
                 return self.__r2d.get_path_length(self.__x1, self.__x2, result['C0'],
                                                   reflection=result['reflection'],
                                                   reflection_case=result['reflection_case'])
@@ -1818,7 +1818,7 @@ class ray_tracing:
                 if (analytic_time != None):
                     return analytic_time
             except:
-                self._logger.warning("analytic calculation of travel time failed, switching to numerical integration")
+                self.__logger.warning("analytic calculation of travel time failed, switching to numerical integration")
                 return self.__r2d.get_travel_time(self.__x1, self.__x2, result['C0'],
                                                   reflection=result['reflection'],
                                                   reflection_case=result['reflection_case'])
