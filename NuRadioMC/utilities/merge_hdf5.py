@@ -74,7 +74,7 @@ def merge2(filenames, output_filename):
     if(len(non_empty_filenames)):
         keys = data[non_empty_filenames[0]]
     else:
-        keys = data[0].keys()
+        keys = data[filenames[0]].keys()
 
     for key in keys:
         print(f"merging key {key}")
@@ -101,7 +101,7 @@ def merge2(filenames, output_filename):
     if(len(non_empty_filenames)):
         keys = groups[non_empty_filenames[0]]
     else:
-        keys = groups[0].keys()
+        keys = groups[filenames[0]].keys()
     for key in keys:
         print("writing group {}".format(key))
         g = fout.create_group(key)
