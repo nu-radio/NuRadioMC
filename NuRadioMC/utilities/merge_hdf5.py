@@ -73,62 +73,56 @@ def merge2(filenames, output_filename):
     fout = h5py.File(output_filename, 'w')
     if(len(non_empty_filenames)):
         keys = data[non_empty_filenames[0]]
-    else:
-        keys = data[filenames[0]].keys()
-
-    for key in keys:
-        print(f"merging key {key}")
-        all_files_have_key = True
-        for f in data:
-            if(not key in data[f]):
-                all_files_have_key = False
-        if(not all_files_have_key):
-            print(f"not all files have the key {key}. This key will not be present in the merged file.")
-            continue
-        shape = list(data[non_empty_filenames[0]][key].shape)
-        shape[0] = n_data[key]
-
-        tmp = np.zeros(shape, dtype=data[non_empty_filenames[0]][key].dtype)
-
-        i = 0
-        for f in data:
-            tmp[i:(i + len(data[f][key]))] = data[f][key]
-            i += len(data[f][key])
-
-        fout.create_dataset(key, tmp.shape, dtype=tmp.dtype,
-                         compression='gzip')[...] = tmp
-
-    if(len(non_empty_filenames)):
-        keys = groups[non_empty_filenames[0]]
-    else:
-        keys = groups[filenames[0]].keys()
-    for key in keys:
-        print("writing group {}".format(key))
-        g = fout.create_group(key)
-        for key2 in groups[non_empty_filenames[0]][key]:
-            print("writing data set {}".format(key2))
+        for key in keys:
+            print(f"merging key {key}")
             all_files_have_key = True
-            for f in groups:
-                if(not key2 in groups[f][key]):
+            for f in data:
+                if(not key in data[f]):
                     all_files_have_key = False
             if(not all_files_have_key):
-                print(f"not all files have the key {key2}. This key will not be present in the merged file.")
+                print(f"not all files have the key {key}. This key will not be present in the merged file.")
                 continue
+            shape = list(data[non_empty_filenames[0]][key].shape)
+            shape[0] = n_data[key]
 
-            shape = list(groups[non_empty_filenames[0]][key][key2].shape)
-            shape[0] = n_groups[key][key2]
+            tmp = np.zeros(shape, dtype=data[non_empty_filenames[0]][key].dtype)
 
-            tmp = np.zeros(shape, dtype=groups[non_empty_filenames[0]][key][key2].dtype)
             i = 0
-            for f in groups:
-                tmp[i:(i + len(groups[f][key][key2]))] = groups[f][key][key2]
-                i += len(groups[f][key][key2])
+            for f in data:
+                tmp[i:(i + len(data[f][key]))] = data[f][key]
+                i += len(data[f][key])
 
-            g.create_dataset(key2, shape, dtype=groups[non_empty_filenames[0]][key][key2].dtype,
+            fout.create_dataset(key, tmp.shape, dtype=tmp.dtype,
                              compression='gzip')[...] = tmp
-        # save group attributes
-        for key2 in group_attrs[key]:
-            fout[key].attrs[key2] = group_attrs[key][key2]
+
+        keys = groups[non_empty_filenames[0]]
+        for key in keys:
+            print("writing group {}".format(key))
+            g = fout.create_group(key)
+            for key2 in groups[non_empty_filenames[0]][key]:
+                print("writing data set {}".format(key2))
+                all_files_have_key = True
+                for f in groups:
+                    if(not key2 in groups[f][key]):
+                        all_files_have_key = False
+                if(not all_files_have_key):
+                    print(f"not all files have the key {key2}. This key will not be present in the merged file.")
+                    continue
+
+                shape = list(groups[non_empty_filenames[0]][key][key2].shape)
+                shape[0] = n_groups[key][key2]
+
+                tmp = np.zeros(shape, dtype=groups[non_empty_filenames[0]][key][key2].dtype)
+                i = 0
+                for f in groups:
+                    tmp[i:(i + len(groups[f][key][key2]))] = groups[f][key][key2]
+                    i += len(groups[f][key][key2])
+
+                g.create_dataset(key2, shape, dtype=groups[non_empty_filenames[0]][key][key2].dtype,
+                                 compression='gzip')[...] = tmp
+            # save group attributes
+            for key2 in group_attrs[key]:
+                fout[key].attrs[key2] = group_attrs[key][key2]
 
 #     # save all data to hdf5
 #     for key in data[filenames[0]]:
