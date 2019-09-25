@@ -71,7 +71,12 @@ def merge2(filenames, output_filename):
     # create data sets
     print("creating data sets")
     fout = h5py.File(output_filename, 'w')
-    for key in data[non_empty_filenames[0]]:
+    if(len(non_empty_filenames)):
+        keys = data[non_empty_filenames[0]]
+    else:
+        keys = data[0].keys()
+
+    for key in keys:
         print(f"merging key {key}")
         all_files_have_key = True
         for f in data:
@@ -92,7 +97,12 @@ def merge2(filenames, output_filename):
 
         fout.create_dataset(key, tmp.shape, dtype=tmp.dtype,
                          compression='gzip')[...] = tmp
-    for key in groups[non_empty_filenames[0]]:
+
+    if(len(non_empty_filenames)):
+        keys = groups[non_empty_filenames[0]]
+    else:
+        keys = groups[0].keys()
+    for key in keys:
         print("writing group {}".format(key))
         g = fout.create_group(key)
         for key2 in groups[non_empty_filenames[0]][key]:
