@@ -611,8 +611,8 @@ class Detector(object):
         Returns typle of floats
             * orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
             * orientation phi: boresight direction (azimuth angle counting from East counterclockwise)
-            * rotation theta: rotation of the antenna, vector in plane of tines pointing away from connector
-            * rotation phi: rotation of the antenna, vector in plane of tines pointing away from connector
+            * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+            * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
         """
         res = self.__get_channel(station_id, channel_id)
         return np.deg2rad([res['ant_orientation_theta'], res['ant_orientation_phi'], res['ant_rotation_theta'], res['ant_rotation_phi']])
