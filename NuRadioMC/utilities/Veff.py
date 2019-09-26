@@ -2,11 +2,16 @@ import numpy as np
 import h5py
 from scipy import interpolate
 import glob
-from NuRadioMC.utilities import units
 from six import iteritems
 import json
 import os
 import copy
+
+from NuRadioMC.utilities import units
+
+import logging
+logger = logging.getLogger("Veff")
+logging.basicConfig()
 
 # collection of utility function regarding the calculation of the effective volume of a neutrino detector
 
@@ -91,7 +96,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
     if(len(glob.glob(os.path.join(folder, '*.hdf5'))) == 0):
         raise FileNotFoundError(f"couldnt find any hdf5 file in folder {folder}")
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
-        print(f"reading {filename}")
+        logger.info(f"reading {filename}")
         fin = h5py.File(filename, 'r')
         if 'deposited' in fin.attrs:
             deposited = fin.attrs['deposited']
@@ -108,7 +113,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
             break
 
     trigger_combinations['all_triggers'] = {'triggers': trigger_names}
-    print("Trigger names:", trigger_names)
+    logger.info("Trigger names:", trigger_names)
 
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
         fin = h5py.File(filename, 'r')
@@ -127,9 +132,9 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
         else:
             if(np.any(trigger_names != fin.attrs['trigger_names'])):
                 if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
-                    print("file {} has no triggering events. Using trigger names from another file".format(filename))
+                    logger.warning("file {} has no triggering events. Using trigger names from another file".format(filename))
                 else:
-                    print("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
+                    logger.warning("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
                     raise
 
         # calculate effective
@@ -208,17 +213,13 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
                             out['SNR'][trigger_name][iS] = max_amplitude[mask] / Vrms
                         triggered = triggered & masks
                     else:
-    #                     As = np.array(fin['maximum_amplitudes'])
                         As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)  # we use the this quantity because it is always computed before noise is added!
-        #                 print(As.shape)
-    #                     print(trigger_name, values['channels'])
+
                         As_sorted = np.sort(As[:, values['channels']], axis=1)
                         max_amplitude = As_sorted[:, -values['n_channels']]  # the smallest of the three largest amplitudes
-        #                 print(np.sum(As_sorted[:, -values['n_channels']] > (values['min_sigma'] * Vrms)))
                         mask = np.sum(As[:, values['channels']] >= (values['min_sigma'] * Vrms), axis=1) >= values['n_channels']
-        #                 max_amplitude[~mask] = 0
+
                         out['SNR'][trigger_name] = As_sorted[mask] / Vrms
-        #                 print(Vrms, mask.shape, np.sum(mask))
                         triggered = triggered & mask
                 if('ray_solution' in values.keys()):
                     As = np.array(fin['max_amp_ray_solution'])
@@ -303,7 +304,7 @@ def get_Veff(folder, trigger_combinations={}, station=101):
     if(len(glob.glob(os.path.join(folder, '*.hdf5'))) == 0):
         raise FileNotFoundError(f"couldnt find any hdf5 file in folder {folder}")
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
-        print(f"reading {filename}")
+        logger.info(f"reading {filename}")
         fin = h5py.File(filename, 'r')
         if 'deposited' in fin.attrs:
             deposited = fin.attrs['deposited']
@@ -320,13 +321,13 @@ def get_Veff(folder, trigger_combinations={}, station=101):
             break
 
     trigger_combinations['all_triggers'] = {'triggers': trigger_names}
-    print("Trigger names:", trigger_names)
+    logger.info("Trigger names:", trigger_names)
     for key in trigger_combinations:
         i = -1
         for value in trigger_combinations[key]['triggers']:
             i += 1
             if value not in trigger_names:
-                print(f"trigger {value} not available, removing this trigger from the trigger combination {key}")
+                logger.warning(f"trigger {value} not available, removing this trigger from the trigger combination {key}")
                 trigger_combinations[key]['triggers'].pop(i)
                 i -= 1
 
@@ -349,9 +350,9 @@ def get_Veff(folder, trigger_combinations={}, station=101):
         else:
             if(np.any(trigger_names != fin.attrs['trigger_names'])):
                 if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
-                    print("file {} has no triggering events. Using trigger names from another file".format(filename))
+                    logger.warning("file {} has no triggering events. Using trigger names from another file".format(filename))
                 else:
-                    print("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
+                    logger.error("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
                     raise
 
         # calculate effective
@@ -420,7 +421,6 @@ def get_Veff(folder, trigger_combinations={}, station=101):
                             out['SNR'][trigger_name] = {}
                         masks = np.zeros_like(triggered)
                         for iS in range(len(values['min_sigma'])):
-    #                         As = np.array(fin['maximum_amplitudes'])
                             As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)  # we use the this quantity because it is always computed before noise is added!
                             As_sorted = np.sort(As[:, values['channels'][iS]], axis=1)
                             # the smallest of the three largest amplitudes
@@ -430,17 +430,13 @@ def get_Veff(folder, trigger_combinations={}, station=101):
                             out['SNR'][trigger_name][iS] = max_amplitude[mask] / Vrms
                         triggered = triggered & masks
                     else:
-    #                     As = np.array(fin['maximum_amplitudes'])
                         As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)  # we use the this quantity because it is always computed before noise is added!
-        #                 print(As.shape)
-    #                     print(trigger_name, values['channels'])
+
                         As_sorted = np.sort(As[:, values['channels']], axis=1)
                         max_amplitude = As_sorted[:, -values['n_channels']]  # the smallest of the three largest amplitudes
-        #                 print(np.sum(As_sorted[:, -values['n_channels']] > (values['min_sigma'] * Vrms)))
+
                         mask = np.sum(As[:, values['channels']] >= (values['min_sigma'] * Vrms), axis=1) >= values['n_channels']
-        #                 max_amplitude[~mask] = 0
                         out['SNR'][trigger_name] = As_sorted[mask] / Vrms
-        #                 print(Vrms, mask.shape, np.sum(mask))
                         triggered = triggered & mask
                 if('ray_solution' in values.keys()):
                     As = np.array(fin['max_amp_ray_solution'])
@@ -568,9 +564,9 @@ def get_Veff_array(data):
     uzenith_bins = np.unique(zenith_bins, axis=0)
     utrigger_names = np.unique(trigger_names)
     output = np.zeros((len(uenergies), len(uzenith_bins), len(utrigger_names), 3))
-#     print(f"unique energies {uenergies}")
-#     print(f"unique zenith angle bins {uzenith_bins/units.deg}")
-#     print(f"unique energies {utrigger_names}")
+    logger.debug(f"unique energies {uenergies}")
+    logger.debug(f"unique zenith angle bins {uzenith_bins/units.deg}")
+    logger.debug(f"unique energies {utrigger_names}")
 
     for d in data:
         iE = np.squeeze(np.argwhere(d['energy'] == uenergies))
@@ -578,7 +574,7 @@ def get_Veff_array(data):
         for triggername, Veff in d['Veffs'].items():
             iTrig = np.squeeze(np.argwhere(triggername == utrigger_names))
             output[iE, iT, iTrig] = Veff
-#                 print(f"{iE}  {iT} {iTrig} {Veff}")
+
     return output, uenergies, uzenith_bins, utrigger_names
 
 
@@ -673,9 +669,9 @@ def get_Aeff_array(data):
     uzenith_bins = np.unique(zenith_bins, axis=0)
     utrigger_names = np.unique(trigger_names)
     output = np.zeros((len(uenergies), len(uzenith_bins), len(utrigger_names), 3))
-    print(f"unique energies {uenergies}")
-    print(f"unique zenith angle bins {uzenith_bins/units.deg}")
-    print(f"unique energies {utrigger_names}")
+    logger.debug(f"unique energies {uenergies}")
+    logger.debug(f"unique zenith angle bins {uzenith_bins/units.deg}")
+    logger.debug(f"unique energies {utrigger_names}")
 
     for d in data:
         iE = np.squeeze(np.argwhere(d['energy'] == uenergies))
@@ -683,7 +679,7 @@ def get_Aeff_array(data):
         for triggername, Aeff in d['Aeffs'].items():
             iTrig = np.squeeze(np.argwhere(triggername == utrigger_names))
             output[iE, iT, iTrig] = Aeff
-#                 print(f"{iE}  {iT} {iTrig} {Aeff}")
+
     return output, uenergies, uzenith_bins, utrigger_names
 
 
@@ -722,7 +718,7 @@ def export(filename, data, trigger_names=None, export_format='yaml'):
                 tmp[key] = {}
                 for trigger_name in data[i][key]:
                     if(trigger_names is None or trigger_name in trigger_names):
-                        print(trigger_name)
+                        logger.info(trigger_name)
                         tmp[key][trigger_name] = []
                         for value in data[i][key][trigger_name]:
                             tmp[key][trigger_name].append(float(value))
