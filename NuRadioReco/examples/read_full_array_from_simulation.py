@@ -1,13 +1,13 @@
 import argparse
-
+from NuRadioReco.utilities import units
+import numpy as np
 import NuRadioReco.modules.io.coreas.readCoREASShower
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.io.eventReader
 
-
-from NuRadioReco.framework.parameters import showerTypes as shT
 from NuRadioReco.framework.parameters import showerParameters as shP
-from NuRadioReco.framework.parameters import array_stationParameters as astP
+import NuRadioReco.modules.electricFieldBandPassFilter
+electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
 
 # Parse eventfile as argument
 parser = argparse.ArgumentParser(description='NuRadioSim file')
@@ -25,22 +25,34 @@ output_filename = "Full_CoREAS_event.nur"
 eventWriter.begin(output_filename)
 
 eventReader = NuRadioReco.modules.io.eventReader.eventReader()
-
+from matplotlib import pyplot as plt
 # for iE, event in enumerate(eventReader.run()):
 for iE, event in enumerate(readCoREASShower.run()):
     print('Event {}'.format(event.get_id()))
 
-    sim_shower = event.get_shower(shT.sim_shower)
-    print('CR energy:', sim_shower.get_parameter(shP.energy))
-    print('electromagnetic energy:', sim_shower.get_parameter(shP.electromagnetic_energy))
-    print('radiation energy:', sim_shower.get_parameter(shP.electromagnetic_energy))
+    for sim_shower in event.get_sim_showers():
+        print('CR energy:', sim_shower.get_parameter(shP.energy))
+        print('electromagnetic energy:', sim_shower.get_parameter(shP.electromagnetic_energy))
+        print('radiation energy:', sim_shower.get_parameter(shP.electromagnetic_energy))
 
-    for stid, station in enumerate(event.get_stations()):
-        sim_station = station.get_sim_station()
+        for stid, station in enumerate(event.get_stations()):
+            sim_station = station.get_sim_station()
+            electricFieldBandPassFilter.run(event, sim_station, det=None, passband=[30 * units.MHz, 80 * units.MHz], filter_type='butter', order=10)
 
-        print(sim_station.get_axis_distance(), sim_station[astP.signal_energy_fluence])
+            print(sim_station.get_id())
+            ef = sim_station.get_electric_fields()[0]
 
-    eventWriter.run(event)
+            spec = ef.get_frequency_spectrum()
+            freq = ef.get_frequencies() * 1e3  # GHz in MHz
+            dist = np.linalg.norm(sim_station.get_position() - sim_shower.get_parameter(shP.core))
+            plt.plot(freq, np.abs(spec[0]))
+            plt.plot(freq, np.abs(spec[1]))
+            # plt.plot(freq, spec[2])
+            plt.xlim(0, 100)
+            plt.title(dist)
+            plt.show()
+
+        eventWriter.run(event)
 
 nevents = eventWriter.end()
 print("Finished processing, {} events".format(nevents))
@@ -49,15 +61,15 @@ eventReader.begin("Full_CoREAS_event.nur")
 for iE, event in enumerate(eventReader.run()):
     print('Event {}'.format(event.get_id()))
 
-    sim_shower = event.get_shower(shT.sim_shower)
-    print('CR energy:', sim_shower.get_parameter(shP.energy))
-    print('electromagnetic energy:', sim_shower.get_parameter(shP.electromagnetic_energy))
-    print('radiation energy:', sim_shower.get_parameter(shP.electromagnetic_energy))
+    for sim_shower in event.get_sim_showers():
+        print('CR energy:', sim_shower.get_parameter(shP.energy))
+        print('electromagnetic energy:', sim_shower.get_parameter(shP.electromagnetic_energy))
+        print('radiation energy:', sim_shower.get_parameter(shP.electromagnetic_energy))
 
-    for stid, station in enumerate(event.get_stations()):
-        sim_station = station.get_sim_station()
+        for stid, station in enumerate(event.get_stations()):
+            sim_station = station.get_sim_station()
 
-        print(sim_station.get_axis_distance(), sim_station[astP.signal_energy_fluence])
+            print(sim_station.get_id())
 
 # print(eventReader.run())
 eventReader.end()
