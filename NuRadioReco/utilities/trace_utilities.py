@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger('trace_utilities')
 logging.basicConfig()
 
-conversion_factor_integrated_signal = scipy.constants.c * scipy.constants.epsilon_0* units.joule / units.s  / units.volt**2
+conversion_factor_integrated_signal = scipy.constants.c * scipy.constants.epsilon_0 * units.joule / units.s / units.volt ** 2
 
 # see Phys. Rev. D DOI: 10.1103/PhysRevD.93.122005
 # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
@@ -60,10 +60,11 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
         logger.debug("angles: zenith {0:.0f}, zenith antenna {1:.0f}, azimuth {2:.0f}".format(np.rad2deg(zenith), np.rad2deg(zenith_antenna), np.rad2deg(azimuth)))
         antenna_model = detector.get_antenna_model(station.get_id(), channel_id, zenith_antenna)
         antenna_pattern = antenna_pattern_provider.load_antenna_pattern(antenna_model)
-        ori = detector.get_antanna_orientation(station.get_id(), channel_id)
+        ori = detector.get_antenna_orientation(station.get_id(), channel_id)
         VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_antenna, azimuth, *ori)
         efield_antenna_factor[iCh] = np.array([VEL['theta'] * t_theta, VEL['phi'] * t_phi])
     return efield_antenna_factor
+
 
 def get_channel_voltage_from_efield(station, electric_field, channels, detector, zenith, azimuth, antenna_pattern_provider, return_spectrum=True):
     """
@@ -98,7 +99,8 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
             voltage_trace[i_ch] = fft.freq2time(np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0))
         return np.real(voltage_trace)
 
-def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask = None, noise_window_mask = None):
+
+def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask=None, noise_window_mask=None):
 
     if signal_window_mask is None:
         f_signal = np.sum(electric_field_trace ** 2, axis=1)
