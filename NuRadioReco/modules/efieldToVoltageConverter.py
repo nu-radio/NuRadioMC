@@ -85,6 +85,8 @@ class efieldToVoltageConverter:
 
         # access simulated efield and high level parameters
         sim_station = station.get_sim_station()
+        if(len(sim_station.get_electric_fields()) == 0):
+            raise LookupError(f"station {station.get_id()} has no efields")
         sim_station_id = sim_station.get_id()
         event_time = sim_station.get_station_time()
 
