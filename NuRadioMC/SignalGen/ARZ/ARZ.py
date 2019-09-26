@@ -53,7 +53,7 @@ class ARZ(object):
 
     def __new__(cls, seed=1234, interp_factor=1, interp_factor2=100, library=None):
         if ARZ.__instance is None:
-            ARZ.__instance = object.__new__(cls) #, seed, interp_factor, interp_factor2, library)
+            ARZ.__instance = object.__new__(cls)  # , seed, interp_factor, interp_factor2, library)
         return ARZ.__instance
 
     def __init__(self, seed=1234, interp_factor=1, interp_factor2=100, library=None):
@@ -71,22 +71,22 @@ class ARZ(object):
                 logger.error("user specified shower library {} not found.".format(library))
                 raise FileNotFoundError("user specified shower library {} not found.".format(library))
         self.__check_and_get_library()
-        
+
         logger.warning("loading shower library ({}) into memory".format(library))
         self._library = io_utilities.read_pickle(library)
-            
+
     def __check_and_get_library(self):
         """
         checks if shower library exists and is up to date by comparing the sha1sum. If the library does not exist
         or changes on the server, a new library will be downloaded. 
         """
         path = os.path.join(os.path.dirname(__file__), "shower_library/library_v{:d}.{:d}.pkl".format(*self._version))
-        
+
         download_file = False
         if(not os.path.exists(path)):
             logger.warning("shower library version {} does not exist on the local file system yet. It will be downloaded to {}".format(self._version, path))
             download_file = True
-    
+
         if(os.path.exists(path)):
             BUF_SIZE = 65536 * 2 ** 4  # lets read stuff in 64kb chunks!
             import hashlib
@@ -98,7 +98,7 @@ class ARZ(object):
                     if not data:
                         break
                     sha1.update(data)
-    
+
             shower_directory = os.path.join(os.path.dirname(__file__), "shower_library/")
             with open(os.path.join(shower_directory, 'shower_lib_hash.json'), 'r') as fin:
                 lib_hashs = json.load(fin)
@@ -107,13 +107,13 @@ class ARZ(object):
                         logger.warning("shower library {} has changed on the server. downloading newest version...".format(self._version))
                         download_file = True
                 else:
-                    logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))            
+                    logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))
         if not download_file:
             return True
         else:
             import requests
             URL = 'http://arianna.ps.uci.edu/~arianna/data/ce_shower_library/library_v{:d}.{:d}.pkl'.format(*self._version)
-    
+
             logger.info("downloading shower library {} from {}. This can take a while...".format(self._version, URL))
             r = requests.get(URL)
             if (r.status_code != requests.codes.ok):
@@ -122,24 +122,76 @@ class ARZ(object):
             with open(path, "wb") as code:
                 code.write(r.content)
             logger.info("...download finished.")
-        
+
     def set_seed(self, seed):
         """
         allow to set a new random seed
         """
         np.random.seed(seed)
-        
+
     def set_interpolation_factor(self, interp_factor):
         """
         set interpolation factor of charge-excess profiles
         """
         self._interp_factor = interp_factor
-        
+
     def set_interpolation_factor2(self, interp_factor):
         """
         set interpolation factor around peak of form factor
         """
         self._interp_factor2 = interp_factor
+
+    def get_shower_profile(self, shower_energy, shower_type, iN, same_shower):
+        """
+        returns a charge excess profile from the shower library
+        
+        Parameters
+        ----------
+        shower_energy: float
+            the energy of the shower
+        shower_type: string (default "HAD")
+            type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+        iN: int or None
+            specify shower number
+        same_shower: bool
+            if False, for each request a new random shower realization is choosen. 
+            if True, the shower from the last request of the same shower type is used. This is needed to get the Askaryan
+            signal for both ray tracing solutions from the same shower. 
+            
+        Returns
+            shower depth (np.array), charge-excess (np.array)
+        """
+        if not shower_type in self._library.keys():
+            raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
+
+        # determine closes available energy in shower library
+        energies = np.array([*self._library[shower_type]])
+        iE = np.argmin(np.abs(energies - shower_energy))
+        rescaling_factor = shower_energy / energies[iE]
+        logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}".format(shower_energy / units.eV, energies[iE] / units.eV, rescaling_factor))
+        profiles = self._library[shower_type][energies[iE]]
+        N_profiles = len(profiles['charge_excess'])
+
+        if(iN is None):
+            if(same_shower):
+                if(shower_type in self._random_numbers):
+                    iN = self._random_numbers[shower_type]
+                    logger.info("using previously used shower {}/{}".format(iN, N_profiles))
+                else:
+                    logger.warning("no previous random number for shower type {} exists. Generating a new random number.".format(shower_type))
+                    iN = np.random.randint(N_profiles)
+                    self._random_numbers[shower_type] = iN
+                    logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
+            else:
+                iN = np.random.randint(N_profiles)
+                self._random_numbers[shower_type] = iN
+                logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
+        else:
+            logger.info("using shower {}/{} as specified by user".format(iN, N_profiles))
+
+        profile_depth = profiles['depth']
+        profile_ce = profiles['charge_excess'][iN] * rescaling_factor
+        return profile_depth, profile_ce
 
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
                        same_shower=False, iN=None, output_mode='trace', theta_reference='X0'):
@@ -189,37 +241,9 @@ class ARZ(object):
         Returns: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
         """
-        if not shower_type in self._library.keys():
-            raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
-    
-        # determine closes available energy in shower library
-        energies = np.array([*self._library[shower_type]])
-        iE = np.argmin(np.abs(energies - shower_energy))
-        rescaling_factor = shower_energy / energies[iE]
-        logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}".format(shower_energy / units.eV, energies[iE] / units.eV, rescaling_factor))
-        profiles = self._library[shower_type][energies[iE]]
-        N_profiles = len(profiles['charge_excess'])
-        
-        if(iN is None):
-            if(same_shower):
-                if(shower_type in self._random_numbers):
-                    iN = self._random_numbers[shower_type]
-                    logger.info("using previously used shower {}/{}".format(iN, N_profiles))
-                else:
-                    logger.warning("no previous random number for shower type {} exists. Generating a new random number.".format(shower_type))
-                    iN = np.random.randint(N_profiles)
-                    self._random_numbers[shower_type] = iN
-                    logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
-            else:
-                iN = np.random.randint(N_profiles)
-                self._random_numbers[shower_type] = iN
-                logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
-        else:
-            logger.info("using shower {}/{} as specified by user".format(iN, N_profiles))
-            
-        profile_depth = profiles['depth']
-        profile_ce = profiles['charge_excess'][iN] * rescaling_factor
-        
+
+        profile_depth, profile_ce = self.get_shower_profile(shower_energy, shower_type, iN, same_shower)
+
         xmax = profile_depth[np.argmax(profile_ce)]
         if(theta_reference == 'Xmax'):
             thetat = copy.copy(theta)
@@ -227,12 +251,12 @@ class ARZ(object):
             logger.info("transforming viewing angle from {:.2f} to {:.2f}".format(thetat / units.deg, theta / units.deg))
         elif(theta_reference != 'X0'):
             raise NotImplementedError("theta_reference = '{}' is not implemented".format(theta_reference))
-        
+
         vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, shower_type, n_index, R,
                                        self._interp_factor, self._interp_factor2, shift_for_xmax)
         trace = -np.diff(vp, axis=0) / dt
 #         trace = -np.gradient(vp, axis=0) / dt
-        
+
         # use viewing angle relative to shower maximum for rotation into spherical coordinate system (that reduced eR component)
         thetaprime = theta_to_thetaprime(theta, xmax, R)
         cs = cstrafo.cstrafo(zenith=thetaprime, azimuth=0)
@@ -244,8 +268,8 @@ class ARZ(object):
             Lmax = xmax / rho
             return trace_onsky, Lmax
         return trace_onsky
-    
-    
+
+
 def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
                               shower_type="HAD", n_index=1.78, distance=1 * units.m,
                               interp_factor=1., interp_factor2=100., shift_for_xmax=False):
@@ -287,7 +311,7 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
         if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
         with respect to (0,0,0) which is the start of the charge-excess profile
     """
-    
+
     ttt = np.arange(0, (N + 1) * dt, dt)
     ttt = ttt + 0.5 * dt - ttt.mean()
     if(len(ttt) != N + 1):
@@ -307,7 +331,7 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
     dxmax = length[np.argmax(profile_ce_interp)]
 #     theta2 = np.arctan(R * np.sin(theta)/(R * np.cos(theta) - dxmax))
 #     logger.warning("theta changes from {:.2f} to {:.2f}".format(theta/units.deg, theta2/units.deg))
-    
+
     # calculate antenna position in ARZ reference frame
     # coordinate system is with respect to an origin which is located
     # at the position where the primary particle is injected in the medium. The reference frame
@@ -346,16 +370,16 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
 
         R = get_dist_shower(X, z)
         arg = z - (beta * c * tobs - xn * R)
-        
+
         # Note that Acher peaks at tt=0 which corresponds to the observer time.
         # The shift from tobs to tt=0 is done when defining argument
         tt = (-arg / (c * beta))  # Parameterisation of A_Cherenkov with t in ns
-        
+
         mask = abs(tt) < 20. * units.ns
-        if(np.sum(mask) == 0):  # 
+        if(np.sum(mask) == 0):  #
             vp[it] = 0
             continue
-        
+
         profile_dense2 = profile_dense
         profile_ce_interp2 = profile_ce_interp
         abc = False
@@ -376,7 +400,7 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
                             indices = np.append(indices, len(tt) - 1)
                 if(len(indices) % 2 == 0):  # this rejects the cases where only the first or the last entry fulfills the -1 < tt < 1 condition
                     dt = tt[1] - tt[0]
-                    
+
                     dp = profile_dense2[1] - profile_dense2[0]
                     if(len(indices) == 2):  # we have only one interval
                         i_start = indices[0]
@@ -385,17 +409,17 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
                         profile_ce_interp2 = np.interp(profile_dense2, profile_dense[i_start:i_stop], profile_ce_interp[i_start:i_stop])
                         profile_dense2 = np.append(np.append(profile_dense[:i_start], profile_dense2), profile_dense[i_stop:])
                         profile_ce_interp2 = np.append(np.append(profile_ce_interp[:i_start], profile_ce_interp2), profile_ce_interp[i_stop:])
-                    elif(len(indices) == 4):  # we have two intervals, hence, we need to upsample two distinct intervals and put the full array back together. 
+                    elif(len(indices) == 4):  # we have two intervals, hence, we need to upsample two distinct intervals and put the full array back together.
                         i_start = indices[0]
                         i_stop = indices[1]
                         profile_dense2 = np.arange(profile_dense[i_start], profile_dense[i_stop], dp / interp_factor2)
                         profile_ce_interp2 = np.interp(profile_dense2, profile_dense[i_start:i_stop], profile_ce_interp[i_start:i_stop])
-                        
+
                         i_start3 = indices[2]
                         i_stop3 = indices[3]
                         profile_dense3 = np.arange(profile_dense[i_start3], profile_dense[i_stop3], dp / interp_factor2)
                         profile_ce_interp3 = np.interp(profile_dense3, profile_dense[i_start3:i_stop3], profile_ce_interp[i_start3:i_stop3])
-                        
+
                         profile_dense2 = np.append(np.append(np.append(np.append(
                                                         profile_dense[:i_start], profile_dense2),
                                                            profile_dense[i_stop:i_start3]),
@@ -407,7 +431,7 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
                                                 profile_ce_interp[i_stop:i_start3]),
                                                 profile_ce_interp3),
                                                 profile_ce_interp[i_stop3:])
-                            
+
                     else:
                         raise NotImplementedError("length of indices is not 2 nor 4")  # this should never happen
                     if 0:
@@ -420,7 +444,7 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
                         ax.plot(indices, np.ones_like(indices), 'd')
         #                 ax.plot(np.arange(len(tmask))[gaps], tt[gaps], 'd')
                         plt.show()
-                
+
                     # recalculate parameters for interpolated values
                     z = profile_dense2 / rho
                     R = get_dist_shower(X, z)
@@ -428,7 +452,7 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
                     tt = (-arg / (c * beta))
                     mask = abs(tt) < 20. * units.ns
                     tmask = (tt < 1 * units.ns) & (tt > -1 * units.ns)
-        
+
         F_p = np.zeros_like(tt)
         # Cut fit above +/-5 ns
 
@@ -456,20 +480,20 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
             if(shower_type == "HAD"):
                 mask2 = tt > 0 & mask
                 if(np.sum(mask2)):
-                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.065 * units.ns)) + 
+                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.065 * units.ns)) +
                                           (1. + 3.00 / units.ns * np.abs(tt[mask2])) ** (-2.65))  # hadronic
                 mask2 = tt <= 0 & mask
                 if(np.sum(mask2)):
-                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.043 * units.ns)) + 
+                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.043 * units.ns)) +
                                           (1. + 2.92 / units.ns * np.abs(tt[mask2])) ** (-3.21))  # hadronic
             elif(shower_type == "EM"):
                 mask2 = tt > 0 & mask
                 if(np.sum(mask2)):
-                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.057 * units.ns)) + 
+                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.057 * units.ns)) +
                                           (1. + 2.87 / units.ns * np.abs(tt[mask2])) ** (-3.00))  # electromagnetic
                 mask2 = tt <= 0 & mask
                 if(np.sum(mask2)):
-                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.030 * units.ns)) + 
+                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.030 * units.ns)) +
                                           (1. + 3.05 / units.ns * np.abs(tt[mask2])) ** (-3.50))  # electromagnetic
             elif(shower_type == "TAU"):
                 logger.error("Tau showers are not yet implemented")
@@ -512,7 +536,7 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
         ax2.plot(t0)
         ax2.plot(t1)
         ax2.plot(t2)
-        
+
         ax2.plot(trace2.T[0], '--')
         ax2.plot(trace2.T[1], '--')
         ax2.plot(trace2.T[2], '--')
@@ -617,14 +641,14 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
         Af_p = -3.2e-14 * units.V * units.s  # V s
         E_TeV = energy / units.TeV
         if (tt > 0):
-            A_e = Af_e * E_TeV * (np.exp(-np.abs(tt) / (0.057 * units.ns)) + 
+            A_e = Af_e * E_TeV * (np.exp(-np.abs(tt) / (0.057 * units.ns)) +
                                   (1. + 2.87 / units.ns * np.abs(tt)) ** (-3.00))  # electromagnetic
-            A_p = Af_p * E_TeV * (np.exp(-np.abs(tt) / (0.065 * units.ns)) + 
+            A_p = Af_p * E_TeV * (np.exp(-np.abs(tt) / (0.065 * units.ns)) +
                                   (1. + 3.00 / units.ns * np.abs(tt)) ** (-2.65))  # hadronic
         else:
-            A_e = Af_e * E_TeV * (np.exp(-np.abs(tt) / (0.030 * units.ns)) + 
+            A_e = Af_e * E_TeV * (np.exp(-np.abs(tt) / (0.030 * units.ns)) +
                                   (1. + 3.05 / units.ns * np.abs(tt)) ** (-3.50))  # electromagnetic
-            A_p = Af_p * E_TeV * (np.exp(-np.abs(tt) / (0.043 * units.ns)) + 
+            A_p = Af_p * E_TeV * (np.exp(-np.abs(tt) / (0.043 * units.ns)) +
                                   (1. + 2.92 / units.ns * np.abs(tt)) ** (-3.21))  # hadronic
 
         if(ccnc == 'nc'):
@@ -675,22 +699,22 @@ class ARZ_tabulated(object):
                 logger.error("user specified pulse library {} not found.".format(library))
                 raise FileNotFoundError("user specified pulse library {} not found.".format(library))
         self.__check_and_get_library()
-        
+
         logger.warning("loading pulse library into memory")
         self._library = io_utilities.read_pickle(library)
-            
+
     def __check_and_get_library(self):
         """
         checks if pulse library exists and is up to date by comparing the sha1sum. If the library does not exist
         or changes on the server, a new library will be downloaded. 
         """
         path = os.path.join(os.path.dirname(__file__), "shower_library/ARZ_library_v{:d}.{:d}.pkl".format(*self._version))
-        
+
         download_file = False
         if(not os.path.exists(path)):
             logger.warning("ARZ library version {} does not exist on the local file system yet. It will be downloaded to {}".format(self._version, path))
             download_file = True
-    
+
         if(os.path.exists(path)):
             BUF_SIZE = 65536 * 2 ** 4  # lets read stuff in 64kb chunks!
             import hashlib
@@ -702,7 +726,7 @@ class ARZ_tabulated(object):
                     if not data:
                         break
                     sha1.update(data)
-    
+
             shower_directory = os.path.join(os.path.dirname(__file__), "shower_library/")
             with open(os.path.join(shower_directory, 'shower_lib_hash.json'), 'r') as fin:
                 lib_hashs = json.load(fin)
@@ -711,13 +735,13 @@ class ARZ_tabulated(object):
                         logger.warning("pulse library {} has changed on the server. downloading newest version...".format(self._version))
                         download_file = True
                 else:
-                    logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))            
+                    logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))
         if not download_file:
             return True
         else:
             import requests
             URL = 'http://arianna.ps.uci.edu/~arianna/data/ce_shower_library/ARZ_library_v{:d}.{:d}.pkl'.format(*self._version)
-    
+
             logger.info("downloading pulse library {} from {}. This can take a while...".format(self._version, URL))
             r = requests.get(URL)
             if (r.status_code != requests.codes.ok):
@@ -726,13 +750,13 @@ class ARZ_tabulated(object):
             with open(path, "wb") as code:
                 code.write(r.content)
             logger.info("...download finished.")
-        
+
     def set_seed(self, seed):
         """
         allow to set a new random seed
         """
         np.random.seed(seed)
-        
+
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R,
                        same_shower=False, iN=None, output_mode='trace', theta_reference='X0'):
         """
@@ -772,7 +796,7 @@ class ARZ_tabulated(object):
         """
         if not shower_type in self._library.keys():
             raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
-    
+
         # determine closes available energy in shower library
         energies = np.array(list(self._library[shower_type].keys()))
         iE = np.argmin(np.abs(energies - shower_energy))
@@ -780,7 +804,7 @@ class ARZ_tabulated(object):
         logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The pulse amplitude will be rescaled accordingly by a factor of {:.2f}".format(shower_energy / units.eV, energies[iE] / units.eV, rescaling_factor))
         profiles = self._library[shower_type][energies[iE]]
         N_profiles = len(profiles.keys())
-        
+
         if(iN is None):
             if(same_shower):
                 if(shower_type in self._random_numbers):
@@ -797,7 +821,7 @@ class ARZ_tabulated(object):
                 logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
         else:
             logger.info("using shower {}/{} as specified by user".format(iN, N_profiles))
-            
+
         thetas = profiles[iN].keys()
         iT = np.argmin(np.abs(thetas - theta))
         logger.info("selecting theta = {:.2f} ({:.2f} requested)".format(thetas[iT] / units.deg, theta))
@@ -809,9 +833,9 @@ class ARZ_tabulated(object):
         tstart = t0 + tcenter
         i0 = np.int(np.round(tstart / dt))
         trace2[i0:(i0 + len(trace))] = trace
-        
+
         trace2 *= self._library['meta']['R'] / R * rescaling_factor
-        
+
         if(output_mode == 'Xmax'):
             return trace2, Lmax
         return trace2
