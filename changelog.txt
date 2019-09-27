@@ -14,6 +14,7 @@ new features:
   the noise RMS is known. 
 - production includes testing of NuRadioReco files
 - NuRadioMC simulations with noise and at Moore's Bay site are tested in our CI test suite
+- Event generation using PROPOSAL lepton propagation available
 
 bugfixes:
 	- fixed that Veff utility script didn't calculate effective volumes for individual triggers
