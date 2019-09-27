@@ -140,6 +140,7 @@ particle_name = {
        83 : 'e_pair',
        84 : 'hadrons',
        85 : 'nucl_int',
+       86 : 'decay_bundle',
       111 : 'pi0',
       211 : 'pi+',
      -211 : 'pi-',
@@ -327,6 +328,16 @@ def GetSecondariesArray(Eleptons, lepton_codes, lepton_positions = None, lepton_
                 shower_type, code, name = shower_properties(sec)
 
                 shower_inducing_prods.append( secondary_properties(distance, energy, shower_type, code, name) )
+
+        # group shower-inducing decay products so that they create a single shower
+        min_distance = 0.1 * units.m
+        while( len(shower_inducing_prods) > 1 and
+               np.abs(shower_inducing_prods[-1].distance - shower_inducing_prods[-2].distance) < min_distance):
+
+            last_decay_prod = shower_inducing_prods.pop(-1)
+            shower_inducing_prods[-1].energy += last_decay_prod.energy
+            shower_inducing_prods[-1].code = 86
+            shower_inducing_prods[-1].name = particle_name[86]
 
         secondaries_array.append(shower_inducing_prods)
 
