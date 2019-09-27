@@ -14,6 +14,7 @@ import copy
 import logging
 logger = logging.getLogger("SignalGen.ARZ")
 logging.basicConfig()
+logger.setLevel(logging.DEBUG)
 
 ######################
 ######################
@@ -361,27 +362,48 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     t_RAC_vals = (np.arange(n_RAC) * dz * z_to_t + t_start - n_extra_beginning * dz * z_to_t)
     RA_C = get_RAC(t_RAC_vals, shower_energy, shower_type)
 
+    # calculate polarization of the vector potential
+    X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta)])
+    if(shift_for_xmax):
+        logger.info("shower maximum at z = {:.1f}m, shifting observer position accordingly.".format(dxmax / units.m))
+        X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta) + dxmax])
+    logger.info("setting observer position to {}".format(X))
+    u_x = X[0] / distance
+    u_y = X[1] / distance
+    u_z = (X[2] - z_Q_vals) / distance
+    beta_z = np.ones_like(u_z)
+    vperp_x = u_x * u_z * beta_z
+    vperp_y = u_y * u_z * beta_z
+    vperp_z = -(u_x * u_x + u_y * u_y) * beta_z
+    v = np.array([vperp_x, vperp_y, vperp_z])
+    Qv = Q * v
     # Convolve Q and RAC to get unnormalized vector potential
     if dt_divider != 1:
         logger.debug(f"convolving {n_Q:d} Q points with {n_RAC:d} RA_C points")
-    convolution = scipy.signal.convolve(Q, RA_C, mode='full')
+    convolution = np.array([scipy.signal.convolve(Qv[0], RA_C, mode='full'),
+                            scipy.signal.convolve(Qv[1], RA_C, mode='full'),
+                            scipy.signal.convolve(Qv[2], RA_C, mode='full')])
 
     # Adjust convolution by zero-padding or removing values according to
     # the values added/removed at the beginning and end of RA_C
     if n_extra_beginning < 0:
-        convolution = np.concatenate((np.zeros(-n_extra_beginning), convolution))
+        logger.debug("concacinating extra bins at end")
+        convolution = np.concatenate((np.zeros(-n_extra_beginning), convolution), axis=1)
     else:
-        convolution = convolution[n_extra_beginning:]
+        logger.debug("removing extra bins at beginning")
+        convolution = convolution[:, n_extra_beginning:]
     if n_extra_end <= 0:
-        convolution = np.concatenate((convolution, np.zeros(-n_extra_end)))
+        logger.debug("concacinating extra bins at end")
+        convolution = np.concatenate((convolution, np.zeros(-n_extra_end)), axis=1)
     else:
-        convolution = convolution[:-n_extra_end]
+        logger.debug("removing extra bins at end")
+        convolution = convolution[:, :-n_extra_end]
 
     # Reduce the number of values in the convolution based on the dt_divider
     # so that the number of values matches the length of the times array.
     # It's possible that this should be using scipy.signal.resample instead
     # TODO: Figure that out
-    convolution = convolution[::dt_divider]
+    convolution = convolution[:, ::dt_divider]
 
     # Calculate LQ_tot (the excess longitudinal charge along the showers)
     LQ_tot = np.trapz(Q, dx=dz)
@@ -395,7 +417,7 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     # integral it needs to be scaled by dz = dt/dt_divider/z_to_t for the
     # proper normalization. The dt factor will be canceled by the 1/dt in
     # the conversion to electric field however, so it can be left out.
-    A = (convolution * -1 * np.sin(theta) / sin_theta_c / LQ_tot / z_to_t / dt_divider) * dt
+    A = (convolution * -1 / sin_theta_c / LQ_tot / z_to_t / dt_divider) * dt  # term np.sin(theta) is remove because it is absorbed in polarization vector
 
     return A / distance
 
