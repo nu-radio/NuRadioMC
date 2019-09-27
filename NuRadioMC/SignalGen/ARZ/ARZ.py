@@ -323,6 +323,7 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     # Conversion factor from z to t for RAC:
     # (1-n*cos(theta)) / c
     z_to_t = (1 - n_index * np.cos(theta)) / c
+    logger.debug(f"z_to_t = {z_to_t:.2g}")
 
     length = profile_depth / rho  # convert shower depth to length
     # Calculate the corresponding z-step (dz = dt / z_to_t)
@@ -332,7 +333,7 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     # Additionally if the z-step is too large compared to the RAC width,
     # the result will be bad. So set dt_divider so that
     # dz <= 10 ps / z_to_t
-    dt_divider_Q = int(np.abs(500 * dt / length[-1] / z_to_t)) + 1
+    dt_divider_Q = int(np.abs(1000 * dt / length[-1] / z_to_t)) + 1
     dt_divider_RAC = int(np.abs(dt / (10 * units.ps))) + 1
     dt_divider = max(dt_divider_Q, dt_divider_RAC)
     dz = dt / dt_divider / z_to_t
@@ -387,23 +388,26 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     # Adjust convolution by zero-padding or removing values according to
     # the values added/removed at the beginning and end of RA_C
     if n_extra_beginning < 0:
-        logger.debug("concacinating extra bins at end")
+        logger.debug(f"concacinating extra bins at end {n_extra_beginning}")
         convolution = np.concatenate((np.zeros(-n_extra_beginning), convolution), axis=1)
     else:
-        logger.debug("removing extra bins at beginning")
+        logger.debug(f"removing extra bins at beginning {n_extra_beginning}")
         convolution = convolution[:, n_extra_beginning:]
     if n_extra_end <= 0:
         logger.debug("concacinating extra bins at end")
         convolution = np.concatenate((convolution, np.zeros(-n_extra_end)), axis=1)
     else:
-        logger.debug("removing extra bins at end")
+        logger.debug(f"removing extra bins at end {n_extra_end}")
         convolution = convolution[:, :-n_extra_end]
+    if(dz < 0):
+        convolution = np.flip(convolution, axis=1)
 
     # Reduce the number of values in the convolution based on the dt_divider
     # so that the number of values matches the length of the times array.
     # It's possible that this should be using scipy.signal.resample instead
     # TODO: Figure that out
-    convolution = convolution[:, ::dt_divider]
+    convolution = scipy.signal.resample(convolution, N, axis=1)
+#     convolution = convolution[:, ::dt_divider]
 
     # Calculate LQ_tot (the excess longitudinal charge along the showers)
     LQ_tot = np.trapz(Q, dx=dz)
