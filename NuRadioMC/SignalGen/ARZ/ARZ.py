@@ -4,8 +4,9 @@ from __future__ import division, print_function
 import numpy as np
 from NuRadioReco.utilities import units, io_utilities
 from scipy import interpolate as intp
-from scipy import integrate as int
+from scipy import integrate
 from scipy import constants
+import scipy.signal
 from matplotlib import pyplot as plt
 from radiotools import coordinatesystems as cstrafo
 import os
@@ -141,7 +142,7 @@ class ARZ(object):
         """
         self._interp_factor2 = interp_factor
 
-    def get_shower_profile(self, shower_energy, shower_type, iN, same_shower):
+    def get_shower_profile(self, shower_energy, shower_type, iN, same_shower=False):
         """
         returns a charge excess profile from the shower library
         
@@ -268,6 +269,171 @@ class ARZ(object):
             Lmax = xmax / rho
             return trace_onsky, Lmax
         return trace_onsky
+
+
+def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth, profile_ce,
+                                     shower_type="HAD", n_index=1.78, distance=1 * units.m,
+                                     interp_factor=1., interp_factor2=100., shift_for_xmax=False):
+    """
+    fast interpolation of time-domain calculation of vector potential of the 
+    Askaryan pulse from a charge-excess profile using a numerical convolution instead of integration, following the 
+    presciption of Ben Hokanson-Fasig. This code is mostly a copy-and-past of the corresponding implementation in pyrex.
+    
+    Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples. 
+    
+    The numerical integration was replaces by a sum using the trapeoiz rule using vectorized numpy operations
+    
+    Parameters
+    ----------
+    shower_energy: float
+        the energy of the shower
+    theta: float
+        viewing angle, i.e., the angle between shower axis and launch angle of the signal (the ray path)
+    N: int
+        number of samples in the time domain
+    dt: float
+        size of one time bin in units of time
+    profile_depth: array of floats
+        shower depth values of the charge excess profile
+    profile_ce: array of floats
+        charge-excess values of the charge excess profile
+    shower_type: string (default "HAD")
+        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+    n_index: float (default 1.78)
+        index of refraction where the shower development takes place
+    distance: float (default 1km)
+        observation distance, the signal amplitude will be scaled according to 1/R
+    interp_factor: int (default 1)
+        interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
+        for small vertex distances but also slows down the calculation proportional to the interpolation factor.
+        if None, the interpolation factor will be calculated from the distance 
+    interp_factor2: int (default 100)
+        interpolation just around the peak of the form factor 
+    shift_for_xmax: bool (default True)
+        if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
+        with respect to (0,0,0) which is the start of the charge-excess profile
+    """
+    ttt = np.arange(0, (N + 1) * dt, dt)
+    ttt = ttt + 0.5 * dt - ttt.mean()
+    if(len(ttt) != N + 1):
+        ttt = ttt[:-1]
+    N = len(ttt)
+
+    # Conversion factor from z to t for RAC:
+    # (1-n*cos(theta)) / c
+    z_to_t = (1 - n_index * np.cos(theta)) / c
+
+    length = profile_depth / rho  # convert shower depth to length
+    # Calculate the corresponding z-step (dz = dt / z_to_t)
+    # If the z-step is too large compared to the expected shower maximum
+    # length, then the result will be bad. Set dt_divider so that
+    # dz / max_length <= 0.01 (with dz=dt/z_to_t)
+    # Additionally if the z-step is too large compared to the RAC width,
+    # the result will be bad. So set dt_divider so that
+    # dz <= 10 ps / z_to_t
+    dt_divider_Q = int(np.abs(500 * dt / length[-1] / z_to_t)) + 1
+    dt_divider_RAC = int(np.abs(dt / (10 * units.ps))) + 1
+    dt_divider = max(dt_divider_Q, dt_divider_RAC)
+    dz = dt / dt_divider / z_to_t
+    if dt_divider != 1:
+        logger.debug(f"z-step of {dt / z_to_t:g} too large; dt_divider changed to {dt_divider:d}")
+
+    z_max = np.max(length)  # the length of the charge-excess profile
+    n_Q = int(np.abs(z_max / dz))
+    z_Q_vals = np.arange(n_Q) * np.abs(dz)  # the upsampled (shower) length array
+    Q = np.interp(z_Q_vals, length, profile_ce)  # the interpolated charge-excess profile
+
+    # Calculate RAC at a specific number of t values (n_RAC) determined so
+    # that the full convolution will have the same size as the times array,
+    # when appropriately rescaled by dt_divider.
+    # If t_RAC_vals does not include a reasonable range around zero
+    # (typically because n_RAC is too small), errors occur. In that case
+    # extra points are added at the beginning and/or end of RAC.
+    # If n_RAC is too large, the convolution can take a very long time.
+    # In that case, points are removed from the beginning and/or end of RAC.
+    # The predetermined reasonable range based on the RAC function is
+    # +/- 10 ns around the peak
+    t_tolerance = 10 * units.ns
+    t_start = ttt[0]
+    n_extra_beginning = int((t_start + t_tolerance) / dz / z_to_t) + 1
+    n_extra_end = (int((t_tolerance - t_start) / dz / z_to_t) + 1 + n_Q - N * dt_divider)
+    n_RAC = (N * dt_divider + 1 - n_Q + n_extra_beginning + n_extra_end)
+    t_RAC_vals = (np.arange(n_RAC) * dz * z_to_t + t_start - n_extra_beginning * dz * z_to_t)
+    RA_C = get_RAC(t_RAC_vals, shower_energy, shower_type)
+
+    # Convolve Q and RAC to get unnormalized vector potential
+    if dt_divider != 1:
+        logger.debug(f"convolving {n_Q:d} Q points with {n_RAC:d} RA_C points")
+    convolution = scipy.signal.convolve(Q, RA_C, mode='full')
+
+    # Adjust convolution by zero-padding or removing values according to
+    # the values added/removed at the beginning and end of RA_C
+    if n_extra_beginning < 0:
+        convolution = np.concatenate((np.zeros(-n_extra_beginning), convolution))
+    else:
+        convolution = convolution[n_extra_beginning:]
+    if n_extra_end <= 0:
+        convolution = np.concatenate((convolution, np.zeros(-n_extra_end)))
+    else:
+        convolution = convolution[:-n_extra_end]
+
+    # Reduce the number of values in the convolution based on the dt_divider
+    # so that the number of values matches the length of the times array.
+    # It's possible that this should be using scipy.signal.resample instead
+    # TODO: Figure that out
+    convolution = convolution[::dt_divider]
+
+    # Calculate LQ_tot (the excess longitudinal charge along the showers)
+    LQ_tot = np.trapz(Q, dx=dz)
+
+    # Calculate sin(theta_c) = sqrt(1-cos^2(theta_c)) = sqrt(1-1/n^2)
+    sin_theta_c = np.sqrt(1 - 1 / n_index ** 2)
+
+    # Scale the convolution by the necessary factors to get the true
+    # vector potential A.
+    # Since the numerical convolution performs a sum rather than an
+    # integral it needs to be scaled by dz = dt/dt_divider/z_to_t for the
+    # proper normalization. The dt factor will be canceled by the 1/dt in
+    # the conversion to electric field however, so it can be left out.
+    A = (convolution * -1 * np.sin(theta) / sin_theta_c / LQ_tot / z_to_t / dt_divider) * dt
+
+    return A / distance
+
+
+def get_RAC(tt, shower_energy, shower_type):
+    # Choose Acher between purely electromagnetic, purely hadronic or mixed shower
+    # Eq.(16) PRD paper.
+    # Refit of ZHAireS results => factor 0.88 in Af_e
+    Af_e = -4.5e-14 * 0.88 * units.V * units.s
+    Af_p = -3.2e-14 * units.V * units.s  # V s
+    E_TeV = shower_energy / units.TeV
+    Acher = np.zeros_like(tt)
+    if(shower_type == "HAD"):
+        mask2 = tt > 0
+        if(np.sum(mask2)):
+            Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.065 * units.ns)) +
+                                  (1. + 3.00 / units.ns * np.abs(tt[mask2])) ** (-2.65))  # hadronic
+        mask2 = tt <= 0
+        if(np.sum(mask2)):
+            Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.043 * units.ns)) +
+                                  (1. + 2.92 / units.ns * np.abs(tt[mask2])) ** (-3.21))  # hadronic
+    elif(shower_type == "EM"):
+        mask2 = tt > 0
+        if(np.sum(mask2)):
+            Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.057 * units.ns)) +
+                                  (1. + 2.87 / units.ns * np.abs(tt[mask2])) ** (-3.00))  # electromagnetic
+        mask2 = tt <= 0
+        if(np.sum(mask2)):
+            Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.030 * units.ns)) +
+                                  (1. + 3.05 / units.ns * np.abs(tt[mask2])) ** (-3.50))  # electromagnetic
+    elif(shower_type == "TAU"):
+        logger.error("Tau showers are not yet implemented")
+        raise NotImplementedError("Tau showers are not yet implemented")
+    else:
+        msg = "showers of type {} are not implemented. Use 'HAD', 'EM' or 'TAU'".format(shower_type)
+        logger.error(msg)
+        raise NotImplementedError(msg)
+    return Acher
 
 
 def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce,
@@ -594,7 +760,7 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
     # calculate total charged track length
     xntot = np.sum(profile_ce) * (length[1] - length[0])
     # print("{:.5g}".format(xntot))
-    # res = int.quad(xnep, length.min(), length.max())
+    # res = integrate.quad(xnep, length.min(), length.max())
     # print("{:.5g} {:.5g}".format(*res))
 
     if 0:  # debug plot
@@ -669,11 +835,11 @@ def get_vector_potential(energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_inde
         xmin = length.min()
         xmax = length.max()
         if(X[0] != 0):
-            vp[it][0] = int.quad(xintegrand, xmin, xmax, args=(0, tobs))[0]
+            vp[it][0] = integrate.quad(xintegrand, xmin, xmax, args=(0, tobs))[0]
         if(X[1] != 0):
-            vp[it][1] = int.quad(xintegrand, xmin, xmax, args=(1, tobs))[0]
+            vp[it][1] = integrate.quad(xintegrand, xmin, xmax, args=(1, tobs))[0]
         if(X[2] != 0):
-            vp[it][2] = int.quad(xintegrand, xmin, xmax, args=(2, tobs))[0]
+            vp[it][2] = integrate.quad(xintegrand, xmin, xmax, args=(2, tobs))[0]
     vp *= factor
     return vp
 
