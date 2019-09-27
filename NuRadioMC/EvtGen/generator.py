@@ -457,6 +457,8 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         a dictionary containing potential additional interactions, such as the second tau interaction vertex.
     """
     n_events = len(np.unique(data_sets['event_ids']))
+    print("before", n_events)
+    n_events = attributes['n_events']
     logger.info("saving {} events in total".format(n_events))
     total_number_of_events = attributes['n_events']
 
@@ -753,29 +755,15 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     # We increase the radius of the cylinder according to the tau track length
     if(full_rmin is None):
-        if(add_tau_second_bang):
-            full_rmin = fiducial_rmin / 3.
-        else:
-            full_rmin = fiducial_rmin
+        full_rmin = fiducial_rmin
     if(full_rmax is None):
-        if(add_tau_second_bang):
-            tau_95_length = get_tau_95_length(Emax)
-            if (tau_95_length > fiducial_rmax):
-                full_rmax = tau_95_length
-                n_events = n_events * int( (full_rmax/fiducial_rmax)**2 )
-            else:
-                full_rmax = fiducial_rmax
-        else:
-            full_rmax = fiducial_rmax
+        full_rmax = fiducial_rmax
     # The zmin and zmax should not be touched. If zmin goes all the way down to
     # the bedrock, tau propagation through the bedrock should be taken into account.
     if(full_zmin is None):
         full_zmin = fiducial_zmin
     if(full_zmax is None):
-        if(add_tau_second_bang):
-            full_zmax = fiducial_zmax / 3.
-        else:
-            full_zmax = fiducial_zmax
+        full_zmax = fiducial_zmax
 
     if (plus_minus == 'plus'):
         flavor = [-13]
