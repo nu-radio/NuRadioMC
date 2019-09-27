@@ -456,8 +456,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
     additional_interactions: dict or None (default)
         a dictionary containing potential additional interactions, such as the second tau interaction vertex.
     """
-    n_events = len(np.unique(data_sets['event_ids']))
-    print("before", n_events)
+
     n_events = attributes['n_events']
     logger.info("saving {} events in total".format(n_events))
     total_number_of_events = attributes['n_events']
