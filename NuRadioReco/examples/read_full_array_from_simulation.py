@@ -6,9 +6,14 @@ import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.io.eventReader
 
 from NuRadioReco.framework.parameters import showerParameters as shP
+
+import NuRadioReco.modules.efieldToVoltageConverter
+
 import NuRadioReco.modules.electricFieldBandPassFilter
 electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
 
+efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
+efieldToVoltageConverter.begin(debug=False)
 # Parse eventfile as argument
 parser = argparse.ArgumentParser(description='NuRadioSim file')
 parser.add_argument('inputfilename', type=str, nargs='*',
@@ -38,6 +43,7 @@ for iE, event in enumerate(readCoREASShower.run()):
         for stid, station in enumerate(event.get_stations()):
             sim_station = station.get_sim_station()
             electricFieldBandPassFilter.run(event, sim_station, det=None, passband=[30 * units.MHz, 80 * units.MHz], filter_type='butter', order=10)
+            # efieldToVoltageConverter.run(evt, station, det)
 
             print(sim_station.get_id())
             ef = sim_station.get_electric_fields()[0]
@@ -45,6 +51,10 @@ for iE, event in enumerate(readCoREASShower.run()):
             spec = ef.get_frequency_spectrum()
             freq = ef.get_frequencies() * 1e3  # GHz in MHz
             dist = np.linalg.norm(sim_station.get_position() - sim_shower.get_parameter(shP.core))
+
+            if dist > 500:
+                continue
+
             plt.plot(freq, np.abs(spec[0]))
             plt.plot(freq, np.abs(spec[1]))
             # plt.plot(freq, spec[2])
