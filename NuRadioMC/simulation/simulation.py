@@ -166,7 +166,7 @@ class simulation():
         # print noise information
         logger.warning("running with noise {}".format(bool(self._cfg['noise'])))
         logger.warning("setting signal to zero {}".format(bool(self._cfg['signal']['zerosignal'])))
-        if(bool(self._cfg['propagaton']['focusing'])):
+        if(bool(self._cfg['propagation']['focusing'])):
             logger.warning("simulating signal amplification due to focusing of ray paths in the firn.")
 
         # read sampling rate from config (this sampling rate will be used internally)
