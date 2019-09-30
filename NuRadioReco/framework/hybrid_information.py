@@ -28,7 +28,7 @@ class HybridInformation():
         data = {
             'shower_pickles': shower_pickles
         }
-        return pickle.dumps(data, protocol=2)
+        return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         for shower_pkl in pickle.loads(data_pkl)['shower_pickles']:
