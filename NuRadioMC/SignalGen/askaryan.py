@@ -119,8 +119,9 @@ def get_frequency_spectrum(energy, theta, N, dt, shower_type, n_index, R, model,
         number of samples in the time domain
     dt: float
         time bin width, i.e. the inverse of the sampling rate
-    is_em_shower: bool
-        true if EM shower, false otherwise
+    shower_type: string (default "HAD")
+        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+        note that TAU showers are currently only implemented in the ARZ2019 model
     n_index: float
         index of refraction at interaction vertex
     R: float

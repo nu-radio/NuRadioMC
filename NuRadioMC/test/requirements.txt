@@ -9,6 +9,9 @@ h5py
 matplotlib
 scipy
 aenum
+cython
+requests
+future
 ###### Requirements with Version Specifiers ######
 
 

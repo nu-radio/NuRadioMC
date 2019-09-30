@@ -28,6 +28,7 @@ import NuRadioReco.modules.channelSignalReconstructor
 from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from radiotools import helper as hp
+plt.switch_backend('agg')
 
 plot = 1
 

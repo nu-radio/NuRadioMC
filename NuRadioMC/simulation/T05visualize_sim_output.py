@@ -93,6 +93,16 @@ ax.set_title(trigger_name)
 fig.tight_layout()
 fig.savefig(os.path.join(plot_folder, 'neutrino_direction.png'))
 
+czen = np.cos(np.array(fin['zeniths'])[triggered])
+bins = np.linspace(-1, 1, 21)
+fig, ax = php.get_histogram(czen, weights=weights,
+                            ylabel='weighted entries', xlabel='cos(zenith angle)',
+                            bins=bins, figsize=(6, 6))
+# ax.set_xticks(np.arange(0, 181, 45))
+ax.set_title(trigger_name)
+fig.tight_layout()
+fig.savefig(os.path.join(plot_folder, 'neutrino_direction_cos.png'))
+
 ###########################
 # calculate sky coverage of 90% quantile
 ###########################
@@ -103,7 +113,7 @@ from scipy import integrate
 def a(theta):
     return np.sin(theta)
 b = integrate.quad(a, q1, q2)
-print("90% quantile sky coverage {:.2f} sr".format(b[0] * 2 * np.pi))
+print("90% quantile sky coverage {:.2f} sr ({:.0f} - {:.0f})".format(b[0] * 2 * np.pi, q1/units.deg, q2/units.deg))
 
 ###########################
 # plot vertex distribution
@@ -247,20 +257,20 @@ for key, station in iteritems(fin):
                    '$\mu$ cc', r'$\bar{\mu}$ cc', '$\mu$ nc', r'$\bar{\mu}$ nc',
                    r'$\tau$ cc', r'$\bar{\tau}$ cc', r'$\tau$ nc', r'$\bar{\tau}$ nc']
         yy = np.zeros(len(flavor_labels))
-        yy[0] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == 'cc')])
-        yy[1] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == 'cc')])
-        yy[2] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == 'nc')])
-        yy[3] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == 'nc')])
+        yy[0] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == b'cc')])
+        yy[1] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == b'cc')])
+        yy[2] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == b'nc')])
+        yy[3] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == b'nc')])
         
-        yy[4] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == 'cc')])
-        yy[5] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == 'cc')])
-        yy[6] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == 'nc')])
-        yy[7] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == 'nc')])
+        yy[4] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == b'cc')])
+        yy[5] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == b'cc')])
+        yy[6] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == b'nc')])
+        yy[7] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == b'nc')])
         
-        yy[8] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == 'cc')])
-        yy[9] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == 'cc')])
-        yy[10] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == 'nc')])
-        yy[11] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == 'nc')])
+        yy[8] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == b'cc')])
+        yy[9] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == b'cc')])
+        yy[10] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == b'nc')])
+        yy[11] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == b'nc')])
         
         fig, ax = plt.subplots(1, 1, figsize=(8, 6))
         ax.bar(range(len(flavor_labels)), yy)

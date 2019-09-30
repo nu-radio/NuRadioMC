@@ -9,8 +9,9 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
-from NuRadioMC.simulation import simulation2 as simulation
+from NuRadioMC.simulation import simulation
 import logging
+import os
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("runstrawman")
 
@@ -46,34 +47,20 @@ class mySimulation(simulation.simulation):
                                   filter_type='butter', order=2)
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 500 * units.MHz],
                                   filter_type='butter', order=10)
-        # first run a simple threshold trigger
-        triggerSimulatorSimple.run(self._evt, self._station, self._det,
-                             threshold=3 * self._Vrms,
-                             triggered_channels=None,  # run trigger on all channels
-                             number_concidences=1,
-                             trigger_name='simple_threshold')  # the name of the trigger
 
         # run a high/low trigger on the 4 downward pointing LPDAs
         triggerSimulatorHighLow.run(self._evt, self._station, self._det,
-                                    threshold_high=4 * self._Vrms,
-                                    threshold_low=-4 * self._Vrms,
-                                    triggered_channels=[0, 1, 2, 3],  # select the LPDA channels
-                                    number_concidences=2,  # 2/4 majority logic
-                                    trigger_name='LPDA_2of4_4.1sigma',
-                                    set_not_triggered=(not self._station.has_triggered("simple_threshold"))) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
-
-        # run a high/low trigger on the 4 surface dipoles
-        triggerSimulatorHighLow.run(self._evt, self._station, self._det,
-                                    threshold_high=3 * self._Vrms,
-                                    threshold_low=-3 * self._Vrms,
-                                    triggered_channels=[4, 5, 6, 7], # select the bicone channels
-                                    number_concidences=4, # 4/4 majority logic
-                                    trigger_name='surface_dipoles_4of4_3sigma',
-                                    set_not_triggered=(not self._station.has_triggered("simple_threshold"))) # calculate more time consuming ARIANNA trigger only if station passes simple trigger
+                                    threshold_high=2 * self._Vrms,
+                                    threshold_low=-2 * self._Vrms,
+                                    triggered_channels=None,  # select the LPDA channels
+                                    number_concidences=1,  # 2/4 majority logic
+                                    trigger_name='highlow_2sigma')
 
         # downsample trace back to detector sampling rate
-        channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
+#         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
 
+
+path = os.path.dirname(os.path.abspath(__file__))
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('inputfilename', type=str,
@@ -88,10 +75,10 @@ parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=No
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
 
-sim = mySimulation(eventlist=args.inputfilename,
-                            outputfilename=args.outputfilename,
-                            detectorfile=args.detectordescription,
-                            outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-                            config_file=args.config)
+sim = mySimulation(eventlist=os.path.join(path,args.inputfilename),
+                            outputfilename=os.path.join(path,args.outputfilename),
+                            detectorfile=os.path.join(path,args.detectordescription),
+                            outputfilenameNuRadioReco=os.path.join(path,args.outputfilenameNuRadioReco),
+                            config_file=os.path.join(path,args.config))
 sim.run()
 

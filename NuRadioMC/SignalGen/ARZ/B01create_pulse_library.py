@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 import numpy as np
 from NuRadioMC.utilities import units
+from NuRadioReco.utilities import io_utilities
 import os
 from scipy import interpolate as intp
 import glob
@@ -45,55 +46,54 @@ if __name__ == "__main__":
                        'n_index': n_index,
                        'R': R}
     
-    with open(lib_path, 'rb') as fin:
-        lib = pickle.load(fin)
-        for iS, shower_type in enumerate(lib):  # loop through shower types
-            if(shower_type not in showers):
-                showers[shower_type] = {}
-            print("shower type {}".format(shower_type))
-            b = []
-            nb = []
-            for iE, E in enumerate(lib[shower_type]):  # loop through energies
-                print('E = {:.2g}eV'.format(E))
-                
-                nE = len(lib[shower_type][E]['charge_excess'])
-                if(E not in showers[shower_type]):
-                    showers[shower_type][E] = {}
-                for iN in range(nE):  # loop through shower realizations
-                    if(iN not in showers[shower_type][E]):
-                        showers[shower_type][E][iN] = {}
-                    if plot:
-                        fig, ax = plt.subplots(1, 1)
-                        fig2, ax2 = plt.subplots(1, 1)
-                    for dC in dCs:  # loop through different cherenkov angles
-                        theta1 = theta + dC
-                        trace, Lmax = a.get_time_trace(E, theta1, N, dt, shower_type, n_index, R, iN=iN, output_mode='Xmax')
-                        iMax = np.argmax(np.abs(trace[1]))
-                        i1 = iMax - N2 // 2
-                        if((i1 + N2) >= N) or (i1 < 0):
-                            print("tracelength to short, i1 = {}".format(i1))
+    lib = io_utilities.read_pickle(lib_path)
+    for iS, shower_type in enumerate(lib):  # loop through shower types
+        if(shower_type not in showers):
+            showers[shower_type] = {}
+        print("shower type {}".format(shower_type))
+        b = []
+        nb = []
+        for iE, E in enumerate(lib[shower_type]):  # loop through energies
+            print('E = {:.2g}eV'.format(E))
+            
+            nE = len(lib[shower_type][E]['charge_excess'])
+            if(E not in showers[shower_type]):
+                showers[shower_type][E] = {}
+            for iN in range(nE):  # loop through shower realizations
+                if(iN not in showers[shower_type][E]):
+                    showers[shower_type][E][iN] = {}
+                if plot:
+                    fig, ax = plt.subplots(1, 1)
+                    fig2, ax2 = plt.subplots(1, 1)
+                for dC in dCs:  # loop through different cherenkov angles
+                    theta1 = theta + dC
+                    trace, Lmax = a.get_time_trace(E, theta1, N, dt, shower_type, n_index, R, iN=iN, output_mode='Xmax')
+                    iMax = np.argmax(np.abs(trace[1]))
+                    i1 = iMax - N2 // 2
+                    if((i1 + N2) >= N) or (i1 < 0):
+                        print("tracelength to short, i1 = {}".format(i1))
 #                             raise IndexError("tracelength to short, i1 = {}".format(i1))
-                        t0 = tt[i1] - tt.mean()
-                        showers[shower_type][E][iN][theta1] = {}
-                        showers[shower_type][E][iN][theta1]['t0'] = t0
-                        showers[shower_type][E][iN][theta1]['Lmax'] = Lmax
-                        showers[shower_type][E][iN][theta1]['trace'] = trace[1][i1:(i1 + N2)]
-                        if(plot):
-                            ax.plot(tt[i1:(i1 + N2)], trace[1][i1:(i1 + N2)] / np.abs(trace[1]).max())
-                            ax2.plot(tt[i1:(i1 + N2)], np.abs(signal.hilbert(trace[1][i1:(i1 + N2)])))
+                    t0 = tt[i1] - tt.mean()
+                    showers[shower_type][E][iN][theta1] = {}
+                    showers[shower_type][E][iN][theta1]['t0'] = t0
+                    showers[shower_type][E][iN][theta1]['Lmax'] = Lmax
+                    showers[shower_type][E][iN][theta1]['trace'] = trace[1][i1:(i1 + N2)]
                     if(plot):
-                        ax.set_title("{} E = {:.2g}eV i = {:d}".format(shower_type, E / units.eV, iN))
-                        ax2.set_title("{} E = {:.2g}eV i = {:d}".format(shower_type, E / units.eV, iN))
-                        ax.set_xlabel('time [ns]')
-                        ax2.set_xlabel('time [ns]')
-                        ax.set_ylabel('normalized amplitude')
-                        ax2.semilogy(True)
-                        fig.tight_layout()
-                        fig2.tight_layout()
+                        ax.plot(tt[i1:(i1 + N2)], trace[1][i1:(i1 + N2)] / np.abs(trace[1]).max())
+                        ax2.plot(tt[i1:(i1 + N2)], np.abs(signal.hilbert(trace[1][i1:(i1 + N2)])))
+                if(plot):
+                    ax.set_title("{} E = {:.2g}eV i = {:d}".format(shower_type, E / units.eV, iN))
+                    ax2.set_title("{} E = {:.2g}eV i = {:d}".format(shower_type, E / units.eV, iN))
+                    ax.set_xlabel('time [ns]')
+                    ax2.set_xlabel('time [ns]')
+                    ax.set_ylabel('normalized amplitude')
+                    ax2.semilogy(True)
+                    fig.tight_layout()
+                    fig2.tight_layout()
 #                         plt.show()
-                        fig.savefig("plots/{}_{:.2g}eV_{:03d}.png".format(shower_type, E / units.eV, iN))
-                        fig2.savefig("plots/{}_{:.2g}eV_{:03d}_log.png".format(shower_type, E / units.eV, iN))
-                        plt.close("all")
-                            
+                    fig.savefig("plots/{}_{:.2g}eV_{:03d}.png".format(shower_type, E / units.eV, iN))
+                    fig2.savefig("plots/{}_{:.2g}eV_{:03d}_log.png".format(shower_type, E / units.eV, iN))
+                    plt.close("all")
+                        
         with open("ARZ_library_v1.1.pkl", 'wb') as fout:
             pickle.dump(showers, fout, protocol=2)

@@ -1,19 +1,23 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-from NuRadioMC.SignalProp import analyticraytraycing as ray
+from numpy import testing
+from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import units, medium
 import logging
-import time
-from radiotools import helper as hp
-from radiotools import plthelpers as php
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('test_raytracing')
+
+"""
+this unit test compares the numerical and analytic calculation of path length and travel time,
+the numerical integration should be better than the analytic formula. For both calculations, the python version is used.
+"""
+
 
 ice = medium.southpole_simple()
 
 np.random.seed(0)  # set seed to have reproducible results
-n_events = int(1e4)
+n_events = int(1e3)
 rmin = 50. * units.m
 rmax = 3. * units.km
 zmin = 0. * units.m
@@ -65,5 +69,11 @@ print("analytic {:.1f} seconds = {:.2f}ms/event".format(d_analytic, 1000. * d_an
 print("numeric {:.1f} seconds = {:.2f}ms/event".format(d_numeric, 1000. * d_numeric / n_events))
 print("analytic {:.1f} seconds = {:.2f}ms/event".format(t_analytic, 1000. * t_analytic / n_events))
 print("numeric {:.1f} seconds = {:.2f}ms/event".format(t_numeric, 1000. * t_numeric / n_events))
-print("distance ", np.allclose(results_D, results_D_analytic, atol=1e-1, rtol=1e-3))
-print("travel time ", np.allclose(results_T, results_T_analytic, atol=1e-1, rtol=1e-3))
+print("distance ", np.allclose(results_D, results_D_analytic, atol=1e-2, rtol=1e-10))
+print("travel time ", np.allclose(results_T, results_T_analytic, atol=1e-2, rtol=1e-10))
+print("asserting travel times")
+testing.assert_allclose(results_T, results_T_analytic, atol=4e-2 * units.ns, rtol=1e-10)
+print("asserting distances")
+testing.assert_allclose(results_D, results_D_analytic, atol=3e-2 * units.m, rtol=1e-10)
+
+print('T02test_analytic_D_T passed without issues')
