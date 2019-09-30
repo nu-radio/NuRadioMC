@@ -7,9 +7,9 @@ import numpy as np
 arz = ARZ.ARZ()
 shower_energy = 1e15 * units.eV
 shower_type = "HAD"
-theta = 57 * units.deg
+theta = 58 * units.deg
 R = 10 * units.km
-N = 512
+N = 512 * 2
 dt = 0.01 * units.ns
 profile_depth, profile_ce = arz.get_shower_profile(shower_energy, shower_type, 0)
 
@@ -31,6 +31,7 @@ ax.plot(tt, A_int[:, 0], ':', label="integral")
 ax.plot(tt, A_int[:, 2], ':', label="integral")
 ax.legend()
 fig.tight_layout()
+plt.savefig(f"plots/int_conv_{theta/units.deg:.1f}deg.png")
 
 trace_conv = -np.diff(A_conv, axis=1) / dt
 # trace_onsky = -np.diff(A_onsky) / dt
