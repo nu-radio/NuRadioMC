@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 import numpy as np
 from NuRadioMC.utilities import units
+from NuRadioReco.utilities import io_utilities
 import os
 from scipy import interpolate as intp
 import glob
@@ -95,22 +96,21 @@ if __name__ == "__main__":
     pool = Pool(processes=4)
     
     
-    with open(lib_path, 'rb') as fin:
-        lib = pickle.load(fin)
-        for iS, shower_type in enumerate(lib):  # loop through shower types
-            if(shower_type not in showers):
-                showers[shower_type] = {}
-            print("shower type {}".format(shower_type))
-            b = []
-            nb = []
-            for iE, E in enumerate(lib[shower_type]):  # loop through energies
-                print('E = {:.2g}eV'.format(E))
-                
+    lib = io_utilities.read_pickle(lib_path)
+    for iS, shower_type in enumerate(lib):  # loop through shower types
+        if(shower_type not in showers):
+            showers[shower_type] = {}
+        print("shower type {}".format(shower_type))
+        b = []
+        nb = []
+        for iE, E in enumerate(lib[shower_type]):  # loop through energies
+            print('E = {:.2g}eV'.format(E))
+            
 #                 p = Process(target=calculate, args=(shower_type, E, len(lib[shower_type][E]['charge_excess'])))
 #                 p.start()
 #                 ps.append(p)
-                r = pool.apply_async(calculate, args=(shower_type, E, len(lib[shower_type][E]['charge_excess'])))
-                ps.append(r)
+            r = pool.apply_async(calculate, args=(shower_type, E, len(lib[shower_type][E]['charge_excess'])))
+            ps.append(r)
     for res in ps:
         print(res.get())
                 

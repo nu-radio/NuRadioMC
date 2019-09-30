@@ -8,7 +8,7 @@ def plot_vertex_distribution(xx, yy, zz, weights=None,
                             trigger_name=""):
     """
     produces beautiful plot of the vertex distribution
-    
+
     Parameters:
     xx: array
         the x positions of the vertices
@@ -16,7 +16,7 @@ def plot_vertex_distribution(xx, yy, zz, weights=None,
         the y positions of the vertices
     zz: array
         the z positions of the vertices
-    
+
     Returns
     -------
     fig, ax
@@ -34,8 +34,11 @@ def plot_vertex_distribution(xx, yy, zz, weights=None,
         zmin = zz.min()
     h = ax.hist2d(rr / units.m, zz / units.m, bins=[np.linspace(0, max_r, 50), np.linspace(-max_z, 0, 50)],
                   cmap=plt.get_cmap('Blues'), weights=weights)
-    cb = plt.colorbar(h[3], ax=ax)
-    cb.set_label("weighted number of events")
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cb = plt.colorbar(h[3], ax=ax, cax=cax)
+    cb.set_label("# (weighted)")
     ax.set_aspect('equal')
     ax.set_xlabel("r [m]")
     ax.set_ylabel("z [m]")

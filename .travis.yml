@@ -1,9 +1,11 @@
 language: python
 python:
-  - '2.7'
+  - '3.6'
 
 before_install:
-    sudo apt-get install libgsl2
+  - sudo apt-get install libgsl2
+  - sudo apt-get install libgsl-dev
+  - export GSLDIR=$(gsl-config --prefix)
 
 install:
     pip install -r NuRadioMC/test/requirements.txt
@@ -25,6 +27,21 @@ before_script:
   - mkdir -p /home/travis/build/nu-radio/NuRadioMC/NuRadioReco/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
   - mv bicone_v8_InfFirn.pkl /home/travis/build/nu-radio/NuRadioMC/NuRadioReco/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
 
-script:
-  - NuRadioMC/test/T02RunSimulation.py NuRadioMC/test/1e18_output_reference.hdf5 NuRadioMC/test/surface_station_1GHz.json NuRadioMC/test/config.yaml NuRadioMC/test/1e18_output.hdf5
-  - NuRadioMC/test/T03validate.py NuRadioMC/test/1e18_output.hdf5 NuRadioMC/test/1e18_output_reference.hdf5
+jobs:
+  include:
+    - stage: "Test one single event"
+      name: "Single event test (South Pole)"
+      script: NuRadioMC/test/SingleEvents/test_build.sh
+    - script: NuRadioMC/test/SingleEvents/validate_MB.sh
+      name: "Single event test (Moore's Bay)"
+    - stage: "Test individual components"
+      name: "Signal generation test"
+      script: NuRadioMC/test/SignalGen/test_build.sh
+    - script: NuRadioMC/test/SignalProp/run_signal_test.sh
+      name: "Signal propagation tests"
+    - script: NuRadioMC/test/examples/test_examples.sh
+      name: "Test Examples"
+    - stage: "Test with multiple events"
+      name: "Veff test"
+      script: NuRadioMC/test/Veff/1e18eV/test_build.sh
+
