@@ -1881,9 +1881,9 @@ class ray_tracing:
         """
         recVec = self.get_receive_vector(iS)
         recVec = -1.0 * recVec
-        recAng = np.arccos(recVec[2] / np.sqrt(recVec[0]**2 + recVec[1]**2 + recVec[2]**2))
+        recAng = np.arccos(recVec[2] / np.sqrt(recVec[0] ** 2 + recVec[1] ** 2 + recVec[2] ** 2))
         lauVec = self.get_launch_vector(iS)
-        lauAng = np.arccos(lauVec[2] / np.sqrt(lauVec[0]**2 + lauVec[1]**2 + lauVec[2]**2))
+        lauAng = np.arccos(lauVec[2] / np.sqrt(lauVec[0] ** 2 + lauVec[1] ** 2 + lauVec[2] ** 2))
         distance = self.get_path_length(iS)
         vetPos = self.__X1
         recPos = self.__X2
@@ -1892,11 +1892,13 @@ class ray_tracing:
         r1.find_solutions()
         if iS < r1.get_number_of_solutions():
             lauVec1 = r1.get_launch_vector(iS)
-            lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0]**2 + lauVec1[1]**2 + lauVec1[2]**2))
+            lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
             focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
         else:
             focusing = 1.0
         self.__logger.debug('focusing = {:.3f}'.format(focusing))
+        if(focusing >= 4):
+            self.__logger.warning(f"amplification due to focusing is {focusing:.1f}x")
         return focusing
 
     def get_ray_path(self, iS):
