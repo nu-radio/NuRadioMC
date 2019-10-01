@@ -473,6 +473,8 @@ class simulation():
                         if self._cfg['propagation']['focusing']:
                             dZRec = -0.01 * units.m
                             focusing = r.get_focusing(iS, dZRec)
+                            sg['focusing_factor'][self._iE, channel_id, iS] = focusing
+                            logger.info(f"focusing: channel {channel_id:d}, solution {iS:d} -> {focusing:.1f}x")
                             # spectrum = fft.time2freq(fft.freq2time(spectrum) * focusing)
                             spectrum[1:] *= focusing
 
@@ -826,6 +828,7 @@ class simulation():
             sg['SNRs'] = np.zeros(self._n_events) * np.nan
             sg['maximum_amplitudes'] = np.zeros((self._n_events, n_antennas)) * np.nan
             sg['maximum_amplitudes_envelope'] = np.zeros((self._n_events, n_antennas)) * np.nan
+            sg['focusing_factor'] = np.ones((self._n_events, n_antennas, nS))
 
     def _read_input_neutrino_properties(self):
         self._event_id = self._fin['event_ids'][self._iE]
