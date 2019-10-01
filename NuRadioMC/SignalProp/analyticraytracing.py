@@ -1888,15 +1888,18 @@ class ray_tracing:
         vetPos = self.__X1
         recPos = self.__X2
         recPos1 = np.array([self.__X2[0], self.__X2[1], self.__X2[2] + dz])
-        r1 = ray_tracing(vetPos, recPos1, self.__medium, self.__attenuation_model, logging.WARNING, self.__n_frequencies_integration)
-        r1.find_solutions()
-        if iS < r1.get_number_of_solutions():
-            lauVec1 = r1.get_launch_vector(iS)
+        if(not hasattr(self, "_r1")):
+            self._r1 = ray_tracing(vetPos, recPos1, self.__medium, self.__attenuation_model, logging.WARNING,
+                             self.__n_frequencies_integration, self.__n_reflections)
+            self._r1.find_solutions()
+        if iS < self._r1.get_number_of_solutions():
+            lauVec1 = self._r1.get_launch_vector(iS)
             lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
             focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
         else:
             focusing = 1.0
-        self.__logger.debug('focusing = {:.3f}'.format(focusing))
+            self.__logger.info("too few ray tracing solutions, setting focusing factor to 1")
+        self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
         if(focusing >= 4):
             self.__logger.warning(f"amplification due to focusing is {focusing:.1f}x")
         return focusing
