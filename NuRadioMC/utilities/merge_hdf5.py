@@ -189,14 +189,17 @@ if __name__ == "__main__":
 
     The script expects that the folder structure is
     ../output/energy/*.hdf5.part????
+
+    Optional log level setting to either set DEBUG, INFO, or WARNING to the readout. Example: add --loglevel DEBUG when calling script to set loglevel to DEBUG. 
     """
     parser = argparse.ArgumentParser(description='Merge hdf5 files')
     parser.add_argument('files', nargs='+', help='input file or files')
-    parser.add_argument('--info', action='store_true', help='logger level set to info')
+    parser.add_argument('--loglevel', metavar='level', help='loglevel set to either DEBUG, INFO, or WARNING')
     args = parser.parse_args()
 
-    if args.info:
-        logger.setLevel(logging.INFO)
+    if args.loglevel is not None:
+        log_val = eval(f'logging.{args.loglevel}')
+        logger.setLevel(log_val)
 
     if(len(args.files) < 1):
         print("usage: python merge_hdf5.py /path/to/simulation/output/folder\nor python merge_hdf5.py outputfilename input1 input2 ...")
