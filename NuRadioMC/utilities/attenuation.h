@@ -60,9 +60,12 @@ double get_attenuation_length(double z, double frequency, int model){
 		double att_length = 460 * utl::m - 180 * utl::m /utl::GHz * frequency;
 		att_length *= 1./(1 + att_length / (2 * d_ice) * log(R));  // additional correction for reflection coefficient being less than 1.
 
-        double d = -z * 420. / d_ice;;
+		double d = -z * 420. * utl::m / d_ice;
         double L = (1250.*0.08886 * exp(-0.048827 * (225.6746 - 86.517596 * log10(848.870 - (d)))));
-        att_length *= L / 262.0;
+        // this differs from the equation published in F. Wu PhD thesis UCI.
+        // 262m is supposed to be the depth averaged attenuation length but the
+        // integral (int(1/L, 420, 0)/420) ^ -1 = 231.21m and NOT 262m.
+        att_length *= L / (231.21 * utl::m);
 		return att_length;
 	} else {
 		std::cout << "attenuation length model " << model << " unknown" << std::endl;

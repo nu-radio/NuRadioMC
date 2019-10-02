@@ -554,6 +554,7 @@ class ray_tracing_2D():
                 freqs = np.linspace(frequency[mask2 & mask].min(), frequency[mask2 & mask].max(), nfreqs2)
                 if(np.sum(~mask2) > 1):
                     freqs = np.append(freqs, np.linspace(frequency[~mask2].min(), frequency[~mask2].max(), nfreqs // 2))
+            self.__logger.debug(f"calculating attenuation for frequencies {freqs}")
             return freqs
 
     def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq, reflection=0, reflection_case=1):
@@ -578,6 +579,7 @@ class ray_tracing_2D():
                 for i, f in enumerate(freqs):
                     tmp[i] = wrapper.get_attenuation_along_path(
                         x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n, self.medium.z_0, self.attenuation_model_int)
+                self.__logger.debug(tmp)
                 attenuation = np.ones_like(frequency)
                 attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
             else:
@@ -1541,6 +1543,9 @@ class ray_tracing:
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
 
         """
+        # make sure that arrays are floats
+        x1 = np.array(x1, dtype=np.float)
+        x2 = np.array(x2, dtype=np.float)
         self.__logger = logging.getLogger('ray_tracing')
         self.__logger.setLevel(log_level)
         self.__medium = medium
