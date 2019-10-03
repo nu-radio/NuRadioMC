@@ -593,6 +593,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	
 	int status;
 	int iter=0, max_iter=200;
+	double precision_fit = 1e-9;
 	double x_guess = -1;
 	bool found_root_1=false;
 	double root_1=-10000000; //some insane value we'd never believe
@@ -619,7 +620,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 			if(status==GSL_EBADFUNC) {status=GSL_CONTINUE; num_badfunc_tries++; continue;} 
 			root_1 = x_guess;
 			x_guess = gsl_root_fdfsolver_root(sfdf);
-			status = gsl_root_test_residual(GSL_FN_FDF_EVAL_F(&FDF,root_1),1e-9);
+			status = gsl_root_test_residual(GSL_FN_FDF_EVAL_F(&FDF,root_1),precision_fit);
 			if(status == GSL_SUCCESS){
 				// printf("Converged on root 1! Iteration %d\n",iter);
 				// printf("minima =  %f\n",pow(get_delta_y(get_C0_from_log(root_1, n_ice, delta_n, z_0), x1, x2, n_ice, delta_n, z_0), 2));
@@ -691,7 +692,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 					logC0_start = gsl_root_fsolver_x_lower(s);
 					logC0_stop = gsl_root_fsolver_x_upper(s);
 					//printf("[Iter, Xlo, Xhi]: [%d, %.8f, %.8f] \n",iter,logC0_start,logC0_stop);
-					status2 = gsl_root_test_interval(logC0_start,logC0_stop, 0, 1e-9);
+					status2 = gsl_root_test_interval(logC0_start,logC0_stop, 0, precision_fit);
 					if(status2==GSL_EBADFUNC) {status2=GSL_CONTINUE; num_badfunc_tries++; continue;}
 					if(status2 == GSL_SUCCESS){
 						// printf("Converged on root 2! Iteration %d\n",iter);
@@ -760,7 +761,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 					logC0_start = gsl_root_fsolver_x_lower(s);
 					logC0_stop = gsl_root_fsolver_x_upper(s);
 					// printf("[Iter, Xlo, Xhi]: [%d, %.8f, %.8f] \n",iter,logC0_start,logC0_stop);
-					status3 = gsl_root_test_interval(logC0_start,logC0_stop,0,1e-9);
+					status3 = gsl_root_test_interval(logC0_start,logC0_stop,0,precision_fit);
 					if(status3==GSL_EBADFUNC) {status3=GSL_CONTINUE; num_badfunc_tries++; continue;}
 					if(status3 == GSL_SUCCESS){
 						// printf("Converged on root 3! Iteration %d\n",iter);
