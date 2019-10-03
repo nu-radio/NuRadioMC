@@ -166,6 +166,8 @@ class simulation():
         # print noise information
         logger.warning("running with noise {}".format(bool(self._cfg['noise'])))
         logger.warning("setting signal to zero {}".format(bool(self._cfg['signal']['zerosignal'])))
+        if(bool(self._cfg['propagation']['focusing'])):
+            logger.warning("simulating signal amplification due to focusing of ray paths in the firn.")
 
         # read sampling rate from config (this sampling rate will be used internally)
         self._dt = 1. / (self._cfg['sampling_rate'] * units.GHz)
@@ -466,6 +468,15 @@ class simulation():
                                 spectrum_em *= attn
                             # add EM signal to had signal in the time domain
                             spectrum = fft.time2freq(fft.freq2time(spectrum) + fft.freq2time(spectrum_em))
+
+                        # apply the focusing effect
+                        if self._cfg['propagation']['focusing']:
+                            dZRec = -0.01 * units.m
+                            focusing = r.get_focusing(iS, dZRec)
+                            sg['focusing_factor'][self._iE, channel_id, iS] = focusing
+                            logger.info(f"focusing: channel {channel_id:d}, solution {iS:d} -> {focusing:.1f}x")
+                            # spectrum = fft.time2freq(fft.freq2time(spectrum) * focusing)
+                            spectrum[1:] *= focusing
 
                         polarization_direction_onsky = self._calculate_polarization_vector()
                         cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
@@ -817,6 +828,7 @@ class simulation():
             sg['SNRs'] = np.zeros(self._n_events) * np.nan
             sg['maximum_amplitudes'] = np.zeros((self._n_events, n_antennas)) * np.nan
             sg['maximum_amplitudes_envelope'] = np.zeros((self._n_events, n_antennas)) * np.nan
+            sg['focusing_factor'] = np.ones((self._n_events, n_antennas, nS))
 
     def _read_input_neutrino_properties(self):
         self._event_id = self._fin['event_ids'][self._iE]

@@ -18,6 +18,7 @@ propagation:
   attenuation_model: SP1
   attenuate_ice: True # if True apply the frequency dependent attenuation due to propagating through ice. (Note: The 1/R amplitude scaling will be applied in either case.)
   n_freq: 25  # the number of frequencies where the attenuation length is calculated for. The remaining frequencies will be determined from a linear interpolation between the reference frequencies. The reference frequencies are equally spaced over the complet frequency range.
+  focusing: False  # if True apply the focusing effect.
   n_reflections: 0  # the maximum number of reflections off a reflective layer at the bottom of the ice layer
 
 signal:
