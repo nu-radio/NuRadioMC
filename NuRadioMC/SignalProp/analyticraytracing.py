@@ -1900,8 +1900,9 @@ class ray_tracing:
             focusing = 1.0
             self.__logger.info("too few ray tracing solutions, setting focusing factor to 1")
         self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
-        if(focusing >= 4):
-            self.__logger.warning(f"amplification due to focusing is {focusing:.1f}x")
+        if(focusing > 2):
+            self.__logger.warning(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to 2x")
+            focusing = 2.0
         return focusing
 
     def get_ray_path(self, iS):
