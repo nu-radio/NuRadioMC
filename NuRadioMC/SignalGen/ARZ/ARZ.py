@@ -254,15 +254,20 @@ class ARZ(object):
         elif(theta_reference != 'X0'):
             raise NotImplementedError("theta_reference = '{}' is not implemented".format(theta_reference))
 
-        vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, shower_type, n_index, R,
-                                       self._interp_factor, self._interp_factor2, shift_for_xmax)
-        trace = -np.diff(vp, axis=0) / dt
+        # old direct integration method, gives precise results but is slower than convolution method
+#         vp = get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, shower_type, n_index, R,
+#                                        self._interp_factor, self._interp_factor2, shift_for_xmax).T
+
+        #
+        vp = get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth, profile_ce, shower_type,
+                                              n_index, R, shift_for_xmax)
+        trace = -np.diff(vp, axis=1) / dt
 #         trace = -np.gradient(vp, axis=0) / dt
 
         # use viewing angle relative to shower maximum for rotation into spherical coordinate system (that reduced eR component)
         thetaprime = theta_to_thetaprime(theta, xmax, R)
         cs = cstrafo.cstrafo(zenith=thetaprime, azimuth=0)
-        trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
+        trace_onsky = cs.transform_from_ground_to_onsky(trace)
         if(output_mode == 'full'):
             return trace_onsky, profile_depth, profile_ce
         elif(output_mode == 'Xmax'):
@@ -377,6 +382,7 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     # Convolve Q and RAC to get unnormalized vector potential
     if dt_divider != 1:
         logger.debug(f"convolving {n_Q:d} Q points with {n_RAC:d} RA_C points")
+
     convolution = np.array([scipy.signal.convolve(Qv[0], RA_C, mode='full'),
                             scipy.signal.convolve(Qv[1], RA_C, mode='full'),
                             scipy.signal.convolve(Qv[2], RA_C, mode='full')])
@@ -386,13 +392,13 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     n_extra_beginning += n_Q_negative
     if n_extra_beginning < 0:
         logger.debug(f"concacinating extra bins at end {n_extra_beginning}")
-        convolution = np.concatenate((np.zeros(-n_extra_beginning), convolution), axis=1)
+        convolution = np.concatenate((np.zeros((3, -n_extra_beginning)), convolution), axis=1)
     else:
         logger.debug(f"removing extra bins at beginning {n_extra_beginning}")
         convolution = convolution[:, n_extra_beginning:]
     if n_extra_end <= 0:
         logger.debug("concacinating extra bins at end")
-        convolution = np.concatenate((convolution, np.zeros(-n_extra_end)), axis=1)
+        convolution = np.concatenate((convolution, np.zeros((3, -n_extra_end))), axis=1)
     else:
         logger.debug(f"removing extra bins at end {n_extra_end}")
         convolution = convolution[:, :-n_extra_end]
