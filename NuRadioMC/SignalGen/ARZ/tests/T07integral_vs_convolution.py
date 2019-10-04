@@ -7,7 +7,7 @@ import numpy as np
 arz = ARZ.ARZ()
 shower_energy = 1e15 * units.eV
 shower_type = "HAD"
-theta = 58 * units.deg
+theta = 54 * units.deg
 R = 10 * units.km
 N = 512 * 2
 dt = 0.01 * units.ns
