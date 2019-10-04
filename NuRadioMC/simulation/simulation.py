@@ -808,8 +808,8 @@ class simulation():
             sg['receive_vectors'] = np.zeros((self._n_events, n_antennas, nS, 3)) * np.nan
             sg['ray_tracing_C0'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
             sg['ray_tracing_C1'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
-            sg['ray_tracing_reflection'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
-            sg['ray_tracing_reflection_case'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
+            sg['ray_tracing_reflection'] = np.zeros((self._n_events, n_antennas, nS), dtype=np.int) * np.nan
+            sg['ray_tracing_reflection_case'] = np.zeros((self._n_events, n_antennas, nS), dtype=np.int) * np.nan
             sg['ray_tracing_solution_type'] = np.zeros((self._n_events, n_antennas, nS), dtype=np.int) * np.nan
             sg['polarization'] = np.zeros((self._n_events, n_antennas, nS, 3)) * np.nan
             sg['travel_times'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
