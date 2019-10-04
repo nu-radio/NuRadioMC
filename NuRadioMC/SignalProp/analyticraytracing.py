@@ -1862,6 +1862,6 @@ class ray_tracing:
                                                      reflection_case=result['reflection_case'])
 
     def get_ray_path(self, iS):
-        return self.__r2d.get_path(self.__x1, self.__x2, self.__results[iS]['C0'], 10000,
+        return self.__r2d.get_path_reflections(self.__x1, self.__x2, self.__results[iS]['C0'], 10000,
                                    reflection=self.__results[iS]['reflection'],
                                    reflection_case=self.__results[iS]['reflection_case'])
