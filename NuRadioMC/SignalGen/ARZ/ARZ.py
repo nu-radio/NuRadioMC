@@ -274,7 +274,7 @@ class ARZ(object):
 
 def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth, profile_ce,
                                      shower_type="HAD", n_index=1.78, distance=1 * units.m,
-                                     interp_factor=1., interp_factor2=100., shift_for_xmax=False):
+                                     shift_for_xmax=False):
     """
     fast interpolation of time-domain calculation of vector potential of the 
     Askaryan pulse from a charge-excess profile using a numerical convolution instead of integration, following the 
@@ -304,12 +304,6 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
         index of refraction where the shower development takes place
     distance: float (default 1km)
         observation distance, the signal amplitude will be scaled according to 1/R
-    interp_factor: int (default 1)
-        interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
-        for small vertex distances but also slows down the calculation proportional to the interpolation factor.
-        if None, the interpolation factor will be calculated from the distance 
-    interp_factor2: int (default 100)
-        interpolation just around the peak of the form factor 
     shift_for_xmax: bool (default True)
         if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
         with respect to (0,0,0) which is the start of the charge-excess profile
@@ -326,6 +320,7 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     logger.debug(f"z_to_t = {z_to_t:.2g}")
 
     length = profile_depth / rho  # convert shower depth to length
+    dxmax = length[np.argmax(profile_ce)]
     # Calculate the corresponding z-step (dz = dt / z_to_t)
     # If the z-step is too large compared to the expected shower maximum
     # length, then the result will be bad. Set dt_divider so that
@@ -570,7 +565,6 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
 
         profile_dense2 = profile_dense
         profile_ce_interp2 = profile_ce_interp
-        abc = False
         if(interp_factor2 != 1):
             # we only need to interpolate between +- 1ns to achieve a better precision in the numerical integration
             # the following code finds the indices sourrounding the bins fulfilling these condition
