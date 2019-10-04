@@ -7,8 +7,9 @@ import numpy as np
 arz = ARZ.ARZ()
 shower_energy = 1e15 * units.eV
 shower_type = "HAD"
-theta = 54 * units.deg
-R = 10 * units.km
+theta = 57 * units.deg
+# thata = 0.8869725607593437 * units.rad
+R = 1 * units.km
 N = 512 * 2
 dt = 0.01 * units.ns
 profile_depth, profile_ce = arz.get_shower_profile(shower_energy, shower_type, 0)
