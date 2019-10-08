@@ -243,7 +243,7 @@ ara_1year = ara_1year.T
 
 ara_1year[:, 0] *= units.eV
 ara_1year[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-ara_1year[:, 1] /= 2  # half-decade binning
+ara_1year[:, 1] /= 1  # binning is dLogE = 1
 ara_1year[:, 1] *= energyBinsPerDecade
 
 # Ongoing analysis 2sta x 4yr *trigger* level projected limit (analysis
@@ -261,8 +261,20 @@ ara_4year = ara_4year.T
 
 ara_4year[:, 0] *= units.eV
 ara_4year[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-ara_4year[:, 1] /= 2  # half-decade binning
+ara_4year[:, 1] /= 1  # binning is dLogE = 1
 ara_4year[:, 1] *= energyBinsPerDecade
+
+ARIANNA_HRA = np.array([[1.00000003e+07, 3.16228005e+07, 9.99999984e+07, 3.16227997e+08,
+                         9.99999984e+08, 3.16228010e+09, 9.99999998e+09, 3.16228010e+10,
+                         1.00000002e+11, 3.16227988e+11, 1.00000002e+12],
+                         [8.66913580e-06, 4.31024784e-06, 3.02188396e-06, 1.95297917e-06,
+                          1.67624432e-06, 2.09537200e-06, 2.90309617e-06, 4.41176250e-06,
+                          7.49194972e-06, 1.33386048e-05, 2.57394786e-05]])
+ARIANNA_HRA = ARIANNA_HRA.T
+ARIANNA_HRA[:, 0] *= units.GeV
+ARIANNA_HRA[:, 1] /= 1
+ARIANNA_HRA[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+ARIANNA_HRA[:, 1] *= energyBinsPerDecade
 
 
 # get 10% proton flux
@@ -283,6 +295,7 @@ def get_E2_limit_figure(diffuse=True,
                         show_anita_I_III_limit=True,
                         show_auger_limit=True,
                         show_ara=True,
+                        show_arianna=True,
                         show_neutrino_best_fit=True,
                         show_neutrino_best_case=True,
                         show_neutrino_worst_case=True,
@@ -459,8 +472,19 @@ def get_E2_limit_figure(diffuse=True,
                         horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('ARA',
-                    xy=(1e10, 1.05e-6), xycoords='data',
+                    xy=(2e10, 1.05e-6), xycoords='data',
                     horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
+    if show_arianna:
+        ax.plot(ARIANNA_HRA[:, 0] / plotUnitsEnergy, ARIANNA_HRA[:, 1] / plotUnitsFlux, color='red')
+#         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
+        if energyBinsPerDecade == 2:
+            ax.annotate('ARIANNA',
+                        xy=(5e8, 6e-7), xycoords='data',
+                        horizontalalignment='left', color='red', rotation=0, fontsize=legendfontsize)
+        else:
+            ax.annotate('ARIANNA',
+                    xy=(3e8, 1.05e-6), xycoords='data',
+                    horizontalalignment='right', color='red', rotation=0, fontsize=legendfontsize)
 
     ax.set_yscale('log')
     ax.set_xscale('log')
@@ -469,7 +493,7 @@ def get_E2_limit_figure(diffuse=True,
     ax.set_ylabel(r'$E^2\Phi$ [GeV cm$^{-2}$ s$^{-1}$ sr$^{-1}$]')
 
     if diffuse:
-        ax.set_ylim(1e-11, 2e-6)
+        ax.set_ylim(1e-11, 10e-6)
         ax.set_xlim(1e5, 1e11)
     else:
         ax.set_ylim(1e-11, 2e-6)
