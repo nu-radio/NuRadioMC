@@ -472,7 +472,7 @@ class simulation():
                         # apply the focusing effect
                         if self._cfg['propagation']['focusing']:
                             dZRec = -0.01 * units.m
-                            focusing = r.get_focusing(iS, dZRec)
+                            focusing = r.get_focusing(iS, dZRec, float(self._cfg['propagation']['focusing_limit']))
                             sg['focusing_factor'][self._iE, channel_id, iS] = focusing
                             logger.info(f"focusing: channel {channel_id:d}, solution {iS:d} -> {focusing:.1f}x")
                             # spectrum = fft.time2freq(fft.freq2time(spectrum) * focusing)
