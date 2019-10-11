@@ -51,18 +51,19 @@ def calculate_simulation_weights(positions):
     return weights
 
 
-def make_sim_station(station_id, corsika, observer, channel_ids,  weight=None):
+def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
     """
     creates an NuRadioReco sim station from the observer object of the coreas hdf5 file
 
     Parameters
     ----------
-    station_id: station id
+    station_id : station id
         the id of the station to create
     corsika : hdf5 file object
         the open hdf5 file object of the corsika hdf5 file
-    observer: hdf5 observer object
-    weight: weight of individual station
+    observer : hdf5 observer object
+    channel_ids : 
+    weight : weight of individual station
         weight corresponds to area covered by station
 
     Returns

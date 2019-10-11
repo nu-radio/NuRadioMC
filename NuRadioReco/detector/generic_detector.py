@@ -52,11 +52,15 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
         """
         super(GenericDetector, self).__init__('json', json_filename, assume_inf)
+
         self.__default_station_id = default_station
+
         if not self.has_station(self.__default_station_id):
             raise ValueError('The default station {} was not found in the detector description'.format(self.__default_station_id))
+
         Station = Query()
         self.__default_station = self._stations.get((Station.station_id == self.__default_station_id))
+
         if default_channel is not None:
             Channel = Query()
             self.__default_channel = self._channels.get((Channel.station_id == default_station)&(Channel.channel_id == default_channel))
@@ -64,6 +68,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
                 raise ValueError('The default channel {} of station {} was not found in the detector description'.format(default_channel, self.__default_station_id))
         else:
             self.__default_channel = None
+
     def _query_station(self, station_id):
         Station = Query()
         res = self._stations.get((Station.station_id == station_id))
@@ -117,13 +122,16 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         if station_dict['station_id'] in self._buffered_stations.keys():
             logger.warning('Station with ID {} already exists in buffer. Cannot add station with same ID'.format(station_dict['station_id']))
             return
+
         for key in self.__default_station.keys():
             if key not in station_dict.keys():
                 station_dict[key] = self.__default_station[key]
         self._buffered_stations[station_dict['station_id']] = station_dict
+
         if self.__default_station_id not in self._buffered_channels.keys():
             self._buffer(self.__default_station_id)
         self._buffered_channels[station_dict['station_id']] = {}
+
         for i_channel, channel in self._buffered_channels[self.__default_station_id].items():
             new_channel = copy.copy(channel)
             new_channel['station_id'] = station_dict['station_id']
