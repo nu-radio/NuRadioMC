@@ -178,17 +178,19 @@ class Event:
             station = NuRadioReco.framework.station.Station(0)
             station.deserialize(station_pkl)
             self.set_station(station)
-
-        for shower_pkl in data['showers']:
-            shower = NuRadioReco.framework.radio_shower.RadioShower(None)
-            shower.deserialize(shower_pkl)
-            self.add_shower(shower)
-        for shower_pkl in data['sim_showers']:
-            shower = NuRadioReco.framework.radio_shower.RadioShower(None)
-            shower.deserialize(shower_pkl)
-            self.add_sim_shower(shower)
+        if 'showers' in data.keys():
+            for shower_pkl in data['showers']:
+                shower = NuRadioReco.framework.radio_shower.RadioShower(None)
+                shower.deserialize(shower_pkl)
+                self.add_shower(shower)
+        if 'sim_showers' in data.keys():
+            for shower_pkl in data['sim_showers']:
+                shower = NuRadioReco.framework.radio_shower.RadioShower(None)
+                shower.deserialize(shower_pkl)
+                self.add_sim_shower(shower)
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
-        self.__hybrid_information.deserialize(data['hybrid_info'])
+        if 'hybrid_info' in data.keys():
+            self.__hybrid_information.deserialize(data['hybrid_info'])
         self._parameters = data['_parameters']
         self.__run_number = data['__run_number']
         self._id = data['_id']

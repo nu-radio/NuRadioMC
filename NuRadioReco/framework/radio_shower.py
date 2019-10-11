@@ -22,7 +22,7 @@ class RadioShower(NuRadioReco.framework.base_shower.BaseShower):
             'station_ids': self.__station_ids,
             'base_shower': base_shower_pickle
         }
-        return pickle.dumps(data, protocol=2)
+        return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
