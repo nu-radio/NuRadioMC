@@ -5,6 +5,7 @@ from NuRadioReco.modules.io.NuRadioRecoio import VERSION, VERSION_MINOR
 import logging
 import datetime
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.detector import generic_detector
 logger = logging.getLogger("eventWriter")
 
 
@@ -78,21 +79,26 @@ class eventWriter:
         if(mode not in ['full', 'mini', 'micro']):
             logger.error("output mode must be one of ['full', 'mini', 'micro'] but is {}".format(mode))
             raise NotImplementedError
+
         if not self.__header_written:
             self.__write_fout_header()
+
         evt_header_str = pickle.dumps(get_header(evt), protocol=4)
         event_bytearray = self.__get_event_bytearray(evt, mode)
         self.__fout.write(event_bytearray)
         self.__current_file_size += event_bytearray.__sizeof__()
         self.__number_of_events += 1
+
         if det is not None:
             detector_dict = self.__get_detector_dict(evt, det)  #returns None if detector is already saved
             if detector_dict is not None:
                 detector_bytearray = self.__get_detector_bytearray(detector_dict)
                 self.__fout.write(detector_bytearray)
                 self.__current_file_size += detector_bytearray.__sizeof__()
+
         logger.debug("current file size is {} bytes, event number {}".format(self.__current_file_size,
                      self.__number_of_events))
+
         if(self.__current_file_size > self.__max_file_size):
             logger.info("current output file exceeds max file size -> closing current output file and opening new one")
             self.__current_file_size = 0
@@ -131,7 +137,9 @@ class eventWriter:
         i_channel = 0
         for station in event.get_stations():
             if not self.__is_station_already_in_file(station):
-                det.update(station.get_station_time())
+                if not isinstance(det, generic_detector.GenericDetector):
+                    det.update(station.get_station_time())
+
                 station_description = det.get_station(station.get_id())
                 det_dict['stations'][str(i_station)] = station_description
                 self.__stored_stations.append({
