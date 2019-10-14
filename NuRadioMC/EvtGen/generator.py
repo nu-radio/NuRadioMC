@@ -645,7 +645,7 @@ def get_product_position(data_sets, product, iE):
 
     dist = product.distance
     x = data_sets["xx"][iE] - dist * np.sin(data_sets["zeniths"][iE]) * np.cos(data_sets["azimuths"][iE])
-    y = data_sets["xx"][iE] - dist * np.sin(data_sets["zeniths"][iE]) * np.sin(data_sets["azimuths"][iE])
+    y = data_sets["yy"][iE] - dist * np.sin(data_sets["zeniths"][iE]) * np.sin(data_sets["azimuths"][iE])
     z = data_sets["zz"][iE] - dist * np.cos(data_sets["zeniths"][iE])
 
     return x, y, z
