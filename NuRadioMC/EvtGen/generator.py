@@ -397,15 +397,15 @@ def get_tau_decay_vertex(x, y, z, E, zenith, azimuth, distmax, table=None):
         Tau energy at the moment of decay
     """
     L, decay_energy = get_tau_decay_length(E, distmax, table)
-    second_vertex_x = L
+    second_vertex_x = -L
     second_vertex_x *= np.sin(zenith) * np.cos(azimuth)
     second_vertex_x += x
 
-    second_vertex_y = L
+    second_vertex_y = -L
     second_vertex_y *= np.sin(zenith) * np.sin(azimuth)
     second_vertex_y += y
 
-    second_vertex_z = L
+    second_vertex_z = -L
     second_vertex_z *= np.cos(zenith)
     second_vertex_z += z
     return second_vertex_x, second_vertex_y, second_vertex_z, decay_energy
@@ -644,9 +644,9 @@ def get_product_position(data_sets, product, iE):
     """
 
     dist = product.distance
-    x = data_sets["xx"][iE] - dist * np.cos(data_sets["zeniths"][iE]) * np.cos(data_sets["azimuths"][iE])
-    y = data_sets["xx"][iE] - dist * np.cos(data_sets["zeniths"][iE]) * np.sin(data_sets["azimuths"][iE])
-    z = data_sets["zz"][iE] - dist * np.sin(data_sets["zeniths"][iE])
+    x = data_sets["xx"][iE] - dist * np.sin(data_sets["zeniths"][iE]) * np.cos(data_sets["azimuths"][iE])
+    y = data_sets["xx"][iE] - dist * np.sin(data_sets["zeniths"][iE]) * np.sin(data_sets["azimuths"][iE])
+    z = data_sets["zz"][iE] - dist * np.cos(data_sets["zeniths"][iE])
 
     return x, y, z
 
