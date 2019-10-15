@@ -618,8 +618,8 @@ class simulation():
 
     def _get_noise_normalization(self, station_id, channel_id=0):
         """
-        returns the normalization of the Vrms of the noise generator module. 
-        The normalization is 
+        returns the normalization of the Vrms of the noise generator module.
+        The normalization is
         Vrms = self._Vrms / (norm / (max_freq - min_freq))**0.5
         """
         if(station_id in self.__noise_adder_normalization and channel_id in self.__noise_adder_normalization[station_id]):
@@ -809,8 +809,8 @@ class simulation():
             sg['ray_tracing_C0'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
             sg['ray_tracing_C1'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
             sg['ray_tracing_reflection'] = np.zeros((self._n_events, n_antennas, nS), dtype=np.int) * np.nan
-            sg['ray_tracing_reflection_case'] = np.zeros((self._n_events, n_antennas, nS), dtype=np.int) * np.nan
-            sg['ray_tracing_solution_type'] = np.zeros((self._n_events, n_antennas, nS), dtype=np.int) * np.nan
+            sg['ray_tracing_reflection_case'] = np.ones((self._n_events, n_antennas, nS), dtype=np.int) * -1
+            sg['ray_tracing_solution_type'] = np.ones((self._n_events, n_antennas, nS), dtype=np.int) * -1
             sg['polarization'] = np.zeros((self._n_events, n_antennas, nS, 3)) * np.nan
             sg['travel_times'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
             sg['travel_distances'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
