@@ -40,14 +40,25 @@ for iE, event in enumerate(readCoREASShower.run()):
         station.set_station_time(datetime.datetime(2011, 11, 11))
 
         sim_station = station.get_sim_station()
+        position = sim_station.get_position()
         det_station_dict = {'station_id': station.get_id(),
-                            'position': sim_station.get_position()}
+                            'pos_easting': position[0],
+                            'pos_northing': position[1],
+                            'pos_altitude': position[2]}
 
         det.add_generic_station(det_station_dict)
-        print(list(det._buffered_stations.keys()))
-    print(list(det._buffered_stations.keys()))
 
     eventWriter.run(event, det)
 
 nevents = eventWriter.end()
 print("Finished processing, {} events".format(nevents))
+
+# import NuRadioReco.modules.io.eventReader
+# eventReader = NuRadioReco.modules.io.eventReader.eventReader()
+# inputput_filename = "Full_CoREAS_shower.nur"
+# eventReader.begin(inputput_filename)
+#
+# for iE, event in enumerate(eventReader.run()):
+#     for station in event.get_stations():
+#         sim_station = station.get_sim_station()
+#         print(sim_station.get_position())
