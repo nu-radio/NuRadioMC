@@ -243,6 +243,7 @@
           "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
           "pos_altitude": 1400,
           "pos_easting": null,
+          "pos_northing": null,
           "pos_measurement_time": null,
           "pos_position": "",
           "pos_site": "simulation",
