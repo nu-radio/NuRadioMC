@@ -5,7 +5,7 @@ from radiotools import coordinatesystems as cstrans
 from NuRadioMC.SignalGen import askaryan as signalgen
 from NuRadioMC.utilities import units
 from NuRadioMC.utilities import medium
-from NuRadioMC.utilities import fft
+from NuRadioReco.utilities import fft
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
 import h5py
@@ -465,7 +465,7 @@ class simulation():
                             if self._cfg['propagation']['attenuate_ice']:
                                 spectrum_em *= attn
                             # add EM signal to had signal in the time domain
-                            spectrum = fft.time2freq(fft.freq2time(spectrum) + fft.freq2time(spectrum_em))
+                            spectrum = fft.time2freq(fft.freq2time(spectrum, 1/self._dt) + fft.freq2time(spectrum_em,1/self._dt),1/self._dt)
 
                         polarization_direction_onsky = self._calculate_polarization_vector()
                         cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
@@ -521,7 +521,7 @@ class simulation():
                             from matplotlib import pyplot as plt
                             fig, (ax, ax2) = plt.subplots(1, 2)
                             ax.plot(self._ff, np.abs(eTheta) / units.micro / units.V * units.m)
-                            ax2.plot(self._tt, fft.freq2time(eTheta) / units.micro / units.V * units.m)
+                            ax2.plot(self._tt, fft.freq2time(eTheta, self._dt) / units.micro / units.V * units.m)
                             ax2.set_ylabel("amplitude [$\mu$V/m]")
                             fig.tight_layout()
                             fig.suptitle("$E_C$ = {:.1g}eV $\Delta \Omega$ = {:.1f}deg, R = {:.0f}m".format(
@@ -618,8 +618,8 @@ class simulation():
 
     def _get_noise_normalization(self, station_id, channel_id=0):
         """
-        returns the normalization of the Vrms of the noise generator module. 
-        The normalization is 
+        returns the normalization of the Vrms of the noise generator module.
+        The normalization is
         Vrms = self._Vrms / (norm / (max_freq - min_freq))**0.5
         """
         if(station_id in self.__noise_adder_normalization and channel_id in self.__noise_adder_normalization[station_id]):

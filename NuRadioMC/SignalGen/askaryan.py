@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from NuRadioMC.utilities import units, fft
+from NuRadioReco.utilities import units, fft
 from NuRadioMC.SignalGen import parametrizations as par
 import logging
 logger = logging.getLogger("SignalGen.askaryan")
@@ -139,4 +139,4 @@ def get_frequency_spectrum(energy, theta, N, dt, shower_type, n_index, R, model,
         the complex amplitudes for the given frequencies
 
     """
-    return fft.time2freq(get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, **kwargs))
+    return fft.time2freq(get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, **kwargs),1/dt)
