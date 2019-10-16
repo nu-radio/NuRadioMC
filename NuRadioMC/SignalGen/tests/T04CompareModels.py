@@ -1,5 +1,5 @@
 import NuRadioMC.SignalGen.askaryan as ask
-from NuRadioMC.utilities import units, fft
+from NuRadioReco.utilities import units
 import numpy as np
 import matplotlib.pyplot as plt
 from radiotools import plthelpers as php

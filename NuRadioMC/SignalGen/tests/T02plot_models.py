@@ -1,6 +1,6 @@
 import NuRadioMC.SignalGen.RalstonBuniy.askaryan_module as AskaryanModule
 import NuRadioMC.SignalGen.parametrizations as param
-from NuRadioMC.utilities import units, fft
+from NuRadioReco.utilities import units
 import numpy as np
 import matplotlib.pyplot as plt
 from radiotools import plthelpers as php
