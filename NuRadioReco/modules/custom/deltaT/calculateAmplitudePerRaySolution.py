@@ -15,7 +15,7 @@ import fractions
 from scipy import signal
 from decimal import Decimal
 import NuRadioReco.framework.channel
-from NuRadioMC.utilities import fft
+from NuRadioReco.utilities import fft
 logger = logging.getLogger('calculateAmplitudePerRaySolution')
 
 
@@ -73,7 +73,7 @@ class calculateAmplitudePerRaySolution:
                 # Remove DC offset
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
 
-                voltage = fft.freq2time(voltage_fft)
+                voltage = fft.freq2time(voltage_fft, efield.get_sampling_rate())
                 h = np.abs(signal.hilbert(voltage))
                 maximum = np.abs(voltage).max()
                 maximum_envelope = h.max()
