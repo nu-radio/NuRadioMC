@@ -31,10 +31,10 @@ class channelGenericNoiseAdder:
         phases = np.random.rand(Np) * 2 * np.pi
         phases = np.cos(phases) + 1j * np.sin(phases)
         amps[1:Np + 1] *= phases # Note that the last entry of the index slice is f[Np] !
-        
+
         return amps
-    
-    
+
+
     def fftnoise_fullfft(self, f):
         """
         Adding random phase information to given amplitude spectrum.
@@ -51,19 +51,19 @@ class channelGenericNoiseAdder:
         phases = np.cos(phases) + 1j * np.sin(phases)
         f[1:Np + 1] *= phases # Note that the last entry of the index slice is f[Np] !
         f[-1:-1 - Np:-1] = np.conj(f[1:Np + 1])
-        
+
         logger.debug(' fftnoise: Length of frequency array = {} '.format(len(f)))
         logger.debug(' fftnoise: Number of points for unilateral spectrum = {} '.format(Np))
         logger.debug(' fftnoise: Max index and amplitude of positive part of spectrum: index = {}, A = |{}| = {} '.format(Np,f[Np],abs(f[Np])))
         logger.debug(' fftnoise: Min index and amplitude of negative part of spectrum: index = {}, A = |{}| '.format(len(f)-Np,f[-Np]))
-        
+
         fftprec = max(abs(np.fft.ifft(f) - np.fft.ifft(f).real))
         fftcheck = fftprec - np.finfo(float).resolution
         logger.debug(' fftnoise: fft precision {} < {} (float resolution) is : {} !'.format(fftprec ,np.finfo(float).resolution, fftcheck<0))
-        
+
         if fftcheck>=0:
             logger.warning(' fftnoise: Non negligibe imagniary part of inverse FFT: {} '.format(fftcheck))
-        
+
         return np.fft.ifft(f).real
 
     def bandlimited_noise(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type='perfect_white', time_domain=True):
@@ -75,7 +75,7 @@ class channelGenericNoiseAdder:
 
         min_freq: float
             Minimum frequency of passband for noise generation
-            min_freq = None: Only the DC component is removed. If the DC component should be included, 
+            min_freq = None: Only the DC component is removed. If the DC component should be included,
             min_freq = 0 has to be specified
         max_freq: float
             Maximum frequency of passband for noise generation
@@ -95,35 +95,35 @@ class channelGenericNoiseAdder:
         --------
         *   Note that by design the max frequency is the Nyquist frequency, even if a bigger max_freq
             is implemented (RL 17-Sept-2018)
-        
+
         *   Add 'multi_white' noise option on 20-Sept-2018 (RL)
 
         """
         frequencies = np.fft.rfftfreq(n_samples, 1./sampling_rate)
-        
+
         n_samples_freq = len(frequencies)
-        
+
         if min_freq == None or min_freq == 0:
             # remove DC component; fftfreq returns the DC component as 0-th element and the negative
             # frequencies at the end, so frequencies[1] should be the lowest frequency; it seems safer,
             # to take the difference between two frequencies to determine the minimum frequency, in case
-            # future versions of numpy change the order and maybe put the negative frequencies first 
-            min_freq = 0.5*(frequencies[2]-frequencies[1]) 
+            # future versions of numpy change the order and maybe put the negative frequencies first
+            min_freq = 0.5*(frequencies[2]-frequencies[1])
             logger.info(' Set min_freq from None to {} MHz!'.format(min_freq/units.MHz))
         if max_freq == None:
             # sample up to Nyquist frequency
             max_freq = max(frequencies)
             logger.info(' Set max_freq from None to {} GHz!'.format(max_freq/units.GHz))
         selection = (frequencies >= min_freq) & (frequencies <= max_freq)
-        
+
         nbinsactive = np.sum(selection)
         logger.debug('Total number of frequency bins (bilateral spectrum) : {} , of those active: {} '.format(n_samples,nbinsactive))
-        
+
         # Debug plots
 #         f1 = plt.figure()
 #         plt.plot (frequencies/max(frequencies))
 #         plt.plot(fbinsactive,'kx')
-        
+
         ampl = np.zeros(n_samples_freq)
         sigscale = (1.*n_samples)/np.sqrt(nbinsactive)
         if type == 'perfect_white':
@@ -138,11 +138,11 @@ class channelGenericNoiseAdder:
             logger.error("Other types of noise not yet implemented.")
             raise NotImplementedError("Other types of noise not yet implemented.")
 
-        noise = self.add_random_phases(ampl, n_samples)
+        noise = self.add_random_phases(ampl, n_samples)/sampling_rate
         if(time_domain):
-            return fft.freq2time(noise, n=n_samples)
+            return fft.freq2time(noise, sampling_rate, n=n_samples)
         else:
-            return noise
+            return noisex
 
     def __init__(self):
         self.begin()
@@ -214,9 +214,9 @@ class channelGenericNoiseAdder:
                 plt.plot(new_trace)
 
                 plt.figure()
-                plt.plot(np.abs(fft.time2freq(trace)))
-                plt.plot(np.abs(fft.time2freq(noise)))
-                plt.plot(np.abs(fft.time2freq(new_trace)))
+                plt.plot(np.abs(fft.time2freq(trace, channel.get_sampling_rate())))
+                plt.plot(np.abs(fft.time2freq(noise, channel.get_sampling_rate())))
+                plt.plot(np.abs(fft.time2freq(new_trace, channel.get_sampling_rate())))
 
                 plt.show()
 
