@@ -83,7 +83,6 @@ class eventWriter:
         if not self.__header_written:
             self.__write_fout_header()
 
-        evt_header_str = pickle.dumps(get_header(evt), protocol=4)
         event_bytearray = self.__get_event_bytearray(evt, mode)
         self.__fout.write(event_bytearray)
         self.__current_file_size += event_bytearray.__sizeof__()
