@@ -3,7 +3,8 @@ import numpy as np
 import time
 from numpy import testing
 from NuRadioMC.SignalProp import analyticraytracing as ray
-from NuRadioMC.utilities import units, medium
+from NuRadioMC.utilities import medium
+from NuRadioReco.utilities import units
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('test_raytracing')
@@ -52,8 +53,8 @@ for iX, x in enumerate(points):
             t_start = time.time()
             results_D_analytic[iX, iS] = r.get_path_length(iS, analytic=True)
             d_analytic += time.time() - t_start
-            
-            
+
+
             t_start = time.time()
             results_T[iX, iS] = r.get_travel_time(iS, analytic=False)
             t_numeric += time.time() - t_start

@@ -1,7 +1,7 @@
 import numpy as np
 import h5py
 from NuRadioReco.detector import detector
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from scipy import constants
 from matplotlib import pyplot as plt
 import glob
@@ -43,7 +43,7 @@ triggered_near_surface = np.any(max_amps_env[:, 0:3] > (3 * Vrms), axis=1)  # tr
 triggered_near_deep = max_amps_env[:, 3] > (3 * Vrms) # triggered deep dipole
 triggered_surface = np.zeros((max_amps_env.shape[0], n_stations)) # create empy array of shape (n events, n stations)
 triggered_deep = np.zeros((max_amps_env.shape[0], n_stations)) # create empy array of shape (n events, n stations)
-# loop through all stations with different distances 
+# loop through all stations with different distances
 for i in range(n_stations):
     # select the 2 LPDA + 1 dipole channel and check if they fulfill the trigger condition
     triggered_surface[:, i] = np.any(max_amps_env[:, i * 4:(i * 4 + 3)] > (3 * Vrms), axis=1)
@@ -62,9 +62,9 @@ med = medium.ARAsim_southpole()
 mask = ((np.abs(xs) == x) & (np.abs(ys) == x))  \
     | ((np.abs(xs) == x) & (ys == 0)) \
     | ((np.abs(ys) == x) & (xs == 0))
-    
+
 theta  = np.arccos(1. / 1.78)
-    
+
 n_events = len(triggered_near_surface)
 dTs = []
 for iE in np.arange(n_events, dtype=np.int)[np.any(triggered_deep[:, mask], axis=1) & triggered_near_deep]:
@@ -85,15 +85,15 @@ for iE in np.arange(n_events, dtype=np.int)[np.any(triggered_deep[:, mask], axis
 #         print(fin.keys())
 #         l1 = fin['launch_vectors'][iE][3] / units.deg
         l2 = fin['station_101']['launch_vectors'][iE][j*4 + 3]
-        
+
 #         r1 = ray.ray_tracing(vertex, x1, med, log_level=logging.DEBUG)
 # #         r1.find_solutions()
 #         r1.set_solution(fin['ray_tracing_C0'][iE][3], fin['ray_tracing_C1'][iE][3], fin['ray_tracing_solution_type'][iE][3])
 #         path1 = r1.get_path(0)
-        
+
         zen, az = fin['zeniths'][iE], fin['azimuths'][iE]
         v = hp.spherical_to_cartesian(zen, az)
-        
+
         if(plot):
             r2 = ray.ray_tracing(vertex, x2, med, log_level=logging.INFO)
             r2.set_solution(fin['station_101']['ray_tracing_C0'][iE][iC], fin['station_101']['ray_tracing_C1'][iE][iC], fin['station_101']['ray_tracing_solution_type'][iE][iC])
@@ -102,7 +102,7 @@ for iE in np.arange(n_events, dtype=np.int)[np.any(triggered_deep[:, mask], axis
             ax.plot3D(path2.T[0], path2.T[1], path2.T[2], label='path {}'.format(j))
             ax.plot3D([vertex[0], vertex[0] + 500*v[0]], [vertex[1], vertex[1] + 500*v[1]], [vertex[2], vertex[2] + 500*v[2]],
                       '--', label='shower direction')
-        
+
         dT = []
         for l in l2:
 #             print("{:.1f}".format((theta - hp.get_angle(-v, l))/units.deg))
@@ -110,11 +110,11 @@ for iE in np.arange(n_events, dtype=np.int)[np.any(triggered_deep[:, mask], axis
         dTs.append(np.min(np.abs(np.array(dT))))
         if(plot):
             R3 = hp.get_rotation(np.array([0, 0, 1]), -v)
-            
+
             for phi in np.linspace(0, 2 * np.pi, 200):
-                
+
                 l = hp.spherical_to_cartesian(theta, phi)
-                
+
     #             zen, az = hp.cartesian_to_spherical(v[0], v[1], v[2])
                 R1 = np.array([[np.cos(az), -np.sin(az), 0], [np.sin(az), np.cos(az), 0], [0, 0, 1]])
                 R2 = np.array([[np.cos(zen), 0, -np.sin(zen)], [0, 1, 0], [np.sin(zen), 0, np.cos(zen)]])
@@ -136,5 +136,3 @@ for iE in np.arange(n_events, dtype=np.int)[np.any(triggered_deep[:, mask], axis
 #     a =     1/0
 php.get_histogram(np.array(dTs))
 plt.show()
-        
-

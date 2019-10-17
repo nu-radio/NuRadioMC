@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 
 
 def get_ice_model(name):
@@ -37,14 +37,14 @@ class medium():
     def get_average_index_of_refraction(self, z1, z2):
         """
         returns the average index of refraction between two depths
-        
+
         Parameters
         ----------
         z1: float
             depth 1
         z2: float
             depth 2
-            
+
         Returns: depth averaged index of refraction
         """
         return self.n_ice - self.delta_n * self.z_0 / (z2 - z1) * (np.exp(z2 / self.z_0) - np.exp(z1 / self.z_0))

@@ -3,7 +3,7 @@ import numpy as np
 from radiotools import helper as hp
 from radiotools import plthelpers as php
 from matplotlib import pyplot as plt
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioMC.utilities import medium
 import h5py
 import argparse
@@ -41,15 +41,15 @@ for iD, depth in enumerate(depths):
     Ts = np.nan_to_num(Ts)
     dTs = np.abs(Ts[:, 1] - Ts[:, 0])
     C3 = (As[:, 0] >= 3 * Vrms) | (As[:, 1] >= 3 * Vrms)
-    
+
     C1 = ((As[:, 0] >= 3 * Vrms) | (As[:, 1] >= 3 * Vrms)) & ((As[:, 0] >= 2 * Vrms) & (As[:, 1] >= 2 * Vrms)) & (dTs < 430 * units.ns)
     C2 = ((As[:, 0] >= 3 * Vrms) & (As[:, 1] >= 3 * Vrms)) & (dTs < 430 * units.ns)
     C4 = ((As[:, 0] >= 4 * Vrms) & (As[:, 1] >= 4 * Vrms)) & (dTs < 430 * units.ns)
-    
+
     eff1[iD] = np.sum(weights[~mask][C1])/ np.sum(weights[~mask][C3])
     eff2[iD] = np.sum(weights[~mask][C2])/ np.sum(weights[~mask][C3])
     eff3[iD] = np.sum(weights[~mask][C4])/ np.sum(weights[~mask][C3])
-    
+
 sort_mask = np.argsort(depths)
 np.savetxt("DnRefficiency_{:.0g}eV.txt".format(np.array(fin['energies']).mean()), [depths[sort_mask], eff1[sort_mask]])
 

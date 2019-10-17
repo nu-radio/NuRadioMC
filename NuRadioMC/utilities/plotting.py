@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from matplotlib import pyplot as plt
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 
 def plot_vertex_distribution(xx, yy, zz, weights=None,
                             rmax=None, zmin=None,
