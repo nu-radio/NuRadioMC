@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 import h5py
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 import sys
 import os
 path = os.path.dirname(os.path.abspath(__file__))

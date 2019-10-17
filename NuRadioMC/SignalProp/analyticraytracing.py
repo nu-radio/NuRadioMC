@@ -11,7 +11,7 @@ try:
 except ImportError:
     from backports.functools_lru_cache import lru_cache
 
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
 
 import logging
@@ -130,17 +130,17 @@ class ray_tracing_2D():
         """
         calculate the turning point, i.e. the maximum of the ray tracing path;
         parameter is c = self.medium.n_ice ** 2 - C_0 ** -2
-        
+
         This is either the point of reflection off the ice surface
         or the point where the saddle point of the ray (transition from upward to downward going)
-        
-        Technically, the turning point is set to z=0 if the saddle point is above the surface. 
-        
+
+        Technically, the turning point is set to z=0 if the saddle point is above the surface.
+
         Parameters
         ----------
         c: float
             related to C_0 parameter via c = self.medium.n_ice ** 2 - C_0 ** -2
-            
+
         Returns
         ----------
         typle (gamma, z coordinate of turning point)
@@ -158,7 +158,7 @@ class ray_tracing_2D():
         """
         calculates the y-coordinate of the turning point. This is either the point of reflection off the ice surface
         or the point where the saddle point of the ray (transition from upward to downward going)
-        
+
         Parameters
         ----------
         C_0: float
@@ -616,8 +616,8 @@ class ray_tracing_2D():
     def get_path_segments(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
         Calculates the different segments of the path that makes up the full ray tracing path
-        One segment per bottom reflection. 
-        
+        One segment per bottom reflection.
+
         Parameters
         ----------
         x1: tuple
@@ -632,7 +632,7 @@ class ray_tracing_2D():
             only relevant if `reflection` is larger than 0
             * 1: rays start upwards
             * 2: rays start downwards
-            
+
         Returns
         --------
         (original x1, x1 of path segment, original x2, x2 of path segment, C_0, C_1 of path segment)
@@ -676,7 +676,7 @@ class ray_tracing_2D():
     def get_angle(self, x, x_start, C_0, reflection=0, reflection_case=1):
         """
         calculates the angle with respect to the positive z-axis of the ray path at position x
-        
+
         Parameters
         ----------
         x: tuple
@@ -711,10 +711,10 @@ class ray_tracing_2D():
     def get_reflection_angle(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
         calculates the angle under which the ray reflects off the surface. If not reflection occurs, None is returned
-        
-        If reflections off the bottom (e.g. Moore's Bay) are simulated, an array with reflection angles (one for 
+
+        If reflections off the bottom (e.g. Moore's Bay) are simulated, an array with reflection angles (one for
         each track segment) is returned
-        
+
         Parameters
         ----------
         x1: tuple
@@ -794,7 +794,7 @@ class ray_tracing_2D():
         """
         calculates the ray path in the presence of reflections at the bottom
         The full path is constructed by multiple calls to the `get_path()` function to put together the full path
-        
+
         Parameters
         ----------
         x1: tuple
@@ -811,7 +811,7 @@ class ray_tracing_2D():
             only relevant if `reflection` is larger than 0
             * 1: rays start upwards
             * 2: rays start downwards
-        
+
         Returns
         -------
         yy: array
@@ -853,7 +853,7 @@ class ray_tracing_2D():
     def get_reflection_point(self, C_0, C_1):
         """
         calculates the point where the signal gets reflected off the bottom of the ice shelf
-        
+
         Returns tuple (y,z)
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
@@ -1010,10 +1010,10 @@ class ray_tracing_2D():
             (y,z) coordinate of stop point
         reflection: int (default 0)
             how many reflections off the reflective layer (bottom of ice shelf) should be simulated
-        
+
 
         returns an array of the C_0 paramters of the solutions (the array might be empty)
-        
+
         """
 
         if(reflection > 0 and self.medium.reflection is None):
@@ -1536,7 +1536,7 @@ class ray_tracing:
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
-            
+
         n_reflections: int (default 0)
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
 

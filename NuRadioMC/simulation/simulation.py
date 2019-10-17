@@ -3,7 +3,7 @@ import numpy as np
 from radiotools import helper as hp
 from radiotools import coordinatesystems as cstrans
 from NuRadioMC.SignalGen import askaryan as signalgen
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import fft
 from NuRadioMC.utilities.earth_attenuation import get_weight

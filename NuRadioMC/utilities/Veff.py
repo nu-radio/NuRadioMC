@@ -7,7 +7,7 @@ import json
 import os
 import copy
 
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 
 import logging
 logger = logging.getLogger("Veff")
@@ -730,4 +730,3 @@ def export(filename, data, trigger_names=None, export_format='yaml'):
             yaml.dump(output, fout)
         elif(export_format == 'json'):
             json.dump(output, fout, sort_keys=True, indent=4)
-

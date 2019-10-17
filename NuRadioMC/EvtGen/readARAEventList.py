@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import argparse
 from radiotools import helper as hp
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from io import BytesIO
 import logging
 logger = logging.getLogger("readARAEventList")
