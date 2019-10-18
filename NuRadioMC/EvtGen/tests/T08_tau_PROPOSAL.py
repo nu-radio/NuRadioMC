@@ -28,7 +28,7 @@ energy_arr = []
 
 for Elepton in energies:
 
-    decay_prods = NRP.GetDecays([Elepton]*Ntries, [lepton_code]*Ntries, random_seed=None)
+    decay_prods = NRP.get_decays([Elepton]*Ntries, [lepton_code]*Ntries, random_seed=None)
 
     dist_hist = decay_prods[:,0]
     E_hist = decay_prods[:,1]

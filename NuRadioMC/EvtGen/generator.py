@@ -661,7 +661,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                            spectrum='log_uniform',
                            resample=False,
                            start_file_id=0,
-                           config_file='config_PROPOSAL.json'):
+                           config_file='SouthPole'):
 
     """
     Event generator for surface muons
@@ -730,8 +730,11 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         (useful if an existing data set is extended)
         if True, generate deposited energies instead of primary neutrino energies
     config_file: string
-        Name of the PROPOSAL config file. Must be in the same folder as the
-        NuRadioProposal.py module
+        The user can specify the path to their own config file or choose among
+        the three available options:
+        -'SouthPole', a config file for the South Pole (spherical Earth)
+        -'MooresBay', a config file for Moore's Bay (spherical Earth)
+        -'InfIce', a config file with a medium of infinite ice
     """
 
     import NuRadioMC.EvtGen.NuRadioProposal as NRP
@@ -874,7 +877,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         lepton_positions = None
         lepton_directions = None
 
-    products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes, lepton_positions,
+    products_array = NRP.get_secondaries_array(E_all_leptons, lepton_codes, lepton_positions,
                                              lepton_directions, config_file=config_file)
 
     for event_id in data_sets["event_ids"]:
@@ -943,7 +946,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 tabulated_taus=True,
                                 deposited=False,
                                 proposal=False,
-                                proposal_config='config_PROPOSAL.json',
+                                proposal_config='SouthPole',
                                 resample=None,
                                 start_file_id=0):
     """
@@ -1024,9 +1027,12 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         if True, generate deposited energies instead of primary neutrino energies
     proposal: bool
         if True, the tau and muon secondaries are calculated using PROPOSAL
-    proposal_config: string
-        The name of the json file describing the PROPOSAL configuration. It must
-        be in the same folder as the NuRadioProposal.py module
+    proposal_config: string or path
+        The user can specify the path to their own config file or choose among
+        the three available options:
+        -'SouthPole', a config file for the South Pole (spherical Earth)
+        -'MooresBay', a config file for Moore's Bay (spherical Earth)
+        -'InfIce', a config file with a medium of infinite ice
     resample: integer or None
         if integer, PROPOSAL generates a number of propagations equal to resample
         and then reuses them. Only to be used with a single kind of lepton (muon or tau)
@@ -1234,9 +1240,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             lepton_codes = lepton_codes[:n_resample]
             lepton_positions = None
             lepton_directions = None
-            proposal_config = 'config_PROPOSAL_infice.json'
+            proposal_config = 'InfIce'
 
-        products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes, lepton_positions,
+        products_array = NRP.get_secondaries_array(E_all_leptons, lepton_codes, lepton_positions,
                                                  lepton_directions, config_file=proposal_config)
 
         for event_id in data_sets["event_ids"]:
@@ -1266,7 +1272,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                 else:
                     lepton_code = data_sets["flavors"][iE]+1
 
-                #products = NRP.GetProds(Elepton, lepton_code)
                 if resample:
                     products = products_array[i_resample % n_resample]
                     i_resample += 1
