@@ -138,11 +138,11 @@ class channelGenericNoiseAdder:
             logger.error("Other types of noise not yet implemented.")
             raise NotImplementedError("Other types of noise not yet implemented.")
 
-        noise = self.add_random_phases(ampl, n_samples)
+        noise = self.add_random_phases(ampl, n_samples) /sampling_rate
         if(time_domain):
             return fft.freq2time(noise, sampling_rate, n=n_samples)
         else:
-            return noisex
+            return noise
 
     def __init__(self):
         self.begin()
