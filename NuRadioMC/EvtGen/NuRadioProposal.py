@@ -34,7 +34,7 @@ pp_ZeV = 1.e15
 pp_m = 1.e2
 pp_km = 1.e5
 
-class secondary_properties:
+class SecondaryProperties:
 
     def __init__(self,
                  distance,
@@ -157,7 +157,7 @@ def filter_particle(secondaries, particle):
     return sum(E)
 
 def create_propagator(low=0.1*pp_PeV, particle_code=13, ecut=100*pp_TeV,
-                      config_file='config_PROPOSAL.json'):
+                      config_file='SouthPole'):
 
     mu_def_builder = pp.particle.ParticleDefBuilder()
     if (particle_code == 13):
@@ -176,7 +176,17 @@ def create_propagator(low=0.1*pp_PeV, particle_code=13, ecut=100*pp_TeV,
     mu_def_builder.SetLow(low)
     mu_def = mu_def_builder.build()
 
-    config_file_full_path=os.path.join(os.path.dirname(__file__), config_file)
+    if (config_file == 'SouthPole'):
+        config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL.json')
+    elif (config_file == 'MooresBay'):
+        config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_mooresbay.json')
+    elif (config_file == 'InfIce'):
+        config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_infice.json')
+    elif (os.path.exists(config_file)):
+        config_file_full_path = config_file
+    else:
+        raise ValueError("Proposal config file is not valid. Please provide a valid option.")
+
 
     propagator = pp.Propagator(particle_def=mu_def, config_file=config_file_full_path)
 
@@ -254,7 +264,7 @@ def shower_properties(particle):
 
     return shower_type, code, name
 
-def GetSecondaries(Elepton, lepton_code, random_seed=None, config_file='config_PROPOSAL.json'):
+def get_secondaries(energy_lepton, lepton_code, random_seed=None, config_file='SouthPole'):
 
     low = 0.1*pp_PeV # Low energy limit for the propagating particle
     propagation_length = 100*pp_km # Maximum propagation length
@@ -269,14 +279,14 @@ def GetSecondaries(Elepton, lepton_code, random_seed=None, config_file='config_P
     prop.particle.position = pp.Vector3D(0, 0, 0)
     prop.particle.direction = pp.Vector3D(0, 0, 1)
     prop.particle.propagated_distance = 0
-    prop.particle.energy = Elepton / units.MeV # Proposal's energy unit is the MeV
+    prop.particle.energy = energy_lepton / units.MeV # Proposal's energy unit is the MeV
 
     secondaries = prop.propagate(propagation_length)
 
     return secondaries
 
-def GetSecondariesArray(Eleptons, lepton_codes, lepton_positions = None, lepton_directions = None,
-                        random_seed=None, config_file='config_PROPOSAL.json'):
+def get_secondaries_array(energy_leptons, lepton_codes, lepton_positions = None, lepton_directions = None,
+                        random_seed=None, config_file='SouthPole'):
 
     low = 0.1*pp_PeV # Low energy limit for the propagating particle
     propagation_length = 100*pp_km # Maximum propagation length
@@ -295,11 +305,11 @@ def GetSecondariesArray(Eleptons, lepton_codes, lepton_positions = None, lepton_
     secondaries_array = []
 
     if lepton_positions is None:
-        lepton_positions = [(0, 0, 0)] * len(Eleptons)
+        lepton_positions = [(0, 0, 0)] * len(energy_leptons)
     if lepton_directions is None:
-        lepton_directions = [(0, 0, -1)] * len(Eleptons)
+        lepton_directions = [(0, 0, -1)] * len(energy_leptons)
 
-    for Elepton, lepton_code, lepton_position, lepton_direction in zip(Eleptons,
+    for energy_lepton, lepton_code, lepton_position, lepton_direction in zip(energy_leptons,
         lepton_codes, lepton_positions, lepton_directions):
 
         x, y, z = lepton_position
@@ -307,7 +317,7 @@ def GetSecondariesArray(Eleptons, lepton_codes, lepton_positions = None, lepton_
         propagators[lepton_code].particle.position = pp.Vector3D(x, y, z)
         propagators[lepton_code].particle.direction = pp.Vector3D(px, py, pz)
         propagators[lepton_code].particle.propagated_distance = 0
-        propagators[lepton_code].particle.energy = Elepton / units.MeV # Proposal's energy unit is the MeV
+        propagators[lepton_code].particle.energy = energy_lepton / units.MeV # Proposal's energy unit is the MeV
 
         secondaries = propagators[lepton_code].propagate(propagation_length)
 
@@ -327,7 +337,7 @@ def GetSecondariesArray(Eleptons, lepton_codes, lepton_positions = None, lepton_
 
                 shower_type, code, name = shower_properties(sec)
 
-                shower_inducing_prods.append( secondary_properties(distance, energy, shower_type, code, name) )
+                shower_inducing_prods.append( SecondaryProperties(distance, energy, shower_type, code, name) )
 
         # group shower-inducing decay products so that they create a single shower
         min_distance = 0.1 * units.m
@@ -343,7 +353,7 @@ def GetSecondariesArray(Eleptons, lepton_codes, lepton_positions = None, lepton_
 
     return secondaries_array
 
-def GetDecays(Eleptons, lepton_codes, random_seed=None, config_file='config_PROPOSAL_infice.json'):
+def get_decays(energy_leptons, lepton_codes, random_seed=None, config_file='InfIce'):
 
     low = 0.1*pp_PeV # Low energy limit for the propagating particle
     propagation_length = 100*pp_km # Maximum propagation length
@@ -361,7 +371,7 @@ def GetDecays(Eleptons, lepton_codes, random_seed=None, config_file='config_PROP
 
     decays_array = []
 
-    for Elepton, lepton_code in zip(Eleptons, lepton_codes):
+    for energy_lepton, lepton_code in zip(energy_leptons, lepton_codes):
 
         decay_prop = (None, None)
 
@@ -370,7 +380,7 @@ def GetDecays(Eleptons, lepton_codes, random_seed=None, config_file='config_PROP
             propagators[lepton_code].particle.position = pp.Vector3D(0, 0, 0)
             propagators[lepton_code].particle.direction = pp.Vector3D(0, 0, 1)
             propagators[lepton_code].particle.propagated_distance = 0
-            propagators[lepton_code].particle.energy = Elepton / units.MeV # Proposal's energy unit is the MeV
+            propagators[lepton_code].particle.energy = energy_lepton / units.MeV # Proposal's energy unit is the MeV
 
             secondaries = propagators[lepton_code].propagate(propagation_length)
 
@@ -387,9 +397,9 @@ def GetDecays(Eleptons, lepton_codes, random_seed=None, config_file='config_PROP
 
     return np.array(decays_array)
 
-def GetDecay(Elepton, lepton_code, random_seed=None):
+def get_decay(energy_lepton, lepton_code, random_seed=None):
 
-    secondaries = GetSecondaries(Elepton, lepton_code)
+    secondaries = get_secondaries(energy_lepton, lepton_code)
 
     decay_particles = np.array([p for p in secondaries if p.id == pp.particle.Data.Particle])
     decay_energies = np.array([p.energy for p in decay_particles])
@@ -401,11 +411,11 @@ def GetDecay(Elepton, lepton_code, random_seed=None):
 
     return (decay_distance, decay_energy)
 
-def GetProdsArray(Eleptons, lepton_codes, aggregated_showers=False, random_seed=None):
+def get_prods_array(energy_leptons, lepton_codes, aggregated_showers=False, random_seed=None):
 
     min_energy_loss = 1*pp_PeV # Minimal energy for a selected secondary-induced shower
 
-    secondaries_array = GetSecondariesArray(Eleptons, lepton_codes, random_seed)
+    secondaries_array = get_secondaries_array(energy_leptons, lepton_codes, random_seed)
 
     shower_inducing_array = []
 
@@ -426,17 +436,17 @@ def GetProdsArray(Eleptons, lepton_codes, aggregated_showers=False, random_seed=
 
                     shower_type, code, name = shower_properties(sec)
 
-                    shower_inducing_prods.append( secondary_properties(distance, energy, shower_type, code, name) )
+                    shower_inducing_prods.append( SecondaryProperties(distance, energy, shower_type, code, name) )
 
         shower_inducing_array.append(shower_inducing_prods)
 
     return shower_inducing_array
 
-def GetProds(Elepton, lepton_code, aggregated_showers=False, random_seed=None):
+def get_prods(energy_lepton, lepton_code, aggregated_showers=False, random_seed=None):
 
     min_energy_loss = 1*pp_PeV # Minimal energy for a selected secondary-induced shower
 
-    secondaries = GetSecondaries(Elepton, lepton_code, random_seed)
+    secondaries = get_secondaries(energy_lepton, lepton_code, random_seed)
 
     shower_inducing_prods = []
 
@@ -453,6 +463,6 @@ def GetProds(Elepton, lepton_code, aggregated_showers=False, random_seed=None):
 
                 shower_type, code, name = shower_properties(sec)
 
-                shower_inducing_prods.append( secondary_properties(distance, energy, shower_type, code, name) )
+                shower_inducing_prods.append( SecondaryProperties(distance, energy, shower_type, code, name) )
 
     return shower_inducing_prods
