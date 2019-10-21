@@ -21,7 +21,7 @@ class readCoREASShower:
         self.__t_event_structure = 0
         self.__t_per_event = 0
 
-    def begin(self, input_files, verbose=False):
+    def begin(self, input_files, logger_level=logging.NOTSET):
         """
         begin method
 
@@ -34,7 +34,7 @@ class readCoREASShower:
         """
         self.__input_files = input_files
         self.__current_input_file = 0
-        self.__verbose = verbose
+        logger.setLevel(logger_level)
 
 
     def run(self):
@@ -53,8 +53,7 @@ class readCoREASShower:
                 self.__current_input_file += 1
                 continue
 
-            if self.__verbose:
-                print('Reading %s ...' % self.__input_files[self.__current_input_file])
+            logger.info('Reading %s ...' % self.__input_files[self.__current_input_file])
 
             corsika = h5py.File(self.__input_files[self.__current_input_file], "r")
             logger.info("using coreas simulation {} with E={:2g} theta = {:.0f}".format(
