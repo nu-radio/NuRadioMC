@@ -52,13 +52,3 @@ for iE, event in enumerate(readCoREASShower.run()):
 
 nevents = eventWriter.end()
 print("Finished processing, {} events".format(nevents))
-
-# import NuRadioReco.modules.io.eventReader
-# eventReader = NuRadioReco.modules.io.eventReader.eventReader()
-# inputput_filename = "Full_CoREAS_shower.nur"
-# eventReader.begin(inputput_filename)
-#
-# for iE, event in enumerate(eventReader.run()):
-#     for station in event.get_stations():
-#         sim_station = station.get_sim_station()
-#         print(sim_station.get_position())
