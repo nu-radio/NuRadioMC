@@ -7,13 +7,13 @@ install:
     pip install -r NuRadioReco/test/requirements.txt
 
 before_script:
-  - wget https://github.com/nu-radio/radiotools/archive/utilities_improvement.zip -O /tmp/radiotools.zip
+  - wget https://github.com/nu-radio/radiotools/archive/master.zip -O /tmp/radiotools.zip
   - unzip /tmp/radiotools.zip
   - mv radiotools-master radiotools
   - export PYTHONPATH=$PWD/radiotools
   - wget https://github.com/nu-radio/NuRadioMC/archive/utilities_improvement.zip -O /tmp/NuRadioMC.zip
   - unzip /tmp/NuRadioMC.zip
-  - mv NuRadioMC-master NuRadioMC
+  - mv NuRadioMC-utilities_improvement NuRadioMC
   - export PYTHONPATH=$PYTHONPATH:$PWD/NuRadioMC
   - export PYTHONPATH=$PYTHONPATH:$PWD
   - wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
