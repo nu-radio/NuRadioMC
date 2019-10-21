@@ -15,7 +15,7 @@ class Event:
         self._parameters = {}
         self.__run_number = run_number
         self._id = event_id
-        self.__stations = {}
+        self.__stations = collections.OrderedDict()
         self.__radio_showers = []
         self.__sim_showers = []
         self.__event_time = 0
