@@ -18,6 +18,9 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.eventbrowser.apps.common import get_point_index
 from NuRadioReco.eventbrowser.default_layout import default_layout
+import NuRadioReco.eventbrowser.apps.overview_plots.time_correlation
+import NuRadioReco.eventbrowser.apps.overview_plots.amplitude_correlation
+import NuRadioReco.eventbrowser.apps.overview_plots.rec_directions
 import numpy as np
 import logging
 import numbers
@@ -38,7 +41,7 @@ nu_xcorr_options = [
     {'label': 'maximum nu x-corr nu channels', 'value': 'nu_max_xcorr_nuchannels'},
     {'label': 'average nu x-corr nu channels', 'value': 'nu_avg_xcorr_nuchannels'}
 ]
-    
+
 layout = html.Div([
     html.Div([
         html.Div([
@@ -302,7 +305,7 @@ def channel_overview_properties(filename, evt_counter, station_id, selected_chan
     for channel_id in selected_channels:
         channel = station.get_channel(channel_id)
         props = get_properties_divs(channel, channel_properties_for_overview)
-        
+
         reply.append(
             html.Div([
             html.Div([
@@ -374,7 +377,7 @@ def efield_overview_properties(filename, evt_counter, station_id, rec_sim, juser
         ], className='custom-table-row'))
         reply.append(html.Div(props, style={'margin': '0 0 30px'}))
     return reply
-    
+
 
 @app.callback(Output('trigger-overview-properties', 'children'),
                 [Input('filename', 'value'),
@@ -416,40 +419,8 @@ def trigger_overview_properties(filename, evt_counter, station_id, juser_id):
                Input('station-id-dropdown', 'value'),
                Input('xcorrelation-event-type', 'value')],
               [State('user_id', 'children')])
-def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, station_id, event_type, juser_id):
-    if filename is None or station_id is None or xcorr_type is None:
-        return {}
-    user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    fig = subplots.make_subplots(rows=1, cols=1)
-    keys = ariio.get_header()[station_id].keys()
-    if event_type == 'nu':
-        if not stnp.nu_xcorrelations in keys:
-            return {}
-        xcorrs = ariio.get_header()[station_id][stnp.nu_xcorrelations]
-    else:
-        if not stnp.cr_xcorrelations in keys:
-            return {}
-        xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
-    if stnp.station_time in keys:
-        fig.append_trace(go.Scatter(
-            x=ariio.get_header()[station_id][stnp.station_time],
-            y=[xcorrs[i][xcorr_type] for i in range(len(xcorrs))],
-            text=[str(x) for x in ariio.get_event_ids()],
-            customdata=[x for x in range(ariio.get_n_events())],
-            mode='markers',
-            opacity=1
-        ),1,1)
-    else:
-        return {}
-    current_selection = json.loads(jcurrent_selection)
-    if current_selection != []:
-        for trace in traces:
-            trace['selectedpoints'] = current_selection
-    fig['layout'].update(default_layout)
-    fig['layout']['yaxis'].update({'title': xcorr_type, 'range': [0, 1]})
-    fig['layout']['hovermode'] = 'closest'
-    return fig
+def plot_time_corr(xcorr_type, filename, jcurrent_selection, station_id, event_type, juser_id):
+    return NuRadioReco.eventbrowser.apps.overview_plots.time_correlation.plot_corr(xcorr_type, filename, jcurrent_selection, station_id, event_type, juser_id, provider)
 
 
 @app.callback(Output('cr-xcorrelation-amplitude', 'figure'),
@@ -459,40 +430,14 @@ def plot_cr_xcorr(xcorr_type, filename, jcurrent_selection, station_id, event_ty
                Input('xcorrelation-event-type', 'value'),
                Input('station-id-dropdown', 'value')],
               [State('user_id', 'children')])
-def plot_cr_xcorr_amplitude(xcorr_type, filename, jcurrent_selection, event_type, station_id, juser_id):
-    if filename is None or station_id is None or xcorr_type is None:
-        return {}
-    user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    fig = subplots.make_subplots(rows=1, cols=1)
-    keys = ariio.get_header()[station_id].keys()
-    if event_type == 'nu':
-        if not stnp.nu_xcorrelations in keys:
-            return {}
-        xcorrs = ariio.get_header()[station_id][stnp.nu_xcorrelations]
-    else:
-        if not stnp.cr_xcorrelations in keys:
-            return {}
-        xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
-    if stnp.channels_max_amplitude in keys:
-        fig.append_trace(go.Scatter(
-            x=ariio.get_header()[station_id][stnp.channels_max_amplitude] / units.mV,
-            y=[xcorrs[i][xcorr_type] for i in range(len(xcorrs))],
-            text=[str(x) for x in ariio.get_event_ids()],
-            customdata=[x for x in range(ariio.get_n_events())],
-            mode='markers',
-            opacity=1
-        ),1,1)
-    else:
-        return {}
-    # update with current selection
-    current_selection = json.loads(jcurrent_selection)
-    if current_selection != []:
-        for trace in traces:
-            trace['selectedpoints'] = current_selection
-    fig['layout'].update(default_layout)
-    fig['layout']['xaxis'].update({'type': 'log', 'title': 'maximum amplitude [mV]'})
-    fig['layout']['yaxis'].update({'title': xcorr_type, 'range': [0, 1]})
-    fig['layout']['hovermode'] = 'closest'
-    return fig
+def plot_corr_amplitude(xcorr_type, filename, jcurrent_selection, event_type, station_id, juser_id):
+    return NuRadioReco.eventbrowser.apps.overview_plots.amplitude_correlation.plot_corr_amplitude(xcorr_type, filename, jcurrent_selection, event_type, station_id, juser_id, provider)
 
+@app.callback(Output('skyplot-xcorr', 'figure'),
+              [Input('filename', 'value'),
+               Input('trigger', 'children'),
+               Input('event-ids', 'children'),
+               Input('station-id-dropdown', 'value')],
+              [State('user_id', 'children')])
+def plot_rec_directions(filename, trigger, jcurrent_selection, station_id, juser_id):
+    return NuRadioReco.eventbrowser.apps.overview_plots.rec_directions.plot_rec_directions(filename, trigger, jcurrent_selection, station_id, juser_id, provider)
