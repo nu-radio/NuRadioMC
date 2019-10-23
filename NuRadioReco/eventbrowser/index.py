@@ -39,7 +39,7 @@ if os.path.isfile(parsed_args.file_location):
 else:
     starting_filename = None
 if parsed_args.open_window:
-    webbrowser.open('http://127.0.0.1:{}/'.format(parsed_args.port))    
+    webbrowser.open('http://127.0.0.1:{}/'.format(parsed_args.port))
 
 provider = dataprovider.DataProvider()
 
@@ -182,8 +182,8 @@ def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_
                 return i_event - 1
         if context.triggered[0]['prop_id'] == 'btn-next-event.n_clicks_timestamp':
             user_id = json.loads(juser_id)
-            
-            number_of_events = provider.get_arianna_io(user_id, filename).get_n_events()    
+
+            number_of_events = provider.get_arianna_io(user_id, filename).get_n_events()
             if number_of_events == i_event + 1:
                 return number_of_events -1
             else:
@@ -230,7 +230,7 @@ def update_slider_marks(filename, juser_id):
     if n_events%step_size != 0:
         marks[n_events] = str(n_events)
     return marks
-    
+
 
 @app.callback(Output('user_id', 'children'),
               [Input('url', 'pathname')],
@@ -279,50 +279,6 @@ def set_to_first_station_in_event(filename, event_i, juser_id):
     event = ariio.get_event_i(event_i)
     for station in event.get_stations():
         return station.get_id()
-
-@app.callback(Output('skyplot-xcorr', 'figure'),
-              [Input('filename', 'value'),
-               Input('trigger', 'children'),
-               Input('event-ids', 'children'),
-               Input('station-id-dropdown', 'value')],
-              [State('user_id', 'children')])
-def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, station_id, juser_id):
-    if filename is None or station_id is None:
-        return {}
-    user_id = json.loads(juser_id)
-    current_selection = json.loads(jcurrent_selection)
-    ariio = provider.get_arianna_io(user_id, filename)
-    traces = []
-    keys = ariio.get_header()[station_id].keys()
-    if stnp.zenith in keys and stnp.azimuth in keys:
-        traces.append(go.Scatterpolar(
-            r=np.rad2deg(ariio.get_header()[station_id][stnp.zenith]),
-            theta=np.rad2deg(ariio.get_header()[station_id][stnp.azimuth]),
-            text=[str(x) for x in ariio.get_event_ids()],
-            mode='markers',
-            name='all events',
-            opacity=1,
-            marker=dict(
-                color='blue'
-            )
-        ))
-    else:
-        return {}
-
-    # update with current selection
-    if current_selection != []:
-        for trace in traces:
-            trace['selectedpoints'] = current_selection
-
-    return {
-        'data': traces,
-        'layout': go.Layout(
-            showlegend= True,
-            hovermode='closest',
-            height=500
-        )
-    }
-
 
 # update event ids list from plot selection
 @app.callback(Output('event-ids', 'children'),
@@ -376,7 +332,7 @@ def update_event_info_run(event_i, filename, juser_id):
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(event_i)
-    return evt.get_run_number()    
+    return evt.get_run_number()
 
 @app.callback(Output('event-info-id', 'children'),
             [Input('event-counter-slider', 'value'),
