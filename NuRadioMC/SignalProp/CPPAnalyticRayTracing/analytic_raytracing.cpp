@@ -142,7 +142,7 @@ double get_y_diff(double z_raw, double C0, double n_ice, double delta_n, double 
 	double b = 2. * n_ice;
 	double z = get_z_unmirrored(z_raw, C0,n_ice, delta_n, z_0);
 	double c = pow(n_ice,2.) - pow(C0,-2.);
-	double term1 = 
+	double term1 =
 			-sqrt(c) * exp(z/z_0) * b * delta_n
 			+ 2.*sqrt(-b * delta_n * exp(z/z_0) + pow(delta_n,2.)*exp(2.*z/z_0) + c) * c
 			+ 2.*pow(c,3./2.);
@@ -155,7 +155,7 @@ double get_y_diff(double z_raw, double C0, double n_ice, double delta_n, double 
 			+ pow(delta_n,2.) * exp(2.*z/z_0)
 			+ c;
 	double term4 = pow(n_ice,2.)*pow(C0,2.)-1;
-	
+
 	double res = term1 / term2 * 1./sqrt(term3) * 1./sqrt(term4);
 	if(z != z_raw) res*=-1.;
 	return res;
@@ -196,7 +196,7 @@ double ds (double t, void *p){
 double get_path_length(double pos[2], double pos2[2], double C0, double n_ice, double delta_n, double z_0){
 	double x2_mirrored[2]={0.};
 	get_z_mirrored(pos,pos2,C0,x2_mirrored,n_ice, delta_n, z_0);
-	
+
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc(1000);
 	gsl_function F;
 	F.function = &ds;
@@ -234,19 +234,19 @@ double get_path_length(double pos[2], double pos2[2], double C0, double n_ice, d
 	}
 	else{
 		pathlength=NAN;
-	}	
+	}
 	return pathlength;
 }
 
 //this function is explicitly prepared for gsl integration in get_travel_time
 struct dt_params{ double a; double b; double c; double d;}; //a=C0, b=n_ice, c=delta_n, d = z_0
 double dt (double t, void *p){
-	struct dt_params *params = (struct dt_params *) p;	
+	struct dt_params *params = (struct dt_params *) p;
 	double C0 = (params->a);
 	double n_ice = (params->b);
 	double delta_n = (params->c);
-	double z_0 = (params->d);	
-	
+	double z_0 = (params->d);
+
 	double z = get_z_unmirrored(t,C0,n_ice, delta_n, z_0);
 	return sqrt((pow(get_y_diff(t,C0,n_ice, delta_n, z_0),2.)+1)) / speed_of_light * index_vs_depth(z, n_ice, delta_n, z_0);
 }
@@ -254,15 +254,15 @@ double dt (double t, void *p){
 double get_travel_time(double pos[2], double pos2[2], double C0, double n_ice, double delta_n, double z_0){
 	double x2_mirrored[2]={0.};
 	get_z_mirrored(pos,pos2,C0,x2_mirrored, n_ice, delta_n, z_0);
-	
+
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc(1000);
 	gsl_function F;
 	F.function = &dt;
 	struct dt_params params = {C0, n_ice, delta_n, z_0};
 	F.params=&params;
-	
+
 	double result, error;
-	
+
 	gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,10.e-7,1000,w,&result,&error);
 	gsl_integration_workspace_free(w);
 	return result;
@@ -278,8 +278,8 @@ double dt_freq (double t, void *p){
 	double freq = (params->c);
 	double n_ice = (params->d);
 	double delta_n = (params->e);
-	double z_0 = (params->f);		
-	
+	double z_0 = (params->f);
+
 	double z = get_z_unmirrored(t,C0,n_ice, delta_n, z_0);
 	return sqrt((pow(get_y_diff(t,C0,n_ice, delta_n, z_0),2.)+1)) / get_attenuation_length(z,freq, params->model);
 }
@@ -288,7 +288,7 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 		double frequency, double n_ice, double delta_n, double z_0, int model){
 	double x2_mirrored[2]={0.};
 	get_z_mirrored(pos,pos2,C0,x2_mirrored, n_ice, delta_n, z_0);
-	
+
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc(2000);
 	gsl_function F;
 	F.function = &dt_freq;
@@ -374,9 +374,9 @@ double get_delta_y(double C0, double x1[2], double x2[2], double n_ice, double d
 					int reflection, int reflection_case, double ice_reflection){
 	//calculates the difference in the y position between the analytic ray tracing path
 	//specified by C0 at the position x2
-	
+
 	double lower_bound = 1./n_ice;
-	double upper_bound = inf; 
+	double upper_bound = inf;
 	if(C0<lower_bound || C0>upper_bound) {return inf;}
 	double c = pow(n_ice,2.) - pow(C0,-2.);
 
@@ -408,12 +408,12 @@ double get_delta_y(double C0, double x1[2], double x2[2], double n_ice, double d
 
 	//determine y translation
 	double C1 = x1[0] - get_y_with_z_mirror( n_ice, delta_n, z_0, x1[1],C0);
-	
+
 	//for a given C0, 3 cases are possible to reach the position of x2
 	//1: Direct ray--before the turning point
 	//2: Refracted ray--after the turning point but not touching surface
 	//3: Reflected ray--after the ray reaches the surface
-	
+
 	double gamma_turn, z_turn;
 	get_turning_point(c, gamma_turn, z_turn, n_ice, delta_n, z_0);
 	if(z_turn > 0.){
@@ -449,13 +449,13 @@ int determine_solution_type(double x1[2], double x2[2], double C0, double n_ice,
 	//return 1 for direct solution
 	//return 2 for refracted
 	//return 3 for reflected
-	
+
 	double c = pow(n_ice,2.) - pow(C0,-2.);
 	double C1 = x1[0] - get_y_with_z_mirror(n_ice, delta_n, z_0, x1[1],C0);
-	
+
 	double gamma_turn, z_turn;
 	get_turning_point(c, gamma_turn, z_turn, n_ice, delta_n, z_0);
-	
+
 	if(z_turn >= 0.){
 		z_turn=0.;
 		gamma_turn = get_gamma(0, n_ice, delta_n, z_0);
@@ -575,28 +575,28 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	//we assume that x2 is above and to the right of x2_mirrored
 	//this is perfectly general, as a coordinate transform can put any system in this configuration
 	// printf("finding solution from %f %f to %f %f with %f %f %f", x1[0], x1[1], x2[0], x2[1], n_ice, delta_n, z_0);
-	
+
 	//returns a vector of vectors of the C0 solutions
 	//entry 0 will be logC0
 	//entry 1 will be CO
 	//entry 2 will be C1
 	//entry 3 will be type
 	vector < vector <double> > results;
-	
+
 	struct obj_delta_y_square_params params = {x1[0],x1[1],x2[0],x2[1], n_ice, delta_n, z_0, ice_reflection,
 											   reflection, reflection_case};
-	
-	
+
+
 	/////////
 	////Find root 1: a first solution; check around logC0=-1
 	/////////
-	
+
 	int status;
 	int iter=0, max_iter=200;
 	double x_guess = -1;
 	bool found_root_1=false;
 	double root_1=-10000000; //some insane value we'd never believe
-		
+
 	const gsl_root_fdfsolver_type *Tfdf;
 	gsl_root_fdfsolver *sfdf;
 	gsl_function_fdf FDF;
@@ -616,7 +616,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 			status = gsl_root_fdfsolver_iterate(sfdf);
 			//we need to manually protect against the function blowing up, which *is an error*, but will casue GSL to fail
 			//so, if we get a GSL_EBADFUNC, we want to manually say skip this, but re-enable the continue flag
-			if(status==GSL_EBADFUNC) {status=GSL_CONTINUE; num_badfunc_tries++; continue;} 
+			if(status==GSL_EBADFUNC) {status=GSL_CONTINUE; num_badfunc_tries++; continue;}
 			root_1 = x_guess;
 			x_guess = gsl_root_fdfsolver_root(sfdf);
 			status = gsl_root_test_residual(GSL_FN_FDF_EVAL_F(&FDF,root_1),1e-6);
@@ -628,7 +628,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 		} while (status == GSL_CONTINUE && iter < max_iter && num_badfunc_tries<max_badfunc_tries);
 		gsl_set_error_handler (myhandler); //restore original error handler
 	gsl_root_fdfsolver_free (sfdf);
-	
+
 	if(!found_root_1) {
 		// printf("NOT converged on root 1! Iteration %d\n",iter);
 	}
@@ -642,25 +642,25 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 		sol1.push_back(ceil(double(determine_solution_type(x1,x2,C0, n_ice, delta_n, z_0))));
 		sol1.push_back(reflection);
 		sol1.push_back(reflection_case);
-		
+
 		// printf("Solution 1 [logC0, C0, C1, type]: [%.4f, %.4f, %.4f, %f]]\n",sol1[0],sol1[1],sol1[2],sol1[3]);
-		
+
 		results.push_back(sol1);
-	
-	
+
+
 		//reset this counter
 		num_badfunc_tries = 0;
-		
+
 		/////////
 		////Find root 2: a second solution
 		/////////
-		
+
 		//now to check if another solution with higher logC0 exists
 		//if the above algorithm failed, then we have to be more brute-forcy in the next go around
 		double logC0_start;
 		if(!found_root_1)  logC0_start=0.;
 		else logC0_start = root_1+0.0001;
-		
+
 		gsl_function F;
 		F.function = &obj_delta_y;
 		F.params = &params;
@@ -721,14 +721,14 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 
 		//reset this counter
 		num_badfunc_tries = 0;
-		
+
 		/////////
 		////Find root 3: a third solution
 		/////////
-		
+
 		//now to check if another solution with lower logC0 exists
 		//if the above algorithm failed, then we have to be more brute-forcy in the next go around
-		
+
 		if(!found_root_1)  logC0_stop=0.0001;
 		else logC0_stop = root_1-0.0001;
 
@@ -791,7 +791,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	else{
 		// printf("No solution exist anywhere!\n");
 	}
-	
+
 	return results;
 }
 
@@ -817,21 +817,21 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
  }
 
 void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[2], double C0, vector<double> &res, vector<double> &zs, int n_points=100){
-	
+
 	//will return the ray tracing path between x1 and x2
 	//this is only true if C0 is a solution to the ray tracing problem
-	
+
 	//parameters
 	//x1: start position (y,z)
 	//x2: stop position (y,z)
 	//C0: first parameter
 	//n_points: number of points to calcuate
-	
+
 	//returns two vectors by reference
 	//res are y coordinates
 	//zs are z coordinates
-	
-	
+
+
 	double c = pow(n_ice,2.) - pow(C0,-.2);
 	double C1 = x1[0] - get_y_with_z_mirror(n_ice, delta_n, z_0, x1[1],C0);
 	double gamma_turn, z_turn;
@@ -851,10 +851,10 @@ void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[
 	for(int i=0; i<n_points; i++){
 		z.push_back(zstart+i*step_size);
 	}
-	
+
 	//c++ has no clever "masking" tools like python
 	//so we have to do this the old fashioned way
-		
+
 	//some temporary stuff
 	for(int i=0; i<n_points; i++){
 		double gamma_temp;
@@ -870,7 +870,7 @@ void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[
 		}
 	}
 }
-	
+
 //int main(int argc, char **argv){
 //
 //	double x1[2] = {478., -149.};
