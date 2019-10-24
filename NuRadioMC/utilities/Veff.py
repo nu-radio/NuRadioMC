@@ -45,7 +45,7 @@ def get_triggered(fin):
     # We count the multiple triggering bangs as a single triggered event
     for event_id in np.unique(np.array(fin['event_ids'])[mask_secondaries]):
         mask_interactions = np.array(fin['event_ids']) == event_id
-        multiple_interaction_indexes = np.argwhere(np.array(fin['event_ids']) == event_id)[0]
+        multiple_interaction_indexes = np.squeeze(np.argwhere(np.array(fin['event_ids']) == event_id))
         if (len(multiple_interaction_indexes) == 1):
             continue
 
@@ -730,4 +730,3 @@ def export(filename, data, trigger_names=None, export_format='yaml'):
             yaml.dump(output, fout)
         elif(export_format == 'json'):
             json.dump(output, fout, sort_keys=True, indent=4)
-

@@ -618,8 +618,8 @@ class simulation():
 
     def _get_noise_normalization(self, station_id, channel_id=0):
         """
-        returns the normalization of the Vrms of the noise generator module. 
-        The normalization is 
+        returns the normalization of the Vrms of the noise generator module.
+        The normalization is
         Vrms = self._Vrms / (norm / (max_freq - min_freq))**0.5
         """
         if(station_id in self.__noise_adder_normalization and channel_id in self.__noise_adder_normalization[station_id]):
