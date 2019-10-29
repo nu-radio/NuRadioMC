@@ -9,7 +9,7 @@ units if the spectrum are volts/GHz instead of volts/bin and the voltage in the 
 sampling rate.
 Then, a calculation of the power leads the same result in
 the time and frequency domain, i.e.
-np.sum(trace**2) * dt = np.sum(spectrum**2/dt) * df
+np.sum(trace**2) * dt = np.sum(spectrum**2/dt**2) * df
 """
 
 
