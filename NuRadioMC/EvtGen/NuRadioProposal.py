@@ -16,7 +16,7 @@ about are the following:
 - Brems: a bremsstrahlung photon
 - DeltaE: an ionized electron
 - EPair: an electron/positron pair
-- Hadrons: a set of unespecified hadrons
+- Hadrons: a set of unspecified hadrons
 - NuclInt: the products of a nuclear interaction
 The last secondaries obtained via the propagation belong to the Particle DynamicData
 type, and represent the products of the decay. They are standard particles with
@@ -264,10 +264,46 @@ def shower_properties(particle):
 
     return shower_type, code, name
 
+def propagate_particle(energy_lepton, lepton_code, lepton_position, lepton_direction,
+                       propagation_length, propagators):
+
+    x, y, z = lepton_position
+    px, py, pz = lepton_direction
+    propagators[lepton_code].particle.position = pp.Vector3D(x, y, z)
+    propagators[lepton_code].particle.direction = pp.Vector3D(px, py, pz)
+    propagators[lepton_code].particle.propagated_distance = 0
+    propagators[lepton_code].particle.energy = energy_lepton / units.MeV # Proposal's energy unit is the MeV
+
+    secondaries = propagators[lepton_code].propagate(propagation_length)
+
+    return secondaries
+
+def filter_secondaries(secondaries, min_energy_loss, lepton_position):
+
+    shower_inducing_prods = []
+
+    for sec in secondaries:
+
+        # Decays contain only one shower-inducing particle
+        # Muons and neutrinos resulting from decays are ignored
+        if produces_shower(sec, min_energy_loss):
+
+            distance  = ( (sec.position.x - lepton_position[0]) * units.cm )**2
+            distance += ( (sec.position.y - lepton_position[1]) * units.cm )**2
+            distance += ( (sec.position.z - lepton_position[2]) * units.cm )**2
+            distance  = np.sqrt(distance)
+            energy = sec.energy * units.MeV
+
+            shower_type, code, name = shower_properties(sec)
+
+            shower_inducing_prods.append( SecondaryProperties(distance, energy, shower_type, code, name) )
+
+    return shower_inducing_prods
+
 def get_secondaries(energy_lepton, lepton_code, random_seed=None, config_file='SouthPole'):
 
     low = 0.1*pp_PeV # Low energy limit for the propagating particle
-    propagation_length = 100*pp_km # Maximum propagation length
+    propagation_length = 1000*pp_km # Maximum propagation length
     compact_dist = 10*pp_m # Maximum distance for the compact losses
 
     if random_seed == None:
@@ -289,7 +325,7 @@ def get_secondaries_array(energy_leptons, lepton_codes, lepton_positions = None,
                         random_seed=None, config_file='SouthPole'):
 
     low = 0.1*pp_PeV # Low energy limit for the propagating particle
-    propagation_length = 100*pp_km # Maximum propagation length
+    propagation_length = 1000*pp_km # Maximum propagation length
     compact_dist = 10*pp_m # Maximum distance for the compact losses
     min_energy_loss = 1*pp_PeV # Minimal energy for a selected secondary-induced shower
 
@@ -312,32 +348,39 @@ def get_secondaries_array(energy_leptons, lepton_codes, lepton_positions = None,
     for energy_lepton, lepton_code, lepton_position, lepton_direction in zip(energy_leptons,
         lepton_codes, lepton_positions, lepton_directions):
 
-        x, y, z = lepton_position
-        px, py, pz = lepton_direction
-        propagators[lepton_code].particle.position = pp.Vector3D(x, y, z)
-        propagators[lepton_code].particle.direction = pp.Vector3D(px, py, pz)
-        propagators[lepton_code].particle.propagated_distance = 0
-        propagators[lepton_code].particle.energy = energy_lepton / units.MeV # Proposal's energy unit is the MeV
+        secondaries = propagate_particle(energy_lepton, lepton_code, lepton_position, lepton_direction,
+                                         propagation_length, propagators)
 
-        secondaries = propagators[lepton_code].propagate(propagation_length)
+        shower_inducing_prods = filter_secondaries(secondaries, min_energy_loss, lepton_position)
 
-        shower_inducing_prods = []
-
+        # Checking if there is a muon and propagating to know if it creates
+        # particle showers.
         for sec in secondaries:
 
-            # Decays contain only one shower-inducing particle
-            # Muons and neutrinos resulting from decays are ignored
-            if produces_shower(sec, min_energy_loss):
+            if (sec.id != pp.particle.Data.Particle):
+                continue
 
-                distance  = ( (sec.position.x - x) * units.cm )**2
-                distance += ( (sec.position.y - y) * units.cm )**2
-                distance += ( (sec.position.z - z) * units.cm )**2
-                distance  = np.sqrt(distance)
-                energy = sec.energy * units.MeV
+            if (sec.particle_def == pp.particle.MuMinusDef.get()) or (sec.particle_def == pp.particle.MuPlusDef.get()):
 
-                shower_type, code, name = shower_properties(sec)
+                if sec.particle_def == pp.particle.MuMinusDef.get():
+                    mu_code = 13
+                elif sec.particle_def == pp.particle.MuPlusDef.get():
+                    mu_code = -13
 
-                shower_inducing_prods.append( SecondaryProperties(distance, energy, shower_type, code, name) )
+                if mu_code not in propagators:
+                    propagators[mu_code] = create_propagator(low=low, particle_code=mu_code,
+                                                             config_file=config_file)
+
+                mu_energy = sec.energy
+                mu_position = (sec.position.x, sec.position.y, sec.position.z)
+                mu_direction = lepton_direction
+
+                mu_secondaries = propagate_particle(mu_energy, mu_code, mu_position, mu_direction,
+                                                    propagation_length, propagators)
+
+                mu_shower_inducing_prods = filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
+
+                shower_inducing_prods += mu_shower_inducing_prods
 
         # group shower-inducing decay products so that they create a single shower
         min_distance = 0.1 * units.m
@@ -356,7 +399,7 @@ def get_secondaries_array(energy_leptons, lepton_codes, lepton_positions = None,
 def get_decays(energy_leptons, lepton_codes, random_seed=None, config_file='InfIce'):
 
     low = 0.1*pp_PeV # Low energy limit for the propagating particle
-    propagation_length = 100*pp_km # Maximum propagation length
+    propagation_length = 1000*pp_km # Maximum propagation length
     compact_dist = 10*pp_m # Maximum distance for the compact losses
     min_energy_loss = 1*pp_PeV # Minimal energy for a selected secondary-induced shower
 
