@@ -521,7 +521,7 @@ class simulation():
                             from matplotlib import pyplot as plt
                             fig, (ax, ax2) = plt.subplots(1, 2)
                             ax.plot(self._ff, np.abs(eTheta) / units.micro / units.V * units.m)
-                            ax2.plot(self._tt, fft.freq2time(eTheta, self._dt) / units.micro / units.V * units.m)
+                            ax2.plot(self._tt, fft.freq2time(eTheta, 1./self._dt) / units.micro / units.V * units.m)
                             ax2.set_ylabel("amplitude [$\mu$V/m]")
                             fig.tight_layout()
                             fig.suptitle("$E_C$ = {:.1g}eV $\Delta \Omega$ = {:.1f}deg, R = {:.0f}m".format(

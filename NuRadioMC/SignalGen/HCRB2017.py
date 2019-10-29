@@ -92,7 +92,7 @@ def get_frequency_spectrum(energy, theta, N, dt, is_em_shower, n, R, LPM=True, a
         if variable set, the shower width is manually set to this value
     """
     eR, eTheta, ePhi = get_time_trace(energy, theta, N, dt, is_em_shower, n, R, LPM, a=a)
-    return np.array([fft.time2freq(eR, dt), fft.time2freq(eTheta, dt), fft.time2freq(ePhi, dt)])
+    return np.array([fft.time2freq(eR, 1./dt), fft.time2freq(eTheta, 1./dt), fft.time2freq(ePhi, 1./dt)])
 
 
 def _get_k(ff, n_index):
