@@ -661,7 +661,6 @@ class ProposalFunctions:
 
             while( decay_prop == (None,None) ):
 
-
                 secondaries = self.__propagate_particle(energy_lepton, lepton_code, lepton_position, lepton_direction,
                                                         propagation_length, propagators)
 
@@ -670,11 +669,11 @@ class ProposalFunctions:
                 decay_energy = np.sum(decay_energies) * units.MeV
 
                 try:
-                    decay_distance  = ( (sec.position.x - lepton_position[0]) * units.cm )**2
-                    decay_distance += ( (sec.position.y - lepton_position[1]) * units.cm )**2
-                    decay_distance += ( (sec.position.z - lepton_position[2]) * units.cm )**2
-                    decay_distance  = np.sqrt(distance)
-                    
+                    decay_distance  = ( (decay_particles[0].position.x - lepton_position[0]) * units.cm )**2
+                    decay_distance += ( (decay_particles[0].position.y - lepton_position[1]) * units.cm )**2
+                    decay_distance += ( (decay_particles[0].position.z - lepton_position[2]) * units.cm )**2
+                    decay_distance  = np.sqrt(decay_distance)
+
                     decay_prop = (decay_distance, decay_energy)
                     decays_array.append(decay_prop)
                 except:
