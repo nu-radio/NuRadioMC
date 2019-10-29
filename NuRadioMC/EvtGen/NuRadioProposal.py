@@ -567,7 +567,9 @@ class ProposalFunctions:
 
                     mu_energy = sec.energy
                     mu_position = (sec.position.x, sec.position.y, sec.position.z)
-                    mu_direction = lepton_direction
+                    mu_direction = lepton_direction # We reuse the primary lepton direction because
+                                                    # of the bug in Proposal. See issue
+                                                    # https://github.com/tudo-astroparticlephysics/PROPOSAL/issues/24
 
                     mu_secondaries = self.__propagate_particle(mu_energy, mu_code, mu_position, mu_direction,
                                                           propagation_length, propagators)
@@ -669,6 +671,8 @@ class ProposalFunctions:
                 decay_energy = np.sum(decay_energies) * units.MeV
 
                 try:
+                    # If Proposal fails and there is no decay (sometimes it happens),
+                    # the particle is propagated again
                     decay_distance  = ( (decay_particles[0].position.x - lepton_position[0]) * units.cm )**2
                     decay_distance += ( (decay_particles[0].position.y - lepton_position[1]) * units.cm )**2
                     decay_distance += ( (decay_particles[0].position.z - lepton_position[2]) * units.cm )**2
