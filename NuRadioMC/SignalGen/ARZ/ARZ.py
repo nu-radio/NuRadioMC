@@ -370,7 +370,7 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     n_RAC = (N * dt_divider + 1 - n_Q + n_Q_negative + n_extra_beginning + n_extra_end)
 #     t_RAC_vals = (np.arange(n_RAC) * dz * z_to_t + t_start - n_extra_beginning * dz * z_to_t)
     z_RAC_vals = np.arange(n_RAC) * dz
-    t_RAC_vals = z_RAC_vals / c - n_index / c * np.sqrt(X[1] ** 2 + (X[2] - z_RAC_vals) ** 2)
+    t_RAC_vals = z_RAC_vals / c - n_index / c * np.sqrt(X[0] ** 2 + (X[2] - z_RAC_vals) ** 2)
     RA_C = get_RAC(t_RAC_vals, shower_energy, shower_type)
 
     u_x = X[0] / distance
@@ -381,7 +381,7 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     vperp_y = u_y * u_z * beta_z
     vperp_z = -(u_x * u_x + u_y * u_y) * beta_z
     v = np.array([vperp_x, vperp_y, vperp_z])
-    Qv = Q * v / np.sqrt(X[1] ** 2 + (X[2] - z_Q_vals) ** 2)
+    Qv = Q * v / np.sqrt(X[0] ** 2 + (X[2] - z_Q_vals) ** 2)
     # Convolve Q and RAC to get unnormalized vector potential
     if dt_divider != 1:
         logger.debug(f"convolving {n_Q:d} Q points with {n_RAC:d} RA_C points")
