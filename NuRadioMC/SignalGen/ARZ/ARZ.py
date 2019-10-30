@@ -340,6 +340,13 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     if dt_divider != 1:
         logger.debug(f"z-step of {dt / z_to_t:g} too large; dt_divider changed to {dt_divider:d}")
 
+    # calculate polarization of the vector potential
+    X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta)])
+    if(shift_for_xmax):
+        logger.info("shower maximum at z = {:.1f}m, shifting observer position accordingly.".format(dxmax / units.m))
+        X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta) + dxmax])
+    logger.info("setting observer position to {}".format(X))
+
     z_max = np.max(length)  # the length of the charge-excess profile
     n_Q = int(np.abs(z_max / dz)) * 2
     n_Q_negative = int(n_Q / 2)
@@ -361,15 +368,11 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     n_extra_beginning = int((t_start + t_tolerance) / dz / z_to_t) + 1
     n_extra_end = (int((t_tolerance - t_start) / dz / z_to_t) + 1 + n_Q - N * dt_divider)
     n_RAC = (N * dt_divider + 1 - n_Q + n_Q_negative + n_extra_beginning + n_extra_end)
-    t_RAC_vals = (np.arange(n_RAC) * dz * z_to_t + t_start - n_extra_beginning * dz * z_to_t)
+#     t_RAC_vals = (np.arange(n_RAC) * dz * z_to_t + t_start - n_extra_beginning * dz * z_to_t)
+    z_RAC_vals = np.arange(n_RAC) * dz
+    t_RAC_vals = z_RAC_vals / c - n_index / c * np.sqrt(X[1] ** 2 + (X[2] - z_RAC_vals) ** 2)
     RA_C = get_RAC(t_RAC_vals, shower_energy, shower_type)
 
-    # calculate polarization of the vector potential
-    X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta)])
-    if(shift_for_xmax):
-        logger.info("shower maximum at z = {:.1f}m, shifting observer position accordingly.".format(dxmax / units.m))
-        X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta) + dxmax])
-    logger.info("setting observer position to {}".format(X))
     u_x = X[0] / distance
     u_y = X[1] / distance
     u_z = (X[2] - z_Q_vals) / distance
@@ -378,8 +381,7 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     vperp_y = u_y * u_z * beta_z
     vperp_z = -(u_x * u_x + u_y * u_y) * beta_z
     v = np.array([vperp_x, vperp_y, vperp_z])
-    print(vperp_x.shape)
-    Qv = Q * v
+    Qv = Q * v / np.sqrt(X[1] ** 2 + (X[2] - z_Q_vals) ** 2)
     # Convolve Q and RAC to get unnormalized vector potential
     if dt_divider != 1:
         logger.debug(f"convolving {n_Q:d} Q points with {n_RAC:d} RA_C points")
@@ -390,22 +392,22 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
 
     # Adjust convolution by zero-padding or removing values according to
     # the values added/removed at the beginning and end of RA_C
-    n_extra_beginning += n_Q_negative
-    if n_extra_beginning < 0:
-        logger.debug(f"concacinating extra bins at end {n_extra_beginning}")
-        convolution = np.concatenate((np.zeros((3, -n_extra_beginning)), convolution), axis=1)
-    else:
-        logger.debug(f"removing extra bins at beginning {n_extra_beginning}")
-        convolution = convolution[:, n_extra_beginning:]
-    if n_extra_end <= 0:
-        logger.debug("concacinating extra bins at end")
-        convolution = np.concatenate((convolution, np.zeros((3, -n_extra_end))), axis=1)
-    else:
-        logger.debug(f"removing extra bins at end {n_extra_end}")
-        convolution = convolution[:, :-n_extra_end]
+#     n_extra_beginning += n_Q_negative
+#     if n_extra_beginning < 0:
+#         logger.debug(f"concacinating extra bins at end {n_extra_beginning}")
+#         convolution = np.concatenate((np.zeros((3, -n_extra_beginning)), convolution), axis=1)
+#     else:
+#         logger.debug(f"removing extra bins at beginning {n_extra_beginning}")
+#         convolution = convolution[:, n_extra_beginning:]
+#     if n_extra_end <= 0:
+#         logger.debug("concacinating extra bins at end")
+#         convolution = np.concatenate((convolution, np.zeros((3, -n_extra_end))), axis=1)
+#     else:
+#         logger.debug(f"removing extra bins at end {n_extra_end}")
+#         convolution = convolution[:, :-n_extra_end]
 
     # resample the trace to the originally requested length (all frequencies above Nquist will be dropped)
-    convolution = scipy.signal.resample(convolution, N, axis=1)
+#     convolution = scipy.signal.resample(convolution, N, axis=1)
 
     # Calculate LQ_tot (the excess longitudinal charge along the showers)
     LQ_tot = np.trapz(Q, dx=dz)
@@ -421,7 +423,7 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     # the conversion to electric field however, so it can be left out.
     A = (convolution * -1 / sin_theta_c / LQ_tot / z_to_t / dt_divider) * dt  # term np.sin(theta) is remove because it is absorbed in polarization vector
 
-    return A / distance
+    return A
 
 
 def get_vector_potential_convolution_farfield(shower_energy, theta, N, dt, profile_depth, profile_ce,
