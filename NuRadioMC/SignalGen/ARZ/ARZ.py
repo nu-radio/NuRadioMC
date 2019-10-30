@@ -378,6 +378,7 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     vperp_y = u_y * u_z * beta_z
     vperp_z = -(u_x * u_x + u_y * u_y) * beta_z
     v = np.array([vperp_x, vperp_y, vperp_z])
+    print(vperp_x.shape)
     Qv = Q * v
     # Convolve Q and RAC to get unnormalized vector potential
     if dt_divider != 1:
@@ -421,6 +422,149 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     A = (convolution * -1 / sin_theta_c / LQ_tot / z_to_t / dt_divider) * dt  # term np.sin(theta) is remove because it is absorbed in polarization vector
 
     return A / distance
+
+
+def get_vector_potential_convolution_farfield(shower_energy, theta, N, dt, profile_depth, profile_ce,
+                                              shower_type="HAD", n_index=1.78, distance=1 * units.m,
+                                              shift_for_xmax=False):
+    """
+    fast interpolation of time-domain calculation of vector potential of the 
+    Askaryan pulse from a charge-excess profile using a numerical convolution instead of integration, following the 
+    presciption of Ben Hokanson-Fasig. This code is mostly a copy-and-past of the corresponding implementation in pyrex.
+    
+    Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples. 
+    
+    The numerical integration was replaces by a sum using the trapeoiz rule using vectorized numpy operations
+    
+    Parameters
+    ----------
+    shower_energy: float
+        the energy of the shower
+    theta: float
+        viewing angle, i.e., the angle between shower axis and launch angle of the signal (the ray path)
+    N: int
+        number of samples in the time domain
+    dt: float
+        size of one time bin in units of time
+    profile_depth: array of floats
+        shower depth values of the charge excess profile
+    profile_ce: array of floats
+        charge-excess values of the charge excess profile
+    shower_type: string (default "HAD")
+        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+    n_index: float (default 1.78)
+        index of refraction where the shower development takes place
+    distance: float (default 1km)
+        observation distance, the signal amplitude will be scaled according to 1/R
+    shift_for_xmax: bool (default True)
+        if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
+        with respect to (0,0,0) which is the start of the charge-excess profile
+    """
+    ttt = np.arange(0, (N + 1) * dt, dt)
+    ttt = ttt + 0.5 * dt - ttt.mean()
+    if(len(ttt) != N + 1):
+        ttt = ttt[:-1]
+    N = len(ttt)
+
+    # Conversion factor from z to t for RAC:
+    # (1-n*cos(theta)) / c
+    z_to_t = (1 - n_index * np.cos(theta)) / c
+    logger.debug(f"z_to_t = {z_to_t:.2g}")
+
+    length = profile_depth / rho  # convert shower depth to length
+    dxmax = length[np.argmax(profile_ce)]
+    # Calculate the corresponding z-step (dz = dt / z_to_t)
+    # If the z-step is too large compared to the expected shower maximum
+    # length, then the result will be bad. Set dt_divider so that
+    # dz / max_length <= 0.01 (with dz=dt/z_to_t)
+    # Additionally if the z-step is too large compared to the RAC width,
+    # the result will be bad. So set dt_divider so that
+    # dz <= 10 ps / z_to_t
+    dt_divider_Q = int(np.abs(1000 * dt / length[-1] / z_to_t)) + 1
+    dt_divider_RAC = int(np.abs(dt / (10 * units.ps))) + 1
+    dt_divider = max(dt_divider_Q, dt_divider_RAC)
+    dz = dt / dt_divider / z_to_t
+    if dt_divider != 1:
+        logger.debug(f"z-step of {dt / z_to_t:g} too large; dt_divider changed to {dt_divider:d}")
+
+    z_max = np.max(length)  # the length of the charge-excess profile
+    n_Q = int(np.abs(z_max / dz)) * 2
+    n_Q_negative = int(n_Q / 2)
+    z_Q_vals = (np.arange(n_Q) - n_Q_negative) * np.abs(dz)  # the upsampled (shower) length array
+    Q = np.interp(np.sign(z_to_t) * z_Q_vals, length, profile_ce)  # the interpolated charge-excess profile
+
+    # Calculate RAC at a specific number of t values (n_RAC) determined so
+    # that the full convolution will have the same size as the times array,
+    # when appropriately rescaled by dt_divider.
+    # If t_RAC_vals does not include a reasonable range around zero
+    # (typically because n_RAC is too small), errors occur. In that case
+    # extra points are added at the beginning and/or end of RAC.
+    # If n_RAC is too large, the convolution can take a very long time.
+    # In that case, points are removed from the beginning and/or end of RAC.
+    # The predetermined reasonable range based on the RAC function is
+    # +/- 10 ns around the peak
+    t_tolerance = 10 * units.ns
+    t_start = ttt[0]
+    n_extra_beginning = int((t_start + t_tolerance) / dz / z_to_t) + 1
+    n_extra_end = (int((t_tolerance - t_start) / dz / z_to_t) + 1 + n_Q - N * dt_divider)
+    n_RAC = (N * dt_divider + 1 - n_Q + n_Q_negative + n_extra_beginning + n_extra_end)
+    t_RAC_vals = (np.arange(n_RAC) * dz * z_to_t + t_start - n_extra_beginning * dz * z_to_t)
+    RA_C = get_RAC(t_RAC_vals, shower_energy, shower_type)
+
+    # calculate polarization of the vector potential
+    X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta)])
+    if(shift_for_xmax):
+        logger.info("shower maximum at z = {:.1f}m, shifting observer position accordingly.".format(dxmax / units.m))
+        X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta) + dxmax])
+    logger.info("setting observer position to {}".format(X))
+#     u_x = X[0] / distance
+#     u_y = X[1] / distance
+#     u_z = (X[2] - z_Q_vals) / distance
+#     beta_z = np.ones_like(u_z)
+#     vperp_x = u_x * u_z * beta_z
+#     vperp_y = u_y * u_z * beta_z
+#     vperp_z = -(u_x * u_x + u_y * u_y) * beta_z
+#     v = np.array([vperp_x, vperp_y, vperp_z])
+    # Convolve Q and RAC to get unnormalized vector potential
+    if dt_divider != 1:
+        logger.debug(f"convolving {n_Q:d} Q points with {n_RAC:d} RA_C points")
+
+    convolution = scipy.signal.convolve(Q, RA_C, mode='full')
+
+    # Adjust convolution by zero-padding or removing values according to
+    # the values added/removed at the beginning and end of RA_C
+    n_extra_beginning += n_Q_negative
+    if n_extra_beginning < 0:
+        logger.debug(f"concacinating extra bins at end {n_extra_beginning}")
+        convolution = np.concatenate((np.zeros(-n_extra_beginning), convolution), axis=1)
+    else:
+        logger.debug(f"removing extra bins at beginning {n_extra_beginning}")
+        convolution = convolution[n_extra_beginning:]
+    if n_extra_end <= 0:
+        logger.debug("concacinating extra bins at end")
+        convolution = np.concatenate((convolution, np.zeros(-n_extra_end)))
+    else:
+        logger.debug(f"removing extra bins at end {n_extra_end}")
+        convolution = convolution[:-n_extra_end]
+
+    # resample the trace to the originally requested length (all frequencies above Nquist will be dropped)
+    convolution = scipy.signal.resample(convolution, N)
+
+    # Calculate LQ_tot (the excess longitudinal charge along the showers)
+    LQ_tot = np.trapz(Q, dx=dz)
+
+    # Calculate sin(theta_c) = sqrt(1-cos^2(theta_c)) = sqrt(1-1/n^2)
+    sin_theta_c = np.sqrt(1 - 1 / n_index ** 2)
+
+    # Scale the convolution by the necessary factors to get the true
+    # vector potential A.
+    # Since the numerical convolution performs a sum rather than an
+    # integral it needs to be scaled by dz = dt/dt_divider/z_to_t for the
+    # proper normalization. The dt factor will be canceled by the 1/dt in
+    # the conversion to electric field however, so it can be left out.
+    A = (convolution * -1 * np.sin(theta) / sin_theta_c / LQ_tot / z_to_t / dt_divider) * dt  # term np.sin(theta) is remove because it is absorbed in polarization vector
+
+    return np.outer(np.array([0, 1, 0]), A / distance)
 
 
 def get_RAC(tt, shower_energy, shower_type):
