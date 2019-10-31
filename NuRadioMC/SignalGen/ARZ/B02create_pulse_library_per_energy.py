@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioReco.utilities import io_utilities
 import os
 from scipy import interpolate as intp
@@ -88,14 +88,14 @@ def calculate(shower_type, E, nE):
 if __name__ == "__main__":
     print('generating Askaryan pulses for the following viewing angles')
     print(dCs/units.deg)
-    
+
     ps = []
     showers = {}
     lib_path = "/Users/cglaser/work/ARIANNA/data/ARZ/v1.1/library_v1.1.pkl"
-    
+
     pool = Pool(processes=4)
-    
-    
+
+
     lib = io_utilities.read_pickle(lib_path)
     for iS, shower_type in enumerate(lib):  # loop through shower types
         if(shower_type not in showers):
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         nb = []
         for iE, E in enumerate(lib[shower_type]):  # loop through energies
             print('E = {:.2g}eV'.format(E))
-            
+
 #                 p = Process(target=calculate, args=(shower_type, E, len(lib[shower_type][E]['charge_excess'])))
 #                 p.start()
 #                 ps.append(p)
@@ -113,6 +113,3 @@ if __name__ == "__main__":
             ps.append(r)
     for res in ps:
         print(res.get())
-                
-                
-                                

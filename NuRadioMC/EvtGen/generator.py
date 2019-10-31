@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import NuRadioMC
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioMC.utilities import inelasticities
 from NuRadioMC.utilities import version
 from six import iterkeys, iteritems

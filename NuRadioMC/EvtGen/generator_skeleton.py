@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from six import iterkeys, iteritems
 from scipy import constants
 from scipy.integrate import quad
@@ -26,7 +26,7 @@ def generate_my_events(filename, n_events):
     n_events: int
         number of events to generate
     """
-    
+
     # first set the meta attributes
     attributes = {}
     n_events = int(n_events)
@@ -60,7 +60,7 @@ def generate_my_events(filename, n_events):
 
     data_sets["interaction_type"] = np.ones(n_events, dtype='S2')
     data_sets["inelasticity"] = np.ones(n_events) *  0.5
-    
-    
+
+
     # write events to file
     write_events_to_hdf5(filename, data_sets, attributes)

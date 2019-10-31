@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 import argparse
 import h5py
 
