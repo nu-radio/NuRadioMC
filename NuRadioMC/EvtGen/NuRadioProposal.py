@@ -475,7 +475,8 @@ class ProposalFunctions:
                               config_file='SouthPole',
                               low_nu=0.1*units.PeV,
                               propagation_length_nu = 1000*units.km,
-                              min_energy_loss_nu = 1*units.PeV):
+                              min_energy_loss_nu = 1*units.PeV,
+                              propagate_decay_muons=False):
         """
         Propagates a set of leptons and returns a list with the properties for
         all the properties of the shower-inducing secondary particles
@@ -505,6 +506,11 @@ class ProposalFunctions:
             Maximum propagation length in NuRadioMC units (m)
         min_energy_loss_nu: float
             Minimum energy for a selected secondary-induced shower (eV)
+        propagate_decay_muons: bool
+            If True, muons created by tau decay are propagated and their induced
+            showers are stored
+            WARNING: depending on your PROPOSAL installation, segmentation faults
+            can appear when propagating the muons. The cause is yet unknown.
 
         Returns
         -------
@@ -531,7 +537,7 @@ class ProposalFunctions:
             lepton_directions = [(0, 0, -1)] * len(energy_leptons)
 
         propagators = {}
-        for lepton_code in np.unique(lepton_codes):
+        for lepton_code in [13, -13, 15, -15]: #np.unique(lepton_codes):
             if lepton_code not in propagators:
                 propagators[lepton_code] = self.__create_propagator(low=low, particle_code=lepton_code,
                                                                     config_file=config_file)
@@ -545,38 +551,40 @@ class ProposalFunctions:
                                                     lepton_position, lepton_direction,
                                                     propagation_length, propagators)
 
-            shower_inducing_prods = self.__filter_secondaries(secondaries, min_energy_loss, lepton_position)
-
+            #shower_inducing_prods = self.__filter_secondaries(secondaries, min_energy_loss, lepton_position)
+            shower_inducing_prods = []
             # Checking if there is a muon and propagating it to know if it creates
             # particle showers.
-            for sec in secondaries:
+            if propagate_decay_muons:
 
-                if (sec.id != pp.particle.Data.Particle):
-                    continue
+                for sec in secondaries:
 
-                if (sec.particle_def == pp.particle.MuMinusDef.get()) or (sec.particle_def == pp.particle.MuPlusDef.get()):
+                    if (sec.id != pp.particle.Data.Particle):
+                        continue
 
-                    if sec.particle_def == pp.particle.MuMinusDef.get():
-                        mu_code = 13
-                    elif sec.particle_def == pp.particle.MuPlusDef.get():
-                        mu_code = -13
+                    if (sec.particle_def == pp.particle.MuMinusDef.get()) or (sec.particle_def == pp.particle.MuPlusDef.get()):
 
-                    if mu_code not in propagators:
-                        propagators[mu_code] = self.__create_propagator(low=low, particle_code=mu_code,
-                                                                   config_file=config_file)
+                        if sec.particle_def == pp.particle.MuMinusDef.get():
+                            mu_code = 13
+                        elif sec.particle_def == pp.particle.MuPlusDef.get():
+                            mu_code = -13
 
-                    mu_energy = sec.energy
-                    mu_position = (sec.position.x, sec.position.y, sec.position.z)
-                    mu_direction = lepton_direction # We reuse the primary lepton direction because
-                                                    # of the bug in Proposal. See issue
-                                                    # https://github.com/tudo-astroparticlephysics/PROPOSAL/issues/24
+                        if mu_code not in propagators:
+                            propagators[mu_code] = self.__create_propagator(low=low, particle_code=mu_code,
+                                                                            config_file=config_file)
 
-                    mu_secondaries = self.__propagate_particle(mu_energy, mu_code, mu_position, mu_direction,
-                                                          propagation_length, propagators)
+                        mu_energy = sec.energy
+                        mu_position = (sec.position.x, sec.position.y, sec.position.z)
+                        mu_direction = lepton_direction # We reuse the primary lepton direction because
+                                                        # of the bug in Proposal. See issue
+                                                        # https://github.com/tudo-astroparticlephysics/PROPOSAL/issues/24
 
-                    mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
+                        mu_secondaries = self.__propagate_particle(mu_energy, mu_code, mu_position, mu_direction,
+                                                                   propagation_length, propagators)
 
-                    shower_inducing_prods += mu_shower_inducing_prods
+                        mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
+
+                        shower_inducing_prods += mu_shower_inducing_prods
 
             # group shower-inducing decay products so that they create a single shower
             min_distance = 0.1 * units.m
