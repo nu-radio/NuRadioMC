@@ -476,7 +476,7 @@ class ProposalFunctions:
                               low_nu=0.1*units.PeV,
                               propagation_length_nu=1000*units.km,
                               min_energy_loss_nu=1*units.PeV,
-                              propagate_decay_muons=False):
+                              propagate_decay_muons=True):
         """
         Propagates a set of leptons and returns a list with the properties for
         all the properties of the shower-inducing secondary particles
@@ -509,8 +509,6 @@ class ProposalFunctions:
         propagate_decay_muons: bool
             If True, muons created by tau decay are propagated and their induced
             showers are stored
-            WARNING: depending on your PROPOSAL installation, segmentation faults
-            can appear when propagating the muons. The cause is yet unknown.
 
         Returns
         -------
@@ -549,6 +547,7 @@ class ProposalFunctions:
             for muon_code in [13, -13]:
                 mu_propagators[muon_code] = self.__create_propagator(low=low, particle_code=muon_code,
                                                                      config_file=config_file)
+            decay_muons_array = []
 
         secondaries_array = []
 
@@ -561,9 +560,10 @@ class ProposalFunctions:
 
             shower_inducing_prods = self.__filter_secondaries(secondaries, min_energy_loss, lepton_position)
 
-            # Checking if there is a muon and propagating it to know if it creates
-            # particle showers.
+            # Checking if there is a muon in the products
             if propagate_decay_muons:
+
+                decay_muons_array.append([None, None, None, None])
 
                 for sec in secondaries:
 
@@ -584,13 +584,11 @@ class ProposalFunctions:
                         mu_direction = lepton_direction # We reuse the primary lepton direction because
                                                         # of the bug in Proposal. See issue
                                                         # https://github.com/tudo-astroparticlephysics/PROPOSAL/issues/24
-
-                        mu_secondaries = self.__propagate_particle(mu_energy, mu_code, mu_position, mu_direction,
-                                                                   propagation_length, mu_propagators)
-
-                        mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
-
-                        shower_inducing_prods += mu_shower_inducing_prods
+                        decay_muons_array[-1] = [mu_energy, mu_code, mu_position, mu_direction]
+                        # I store the properties of each muon in an array because they cannot be
+                        # propagated while we are looping the secondaries array. Doing that can
+                        # create a segmentation fault because the results of the new propagation
+                        # are written into the secondaries array (!)
 
             # group shower-inducing decay products so that they create a single shower
             min_distance = 0.1 * units.m
@@ -603,6 +601,20 @@ class ProposalFunctions:
                 shower_inducing_prods[-1].name = particle_name[86]
 
             secondaries_array.append(shower_inducing_prods)
+
+        # Propagating the decay muons
+        if propagate_decay_muons:
+
+            for shower_inducing_prods, decay_muon in zip(secondaries_array, decay_muons_array):
+
+                if decay_muon[0] is None:
+                    continue
+                mu_secondaries = self.__propagate_particle(mu_energy, mu_code, mu_position, mu_direction,
+                                                           propagation_length, mu_propagators)
+
+                mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
+
+                shower_inducing_prods += mu_shower_inducing_prods
 
         return secondaries_array
 
