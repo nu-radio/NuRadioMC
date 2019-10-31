@@ -1,5 +1,5 @@
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 
 model_to_int = {"SP1" : 1, "GL1" : 2, "MB1" : 3}
 
@@ -103,7 +103,7 @@ def get_attenuation_length(z, frequency, model):
     elif(model == "MB1"):
         # 10.3189/2015JoG14J214 measured the depth-averaged attenuation length as a function of frequency
         # the derived parameterization assumed a reflection coefficient of 1
-        # however a reflection coefficient of 0.82 was measured which results in a slight increase of the derived 
+        # however a reflection coefficient of 0.82 was measured which results in a slight increase of the derived
         # attenution length (correction factor below)
         R = 0.82
         d_ice = 576 * units.m
@@ -112,8 +112,8 @@ def get_attenuation_length(z, frequency, model):
 
         # The temperature dependence of the attenuation length is independent of the frequency dependence
         # the relationship between temparature and L is from 10.1063/1.363582
-        # the temparature profile of the Ross Ice shelf is from 10.1126/science.203.4379.433 and rescaled to the shelf 
-        # thickness of the ARIANNA site (almost linear from -28 - -2deg C. 
+        # the temparature profile of the Ross Ice shelf is from 10.1126/science.203.4379.433 and rescaled to the shelf
+        # thickness of the ARIANNA site (almost linear from -28 - -2deg C.
         # this theoretical depth dependence is scaled to match the depth-averaged measurement of the attenuation length.
         d = -z * 420. / d_ice;
         L = (1250.*0.08886 * np.exp(-0.048827 * (225.6746 - 86.517596 * np.log10(848.870 - (d)))))

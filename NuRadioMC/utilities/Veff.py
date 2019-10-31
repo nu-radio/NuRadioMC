@@ -7,7 +7,7 @@ import json
 import os
 import copy
 
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 
 import logging
 logger = logging.getLogger("Veff")

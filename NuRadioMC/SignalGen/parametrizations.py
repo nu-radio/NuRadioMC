@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from NuRadioMC.utilities import units, fft
+from NuRadioReco.utilities import units
 from scipy import constants
 import logging
 logger = logging.getLogger("SignalGen.parametrizations")

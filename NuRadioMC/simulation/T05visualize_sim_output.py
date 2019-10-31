@@ -3,7 +3,7 @@ import numpy as np
 from radiotools import helper as hp
 from radiotools import plthelpers as php
 from matplotlib import pyplot as plt
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioMC.utilities import medium
 from NuRadioMC.utilities import plotting
 from six import iteritems
@@ -81,7 +81,7 @@ elif('rmin' in fin.attrs):
 Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights) / n_events
 print("Veff = {:.6g} km^3 sr".format(Veff / units.km ** 3))
 
- 
+
 ###########################
 # plot neutrino direction
 ###########################
@@ -137,7 +137,7 @@ for key, station in iteritems(fin):
         ###########################
         # recalculate triggers per station
         ###########################
-        
+
         if(args.trigger_name is None):
             triggered = np.array(station['triggered'])
             print("you selected any trigger")
@@ -155,8 +155,8 @@ for key, station in iteritems(fin):
                 iTrigger = np.argwhere(fin.attrs['trigger_names'] == trigger_name)
                 triggered = np.array(station['multiple_triggers'][:, iTrigger], dtype=np.bool)
                 print("\tyou selected '{}'".format(trigger_name))
-            
-        
+
+
         ###########################
         # plot incoming direction
         ###########################
@@ -180,10 +180,10 @@ for key, station in iteritems(fin):
         axs[0].xaxis.set_major_locator(majorLocator)
         axs[0].xaxis.set_major_formatter(majorFormatter)
         axs[0].xaxis.set_minor_locator(minorLocator)
-        
+
         fig.suptitle('incoming signal direction')
         fig.savefig(os.path.join(plot_folder, '{}_incoming_signal.png'.format(key)))
-        
+
         ###########################
         # plot polarization
         ###########################
@@ -193,7 +193,7 @@ for key, station in iteritems(fin):
         weights_matrix = np.outer(weights, np.ones(np.prod(p_V.shape[1:]))).flatten()
         p_ratio = (p_V/p_H).flatten()
         bins = np.linspace(0, 1, 50)
-        
+
 #         for all events, antennas and ray tracing solutions
         mask = zeniths > 90 * units.deg  # select rays coming from below
         fig, ax = php.get_histogram(p_ratio,
@@ -213,7 +213,7 @@ for key, station in iteritems(fin):
         ax.set_ylim(maxy)
         fig.tight_layout()
         fig.savefig(os.path.join(plot_folder, '{}_polarization.png'.format(key)))
-       
+
         mask = zeniths > 90 * units.deg  # select rays coming from below
         fig, ax = php.get_histogram(p_ratio,
                                     bins=bins,
@@ -239,17 +239,17 @@ for key, station in iteritems(fin):
         shower_axis = -1 * hp.spherical_to_cartesian(np.array(fin['zeniths'])[triggered], np.array(fin['azimuths'])[triggered])
         launch_vectors = np.array(station['launch_vectors'])[triggered]
         viewing_angles = np.array([hp.get_angle(x, y) for x, y in zip(shower_axis, launch_vectors[:, 0, 0])])
-        
+
         # calculate correct chereknov angle for ice density at vertex position
         ice = medium.southpole_simple()
         n_indexs = np.array([ice.get_index_of_refraction(x) for x in np.array([np.array(fin['xx'])[triggered], np.array(fin['yy'])[triggered], np.array(fin['zz'])[triggered]]).T])
         rho = np.arccos(1. / n_indexs)
-        
+
         mask = ~np.isnan(viewing_angles)
         fig, ax = php.get_histogram((viewing_angles[mask] - rho[mask]) / units.deg, weights=weights[mask],
                                     bins=np.arange(-30, 30, 1), xlabel='viewing - cherenkov angle [deg]', figsize=(6, 6))
         fig.savefig(os.path.join(plot_folder, '{}_dCherenkov.png'.format(key)))
-        
+
         ###########################
         # plot flavor ratios
         ###########################
@@ -261,17 +261,17 @@ for key, station in iteritems(fin):
         yy[1] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == b'cc')])
         yy[2] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == b'nc')])
         yy[3] = np.sum(weights[(fin['flavors'][triggered] == -12) & (fin['interaction_type'][triggered] == b'nc')])
-        
+
         yy[4] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == b'cc')])
         yy[5] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == b'cc')])
         yy[6] = np.sum(weights[(fin['flavors'][triggered] == 14) & (fin['interaction_type'][triggered] == b'nc')])
         yy[7] = np.sum(weights[(fin['flavors'][triggered] == -14) & (fin['interaction_type'][triggered] == b'nc')])
-        
+
         yy[8] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == b'cc')])
         yy[9] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == b'cc')])
         yy[10] = np.sum(weights[(fin['flavors'][triggered] == 16) & (fin['interaction_type'][triggered] == b'nc')])
         yy[11] = np.sum(weights[(fin['flavors'][triggered] == -16) & (fin['interaction_type'][triggered] == b'nc')])
-        
+
         fig, ax = plt.subplots(1, 1, figsize=(8, 6))
         ax.bar(range(len(flavor_labels)), yy)
         ax.set_xticks(range(len(flavor_labels)))
@@ -281,4 +281,3 @@ for key, station in iteritems(fin):
         fig.tight_layout()
         fig.savefig(os.path.join(plot_folder, '{}_flavor.png'.format(key)))
         plt.show()
-

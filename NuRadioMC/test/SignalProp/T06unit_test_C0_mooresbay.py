@@ -1,8 +1,8 @@
 import numpy as np
 import time
 from NuRadioMC.SignalProp import analyticraytracing as ray
-from NuRadioMC.utilities import units, medium
-from NuRadioReco.utilities import io_utilities
+from NuRadioMC.utilities import medium
+from NuRadioReco.utilities import io_utilities, units
 import logging
 from numpy import testing
 logging.basicConfig(level=logging.INFO)
