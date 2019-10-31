@@ -24,7 +24,7 @@ N = 2048 * 4
 dt = 0.01 * units.ns
 profile_depth, profile_ce = arz.get_shower_profile(shower_energy, shower_type, 0)
 
-thetas = np.array([45, 58, 60, 65]) * units.deg
+thetas = np.array([45, 50, 55, 56, 57, 58, 59, 60, 65]) * units.deg
 Rs = np.array([10, 100, 1000, 10000]) * units.m
 linestyles = {Rs[0]:':', Rs[1]:'-.', Rs[2]:'--', Rs[3]:'-'}
 eta_cut = 0.25
