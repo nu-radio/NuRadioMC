@@ -206,7 +206,7 @@ class efieldToVoltageConverter:
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
 
                 if(self.__debug):
-                    axes[1].plot(trace_object.get_times(), fft.freq2time(voltage_fft), label="{}, zen = {:.0f}deg".format(electric_field[efp.ray_path_type], zenith / units.deg))
+                    axes[1].plot(trace_object.get_times(), fft.freq2time(voltage_fft, electric_field.get_sampling_rate()), label="{}, zen = {:.0f}deg".format(electric_field[efp.ray_path_type], zenith / units.deg))
 
                 if('amp' in self.__uncertainty):
                     voltage_fft *= np.random.normal(1, self.__uncertainty['amp'][channel_id])
