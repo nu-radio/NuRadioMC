@@ -34,7 +34,7 @@ c = 2.99792458e8 * units.m / units.s
 
 def thetaprime_to_theta(thetaprime, xmax, R):
     """
-    convertes a viewing angle relative to the shower maximum to a viewing angle relative to the start of the shower. 
+    convertes a viewing angle relative to the shower maximum to a viewing angle relative to the start of the shower.
     """
     L = xmax / rho
     return thetaprime - np.arcsin((L * np.sin(np.pi - thetaprime)) / R)
@@ -80,7 +80,7 @@ class ARZ(object):
     def __check_and_get_library(self):
         """
         checks if shower library exists and is up to date by comparing the sha1sum. If the library does not exist
-        or changes on the server, a new library will be downloaded. 
+        or changes on the server, a new library will be downloaded.
         """
         path = os.path.join(os.path.dirname(__file__), "shower_library/library_v{:d}.{:d}.pkl".format(*self._version))
 
@@ -146,7 +146,7 @@ class ARZ(object):
     def get_shower_profile(self, shower_energy, shower_type, iN, same_shower=False):
         """
         returns a charge excess profile from the shower library
-        
+
         Parameters
         ----------
         shower_energy: float
@@ -156,10 +156,10 @@ class ARZ(object):
         iN: int or None
             specify shower number
         same_shower: bool
-            if False, for each request a new random shower realization is choosen. 
+            if False, for each request a new random shower realization is choosen.
             if True, the shower from the last request of the same shower type is used. This is needed to get the Askaryan
-            signal for both ray tracing solutions from the same shower. 
-            
+            signal for both ray tracing solutions from the same shower.
+
         Returns
             shower depth (np.array), charge-excess (np.array)
         """
@@ -199,7 +199,7 @@ class ARZ(object):
                        same_shower=False, iN=None, output_mode='trace', theta_reference='X0'):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
-        
+
         Parameters
         ----------
         shower_energy: float
@@ -221,15 +221,15 @@ class ARZ(object):
         R: float (default 1km)
             observation distance, the signal amplitude will be scaled according to 1/R
         interp_factor: int (default 10)
-            interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
-            for small vertex distances but also slows down the calculation proportional to the interpolation factor. 
+            interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial
+            for small vertex distances but also slows down the calculation proportional to the interpolation factor.
         shift_for_xmax: bool (default True)
-            if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
+            if True the observer position is placed relative to the position of the shower maximum, if False it is placed
             with respect to (0,0,0) which is the start of the charge-excess profile
         same_shower: bool (default False)
-            if False, for each request a new random shower realization is choosen. 
+            if False, for each request a new random shower realization is choosen.
             if True, the shower from the last request of the same shower type is used. This is needed to get the Askaryan
-            signal for both ray tracing solutions from the same shower. 
+            signal for both ray tracing solutions from the same shower.
         iN: int or None (default None)
             specify shower number
         output_mode: string
@@ -239,7 +239,7 @@ class ARZ(object):
         theta_reference: string (default: X0)
             * 'X0': viewing angle relativ to start of the shower
             * 'Xmax': viewing angle is relativ to Xmax, internally it will be converted to be relative to X0
-            
+
         Returns: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
         """
@@ -281,14 +281,14 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
                                      shower_type="HAD", n_index=1.78, distance=1 * units.m,
                                      shift_for_xmax=False):
     """
-    fast interpolation of time-domain calculation of vector potential of the 
-    Askaryan pulse from a charge-excess profile using a numerical convolution instead of integration, following the 
+    fast interpolation of time-domain calculation of vector potential of the
+    Askaryan pulse from a charge-excess profile using a numerical convolution instead of integration, following the
     presciption of Ben Hokanson-Fasig. This code is mostly a copy-and-past of the corresponding implementation in pyrex.
-    
-    Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples. 
-    
+
+    Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples.
+
     The numerical integration was replaces by a sum using the trapeoiz rule using vectorized numpy operations
-    
+
     Parameters
     ----------
     shower_energy: float
@@ -310,7 +310,7 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     distance: float (default 1km)
         observation distance, the signal amplitude will be scaled according to 1/R
     shift_for_xmax: bool (default True)
-        if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
+        if True the observer position is placed relative to the position of the shower maximum, if False it is placed
         with respect to (0,0,0) which is the start of the charge-excess profile
     """
     ttt = np.arange(0, (N + 1) * dt, dt)
@@ -430,14 +430,14 @@ def get_vector_potential_convolution_farfield(shower_energy, theta, N, dt, profi
                                               shower_type="HAD", n_index=1.78, distance=1 * units.m,
                                               shift_for_xmax=False):
     """
-    fast interpolation of time-domain calculation of vector potential of the 
-    Askaryan pulse from a charge-excess profile using a numerical convolution instead of integration, following the 
+    fast interpolation of time-domain calculation of vector potential of the
+    Askaryan pulse from a charge-excess profile using a numerical convolution instead of integration, following the
     presciption of Ben Hokanson-Fasig. This code is mostly a copy-and-past of the corresponding implementation in pyrex.
-    
-    Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples. 
-    
+
+    Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples.
+
     The numerical integration was replaces by a sum using the trapeoiz rule using vectorized numpy operations
-    
+
     Parameters
     ----------
     shower_energy: float
@@ -459,7 +459,7 @@ def get_vector_potential_convolution_farfield(shower_energy, theta, N, dt, profi
     distance: float (default 1km)
         observation distance, the signal amplitude will be scaled according to 1/R
     shift_for_xmax: bool (default True)
-        if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
+        if True the observer position is placed relative to the position of the shower maximum, if False it is placed
         with respect to (0,0,0) which is the start of the charge-excess profile
     """
     ttt = np.arange(0, (N + 1) * dt, dt)
@@ -538,7 +538,7 @@ def get_vector_potential_convolution_farfield(shower_energy, theta, N, dt, profi
     n_extra_beginning += n_Q_negative
     if n_extra_beginning < 0:
         logger.debug(f"concacinating extra bins at end {n_extra_beginning}")
-        convolution = np.concatenate((np.zeros(-n_extra_beginning), convolution), axis=1)
+        convolution = np.concatenate((np.zeros(-n_extra_beginning), convolution))
     else:
         logger.debug(f"removing extra bins at beginning {n_extra_beginning}")
         convolution = convolution[n_extra_beginning:]
@@ -609,13 +609,13 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
                               shower_type="HAD", n_index=1.78, distance=1 * units.m,
                               interp_factor=1., interp_factor2=100., shift_for_xmax=False):
     """
-    fast interpolation of time-domain calculation of vector potential of the 
+    fast interpolation of time-domain calculation of vector potential of the
     Askaryan pulse from a charge-excess profile
-    
-    Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples. 
-    
+
+    Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples.
+
     The numerical integration was replaces by a sum using the trapeoiz rule using vectorized numpy operations
-    
+
     Parameters
     ----------
     shower_energy: float
@@ -637,13 +637,13 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
     distance: float (default 1km)
         observation distance, the signal amplitude will be scaled according to 1/R
     interp_factor: int (default 1)
-        interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
+        interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial
         for small vertex distances but also slows down the calculation proportional to the interpolation factor.
-        if None, the interpolation factor will be calculated from the distance 
+        if None, the interpolation factor will be calculated from the distance
     interp_factor2: int (default 100)
-        interpolation just around the peak of the form factor 
+        interpolation just around the peak of the form factor
     shift_for_xmax: bool (default True)
-        if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
+        if True the observer position is placed relative to the position of the shower maximum, if False it is placed
         with respect to (0,0,0) which is the start of the charge-excess profile
     """
 
@@ -1040,7 +1040,7 @@ class ARZ_tabulated(object):
     def __check_and_get_library(self):
         """
         checks if pulse library exists and is up to date by comparing the sha1sum. If the library does not exist
-        or changes on the server, a new library will be downloaded. 
+        or changes on the server, a new library will be downloaded.
         """
         path = os.path.join(os.path.dirname(__file__), "shower_library/ARZ_library_v{:d}.{:d}.pkl".format(*self._version))
 
@@ -1095,7 +1095,7 @@ class ARZ_tabulated(object):
                        same_shower=False, iN=None, output_mode='trace', theta_reference='X0'):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
-        
+
         Parameters
         ----------
         shower_energy: float
@@ -1113,9 +1113,9 @@ class ARZ_tabulated(object):
         R: float (default 1km)
             observation distance, the signal amplitude will be scaled according to 1/R
         same_shower: bool (default False)
-            if False, for each request a new random shower realization is choosen. 
+            if False, for each request a new random shower realization is choosen.
             if True, the shower from the last request of the same shower type is used. This is needed to get the Askaryan
-            signal for both ray tracing solutions from the same shower. 
+            signal for both ray tracing solutions from the same shower.
         iN: int or None (default None)
             specify shower number
         output_mode: string
@@ -1124,7 +1124,7 @@ class ARZ_tabulated(object):
         theta_reference: string (default: X0)
             * 'X0': viewing angle relativ to start of the shower
             * 'Xmax': viewing angle is relativ to Xmax, internally it will be converted to be relative to X0
-            
+
         Returns: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
         """
