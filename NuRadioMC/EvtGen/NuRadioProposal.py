@@ -470,12 +470,12 @@ class ProposalFunctions:
     def get_secondaries_array(self,
                               energy_leptons_nu,
                               lepton_codes,
-                              lepton_positions_nu = None,
-                              lepton_directions = None,
+                              lepton_positions_nu=None,
+                              lepton_directions=None,
                               config_file='SouthPole',
                               low_nu=0.1*units.PeV,
-                              propagation_length_nu = 1000*units.km,
-                              min_energy_loss_nu = 1*units.PeV,
+                              propagation_length_nu=1000*units.km,
+                              min_energy_loss_nu=1*units.PeV,
                               propagate_decay_muons=False):
         """
         Propagates a set of leptons and returns a list with the properties for
@@ -537,10 +537,18 @@ class ProposalFunctions:
             lepton_directions = [(0, 0, -1)] * len(energy_leptons)
 
         propagators = {}
-        for lepton_code in [13, -13, 15, -15]: #np.unique(lepton_codes):
+        for lepton_code in np.unique(lepton_codes):
             if lepton_code not in propagators:
                 propagators[lepton_code] = self.__create_propagator(low=low, particle_code=lepton_code,
                                                                     config_file=config_file)
+
+        if propagate_decay_muons:
+            # We create another muon propagator dictionary to try to avoid a segmentation
+            # fault happening in some installations of Proposal
+            mu_propagators = {}
+            for muon_code in [13, -13]:
+                mu_propagators[muon_code] = self.__create_propagator(low=low, particle_code=muon_code,
+                                                                     config_file=config_file)
 
         secondaries_array = []
 
@@ -551,8 +559,8 @@ class ProposalFunctions:
                                                     lepton_position, lepton_direction,
                                                     propagation_length, propagators)
 
-            #shower_inducing_prods = self.__filter_secondaries(secondaries, min_energy_loss, lepton_position)
-            shower_inducing_prods = []
+            shower_inducing_prods = self.__filter_secondaries(secondaries, min_energy_loss, lepton_position)
+
             # Checking if there is a muon and propagating it to know if it creates
             # particle showers.
             if propagate_decay_muons:
@@ -569,18 +577,16 @@ class ProposalFunctions:
                         elif sec.particle_def == pp.particle.MuPlusDef.get():
                             mu_code = -13
 
-                        if mu_code not in propagators:
-                            propagators[mu_code] = self.__create_propagator(low=low, particle_code=mu_code,
-                                                                            config_file=config_file)
-
                         mu_energy = sec.energy
+                        if (mu_energy <= low):
+                            continue
                         mu_position = (sec.position.x, sec.position.y, sec.position.z)
                         mu_direction = lepton_direction # We reuse the primary lepton direction because
                                                         # of the bug in Proposal. See issue
                                                         # https://github.com/tudo-astroparticlephysics/PROPOSAL/issues/24
 
                         mu_secondaries = self.__propagate_particle(mu_energy, mu_code, mu_position, mu_direction,
-                                                                   propagation_length, propagators)
+                                                                   propagation_length, mu_propagators)
 
                         mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
 
