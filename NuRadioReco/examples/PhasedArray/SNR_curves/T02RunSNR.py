@@ -160,7 +160,8 @@ class mySimulation(simulation.simulation):
                                  triggered_channels=None,  # run trigger on all channels
                                  secondary_channels=[0,1,3,4,6,7], # secondary channels
                                  trigger_name='primary_and_secondary_phasing',
-                                 set_not_triggered=(not self._station.has_triggered("simple_threshold")))
+                                 set_not_triggered=(not self._station.has_triggered("simple_threshold")),
+                                 ref_index=1.78)
 
             if (has_triggered and not reject_event):
                 print('Trigger for SNR', SNRs[iSNR])
