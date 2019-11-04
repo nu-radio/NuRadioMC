@@ -1,6 +1,6 @@
 import pyPROPOSAL as pp
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 import os
 
 """
@@ -614,7 +614,7 @@ class ProposalFunctions:
                                                            propagation_length, mu_propagators)
 
                 mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
-                
+
                 shower_inducing_prods += mu_shower_inducing_prods
 
         return secondaries_array
