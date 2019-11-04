@@ -92,7 +92,6 @@ class mySimulation(simulation.simulation):
                              secondary_channels=[0,1,3,4,6,7], # secondary channels
                              trigger_name='primary_and_secondary_phasing', # the name of the trigger
                              set_not_triggered=(not self._station.has_triggered("simple_threshold")),
-                             only_primary=False,
                              coupled=True)
 
 

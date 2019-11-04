@@ -170,7 +170,6 @@ class triggerSimulator:
             secondary_phasing_angles=default_sec_angles,
             set_not_triggered=False,
             window_time=10.67 * units.ns,
-            only_primary=False,
             coupled=True,
             ref_index=1.55):
         """
@@ -203,8 +202,6 @@ class triggerSimulator:
             if True not trigger simulation will be performed and this trigger will be set to not_triggered
         window_time: float
             Width of the time window used in the power integration
-        only_primary: bool
-            if True, no secondary beams are formed
         coupled: bool
             if True, the primary sub-beams are paired to the secondary sub-beams.
             if False, the primary sub-beams and the secondary sub-beams specify independent beams.
@@ -234,9 +231,11 @@ class triggerSimulator:
             beam_rolls = self.get_beam_rolls(station, det, triggered_channels, phasing_angles, ref_index=ref_index)
             empty_rolls = [ {} for direction in range(len(phasing_angles)) ]
             logger.debug("secondary_channels:", secondary_channels)
+
             if (len(secondary_channels) == 0):
                 only_primary = True
             else:
+                only_primary = False
                 secondary_beam_rolls = self.get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles, ref_index=ref_index)
 
             if only_primary:
