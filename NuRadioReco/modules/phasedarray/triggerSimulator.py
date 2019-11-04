@@ -192,7 +192,7 @@ class triggerSimulator:
             if None, all channels are taken
         secondary_channels: array of int
             channel ids of the channels that form the secondary phasing array
-            if None, only the channels in even indexes are taken
+            if None, no channels are taken
         trigger_name: string
             name for the trigger
         phasing_angles: array of float
@@ -221,10 +221,8 @@ class triggerSimulator:
         	triggered_channels = [channel._id for channel in station.iter_channels()]
 
         if (secondary_channels == None):
-            # If there are no chosen secondary channels, we take two consecutive
-            # antennas, discard the third, and so on.
-            secondary_channels = [ channel._id for channel in station.iter_channels() \
-                                   if not channel._id % 3 == 2 ]
+            # If there are no chosen secondary channels, their list is empty
+            secondary_channels = []
 
         if set_not_triggered:
 
@@ -234,16 +232,18 @@ class triggerSimulator:
 
             logger.debug("primary channels:", triggered_channels)
             beam_rolls = self.get_beam_rolls(station, det, triggered_channels, phasing_angles, ref_index=ref_index)
+            empty_rolls = [ {} for direction in range(len(phasing_angles)) ]
             logger.debug("secondary_channels:", secondary_channels)
-            secondary_beam_rolls = self.get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles, ref_index=ref_index)
+            if (len(secondary_channels) == 0):
+                only_primary = True
+            else:
+                secondary_beam_rolls = self.get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles, ref_index=ref_index)
 
             if only_primary:
-                empty_rolls = [ {} for direction in range(len(phasing_angles)) ]
                 is_triggered = self.phased_trigger(station, beam_rolls, empty_rolls, triggered_channels, threshold, window_time)
             elif coupled:
                 is_triggered = self.phased_trigger(station, beam_rolls, secondary_beam_rolls, triggered_channels, threshold, window_time)
             else:
-                empty_rolls = [ {} for direction in range(len(phasing_angles)) ]
                 primary_trigger = self.phased_trigger(station, beam_rolls, empty_rolls, triggered_channels, threshold, window_time)
                 secondary_trigger = self.phased_trigger(station, secondary_beam_rolls, empty_rolls, secondary_channels, threshold, window_time)
                 is_triggered = primary_trigger or secondary_trigger
