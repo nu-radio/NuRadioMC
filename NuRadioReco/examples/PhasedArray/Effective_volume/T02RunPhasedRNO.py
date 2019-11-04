@@ -99,7 +99,6 @@ class mySimulation(simulation.simulation):
                              phasing_angles=phasing_angles,
                              secondary_phasing_angles=secondary_phasing_angles,
                              set_not_triggered=(not self._station.has_triggered("simple_threshold")),
-                             only_primary=True, # no secondary trigger
                              coupled=False,
                              ref_index=1.55)
 
