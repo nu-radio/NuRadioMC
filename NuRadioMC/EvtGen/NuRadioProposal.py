@@ -581,9 +581,8 @@ class ProposalFunctions:
                         if (mu_energy <= low):
                             continue
                         mu_position = (sec.position.x, sec.position.y, sec.position.z)
-                        mu_direction = lepton_direction # We reuse the primary lepton direction because
-                                                        # of the bug in Proposal. See issue
-                                                        # https://github.com/tudo-astroparticlephysics/PROPOSAL/issues/24
+                        mu_direction = lepton_direction # We reuse the primary lepton direction
+                                                        # At these energies the muon direction is the same
                         decay_muons_array[-1] = [mu_energy, mu_code, mu_position, mu_direction]
                         # I store the properties of each muon in an array because they cannot be
                         # propagated while we are looping the secondaries array. Doing that can
@@ -605,15 +604,17 @@ class ProposalFunctions:
         # Propagating the decay muons
         if propagate_decay_muons:
 
-            for shower_inducing_prods, decay_muon in zip(secondaries_array, decay_muons_array):
+            for shower_inducing_prods, decay_muon, lepton_position in zip(secondaries_array,
+                decay_muons_array, lepton_positions):
 
                 if decay_muon[0] is None:
                     continue
+                mu_energy, mu_code, mu_position, mu_direction = decay_muon
                 mu_secondaries = self.__propagate_particle(mu_energy, mu_code, mu_position, mu_direction,
                                                            propagation_length, mu_propagators)
 
                 mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
-
+                
                 shower_inducing_prods += mu_shower_inducing_prods
 
         return secondaries_array
