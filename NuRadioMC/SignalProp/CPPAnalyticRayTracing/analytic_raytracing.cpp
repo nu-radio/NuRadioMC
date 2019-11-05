@@ -871,21 +871,50 @@ void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[
 	}
 }
 
-//int main(int argc, char **argv){
-//
-//	double x1[2] = {478., -149.};
-//	double x2[2] = {635., -5.}; //this target has both a direct and reflected ray solution
-//
-//	double n_ice = 1.78;
-//	double delta_n = 0.427;
-//	double z_0 = 71. * utl::m; //meters
-//	vector<vector<double> > solutions = find_solutions(x1,x2, n_ice, delta_n, z_0);
-//	if(solutions.size()>0){
-//		printf("C0 %.6f \n ",solutions[0][1]);
-//		double att = get_attenuation_along_path(x1, x2, solutions[0][1], 0.00390625*utl::GHz,n_ice, delta_n, z_0, "SP1");
-//		printf("Att %.3f \n ", att);
-//	}
-//
-//	return 0;
-//
-//}
+int main(int argc, char **argv){
+
+	// first, set a source and transmitter location
+	double x1[2] = {478., -149.}; // source in the x-z / y-z plane
+	double x2[2] = {635., -5.}; //target inthe x-z/y-z plane; this particular target has both a direct and reflected ray solution
+
+	// set some ice parameters
+	double n_ice = 1.78;
+	double delta_n = 0.427;
+	double z_0 = 71. * utl::m; //meters
+
+	// find solutions
+	vector<vector<double> > solutions = find_solutions(x1,x2, n_ice, delta_n, z_0);
+
+	/*
+	  The thing stored in "solutions" are numerical factors that describe the ray tracing solution
+	  in terms of some variables that are used to describe the ray tracing problem
+	  they are not physically meaningful
+	  to get the physically meaningful answers, we have to use the information in solutions and call functions
+	  like "get_receive_angle", "get_travel_time" etc
+
+	  The size of the first dimension of the vector tells you how many solutions there are
+	  so, in a problem with two solutions, then the size will be two
+	  solutions.size()=2
+
+	  The first element is log(C0) parameter, second element is C0, third element is C1, last element is solution type
+	  type 1 = "direct" solution
+	  type 2 = "refracted" solution
+	  type 3 = "reflected" solution
+
+	  so solutions[0][3]=1 tells you you are looking at a "direct" ray solution
+	 */
+
+	if(solutions.size()>0){ // if there is a solution
+		double C0 = solutions[0][1];
+		int iceModel = 1;
+		double att = get_attenuation_along_path(x1, x2,C0, 0.00390625*utl::GHz,n_ice, delta_n, z_0,iceModel);
+		printf("Attenuation %.3f \n ", att);
+		double receive_angle = get_receive_angle(x1, x2, C0, n_ice, delta_n, z_0);
+		printf("Receive angle in radians %.3f \n", receive_angle);
+		double launch_angle = get_launch_angle(x1,  C0, n_ice, delta_n, z_0);
+		printf("Launch angle in radians %.3f \n", launch_angle);
+	}
+
+	return 0;
+
+}
