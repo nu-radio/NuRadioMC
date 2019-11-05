@@ -263,6 +263,12 @@ class ProposalFunctions:
         else:
             raise ValueError("Proposal config file is not valid. Please provide a valid option.")
 
+        if not os.path.exists(config_file_full_path):
+            error_message  = "Proposal config file does not exist.\n"
+            error_message += "Please provide valid paths for the interpolation tables "
+            error_message += "in file {}.sample ".format(config_file_full_path)
+            error_message += "and copy the file to {}.".format(os.path.basename(config_file_full_path))
+            raise ValueError(error_message)
 
         propagator = pp.Propagator(particle_def=mu_def, config_file=config_file_full_path)
 

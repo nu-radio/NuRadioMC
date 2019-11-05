@@ -735,6 +735,9 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         -'SouthPole', a config file for the South Pole (spherical Earth)
         -'MooresBay', a config file for Moore's Bay (spherical Earth)
         -'InfIce', a config file with a medium of infinite ice
+        If one of these three options is chosen, the user is supposed to edit
+        the corresponding config_PROPOSAL_xxx.json.sample file to include valid
+        table paths and then copy this file to config_PROPOSAL_xxx.json.
     """
 
     from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
@@ -1037,6 +1040,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         -'SouthPole', a config file for the South Pole (spherical Earth)
         -'MooresBay', a config file for Moore's Bay (spherical Earth)
         -'InfIce', a config file with a medium of infinite ice
+        If one of these three options is chosen, the user is supposed to edit
+        the corresponding config_PROPOSAL_xxx.json.sample file to include valid
+        table paths and then copy this file to config_PROPOSAL_xxx.json.
     resample: integer or None
         if integer, PROPOSAL generates a number of propagations equal to resample
         and then reuses them. Only to be used with a single kind of lepton (muon or tau)
