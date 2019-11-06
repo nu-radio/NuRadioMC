@@ -8,8 +8,8 @@
 		"interpolation":
 		{
 			"do_interpolation" : true,
-			"path_to_tables" : "/Users/dani/tables",
-			"path_to_tables_readonly" : "/Users/dani/tables",
+			"path_to_tables" : "Please provide here a valid system path",
+			"path_to_tables_readonly" : "Please provide here a valid system path",
 			"do_binary_tables" : false,
 			"just_use_readonly_path" : false,
 			"max_node_energy" : 1e14,
@@ -94,7 +94,7 @@
 				"shape": "sphere",
 				"origin": [0, 0, -6374134],
 				"outer_radius": 6374134,
-				"inner_radius": 6373934
+				"inner_radius": 6373558
 			},
 			"cuts_inside":
 			{
@@ -117,14 +117,14 @@
 		},
 		{
 			"hierarchy": 1,
-			"medium": "ice",
-			"density_correction": 1.005,
+			"medium": "water",
+			"density_correction": 1.00,
 
 			"geometry":
 			{
 				"shape": "sphere",
 				"origin": [0, 0, -6374134],
-				"outer_radius": 6373934,
+				"outer_radius": 6373558,
 				"inner_radius": 6371324
 			},
 			"cuts_inside":

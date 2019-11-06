@@ -8,8 +8,8 @@
 		"interpolation":
 		{
 			"do_interpolation" : true,
-			"path_to_tables" : "/Users/dani/tables",
-			"path_to_tables_readonly" : "/Users/dani/tables",
+			"path_to_tables" : "Please provide here a valid system path",
+			"path_to_tables_readonly" : "Please provide here a valid system path",
 			"do_binary_tables" : false,
 			"just_use_readonly_path" : false,
 			"max_node_energy" : 1e14,

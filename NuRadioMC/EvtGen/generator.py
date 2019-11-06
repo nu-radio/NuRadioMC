@@ -735,9 +735,13 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         -'SouthPole', a config file for the South Pole (spherical Earth)
         -'MooresBay', a config file for Moore's Bay (spherical Earth)
         -'InfIce', a config file with a medium of infinite ice
+        If one of these three options is chosen, the user is supposed to edit
+        the corresponding config_PROPOSAL_xxx.json.sample file to include valid
+        table paths and then copy this file to config_PROPOSAL_xxx.json.
     """
 
-    import NuRadioMC.EvtGen.NuRadioProposal as NRP
+    from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
+    proposal_functions = ProposalFunctions()
 
     attributes = {}
     n_events = int(n_events)
@@ -863,7 +867,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     E_all_leptons = data_sets["energies"]
     lepton_codes = data_sets["flavors"]
-    lepton_positions = [ (x*NRP.pp_m,y*NRP.pp_m,z*NRP.pp_m) for x,y,z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
+    lepton_positions = [ (x,y,z) for x,y,z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
     lepton_directions = [ (-np.sin(theta)*np.cos(phi), -np.sin(theta)*np.sin(phi), -np.cos(theta))
                         for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
 
@@ -877,8 +881,11 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         lepton_positions = None
         lepton_directions = None
 
-    products_array = NRP.get_secondaries_array(E_all_leptons, lepton_codes, lepton_positions,
-                                             lepton_directions, config_file=config_file)
+    products_array = proposal_functions.get_secondaries_array(E_all_leptons,
+                                                              lepton_codes,
+                                                              lepton_positions,
+                                                              lepton_directions,
+                                                              config_file=config_file)
 
     for event_id in data_sets["event_ids"]:
         iE = event_id - start_event_id
@@ -1033,6 +1040,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         -'SouthPole', a config file for the South Pole (spherical Earth)
         -'MooresBay', a config file for Moore's Bay (spherical Earth)
         -'InfIce', a config file with a medium of infinite ice
+        If one of these three options is chosen, the user is supposed to edit
+        the corresponding config_PROPOSAL_xxx.json.sample file to include valid
+        table paths and then copy this file to config_PROPOSAL_xxx.json.
     resample: integer or None
         if integer, PROPOSAL generates a number of propagations equal to resample
         and then reuses them. Only to be used with a single kind of lepton (muon or tau)
@@ -1042,7 +1052,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         if True, generate deposited energies instead of primary neutrino energies
     """
     if proposal:
-        import NuRadioMC.EvtGen.NuRadioProposal as NRP
+        from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
+        proposal_functions = ProposalFunctions()
 
     attributes = {}
     n_events = int(n_events)
@@ -1227,7 +1238,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         lepton_codes[lepton_codes == 16] = 15
         lepton_codes[lepton_codes == -16] = -15
 
-        lepton_positions = [ (x*NRP.pp_m,y*NRP.pp_m,z*NRP.pp_m) for x,y,z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
+        lepton_positions = [ (x,y,z) for x,y,z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
         lepton_directions = [ (-np.sin(theta)*np.cos(phi), -np.sin(theta)*np.sin(phi), -np.cos(theta))
                             for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
 
@@ -1242,8 +1253,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             lepton_directions = None
             proposal_config = 'InfIce'
 
-        products_array = NRP.get_secondaries_array(E_all_leptons, lepton_codes, lepton_positions,
-                                                 lepton_directions, config_file=proposal_config)
+        products_array = proposal_functions.get_secondaries_array(E_all_leptons,
+                                                                  lepton_codes,
+                                                                  lepton_positions,
+                                                                  lepton_directions,
+                                                                  config_file=proposal_config)
 
         for event_id in data_sets["event_ids"]:
             iE = event_id - start_event_id
