@@ -1,4 +1,4 @@
-import NuRadioMC.EvtGen.NuRadioProposal as NRP
+from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
 from NuRadioReco.utilities import units
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,9 +26,11 @@ energies = 10**energies * units.eV
 dists_arr = []
 energy_arr = []
 
+proposal_functions = ProposalFunctions()
+
 for Elepton in energies:
 
-    decay_prods = NRP.get_decays([Elepton]*Ntries, [lepton_code]*Ntries, random_seed=None)
+    decay_prods = proposal_functions.get_decays([Elepton]*Ntries, [lepton_code]*Ntries)
 
     dist_hist = decay_prods[:,0]
     E_hist = decay_prods[:,1]
