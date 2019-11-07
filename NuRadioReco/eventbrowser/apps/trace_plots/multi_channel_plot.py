@@ -232,7 +232,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                     },
                     name=i
                 ), i + 1, 1)
-            template_spectrum = fft.time2freq(yy)
+            template_spectrum = fft.time2freq(yy, channel.get_sampling_rate())
             template_freqs = np.fft.rfftfreq(len(yy), dt)
             template_freq_mask = (template_freqs > channel.get_frequencies()[0])&(template_freqs<(channel.get_frequencies()[-1]))
             fig.append_trace(plotly.graph_objs.Scatter(
@@ -292,7 +292,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                     },
                     name=i
                 ), i + 1, 1)
-            template_spectrum = fft.time2freq(yy)
+            template_spectrum = fft.time2freq(yy, channel.get_sampling_rate())
             template_freqs = np.fft.rfftfreq(len(yy), dt)
             template_freq_mask = (template_freqs > channel.get_frequencies()[0])&(template_freqs<(channel.get_frequencies()[-1]))
             fig.append_trace(plotly.graph_objs.Scatter(
@@ -336,7 +336,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                     time_shift = direction_time_delay - trace_start_time_offset
                     plotly.graph_objs.append_trace(plotly.graph_objs.Scatter(
                         x=(electric_field.get_times() + time_shift)/units.ns,
-                        y=fft.freq2time(trace)/units.mV,
+                        y=fft.freq2time(trace, electric_field.get_sampling_rate())/units.mV,
                         line=dict(
                             dash='solid',
                             color=colors[i_trace%len(colors)]
@@ -366,7 +366,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                     time_shift = - trace_start_time_offset
                 fig.append_trace(plotly.graph_objs.Scatter(
                     x=(electric_field.get_times() + time_shift)/units.ns,
-                    y=fft.freq2time(trace)/units.mV,
+                    y=fft.freq2time(trace, electric_field.get_sampling_rate())/units.mV,
                     line=dict(
                         dash='solid',
                         color=colors[i_channel%len(colors)]
