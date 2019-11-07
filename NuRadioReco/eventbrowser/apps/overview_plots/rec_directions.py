@@ -5,8 +5,29 @@ from NuRadioReco.utilities import units
 from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
 from NuRadioReco.framework.parameters import stationParameters as stnp
+import dash_html_components as html
+import dash_core_components as dcc
+from dash.dependencies import Input, Output, State
+from app import app
+import dataprovider
+provider = dataprovider.DataProvider()
 
-def plot_rec_directions(filename, trigger, jcurrent_selection, station_id, juser_id, provider):
+layout = [
+    html.Div(id='trigger', style={'display': 'none'},
+             children=json.dumps(None)),
+    html.Div([
+        dcc.Graph(id='skyplot-xcorr')
+    ], className='row'),
+    html.Div(id='output')
+]
+
+@app.callback(Output('skyplot-xcorr', 'figure'),
+              [Input('filename', 'value'),
+               Input('trigger', 'children'),
+               Input('event-ids', 'children'),
+               Input('station-id-dropdown', 'value')],
+              [State('user_id', 'children')])
+def plot_rec_directions(filename, trigger, jcurrent_selection, station_id, juser_id):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
