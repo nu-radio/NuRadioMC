@@ -33,7 +33,7 @@ for event in event_reader.run():
     high_low_trigger.run(event, station, det, threshold_high=40 * units.mV, threshold_low=-40 * units.mV)
     multi_high_low_trigger.run(event, station, det, trigger_name="default_multi_high_low", threshold_high=40 * units.mV, threshold_low=-40 * units.mV, n_high_lows=2)
     simple_threshold_trigger.run(event, station, det)
-    phased_array_trigger.run(event, station, det, threshold=40 * units.mV)
-    
-    event_writer.run(event)
+    phased_array_trigger.run(event, station, det, threshold=40 * units.mV,
+                             secondary_channels=[0,1,3,4,6,7])
 
+    event_writer.run(event)

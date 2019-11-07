@@ -11,10 +11,14 @@ new features:
 -Added the internal clock parameter (time since last trigger with ms precision) to ARIANNA paremeters (key number 8)
 -Changed import "detector_sql" to "from NuRadioReco.detector import detector_sql" and .GetSec() to datetime.datetime.fromtimestamp(self.config_tree.TrigStartClock.GetCurrTime()) in the detector.py and readARIANNAdataCalin.py files respectively in order to make it python3 compatible.
 -Updated documentation and made it deployable on github
+-Changed normalization of the frequency spectrum. The amplitude is now given as V/GHz (or V/m/GHz for E-fields) instead of
+   V/GHz/bin. This way, the values of trace.get_frequency_spectrum() are independent of the sampling rate. The fft utilities
+   now also need the sampling rate as an argument.
 
 Detector description can be stored in .nur files
 
 bugfixes:
 -Fixes increase in filesize caused by switch to python3
+-Fixed bug when using no secondary channels on the phased array
 
 version 1.0.0 - 2019/08/30 - first python 3 release
