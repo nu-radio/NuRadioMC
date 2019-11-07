@@ -1,16 +1,120 @@
 import dash
 import json
 import plotly
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, templates, fft
 from NuRadioReco.eventbrowser.default_layout import default_layout
+from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.utilities import geometryUtilities
+from NuRadioReco.utilities import trace_utilities
 import numpy as np
+import dash_html_components as html
+import dash_core_components as dcc
+from dash.dependencies import Input, Output, State
+from app import app
+import os
+import NuRadioReco.detector.antennapattern
+import dataprovider
+provider = dataprovider.DataProvider()
+if 'NURADIORECOTEMPLATES' in os.environ:
+    template_provider = templates.Templates(os.environ.get('NURADIORECOTEMPLATES'))
+else:
+    template_provider = templates.Templates('')
+antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
+
+layout = [
+    html.Div([
+        html.Div([
+            dcc.Dropdown(id='dropdown-traces',
+                options=[
+                    {'label': 'calibrated trace', 'value': 'trace'},
+                    {'label': 'cosmic-ray template', 'value': 'crtemplate'},
+                    {'label': 'neutrino template', 'value': 'nutemplate'},
+                    {'label': 'envelope', 'value': 'envelope'},
+                    {'label': 'from rec. E-field', 'value': 'efield'}
+                ],
+                multi=True,
+                value=["trace"]
+            )
+        ], style={'flex': '1'}),
+        html.Div([
+            dcc.Dropdown(id='dropdown-trace-info',
+                options=[
+                    {'label': 'RMS', 'value': 'RMS'},
+                    {'label': 'L1', 'value': 'L1'}
+                ],
+                multi=True,
+                value=["RMS", "L1"]
+            )
+        ], style={'flex': '1'}),
+    ], style={'display': 'flex'}),
+    html.Div([
+        html.Div([
+            html.Div([
+                html.Div('Template directory', className='input-group-addon'),
+                dcc.Input(id='template-directory-input', placeholder='template directory', className='form-control'),
+                html.Div([
+                    html.Button('load', id='open-template-button', className='btn btn-default')
+                ], className='input-group-btn')
+            ], className='input-group', id='template-input-group')
+        ], style={'flex': '1'}),
+        html.Div('', style={'flex': '1'})
+    ], style={'display': 'flex'}),
+    dcc.Graph(id='time-traces')
+]
+
+@app.callback(
+    dash.dependencies.Output('dropdown-traces', 'options'),
+    [dash.dependencies.Input('event-counter-slider', 'value'),
+     dash.dependencies.Input('filename', 'value'),
+     dash.dependencies.Input('station-id-dropdown', 'value')],
+     [State('user_id', 'children')]
+)
+def get_dropdown_traces_options(evt_counter, filename, station_id, juser_id):
+    if filename is None or station_id is None:
+        return []
+    user_id = json.loads(juser_id)
+    ariio = provider.get_arianna_io(user_id, filename)
+    evt = ariio.get_event_i(evt_counter)
+    station = evt.get_station(station_id)
+    options=[
+        {'label': 'calibrated trace', 'value': 'trace'},
+        {'label': 'cosmic-ray template', 'value': 'crtemplate'},
+        {'label': 'neutrino template', 'value': 'nutemplate'},
+        {'label': 'envelope', 'value': 'envelope'},
+        {'label': 'from rec. E-field', 'value': 'recefield'}
+    ]
+    if station.get_sim_station() is not None:
+        if len(station.get_sim_station().get_electric_fields()) > 0:
+            options.append({'label': 'from sim. E-field', 'value': 'simefield'})
+    return options
+
+@app.callback(
+    Output('template-input-group', 'style'),
+    [Input('dropdown-traces', 'value')]
+)
+def show_template_input(trace_dropdown_options):
+    if 'NURADIORECOTEMPLATES' in os.environ:
+        return {'display': 'none'}
+    if 'crtemplate' in trace_dropdown_options or 'nutemplate' in trace_dropdown_options:
+        return {}
+    return {'display': 'none'}
 
 def get_L1(a):
     ct = np.array(a[1:]) ** 2
     l1 = np.max(ct) / (np.sum(ct) - np.max(ct))
     return l1
-    
-def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_info, station_id, open_template_timestamp, juser_id, template_directory, provider):
+
+@app.callback(
+    dash.dependencies.Output('time-traces', 'figure'),
+    [dash.dependencies.Input('event-counter-slider', 'value'),
+     dash.dependencies.Input('filename', 'value'),
+     dash.dependencies.Input('dropdown-traces', 'value'),
+     dash.dependencies.Input('dropdown-trace-info', 'value'),
+     dash.dependencies.Input('station-id-dropdown', 'value'),
+     dash.dependencies.Input('open-template-button', 'n_clicks_timestamp')],
+     [State('user_id', 'children'),
+     State('template-directory-input', 'value')])
+def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_info, station_id, open_template_timestamp, juser_id, template_directory):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
@@ -111,7 +215,6 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
             if(channel.has_parameter(chp.cr_xcorrelations)):
                 xcorr_max = channel.get_parameter(chp.cr_xcorrelations)['cr_ref_xcorr_max']
             flip = np.sign(xcorr_max)
-#             flip = 1
             tttemp = np.arange(0, len(ref_template) * dt, dt)
             yy = flip * ref_template * np.abs(trace).max()
             fig.append_trace(plotly.graph_objs.Scatter(

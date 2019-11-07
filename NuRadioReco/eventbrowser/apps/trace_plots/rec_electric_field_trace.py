@@ -3,8 +3,25 @@ import json
 import plotly
 from NuRadioReco.utilities import units
 from NuRadioReco.eventbrowser.default_layout import default_layout
+import dash_html_components as html
+import dash_core_components as dcc
+from dash.dependencies import Input, Output, State
+from app import app
+import dataprovider
+provider = dataprovider.DataProvider()
 
-def update_time_efieldtrace(trigger, evt_counter, filename, station_id, juser_id, provider):
+layout = [
+    dcc.Graph(id='efield-trace')
+]
+
+@app.callback(
+    dash.dependencies.Output('efield-trace', 'figure'),
+    [dash.dependencies.Input('trigger-trace', 'children'),
+     dash.dependencies.Input('event-counter-slider', 'value'),
+     dash.dependencies.Input('filename', 'value'),
+     dash.dependencies.Input('station-id-dropdown', 'value')],
+     [State('user_id', 'children')])
+def update_time_efieldtrace(trigger, evt_counter, filename, station_id, juser_id):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
