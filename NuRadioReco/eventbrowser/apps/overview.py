@@ -1,16 +1,7 @@
 from __future__ import absolute_import, division, print_function  # , unicode_literals
-from dash.dependencies import Input, Output, State
 import time
-import dash
 import radiotools.helper as hp
 import dash_html_components as html
-import dash_core_components as dcc
-import plotly.graph_objs as go
-import plotly
-from plotly import tools
-from plotly import subplots
-import json
-from app import app
 import dataprovider
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
