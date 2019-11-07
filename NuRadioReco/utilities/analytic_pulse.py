@@ -111,4 +111,4 @@ def get_analytic_pulse(amp_p0, amp_p1, phase_p0, n_samples_time,
                                  bandpass=bandpass,
                                  quadratic_term=quadratic_term,
                                  quadratic_term_offset=quadratic_term_offset)
-    return fft.freq2time(xx)
+    return fft.freq2time(xx, sampling_rate)
