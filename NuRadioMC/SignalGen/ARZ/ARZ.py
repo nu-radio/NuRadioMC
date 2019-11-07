@@ -336,6 +336,7 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     dt_divider_Q = int(np.abs(1000 * dt / length[-1] / z_to_t)) + 1
     dt_divider_RAC = int(np.abs(dt / (10 * units.ps))) + 1
     dt_divider = max(dt_divider_Q, dt_divider_RAC)
+    dt_divider = 1
     dz = dt / dt_divider / z_to_t
     if dt_divider != 1:
         logger.debug(f"z-step of {dt / z_to_t:g} too large; dt_divider changed to {dt_divider:d}")
@@ -367,10 +368,15 @@ def get_vector_potential_convolution(shower_energy, theta, N, dt, profile_depth,
     t_start = ttt[0]
     n_extra_beginning = int((t_start + t_tolerance) / dz / z_to_t) + 1
     n_extra_end = (int((t_tolerance - t_start) / dz / z_to_t) + 1 + n_Q - N * dt_divider)
+    n_extra_end = 0
+    n_extra_beginning = 0
     n_RAC = (N * dt_divider + 1 - n_Q + n_Q_negative + n_extra_beginning + n_extra_end)
+    logger.debug(f"N = {N}, n_Rac = {n_RAC}, dz = {dz}")
 #     t_RAC_vals = (np.arange(n_RAC) * dz * z_to_t + t_start - n_extra_beginning * dz * z_to_t)
     z_RAC_vals = np.arange(n_RAC) * dz
-    t_RAC_vals = z_RAC_vals / c - n_index / c * np.sqrt(X[0] ** 2 + (X[2] - z_RAC_vals) ** 2)
+    t_RAC_vals = z_RAC_vals / c - n_index / c * np.sqrt(X[0] ** 2 + (X[2] - z_RAC_vals) ** 2) + 4000
+    print("t_RAC_vals")
+    print(t_RAC_vals)
     RA_C = get_RAC(t_RAC_vals, shower_energy, shower_type)
 
     u_x = X[0] / distance
@@ -699,6 +705,279 @@ def get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profil
     fc = 4. * np.pi / (xmu * np.sin(cher))
 
     vp = np.zeros((N, 3))
+    for it, t in enumerate(ttt):
+        tobs = t + (get_dist_shower(X, 0) / c * xn)
+        z = length
+
+        R = get_dist_shower(X, z)
+        arg = z - (beta * c * tobs - xn * R)
+
+        # Note that Acher peaks at tt=0 which corresponds to the observer time.
+        # The shift from tobs to tt=0 is done when defining argument
+        tt = (-arg / (c * beta))  # Parameterisation of A_Cherenkov with t in ns
+
+        mask = abs(tt) < 20. * units.ns
+        if(np.sum(mask) == 0):  #
+            vp[it] = 0
+            continue
+
+        profile_dense2 = profile_dense
+        profile_ce_interp2 = profile_ce_interp
+        if(interp_factor2 != 1):
+            # we only need to interpolate between +- 1ns to achieve a better precision in the numerical integration
+            # the following code finds the indices sourrounding the bins fulfilling these condition
+            # please not that we often have two distinct intervals having -1 < tt < 1
+            tmask = (tt < 1 * units.ns) & (tt > -1 * units.ns)
+            gaps = (tmask[1:] ^ tmask[:-1])  # xor
+            indices = np.arange(len(gaps))[gaps]  # the indices in between tt is within -+ 1ns
+            if(len(indices) != 0):  # only interpolate if we have time within +- 1 ns of the observer time
+                # now we add the corner cases of having the tt array start or end with an entry fulfilling the condition
+                if(len(indices) % 2 != 0):
+                    if((tt[0] < 1 * units.ns) and (tt[0] > -1 * units.ns) and indices[0] != 0):
+                        indices = np.append(0, indices)
+                    else:
+                        if(indices[-1] != (len(tt) - 1)):
+                            indices = np.append(indices, len(tt) - 1)
+                if(len(indices) % 2 == 0):  # this rejects the cases where only the first or the last entry fulfills the -1 < tt < 1 condition
+                    dt = tt[1] - tt[0]
+
+                    dp = profile_dense2[1] - profile_dense2[0]
+                    if(len(indices) == 2):  # we have only one interval
+                        i_start = indices[0]
+                        i_stop = indices[1]
+                        profile_dense2 = np.arange(profile_dense[i_start], profile_dense[i_stop], dp / interp_factor2)
+                        profile_ce_interp2 = np.interp(profile_dense2, profile_dense[i_start:i_stop], profile_ce_interp[i_start:i_stop])
+                        profile_dense2 = np.append(np.append(profile_dense[:i_start], profile_dense2), profile_dense[i_stop:])
+                        profile_ce_interp2 = np.append(np.append(profile_ce_interp[:i_start], profile_ce_interp2), profile_ce_interp[i_stop:])
+                    elif(len(indices) == 4):  # we have two intervals, hence, we need to upsample two distinct intervals and put the full array back together.
+                        i_start = indices[0]
+                        i_stop = indices[1]
+                        profile_dense2 = np.arange(profile_dense[i_start], profile_dense[i_stop], dp / interp_factor2)
+                        profile_ce_interp2 = np.interp(profile_dense2, profile_dense[i_start:i_stop], profile_ce_interp[i_start:i_stop])
+
+                        i_start3 = indices[2]
+                        i_stop3 = indices[3]
+                        profile_dense3 = np.arange(profile_dense[i_start3], profile_dense[i_stop3], dp / interp_factor2)
+                        profile_ce_interp3 = np.interp(profile_dense3, profile_dense[i_start3:i_stop3], profile_ce_interp[i_start3:i_stop3])
+
+                        profile_dense2 = np.append(np.append(np.append(np.append(
+                                                        profile_dense[:i_start], profile_dense2),
+                                                           profile_dense[i_stop:i_start3]),
+                                                              profile_dense3),
+                                                                   profile_dense[i_stop3:])
+                        profile_ce_interp2 = np.append(np.append(np.append(np.append(
+                                                profile_ce_interp[:i_start],
+                                                profile_ce_interp2),
+                                                profile_ce_interp[i_stop:i_start3]),
+                                                profile_ce_interp3),
+                                                profile_ce_interp[i_stop3:])
+
+                    else:
+                        raise NotImplementedError("length of indices is not 2 nor 4")  # this should never happen
+                    if 0:
+                        abc = True
+                        i_stop = len(profile_dense) - 1
+                        from matplotlib import pyplot as plt
+                        fig, ax = plt.subplots(1, 1)
+                        ax.plot(tt, color='0.5')
+                        ax.plot(np.arange(len(tmask))[tmask], tt[tmask], 'o')
+                        ax.plot(indices, np.ones_like(indices), 'd')
+        #                 ax.plot(np.arange(len(tmask))[gaps], tt[gaps], 'd')
+                        plt.show()
+
+                    # recalculate parameters for interpolated values
+                    z = profile_dense2 / rho
+                    R = get_dist_shower(X, z)
+                    arg = z - (beta * c * tobs - xn * R)
+                    tt = (-arg / (c * beta))
+                    mask = abs(tt) < 20. * units.ns
+                    tmask = (tt < 1 * units.ns) & (tt > -1 * units.ns)
+
+        F_p = np.zeros_like(tt)
+        # Cut fit above +/-5 ns
+
+        u_x = X[0] / R
+        u_y = X[1] / R
+        u_z = (X[2] - z) / R
+        beta_z = 1.
+        vperp_x = u_x * u_z * beta_z
+        vperp_y = u_y * u_z * beta_z
+        vperp_z = -(u_x * u_x + u_y * u_y) * beta_z
+        v = np.array([vperp_x, vperp_y, vperp_z])
+        """
+        Function F_p Eq.(15) PRD paper.
+        """
+        # Factor accompanying the F_p in Eq.(15) in PRD paper
+        beta = 1.
+        if(np.sum(mask)):
+            # Choose Acher between purely electromagnetic, purely hadronic or mixed shower
+            # Eq.(16) PRD paper.
+            # Refit of ZHAireS results => factor 0.88 in Af_e
+            Af_e = -4.5e-14 * 0.88 * units.V * units.s
+            Af_p = -3.2e-14 * units.V * units.s  # V s
+            E_TeV = shower_energy / units.TeV
+            Acher = np.zeros_like(tt)
+            if(shower_type == "HAD"):
+                mask2 = tt > 0 & mask
+                if(np.sum(mask2)):
+                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.065 * units.ns)) +
+                                          (1. + 3.00 / units.ns * np.abs(tt[mask2])) ** (-2.65))  # hadronic
+                mask2 = tt <= 0 & mask
+                if(np.sum(mask2)):
+                    Acher[mask2] = Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.043 * units.ns)) +
+                                          (1. + 2.92 / units.ns * np.abs(tt[mask2])) ** (-3.21))  # hadronic
+            elif(shower_type == "EM"):
+                mask2 = tt > 0 & mask
+                if(np.sum(mask2)):
+                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.057 * units.ns)) +
+                                          (1. + 2.87 / units.ns * np.abs(tt[mask2])) ** (-3.00))  # electromagnetic
+                mask2 = tt <= 0 & mask
+                if(np.sum(mask2)):
+                    Acher[mask2] = Af_e * E_TeV * (np.exp(-np.abs(tt[mask2]) / (0.030 * units.ns)) +
+                                          (1. + 3.05 / units.ns * np.abs(tt[mask2])) ** (-3.50))  # electromagnetic
+            elif(shower_type == "TAU"):
+                logger.error("Tau showers are not yet implemented")
+                raise NotImplementedError("Tau showers are not yet implemented")
+            else:
+                msg = "showers of type {} are not implemented. Use 'HAD', 'EM' or 'TAU'".format(shower_type)
+                logger.error(msg)
+                raise NotImplementedError(msg)
+            # Obtain "shape" of Lambda-function from vp at Cherenkov angle
+            # xntot = LQ_tot in PRD paper
+            F_p[mask] = Acher[mask] * fc / xntot
+#         F_p[~mask] = 1.e-30 * fc / xntot
+        F_p[~mask] = 0
+
+        vp[it] = np.trapz(-v * profile_ce_interp2 * F_p / R, z)
+        if  0:
+            import matplotlib.pyplot as plt
+            fig, ax = plt.subplots(1, 1)
+            inte = -v * profile_ce_interp2 * F_p / R
+            ax.plot(tt, inte[0], '-')
+            ax.plot(tt, inte[1], '-')
+            ax.plot(tt, inte[2], '-')
+            ax.plot(tt[tmask], inte[0][tmask], 'o')
+            ax.plot(tt[tmask], inte[1][tmask], 'o')
+            ax.plot(tt[tmask], inte[2][tmask], 'o')
+            ax.set_title("{}".format(vp[it]))
+            plt.show()
+
+    vp *= factor
+    if 0:
+        import matplotlib.pyplot as plt
+        fig, (ax, ax2) = plt.subplots(1, 2)
+        ax.plot(vp)
+        print(vp.shape)
+        t0 = -np.gradient(vp.T[0]) / dt
+        t1 = -np.gradient(vp.T[1]) / dt
+        t2 = -np.gradient(vp.T[2]) / dt
+        trace2 = -np.diff(vp, axis=0) / dt
+#         print(trace.shape)
+        ax2.plot(t0)
+        ax2.plot(t1)
+        ax2.plot(t2)
+
+        ax2.plot(trace2.T[0], '--')
+        ax2.plot(trace2.T[1], '--')
+        ax2.plot(trace2.T[2], '--')
+        plt.show()
+    return vp
+
+
+def get_vector_potential_fast_farfield(shower_energy, theta, N, dt, profile_depth, profile_ce,
+                              shower_type="HAD", n_index=1.78, distance=1 * units.m,
+                              interp_factor=1., interp_factor2=100., shift_for_xmax=False):
+    """
+    fast interpolation of time-domain calculation of vector potential of the 
+    Askaryan pulse from a charge-excess profile
+    
+    Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples. 
+    
+    The numerical integration was replaces by a sum using the trapeoiz rule using vectorized numpy operations
+    
+    Parameters
+    ----------
+    shower_energy: float
+        the energy of the shower
+    theta: float
+        viewing angle, i.e., the angle between shower axis and launch angle of the signal (the ray path)
+    N: int
+        number of samples in the time domain
+    dt: float
+        size of one time bin in units of time
+    profile_depth: array of floats
+        shower depth values of the charge excess profile
+    profile_ce: array of floats
+        charge-excess values of the charge excess profile
+    shower_type: string (default "HAD")
+        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+    n_index: float (default 1.78)
+        index of refraction where the shower development takes place
+    distance: float (default 1km)
+        observation distance, the signal amplitude will be scaled according to 1/R
+    interp_factor: int (default 1)
+        interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial 
+        for small vertex distances but also slows down the calculation proportional to the interpolation factor.
+        if None, the interpolation factor will be calculated from the distance 
+    interp_factor2: int (default 100)
+        interpolation just around the peak of the form factor 
+    shift_for_xmax: bool (default True)
+        if True the observer position is placed relative to the position of the shower maximum, if False it is placed 
+        with respect to (0,0,0) which is the start of the charge-excess profile
+    """
+
+    ttt = np.arange(0, (N + 1) * dt, dt)
+    ttt = ttt + 0.5 * dt - ttt.mean()
+    if(len(ttt) != N + 1):
+        ttt = ttt[:-1]
+    N = len(ttt)
+
+    xn = n_index
+    cher = np.arccos(1. / n_index)
+    beta = 1.
+
+    profile_dense = profile_depth
+    profile_ce_interp = profile_ce
+    if(interp_factor != 1):
+        profile_dense = np.linspace(min(profile_depth), max(profile_depth), interp_factor * len(profile_depth))
+        profile_ce_interp = np.interp(profile_dense, profile_depth, profile_ce)
+    length = profile_dense / rho
+    dxmax = length[np.argmax(profile_ce_interp)]
+#     theta2 = np.arctan(R * np.sin(theta)/(R * np.cos(theta) - dxmax))
+#     logger.warning("theta changes from {:.2f} to {:.2f}".format(theta/units.deg, theta2/units.deg))
+
+    # calculate antenna position in ARZ reference frame
+    # coordinate system is with respect to an origin which is located
+    # at the position where the primary particle is injected in the medium. The reference frame
+    # is z = along shower axis, and x,y are two arbitray directions perpendicular to z
+    # and perpendicular among themselves of course.
+    # For instance to place an observer at a distance R and angle theta w.r.t. shower axis in the x,z plane
+    # it can be simply done by putting in the input file the numerical values:
+    X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta)])
+    if(shift_for_xmax):
+        logger.info("shower maximum at z = {:.1f}m, shifting observer position accordingly.".format(dxmax / units.m))
+        X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta) + dxmax])
+    logger.info("setting observer position to {}".format(X))
+
+    def get_dist_shower(X, z):
+        """
+        Distance from position in shower depth z' to each antenna.
+        Denominator in Eq. (22) PRD paper
+
+        Parameters
+        ----------
+        X: 3dim np. array
+            position of antenna in ARZ reference frame
+        z: shower depth
+        """
+        return (X[0] ** 2 + X[1] ** 2 + (X[2] - z) ** 2) ** 0.5
+
+    # calculate total charged track length
+    xntot = np.sum(profile_ce_interp) * (length[1] - length[0])
+    factor = -xmu / (4. * np.pi)
+    fc = 4. * np.pi / (xmu * np.sin(cher))
+
+    vp = np.zeros(N)
     for it, t in enumerate(ttt):
         tobs = t + (get_dist_shower(X, 0) / c * xn)
         z = length
