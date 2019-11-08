@@ -6,8 +6,28 @@ from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+import dash_html_components as html
+import dash_core_components as dcc
+from dash.dependencies import Input, Output, State
+from app import app
+import dataprovider
+provider = dataprovider.DataProvider()
 
-def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, station_id, juser_id, provider):
+layout = [
+    html.Div([
+        html.Div([
+            dcc.Graph(id='cr-polarization-zenith')
+        ], style={'flex': '1'}),
+    ], style={'display': 'flex'})
+]
+
+@app.callback(Output('cr-polarization-zenith', 'figure'),
+              [Input('filename', 'value'),
+               Input('btn-open-file', 'value'),
+               Input('event-ids', 'children'),
+               Input('station-id-dropdown', 'value')],
+              [State('user_id', 'children')])
+def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, station_id, juser_id):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
