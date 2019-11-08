@@ -1,8 +1,9 @@
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
-from NuRadioReco.framework.parameters import showerParameters as shP
+from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import units
+from radiotools import coordinatesystems
 
 import h5py
 import numpy as np
@@ -21,7 +22,7 @@ class readCoREASShower:
         self.__t_event_structure = 0
         self.__t_per_event = 0
 
-    def begin(self, input_files, logger_level=logging.NOTSET):
+    def begin(self, input_files, det = None, logger_level=logging.NOTSET):
         """
         begin method
 
@@ -31,9 +32,14 @@ class readCoREASShower:
         ----------
         input_files: input files
             list of coreas hdf5 files
+        det: genericDetector object
+            If a genericDetector is passed, the stations from the CoREAS file
+            will be added to it and the run method returns both the event and
+            the detector
         """
         self.__input_files = input_files
         self.__current_input_file = 0
+        self.__det = det
         logger.setLevel(logger_level)
 
 
@@ -66,8 +72,9 @@ class readCoREASShower:
             evt.__event_time = f_coreas.attrs["GPSSecs"]
 
             sim_shower = coreas.make_sim_shower(corsika)
-            sim_shower.set_parameter(shP.core, np.array([0, 0, f_coreas.attrs["CoreCoordinateVertical"] / 100]))  # overwrite core
+            sim_shower.set_parameter(shp.core, np.array([0, 0, f_coreas.attrs["CoreCoordinateVertical"] / 100]))  # overwrite core
             evt.add_sim_shower(sim_shower)
+            cs = coordinatesystems.cstrafo(sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth), magnetic_field_vector=sim_shower.get_parameter(shp.magnetic_field_vector))
 
             for idx, (name, observer) in enumerate(f_coreas['observers'].items()):
                 station_id = antenna_id(name, idx)  # return proper station id if possible
@@ -77,13 +84,35 @@ class readCoREASShower:
 
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
+                if self.__det is not None:
+                    position = observer.attrs['position']
+                    antenna_position = np.zeros(3)
+                    antenna_position[0], antenna_position[1], antenna_position[2] = -position[1] * units.cm, position[0] * units.cm, position[2] * units.cm
+                    antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
+
+                    if not self.__det.has_station(station_id):
+                        self.__det.add_generic_station({
+                            'station_id': station_id,
+                            'pos_easting': antenna_position[0],
+                            'pos_northing': antenna_position[1],
+                            'pos_altitude': antenna_position[2]
+                        })
+                    else:
+                        self.__det.add_station_properties_for_event({
+                            'pos_easting': antenna_position[0],
+                            'pos_northing': antenna_position[1],
+                            'pos_altitude': antenna_position[2]
+                        }, station_id, evt.get_run_number(), evt.get_id())
 
             self.__t_per_event += time.time() - t_per_event
             self.__t += time.time() - t
 
             self.__current_input_file += 1
-
-            yield evt
+            if self.__det is None:
+                yield evt
+            else:
+                self.__det.set_event(evt.get_run_number(), evt.get_id())
+                yield evt, self.__det
 
     def end(self):
         from datetime import timedelta

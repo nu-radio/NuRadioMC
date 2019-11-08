@@ -54,6 +54,9 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         super(GenericDetector, self).__init__('json', json_filename, assume_inf)
 
         self.__default_station_id = default_station
+        self.__station_changes_for_event = []
+        self.__run_number = None
+        self.__event_id = None
 
         if not self.has_station(self.__default_station_id):
             raise ValueError('The default station {} was not found in the detector description'.format(self.__default_station_id))
@@ -79,6 +82,11 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             if key not in res.keys():
                 #   if a property is missing, we use the value from the default station instead
                 res[key] = self.__default_station[key]
+        if self.__run_number is not None and self.__event_id is not None:
+            for change in self.__station_changes_for_event:
+                if change['station_id'] == station_id and change['run_number'] == self.__run_number and change['event_id'] == self.__event_id:
+                    for name, value in change['properties']:
+                        res[name] = value
         return res
 
     def _query_channels(self, station_id):
@@ -136,3 +144,15 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             new_channel = copy.copy(channel)
             new_channel['station_id'] = station_dict['station_id']
             self._buffered_channels[station_dict['station_id']][channel['channel_id']] = new_channel
+
+    def add_station_properties_for_event(self, properties, station_id, run_number, event_id):
+        self.__station_changes_for_event.append({
+            'run_number': run_number,
+            'event_id': event_id,
+            'station_id': station_id,
+            'properties': properties
+        })
+
+    def set_event(self,run_number, event_id):
+        self.__run_number = run_number
+        self.__event_id = event_id
