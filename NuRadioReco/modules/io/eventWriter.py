@@ -28,7 +28,10 @@ class eventWriter:
     """
 
     def __write_fout_header(self):
-        self.__fout = open('{}.nur'.format(self.__filename), 'wb')
+        if self.__number_of_files > 1:
+            self.__fout = open("{}_part{:02d}.nur".format(self.__filename, self.__number_of_files), 'wb')
+        else:
+            self.__fout = open("{}.nur".format(self.__filename), 'wb')            
         b = bytearray()
         b.extend(VERSION.to_bytes(6, 'little'))
         b.extend(VERSION_MINOR.to_bytes(6, 'little'))
@@ -103,7 +106,7 @@ class eventWriter:
             self.__current_file_size = 0
             self.__fout.close()
             self.__number_of_files += 1
-            self.__filename = "{}_part{:02d}.nur".format(self.__filename, self.__number_of_files)
+            #self.__filename = "{}_part{:02d}".format(self.__filename, self.__number_of_files)
             self.__stored_stations = []
             self.__stored_channels = []
             self.__header_written = False

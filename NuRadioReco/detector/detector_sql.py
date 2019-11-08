@@ -163,7 +163,7 @@ class Detector(object):
                 t[field_name] = r[i]
             result_dict.append(t)
         return result_dict
-    
+
     def get_everything_positions(self):
         cursor = self.__mysql.cursor()
 
@@ -188,7 +188,7 @@ class Detector(object):
                 t[field_name] = r[i]
             result_dict.append(t)
         return result_dict
-    
+
     def get_absolute_position_site(self, pos):
         """
         returns the UTM coordinates
@@ -359,7 +359,7 @@ class Detector(object):
             logger.error("more than one antenna deployment_time return for station channel combination -> bug in detector description, only first element is returned")
         return deployment_time[0][0]
 
-    def get_antanna_orientation(self, station_id, channel_id):
+    def get_antenna_orientation(self, station_id, channel_id):
         """ returns the orientation of a specific antenna
         * orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
         * orientation phi: boresight direction (azimuth angle counting from East counterclockwise)

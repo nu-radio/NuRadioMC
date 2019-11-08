@@ -60,19 +60,12 @@ class channelBandPassFilter:
         """
 
         for channel in station.iter_channels():
-            if isinstance(station, NuRadioReco.framework.sim_station.SimStation):
-                for sub_channel in channel:
-                    self._apply_filter(sub_channel, passband, filter_type, order, True)
-            else:
-#                 print(channel)
-#                 print(self)
-#                 print(self._apply_filter)
-                self._apply_filter(channel, passband, filter_type, order, False)
+            self._apply_filter(channel, passband, filter_type, order, False)
 
     def get_filter(self, frequencies, station_id, channel_id, det, passband, filter_type, order=2):
         """
-        helper function to return the filter that the module applies. 
-        
+        helper function to return the filter that the module applies.
+
         Parameters
         -----------
         frequencies: array of floats
@@ -84,7 +77,7 @@ class channelBandPassFilter:
         det: detector instance
             the detector
         the remaining arguments are the arguments of the run method!
-        
+
         Returns: array of complex floats
             the complex filter amplitudes
         """

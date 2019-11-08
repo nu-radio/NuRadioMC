@@ -85,6 +85,8 @@ class efieldToVoltageConverter:
 
         # access simulated efield and high level parameters
         sim_station = station.get_sim_station()
+        if(len(sim_station.get_electric_fields()) == 0):
+            raise LookupError(f"station {station.get_id()} has no efields")
         sim_station_id = sim_station.get_id()
         event_time = sim_station.get_station_time()
 
@@ -204,7 +206,7 @@ class efieldToVoltageConverter:
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
 
                 if(self.__debug):
-                    axes[1].plot(trace_object.get_times(), fft.freq2time(voltage_fft), label="{}, zen = {:.0f}deg".format(electric_field[efp.ray_path_type], zenith / units.deg))
+                    axes[1].plot(trace_object.get_times(), fft.freq2time(voltage_fft, electric_field.get_sampling_rate()), label="{}, zen = {:.0f}deg".format(electric_field[efp.ray_path_type], zenith / units.deg))
 
                 if('amp' in self.__uncertainty):
                     voltage_fft *= np.random.normal(1, self.__uncertainty['amp'][channel_id])
