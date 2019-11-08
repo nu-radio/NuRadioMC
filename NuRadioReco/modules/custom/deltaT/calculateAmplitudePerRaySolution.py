@@ -15,7 +15,7 @@ import fractions
 from scipy import signal
 from decimal import Decimal
 import NuRadioReco.framework.channel
-from NuRadioMC.utilities import fft
+from NuRadioReco.utilities import fft
 logger = logging.getLogger('calculateAmplitudePerRaySolution')
 
 
@@ -63,7 +63,7 @@ class calculateAmplitudePerRaySolution:
                 # get antenna pattern for current channel
                 antenna_model = det.get_antenna_model(sim_station_id, channel_id, zenith)
                 antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model, interpolation_method='complex')
-                ori = det.get_antanna_orientation(sim_station_id, channel_id)
+                ori = det.get_antenna_orientation(sim_station_id, channel_id)
                 logger.debug("zen {:.0f}, az {:.0f}".format(zenith / units.deg, azimuth / units.deg))
                 VEL = antenna_pattern.get_antenna_response_vectorized(ff, zenith, azimuth, *ori)
 
@@ -73,7 +73,7 @@ class calculateAmplitudePerRaySolution:
                 # Remove DC offset
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
 
-                voltage = fft.freq2time(voltage_fft)
+                voltage = fft.freq2time(voltage_fft, efield.get_sampling_rate())
                 h = np.abs(signal.hilbert(voltage))
                 maximum = np.abs(voltage).max()
                 maximum_envelope = h.max()
