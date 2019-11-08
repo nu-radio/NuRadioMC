@@ -28,7 +28,7 @@ class triggerSimulator:
             triggered_channels=None,
             trigger_name='default_envelope_trigger'):
         """
-        simulate simple trigger logic, no time window, just threshold in all channels
+        simulate simple trigger logic based on a hilbert envelope of the trace, no time window, just threshold in all channels
 
         Parameters
         ----------
@@ -39,9 +39,6 @@ class triggerSimulator:
         trigger_name: string
             a unique name of this particular trigger
         """
-
-        sampling_rate = station.get_channel(0).get_sampling_rate()
-        dt = 1. / sampling_rate
 
         # set maximum signal amplitude
         max_signal = 0
@@ -60,7 +57,6 @@ class triggerSimulator:
         else:
             trigger.set_triggered(True)
             logger.debug("station has triggered")
-
 
         station.set_trigger(trigger)
 
