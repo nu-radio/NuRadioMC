@@ -1,9 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
-from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.trigger import EnvelopeTrigger
 import numpy as np
-import time
 import logging
 from scipy.signal import hilbert
 
@@ -29,7 +27,6 @@ class triggerSimulator:
             trigger_name='default_envelope_trigger'):
         """
         simulate simple trigger logic based on a hilbert envelope of the trace, no time window, just threshold in all channels
-
         Parameters
         ----------
         threshold: float
@@ -47,7 +44,7 @@ class triggerSimulator:
             trace = channel.get_trace()
             amplitude_envelope = np.abs(hilbert(trace))
 
-            max_signal = max(max_signal, amplitude_envelope.max()) # which channels had the highest amplitude
+            max_signal = max(max_signal, amplitude_envelope.max())  # which channels had the highest amplitude
 
         trigger = EnvelopeTrigger(trigger_name, threshold, triggered_channels)
 
