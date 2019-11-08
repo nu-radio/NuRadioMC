@@ -10,23 +10,6 @@ from scipy.signal import hilbert
 logger = logging.getLogger('envelopeTrigger')
 
 
-def get_envelope_triggers(trace, threshold):
-    """
-    calculats a Hilbert-envelope based trigger
-
-    Parameters
-    ----------
-    trace: array of floats
-        the signal trace
-    threshold: float
-        the threshold
-    Returns
-    -------
-    triggered bins: array of bools
-        the bins where the trigger condition is satisfied
-    """
-    return np.abs(trace) >= threshold
-
 class triggerSimulator:
     """
     Calculate a simple amplitude trigger depending on the Hilbert-envelope.
