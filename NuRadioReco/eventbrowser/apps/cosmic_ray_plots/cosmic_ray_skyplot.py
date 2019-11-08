@@ -5,8 +5,26 @@ from NuRadioReco.utilities import units
 from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
+import dash_html_components as html
+import dash_core_components as dcc
+from dash.dependencies import Input, Output, State
+from app import app
+import dataprovider
+provider = dataprovider.DataProvider()
 
-def cosmic_ray_skyplot(filename, trigger, jcurrent_selection, btn, station_id, juser_id, provider):
+layout = [
+    dcc.Graph(id='cr-skyplot'),
+]
+
+@app.callback(Output('cr-skyplot', 'figure'),
+              [Input('filename', 'value'),
+               Input('trigger', 'children'),
+               Input('event-ids', 'children'),
+               Input('btn-open-file', 'value'),
+               Input('station-id-dropdown', 'value')],
+              [State('user_id', 'children')])
+def cosmic_ray_skyplot(filename, trigger, jcurrent_selection, btn, station_id, juser_id):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)

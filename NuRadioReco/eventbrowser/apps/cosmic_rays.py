@@ -25,45 +25,16 @@ logger = logging.getLogger('traces')
 provider = dataprovider.DataProvider()
 
 layout = html.Div([
-    #Sim Traces Plot
     html.Div([
         html.Div([
             html.Div([
                 html.Div('Polarization', className='panel-heading'),
-                html.Div([
-                    html.Div([
-                        html.Div([
-                            dcc.Graph(id='cr-polarization-zenith')
-                        ], style={'flex': '1'}),
-                    ], style={'display': 'flex'})
-                ], className='panel-body')
+                html.Div(NuRadioReco.eventbrowser.apps.cosmic_ray_plots.cosmic_ray_polarization_zenith.layout, className='panel-body')
             ], className='panel panel-default', style={'flex': '1'}),
             html.Div([
                 html.Div('Direction Reconstruction', className='panel-heading', style={'display': 'flex'}),
-                html.Div([
-                    dcc.Graph(id='cr-skyplot'),
-                ], className='panel-body')
+                html.Div(NuRadioReco.eventbrowser.apps.cosmic_ray_plots.cosmic_ray_skyplot.layout, className='panel-body')
             ], className='panel panel-default', style={'flex': '1'})
         ], style={'display': 'flex'})
     ])
 ])
-
-
-@app.callback(Output('cr-polarization-zenith', 'figure'),
-              [Input('filename', 'value'),
-               Input('btn-open-file', 'value'),
-               Input('event-ids', 'children'),
-               Input('station-id-dropdown', 'value')],
-              [State('user_id', 'children')])
-def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, station_id, juser_id):
-    return NuRadioReco.eventbrowser.apps.cosmic_ray_plots.cosmic_ray_polarization_zenith.plot_cr_polarization_zenith(filename, btn, jcurrent_selection, station_id, juser_id, provider)
-
-@app.callback(Output('cr-skyplot', 'figure'),
-              [Input('filename', 'value'),
-               Input('trigger', 'children'),
-               Input('event-ids', 'children'),
-               Input('btn-open-file', 'value'),
-               Input('station-id-dropdown', 'value')],
-              [State('user_id', 'children')])
-def plot_skyplot(filename, trigger, jcurrent_selection, btn, station_id, juser_id):
-    return NuRadioReco.eventbrowser.apps.cosmic_ray_plots.cosmic_ray_skyplot.cosmic_ray_skyplot(filename, trigger, jcurrent_selection, btn, station_id, juser_id, provider)
