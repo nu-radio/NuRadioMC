@@ -264,7 +264,9 @@ class triggerSimulator:
 
         trace_times = station.get_channel(0).get_times()
         trigger_times = np.array(trigger_times)
-        for trace_time in trace_times:
+        slice_left = int(coinc_window/2/(trace_times[1]-trace_times[0]))
+        slice_right = len(trace_times)-slice_left
+        for trace_time in trace_times[slice_left:slice_right]:
             if ( np.sum( np.abs(trace_time-trigger_times) <= coinc_window/2 ) >= number_concidences ):
                 has_triggered = True
                 trigger_time_sample = np.min(trigger_times)
