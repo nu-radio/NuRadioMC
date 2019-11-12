@@ -1,7 +1,6 @@
 import NuRadioReco.modules.io.coreas.readCoREASShower
 import NuRadioReco.modules.io.eventWriter
 from NuRadioReco.utilities import units
-
 from NuRadioReco.framework.parameters import showerParameters as shP
 
 from NuRadioReco.detector import generic_detector as detector
@@ -22,7 +21,7 @@ parser.add_argument('--detectordescription', type=str, nargs='?',
 args = parser.parse_args()
 
 # initialize modules
-det = detector.GenericDetector(json_filename=args.detectordescription, default_station=102)
+det = detector.GenericDetector(json_filename=args.detectordescription, default_station=102, default_channel=0)
 readCoREASShower = NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower()
 readCoREASShower.begin(args.inputfilename, det)
 
