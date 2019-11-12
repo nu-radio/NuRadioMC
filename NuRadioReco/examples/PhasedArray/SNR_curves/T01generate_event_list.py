@@ -11,7 +11,7 @@ WARNING: This file needs NuRadioMC installed. https://github.com/nu-radio/NuRadi
 """
 
 from __future__ import absolute_import, division, print_function
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 import numpy as np
 import os
