@@ -20,5 +20,6 @@ Detector description can be stored in .nur files
 bugfixes:
 -Fixes increase in filesize caused by switch to python3
 -Fixed bug when using no secondary channels on the phased array
+-Fixed bug when using ARA trigger
 
 version 1.0.0 - 2019/08/30 - first python 3 release
