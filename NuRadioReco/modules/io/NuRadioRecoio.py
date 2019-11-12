@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import NuRadioReco.framework.event
 import NuRadioReco.detector.detector
+import NuRadioReco.detector.generic_detector
 import NuRadioReco.modules.io.event_parser_factory
 import numpy as np
 import logging
@@ -221,6 +222,13 @@ class NuRadioRecoio(object):
         event is given.
         """
         if self._current_file_id not in self.__detectors.keys():
+            detector_dict = self._detector_dicts[self._current_file_id]
+            if 'generic_detector' in detector_dict.keys():
+                if detector_dict['generic_detector']:
+                    print('creating generic detector')
+                    self.__detectors[self._current_file_id] = NuRadioReco.detector.generic_detector.GenericDetector.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
+                    self.__detectors[self._current_file_id].__init__(source='dictionary', json_filename='', dictionary=detector_dict, default_station=detector_dict['default_station'], default_channel=detector_dict['default_channel'])
+                    return self.__detectors[self._current_file_id]
             self.__detectors[self._current_file_id] = NuRadioReco.detector.detector.Detector.__new__(NuRadioReco.detector.detector.Detector)
             self.__detectors[self._current_file_id].__init__(source='dictionary', json_filename='', dictionary=self._detector_dicts[self._current_file_id])
         return self.__detectors[self._current_file_id]
