@@ -31,7 +31,7 @@ class eventWriter:
         if self.__number_of_files > 1:
             self.__fout = open("{}_part{:02d}.nur".format(self.__filename, self.__number_of_files), 'wb')
         else:
-            self.__fout = open("{}.nur".format(self.__filename), 'wb')            
+            self.__fout = open("{}.nur".format(self.__filename), 'wb')
         b = bytearray()
         b.extend(VERSION.to_bytes(6, 'little'))
         b.extend(VERSION_MINOR.to_bytes(6, 'little'))
@@ -131,28 +131,40 @@ class eventWriter:
         return event_bytearray
 
     def __get_detector_dict(self, event, det):
+        is_generic_detector = isinstance(det, generic_detector.GenericDetector)
         det_dict = {
+            "generic_detector": is_generic_detector,
             "channels": {},
             "stations": {}
         }
+        if is_generic_detector:
+            det_dict['default_station'] = det.get_default_station_id()
+            det_dict['default_channel'] = det.get_default_channel_id()
         i_station = 0
         i_channel = 0
         for station in event.get_stations():
-            if not self.__is_station_already_in_file(station):
-                if not isinstance(det, generic_detector.GenericDetector):
+            if not self.__is_station_already_in_file(station.get_id(), station.get_station_time()):
+                if not is_generic_detector:
                     det.update(station.get_station_time())
-
-                station_description = det.get_station(station.get_id())
-                det_dict['stations'][str(i_station)] = station_description
-                self.__stored_stations.append({
+                    station_description = det.get_station(station.get_id())
+                    self.__stored_stations.append({
                     'station_id': station.get_id(),
                     'commission_time': station_description['commission_time'],
                     'decommission_time': station_description['decommission_time']
-                })
+                    })
+                else:
+                    station_description = det.get_raw_station(station.get_id())
+                    self.__stored_stations.append({
+                    'station_id': station.get_id()
+                    })
+                det_dict['stations'][str(i_station)] = station_description
                 i_station += 1
             for channel in station.iter_channels():
-                if not self.__is_channel_already_in_file(station, channel):
-                    channel_description = det.get_channel(station.get_id(), channel.get_id())
+                if not self.__is_channel_already_in_file(station.get_id(), channel.get_id(), station.get_station_time()):
+                    if not is_generic_detector:
+                        channel_description = det.get_channel(station.get_id(), channel.get_id())
+                    else:
+                        channel_description = det.get_raw_channel(station.get_id(), channel.get_id())
                     det_dict['channels'][str(i_channel)] = channel_description
                     self.__stored_channels.append({
                         'station_id': station.get_id(),
@@ -161,6 +173,26 @@ class eventWriter:
                         'decommission_time': channel_description['decommission_time']
                     })
                     i_channel += 1
+        #If we have a genericDetector, the default station may not be in the event.
+        #In that case, we have to add it manually to make sure it ends up in the file
+        if is_generic_detector:
+            if not self.__is_station_already_in_file(det.get_default_station_id(), None):
+                station_description = det.get_raw_station(det.get_default_station_id())
+                self.__stored_stations.append({
+                'station_id': station.get_id()
+                })
+                det_dict['stations'][str(i_station)] = station_description
+                for channel_id in det.get_channel_ids(det.get_default_station_id()):
+                    if not self.__is_channel_already_in_file(det.get_default_station_id(), channel_id, None):
+                        channel_description = det.get_raw_channel(det.get_default_station_id(), channel_id)
+                        det_dict['channels'][str(i_channel)] = channel_description
+                        self.__stored_channels.append({
+                            'station_id': det.get_default_station_id(),
+                            'channel_id': channel_id,
+                            'commission_time': channel_description['commission_time'],
+                            'decommission_time': channel_description['decommission_time']
+                        })
+                        i_channel += 1
         if i_station == 0 and i_channel == 0:   #All stations and channels have already been saved
             return None
         else:
@@ -178,17 +210,24 @@ class eventWriter:
         detector_bytearray.extend(detector_string)
         return detector_bytearray
 
-    def __is_station_already_in_file(self, station):
+
+    def __is_station_already_in_file(self, station_id, station_time):
         for entry in self.__stored_stations:
-            if entry['station_id'] == station.get_id():
-                if entry['commission_time'] < station.get_station_time() and entry['decommission_time'] > station.get_station_time():
+            if entry['station_id'] == station_id:
+                #if there is no commission and decommission time it is a generic detector and we don't have to check
+                if 'commission_time' not in entry.keys() and 'decommission_time' not in entry.keys():
+                    return True
+                #it's a normal detector and we have to check commission/decommission times
+                if entry['commission_time'] < station_time and entry['decommission_time'] > station_time:
                     return True
         return False
 
-    def __is_channel_already_in_file(self, station, channel):
+    def __is_channel_already_in_file(self, station_id, channel_id, station_time):
         for entry in self.__stored_channels:
-            if entry['station_id'] == station.get_id() and entry['channel_id'] == channel.get_id():
-                if entry['commission_time'] < station.get_station_time() and entry['decommission_time'] > station.get_station_time():
+            if entry['station_id'] == station_id and entry['channel_id'] == channel_id:
+                if 'commission_time' not in entry.keys() and 'decommission_time' not in entry.keys():
+                    return True
+                if entry['commission_time'] < station_time and entry['decommission_time'] > station_time:
                     return True
         return False
 

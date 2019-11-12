@@ -82,11 +82,20 @@ def scan_files_function(version_major, version_minor):
             self._bytes_length[iF].append(bytes_to_read)
         elif object_type == 1:  #object is detector info
             detector_dict = pickle.loads(self._get_file(iF).read(bytes_to_read))
+            print('!!!', detector_dict)
+            if 'generic_detector' not in detector_dict.keys():
+                is_generic_detector = False
+            else:
+                is_generic_detector = detector_dict['generic_detector']
             if iF not in self._detector_dicts.keys():
                 self._detector_dicts[iF] = {
+                    'generic_detector': is_generic_detector,
                     'channels': {},
                     'stations': {}
                 }
+            if is_generic_detector:
+                self._detector_dicts[iF]['default_station'] = detector_dict['default_station']
+                self._detector_dicts[iF]['default_channel'] = detector_dict['default_channel']
             for station in detector_dict['stations'].values():
                 if len(self._detector_dicts[iF]['stations'].keys()) == 0:
                     index = 0

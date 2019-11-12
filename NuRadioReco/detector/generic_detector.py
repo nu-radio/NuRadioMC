@@ -31,7 +31,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
     therefore not be used for real data, but only for simulation studies.
     This detector only accepts json detector descriptions.
     """
-    def __init__(self, json_filename, default_station, default_channel=None, assume_inf=True):
+    def __init__(self, json_filename, default_station, default_channel=None, source='json', dictionary=None, assume_inf=True):
         """
         Initialize the stations detector properties.
 
@@ -51,9 +51,10 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         assume_inf : Bool
             Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
         """
-        super(GenericDetector, self).__init__('json', json_filename, assume_inf)
+        super(GenericDetector, self).__init__(source, json_filename, dictionary, assume_inf)
 
         self.__default_station_id = default_station
+        self.__default_channel_id = default_channel
         self.__station_changes_for_event = []
         self.__run_number = None
         self.__event_id = None
@@ -72,38 +73,40 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         else:
             self.__default_channel = None
 
-    def _query_station(self, station_id):
+    def _query_station(self, station_id, raw=False):
         Station = Query()
         res = self._stations.get((Station.station_id == station_id))
-        if(res is None):
+        if(res is None and not raw):
             logger.error("query for station {} returned no results".format(station_id))
             raise LookupError("query for station {} returned no results".format(station_id))
-        for key in self.__default_station.keys():
-            if key not in res.keys():
-                #   if a property is missing, we use the value from the default station instead
-                res[key] = self.__default_station[key]
-        if self.__run_number is not None and self.__event_id is not None:
-            for change in self.__station_changes_for_event:
-                if change['station_id'] == station_id and change['run_number'] == self.__run_number and change['event_id'] == self.__event_id:
-                    for name, value in change['properties']:
-                        res[name] = value
+        if not raw:
+            for key in self.__default_station.keys():
+                if key not in res.keys():
+                    #   if a property is missing, we use the value from the default station instead
+                    res[key] = self.__default_station[key]
+            if self.__run_number is not None and self.__event_id is not None:
+                for change in self.__station_changes_for_event:
+                    if change['station_id'] == station_id and change['run_number'] == self.__run_number and change['event_id'] == self.__event_id:
+                        for name, value in change['properties']:
+                            res[name] = value
         return res
 
-    def _query_channels(self, station_id):
+    def _query_channels(self, station_id, raw=False):
         Channel = Query()
         res = self._channels.search((Channel.station_id == station_id))
-        if len(res) == 0:
-            default_channels = self._channels.search((Channel.station_id == self.__default_station_id))
-            res = []
-            for channel in default_channels:
-                new_channel = copy.copy(channel)
-                new_channel['station_id'] = station_id
-                res.append(new_channel)
-        if self.__default_channel is not None:
-            for channel in res:
-                for key in self.__default_channel.keys():
-                    if key not in channel.keys() and key != 'station_id':
-                        channel[key] = self.__default_channel[key]
+        if not raw:
+            if len(res) == 0:
+                default_channels = self._channels.search((Channel.station_id == self.__default_station_id))
+                res = []
+                for channel in default_channels:
+                    new_channel = copy.copy(channel)
+                    new_channel['station_id'] = station_id
+                    res.append(new_channel)
+            if self.__default_channel is not None:
+                for channel in res:
+                    for key in self.__default_channel.keys():
+                        if key not in channel.keys() and key != 'station_id':
+                            channel[key] = self.__default_channel[key]
         return res
 
     def _buffer(self, station_id):
@@ -156,3 +159,31 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
     def set_event(self,run_number, event_id):
         self.__run_number = run_number
         self.__event_id = event_id
+
+    def get_default_station(self):
+        return self.__default_station
+
+    def get_default_station_id(self):
+        return self.__default_station_id
+
+    def get_default_channel(self):
+        return self.__default_channel
+
+    def get_default_channel_id(self):
+        return self.__default_channel_id
+
+    def get_raw_station(self, station_id):
+        station = self._query_station(station_id, True)
+        if station is None:
+            return {
+                "station_id": station_id
+            }
+        else:
+            return station
+
+    def get_raw_channel(self, station_id, channel_id):
+        channels = self._query_channels(station_id, True)
+        for channel in channels:
+            if channel['channel_id'] == channel_id:
+                return channel
+        return None
