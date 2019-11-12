@@ -113,6 +113,52 @@ class triggerSimulator:
 
         return trace_after_tunnel_diode
 
+    def calculate_noise_parameters(self,
+                                   sampling_rate = 1 * units.GHz,
+                                   min_freq = 50 * units.MHz,
+                                   max_freq = 1 * units.GHz,
+                                   amplitude = 10 * units.microvolt,
+                                   type='rayleigh'):
+        """
+        Calculates the mean and the standard deviation for the diode-filtered noise.
+
+        Parameters
+        ----------
+        sampling_rate: float
+            Sampling rate
+        min_freq: float
+            Minimum frequency of the bandwidth
+        max_freq: float
+            Maximum frequency of the bandwidth
+        amplitude: float
+            Voltage amplitude (RMS) for the noise
+        type: string
+            Noise type
+
+        Returns
+        -------
+        power_mean: float
+            Mean of the diode-filtered noise
+        power_std: float
+            Standard deviation of the diode-filtered noise
+        """
+        noise = NuRadioReco.framework.channel.Channel(0)
+
+        long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=min_freq,
+                                        max_freq=max_freq,
+                                        n_samples=10000,
+                                        sampling_rate=sampling_rate,
+                                        amplitude=amplitude,
+                                        type=type)
+
+        noise.set_trace(long_noise, sampling_rate)
+        power_noise = self.tunnel_diode(noise)
+
+        power_mean = np.mean(power_noise)
+        power_std = np.std(power_noise)
+
+        return power_mean, power_std
+
     def has_triggered(self, channel):
         """
         Check if the detector system triggers on a given channel.
@@ -138,11 +184,11 @@ class triggerSimulator:
             # than taken the full ARA signal chain
             noise = NuRadioReco.framework.channel.Channel(0)
 
-            long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=50 * units.MHz,
-                                            max_freq=1000 * units.MHz,
+            long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=130 * units.MHz,
+                                            max_freq=1500 * units.MHz,
                                             n_samples=10000,
                                             sampling_rate=channel.get_sampling_rate(),
-                                            amplitude=20.*units.mV,
+                                            amplitude=16.70*units.microvolt,
                                             type='perfect_white')
 
             noise.set_trace(long_noise, channel.get_sampling_rate())
@@ -156,6 +202,7 @@ class triggerSimulator:
         after_tunnel_diode = self.tunnel_diode(channel)
         low_trigger = (self._power_mean -
                        self._power_std * np.abs(self.power_threshold))
+
         return np.min(after_tunnel_diode) < low_trigger
 
     @register_run()
@@ -200,47 +247,42 @@ class triggerSimulator:
 
         # No coincidence requirement yet
         trigger = {}
+        trigger_times = []
         for channel in station.iter_channels():
             channel_id = channel.get_id()
             if channel_id not in triggered_channels:
                 continue
             trigger[channel_id] = self.has_triggered(channel)
+            if trigger[channel_id]:
+                times = channel.get_times()
+                trace_after_diode = self.tunnel_diode(channel)
+                arg_trigger = np.argwhere( trace_after_diode == np.min(trace_after_diode) )[0,0]
+                trigger_times.append(times[arg_trigger])
 
         has_triggered = False
         trigger_time_sample = None
-        # loop over the trace with a sliding window of "coinc_window"
-        coinc_window_samples = np.int(np.round(coinc_window * channel.get_sampling_rate()))
-        trace_length = len(station.get_channel(0).get_trace())
-        sampling_rate = station.get_channel(0).get_sampling_rate()
 
-        for i in range(0, trace_length - coinc_window_samples):
-            istop = i + coinc_window_samples
-            coinc = 0
-            trigger_times = []
-            for iCh, tr in trigger.items():  # loops through triggers of each channel
-                tr = np.array(tr)
-                mask_trigger_in_coind_window = (tr >= i) & (tr < istop)
-                if(np.sum(mask_trigger_in_coind_window)):
-                    coinc += 1
-                    trigger_times.append(tr[mask_trigger_in_coind_window][0])  # save time/sample of first trigger in
-
-            if coinc >= number_concidences:
+        trace_times = station.get_channel(0).get_times()
+        trigger_times = np.array(trigger_times)
+        for trace_time in trace_times:
+            if ( np.sum( np.abs(trace_time-trigger_times) <= coinc_window/2 ) >= number_concidences ):
                 has_triggered = True
-                trigger_time_sample = min(trigger_times)
+                trigger_time_sample = np.min(trigger_times)
                 break
 
         trigger = IntegratedPowerTrigger(trigger_name, power_threshold,
                                          coinc_window, channels=triggered_channels,
                                          number_of_coincidences=number_concidences,
                                          power_mean=self._power_mean, power_std=self._power_std)
+
         if not has_triggered:
             trigger.set_triggered(False)
             logger.info("Station has NOT passed trigger")
             trigger_time_sample = 0
-            station.get_trigger().set_trigger_time(trigger_time_sample / sampling_rate)
+            trigger.set_trigger_time(trigger_time_sample)
         else:
             trigger.set_triggered(True)
-            trigger.set_trigger_time(trigger_time_sample / sampling_rate)
+            trigger.set_trigger_time(trigger_time_sample)
             logger.info("Station has passed trigger, trigger time is {:.1f} ns (sample {})".format(
                 trigger.get_trigger_time() / units.ns, trigger_time_sample))
 
