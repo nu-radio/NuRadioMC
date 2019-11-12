@@ -184,11 +184,11 @@ class triggerSimulator:
             # than taken the full ARA signal chain
             noise = NuRadioReco.framework.channel.Channel(0)
 
-            long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=130 * units.MHz,
-                                            max_freq=1500 * units.MHz,
+            long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=50 * units.MHz,
+                                            max_freq=1000 * units.MHz,
                                             n_samples=10000,
                                             sampling_rate=channel.get_sampling_rate(),
-                                            amplitude=16.70*units.microvolt,
+                                            amplitude=20 * units.mV,
                                             type='perfect_white')
 
             noise.set_trace(long_noise, channel.get_sampling_rate())
