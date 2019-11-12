@@ -191,13 +191,6 @@
           "station_id": 102
       },
       "11": {
-          "adc_id": null,
-          "adc_n_samples": 256,
-          "adc_nbits": null,
-          "adc_sampling_frequency": 1.0,
-          "adc_time_delay": null,
-          "amp_reference_measurement": null,
-          "amp_type": null,
           "ant_comment": "dipolarized antenna channel north",
           "ant_orientation_phi": 0.0,
           "ant_orientation_theta": 0.0,
@@ -206,15 +199,7 @@
           "ant_position_z": 3.4,
           "ant_rotation_phi": 90.0,
           "ant_rotation_theta": 90.0,
-          "ant_type": "analytic_LPDA",
-          "cab_id": null,
-          "cab_length": 0,
-          "cab_reference_measurement": null,
-          "cab_time_delay": 0,
-          "cab_type": null,
-          "channel_id": 0,
-          "commission_time": "{TinyDate}:2010-11-01T00:00:00",
-          "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+          "channel_id": 1,
           "station_id": 102
       }
     },
