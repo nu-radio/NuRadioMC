@@ -234,6 +234,7 @@ class triggerSimulator:
             if (len(secondary_channels) == 0):
                 only_primary = True
             else:
+                only_primary = False
                 secondary_beam_rolls = self.get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles, ref_index=ref_index)
 
             if only_primary:
