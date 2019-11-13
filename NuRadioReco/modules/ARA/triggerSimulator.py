@@ -260,7 +260,7 @@ class triggerSimulator:
                 trigger_times.append(times[arg_trigger])
 
         has_triggered = False
-        trigger_time_sample = None
+        trigger_time = None
 
         trace_times = station.get_channel(0).get_times()
         trigger_times = np.array(trigger_times)
@@ -269,7 +269,7 @@ class triggerSimulator:
         for trace_time in trace_times[slice_left:slice_right]:
             if ( np.sum( np.abs(trace_time-trigger_times) <= coinc_window/2 ) >= number_concidences ):
                 has_triggered = True
-                trigger_time_sample = np.min(trigger_times)
+                trigger_time = np.min(trigger_times)
                 break
 
         trigger = IntegratedPowerTrigger(trigger_name, power_threshold,
@@ -280,13 +280,13 @@ class triggerSimulator:
         if not has_triggered:
             trigger.set_triggered(False)
             logger.info("Station has NOT passed trigger")
-            trigger_time_sample = 0
-            trigger.set_trigger_time(trigger_time_sample)
+            trigger_time = 0
+            trigger.set_trigger_time(trigger_time)
         else:
             trigger.set_triggered(True)
-            trigger.set_trigger_time(trigger_time_sample)
+            trigger.set_trigger_time(trigger_time)
             logger.info("Station has passed trigger, trigger time is {:.1f} ns (sample {})".format(
-                trigger.get_trigger_time() / units.ns, trigger_time_sample))
+                trigger.get_trigger_time() / units.ns, trigger_time))
 
         station.set_trigger(trigger)
 
