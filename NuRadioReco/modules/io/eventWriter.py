@@ -97,6 +97,11 @@ class eventWriter:
                 detector_bytearray = self.__get_detector_bytearray(detector_dict)
                 self.__fout.write(detector_bytearray)
                 self.__current_file_size += detector_bytearray.__sizeof__()
+            if isinstance(det, generic_detector.GenericDetector):
+                changes_bytearray = self.__get_detector_changes_byte_array(evt, det)
+                if changes_bytearray is not None:
+                    self.__fout.write(changes_bytearray)
+                    self.__current_file_size += changes_bytearray.__sizeof__()
 
         logger.debug("current file size is {} bytes, event number {}".format(self.__current_file_size,
                      self.__number_of_events))
@@ -215,7 +220,7 @@ class eventWriter:
         for entry in self.__stored_stations:
             if entry['station_id'] == station_id:
                 #if there is no commission and decommission time it is a generic detector and we don't have to check
-                if 'commission_time' not in entry.keys() and 'decommission_time' not in entry.keys():
+                if 'commission_time' not in entry.keys() or 'decommission_time' not in entry.keys() or station_time is None:
                     return True
                 #it's a normal detector and we have to check commission/decommission times
                 if entry['commission_time'] < station_time and entry['decommission_time'] > station_time:
@@ -225,11 +230,26 @@ class eventWriter:
     def __is_channel_already_in_file(self, station_id, channel_id, station_time):
         for entry in self.__stored_channels:
             if entry['station_id'] == station_id and entry['channel_id'] == channel_id:
-                if 'commission_time' not in entry.keys() and 'decommission_time' not in entry.keys():
+                if 'commission_time' not in entry.keys() or 'decommission_time' not in entry.keys() or station_time is None:
                     return True
                 if entry['commission_time'] < station_time and entry['decommission_time'] > station_time:
                     return True
         return False
+
+    def __get_detector_changes_byte_array(self, event, det):
+        changes = det.get_station_properties_for_event(event.get_run_number(), event.get_id())
+        if len(changes) == 0:
+            return None
+        changes_string = pickle.dumps(changes, protocol=4)
+        b = bytearray()
+        b.extend(changes_string)
+        changes_length = len(b)
+        changes_bytearray = bytearray()
+        type_marker = 2
+        changes_bytearray.extend(type_marker.to_bytes(6, 'little'))
+        changes_bytearray.extend(changes_length.to_bytes(6, 'little'))
+        changes_bytearray.extend(changes_string)
+        return changes_bytearray
 
     def end(self):
         self.__fout.close()

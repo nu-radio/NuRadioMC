@@ -58,7 +58,6 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         self.__station_changes_for_event = []
         self.__run_number = None
         self.__event_id = None
-
         if not self.has_station(self.__default_station_id):
             raise ValueError('The default station {} was not found in the detector description'.format(self.__default_station_id))
 
@@ -87,7 +86,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             if self.__run_number is not None and self.__event_id is not None:
                 for change in self.__station_changes_for_event:
                     if change['station_id'] == station_id and change['run_number'] == self.__run_number and change['event_id'] == self.__event_id:
-                        for name, value in change['properties']:
+                        for name, value in change['properties'].items():
                             res[name] = value
         return res
 
@@ -149,12 +148,23 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             self._buffered_channels[station_dict['station_id']][channel['channel_id']] = new_channel
 
     def add_station_properties_for_event(self, properties, station_id, run_number, event_id):
+        #Add an entry that specifies that certain aspects of the detector are different for this event
         self.__station_changes_for_event.append({
             'run_number': run_number,
             'event_id': event_id,
             'station_id': station_id,
             'properties': properties
         })
+
+    def get_station_properties_for_event(self, run_number, event_id, station_id=None):
+        #Get all event-dependent changes in the detector description
+        changes = []
+        for change in self.__station_changes_for_event:
+            if (change['run_number'] == run_number and
+            change['event_id'] == event_id):
+                if station_id is None or change['station_id'] == station_id:
+                    changes.append(change)
+        return changes
 
     def set_event(self,run_number, event_id):
         self.__run_number = run_number
@@ -173,6 +183,8 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         return self.__default_channel_id
 
     def get_raw_station(self, station_id):
+        if station_id in self._buffered_stations.keys():
+            return self._buffered_stations[station_id]
         station = self._query_station(station_id, True)
         if station is None:
             return {
@@ -187,3 +199,10 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             if channel['channel_id'] == channel_id:
                 return channel
         return None
+
+    def has_station(self, station_id):
+        if station_id in self._buffered_stations.keys():
+            return True
+        Station = Query()
+        res = self._stations.get(Station.station_id == station_id)
+        return res != None
