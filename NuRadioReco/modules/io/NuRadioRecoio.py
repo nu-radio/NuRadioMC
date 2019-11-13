@@ -100,6 +100,8 @@ class NuRadioRecoio(object):
         self.__open_files = {}
         self._detector_dicts = {}
         self.__detectors = {}
+        self._event_specific_detector_changes = {}
+
 
         self.__event_headers = {}
         if(self.__parse_header):
@@ -228,6 +230,14 @@ class NuRadioRecoio(object):
                     print('creating generic detector')
                     self.__detectors[self._current_file_id] = NuRadioReco.detector.generic_detector.GenericDetector.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
                     self.__detectors[self._current_file_id].__init__(source='dictionary', json_filename='', dictionary=detector_dict, default_station=detector_dict['default_station'], default_channel=detector_dict['default_channel'])
+                    if self._current_file_id in self._event_specific_detector_changes.keys():
+                        for change in self._event_specific_detector_changes[self._current_file_id]:
+                            self.__detectors[self._current_file_id].add_station_properties_for_event(
+                                properties=change['properties'],
+                                station_id=change['station_id'],
+                                run_number=change['run_number'],
+                                event_id=change['event_id']
+                            )
                     return self.__detectors[self._current_file_id]
             self.__detectors[self._current_file_id] = NuRadioReco.detector.detector.Detector.__new__(NuRadioReco.detector.detector.Detector)
             self.__detectors[self._current_file_id].__init__(source='dictionary', json_filename='', dictionary=self._detector_dicts[self._current_file_id])
