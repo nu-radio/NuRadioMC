@@ -199,6 +199,12 @@ class NuRadioRecoio(object):
         event.deserialize(evtstr)
         self.__read_lock = False
         self._current_file_id = file_id
+        self._current_event_id = event.get_id()
+        self._current_run_number = event.get_run_number()
+        if self._current_file_id in self.__detectors.keys():
+            if 'generic_detector' in self._detector_dicts[self._current_file_id]:
+                if self._detector_dicts[self._current_file_id]['generic_detector']:
+                    self.__detectors[self._current_file_id].set_event(self._current_run_number, self._current_event_id)
         return event
 
     def get_event(self, event_id):
@@ -206,6 +212,12 @@ class NuRadioRecoio(object):
             self.__scan_files()
         for i in range(self.get_n_events()):
             if self.__event_ids[i][0] == event_id[0] and self.__event_ids[i][1] == event_id[1]:
+                self._current_run_number = self.__event_ids[i][0]
+                self._current_event_id = self.__event_ids[i][1]
+                if self._current_file_id in self.__detectors.keys():
+                    if 'generic_detector' in self._detector_dicts[self._current_file_id]:
+                        if self._detector_dicts[self._current_file_id]['generic_detector']:
+                            self.__detectors[self._current_file_id].set_event(self._current_run_number, self._current_event_id)
                 return self.get_event_i(i)
         logger.error('event number {} not found in file'.format(event_id))
         return None
@@ -214,6 +226,12 @@ class NuRadioRecoio(object):
         self._current_file_id = 0
         self._get_file(self._current_file_id).seek(12)  # skip file header
         for event in self.__iter_events(self):
+            self._current_event_id = event.get_id()
+            self._current_run_number = event.get_run_number()
+            if self._current_file_id in self.__detectors.keys():
+                if 'generic_detector' in self._detector_dicts[self._current_file_id]:
+                    if self._detector_dicts[self._current_file_id]['generic_detector']:
+                        self.__detectors[self._current_file_id].set_event(self._current_run_number, self._current_event_id)
             yield event
 
     def get_detector(self):
@@ -227,7 +245,6 @@ class NuRadioRecoio(object):
             detector_dict = self._detector_dicts[self._current_file_id]
             if 'generic_detector' in detector_dict.keys():
                 if detector_dict['generic_detector']:
-                    print('creating generic detector')
                     self.__detectors[self._current_file_id] = NuRadioReco.detector.generic_detector.GenericDetector.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
                     self.__detectors[self._current_file_id].__init__(source='dictionary', json_filename='', dictionary=detector_dict, default_station=detector_dict['default_station'], default_channel=detector_dict['default_channel'])
                     if self._current_file_id in self._event_specific_detector_changes.keys():
@@ -238,9 +255,13 @@ class NuRadioRecoio(object):
                                 run_number=change['run_number'],
                                 event_id=change['event_id']
                             )
+                    self.__detectors[self._current_file_id].set_event(self._current_run_number, self._current_event_id)
                     return self.__detectors[self._current_file_id]
             self.__detectors[self._current_file_id] = NuRadioReco.detector.detector.Detector.__new__(NuRadioReco.detector.detector.Detector)
             self.__detectors[self._current_file_id].__init__(source='dictionary', json_filename='', dictionary=self._detector_dicts[self._current_file_id])
+        if 'generic_detector' in self._detector_dicts[self._current_file_id].keys():
+            if self._detector_dicts[self._current_file_id]['generic_detector']:
+                    self.__detectors[self._current_file_id].set_event(self._current_run_number, self._current_event_id)
         return self.__detectors[self._current_file_id]
     def get_n_events(self):
         if(not self.__file_scanned):

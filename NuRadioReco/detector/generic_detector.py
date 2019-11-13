@@ -72,6 +72,17 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         else:
             self.__default_channel = None
 
+    def _get_station(self, station_id):
+        if(station_id not in self._buffered_stations.keys()):
+            self._buffer(station_id)
+        res = copy.copy(self._buffered_stations[station_id])
+        if self.__run_number is not None and self.__event_id is not None:
+            for change in self.__station_changes_for_event:
+                if change['station_id'] == station_id and change['run_number'] == self.__run_number and change['event_id'] == self.__event_id:
+                    for name, value in change['properties'].items():
+                        res[name] = value
+        return res
+
     def _query_station(self, station_id, raw=False):
         Station = Query()
         res = self._stations.get((Station.station_id == station_id))
@@ -83,11 +94,6 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
                 if key not in res.keys():
                     #   if a property is missing, we use the value from the default station instead
                     res[key] = self.__default_station[key]
-            if self.__run_number is not None and self.__event_id is not None:
-                for change in self.__station_changes_for_event:
-                    if change['station_id'] == station_id and change['run_number'] == self.__run_number and change['event_id'] == self.__event_id:
-                        for name, value in change['properties'].items():
-                            res[name] = value
         return res
 
     def _query_channels(self, station_id, raw=False):
