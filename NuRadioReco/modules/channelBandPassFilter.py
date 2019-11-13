@@ -122,11 +122,11 @@ class channelBandPassFilter:
         isFIR = False
 
         if(filter_type == 'rectangular'):
-            trace_fft *= self.get_filter(frequencies, 0, 0, None, passband, filter_type)
+            trace_fft *= self.get_filter(frequencies, passband, filter_type)
         elif(filter_type == 'butter'):
-            trace_fft *= self.get_filter(frequencies, 0, 0, None, passband, filter_type, order)
+            trace_fft *= self.get_filter(frequencies, passband, filter_type, order)
         elif(filter_type == 'butterabs'):
-            trace_fft *= self.get_filter(frequencies, 0, 0, None, passband, filter_type, order)
+            trace_fft *= self.get_filter(frequencies, passband, filter_type, order)
         elif(filter_type.find('FIR') >= 0):
             # print('This is a FIR filter')
             firarray = filter_type.split()
@@ -180,7 +180,7 @@ class channelBandPassFilter:
 #             trace_fft = channel.get_frequency_spectrum()
             isFIR = True
         else:
-            trace_fft *= self.get_filter(frequencies, 0, 0, None, passband, filter_type)
+            trace_fft *= self.get_filter(frequencies, passband, filter_type)
         if isFIR:
             channel.set_trace(trace_fir, sample_rate)
             # print('set trace for fir')
