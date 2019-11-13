@@ -248,39 +248,42 @@ class triggerSimulator:
         # No coincidence requirement yet
         trigger = {}
         trigger_times = []
+        times_min = []
+        times_max = []
+        sampling_rates = []
+        number_triggered_channels = 0
+        
         for channel in station.iter_channels():
             channel_id = channel.get_id()
             if channel_id not in triggered_channels:
                 continue
             trigger[channel_id] = self.has_triggered(channel)
             if trigger[channel_id]:
+                number_triggered_channels += 1
                 times = channel.get_times()
                 trace_after_diode = self.tunnel_diode(channel)
                 arg_trigger = np.argmin(trace_after_diode)
                 trigger_times.append(times[arg_trigger])
+                times_min.append(np.min(times))
+                times_max.append(np.max(times))
+                sampling_rates.append(channel.get_sampling_rate())
 
         has_triggered = False
         trigger_time = None
 
-        times_min = []
-        times_max = []
-        sampling_rates = []
-        for channel in station.iter_channels():
-            times_min.append(np.min(channel.get_times()))
-            times_max.append(np.max(channel.get_times()))
-            sampling_rates.append(channel.get_sampling_rate())
+        if (number_triggered_channels >= number_concidences):
 
-        trace_times = np.arange(np.min(times_min), np.max(times_max),
-                                1/np.min(sampling_rates))
+            trace_times = np.arange(np.min(times_min), np.max(times_max),
+                                    1/np.min(sampling_rates))
 
-        trigger_times = np.array(trigger_times)
-        slice_left = int(coinc_window/2/(trace_times[1]-trace_times[0]))
-        slice_right = len(trace_times)-slice_left
-        for trace_time in trace_times[slice_left:slice_right]:
-            if ( np.sum( np.abs(trace_time-trigger_times) <= coinc_window/2 ) >= number_concidences ):
-                has_triggered = True
-                trigger_time = np.min(trigger_times)
-                break
+            trigger_times = np.array(trigger_times)
+            slice_left = int(coinc_window/2/(trace_times[1]-trace_times[0]))
+            slice_right = len(trace_times)-slice_left
+            for trace_time in trace_times[slice_left:slice_right]:
+                if ( np.sum( np.abs(trace_time-trigger_times) <= coinc_window/2 ) >= number_concidences ):
+                    has_triggered = True
+                    trigger_time = np.min(trigger_times)
+                    break
 
         trigger = IntegratedPowerTrigger(trigger_name, power_threshold,
                                          coinc_window, channels=triggered_channels,
