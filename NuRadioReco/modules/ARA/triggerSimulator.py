@@ -262,7 +262,17 @@ class triggerSimulator:
         has_triggered = False
         trigger_time = None
 
-        trace_times = station.get_channel(0).get_times()
+        times_min = []
+        times_max = []
+        sampling_rates = []
+        for channel in station.iter_channels():
+            times_min.append(np.min(channel.get_times()))
+            times_max.append(np.max(channel.get_times()))
+            sampling_rates.append(channel.get_sampling_rate())
+
+        trace_times = np.arange(np.min(times_min), np.max(times_max),
+                                1/np.min(sampling_rates))
+
         trigger_times = np.array(trigger_times)
         slice_left = int(coinc_window/2/(trace_times[1]-trace_times[0]))
         slice_right = len(trace_times)-slice_left
