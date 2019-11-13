@@ -62,7 +62,7 @@ class channelBandPassFilter:
         for channel in station.iter_channels():
             self._apply_filter(channel, passband, filter_type, order, False)
 
-    def get_filter(self, frequencies, station_id, channel_id, det, passband, filter_type, order=2):
+    def get_filter(self, frequencies, passband, filter_type, order=2):
         """
         helper function to return the filter that the module applies.
 
