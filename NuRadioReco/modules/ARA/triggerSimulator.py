@@ -256,7 +256,7 @@ class triggerSimulator:
             if trigger[channel_id]:
                 times = channel.get_times()
                 trace_after_diode = self.tunnel_diode(channel)
-                arg_trigger = np.argwhere( trace_after_diode == np.min(trace_after_diode) )[0,0]
+                arg_trigger = np.argmin(trace_after_diode)
                 trigger_times.append(times[arg_trigger])
 
         has_triggered = False
