@@ -650,6 +650,48 @@ def get_product_position(data_sets, product, iE):
 
     return x, y, z
 
+def get_zenith_azimuth(declination, right_ascension, latitude, longitude, GST=0):
+    """
+    Calculates the zenith and the azimuth in horizontal coordinates given
+    declination, right_ascension, latitude, longitude, and Greenwich sidereal time.
+
+    Parameters
+    ----------
+    declination: float or array of floats
+        Declination for the arrival direction
+    right_ascension: float or array of floats
+        Right ascension for the arrival direction
+    latitude: float or array of floats
+        Observer latitude
+    longitude: float or array of floats
+        Observer longitude
+    GST: float or array of floats
+        Greenwich sidereal time in radians
+
+    Returns
+    -------
+    zenith: float or array of floats
+        Arrival direction zenith, NOT elevation. 0 is above and pi/2 is the horizon
+    azimuth: float or array of floats
+        Arrival direction azimuth, 0 is East and pi/2 is North
+    """
+    hour_angle = GST + longitude - right_ascension
+    sin_elevation  = np.sin(latitude)*np.sin(declination)
+    sin_elevation += np.cos(latitude)*np.cos(declination)*np.cos(hour_angle)
+    zenith = np.pi/2 - np.arcsin(sin_elevation)
+
+    azimuth = -np.pi/2 - np.arctan2(np.sin(hour_angle),
+                                    np.cos(hour_angle)*np.sin(latitude)-
+                                    np.tan(declination)*np.cos(latitude))
+
+    if (type(azimuth) == np.ndarray):
+        azimuth[azimuth < 0] += 2*np.pi
+    elif (azimuth < 0):
+        azimuth += 2*np.pi
+    import matplotlib.pyplot as plt
+
+    return zenith, azimuth
+
 def generate_surface_muons(filename, n_events, Emin, Emax,
                            fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
                            full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
@@ -945,6 +987,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
                                 thetamin=0.*units.rad, thetamax=np.pi*units.rad,
                                 phimin=0.*units.rad, phimax=2*np.pi*units.rad,
+                                coordinates='horizontal',
+                                observer_lat=-90*units.deg,
+                                observer_lon=0*units.deg,
                                 start_event_id=1,
                                 flavor=[12, -12, 14, -14, 16, -16],
                                 n_events_per_file=None,
@@ -999,7 +1044,18 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     phimin: float
         lower azimuth angle for neutrino arrival direction
     phimax: float
-         upper azimuth angle for neutrino arrival direction
+        upper azimuth angle for neutrino arrival direction
+    coordinates: string
+        string specifying the coordinate system. It can be:
+        - 'horizontal': for generating events in local horizontal coordinates
+        - 'equatorial': for generating events in equatorial coordinates, in order
+        to know the declination dependence of our detector. In this case, thetamin
+        and thetamax should be declination values, while phimix and phimax are
+        ignored, since we assume a random hour angle for generating events.
+    observer_lat: float
+        observer latitude. To be used with equatorial coordinates
+    observer_lon: float
+        observer longitude. To be used with equatorial coordinates
     start_event: int
         default: 1
         event number of first event
@@ -1110,12 +1166,32 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     attributes['phimin'] = phimin
     attributes['phimax'] = phimax
     attributes['deposited'] = deposited
+    attributes['coordinates'] = coordinates
 
     data_sets = {}
     # generate neutrino vertices randomly
-    data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
-    u = np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events)
-    data_sets["zeniths"] = np.arccos(u)  # generates distribution that is uniform in cos(theta)
+    if (coordinates == 'horizontal'):
+        data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
+        u = np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events)
+        data_sets["zeniths"] = np.arccos(u)  # generates distribution that is uniform in cos(theta)
+    elif (coordinates == 'equatorial'):
+        if (thetamin < -np.pi/2 or thetamax < -np.pi/2 or
+            thetamin > np.pi/2 or thetamax > np.pi/2):
+            error_msg  = 'With equatorial coordinates, thetamin and thetamax specify declinations.'
+            error_msg += 'Please choose values between -90 and 90 degrees.'
+            raise ValueError(error_msg)
+        attributes['observer_lat'] = observer_lat
+        attributes['observer_lon'] = observer_lon
+        declinations = np.pi/2-np.arccos(np.random.uniform(np.cos(np.pi/2-thetamin),
+                                                           np.cos(np.pi/2-thetamax), n_events))
+        # We choose random right ascensions and a fixed sidereal time.
+        # This is equivalent to choosing random right ascensions and random
+        # sidereal times - the resulting random azimuths distribution is the same
+        right_ascensions = np.random.uniform(0, 2*np.pi, n_events)
+        zeniths, azimuths = get_zenith_azimuth(declinations, right_ascensions,
+                                               observer_lat, observer_lon)
+        data_sets["zeniths"] = zeniths
+        data_sets["azimuths"] = azimuths
 
     rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
     phiphi = np.random.uniform(0, 2 * np.pi, n_events)
