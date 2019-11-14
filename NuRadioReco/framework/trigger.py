@@ -258,7 +258,8 @@ class IntegratedPowerTrigger(Trigger):
 
 class EnvelopeTrigger(Trigger):
 
-    def __init__(self, name, threshold, channels=None):
+    def __init__(self, name, threshold, channels=None, number_of_coincidences=1,
+                 channel_coincidence_window=None):
         """
         initialize trigger class
 
@@ -271,7 +272,13 @@ class EnvelopeTrigger(Trigger):
         channels: array of ints or None
             the channels that are involved in the trigger
             default: None, i.e. all channels
+        number_of_coincidences: int
+            the number of channels that need to fulfill the trigger condition
+            default: 1
+        channel_coincidence_window: float or None (default)
+            the coincidence time between triggers of different channels
         """
         Trigger.__init__(self, name, channels, 'envelope_trigger')
         self._threshold = threshold
-
+        self._number_of_coincidences = number_of_coincidences
+        self._coinc_window = channel_coincidence_window
