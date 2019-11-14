@@ -688,6 +688,7 @@ def get_zenith_azimuth(declination, right_ascension, latitude, longitude, GST=0)
     """
 
     check_array(declination/units.deg, -90, 90, 'Declination', 'degrees')
+    check_array(right_ascension/units.deg, -180, 180, 'Declination', 'degrees')
     check_array(latitude/units.deg, -90, 90, 'Latitude', 'degrees')
     check_array(longitude/units.deg, -180, 180, 'Longitude', 'degrees')
 
@@ -1203,7 +1204,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         # We choose random right ascensions and a fixed sidereal time.
         # This is equivalent to choosing random right ascensions and random
         # sidereal times - the resulting random azimuths distribution is the same
-        right_ascensions = np.random.uniform(0, 2*np.pi, n_events)
+        right_ascensions = np.random.uniform(-np.pi, np.pi, n_events)
         zeniths, azimuths = get_zenith_azimuth(declinations, right_ascensions,
                                                observer_lat, observer_lon)
         data_sets["zeniths"] = zeniths
