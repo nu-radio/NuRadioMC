@@ -17,6 +17,7 @@ new features:
 - Event generation using PROPOSAL lepton propagation available
 - fft and units utilities are removed. These should be taken from NuRadioReco from now on.
   IMPORTANT: Note that in the fft the frequency spectrum is now given per frequency instead of per bin
+- Events can be generated in declination bands
 
 bugfixes:
 	- fixed that Veff utility script didn't calculate effective volumes for individual triggers
