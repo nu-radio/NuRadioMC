@@ -650,6 +650,17 @@ def get_product_position(data_sets, product, iE):
 
     return x, y, z
 
+def check_array(array, minval, maxval, name, unit):
+
+    error_msg = '{} must be between {:.0f} and {:.0f} {}'.format(name, minval, maxval, unit)
+    if (type(array) == np.ndarray):
+        if (np.any(array < minval) or np.any(array > maxval)):
+            raise ValueError(error_msg)
+    elif (array < minval or array > maxval):
+        raise ValueError(error_msg)
+
+    return None
+
 def get_zenith_azimuth(declination, right_ascension, latitude, longitude, GST=0):
     """
     Calculates the zenith and the azimuth in horizontal coordinates given
@@ -675,6 +686,11 @@ def get_zenith_azimuth(declination, right_ascension, latitude, longitude, GST=0)
     azimuth: float or array of floats
         Arrival direction azimuth, 0 is East and pi/2 is North
     """
+
+    check_array(declination/units.deg, -90, 90, 'Declination', 'degrees')
+    check_array(latitude/units.deg, -90, 90, 'Latitude', 'degrees')
+    check_array(longitude/units.deg, -180, 180, 'Longitude', 'degrees')
+
     hour_angle = GST + longitude - right_ascension
     sin_elevation  = np.sin(latitude)*np.sin(declination)
     sin_elevation += np.cos(latitude)*np.cos(declination)*np.cos(hour_angle)
