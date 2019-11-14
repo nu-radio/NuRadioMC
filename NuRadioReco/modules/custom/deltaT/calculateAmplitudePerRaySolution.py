@@ -15,7 +15,7 @@ import fractions
 from scipy import signal
 from decimal import Decimal
 import NuRadioReco.framework.channel
-from NuRadioMC.utilities import fft
+from NuRadioReco.utilities import fft
 logger = logging.getLogger('calculateAmplitudePerRaySolution')
 
 
