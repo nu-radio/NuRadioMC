@@ -850,7 +850,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     # generate neutrino vertices randomly
     data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
     data_sets["zeniths"] = draw_zeniths(n_events, full_rmax, fiducial_zmax,
-                                        fiducial_zmax-layer_thickness,
+                                        fiducial_zmax-surface_thickness,
                                         thetamin, thetamax)
 
     rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
