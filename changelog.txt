@@ -21,5 +21,6 @@ new features:
 bugfixes:
 	- fixed that Veff utility script didn't calculate effective volumes for individual triggers
 	- fixed that the multiple_triggers key was not created for multiple stations
+	- Angular distribution now accounts for projected area
 
 version 1.0.0 - 2019/08/30 - first python 3 release
