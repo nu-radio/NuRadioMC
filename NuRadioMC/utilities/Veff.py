@@ -264,7 +264,7 @@ def get_Veff_water_equivalent(Veff, density_medium=0.917 * units.g / units.cm **
     return Veff * density_medium / density_water
 
 
-def get_Veff(folder, trigger_combinations={}, station=101):
+def get_Veff(folder, trigger_combinations={}, station=101, correct_zenith_sampling=False):
     """
     calculates the effective volume from NuRadioMC hdf5 files
 
@@ -289,6 +289,8 @@ def get_Veff(folder, trigger_combinations={}, station=101):
 
     station: int
         the station that should be considered
+    correct_zenith_sampling: bool
+        if True, correct a zenith sampling from np.sin(zenith) to an isotropic flux for a cylindrical geometry
 
     Returns
     ----------
@@ -374,6 +376,28 @@ def get_Veff(folder, trigger_combinations={}, station=101):
         area = np.pi * (rmax ** 2 - rmin ** 2)
         V = area * dZ
         Vrms = fin.attrs['Vrms']
+
+        if(correct_zenith_sampling):
+            if(len(weights) > 0):
+                # correct weights to account for incorrect zenith sampling
+                from NuRadioMC.EvtGen.generator import draw_zeniths
+                zeniths1 = draw_zeniths(1e6, rmax, fin.attrs['zmax'], fin.attrs['zmin'], thetamin, thetamax)
+                u = np.random.uniform(np.cos(thetamax), np.cos(thetamin), int(1e6))
+                zeniths2 = np.arccos(u)
+                bins = np.linspace(thetamin, thetamax, 100)
+                N1, bin_edges = np.histogram(zeniths1, bins=bins)
+                N2, bin_edges = np.histogram(zeniths2, bins=bins)
+                X = (bins[1:] + bins[:-1]) * 0.5
+
+                def get_weights(zeniths):
+                    weights = np.zeros_like(zeniths)
+                    for i, z in enumerate(zeniths):
+                        mask = np.argmin(np.abs(z - X))
+                        weights[i] = (N2 / N1)[mask]
+                    logger.warning(f"average correction factor {weights.mean():.2f} max = {weights.max():.2f} min = {weights.min():.2f}")
+                    return weights
+
+                weights *= get_weights(fin['zeniths'])
 
         # Solid angle needed for the effective volume calculations
         out['domega'] = np.abs(phimax - phimin) * np.abs(np.cos(thetamin) - np.cos(thetamax))
