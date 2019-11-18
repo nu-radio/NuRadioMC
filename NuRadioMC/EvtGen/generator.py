@@ -650,6 +650,59 @@ def get_product_position(data_sets, product, iE):
 
     return x, y, z
 
+def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
+    """
+    Generates zenith incoming directions according to a distribution given by
+    the product of the projected area of the cylinder and the sine of theta.
+    The projected area must be there because the total number of neutrinos
+    is proportional to the projected area times the incoming flux. The sine
+    of theta comes from the isotropic distribution, dp/d(cos(theta)) = constant
+
+    Parameters
+    ----------
+    n_events: integer
+        Number of events
+    full_rmax: float
+        Radius of the cylinder
+    full_zmax: float
+        Upper z coordinate for the cylinder
+    full_zmin: float
+        Lower z coordinate for the cylinder
+    thetamin: float
+        Minimum zenith angle
+    thetamax: float
+        Maximum zenith angle
+
+    Returns
+    -------
+    zeniths: array of floats
+        Incoming direction zeniths
+    """
+
+    R = full_rmax
+    d = full_zmax - full_zmin
+
+    def A_proj(theta):
+
+        return np.pi*R**2 * np.abs(np.cos(theta)) + 2*R*d * np.sin(theta)
+
+    def zenith_distribution(theta):
+
+        return A_proj(theta) * np.sin(theta)
+
+    distr_max = np.max(zenith_distribution(np.linspace(thetamin,thetamax, 1000)))
+
+    zeniths = np.array([])
+    while(len(zeniths) < int(n_events)):
+        random_thetas = np.random.uniform(thetamin, thetamax, n_events)
+        random_ys = np.random.uniform(0, distr_max, n_events)
+        mask_accepted = random_ys < zenith_distribution(random_thetas)
+        zeniths = np.concatenate((zeniths, random_thetas[mask_accepted]))
+
+    zeniths = zeniths[0:n_events]
+
+    return np.array(zeniths)
+
 def generate_surface_muons(filename, n_events, Emin, Emax,
                            fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
                            full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
@@ -791,17 +844,20 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     attributes['phimax'] = phimax
     attributes['deposited'] = False
 
+    surface_thickness = 0.1 * units.m
+
     data_sets = {}
     # generate neutrino vertices randomly
     data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
-    u = np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events)
-    data_sets["zeniths"] = np.arccos(u)  # generates distribution that is uniform in cos(theta)
+    data_sets["zeniths"] = draw_zeniths(n_events, full_rmax, fiducial_zmax,
+                                        fiducial_zmax-layer_thickness,
+                                        thetamin, thetamax)
 
     rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
     phiphi = np.random.uniform(0, 2 * np.pi, n_events)
     data_sets["xx"] = rr_full * np.cos(phiphi)
     data_sets["yy"] = rr_full * np.sin(phiphi)
-    data_sets["zz"] = np.random.uniform(fiducial_zmax, fiducial_zmax-0.1*units.m, n_events)
+    data_sets["zz"] = np.random.uniform(fiducial_zmax, fiducial_zmax-surface_thickness, n_events)
 
     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
@@ -1114,8 +1170,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets = {}
     # generate neutrino vertices randomly
     data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
-    u = np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events)
-    data_sets["zeniths"] = np.arccos(u)  # generates distribution that is uniform in cos(theta)
+    data_sets["zeniths"] = draw_zeniths(n_events, full_rmax, full_zmax, full_zmin,
+                                        thetamin, thetamax)
 
     rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
     phiphi = np.random.uniform(0, 2 * np.pi, n_events)
