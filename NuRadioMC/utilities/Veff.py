@@ -154,6 +154,10 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
             fin.attrs['phimax']
         dZ = fin.attrs['zmax'] - fin.attrs['zmin']
         area = np.pi * (rmax ** 2 - rmin ** 2)
+        # The used area must be the projected area, perpendicular to the incoming
+        # flux, which leaves us with the following correction. Remember that the
+        # zenith bins must be small for the effective area to be correct.
+        proj_area = area * 0.5 * (np.abs(np.cos(thetamin))+np.abs(np.cos(thetamax)))
         V = area * dZ
         Vrms = fin.attrs['Vrms']
 
@@ -174,7 +178,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
         else:
             for iT, trigger_name in enumerate(trigger_names):
                 triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
-                Aeff = area * np.sum(weights[triggered]) / n_events
+                Aeff = proj_area * np.sum(weights[triggered]) / n_events
                 Aeff_error = 0
                 if(np.sum(weights[triggered]) > 0):
                     Aeff_error = Aeff / np.sum(weights[triggered]) ** 0.5
@@ -228,7 +232,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
                     mask = np.array([sol[i, values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=np.bool)
                     triggered = triggered & mask
 
-                Aeff = area * np.sum(weights[triggered]) / n_events
+                Aeff = proj_area * np.sum(weights[triggered]) / n_events
 
                 if('efficiency' in values.keys()):
                     SNReff, eff = np.loadtxt("analysis_efficiency_{}.csv".format(values['efficiency']), delimiter=",", unpack=True)
@@ -237,7 +241,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
                     if('efficiency_scale' in values.keys()):
                         As *= values['efficiency_scale']
                     e = get_eff(As / Vrms)
-                    Aeff = area * np.sum((weights * e)[triggered]) / n_events
+                    Aeff = proj_area * np.sum((weights * e)[triggered]) / n_events
 
                 out['Aeffs'][trigger_name] = [Aeff, Aeff / np.sum(weights[triggered]) ** 0.5, np.sum(weights[triggered])]
         Aeff_output.append(out)
