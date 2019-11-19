@@ -666,6 +666,26 @@ def get_product_position(data_sets, product, iE):
     return x, y, z
 
 
+def A_proj(theta, R, d):
+    """
+    calculates the projected area of a cylinder
+    
+    Parameters
+    ----------
+    theta: float
+        zenith angle
+    R: float
+        radius of zylinder
+    d: float
+        height of zylinder
+    
+    Returns: 
+    float: projected ares
+    """
+
+    return np.pi * R ** 2 * np.abs(np.cos(theta)) + 2 * R * d * np.sin(theta)
+
+
 def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
     """
     Generates zenith incoming directions according to a distribution given by
@@ -699,15 +719,10 @@ def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
     R = full_rmax
     d = full_zmax - full_zmin
 
-    def A_proj(theta):
+    def zenith_distribution(theta, R, d):
+        return A_proj(theta, R, d) * np.sin(theta)
 
-        return np.pi * R ** 2 * np.abs(np.cos(theta)) + 2 * R * d * np.sin(theta)
-
-    def zenith_distribution(theta):
-
-        return A_proj(theta) * np.sin(theta)
-
-    distr_max = np.max(zenith_distribution(np.linspace(thetamin, thetamax, 1000)))
+    distr_max = np.max(zenith_distribution(np.linspace(thetamin, thetamax, 1000), R, d))
 
     zeniths = np.array([])
     while(len(zeniths) < n_events):

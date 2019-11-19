@@ -157,7 +157,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
         # The used area must be the projected area, perpendicular to the incoming
         # flux, which leaves us with the following correction. Remember that the
         # zenith bins must be small for the effective area to be correct.
-        proj_area = area * 0.5 * (np.abs(np.cos(thetamin))+np.abs(np.cos(thetamax)))
+        proj_area = area * 0.5 * (np.abs(np.cos(thetamin)) + np.abs(np.cos(thetamax)))
         V = area * dZ
         Vrms = fin.attrs['Vrms']
 
@@ -383,25 +383,33 @@ def get_Veff(folder, trigger_combinations={}, station=101, correct_zenith_sampli
 
         if(correct_zenith_sampling):
             if(len(weights) > 0):
-                # correct weights to account for incorrect zenith sampling
-                from NuRadioMC.EvtGen.generator import draw_zeniths
-                zeniths1 = draw_zeniths(1e6, rmax, fin.attrs['zmax'], fin.attrs['zmin'], thetamin, thetamax)
-                u = np.random.uniform(np.cos(thetamax), np.cos(thetamin), int(1e6))
-                zeniths2 = np.arccos(u)
-                bins = np.linspace(thetamin, thetamax, 100)
-                N1, bin_edges = np.histogram(zeniths1, bins=bins)
-                N2, bin_edges = np.histogram(zeniths2, bins=bins)
-                X = (bins[1:] + bins[:-1]) * 0.5
 
-                def get_weights(zeniths):
-                    weights = np.zeros_like(zeniths)
-                    for i, z in enumerate(zeniths):
-                        mask = np.argmin(np.abs(z - X))
-                        weights[i] = (N2 / N1)[mask]
-                    logger.warning(f"average correction factor {weights.mean():.2f} max = {weights.max():.2f} min = {weights.min():.2f}")
+                from NuRadioMC.EvtGen.generator import A_proj
+
+                def get_weights(zeniths, thetamin, thetamax, R, d):
+                    """
+                    calculates a correction to the weight to go from a zenith distribution proportional from
+                    theta ~ sin(theta) to an isotropic flux, i.e., the same number of events for the same 
+                    projected area perpendicular to the incoming direction.  
+                    
+                    """
+                    zeniths = np.array(zeniths)
+                    yy = A_proj(zeniths, R, d)
+
+                    def integral(theta, R, d):
+                        """
+                        integral of Aproj
+                        """
+                        return (-np.pi * R ** 2 * 0.5 * np.cos(theta) ** 2 * np.sign(np.cos(theta)) + 0.5 * 2 * R * d * (theta - np.sin(theta) * np.cos(theta)))
+
+                    # calculate the average value of Aproj within the zenith band -> int(Aproc(theta) dcostheta)/int(1, dcostheta)
+                    norm = integral(thetamax, R, d) - integral(thetamin, R, d)  # int(Aproc(theta) dcostheta)
+                    norm /= (np.cos(thetamin) - np.cos(thetamax))  # int(1, dcostheta)
+                    weights = yy / norm
+                    logger.debug(f"{thetamin/units.deg:.0f} - {thetamax/units.deg:.0f}: average correction factor {weights.mean():.2f} max = {weights.max():.2f} min = {weights.min():.2f}")
                     return weights
 
-                weights *= get_weights(fin['zeniths'])
+                weights *= get_weights(fin['zeniths'], thetamin, thetamax, rmax, dZ)
 
         # Solid angle needed for the effective volume calculations
         out['domega'] = np.abs(phimax - phimin) * np.abs(np.cos(thetamin) - np.cos(thetamax))
