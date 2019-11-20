@@ -42,7 +42,7 @@ class CustomDetector():
 
     #the custom detector must know how to serialize and deserialize itself
     def serialize(self):
-        data_pkl = pickle.dumps(self.__data, protocol=2)
+        data_pkl = pickle.dumps(self.__data, protocol=4)
         return data_pkl
 
     def deserialize(self, data_pkl):
