@@ -44,8 +44,6 @@ thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulato
 main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
 phasing_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
-secondary_phasing_angles = 0.5*(phasing_angles[:-1]+phasing_angles[1:])
-secondary_phasing_angles = np.insert(secondary_phasing_angles, len(secondary_phasing_angles), phasing_angles[-1] + 1.75*units.deg)
 
 class mySimulation(simulation.simulation):
 
@@ -97,7 +95,7 @@ class mySimulation(simulation.simulation):
                              triggered_channels=None,  # run trigger on all channels
                              trigger_name='primary_and_secondary_phasing', # the name of the trigger
                              phasing_angles=phasing_angles,
-                             secondary_phasing_angles=secondary_phasing_angles,
+                             secondary_phasing_angles=None,
                              set_not_triggered=(not self._station.has_triggered("simple_threshold")),
                              coupled=False,
                              ref_index=1.55)
