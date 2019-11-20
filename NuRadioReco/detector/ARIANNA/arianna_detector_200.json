@@ -270,7 +270,7 @@
           "pos_easting": null,
           "pos_measurement_time": null,
           "pos_position": "",
-          "pos_site": "",
+          "pos_site": "mooresbay",
           "position": "",
           "station_id": 101,
           "station_type": null
