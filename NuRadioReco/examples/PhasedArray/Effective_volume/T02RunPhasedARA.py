@@ -72,13 +72,11 @@ class mySimulation(simulation.simulation):
         noise = True
 
         if noise:
-            min_noise_freq = 100 * units.MHz
-            max_noise_freq = 750 * units.MHz
-            Vrms_ratio = ((max_noise_freq-min_noise_freq) / self._cfg['trigger']['bandwidth'])**2
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms,
-                                         min_freq=min_noise_freq,
-                                         max_freq=max_noise_freq,
-                                         type='rayleigh')
+            max_freq = 0.5 / self._dt
+            norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
+            Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
+                                         max_freq=max_freq, type='rayleigh')
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[130 * units.MHz, 1000 * units.GHz],
                                   filter_type='butter', order=2)
