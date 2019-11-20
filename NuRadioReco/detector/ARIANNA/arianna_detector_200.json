@@ -242,7 +242,7 @@
             "cab_reference_measurement": null,
             "cab_time_delay": 19.8,
             "cab_type": "LMR_400",
-            "channel_id": 7,
+            "channel_id": 8,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 101
