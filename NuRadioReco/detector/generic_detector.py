@@ -29,7 +29,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
     of the other channels will be taken from the default channel.
     The GenericDetector also ignores commission and decommision times and should
     therefore not be used for real data, but only for simulation studies.
-    This detector only accepts json detector descriptions.
+    This detector only accepts json detector descriptions or dictionary.
     """
     def __init__(self, json_filename, default_station, default_channel=None, source='json', dictionary=None, assume_inf=True):
         """
@@ -48,6 +48,16 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             ID of the channel that should be used as the default channel. This channel has to be part of the default station and have a
             complete detector description. If a property is missing in any of the other channels, the value from the default channel
             will be used instead.
+        source: str
+            'json' or 'dictionary'
+            default value is 'json'
+            If 'json' is passed, the JSON dictionary at the location specified
+            by json_filename will be used
+            If 'dictionary' is passed, the dictionary specified by the parameter
+            'dictionary' will be used
+        dictionary: dict
+            If 'dictionary' is passed to the parameter source, the dictionary
+            passed to this parameter will be used for the detector description.
         assume_inf : Bool
             Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
         """
@@ -154,7 +164,23 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             self._buffered_channels[station_dict['station_id']][channel['channel_id']] = new_channel
 
     def add_station_properties_for_event(self, properties, station_id, run_number, event_id):
-        #Add an entry that specifies that certain aspects of the detector are different for this event
+        """
+        Adds an entry to the list of event-specific changes to the detector
+        description.
+
+        Parameters
+        ------------------
+        properties: dictionary
+            Dictionary of the properties that should be changed, with keys being
+            any of the property names in the detector description and values the
+            values that these properties should be changed to
+        station_id: integer
+            ID of the station whose properties should be changed
+        run_number: integer
+            Run number of the event for which the changes are valid
+        event_id: integer
+            Event ID of the event for which the changes are valid
+        """
         self.__station_changes_for_event.append({
             'run_number': run_number,
             'event_id': event_id,
@@ -163,7 +189,20 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         })
 
     def get_station_properties_for_event(self, run_number, event_id, station_id=None):
-        #Get all event-dependent changes in the detector description
+        """
+        Returns all event-specific changes that have been stored in the
+        detector description for a given station and event
+
+        Parameters
+        ----------------------
+        run_number: integer
+            Run number of the event for which the changes should be returned
+        event_id: integer
+            Event ID of the event for which the changes should be returned
+        station_id: integer or None
+            ID of the station for which the changes should be returned
+            If station_id is None, changes for all stations are returned
+        """
         changes = []
         for change in self.__station_changes_for_event:
             if (change['run_number'] == run_number and
@@ -173,22 +212,58 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         return changes
 
     def set_event(self,run_number, event_id):
+        """
+        Sets the run number and event ID for which the detector description
+        should be returned. This is needed if event-specific changes to the
+        detector description have been stored. If run_number or event_id are
+        not set (or are set to None), event-specific changes to the detector
+        will be ignored
+
+        Parameters
+        ------------------
+        run_number: integer
+            Run number of the event the detector should be set to
+        event_id: integer
+            ID of the event the detector should be set to
+        """
         self.__run_number = run_number
         self.__event_id = event_id
 
     def get_default_station(self):
+        """
+        Get the properties of the default station
+        """
         return self.__default_station
 
     def get_default_station_id(self):
+        """
+        Get the ID of the default station
+        """
         return self.__default_station_id
 
     def get_default_channel(self):
+        """
+        Get the properties of the default channel
+        """
         return self.__default_channel
 
     def get_default_channel_id(self):
+        """
+        Get the ID of the default channel
+        """
         return self.__default_channel_id
 
     def get_raw_station(self, station_id):
+        """
+        Get the properties of a station as they are in the original detector
+        description, i.e. without missing properties being replaced by those
+        from the default station. Event-specific changes are also ignored.
+
+        Parameters
+        --------------------------
+        station_id: integer
+            ID of the requested station
+        """
         if station_id in self._buffered_stations.keys():
             return self._buffered_stations[station_id]
         station = self._query_station(station_id, True)
@@ -200,6 +275,19 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             return station
 
     def get_raw_channel(self, station_id, channel_id):
+        """
+        Get the properties of a channel as they are in the original detector
+        description, i.e. without missing properties being replaced by those
+        from the default channel.
+
+        Parameters
+        --------------------------
+        station_id: integer
+            ID of the requested channel's station
+        channel_id: integer
+            ID of the requested channel
+        """
+
         channels = self._query_channels(station_id, True)
         for channel in channels:
             if channel['channel_id'] == channel_id:
