@@ -104,9 +104,26 @@ class Event:
         self.__stations[station.get_id()] = station
 
     def add_shower(self, shower):
+        """
+        Adds a radio shower to the event
+
+        Parameters
+        ------------------------
+        shower: RadioShower object
+            The shower to be added to the event
+        """
         self.__radio_showers.append(shower)
 
     def get_showers(self, ids=None):
+        """
+        Returns an iterator over the showers stored in the event
+
+        Parameters
+        ---------------------------
+        ids: list of integers
+            A list of station IDs. Only showers that are associated with
+            all stations in the list are returned
+        """
         for shower in self.__radio_showers:
             if ids is None:
                 yield shower
@@ -114,6 +131,16 @@ class Event:
                 yield shower
 
     def get_first_shower(self, ids=None):
+        """
+        Returns only the first shower stored in the event. Useful in cases
+        when there is only one shower in the event.
+
+        Parameters
+        ---------------------------
+        ids: list of integers
+            A list of station IDs. The first shower that is associated with
+            all stations in the list is returned
+        """
         if len(self.__radio_showers) == 0:
             return None
         if ids is None:
@@ -124,16 +151,34 @@ class Event:
         return None
 
     def add_sim_shower(self, sim_shower):
+        """
+        Add a simulated shower to the event
+
+        Parameters
+        ------------------------
+        shower: RadioShower object
+            The shower to be added to the event
+        """
+
         self.__sim_showers.append(sim_shower)
 
     def get_sim_showers(self):
+        """
+        Get an iterator over all simulated showers in the event
+        """
         for shower in self.__sim_showers:
             yield shower
 
     def has_sim_shower(self):
+        """
+        Returns true if at least one simulated shower is stored in the event
+        """
         return len(self.__sim_showers) > 0
 
     def get_hybrid_information(self):
+        """
+        Get information about hybrid detector data stored in the event.
+        """
         return self.__hybrid_information
 
     def serialize(self, mode):
