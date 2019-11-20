@@ -22,7 +22,7 @@ class readCoREASShower:
         self.__t_event_structure = 0
         self.__t_per_event = 0
 
-    def begin(self, input_files, det = None, logger_level=logging.NOTSET):
+    def begin(self, input_files, det=None, logger_level=logging.NOTSET, set_ascending_run_and_event_number=False):
         """
         begin method
 
@@ -41,6 +41,8 @@ class readCoREASShower:
         self.__current_input_file = 0
         self.__det = det
         logger.setLevel(logger_level)
+
+        self.__ascending_run_and_event_number = 1
 
 
     def run(self):
@@ -68,7 +70,12 @@ class readCoREASShower:
 
             f_coreas = corsika["CoREAS"]
 
-            evt = NuRadioReco.framework.event.Event(corsika['inputs'].attrs['RUNNR'], corsika['inputs'].attrs['EVTNR'])
+            if set_ascending_run_and_event_number:
+                evt = NuRadioReco.framework.event.Event(self.__ascending_run_and_event_number, self.__ascending_run_and_event_number)
+                self.__ascending_run_and_event_number += 1
+            else:
+                evt = NuRadioReco.framework.event.Event(corsika['inputs'].attrs['RUNNR'], corsika['inputs'].attrs['EVTNR'])
+
             evt.__event_time = f_coreas.attrs["GPSSecs"]
 
             sim_shower = coreas.make_sim_shower(corsika)
@@ -77,7 +84,7 @@ class readCoREASShower:
             cs = coordinatesystems.cstrafo(sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth), magnetic_field_vector=sim_shower.get_parameter(shp.magnetic_field_vector))
 
             for idx, (name, observer) in enumerate(f_coreas['observers'].items()):
-                station_id = antenna_id(name, idx)  # return proper station id if possible
+                station_id = antenna_id(name, idx)  # returns proper station id if possible
 
                 station = NuRadioReco.framework.station.Station(station_id)
                 sim_station = coreas.make_sim_station(station_id, corsika, observer, channel_ids=[0, 1, 2])
