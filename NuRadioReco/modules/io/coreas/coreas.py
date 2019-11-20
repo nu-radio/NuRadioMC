@@ -62,7 +62,7 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
     corsika : hdf5 file object
         the open hdf5 file object of the corsika hdf5 file
     observer : hdf5 observer object
-    channel_ids : 
+    channel_ids :
     weight : weight of individual station
         weight corresponds to area covered by station
 
@@ -101,7 +101,7 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
 
     antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
-    sim_station = NuRadioReco.framework.sim_station.SimStation(station_id, position=antenna_position)
+    sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
     electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids)
     electric_field.set_trace(efield2, sampling_rate)
     electric_field.set_parameter(efp.ray_path_type, 'direct')

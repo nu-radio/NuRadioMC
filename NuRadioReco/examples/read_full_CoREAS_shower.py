@@ -36,7 +36,6 @@ for event, gen_det in readCoREASShower.run():
         station.set_station_time(datetime.datetime(2011, 11, 11))
 
         sim_station = station.get_sim_station()
-        position = sim_station.get_position()
     eventWriter.run(event, gen_det)
 
 nevents = eventWriter.end()
