@@ -209,7 +209,7 @@
             "ant_position_y": 0.0,
             "ant_position_z": -10.0,
             "ant_rotation_phi": 0.0,
-            "ant_rotation_theta": 0.0,
+            "ant_rotation_theta": 90.0,
             "ant_type": "bicone_v8",
             "cab_id": "17-09",
             "cab_length": 5.0,
