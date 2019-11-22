@@ -832,6 +832,9 @@ class ray_tracing_2D():
             self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
             x1[0] = x1[0] - 2 * dy
 
+        if(reflection == 0):
+            # in case of no bottom reflections, return path right away
+            return self.get_path(x1, x2, C_0, n_points)
         x22 = copy.copy(x2)
         for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i))
