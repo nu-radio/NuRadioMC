@@ -45,6 +45,8 @@ main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
 phasing_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
 
+edge_around_max = 20 * units.ns
+
 class mySimulation(simulation.simulation):
 
     def _detector_simulation(self):
