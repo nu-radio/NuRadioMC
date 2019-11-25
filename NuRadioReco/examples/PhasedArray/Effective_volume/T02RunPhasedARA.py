@@ -85,6 +85,10 @@ class mySimulation(simulation.simulation):
             max_freq = 0.5 / self._dt
             norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
             Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
+<<<<<<< HEAD
+=======
+
+>>>>>>> Fix generic noise adder
             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
                                          max_freq=max_freq, type='rayleigh')
 
