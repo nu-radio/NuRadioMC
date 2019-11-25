@@ -45,6 +45,8 @@ main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
 phasing_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
 
+edge_around_max = 20 * units.ns
+
 class mySimulation(simulation.simulation):
 
     def _detector_simulation(self):
@@ -89,7 +91,7 @@ class mySimulation(simulation.simulation):
             Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
                                          max_freq=max_freq, type='rayleigh')
-                                         
+
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[132 * units.MHz, 1150 * units.MHz],
                                   filter_type='butter', order=6)
