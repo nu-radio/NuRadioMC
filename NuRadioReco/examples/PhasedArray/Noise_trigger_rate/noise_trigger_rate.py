@@ -67,14 +67,12 @@ if (array_type == 'ARA'):
     primary_angles = default_angles
     secondary_angles = default_sec_angles
 elif (array_type == 'RNO'):
-    min_freq = 130*units.MHz
-    max_freq = 1500*units.MHz
+    min_freq = 132*units.MHz
+    max_freq = 700*units.MHz
     sampling_rate = 3*units.GHz
     window_width = 32
     only_primary = True
     primary_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
-    secondary_angles = 0.5*(primary_angles[:-1]+primary_angles[1:])
-    secondary_angles = np.insert(secondary_angles, len(secondary_angles), primary_angles[-1] + 1.75*units.deg)
 
 n_samples = 1000000 # number of samples
 time_step = 1./sampling_rate
@@ -83,8 +81,7 @@ amplitude = (300 * 50 * constants.k * bandwidth / units.Hz) ** 0.5
 
 Ntries = args.ntries # number of tries
 
-# threshold_factors = [2.5, 2.45, 2.4]
-threshold_factors = [1.8, 1.85, 1.9, 1.95, 2.0]
+threshold_factors = [2.1, 2.15, 2.20, 2.25, 2.3]
 
 ratios = []
 
