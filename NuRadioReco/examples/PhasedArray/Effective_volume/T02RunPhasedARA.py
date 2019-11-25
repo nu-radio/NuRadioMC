@@ -41,6 +41,8 @@ channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPas
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
+edge_around_max = 20 * units.ns
+
 class mySimulation(simulation.simulation):
 
     def _detector_simulation(self):
