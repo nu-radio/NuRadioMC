@@ -67,7 +67,7 @@ class mySimulation(simulation.simulation):
         max_times = []
 
         # Bool for checking the noise triggering rate
-        check_only_noise = True
+        check_only_noise = False
 
         for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
 
