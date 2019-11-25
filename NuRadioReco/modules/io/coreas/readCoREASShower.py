@@ -36,13 +36,20 @@ class readCoREASShower:
             If a genericDetector is passed, the stations from the CoREAS file
             will be added to it and the run method returns both the event and
             the detector
+        logger_level: string or logging variable
+            Set verbosity level for logger (default: logging.NOTSET)
+        set_ascending_run_and_event_number: bool
+            If set to True the run number and event id is set to
+            self.__ascending_run_and_event_number instead of beeing taken
+            from the simulation file. The value is increases monoton.
+            This can be used to avoid ambiguities values (default: False)
         """
         self.__input_files = input_files
         self.__current_input_file = 0
         self.__det = det
         logger.setLevel(logger_level)
 
-        self.__ascending_run_and_event_number = 1
+        self.__ascending_run_and_event_number = 1 if set_ascending_run_and_event_number else 0
 
 
     def run(self):
@@ -70,7 +77,7 @@ class readCoREASShower:
 
             f_coreas = corsika["CoREAS"]
 
-            if set_ascending_run_and_event_number:
+            if self.__ascending_run_and_event_number:
                 evt = NuRadioReco.framework.event.Event(self.__ascending_run_and_event_number, self.__ascending_run_and_event_number)
                 self.__ascending_run_and_event_number += 1
             else:
