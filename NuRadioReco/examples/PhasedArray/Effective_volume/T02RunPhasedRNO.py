@@ -45,8 +45,6 @@ main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
 phasing_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
 
-edge_around_max = 20 * units.ns
-
 class mySimulation(simulation.simulation):
 
     def _detector_simulation(self):
@@ -69,7 +67,7 @@ class mySimulation(simulation.simulation):
         max_times = []
 
         # Bool for checking the noise triggering rate
-        check_only_noise = False
+        check_only_noise = True
 
         for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
 
