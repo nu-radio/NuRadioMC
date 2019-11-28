@@ -59,6 +59,7 @@ class eventWriter:
         self.__max_file_size = max_file_size * 1024 * 1024  # in bytes
         self.__stored_stations = []
         self.__stored_channels = []
+        self.__event_ids_and_runs = []  #Remember which event IDs are already in file to catch duplicates
         self.__header_written = False   #Remember if we still have to write the current file header
 
     @register_run()
@@ -82,7 +83,7 @@ class eventWriter:
         if(mode not in ['full', 'mini', 'micro']):
             logger.error("output mode must be one of ['full', 'mini', 'micro'] but is {}".format(mode))
             raise NotImplementedError
-
+        self.__check_for_duplicate_ids(evt.get_run_number(), evt.get_id())
         if not self.__header_written:
             self.__write_fout_header()
 
@@ -90,6 +91,10 @@ class eventWriter:
         self.__fout.write(event_bytearray)
         self.__current_file_size += event_bytearray.__sizeof__()
         self.__number_of_events += 1
+        self.__event_ids_and_runs.append({
+            'event_id': evt.get_id(),
+            'run_number': evt.get_run_number()
+        })
 
         if det is not None:
             detector_dict = self.__get_detector_dict(evt, det)  #returns None if detector is already saved
@@ -114,6 +119,7 @@ class eventWriter:
             #self.__filename = "{}_part{:02d}".format(self.__filename, self.__number_of_files)
             self.__stored_stations = []
             self.__stored_channels = []
+            self.__event_ids_and_runs = []
             self.__header_written = False
 
 
@@ -250,6 +256,16 @@ class eventWriter:
         changes_bytearray.extend(changes_length.to_bytes(6, 'little'))
         changes_bytearray.extend(changes_string)
         return changes_bytearray
+
+    def __check_for_duplicate_ids(self, run_number, event_id):
+        """"
+        Checks if an event with the same ID and run number has already been written to the file
+        and throws an error if that is the case.
+        """
+        for item in self.__event_ids_and_runs:
+            if item['run_number'] == run_number and item['event_id'] == event_id:
+                raise ValueError('An event with ID {} and run number {} already exists in the file'.format(event_id, run_number))
+        return
 
     def end(self):
         self.__fout.close()
