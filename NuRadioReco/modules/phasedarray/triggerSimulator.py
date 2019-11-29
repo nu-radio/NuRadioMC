@@ -236,8 +236,8 @@ class triggerSimulator:
         if set_not_triggered:
 
             is_triggered = False
-            trigger_delays = np.array([])
-            sec_trigger_delays = np.array([])
+            trigger_delays = {}
+            sec_trigger_delays = {}
 
         else:
 
