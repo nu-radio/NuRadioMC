@@ -41,7 +41,8 @@ channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPas
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
-edge_around_max = 20 * units.ns
+left_edge_around_max = 20 * units.ns
+right_edge_around_max = 40 * units.ns
 
 class mySimulation(simulation.simulation):
 
@@ -76,8 +77,8 @@ class mySimulation(simulation.simulation):
                 trace = channel.get_trace() * 0
                 channel.set_trace(trace, sampling_rate = new_sampling_rate)
 
-        left_time = np.min(max_times) - edge_around_max
-        right_time = np.max(max_times) + edge_around_max
+        left_time = np.min(max_times) - left_edge_around_max
+        right_time = np.max(max_times) + right_edge_around_max
 
         noise = True
 
