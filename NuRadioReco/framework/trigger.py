@@ -22,8 +22,8 @@ def deserialize(triggers_pkl):
         elif(trigger_type == 'simple_phased'):
             trigger = SimplePhasedTrigger(None, None)
             trigger.deserialize(data_pkl)
-        elif (trigger_type == 'envelope_trigger'):
-            trigger = EnvelopeTrigger(None, None)
+        elif(trigger_type == 'envelope_trigger'):
+            trigger = EnvelopeTrigger(None, None, None, None)
             trigger.deserialize(data_pkl)
         else:
             raise ValueError("unknown trigger type")
@@ -255,11 +255,10 @@ class IntegratedPowerTrigger(Trigger):
         self._power_mean = power_mean
         self._power_std = power_std
 
-
 class EnvelopeTrigger(Trigger):
 
-    def __init__(self, name, threshold, channels=None, number_of_coincidences=1,
-                 channel_coincidence_window=None):
+    def __init__(self, name, passband, order, threshold, number_of_coincidences=1,
+                 channel_coincidence_window=None, channels=None):
         """
         initialize trigger class
 
@@ -267,6 +266,8 @@ class EnvelopeTrigger(Trigger):
         -----------
         name: string
             unique name of the trigger
+        passband:
+        order:
         threshold: float
             the threshold
         channels: array of ints or None
@@ -279,6 +280,8 @@ class EnvelopeTrigger(Trigger):
             the coincidence time between triggers of different channels
         """
         Trigger.__init__(self, name, channels, 'envelope_trigger')
+        self._passband = passband
+        self._order = order
         self._threshold = threshold
         self._number_of_coincidences = number_of_coincidences
         self._coinc_window = channel_coincidence_window
