@@ -30,12 +30,20 @@ types that can reference each other by their IDs. For example, each channel
 in the channels table has a Channel ID and a Station ID that associates it
 with a station from the stations table.
 
-Since station configurations can change over the lifetime of a detector, each component
+The channel table contains references to the individual components a channel consists of such as amplifier, antenna, cables, etc. 
+The components are saved in separate tables. 
+
+Since station configurations can change over the lifetime of a detector, each station and channel entry
 has a commission and decommission time which specifies when it was part of the
 detector in the given configuration. If a configuration is changed, the decommission
-time is set to the time when the change took place and another component is added
+time is set to the time when the change took place and a new channel (or complete station) is added
 with the new configuration. The ``Detector`` will then use these entries to
 automatically return the correct detector configuration for a given point in time.
+The components itself do not carry a comission/decomission time. This reflects the procedures of a large experiment,
+every component is calibrated and its information is added into the database. Later on, each channel is constructed out
+of the different components, and finally a station is composted out of multiple channels. 
+
+
 
 DataBase
 _______________
@@ -53,6 +61,8 @@ every time. Therefore, the NuRadioReco ``Detector`` and ``GenericDetector`` clas
 can also read in a JSON file, in which information about the detector is stored
 as key-value pairs. JSON files for both the ARIANNA and ARA detector are shipped
 with NuRadioReco and can be modified to simulate different detector configurations.
+
+We also provide a converter that dumps the SQL database into a JSON file that then can be used offline. 
 
 
 Dictionary
@@ -97,7 +107,9 @@ all its query functions as well. Practically, this means that it can be used
 in the same way as the normal ``Detector`` class, e.g. be passed to reconstruction
 modules.
 
-.. Important:: The ``GenericDetector`` does not support commission and decommission times. It can therefore not give a time-dependent detector description and should only be used for simulation studies, never to reconstruct real data.
+.. Important:: The ``GenericDetector`` does not support commission and decommission times. 
+It can therefore not give a time-dependent detector description and should only be used 
+for simulation studies, never to reconstruct real data.
 
 Event-Specific Changes
 _______________
@@ -115,6 +127,10 @@ The process thereby is as follows: First the data from the detector description
 is read. Then any missing entries are substituted by those from the *default*
 station. Finally, if any event-specific changes for the current station and event are
 registered, the properties in question are replaced and the station is returned.
+
+One usage example are star-pattern CoREAS air shower simulations where every simulation has different station positions.
+Here, only the station positions are different between each event and saved at _event specific changes to the detector
+description_.
 
 Detector Description in Event Files
 ----------------------------
@@ -142,4 +158,6 @@ In order to use this feature, the parameters ``parse_detector`` and ``read_detec
 have to be set to ``True`` for  constructors of the ``NuRadioRecoio`` and
 ``EventReader`` modules, respectively.
 
-.. Important:: When reading multiple files with different detector descriptions, ``get_detector`` needs to be called each time an event from another file is read to get the correct ``Detector`` or ``GenericDetector``. We recommend calling ``get_detector`` after every new event request.
+.. Important:: When reading multiple files with different detector descriptions, ``get_detector`` needs to be called
+ each time an event from another file is read to get the correct ``Detector`` or ``GenericDetector``.
+  We recommend calling ``get_detector`` after every new event request.
