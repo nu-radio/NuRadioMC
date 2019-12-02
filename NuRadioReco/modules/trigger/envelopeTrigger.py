@@ -2,8 +2,10 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 from NuRadioReco.framework.trigger import EnvelopeTrigger
-from scipy.signal import hilbert
+import NuRadioReco.utilities.fft
 import numpy as np
+import scipy.signal
+import copy
 import time
 import logging
 
@@ -27,7 +29,7 @@ def get_envelope_triggers(trace, threshold):  # define trigger constraint for ea
         the bins where the trigger condition is satisfied
     """
 
-    return np.abs(hilbert(trace)) > threshold
+    return np.abs(scipy.signal.hilbert(trace)) > threshold
 
 
 class triggerSimulator:
@@ -42,13 +44,10 @@ class triggerSimulator:
     def begin(self, debug=False):
         self.__debug = debug
 
+
     @register_run()
-    def run(self, evt, station, det,
-            threshold=60 * units.mV,
-            number_coincidences=2,
-            triggered_channels=None,
-            coinc_window=500 * units.ns,
-            trigger_name='default_envelope_trigger'):
+    def run(self, evt, station, det, passband, order, threshold, coinc_window, number_coincidences=2, triggered_channels=None,
+             trigger_name='envelope_trigger'):
         """
         simulate simple trigger logic, no time window, just threshold in all channels
 
@@ -69,6 +68,8 @@ class triggerSimulator:
         trigger_name: string
             a unique name of this particular trigger
         """
+
+
         t = time.time()  # absolute time of system
 
         sampling_rate = station.get_channel(0).get_sampling_rate()
@@ -76,6 +77,7 @@ class triggerSimulator:
 
         triggered_bins_channels = []
         channels_that_passed_trigger = []
+
         if triggered_channels is None:  # caveat: all channels start at the same time
             for channel in station.iter_channels():
                 channel_trace_start_time = channel.get_trace_start_time()
@@ -84,9 +86,30 @@ class triggerSimulator:
             channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
 
         event_id = evt.get_id()
-        for channel in station.iter_channels():  # apply envelope trigger to each channel
+        for channel in station.iter_channels():
+            # get filter
+            frequencies = channel.get_frequencies()
+            frequencies_tri = copy.copy(frequencies)
+
+            f = np.zeros_like(frequencies_tri, dtype=np.complex)
+            mask = frequencies_tri > 0
+            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
+            w, h = scipy.signal.freqs(b, a, frequencies_tri[mask])
+            f[mask] = h
+            print(f)
+
+            # apply filter
+            freq_spectrum_fft = channel.get_frequency_spectrum()
+            freq_spectrum_fft_tri = copy.copy(freq_spectrum_fft)
+            sampling_rate = channel.get_sampling_rate()
+
+            freq_spectrum_fft_tri *= f
+            trace_filtered = NuRadioReco.utilities.fft.freq2time(freq_spectrum_fft_tri, sampling_rate)
+
+            # apply envelope trigger to each channel
             channel_id = channel.get_id()
-            trace = channel.get_trace()
+
+            trace = trace_filtered
             if triggered_channels is not None and channel_id not in triggered_channels:
                 logger.debug("skipping channel {}".format(channel_id))
                 continue
@@ -114,7 +137,7 @@ class triggerSimulator:
         # set maximum signal amplitude
         max_signal = 0
 
-        trigger = EnvelopeTrigger(trigger_name, threshold, triggered_channels, number_coincidences, coinc_window)
+        trigger = EnvelopeTrigger(trigger_name, passband, order, threshold, number_coincidences, coinc_window, triggered_channels)
         trigger.set_triggered_channels(channels_that_passed_trigger)
 
         if has_triggered:
