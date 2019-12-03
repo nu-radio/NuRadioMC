@@ -3,10 +3,7 @@ import NuRadioReco.framework.base_station
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.channel
 from six import iteritems
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
 import logging
 import collections
 logger = logging.getLogger('Station')
@@ -92,7 +89,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         if(data['sim_station'] is None):
             self.__sim_station = None
         else:
-            self.__sim_station = NuRadioReco.framework.sim_station.SimStation(None, None, None, None)
+            self.__sim_station = NuRadioReco.framework.sim_station.SimStation(None, None, None)
             self.__sim_station.deserialize(data['sim_station'])
         for channel_pkl in data['channels']:
             channel = NuRadioReco.framework.channel.Channel(0)
