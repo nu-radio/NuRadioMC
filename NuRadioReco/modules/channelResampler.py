@@ -61,19 +61,19 @@ class channelResampler:
         logger.debug("resampling channel trace by {}. Original binning is {:.3g} ns, target binning is {:.3g} ns".format(resampling_factor,
                                                                                                                          orig_binning / units.ns,
                                                                                                                          target_binning / units.ns))
-        for channel in station.iter_channels():        
+        for channel in station.iter_channels():
             trace = channel.get_trace()
             if(self.__debug):
                 ff = np.fft.rfftfreq(len(trace), orig_binning)
-                spec = fft.time2freq(trace)
+                spec = fft.time2freq(trace, channel.get_sampling_rate())
                 spec[ff >= 500 * units.MHz] = 0
-                trace = fft.freq2time(spec)
+                trace = fft.freq2time(spec, channel.get_sampling_rate())
                 trace_old = copy.copy(trace)
             if(resampling_factor.numerator != 1):
                 trace = signal.resample(trace, resampling_factor.numerator * len(trace))  # , window='hann')
             if(resampling_factor.denominator != 1):
                 trace = signal.resample(trace, len(trace) // resampling_factor.denominator)  # , window='hann')
-                
+
             # make sure that trace has even number of samples
             if(len(trace) % 2 != 0):
                 logger.info("channel trace has a odd number of samples after resampling. The last bin of the trace is discarded to maintain a even number of samples")
@@ -87,8 +87,8 @@ class channelResampler:
                     trace2 = signal.resample(trace, len(trace) // resampling_factor.numerator)  # , window='hann')
 
                 import matplotlib.pyplot as plt
-                plt.plot(np.fft.rfftfreq(len(trace_old), orig_binning), np.abs(fft.time2freq(trace_old)))
-                plt.plot(np.fft.rfftfreq(len(trace2), orig_binning), np.abs(fft.time2freq(trace2)))
+                plt.plot(np.fft.rfftfreq(len(trace_old), orig_binning), np.abs(fft.time2freq(trace_old, 1/orig_binning)))
+                plt.plot(np.fft.rfftfreq(len(trace2), orig_binning), np.abs(fft.time2freq(trace2, 1/orig_binning)))
                 plt.show()
 
                 tt = np.arange(0, len(trace_old) * orig_binning, orig_binning)
