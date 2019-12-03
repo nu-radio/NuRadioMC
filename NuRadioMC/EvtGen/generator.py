@@ -728,7 +728,7 @@ def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
     while(len(zeniths) < n_events):
         random_thetas = np.random.uniform(thetamin, thetamax, n_events)
         random_ys = np.random.uniform(0, distr_max, n_events)
-        mask_accepted = random_ys < zenith_distribution(random_thetas)
+        mask_accepted = random_ys < zenith_distribution(random_thetas, R, d)
         zeniths = np.concatenate((zeniths, random_thetas[mask_accepted]))
 
     zeniths = zeniths[0:n_events]
