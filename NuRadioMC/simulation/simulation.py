@@ -223,7 +223,7 @@ class simulation():
                     if(name in ['channelGenericNoiseAdder']):
                         noise_module_index.append(i)
                     if hasattr(instance, "get_filter"):
-                        filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
+                        filt *= instance.get_filter(ff, **kwargs)
 
                 self._amplification_per_channel[self._station_id][channel_id] = np.abs(filt).max()
                 bandwidth = np.trapz(np.abs(filt) ** 2, ff)
@@ -243,7 +243,7 @@ class simulation():
                             if(i < noise_module_index[0]):  # skip all modules that come before the noise adder module
                                 continue
                             if(hasattr(instance, "get_filter")):
-                                filt_noise *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
+                                filt_noise *= instance.get_filter(ff, **kwargs)
                         norm = np.trapz(np.abs(filt_noise) ** 2, ff)
                         self.__noise_adder_normalization[self._station_id][channel_id] = norm
                         logger.info(f"noise normalization of station {self._station_id} channel {channel_id} is {norm/units.MHz:.1g}MHz")
@@ -465,7 +465,7 @@ class simulation():
                             if self._cfg['propagation']['attenuate_ice']:
                                 spectrum_em *= attn
                             # add EM signal to had signal in the time domain
-                            spectrum = fft.time2freq(fft.freq2time(spectrum, 1/self._dt) + fft.freq2time(spectrum_em,1/self._dt),1/self._dt)
+                            spectrum = fft.time2freq(fft.freq2time(spectrum, 1 / self._dt) + fft.freq2time(spectrum_em, 1 / self._dt), 1 / self._dt)
 
                         polarization_direction_onsky = self._calculate_polarization_vector()
                         cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
@@ -521,7 +521,7 @@ class simulation():
                             from matplotlib import pyplot as plt
                             fig, (ax, ax2) = plt.subplots(1, 2)
                             ax.plot(self._ff, np.abs(eTheta) / units.micro / units.V * units.m)
-                            ax2.plot(self._tt, fft.freq2time(eTheta, 1./self._dt) / units.micro / units.V * units.m)
+                            ax2.plot(self._tt, fft.freq2time(eTheta, 1. / self._dt) / units.micro / units.V * units.m)
                             ax2.set_ylabel("amplitude [$\mu$V/m]")
                             fig.tight_layout()
                             fig.suptitle("$E_C$ = {:.1g}eV $\Delta \Omega$ = {:.1f}deg, R = {:.0f}m".format(
