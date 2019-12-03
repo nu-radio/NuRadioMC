@@ -25,9 +25,10 @@ for cid in det.get_channel_ids(sid):
     yy = [y, y - l * dy]
     zz = [z, z - l * dz]
     dx, dy, dz = hp.spherical_to_cartesian(rot_zen, rot_az)
-    xx.append(xx[-1] + 0.5 * l * dx)
-    yy.append(yy[-1] + 0.5 * l * dy)
-    zz.append(zz[-1] + 0.5 * l * dz)
+    xx.insert(0, x + 0.5 * l * dx)
+    yy.insert(0, y + 0.5 * l * dy)
+    zz.insert(0, z + 0.5 * l * dz)
+    print(f"channel {cid:d}, rot = {dx:.1f}, {dy:.1f}, {dz:.1f}, ({rot_zen/units.deg:.0f}, {rot_az/units.deg:.0f})")
 
     data.append(go.Scatter3d(x=xx, y=yy, z=zz, mode='lines+markers'))
 
