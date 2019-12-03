@@ -1885,8 +1885,8 @@ class ray_tracing:
         lauVec = self.get_launch_vector(iS)
         lauAng = np.arccos(lauVec[2] / np.sqrt(lauVec[0] ** 2 + lauVec[1] ** 2 + lauVec[2] ** 2))
         distance = self.get_path_length(iS)
-        vetPos = self.__X1
-        recPos = self.__X2
+        vetPos = copy.copy(self.__X1)
+        recPos = copy.copy(self.__X2)
         recPos1 = np.array([self.__X2[0], self.__X2[1], self.__X2[2] + dz])
         if(not hasattr(self, "_r1")):
             self._r1 = ray_tracing(vetPos, recPos1, self.__medium, self.__attenuation_model, logging.WARNING,
@@ -1896,6 +1896,8 @@ class ray_tracing:
             lauVec1 = self._r1.get_launch_vector(iS)
             lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
             focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
+            if(self.get_solution_type(iS) != self._r1.get_solution_type(iS)):
+                self.__logger.error("solution types are not the same")
         else:
             focusing = 1.0
             self.__logger.info("too few ray tracing solutions, setting focusing factor to 1")
