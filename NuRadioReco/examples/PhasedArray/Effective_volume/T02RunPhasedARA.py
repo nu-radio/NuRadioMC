@@ -41,6 +41,9 @@ channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPas
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
+left_edge_around_max = 20 * units.ns
+right_edge_around_max = 40 * units.ns
+
 class mySimulation(simulation.simulation):
 
     def _detector_simulation(self):
@@ -60,14 +63,22 @@ class mySimulation(simulation.simulation):
                                  number_concidences=1,
                                  trigger_name='simple_threshold')
 
+        max_times = []
+
         # Bool for checking the noise triggering rate
         check_only_noise = False
-        if check_only_noise:
 
-            for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
+        for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
 
+            times = channel.get_times()
+            argmax = np.argmax( np.abs(channel.get_trace()) )
+            max_times.append(times[argmax])
+            if check_only_noise:
                 trace = channel.get_trace() * 0
                 channel.set_trace(trace, sampling_rate = new_sampling_rate)
+
+        left_time = np.min(max_times) - left_edge_around_max
+        right_time = np.max(max_times) + right_edge_around_max
 
         noise = True
 
@@ -77,11 +88,24 @@ class mySimulation(simulation.simulation):
             Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
                                          max_freq=max_freq, type='rayleigh')
+
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[130 * units.MHz, 1000 * units.GHz],
-                                  filter_type='butter', order=2)
+                                  filter_type='butter', order=6)
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 750 * units.MHz],
                                   filter_type='butter', order=10)
+
+        # Setting the trace values far from the amplitude maxima to zero
+        # to reduce the noise trigger rate
+        for channel in self._station.iter_channels():
+
+            times = channel.get_times()
+            left_bin = np.argmin(np.abs(times-left_time))
+            right_bin = np.argmin(np.abs(times-right_time))
+            trace = channel.get_trace()
+            trace[0:left_bin] = 0
+            trace[right_bin:None] = 0
+            channel.set_trace(trace, sampling_rate = new_sampling_rate)
 
         # first run a simple threshold trigger
         triggerSimulator.run(self._evt, self._station, self._det,

@@ -112,6 +112,12 @@ class triggerSimulator:
         -------
         is_triggered: bool
             True if the triggering condition is met
+        trigger_delays: dictionary
+            the delays for the primary channels that have caused a trigger.
+            If there is no trigger, it's an empty dictionary
+        sec_trigger_delays: dictionary
+            the delays for the secondary channels that have caused a trigger.
+            If there is no trigger or no secondary channels, it's an empty dictionary
         """
         sampling_rate = station.get_channel(0).get_sampling_rate()
         time_step = 1. / sampling_rate
@@ -155,10 +161,16 @@ class triggerSimulator:
             squared_mean = np.sum(windowed_traces ** 2 / window_width, axis=1)
 
             if True in (squared_mean > squared_mean_threshold):
+                trigger_delays = {}
+                for channel_id in subbeam_rolls:
+                    trigger_delays[channel_id] = subbeam_rolls[channel_id] * time_step
+                sec_trigger_delays = {}
+                for channel_id in sec_subbeam_rolls:
+                    sec_trigger_delays[channel_id] = sec_subbeam_rolls[channel_id] * time_step
                 logger.debug("Station has triggered")
-                return True
+                return True, trigger_delays, sec_trigger_delays
 
-        return False
+        return False, {}, {}
 
     @register_run()
     def run(self, evt, station, det,
@@ -224,6 +236,8 @@ class triggerSimulator:
         if set_not_triggered:
 
             is_triggered = False
+            trigger_delays = {}
+            sec_trigger_delays = {}
 
         else:
 
@@ -238,15 +252,19 @@ class triggerSimulator:
                 secondary_beam_rolls = self.get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles, ref_index=ref_index)
 
             if only_primary:
-                is_triggered = self.phased_trigger(station, beam_rolls, empty_rolls, triggered_channels, threshold, window_time)
+                is_triggered, trigger_delays, sec_trigger_delays = self.phased_trigger(station,
+                            beam_rolls, empty_rolls, triggered_channels, threshold, window_time)
             elif coupled:
-                is_triggered = self.phased_trigger(station, beam_rolls, secondary_beam_rolls, triggered_channels, threshold, window_time)
+                is_triggered, trigger_delays, sec_trigger_delays = self.phased_trigger(station,
+                            beam_rolls, secondary_beam_rolls, triggered_channels, threshold, window_time)
             else:
-                primary_trigger = self.phased_trigger(station, beam_rolls, empty_rolls, triggered_channels, threshold, window_time)
-                secondary_trigger = self.phased_trigger(station, secondary_beam_rolls, empty_rolls, secondary_channels, threshold, window_time)
+                primary_trigger, trigger_delays, dummy_delays = self.phased_trigger(station, beam_rolls, empty_rolls, triggered_channels, threshold, window_time)
+                secondary_trigger, sec_trigger_delays, dummy_delays = self.phased_trigger(station, secondary_beam_rolls, empty_rolls, secondary_channels, threshold, window_time)
                 is_triggered = primary_trigger or secondary_trigger
 
-        trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, secondary_channels, phasing_angles, secondary_phasing_angles)
+        trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, secondary_channels,
+                                      phasing_angles, secondary_phasing_angles,
+                                      trigger_delays, sec_trigger_delays)
         trigger.set_triggered(is_triggered)
         station.set_trigger(trigger)
 

@@ -162,7 +162,8 @@ class SimpleThresholdTrigger(Trigger):
 class SimplePhasedTrigger(Trigger):
 
     def __init__(self, name, threshold, channels=None, secondary_channels=None,
-                 primary_angles=None, secondary_angles=None):
+                 primary_angles=None, secondary_angles=None,
+                 trigger_delays=None, sec_trigger_delays=None):
         """
         initialize trigger class
         Parameters
@@ -180,6 +181,12 @@ class SimplePhasedTrigger(Trigger):
             the angles for each subbeam of the primary phasing
         secondary_angles: array of floats or None
             the angles for each subbeam of the secondary phasing
+        trigger_delays: dictionary
+            the delays for the primary channels that have caused a trigger.
+            If there is no trigger, it's an empty dictionary
+        sec_trigger_delays: dictionary
+            the delays for the secondary channels that have caused a trigger.
+            If there is no trigger or no secondary channels, it's an empty dictionary
         """
         Trigger.__init__(self, name, channels, 'simple_phased')
         self._primary_channels = channels
@@ -187,7 +194,8 @@ class SimplePhasedTrigger(Trigger):
         self._secondary_channels = secondary_channels
         self._secondary_angles = secondary_angles
         self._threshold = threshold
-
+        self._trigger_delays = None
+        self._sec_trigger_delays = None
 
 class HighLowTrigger(Trigger):
 
