@@ -168,12 +168,12 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
             correlationDirectionFitter.run(evt, station, det, n_index=1., channel_pairs=channel_pairs)
 
             voltageToEfieldConverter.run(evt, station, det, use_channels=used_channels_efield)
-            
+
             electricFieldBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 300*units.MHz])
-            
+
             electricFieldSignalReconstructor.run(evt, station, det)
 
-            voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], useMCdirection=False)
+            voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], use_MC_direction=False)
 
             channelResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
 
@@ -186,11 +186,3 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
         break
 nevents = eventWriter.end()
 print("Finished processing, {} events".format(event_counter))
-
-
-
-
-
-
-
-

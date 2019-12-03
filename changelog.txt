@@ -16,6 +16,7 @@ new features:
    now also need the sampling rate as an argument.
 
 Detector description can be stored in .nur files
+Large overhaul of the event structure. Adds shower classes and hybrid detector information.
 
 bugfixes:
 -Fixes increase in filesize caused by switch to python3

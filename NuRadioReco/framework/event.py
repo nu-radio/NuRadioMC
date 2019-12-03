@@ -1,9 +1,8 @@
 from __future__ import absolute_import, division, print_function
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
 import NuRadioReco.framework.station
+import NuRadioReco.framework.radio_shower
+import NuRadioReco.framework.hybrid_information
 from six import itervalues
 import collections
 import logging
@@ -17,7 +16,10 @@ class Event:
         self.__run_number = run_number
         self._id = event_id
         self.__stations = collections.OrderedDict()
+        self.__radio_showers = []
+        self.__sim_showers = []
         self.__event_time = 0
+        self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
         self.__modules_station = {}  # saves which modules were executed with what parameters on station level
 
@@ -101,11 +103,96 @@ class Event:
     def set_station(self, station):
         self.__stations[station.get_id()] = station
 
+    def add_shower(self, shower):
+        """
+        Adds a radio shower to the event
+
+        Parameters
+        ------------------------
+        shower: RadioShower object
+            The shower to be added to the event
+        """
+        self.__radio_showers.append(shower)
+
+    def get_showers(self, ids=None):
+        """
+        Returns an iterator over the showers stored in the event
+
+        Parameters
+        ---------------------------
+        ids: list of integers
+            A list of station IDs. Only showers that are associated with
+            all stations in the list are returned
+        """
+        for shower in self.__radio_showers:
+            if ids is None:
+                yield shower
+            elif shower.has_station_ids(ids):
+                yield shower
+
+    def get_first_shower(self, ids=None):
+        """
+        Returns only the first shower stored in the event. Useful in cases
+        when there is only one shower in the event.
+
+        Parameters
+        ---------------------------
+        ids: list of integers
+            A list of station IDs. The first shower that is associated with
+            all stations in the list is returned
+        """
+        if len(self.__radio_showers) == 0:
+            return None
+        if ids is None:
+            return self.__radio_showers[0]
+        for shower in self.__radio_showers:
+            if shower.has_station_ids(ids):
+                return shower
+        return None
+
+    def add_sim_shower(self, sim_shower):
+        """
+        Add a simulated shower to the event
+
+        Parameters
+        ------------------------
+        shower: RadioShower object
+            The shower to be added to the event
+        """
+
+        self.__sim_showers.append(sim_shower)
+
+    def get_sim_showers(self):
+        """
+        Get an iterator over all simulated showers in the event
+        """
+        for shower in self.__sim_showers:
+            yield shower
+
+    def has_sim_shower(self):
+        """
+        Returns true if at least one simulated shower is stored in the event
+        """
+        return len(self.__sim_showers) > 0
+
+    def get_hybrid_information(self):
+        """
+        Get information about hybrid detector data stored in the event.
+        """
+        return self.__hybrid_information
+
     def serialize(self, mode):
         stations_pkl = []
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
 
+        showers_pkl = []
+        for shower in self.get_showers():
+            showers_pkl.append(shower.serialize())
+        sim_showers_pkl = []
+        for shower in self.get_sim_showers():
+            sim_showers_pkl.append(shower.serialize())
+        hybrid_info = self.__hybrid_information.serialize()
         modules_out_event = []
         for value in self.__modules_event:  # remove module instances (this will just blow up the file size)
             modules_out_event.append([value[0], None, value[2]])
@@ -121,6 +208,9 @@ class Event:
                 '_id': self._id,
                 '__event_time': self.__event_time,
                 'stations': stations_pkl,
+                'showers': showers_pkl,
+                'sim_showers': sim_showers_pkl,
+                'hybrid_info': hybrid_info,
                 '__modules_event': modules_out_event,
                 '__modules_station': modules_out_station
                 }
@@ -128,10 +218,24 @@ class Event:
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
+
         for station_pkl in data['stations']:
             station = NuRadioReco.framework.station.Station(0)
             station.deserialize(station_pkl)
             self.set_station(station)
+        if 'showers' in data.keys():
+            for shower_pkl in data['showers']:
+                shower = NuRadioReco.framework.radio_shower.RadioShower(None)
+                shower.deserialize(shower_pkl)
+                self.add_shower(shower)
+        if 'sim_showers' in data.keys():
+            for shower_pkl in data['sim_showers']:
+                shower = NuRadioReco.framework.radio_shower.RadioShower(None)
+                shower.deserialize(shower_pkl)
+                self.add_sim_shower(shower)
+        self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
+        if 'hybrid_info' in data.keys():
+            self.__hybrid_information.deserialize(data['hybrid_info'])
         self._parameters = data['_parameters']
         self.__run_number = data['__run_number']
         self._id = data['_id']

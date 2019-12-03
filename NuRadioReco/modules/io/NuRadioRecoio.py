@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import NuRadioReco.framework.event
 import NuRadioReco.detector.detector
+import NuRadioReco.detector.generic_detector
 import NuRadioReco.modules.io.event_parser_factory
 import numpy as np
 import logging
@@ -99,6 +100,8 @@ class NuRadioRecoio(object):
         self.__open_files = {}
         self._detector_dicts = {}
         self.__detectors = {}
+        self._event_specific_detector_changes = {}
+
 
         self.__event_headers = {}
         if(self.__parse_header):
@@ -196,6 +199,15 @@ class NuRadioRecoio(object):
         event.deserialize(evtstr)
         self.__read_lock = False
         self._current_file_id = file_id
+        self._current_event_id = event.get_id()
+        self._current_run_number = event.get_run_number()
+        ## If the event file contains a detector description that is a
+        ## generic detector, it might have event-specific properties and we
+        ## need to set the detector to the right event
+        if self._current_file_id in self.__detectors.keys():
+            if 'generic_detector' in self._detector_dicts[self._current_file_id]:
+                if self._detector_dicts[self._current_file_id]['generic_detector']:
+                    self.__detectors[self._current_file_id].set_event(self._current_run_number, self._current_event_id)
         return event
 
     def get_event(self, event_id):
@@ -203,6 +215,12 @@ class NuRadioRecoio(object):
             self.__scan_files()
         for i in range(self.get_n_events()):
             if self.__event_ids[i][0] == event_id[0] and self.__event_ids[i][1] == event_id[1]:
+                self._current_run_number = self.__event_ids[i][0]
+                self._current_event_id = self.__event_ids[i][1]
+                if self._current_file_id in self.__detectors.keys():
+                    if 'generic_detector' in self._detector_dicts[self._current_file_id]:
+                        if self._detector_dicts[self._current_file_id]['generic_detector']:
+                            self.__detectors[self._current_file_id].set_event(self._current_run_number, self._current_event_id)
                 return self.get_event_i(i)
         logger.error('event number {} not found in file'.format(event_id))
         return None
@@ -211,6 +229,12 @@ class NuRadioRecoio(object):
         self._current_file_id = 0
         self._get_file(self._current_file_id).seek(12)  # skip file header
         for event in self.__iter_events(self):
+            self._current_event_id = event.get_id()
+            self._current_run_number = event.get_run_number()
+            if self._current_file_id in self.__detectors.keys():
+                if 'generic_detector' in self._detector_dicts[self._current_file_id]:
+                    if self._detector_dicts[self._current_file_id]['generic_detector']:
+                        self.__detectors[self._current_file_id].set_event(self._current_run_number, self._current_event_id)
             yield event
 
     def get_detector(self):
@@ -220,9 +244,35 @@ class NuRadioRecoio(object):
         files with different detectors are read, the detector for the last returned
         event is given.
         """
+        # Check if detector object for current file already exists
         if self._current_file_id not in self.__detectors.keys():
+            # Detector object for current file does not exist, so we create it
+            detector_dict = self._detector_dicts[self._current_file_id]
+            if 'generic_detector' in detector_dict.keys():
+                if detector_dict['generic_detector']:
+                    # Detector is a generic detector, so we have to consider default
+                    # station/channel and event-specific changes
+                    self.__detectors[self._current_file_id] = NuRadioReco.detector.generic_detector.GenericDetector.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
+                    self.__detectors[self._current_file_id].__init__(source='dictionary', json_filename='', dictionary=detector_dict, default_station=detector_dict['default_station'], default_channel=detector_dict['default_channel'])
+                    if self._current_file_id in self._event_specific_detector_changes.keys():
+                        for change in self._event_specific_detector_changes[self._current_file_id]:
+                            self.__detectors[self._current_file_id].add_station_properties_for_event(
+                                properties=change['properties'],
+                                station_id=change['station_id'],
+                                run_number=change['run_number'],
+                                event_id=change['event_id']
+                            )
+                    self.__detectors[self._current_file_id].set_event(self._current_run_number, self._current_event_id)
+                    return self.__detectors[self._current_file_id]
+            # Detector is a normal detector
             self.__detectors[self._current_file_id] = NuRadioReco.detector.detector.Detector.__new__(NuRadioReco.detector.detector.Detector)
             self.__detectors[self._current_file_id].__init__(source='dictionary', json_filename='', dictionary=self._detector_dicts[self._current_file_id])
+        # Detector object for current file already exists. If it is a generic detector,
+        # we update it to the run number and ID of the last event that was requested
+        # (in case there are event-specific changes) and return  it
+        if 'generic_detector' in self._detector_dicts[self._current_file_id].keys():
+            if self._detector_dicts[self._current_file_id]['generic_detector']:
+                    self.__detectors[self._current_file_id].set_event(self._current_run_number, self._current_event_id)
         return self.__detectors[self._current_file_id]
     def get_n_events(self):
         if(not self.__file_scanned):
