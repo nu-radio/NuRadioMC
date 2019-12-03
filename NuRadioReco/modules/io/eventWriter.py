@@ -91,10 +91,7 @@ class eventWriter:
         self.__fout.write(event_bytearray)
         self.__current_file_size += event_bytearray.__sizeof__()
         self.__number_of_events += 1
-        self.__event_ids_and_runs.append({
-            'event_id': evt.get_id(),
-            'run_number': evt.get_run_number()
-        })
+        self.__event_ids_and_runs.append([evt.get_run_number(), evt.get_id()])
 
         if det is not None:
             detector_dict = self.__get_detector_dict(evt, det)  #returns None if detector is already saved
@@ -262,9 +259,8 @@ class eventWriter:
         Checks if an event with the same ID and run number has already been written to the file
         and throws an error if that is the case.
         """
-        for item in self.__event_ids_and_runs:
-            if item['run_number'] == run_number and item['event_id'] == event_id:
-                raise ValueError('An event with ID {} and run number {} already exists in the file'.format(event_id, run_number))
+        if [run_number, event_id] in self.__event_ids_and_runs:
+            raise ValueError('An event with ID {} and run number {} already exists in the file'.format(event_id, run_number))
         return
 
     def end(self):
