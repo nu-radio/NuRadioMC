@@ -96,7 +96,7 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
     else:
         voltage_trace = np.zeros((len(channels), 2 * (len(frequencies) - 1)), dtype=np.complex)
         for i_ch, ch in enumerate(channels):
-            voltage_trace[i_ch] = fft.freq2time(np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0))
+            voltage_trace[i_ch] = fft.freq2time(np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0), electric_field.get_sampling_rate())
         return np.real(voltage_trace)
 
 

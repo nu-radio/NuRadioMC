@@ -229,7 +229,7 @@ def update_efield_spectrum(trigger, evt_counter, filename, station_id, juser_id)
     fig['layout']['xaxis1'].update(title='frequency [MHz]')
     fig['layout']['yaxis1'].update(title='amplitude [mV/m]')
     return fig
-        
+
 @app.callback(
     dash.dependencies.Output('time-trace', 'figure'),
     [dash.dependencies.Input('trigger-trace', 'children'),
@@ -276,7 +276,7 @@ def update_time_trace(trigger, evt_counter, filename, station_id, juser_id):
         fig['layout']['xaxis1'].update(title='time [ns]')
     fig['layout']['yaxis1'].update(title='voltage [mV]')
     return fig
-    
+
 @app.callback(
     dash.dependencies.Output('channel-spectrum', 'figure'),
     [dash.dependencies.Input('trigger-trace', 'children'),
@@ -488,7 +488,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     },
                     name=i
                 ), i + 1, 1)
-            template_spectrum = fft.time2freq(yy)
+            template_spectrum = fft.time2freq(yy, channel.get_sampling_rate())
             template_freqs = np.fft.rfftfreq(len(yy), dt)
             template_freq_mask = (template_freqs > channel.get_frequencies()[0])&(template_freqs<(channel.get_frequencies()[-1]))
             fig.append_trace(go.Scatter(
@@ -548,7 +548,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     },
                     name=i
                 ), i + 1, 1)
-            template_spectrum = fft.time2freq(yy)
+            template_spectrum = fft.time2freq(yy, channel.get_sampling_rate())
             template_freqs = np.fft.rfftfreq(len(yy), dt)
             template_freq_mask = (template_freqs > channel.get_frequencies()[0])&(template_freqs<(channel.get_frequencies()[-1]))
             fig.append_trace(go.Scatter(
@@ -560,7 +560,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                 ),
                 name=i
             ), i+1, 2)
-            
+
             fig.append_trace(
                go.Scatter(
                     x=[0.9 * times.max() / units.ns],
@@ -592,7 +592,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     time_shift = direction_time_delay - trace_start_time_offset
                     fig.append_trace(go.Scatter(
                         x=(electric_field.get_times() + time_shift)/units.ns,
-                        y=fft.freq2time(trace)/units.mV,
+                        y=fft.freq2time(trace, channel.get_sampling_rate())/units.mV,
                         line=dict(
                             dash='solid',
                             color=colors[i_trace%len(colors)]
@@ -622,7 +622,7 @@ def update_time_traces(evt_counter, filename, dropdown_traces, dropdown_info, st
                     time_shift = - trace_start_time_offset
                 fig.append_trace(go.Scatter(
                     x=(electric_field.get_times() + time_shift)/units.ns,
-                    y=fft.freq2time(trace)/units.mV,
+                    y=fft.freq2time(trace, channel.get_sampling_rate())/units.mV,
                     line=dict(
                         dash='solid',
                         color=colors[i_channel%len(colors)]
