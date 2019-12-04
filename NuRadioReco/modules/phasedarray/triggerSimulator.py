@@ -83,7 +83,13 @@ class triggerSimulator:
         if (sum(diff_x) > cut or sum(diff_y) > cut):
             raise NotImplementedError('The phased triggering array should lie on a vertical line')
 
-    def phased_trigger(self, station, beam_rolls, sec_beam_rolls, triggered_channels, threshold, window_time=10.67 * units.ns):
+    def phased_trigger(self,
+                       station,
+                       beam_rolls,
+                       sec_beam_rolls,
+                       triggered_channels,
+                       threshold,
+                       window_time=10.67 * units.ns):
         """
         Calculates the trigger for a certain phasing configuration.
         Beams are formed. A set of overlapping time windows is created and
@@ -131,7 +137,7 @@ class triggerSimulator:
             for channel in station.iter_channels():  # loop over all channels (i.e. antennas) of the station
                 channel_id = channel.get_id()
                 if channel_id not in triggered_channels:  # skip all channels that do not participate in the trigger decision
-                    logger.debug("skipping channel{}".format(channel_id))
+                    logger.debug("skipping channel {}".format(channel_id))
                     continue
 
                 trace = channel.get_trace()  # get the time trace (i.e. an array of amplitudes)
@@ -143,7 +149,6 @@ class triggerSimulator:
                     phased_trace += np.roll(trace, subbeam_rolls[channel_id])
 
                 if(channel_id in sec_subbeam_rolls):
-                    # pass
                     phased_trace += np.roll(trace, sec_subbeam_rolls[channel_id])
 
             # Implmentation of the ARA-like power trigger
