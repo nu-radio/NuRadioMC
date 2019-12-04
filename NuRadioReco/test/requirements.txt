@@ -10,6 +10,5 @@ matplotlib
 scipy
 aenum
 future
+cython
 ###### Requirements with Version Specifiers ######
-
-
