@@ -3,6 +3,12 @@ language: python
 python:
   - '3.6'
 
+before_install:
+  - sudo apt-get install libgsl2
+  - sudo apt-get install libgsl-dev
+  - export GSLDIR=$(gsl-config --prefix)
+
+
 install:
     pip install -r NuRadioReco/test/requirements.txt
 
