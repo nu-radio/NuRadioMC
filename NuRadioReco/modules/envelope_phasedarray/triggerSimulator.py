@@ -3,6 +3,8 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import EnvelopePhasedTrigger
 from NuRadioReco.modules.phasedarray.triggerSimulator import triggerSimulator as phasedTrigger
 from NuRadioReco.utilities.diodeSimulator import diodeSimulator
+from NuRadioReco.utilities.fft import time2freq, freq2time
+from scipy.signal import butter, freqs
 import numpy as np
 from scipy import constants
 import time
@@ -32,7 +34,8 @@ class triggerSimulator(phasedTrigger):
                          triggered_channels,
                          threshold_factor,
                          power_mean,
-                         power_std):
+                         power_std,
+                         output_passband=(100*units.MHz,200*units.MHz)):
         """
         Calculates the envelope trigger for a certain phasing configuration.
         Beams are formed. Then, each channel to be phased is filtered with a
@@ -55,6 +58,9 @@ class triggerSimulator(phasedTrigger):
             standard deviation of the noise trace after being filtered with the
             diode. power_mean and power_std can be calculated with the function
             calculate_noise_parameters from utilities.diodeSimulator
+        output_passband: (float, float) tuple
+            Frequencies for a 6th-order Butterworth filter to be applied after
+            the diode filtering.
 
         Returns
         -------
@@ -82,6 +88,14 @@ class triggerSimulator(phasedTrigger):
                     continue
 
                 trace = diode.tunnel_diode(channel)  # get the enveloped trace
+
+                # We filter the output of the diode as Eric suggested
+                trace_spectrum = time2freq(trace, sampling_rate)
+                frequencies = np.linspace(0, sampling_rate/2, len(trace_spectrum))
+                b, a = butter(6, output_passband, 'bandpass', analog=True)
+                w, h = freqs(b, a, frequencies)
+                trace = freq2time(h * trace_spectrum, sampling_rate)
+
                 times = channel.get_times()  # get the corresponding time bins
 
                 if(phased_trace is None):
@@ -95,9 +109,6 @@ class triggerSimulator(phasedTrigger):
             threshold_passed = np.min(phased_trace) < low_trigger
 
             if threshold_passed:
-                import matplotlib.pyplot as plt
-                plt.plot(times, phased_trace)
-                plt.show()
                 trigger_delays = {}
                 for channel_id in subbeam_rolls:
                     trigger_delays[channel_id] = subbeam_rolls[channel_id] * time_step
@@ -115,7 +126,8 @@ class triggerSimulator(phasedTrigger):
             trigger_name='envelope_phased_threshold',
             phasing_angles=default_angles,
             set_not_triggered=False,
-            ref_index=1.55):
+            ref_index=1.55,
+            output_passband=(100*units.MHz,200*units.MHz)):
         """
         simulates phased array trigger for each event
 
@@ -147,6 +159,9 @@ class triggerSimulator(phasedTrigger):
             if True not trigger simulation will be performed and this trigger will be set to not_triggered
         ref_index: float
             refractive index for beam forming
+        output_passband: (float, float) tuple
+            Frequencies for a 6th-order Butterworth filter to be applied after
+            the diode filtering.
 
         Returns
         -------
@@ -175,7 +190,7 @@ class triggerSimulator(phasedTrigger):
                                              phasing_angles, ref_index=ref_index)
 
             is_triggered, trigger_delays = self.envelope_trigger(station, beam_rolls,
-                                triggered_channels, threshold_factor, power_mean, power_std)
+                triggered_channels, threshold_factor, power_mean, power_std, output_passband)
 
         trigger = EnvelopePhasedTrigger(trigger_name, threshold_factor, power_mean, power_std,
                                         triggered_channels, phasing_angles, trigger_delays)
