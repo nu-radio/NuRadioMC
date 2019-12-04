@@ -20,6 +20,15 @@ is requested via *get*-methods. By setting the ``Detector`` to a specific time
 via the ``update`` function, it provides the detector configuration as it was
 at  specific time.
 
+.. code-block:: python
+
+  import NuRadioReco.detector.detector
+  import astropy.time
+  det = NuRadioReco.detector.detector.Detector(source='json', json_filename='path/to/json/file')
+  detector_time = astropy.time.Time('2018-01-01 20:00:00')
+  det.update(detector_time)
+  station_position = det.get_absolute_position(42)
+
 .. Important:: Since the detector configuration can change with time, the detector has to be set to the correct time using the ``update`` method.
 
 
@@ -30,8 +39,8 @@ types that can reference each other by their IDs. For example, each channel
 in the channels table has a Channel ID and a Station ID that associates it
 with a station from the stations table.
 
-The channel table contains references to the individual components a channel consists of such as amplifier, antenna, cables, etc. 
-The components are saved in separate tables. 
+The channel table contains references to the individual components a channel consists of such as amplifier, antenna, cables, etc.
+The components are saved in separate tables.
 
 Since station configurations can change over the lifetime of a detector, each station and channel entry
 has a commission and decommission time which specifies when it was part of the
@@ -41,7 +50,7 @@ with the new configuration. The ``Detector`` will then use these entries to
 automatically return the correct detector configuration for a given point in time.
 The components itself do not carry a comission/decomission time. This reflects the procedures of a large experiment,
 every component is calibrated and its information is added into the database. Later on, each channel is constructed out
-of the different components, and finally a station is composted out of multiple channels. 
+of the different components, and finally a station is composted out of multiple channels.
 
 
 
@@ -62,7 +71,7 @@ can also read in a JSON file, in which information about the detector is stored
 as key-value pairs. JSON files for both the ARIANNA and ARA detector are shipped
 with NuRadioReco and can be modified to simulate different detector configurations.
 
-We also provide a converter that dumps the SQL database into a JSON file that then can be used offline. 
+We also provide a converter that dumps the SQL database into a JSON file that then can be used offline.
 
 
 Dictionary
@@ -107,8 +116,8 @@ all its query functions as well. Practically, this means that it can be used
 in the same way as the normal ``Detector`` class, e.g. be passed to reconstruction
 modules.
 
-.. Important:: The ``GenericDetector`` does not support commission and decommission times. 
-It can therefore not give a time-dependent detector description and should only be used 
+.. Important:: The ``GenericDetector`` does not support commission and decommission times.
+It can therefore not give a time-dependent detector description and should only be used
 for simulation studies, never to reconstruct real data.
 
 Event-Specific Changes
@@ -130,7 +139,7 @@ registered, the properties in question are replaced and the station is returned.
 
 One usage example are star-pattern CoREAS air shower simulations where every simulation has different station positions.
 Here, only the station positions are different between each event and saved at _event specific changes to the detector
-description_.
+description.
 
 Detector Description in Event Files
 ----------------------------
@@ -145,6 +154,25 @@ is passed to the ``run`` method of the ``EventWriter`` module. In order to
 keep the file size small, only information about channels and stations that
 are used in the saved events are written into the event file.
 
+.. code-block:: python
+
+  import NuRadioReco.modules.io.eventReader
+  import NuradioReco.modules.io.eventWriter
+  import NuRadioReco.detector.detector
+  import astropy.time
+
+  det = NuRadioReco.detector.detector.Detector(source='json', json_filename='path/to/json/file')
+  detector_time = astropy.time.Time('2018-01-01 20:00:00')
+  det.update(detector_time)
+
+  event_reader = NuRadioReco.modules.io.eventReader.EventReader()
+  event_reader.begin(['path/to/file'])
+
+  event_writer = NuRadioReco.modules.io.eventWriter()
+  event_writer.begin('output_filename.nur')
+  for event in event_reader.run():
+    event_writer.run(event, det=det)
+
 Reading the Detector
 _______________
 To access the detector description in an event file, the ``EventReader`` and
@@ -158,6 +186,15 @@ In order to use this feature, the parameters ``parse_detector`` and ``read_detec
 have to be set to ``True`` for  constructors of the ``NuRadioRecoio`` and
 ``EventReader`` modules, respectively.
 
+.. code-block:: python
+
+  import NuRadioReco.modules.io.eventReader
+  event_reader = NuRadioReco.modules.io.eventReader.EventReader()
+  event_reader.begin(['path/to/file'], read_detector=True)
+  for event in event_reader.run():
+    det = event_reader.get_detector()
+
 .. Important:: When reading multiple files with different detector descriptions, ``get_detector`` needs to be called
  each time an event from another file is read to get the correct ``Detector`` or ``GenericDetector``.
-  We recommend calling ``get_detector`` after every new event request.
+
+ We recommend calling ``get_detector`` after every new event request.
