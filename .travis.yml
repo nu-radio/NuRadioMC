@@ -36,14 +36,14 @@ jobs:
       name: "Test all examples"
     - stage: "NuRadioMC test"
       name: "Single event test (South Pole)"
-      script: NuRadioMC/NuRadioMC/test/SingleEvents/test_build.sh
-    - script: NuRadioMC/NuRadioMC/test/SingleEvents/validate_MB.sh
+      script: NuRadioMC/test/SingleEvents/test_build.sh
+    - script: NuRadioMC/test/SingleEvents/validate_MB.sh
       name: "Single event test (Moore's Bay)"
-    - script: NuRadioMC/NuRadioMC/test/SignalGen/test_build.sh
+    - script: NuRadioMC/test/SignalGen/test_build.sh
       name: "Signal generation test"
-    - script: NuRadioMC/NuRadioMC/test/SignalProp/run_signal_test.sh
+    - script: NuRadioMC/test/SignalProp/run_signal_test.sh
       name: "Signal propagation tests"
-    - script: NuRadioMC/NuRadioMC/test/examples/test_examples.sh
+    - script: NuRadioMC/test/examples/test_examples.sh
       name: "Test Examples"
-    - script: NuRadioMC/NuRadioMC/test/Veff/1e18eV/test_build.sh
+    - script: NuRadioMC/test/Veff/1e18eV/test_build.sh
       name: "Veff test"
