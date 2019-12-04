@@ -93,6 +93,7 @@ sim = mySimulation(eventlist=args.inputfilename,
                             outputfilename=args.outputfilename,
                             detectorfile=args.detectordescription,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-                            config_file=args.config)
+                            config_file=args.config,
+                            file_overwrite=True)
 sim.run()
 
