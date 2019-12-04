@@ -62,7 +62,7 @@ if False:
             Veffs.append(Veff/ units.km ** 3)
             print(Veff/ units.km ** 3)
 
-print("New mean Veff {}".format(np.mean(Veffs)))
-print("New sigma Veff {}".format(np.std(Veffs)))
+    print("New mean Veff {}".format(np.mean(Veffs)))
+    print("New sigma Veff {}".format(np.std(Veffs)))
 
 
