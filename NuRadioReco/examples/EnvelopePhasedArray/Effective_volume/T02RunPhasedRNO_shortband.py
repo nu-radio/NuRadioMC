@@ -43,11 +43,13 @@ channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
-diodeSimulator = NuRadioReco.utilities.diodeSimulator.diodeSimulator()
 
 main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
 phasing_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
+
+diode_passband = (100*units.MHz, 200*units.MHz)
+diodeSimulator = NuRadioReco.utilities.diodeSimulator.diodeSimulator(diode_passband)
 
 class mySimulation(simulation.simulation):
 
@@ -100,14 +102,15 @@ class mySimulation(simulation.simulation):
 
         # first run a simple threshold trigger
         triggerSimulator.run(self._evt, self._station, self._det,
-                             threshold_factor=6.5, # see envelope phased trigger module for explanation
+                             threshold_factor=5, # see envelope phased trigger module for explanation
                              power_mean=power_mean,
                              power_std=power_std,
                              triggered_channels=None,  # run trigger on all channels
                              trigger_name='envelope_phasing', # the name of the trigger
                              phasing_angles=phasing_angles,
                              set_not_triggered=(not self._station.has_triggered("simple_threshold")),
-                             ref_index=1.55)
+                             ref_index=1.55,
+                             output_passband=diode_passband)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')

@@ -161,7 +161,8 @@ class SimpleThresholdTrigger(Trigger):
 class EnvelopePhasedTrigger(Trigger):
 
     def __init__(self, name, threshold_factor, power_mean, power_std,
-                 triggered_channels=None, phasing_angles=None, trigger_delays=None):
+                 triggered_channels=None, phasing_angles=None, trigger_delays=None,
+                 output_passband=(None,None)):
         """
         initialize trigger class
         Parameters
@@ -184,6 +185,9 @@ class EnvelopePhasedTrigger(Trigger):
         trigger_delays: dictionary
             the delays for the channels that have caused a trigger.
             If there is no trigger, it's an empty dictionary
+        output_passband: (float, float) tuple
+            Frequencies for a 6th-order Butterworth filter to be applied after
+            the diode filtering.
         """
         Trigger.__init__(self, name, triggered_channels, 'envelope_phased')
         self._triggered_channels = triggered_channels
@@ -191,8 +195,8 @@ class EnvelopePhasedTrigger(Trigger):
         self._threshold_factor = threshold_factor
         self._power_mean = power_mean
         self._power_std = power_std
-        self._trigger_delays = None
-        self._sec_trigger_delays = None
+        self._trigger_delays = trigger_delays
+        self._output_passband = output_passband
 
 class SimplePhasedTrigger(Trigger):
 
@@ -229,8 +233,8 @@ class SimplePhasedTrigger(Trigger):
         self._secondary_channels = secondary_channels
         self._secondary_angles = secondary_angles
         self._threshold = threshold
-        self._trigger_delays = None
-        self._sec_trigger_delays = None
+        self._trigger_delays = trigger_delays
+        self._sec_trigger_delays = sec_trigger_delays
 
 class HighLowTrigger(Trigger):
 

@@ -3,8 +3,6 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import EnvelopePhasedTrigger
 from NuRadioReco.modules.phasedarray.triggerSimulator import triggerSimulator as phasedTrigger
 from NuRadioReco.utilities.diodeSimulator import diodeSimulator
-from NuRadioReco.utilities.fft import time2freq, freq2time
-from scipy.signal import butter, freqs
 import numpy as np
 from scipy import constants
 import time
@@ -40,7 +38,8 @@ class triggerSimulator(phasedTrigger):
         Calculates the envelope trigger for a certain phasing configuration.
         Beams are formed. Then, each channel to be phased is filtered with a
         tunnel diode, the outputs are phased and, if the minimum is lower than
-        the number of antennas times low_threshold,
+        the number of antennas times (power_mean - power_std * np.abs(threshold_factor)),
+        a trigger is created.
 
         Parameters
         ----------
@@ -73,7 +72,7 @@ class triggerSimulator(phasedTrigger):
         sampling_rate = station.get_channel(0).get_sampling_rate()
         time_step = 1. / sampling_rate
 
-        diode = diodeSimulator()
+        diode = diodeSimulator(output_passband)
 
         for subbeam_rolls in beam_rolls:
 
@@ -88,14 +87,6 @@ class triggerSimulator(phasedTrigger):
                     continue
 
                 trace = diode.tunnel_diode(channel)  # get the enveloped trace
-
-                # We filter the output of the diode as Eric suggested
-                trace_spectrum = time2freq(trace, sampling_rate)
-                frequencies = np.linspace(0, sampling_rate/2, len(trace_spectrum))
-                b, a = butter(6, output_passband, 'bandpass', analog=True)
-                w, h = freqs(b, a, frequencies)
-                trace = freq2time(h * trace_spectrum, sampling_rate)
-
                 times = channel.get_times()  # get the corresponding time bins
 
                 if(phased_trace is None):
@@ -193,7 +184,8 @@ class triggerSimulator(phasedTrigger):
                 triggered_channels, threshold_factor, power_mean, power_std, output_passband)
 
         trigger = EnvelopePhasedTrigger(trigger_name, threshold_factor, power_mean, power_std,
-                                        triggered_channels, phasing_angles, trigger_delays)
+                                        triggered_channels, phasing_angles, trigger_delays,
+                                        output_passband)
         trigger.set_triggered(is_triggered)
         station.set_trigger(trigger)
 

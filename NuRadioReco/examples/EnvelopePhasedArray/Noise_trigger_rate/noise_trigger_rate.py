@@ -71,7 +71,7 @@ amplitude = (300 * 50 * constants.k * bandwidth / units.Hz) ** 0.5
 
 Ntries = args.ntries # number of tries
 
-threshold_factors = [3.75]
+threshold_factors = [3, 3.25, 3.5]
 
 ratios = []
 
@@ -81,22 +81,12 @@ beam_rolls = get_beam_rolls(ant_z_primary, primary_channels, primary_angles, tim
 
 n_beams = len(primary_angles)
 
-diode = diodeSimulator()
+passband = (100*units.MHz, 200*units.MHz)
+diode = diodeSimulator(passband)
 power_mean, power_std = diode.calculate_noise_parameters(sampling_rate,
                                                          min_freq,
                                                          max_freq,
                                                          amplitude=amplitude)
-
-# The output of the envelope is filtered between 100 and 200 MHz
-if n_samples % 2 == 0:
-    n_freqs = n_samples/2 + 1
-else:
-    n_freqs = (n_samples+1)/2
-frequencies = np.linspace(0, sampling_rate/2, n_freqs)
-passband = [100*units.MHz, 200*units.MHz]
-order = 6
-b, a = butter(order, passband, 'bandpass', analog=True)
-w, h = freqs(b, a, frequencies)
 
 for threshold_factor in threshold_factors:
     prob_cross = 0
@@ -117,10 +107,7 @@ for threshold_factor in threshold_factors:
 
             enveloped_noise = diode.tunnel_diode(channel)
 
-            spectrum = time2freq(enveloped_noise, sampling_rate)
-            passed_enveloped_noise = freq2time(h * spectrum, sampling_rate)
-
-            noise_array.append(passed_enveloped_noise)
+            noise_array.append(enveloped_noise)
 
         for subbeam_rolls in beam_rolls:
 
