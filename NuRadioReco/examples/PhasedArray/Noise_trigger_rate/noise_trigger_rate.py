@@ -27,6 +27,7 @@ single window filled with noise.
 
 parser = argparse.ArgumentParser(description='calculates noise trigger rate for phased array')
 parser.add_argument('--ntries', type=int, help='number noise traces to which a trigger is applied for each threshold', default=100)
+parser.add_argument('--array', type=str, help='array type: RNO or ARA', default='RNO')
 args = parser.parse_args()
 
 main_low_angle = -53. * units.deg
@@ -56,38 +57,42 @@ def get_beam_rolls(ant_z, channel_list, phasing_angles=default_angles, time_step
 
         return beam_rolls
 
-array_type = 'RNO'
+array_type = args.array
 
 if (array_type == 'ARA'):
     min_freq = 130*units.MHz
     max_freq = 750*units.MHz
     sampling_rate = 1.5*units.GHz
+    time_step = 1./sampling_rate
     window_width = 16
     only_primary = False
     primary_angles = default_angles
     secondary_angles = default_sec_angles
+    ant_z_primary = [-46.5, -47.5, -48.5, -49.5, -50.5, -51.5, -52.5, -53.5] # primary antennas positions
+    primary_channels = [0, 1, 2, 3, 4, 5, 6, 7] # channels used for primary beam
+    beam_rolls = get_beam_rolls(ant_z_primary, primary_channels, primary_angles, time_step)
 elif (array_type == 'RNO'):
     min_freq = 132*units.MHz
     max_freq = 700*units.MHz
     sampling_rate = 3*units.GHz
+    time_step = 1./sampling_rate
     window_width = 32
     only_primary = True
     primary_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
+    ant_z_primary = [-98.5, -99.5, -100.5, -101.5] # primary antennas positions
+    primary_channels = [0, 1, 2, 3] # channels used for primary beam
+    beam_rolls = get_beam_rolls(ant_z_primary, primary_channels, primary_angles, time_step)
 
 n_samples = 1000000 # number of samples
-time_step = 1./sampling_rate
 bandwidth = max_freq-min_freq
 amplitude = (300 * 50 * constants.k * bandwidth / units.Hz) ** 0.5
 
 Ntries = args.ntries # number of tries
 
 threshold_factors = [2.1, 2.15, 2.20, 2.25, 2.3]
+threshold_factors = [2.35, 2.4, 2.45, 2.5]
 
 ratios = []
-
-ant_z_primary = [-46.5, -47.5, -48.5, -49.5, -50.5, -51.5, -52.5, -53.5] # primary antennas positions
-primary_channels = [0, 1, 2, 3, 4, 5, 6, 7] # channels used for primary beam
-beam_rolls = get_beam_rolls(ant_z_primary, primary_channels, primary_angles, time_step)
 
 if not only_primary:
     sec_channels = [0, 1, 3, 4, 6, 7] # channels used for secondary beam
