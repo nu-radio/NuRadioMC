@@ -158,6 +158,41 @@ class SimpleThresholdTrigger(Trigger):
         self._number_of_coincidences = number_of_coincidences
         self._coinc_window = channel_coincidence_window
 
+class EnvelopePhasedTrigger(Trigger):
+
+    def __init__(self, name, threshold_factor, power_mean, power_std,
+                 triggered_channels=None, phasing_angles=None, trigger_delays=None):
+        """
+        initialize trigger class
+        Parameters
+        -----------
+        name: string
+            unique name of the trigger
+        threshold_factor: float
+            the threshold factor
+        power_mean: float
+            mean of the noise trace after being filtered with the diode
+        power_std: float
+            standard deviation of the noise trace after being filtered with the
+            diode. power_mean and power_std can be calculated with the function
+            calculate_noise_parameters from utilities.diodeSimulator
+        triggered_channels: array of ints or None
+            the channels that are involved in the main phased beam
+            default: None, i.e. all channels
+        phasing_angles: array of floats or None
+            the angles for each beam
+        trigger_delays: dictionary
+            the delays for the channels that have caused a trigger.
+            If there is no trigger, it's an empty dictionary
+        """
+        Trigger.__init__(self, name, triggered_channels, 'envelope_phased')
+        self._triggered_channels = triggered_channels
+        self._phasing_angles = phasing_angles
+        self._threshold_factor = threshold_factor
+        self._power_mean = power_mean
+        self._power_std = power_std
+        self._trigger_delays = None
+        self._sec_trigger_delays = None
 
 class SimplePhasedTrigger(Trigger):
 
