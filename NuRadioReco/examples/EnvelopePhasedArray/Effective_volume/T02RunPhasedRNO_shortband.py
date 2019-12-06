@@ -51,6 +51,9 @@ phasing_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_hig
 diode_passband = (100*units.MHz, 200*units.MHz)
 diodeSimulator = NuRadioReco.utilities.diodeSimulator.diodeSimulator(diode_passband)
 
+left_edge_around_max = 20 * units.ns
+right_edge_around_max = 40 * units.ns
+
 class mySimulation(simulation.simulation):
 
     def _detector_simulation(self):
@@ -70,14 +73,22 @@ class mySimulation(simulation.simulation):
                                    number_concidences=1,
                                    trigger_name='simple_threshold')
 
+        max_times = []
+
         # Bool for checking the noise triggering rate
         check_only_noise = False
-        if check_only_noise:
 
-            for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
+        for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
 
+            times = channel.get_times()
+            argmax = np.argmax( np.abs(channel.get_trace()) )
+            max_times.append(times[argmax])
+            if check_only_noise:
                 trace = channel.get_trace() * 0
                 channel.set_trace(trace, sampling_rate = new_sampling_rate)
+
+        left_time = np.min(max_times) - left_edge_around_max
+        right_time = np.max(max_times) + right_edge_around_max
 
         noise = True
 
@@ -100,9 +111,21 @@ class mySimulation(simulation.simulation):
                                                                           700 * units.MHz,
                                                                           amplitude=self._Vrms)
 
+        # Setting the trace values far from the amplitude maxima to zero
+        # to reduce the noise trigger rate
+        for channel in self._station.iter_channels():
+
+            times = channel.get_times()
+            left_bin = np.argmin(np.abs(times-left_time))
+            right_bin = np.argmin(np.abs(times-right_time))
+            trace = channel.get_trace()
+            trace[0:left_bin] = 0
+            trace[right_bin:None] = 0
+            channel.set_trace(trace, sampling_rate = new_sampling_rate)
+
         # first run a simple threshold trigger
         triggerSimulator.run(self._evt, self._station, self._det,
-                             threshold_factor=5, # see envelope phased trigger module for explanation
+                             threshold_factor=3.5, # see envelope phased trigger module for explanation
                              power_mean=power_mean,
                              power_std=power_std,
                              triggered_channels=None,  # run trigger on all channels
@@ -117,7 +140,7 @@ parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('--inputfilename', type=str,
                     help='path to NuRadioMC input event list', default='0.00_12_00_1.00e+16_1.00e+19.hdf5')
 parser.add_argument('--detectordescription', type=str,
-                    help='path to file containing the detector description', default='proposalcompact_100m_1.5GHz.json')
+                    help='path to file containing the detector description', default='4antennas_100m_1.5GHz.json')
 parser.add_argument('--config', type=str,
                     help='NuRadioMC yaml config file', default='config_RNO.yaml')
 parser.add_argument('--outputfilename', type=str,
