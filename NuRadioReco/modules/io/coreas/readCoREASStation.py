@@ -55,8 +55,9 @@ class readCoREASStation:
                     station = NuRadioReco.framework.station.Station(self.__station_id)
                     sim_station = coreas.make_sim_station(self.__station_id, corsika, observer,
                                  detector.get_channel_ids(self.__station_id), weights[i])
-
                     station.set_sim_station(sim_station)
+                    sim_shower = coreas.make_sim_shower(corsika, observer, detector, self.__station_id)
+                    evt.add_sim_shower(sim_shower)
                     evt.set_station(station)
                     self.__current_event += 1
                     yield evt
