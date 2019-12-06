@@ -159,7 +159,7 @@ class readCoREAS:
                 sim_station = coreas.make_sim_station(self.__station_id, corsika, observer, channel_ids)
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
-                sim_shower = coreas.make_sim_shower(corsika)
+                sim_shower = coreas.make_sim_shower(corsika, observer, detector, self.__station_id)
                 evt.add_sim_shower(sim_shower)
                 rd_shower = NuRadioReco.framework.radio_shower.RadioShower([station.get_id()])
                 evt.add_shower(rd_shower)
