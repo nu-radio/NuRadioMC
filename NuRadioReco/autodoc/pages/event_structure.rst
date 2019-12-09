@@ -1,6 +1,107 @@
 Data Structure
 ===========================
 
+.nur Files and How to Use Them
+----------------------
+
+Philosophy and Basic Structure
+____________
+  NuRadioReco comes with its own input and output format, called *.nur*. With
+  the obvious exception of reading in data from other file formats, like
+  *CoREAS* or the *SnowShovel* format of the *ARIANNA* experiment, every
+  processing step in an event reconstruction is done in this format. The big
+  advantage this provides, is that at any point the process can be interrupted
+  and the current state of the event data can be saved. This makes it easy to
+  split a reconstruction into several steps and to check the state of the data
+  structure after every step.
+
+  .. image:: ../images/event_structure.png
+    :width: 90%
+
+  A NuRadioReco event is organized hierarchical, with an ``Event`` object at the
+  top. Elements further down the hierarchy can be accessed via *get* functions or
+  iterators from their parent object. For example, accessing the traces of a
+  station's channels would work like this:
+
+  .. code-block:: Python
+
+    #get station with ID 42
+    station = event.get_station(42)
+    # iterate over all channels in station
+    for channel in station.iter_channels():
+      trace = channel.get_trace()
+
+Reading and Writing .nur Files
+____________
+
+  Reading and writing *.nur* files is done by dedicated IO modules.
+  Writing events is done by the eventWriter module. To save disc space it offers
+  the option to not store channel and electric field traces, in case only
+  the higher-level parameters are needed. It is also possible to `write the
+  detector description onto a *.nur* file <detector.html#writing-the-detector>`_.
+
+  .. code-block:: Python
+
+    import NuRadioReco.modules.io.eventWriter
+
+    event_writer = NuRadioReco.modules.io.eventWriter.eventWriter()
+    event_writer.begin('output_filename.nur')
+    event_writer.run(event, mode='full')
+
+  To read *.nur* files, two different modules can be used: ``NuRadioRecoio`` is a
+  general-purpose reader that provides different ways to access events e.g. by
+  ID or by event number. The ``eventReader`` is a more streamlined wrapper around
+  ``NuRadioRecoio`` that provides an iterator over all events. Both modules provide
+  as way to `read the detector description from a *.nur* file <detector.html#reading-the-detector>`_.
+
+  .. code-block:: Python
+
+    import NuRadioReco.modules.io.NuRadioRecoio
+    nuradioreco_io = NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio(['path/to/file', '/path/to/other/file'])
+    # get event with run number 0 and event ID 5
+    event_1 = nuradioreco_io.get_event([0,5])
+    # get second event in files (counting starts at 0)
+    event_2 = nuradioreco.io.get_event_i(1)
+    # iterate over all events
+    for event in nuradioreco_io.get_event():
+      station = event.get_station(42)
+
+    import NuRadioReco.modules.io.eventReader
+    event_reader = NuRadioReco.modules.io.eventReader.eventReader()
+    event_reader.begin(['path/to/file', 'path/to/other/file'])
+    # iterate over events
+    for event in event_reader.run():
+      station = event.get_station(42)
+
+  Additionally, *.nur* files store higher-level parameters in their headers, which
+  makes them easily accessible for all events in a file. For example, if one wanted
+  to make a histogram of the zenith angles in a given file, it would work like this:
+
+  .. code-block:: Python
+
+    import matplotlib.pyplot as plt
+    from NuRadioReco.framework.parameters import stationParameters as stnp
+    from NuRadioReco.utilities import units
+    import NuRadioReco.modules.io.NuRadioRecoio
+    nuradioreco_io = NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio(['path/to/file'])
+    header = nuradioreco_io.get_header()
+    station_id = 42
+    zeniths = header[station_id][stnp.zenith]
+    plt.hist(zeniths/units.deg)
+    plt.show()
+
+  The way that writing and reading *.nur* files is handled internally is that
+  every class in the framework has a ``serialize`` function that writes all
+  information stored in the object into a `pickle <https://docs.python.org/3/library/pickle.html>`_ object
+  and a ``deserialize`` function that writes the data from such a *pickle* into
+  a class object. To write an event to disk, each object calls the ``serialize``
+  function on its child objects, stores the *pickles* they return and then
+  serializes itself. The resulting *pickle* can then be written to disk. To read
+  a *.nur* file the same is done in reverse, with each object calling the ``deserialize``
+  function on its children. Thanks to this implementation, it is easy to extend
+  the framework, since all that has to be done is to define ``serialize`` and
+  ``deserialize`` functions and adjust the ones of the parent object.
+
 Parameter Storage
 ----------------------
   NuRadioReco offers a flexible way to store properties in the data structure via
@@ -35,10 +136,6 @@ Parameter Storage
 
 List of Data Classes
 ----------------------
-
-.. image:: ../images/event_structure.png
-  :width: 80%
-
 
 Event
 ____________
