@@ -1,9 +1,44 @@
 Data Structure
 ===========================
 
+Parameter Storage
+----------------------
+  NuRadioReco offers a flexible way to store properties in the data structure via
+  the parameter storage. Certain classes (``Station``, ``SimStation``, ``Channel``,
+  ``ElectricField``, ``RadioShower`` and ``HybridShower``) provide ``get_parameter``
+  and ``set_parameter`` functions that allow parameters to be stored in those
+  objects along with their uncertainties and correlation to any other paramters.
+  The parameters are defined in an enumerated type *enum*, so to add a new parameter,
+  it just needs to be added to the
+  `list of parameters <../NuRadioReco.framework.html#module-NuRadioReco.framework.parameters>`_
+
+  .. Important:: New parameters should always be added to the bottom of the list. Do not re-use old Enums!
+
+  Additionally, parameters can be written and accessed via indexing, like one
+  would do to a dictionary:
+
+  .. code-block:: Python
+
+    from NuRadioReco.framework.parameters import stationParameters as stnp
+    from NuRadioReco.utilities import units
+
+    # both ways to set the parameter are equivalent
+    station.set_parameter(stnp.cr_zenith, 45 * units.deg)
+    station[stnp.cr_zenith] = 45 * units.deg
+    # set parameter uncertainty
+    station.set_parameter_error(stnp.cr_zenith, 2 * units.deg)
+    # 2 ways of accessing parameters:
+    zenith = station.get_parameter(stnp.cr_zenith)
+    zenith = station[stnp.cr_zenith]
+    # get parameter uncertainty
+    zenith_uncertainty = station.get_parameter_error(stnp.cr_zenith)
+
+List of Data Classes
+----------------------
 
 .. image:: ../images/event_structure.png
   :width: 80%
+
 
 Event
 ____________
