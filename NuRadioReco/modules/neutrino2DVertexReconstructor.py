@@ -98,7 +98,6 @@ class neutrino2DVertexReconstructor:
 
         correlation_sum = np.zeros(x_coords.shape)
 
-
         corr_range = 50.*units.ns
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
             ch1 = station.get_channel(channel_pair[0])
@@ -127,14 +126,20 @@ class neutrino2DVertexReconstructor:
             toffset = -(np.arange(0, self.__correlation.shape[0]) - self.__correlation.shape[0] / 2.) / ch1.get_sampling_rate()
             self.__sampling_rate = ch1.get_sampling_rate()
             self.__channel_pair = channel_pair
-            self.__channel_positions = [self.__detector.get_relative_position(self.__station_id, channel_pair[0]), self.__detector.get_relative_position(self.__station_id, channel_pair[0])]
+            self.__channel_positions = [self.__detector.get_relative_position(self.__station_id, channel_pair[0]), self.__detector.get_relative_position(self.__station_id, channel_pair[1])]
             correlation_array = np.zeros_like(correlation_sum)
             for i_ray in range(len(self.__ray_types)):
                 self.__current_ray_types = self.__ray_types[i_ray]
                 correlation_array = np.maximum(self.get_correlation_array_2d(x_coords, z_coords), correlation_array)
             correlation_sum = correlation_sum + correlation_array / np.max(correlation_array) * corr_snr
-
+            
+            
+            max_corr_index = np.unravel_index(np.argmax(correlation_sum), correlation_sum.shape)
+            max_corr_r = x_coords[max_corr_index[0]][max_corr_index[1]]
+            max_corr_z = z_coords[max_corr_index[0]][max_corr_index[1]]
+            
             if debug:
+                
                 fig1 = plt.figure(figsize=(12,4))
                 fig2 = plt.figure(figsize=(8,12))
                 ax1_1 = fig1.add_subplot(1, 3, 1)
@@ -172,9 +177,7 @@ class neutrino2DVertexReconstructor:
                     ax2_2.axvline(np.sqrt(sim_vertex[0]**2+sim_vertex[1]**2), c='r', linestyle=':')
                     ax2_2.axhline(sim_vertex[2], c='r', linestyle=':')
 
-                max_corr_index = np.unravel_index(np.argmax(correlation_sum), correlation_sum.shape)
-                max_corr_r = x_coords[max_corr_index[0]][max_corr_index[1]]
-                max_corr_z = z_coords[max_corr_index[0]][max_corr_index[1]]
+                
                 ax2_1.axvline(max_corr_r, c='k', linestyle=':')
                 ax2_1.axhline(max_corr_z, c='k', linestyle=':')
                 ax2_2.axvline(max_corr_r, c='k', linestyle=':')
@@ -182,7 +185,12 @@ class neutrino2DVertexReconstructor:
 
                 fig2.tight_layout()
                 plt.show()
+    
                 plt.close('all')
+        station.set_parameter(stnp.vertex_2D_fit, [x_coords[max_corr_index[0]][max_corr_index[1]], z_coords[max_corr_index[0]][max_corr_index[1]]] )
+        
+        
+
 
         return
 
