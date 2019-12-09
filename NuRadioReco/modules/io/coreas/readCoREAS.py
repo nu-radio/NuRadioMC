@@ -49,10 +49,15 @@ class readCoREAS:
     @register_run()
     def run(self, detector, output_mode=0):
         """
-        read in CoREAS simulation
+        Read in a random sample of stations from a CoREAS file.
+        A number of random positions is selected within a certain radius.
+        For each position the closest observer is selected and a simulated
+        event is created for that observer.
 
         Parameters
         ----------
+        detector: Detector object
+            Detector description of the detector that shall be simulated
         output_mode: integer (default 0)
             0: only the event object is returned
             1: the function reuturns the event object, the current inputfilename, the distance between the choosen station and the requested core position,

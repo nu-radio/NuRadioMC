@@ -32,13 +32,13 @@ class readCoREASStation:
     @register_run()
     def run(self, detector):
         """
-        run method
-
-        initialize readCoREAS module
+        Reads in all observers in the CoREAS files and returns a new simulated
+        event for each.
 
         Parameters
         ----------
-        detector: containing station ID
+        detector: Detector object
+            Detector description of the detector that shall be simulated
 
         """
         for input_file in self.__input_files:
