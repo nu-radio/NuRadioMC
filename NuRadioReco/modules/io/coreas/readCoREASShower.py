@@ -54,7 +54,7 @@ class readCoREASShower:
 
     def run(self):
         """
-        read in a full CoREAS simulation
+        Reads in a CoREAS file and returns an event containing all simulated stations
 
         """
         while (self.__current_input_file < len(self.__input_files)):
