@@ -341,7 +341,7 @@ def get_E2_limit_figure(diffuse=True,
         if(show_TA):
             TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), "TA_combined_fit_m3.txt"))
             TA_m3, = ax.plot(TA_data[:, 0] * units.GeV / plotUnitsEnergy, TA_data[:, 1],
-                              label=r'UHECRs TA best fit, m=3', linestyle=':', color='k')
+                              label=r'UHECRs TA combined fit, m=3', linestyle=':', color='k')
             legends.append(TA_m3)
 
         first_legend = plt.legend(handles=legends, loc=4, fontsize=legendfontsize, handlelength=4)
