@@ -89,8 +89,7 @@ amplitude = (300 * 50 * constants.k * bandwidth / units.Hz) ** 0.5
 
 Ntries = args.ntries # number of tries
 
-threshold_factors = [2.1, 2.15, 2.20, 2.25, 2.3]
-threshold_factors = [2.35, 2.4, 2.45, 2.5]
+threshold_factors = [2.25, 2.3, 2.35, 2.40]
 
 ratios = []
 
@@ -136,20 +135,25 @@ for threshold_factor in threshold_factors:
             n_windows = int(n_samples/window_width)
             n_windows = int(2*n_windows - 1)
 
-            windowed_traces = [ np.sum(np.lib.stride_tricks.as_strided(noise[int(i_window*window_width/2):],(window_width,))**2) \
-                                for i_window in np.linspace(0,n_windows-1,n_windows) ]
-            windowed_traces = np.array(windowed_traces)
-
             n_phased = len(primary_channels) + len(sec_channels)
-            mask = windowed_traces > n_phased * window_width * threshold_factor**2 * amplitude**2
-            # If a phased direction triggers, the whole phased array triggers.
-            # That is why we multiply the probability by the number of beams, or phasing directions.
-            # This is justified as long as the probability is small and each direction triggers
-            # independently of the rest.
-            prob_cross += np.sum( mask * np.ones(len(mask)) )/n_windows * n_beams
 
-    ratio = float(prob_cross)/Ntries
-    trigger_frequency = 2*ratio/window_width / units.Hz
-    print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.5f}%, Noise trigger rate: {:.2f}'.format(threshold_factor, ratio*100., trigger_frequency))
+            strides = noise.strides
+            windowed_traces = np.lib.stride_tricks.as_strided(noise, \
+                              shape=(n_windows, window_width), \
+                              strides=(int(window_width / 2) * strides[0], strides[0]))
+
+            squared_mean = np.sum(windowed_traces ** 2 / window_width, axis=1)
+            squared_mean_threshold = n_phased * threshold_factor**2 * amplitude**2
+            mask = squared_mean > squared_mean_threshold
+
+            # If a phased direction triggers, the whole phased array triggers.
+            # The following formula is justified as long as the probability is small
+            # and each direction triggers independently of the rest.
+            prob_cross += np.sum( mask * np.ones(len(mask)) )/n_windows
+
+    prob_per_window = float(prob_cross)/Ntries
+    # The 2 comes from the use of overlapping sweeping windows
+    trigger_frequency = 2*prob_per_window/window_width
+    print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.5f}%, Noise trigger rate: {:.2f}'.format(threshold_factor, prob_per_window*100., trigger_frequency/units.Hz))
 
     ratios.append(ratio)
