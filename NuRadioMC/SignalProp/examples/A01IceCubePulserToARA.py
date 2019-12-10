@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 from NuRadioMC.SignalProp import analyticraytraycing as ray
-from NuRadioMC.utilities import units, medium
+from NuRadioMC.utilities import medium
+from NuRadioReco.utilities import units
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('raytracing')
@@ -39,4 +40,3 @@ ax.set_ylabel('z [m]')
 fig.tight_layout()
 fig.savefig("plots/IceCubePulserToARA2.png")
 plt.show()
-

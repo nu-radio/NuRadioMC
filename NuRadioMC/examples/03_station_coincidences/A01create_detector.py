@@ -2,7 +2,7 @@ import copy
 import json
 from matplotlib import pyplot as plt
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from radiotools import plthelpers as php
 
 with open("single_position.json") as fin:

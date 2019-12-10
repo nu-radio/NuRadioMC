@@ -1,5 +1,5 @@
 from NuRadioMC.EvtGen import generator
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 import numpy as np
 import glob
 import os
@@ -53,7 +53,7 @@ for iI, filename in enumerate(sorted(glob.glob(os.path.join(presim_dir,"*.hdf5")
         os.makedirs(t1)
 
     output_filename = os.path.join(working_dir, 'input', current_folder, os.path.basename(filename))
-    
+
     print('saving files to {}'.format(output_filename))
 
     generator.split_hdf5_input_file(filename, output_filename, n_events_per_file)

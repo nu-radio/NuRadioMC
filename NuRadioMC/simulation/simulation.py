@@ -3,9 +3,9 @@ import numpy as np
 from radiotools import helper as hp
 from radiotools import coordinatesystems as cstrans
 from NuRadioMC.SignalGen import askaryan as signalgen
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioMC.utilities import medium
-from NuRadioMC.utilities import fft
+from NuRadioReco.utilities import fft
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
 import h5py
@@ -467,7 +467,7 @@ class simulation():
                             if self._cfg['propagation']['attenuate_ice']:
                                 spectrum_em *= attn
                             # add EM signal to had signal in the time domain
-                            spectrum = fft.time2freq(fft.freq2time(spectrum) + fft.freq2time(spectrum_em))
+                            spectrum = fft.time2freq(fft.freq2time(spectrum, 1/self._dt) + fft.freq2time(spectrum_em,1/self._dt),1/self._dt)
 
                         # apply the focusing effect
                         if self._cfg['propagation']['focusing']:
@@ -532,7 +532,7 @@ class simulation():
                             from matplotlib import pyplot as plt
                             fig, (ax, ax2) = plt.subplots(1, 2)
                             ax.plot(self._ff, np.abs(eTheta) / units.micro / units.V * units.m)
-                            ax2.plot(self._tt, fft.freq2time(eTheta) / units.micro / units.V * units.m)
+                            ax2.plot(self._tt, fft.freq2time(eTheta, 1./self._dt) / units.micro / units.V * units.m)
                             ax2.set_ylabel("amplitude [$\mu$V/m]")
                             fig.tight_layout()
                             fig.suptitle("$E_C$ = {:.1g}eV $\Delta \Omega$ = {:.1f}deg, R = {:.0f}m".format(
@@ -629,8 +629,8 @@ class simulation():
 
     def _get_noise_normalization(self, station_id, channel_id=0):
         """
-        returns the normalization of the Vrms of the noise generator module. 
-        The normalization is 
+        returns the normalization of the Vrms of the noise generator module.
+        The normalization is
         Vrms = self._Vrms / (norm / (max_freq - min_freq))**0.5
         """
         if(station_id in self.__noise_adder_normalization and channel_id in self.__noise_adder_normalization[station_id]):
@@ -819,9 +819,9 @@ class simulation():
             sg['receive_vectors'] = np.zeros((self._n_events, n_antennas, nS, 3)) * np.nan
             sg['ray_tracing_C0'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
             sg['ray_tracing_C1'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
-            sg['ray_tracing_reflection'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
-            sg['ray_tracing_reflection_case'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
-            sg['ray_tracing_solution_type'] = np.zeros((self._n_events, n_antennas, nS), dtype=np.int) * np.nan
+            sg['ray_tracing_reflection'] = np.ones((self._n_events, n_antennas, nS), dtype=np.int) * -1
+            sg['ray_tracing_reflection_case'] = np.ones((self._n_events, n_antennas, nS), dtype=np.int) * -1
+            sg['ray_tracing_solution_type'] = np.ones((self._n_events, n_antennas, nS), dtype=np.int) * -1
             sg['polarization'] = np.zeros((self._n_events, n_antennas, nS, 3)) * np.nan
             sg['travel_times'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
             sg['travel_distances'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan

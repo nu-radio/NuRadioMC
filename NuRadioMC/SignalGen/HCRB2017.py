@@ -1,5 +1,5 @@
 import numpy as np
-from NuRadioMC.utilities import units, fft
+from NuRadioReco.utilities import units, fft
 from scipy import constants
 from scipy.optimize import curve_fit
 import logging
@@ -13,12 +13,12 @@ including the LPM effect and Cascade Form Factor." Astropart. Phys. 91, 75-89 (2
 Buniy, R. V., Ralston, J. P.  "Radio detection of high energy particles: Coherence versus multiple scales"
 Physical Review D, 65 016003 (2001)
 
-This module uses a Gaisser Hillas shower profile for hadronic showers and a Greisen profile for EM showers. When 
+This module uses a Gaisser Hillas shower profile for hadronic showers and a Greisen profile for EM showers. When
 the LPM effect is activated (default) instead of a Greisen profile, a parameterization from [1] is used. Please not that
 these two parameterization (with/without LPM) do not give consistent results at energies where the LPM effect is
 negligible. Use the model prediction with caution.
 
-Please also note that the timing is not properly implemented (see https://github.com/nu-radio/NuRadioMC/issues/19).  
+Please also note that the timing is not properly implemented (see https://github.com/nu-radio/NuRadioMC/issues/19).
 
 """
 speed_of_light = constants.c * units.m / units.s
@@ -57,7 +57,7 @@ def get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, LPM=True, a=N
     a: float or None (default Nont)
         if variable set, the shower width is manually set to this value
     """
-    
+
     freqs = np.fft.rfftfreq(N, dt)
     eR, eTheta = _get_E_omega(freqs, energy, R, theta, n_index, is_em_shower, LPM, a=a)
     traceR = np.fft.irfft(eR) / dt
@@ -92,7 +92,7 @@ def get_frequency_spectrum(energy, theta, N, dt, is_em_shower, n, R, LPM=True, a
         if variable set, the shower width is manually set to this value
     """
     eR, eTheta, ePhi = get_time_trace(energy, theta, N, dt, is_em_shower, n, R, LPM, a=a)
-    return np.array([fft.time2freq(eR), fft.time2freq(eTheta), fft.time2freq(ePhi)])
+    return np.array([fft.time2freq(eR, 1./dt), fft.time2freq(eTheta, 1./dt), fft.time2freq(ePhi, 1./dt)])
 
 
 def _get_k(ff, n_index):
@@ -125,7 +125,7 @@ def _get_E_omega(ff, E, R, theta, n_index, EM=True,
     """
     calculates the frequncy spectrum of an Askaryan pulse. Do not use this function directly,
     use get_frequency_spectrum() instead
-    
+
     Parameters
     -----------
     ff: np.array of floats
@@ -151,10 +151,10 @@ def _get_E_omega(ff, E, R, theta, n_index, EM=True,
     fudge_LPM: bool (default False)
         if True, the shower width parameterization of LPM showers is rescaled to match
         the Greisen parameterization at energies below the E_LPM, i.e., at energies where the LPM effect is negligible
-        
+
     Returns:
         eR, eTheta component of electric field in frequency domain
-    
+
     """
 
     _Nmax, _askaryanDepthA = get_N_AskDepthA(E, EM, LPM, fudge_LPM=fudge_LPM)
@@ -193,13 +193,13 @@ def gauss(x, A, mu, sigma):
 
 def get_N_AskDepthA(E, EM=True, LPM=True, fudge_LPM=False):
     """
-    calculates the Gaussian width (sigma) of the shower profile using the 
-    Greisen profile for EM showers and the Gaisser-Hillas profile for HAD showers. 
+    calculates the Gaussian width (sigma) of the shower profile using the
+    Greisen profile for EM showers and the Gaisser-Hillas profile for HAD showers.
     If the LPM flag is activated, for EM shower of the shower width of 10.1103/PhysRevD.82.074017 is used.
-    
+
     Please note that the parameterization of the shower width for LPM showers is not compatible with the Greisen
     parameterization event at regimes where the LPM effect is negligible!!!
-    
+
     Parameters
     ----------
     E: float
@@ -250,9 +250,9 @@ def get_N_AskDepthA(E, EM=True, LPM=True, fudge_LPM=False):
         excess = 0.09 + dx * n_max_position / ICE_DENSITY * 1.0e-2
     Nmax = excess * n_max / 1000.0
     logger.debug("Nmax {}, excess {}, n_max {}".format(Nmax, excess, n_max))
-    
+
     # We want to perform a fit for the regions with an excess charge 10% close to the maximum
-    fit_region_cut = 0.95 
+    fit_region_cut = 0.95
     cut_left = np.argwhere((nx[:n_max_position] / nx[n_max_position]) > fit_region_cut)[0][0]
     cut_right = np.argwhere((nx[n_max_position:] / nx[n_max_position]) < fit_region_cut)[0][0]+n_max_position
     fit_width = cut_right-cut_left
@@ -260,14 +260,14 @@ def get_N_AskDepthA(E, EM=True, LPM=True, fudge_LPM=False):
     x_fit = np.arange(0, len(max_vicinity), 1)
     sigma = curve_fit(gauss, x_fit, max_vicinity)[0]
     if EM:
-        _askaryanDepthA = dx * sigma[2] / ICE_DENSITY * ICE_RAD_LENGTH 
+        _askaryanDepthA = dx * sigma[2] / ICE_DENSITY * ICE_RAD_LENGTH
     else:
         _askaryanDepthA = dx * sigma[2]/ ICE_DENSITY
     logger.debug("a (before LPM = {}".format(_askaryanDepthA))
 
     E_LPM = 3e14 * units.eV
     if(EM and LPM):
-        if((E > E_LPM) or not fudge_LPM): # only apply LPM correction in regimes where it is relevant 
+        if((E > E_LPM) or not fudge_LPM): # only apply LPM correction in regimes where it is relevant
             p1 = -2.8564e2
             p2 = 7.8140e1
             p3 = -8.3893
@@ -277,12 +277,12 @@ def get_N_AskDepthA(E, EM=True, LPM=True, fudge_LPM=False):
             e = np.log10(E/units.eV)  # log_10 of Energy in eV
             log10_shower_depth = p1 + p2 * e + p3 * e**2 + p4 * e**3 + p5 * e**4 + p6 * e**5
             a = 10.0**log10_shower_depth * 0.5 # adjust shower wiedth to be just the sigma parameter of a Gaussian
-            
+
             if(fudge_LPM):
                 # normalize to Greisen parameterization at LPM energy
                 a_Greisen = get_N_AskDepthA(E_LPM, EM=True, LPM=False)[1]
-                a /= a_Greisen 
-            
+                a /= a_Greisen
+
             # Right here, record the reduction in n_max_position that I don't believe in.
             if _strictLowFreqLimit:
                 logger.debug("strict_lowfeq  Nmax = {:.2g}, a= {} priora = {}".format(Nmax, a, _askaryanDepthA/units.m, Nmax))
@@ -290,6 +290,3 @@ def get_N_AskDepthA(E, EM=True, LPM=True, fudge_LPM=False):
             _askaryanDepthA = a
     logger.debug("a = {:.2f}m, Nmax = {}".format(_askaryanDepthA/units.m, Nmax))
     return Nmax, _askaryanDepthA
-
-
-

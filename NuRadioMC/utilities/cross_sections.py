@@ -1,5 +1,5 @@
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from scipy.interpolate import interp1d
 from scipy import constants
 
@@ -237,13 +237,13 @@ def get_interaction_length(Enu, density=.917 * units.g / units.cm ** 3, flavor=1
                            cross_section_type='ctw'):
     """
     calculates interaction length from cross section
-    
+
     Parameters
     ----------
     Enu: float
         neutrino energy
     density: float (optional)
-        density of the medium, default density of ice = 0.917 g/cm**3 
+        density of the medium, default density of ice = 0.917 g/cm**3
     flavors: float / array of floats
         neutrino flavor (integer) encoded as using PDG numbering scheme,
         particles have positive sign, anti-particles have negative sign, relevant are:
@@ -264,9 +264,9 @@ def get_interaction_length(Enu, density=.917 * units.g / units.cm ** 3, flavor=1
         ctw    : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
                  cross-sections for all interaction types and flavors
         csms   : A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
-        
+
     Returns float: interaction length
-        
+
     """
     m_n = constants.m_p * units.kg  # nucleon mass, assuming proton mass
     L_int = m_n / get_nu_cross_section(Enu, flavors=flavor, inttype=inttype, cross_section_type=cross_section_type) / density
