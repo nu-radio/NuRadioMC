@@ -3,21 +3,32 @@ import numpy as np
 import logging
 import scipy.signal
 from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
+from NuRadioReco.utilities.fft import time2freq, freq2time
+from scipy.signal import butter, freqs
 import NuRadioReco.framework.channel
 
 logger = logging.getLogger('diodeSimulator')
 
 class diodeSimulator:
 
-    def __init__(self):
+    def __init__(self, output_passband=(None,None)):
         """
         Calculate a signal as processed by the tunnel diode.
         The given signal is convolved with the tunnel diodde response as in
         AraSim.
+
+        Parameters
+        ----------
+        output_passband: (float, float) tuple
+            Frequencies for a 6th-order Butterworth filter to be applied after
+            the diode filtering. If a lowpass filter is needed, please pass a
+            (None, float) tuple as parameter.
         """
 
         logger.info("This module does not contain cutting the trace to ARA specific parameters.")
         logger.info("The user should take care of the appropriate noise rate and trace window.")
+
+        self._output_passband = output_passband
 
     # Tunnel diode response functions pulled from arasim
     # RL (Robert Lahmann) Sept 3, 2018: this is not documented in the arasim code, but it seems most
@@ -68,6 +79,9 @@ class diodeSimulator:
         ----------
         channel: Channel
             Signal to be processed by the tunnel diode.
+        output_passband: (float, float) tuple
+            Frequencies for a 6th-order Butterworth filter to be applied after
+            the diode filtering.
 
         Returns
         -------
@@ -91,6 +105,19 @@ class diodeSimulator:
         trace_after_tunnel_diode = conv / channel.get_sampling_rate()
         trace_after_tunnel_diode = trace_after_tunnel_diode[:channel.get_trace().shape[0]]
 
+        # We filter the output if the band is specified
+        if self._output_passband != (None, None):
+
+            sampling_rate = channel.get_sampling_rate()
+            trace_spectrum = time2freq(trace_after_tunnel_diode, sampling_rate)
+            frequencies = np.linspace(0, sampling_rate/2, len(trace_spectrum))
+            if self._output_passband[0] is None:
+                b, a = butter(6, self._output_passband[1], 'lowpass', analog=True)
+            else:
+                b, a = butter(6, self._output_passband, 'bandpass', analog=True)
+            w, h = freqs(b, a, frequencies)
+            trace_after_tunnel_diode = freq2time(h * trace_spectrum, sampling_rate)
+
         return trace_after_tunnel_diode
 
     def calculate_noise_parameters(self,
@@ -112,6 +139,7 @@ class diodeSimulator:
             Maximum frequency of the bandwidth
         amplitude: float
             Voltage amplitude (RMS) for the noise
+
         type: string
             Noise type
 
