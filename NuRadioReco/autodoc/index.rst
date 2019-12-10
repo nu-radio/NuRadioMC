@@ -12,9 +12,10 @@ Welcome to NuRadioReco's documentation!
    pages/introduction
    pages/event_structure
    pages/detector
+   pages/nur_modules
    pages/event_display
+   pages/contributing
    pages/code_documentation
-   includeme
 
 Indices and tables
 ==================
