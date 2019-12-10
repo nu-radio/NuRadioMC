@@ -3,7 +3,7 @@ import numpy as np
 from radiotools import helper as hp
 from radiotools import plthelpers as php
 from matplotlib import pyplot as plt
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioMC.utilities import medium
 from NuRadioMC.SignalProp import analyticraytraycing as ray
 import h5py
@@ -67,4 +67,3 @@ for i in np.array(range(len(xx)))[mask]:
     ax.plot(yyy, zzz)
     ax.set_aspect('equal')
     plt.show()
-

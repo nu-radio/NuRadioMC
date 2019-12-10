@@ -1,5 +1,5 @@
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from scipy import constants
 
 e_mass = constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV

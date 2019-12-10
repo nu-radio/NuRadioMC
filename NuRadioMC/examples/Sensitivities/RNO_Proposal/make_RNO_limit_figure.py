@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from NuRadioMC.utilities import fluxes
 from NuRadioMC.examples.Sensitivities import E2_fluxes3 as limit
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 import json
 legendfontsize = 11
 

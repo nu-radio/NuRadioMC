@@ -2,7 +2,8 @@ import numpy as np
 import pickle
 import time
 from NuRadioMC.SignalProp import analyticraytracing as ray
-from NuRadioMC.utilities import units, medium
+from NuRadioMC.utilities import medium
+from NuRadioReco.utilities import units
 import logging
 from numpy import testing
 logging.basicConfig(level=logging.INFO)
@@ -42,4 +43,3 @@ for iX, x in enumerate(points):
             results_C0s_cpp[iX, iS] = r.get_results()[iS]['C0']
 with open("reference_C0.pkl", "w") as fout:
     pickle.dump(results_C0s_cpp, fout, protocol=2)
-

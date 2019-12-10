@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioMC.utilities import cross_sections
 import logging
 logger = logging.getLogger("utilities.earth_attenuation")
@@ -92,4 +92,3 @@ def get_core_mantle_crust_weight(theta_nu, pnu, flavors, cross_section_type='ctw
         d_outer = - 2 * R_EARTH * np.cos(theta_nu) - d_middle - d_inner
         weight = np.exp(-d_outer * sigma * densities[2] / AMU - d_middle * sigma * densities[1] / AMU - d_inner * sigma * densities[0] / AMU)
     return weight
-

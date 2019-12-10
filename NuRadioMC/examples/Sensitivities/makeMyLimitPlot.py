@@ -2,14 +2,14 @@ import numpy as np
 from matplotlib import pyplot as plt
 from NuRadioMC.utilities import fluxes
 from NuRadioMC.examples.Sensitivities import E2_fluxes2 as limit
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 import json
 
 
 # import latest Veff from NuRadioMC
 with open("NuRadioMC_20181113_Veff.json", 'r') as fin:
     data = json.load(fin)
-    
+
     # producen nice outreach plot
     fig, ax = limit.get_E2_limit_figure()
     labels = []
@@ -23,8 +23,8 @@ with open("NuRadioMC_20181113_Veff.json", 'r') as fin:
     ax.set_title("raw triggered volumes")
     fig.tight_layout()
     fig.savefig("limits_outreach.pdf")
-    
-    
+
+
     fig, ax = limit.get_E2_limit_figure()
     labels = []
     labels = limit.add_limit(ax, labels,
@@ -56,7 +56,7 @@ with open("NuRadioMC_20181113_Veff.json", 'r') as fin:
     ax.set_title("with 3x 3sigma cut")
     fig.tight_layout()
     fig.savefig("limits_shallow_deep60m_reco.pdf")
-    
+
     ## calculate number of neutrinos from icecube (nu mu) flux
     def print_N_neutrinos(trigger_name, n_stations):
         print("{} for 3 years and {} stations with 100% uptime".format(trigger_name, n_stations))
@@ -68,11 +68,11 @@ with open("NuRadioMC_20181113_Veff.json", 'r') as fin:
             print("{:>10.1g}: {:.1f}".format(E[iE], Nnu[iE]))
         print("--------------------")
         print("{:>10}: {:.1f}".format("total", np.sum(Nnu)))
-    
+
     print("number of neutrinos for icecube (numu) flux")
     print_N_neutrinos('shallow + PA@15m@2s', 270)
     print_N_neutrinos('shallow + PA@15m@2s', 110)
     print_N_neutrinos('shallow + PA@50m@2s', 130)
     print_N_neutrinos('shallow + PA@50m@2s', 55)
-    
+
     plt.show()

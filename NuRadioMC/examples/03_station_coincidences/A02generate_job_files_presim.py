@@ -1,5 +1,5 @@
 from NuRadioMC.EvtGen import generator
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 import numpy as np
 import glob
 import os

@@ -1,5 +1,5 @@
 from NuRadioMC.SignalGen.askaryan import get_time_trace, get_frequency_spectrum
-from NuRadioMC.utilities import units, fft
+from NuRadioReco.utilities import units
 import numpy as np
 import pickle
 

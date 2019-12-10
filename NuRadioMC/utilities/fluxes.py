@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.constants
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioMC.utilities import cross_sections
 import logging
 logger = logging.getLogger('fluxes')
@@ -284,10 +284,3 @@ if __name__=="__main__":  # this part of the code gets only executed it the scri
     energies = 10**np.array([18,18.5,19,19.5,20,20.5,21])* units.eV
 
     print("Flux limit: {} GeV/(cm^2 s sr)".format(energies**2*get_limit_from_aeff(energies,aeff,livetime) / (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)))
-
-
-
-
-
-
-

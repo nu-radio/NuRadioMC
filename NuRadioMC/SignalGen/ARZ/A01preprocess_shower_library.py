@@ -1,5 +1,5 @@
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 import os
 from scipy import interpolate as intp
 import glob
@@ -12,7 +12,7 @@ if __name__ == "__main__":
     print("usage: python A01preprocess_shower_library.py /path/to/library/ outputfilename")
     path = sys.argv[1]
     out = sys.argv[2]
-    
+
     library = {}
     for subfolder in ["HAD", "EM"]:
         if(subfolder not in library):
@@ -34,9 +34,9 @@ if __name__ == "__main__":
                     E = float("0.{}".format(e2[1:])) * units.EeV
                 else:
                     E = float("{}".format(e2)) * units.EeV
-                    
-                
-            
+
+
+
             depth_e, N_e = np.loadtxt(file_e, unpack=True, usecols=(1, 2))
             depth_p, N_p = np.loadtxt(file_p, unpack=True, usecols=(1, 2))
             depth_e *= units.g / units.cm**2
@@ -47,15 +47,15 @@ if __name__ == "__main__":
             # sanity check if files electron and positron profiles are compatible
             if (not np.all(depth_e == depth_p)):
                 raise ImportError("electron and positron profile have different depths")
-            
+
             if(E not in library[subfolder]):
                 library[subfolder][E] = {}
                 library[subfolder][E]['depth'] = depth_e
                 library[subfolder][E]['charge_excess'] = []
 
             library[subfolder][E]['charge_excess'].append(ce)
-             
-            
+
+
             if 0:
                 from matplotlib import pyplot as plt
                 fig, ax = plt.subplots(1, 1)
@@ -70,7 +70,7 @@ if __name__ == "__main__":
                 plt.close(fig)
                 continue
 #                 plt.show()
-                
+
 #             length = depth_e / rho
 #             zmax = length.max()
 #             xnep = intp.interp1d(length, N_e - N_p, bounds_error=False, fill_value=0)

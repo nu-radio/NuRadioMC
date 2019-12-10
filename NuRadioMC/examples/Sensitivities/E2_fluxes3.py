@@ -243,7 +243,7 @@ ara_1year = ara_1year.T
 
 ara_1year[:, 0] *= units.eV
 ara_1year[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-ara_1year[:, 1] /= 2  # half-decade binning
+ara_1year[:, 1] /= 1  # binning is dLogE = 1
 ara_1year[:, 1] *= energyBinsPerDecade
 
 # Ongoing analysis 2sta x 4yr *trigger* level projected limit (analysis
@@ -261,8 +261,20 @@ ara_4year = ara_4year.T
 
 ara_4year[:, 0] *= units.eV
 ara_4year[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-ara_4year[:, 1] /= 2  # half-decade binning
+ara_4year[:, 1] /= 1  # binning is dLogE = 1
 ara_4year[:, 1] *= energyBinsPerDecade
+
+ARIANNA_HRA = np.array([[1.00000003e+07, 3.16228005e+07, 9.99999984e+07, 3.16227997e+08,
+                         9.99999984e+08, 3.16228010e+09, 9.99999998e+09, 3.16228010e+10,
+                         1.00000002e+11, 3.16227988e+11, 1.00000002e+12],
+                         [8.66913580e-06, 4.31024784e-06, 3.02188396e-06, 1.95297917e-06,
+                          1.67624432e-06, 2.09537200e-06, 2.90309617e-06, 4.41176250e-06,
+                          7.49194972e-06, 1.33386048e-05, 2.57394786e-05]])
+ARIANNA_HRA = ARIANNA_HRA.T
+ARIANNA_HRA[:, 0] *= units.GeV
+ARIANNA_HRA[:, 1] /= 1
+ARIANNA_HRA[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+ARIANNA_HRA[:, 1] *= energyBinsPerDecade
 
 
 # get 10% proton flux
@@ -283,12 +295,15 @@ def get_E2_limit_figure(diffuse=True,
                         show_anita_I_III_limit=True,
                         show_auger_limit=True,
                         show_ara=True,
+                        show_arianna=True,
                         show_neutrino_best_fit=True,
                         show_neutrino_best_case=True,
                         show_neutrino_worst_case=True,
                         show_grand_10k=True,
                         show_grand_200k=False,
-                        show_radar=False):
+                        show_radar=False,
+                        show_Heinze=True,
+                        show_TA=False):
 
     # Limit E2 Plot
     # ---------------------------------------------------------------------------
@@ -297,13 +312,17 @@ def get_E2_limit_figure(diffuse=True,
     # Neutrino Models
     # Version for a diffuse flux and for a source dominated flux
     if diffuse:
-        Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_bands.out"))
-        best_fit, = ax.plot(Heinze_band[:, 0], Heinze_band[:, 1] * Heinze_band[:, 0] ** 2, c='k',
-                            label=r'Best fit UHECR, Heinze et al.', linestyle='-.')
+        legends = []
+        if(show_Heinze):
+            Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_bands.out"))
+            best_fit, = ax.plot(Heinze_band[:, 0], Heinze_band[:, 1] * Heinze_band[:, 0] ** 2, c='k',
+                                label=r'Best fit UHECR, Heinze et al.', linestyle='-.')
 
-        Heinze_evo = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_evolutions.out"))
-        best_fit_3s, = ax.plot(Heinze_evo[:, 0] * units.GeV / plotUnitsEnergy, Heinze_evo[:, 6] * Heinze_evo[:, 0] **
-                        2, color='0.5', label=r'Best fit UHECR + 3$\sigma$, Heinze et al.', linestyle='-.')
+            Heinze_evo = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_evolutions.out"))
+            best_fit_3s, = ax.plot(Heinze_evo[:, 0] * units.GeV / plotUnitsEnergy, Heinze_evo[:, 6] * Heinze_evo[:, 0] **
+                            2, color='0.5', label=r'Best fit UHECR + 3$\sigma$, Heinze et al.', linestyle='-.')
+            legends.append(best_fit)
+            legends.append(best_fit_3s)
 
         vanVliet_max_1 = np.loadtxt(os.path.join(os.path.dirname(__file__), "MaxNeutrinos1.txt"))
         vanVliet_max_2 = np.loadtxt(os.path.join(os.path.dirname(__file__), "MaxNeutrinos2.txt"))
@@ -312,11 +331,23 @@ def get_E2_limit_figure(diffuse=True,
         vanVliet_max = np.maximum(vanVliet_max_1[1, :], vanVliet_max_2[1, :])
 
         prot10, = ax.plot(vanVliet_reas[0, :] * units.GeV / plotUnitsEnergy, vanVliet_reas[1, :],
-                          label=r'10% protons in UHECRs, van Vliet et al.', linestyle='--', color='k')
+                          label=r'10% protons in UHECRs (AUGER), m=3.4, van Vliet et al.', linestyle='--', color='k')
 
         prot = ax.fill_between(vanVliet_max_1[0, :] * units.GeV / plotUnitsEnergy, vanVliet_max, vanVliet_reas[1, :] / 50, color='0.9', label=r'allowed from UHECRs, van Vliet et al.')
+        legends.append(prot10)
+        legends.append(prot)
 
-        first_legend = plt.legend(handles=[best_fit, best_fit_3s, prot10, prot], loc=4, fontsize=legendfontsize, handlelength=4)
+        # TA combined fit
+        if(show_TA):
+            TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), "TA_combined_fit_m3.txt"))
+            print(TA_data)
+            print(TA_data[:, 0] * units.GeV / plotUnitsEnergy)
+            print(TA_data[:, 1])
+            TA_m3, = ax.plot(TA_data[:, 0] * units.GeV / plotUnitsEnergy, TA_data[:, 1],
+                              label=r'UHECRs TA best fit, m=3', linestyle=':', color='k')
+            legends.append(TA_m3)
+
+        first_legend = plt.legend(handles=legends, loc=4, fontsize=legendfontsize, handlelength=4)
 
         plt.gca().add_artist(first_legend)
     else:
@@ -459,8 +490,19 @@ def get_E2_limit_figure(diffuse=True,
                         horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('ARA',
-                    xy=(1e10, 1.05e-6), xycoords='data',
+                    xy=(2e10, 1.05e-6), xycoords='data',
                     horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
+    if show_arianna:
+        ax.plot(ARIANNA_HRA[:, 0] / plotUnitsEnergy, ARIANNA_HRA[:, 1] / plotUnitsFlux, color='red')
+#         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
+        if energyBinsPerDecade == 2:
+            ax.annotate('ARIANNA',
+                        xy=(5e8, 6e-7), xycoords='data',
+                        horizontalalignment='left', color='red', rotation=0, fontsize=legendfontsize)
+        else:
+            ax.annotate('ARIANNA',
+                    xy=(3e8, 1.05e-6), xycoords='data',
+                    horizontalalignment='right', color='red', rotation=0, fontsize=legendfontsize)
 
     ax.set_yscale('log')
     ax.set_xscale('log')
@@ -469,7 +511,7 @@ def get_E2_limit_figure(diffuse=True,
     ax.set_ylabel(r'$E^2\Phi$ [GeV cm$^{-2}$ s$^{-1}$ sr$^{-1}$]')
 
     if diffuse:
-        ax.set_ylim(1e-11, 2e-6)
+        ax.set_ylim(1e-11, 10e-6)
         ax.set_xlim(1e5, 1e11)
     else:
         ax.set_ylim(1e-11, 2e-6)
