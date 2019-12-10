@@ -13,7 +13,7 @@ cspeed = constants.c * units.m / units.s
 
 main_low_angle = -50. * units.deg
 main_high_angle = 50. * units.deg
-default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 15))
+default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 30))
 
 class triggerSimulator(phasedTrigger):
     """
@@ -33,7 +33,8 @@ class triggerSimulator(phasedTrigger):
                          threshold_factor,
                          power_mean,
                          power_std,
-                         output_passband=(100*units.MHz,200*units.MHz)):
+                         output_passband=(None,200*units.MHz),
+                         cut_times=(None,None)):
         """
         Calculates the envelope trigger for a certain phasing configuration.
         Beams are formed. Then, each channel to be phased is filtered with a
@@ -60,6 +61,11 @@ class triggerSimulator(phasedTrigger):
         output_passband: (float, float) tuple
             Frequencies for a 6th-order Butterworth filter to be applied after
             the diode filtering.
+        cut_times: (float, float) tuple
+            Times for cutting the trace after diode filtering. This helps reducing
+            the number of noise-induced triggers. Doing it the other way, that is,
+            cutting and then filtering, will create two artificial pulses on the
+            edges of the trace.
 
         Returns
         -------
@@ -88,6 +94,12 @@ class triggerSimulator(phasedTrigger):
 
                 trace = diode.tunnel_diode(channel)  # get the enveloped trace
                 times = channel.get_times()  # get the corresponding time bins
+
+                if cut_times != (None,None):
+                    left_bin = np.argmin(np.abs(times-cut_times[0]))
+                    right_bin = np.argmin(np.abs(times-cut_times[1]))
+                    trace[0:left_bin] = 0
+                    trace[right_bin:None] = 0
 
                 if(phased_trace is None):
                     phased_trace = np.roll(trace, subbeam_rolls[channel_id])
@@ -118,7 +130,8 @@ class triggerSimulator(phasedTrigger):
             phasing_angles=default_angles,
             set_not_triggered=False,
             ref_index=1.55,
-            output_passband=(100*units.MHz,200*units.MHz)):
+            output_passband=(None,200*units.MHz),
+            cut_times=(None,None)):
         """
         simulates phased array trigger for each event
 
@@ -153,6 +166,11 @@ class triggerSimulator(phasedTrigger):
         output_passband: (float, float) tuple
             Frequencies for a 6th-order Butterworth filter to be applied after
             the diode filtering.
+        cut_times: (float, float) tuple
+            Times for cutting the trace after diode filtering. This helps reducing
+            the number of noise-induced triggers. Doing it the other way, that is,
+            cutting and then filtering, will create two artificial pulses on the
+            edges of the trace.
 
         Returns
         -------
@@ -181,7 +199,7 @@ class triggerSimulator(phasedTrigger):
                                              phasing_angles, ref_index=ref_index)
 
             is_triggered, trigger_delays = self.envelope_trigger(station, beam_rolls,
-                triggered_channels, threshold_factor, power_mean, power_std, output_passband)
+                triggered_channels, threshold_factor, power_mean, power_std, output_passband, cut_times)
 
         trigger = EnvelopePhasedTrigger(trigger_name, threshold_factor, power_mean, power_std,
                                         triggered_channels, phasing_angles, trigger_delays,
