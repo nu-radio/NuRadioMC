@@ -12,4 +12,3 @@ def deserialize(object, parameter_enum):
         if str(entry) in object:
             reply[entry] = object[str(entry)]
     return reply
-    

@@ -65,6 +65,9 @@ class channelBandPassFilter:
     def get_filter(self, frequencies, station_id, channel_id, det, passband, filter_type, order=2):
         """
         helper function to return the filter that the module applies.
+        
+        The unused parameters station_id, channel_id, det are needed to have the same signature as the 
+        `get_filter` functions of other modules, e.g. the hardwareResponseIncorporator. 
 
         Parameters
         -----------

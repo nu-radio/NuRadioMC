@@ -2,6 +2,7 @@ from NuRadioReco.modules.base.module import register_run
 import h5py
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
+import NuRadioReco.framework.radio_shower
 from radiotools import helper as hp
 from radiotools import coordinatesystems as cstrafo
 from NuRadioReco.modules.io.coreas import coreas
@@ -156,9 +157,12 @@ class readCoREAS:
                 station = NuRadioReco.framework.station.Station(self.__station_id)
                 channel_ids = detector.get_channel_ids(self.__station_id)
                 sim_station = coreas.make_sim_station(self.__station_id, corsika, observer, channel_ids)
-
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
+                sim_shower = coreas.make_sim_shower(corsika)
+                evt.add_sim_shower(sim_shower)
+                rd_shower = NuRadioReco.framework.radio_shower.RadioShower([station.get_id()])
+                evt.add_shower(rd_shower)
                 if(output_mode == 0):
                     self.__t += time.time() - t
                     self.__t_event_structure += time.time() - t_event_structure

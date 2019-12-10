@@ -152,14 +152,14 @@ class Detector(object):
             Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
         """
         if(source == 'sql'):
-            self.__db = buffer_db(in_memory=True)
+            self._db = buffer_db(in_memory=True)
         elif source == 'dictionary':
-            self.__db = TinyDB(storage=MemoryStorage)
-            self.__db.purge()
-            stations_table = self.__db.table('stations', cache_size=1000)
+            self._db = TinyDB(storage=MemoryStorage)
+            self._db.purge()
+            stations_table = self._db.table('stations', cache_size=1000)
             for station in dictionary['stations'].values():
                 stations_table.insert(station)
-            channels_table = self.__db.table('channels', cache_size=1000)
+            channels_table = self._db.table('channels', cache_size=1000)
             for channel in dictionary['channels'].values():
                 channels_table.insert(channel)
         else:
@@ -173,12 +173,12 @@ class Detector(object):
                     raise NameError
                 filename = filename2
             logger.warning("loading detector description from {}".format(os.path.abspath(filename)))
-            self.__db = TinyDB(filename, storage=serialization,
+            self._db = TinyDB(filename, storage=serialization,
                                sort_keys=True, indent=4, separators=(',', ': '))
 
-        self._stations = self.__db.table('stations', cache_size=1000)
-        self._channels = self.__db.table('channels', cache_size=1000)
-        self.__positions = self.__db.table('positions', cache_size=1000)
+        self._stations = self._db.table('stations', cache_size=1000)
+        self._channels = self._db.table('channels', cache_size=1000)
+        self.__positions = self._db.table('positions', cache_size=1000)
 
         logger.info("database initialized")
 
@@ -250,13 +250,13 @@ class Detector(object):
                 station_ids.append(a['station_id'])
         return sorted(station_ids)
 
-    def __get_station(self, station_id):
+    def _get_station(self, station_id):
         if(station_id not in self._buffered_stations.keys()):
             self._buffer(station_id)
         return self._buffered_stations[station_id]
 
     def get_station(self, station_id):
-        return self.__get_station(station_id)
+        return self._get_station(station_id)
 
     def __get_position(self, position_id):
         if(position_id not in self.__buffered_positions.keys()):
@@ -394,7 +394,7 @@ class Detector(object):
         Returns: 3-dim array of absolute station position in easting, northing and depth wrt. to snow level at
         time of measurement
         """
-        res = self.__get_station(station_id)
+        res = self._get_station(station_id)
         easting, northing, altitude = 0, 0, 0
         unit_xy = units.m
         if('pos_zone' in res and res['pos_zone'] == "SP-grid"):
@@ -476,7 +476,7 @@ class Detector(object):
         Returns string
         """
 
-        res = self.__get_station(station_id)
+        res = self._get_station(station_id)
         return res['pos_site']
 
     def get_number_of_channels(self, station_id):

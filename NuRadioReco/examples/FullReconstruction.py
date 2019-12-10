@@ -159,7 +159,7 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
             voltageToEfieldConverter.run(evt, station, det, use_channels=used_channels_efield)
 
             electricFieldSignalReconstructor.run(evt, station, det)
-            voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], useMCdirection=False)
+            voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], use_MC_direction=False)
 
             channelResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
 
