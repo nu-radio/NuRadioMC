@@ -91,8 +91,6 @@ Ntries = args.ntries # number of tries
 
 threshold_factors = [2.25, 2.3, 2.35, 2.40]
 
-ratios = []
-
 if not only_primary:
     sec_channels = [0, 1, 3, 4, 6, 7] # channels used for secondary beam
     ant_z_secondary = [-46.5, -47.5, -49.5, -50.5, -52.5, -53.5] # secondary antennas positions
@@ -155,5 +153,3 @@ for threshold_factor in threshold_factors:
     # The 2 comes from the use of overlapping sweeping windows
     trigger_frequency = 2*prob_per_window/window_width
     print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.5f}%, Noise trigger rate: {:.2f}'.format(threshold_factor, prob_per_window*100., trigger_frequency/units.Hz))
-
-    ratios.append(ratio)
