@@ -82,8 +82,6 @@ else:
     primary_channels = [0]
     threshold_factors = [9.0, 9.2, 9.4]
 
-ratios = []
-
 beam_rolls = get_beam_rolls(ant_z_primary, primary_channels, primary_angles, time_step)
 
 n_beams = len(primary_angles)
@@ -145,5 +143,3 @@ for threshold_factor in threshold_factors:
     prob_per_window = float(prob_cross)/Ntries
     trigger_frequency = prob_per_window/window_width
     print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.5f}%, Noise trigger rate: {:.2f} Hz'.format(threshold_factor, prob_per_window*100., trigger_frequency/units.Hz))
-
-    ratios.append(ratio)
