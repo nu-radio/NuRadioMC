@@ -39,7 +39,6 @@ def scan_files_function(version_major, version_minor):
         self._bytes_start[iF].append(current_byte)
         self._bytes_length[iF].append(bytes_to_read)
         current_byte += bytes_to_read
-        #print("reading event {} with length {} from byte {} onwards".format(len(self.__bytes_length[iF]), bytes_to_read, self.__bytes_start[iF][-1]))
         return True, iF, current_byte
 
     def scan_files_2_2(self, iF, current_byte):
@@ -82,11 +81,19 @@ def scan_files_function(version_major, version_minor):
             self._bytes_length[iF].append(bytes_to_read)
         elif object_type == 1:  #object is detector info
             detector_dict = pickle.loads(self._get_file(iF).read(bytes_to_read))
+            if 'generic_detector' not in detector_dict.keys():
+                is_generic_detector = False
+            else:
+                is_generic_detector = detector_dict['generic_detector']
             if iF not in self._detector_dicts.keys():
                 self._detector_dicts[iF] = {
+                    'generic_detector': is_generic_detector,
                     'channels': {},
                     'stations': {}
                 }
+            if is_generic_detector:
+                self._detector_dicts[iF]['default_station'] = detector_dict['default_station']
+                self._detector_dicts[iF]['default_channel'] = detector_dict['default_channel']
             for station in detector_dict['stations'].values():
                 if len(self._detector_dicts[iF]['stations'].keys()) == 0:
                     index = 0
@@ -99,6 +106,12 @@ def scan_files_function(version_major, version_minor):
                 else:
                     index = max(self._detector_dicts[iF]['channels'].keys()) + 1
                 self._detector_dicts[iF]['channels'][index] = channel
+        elif object_type ==2:   #object is list of event-specific changes to the detector
+            changes_dict = pickle.loads(self._get_file(iF).read(bytes_to_read))
+            if iF not in self._event_specific_detector_changes.keys():
+                self._event_specific_detector_changes[iF] = []
+            for change in changes_dict:
+                self._event_specific_detector_changes[iF].append(change)
         current_byte += bytes_to_read
         return True, iF, current_byte
 
@@ -159,7 +172,7 @@ def iter_events_function(version_major, version_minor):
                 event = NuRadioReco.framework.event.Event(0, 0)
                 event.deserialize(evtstr)
                 yield event
-            elif object_type == 1:
+            elif object_type == 1 or object_type == 2:
                 self._get_file(self._current_file_id).read(bytes_to_read)
     if version_major == 2:
         if version_minor < 2:
