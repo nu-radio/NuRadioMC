@@ -748,7 +748,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                            resample=False,
                            start_file_id=0,
                            config_file='SouthPole'):
-
     """
     Event generator for surface muons
 
@@ -1205,10 +1204,12 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     data_sets = {}
     # generate neutrino vertices randomly
+    logger.debug("generating azimuths")
     data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
     data_sets["zeniths"] = draw_zeniths(n_events, full_rmax, full_zmax, full_zmin,
                                         thetamin, thetamax)
 
+    logger.debug("generating vertex positions")
     rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
     phiphi = np.random.uniform(0, 2 * np.pi, n_events)
     data_sets["xx"] = rr_full * np.cos(phiphi)
@@ -1217,10 +1218,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
+    logger.debug("generating event ids")
     data_sets["event_ids"] = np.arange(n_events) + start_event_id
+    logger.debug("generating number of interactions")
     data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
 
     # generate neutrino flavors randomly
+    logger.debug("generating flavors")
     data_sets["flavors"] = np.array([flavor[i] for i in np.random.randint(0, high=len(flavor), size=n_events)])
     """
     #from AraSim nue:nueb:numu:numub:nutau:nutaub = 0.78: 0.22: 0.61: 0.39: 0.61: 0.39
@@ -1241,6 +1245,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             flavors[i] = flavor[5]
     """
     # generate energies randomly
+    logger.debug("generating energies")
     if(spectrum == 'log_uniform'):
         data_sets["energies"] = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_events)
     elif(spectrum.startswith("E-")):  # enerate an E^gamma spectrum.
@@ -1274,9 +1279,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         raise NotImplementedError("spectrum {} not implemented".format(spectrum))
 
     # generate charged/neutral current randomly
+    logger.debug("interaction type")
     data_sets["interaction_type"] = inelasticities.get_ccnc(n_events)
 
     # generate inelasticity
+    logger.debug("generating inelasticities")
     data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(n_events)
 
     """
