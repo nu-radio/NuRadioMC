@@ -65,6 +65,8 @@ class mySimulation(simulation.simulation):
                              number_concidences=1,
                              trigger_name='simple_threshold')
 
+        max_times = []
+
         # Bool for checking the noise triggering rate
         check_only_noise = False
 
