@@ -65,10 +65,8 @@ class mySimulation(simulation.simulation):
                              number_concidences=1,
                              trigger_name='simple_threshold')
 
-        max_times = []
-
         # Bool for checking the noise triggering rate
-        check_only_noise = True
+        check_only_noise = False
 
         for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
 
@@ -115,6 +113,7 @@ class mySimulation(simulation.simulation):
             right_bin = np.argmin(np.abs(times - right_time))
             trace = channel.get_trace()
 <<<<<<< HEAD
+<<<<<<< HEAD
             trace[0:left_bin] = 0
             trace[right_bin:None] = 0
             channel.set_trace(trace, sampling_rate=new_sampling_rate)
@@ -132,6 +131,11 @@ class mySimulation(simulation.simulation):
             #trace[0:left_bin] = 0
             #trace[right_bin:None] = 0
             #channel.set_trace(trace, sampling_rate = new_sampling_rate)
+=======
+            trace[0:left_bin] = 0
+            trace[right_bin:None] = 0
+            channel.set_trace(trace, sampling_rate = new_sampling_rate)
+>>>>>>> Removing commented lines
 
         # first run a simple threshold trigger
         trig = triggerSimulator.run(self._evt, self._station, self._det,
