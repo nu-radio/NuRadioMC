@@ -138,7 +138,7 @@ class mySimulation(simulation.simulation):
                              secondary_phasing_angles=None,
                              set_not_triggered=(not self._station.has_triggered("simple_threshold")),
                              coupled=False,
-                             ref_index=1.55)
+                             ref_index=1.75)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')

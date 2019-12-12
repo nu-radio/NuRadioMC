@@ -113,7 +113,7 @@ class mySimulation(simulation.simulation):
                              trigger_name='envelope_phasing', # the name of the trigger
                              phasing_angles=phasing_angles,
                              set_not_triggered=(not self._station.has_triggered("simple_threshold")),
-                             ref_index=1.55,
+                             ref_index=1.75,
                              output_passband=diode_passband,
                              cut_times=cut_times)
 
