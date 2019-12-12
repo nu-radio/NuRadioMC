@@ -86,11 +86,10 @@ class mySimulation(simulation.simulation):
         right_time = np.max(max_times) + right_edge_around_max
 
         if self._is_simulate_noise():
-            max_freq = 0.5 * new_sampling_rate
+            max_freq = 0.5 / self._dt
             norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
-            Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
-                                         max_freq=max_freq, type='rayleigh')
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms, min_freq=0 * units.MHz,
+                                         max_freq=max_freq, type='rayleigh', bandwidth=norm)
 
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[132 * units.MHz, 1150 * units.MHz],
