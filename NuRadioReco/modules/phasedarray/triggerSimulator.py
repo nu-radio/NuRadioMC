@@ -204,7 +204,7 @@ class triggerSimulator:
             set_not_triggered=False,
             window_time=10.67 * units.ns,
             coupled=True,
-            ref_index=1.55,
+            ref_index=1.75,
             cut_times=(None,None)):
         """
         simulates phased array trigger for each event
