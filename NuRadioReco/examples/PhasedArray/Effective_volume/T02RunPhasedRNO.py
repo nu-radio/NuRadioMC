@@ -85,15 +85,27 @@ class mySimulation(simulation.simulation):
         left_time = np.min(max_times) - left_edge_around_max
         right_time = np.max(max_times) + right_edge_around_max
 
+<<<<<<< HEAD
         if self._is_simulate_noise():
             max_freq = 0.5 / self._dt
             norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms, min_freq=0 * units.MHz,
                                          max_freq=max_freq, type='rayleigh', bandwidth=norm)
+=======
+        noise = True
+
+        if noise:
+            max_freq = 0.5 * new_sampling_rate
+            min_freq = 0 * units.MHz
+            norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
+            Vrms = self._Vrms / (norm / (max_freq-min_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=min_freq,
+                                         max_freq=max_freq, type='rayleigh')
+>>>>>>> Fixing bug regarding the noise amplitude. Now noise is calculated with the correct sampling rate
 
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[132 * units.MHz, 1150 * units.MHz],
-                                  filter_type='butter', order=6)
+                                  filter_type='butter', order=8)
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 700 * units.MHz],
                                   filter_type='butter', order=10)
 
@@ -112,10 +124,14 @@ class mySimulation(simulation.simulation):
         # first run a simple threshold trigger
         triggerSimulator.run(self._evt, self._station, self._det,
 <<<<<<< HEAD
+<<<<<<< HEAD
                              threshold=2.3 * self._Vrms,  # see phased trigger module for explanation
 =======
                              threshold=2.45 * self._Vrms, # see phased trigger module for explanation
 >>>>>>> Changing from 8 to 4 antennas for the RNO project
+=======
+                             threshold=2.2 * self._Vrms, # see phased trigger module for explanation
+>>>>>>> Fixing bug regarding the noise amplitude. Now noise is calculated with the correct sampling rate
                              triggered_channels=None,  # run trigger on all channels
                              trigger_name='primary_and_secondary_phasing',  # the name of the trigger
                              phasing_angles=phasing_angles,

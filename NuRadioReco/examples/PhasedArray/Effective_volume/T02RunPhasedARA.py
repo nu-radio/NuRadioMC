@@ -83,7 +83,7 @@ class mySimulation(simulation.simulation):
         noise = True
 
         if noise:
-            max_freq = 0.5 / self._dt
+            max_freq = 0.5 * new_sampling_rate
             norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
             Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
