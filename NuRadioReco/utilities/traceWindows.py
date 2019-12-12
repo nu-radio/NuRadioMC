@@ -3,6 +3,34 @@ from NuRadioReco.utilities import units
 import NuRadioReco.utilities.diodeSimulator
 
 def get_window_around_maximum(station, diode, triggered_channels=None, ratio = 0.01, edge=20*units.ns):
+    """
+    This function filters the signal using a diode model and calculates
+    the times around the filtered maximum where the signal is the ratio
+    parameter times the maximum. Then, it creates a time window by substracting
+    and adding the edge parameter to these times. This function is useful
+    for reducing the probability of noise-triggered events while using the
+    envelope phased array, although it can also be applied to the standard
+    phased array.
+
+    Parameters
+    ----------
+    station: NuRadioReco station
+        Station containing the information on the detector
+    diode: diodeSimulator or None
+        Diode model to be applied. If None, a diode with an output 200 MHz low-pass
+        filter is chosen
+    triggered_channels: array of integers
+        Channels used for the trigger, and also for creating the window
+    ratio: float
+        Cut parameter
+    edge: float
+        Times to be sustracted from the points defined by the ratio cut to
+        create the window
+
+    Returns:
+    (left_time, right_time): (float, float) tuple
+        Tuple containing the edges of the time window
+    """
 
     if diode == None:
         diode_passband = (None, 200*units.MHz)
