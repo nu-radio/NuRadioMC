@@ -136,7 +136,7 @@ class triggerSimulator(phasedTrigger):
             trigger_name='envelope_phased_threshold',
             phasing_angles=default_angles,
             set_not_triggered=False,
-            ref_index=1.55,
+            ref_index=1.75,
             output_passband=(None,200*units.MHz),
             cut_times=(None,None)):
         """
