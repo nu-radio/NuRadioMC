@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 from NuRadioMC.SignalProp import analyticraytraycing as ray
-from NuRadioMC.utilities import units, medium
+from NuRadioReco.utilities import units
+from NuRadioMC.utilities import medium
 import logging
 import time
 from radiotools import helper as hp

@@ -11,7 +11,7 @@ try:
 except ImportError:
     from backports.functools_lru_cache import lru_cache
 
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
 
 import logging
@@ -130,17 +130,17 @@ class ray_tracing_2D():
         """
         calculate the turning point, i.e. the maximum of the ray tracing path;
         parameter is c = self.medium.n_ice ** 2 - C_0 ** -2
-        
+
         This is either the point of reflection off the ice surface
         or the point where the saddle point of the ray (transition from upward to downward going)
-        
-        Technically, the turning point is set to z=0 if the saddle point is above the surface. 
-        
+
+        Technically, the turning point is set to z=0 if the saddle point is above the surface.
+
         Parameters
         ----------
         c: float
             related to C_0 parameter via c = self.medium.n_ice ** 2 - C_0 ** -2
-            
+
         Returns
         ----------
         typle (gamma, z coordinate of turning point)
@@ -158,7 +158,7 @@ class ray_tracing_2D():
         """
         calculates the y-coordinate of the turning point. This is either the point of reflection off the ice surface
         or the point where the saddle point of the ray (transition from upward to downward going)
-        
+
         Parameters
         ----------
         C_0: float
@@ -618,8 +618,8 @@ class ray_tracing_2D():
     def get_path_segments(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
         Calculates the different segments of the path that makes up the full ray tracing path
-        One segment per bottom reflection. 
-        
+        One segment per bottom reflection.
+
         Parameters
         ----------
         x1: tuple
@@ -634,7 +634,7 @@ class ray_tracing_2D():
             only relevant if `reflection` is larger than 0
             * 1: rays start upwards
             * 2: rays start downwards
-            
+
         Returns
         --------
         (original x1, x1 of path segment, original x2, x2 of path segment, C_0, C_1 of path segment)
@@ -678,7 +678,7 @@ class ray_tracing_2D():
     def get_angle(self, x, x_start, C_0, reflection=0, reflection_case=1):
         """
         calculates the angle with respect to the positive z-axis of the ray path at position x
-        
+
         Parameters
         ----------
         x: tuple
@@ -713,10 +713,10 @@ class ray_tracing_2D():
     def get_reflection_angle(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
         calculates the angle under which the ray reflects off the surface. If not reflection occurs, None is returned
-        
-        If reflections off the bottom (e.g. Moore's Bay) are simulated, an array with reflection angles (one for 
+
+        If reflections off the bottom (e.g. Moore's Bay) are simulated, an array with reflection angles (one for
         each track segment) is returned
-        
+
         Parameters
         ----------
         x1: tuple
@@ -796,7 +796,7 @@ class ray_tracing_2D():
         """
         calculates the ray path in the presence of reflections at the bottom
         The full path is constructed by multiple calls to the `get_path()` function to put together the full path
-        
+
         Parameters
         ----------
         x1: tuple
@@ -813,7 +813,7 @@ class ray_tracing_2D():
             only relevant if `reflection` is larger than 0
             * 1: rays start upwards
             * 2: rays start downwards
-        
+
         Returns
         -------
         yy: array
@@ -834,6 +834,9 @@ class ray_tracing_2D():
             self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
             x1[0] = x1[0] - 2 * dy
 
+        if(reflection == 0):
+            # in case of no bottom reflections, return path right away
+            return self.get_path(x1, x2, C_0, n_points)
         x22 = copy.copy(x2)
         for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i))
@@ -855,7 +858,7 @@ class ray_tracing_2D():
     def get_reflection_point(self, C_0, C_1):
         """
         calculates the point where the signal gets reflected off the bottom of the ice shelf
-        
+
         Returns tuple (y,z)
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
@@ -1012,10 +1015,10 @@ class ray_tracing_2D():
             (y,z) coordinate of stop point
         reflection: int (default 0)
             how many reflections off the reflective layer (bottom of ice shelf) should be simulated
-        
+
 
         returns an array of the C_0 paramters of the solutions (the array might be empty)
-        
+
         """
 
         if(reflection > 0 and self.medium.reflection is None):
@@ -1538,7 +1541,7 @@ class ray_tracing:
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
-            
+
         n_reflections: int (default 0)
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
 
@@ -1866,7 +1869,7 @@ class ray_tracing:
                                                      reflection=result['reflection'],
                                                      reflection_case=result['reflection_case'])
 
-    def get_focusing(self, iS, dz):
+    def get_focusing(self, iS, dz, limit=2.):
         """
         calculate the focusing effect in the medium
 
@@ -1890,9 +1893,17 @@ class ray_tracing:
         lauVec = self.get_launch_vector(iS)
         lauAng = np.arccos(lauVec[2] / np.sqrt(lauVec[0] ** 2 + lauVec[1] ** 2 + lauVec[2] ** 2))
         distance = self.get_path_length(iS)
-        vetPos = self.__X1
-        recPos = self.__X2
-        recPos1 = np.array([self.__X2[0], self.__X2[1], self.__X2[2] + dz])
+        # we need to be careful here. If X1 (the emitter) is above the X2 (the receiver) the positions are swapped
+        # do to technical reasons. Here, we want to change the receiver position slightly, so we need to check
+        # is X1 and X2 was swapped and use the receiver value!
+        if self.__swap:
+            vetPos = copy.copy(self.__X2)
+            recPos = copy.copy(self.__X1)
+            recPos1 = np.array([self.__X1[0], self.__X1[1], self.__X1[2] + dz])
+        else:
+            vetPos = copy.copy(self.__X1)
+            recPos = copy.copy(self.__X2)
+            recPos1 = np.array([self.__X2[0], self.__X2[1], self.__X2[2] + dz])
         if(not hasattr(self, "_r1")):
             self._r1 = ray_tracing(vetPos, recPos1, self.__medium, self.__attenuation_model, logging.WARNING,
                              self.__n_frequencies_integration, self.__n_reflections)
@@ -1901,16 +1912,26 @@ class ray_tracing:
             lauVec1 = self._r1.get_launch_vector(iS)
             lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
             focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
+            if(self.get_solution_type(iS) != self._r1.get_solution_type(iS)):
+                self.__logger.error("solution types are not the same")
         else:
             focusing = 1.0
             self.__logger.info("too few ray tracing solutions, setting focusing factor to 1")
         self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
-        if(focusing > 2):
-            self.__logger.warning(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to 2x")
-            focusing = 2.0
-        return focusing
+        if(focusing > limit):
+            self.__logger.warning(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
+            focusing = limit
+
+        # now also correct for differences in refractive index between emitter and receiver position
+        if self.__swap:
+            n1 = self.__medium.get_index_of_refraction(self.__X2)  # emitter
+            n2 = self.__medium.get_index_of_refraction(self.__X1)  # receiver
+        else:
+            n1 = self.__medium.get_index_of_refraction(self.__X1)  # emitter
+            n2 = self.__medium.get_index_of_refraction(self.__X2)  # receiver
+        return focusing * (n1 / n2) ** 0.5
 
     def get_ray_path(self, iS):
-        return self.__r2d.get_path(self.__x1, self.__x2, self.__results[iS]['C0'], 10000,
+        return self.__r2d.get_path_reflections(self.__x1, self.__x2, self.__results[iS]['C0'], 10000,
                                    reflection=self.__results[iS]['reflection'],
                                    reflection_case=self.__results[iS]['reflection_case'])

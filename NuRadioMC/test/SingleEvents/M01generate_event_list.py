@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 
 # define simulation volume

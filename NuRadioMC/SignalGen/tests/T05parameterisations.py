@@ -1,5 +1,5 @@
 from NuRadioMC.SignalGen.askaryan import get_time_trace, get_frequency_spectrum
-from NuRadioMC.utilities import units, fft
+from NuRadioReco.utilities import units
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -32,7 +32,7 @@ for model in models:
     for E in Es:
 
         spectrum = get_frequency_spectrum(E, theta, n_samples, dt, shower_type, n_index, R, model)
-        spectrum *= R 
+        spectrum *= R
         freqs = np.fft.rfftfreq(n_samples, dt)
 
         if (model=='Alvarez2009'):

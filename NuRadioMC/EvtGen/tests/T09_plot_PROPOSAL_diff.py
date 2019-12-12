@@ -1,4 +1,4 @@
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 import matplotlib.pyplot as plt
 import numpy as np
 import json

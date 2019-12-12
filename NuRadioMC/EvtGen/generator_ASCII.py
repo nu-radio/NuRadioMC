@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 
 # define simulation volume
 xmin = -3 * units.km
@@ -81,4 +81,3 @@ def generate_eventlist(filename, n_events, Emin, Emax,
 
 if __name__ == '__main__':
     generate_eventlist('test.txt', 1e5, 1e18, 1e18)
-

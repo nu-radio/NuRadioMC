@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from NuRadioMC.utilities import units, fft
+from NuRadioReco.utilities import units, fft
 from NuRadioMC.SignalGen import parametrizations as par
 import logging
 logger = logging.getLogger("SignalGen.askaryan")
 
 gARZ = None
 
+
 def set_log_level(level):
     logger.setLevel(level)
     par.set_log_level(level)
+
 
 def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_factor=None, interp_factor2=None,
                    same_shower=False, **kwargs):
@@ -59,8 +61,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
 
     Returns
     -------
-    spectrum: array
-        the complex amplitudes for the given frequencies
+    time trace: array
+        the amplitudes for each time bin
 
     """
     if(energy == 0):
@@ -98,7 +100,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
     elif(model == 'spherical'):
         amplitude = 1. * energy / R
         trace = np.zeros(N)
-        trace[N//2] = amplitude
+        trace[N // 2] = amplitude
         return trace
     else:
         raise NotImplementedError("model {} unknown".format(model))
@@ -139,4 +141,4 @@ def get_frequency_spectrum(energy, theta, N, dt, shower_type, n_index, R, model,
         the complex amplitudes for the given frequencies
 
     """
-    return fft.time2freq(get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, **kwargs))
+    return fft.time2freq(get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, **kwargs),1/dt)

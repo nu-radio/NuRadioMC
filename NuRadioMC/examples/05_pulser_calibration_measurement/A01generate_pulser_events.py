@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from six import iterkeys, iteritems
 from scipy import constants
 from scipy.integrate import quad
@@ -26,7 +26,7 @@ def generate_my_events(filename, n_events):
     n_events: int
         number of events to generate
     """
-    
+
     # first set the meta attributes
     attributes = {}
     n_events = int(n_events)
@@ -46,12 +46,12 @@ def generate_my_events(filename, n_events):
     # now generate the events and fill all required data sets
     # here we fill all data sets with dummy values
     data_sets = {}
-    # the 'neutrino direction' needs to be set but are irrelevant for the simulation, because we simulate a 
-    # uniform emitter 
-    data_sets["azimuths"] = np.ones(n_events)  
+    # the 'neutrino direction' needs to be set but are irrelevant for the simulation, because we simulate a
+    # uniform emitter
+    data_sets["azimuths"] = np.ones(n_events)
     data_sets["zeniths"] = np.ones(n_events)
-    
-    # define the emitter positions. X/Y are the easting/northing coordinates of the SPICE core 
+
+    # define the emitter positions. X/Y are the easting/northing coordinates of the SPICE core
     data_sets["xx"] = np.ones(n_events) * 42600 * units.feet
     data_sets["yy"] = np.ones(n_events) * 48800 * units.feet
     # simualte different depth
@@ -60,12 +60,12 @@ def generate_my_events(filename, n_events):
     data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
     data_sets["interaction_type"] = np.array(['had'] * n_events)
 
-    # again these parameters are irrelevant for our simulation but still need to be set 
+    # again these parameters are irrelevant for our simulation but still need to be set
     data_sets["flavors"] = np.array([12 for i in range(n_events)])
     data_sets["energies"] = np.ones(n_events) * 1 * units.eV
     data_sets["inelasticity"] = np.ones(n_events) *  0.5
-    
-    
+
+
     # write events to file
     write_events_to_hdf5(filename, data_sets, attributes)
 

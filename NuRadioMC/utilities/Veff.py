@@ -7,7 +7,7 @@ import json
 import os
 import copy
 
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 
 import logging
 logger = logging.getLogger("Veff")
@@ -45,7 +45,7 @@ def get_triggered(fin):
     # We count the multiple triggering bangs as a single triggered event
     for event_id in np.unique(np.array(fin['event_ids'])[mask_secondaries]):
         mask_interactions = np.array(fin['event_ids']) == event_id
-        multiple_interaction_indexes = np.argwhere(np.array(fin['event_ids']) == event_id)[0]
+        multiple_interaction_indexes = np.squeeze(np.argwhere(np.array(fin['event_ids']) == event_id))
         if (len(multiple_interaction_indexes) == 1):
             continue
 
@@ -154,6 +154,10 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
             fin.attrs['phimax']
         dZ = fin.attrs['zmax'] - fin.attrs['zmin']
         area = np.pi * (rmax ** 2 - rmin ** 2)
+        # The used area must be the projected area, perpendicular to the incoming
+        # flux, which leaves us with the following correction. Remember that the
+        # zenith bins must be small for the effective area to be correct.
+        proj_area = area * 0.5 * (np.abs(np.cos(thetamin)) + np.abs(np.cos(thetamax)))
         V = area * dZ
         Vrms = fin.attrs['Vrms']
 
@@ -174,7 +178,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
         else:
             for iT, trigger_name in enumerate(trigger_names):
                 triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
-                Aeff = area * np.sum(weights[triggered]) / n_events
+                Aeff = proj_area * np.sum(weights[triggered]) / n_events
                 Aeff_error = 0
                 if(np.sum(weights[triggered]) > 0):
                     Aeff_error = Aeff / np.sum(weights[triggered]) ** 0.5
@@ -228,7 +232,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
                     mask = np.array([sol[i, values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=np.bool)
                     triggered = triggered & mask
 
-                Aeff = area * np.sum(weights[triggered]) / n_events
+                Aeff = proj_area * np.sum(weights[triggered]) / n_events
 
                 if('efficiency' in values.keys()):
                     SNReff, eff = np.loadtxt("analysis_efficiency_{}.csv".format(values['efficiency']), delimiter=",", unpack=True)
@@ -237,7 +241,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
                     if('efficiency_scale' in values.keys()):
                         As *= values['efficiency_scale']
                     e = get_eff(As / Vrms)
-                    Aeff = area * np.sum((weights * e)[triggered]) / n_events
+                    Aeff = proj_area * np.sum((weights * e)[triggered]) / n_events
 
                 out['Aeffs'][trigger_name] = [Aeff, Aeff / np.sum(weights[triggered]) ** 0.5, np.sum(weights[triggered])]
         Aeff_output.append(out)
@@ -264,7 +268,7 @@ def get_Veff_water_equivalent(Veff, density_medium=0.917 * units.g / units.cm **
     return Veff * density_medium / density_water
 
 
-def get_Veff(folder, trigger_combinations={}, station=101):
+def get_Veff(folder, trigger_combinations={}, station=101, correct_zenith_sampling=False):
     """
     calculates the effective volume from NuRadioMC hdf5 files
 
@@ -289,6 +293,8 @@ def get_Veff(folder, trigger_combinations={}, station=101):
 
     station: int
         the station that should be considered
+    correct_zenith_sampling: bool
+        if True, correct a zenith sampling from np.sin(zenith) to an isotropic flux for a cylindrical geometry
 
     Returns
     ----------
@@ -374,6 +380,36 @@ def get_Veff(folder, trigger_combinations={}, station=101):
         area = np.pi * (rmax ** 2 - rmin ** 2)
         V = area * dZ
         Vrms = fin.attrs['Vrms']
+
+        if(correct_zenith_sampling):
+            if(len(weights) > 0):
+
+                from NuRadioMC.EvtGen.generator import A_proj
+
+                def get_weights(zeniths, thetamin, thetamax, R, d):
+                    """
+                    calculates a correction to the weight to go from a zenith distribution proportional from
+                    theta ~ sin(theta) to an isotropic flux, i.e., the same number of events for the same 
+                    projected area perpendicular to the incoming direction.  
+                    
+                    """
+                    zeniths = np.array(zeniths)
+                    yy = A_proj(zeniths, R, d)
+
+                    def integral(theta, R, d):
+                        """
+                        integral of Aproj
+                        """
+                        return (-np.pi * R ** 2 * 0.5 * np.cos(theta) ** 2 * np.sign(np.cos(theta)) + 0.5 * 2 * R * d * (theta - np.sin(theta) * np.cos(theta)))
+
+                    # calculate the average value of Aproj within the zenith band -> int(Aproc(theta) dcostheta)/int(1, dcostheta)
+                    norm = integral(thetamax, R, d) - integral(thetamin, R, d)  # int(Aproc(theta) dcostheta)
+                    norm /= (np.cos(thetamin) - np.cos(thetamax))  # int(1, dcostheta)
+                    weights = yy / norm
+                    logger.debug(f"{thetamin/units.deg:.0f} - {thetamax/units.deg:.0f}: average correction factor {weights.mean():.2f} max = {weights.max():.2f} min = {weights.min():.2f}")
+                    return weights
+
+                weights *= get_weights(fin['zeniths'], thetamin, thetamax, rmax, dZ)
 
         # Solid angle needed for the effective volume calculations
         out['domega'] = np.abs(phimax - phimin) * np.abs(np.cos(thetamin) - np.cos(thetamax))
@@ -730,4 +766,3 @@ def export(filename, data, trigger_names=None, export_format='yaml'):
             yaml.dump(output, fout)
         elif(export_format == 'json'):
             json.dump(output, fout, sort_keys=True, indent=4)
-

@@ -1,6 +1,6 @@
 import NuRadioMC.SignalGen.RalstonBuniy.askaryan_module as AskaryanModule
 import NuRadioMC.SignalGen.parametrizations as param
-from NuRadioMC.utilities import units, fft
+from NuRadioReco.utilities import units, fft
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -81,14 +81,14 @@ dt = 0.1 * units.ns
 tt = np.arange(0, n_trace * dt, dt)
 ff = np.fft.rfftfreq(n_trace, dt)
 
-trace = fft.freq2time(param.get_frequency_spectrum(E, theta, ff, 0, n_index, R, model='Alvarez2012'))
+trace = fft.freq2time(param.get_frequency_spectrum(E, theta, ff, 0, n_index, R, model='Alvarez2012'), 1/dt)
 ax.plot(tt / units.ns, trace, label="dt = {:.2f}ns, n={}".format(dt / units.ns, n_trace))
 
 n_trace = 2 ** 12  # samples of trace
 dt = 0.1 * units.ns
 tt = np.arange(0, n_trace * dt, dt)
 ff = np.fft.rfftfreq(n_trace, dt)
-trace = fft.freq2time(param.get_frequency_spectrum(E, theta, ff, 0, n_index, R, model='Alvarez2012'))
+trace = fft.freq2time(param.get_frequency_spectrum(E, theta, ff, 0, n_index, R, model='Alvarez2012'), 1/dt)
 ax.plot(tt / units.ns, trace, '--', label="dt = {:.2f}ns, n={}".format(dt / units.ns, n_trace))
 ax.legend()
 ax.set_title("pyrex")
