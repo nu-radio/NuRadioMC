@@ -27,6 +27,7 @@ import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
+from NuRadioReco.utilities.traceWindows import get_window_around_maximum
 import numpy as np
 import logging
 logging.basicConfig(level=logging.WARNING)
@@ -55,28 +56,15 @@ class mySimulation(simulation.simulation):
 
         # Forcing a threshold cut BEFORE adding noise for limiting the noise-induced triggers
 
-        thresholdSimulator.run(self._evt, self._station, self._det,
-                             threshold=0.5 * self._Vrms,
-                             triggered_channels=None,  # run trigger on all channels
-                             number_concidences=1,
-                             trigger_name='simple_threshold')
-
-        max_times = []
+        cut_times = get_window_around_maximum(self._station)
 
         # Bool for checking the noise triggering rate
         check_only_noise = False
 
-        for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
-
-            times = channel.get_times()
-            argmax = np.argmax( np.abs(channel.get_trace()) )
-            max_times.append(times[argmax])
-            if check_only_noise:
+        if check_only_noise:
+            for channel in self._station.iter_channels():
                 trace = channel.get_trace() * 0
                 channel.set_trace(trace, sampling_rate = new_sampling_rate)
-
-        left_time = np.min(max_times) - left_edge_around_max
-        right_time = np.max(max_times) + right_edge_around_max
 
         noise = True
 
@@ -93,26 +81,14 @@ class mySimulation(simulation.simulation):
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 750 * units.MHz],
                                   filter_type='butter', order=10)
 
-        # Setting the trace values far from the amplitude maxima to zero
-        # to reduce the noise trigger rate
-        for channel in self._station.iter_channels():
-
-            times = channel.get_times()
-            left_bin = np.argmin(np.abs(times-left_time))
-            right_bin = np.argmin(np.abs(times-right_time))
-            trace = channel.get_trace()
-            trace[0:left_bin] = 0
-            trace[right_bin:None] = 0
-            channel.set_trace(trace, sampling_rate = new_sampling_rate)
-
         # first run a simple threshold trigger
         triggerSimulator.run(self._evt, self._station, self._det,
                              threshold=2.5 * self._Vrms, # see phased trigger module for explanation
                              triggered_channels=None,  # run trigger on all channels
                              secondary_channels=[0,1,3,4,6,7], # secondary channels
                              trigger_name='primary_and_secondary_phasing', # the name of the trigger
-                             set_not_triggered=(not self._station.has_triggered("simple_threshold")),
-                             coupled=True)
+                             coupled=True,
+                             cut_times=cut_times)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
