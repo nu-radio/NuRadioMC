@@ -26,7 +26,7 @@ single window filled with noise.
 """
 
 parser = argparse.ArgumentParser(description='calculates noise trigger rate for phased array')
-parser.add_argument('--ntries', type=int, help='number noise traces to which a trigger is applied for each threshold', default=100)
+parser.add_argument('--ntries', type=int, help='number noise traces to which a trigger is applied for each threshold', default=1000)
 parser.add_argument('--array', type=str, help='array type: RNO or ARA', default='RNO')
 args = parser.parse_args()
 
@@ -89,7 +89,7 @@ amplitude = (300 * 50 * constants.k * bandwidth / units.Hz) ** 0.5
 
 Ntries = args.ntries # number of tries
 
-threshold_factors = [2.25, 2.3, 2.35, 2.40]
+threshold_factors = [2.15, 2.2, 2.25, 2.3, 2.35, 2.40]
 
 if not only_primary:
     sec_channels = [0, 1, 3, 4, 6, 7] # channels used for secondary beam
@@ -106,7 +106,7 @@ n_beams = len(primary_angles)
 
 
 for threshold_factor in threshold_factors:
-    prob_cross = 0
+    prob_per_window = 0
     for Ntry in range(Ntries):
         noise_array = []
 
@@ -147,9 +147,8 @@ for threshold_factor in threshold_factors:
             # If a phased direction triggers, the whole phased array triggers.
             # The following formula is justified as long as the probability is small
             # and each direction triggers independently of the rest.
-            prob_cross += np.sum( mask * np.ones(len(mask)) )/n_windows
+            prob_per_window += np.sum( mask * np.ones(len(mask)) )/(n_windows*Ntries)
 
-    prob_per_window = float(prob_cross)/Ntries
-    # The 2 comes from the use of overlapping sweeping windows
-    trigger_frequency = 2*prob_per_window/window_width
-    print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.5f}%, Noise trigger rate: {:.2f}'.format(threshold_factor, prob_per_window*100., trigger_frequency/units.Hz))
+    # The 2 comes from the use of overlapping windows
+    trigger_frequency = prob_per_window / (window_width/2)
+    print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.8f}%, Noise trigger rate: {:.2f}'.format(threshold_factor, prob_per_window*100., trigger_frequency/units.Hz))

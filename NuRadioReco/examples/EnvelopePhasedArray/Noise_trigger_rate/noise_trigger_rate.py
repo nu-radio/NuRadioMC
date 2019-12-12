@@ -30,7 +30,7 @@ single window filled with noise.
 """
 
 parser = argparse.ArgumentParser(description='calculates noise trigger rate for phased array')
-parser.add_argument('--ntries', type=int, help='number noise traces to which a trigger is applied for each threshold', default=100)
+parser.add_argument('--ntries', type=int, help='number noise traces to which a trigger is applied for each threshold', default=1000)
 parser.add_argument('--single', action='store_true', help='if activated, it calculates the diode noise rate for a single antenna (ARA-like)')
 args = parser.parse_args()
 
@@ -94,7 +94,7 @@ power_mean, power_std = diode.calculate_noise_parameters(sampling_rate,
                                                          amplitude=amplitude)
 
 for threshold_factor in threshold_factors:
-    prob_cross = 0
+    prob_per_window = 0
 
     n_phased = len(primary_channels)
     low_trigger  = power_mean - power_std * np.abs(threshold_factor)
@@ -138,8 +138,7 @@ for threshold_factor in threshold_factors:
             # If a phased direction triggers, the whole phased array triggers.
             # The following formula is justified as long as the probability is small
             # and each direction triggers independently of the rest.
-            prob_cross += np.sum( threshold_passed )/n_windows
+            prob_per_window += np.sum( threshold_passed )/(n_windows*Ntries)
 
-    prob_per_window = float(prob_cross)/Ntries
-    trigger_frequency = prob_per_window/window_width
-    print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.5f}%, Noise trigger rate: {:.2f} Hz'.format(threshold_factor, prob_per_window*100., trigger_frequency/units.Hz))
+    trigger_frequency = prob_per_window / window_width
+    print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.8f}%, Noise trigger rate: {:.2f} Hz'.format(threshold_factor, prob_per_window*100., trigger_frequency/units.Hz))
