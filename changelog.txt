@@ -14,6 +14,7 @@ new features:
 -Changed normalization of the frequency spectrum. The amplitude is now given as V/GHz (or V/m/GHz for E-fields) instead of
    V/GHz/bin. This way, the values of trace.get_frequency_spectrum() are independent of the sampling rate. The fft utilities
    now also need the sampling rate as an argument.
+-Envelope phased array available
 
 Detector description can be stored in .nur files
 Large overhaul of the event structure. Adds shower classes and hybrid detector information.
