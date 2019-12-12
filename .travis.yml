@@ -44,4 +44,3 @@ jobs:
     - stage: "Test with multiple events"
       name: "Veff test"
       script: NuRadioMC/test/Veff/1e18eV/test_build.sh
-

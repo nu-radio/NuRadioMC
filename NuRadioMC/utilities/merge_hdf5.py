@@ -4,6 +4,7 @@ import sys
 import numpy as np
 from collections import OrderedDict
 import h5py
+import argparse
 import logging
 logger = logging.getLogger("HDF5-merger")
 logging.basicConfig(level=logging.DEBUG)
@@ -99,7 +100,7 @@ def merge2(filenames, output_filename):
                 i += len(data[f][key])
 
             fout.create_dataset(key, tmp.shape, dtype=tmp.dtype,
-                             compression='gzip')[...] = tmp
+                                compression='gzip')[...] = tmp
 
         keys = groups[non_empty_filenames[0]]
         for key in keys:
@@ -149,12 +150,12 @@ def merge2(filenames, output_filename):
                 g = fout.create_group(key)
                 for key2 in fin[key]:
                     g.create_dataset(key2, fin[key][key2].shape, dtype=fin[key][key2].dtype,
-                             compression='gzip')[...] = fin[key][key2]
+                                     compression='gzip')[...] = fin[key][key2]
                 for key2 in fin[key].attrs:
                     g.attrs[key2] = fin[key].attrs[key2]
             else:
                 fout.create_dataset(key, fin[key].shape, dtype=fin[key].dtype,
-                             compression='gzip')[...] = fin[key]
+                                    compression='gzip')[...] = fin[key]
 
 #     # save all data to hdf5
 #     for key in data[filenames[0]]:
@@ -185,14 +186,25 @@ if __name__ == "__main__":
     merges multiple hdf5 output files into one single files.
     The merger module automatically keeps track of the total number
     of simulated events (which are needed to correctly calculate the effective volume).
-    
+
     The script expects that the folder structure is
     ../output/energy/*.hdf5.part????
+
+    Optional log level setting to either set DEBUG, INFO, or WARNING to the readout. Example: add --loglevel DEBUG when calling script to set loglevel to DEBUG. 
     """
-    if(len(sys.argv) < 2):
+    parser = argparse.ArgumentParser(description='Merge hdf5 files')
+    parser.add_argument('files', nargs='+', help='input file or files')
+    parser.add_argument('--loglevel', metavar='level', help='loglevel set to either DEBUG, INFO, or WARNING')
+    args = parser.parse_args()
+
+    if args.loglevel is not None:
+        log_val = eval(f'logging.{args.loglevel}')
+        logger.setLevel(log_val)
+
+    if(len(args.files) < 1):
         print("usage: python merge_hdf5.py /path/to/simulation/output/folder\nor python merge_hdf5.py outputfilename input1 input2 ...")
-    elif(len(sys.argv) == 2):
-        filenames = glob.glob("{}/*/*.hdf5.part????".format(sys.argv[1]))
+    elif(len(args.files) == 1):
+        filenames = glob.glob("{}/*/*.hdf5.part????".format(args.files[0]))
         filenames2 = []
         for i, filename in enumerate(filenames):
             filename, ext = os.path.splitext(filename)
@@ -210,19 +222,19 @@ if __name__ == "__main__":
                 if(os.path.exists(output_filename)):
                     logger.error('file {} already exists, skipping'.format(output_filename))
                 else:
-    #                 try:
-                        input_files = np.array(sorted(glob.glob(filename + '.part????')))
-                        mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=np.bool)
-                        if(np.sum(~mask)):
-                            logger.warning("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
+                    #                 try:
+                    input_files = np.array(sorted(glob.glob(filename + '.part????')))
+                    mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=np.bool)
+                    if(np.sum(~mask)):
+                        logger.warning("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
 
-                        merge2(input_files[mask], output_filename)
+                    merge2(input_files[mask], output_filename)
     #                 except:
     #                     print("failed to merge {}".format(filename))
-    elif(len(sys.argv) > 2):
-        output_filename = sys.argv[1]
+    elif(len(args.files) > 1):
+        output_filename = args.files[0]
         if(os.path.exists(output_filename)):
             logger.error('file {} already exists, skipping'.format(output_filename))
         else:
-            input_files = sys.argv[2:]
+            input_files = args.files[1:]
             merge2(input_files, output_filename)

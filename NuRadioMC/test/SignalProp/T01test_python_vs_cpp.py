@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 from NuRadioMC.SignalProp import analyticraytracing as ray
-from NuRadioMC.utilities import units, medium
+from NuRadioMC.utilities import medium
+from NuRadioReco.utilities import units
 import logging
 from numpy import testing
 logging.basicConfig(level=logging.INFO)
@@ -64,4 +65,3 @@ testing.assert_allclose(results_C0s_cpp, results_C0s_python, atol=1e-08, rtol=1e
 testing.assert_allclose(results_A_cpp, results_A_python, rtol=1e-2, atol=1e-3)
 
 print('T01test_python_vs_cpp passed without issues')
-

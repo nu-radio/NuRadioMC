@@ -1,5 +1,5 @@
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 
 model_to_int = {"SP1" : 1, "GL1" : 2, "MB1" : 3}
 

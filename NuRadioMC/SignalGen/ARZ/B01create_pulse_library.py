@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 import numpy as np
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioReco.utilities import io_utilities
 import os
 from scipy import interpolate as intp
@@ -31,21 +31,21 @@ if __name__ == "__main__":
     T = 600 * units.ns
     N = np.int(np.round(T / dt))
     tt = np.arange(0, dt * N, dt)
-    
+
     dCs = np.append(np.arange(-20, -5, 1), np.append(np.arange(-5,-1,0.2), np.arange(-1, 0, .05)))
     dCs = np.append(np.append(dCs, [0]), -1 * dCs)
     dCs = np.sort(dCs) * units.deg
     print('generating Askaryan pulses for the following viewing angles')
     print(dCs/units.deg)
-    
+
     lib_path = "/Users/cglaser/work/ARIANNA/data/ARZ/v1.1/library_v1.1.pkl"
     a = ARZ.ARZ(library=lib_path, interp_factor=100)
-    
+
     showers = {}
     showers['meta'] = {'dt': dt,
                        'n_index': n_index,
                        'R': R}
-    
+
     lib = io_utilities.read_pickle(lib_path)
     for iS, shower_type in enumerate(lib):  # loop through shower types
         if(shower_type not in showers):
@@ -55,7 +55,7 @@ if __name__ == "__main__":
         nb = []
         for iE, E in enumerate(lib[shower_type]):  # loop through energies
             print('E = {:.2g}eV'.format(E))
-            
+
             nE = len(lib[shower_type][E]['charge_excess'])
             if(E not in showers[shower_type]):
                 showers[shower_type][E] = {}
@@ -94,6 +94,6 @@ if __name__ == "__main__":
                     fig.savefig("plots/{}_{:.2g}eV_{:03d}.png".format(shower_type, E / units.eV, iN))
                     fig2.savefig("plots/{}_{:.2g}eV_{:03d}_log.png".format(shower_type, E / units.eV, iN))
                     plt.close("all")
-                        
+
         with open("ARZ_library_v1.1.pkl", 'wb') as fout:
             pickle.dump(showers, fout, protocol=2)

@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import NuRadioMC
-from NuRadioMC.utilities import units
+from NuRadioReco.utilities import units
 from NuRadioMC.utilities import inelasticities
 from NuRadioMC.utilities import version
 from six import iterkeys, iteritems
@@ -331,7 +331,6 @@ def get_tau_95_length(energies):
     log_energy_eV = np.log10(np.max(energies) / units.eV)
 
     for ipow, coeff in enumerate(coeffs):
-        print(coeff, ipow)
         log_length += coeff * (log_energy_eV) ** ipow
 
     return 10 ** log_length * units.m
@@ -408,15 +407,15 @@ def get_tau_decay_vertex(x, y, z, E, zenith, azimuth, distmax, table=None):
         Tau energy at the moment of decay
     """
     L, decay_energy = get_tau_decay_length(E, distmax, table)
-    second_vertex_x = L
+    second_vertex_x = -L
     second_vertex_x *= np.sin(zenith) * np.cos(azimuth)
     second_vertex_x += x
 
-    second_vertex_y = L
+    second_vertex_y = -L
     second_vertex_y *= np.sin(zenith) * np.sin(azimuth)
     second_vertex_y += y
 
-    second_vertex_z = L
+    second_vertex_z = -L
     second_vertex_z *= np.cos(zenith)
     second_vertex_z += z
     return second_vertex_x, second_vertex_y, second_vertex_z, decay_energy
@@ -467,7 +466,8 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
     additional_interactions: dict or None (default)
         a dictionary containing potential additional interactions, such as the second tau interaction vertex.
     """
-    n_events = len(np.unique(data_sets['event_ids']))
+
+    n_events = attributes['n_events']
     logger.info("saving {} events in total".format(n_events))
     total_number_of_events = attributes['n_events']
 
@@ -519,6 +519,8 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
 #             else:
 #                 stop_index = tmp[0]
 
+        for key in data_sets:
+            data_sets[key] = np.array(data_sets[key])
         for key, value in data_sets.items():
             if value.dtype.kind == 'U':
                 fout[key] = [np.char.encode(c, 'utf8') for c in value[start_index:stop_index]]
@@ -657,25 +659,95 @@ def get_product_position(data_sets, product, iE):
     """
 
     dist = product.distance
-    x = data_sets["xx"][iE] - dist * np.cos(data_sets["zeniths"][iE]) * np.cos(data_sets["azimuths"][iE])
-    y = data_sets["xx"][iE] - dist * np.cos(data_sets["zeniths"][iE]) * np.sin(data_sets["azimuths"][iE])
-    z = data_sets["zz"][iE] - dist * np.sin(data_sets["zeniths"][iE])
+    x = data_sets["xx"][iE] - dist * np.sin(data_sets["zeniths"][iE]) * np.cos(data_sets["azimuths"][iE])
+    y = data_sets["yy"][iE] - dist * np.sin(data_sets["zeniths"][iE]) * np.sin(data_sets["azimuths"][iE])
+    z = data_sets["zz"][iE] - dist * np.cos(data_sets["zeniths"][iE])
 
     return x, y, z
 
 
-def generate_surface_muons(filename, n_events, Emin, Emax,
-                            fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
-                            full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
-                            thetamin=0.*units.rad, thetamax=np.pi * units.rad,
-                            phimin=0.*units.rad, phimax=2 * np.pi * units.rad,
-                            start_event_id=1,
-                            plus_minus='mix',
-                            n_events_per_file=None,
-                            spectrum='log_uniform',
-                            resample=False,
-                            start_file_id=0):
+def A_proj(theta, R, d):
+    """
+    calculates the projected area of a cylinder
+    
+    Parameters
+    ----------
+    theta: float
+        zenith angle
+    R: float
+        radius of zylinder
+    d: float
+        height of zylinder
+    
+    Returns: 
+    float: projected ares
+    """
 
+    return np.pi * R ** 2 * np.abs(np.cos(theta)) + 2 * R * d * np.sin(theta)
+
+
+def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
+    """
+    Generates zenith incoming directions according to a distribution given by
+    the product of the projected area of the cylinder and the sine of theta.
+    The projected area must be there because the total number of neutrinos
+    is proportional to the projected area times the incoming flux. The sine
+    of theta comes from the isotropic distribution, dp/d(cos(theta)) = constant
+
+    Parameters
+    ----------
+    n_events: integer
+        Number of events
+    full_rmax: float
+        Radius of the cylinder
+    full_zmax: float
+        Upper z coordinate for the cylinder
+    full_zmin: float
+        Lower z coordinate for the cylinder
+    thetamin: float
+        Minimum zenith angle
+    thetamax: float
+        Maximum zenith angle
+
+    Returns
+    -------
+    zeniths: array of floats
+        Incoming direction zeniths
+    """
+
+    n_events = int(n_events)
+    R = full_rmax
+    d = full_zmax - full_zmin
+
+    def zenith_distribution(theta, R, d):
+        return A_proj(theta, R, d) * np.sin(theta)
+
+    distr_max = np.max(zenith_distribution(np.linspace(thetamin, thetamax, 1000), R, d))
+
+    zeniths = np.array([])
+    while(len(zeniths) < n_events):
+        random_thetas = np.random.uniform(thetamin, thetamax, n_events)
+        random_ys = np.random.uniform(0, distr_max, n_events)
+        mask_accepted = random_ys < zenith_distribution(random_thetas, R, d)
+        zeniths = np.concatenate((zeniths, random_thetas[mask_accepted]))
+
+    zeniths = zeniths[0:n_events]
+
+    return np.array(zeniths)
+
+
+def generate_surface_muons(filename, n_events, Emin, Emax,
+                           fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
+                           full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
+                           thetamin=0.*units.rad, thetamax=np.pi * units.rad,
+                           phimin=0.*units.rad, phimax=2 * np.pi * units.rad,
+                           start_event_id=1,
+                           plus_minus='mix',
+                           n_events_per_file=None,
+                           spectrum='log_uniform',
+                           resample=False,
+                           start_file_id=0,
+                           config_file='SouthPole'):
     """
     Event generator for surface muons
 
@@ -742,9 +814,19 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
         if True, generate deposited energies instead of primary neutrino energies
+    config_file: string
+        The user can specify the path to their own config file or choose among
+        the three available options:
+        -'SouthPole', a config file for the South Pole (spherical Earth)
+        -'MooresBay', a config file for Moore's Bay (spherical Earth)
+        -'InfIce', a config file with a medium of infinite ice
+        If one of these three options is chosen, the user is supposed to edit
+        the corresponding config_PROPOSAL_xxx.json.sample file to include valid
+        table paths and then copy this file to config_PROPOSAL_xxx.json.
     """
 
-    import NuRadioMC.EvtGen.NuRadioProposal as NRP
+    from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
+    proposal_functions = ProposalFunctions()
 
     attributes = {}
     n_events = int(n_events)
@@ -764,28 +846,15 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     # We increase the radius of the cylinder according to the tau track length
     if(full_rmin is None):
-        if(add_tau_second_bang):
-            full_rmin = fiducial_rmin / 3.
-        else:
-            full_rmin = fiducial_rmin
+        full_rmin = fiducial_rmin
     if(full_rmax is None):
-        if(add_tau_second_bang):
-            tau_95_length = get_tau_95_length(Emax)
-            if (tau_95_length > fiducial_rmax):
-                full_rmax = tau_95_length
-            else:
-                full_rmax = fiducial_rmax
-        else:
-            full_rmax = fiducial_rmax
+        full_rmax = fiducial_rmax
     # The zmin and zmax should not be touched. If zmin goes all the way down to
     # the bedrock, tau propagation through the bedrock should be taken into account.
     if(full_zmin is None):
         full_zmin = fiducial_zmin
     if(full_zmax is None):
-        if(add_tau_second_bang):
-            full_zmax = fiducial_zmax / 3.
-        else:
-            full_zmax = fiducial_zmax
+        full_zmax = fiducial_zmax
 
     if (plus_minus == 'plus'):
         flavor = [-13]
@@ -807,17 +876,20 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     attributes['phimax'] = phimax
     attributes['deposited'] = False
 
+    surface_thickness = 0.1 * units.m
+
     data_sets = {}
     # generate neutrino vertices randomly
     data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
-    u = np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events)
-    data_sets["zeniths"] = np.arccos(u)  # generates distribution that is uniform in cos(theta)
+    data_sets["zeniths"] = draw_zeniths(n_events, full_rmax, fiducial_zmax,
+                                        fiducial_zmax - surface_thickness,
+                                        thetamin, thetamax)
 
     rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
     phiphi = np.random.uniform(0, 2 * np.pi, n_events)
     data_sets["xx"] = rr_full * np.cos(phiphi)
     data_sets["yy"] = rr_full * np.sin(phiphi)
-    data_sets["zz"] = np.random.uniform(fiducial_zmax, fiducial_zmax - 0.1 * units.m, n_events)
+    data_sets["zz"] = np.random.uniform(fiducial_zmax, fiducial_zmax - surface_thickness, n_events)
 
     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
@@ -852,6 +924,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     data_sets["inelasticity"] = np.zeros(n_events)
 
     data_sets["energies"] = np.array(data_sets["energies"])
+    data_sets["muon_energies"] = np.copy(data_sets["energies"])
 
     data_sets_fiducial = {}
 
@@ -884,6 +957,9 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     E_all_leptons = data_sets["energies"]
     lepton_codes = data_sets["flavors"]
+    lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
+    lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
+                        for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
 
     if resample:
         if (len(np.unique(lepton_codes)) > 1):
@@ -892,8 +968,14 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         i_resample = 0
         E_all_leptons = E_all_leptons[:n_resample]
         lepton_codes = lepton_codes[:n_resample]
+        lepton_positions = None
+        lepton_directions = None
 
-    products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes)
+    products_array = proposal_functions.get_secondaries_array(E_all_leptons,
+                                                              lepton_codes,
+                                                              lepton_positions,
+                                                              lepton_directions,
+                                                              config_file=config_file)
 
     for event_id in data_sets["event_ids"]:
         iE = event_id - start_event_id
@@ -962,6 +1044,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 tabulated_taus=True,
                                 deposited=False,
                                 proposal=False,
+                                proposal_config='SouthPole',
                                 resample=None,
                                 start_file_id=0):
     """
@@ -1042,6 +1125,15 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         if True, generate deposited energies instead of primary neutrino energies
     proposal: bool
         if True, the tau and muon secondaries are calculated using PROPOSAL
+    proposal_config: string or path
+        The user can specify the path to their own config file or choose among
+        the three available options:
+        -'SouthPole', a config file for the South Pole (spherical Earth)
+        -'MooresBay', a config file for Moore's Bay (spherical Earth)
+        -'InfIce', a config file with a medium of infinite ice
+        If one of these three options is chosen, the user is supposed to edit
+        the corresponding config_PROPOSAL_xxx.json.sample file to include valid
+        table paths and then copy this file to config_PROPOSAL_xxx.json.
     resample: integer or None
         if integer, PROPOSAL generates a number of propagations equal to resample
         and then reuses them. Only to be used with a single kind of lepton (muon or tau)
@@ -1051,7 +1143,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         if True, generate deposited energies instead of primary neutrino energies
     """
     if proposal:
-        import NuRadioMC.EvtGen.NuRadioProposal as NRP
+        from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
+        proposal_functions = ProposalFunctions()
 
     attributes = {}
     n_events = int(n_events)
@@ -1080,6 +1173,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             tau_95_length = get_tau_95_length(Emax)
             if (tau_95_length > fiducial_rmax):
                 full_rmax = tau_95_length
+                n_events = n_events * int((full_rmax / fiducial_rmax) ** 2)
+                attributes['n_events'] = n_events
             else:
                 full_rmax = fiducial_rmax
         else:
@@ -1111,9 +1206,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     # generate neutrino vertices randomly
     logger.debug("generating azimuths")
     data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
-    logger.debug("generating zeniths")
-    u = np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events)
-    data_sets["zeniths"] = np.arccos(u)  # generates distribution that is uniform in cos(theta)
+    data_sets["zeniths"] = draw_zeniths(n_events, full_rmax, full_zmax, full_zmin,
+                                        thetamin, thetamax)
 
     logger.debug("generating vertex positions")
     rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
@@ -1247,6 +1341,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         lepton_codes[lepton_codes == 16] = 15
         lepton_codes[lepton_codes == -16] = -15
 
+        lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
+        lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
+                            for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
+
         if resample:
             if (len(np.unique(lepton_codes)) > 1):
                 raise ValueError('Resample must be used with one kind of leptons only')
@@ -1254,8 +1352,15 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             i_resample = 0
             E_all_leptons = E_all_leptons[:n_resample]
             lepton_codes = lepton_codes[:n_resample]
+            lepton_positions = None
+            lepton_directions = None
+            proposal_config = 'InfIce'
 
-        products_array = NRP.GetSecondariesArray(E_all_leptons, lepton_codes)
+        products_array = proposal_functions.get_secondaries_array(E_all_leptons,
+                                                                  lepton_codes,
+                                                                  lepton_positions,
+                                                                  lepton_directions,
+                                                                  config_file=proposal_config)
 
         for event_id in data_sets["event_ids"]:
             iE = event_id - start_event_id
@@ -1276,12 +1381,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                     first_inserted = True
 
-            tau_cc = data_sets["interaction_type"][iE] == 'cc' and np.abs(data_sets["flavors"][iE]) == 16
-            mu_cc = data_sets["interaction_type"][iE] == 'cc' and np.abs(data_sets["flavors"][iE]) == 14
-            geometry_selection = mask_theta[iE] and mask_phi[iE]
-            geometry_selection = True
-
-            if (tau_cc or mu_cc) and geometry_selection:
+            if mask_leptons[iE]:
 
                 Elepton = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
                 if data_sets["flavors"][iE] > 0:
@@ -1289,7 +1389,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                 else:
                     lepton_code = data_sets["flavors"][iE] + 1
 
-                # products = NRP.GetProds(Elepton, lepton_code)
                 if resample:
                     products = products_array[i_resample % n_resample]
                     i_resample += 1
@@ -1337,6 +1436,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         print("Total time", time.time() - init_time)
 
         print("number of fiducial showers", len(data_sets_fiducial['flavors']))
+        array_int = np.array(data_sets_fiducial['n_interaction'])
+        array_code = np.array(data_sets_fiducial['flavors'])
 
     elif not add_tau_second_bang:
         # save only events with interactions in fiducial volume
