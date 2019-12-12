@@ -71,7 +71,7 @@ class mySimulation(simulation.simulation):
         max_times = []
 
         # Bool for checking the noise triggering rate
-        check_only_noise = False
+        check_only_noise = True
 
         for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
 
@@ -117,6 +117,7 @@ class mySimulation(simulation.simulation):
             left_bin = np.argmin(np.abs(times - left_time))
             right_bin = np.argmin(np.abs(times - right_time))
             trace = channel.get_trace()
+<<<<<<< HEAD
             trace[0:left_bin] = 0
             trace[right_bin:None] = 0
             channel.set_trace(trace, sampling_rate=new_sampling_rate)
@@ -130,15 +131,30 @@ class mySimulation(simulation.simulation):
                              threshold=2.45 * self._Vrms, # see phased trigger module for explanation
 >>>>>>> Changing from 8 to 4 antennas for the RNO project
 =======
+=======
+            #trace[0:left_bin] = 0
+            #trace[right_bin:None] = 0
+            #channel.set_trace(trace, sampling_rate = new_sampling_rate)
+
+        # first run a simple threshold trigger
+        trig = triggerSimulator.run(self._evt, self._station, self._det,
+>>>>>>> Changing trigger name
                              threshold=2.2 * self._Vrms, # see phased trigger module for explanation
 >>>>>>> Fixing bug regarding the noise amplitude. Now noise is calculated with the correct sampling rate
                              triggered_channels=None,  # run trigger on all channels
+<<<<<<< HEAD
                              trigger_name='primary_and_secondary_phasing',  # the name of the trigger
+=======
+                             trigger_name='primary_phasing', # the name of the trigger
+>>>>>>> Changing trigger name
                              phasing_angles=phasing_angles,
                              secondary_phasing_angles=None,
                              set_not_triggered=(not self._station.has_triggered("simple_threshold")),
                              coupled=False,
                              ref_index=1.75)
+
+        if trig:
+            print('ay mamarl')
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
