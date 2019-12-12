@@ -131,26 +131,33 @@ class triggerSimulator:
         sampling_rate = station.get_channel(0).get_sampling_rate()
         time_step = 1. / sampling_rate
 
+        traces = {}
+        for channel in station.iter_channels():
+            channel_id = channel.get_id()
+            if channel_id not in triggered_channels:  # skip all channels that do not participate in the trigger decision
+                logger.debug("skipping channel {}".format(channel_id))
+                continue
+
+            trace = channel.get_trace()  # get the enveloped trace
+            times = channel.get_times()  # get the corresponding time bins
+
+            if cut_times != (None,None):
+                left_bin = np.argmin(np.abs(times-cut_times[0]))
+                right_bin = np.argmin(np.abs(times-cut_times[1]))
+                trace[0:left_bin] = 0
+                trace[right_bin:None] = 0
+
+            traces[channel_id] = trace[:]
+
         for subbeam_rolls, sec_subbeam_rolls in zip(beam_rolls, sec_beam_rolls):
 
             phased_trace = None
             # Number of antennas: primary beam antennas + secondary beam antennas
             Nant = len(beam_rolls[0]) + len(sec_beam_rolls[0])
 
-            for channel in station.iter_channels():  # loop over all channels (i.e. antennas) of the station
-                channel_id = channel.get_id()
-                if channel_id not in triggered_channels:  # skip all channels that do not participate in the trigger decision
-                    logger.debug("skipping channel {}".format(channel_id))
-                    continue
+            for channel_id in traces:
 
-                trace = channel.get_trace()  # get the time trace (i.e. an array of amplitudes)
-                times = channel.get_times()  # get the corresponding time bins
-
-                if cut_times != (None,None):
-                    left_bin = np.argmin(np.abs(times-cut_times[0]))
-                    right_bin = np.argmin(np.abs(times-cut_times[1]))
-                    trace[0:left_bin] = 0
-                    trace[right_bin:None] = 0
+                trace = traces[channel_id]
 
                 if(phased_trace is None):
                     phased_trace = np.roll(trace, subbeam_rolls[channel_id])
