@@ -58,7 +58,7 @@ class mySimulation(simulation.simulation):
     def _detector_simulation(self):
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
-        # downsample trace to 3 ns
+        # downsample trace to 3 Gs/s
         new_sampling_rate = 3 * units.GHz
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
 
@@ -112,6 +112,7 @@ class mySimulation(simulation.simulation):
                                   filter_type='butter', order=10)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         # Setting the trace values far from the amplitude maxima to zero
         # to reduce the noise trigger rate
         for channel in self._station.iter_channels():
@@ -150,6 +151,9 @@ class mySimulation(simulation.simulation):
 >>>>>>> Changing trigger name
 =======
         # first run a simple threshold trigger
+=======
+        # run the phasing trigger
+>>>>>>> Remove unused variables, correct comments
         triggerSimulator.run(self._evt, self._station, self._det,
 >>>>>>> Removing the pre-threshold for the phased array examples. Switching to diode windows instead of hardcoded window
                              threshold=2.2 * self._Vrms, # see phased trigger module for explanation
@@ -165,7 +169,6 @@ class mySimulation(simulation.simulation):
                              coupled=False,
                              ref_index=1.75,
                              cut_times=cut_times)
-
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('--inputfilename', type=str,

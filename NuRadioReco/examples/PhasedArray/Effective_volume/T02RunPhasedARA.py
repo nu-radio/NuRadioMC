@@ -42,19 +42,14 @@ channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPas
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
-left_edge_around_max = 20 * units.ns
-right_edge_around_max = 40 * units.ns
-
 class mySimulation(simulation.simulation):
 
     def _detector_simulation(self):
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
-        # downsample trace to 3 ns
+        # downsample trace to 1.5 Gs/s
         new_sampling_rate = 1.5 * units.GHz
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
-
-        # Forcing a threshold cut BEFORE adding noise for limiting the noise-induced triggers
 
         cut_times = get_window_around_maximum(self._station)
 
@@ -81,7 +76,7 @@ class mySimulation(simulation.simulation):
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 750 * units.MHz],
                                   filter_type='butter', order=10)
 
-        # first run a simple threshold trigger
+        # run the phased trigger
         triggerSimulator.run(self._evt, self._station, self._det,
                              threshold=2.5 * self._Vrms, # see phased trigger module for explanation
                              triggered_channels=None,  # run trigger on all channels
