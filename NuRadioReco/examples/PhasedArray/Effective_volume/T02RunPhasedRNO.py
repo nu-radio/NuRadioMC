@@ -58,15 +58,12 @@ class mySimulation(simulation.simulation):
         new_sampling_rate = 3 * units.GHz
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
 
-        threshold_cut = True
         # Forcing a threshold cut BEFORE adding noise for limiting the noise-induced triggers
-        if threshold_cut:
-
-            thresholdSimulator.run(self._evt, self._station, self._det,
-                                 threshold=0.75 * self._Vrms,
-                                 triggered_channels=None,  # run trigger on all channels
-                                 number_concidences=1,
-                                 trigger_name='simple_threshold')
+        thresholdSimulator.run(self._evt, self._station, self._det,
+                             threshold=0.75 * self._Vrms,
+                             triggered_channels=None,  # run trigger on all channels
+                             number_concidences=1,
+                             trigger_name='simple_threshold')
 
         max_times = []
 
