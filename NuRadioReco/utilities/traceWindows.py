@@ -2,7 +2,11 @@ import numpy as np
 from NuRadioReco.utilities import units
 import NuRadioReco.utilities.diodeSimulator
 
-def get_window_around_maximum(station, diode, triggered_channels=None, ratio = 0.01, edge=20*units.ns):
+def get_window_around_maximum(station,
+                              diode=None,
+                              triggered_channels=None,
+                              ratio = 0.01,
+                              edge=20*units.ns):
     """
     This function filters the signal using a diode model and calculates
     the times around the filtered maximum where the signal is the ratio
@@ -65,7 +69,7 @@ def get_window_around_maximum(station, diode, triggered_channels=None, ratio = 0
         if (argmin == 0):
             argmin = 1
 
-        left_bin = argmin - np.argmin( np.abs(trace[0:argmin][::-1]+ratio*trace_max) )
+        left_bin = argmin - np.argmin(np.abs(trace[0:argmin][::-1]+ratio*trace_max))
         left_times.append(times[left_bin])
 
         right_bin = argmax + np.argmin(np.abs(trace[argmax:None]-ratio*trace_max))
