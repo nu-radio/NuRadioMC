@@ -257,7 +257,7 @@ class IntegratedPowerTrigger(Trigger):
 
 class EnvelopeTrigger(Trigger):
 
-    def __init__(self, name, passband, order, threshold, number_of_coincidences=1,
+    def __init__(self, name, passband, order, threshold, number_of_coincidences=2,
                  channel_coincidence_window=None, channels=None):
         """
         initialize trigger class
