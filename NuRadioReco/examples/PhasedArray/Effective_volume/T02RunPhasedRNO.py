@@ -43,10 +43,11 @@ thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulato
 
 main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
-phasing_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
+phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 30))
 
 left_edge_around_max = 20 * units.ns
 right_edge_around_max = 40 * units.ns
+
 
 class mySimulation(simulation.simulation):
 
@@ -75,23 +76,20 @@ class mySimulation(simulation.simulation):
         for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
 
             times = channel.get_times()
-            argmax = np.argmax( np.abs(channel.get_trace()) )
+            argmax = np.argmax(np.abs(channel.get_trace()))
             max_times.append(times[argmax])
             if check_only_noise:
                 trace = channel.get_trace() * 0
-                channel.set_trace(trace, sampling_rate = new_sampling_rate)
+                channel.set_trace(trace, sampling_rate=new_sampling_rate)
 
         left_time = np.min(max_times) - left_edge_around_max
         right_time = np.max(max_times) + right_edge_around_max
 
-        noise = True
-
-        if noise:
+        if self._is_simulate_noise():
             max_freq = 0.5 / self._dt
             norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
-            Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
-                                         max_freq=max_freq, type='rayleigh')
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms, min_freq=0 * units.MHz,
+                                         max_freq=max_freq, type='rayleigh', bandwidth=norm)
 
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[132 * units.MHz, 1150 * units.MHz],
@@ -104,18 +102,18 @@ class mySimulation(simulation.simulation):
         for channel in self._station.iter_channels():
 
             times = channel.get_times()
-            left_bin = np.argmin(np.abs(times-left_time))
-            right_bin = np.argmin(np.abs(times-right_time))
+            left_bin = np.argmin(np.abs(times - left_time))
+            right_bin = np.argmin(np.abs(times - right_time))
             trace = channel.get_trace()
             trace[0:left_bin] = 0
             trace[right_bin:None] = 0
-            channel.set_trace(trace, sampling_rate = new_sampling_rate)
+            channel.set_trace(trace, sampling_rate=new_sampling_rate)
 
         # first run a simple threshold trigger
         triggerSimulator.run(self._evt, self._station, self._det,
-                             threshold=2.3 * self._Vrms, # see phased trigger module for explanation
+                             threshold=2.3 * self._Vrms,  # see phased trigger module for explanation
                              triggered_channels=None,  # run trigger on all channels
-                             trigger_name='primary_and_secondary_phasing', # the name of the trigger
+                             trigger_name='primary_and_secondary_phasing',  # the name of the trigger
                              phasing_angles=phasing_angles,
                              secondary_phasing_angles=None,
                              set_not_triggered=(not self._station.has_triggered("simple_threshold")),
