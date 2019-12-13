@@ -16,6 +16,7 @@ from app import app
 from apps import overview
 from apps import traces
 from apps import cosmic_rays
+from apps import simulation
 from apps.common import get_point_index
 import apps.simulation
 import os
@@ -137,22 +138,37 @@ app.layout = html.Div([
             ], className='custom-table-row')
         ], style={'flex': '1'}, className='event-info-table')
     ], style={'display': 'flex'}),
-    dcc.Tabs([
-        dcc.Tab([
-            overview.layout
-        ], id='summary-tab', label='Summary'),
-        dcc.Tab([
-            traces.layout
-        ], label='Traces'),
-        dcc.Tab([
-            apps.simulation.layout
-        ], label='Simulation'),
-        dcc.Tab([
-            cosmic_rays.layout
-        ], label='Cosmic Rays')
-    ])
+    dcc.RadioItems(
+        options=[
+            {'label': 'Summary', 'value': 'summary'},
+            {'label': 'Traces', 'value': 'traces'},
+            {'label': 'Simulation', 'value': 'simulation'},
+            {'label': 'Cosmic Rays', 'value': 'cosmic_rays'}
+        ],
+        value='summary',
+        id='content-selector',
+        className='radio-content-selector',
+        style={'background-color': '#f9f9f9'},
+        labelStyle={'flex': '1', 'padding': '5px 50px'}
+
+    ),
+    html.Div('', id='content')
 ])
 
+@app.callback(
+Output('content', 'children'),
+[Input('content-selector', 'value')]
+)
+def get_page_content(selection):
+    if selection == 'summary':
+        return [overview.layout]
+    if selection == 'traces':
+        return [traces.layout]
+    if selection == 'simulation':
+        return [simulation.layout]
+    if selection == 'cosmic_rays':
+        return [cosmic_rays.layout]
+    return []
 
 # next/previous buttons
 @app.callback(
