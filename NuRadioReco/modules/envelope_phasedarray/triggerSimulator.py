@@ -81,11 +81,8 @@ class triggerSimulator(phasedTrigger):
         diode = diodeSimulator(output_passband)
 
         traces = {}
-        for channel in station.iter_channels():
+        for channel in station.iter_channels(use_channels=triggered_channels):
             channel_id = channel.get_id()
-            if channel_id not in triggered_channels:  # skip all channels that do not participate in the trigger decision
-                logger.debug("skipping channel {}".format(channel_id))
-                continue
 
             trace = diode.tunnel_diode(channel)  # get the enveloped trace
             times = channel.get_times()  # get the corresponding time bins
