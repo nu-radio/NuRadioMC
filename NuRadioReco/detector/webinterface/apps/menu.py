@@ -4,7 +4,7 @@ from dash.dependencies import Input, Output
 
 from app import app
 
-app.layout = html.Div([
+layout = html.Div([
     html.H3('Welcome to NuRadioReco database web interface'),
     dcc.Link('Add a new amplifier', href='/apps/add_amps')
 ])

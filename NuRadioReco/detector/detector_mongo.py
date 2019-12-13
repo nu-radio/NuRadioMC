@@ -23,7 +23,7 @@ def get_amp_board_names():
     return db.amp_boards.distinct("name")
 
 
-def insert_amp_board_channel_S12(board_name, channel_id, ff, mag, phase):
+def insert_amp_board_channel_S12(board_name, Sparameter, channel_id, ff, mag, phase):
     """
     inserts a new S12 measurement of one channel of an amp board
     If the board dosn't exist yet, it will be created. 
@@ -31,11 +31,11 @@ def insert_amp_board_channel_S12(board_name, channel_id, ff, mag, phase):
     db.amp_boards.update_one({'name': board_name},
                               {"$push" :{'channels': {
                                   'id': channel_id,
-                                  'S12': {
-                                      'frequencies': list(ff),
-                                      'mag': list(mag),
-                                      'phase': list(phase),
-                                      }
+                                  'last_updated': datetime.datetime.utcnow(),
+                                  'S_parameter': Sparameter,
+                                  'frequencies': list(ff),
+                                  'mag': list(mag),
+                                  'phase': list(phase)
                                   }}},
                              upsert=True)
 

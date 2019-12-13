@@ -18,8 +18,8 @@ def display_page(pathname):
         return add_amps.layout
 #     elif pathname == '/apps/app2':
 #         return app2.layout
-    elif pathname == "/menu":
-        menu.layout
+    elif pathname == "/apps/menu":
+        return menu.layout
     else:
         return "404"
 
