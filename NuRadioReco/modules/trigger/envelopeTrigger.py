@@ -49,14 +49,13 @@ class triggerSimulator:
     def run(self, evt, station, det, passband, order, threshold, coinc_window, number_coincidences=2, triggered_channels=None,
              trigger_name='envelope_trigger'):
         """
-        simulate simple trigger logic, no time window, just threshold in all channels
+        Simulates simple threshold trigger based on an Hilbert-envelope of the trace. Passband of the trigger, coincidence
+        window within different channels should have triggered, and the number of channels needed to trigger can be specified.
 
         Parameters
         ----------
-        evt:
-            event
-        station:
-        det:
+
+
         threshold: float
             threshold above (or below) a trigger is issued, absolute amplitude
         number_coincidences: int
@@ -89,22 +88,21 @@ class triggerSimulator:
         for channel in station.iter_channels():
             # get filter
             frequencies = channel.get_frequencies()
-            frequencies_tri = copy.copy(frequencies)
 
-            f = np.zeros_like(frequencies_tri, dtype=np.complex)
-            mask = frequencies_tri > 0
+            f = np.zeros_like(frequencies, dtype=np.complex)
+            mask = frequencies > 0
             b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
-            w, h = scipy.signal.freqs(b, a, frequencies_tri[mask])
+            w, h = scipy.signal.freqs(b, a, frequencies[mask])
             f[mask] = h
-            print(f)
+            logger.info('frequencies after passband:', f)
 
             # apply filter
             freq_spectrum_fft = channel.get_frequency_spectrum()
-            freq_spectrum_fft_tri = copy.copy(freq_spectrum_fft)
+            freq_spectrum_fft_copy = copy.copy(freq_spectrum_fft)  #copy spectrum so it is only changed within the trigger module
             sampling_rate = channel.get_sampling_rate()
 
-            freq_spectrum_fft_tri *= f
-            trace_filtered = NuRadioReco.utilities.fft.freq2time(freq_spectrum_fft_tri, sampling_rate)
+            freq_spectrum_fft_copy *= f
+            trace_filtered = NuRadioReco.utilities.fft.freq2time(freq_spectrum_fft_copy, sampling_rate)
 
             # apply envelope trigger to each channel
             channel_id = channel.get_id()
