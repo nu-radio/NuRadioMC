@@ -61,9 +61,7 @@ class mySimulation(simulation.simulation):
                 trace = channel.get_trace() * 0
                 channel.set_trace(trace, sampling_rate = new_sampling_rate)
 
-        noise = True
-
-        if noise:
+        if self._is_simulate_noise():
             max_freq = 0.5 * max_freq = 0.5 / self._dt
             norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms, min_freq=0 * units.MHz,
