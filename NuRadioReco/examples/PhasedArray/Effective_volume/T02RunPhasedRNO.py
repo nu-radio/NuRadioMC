@@ -77,7 +77,7 @@ class mySimulation(simulation.simulation):
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 700 * units.MHz],
                                   filter_type='butter', order=10)
 
-        # run the phasing trigger
+        # run the phased trigger
         triggerSimulator.run(self._evt, self._station, self._det,
                              threshold=2.2 * self._Vrms, # see phased trigger module for explanation
                              triggered_channels=None,  # run trigger on all channels
