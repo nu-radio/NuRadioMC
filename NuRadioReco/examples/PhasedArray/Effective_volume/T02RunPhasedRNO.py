@@ -81,7 +81,6 @@ class mySimulation(simulation.simulation):
         triggerSimulator.run(self._evt, self._station, self._det,
                              threshold=2.2 * self._Vrms, # see phased trigger module for explanation
                              triggered_channels=None,  # run trigger on all channels
-                             trigger_name='primary_and_secondary_phasing',  # the name of the trigger
                              trigger_name='primary_phasing', # the name of the trigger
                              phasing_angles=phasing_angles,
                              secondary_phasing_angles=None,
