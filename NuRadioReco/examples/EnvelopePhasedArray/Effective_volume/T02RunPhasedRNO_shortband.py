@@ -61,13 +61,6 @@ class mySimulation(simulation.simulation):
         new_sampling_rate = 3 * units.GHz
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
 
-        # Forcing a threshold cut BEFORE adding noise for limiting the noise-induced triggers
-        thresholdSimulator.run(self._evt, self._station, self._det,
-                               threshold=0.75 * self._Vrms,
-                               triggered_channels=None,  # run trigger on all channels
-                               number_concidences=1,
-                               trigger_name='simple_threshold')
-
         cut_times = get_window_around_maximum(self._station, diodeSimulator, ratio = 0.01)
 
         # Bool for checking the noise triggering rate
@@ -83,11 +76,10 @@ class mySimulation(simulation.simulation):
         noise = True
 
         if noise:
-            max_freq = 0.5 * new_sampling_rate
+            max_freq = 0.5 * max_freq = 0.5 / self._dt
             norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
-            Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
-                                         max_freq=max_freq, type='rayleigh')
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms, min_freq=0 * units.MHz,
+                                         max_freq=max_freq, type='rayleigh', bandwidth=norm)
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[132 * units.MHz, 1150 * units.MHz],
                                   filter_type='butter', order=8)
@@ -103,17 +95,15 @@ class mySimulation(simulation.simulation):
 
         # first run a simple threshold trigger
         triggerSimulator.run(self._evt, self._station, self._det,
-                             threshold_factor=3.5, # see envelope phased trigger module for explanation
+                             threshold_factor=3.9, # see envelope phased trigger module for explanation
                              power_mean=power_mean,
                              power_std=power_std,
                              triggered_channels=None,  # run trigger on all channels
                              trigger_name='envelope_phasing', # the name of the trigger
                              phasing_angles=phasing_angles,
-                             set_not_triggered=(not self._station.has_triggered("simple_threshold")),
                              ref_index=1.75,
                              output_passband=diode_passband,
                              cut_times=cut_times)
-
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('--inputfilename', type=str,
