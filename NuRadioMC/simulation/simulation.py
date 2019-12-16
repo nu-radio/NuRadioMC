@@ -26,6 +26,7 @@ from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.framework.parameters import eventParameters as evp
 import datetime
 import logging
 from six import iteritems
@@ -354,6 +355,7 @@ class simulation():
             cherenkov_angle = np.arccos(1. / n_index)
 
             self._evt = NuRadioReco.framework.event.Event(0, self._event_id)
+            self._evt.set_parameter(evp.sim_config, self._cfg)
 
             # first step: peorform raytracing to see if solution exists
             t2 = time.time()
