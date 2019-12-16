@@ -15,6 +15,7 @@ import NuRadioReco.eventbrowser.apps.overview_plots.station_properties
 import NuRadioReco.eventbrowser.apps.overview_plots.channel_properties
 import NuRadioReco.eventbrowser.apps.overview_plots.electric_field_properties
 import NuRadioReco.eventbrowser.apps.overview_plots.trigger_properties
+import NuRadioReco.eventbrowser.apps.overview_plots.event_overview
 import numpy as np
 import logging
 logger = logging.getLogger('overview')
@@ -22,6 +23,11 @@ logger = logging.getLogger('overview')
 provider = dataprovider.DataProvider()
 
 layout = html.Div([
+    html.Div([
+        html.Div('Event Overview', className='panel-heading'),
+        html.Div(NuRadioReco.eventbrowser.apps.overview_plots.event_overview.layout,
+            className='panel-body')
+    ], className='panel panel-default'),
     html.Div([
         html.Div([
             html.Div('Station', className='panel-heading'),
