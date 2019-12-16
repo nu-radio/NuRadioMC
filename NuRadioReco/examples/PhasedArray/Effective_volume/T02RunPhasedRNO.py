@@ -46,13 +46,6 @@ main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
 phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 30))
 
-<<<<<<< HEAD
-left_edge_around_max = 20 * units.ns
-right_edge_around_max = 40 * units.ns
-
-
-=======
->>>>>>> Removing the pre-threshold for the phased array examples. Switching to diode windows instead of hardcoded window
 class mySimulation(simulation.simulation):
 
     def _detector_simulation(self):
@@ -67,47 +60,16 @@ class mySimulation(simulation.simulation):
         # Bool for checking the noise triggering rate
         check_only_noise = False
 
-<<<<<<< HEAD
-        for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
-
-            times = channel.get_times()
-            argmax = np.argmax(np.abs(channel.get_trace()))
-            max_times.append(times[argmax])
-            if check_only_noise:
-=======
         if check_only_noise:
             for channel in self._station.iter_channels():
->>>>>>> Removing the pre-threshold for the phased array examples. Switching to diode windows instead of hardcoded window
                 trace = channel.get_trace() * 0
                 channel.set_trace(trace, sampling_rate=new_sampling_rate)
 
-<<<<<<< HEAD
-        left_time = np.min(max_times) - left_edge_around_max
-        right_time = np.max(max_times) + right_edge_around_max
-
-<<<<<<< HEAD
         if self._is_simulate_noise():
             max_freq = 0.5 / self._dt
             norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms, min_freq=0 * units.MHz,
                                          max_freq=max_freq, type='rayleigh', bandwidth=norm)
-=======
-=======
->>>>>>> Removing the pre-threshold for the phased array examples. Switching to diode windows instead of hardcoded window
-        noise = True
-
-        if noise:
-            max_freq = 0.5 * max_freq = 0.5 / self._dt
-            norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
-<<<<<<< HEAD
-            Vrms = self._Vrms / (norm / (max_freq-min_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=min_freq,
-                                         max_freq=max_freq, type='rayleigh')
->>>>>>> Fixing bug regarding the noise amplitude. Now noise is calculated with the correct sampling rate
-=======
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms, min_freq=0 * units.MHz,
-                                         max_freq=max_freq, type='rayleigh', bandwidth=norm)
->>>>>>> New way of normalising noise
 
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[132 * units.MHz, 1150 * units.MHz],
@@ -115,59 +77,12 @@ class mySimulation(simulation.simulation):
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 700 * units.MHz],
                                   filter_type='butter', order=10)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-        # Setting the trace values far from the amplitude maxima to zero
-        # to reduce the noise trigger rate
-        for channel in self._station.iter_channels():
-
-            times = channel.get_times()
-            left_bin = np.argmin(np.abs(times - left_time))
-            right_bin = np.argmin(np.abs(times - right_time))
-            trace = channel.get_trace()
-<<<<<<< HEAD
-<<<<<<< HEAD
-            trace[0:left_bin] = 0
-            trace[right_bin:None] = 0
-            channel.set_trace(trace, sampling_rate=new_sampling_rate)
-
-        # first run a simple threshold trigger
-        triggerSimulator.run(self._evt, self._station, self._det,
-<<<<<<< HEAD
-<<<<<<< HEAD
-                             threshold=2.3 * self._Vrms,  # see phased trigger module for explanation
-=======
-                             threshold=2.45 * self._Vrms, # see phased trigger module for explanation
->>>>>>> Changing from 8 to 4 antennas for the RNO project
-=======
-=======
-            #trace[0:left_bin] = 0
-            #trace[right_bin:None] = 0
-            #channel.set_trace(trace, sampling_rate = new_sampling_rate)
-=======
-            trace[0:left_bin] = 0
-            trace[right_bin:None] = 0
-            channel.set_trace(trace, sampling_rate = new_sampling_rate)
->>>>>>> Removing commented lines
-
-        # first run a simple threshold trigger
-        trig = triggerSimulator.run(self._evt, self._station, self._det,
->>>>>>> Changing trigger name
-=======
-        # first run a simple threshold trigger
-=======
         # run the phasing trigger
->>>>>>> Remove unused variables, correct comments
         triggerSimulator.run(self._evt, self._station, self._det,
->>>>>>> Removing the pre-threshold for the phased array examples. Switching to diode windows instead of hardcoded window
                              threshold=2.2 * self._Vrms, # see phased trigger module for explanation
->>>>>>> Fixing bug regarding the noise amplitude. Now noise is calculated with the correct sampling rate
                              triggered_channels=None,  # run trigger on all channels
-<<<<<<< HEAD
                              trigger_name='primary_and_secondary_phasing',  # the name of the trigger
-=======
                              trigger_name='primary_phasing', # the name of the trigger
->>>>>>> Changing trigger name
                              phasing_angles=phasing_angles,
                              secondary_phasing_angles=None,
                              coupled=False,
