@@ -74,13 +74,13 @@ Ntries = args.ntries # number of tries
 single = args.single
 
 if not single:
-    threshold_factors = [3.6, 3.65, 3.7, 3.75, 3.8, 3.85]
+    threshold_factors = [3.8, 3.85, 3.9, 3.95, 4.0]
     ant_z_primary = [-98.5, -99.5, -100.5, -101.5] # primary antennas positions
     primary_channels = [0, 1, 2, 3] # channels used for primary beam
 else:
     ant_z_primary = [-98.5]
     primary_channels = [0]
-    threshold_factors = [9.0, 9.2, 9.4]
+    threshold_factors = [9.85, 9.9, 9.5, 10.]
 
 beam_rolls = get_beam_rolls(ant_z_primary, primary_channels, primary_angles, time_step)
 
