@@ -266,8 +266,10 @@ class EnvelopeTrigger(Trigger):
         -----------
         name: string
             unique name of the trigger
-        passband:
-        order:
+        passband: array
+            the passband in which the trigger should apply
+        order: int
+            order of filtertype 'butterabs'
         threshold: float
             the threshold
         channels: array of ints or None
