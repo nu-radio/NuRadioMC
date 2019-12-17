@@ -44,7 +44,7 @@ attributes = [u'trigger_names',
  u'n_events']
 for key in attributes:
     try:
-        testing.assert_equal(fin1.attrs[key], fin2.attrs[key])
+        testing.assert_almost_equal(fin1.attrs[key], fin2.attrs[key])
     except AssertionError as e:
         print("\n attribute {} not equal".format(key))
         print(e)
@@ -66,7 +66,7 @@ keys = [u'azimuths',
  u'zz']
 for key in keys:
     try:
-        testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
+        testing.assert_almost_equal(np.array(fin1[key]), np.array(fin2[key]))
     except AssertionError as e:
         print("\narray {} not equal".format(key))
         print(e)
@@ -87,7 +87,7 @@ for key in keys2:
         print("\narray {} of group station_101 not equal".format(key))
         print(e)
         error = -1
-        
+
 keys2 = [
     u'travel_distances',
     u'ray_tracing_C1',]
@@ -99,7 +99,7 @@ for key in keys2:
         print("\narray {} of group station_101 not equal".format(key))
         print(e)
         error = -1
-        
+
 keys2 = [
     u'travel_times']
 for key in keys2:
@@ -126,7 +126,7 @@ for key in keys2:
         print(e)
         error = -1
 
-    
+
 
 if(error == -1):
     sys.exit(error)
