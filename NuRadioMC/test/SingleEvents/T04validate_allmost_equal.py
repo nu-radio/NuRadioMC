@@ -19,7 +19,6 @@ fin2 = h5py.File(file2, 'r')
 
 attributes = [u'trigger_names',
  u'Tnoise',
- u'Vrms',
  u'dt',
  u'bandwidth',
  u'n_samples',
@@ -44,11 +43,20 @@ attributes = [u'trigger_names',
  u'n_events']
 for key in attributes:
     try:
-        testing.assert_almost_equal(fin1.attrs[key], fin2.attrs[key])
+        testing.assert_equal(fin1.attrs[key], fin2.attrs[key])
     except AssertionError as e:
         print("\n attribute {} not almost equal".format(key))
         print(e)
 
+
+attributes = [
+ u'Vrms']
+for key in attributes:
+    try:
+        testing.assert_almost_equal(fin1.attrs[key], fin2.attrs[key])
+    except AssertionError as e:
+        print("\n attribute {} not almost equal".format(key))
+        print(e)
 
 keys = [u'azimuths',
  u'energies',
@@ -66,7 +74,7 @@ keys = [u'azimuths',
  u'zz']
 for key in keys:
     try:
-        testing.assert_almost_equal(np.array(fin1[key]), np.array(fin2[key]))
+        testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
     except AssertionError as e:
         print("\narray {} not almost equal".format(key))
         print(e)
