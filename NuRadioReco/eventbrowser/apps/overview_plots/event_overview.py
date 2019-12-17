@@ -8,13 +8,37 @@ import dash_core_components as dcc
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import eventParameters as evp
+from NuRadioReco.framework.parameters import showerParameters as shp
 import radiotools.helper as hp
 import dataprovider
 import numpy as np
 provider = dataprovider.DataProvider()
 
 layout = [
-    dcc.Graph(id='event-overview', style={'flex': '1'})
+    html.Div([
+        html.Div([
+            html.Div('Draw Stations'),
+            dcc.RadioItems(
+                id='overview-station-mode',
+                options=[
+                    {'label': 'All', 'value': 'all'},
+                    {'label': 'Only selected', 'value': 'selected'}
+                ],
+                value='selected'
+            ),
+            dcc.Checklist(
+                id='overview-channel-station',
+                options=[
+                    {'label': 'Station', 'value': 'station'},
+                    {'label': 'Channel', 'value': 'channel'}
+                ],
+                value=['station', 'channel']
+            )
+        ], style={'flex':1}),
+        html.Div([
+            dcc.Graph(id='event-overview', style={'flex': '1'})
+        ], style={'flex':2})
+    ], style={'display': 'flex'})
 ]
 
 
@@ -48,9 +72,11 @@ def get_cherenkov_cone(medium, vertex, nu_dir):
 @app.callback(Output('event-overview', 'figure'),
               [Input('event-counter-slider', 'value'),
                Input('filename', 'value'),
-               Input('station-id-dropdown', 'value')],
+               Input('station-id-dropdown', 'value'),
+               Input('overview-station-mode', 'value'),
+               Input('overview-channel-station', 'value')],
               [State('user_id', 'children')])
-def plot_event_overview(evt_counter, filename, station_id, juser_id):
+def plot_event_overview(evt_counter, filename, station_id, station_mode, channel_station, juser_id):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
@@ -119,24 +145,72 @@ def plot_event_overview(evt_counter, filename, station_id, juser_id):
                     color='red',
                     opacity=.5,
                     name='Cherenkov ring'))
+    if station.is_cosmic_ray():
+        for sim_shower in evt.get_sim_showers():
+            sim_core = sim_shower.get_parameter(shp.core)
+            sim_zenith = sim_shower.get_parameter(shp.zenith)
+            sim_azimuth = sim_shower.get_parameter(shp.azimuth)
+            sim_direction = hp.spherical_to_cartesian(sim_zenith, sim_azimuth)
+            plots.append(plotly.graph_objs.Scatter3d(
+                x=[sim_core[0]],
+                y=[sim_core[1]],
+                z=[sim_core[2]],
+                mode='markers',
+                marker={'color':'red'},
+                showlegend=False,
+                name='Core position'
+            ))
+            dir_points = np.array([sim_core, sim_core+100*sim_direction])
+            plots.append(plotly.graph_objs.Scatter3d(
+                x=dir_points[:,0],
+                y=dir_points[:,1],
+                z=dir_points[:,2],
+                mode='lines',
+                line={'color':'red'},
+                showlegend=False,
+                name='Shower direction'
+            ))
+
     if ariio.get_detector() is not None:
         det = ariio.get_detector()
         det.update(station.get_station_time())
         channel_positions = []
         channel_comments = []
-        for channel_id in det.get_channel_ids(station_id):
-            channel_comments.append(det.get_channel(station_id, channel_id)['ant_comment'])
-            channel_positions.append(det.get_absolute_position(station_id) + det.get_relative_position(station_id, channel_id))
+        station_positions = []
+        station_comments = []
+        if station_mode == 'selected':
+            draw_stations = [station_id]
+        else:
+            draw_stations = det.get_station_ids()
+        for stat_id in draw_stations:
+            station_positions.append(det.get_absolute_position(stat_id))
+            station_comments.append('Station {}'.format(stat_id))
+            for channel_id in det.get_channel_ids(stat_id):
+                channel_comments.append('Ch.{}[{}]'.format(channel_id, det.get_channel(stat_id, channel_id)['ant_comment']))
+                channel_positions.append(det.get_absolute_position(stat_id) + det.get_relative_position(stat_id, channel_id))
         channel_positions = np.array(channel_positions)
-        plots.append(plotly.graph_objs.Scatter3d(
-        x=channel_positions[:,0],
-        y=channel_positions[:,1],
-        z=channel_positions[:,2],
-        text=channel_comments,
-        mode='markers',
-        marker={'size': 3},
-        showlegend=False,
-        name='Station {}'.format(station_id)
-        ))
+        station_positions = np.array(station_positions)
+        if 'station' in channel_station:
+            plots.append(plotly.graph_objs.Scatter3d(
+            x=station_positions[:,0],
+            y=station_positions[:,1],
+            z=station_positions[:,2],
+            text=station_comments,
+            mode='markers',
+            marker={'size': 4},
+            showlegend=False,
+            name='Stations'
+            ))
+        if 'channel' in channel_station:
+            plots.append(plotly.graph_objs.Scatter3d(
+            x=channel_positions[:,0],
+            y=channel_positions[:,1],
+            z=channel_positions[:,2],
+            text=channel_comments,
+            mode='markers',
+            marker={'size': 3},
+            showlegend=False,
+            name='Channels'
+            ))
     fig = plotly.graph_objs.Figure(data=plots)
     return fig
