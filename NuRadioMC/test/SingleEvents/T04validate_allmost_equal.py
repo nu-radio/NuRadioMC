@@ -12,7 +12,7 @@ error = 0
 
 file1 = sys.argv[1]
 file2 = sys.argv[2]
-print("Testing the files {} and {} for equality".format(file1, file2))
+print("Testing the files {} and {} for (almost) equality".format(file1, file2))
 
 fin1 = h5py.File(file1, 'r')
 fin2 = h5py.File(file2, 'r')
@@ -46,7 +46,7 @@ for key in attributes:
     try:
         testing.assert_almost_equal(fin1.attrs[key], fin2.attrs[key])
     except AssertionError as e:
-        print("\n attribute {} not equal".format(key))
+        print("\n attribute {} not almost equal".format(key))
         print(e)
 
 
@@ -68,7 +68,7 @@ for key in keys:
     try:
         testing.assert_almost_equal(np.array(fin1[key]), np.array(fin2[key]))
     except AssertionError as e:
-        print("\narray {} not equal".format(key))
+        print("\narray {} not almost equal".format(key))
         print(e)
         error = -1
 
@@ -96,7 +96,7 @@ for key in keys2:
 #         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=1*units.mm)
         testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
     except AssertionError as e:
-        print("\narray {} of group station_101 not equal".format(key))
+        print("\narray {} of group station_101 not almost equal".format(key))
         print(e)
         error = -1
 
@@ -107,7 +107,7 @@ for key in keys2:
 #         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=10*units.ps)
         testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
     except AssertionError as e:
-        print("\narray {} of group station_101 not equal".format(key))
+        print("\narray {} of group station_101 not almost equal".format(key))
         print(e)
         error = -1
 
@@ -122,7 +122,7 @@ for key in keys2:
 #         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=1e-6)
         testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
     except AssertionError as e:
-        print("\narray {} of group station_101 not equal".format(key))
+        print("\narray {} of group station_101 not almost equal".format(key))
         print(e)
         error = -1
 
@@ -131,7 +131,7 @@ for key in keys2:
 if(error == -1):
     sys.exit(error)
 else:
-    print("The two files are identical.")
+    print("The two files are (almost) identical.")
 
 
 
