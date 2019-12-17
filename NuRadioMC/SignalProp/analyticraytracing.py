@@ -1864,6 +1864,68 @@ class ray_tracing:
                                                      reflection=result['reflection'],
                                                      reflection_case=result['reflection_case'])
 
+    def get_focusing(self, iS, dz, limit=2.):
+        """
+        calculate the focusing effect in the medium
+
+        Parameters
+        ----------
+        iS: int
+            choose for which solution to compute the launch vector, counting
+            starts at zero
+
+        dz: float
+            the infinitesimal change of the depth of the receiver, 1cm by default
+
+        Returns
+        -------
+        focusing: a float
+            gain of the signal at the receiver due to the focusing effect:
+        """
+        recVec = self.get_receive_vector(iS)
+        recVec = -1.0 * recVec
+        recAng = np.arccos(recVec[2] / np.sqrt(recVec[0] ** 2 + recVec[1] ** 2 + recVec[2] ** 2))
+        lauVec = self.get_launch_vector(iS)
+        lauAng = np.arccos(lauVec[2] / np.sqrt(lauVec[0] ** 2 + lauVec[1] ** 2 + lauVec[2] ** 2))
+        distance = self.get_path_length(iS)
+        # we need to be careful here. If X1 (the emitter) is above the X2 (the receiver) the positions are swapped
+        # do to technical reasons. Here, we want to change the receiver position slightly, so we need to check
+        # is X1 and X2 was swapped and use the receiver value!
+        if self.__swap:
+            vetPos = copy.copy(self.__X2)
+            recPos = copy.copy(self.__X1)
+            recPos1 = np.array([self.__X1[0], self.__X1[1], self.__X1[2] + dz])
+        else:
+            vetPos = copy.copy(self.__X1)
+            recPos = copy.copy(self.__X2)
+            recPos1 = np.array([self.__X2[0], self.__X2[1], self.__X2[2] + dz])
+        if(not hasattr(self, "_r1")):
+            self._r1 = ray_tracing(vetPos, recPos1, self.__medium, self.__attenuation_model, logging.WARNING,
+                             self.__n_frequencies_integration, self.__n_reflections)
+            self._r1.find_solutions()
+        if iS < self._r1.get_number_of_solutions():
+            lauVec1 = self._r1.get_launch_vector(iS)
+            lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
+            focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
+            if(self.get_solution_type(iS) != self._r1.get_solution_type(iS)):
+                self.__logger.error("solution types are not the same")
+        else:
+            focusing = 1.0
+            self.__logger.info("too few ray tracing solutions, setting focusing factor to 1")
+        self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
+        if(focusing > limit):
+            self.__logger.warning(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
+            focusing = limit
+
+        # now also correct for differences in refractive index between emitter and receiver position
+        if self.__swap:
+            n1 = self.__medium.get_index_of_refraction(self.__X2)  # emitter
+            n2 = self.__medium.get_index_of_refraction(self.__X1)  # receiver
+        else:
+            n1 = self.__medium.get_index_of_refraction(self.__X1)  # emitter
+            n2 = self.__medium.get_index_of_refraction(self.__X2)  # receiver
+        return focusing * (n1 / n2) ** 0.5
+
     def get_ray_path(self, iS):
         return self.__r2d.get_path_reflections(self.__x1, self.__x2, self.__results[iS]['C0'], 10000,
                                    reflection=self.__results[iS]['reflection'],
