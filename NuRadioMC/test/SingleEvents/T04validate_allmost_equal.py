@@ -53,7 +53,7 @@ attributes = [
  u'Vrms']
 for key in attributes:
     try:
-        testing.assert_almost_equal(fin1.attrs[key], fin2.attrs[key])
+        testing.assert_almost_equal(fin1.attrs[key], fin2.attrs[key],decimal=6)
     except AssertionError as e:
         print("\n attribute {} not almost equal".format(key))
         print(e)
@@ -90,7 +90,7 @@ keys2 = [u'SNRs',
 for key in keys2:
     try:
 #         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9)
-        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]),decimal=6)
     except AssertionError as e:
         print("\narray {} of group station_101 not equal".format(key))
         print(e)
@@ -102,7 +102,7 @@ keys2 = [
 for key in keys2:
     try:
 #         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=1*units.mm)
-        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]),decimal=6)
     except AssertionError as e:
         print("\narray {} of group station_101 not almost equal".format(key))
         print(e)
@@ -113,7 +113,7 @@ keys2 = [
 for key in keys2:
     try:
 #         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=10*units.ps)
-        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]),decimal=6)
     except AssertionError as e:
         print("\narray {} of group station_101 not almost equal".format(key))
         print(e)
@@ -128,7 +128,7 @@ keys2 = [
 for key in keys2:
     try:
 #         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=1e-6)
-        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]),decimal=6)
     except AssertionError as e:
         print("\narray {} of group station_101 not almost equal".format(key))
         print(e)
