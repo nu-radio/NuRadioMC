@@ -316,13 +316,13 @@ def get_E2_limit_figure(diffuse=True,
         if(show_Heinze):
             Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_bands.out"))
             best_fit, = ax.plot(Heinze_band[:, 0], Heinze_band[:, 1] * Heinze_band[:, 0] ** 2, c='k',
-                                label=r'Best fit UHECR, Heinze et al.', linestyle='-.')
+                                label=r'UHECR (Auger) combined fit, Heinze et al.', linestyle='-.')
 
-            Heinze_evo = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_evolutions.out"))
-            best_fit_3s, = ax.plot(Heinze_evo[:, 0] * units.GeV / plotUnitsEnergy, Heinze_evo[:, 6] * Heinze_evo[:, 0] **
-                            2, color='0.5', label=r'Best fit UHECR + 3$\sigma$, Heinze et al.', linestyle='-.')
+#             Heinze_evo = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_evolutions.out"))
+#             best_fit_3s, = ax.plot(Heinze_evo[:, 0] * units.GeV / plotUnitsEnergy, Heinze_evo[:, 6] * Heinze_evo[:, 0] **
+#                             2, color='0.5', label=r'UHECR (Auger) combined fit + 3$\sigma$, Heinze et al.', linestyle='-.')
             legends.append(best_fit)
-            legends.append(best_fit_3s)
+#             legends.append(best_fit_3s)
 
         vanVliet_max_1 = np.loadtxt(os.path.join(os.path.dirname(__file__), "MaxNeutrinos1.txt"))
         vanVliet_max_2 = np.loadtxt(os.path.join(os.path.dirname(__file__), "MaxNeutrinos2.txt"))
@@ -333,15 +333,18 @@ def get_E2_limit_figure(diffuse=True,
         prot10, = ax.plot(vanVliet_reas[0, :] * units.GeV / plotUnitsEnergy, vanVliet_reas[1, :],
                           label=r'10% protons in UHECRs (AUGER), m=3.4, van Vliet et al.', linestyle='--', color='k')
 
-        prot = ax.fill_between(vanVliet_max_1[0, :] * units.GeV / plotUnitsEnergy, vanVliet_max, vanVliet_reas[1, :] / 50, color='0.9', label=r'allowed from UHECRs, van Vliet et al.')
+        prot = ax.fill_between(vanVliet_max_1[0, :] * units.GeV / plotUnitsEnergy, vanVliet_max,
+                               vanVliet_reas[1, :] / 50, color='0.9', label=r'allowed from UHECRs (AUGER), van Vliet et al.')
         legends.append(prot10)
         legends.append(prot)
 
         # TA combined fit
         if(show_TA):
-            TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), "TA_combined_fit_m3.txt"))
-            TA_m3, = ax.plot(TA_data[:, 0] * units.GeV / plotUnitsEnergy, TA_data[:, 1],
-                              label=r'UHECRs TA combined fit, m=3', linestyle=':', color='k')
+            TA_data_low = np.loadtxt(os.path.join(os.path.dirname(__file__), "TA_combined_fit_low_exp_uncertainty.txt"))
+            TA_data_high = np.loadtxt(os.path.join(os.path.dirname(__file__), "TA_combined_fit_high_exp_uncertainty.txt"))
+            TA_m3 = ax.fill_between(TA_data_low[:, 0] * units.GeV / plotUnitsEnergy,
+                                     TA_data_low[:, 1], TA_data_high[:, 1],
+                              label=r'UHECRs TA combined fit, m=3', color='C0', alpha=0.5)
             legends.append(TA_m3)
 
         first_legend = plt.legend(handles=legends, loc=4, fontsize=legendfontsize, handlelength=4)
@@ -508,7 +511,7 @@ def get_E2_limit_figure(diffuse=True,
     ax.set_ylabel(r'$E^2\Phi$ [GeV cm$^{-2}$ s$^{-1}$ sr$^{-1}$]')
 
     if diffuse:
-        ax.set_ylim(1e-11, 10e-6)
+        ax.set_ylim(1e-12, 10e-6)
         ax.set_xlim(1e5, 1e11)
     else:
         ax.set_ylim(1e-11, 2e-6)
