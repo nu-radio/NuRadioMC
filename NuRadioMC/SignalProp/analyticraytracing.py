@@ -20,23 +20,24 @@ logging.basicConfig()
 # check if CPP implementation is available
 cpp_available = False
 
-try:
-    from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
-    cpp_available = True
-    print("using CPP version of ray tracer")
-except:
-    print("trying to compile the CPP extension on-the-fly")
-    try:
-        import subprocess
-        import os
-        subprocess.call(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                 "install.sh"))
-        from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
-        cpp_available = True
-        print("compilation was sucessful, using CPP version of ray tracer")
-    except:
-        print("compilation was not sucessful, using python version of ray tracer")
-        cpp_available = False
+# try:
+#     from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
+#     cpp_available = False
+#     print("using CPP version of ray tracer")
+# except:
+#     print("trying to compile the CPP extension on-the-fly")
+#     cpp_available = False
+#     try:
+#         import subprocess
+#         import os
+#         subprocess.call(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+#                                  "install.sh"))
+#         from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
+#         cpp_available = True
+#         print("compilation was sucessful, using CPP version of ray tracer")
+#     except:
+#         print("compilation was not sucessful, using python version of ray tracer")
+#         cpp_available = False
 
 """
 analytic ray tracing solution
