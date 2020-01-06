@@ -105,6 +105,7 @@ for key in keys2:
         testing.assert_array_almost_equal_nulp(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
     except AssertionError as e:
         print("\narray {} of group station_101 not almost equal".format(key))
+        print("\Reference: {}, reconstruction: {}".format(fin2['station_101'][key], fin1['station_101'][key]))
         print(e)
         error = -1
 
