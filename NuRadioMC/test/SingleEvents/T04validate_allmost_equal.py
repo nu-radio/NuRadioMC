@@ -77,6 +77,7 @@ for key in keys:
         testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
     except AssertionError as e:
         print("\narray {} not almost equal".format(key))
+        print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
         print(e)
         error = -1
 
@@ -134,6 +135,3 @@ if(error == -1):
     sys.exit(error)
 else:
     print("The two files are (almost) identical.")
-
-
-
