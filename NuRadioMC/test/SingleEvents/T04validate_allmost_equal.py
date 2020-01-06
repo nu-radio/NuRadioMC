@@ -52,11 +52,13 @@ for key in attributes:
 attributes = [
  u'Vrms']
 for key in attributes:
-    try:
-        testing.assert_array_almost_equal_nulp(fin1.attrs[key], fin2.attrs[key])
-    except AssertionError as e:
-        print("\n attribute {} not almost equal".format(key))
-        print(e)
+    arr1 = np.array(fin1.attrs[key])
+    arr2 = np.array(fin2.attrs[key])
+    if np.max(np.abs((arr1 - arr2)/arr2)):
+        print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
+        error = -1
+
+
 
 keys = [u'azimuths',
  u'energies',
@@ -67,10 +69,10 @@ keys = [u'azimuths',
  u'multiple_triggers',
  u'n_interaction',
  u'triggered',
- u'weights',
  u'xx',
  u'yy',
  u'zeniths',
+ u'multiple_triggers',
  u'zz']
 for key in keys:
     try:
@@ -80,35 +82,43 @@ for key in keys:
         print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
         print(e)
         error = -1
+keys = [
+u'ray_tracing_solution_type'
+]
 
-
-keys2 = [
- u'multiple_triggers',
- u'ray_tracing_solution_type',
- u'triggered']
-for key in keys2:
+for key in keys:
     try:
-
         testing.assert_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
     except AssertionError as e:
-        print("\narray {} of group station_101 not equal".format(key))
+        print("\narray {} not almost equal".format(key))
+        print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
         print(e)
         error = -1
 
 keys2 = [
-    u'SNRs',
+ u'weights']
+for key in keys2:
+    arr1 = np.array(fin1[key])
+    arr2 = np.array(fin2[key])
+    for i in range(arr1.shape[0]):
+        max_diff = np.max(np.abs((arr1 - arr2)/arr2))
+        if max_diff > 1.e-6:
+            print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
+            error = -1
+
+keys2 = [
+ u'SNRs',
+ #u'weights',
  u'maximum_amplitudes',
  u'maximum_amplitudes_envelope']
 for key in keys2:
-    try:
-        #print(np.array(fin1['station_101'][key]) - np.array(fin2['station_101'][key]))
-        testing.assert_array_almost_equal_nulp(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
-    except AssertionError as e:
-        print("\narray {} of group station_101 not almost equal".format(key))
-        print("\Reference: {}, reconstruction: {}".format(fin2['station_101'][key], fin1['station_101'][key]))
-        print(e)
-        error = -1
-
+    arr1 = np.array(fin1['station_101'][key])
+    arr2 = np.array(fin2['station_101'][key])
+    for i in range(arr1.shape[0]):
+        max_diff = np.max(np.abs((arr1 - arr2)/arr2))
+        if max_diff > 1.e-6:
+            print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
+            error = -1
 
 keys2 = [
  u'polarization',
@@ -120,16 +130,13 @@ keys2 = [
  u'ray_tracing_C1',
  ]
 for key in keys2:
-    try:
-        mask_1 = np.isfinite(fin1['station_101'][key])
-        mask_2 = np.isfinite(fin2['station_101'][key])
-
-        testing.assert_array_almost_equal_nulp(np.array(fin1['station_101'][key][mask_1]), np.array(fin2['station_101'][key][mask_2]))
-    except AssertionError as e:
-        print("\narray {} of group station_101 not almost equal".format(key))
-        print(e)
-        error = -1
-
+    arr1 = np.array(fin1['station_101'][key])
+    arr2 = np.array(fin2['station_101'][key])
+    for i in range(arr1.shape[0]):
+        max_diff = np.max(np.abs((arr1 - arr2)/arr2))
+        if max_diff > 1.e-6:
+            print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
+            error = -1
 
 
 if(error == -1):
