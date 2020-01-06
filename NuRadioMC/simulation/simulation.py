@@ -74,7 +74,8 @@ class simulation():
                  log_level=logging.WARNING,
                  default_detector_station=None,
                  default_detector_channel=None,
-                 log_level_propagation=logging.WARNING):
+                 log_level_propagation=logging.WARNING,
+                 file_overwrite=False):
         """
         initialize the NuRadioMC end-to-end simulation
 
@@ -112,8 +113,10 @@ class simulation():
             if station parameters are not defined, the parameters of the default station are used
         default_detector_channel: int or None
             if channel parameters are not defined, the parameters of the default channel are used
-        default_detector_channel: logging.LEVEL
+        log_level_propagation: logging.LEVEL
             the log level of the propagation module
+        file_overwrite: bool
+            True allows overwriting of existing files, default False
         """
         logger.setLevel(log_level)
         self._log_level_ray_propagation = log_level_propagation
@@ -132,8 +135,11 @@ class simulation():
         self._outputfilename = outputfilename
         if(os.path.exists(self._outputfilename)):
             msg = f"hdf5 output file {self._outputfilename} already exists"
-            logger.error(msg)
-            raise FileExistsError(msg)
+            if file_overwrite == False:
+                logger.error(msg)
+                raise FileExistsError(msg)
+            else:
+                logger.warning(msg)
         self._detectorfile = detectorfile
         self._n_reflections = int(self._cfg['propagation']['n_reflections'])
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
@@ -222,6 +228,7 @@ class simulation():
                 filt = np.ones_like(ff, dtype=np.complex)
                 noise_module_index = []
                 for i, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station_id)):
+
                     if(name in ['channelGenericNoiseAdder']):
                         noise_module_index.append(i)
                     if hasattr(instance, "get_filter"):
@@ -792,7 +799,7 @@ class simulation():
         """
         self._was_pre_simulated = False
         if('detector' in self._fin_attrs):
-            with open(self._detectorfile) as fdet:
+            with open(self._detectorfile,'r') as fdet:
                 if(fdet.read() == self._fin_attrs['detector']):
                     self._was_pre_simulated = True
                     print("the simulation was already performed with the same detector")
@@ -898,7 +905,7 @@ class simulation():
         for (key, value) in iteritems(self._mout_attrs):
             fout.attrs[key] = value
 
-        with open(self._detectorfile) as fdet:
+        with open(self._detectorfile, 'r') as fdet:
             fout.attrs['detector'] = fdet.read()
 
         # save antenna position separately to hdf5 output

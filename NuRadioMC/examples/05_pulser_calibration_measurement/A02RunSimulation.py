@@ -79,6 +79,7 @@ sim = mySimulation(eventlist=args.inputfilename,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
                             config_file=args.config,
                             log_level=logging.WARNING,
-                            evt_time=datetime.datetime(2018, 12, 30))
+                            evt_time=datetime.datetime(2018, 12, 30),
+                            file_overwrite=True)
 sim.run()
 
