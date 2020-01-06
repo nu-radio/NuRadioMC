@@ -54,7 +54,8 @@ attributes = [
 for key in attributes:
     arr1 = np.array(fin1.attrs[key])
     arr2 = np.array(fin2.attrs[key])
-    if np.max(np.abs((arr1 - arr2)/arr2)):
+    max_diff = np.max(np.abs((arr1 - arr2)/arr2))
+    if max_diff > 1.e-6:
         print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
         error = -1
 
