@@ -8,14 +8,79 @@ import argparse
 from NuRadioReco.utilities import units
 import logging
 
-error = 0
-
 file1 = sys.argv[1]
 file2 = sys.argv[2]
 print("Testing the files {} and {} for (almost) equality".format(file1, file2))
 
 fin1 = h5py.File(file1, 'r')
 fin2 = h5py.File(file2, 'r')
+
+error = 0
+
+def test_equal_attributes(keys,fin1=fin1,fin2=fin2,error=error):
+    for key in keys:
+        try:
+            testing.assert_equal(fin1.attrs[key], fin2.attrs[key])
+        except AssertionError as e:
+            print("\n attribute {} not almost equal".format(key))
+            print(e)
+            error = -1
+
+def test_equal_station_keys(keys,fin1=fin1,fin2=fin2,error=error):
+    for key in keys:
+        try:
+            testing.assert_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+        except AssertionError as e:
+            print("\narray {} not almost equal".format(key))
+            print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
+            print(e)
+            error = -1
+
+def test_equal_keys(keys,fin1=fin1,fin2=fin2,error=error):
+    for key in keys:
+        try:
+            testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
+        except AssertionError as e:
+            print("\narray {} not almost equal".format(key))
+            print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
+            print(e)
+            error = -1
+
+def test_almost_equal_attributes(keys,fin1=fin1,fin2=fin2,error=error):
+    for key in keys:
+        arr1 = np.array(fin1.attrs[key])
+        arr2 = np.array(fin2.attrs[key])
+        max_diff = np.max(np.abs((arr1 - arr2)/arr2))
+        if max_diff > 1.e-6:
+            print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
+            print("\n attribute {} not almost equal".format(key))
+            error = -1
+
+def test_almost_equal_station_keys(keys,fin1=fin1,fin2=fin2,error=error):
+    for key in keys:
+        arr1 = np.array(fin1['station_101'][key])
+        arr2 = np.array(fin2['station_101'][key])
+        for i in range(arr1.shape[0]):
+            max_diff = np.max(np.abs((arr1 - arr2)/arr2))
+            if max_diff > 1.e-6:
+                print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
+                print("\n attribute {} not almost equal".format(key))
+                error = -1
+
+def test_almost_equal_keys(keys,fin1=fin1,fin2=fin2,error=error):
+    for key in keys:
+        arr1 = np.array(fin1[key])
+        arr2 = np.array(fin2[key])
+        for i in range(arr1.shape[0]):
+            max_diff = np.max(np.abs((arr1 - arr2)/arr2))
+            if max_diff > 1.e-6:
+                print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
+                print("\n attribute {} not almost equal".format(key))
+                error = -1
+
+
+
+# Test those attributes that should be perfectly equal
 
 attributes = [u'trigger_names',
  u'Tnoise',
@@ -41,25 +106,18 @@ attributes = [u'trigger_names',
  u'Emax',
  u'fiducial_rmin',
  u'n_events']
-for key in attributes:
-    try:
-        testing.assert_equal(fin1.attrs[key], fin2.attrs[key])
-    except AssertionError as e:
-        print("\n attribute {} not almost equal".format(key))
-        print(e)
 
+test_equal_attributes(attributes)
+
+
+# Test those attributes that should be numerically equal
 
 attributes = [
  u'Vrms']
-for key in attributes:
-    arr1 = np.array(fin1.attrs[key])
-    arr2 = np.array(fin2.attrs[key])
-    max_diff = np.max(np.abs((arr1 - arr2)/arr2))
-    if max_diff > 1.e-6:
-        print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
-        error = -1
 
+test_almost_equal_attributes(attributes)
 
+# Test those station keys that should be perfectly equal
 
 keys = [u'azimuths',
  u'energies',
@@ -75,54 +133,26 @@ keys = [u'azimuths',
  u'zeniths',
  u'multiple_triggers',
  u'zz']
-for key in keys:
-    try:
-        testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
-    except AssertionError as e:
-        print("\narray {} not almost equal".format(key))
-        print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
-        print(e)
-        error = -1
+test_equal_keys(keys)
+
+# Test those keys that should be perfectly equal
+
 keys = [
 u'ray_tracing_solution_type'
 ]
+test_equal_station_keys(keys)
 
-for key in keys:
-    try:
-        testing.assert_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
-    except AssertionError as e:
-        print("\narray {} not almost equal".format(key))
-        print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
-        print(e)
-        error = -1
-
-keys2 = [
+keys = [
  u'weights']
-for key in keys2:
-    arr1 = np.array(fin1[key])
-    arr2 = np.array(fin2[key])
-    for i in range(arr1.shape[0]):
-        max_diff = np.max(np.abs((arr1 - arr2)/arr2))
-        if max_diff > 1.e-6:
-            print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
-            error = -1
 
-keys2 = [
+test_almost_equal_keys(keys)
+
+
+keys = [
  u'SNRs',
- #u'weights',
  u'maximum_amplitudes',
- u'maximum_amplitudes_envelope']
-for key in keys2:
-    arr1 = np.array(fin1['station_101'][key])
-    arr2 = np.array(fin2['station_101'][key])
-    for i in range(arr1.shape[0]):
-        max_diff = np.max(np.abs((arr1 - arr2)/arr2))
-        if max_diff > 1.e-6:
-            print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
-            error = -1
-
-keys2 = [
- u'polarization',
+ u'maximum_amplitudes_envelope',
+u'polarization',
  u'ray_tracing_C0',
  u'launch_vectors',
  u'receive_vectors',
@@ -130,17 +160,12 @@ keys2 = [
  u'travel_distances',
  u'ray_tracing_C1',
  ]
-for key in keys2:
-    arr1 = np.array(fin1['station_101'][key])
-    arr2 = np.array(fin2['station_101'][key])
-    for i in range(arr1.shape[0]):
-        max_diff = np.max(np.abs((arr1 - arr2)/arr2))
-        if max_diff > 1.e-6:
-            print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
-            error = -1
+
+test_almost_equal_station_keys(keys)
 
 
-if(error == -1):
+
+if error == -1:
     sys.exit(error)
 else:
     print("The two files are (almost) identical.")
