@@ -22,11 +22,10 @@ cpp_available = False
 
 try:
     from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
-    cpp_available = False
+    cpp_available = True
     print("using CPP version of ray tracer")
 except:
     print("trying to compile the CPP extension on-the-fly")
-    cpp_available = False
     try:
         import subprocess
         import os
