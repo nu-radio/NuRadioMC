@@ -17,6 +17,8 @@ fin2 = h5py.File(file2, 'r')
 
 error = 0
 
+accuracy = 0.0005
+
 def test_equal_attributes(keys,fin1=fin1,fin2=fin2,error=error):
     for key in keys:
         try:
@@ -55,7 +57,7 @@ def test_almost_equal_attributes(keys,fin1=fin1,fin2=fin2,error=error):
         arr1 = np.array(fin1.attrs[key])
         arr2 = np.array(fin2.attrs[key])
         max_diff = np.max(np.abs((arr1 - arr2)/arr2))
-        if max_diff > 1.e-6:
+        if max_diff > accuracy:
             print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
             print("\n attribute {} not almost equal".format(key))
             error = -1
@@ -68,7 +70,7 @@ def test_almost_equal_station_keys(keys,fin1=fin1,fin2=fin2,error=error):
         arr2 = np.array(fin2['station_101'][key])
         for i in range(arr1.shape[0]):
             max_diff = np.max(np.abs((arr1 - arr2)/arr2))
-            if max_diff > 1.e-6:
+            if max_diff > accuracy:
                 print('Reconstruction of {} does not agree with reference (relative error: {})'.format(key, max_diff))
                 print("\n attribute {} not almost equal".format(key))
                 error = -1
@@ -80,7 +82,7 @@ def test_almost_equal_keys(keys,fin1=fin1,fin2=fin2,error=error):
         arr2 = np.array(fin2[key])
         for i in range(arr1.shape[0]):
             max_diff = np.max(np.abs((arr1 - arr2)/arr2))
-            if max_diff > 1.e-6:
+            if max_diff > accuracy:
                 print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
                 print("\n attribute {} not almost equal".format(key))
                 error = -1
