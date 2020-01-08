@@ -21,30 +21,36 @@ def test_equal_attributes(keys,fin1=fin1,fin2=fin2,error=error):
     for key in keys:
         try:
             testing.assert_equal(fin1.attrs[key], fin2.attrs[key])
+            return error
         except AssertionError as e:
             print("\n attribute {} not almost equal".format(key))
             print(e)
             error = -1
+            return error
 
 def test_equal_station_keys(keys,fin1=fin1,fin2=fin2,error=error):
     for key in keys:
         try:
             testing.assert_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+            return error
         except AssertionError as e:
             print("\narray {} not almost equal".format(key))
             print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
             print(e)
             error = -1
+            return error
 
 def test_equal_keys(keys,fin1=fin1,fin2=fin2,error=error):
     for key in keys:
         try:
             testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
+            return error
         except AssertionError as e:
             print("\narray {} not almost equal".format(key))
             print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
             print(e)
             error = -1
+            return error
 
 def test_almost_equal_attributes(keys,fin1=fin1,fin2=fin2,error=error):
     for key in keys:
@@ -55,6 +61,8 @@ def test_almost_equal_attributes(keys,fin1=fin1,fin2=fin2,error=error):
             print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
             print("\n attribute {} not almost equal".format(key))
             error = -1
+        return error
+
 
 def test_almost_equal_station_keys(keys,fin1=fin1,fin2=fin2,error=error):
     for key in keys:
@@ -63,9 +71,10 @@ def test_almost_equal_station_keys(keys,fin1=fin1,fin2=fin2,error=error):
         for i in range(arr1.shape[0]):
             max_diff = np.max(np.abs((arr1 - arr2)/arr2))
             if max_diff > 1.e-6:
-                print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
+                print('Reconstruction of {} does not agree with reference (relative error: {})'.format(key, max_diff))
                 print("\n attribute {} not almost equal".format(key))
                 error = -1
+        return error
 
 def test_almost_equal_keys(keys,fin1=fin1,fin2=fin2,error=error):
     for key in keys:
@@ -77,6 +86,7 @@ def test_almost_equal_keys(keys,fin1=fin1,fin2=fin2,error=error):
                 print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
                 print("\n attribute {} not almost equal".format(key))
                 error = -1
+        return error
 
 
 
@@ -107,7 +117,7 @@ attributes = [u'trigger_names',
  u'fiducial_rmin',
  u'n_events']
 
-test_equal_attributes(attributes)
+error = test_equal_attributes(attributes,fin1=fin1,fin2=fin2,error=error)
 
 
 # Test those attributes that should be numerically equal
@@ -115,7 +125,7 @@ test_equal_attributes(attributes)
 attributes = [
  u'Vrms']
 
-test_almost_equal_attributes(attributes)
+error = test_almost_equal_attributes(attributes,fin1=fin1,fin2=fin2,error=error)
 
 # Test those station keys that should be perfectly equal
 
@@ -133,19 +143,19 @@ keys = [u'azimuths',
  u'zeniths',
  u'multiple_triggers',
  u'zz']
-test_equal_keys(keys)
+error = test_equal_keys(keys,fin1=fin1,fin2=fin2,error=error)
 
 # Test those keys that should be perfectly equal
 
 keys = [
 u'ray_tracing_solution_type'
 ]
-test_equal_station_keys(keys)
+error = test_equal_station_keys(keys,fin1=fin1,fin2=fin2,error=error)
 
 keys = [
  u'weights']
 
-test_almost_equal_keys(keys)
+error = test_almost_equal_keys(keys,fin1=fin1,fin2=fin2,error=error)
 
 
 keys = [
@@ -161,7 +171,7 @@ u'polarization',
  u'ray_tracing_C1',
  ]
 
-test_almost_equal_station_keys(keys)
+error = test_almost_equal_station_keys(keys,fin1=fin1,fin2=fin2,error=error)
 
 
 
