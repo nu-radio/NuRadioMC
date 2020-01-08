@@ -21,36 +21,34 @@ def test_equal_attributes(keys,fin1=fin1,fin2=fin2,error=error):
     for key in keys:
         try:
             testing.assert_equal(fin1.attrs[key], fin2.attrs[key])
-            return error
         except AssertionError as e:
             print("\n attribute {} not almost equal".format(key))
             print(e)
             error = -1
-            return error
+    return error
 
 def test_equal_station_keys(keys,fin1=fin1,fin2=fin2,error=error):
     for key in keys:
         try:
             testing.assert_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
-            return error
+
         except AssertionError as e:
             print("\narray {} not almost equal".format(key))
             print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
             print(e)
             error = -1
-            return error
+    return error
 
 def test_equal_keys(keys,fin1=fin1,fin2=fin2,error=error):
     for key in keys:
         try:
             testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
-            return error
         except AssertionError as e:
             print("\narray {} not almost equal".format(key))
             print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
             print(e)
             error = -1
-            return error
+    return error
 
 def test_almost_equal_attributes(keys,fin1=fin1,fin2=fin2,error=error):
     for key in keys:
@@ -61,7 +59,7 @@ def test_almost_equal_attributes(keys,fin1=fin1,fin2=fin2,error=error):
             print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
             print("\n attribute {} not almost equal".format(key))
             error = -1
-        return error
+    return error
 
 
 def test_almost_equal_station_keys(keys,fin1=fin1,fin2=fin2,error=error):
@@ -74,7 +72,7 @@ def test_almost_equal_station_keys(keys,fin1=fin1,fin2=fin2,error=error):
                 print('Reconstruction of {} does not agree with reference (relative error: {})'.format(key, max_diff))
                 print("\n attribute {} not almost equal".format(key))
                 error = -1
-        return error
+    return error
 
 def test_almost_equal_keys(keys,fin1=fin1,fin2=fin2,error=error):
     for key in keys:
@@ -86,7 +84,7 @@ def test_almost_equal_keys(keys,fin1=fin1,fin2=fin2,error=error):
                 print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
                 print("\n attribute {} not almost equal".format(key))
                 error = -1
-        return error
+    return error
 
 
 
