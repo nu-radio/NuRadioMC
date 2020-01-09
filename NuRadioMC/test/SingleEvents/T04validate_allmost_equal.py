@@ -74,6 +74,7 @@ def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
         arr2 = np.array(fin2['station_101'][key])
         for i in range(arr1.shape[0]):
             max_diff = np.max(np.abs((arr1[i] - arr2[i]) / arr2[i]))
+#             print('Reconstruction of {} of event {} (relative error: {})'.format(key, i, np.abs((arr1[i] - arr2[i]) / arr2[i])))
             if max_diff > accuracy:
 #                 print(arr1.shape)
                 print('Reconstruction of {} of event {} does not agree with reference (relative error: {})'.format(key, i, max_diff))
