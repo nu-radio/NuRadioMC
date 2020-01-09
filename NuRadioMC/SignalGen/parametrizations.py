@@ -10,7 +10,6 @@ logger = logging.getLogger("SignalGen.parametrizations")
 def set_log_level(level):
     logger.setLevel(level)
 
-
 """
 
 Analytic parametrizations of the radio pulse produced by an in-ice particle shower.
@@ -86,27 +85,27 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
 
         # This parameterisation is not very accurate for energies above 10 EeV
         # The ARZ model should be used instead
-        freqs = np.fft.rfftfreq(N, dt)[1:] # exclude zero frequency
+        freqs = np.fft.rfftfreq(N, dt)[1:]  # exclude zero frequency
 
         E_C = 73.1 * units.MeV
-        rho = 0.924 * units.g / units.cm**3
-        X_0 = 36.08 * units.g / units.cm**2
-        R_M = 10.57 * units.g / units.cm**2
+        rho = 0.924 * units.g / units.cm ** 3
+        X_0 = 36.08 * units.g / units.cm ** 2
+        R_M = 10.57 * units.g / units.cm ** 2
         c = constants.c * units.m / units.s
 
         def A(E_0, theta, freq):
 
             if (shower_type == 'HAD'):
-                k_E_0 = 4.13e-16 * units.V / units.cm / units.MHz**2
+                k_E_0 = 4.13e-16 * units.V / units.cm / units.MHz ** 2
                 k_E_1 = 2.54
                 log10_E_E = 10.60
-                k_E_bar = k_E_0 * np.tanh( (np.log10(E_0/units.eV)-log10_E_E)/k_E_1 )
+                k_E_bar = k_E_0 * np.tanh((np.log10(E_0 / units.eV) - log10_E_E) / k_E_1)
             elif (shower_type == 'EM'):
-                k_E_bar = 4.65e-16 * units.V / units.cm / units.MHz**2
+                k_E_bar = 4.65e-16 * units.V / units.cm / units.MHz ** 2
             else:
                 raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
 
-            return k_E_bar * E_0/E_C * X_0/rho * np.sin(theta) * freq
+            return k_E_bar * E_0 / E_C * X_0 / rho * np.sin(theta) * freq
 
         def nu_L(E_0, theta):
 
@@ -114,38 +113,38 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
                 k_L_0 = 31.25
                 gamma = 3.01e-2
                 E_L = 1.e15 * units.eV
-                k_L = k_L_0 * (E_0/E_L)**gamma
+                k_L = k_L_0 * (E_0 / E_L) ** gamma
             elif (shower_type == 'EM'):
                 sigma_0 = 3.39e-2
                 log10_E_sigma = 14.99
                 delta_0 = 0
                 delta_1 = 2.25e-2
-                log10_E_0 = np.log10(E_0/units.eV)
-                if ( log10_E_0 < log10_E_sigma ):
-                    sigma_k_L = sigma_0 + delta_0 * (log10_E_0-log10_E_sigma)
+                log10_E_0 = np.log10(E_0 / units.eV)
+                if (log10_E_0 < log10_E_sigma):
+                    sigma_k_L = sigma_0 + delta_0 * (log10_E_0 - log10_E_sigma)
                 else:
-                    sigma_k_L = sigma_0 + delta_1 * (log10_E_0-log10_E_sigma)
+                    sigma_k_L = sigma_0 + delta_1 * (log10_E_0 - log10_E_sigma)
 
                 log10_k_0 = 1.52
                 log10_E_LPM = 16.61
                 gamma_0 = 5.59e-2
                 gamma_1 = 0.39
-                if ( log10_E_0 < log10_E_LPM ):
-                    log10_k_L_bar = log10_k_0 + gamma_0 * ( log10_E_0 - log10_E_LPM )
+                if (log10_E_0 < log10_E_LPM):
+                    log10_k_L_bar = log10_k_0 + gamma_0 * (log10_E_0 - log10_E_LPM)
                 else:
-                    log10_k_L_bar = log10_k_0 + gamma_1 * ( log10_E_0 - log10_E_LPM )
+                    log10_k_L_bar = log10_k_0 + gamma_1 * (log10_E_0 - log10_E_LPM)
 
-                k_L = 10**np.random.normal(log10_k_L_bar, sigma_k_L)
+                k_L = 10 ** np.random.normal(log10_k_L_bar, sigma_k_L)
             else:
                 raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
 
-            nu_L = rho/k_L/X_0
+            nu_L = rho / k_L / X_0
 
             cher_cut = 1.e-8
-            if ( np.abs(1-n_index*np.cos(theta)) < cher_cut):
-                nu_L *= c/cher_cut
+            if (np.abs(1 - n_index * np.cos(theta)) < cher_cut):
+                nu_L *= c / cher_cut
             else:
-                nu_L *= c/np.abs(1-n_index*np.cos(theta))
+                nu_L *= c / np.abs(1 - n_index * np.cos(theta))
 
             return nu_L
 
@@ -158,7 +157,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
             else:
                 raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
 
-            return 1/(1+(freq/nu_L(E_0, theta))**beta)
+            return 1 / (1 + (freq / nu_L(E_0, theta)) ** beta)
 
         def d_R(E_0, theta, freq):
 
@@ -166,23 +165,23 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
                 k_R_0 = 2.73
                 k_R_1 = 1.72
                 log10_E_R = 12.92
-                k_R_bar = k_R_0 + np.tanh( (log10_E_R-np.log10(E_0/units.eV))/k_R_1 )
+                k_R_bar = k_R_0 + np.tanh((log10_E_R - np.log10(E_0 / units.eV)) / k_R_1)
             elif (shower_type == "EM"):
                 k_R_bar = 1.54
             else:
                 raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
-            nu_R = rho/k_R_bar/R_M * c/np.sqrt(n_index**2-1)
+            nu_R = rho / k_R_bar / R_M * c / np.sqrt(n_index ** 2 - 1)
 
             alpha = 1.27
-            return 1/(1+(freq/nu_R)**alpha)
+            return 1 / (1 + (freq / nu_R) ** alpha)
 
         spectrum = A(energy, theta, freqs) * d_L(energy, theta, freqs) * d_R(energy, theta, freqs)
-        spectrum *= 0.5 # ZHS Fourier transform normalisation
+        spectrum *= 0.5  #  ZHS Fourier transform normalisation
         spectrum /= R
         spectrum = np.insert(spectrum, 0, 0)
 
         trace = np.fft.irfft(spectrum * np.exp(0.5j * np.pi)) / dt  # set phases to 90deg
-        trace = np.roll(trace, int(50 * units.ns / dt))
+        trace = np.roll(trace, len(trace) // 2)
         return trace
 
     elif(model == 'Alvarez2000'):
@@ -220,9 +219,9 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
                 def missing_energy_factor(E_0):
                     # Missing energy factor for hadronic cascades
                     # Taken from DOI: 10.1016/S0370-2693(98)00905-8
-                    epsilon = np.log10(E_0/units.TeV)
-                    f_epsilon  = -1.27e-2 - 4.76e-2*(epsilon+3)
-                    f_epsilon += -2.07e-3*(epsilon+3)**2 + 0.52*np.sqrt(epsilon+3)
+                    epsilon = np.log10(E_0 / units.TeV)
+                    f_epsilon = -1.27e-2 - 4.76e-2 * (epsilon + 3)
+                    f_epsilon += -2.07e-3 * (epsilon + 3) ** 2 + 0.52 * np.sqrt(epsilon + 3)
                     return f_epsilon
 
                 tmp[1:] *= missing_energy_factor(energy)
@@ -236,7 +235,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
 
 #         df = np.mean(freqs[1:] - freqs[:-1])
         trace = np.fft.irfft(tmp * np.exp(0.5j * np.pi)) / dt  # set phases to 90deg
-        trace = np.roll(trace, int(50 * units.ns / dt))
+        trace = np.roll(trace, len(trace) // 2)
         return trace
 
     else:
