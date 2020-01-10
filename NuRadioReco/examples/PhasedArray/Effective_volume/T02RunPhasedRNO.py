@@ -5,7 +5,7 @@ at a depth of ~50 m, 30 primary phasing directions. In order to run, we need
 a detector file and a configuration file, included in this folder. To run
 the code, type:
 
-python T02RunPhasedRNO.py input_neutrino_file.hdf5 proposalcompact_50m_1.5GHz.json
+python T02RunPhasedRNO.py input_neutrino_file.hdf5 4antennas_100m_1.5GHz.json
 config_RNO.yaml output_NuRadioMC_file.hdf5 output_NuRadioReco_file.nur
 
 The antenna positions can be changed in the detector position. The config file
@@ -27,6 +27,7 @@ import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
+from NuRadioReco.utilities.traceWindows import get_window_around_maximum
 import numpy as np
 import logging
 logging.basicConfig(level=logging.WARNING)
@@ -43,91 +44,55 @@ thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulato
 
 main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
-phasing_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
-
-left_edge_around_max = 20 * units.ns
-right_edge_around_max = 40 * units.ns
+phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 30))
 
 class mySimulation(simulation.simulation):
 
     def _detector_simulation(self):
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
-        # downsample trace to 3 ns
+        # downsample trace to 3 Gs/s
         new_sampling_rate = 3 * units.GHz
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
 
-        threshold_cut = True
-        # Forcing a threshold cut BEFORE adding noise for limiting the noise-induced triggers
-        if threshold_cut:
-
-            thresholdSimulator.run(self._evt, self._station, self._det,
-                                 threshold=0.75 * self._Vrms,
-                                 triggered_channels=None,  # run trigger on all channels
-                                 number_concidences=1,
-                                 trigger_name='simple_threshold')
-
-        max_times = []
+        cut_times = get_window_around_maximum(self._station)
 
         # Bool for checking the noise triggering rate
         check_only_noise = False
 
-        for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
-
-            times = channel.get_times()
-            argmax = np.argmax( np.abs(channel.get_trace()) )
-            max_times.append(times[argmax])
-            if check_only_noise:
+        if check_only_noise:
+            for channel in self._station.iter_channels():
                 trace = channel.get_trace() * 0
-                channel.set_trace(trace, sampling_rate = new_sampling_rate)
+                channel.set_trace(trace, sampling_rate=new_sampling_rate)
 
-        left_time = np.min(max_times) - left_edge_around_max
-        right_time = np.max(max_times) + right_edge_around_max
-
-        noise = True
-
-        if noise:
+        if self._is_simulate_noise():
             max_freq = 0.5 / self._dt
             norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
-            Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
-                                         max_freq=max_freq, type='rayleigh')
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms, min_freq=0 * units.MHz,
+                                         max_freq=max_freq, type='rayleigh', bandwidth=norm)
 
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[132 * units.MHz, 1150 * units.MHz],
-                                  filter_type='butter', order=6)
+                                  filter_type='butter', order=8)
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 700 * units.MHz],
                                   filter_type='butter', order=10)
 
-        # Setting the trace values far from the amplitude maxima to zero
-        # to reduce the noise trigger rate
-        for channel in self._station.iter_channels():
-
-            times = channel.get_times()
-            left_bin = np.argmin(np.abs(times-left_time))
-            right_bin = np.argmin(np.abs(times-right_time))
-            trace = channel.get_trace()
-            trace[0:left_bin] = 0
-            trace[right_bin:None] = 0
-            channel.set_trace(trace, sampling_rate = new_sampling_rate)
-
-        # first run a simple threshold trigger
+        # run the phased trigger
         triggerSimulator.run(self._evt, self._station, self._det,
-                             threshold=2.3 * self._Vrms, # see phased trigger module for explanation
+                             threshold=2.2 * self._Vrms, # see phased trigger module for explanation
                              triggered_channels=None,  # run trigger on all channels
-                             trigger_name='primary_and_secondary_phasing', # the name of the trigger
+                             trigger_name='primary_phasing', # the name of the trigger
                              phasing_angles=phasing_angles,
                              secondary_phasing_angles=None,
-                             set_not_triggered=(not self._station.has_triggered("simple_threshold")),
                              coupled=False,
-                             ref_index=1.55)
-
+                             ref_index=1.75,
+                             cut_times=cut_times)
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('--inputfilename', type=str,
                     help='path to NuRadioMC input event list', default='0.00_12_00_1.00e+16_1.00e+19.hdf5')
 parser.add_argument('--detectordescription', type=str,
-                    help='path to file containing the detector description', default='proposalcompact_50m_1.5GHz.json')
+                    help='path to file containing the detector description', default='4antennas_100m_1.5GHz.json')
 parser.add_argument('--config', type=str,
                     help='NuRadioMC yaml config file', default='config_RNO.yaml')
 parser.add_argument('--outputfilename', type=str,
