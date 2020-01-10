@@ -287,9 +287,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         channel_id: integer
             ID of the requested channel
         """
-        if station_id in self._buffered_channels.keys():
-            if channel_id in self._buffered_channels[station_id].keys():
-                return self._buffered_channels[station_id][channel_id]
+
         channels = self._query_channels(station_id, True)
         for channel in channels:
             if channel['channel_id'] == channel_id:
