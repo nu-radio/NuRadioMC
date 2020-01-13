@@ -474,7 +474,7 @@ class simulation():
                             if self._cfg['propagation']['attenuate_ice']:
                                 spectrum_em *= attn
                             # add EM signal to had signal in the time domain
-                            spectrum = fft.time2freq(fft.freq2time(spectrum, 1/self._dt) + fft.freq2time(spectrum_em,1/self._dt),1/self._dt)
+                            spectrum = fft.time2freq(fft.freq2time(spectrum, 1 / self._dt) + fft.freq2time(spectrum_em, 1 / self._dt), 1 / self._dt)
 
                         # apply the focusing effect
                         if self._cfg['propagation']['focusing']:
@@ -539,7 +539,7 @@ class simulation():
                             from matplotlib import pyplot as plt
                             fig, (ax, ax2) = plt.subplots(1, 2)
                             ax.plot(self._ff, np.abs(eTheta) / units.micro / units.V * units.m)
-                            ax2.plot(self._tt, fft.freq2time(eTheta, 1./self._dt) / units.micro / units.V * units.m)
+                            ax2.plot(self._tt, fft.freq2time(eTheta, 1. / self._dt) / units.micro / units.V * units.m)
                             ax2.set_ylabel("amplitude [$\mu$V/m]")
                             fig.tight_layout()
                             fig.suptitle("$E_C$ = {:.1g}eV $\Delta \Omega$ = {:.1f}deg, R = {:.0f}m".format(
@@ -799,7 +799,7 @@ class simulation():
         """
         self._was_pre_simulated = False
         if('detector' in self._fin_attrs):
-            with open(self._detectorfile,'r') as fdet:
+            with open(self._detectorfile, 'r') as fdet:
                 if(fdet.read() == self._fin_attrs['detector']):
                     self._was_pre_simulated = True
                     print("the simulation was already performed with the same detector")
