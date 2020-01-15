@@ -121,6 +121,7 @@
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "pos_easting": 0,
             "pos_northing": 0,
+            "pos_altitude": 0,
             "pos_site": "greenland",
             "station_id": 1
         }
