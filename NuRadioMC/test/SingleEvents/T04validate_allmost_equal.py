@@ -8,18 +8,100 @@ import argparse
 from NuRadioReco.utilities import units
 import logging
 
-error = 0
-
 file1 = sys.argv[1]
 file2 = sys.argv[2]
-print("Testing the files {} and {} for equality".format(file1, file2))
+print("Testing the files {} and {} for (almost) equality".format(file1, file2))
 
 fin1 = h5py.File(file1, 'r')
 fin2 = h5py.File(file2, 'r')
 
+error = 0
+
+accuracy = 0.0005
+
+
+def test_equal_attributes(keys, fin1=fin1, fin2=fin2, error=error):
+    for key in keys:
+        try:
+            testing.assert_equal(fin1.attrs[key], fin2.attrs[key])
+        except AssertionError as e:
+            print("\n attribute {} not almost equal".format(key))
+            print(e)
+            error = -1
+    return error
+
+
+def test_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
+    for key in keys:
+        try:
+            testing.assert_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+
+        except AssertionError as e:
+            print("\narray {} not almost equal".format(key))
+            print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
+            print(e)
+            error = -1
+    return error
+
+
+def test_equal_keys(keys, fin1=fin1, fin2=fin2, error=error):
+    for key in keys:
+        try:
+            testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
+        except AssertionError as e:
+            print("\narray {} not almost equal".format(key))
+            print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
+            print(e)
+            error = -1
+    return error
+
+
+def test_almost_equal_attributes(keys, fin1=fin1, fin2=fin2, error=error):
+    for key in keys:
+        arr1 = np.array(fin1.attrs[key])
+        arr2 = np.array(fin2.attrs[key])
+        max_diff = np.max(np.abs((arr1 - arr2) / arr2))
+        if max_diff > accuracy:
+            print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
+            print("\n attribute {} not almost equal".format(key))
+            error = -1
+    return error
+
+
+def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
+    for key in keys:
+        arr1 = np.array(fin1['station_101'][key])
+        arr2 = np.array(fin2['station_101'][key])
+        for i in range(arr1.shape[0]):
+            max_diff = np.max(np.abs((arr1[i] - arr2[i]) / arr2[i]))
+#             print('Reconstruction of {} of event {} (relative error: {})'.format(key, i, np.abs((arr1[i] - arr2[i]) / arr2[i])))
+            if max_diff > accuracy:
+#                 print(arr1.shape)
+                print('Reconstruction of {} of event {} does not agree with reference (relative error: {})'.format(key, i, max_diff))
+                print("\n attribute {} not almost equal".format(key))
+#                 print(np.abs((arr1[i] - arr2[i]) / arr2[i]))
+#                 print(arr1[i])
+                error = -1
+    return error
+
+
+def test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error):
+    for key in keys:
+        arr1 = np.array(fin1[key])
+        arr2 = np.array(fin2[key])
+        for i in range(arr1.shape[0]):
+            max_diff = np.max(np.abs((arr1[i] - arr2[i]) / arr2[i]))
+            if max_diff > accuracy:
+                print('Reconstruction of {} of event {} does not agree with reference (error: {})'.format(key, i, max_diff))
+                print("\n attribute {} not almost equal".format(key))
+                error = -1
+    return error
+
+# Test those attributes that should be perfectly equal
+
+
 attributes = [u'trigger_names',
  u'Tnoise',
- u'Vrms',
  u'dt',
  u'bandwidth',
  u'n_samples',
@@ -42,13 +124,17 @@ attributes = [u'trigger_names',
  u'Emax',
  u'fiducial_rmin',
  u'n_events']
-for key in attributes:
-    try:
-        testing.assert_equal(fin1.attrs[key], fin2.attrs[key])
-    except AssertionError as e:
-        print("\n attribute {} not equal".format(key))
-        print(e)
 
+error = test_equal_attributes(attributes, fin1=fin1, fin2=fin2, error=error)
+
+# Test those attributes that should be numerically equal
+
+attributes = [
+ u'Vrms']
+
+error = test_almost_equal_attributes(attributes, fin1=fin1, fin2=fin2, error=error)
+
+# Test those station keys that should be perfectly equal
 
 keys = [u'azimuths',
  u'energies',
@@ -59,79 +145,41 @@ keys = [u'azimuths',
  u'multiple_triggers',
  u'n_interaction',
  u'triggered',
- u'weights',
  u'xx',
  u'yy',
  u'zeniths',
+ u'multiple_triggers',
  u'zz']
-for key in keys:
-    try:
-        testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
-    except AssertionError as e:
-        print("\narray {} not equal".format(key))
-        print(e)
-        error = -1
+error = test_equal_keys(keys, fin1=fin1, fin2=fin2, error=error)
 
+# Test those keys that should be perfectly equal
 
-keys2 = [u'SNRs',
+keys = [
+u'ray_tracing_solution_type'
+]
+error = test_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
+
+keys = [
+ u'weights']
+
+error = test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error)
+
+keys = [
+ u'SNRs',
  u'maximum_amplitudes',
  u'maximum_amplitudes_envelope',
- u'multiple_triggers',
- u'ray_tracing_solution_type',
- u'triggered']
-for key in keys2:
-    try:
-#         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9)
-        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
-    except AssertionError as e:
-        print("\narray {} of group station_101 not equal".format(key))
-        print(e)
-        error = -1
-        
-keys2 = [
-    u'travel_distances',
-    u'ray_tracing_C1',]
-for key in keys2:
-    try:
-#         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=1*units.mm)
-        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
-    except AssertionError as e:
-        print("\narray {} of group station_101 not equal".format(key))
-        print(e)
-        error = -1
-        
-keys2 = [
-    u'travel_times']
-for key in keys2:
-    try:
-#         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=10*units.ps)
-        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
-    except AssertionError as e:
-        print("\narray {} of group station_101 not equal".format(key))
-        print(e)
-        error = -1
-
-keys2 = [
- u'polarization',
+u'polarization',
  u'ray_tracing_C0',
  u'launch_vectors',
  u'receive_vectors',
+ u'travel_times',
+ u'travel_distances',
+ u'ray_tracing_C1',
  ]
-for key in keys2:
-    try:
-#         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=1e-6)
-        testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
-    except AssertionError as e:
-        print("\narray {} of group station_101 not equal".format(key))
-        print(e)
-        error = -1
 
-    
+error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
 
-if(error == -1):
+if error == -1:
     sys.exit(error)
 else:
-    print("The two files are identical.")
-
-
-
+    print("The two files are (almost) identical.")
