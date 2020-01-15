@@ -14,7 +14,6 @@ this unit test compares the numerical and analytic calculation of path length an
 the numerical integration should be better than the analytic formula. For both calculations, the python version is used.
 """
 
-
 ice = medium.southpole_simple()
 
 np.random.seed(0)  # set seed to have reproducible results
@@ -37,7 +36,6 @@ results_D_analytic = np.zeros((n_events, 2))
 results_T = np.zeros((n_events, 2))
 results_T_analytic = np.zeros((n_events, 2))
 
-
 d_numeric = 0
 d_analytic = 0
 t_numeric = 0
@@ -53,7 +51,6 @@ for iX, x in enumerate(points):
             t_start = time.time()
             results_D_analytic[iX, iS] = r.get_path_length(iS, analytic=True)
             d_analytic += time.time() - t_start
-
 
             t_start = time.time()
             results_T[iX, iS] = r.get_travel_time(iS, analytic=False)
@@ -71,9 +68,9 @@ print("numeric {:.1f} seconds = {:.2f}ms/event".format(d_numeric, 1000. * d_nume
 print("analytic {:.1f} seconds = {:.2f}ms/event".format(t_analytic, 1000. * t_analytic / n_events))
 print("numeric {:.1f} seconds = {:.2f}ms/event".format(t_numeric, 1000. * t_numeric / n_events))
 print("distance ", np.allclose(results_D, results_D_analytic, atol=1e-2, rtol=1e-10))
-print("travel time ", np.allclose(results_T, results_T_analytic, atol=1e-2, rtol=1e-10))
+print("travel time ", np.allclose(results_T, results_T_analytic, atol=1e-2 * units.ns, rtol=1e-10))
 print("asserting travel times")
-testing.assert_allclose(results_T, results_T_analytic, atol=4e-2 * units.ns, rtol=1e-10)
+testing.assert_allclose(results_T, results_T_analytic, atol=5e-2 * units.ns, rtol=1e-10)
 print("asserting distances")
 testing.assert_allclose(results_D, results_D_analytic, atol=3e-2 * units.m, rtol=1e-10)
 
