@@ -96,10 +96,6 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
     efield2[1] = np.append(np.zeros(n_samples_prepend), efield[1])
     efield2[2] = np.append(np.zeros(n_samples_prepend), efield[2])
 
-    antenna_position = np.zeros(3)
-    antenna_position[0], antenna_position[1], antenna_position[2] = -position[1] * units.cm, position[0] * units.cm, position[2] * units.cm
-
-    antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
     electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids)
@@ -123,7 +119,7 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
     return sim_station
 
 
-def make_sim_shower(corsika):
+def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
     sim_shower = NuRadioReco.framework.radio_shower.RadioShower()
 
     zenith, azimuth, magnetic_field_vector = get_angles(corsika)
@@ -133,7 +129,15 @@ def make_sim_shower(corsika):
 
     energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV
     sim_shower.set_parameter(shp.energy, energy)
-    sim_shower.set_parameter(shp.core, np.array([0, 0, 0]))
+    # We can only set the shower core relative to the station if we know its position
+    if observer is not None and detector is not None and station_id is not None:
+        station_position = detector.get_absolute_position(station_id)
+        position = observer.attrs['position']
+        cs = coordinatesystems.cstrafo(zenith, azimuth, magnetic_field_vector=magnetic_field_vector)
+        observer_position = np.zeros(3)
+        observer_position[0], observer_position[1], observer_position[2] = -position[1] * units.cm, position[0] * units.cm, position[2] * units.cm
+        observer_position = cs.transform_from_magnetic_to_geographic(observer_position)
+        sim_shower.set_parameter(shp.core, -observer_position + station_position)
 
     sim_shower.set_parameter(shp.shower_maximum, corsika['CoREAS'].attrs['DepthOfShowerMaximum'] * units.g / units.cm2)
     sim_shower.set_parameter(shp.refractive_index_at_ground, corsika['CoREAS'].attrs["GroundLevelRefractiveIndex"])
