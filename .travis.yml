@@ -3,6 +3,12 @@ language: python
 python:
   - '3.6'
 
+before_install:
+  - sudo apt-get install libgsl2
+  - sudo apt-get install libgsl-dev
+  - export GSLDIR=$(gsl-config --prefix)
+
+
 install:
     pip install -r NuRadioReco/test/requirements.txt
 
@@ -13,8 +19,7 @@ before_script:
   - export PYTHONPATH=$PWD/radiotools
   - wget https://github.com/nu-radio/NuRadioMC/archive/master.zip -O /tmp/NuRadioMC.zip
   - unzip /tmp/NuRadioMC.zip
-  - mv NuRadioMC-master NuRadioMC
-  - export PYTHONPATH=$PYTHONPATH:$PWD/NuRadioMC
+  - mv NuRadioMC-master/NuRadioMC $PWD/NuRadioMC
   - export PYTHONPATH=$PYTHONPATH:$PWD
   - wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
   - mkdir -p /home/travis/build/nu-radio/NuRadioReco/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
@@ -28,9 +33,23 @@ before_script:
   - chmod +x NuRadioReco/test/trigger_tests/run_trigger_test.sh
 jobs:
   include:
-    - script: NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
+    - stage: "NuRadioReco tests"
       name: "Tiny reconstrucution"
+      script: NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
     - script: NuRadioReco/test/trigger_tests/run_trigger_test.sh
       name: "Trigger tests"
     - script: NuRadioReco/test/test_examples.sh
       name: "Test all examples"
+    - stage: "NuRadioMC test"
+      name: "Single event test (South Pole)"
+      script: NuRadioMC/test/SingleEvents/test_build.sh
+    - script: NuRadioMC/test/SingleEvents/validate_MB.sh
+      name: "Single event test (Moore's Bay)"
+    - script: NuRadioMC/test/SignalGen/test_build.sh
+      name: "Signal generation test"
+    - script: NuRadioMC/test/SignalProp/run_signal_test.sh
+      name: "Signal propagation tests"
+    - script: NuRadioMC/test/examples/test_examples.sh
+      name: "Test Examples"
+    - script: NuRadioMC/test/Veff/1e18eV/test_build.sh
+      name: "Veff test"

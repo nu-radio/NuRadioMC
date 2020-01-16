@@ -2225,7 +2225,7 @@
             "pos_zone": "SP-grid"
         },
         "2": {
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 501307.7095,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1257816.646,
@@ -2243,7 +2243,7 @@
             "pos_zone": ""
         },
         "4": {
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 501888.5331,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1258619.297,
@@ -2252,7 +2252,7 @@
             "pos_zone": "UTM-58S"
         },
         "5": {
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 501454.5375,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1259577.822,
@@ -2261,7 +2261,7 @@
             "pos_zone": "UTM-58S"
         },
         "6": {
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 500313.2608,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1257961.252,
@@ -2270,7 +2270,7 @@
             "pos_zone": "UTM-58S"
         },
         "7": {
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 501347.7274,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1257905.518,
@@ -2279,7 +2279,7 @@
             "pos_zone": "UTM-58S"
         },
         "8": {
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 500472.1558,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1259661.339,
@@ -2288,7 +2288,7 @@
             "pos_zone": "UTM-58S"
         },
         "9": {
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 499888.8454,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1258869.017,
@@ -2342,7 +2342,7 @@
             "pos_zone": "SP-grid"
         },
         "15": {
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 501280.8322,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1258879.538,
@@ -2351,7 +2351,7 @@
             "pos_zone": "UTM-58S"
         },
         "16": {
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 500844.088,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1258710.634,
@@ -2369,7 +2369,7 @@
             "pos_zone": "UTM-58S"
         },
         "18": {
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 500847.6621,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1259713.227,
@@ -2402,7 +2402,7 @@
             "board_number": 113,
             "commission_time": "{TinyDate}:2015-11-15T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 499888.8454,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1258869.017,
@@ -2436,7 +2436,7 @@
             "board_number": 204,
             "commission_time": "{TinyDate}:2017-11-01T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 501280.8322,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1258879.538,
@@ -2453,7 +2453,7 @@
             "board_number": 111,
             "commission_time": "{TinyDate}:2014-11-15T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 500844.088,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1258710.634,
@@ -2470,7 +2470,7 @@
             "board_number": 101,
             "commission_time": "{TinyDate}:2016-10-01T00:00:00",
             "decommission_time": "{TinyDate}:2017-11-01T00:00:00",
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 501307.7095,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1257816.646,
@@ -2487,7 +2487,7 @@
             "board_number": 112,
             "commission_time": "{TinyDate}:2017-11-06T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 501307.7095,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1257816.646,
@@ -2504,7 +2504,7 @@
             "board_number": 102,
             "commission_time": "{TinyDate}:2015-11-15T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 501888.5331,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1258619.297,
@@ -2521,7 +2521,7 @@
             "board_number": 104,
             "commission_time": "{TinyDate}:2014-11-15T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 501454.5375,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1259577.822,
@@ -2538,7 +2538,7 @@
             "board_number": 110,
             "commission_time": "{TinyDate}:2015-11-15T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 500313.2608,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1257961.252,
@@ -2555,7 +2555,7 @@
             "board_number": 109,
             "commission_time": "{TinyDate}:2014-11-15T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 501347.7274,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1257905.518,
@@ -2572,7 +2572,7 @@
             "board_number": null,
             "commission_time": "{TinyDate}:2000-02-21T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 500472.1558,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1259661.339,
@@ -2589,7 +2589,7 @@
             "board_number": 105,
             "commission_time": "{TinyDate}:2015-11-15T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-            "pos_altitude": null,
+            "pos_altitude": 0.0,
             "pos_easting": 500472.1558,
             "pos_measurement_time": "{TinyDate}:2017-11-15T00:00:00",
             "pos_northing": 1259661.339,

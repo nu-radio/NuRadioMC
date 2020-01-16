@@ -87,7 +87,7 @@ try:
     print("Using {0} as detector ".format(detector_file))
 except:
     print("Using default file for detector")
-    detector_file = os.path.join(dir_path,"../../examples/example_data/arianna_detector_db.json")
+    detector_file = os.path.join(dir_path,"../../examples/example_data/arianna_station_32.json")
 
 np.random.seed(1)
 det = detector.Detector(json_filename=detector_file) # detector file

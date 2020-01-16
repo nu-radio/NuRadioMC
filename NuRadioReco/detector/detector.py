@@ -403,6 +403,8 @@ class Detector(object):
             easting = res['pos_easting'] * unit_xy
         if(res['pos_northing'] is not None):
             northing = res['pos_northing'] * unit_xy
+        if(res['pos_altitude'] is not None):
+            altitude = res['pos_altitude']
         return np.array([easting, northing, altitude])
 
     def get_absolute_position_site(self, site):
