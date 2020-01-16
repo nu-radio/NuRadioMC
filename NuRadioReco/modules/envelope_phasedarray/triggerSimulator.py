@@ -85,7 +85,7 @@ class triggerSimulator(phasedTrigger):
             channel_id = channel.get_id()
 
             trace = diode.tunnel_diode(channel)  # get the enveloped trace
-            times = channel.get_times()  # get the corresponding time bins
+            times = np.copy(channel.get_times())  # get the corresponding time bins
 
             if cut_times != (None,None):
                 left_bin = np.argmin(np.abs(times-cut_times[0]))
