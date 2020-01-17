@@ -75,6 +75,7 @@ class simulation():
                  log_level=logging.WARNING,
                  default_detector_station=None,
                  default_detector_channel=None,
+                 write_detector=True,
                  log_level_propagation=logging.WARNING):
         """
         initialize the NuRadioMC end-to-end simulation
@@ -113,7 +114,10 @@ class simulation():
             if station parameters are not defined, the parameters of the default station are used
         default_detector_channel: int or None
             if channel parameters are not defined, the parameters of the default channel are used
-        default_detector_channel: logging.LEVEL
+        write_detector: bool
+            If true, the detector description is written into the .nur files along with the events
+            default True
+        log_level_propagation: logging.LEVEL
             the log level of the propagation module
         """
         logger.setLevel(log_level)
@@ -140,6 +144,7 @@ class simulation():
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._debug = debug
         self._evt_time = evt_time
+        self.__write_detector = write_detector
         logger.warning("setting event time to {}".format(evt_time))
 
         # initialize propagation module
@@ -585,7 +590,10 @@ class simulation():
                 t4 = time.time()
                 detSimTime += (t4 - t3)
             if(self._outputfilenameNuRadioReco is not None and self._mout['triggered'][self._iE]):
-                self._eventWriter.run(self._evt)
+                if self.__write_detector:
+                    self._eventWriter.run(self._evt, self._det)
+                else:
+                    self._eventWriter.run(self._evt)                    
 
         # Create trigger structures if there are no triggering events.
         # This is done to ensure that files with no triggering n_events
