@@ -16,7 +16,7 @@ from scipy import constants
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution
-import NuRadioReco.modules.efieldToVoltageConverter
+import NuRadioReco.modules.electricFieldResampler
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.detector.generic_detector as gdetector
