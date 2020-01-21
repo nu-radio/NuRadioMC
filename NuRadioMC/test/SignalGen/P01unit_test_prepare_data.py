@@ -19,9 +19,9 @@ R = 1 * units.km
 models = ['Alvarez2009', 'ARZ2019', 'Alvarez2000']
 shower_types = ['EM', 'HAD']
 
-Es = 10**np.linspace(15,19,5) * units.eV
-domegas = np.linspace(-5,5,10) * units.deg
-thetas = np.arccos(1./n_index) + domegas
+Es = 10 ** np.linspace(15, 19, 5) * units.eV
+domegas = np.linspace(-5, 5, 10) * units.deg
+thetas = np.arccos(1. / n_index) + domegas
 
 output = []
 for model in models:
@@ -32,4 +32,4 @@ for model in models:
                 output.append(trace)
 
 with open("reference_v1.pkl", "wb") as fout:
-    pickle.dump(output, fout, protocol=2)
+    pickle.dump(output, fout, protocol=4)
