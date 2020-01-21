@@ -107,7 +107,7 @@ class NuRadioRecoio(object):
             self.__scan_files()
 
     def close_files(self):
-        for f in self.__open_files.items():
+        for f in self.__open_files.values():
             f['file'].close()
 
     def get_filenames(self):
