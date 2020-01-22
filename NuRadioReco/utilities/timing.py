@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import logging
-logging.basicConfig(level=logging.ERROR)
-logger = logging.getLogger('timing')
+logger = logging.getLogger('NuRadioReco.timing')
 
 
 def analyze_timing(module_list, t_tot=None):
