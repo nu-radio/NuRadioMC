@@ -3,8 +3,7 @@ from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from NuRadioReco.utilities import units, fft
 import logging
-logger = logging.getLogger('channelGenericNoiseAdder')
-logging.basicConfig()  # basicConfig adds a StreamHandler to the root logger.
+
 
 
 class channelGenericNoiseAdder:
@@ -51,17 +50,17 @@ class channelGenericNoiseAdder:
         f[1:Np + 1] *= phases  # Note that the last entry of the index slice is f[Np] !
         f[-1:-1 - Np:-1] = np.conj(f[1:Np + 1])
 
-        logger.debug(' fftnoise: Length of frequency array = {} '.format(len(f)))
-        logger.debug(' fftnoise: Number of points for unilateral spectrum = {} '.format(Np))
-        logger.debug(' fftnoise: Max index and amplitude of positive part of spectrum: index = {}, A = |{}| = {} '.format(Np, f[Np], abs(f[Np])))
-        logger.debug(' fftnoise: Min index and amplitude of negative part of spectrum: index = {}, A = |{}| '.format(len(f) - Np, f[-Np]))
+        self.logger.debug(' fftnoise: Length of frequency array = {} '.format(len(f)))
+        self.logger.debug(' fftnoise: Number of points for unilateral spectrum = {} '.format(Np))
+        self.logger.debug(' fftnoise: Max index and amplitude of positive part of spectrum: index = {}, A = |{}| = {} '.format(Np, f[Np], abs(f[Np])))
+        self.logger.debug(' fftnoise: Min index and amplitude of negative part of spectrum: index = {}, A = |{}| '.format(len(f) - Np, f[-Np]))
 
         fftprec = max(abs(np.fft.ifft(f) - np.fft.ifft(f).real))
         fftcheck = fftprec - np.finfo(float).resolution
-        logger.debug(' fftnoise: fft precision {} < {} (float resolution) is : {} !'.format(fftprec , np.finfo(float).resolution, fftcheck < 0))
+        self.logger.debug(' fftnoise: fft precision {} < {} (float resolution) is : {} !'.format(fftprec , np.finfo(float).resolution, fftcheck < 0))
 
         if fftcheck >= 0:
-            logger.warning(' fftnoise: Non negligibe imagniary part of inverse FFT: {} '.format(fftcheck))
+            self.logger.warning(' fftnoise: Non negligibe imagniary part of inverse FFT: {} '.format(fftcheck))
 
         return np.fft.ifft(f).real
 
@@ -93,7 +92,7 @@ class channelGenericNoiseAdder:
             # white: flat frequency spectrum with random jitter
         time_domain: bool (default True)
             if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
-            might be more performant as the noise is generated internally in the frequency domain. 
+            might be more performant as the noise is generated internally in the frequency domain.
         bandwidth: float or None (default)
             if this parameter is specified, the amplitude is interpreted as the amplitude for the bandwidth specified here
             Otherwise the amplitude is interpreted for the bandwidth of min(max_freq, 0.5 * sampling rate) - min_freq
@@ -117,15 +116,15 @@ class channelGenericNoiseAdder:
             # to take the difference between two frequencies to determine the minimum frequency, in case
             # future versions of numpy change the order and maybe put the negative frequencies first
             min_freq = 0.5 * (frequencies[2] - frequencies[1])
-            logger.info(' Set min_freq from None to {} MHz!'.format(min_freq / units.MHz))
+            self.logger.info(' Set min_freq from None to {} MHz!'.format(min_freq / units.MHz))
         if max_freq == None:
             # sample up to Nyquist frequency
             max_freq = max(frequencies)
-            logger.info(' Set max_freq from None to {} GHz!'.format(max_freq / units.GHz))
+            self.logger.info(' Set max_freq from None to {} GHz!'.format(max_freq / units.GHz))
         selection = (frequencies >= min_freq) & (frequencies <= max_freq)
 
         nbinsactive = np.sum(selection)
-        logger.debug('Total number of frequency bins (bilateral spectrum) : {} , of those active: {} '.format(n_samples, nbinsactive))
+        self.logger.debug('Total number of frequency bins (bilateral spectrum) : {} , of those active: {} '.format(n_samples, nbinsactive))
 
         # Debug plots
 #         f1 = plt.figure()
@@ -147,7 +146,7 @@ class channelGenericNoiseAdder:
 # FIXME: amplitude normalization is not correct for 'white'
 #             ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
         else:
-            logger.error("Other types of noise not yet implemented.")
+            self.logger.error("Other types of noise not yet implemented.")
             raise NotImplementedError("Other types of noise not yet implemented.")
 
         noise = self.add_random_phases(ampl, n_samples) / sampling_rate
@@ -158,12 +157,12 @@ class channelGenericNoiseAdder:
 
     def __init__(self):
         self.begin()
+        self.logger = logging.getLogger('NuRadioReco.channelGenericNoiseAdder')
 
     def begin(self, debug=False):
         self.__debug = debug
         if debug:
-            # logger = logging.getLogger("channelGenericNoiseAdder")
-            logger.setLevel(logging.DEBUG)
+            self.logger.setLevel(logging.DEBUG)
 
     @register_run()
     def run(self, event, station, detector,
@@ -224,8 +223,8 @@ class channelGenericNoiseAdder:
             if self.__debug:
                 new_trace = trace + noise
 
-                logger.debug("imput amplitude {}".format(amplitude))
-                logger.debug("voltage RMS {}".format(np.sqrt(np.mean(noise ** 2))))
+                self.logger.debug("imput amplitude {}".format(amplitude))
+                self.logger.debug("voltage RMS {}".format(np.sqrt(np.mean(noise ** 2))))
 
                 import matplotlib.pyplot as plt
                 plt.plot(trace)

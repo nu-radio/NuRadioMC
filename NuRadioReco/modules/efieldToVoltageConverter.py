@@ -1,26 +1,30 @@
-from NuRadioReco.modules.base.module import register_run
 import numpy as np
-from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units, fft
-from NuRadioReco.utilities import ice
-from NuRadioReco.utilities import trace_utilities
-from NuRadioReco.framework.parameters import channelParameters as chp
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.framework.parameters import stationParameters as stnp
-# from detector import antennamodel
-from NuRadioReco.detector import antennapattern
-from radiotools import coordinatesystems
 import copy
 import time
 import logging
 import fractions
 from scipy import signal
 from decimal import Decimal
+
+from radiotools import coordinatesystems
+
 import NuRadioReco.framework.channel
-logger = logging.getLogger('efieldToVoltageConverter')
+
+from NuRadioReco.modules.base.module import register_run
+from NuRadioReco.detector import antennapattern
+from NuRadioReco.utilities import geometryUtilities as geo_utl
+from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import ice
+from NuRadioReco.utilities import trace_utilities
+
+from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.framework.parameters import stationParameters as stnp
 
 
-class efieldToVoltageConverter:
+
+
+class efieldToVoltageConverter():
     """
     Module that should be used to convert simulations to data.
     It assumes that at least one efield is given per channel as input. It will
@@ -32,6 +36,8 @@ class efieldToVoltageConverter:
     def __init__(self):
         self.__t = 0
         self.begin()
+
+        self.logger = logging.getLogger('NuRadio.Reco.efieldToVoltageConverter')
 
     def begin(self, debug=False, uncertainty={},
               time_resolution=0.1 * units.ns,
@@ -113,7 +119,7 @@ class efieldToVoltageConverter:
                 if(not np.isnan(t0)):  # trace start time is None if no ray tracing solution was found and channel contains only zeros
                     times_min.append(t0)
                     times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
-                    logger.debug("trace start time {}, cab_delty {}, tracelength {}".format(electric_field.get_trace_start_time(), cab_delay, electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
+                    self.logger.debug("trace start time {}, cab_delty {}, tracelength {}".format(electric_field.get_trace_start_time(), cab_delay, electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
         time_resolution = min(self.__time_resolution, original_binning)
         times_min = np.array(times_min)
         times_max = np.array(times_max)
@@ -126,7 +132,7 @@ class efieldToVoltageConverter:
         trace_length_samples = int(round(trace_length / time_resolution))
         if trace_length_samples % 2 != 0:
             trace_length_samples += 1
-        logger.debug("smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d} {:.0f}ns)".format(times_min.min(), times_max.max(), trace_length_samples, trace_length / units.ns))
+        self.logger.debug("smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d} {:.0f}ns)".format(times_min.min(), times_max.max(), trace_length_samples, trace_length / units.ns))
 
         # loop over all channels
         for channel_id in det.get_channel_ids(station.get_id()):
@@ -135,7 +141,7 @@ class efieldToVoltageConverter:
             # so we loop over all simulated channels with the same id,
             # convolve each trace with the antenna response for the given angles
             # and everything up in the time domain
-            logger.debug('channel id {}'.format(channel_id))
+            self.logger.debug('channel id {}'.format(channel_id))
             channel = NuRadioReco.framework.channel.Channel(channel_id)
             channel_spectrum = None
             trace_object = None
@@ -178,7 +184,7 @@ class efieldToVoltageConverter:
                         start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift) / time_resolution))
                     else:
                         start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min()) / time_resolution))
-                    logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
+                    self.logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
                     new_trace[:, start_bin:(start_bin + len(trace))] = resampled_efield
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
                 trace_object.set_trace(new_trace, 1. / time_resolution)
