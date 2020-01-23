@@ -42,8 +42,9 @@ from NuRadioMC.simulation import simulation
 import json
 import numpy as np
 import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("runstrawman")
+from NuRadioReco.modules.base import module
+import logging
+logger = module.setup_logger(level=logging.WARNING)
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
