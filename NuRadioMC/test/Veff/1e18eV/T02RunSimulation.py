@@ -24,8 +24,8 @@ channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 
-class mySimulation(simulation.simulation):
 
+class mySimulation(simulation.simulation):
 
     def _detector_simulation(self):
         # start detector simulation
@@ -38,7 +38,7 @@ class mySimulation(simulation.simulation):
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
 
         if bool(self._cfg['noise']):
-            Vrms = self._Vrms / (self._bandwidth /( 2.5 * units.GHz))** 0.5  # normalize noise level to the bandwidth its generated for
+            Vrms = self._Vrms / (self._bandwidth / (2.5 * units.GHz)) ** 0.5  # normalize noise level to the bandwidth its generated for
             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
                                          max_freq=2.5 * units.GHz, type='rayleigh')
 
@@ -75,10 +75,10 @@ parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=No
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
 
-sim = mySimulation(eventlist=os.path.join(path,args.inputfilename),
-                            outputfilename=os.path.join(path,args.outputfilename),
-                            detectorfile=os.path.join(path,args.detectordescription),
-                            outputfilenameNuRadioReco=os.path.join(path,args.outputfilenameNuRadioReco),
-                            config_file=os.path.join(path,args.config))
+sim = mySimulation(inputfilename=os.path.join(path, args.inputfilename),
+                            outputfilename=os.path.join(path, args.outputfilename),
+                            detectorfile=os.path.join(path, args.detectordescription),
+                            outputfilenameNuRadioReco=os.path.join(path, args.outputfilenameNuRadioReco),
+                            config_file=os.path.join(path, args.config))
 sim.run()
 
