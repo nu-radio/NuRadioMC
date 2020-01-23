@@ -1,17 +1,16 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-from NuRadioReco.modules.base.module import register_run
+import scipy.optimize as opt
 from scipy import signal, fftpack
 import matplotlib.pyplot as plt
 import numpy as np
+import logging
+
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-import scipy.optimize as opt
+from NuRadioReco.modules.base.module import register_run
+
 from radiotools import helper as hp
-import logging
-logger = logging.getLogger('correlationDirectionFitter')
-logging.basicConfig()
 
 
 class correlationDirectionFitter:
@@ -24,6 +23,7 @@ class correlationDirectionFitter:
         self.__azimuth = []
         self.__delta_zenith = []
         self.__delta_azimuth = []
+        self.logger = logging.getLogger('NuRadioReco.correlationDirectionFitter')
         self.begin()
 
     def begin(self, debug=False, log_level=None):
