@@ -15,8 +15,9 @@ import sys
 from NuRadioReco.detector import detector
 # from apps import summary
 import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('index')
+import logging
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(level=logging.INFO)
 
 det = detector.Detector(source='sql')
 
@@ -36,17 +37,17 @@ app.title = 'ARIANNA detector database'
 app.layout = html.Div([
     # represents the URL bar, doesn't render anything
     dcc.Location(id='url', refresh=False),
-    
-    
+
+
     dcc.Dropdown(id='station_id',
              options=[{'label': l, 'value': l} for l in [14, 15, 17, 18, 19, 30, 32, 50, 51, 52, 61]]),
-    
+
     html.Div(id='main')
 ])
 
 keys = ['channel_id', 'commission_time', 'decommission_time',
         'ant_position_x', 'ant_position_y', 'ant_position_z',
-        'ant_type', 
+        'ant_type',
         'ant_comment',
         'ant_orientation_phi', 'ant_orientation_theta',
         'ant_rotation_phi', 'ant_rotation_theta',
@@ -63,7 +64,7 @@ Output('main', 'children'),
 def show_station(station_id):
     if not det.has_station(station_id):
         return html.H2(children="station {} not present in data base".format(station_id))
-    
+
     tts = det.get_unique_time_periods(station_id)
     d = []
     d.append(html.H1(children="station {}".format(station_id)))
@@ -73,12 +74,12 @@ def show_station(station_id):
         det.update(t0)
         c = det.get_channel(station_id, 0)
         header = [html.Tr([html.Th(col) for col in keys])]
-        
+
         for iC in det.get_channel_ids(station_id):
             c = det.get_channel(station_id, iC)
             header.append(html.Tr([html.Td(c[key]) for key in keys]))
         d.append(html.Table(header))
-            
+
     res =html.Div(d)
     return res
 

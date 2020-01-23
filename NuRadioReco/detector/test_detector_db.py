@@ -3,8 +3,6 @@ import argparse
 import datetime
 import logging
 
-logging.basicConfig(level=logging.INFO)
-
 
 det = detector.Detector(source='sql')
 # print(det.get_antenna_deployment_time(52, 1))
