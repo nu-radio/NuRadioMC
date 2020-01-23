@@ -37,7 +37,7 @@ class efieldToVoltageConverter():
         self.__t = 0
         self.begin()
 
-        self.logger = logging.getLogger('NuRadio.Reco.efieldToVoltageConverter')
+        self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
 
     def begin(self, debug=False, uncertainty={},
               time_resolution=0.1 * units.ns,
