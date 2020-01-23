@@ -91,7 +91,7 @@ parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=No
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
 
-sim = mySimulation(intputfilename=args.inputfilename,
+sim = mySimulation(inputfilename=args.inputfilename,
                             outputfilename=args.outputfilename,
                             detectorfile=args.detectordescription,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
