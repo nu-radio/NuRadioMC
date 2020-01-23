@@ -30,8 +30,8 @@ from NuRadioMC.simulation import simulation
 from NuRadioReco.utilities.traceWindows import get_window_around_maximum
 import numpy as np
 import logging
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runstrawman")
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(level=logging.WARNING)
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
