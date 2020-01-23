@@ -14,8 +14,7 @@ sys.path.append(os.path.expandvars('$SNS'))
 from scripts.online import AriUtils
 from scripts.offline import dacs2014
 import logging
-logger = logging.getLogger("readARIANNAData")
-logging.basicConfig()
+
 
 
 class readARIANNAData:
@@ -23,6 +22,9 @@ class readARIANNAData:
     Reads ARIANNA data as preprocessed in snowShovel. Can read RawData, FPNCorrectedData
     and CalibratedData.
     """
+
+    def __init__(self):
+        self.logger = logging.getLogger("NuRadioReco.readARIANNAData")
 
     def begin(self, input_files, trigger_types=None, time_interval=None,
               tree='AmpOutData', run_number=None, event_ids=None,
@@ -64,7 +66,7 @@ class readARIANNAData:
         self.config_tree = ROOT.TChain("ConfigTree")
 
         for input_file in input_files:
-            logger.info("adding file {}".format(input_file))
+            self.logger.info("adding file {}".format(input_file))
             self.data_tree.Add(input_file)
             self.config_tree.Add(input_file)
 
@@ -87,7 +89,7 @@ class readARIANNAData:
         self.__id_current_event = -1
 
         n_events_config = self.config_tree.GetEntries()
-        logger.debug("{} entries in config".format(n_events_config))
+        self.logger.debug("{} entries in config".format(n_events_config))
         self._config_keys = {}
         for i in range(n_events_config):
             self.config_tree.GetEntry(i)
@@ -112,7 +114,7 @@ class readARIANNAData:
                 eta = 0
                 if(self.__id_current_event > 0):
                     eta = (time.time() - self.__t) / self.__id_current_event * (self.n_events - self.__id_current_event) / 60.
-                logger.warning("reading in event {}/{} ({:.0f}%) ETA: {:.1f} minutes".format(self.__id_current_event, self.n_events,
+                self.logger.warning("reading in event {}/{} ({:.0f}%) ETA: {:.1f} minutes".format(self.__id_current_event, self.n_events,
                                                                          100 * progress, eta))
 #             try:
             self.data_tree.GetEntry(self._evt_range[self.__id_current_event])
@@ -133,7 +135,7 @@ class readARIANNAData:
                         if(self.data_tree.EventHeader.IsForced()):
                             use_event = True
                 if(use_event is False):
-                    logger.debug("skipping event because trigger type was not {type}".format(type=self.__trigger_types))
+                    self.logger.debug("skipping event because trigger type was not {type}".format(type=self.__trigger_types))
                     continue
 
             mac = self.data_tree.EventMetadata.GetStationId()
@@ -154,7 +156,7 @@ class readARIANNAData:
             try:
                 self.config_tree.GetEntry(self._config_keys[(self._station_id, run_number, seq_number)])
             except:
-                logger.error("no config entry exists for station {}, run {} and sequence {}. Skipping event...".format(self._station_id, run_number, seq_number))
+                self.logger.error("no config entry exists for station {}, run {} and sequence {}. Skipping event...".format(self._station_id, run_number, seq_number))
                 self.skipped_events += 1
                 continue
             # check if config and event sequence are the same
@@ -166,13 +168,13 @@ class readARIANNAData:
             evt = NuRadioReco.framework.event.Event(run_number, evt_number)
 
             if(self.__id_current_event % 1000 == 0):
-                logger.info("reading in station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id, run_number=run_number, evt_number=evt_number, time=evt_time))
-            logger.debug("reading in station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id, run_number=run_number, evt_number=evt_number, time=evt_time))
+                self.logger.info("reading in station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id, run_number=run_number, evt_number=evt_number, time=evt_time))
+            self.logger.debug("reading in station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id, run_number=run_number, evt_number=evt_number, time=evt_time))
 
             nChan = ord(self.readout_config.GetNchans())  # convert char to int
             name = self.readout_config.GetTypeName()
             if name == 'Custom':
-                logger.warning("Event {event} of run {run} is skipped, as ReadoutConfig seems empty".format(event=evt_number, run=run_number))
+                self.logger.warning("Event {event} of run {run} is skipped, as ReadoutConfig seems empty".format(event=evt_number, run=run_number))
                 self.skipped_events += 1
                 continue
 
@@ -192,7 +194,7 @@ class readARIANNAData:
                     channel.set_trace(voltage, self.sampling_rate)
                     station.add_channel(channel)
             else:
-                logger.warning(" Event {event} of run {run} is skipped, no stop point for rolling array!".format(event=evt_number, run=run_number))
+                self.logger.warning(" Event {event} of run {run} is skipped, no stop point for rolling array!".format(event=evt_number, run=run_number))
                 self.skipped_events_stop += 1
                 continue
 
@@ -222,7 +224,7 @@ class readARIANNAData:
             evt.set_station(station)
             yield evt
 #             except:
-#                 logger.error("error in reading in event station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id,
+#                 self.logger.error("error in reading in event station {station_id} run {run_number} event {evt_number} at time {time}".format(station_id=self._station_id,
 #                 run_number=run_number,
 #                 evt_number=evt_number,
 #                 time=evt_time))
@@ -230,6 +232,6 @@ class readARIANNAData:
 
     def end(self):
         if self.skipped_events > 0:
-            logger.warning("Skipped {} events due to problems in config".format(self.skipped_events))
+            self.logger.warning("Skipped {} events due to problems in config".format(self.skipped_events))
         if self.skipped_events_stop > 0:
-            logger.warning("Skipped {} events due to problems in stop bit".format(self.skipped_events_stop))
+            self.logger.warning("Skipped {} events due to problems in stop bit".format(self.skipped_events_stop))
