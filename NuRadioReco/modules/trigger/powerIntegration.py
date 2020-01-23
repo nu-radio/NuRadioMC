@@ -63,7 +63,7 @@ class triggerSimulator:
             coinc_window=200 * units.ns,
             trigger_name='default_powerint'):
         """
-        simulate simple trigger logic, no time window, just threshold in all channels
+        simulates a power integration trigger. The squared voltages are integrated over a sliding window 
 
         Parameters
         ----------
