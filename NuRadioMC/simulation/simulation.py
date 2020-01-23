@@ -311,7 +311,7 @@ class simulation():
         t_start = time.time()
 
         for self._iE in range(self._n_events):
-            if(self._fin['event_ids'][self._iE] not in self._event_list):
+            if(self._event_list is not None and self._fin['event_ids'][self._iE] not in self._event_list):
                 logger.debug(f"skipping event {self._fin['event_ids'][self._iE]} because it is not in the event list provided to the __init__ function")
                 continue
             t1 = time.time()
