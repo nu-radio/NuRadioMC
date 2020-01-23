@@ -86,8 +86,10 @@ try:
     detector_file = sys.argv[3]
     logger.info("Using {0} as detector ".format(detector_file))
 except:
+
     logger.warning("Using default file for detector")
-    detector_file = os.path.join(dir_path,"../../examples/example_data/arianna_detector_db.json")
+    detector_file = os.path.join(dir_path,"../../examples/example_data/arianna_station_32.json")
+
 
 np.random.seed(1)
 det = detector.Detector(json_filename=detector_file) # detector file
