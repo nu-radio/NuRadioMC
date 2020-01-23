@@ -79,7 +79,7 @@ try:
     print("Using {0} as detector".format(detector_file))
 except:
     print("Using default file for detector")
-    detector_file = '../examples/example_data/arianna_detector_db.json'
+    detector_file = '../examples/example_data/arianna_station_32.json'
 
 
 det = detector.Detector(json_filename=detector_file) # detector file
