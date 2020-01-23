@@ -16,12 +16,13 @@ class hardwareResponseIncorporator:
     """
 
     def __init__(self):
+        self.logger = logging.getLogger("NuRadioReco.hardwareResponseIncorporator")
         self.__debug = False
         self.__time_delays = {}
         self.__t = 0
         self.__mingainlin = None
         self.begin()
-        self.logger = logging.getLogger("NuRadioReco.hardwareResponseIncorporator")
+
 
     def begin(self, debug=False):
         self.__debug = debug

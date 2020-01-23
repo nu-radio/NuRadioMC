@@ -28,7 +28,7 @@ class correlationDirectionFitter:
 
     def begin(self, debug=False, log_level=None):
         if(log_level is not None):
-            logger.setLevel(log_level)
+            self.logger.setLevel(log_level)
         self.__debug = debug
 
     @register_run()
@@ -218,7 +218,7 @@ class correlationDirectionFitter:
             t02s = toffset[indices]
             ax.plot(toffset[indices], corr_02[indices], 'o')
             imax = np.argmax(corr_02[indices])
-#             print("offset 02= {:.3f}".format(toffset[indices[imax]] -  (delta_t_02 / sampling_rate)))
+            self.logger.debug("offset 02= {:.3f}".format(toffset[indices[imax]] -  (delta_t_02 / sampling_rate)))
 
             ax2.plot(toffset, corr_13)
             indices = peakutils.indexes(corr_13, thres=0.8, min_dist=5)
@@ -256,14 +256,14 @@ class correlationDirectionFitter:
                 for x in sim_zen:
                     ops += "{:.1f}, ".format(x / units.deg)
                 ops += ")"
-                logger.debug(ops)
+                self.logger.debug(ops)
                 ops = "average incident azimuth {:.1f} +- {:.1f}".format(np.mean(sim_az) / units.deg, np.std(sim_az) / units.deg)
                 ops += " (individual: "
                 for x in sim_az:
                     ops += "{:.1f}, ".format(x / units.deg)
                 ops += ")"
 
-                logger.debug(ops)
+                self.logger.debug(ops)
                 sim_zen = np.mean(np.array(sim_zen))
                 sim_az = np.mean(np.array(sim_az))
 
@@ -275,7 +275,7 @@ class correlationDirectionFitter:
                 self.__delta_zenith.append(station[stnp.zenith] - sim_zen)
                 self.__delta_azimuth.append(station[stnp.azimuth] - hp.get_normalized_angle(sim_az))
 
-        logger.info(output_str)
+        self.logger.info(output_str)
         # Still have to add fit quality parameter to output
 
         if self.__debug:
@@ -290,8 +290,8 @@ class correlationDirectionFitter:
                     sim_present = True
 
             if sim_present:
-                logger.debug("True CoREAS zenith {0}, azimuth {1}".format(zenith_orig, azimuth_orig))
-            logger.debug("Result of direction fitting: [zenith, azimuth] {}".format(np.rad2deg(ll[0])))
+                self.logger.debug("True CoREAS zenith {0}, azimuth {1}".format(zenith_orig, azimuth_orig))
+            self.logger.debug("Result of direction fitting: [zenith, azimuth] {}".format(np.rad2deg(ll[0])))
 
             # Show fit space
             zen = np.arange(ZenLim[0], ZenLim[1], 1 * units.deg)
@@ -348,12 +348,12 @@ class correlationDirectionFitter:
                 dist = np.linalg.norm(r)
                 t0 = -dist * n_index / c
                 Phic = np.arccos(dt / t0)  # cone angle for allowable solutions
-                logger.debug('dist = {}, dt = {}, t0 = {}, phic = {}'.format(dist, dt, t0, Phic))
+                self.logger.debug('dist = {}, dt = {}, t0 = {}, phic = {}'.format(dist, dt, t0, Phic))
                 nr = r / dist  # normalize
                 p = np.cross([0, 0, 1], nr)  # create a perpendicular normal vector to r
                 p = p / np.linalg.norm(p)
                 q = np.cross(nr, p)  # nr, p, and q form an orthonormal basis
-                logger.debug('nr = {}\np = {}\nq = {}\n'.format(nr, p, q))
+                self.logger.debug('nr = {}\np = {}\nq = {}\n'.format(nr, p, q))
                 ThetaC = np.linspace(0, 2 * np.pi, 1000)
                 Phis = np.zeros(len(ThetaC))
                 Thetas = np.zeros(len(ThetaC))
@@ -370,7 +370,7 @@ class correlationDirectionFitter:
             # phis = np.deg2rad(np.linspace(0, 360, 10000))
             r0_2 = positions_pairs[0][1] - positions_pairs[0][0]  # vector pointing from Ch2 to Ch0
             r1_3 = positions_pairs[1][1] - positions_pairs[1][0]  # vector pointing from Ch3 to Ch1
-            logger.debug('r02 {}\nr13 {}'.format(r0_2, r1_3))
+            self.logger.debug('r02 {}\nr13 {}'.format(r0_2, r1_3))
             linestyles = ['-', '--', ':', '-.']
             for i, t02 in enumerate(t02s):
                 # theta02 = get_deltat02(t02, phis)

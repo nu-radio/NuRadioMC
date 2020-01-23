@@ -16,8 +16,8 @@ class channelResampler:
     """
 
     def __init__(self):
-        self.begin()
         self.logger = logging.getLogger('NuRadioReco.channelResampler')
+        self.begin()
 
     def begin(self, debug=False, log_level=logging.WARNING):
         self.__max_upsampling_factor = 5000
