@@ -25,8 +25,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import electric_field as ef
 
 import logging
-logger = logging.getLogger('voltageToEfieldConverterPerChannel')
-logging.basicConfig()
+
 
 
 class voltageToEfieldConverterPerChannel:
@@ -39,10 +38,10 @@ class voltageToEfieldConverterPerChannel:
     def __init__(self):
         self.__counter = 0
         self.begin()
+        self.logger = logging.getLogger('NuRadioReco.voltageToEfieldConverterPerChannel')
 
     def begin(self):
         self.antenna_provider = antennapattern.AntennaPatternProvider()
-        pass
 
     @register_run()
     def run(self, evt, station, det, pol=0, debug=True):
