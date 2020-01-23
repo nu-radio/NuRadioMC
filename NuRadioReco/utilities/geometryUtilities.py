@@ -1,10 +1,9 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 from scipy import constants
 from NuRadioReco.utilities import units
 from numpy.lib import scimath as SM
 import logging
-logger = logging.getLogger('geometryUtilities')
+logger = logging.getLogger('NuRadioReco.geometryUtilities')
 
 
 def get_time_delay_from_direction(zenith, azimuth, positions, n=None):
