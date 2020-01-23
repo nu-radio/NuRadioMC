@@ -102,7 +102,6 @@ class NuRadioRecoio(object):
         self.__detectors = {}
         self._event_specific_detector_changes = {}
 
-
         self.__event_headers = {}
         if(self.__parse_header):
             self.__scan_files()
@@ -156,7 +155,6 @@ class NuRadioRecoio(object):
             for key, value in station.items():
                 self.__event_headers[station_id][key] = np.array(value)
 
-
     def get_header(self):
         if(not self.__file_scanned):
             self.__scan_files()
@@ -201,9 +199,9 @@ class NuRadioRecoio(object):
         self._current_file_id = file_id
         self._current_event_id = event.get_id()
         self._current_run_number = event.get_run_number()
-        ## If the event file contains a detector description that is a
-        ## generic detector, it might have event-specific properties and we
-        ## need to set the detector to the right event
+        # # If the event file contains a detector description that is a
+        # # generic detector, it might have event-specific properties and we
+        # # need to set the detector to the right event
         if self._current_file_id in self.__detectors.keys():
             if 'generic_detector' in self._detector_dicts[self._current_file_id]:
                 if self._detector_dicts[self._current_file_id]['generic_detector']:
@@ -217,10 +215,6 @@ class NuRadioRecoio(object):
             if self.__event_ids[i][0] == event_id[0] and self.__event_ids[i][1] == event_id[1]:
                 self._current_run_number = self.__event_ids[i][0]
                 self._current_event_id = self.__event_ids[i][1]
-                if self._current_file_id in self.__detectors.keys():
-                    if 'generic_detector' in self._detector_dicts[self._current_file_id]:
-                        if self._detector_dicts[self._current_file_id]['generic_detector']:
-                            self.__detectors[self._current_file_id].set_event(self._current_run_number, self._current_event_id)
                 return self.get_event_i(i)
         logger.error('event number {} not found in file'.format(event_id))
         return None
@@ -274,6 +268,7 @@ class NuRadioRecoio(object):
             if self._detector_dicts[self._current_file_id]['generic_detector']:
                     self.__detectors[self._current_file_id].set_event(self._current_run_number, self._current_event_id)
         return self.__detectors[self._current_file_id]
+
     def get_n_events(self):
         if(not self.__file_scanned):
             self.__scan_files()
