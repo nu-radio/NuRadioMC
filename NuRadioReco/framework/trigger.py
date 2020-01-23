@@ -161,11 +161,12 @@ class SimpleThresholdTrigger(Trigger):
         self._number_of_coincidences = number_of_coincidences
         self._coinc_window = channel_coincidence_window
 
+
 class EnvelopePhasedTrigger(Trigger):
 
     def __init__(self, name, threshold_factor, power_mean, power_std,
                  triggered_channels=None, phasing_angles=None, trigger_delays=None,
-                 output_passband=(None,None)):
+                 output_passband=(None, None)):
         """
         initialize trigger class
         Parameters
@@ -200,6 +201,7 @@ class EnvelopePhasedTrigger(Trigger):
         self._power_std = power_std
         self._trigger_delays = trigger_delays
         self._output_passband = output_passband
+
 
 class SimplePhasedTrigger(Trigger):
 
@@ -239,6 +241,7 @@ class SimplePhasedTrigger(Trigger):
         self._trigger_delays = trigger_delays
         self._sec_trigger_delays = sec_trigger_delays
 
+
 class HighLowTrigger(Trigger):
 
     def __init__(self, name, threshold_high, threshold_low, high_low_window,
@@ -276,7 +279,7 @@ class HighLowTrigger(Trigger):
 class IntegratedPowerTrigger(Trigger):
 
     def __init__(self, name, threshold, channel_coincidence_window, channels=None, number_of_coincidences=1,
-                 power_mean=None, power_std=None):
+                 power_mean=None, power_std=None, integration_window=None):
         """
         initialize trigger class
 
@@ -301,6 +304,8 @@ class IntegratedPowerTrigger(Trigger):
         self._coinc_window = channel_coincidence_window
         self._power_mean = power_mean
         self._power_std = power_std
+        self._integration_window = integration_window
+
 
 class EnvelopeTrigger(Trigger):
 
