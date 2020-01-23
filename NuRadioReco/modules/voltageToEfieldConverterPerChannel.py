@@ -35,9 +35,9 @@ class voltageToEfieldConverterPerChannel:
     """
 
     def __init__(self):
+        self.logger = logging.getLogger('NuRadioReco.voltageToEfieldConverterPerChannel')
         self.__counter = 0
         self.begin()
-        self.logger = logging.getLogger('NuRadioReco.voltageToEfieldConverterPerChannel')
 
     def begin(self):
         self.antenna_provider = antennapattern.AntennaPatternProvider()
@@ -65,12 +65,12 @@ class voltageToEfieldConverterPerChannel:
         self.__counter += 1
         event_time = station.get_station_time()
         station_id = station.get_id()
-        logger.debug("event {}, station {}".format(evt.get_id(), station_id))
+        self.logger.debug("event {}, station {}".format(evt.get_id(), station_id))
         if station.get_sim_station() is not None and station.get_sim_station().has_parameter(stnp.zenith):
             zenith = station.get_sim_station()[stnp.zenith]
             azimuth = station.get_sim_station()[stnp.azimuth]
         else:
-            logger.debug("Using reconstructed angles as no simulation present")
+            self.logger.debug("Using reconstructed angles as no simulation present")
             zenith = station[stnp.zenith]
             azimuth = station[stnp.azimuth]
 
