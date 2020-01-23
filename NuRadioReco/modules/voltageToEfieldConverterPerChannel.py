@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from numpy.polynomial import polynomial as poly
