@@ -24,8 +24,8 @@ import dataprovider
 import logging
 import datetime
 import webbrowser
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('index')
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(level=logging.INFO)
 
 argparser = argparse.ArgumentParser(description="Starts the Event Display, which then can be accessed via a webbrowser")
 argparser.add_argument('file_location', type=str, help="Path of folder or filename.")
@@ -39,7 +39,7 @@ if os.path.isfile(parsed_args.file_location):
 else:
     starting_filename = None
 if parsed_args.open_window:
-    webbrowser.open('http://127.0.0.1:{}/'.format(parsed_args.port))    
+    webbrowser.open('http://127.0.0.1:{}/'.format(parsed_args.port))
 
 provider = dataprovider.DataProvider()
 
@@ -182,8 +182,8 @@ def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_
                 return i_event - 1
         if context.triggered[0]['prop_id'] == 'btn-next-event.n_clicks_timestamp':
             user_id = json.loads(juser_id)
-            
-            number_of_events = provider.get_arianna_io(user_id, filename).get_n_events()    
+
+            number_of_events = provider.get_arianna_io(user_id, filename).get_n_events()
             if number_of_events == i_event + 1:
                 return number_of_events -1
             else:
@@ -230,7 +230,7 @@ def update_slider_marks(filename, juser_id):
     if n_events%step_size != 0:
         marks[n_events] = str(n_events)
     return marks
-    
+
 
 @app.callback(Output('user_id', 'children'),
               [Input('url', 'pathname')],
@@ -376,7 +376,7 @@ def update_event_info_run(event_i, filename, juser_id):
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(event_i)
-    return evt.get_run_number()    
+    return evt.get_run_number()
 
 @app.callback(Output('event-info-id', 'children'),
             [Input('event-counter-slider', 'value'),

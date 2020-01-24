@@ -36,8 +36,8 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 
 # Logging level
 import logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('TinyReconstruction')
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(name='NuRadioReco',level=logging.WARNING)
 
 plt.switch_backend('agg')
 
@@ -69,10 +69,10 @@ try:
     station_id = int(sys.argv[1])  # specify station id
     input_file = sys.argv[2] # file with coreas simulations
 except:
-    print("Usage: python FullReconstruction.py station_id input_file detector templates")
+    logger.warning("Usage: python FullReconstruction.py station_id input_file detector templates")
     station_id = 32
     input_file = os.path.join(dir_path, "../../examples/example_data/example_event.h5")
-    print("Using default station {}".format(32))
+    logger.warning("Using default station {}".format(32))
 
 if(station_id == 32):
     triggered_channels = [0,1,2,3]
@@ -80,14 +80,16 @@ if(station_id == 32):
     used_channels_fit = [0, 1, 2, 3]
     channel_pairs = ((0, 2), (1, 3))
 else:
-    print("Default channels not defined for station_id != 32")
+    logger.warning("Default channels not defined for station_id != 32")
 
 try:
     detector_file = sys.argv[3]
-    print("Using {0} as detector ".format(detector_file))
+    logger.info("Using {0} as detector ".format(detector_file))
 except:
-    print("Using default file for detector")
+
+    logger.warning("Using default file for detector")
     detector_file = os.path.join(dir_path,"../../examples/example_data/arianna_station_32.json")
+
 
 np.random.seed(1)
 det = detector.Detector(json_filename=detector_file) # detector file
@@ -137,7 +139,7 @@ eventWriter.begin(output_filename)
 event_counter = 0
 # Loop over all events in file as initialized in readCoRREAS and perform analysis
 for iE, evt in enumerate(readCoREAS.run(detector=det)):
-    print("Processing {}".format(event_counter))
+    logger.warning("Processing event number {}".format(event_counter))
     logger.info("processing event {:d} with id {:d}".format(iE, evt.get_id()))
     station = evt.get_station(station_id)
 
@@ -185,4 +187,4 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
     if event_counter > 2:
         break
 nevents = eventWriter.end()
-print("Finished processing, {} events".format(event_counter))
+logger.warning("Finished processing, {} events".format(event_counter))

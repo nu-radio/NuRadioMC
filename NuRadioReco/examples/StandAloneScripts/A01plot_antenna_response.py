@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import logging
 import copy
 
-logging.basicConfig(level=logging.DEBUG)
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(level=logging.DEBUG)
 
 provider = AntennaPatternProvider()
 
