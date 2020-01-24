@@ -11,8 +11,6 @@ import logging
 import time
 from scipy import interpolate
 
-logger = logging.getLogger("readARAData")
-logging.basicConfig()
 
 sys.path.append(os.path.expandvars('${ARA_UTIL_INSTALL_DIR}/lib'))
 
@@ -29,20 +27,23 @@ class readARAData:
 
     """
     This is the AraReader. Reads ARA data in the ARARoot format.
-    
-    
+
+
     """
+    def __init__(self):
+        self.logger = logging.getLogger("NuRadioReco.readARAData")
+
 
     def begin(self, input_file):
 
         """
         Begin function of the ARA reader
-        
+
         Parameters
         ----------
         input_file: string
         path to file to read
-        
+
         """
 
         self.__id_current_event = -1
@@ -80,13 +81,13 @@ class readARAData:
                 eta = 0
                 if(self.__id_current_event > 0):
                     eta = (time.time() - self.__t) / self.__id_current_event * (self.n_events - self.__id_current_event) / 60.
-                logger.warning("reading in event {}/{} ({:.0f}%) ETA: {:.1f} minutes".format(self.__id_current_event, self.n_events, 100 * progress, eta))
+                self.logger.warning("reading in event {}/{} ({:.0f}%) ETA: {:.1f} minutes".format(self.__id_current_event, self.n_events, 100 * progress, eta))
 
             self.data_tree.GetEntry(self.__id_current_event)
             run_number = self.data_tree.run
             evt_number = self.raw_ptr.eventNumber
             station_id = bytearray(self.raw_ptr.stationId)[0]
-            logger.info("Reading Run: {0}, Event {1}, Station {2}".format(run_number, evt_number, station_id))
+            self.logger.info("Reading Run: {0}, Event {1}, Station {2}".format(run_number, evt_number, station_id))
 
             evt = NuRadioReco.framework.event.Event(run_number, evt_number)
             station = NuRadioReco.framework.station.Station(station_id)

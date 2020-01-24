@@ -1,8 +1,10 @@
-from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from scipy import signal
-from NuRadioReco.utilities import units
 import scipy.signal
+import logging
+
+from NuRadioReco.modules.base.module import register_run
+from NuRadioReco.utilities import units
 from NuRadioReco.detector import filterresponse
 import NuRadioReco.framework.sim_station
 
@@ -11,6 +13,10 @@ class channelBandPassFilter:
     """
     Band pass filters the channels using different band-pass filters.
     """
+    def __init__(self):
+        self.__t = 0
+        self.begin()
+        self.logger = logging.getLogger('NuRadioReco.channelBandPassFilter')
 
     def begin(self):
         pass
@@ -65,9 +71,9 @@ class channelBandPassFilter:
     def get_filter(self, frequencies, station_id, channel_id, det, passband, filter_type, order=2):
         """
         helper function to return the filter that the module applies.
-        
-        The unused parameters station_id, channel_id, det are needed to have the same signature as the 
-        `get_filter` functions of other modules, e.g. the hardwareResponseIncorporator. 
+
+        The unused parameters station_id, channel_id, det are needed to have the same signature as the
+        `get_filter` functions of other modules, e.g. the hardwareResponseIncorporator.
 
         Parameters
         -----------
