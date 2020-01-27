@@ -33,3 +33,25 @@ Each module consists of four components:
 
 These methods should all be called in that order, though the *begin* and *end*
 function can be skipped for some modules.
+
+Logging
+--------------
+  Every module MODULE should have in the init function the initalization of a
+  logger with
+
+  .. code-block:: Python
+
+    self.logger = logging.getLogger('NuRadioReco.MODULE')
+
+
+  This expects that the script containing the module sequence initalized a
+  general logger with
+
+  .. code-block:: Python
+
+    import logging
+    from NuRadioReco.modules.base import module
+    logger = module.setup_logger(level=logging.WARNING)
+
+
+  This initalizes a parent logger, which determines the overall logging level that is inherited by all modules. This allows to turn DEBUG on for all, for example. It is still possible to change the logging level for individual modules as an overwrite.
