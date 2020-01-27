@@ -23,7 +23,6 @@ class Event:
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
         self.__modules_station = {}  # saves which modules were executed with what parameters on station level
-        self.__associated_event_ids = []
 
     def register_module_event(self, instance, name, kwargs):
         """
@@ -194,46 +193,6 @@ class Event:
         Get information about hybrid detector data stored in the event.
         """
         return self.__hybrid_information
-
-    def get_associated_event_ids(self):
-        """
-        Returns a 2D numpy array with [run_number, event_id] pairs of other
-        events that are associated with this one.
-        """
-        return self.__associated_event_ids
-
-    def set_associated_event_ids(self, event_ids):
-        """
-        Sets the list of events that are associated with this event
-
-        Parameters
-        ------------------------
-        event_ids: 2D list or numpy array
-            List of [run_number, event_id] pairs of events associated with this one
-            An empty list or array is also allowed, if there are no associated events
-        """
-        if not isinstance(event_ids, np.ndarray):
-            event_ids = np.array(event_ids)
-        if not event_ids.shape == (0,):
-            if event_ids.shape[1] != 2:
-                raise ValueError('event_ids needs to be a 2D list or numpy array')
-        self.__associated_event_ids = event_ids
-
-    def add_associated_events(self, event_ids):
-        """
-        Adds an event to the list of events associated with this event
-
-        Parameters
-        -------------------------
-        event_ids: 2D list or numpy array
-            List of [run_number, event_id] pairs of events associated with this one
-        """
-        if not isinstance(event_ids, np.ndarray):
-            event_ids = np.array(event_ids)
-        if event_ids.shape[1] != 2:
-            raise ValueError('event_ids needs to be a 2D list or numpy array')
-        self.__associated_event_ids = np.append(self.__associated_event_ids, event_id, axis=0)
-
 
     def serialize(self, mode):
         stations_pkl = []
