@@ -72,9 +72,42 @@ Unit Tests
 ____________
   After every commit `Travis CI <https://travis-ci.com/>`_ will run a test on
   the repository that executes a number of test scripts, checks for errors
-  and compares the results to a reference. Whether the test passes or fails
+  and compares the results to a reference. For safety, the tests implemented in
+  NuRadioMC are run as well, since it uses some elements of NuRadioReco.
+  Whether the test passes or fails
   is shown as a green tick or red cross next to the commit on the GitHub page.
   Pull requests can not be merged until all tests pass.
+
+What to do if Unit Tests Fail
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  If a unit test fails, it usually means that your changes have some unintended
+  side effects that cause the event simulation or reconstruction to lead to
+  different results. In that case, please find out which of your changes caused
+  this and fix it.
+
+  In rare cases, the tests can fail for other reasons:
+
+    - Travis fails to download some necessary package. In that case, restarting the
+      test usually fixes the issue.
+    - Changes in NuRadioMC cause the tests to fail. A good sign for this is that
+      the tests fail on the master branch as well. In this case, the issue with
+      NuRadioMC needs to be fixed instead
+    - Some elements of NuRadioMC use random numbers, which can cause random
+      fluctuations to lead to failing tests. Especially the V_eff test in
+      NuRadioMC is susceptible to this. Usually re-running the test solves this.
+    - The C++ raytracer in NuRadioMC is numerically unstable. The effect is small,
+      but results can vary slightly between different systems. Therefore, some
+      margin of error is given when comparing tests that involve raytracing.
+    - The changes in the reconstruction may be intended, i.e. because a
+      reconstruction method was improved or a bug was found. In this case, the
+      references have to be updated. All test scripts can be run with the option
+      ``--create_reference``, which will make them produce a new reference file.
+      Just create a new reference and commit it to the repository.
+
+  .. Important::
+    Only change the references if you are absolutely sure that all changes are
+    intentional!
+
 
 Documentation
 -------------
