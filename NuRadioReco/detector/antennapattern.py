@@ -8,8 +8,7 @@ from radiotools import coordinatesystems as cs
 from scipy import constants
 import logging
 import pickle
-logger = logging.getLogger('antennapattern')
-logging.basicConfig()
+logger = logging.getLogger('NuRadioReco.antennapattern')
 
 # config = ConfigParser.RawConfigParser()
 # config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'antennamodels.cfg')

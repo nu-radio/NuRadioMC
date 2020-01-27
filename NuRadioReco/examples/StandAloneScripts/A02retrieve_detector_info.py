@@ -5,8 +5,8 @@ from NuRadioReco.utilities import units
 import NuRadioReco.detector.detector as detector
 
 # Logging level
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('ReadData')
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(level=logging.INFO)
 
 # read in detector positions (this is a dummy detector)
 det = detector.Detector()
