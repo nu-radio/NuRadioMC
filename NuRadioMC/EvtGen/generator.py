@@ -1403,8 +1403,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     products = products_array.pop(0)
                 n_interaction = 2
 
-                x_first, y_first, z_first = data_sets["xx"][iE], data_sets["yy"][iE], data_sets["zz"][iE]
-
                 for product in products:
 
                     x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
