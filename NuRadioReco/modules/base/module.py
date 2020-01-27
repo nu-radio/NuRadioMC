@@ -2,6 +2,20 @@ from functools import wraps
 from timeit import default_timer as timer
 import NuRadioReco.framework.event
 import NuRadioReco.framework.base_station
+import logging
+
+
+def setup_logger(name="NuRadioReco", level=logging.WARNING):
+
+    logger = logging.getLogger(name)
+    logger.setLevel(level=level)
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('\033[93m%(levelname)s - \033[0m%(name)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    return logger
+
 
 
 def register_run(level=None):

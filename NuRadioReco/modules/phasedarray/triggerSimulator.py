@@ -135,8 +135,8 @@ class triggerSimulator:
         for channel in station.iter_channels(use_channels=triggered_channels):
             channel_id = channel.get_id()
 
-            trace = channel.get_trace()  # get the enveloped trace
-            times = channel.get_times()  # get the corresponding time bins
+            trace = np.copy(channel.get_trace())  # get the enveloped trace
+            times = np.copy(channel.get_times())  # get the corresponding time bins
 
             if cut_times != (None,None):
                 left_bin = np.argmin(np.abs(times-cut_times[0]))

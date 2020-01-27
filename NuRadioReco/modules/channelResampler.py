@@ -7,8 +7,7 @@ import copy
 from NuRadioReco.utilities import units, fft
 import NuRadioReco.framework.sim_station
 import logging
-logger = logging.getLogger('channelResampler')
-logging.basicConfig()
+
 
 
 class channelResampler:
@@ -17,12 +16,13 @@ class channelResampler:
     """
 
     def __init__(self):
+        self.logger = logging.getLogger('NuRadioReco.channelResampler')
         self.begin()
 
     def begin(self, debug=False, log_level=logging.WARNING):
         self.__max_upsampling_factor = 5000
         self.__debug = debug
-        logger.setLevel(log_level)
+        self.logger.setLevel(log_level)
 
         """
         Begin the channelResampler
@@ -57,8 +57,8 @@ class channelResampler:
         target_binning = 1. / sampling_rate
         resampling_factor = fractions.Fraction(Decimal(orig_binning / target_binning)).limit_denominator(self.__max_upsampling_factor)
         if resampling_factor == self.__max_upsampling_factor:
-            logger.warning("Safeguard caught, max upsampling {} factor reached.".format(self.__max_upsampling_factor))
-        logger.debug("resampling channel trace by {}. Original binning is {:.3g} ns, target binning is {:.3g} ns".format(resampling_factor,
+            self.logger.warning("Safeguard caught, max upsampling {} factor reached.".format(self.__max_upsampling_factor))
+        self.logger.debug("resampling channel trace by {}. Original binning is {:.3g} ns, target binning is {:.3g} ns".format(resampling_factor,
                                                                                                                          orig_binning / units.ns,
                                                                                                                          target_binning / units.ns))
         for channel in station.iter_channels():
@@ -76,7 +76,7 @@ class channelResampler:
 
             # make sure that trace has even number of samples
             if(len(trace) % 2 != 0):
-                logger.info("channel trace has a odd number of samples after resampling. The last bin of the trace is discarded to maintain a even number of samples")
+                self.logger.info("channel trace has a odd number of samples after resampling. The last bin of the trace is discarded to maintain a even number of samples")
                 trace = trace[:-1]
 
             if(self.__debug):
