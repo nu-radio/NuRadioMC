@@ -6,7 +6,7 @@ from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 import numpy as np
 import time
 import logging
-logger = logging.getLogger('simpleThresholdTrigger')
+
 
 
 def get_threshold_triggers(trace, threshold):
@@ -36,6 +36,7 @@ class triggerSimulator:
     def __init__(self):
         self.__t = 0
         self.begin()
+        self.logger = logging.getLogger('NuRadioReco.simpleThresholdTrigger')
 
     def begin(self, debug=False):
         self.__debug = debug
@@ -78,10 +79,10 @@ class triggerSimulator:
         for channel in station.iter_channels():
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
-                logger.debug("skipping channel {}".format(channel_id))
+                self.logger.debug("skipping channel {}".format(channel_id))
                 continue
             if channel.get_trace_start_time() != channel_trace_start_time:
-                logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
+                self.logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
             trace = channel.get_trace()
             triggerd_bins = get_threshold_triggers(trace, threshold)
             triggerd_bins_channels.append(triggerd_bins)
@@ -102,18 +103,18 @@ class triggerSimulator:
         if has_triggered:
             trigger.set_triggered(True)
             trigger.set_trigger_time(triggered_times.min())
-            logger.debug("station has triggered")
+            self.logger.debug("station has triggered")
         else:
             trigger.set_triggered(False)
             trigger.set_trigger_time(0)
-            logger.debug("station has NOT triggered")
+            self.logger.debug("station has NOT triggered")
         station.set_trigger(trigger)
 
         self.__t += time.time() - t
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
+        self.logger.info("total time used by this module is {}".format(dt))
         return dt

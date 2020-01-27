@@ -5,8 +5,7 @@ from NuRadioReco.utilities import units, fft
 import time
 import logging
 
-logger = logging.getLogger("hardwareResponseIncorporator")
-logging.basicConfig()
+
 
 
 class hardwareResponseIncorporator:
@@ -17,11 +16,13 @@ class hardwareResponseIncorporator:
     """
 
     def __init__(self):
+        self.logger = logging.getLogger("NuRadioReco.hardwareResponseIncorporator")
         self.__debug = False
         self.__time_delays = {}
         self.__t = 0
         self.__mingainlin = None
         self.begin()
+
 
     def begin(self, debug=False):
         self.__debug = debug
@@ -104,7 +105,7 @@ class hardwareResponseIncorporator:
 
         if (phase_only):
             mode='phase_only'
-            logger.warning('Please use option mode=''phase_only'' in the future, use of option phase_only will be phased out')
+            self.logger.warning('Please use option mode=''phase_only'' in the future, use of option phase_only will be phased out')
 
         t = time.time()
 
@@ -123,7 +124,7 @@ class hardwareResponseIncorporator:
             if not sim_to_data:
                 # Include cable delays
                 cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
-                logger.debug("cable delay of channel {} is {}ns".format(channel.get_id(), cable_delay / units.ns))
+                self.logger.debug("cable delay of channel {} is {}ns".format(channel.get_id(), cable_delay / units.ns))
                 channel.add_trace_start_time(-cable_delay)
 
 
@@ -131,9 +132,9 @@ class hardwareResponseIncorporator:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
+        self.logger.info("total time used by this module is {}".format(dt))
         return dt
 
     def __calculate_time_delays_cable(self):
@@ -188,7 +189,7 @@ class hardwareResponseIncorporator:
         if(amp_type not in self.__time_delays.keys()):
             # not yet calculated -> calculate the time delay
             self.__time_delays[amp_type] = self.__calculate_time_delays_amp(amp_type)
-            logger.info("time delays of amp {} have not yet been calculated -> calculating -> time delay is {:.2f} ns".format(amp_type, self.__time_delays[amp_type] / units.ns))
+            self.logger.info("time delays of amp {} have not yet been calculated -> calculating -> time delay is {:.2f} ns".format(amp_type, self.__time_delays[amp_type] / units.ns))
         return self.__time_delays[amp_type]
 
     def get_mingainlin(self):

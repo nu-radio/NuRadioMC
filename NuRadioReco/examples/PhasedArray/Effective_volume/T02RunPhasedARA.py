@@ -27,10 +27,11 @@ import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
+from NuRadioReco.utilities.traceWindows import get_window_around_maximum
 import numpy as np
 import logging
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runstrawman")
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(level=logging.WARNING)
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
@@ -46,53 +47,40 @@ class mySimulation(simulation.simulation):
     def _detector_simulation(self):
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
-        # downsample trace to 3 ns
+        # downsample trace to 1.5 Gs/s
         new_sampling_rate = 1.5 * units.GHz
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
 
-        threshold_cut = True
-        # Forcing a threshold cut BEFORE adding noise for limiting the noise-induced triggers
-        if threshold_cut:
-
-            thresholdSimulator.run(self._evt, self._station, self._det,
-                                 threshold=1 * self._Vrms,
-                                 triggered_channels=None,  # run trigger on all channels
-                                 number_concidences=1,
-                                 trigger_name='simple_threshold')
+        cut_times = get_window_around_maximum(self._station)
 
         # Bool for checking the noise triggering rate
         check_only_noise = False
+
         if check_only_noise:
-
-            for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
-
+            for channel in self._station.iter_channels():
                 trace = channel.get_trace() * 0
                 channel.set_trace(trace, sampling_rate = new_sampling_rate)
 
-        noise = True
+        if self._is_simulate_noise():
+            max_freq = 0.5 / self._dt
+            norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms, min_freq=0 * units.MHz,
+                                         max_freq=max_freq, type='rayleigh', bandwidth=norm)
 
-        if noise:
-            min_noise_freq = 100 * units.MHz
-            max_noise_freq = 750 * units.MHz
-            Vrms_ratio = ((max_noise_freq-min_noise_freq) / self._cfg['trigger']['bandwidth'])**2
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms,
-                                         min_freq=min_noise_freq,
-                                         max_freq=max_noise_freq,
-                                         type='rayleigh')
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[130 * units.MHz, 1000 * units.GHz],
-                                  filter_type='butter', order=2)
+                                  filter_type='butter', order=6)
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 750 * units.MHz],
                                   filter_type='butter', order=10)
 
-        # first run a simple threshold trigger
+        # run the phased trigger
         triggerSimulator.run(self._evt, self._station, self._det,
                              threshold=2.5 * self._Vrms, # see phased trigger module for explanation
                              triggered_channels=None,  # run trigger on all channels
                              secondary_channels=[0,1,3,4,6,7], # secondary channels
                              trigger_name='primary_and_secondary_phasing', # the name of the trigger
-                             set_not_triggered=(not self._station.has_triggered("simple_threshold")),
-                             coupled=True)
+                             coupled=True,
+                             cut_times=cut_times)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')

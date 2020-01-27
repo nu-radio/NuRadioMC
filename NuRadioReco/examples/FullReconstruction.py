@@ -8,6 +8,7 @@ import astropy
 
 from NuRadioReco.utilities import units
 from NuRadioReco.detector import detector
+from NuRadioReco.modules.base import module
 
 import NuRadioReco.modules.io.coreas.readCoREAS
 import NuRadioReco.modules.io.coreas.simulationSelector
@@ -33,8 +34,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 
 # Logging level
 import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('FullExample')
+logger = module.setup_logger(name='NuRadioReco',level=logging.WARNING)
 
 plt.switch_backend('agg')
 
@@ -79,7 +79,7 @@ try:
     print("Using {0} as detector".format(detector_file))
 except:
     print("Using default file for detector")
-    detector_file = '../examples/example_data/arianna_detector_db.json'
+    detector_file = '../examples/example_data/arianna_station_32.json'
 
 
 det = detector.Detector(json_filename=detector_file) # detector file
@@ -97,7 +97,6 @@ efieldToVoltageConverter =  NuRadioReco.modules.efieldToVoltageConverter.efieldT
 efieldToVoltageConverter.begin(debug=False)
 hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-channelGenericNoiseAdder.begin()
 triggerSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 triggerSimulator.begin()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
@@ -133,6 +132,7 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
     if simulationSelector.run(evt, station.get_sim_station(), det):
 
         efieldToVoltageConverter.run(evt, station, det)
+
 
         hardwareResponseIncorporator.run(evt, station, det, sim_to_data=True)
 
