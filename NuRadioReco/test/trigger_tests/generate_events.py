@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-from __future__ import absolute_import, division, print_function
 import argparse
 import numpy as np
-# import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
@@ -25,9 +23,9 @@ class mySimulation(simulation.simulation):
 
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
-        # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added) 
+        # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
-        
+
         simpleThreshold.run(self._evt, self._station, self._det,
                              threshold=3. * self._Vrms,
                              triggered_channels=None,  # run trigger on all channels
@@ -40,6 +38,7 @@ sim = mySimulation(eventlist='NuRadioReco/test/trigger_tests/trigger_test_eventl
         outputfilename='input.hdf5',
         detectorfile='NuRadioReco/test/trigger_tests/trigger_test_detector.json',
         outputfilenameNuRadioReco='NuRadioReco/test/trigger_tests/trigger_test_input.nur',
-        config_file='NuRadioReco/test/trigger_tests/config.yaml')
+        config_file='NuRadioReco/test/trigger_tests/config.yaml',
+        file_overwrite=True)
 sim.run()
 

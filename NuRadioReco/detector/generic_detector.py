@@ -8,8 +8,7 @@ from tinydb_serialization import Serializer
 import NuRadioReco.detector.detector
 from NuRadioReco.detector.detector import DateTimeSerializer
 import copy
-logger = logging.getLogger('genericDetector')
-logging.basicConfig()
+logger = logging.getLogger('NuRadioReco.genericDetector')
 
 serialization = SerializationMiddleware()
 serialization.register_serializer(DateTimeSerializer(), 'TinyDate')

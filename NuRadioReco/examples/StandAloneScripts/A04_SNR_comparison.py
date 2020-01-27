@@ -28,8 +28,8 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 from NuRadioReco.detector import detector
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger("SNRcomparison")
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(level=logging.DEBUG)
 
 #fig = plt.gcf()
 #fig.canvas.manager.window.tkraise()
@@ -84,8 +84,8 @@ channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPas
 hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("TriggerComparison")
+logger.setLevel(logging.WARNING)
+
 
 n_index = 1.78
 cherenkov_angle = np.arccos(1. / n_index)

@@ -8,8 +8,6 @@ import logging
 import radiotools.helper as hp
 import radiotools.coordinatesystems
 import radiotools.atmosphere.models
-logger = logging.getLogger('cosmicRayEnergyReconstructor')
-logging.basicConfig()
 
 
 class cosmicRayEnergyReconstructor:
@@ -22,6 +20,7 @@ class cosmicRayEnergyReconstructor:
     """
 
     def __init__(self):
+        self.logger = logging.getLogger('NuRadioReco.cosmicRayEnergyReconstructor')
         self.__atmosphere = radiotools.atmosphere.models.Atmosphere()
         self.__parametrizations = {
             'mooresbay': {
@@ -46,7 +45,7 @@ class cosmicRayEnergyReconstructor:
     def begin(self, site='mooresbay'):
         self.__site = site
         if site not in self.__parametrizations.keys():
-            logger.error('Unsupported site. Please select one of the following: {}'.format(self.__parametrizations.keys()))
+            self.logger.error('Unsupported site. Please select one of the following: {}'.format(self.__parametrizations.keys()))
             raise ValueError
         self.__parametrization_for_site = self.__parametrizations[site]
         self.__elevation = self.__elevations[site]
@@ -55,20 +54,20 @@ class cosmicRayEnergyReconstructor:
     def run(self, event, station, detector):
 
         if not station.is_cosmic_ray():
-            logger.warning('Event is not a cosmic ray!')
+            self.logger.warning('Event is not a cosmic ray!')
         if not station.has_parameter(stnp.zenith) or not station.has_parameter(stnp.azimuth):
-            logger.error('No incoming direction available. Energy can not be reconstructed!')
+            self.logger.error('No incoming direction available. Energy can not be reconstructed!')
             return
         zenith = station.get_parameter(stnp.zenith)
         azimuth = station.get_parameter(stnp.azimuth)
         if zenith < 30.*units.deg:
-            logger.warning('Zenith angle is smaller than 30deg. Energy reconstruction is likely to be inaccurate!')
+            self.logger.warning('Zenith angle is smaller than 30deg. Energy reconstruction is likely to be inaccurate!')
         n_efields = len(station.get_electric_fields())
         if n_efields == 0:
-            logger.error('No E-field found. Please run the voltageToAnalyticEfieldConverter beforehand!')
+            self.logger.error('No E-field found. Please run the voltageToAnalyticEfieldConverter beforehand!')
             return
         if n_efields > 1:
-            logger.warning('Multiple E-fields were found. Only the first E-field will be used.')
+            self.logger.warning('Multiple E-fields were found. Only the first E-field will be used.')
         electric_field = station.get_electric_fields()[0]
         spectrum_slope = electric_field.get_parameter(efp.cr_spectrum_slope)
         alpha = hp.get_angle_to_magnetic_field_vector(zenith, azimuth, self.__site)

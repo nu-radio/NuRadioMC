@@ -1,17 +1,17 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.trigger import SimpleThresholdTrigger
+from NuRadioReco.framework.trigger import IntegratedPowerTrigger
 from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 import numpy as np
 import time
 import logging
+logger = logging.getLogger('powerIntegrationTrigger')
 
 
-
-def get_threshold_triggers(trace, threshold):
+def get_power_int_triggers(trace, threshold, window=10 * units.ns, dt=1 * units.ns, full_output=False):
     """
-    calculats a simple threshold trigger
+    calculats a power integration trigger
 
     Parameters
     ----------
@@ -19,44 +19,60 @@ def get_threshold_triggers(trace, threshold):
         the signal trace
     threshold: float
         the threshold
+    window: float
+        the integration window
+    dt: float
+        the time binning of the trace
+    full_output: bool (default False)
+        if True, the integrated power is returned as second argument
     Returns
     -------
     triggered bins: array of bools
         the bins where the trigger condition is satisfied
     """
 
-    return np.abs(trace) >= threshold
+    i_window = int(window / dt)
+    power = trace ** 2
+    int_power = np.zeros(len(trace) - i_window)
+    for i in range(len(trace) - i_window):
+        int_power[i] = np.sum(power[i:(i + i_window)]) * dt
+
+    if full_output:
+        return threshold < int_power, int_power
+    return threshold < int_power
 
 
 class triggerSimulator:
     """
-    Calculate a very simple amplitude trigger.
+    Calculates a power integration trigger.
     """
 
     def __init__(self):
         self.__t = 0
         self.begin()
-        self.logger = logging.getLogger('NuRadioReco.simpleThresholdTrigger')
 
     def begin(self, debug=False):
         self.__debug = debug
 
     @register_run()
     def run(self, evt, station, det,
-            threshold=60 * units.mV,
+            threshold,
+            integration_window,
             number_concidences=1,
             triggered_channels=None,
             coinc_window=200 * units.ns,
-            trigger_name='default_simple_threshold'):
+            trigger_name='default_powerint'):
         """
-        simulate simple trigger logic, no time window, just threshold in all channels
+        simulates a power integration trigger. The squared voltages are integrated over a sliding window 
 
         Parameters
         ----------
         number_concidences: int
             number of channels that are requried in coincidence to trigger a station
         threshold: float
-            threshold above (or below) a trigger is issued, absolute amplitude
+            threshold in units of integrated power (V^2*time)
+        integration_window: float
+            the integration window
         triggered_channels: array of ints or None
             channels ids that are triggered on, if None trigger will run on all channels
         coinc_window: float
@@ -79,12 +95,12 @@ class triggerSimulator:
         for channel in station.iter_channels():
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
-                self.logger.debug("skipping channel {}".format(channel_id))
+                logger.debug("skipping channel {}".format(channel_id))
                 continue
             if channel.get_trace_start_time() != channel_trace_start_time:
-                self.logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
+                logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
             trace = channel.get_trace()
-            triggerd_bins = get_threshold_triggers(trace, threshold)
+            triggerd_bins = get_power_int_triggers(trace, threshold, integration_window, dt=dt)
             triggerd_bins_channels.append(triggerd_bins)
             if True in triggerd_bins:
                 channels_that_passed_trigger.append(channel.get_id())
@@ -97,24 +113,24 @@ class triggerSimulator:
             for channel in station.iter_channels():
                 max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
             station.set_parameter(stnp.channels_max_amplitude, max_signal)
-        trigger = SimpleThresholdTrigger(trigger_name, threshold, triggered_channels,
-                                         number_concidences)
+        trigger = IntegratedPowerTrigger(trigger_name, threshold, triggered_channels,
+                                         number_concidences, integration_window=integration_window)
         trigger.set_triggered_channels(channels_that_passed_trigger)
         if has_triggered:
             trigger.set_triggered(True)
             trigger.set_trigger_time(triggered_times.min())
-            self.logger.debug("station has triggered")
+            logger.debug("station has triggered")
         else:
             trigger.set_triggered(False)
             trigger.set_trigger_time(0)
-            self.logger.debug("station has NOT triggered")
+            logger.debug("station has NOT triggered")
         station.set_trigger(trigger)
 
         self.__t += time.time() - t
 
     def end(self):
         from datetime import timedelta
-        self.logger.setLevel(logging.INFO)
+        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
-        self.logger.info("total time used by this module is {}".format(dt))
+        logger.info("total time used by this module is {}".format(dt))
         return dt
