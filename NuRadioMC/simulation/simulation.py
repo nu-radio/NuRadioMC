@@ -558,7 +558,10 @@ class simulation():
 
                         electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id], self._det.get_relative_position(self._sim_station.get_id(), channel_id))
                         electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / self._dt)
-                        electric_field.set_trace_start_time(T)
+                        # Trace start time is equal to the interaction time relative to the first 
+                        # interaction plus the wave travel time.
+                        trace_start_time = self._vertex_time + T
+			electric_field.set_trace_start_time(T)
                         electric_field[efp.azimuth] = azimuth
                         electric_field[efp.zenith] = zenith
                         electric_field[efp.ray_path_type] = self._prop.solution_types[r.get_solution_type(iS)]
@@ -857,7 +860,8 @@ class simulation():
         self._x = self._fin['xx'][self._iE]
         self._y = self._fin['yy'][self._iE]
         self._z = self._fin['zz'][self._iE]
-        self._zenith_nu = self._fin['zeniths'][self._iE]
+        self._vertex_time = self._fin['vertex_times'][self._iE]
+	self._zenith_nu = self._fin['zeniths'][self._iE]
         self._azimuth_nu = self._fin['azimuths'][self._iE]
         self._inelasticity = self._fin['inelasticity'][self._iE]
         self._n_interaction = self._fin['n_interaction'][self._iE]
