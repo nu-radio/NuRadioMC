@@ -89,7 +89,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
         from NuRadioMC.SignalGen.ARZ import ARZ
         global gARZ
         if(gARZ is None):
-            gARZ = ARZ.ARZ(version=model)
+            gARZ = ARZ.ARZ(arz_version=model)
         if(interp_factor is not None):
             gARZ.set_interpolation_factor(interp_factor)
 
