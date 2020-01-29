@@ -52,13 +52,13 @@ class ARZ(object):
     __instance = None
 
     def __new__(cls, seed=1234, interp_factor=1, interp_factor2=100, library=None,
-                version='ARZ2020'):
+                arz_version='ARZ2020'):
         if ARZ.__instance is None:
             ARZ.__instance = object.__new__(cls) #, seed, interp_factor, interp_factor2, library)
         return ARZ.__instance
 
     def __init__(self, seed=1234, interp_factor=1, interp_factor2=100, library=None,
-                 version='ARZ2020'):
+                 arz_version='ARZ2020'):
         logger.warning("setting seed to {}".format(seed, interp_factor))
         np.random.seed(seed)
         self._interp_factor = interp_factor
@@ -73,7 +73,7 @@ class ARZ(object):
                 logger.error("user specified shower library {} not found.".format(library))
                 raise FileNotFoundError("user specified shower library {} not found.".format(library))
         self.__check_and_get_library()
-        self.__set_model_parameters(version)
+        self.__set_model_parameters(arz_version)
 
         logger.warning("loading shower library ({}) into memory".format(library))
         self._library = io_utilities.read_pickle(library)
@@ -126,11 +126,11 @@ class ARZ(object):
                 code.write(r.content)
             logger.info("...download finished.")
 
-    def __set_model_parameters(self, version='ARZ2020'):
+    def __set_model_parameters(self, arz_version='ARZ2020'):
         """
         Sets the parameters for the form factor
         """
-        if (version == 'ARZ2019'):
+        if (arz_version == 'ARZ2019'):
             # Refit of ZHAireS results => factor 0.88 in Af_e
             self._Af_e = -4.5e-14 * 0.88 * units.V * units.s
             self._t0_e_pos = 0.057 * units.ns
@@ -147,7 +147,7 @@ class ARZ(object):
             self._t0_p_neg = 0.043 * units.ns
             self._freq_p_neg = 2.92 / units.ns
             self._exp_p_neg = -3.21
-        elif (version == 'ARZ2020'):
+        elif (arz_version == 'ARZ2020'):
             self._Af_e = -4.445e-14 * units.V * units.s
             self._t0_e_pos = 0.0348 * units.ns
             self._freq_e_pos = 2.298 / units.ns
