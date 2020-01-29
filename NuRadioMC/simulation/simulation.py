@@ -16,7 +16,7 @@ from scipy import constants
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution
-import NuRadioReco.modules.efieldToVoltageConverter
+import NuRadioReco.modules.electricFieldResampler
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.detector.generic_detector as gdetector
@@ -293,6 +293,8 @@ class simulation():
 
         self._channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
         self._eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
+        self._channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
+        self._electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
         if(self._outputfilenameNuRadioReco is not None):
             self._eventWriter.begin(self._outputfilenameNuRadioReco)
         self._n_events = len(self._fin['event_ids'])
@@ -597,6 +599,10 @@ class simulation():
                 t4 = time.time()
                 detSimTime += (t4 - t3)
             if(self._outputfilenameNuRadioReco is not None and self._mout['triggered'][self._iE]):
+                # downsample traces to detector sampling rate to save file size
+                self._channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
+                self._electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
+
                 if self.__write_detector:
                     self._eventWriter.run(self._evt, self._det)
                 else:

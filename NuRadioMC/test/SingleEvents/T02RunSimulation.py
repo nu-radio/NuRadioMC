@@ -7,6 +7,7 @@ import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
+import NuRadioReco.modules.triggerTimeAdjuster
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.electricFieldResampler
 from NuRadioReco.utilities import units
@@ -22,10 +23,11 @@ efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldTo
 efieldToVoltageConverter.begin()
 triggerSimulatorHighLow = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 triggerSimulatorSimple = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
-channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
+triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
 
 
 class mySimulation(simulation.simulation):
@@ -73,10 +75,7 @@ class mySimulation(simulation.simulation):
                                     number_concidences=4,  # 4/4 majority logic
                                     trigger_name='surface_dipoles_4of4_3sigma',
                                     set_not_triggered=(not self._station.has_triggered("simple_threshold")))  # calculate more time consuming ARIANNA trigger only if station passes simple trigger
-
-        # downsample trace back to detector sampling rate
-        channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
-        electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
+        triggerTimeAdjuster.run(self._evt, self._station, self._det)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
