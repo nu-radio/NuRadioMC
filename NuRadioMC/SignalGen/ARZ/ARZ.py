@@ -147,6 +147,7 @@ class ARZ(object):
             self._t0_p_neg = 0.043 * units.ns
             self._freq_p_neg = 2.92 / units.ns
             self._exp_p_neg = -3.21
+            self._include_em_factor = False
         elif (arz_version == 'ARZ2020'):
             self._Af_e = -4.445e-14 * units.V * units.s
             self._t0_e_pos = 0.0348 * units.ns
@@ -163,8 +164,24 @@ class ARZ(object):
             self._t0_p_neg = 0.0234 * units.ns
             self._freq_p_neg = 2.686 / units.ns
             self._exp_p_neg = -3.687
+            self._include_em_factor = True
         else:
             raise ValueError('ARZ version does not exist. Please choose ARZ2019 or ARZ2020.')
+
+    def em_fraction(self, energy):
+        """
+        Returns the energy fraction carried by the electromagnetic component of
+        a hadronic shower
+        """
+
+        if not self._include_em_factor:
+            return 1
+
+        epsilon = np.log10(energy/units.eV)
+        f_epsilon  = -21.98905 - 2.32492 * epsilon
+        f_epsilon += 0.019650 * epsilon**2 + 13.76152 * np.sqrt(epsilon)
+
+        return f_epsilon
 
     def set_seed(self, seed):
         """
@@ -502,6 +519,7 @@ class ARZ(object):
                     if(np.sum(mask2)):
                         Acher[mask2] = self._Af_p * E_TeV * (np.exp(-np.abs(tt[mask2]) / self._t0_p_neg) +
                                               (1. + self._freq_p_neg * np.abs(tt[mask2])) ** self._exp_p_neg)  # hadronic
+                    Acher *= self.em_fraction(shower_energy)
                 elif(shower_type == "EM"):
                     mask2 = tt > 0 & mask
                     if(np.sum(mask2)):
@@ -653,15 +671,16 @@ class ARZ(object):
             # Choose Acher between purely electromagnetic, purely hadronic or mixed shower
             # Eq.(16) PRD paper.
             E_TeV = energy / units.TeV
+            em_fraction = self.em_fraction(energy)
             if (tt > 0):
                 A_e = self._Af_e * E_TeV * (np.exp(-np.abs(tt) / self._t0_e_pos) +
                                       (1. + self._freq_e_pos * np.abs(tt)) ** self._exp_e_pos)  # electromagnetic
-                A_p = self._Af_p * E_TeV * (np.exp(-np.abs(tt) / self._t0_p_pos) +
+                A_p = self._Af_p * E_TeV * em_fraction * (np.exp(-np.abs(tt) / self._t0_p_pos) +
                                       (1. + self._freq_p_pos * np.abs(tt)) ** self._exp_p_pos) # hadronic
             else:
                 A_e = self._Af_e * E_TeV * (np.exp(-np.abs(tt) / self._t0_e_neg) +
                                       (1. + self._freq_e_neg * np.abs(tt)) ** self._exp_e_neg)  # electromagnetic
-                A_p = self._Af_p * E_TeV * (np.exp(-np.abs(tt) / self._t0_p_pos) +
+                A_p = self._Af_p * E_TeV * em_fraction * (np.exp(-np.abs(tt) / self._t0_p_pos) +
                                       (1. + self._freq_p_neg * np.abs(tt)) ** self._exp_p_neg)  # hadronic
 
             if(ccnc == 'nc'):
