@@ -52,6 +52,7 @@ class NuRadioRecoio(object):
         self.__read_lock = False
         self.__max_open_files = max_open_files
         self.openFile(filenames)
+        self._current_file_id = 0
         self.logger.info("... finished in {:.0f} seconds".format(time.time() - t))
 
     def _get_file(self, iF):
@@ -123,7 +124,8 @@ class NuRadioRecoio(object):
                 # treat sim_station differently
                 if(key == 'sim_station'):
                     pass
-#                   if key not in self.__event_headers[station_id]:
+                else:
+                    if key not in self.__event_headers[station_id]:
                         self.__event_headers[station_id][key] = []
                     self.__event_headers[station_id][key].append(value)
 
@@ -236,6 +238,10 @@ class NuRadioRecoio(object):
         # Check if detector object for current file already exists
         if self._current_file_id not in self.__detectors.keys():
             # Detector object for current file does not exist, so we create it
+            if self._current_file_id not in self._detector_dicts:
+                self.__scan_files()     #Maybe we just forgot to scan the file
+                if self._current_file_id not in self._detector_dicts:
+                    raise AttributeError('The current file does not contain a detector description.')
             detector_dict = self._detector_dicts[self._current_file_id]
             if 'generic_detector' in detector_dict.keys():
                 if detector_dict['generic_detector']:
