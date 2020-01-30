@@ -479,14 +479,14 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
     else:
         n_events_per_file = int(n_events_per_file)
     iFile = -1
-    evt_id_first = data_sets['event_ids'][0]
+    evt_id_first = data_sets['event_group_ids'][0]
     evt_id_last_previous = 0  # save the last event id of the previous file
     start_index = 0
     n_events_total = 0
     while True:
         iFile += 1
         filename2 = filename
-        evt_ids_this_file = np.unique(data_sets['event_ids'])[iFile * n_events_per_file : (iFile + 1) * n_events_per_file]
+        evt_ids_this_file = np.unique(data_sets['event_group_ids'])[iFile * n_events_per_file : (iFile + 1) * n_events_per_file]
         if(len(evt_ids_this_file) == 0):
             logger.info("no more events to write in file {}".format(iFile))
             break
@@ -504,7 +504,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         evt_id_first = evt_ids_this_file[0]
         evt_id_last = evt_ids_this_file[-1]
 
-        tmp = np.squeeze(np.argwhere(data_sets['event_ids'] == evt_id_last))  # set stop index such that last event is competely in file
+        tmp = np.squeeze(np.argwhere(data_sets['event_group_ids'] == evt_id_last))  # set stop index such that last event is competely in file
         if(tmp.size == 1):
             stop_index = tmp + 1
         else:
@@ -532,7 +532,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         # case 2) it is the last file -> total number of simulated events - last event id of previous file
         # case 3) it is the first file -> last event id + 1 - start_event_id
         # case 4) it is the first and last file -> total number of simulated events
-        evt_ids_next_file = np.unique(data_sets['event_ids'])[(iFile + 1) * n_events_per_file : (iFile + 2) * n_events_per_file]
+        evt_ids_next_file = np.unique(data_sets['event_group_ids'])[(iFile + 1) * n_events_per_file : (iFile + 2) * n_events_per_file]
         n_events_this_file = None
         if(iFile == 0 and len(evt_ids_next_file) == 0):  # case 4
             n_events_this_file = total_number_of_events
@@ -669,7 +669,7 @@ def get_product_position(data_sets, product, iE):
 def A_proj(theta, R, d):
     """
     calculates the projected area of a cylinder
-    
+
     Parameters
     ----------
     theta: float
@@ -678,8 +678,8 @@ def A_proj(theta, R, d):
         radius of zylinder
     d: float
         height of zylinder
-    
-    Returns: 
+
+    Returns:
     float: projected ares
     """
 
@@ -893,7 +893,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
-    data_sets["event_ids"] = np.arange(n_events) + start_event_id
+    data_sets["event_group_ids"] = np.arange(n_events) + start_event_id
     data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
 
     # generate neutrino flavors randomly
@@ -977,7 +977,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                                                               lepton_directions,
                                                               config_file=config_file)
 
-    for event_id in data_sets["event_ids"]:
+    for event_id in data_sets["event_group_ids"]:
         iE = event_id - start_event_id
 
         geometry_selection = mask_theta[iE] and mask_phi[iE]
@@ -1025,6 +1025,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     print("Total time", time.time() - init_time)
 
     print("number of fiducial showers", len(data_sets_fiducial['flavors']))
+
+    data_sets_fiducial["event_ids"] = np.arange(len(data_sets_fiducial["event_group_ids"])) + start_event_id
 
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
 
@@ -1219,6 +1221,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
     logger.debug("generating event ids")
+    data_sets["event_group_ids"] = np.arange(n_events) + start_event_id
     data_sets["event_ids"] = np.arange(n_events) + start_event_id
     logger.debug("generating number of interactions")
     data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
@@ -1362,7 +1365,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                                                   lepton_directions,
                                                                   config_file=proposal_config)
 
-        for event_id in data_sets["event_ids"]:
+        for event_id in data_sets["event_group_ids"]:
             iE = event_id - start_event_id
 
             first_inserted = False
@@ -1439,6 +1442,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         array_int = np.array(data_sets_fiducial['n_interaction'])
         array_code = np.array(data_sets_fiducial['flavors'])
 
+        data_sets_fiducial["event_ids"] = np.arange(len(data_sets_fiducial["event_group_ids"])) + start_event_id
+
     elif not add_tau_second_bang:
         # save only events with interactions in fiducial volume
         for key, value in iteritems(data_sets):
@@ -1458,7 +1463,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         mask = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 16)
         logger.info("{} taus are created in nu tau interactions -> checking if tau decays in fiducial volume".format(np.sum(mask)))
         n_taus = 0
-        for event_id in data_sets["event_ids"]:
+        for event_id in data_sets["event_group_ids"]:
             iE = event_id - start_event_id
 
             first_inserted = False
@@ -1523,6 +1528,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         # data_sets_fiducial
         for key in iterkeys(data_sets):
             data_sets_fiducial[key] = np.array(data_sets_fiducial[key])
+
+        data_sets_fiducial["event_ids"] = np.arange(len(data_sets_fiducial["event_group_ids"])) + start_event_id
 
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
 
