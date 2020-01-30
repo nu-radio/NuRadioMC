@@ -63,7 +63,7 @@ def merge_config(user, default):
 
 class simulation():
 
-    def __init__(self, eventlist,
+    def __init__(self, inputfilename,
                  outputfilename,
                  detectorfile,
                  outputfilenameNuRadioReco=None,
@@ -75,13 +75,14 @@ class simulation():
                  default_detector_station=None,
                  default_detector_channel=None,
                  log_level_propagation=logging.WARNING,
-                 file_overwrite=False):
+                 file_overwrite=False,
+                 event_list=None):
         """
         initialize the NuRadioMC end-to-end simulation
 
         Parameters
         ----------
-        eventlist: string
+        inputfilename: string
             the path to the hdf5 file containing the list of neutrino events
         outputfilename: string
             specify hdf5 output filename.
@@ -117,6 +118,8 @@ class simulation():
             the log level of the propagation module
         file_overwrite: bool
             True allows overwriting of existing files, default False
+        event_list: None or list of ints
+            if provided, only the event listed in this list are being simulated
         """
         logger.setLevel(log_level)
         self._log_level_ray_propagation = log_level_propagation
@@ -131,7 +134,7 @@ class simulation():
                 new_cfg = merge_config(local_config, self._cfg)
                 self._cfg = new_cfg
 
-        self._eventlist = eventlist
+        self._inputfilename = inputfilename
         self._outputfilename = outputfilename
         if(os.path.exists(self._outputfilename)):
             msg = f"hdf5 output file {self._outputfilename} already exists"
@@ -146,6 +149,7 @@ class simulation():
         self._debug = debug
         self._evt_time = evt_time
         logger.warning("setting event time to {}".format(evt_time))
+        self._event_list = event_list
 
         # initialize propagation module
         self._prop = propagation.get_propagation_module(self._cfg['propagation']['module'])
@@ -307,6 +311,9 @@ class simulation():
         t_start = time.time()
 
         for self._iE in range(self._n_events):
+            if(self._event_list is not None and self._fin['event_ids'][self._iE] not in self._event_list):
+                logger.debug(f"skipping event {self._fin['event_ids'][self._iE]} because it is not in the event list provided to the __init__ function")
+                continue
             t1 = time.time()
             if(self._iE > 0 and self._iE % max(1, int(self._n_events / 100.)) == 0):
                 eta = pretty_time_delta((time.time() - t_start) * (self._n_events - self._iE) / self._iE)
@@ -711,7 +718,7 @@ class simulation():
         """
         reads input file into memory
         """
-        fin = h5py.File(self._eventlist, 'r')
+        fin = h5py.File(self._inputfilename, 'r')
         self._fin = {}
         self._fin_stations = {}
         self._fin_attrs = {}
