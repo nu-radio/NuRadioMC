@@ -14,6 +14,7 @@ Welcome to NuRadioReco's documentation!
    pages/detector
    pages/nur_modules
    pages/event_display
+   pages/utilities
    pages/contributing
    pages/code_documentation
 
