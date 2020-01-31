@@ -3,8 +3,13 @@ Changelog - to keep track of all relevant changes
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
 
-version 1.0.1 - ????/??/??
+version 1.1.1
+- New version for the ARZ model available (ARZ2020) 
+- a list with event ids can be passed to the main simulation class. All events not in this list will not be simulated. 
+  This is useful for a quick resimulation of certain events. 
+- Alvarez???? Askaryan models now place the trace into the center of the trace (instead of 50ns into the trace) 
 
+version 1.1.0 - 2020/01/15
 new features:
 - specifying the bandwidth of the detector is no longer required. Now, the bandwidth is calculated automatically from the
   detector_simulation that the user defines by examining the NuRadioReco modules that alter the bandwidth (i.e. bandpass filters
@@ -17,7 +22,7 @@ new features:
 - Event generation using PROPOSAL lepton propagation available
 - fft and units utilities are removed. These should be taken from NuRadioReco from now on.
   IMPORTANT: Note that in the fft the frequency spectrum is now given per frequency instead of per bin
-- New version for the ARZ model available (ARZ2020)
+
 
 bugfixes:
 	- fixed that Veff utility script didn't calculate effective volumes for individual triggers
