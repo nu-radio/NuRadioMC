@@ -45,8 +45,8 @@ jobs:
       name: "Veff test"
     - stage: "Run NuRadioReco test"
       name: "Tiny reconstrucution"
-      script: NuRadioReco/NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
-    - script: NuRadioReco/NuRadioReco/test/trigger_tests/run_trigger_test.sh
+      script: /home/travis/build/nu-radio/NuRadioMC/NuRadioReco/NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
+    - script: /home/travis/build/nu-radio/NuRadioMC/NuRadioReco/NuRadioReco/test/trigger_tests/run_trigger_test.sh
       name: "Trigger tests"
-    - script: NuRadioReco/NuRadioReco/test/test_examples.sh
+    - script: /home/travis/build/nu-radio/NuRadioMC/NuRadioReco/NuRadioReco/test/test_examples.sh
       name: "Test all examples"
