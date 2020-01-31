@@ -17,6 +17,7 @@ new features:
 - Event generation using PROPOSAL lepton propagation available
 - fft and units utilities are removed. These should be taken from NuRadioReco from now on.
   IMPORTANT: Note that in the fft the frequency spectrum is now given per frequency instead of per bin
+- New version for the ARZ model available (ARZ2020)
 
 bugfixes:
 	- fixed that Veff utility script didn't calculate effective volumes for individual triggers
