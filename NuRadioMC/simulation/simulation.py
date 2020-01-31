@@ -567,7 +567,7 @@ class simulation():
                             trace_start_time = self._vertex_time + T
                         else:
                             trace_start_time = T
-                        electric_field.set_trace_start_time(T)
+                        electric_field.set_trace_start_time(trace_start_time)
                         electric_field[efp.azimuth] = azimuth
                         electric_field[efp.zenith] = zenith
                         electric_field[efp.ray_path_type] = self._prop.solution_types[r.get_solution_type(iS)]
