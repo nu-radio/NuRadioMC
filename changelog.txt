@@ -22,6 +22,7 @@ new features:
 - Event generation using PROPOSAL lepton propagation available
 - fft and units utilities are removed. These should be taken from NuRadioReco from now on.
   IMPORTANT: Note that in the fft the frequency spectrum is now given per frequency instead of per bin
+- New data set array 'vertex_times' contains the time elapsed from the first interaction to the current interaction
 
 
 bugfixes:
