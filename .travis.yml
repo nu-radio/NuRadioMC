@@ -44,3 +44,10 @@ jobs:
     - stage: "Test with multiple events"
       name: "Veff test"
       script: NuRadioMC/test/Veff/1e18eV/test_build.sh
+    - stage: "Run NuRadioReco test"
+      name: "Tiny reconstrucution"
+      script: NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
+    - script: NuRadioReco/test/trigger_tests/run_trigger_test.sh
+      name: "Trigger tests"
+    - script: NuRadioReco/test/test_examples.sh
+      name: "Test all examples"
