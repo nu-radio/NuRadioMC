@@ -36,7 +36,7 @@ argparser.add_argument('--port', default=8080, help="Specify the port the event 
 parsed_args = argparser.parse_args()
 data_folder = os.path.dirname(parsed_args.file_location)
 if os.path.isfile(parsed_args.file_location):
-    starting_filename = [parsed_args.file_location]
+    starting_filename = parsed_args.file_location
 else:
     starting_filename = None
 if parsed_args.open_window:
@@ -65,7 +65,7 @@ app.layout = html.Div([
             html.Div([
                 dcc.Dropdown(id='filename',
                              options=[],
-                             multi=True,
+                             multi=False,
                              value=starting_filename,
                              className='custom-dropdown'),
                  html.Div([
@@ -175,14 +175,16 @@ def get_page_content(selection):
 Output('event-counter-slider', 'value'),
 [Input('btn-next-event', 'n_clicks_timestamp'),
 Input('btn-previous-event', 'n_clicks_timestamp'),
-Input('event-click-coordinator', 'children')],
+Input('event-click-coordinator', 'children'),
+Input('filename', 'value')],
 [State('event-counter-slider', 'value'),
-State('user_id', 'children'),
-State('filename', 'value')]
+State('user_id', 'children')]
 )
-def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_click_info, i_event, juser_id, filename):
+def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_click_info, filename, i_event, juser_id):
     context = dash.callback_context
     if filename is None:
+        return 0
+    if context.triggered[0]['prop_id'] == 'filename.value':
         return 0
     if context.triggered[0]['prop_id'] == 'event-click-coordinator.children':
         if context.triggered[0]['value'] is None:
