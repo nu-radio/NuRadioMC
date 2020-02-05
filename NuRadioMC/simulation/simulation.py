@@ -362,7 +362,7 @@ class simulation():
             n_index = self._ice.get_index_of_refraction(x1)
             cherenkov_angle = np.arccos(1. / n_index)
 
-            self._evt = NuRadioReco.framework.event.Event(0, self._event_id)
+            self._evt = NuRadioReco.framework.event.Event(0, self._event_id, self._event_group_id)
 
             # first step: peorform raytracing to see if solution exists
             t2 = time.time()
@@ -854,6 +854,10 @@ class simulation():
         self._azimuth_nu = self._fin['azimuths'][self._iE]
         self._inelasticity = self._fin['inelasticity'][self._iE]
         self._n_interaction = self._fin['n_interaction'][self._iE]
+        if 'event_group_ids' in self._fin.keys():
+            self._event_group_id = self._fin['event_group_ids'][self._iE]
+        else:
+            self._event_group_id = None
 
     def _create_sim_station(self):
         """
