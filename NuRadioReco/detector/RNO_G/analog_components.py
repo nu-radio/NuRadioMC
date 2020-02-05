@@ -52,9 +52,11 @@ def load_amp_measurement(amp_measurement='surface_-60dBm_chan0_RI_20dB'):  # her
     """
     filename = os.path.join(os.path.dirname(__file__), 'HardwareResponses/', amp_measurement+".csv")
     ff = np.loadtxt(filename, delimiter=',', skiprows=7, usecols=(0)) # frequency
-    response = data[amp_measurement]['response']
-    gain = np.loadtxt(filename, delimiter=',', skiprows=7, usecols=(0))
-    phase = np.unwrap(np.angle(response))
+    response_re = np.loadtxt(filename, delimiter=',', skiprows=7, usecols=5) # real part
+    response_im = np.loadtxt(filename, delimiter=',', skiprows=7, usecols=6) # imaginary part
+    response = response_re + response_im * 1j
+    phase = np.angle(response)
+    gain = abs(response)
     amp_phase_f = interp1d(ff, phase, bounds_error=False, fill_value=0)  # all requests outside of measurement range are set to 0
     amp_gain_f = interp1d(ff, gain, bounds_error=False, fill_value=1)  # all requests outside of measurement range are set to 1
     
@@ -65,8 +67,7 @@ def load_amp_measurement(amp_measurement='surface_-60dBm_chan0_RI_20dB'):  # her
 
 # amp responses do not occupy a lot of memory, pre load all responses
 amplifier_response = {}
-for amp_type in ['100', '200', '300']:
-    amplifier_response[amp_type] = load_amplifier_response(amp_type)
+amplifier_response = load_amplifier_response
     
 amp_measurements = {}  # buffer for amp measurements
 
