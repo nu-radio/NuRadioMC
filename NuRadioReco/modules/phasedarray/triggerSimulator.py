@@ -70,6 +70,21 @@ class triggerSimulator:
 
         return beam_rolls
 
+    def get_channel_trace_start_time(self, station, triggered_channels):
+
+        if triggered_channels is None:
+            for channel in station.iter_channels():
+                channel_trace_start_time = channel.get_trace_start_time()
+                break
+        else:
+            channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
+
+        for channel in station.iter_channels():
+            if channel.get_trace_start_time() != channel_trace_start_time:
+                self.logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
+
+        return channel_trace_start_time
+
     def check_vertical_string(self, station, det, triggered_channels):
         """
         Checks if the triggering antennas lie in a straight vertical line
@@ -262,6 +277,8 @@ class triggerSimulator:
 
         else:
 
+            channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
+
             logger.debug("primary channels:", triggered_channels)
             beam_rolls = self.get_beam_rolls(station, det, triggered_channels, phasing_angles, ref_index=ref_index)
             empty_rolls = [ {} for direction in range(len(phasing_angles)) ]
@@ -287,6 +304,10 @@ class triggerSimulator:
                                       phasing_angles, secondary_phasing_angles,
                                       trigger_delays, sec_trigger_delays)
         trigger.set_triggered(is_triggered)
+        if is_triggered:
+            trigger.set_trigger_time(channel_trace_start_time)
+        else:
+            trigger.set_trigger_time(None)
         station.set_trigger(trigger)
 
         return is_triggered

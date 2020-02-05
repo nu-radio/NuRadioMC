@@ -198,6 +198,8 @@ class triggerSimulator(phasedTrigger):
 
         else:
 
+            channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
+
             logger.debug("primary channels:", triggered_channels)
             beam_rolls = self.get_beam_rolls(station, det, triggered_channels,
                                              phasing_angles, ref_index=ref_index)
@@ -209,6 +211,10 @@ class triggerSimulator(phasedTrigger):
                                         triggered_channels, phasing_angles, trigger_delays,
                                         output_passband)
         trigger.set_triggered(is_triggered)
+        if is_triggered:
+            trigger.set_trigger_time(channel_trace_start_time)
+        else:
+            trigger.set_trigger_time(None)
         station.set_trigger(trigger)
 
         return is_triggered
