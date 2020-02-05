@@ -23,6 +23,7 @@ import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 from NuRadioReco.utilities import geometryUtilities as geo_utl
+import NuRadioReco.utilities.event_id
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
@@ -180,6 +181,11 @@ class simulation():
 
         self._read_input_hdf5()  # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
 
+        # Tell the eventIdProvider which event IDs there are to make sure we do
+        # not create duplicate event IDs
+        event_id_provider = NuRadioReco.utilities.event_id.eventIdProvider()
+        for event_id in self._fin['event_ids']:
+            event_id_provider.add_event_id(0, event_id)
         ################################
         # perfom a dummy detector simulation to determine how the signals are filtered
         self._bandwidth_per_channel = {}
