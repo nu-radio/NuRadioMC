@@ -89,3 +89,6 @@ class showerParameters(Enum):
     magnetic_field_rotation = 102
     magnetic_field_vector = 103  # magnetic field used in simulation in local coordinate system
     observation_level = 104  # altitude a.s.l where the particles are stored
+
+class eventParameters(Enum):
+    sim_config = 1  #contents of the config file that the NuRadioMC simulation was run with
