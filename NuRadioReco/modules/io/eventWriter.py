@@ -83,7 +83,7 @@ class eventWriter:
         if(mode not in ['full', 'mini', 'micro']):
             logger.error("output mode must be one of ['full', 'mini', 'micro'] but is {}".format(mode))
             raise NotImplementedError
-#         self.__check_for_duplicate_ids(evt.get_run_number(), evt.get_id())
+        self.__check_for_duplicate_ids(evt.get_run_number(), evt.get_id())
         if not self.__header_written:
             self.__write_fout_header()
 
