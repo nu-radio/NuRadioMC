@@ -3,6 +3,7 @@ import pickle
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.framework.hybrid_information
+import NuRadioReco.framework.parameters as parameters
 from six import itervalues
 import collections
 import logging
@@ -78,11 +79,23 @@ class Event:
                 iE += 1
                 yield self.__modules_event[iE - 1]
 
-    def get_parameter(self, attribute):
-        return self._parameters[attribute]
+    def get_parameter(self, key):
+        if not isinstance(key, parameters.eventParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
+        return self._parameters[key]
 
     def set_parameter(self, key, value):
+        if not isinstance(key, parameters.eventParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
         self._parameters[key] = value
+
+    def has_parameter(self, key):
+        if not isinstance(key, parameters.eventParameters):
+            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
+            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
+        return key in self._parameters
 
     def get_id(self):
         return self._id
