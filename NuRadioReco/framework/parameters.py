@@ -56,6 +56,8 @@ class electricFieldParameters(Enum):
     reflection_coefficient_theta = 14  # for reflected rays: the complex Fresnel reflection coefficient of the eTheta component
     reflection_coefficient_phi = 15  # for reflected rays: the complex Fresnel reflection coefficient of the ePhi component
     cr_spectrum_quadratic_term = 16  # result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
+    charge_excess_profile_index = 17  # a dictionary of the indizes of the used charge excess profiles per shower type (applies for ARZ models)
+    shower_energy = 18  # a dictionary of the shower energy per shower type (EM or HAD)
 
 
 class ARIANNAParameters(Enum):  # this class stores parameters specific to the ARIANNA data taking
@@ -66,7 +68,7 @@ class ARIANNAParameters(Enum):  # this class stores parameters specific to the A
     comm_duration = 5  # maximum diration of communication window
     trigger_thresholds = 6  # trigger thresholds converted to voltage
     l1_supression_value = 7  # This provieds the L1 supression value for given event
-    internal_clock_time = 8 # time since last trigger with ms precision
+    internal_clock_time = 8  # time since last trigger with ms precision
 
 
 class showerParameters(Enum):
@@ -90,5 +92,6 @@ class showerParameters(Enum):
     magnetic_field_vector = 103  # magnetic field used in simulation in local coordinate system
     observation_level = 104  # altitude a.s.l where the particles are stored
 
+
 class eventParameters(Enum):
-    sim_config = 1  #contents of the config file that the NuRadioMC simulation was run with
+    sim_config = 1  # contents of the config file that the NuRadioMC simulation was run with
