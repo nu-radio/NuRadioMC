@@ -22,6 +22,7 @@ new features:
 - Event generation using PROPOSAL lepton propagation available
 - fft and units utilities are removed. These should be taken from NuRadioReco from now on.
   IMPORTANT: Note that in the fft the frequency spectrum is now given per frequency instead of per bin
+- Inclusion of event group ids for events created by the same neutrino and of event ids which are unique for each simulated event
 
 
 bugfixes:
