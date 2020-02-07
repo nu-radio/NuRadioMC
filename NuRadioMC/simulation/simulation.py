@@ -573,6 +573,11 @@ class simulation():
                         electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
                         electric_field[efp.reflection_coefficient_theta] = r_theta
                         electric_field[efp.reflection_coefficient_phi] = r_phi
+                        electric_field[efp.shower_energy] = {"EM": self._energy * fem, "HAD": self._energy * fhad}
+                        if(self._cfg['signal']['model'] in ['ARZ2019', 'ARZ2020']):
+                            from NuRadioMC.SignalGen.ARZ import ARZ
+                            gARZ = ARZ.ARZ(arz_version=self._cfg['signal']['model'])
+                            electric_field[efp.charge_excess_profile_index] = gARZ.get_last_shower_profile_id()
                         self._sim_station.add_electric_field(electric_field)
 
                         # apply a simple threshold cut to speed up the simulation,

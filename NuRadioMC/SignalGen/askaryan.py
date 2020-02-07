@@ -6,8 +6,6 @@ from NuRadioMC.SignalGen import parametrizations as par
 import logging
 logger = logging.getLogger("SignalGen.askaryan")
 
-gARZ = None
-
 
 def set_log_level(level):
     logger.setLevel(level)
@@ -87,9 +85,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
         return HCRB2017.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, LPM, a)[1]
     elif(model == 'ARZ2019' or model == 'ARZ2020'):
         from NuRadioMC.SignalGen.ARZ import ARZ
-        global gARZ
-        if(gARZ is None):
-            gARZ = ARZ.ARZ(arz_version=model)
+        gARZ = ARZ.ARZ(arz_version=model)
         if(interp_factor is not None):
             gARZ.set_interpolation_factor(interp_factor)
 
@@ -141,4 +137,4 @@ def get_frequency_spectrum(energy, theta, N, dt, shower_type, n_index, R, model,
         the complex amplitudes for the given frequencies
 
     """
-    return fft.time2freq(get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, **kwargs),1/dt)
+    return fft.time2freq(get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, **kwargs), 1 / dt)
