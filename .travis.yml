@@ -17,15 +17,14 @@ before_script:
   - export PYTHONPATH=$PWD/radiotools
   - wget https://github.com/nu-radio/NuRadioReco/archive/sub_events.zip -O /tmp/NuRadioReco.zip
   - unzip /tmp/NuRadioReco.zip
-  - mv NuRadioReco-sub_events NuRadioReco
+  - mv NuRadioReco-sub_events/NuRadioReco $PWD/NuRadioReco
   - export PYTHONPATH=$PYTHONPATH:$PWD/NuRadioReco
-  - export PYTHONPATH=$PYTHONPATH:$PWD
   - wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
-  - mkdir -p /home/travis/build/nu-radio/NuRadioMC/NuRadioReco/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn
-  - mv createLPDA_100MHz_InfFirn.pkl /home/travis/build/nu-radio/NuRadioMC/NuRadioReco/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
+  - mkdir -p /home/travis/build/nu-radio/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn
+  - mv createLPDA_100MHz_InfFirn.pkl /home/travis/build/nu-radio/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
   - wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/bicone_v8_InfFirn/bicone_v8_InfFirn.pkl
-  - mkdir -p /home/travis/build/nu-radio/NuRadioMC/NuRadioReco/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
-  - mv bicone_v8_InfFirn.pkl /home/travis/build/nu-radio/NuRadioMC/NuRadioReco/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
+  - mkdir -p /home/travis/build/nu-radio/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
+  - mv bicone_v8_InfFirn.pkl /home/travis/build/nu-radio/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
 
 jobs:
   include:
@@ -41,6 +40,12 @@ jobs:
       name: "Signal propagation tests"
     - script: NuRadioMC/test/examples/test_examples.sh
       name: "Test Examples"
-    - stage: "Test with multiple events"
+    - script: NuRadioMC/test/Veff/1e18eV/test_build.sh
       name: "Veff test"
-      script: NuRadioMC/test/Veff/1e18eV/test_build.sh
+    - stage: "Run NuRadioReco test"
+      name: "Tiny reconstrucution"
+      script: NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
+    - script: NuRadioReco/test/trigger_tests/run_trigger_test.sh
+      name: "Trigger tests"
+    - script: NuRadioReco/test/test_examples.sh
+      name: "Test all examples"

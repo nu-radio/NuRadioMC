@@ -23,7 +23,7 @@ dt = 0.5 * units.ns
 n_samples = 256
 R = 1 * units.km
 
-models = ['Alvarez2009', 'ARZ2019', 'Alvarez2000']
+models = ['Alvarez2009', 'ARZ2019', 'Alvarez2000', 'ARZ2020']
 shower_types = ['EM', 'HAD']
 
 Es = 10 ** np.linspace(15, 19, 5) * units.eV

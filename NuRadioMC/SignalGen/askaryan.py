@@ -85,11 +85,11 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
         if('a' in kwargs):
             a = kwargs['a']
         return HCRB2017.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, LPM, a)[1]
-    elif(model == 'ARZ2019'):
+    elif(model == 'ARZ2019' or model == 'ARZ2020'):
         from NuRadioMC.SignalGen.ARZ import ARZ
         global gARZ
         if(gARZ is None):
-            gARZ = ARZ.ARZ()
+            gARZ = ARZ.ARZ(arz_version=model)
         if(interp_factor is not None):
             gARZ.set_interpolation_factor(interp_factor)
 
