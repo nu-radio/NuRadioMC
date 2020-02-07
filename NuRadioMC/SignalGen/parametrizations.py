@@ -139,7 +139,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
                 else:
                     log10_k_L_bar = log10_k_0 + gamma_1 * (log10_E_0 - log10_E_LPM)
 
-                k_L = 10 ** np.random.normal(log10_k_L_bar, sigma_k_L)
+                k_L = 10 ** _random_generators[model].normal(log10_k_L_bar, sigma_k_L)
             else:
                 raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
 
