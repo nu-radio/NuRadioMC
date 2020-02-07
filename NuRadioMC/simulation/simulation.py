@@ -357,7 +357,10 @@ class simulation():
             # calculate weight
             # if we have a second interaction, the weight needs to be calculated from the initial neutrino
             if(self._n_interaction > 1):
-                iE_mother = np.argwhere(self._fin['event_group_ids'] == self._fin['event_group_ids'][self._iE]).min()  # get index of mother neutrino
+                if 'event_group_ids' in self._fin:
+                    iE_mother = np.argwhere(self._fin['event_group_ids'] == self._fin['event_group_ids'][self._iE]).min()  # get index of mother neutrino
+                else:
+                    iE_mother = np.argwhere(self._fin['event_ids'] == self._fin['event_ids'][self._iE]).min()  # get index of mother neutrino
                 self._mout['weights'][self._iE] = get_weight(self._fin['zeniths'][iE_mother],
                                                      self._fin['energies'][iE_mother],
                                                      self._fin['flavors'][iE_mother],
@@ -916,9 +919,14 @@ class simulation():
 
             parent_indices = np.argwhere(self._fin['n_interaction'] == 1)
 
-            for event_group_id in self._fin['event_group_ids']:
-                event_mask = self._fin['event_group_ids'] == event_group_id
-                event_indices = np.argwhere(self._fin['event_group_ids'] == event_group_id)[0]
+            if 'event_group_ids' in self._fin:
+                dataset_label = 'event_group_ids'
+            else:
+                dataset_label = 'event_ids'
+
+            for event_group_id in self._fin[dataset_label]:
+                event_mask = self._fin[dataset_label] == event_group_id
+                event_indices = np.argwhere(self._fin[dataset_label] == event_group_id)[0]
                 if (True in self._mout['triggered'][event_mask]):
                     saved[ np.intersect1d(parent_indices, event_indices)[0] ] = True
         else:
