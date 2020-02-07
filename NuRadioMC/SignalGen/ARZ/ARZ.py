@@ -11,8 +11,18 @@ from radiotools import coordinatesystems as cstrafo
 import os
 import copy
 import logging
+import six
 logger = logging.getLogger("SignalGen.ARZ")
 logging.basicConfig()
+
+
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if Singleton._instances.get(cls, None) is None:
+            Singleton._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return Singleton._instances[cls]
 
 ######################
 ######################
@@ -21,6 +31,7 @@ logging.basicConfig()
 # to hadronic showers. Thanks a lot to Jaime Alvarez-Muñiz for providing us with this unpublished work!
 #####################
 #####################
+
 
 # define constants
 # x0 = 36.08 * units.g / units.cm**2  # radiation length g cm^-2
@@ -48,14 +59,8 @@ def theta_to_thetaprime(theta, xmax, R):
     return np.arctan2(b, a)
 
 
+@six.add_metaclass(Singleton)
 class ARZ(object):
-    __instance = None
-
-    def __new__(cls, seed=1234, interp_factor=1, interp_factor2=100, library=None,
-                arz_version='ARZ2020'):
-        if ARZ.__instance is None:
-            ARZ.__instance = object.__new__(cls)  # , seed, interp_factor, interp_factor2, library)
-        return ARZ.__instance
 
     def __init__(self, seed=1234, interp_factor=1, interp_factor2=100, library=None,
                  arz_version='ARZ2020'):
@@ -304,6 +309,15 @@ class ARZ(object):
             Lmax = xmax / rho
             return trace_onsky, Lmax
         return trace_onsky
+
+    def get_last_shower_profile_id(self):
+        """
+        returns dict
+            the index of the randomly selected shower profile per shower type
+            key is the shower type (string)
+            value is the index (int)
+        """
+        return self._random_numbers
 
     def get_vector_potential_fast(self, shower_energy, theta, N, dt, profile_depth, profile_ce,
                                   shower_type="HAD", n_index=1.78, distance=1 * units.m,
