@@ -26,6 +26,7 @@ from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.framework.parameters import eventParameters as evp
 import datetime
 import logging
 from six import iteritems
@@ -74,9 +75,10 @@ class simulation():
                  log_level=logging.WARNING,
                  default_detector_station=None,
                  default_detector_channel=None,
-                 log_level_propagation=logging.WARNING,
                  file_overwrite=False,
-                 event_list=None):
+                 write_detector=True,
+                 event_list=None,
+                 log_level_propagation=logging.WARNING):
         """
         initialize the NuRadioMC end-to-end simulation
 
@@ -114,12 +116,15 @@ class simulation():
             if station parameters are not defined, the parameters of the default station are used
         default_detector_channel: int or None
             if channel parameters are not defined, the parameters of the default channel are used
-        log_level_propagation: logging.LEVEL
-            the log level of the propagation module
         file_overwrite: bool
             True allows overwriting of existing files, default False
+        write_detector: bool
+            If true, the detector description is written into the .nur files along with the events
+            default True
         event_list: None or list of ints
             if provided, only the event listed in this list are being simulated
+        log_level_propagation: logging.LEVEL
+            the log level of the propagation module
         """
         logger.setLevel(log_level)
         self._log_level_ray_propagation = log_level_propagation
@@ -148,6 +153,7 @@ class simulation():
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._debug = debug
         self._evt_time = evt_time
+        self.__write_detector = write_detector
         logger.warning("setting event time to {}".format(evt_time))
         self._event_list = event_list
 
@@ -370,6 +376,7 @@ class simulation():
             cherenkov_angle = np.arccos(1. / n_index)
 
             self._evt = NuRadioReco.framework.event.Event(0, self._event_id)
+            self._evt.set_parameter(evp.sim_config, self._cfg)
 
             # first step: peorform raytracing to see if solution exists
             t2 = time.time()
@@ -602,7 +609,11 @@ class simulation():
                 # downsample traces to detector sampling rate to save file size
                 self._channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
                 self._electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
-                self._eventWriter.run(self._evt)
+
+                if self.__write_detector:
+                    self._eventWriter.run(self._evt, self._det)
+                else:
+                    self._eventWriter.run(self._evt)
 
         # Create trigger structures if there are no triggering events.
         # This is done to ensure that files with no triggering n_events
