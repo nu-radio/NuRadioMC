@@ -28,3 +28,5 @@ rotation_phi: rotation of the antenna, is perpendicular to 'orientation', for LP
 
 deployment_time: the time of antenna deployment aka the time when the antenna depth was measured (relevant because the depth changes because of snow accumulation)
 type: the type of antenna
+
+Antenna positions can be visualized in 3D using the script `NuRadioReco/detector/visualize_detector.py my_detector.json`
