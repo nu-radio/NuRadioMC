@@ -139,6 +139,9 @@ class simulation():
                 new_cfg = merge_config(local_config, self._cfg)
                 self._cfg = new_cfg
 
+        if(self._cfg['seed'] is None):
+            self._cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
+
         self._inputfilename = inputfilename
         self._outputfilename = outputfilename
         if(os.path.exists(self._outputfilename)):
