@@ -21,13 +21,15 @@ argument of the respective function.
 
 """
 
+_random_generators = {}
+
 
 def get_parametrizations():
     """ returns a list of all implemented parametrizations """
     return ['ZHS1992', 'Alvarez2000', 'Alvarez2009', 'Alvarez2012']
 
 
-def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
+def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=None):
     """
     returns the Askaryan pulse in the time domain of the eTheta component
 
@@ -59,6 +61,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
         * ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information
         * Alvarez2000: parameterization based on ZHS mainly based on J. Alvarez-Muniz, R. A. Vazquez, and E. Zas, Calculation methods for radio pulses from high energyshowers,Physical Review D62 (2000) https://doi.org/10.1103/PhysRevD.84.103003
         * Alvarez2009: parameterization based on ZHS from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas, Coherent cherenkov radio pulses fromhadronic showers up to eev energies,Astroparticle Physics35(2012), no. 6 287 – 299 and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas, Thinned simulations of extremely energeticshowers in dense media for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111
+    seed: None or int
+        the random seed for the Askaryan modules
 
     Returns
     -------
@@ -66,6 +70,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
         the complex amplitudes for the given frequencies
 
     """
+    if(model not in _random_generators):
+        _random_generators[model] = np.random.RandomState(seed)
     if(model == 'ZHS1992'):
         """ Parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992)."""
         freqs = np.fft.rfftfreq(N, dt)
@@ -82,7 +88,6 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model):
         return trace
 
     elif(model == 'Alvarez2009'):
-
         # This parameterisation is not very accurate for energies above 10 EeV
         # The ARZ model should be used instead
         freqs = np.fft.rfftfreq(N, dt)[1:]  # exclude zero frequency

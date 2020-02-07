@@ -471,7 +471,7 @@ class simulation():
                         t_ask = time.time()
                         spectrum = signalgen.get_frequency_spectrum(
                             self._energy * fhad, viewing_angles[iS], self._n_samples, self._dt, "HAD", n_index, R,
-                            self._cfg['signal']['model'], same_shower=(iS > 0))
+                            self._cfg['signal']['model'], same_shower=(iS > 0), seed=self._cfg['seed'])
                         askaryan_time += (time.time() - t_ask)
 
                         # apply frequency dependent attenuation
@@ -485,7 +485,7 @@ class simulation():
                             t_ask = time.time()
                             spectrum_em = signalgen.get_frequency_spectrum(
                                 self._energy * fem, viewing_angles[iS], self._n_samples, self._dt, "EM", n_index, R,
-                                self._cfg['signal']['model'], same_shower=(iS > 0))
+                                self._cfg['signal']['model'], same_shower=(iS > 0), seed=self._cfg['seed'])
                             askaryan_time += (time.time() - t_ask)
                             if self._cfg['propagation']['attenuate_ice']:
                                 spectrum_em *= attn

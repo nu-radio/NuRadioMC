@@ -13,7 +13,7 @@ def set_log_level(level):
 
 
 def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_factor=None, interp_factor2=None,
-                   same_shower=False, **kwargs):
+                   same_shower=False, seed=None, **kwargs):
     """
     returns the Askaryan pulse in the time domain of the eTheta component
 
@@ -56,6 +56,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
     same_shower: bool (default False)
         controls the random behviour of picking a shower from the library in the ARZ model, see description there for
         more details
+    seed: None or int
+        the random seed for the Askaryan modules
 
     Returns
     -------
@@ -66,7 +68,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
     if(energy == 0):
         return np.zeros(N)
     if model in par.get_parametrizations():
-        return par.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model)
+        return par.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=seed)
     elif(model == 'HCRB2017'):
         from NuRadioMC.SignalGen import HCRB2017
         is_em_shower = None
@@ -85,7 +87,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
         return HCRB2017.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, LPM, a)[1]
     elif(model == 'ARZ2019' or model == 'ARZ2020'):
         from NuRadioMC.SignalGen.ARZ import ARZ
-        gARZ = ARZ.ARZ(arz_version=model)
+        gARZ = ARZ.ARZ(arz_version=model, seed=seed)
         if(interp_factor is not None):
             gARZ.set_interpolation_factor(interp_factor)
 
