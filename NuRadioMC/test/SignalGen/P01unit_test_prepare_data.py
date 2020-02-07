@@ -28,7 +28,7 @@ for model in models:
     for E in Es:
         for shower_type in shower_types:
             for theta in thetas:
-                trace = get_time_trace(E, theta, n_samples, dt, shower_type, n_index, R, model)
+                trace = get_time_trace(E, theta, n_samples, dt, shower_type, n_index, R, model, seed=1234)
                 output.append(trace)
 
 with open("reference_v1.pkl", "wb") as fout:
