@@ -17,7 +17,7 @@ before_script:
   - export PYTHONPATH=$PWD/radiotools
   - wget https://github.com/nu-radio/NuRadioReco/archive/vertex-times.zip -O /tmp/NuRadioReco.zip
   - unzip /tmp/NuRadioReco.zip
-  - mv NuRadioReco-master/NuRadioReco $PWD/NuRadioReco
+  - mv NuRadioReco-vertex-times/NuRadioReco $PWD/NuRadioReco
   - export PYTHONPATH=$PYTHONPATH:$PWD
   - wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
   - mkdir -p /home/travis/build/nu-radio/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn
