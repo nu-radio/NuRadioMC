@@ -39,12 +39,20 @@ if args.create_reference:
 else:
     for trigger_name in trigger_names:
         for property in properties:
-            try:
-                np.testing.assert_allclose(trigger_results[trigger_name][property], reference[trigger_name][property])
-            except AssertionError as e:
-                print('Property {} of trigger {} differs from reference'.format(property, trigger_name))
-                print(e)
-                found_error = True
+            if(property == "trigger_time"):
+                try:
+                    np.testing.assert_allclose(np.array(trigger_results[trigger_name][property], dtype=np.float), np.array(reference[trigger_name][property], dtype=np.float))
+                except AssertionError as e:
+                    print('Property {} of trigger {} differs from reference'.format(property, trigger_name))
+                    print(e)
+                    found_error = True
+            else:
+                try:
+                    np.testing.assert_equal(trigger_results[trigger_name][property], reference[trigger_name][property])
+                except AssertionError as e:
+                    print('Property {} of trigger {} differs from reference'.format(property, trigger_name))
+                    print(e)
+                    found_error = True
 
 if found_error:
     sys.exit(-1)
