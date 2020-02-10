@@ -7,21 +7,22 @@ import logging
 logger = logging.getLogger('analog_components')
 
 
-def load_amplifier_response(path=os.path.dirname(os.path.realpath(__file__))):  # here we use log data
+def load_amplifier_response(amp_type='10', path=os.path.dirname(os.path.realpath(__file__))):  # here we use log data
     """
     Read out amplifier gain and phase. Currently only examples have been implemented.
     Needs a better structure in the future, possibly with database.
     """
     amplifier_response = {}
+    if amp_type == '10':
+        ph = os.path.join(path, 'HardwareResponses/surface_-60dBm_chan0_LogA_20dB.csv')
+        amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= (0, 5))
+        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=(0, 6))
 
-    ph = os.path.join(path, 'HardwareResponses/surface_-60dBm_chan0_LogA_20dB.csv')
-    amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= (0, 5))
-    amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=(0, 6))
 
-
-    # Convert to GHz and add 60dB/40dB for attenuation in measurement circuit
+    # Convert to GHz and add 20dB for attenuation in measurement circuit
     amp_gain_discrete[:, 0] *= units.Hz
-    amp_gain_discrete[:, 1] += 20
+    if amp_type == '10':
+        amp_gain_discrete[:, 1] += 20
 
     amp_gain_db_f = interp1d(amp_gain_discrete[:, 0], amp_gain_discrete[:, 1],
                              bounds_error=False, fill_value=0)  # all requests outside of measurement range are set to 0
@@ -67,7 +68,8 @@ def load_amp_measurement(amp_measurement='surface_-60dBm_chan0_RI_20dB'):  # her
 
 # amp responses do not occupy a lot of memory, pre load all responses
 amplifier_response = {}
-amplifier_response = load_amplifier_response
+for amp_type in ['10']:
+    amplifier_response[amp_type] = load_amplifier_response(amp_type)
     
 amp_measurements = {}  # buffer for amp measurements
 
