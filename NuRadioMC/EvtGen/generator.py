@@ -1028,6 +1028,11 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     data_sets_fiducial["event_ids"] = np.arange(len(data_sets_fiducial["event_group_ids"])) + start_event_id
 
+    for i_event_group_id, event_group_id in enumerate(np.unique(data_sets_fiducial["event_group_ids"])):
+        new_event_group_id = start_event_id + i_event_group_id
+        mask_group_id = data_sets_fiducial["event_group_ids"] == event_group_id
+        data_sets_fiducial["event_group_ids"][mask_group_id] = new_event_group_id
+
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
 
     return None
@@ -1444,6 +1449,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
         data_sets_fiducial["event_ids"] = np.arange(len(data_sets_fiducial["event_group_ids"])) + start_event_id
 
+        # Changing event group ids so that there are no discontinuities in the numbering
+        data_sets_fiducial["event_group_ids"] = np.array(data_sets_fiducial["event_group_ids"])
+        for i_event_group_id, event_group_id in enumerate(np.unique(data_sets_fiducial["event_group_ids"])):
+            new_event_group_id = start_event_id + i_event_group_id
+            mask_group_id = data_sets_fiducial["event_group_ids"] == event_group_id
+            data_sets_fiducial["event_group_ids"][mask_group_id] = new_event_group_id
+
     elif not add_tau_second_bang:
         # save only events with interactions in fiducial volume
         for key, value in iteritems(data_sets):
@@ -1530,6 +1542,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             data_sets_fiducial[key] = np.array(data_sets_fiducial[key])
 
         data_sets_fiducial["event_ids"] = np.arange(len(data_sets_fiducial["event_group_ids"])) + start_event_id
+
+        # Changing event group ids so that there are no discontinuities in the numbering
+        data_sets_fiducial["event_group_ids"] = np.array(data_sets_fiducial["event_group_ids"])
+        for i_event_group_id, event_group_id in enumerate(np.unique(data_sets_fiducial["event_group_ids"])):
+            new_event_group_id = start_event_id + i_event_group_id
+            mask_group_id = data_sets_fiducial["event_group_ids"] == event_group_id
+            data_sets_fiducial["event_group_ids"][mask_group_id] = new_event_group_id
 
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
 
