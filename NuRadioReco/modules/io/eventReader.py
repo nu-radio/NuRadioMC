@@ -31,7 +31,7 @@ class eventReader:
         return self.__fin.get_events()
 
     def end(self):
-        self.__fin.close_file()
+        self.__fin.close_files()
 
     def get_header(self):
         """
@@ -39,6 +39,7 @@ class eventReader:
         looping through all events
         """
         return self.__fin.get_header()
+
     def get_detector(self):
         """
         If read_detector was set True in the begin() function, this function return
