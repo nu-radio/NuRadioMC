@@ -30,11 +30,12 @@ for event in event_reader.run():
             if property not in trigger_results[trigger_name].keys():
                 trigger_results[trigger_name][property] = []
             trigger_results[trigger_name][property].append(trigger.get_trigger_settings()[property])
-        
+
 found_error = False
 if args.create_reference:
-    with open('reference.json', 'w') as f:
-        json.dump(trigger_results, f)
+    with open('NuRadioReco/test/trigger_tests/reference.json', 'w') as f:
+        json.dump(trigger_results, f, sort_keys=True,
+                  indent=4, separators=(',', ': '))
 else:
     for trigger_name in trigger_names:
         for property in properties:
