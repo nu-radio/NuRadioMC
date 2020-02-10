@@ -40,7 +40,7 @@ else:
     for trigger_name in trigger_names:
         for property in properties:
             try:
-                np.testing.assert_equal(trigger_results[trigger_name][property], reference[trigger_name][property])
+                np.testing.assert_allclose(trigger_results[trigger_name][property], reference[trigger_name][property])
             except AssertionError as e:
                 print('Property {} of trigger {} differs from reference'.format(property, trigger_name))
                 print(e)
