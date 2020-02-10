@@ -321,7 +321,7 @@ def get_E2_limit_figure(diffuse=True,
         vanVliet_max = np.maximum(vanVliet_max_1[1, :], vanVliet_max_2[1, :])
 
         prot10, = ax.plot(vanVliet_reas[0, :] * units.GeV / plotUnitsEnergy, vanVliet_reas[1, :],
-                          label=r'10% protons in UHECRs (AUGER), m=3.4, van Vliet et al.', linestyle='--', color='k')
+                          label=r'10% protons in UHECRs (Auger), m=3.4, van Vliet et al.', linestyle='--', color='k')
 
         prot = ax.fill_between(vanVliet_max_1[0, :] * units.GeV / plotUnitsEnergy, vanVliet_max,
                                vanVliet_reas[1, :] / 50, color='0.9', label=r'allowed from UHECRs (AUGER), van Vliet et al.', zorder=-2)
@@ -333,9 +333,14 @@ def get_E2_limit_figure(diffuse=True,
 #             best_fit, = ax.plot(Heinze_band[:, 0], Heinze_band[:, 1] * Heinze_band[:, 0] ** 2, c='k',
 #                                 label=r'UHECR (Auger) combined fit, Heinze et al.', linestyle='-.')
 
-            Auger_bestfit = ax.fill_between(Heinze_band[:, 0],
-                                     Heinze_band[:, 2] * Heinze_band[:, 0] ** 2, Heinze_band[:, 3] * Heinze_band[:, 0] ** 2,
-                              label=r'UHECRs Auger combined fit, Heinze et al.', color='C1', alpha=0.5, zorder=1)
+#             Auger_bestfit = ax.fill_between(Heinze_band[:, 0],
+#                                      Heinze_band[:, 2] * Heinze_band[:, 0] ** 2, Heinze_band[:, 3] * Heinze_band[:, 0] ** 2,
+#                               label=r'UHECRs Auger combined fit, Heinze et al.', color='C1', alpha=0.5, zorder=1)
+
+            Heinze_evo = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_evolutions.out"))
+            Auger_bestfit = ax.fill_between(Heinze_evo[:, 0],
+                                     Heinze_evo[:, 3] * Heinze_band[:, 0] ** 2, Heinze_evo[:, 4] * Heinze_band[:, 0] ** 2,
+                              label=r'UHECRs Auger combined fit (3$\sigma$), Heinze et al.', color='C1', alpha=0.5, zorder=1)
 
 #             Heinze_evo = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_evolutions.out"))
 #             best_fit_3s, = ax.plot(Heinze_evo[:, 0] * units.GeV / plotUnitsEnergy, Heinze_evo[:, 6] * Heinze_evo[:, 0] **
@@ -349,7 +354,7 @@ def get_E2_limit_figure(diffuse=True,
             TA_data_high = np.loadtxt(os.path.join(os.path.dirname(__file__), "TA_combined_fit_high_exp_uncertainty.txt"))
             TA_m3 = ax.fill_between(TA_data_low[:, 0] * units.GeV / plotUnitsEnergy,
                                      TA_data_low[:, 1], TA_data_high[:, 1],
-                              label=r'UHECRs TA combined fit, m=3', color='C0', alpha=0.5, zorder=-1)
+                              label=r'UHECRs TA combined fit (1$\sigma$), Bergman et al.', color='C0', alpha=0.5, zorder=-1)
             legends.append(TA_m3)
 
         first_legend = plt.legend(handles=legends, loc=4, fontsize=legendfontsize, handlelength=4)
