@@ -4,6 +4,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 new features:
 - changed the way logging in handled.
+- Trigger times now include the time with respect to the first interaction (vertex times)
 
 version 1.0.1 - 2020/02/05
 
