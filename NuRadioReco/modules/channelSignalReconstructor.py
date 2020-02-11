@@ -163,7 +163,7 @@ class channelSignalReconstructor:
             channel[chp.SNR] = self.get_SNR(station.get_id(), channel, det,
                                             stored_noise=stored_noise, rms_stage=rms_stage)
 
-        station[stnp.channels_max_amplitude] = max_amplitude_station
+        station[stnp.channels_max_amplitude] = max_amplitude
 
         self.__t = time.time() - t
 
