@@ -8,6 +8,7 @@ version 1.1.1
 - a list with event ids can be passed to the main simulation class. All events not in this list will not be simulated. 
   This is useful for a quick resimulation of certain events. 
 - Alvarez???? Askaryan models now place the trace into the center of the trace (instead of 50ns into the trace) 
+- New data set array 'vertex_times' contains the time elapsed from the first interaction to the current interaction
 
 version 1.1.0 - 2020/01/15
 new features:
