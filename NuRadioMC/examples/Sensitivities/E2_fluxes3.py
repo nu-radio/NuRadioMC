@@ -324,7 +324,7 @@ def get_E2_limit_figure(diffuse=True,
                           label=r'10% protons in UHECRs (Auger), m=3.4, van Vliet et al.', linestyle='--', color='k')
 
         prot = ax.fill_between(vanVliet_max_1[0, :] * units.GeV / plotUnitsEnergy, vanVliet_max,
-                               vanVliet_reas[1, :] / 50, color='0.9', label=r'allowed from UHECRs (AUGER), van Vliet et al.', zorder=-2)
+                               vanVliet_reas[1, :] / 50, color='0.9', label=r'allowed from UHECRs (Auger), van Vliet et al.', zorder=-2)
         legends.append(prot10)
         legends.append(prot)
 
