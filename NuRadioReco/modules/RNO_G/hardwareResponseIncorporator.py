@@ -1,5 +1,5 @@
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.detector.ARIANNA import analog_components
+from NuRadioReco.detector.RNO_G import analog_components
 import numpy as np
 from NuRadioReco.utilities import units, fft
 import time
@@ -28,7 +28,7 @@ class hardwareResponseIncorporator:
         self.__debug = debug
         #analog_components
 
-    def get_filter(self, frequencies, station_id, channel_id, det, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
+    def get_filter(self, frequencies, station_id, channel_id, det, sim_to_data=True, phase_only=False, mode=None, mingainlin=None):
         """
         helper function to return the filter that the module applies.
 
@@ -57,9 +57,9 @@ class hardwareResponseIncorporator:
             ampmax= np.max(np.abs(amp_response))
             iamp_gain_low = np.where(np.abs(amp_response)<(mingainlin*ampmax))
             amp_response[iamp_gain_low]=(mingainlin*ampmax) * np.exp(1j * np.angle(amp_response[iamp_gain_low]))
-
-        cable_response = analog_components.get_cable_response_parametrized(frequencies,
-                                   *det.get_cable_type_and_length(station_id, channel_id))
+        cable_response = 1
+        #cable_response = analog_components.get_cable_response_parametrized(frequencies,
+         #                          *det.get_cable_type_and_length(station_id, channel_id))
         if(mode=='phase_only'):
             cable_response = np.ones_like(cable_response) * np.exp(1j * np.angle(cable_response))
             amp_response = np.ones_like(amp_response) * np.angle(amp_response)
@@ -73,7 +73,7 @@ class hardwareResponseIncorporator:
             return 1./ (amp_response * cable_response)
 
     @register_run()
-    def run(self, evt, station, det, sim_to_data=False, phase_only=False,mode=None,mingainlin=None):
+    def run(self, evt, station, det, sim_to_data=True, phase_only=False,mode=None,mingainlin=None):
         """
         Switch sim_to_data to go from simulation to data or otherwise.
         The option zero_noise can be used to zero the noise around the pulse. It is unclear, how useful this is.
@@ -102,7 +102,6 @@ class hardwareResponseIncorporator:
         """
 
         self.__mingainlin = mingainlin
-
         if (phase_only):
             mode='phase_only'
             self.logger.warning('Please use option mode=''phase_only'' in the future, use of option phase_only will be phased out')

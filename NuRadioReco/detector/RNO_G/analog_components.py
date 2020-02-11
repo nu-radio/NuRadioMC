@@ -16,15 +16,19 @@ def load_amplifier_response(amp_type='10', path=os.path.dirname(os.path.realpath
     if amp_type == '10':
         ph = os.path.join(path, 'HardwareResponses/surface_-60dBm_chan0_LogA_20dB.csv')
         amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= (0, 5))
-        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=(0, 6))
+        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= (0, 6))
 
+    else:
+        logger.error("Amp type not recognized")
+        return amplifier_response
 
     # Convert to GHz and add 20dB for attenuation in measurement circuit
     amp_gain_discrete[:, 0] *= units.Hz
     if amp_type == '10':
         amp_gain_discrete[:, 1] += 20
 
-    amp_gain_db_f = interp1d(amp_gain_discrete[:, 0], amp_gain_discrete[:, 1],
+
+    amp_gain_db_f = interp1d(x= amp_gain_discrete[:, 0], y= amp_gain_discrete[:, 1],
                              bounds_error=False, fill_value=0)  # all requests outside of measurement range are set to 0
 
     def get_amp_gain(ff):
@@ -35,7 +39,8 @@ def load_amplifier_response(amp_type='10', path=os.path.dirname(os.path.realpath
     # Convert to MHz and broaden range
     amp_phase_discrete[:, 0] *= units.Hz
 
-    amp_phase_f = interp1d(amp_phase_discrete[:, 0], np.unwrap(np.deg2rad(amp_phase_discrete[:, 1])),
+
+    amp_phase_f = interp1d(x= amp_phase_discrete[:, 0], y= np.unwrap(np.deg2rad(amp_phase_discrete[:, 1])),
                            bounds_error=False, fill_value=0)  # all requests outside of measurement range are set to 0
 
     def get_amp_phase(ff):
@@ -70,7 +75,6 @@ def load_amp_measurement(amp_measurement='surface_-60dBm_chan0_RI_20dB'):  # her
 amplifier_response = {}
 for amp_type in ['10']:
     amplifier_response[amp_type] = load_amplifier_response(amp_type)
-    
 amp_measurements = {}  # buffer for amp measurements
 
 
@@ -84,4 +88,3 @@ def get_amplifier_response(ff, amp_type, amp_measurement=None):
     else:
         logger.error("Amplifier response for type {} not implemented, returning None".format(amp_type))
         return None
-
