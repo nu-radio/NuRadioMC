@@ -877,7 +877,7 @@ class simulation():
         self._y = self._fin['yy'][self._iE]
         self._z = self._fin['zz'][self._iE]
         if 'vertex_times' in self._fin:
-             self._vertex_time = self._fin['vertex_times'][self._iE]
+            self._vertex_time = self._fin['vertex_times'][self._iE]
         self._zenith_nu = self._fin['zeniths'][self._iE]
         self._azimuth_nu = self._fin['azimuths'][self._iE]
         self._inelasticity = self._fin['inelasticity'][self._iE]
