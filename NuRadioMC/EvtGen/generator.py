@@ -636,7 +636,7 @@ def get_energy_from_flux(Emin, Emax, n_events, flux):
     return inv_cdf(r)
 
 
-def get_product_position(data_sets, product, iE):
+def get_product_position_time(data_sets, product, iE):
 
     """
     Calculates the position of a product particle given by the NuRadioProposal
@@ -654,22 +654,24 @@ def get_product_position(data_sets, product, iE):
 
     Returns
     -------
-    x, y, z: tuple
-        The 3-D position of the shower-inducing product particle.
+    x, y, z, time: tuple
+        The 3-D position of the shower-inducing product particle and the time
+        elapsed since the first interaction to the present interaction
     """
 
     dist = product.distance
+    time = dist / cspeed
     x = data_sets["xx"][iE] - dist * np.sin(data_sets["zeniths"][iE]) * np.cos(data_sets["azimuths"][iE])
     y = data_sets["yy"][iE] - dist * np.sin(data_sets["zeniths"][iE]) * np.sin(data_sets["azimuths"][iE])
     z = data_sets["zz"][iE] - dist * np.cos(data_sets["zeniths"][iE])
 
-    return x, y, z
+    return x, y, z, time
 
 
 def A_proj(theta, R, d):
     """
     calculates the projected area of a cylinder
-    
+
     Parameters
     ----------
     theta: float
@@ -678,8 +680,8 @@ def A_proj(theta, R, d):
         radius of zylinder
     d: float
         height of zylinder
-    
-    Returns: 
+
+    Returns:
     float: projected ares
     """
 
@@ -895,6 +897,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     data_sets["event_ids"] = np.arange(n_events) + start_event_id
     data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
+    data_sets["vertex_times"] = np.zeros(n_events, dtype=np.float)
 
     # generate neutrino flavors randomly
 
@@ -996,7 +999,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
             for product in products:
 
-                x, y, z = get_product_position(data_sets, product, iE)
+                x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
                 r = (x ** 2 + y ** 2) ** 0.5
 
                 if(r >= fiducial_rmin and r <= fiducial_rmax):
@@ -1016,6 +1019,9 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                         data_sets_fiducial['xx'][-1] = x
                         data_sets_fiducial['yy'][-1] = y
                         data_sets_fiducial['zz'][-1] = z
+
+                        # Calculating vertex interaction time with respect to the primary neutrino
+                        data_sets_fiducial['vertex_times'][-1] = vertex_time
 
                         # Flavors are particle codes taken from NuRadioProposal.py
                         data_sets_fiducial['flavors'][-1] = product.code
@@ -1222,6 +1228,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets["event_ids"] = np.arange(n_events) + start_event_id
     logger.debug("generating number of interactions")
     data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
+    data_sets["vertex_times"] = np.zeros(n_events, dtype=np.float)
 
     # generate neutrino flavors randomly
     logger.debug("generating flavors")
@@ -1398,7 +1405,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                 for product in products:
 
-                    x, y, z = get_product_position(data_sets, product, iE)
+                    x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
                     r = (x ** 2 + y ** 2) ** 0.5
 
                     if(r >= fiducial_rmin and r <= fiducial_rmax):
@@ -1427,6 +1434,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                             data_sets_fiducial['xx'][-1] = x
                             data_sets_fiducial['yy'][-1] = y
                             data_sets_fiducial['zz'][-1] = z
+
+                            # Calculating vertex interaction time with respect to the primary neutrino
+                            data_sets_fiducial['vertex_times'][-1] = vertex_time
 
                             # Flavors are particle codes taken from NuRadioProposal.py
                             data_sets_fiducial['flavors'][-1] = product.code
@@ -1481,6 +1491,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
             if (tau_cc):
 
+                x_first, y_first, z_first = data_sets["xx"][iE], data_sets["yy"][iE], data_sets["zz"][iE]
                 Etau = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
 
                 # first calculate if tau decay is still in our fiducial volume
@@ -1514,6 +1525,12 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                         data_sets_fiducial['xx'][-1] = x
                         data_sets_fiducial['yy'][-1] = y
                         data_sets_fiducial['zz'][-1] = z
+
+                        # Calculating vertex interaction time with respect to the primary neutrino
+                        vertex_time = np.sqrt( (x - x_first) ** 2 +
+                                               (y - y_first) ** 2 +
+                                               (z - z_first) ** 2 ) / cspeed
+                        data_sets_fiducial['vertex_times'][-1] = vertex_time
 
                         # set flavor to tau
                         data_sets_fiducial['flavors'][-1] = 15 * np.sign(data_sets['flavors'][iE])  # keep particle/anti particle nature
