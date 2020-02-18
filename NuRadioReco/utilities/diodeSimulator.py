@@ -126,7 +126,8 @@ class diodeSimulator:
                                    max_freq=1*units.GHz,
                                    amplitude=10*units.microvolt,
                                    type='rayleigh',
-                                   n_samples=10000):
+                                   n_tries=1,
+                                   n_samples=int(1e8)):
         """
         Calculates the mean and the standard deviation for the diode-filtered noise.
 
@@ -142,9 +143,11 @@ class diodeSimulator:
             Voltage amplitude (RMS) for the noise
         type: string
             Noise type
-        n_samples: int
+        n_tries: int
             Number of times the calculation is carried out, to get proper
             averages for the mean and the standard deviation.
+        n_samples: int 
+            Number of samples for each individual noise trace
 
         Returns
         -------
@@ -157,16 +160,16 @@ class diodeSimulator:
         power_mean_list = []
         power_std_list = []
 
-        for i_sample in range(n_samples):
+        for i_try in range(n_tries):
 
             noise = NuRadioReco.framework.channel.Channel(0)
 
             long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=min_freq,
-                                            max_freq=max_freq,
-                                            n_samples=10000,
-                                            sampling_rate=sampling_rate,
-                                            amplitude=amplitude,
-                                            type=type)
+                                                                      max_freq=max_freq,
+                                                                      n_samples=n_samples,
+                                                                      sampling_rate=sampling_rate,
+                                                                      amplitude=amplitude,
+                                                                      type=type)
 
             noise.set_trace(long_noise, sampling_rate)
             power_noise = self.tunnel_diode(noise)
