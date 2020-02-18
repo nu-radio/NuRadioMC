@@ -126,8 +126,8 @@ class diodeSimulator:
                                    max_freq=1*units.GHz,
                                    amplitude=10*units.microvolt,
                                    type='rayleigh',
-                                   n_tries=1,
-                                   n_samples=int(1e8)):
+                                   n_tries=10000,
+                                   n_samples=10000):
         """
         Calculates the mean and the standard deviation for the diode-filtered noise.
 
@@ -146,7 +146,7 @@ class diodeSimulator:
         n_tries: int
             Number of times the calculation is carried out, to get proper
             averages for the mean and the standard deviation.
-        n_samples: int 
+        n_samples: int
             Number of samples for each individual noise trace
 
         Returns
