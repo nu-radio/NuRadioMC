@@ -3,6 +3,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import EnvelopePhasedTrigger
 from NuRadioReco.modules.phasedarray.triggerSimulator import triggerSimulator as phasedTrigger
 from NuRadioReco.utilities.diodeSimulator import diodeSimulator
+from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 import numpy as np
 from scipy import constants
 import time
@@ -28,13 +29,15 @@ class triggerSimulator(phasedTrigger):
 
     def envelope_trigger(self,
                          station,
+                         det,
                          beam_rolls,
                          triggered_channels,
                          threshold_factor,
                          power_mean,
                          power_std,
                          output_passband=(None,200*units.MHz),
-                         cut_times=(None,None)):
+                         cut_times=(None,None),
+                         trigger_adc=False):
         """
         Calculates the envelope trigger for a certain phasing configuration.
         Beams are formed. Then, each channel to be phased is filtered with a
@@ -46,6 +49,8 @@ class triggerSimulator(phasedTrigger):
         ----------
         station: Station object
             Description of the current station
+        det: Detector object
+            Description of the current detector
         beam_rolls: array of ints
             Contains the integers for rolling the voltage traces (delays)
         triggered_channels: array of ints
@@ -66,6 +71,9 @@ class triggerSimulator(phasedTrigger):
             the number of noise-induced triggers. Doing it the other way, that is,
             cutting and then filtering, will create two artificial pulses on the
             edges of the trace.
+        trigger_adc: bool
+            If True, analog to digital conversion is performed. It must be specified in the
+            detector file. See analogToDigitalConverter module for information
 
         Returns
         -------
@@ -75,17 +83,34 @@ class triggerSimulator(phasedTrigger):
             the delays for the primary channels that have caused a trigger.
             If there is no trigger, it's an empty dictionary
         """
-        sampling_rate = station.get_channel(0).get_sampling_rate()
-        time_step = 1. / sampling_rate
+        station_id = station.get_id()
 
         diode = diodeSimulator(output_passband)
 
         traces = {}
         for channel in station.iter_channels(use_channels=triggered_channels):
             channel_id = channel.get_id()
+            time_step = 1 / channel.get_sampling_rate()
 
             trace = diode.tunnel_diode(channel)  # get the enveloped trace
             times = np.copy(channel.get_times())  # get the corresponding time bins
+
+            if trigger_adc:
+
+                ADC = analogToDigitalConverter()
+                trace = ADC.get_digital_trace(station, det, channel,
+                                        trigger_adc=trigger_adc,
+                                        random_clock_offset=True,
+                                        adc_type='perfect_floor_comparator',
+                                        diode=diode)
+                time_step = 1 / det.get_channel(station_id, channel_id)['trigger_adc_sampling_frequency']
+                times  = np.arange(len(trace), dtype=np.float)
+                times += channel.get_trace_start_time()
+
+            else:
+
+                trace = diode.tunnel_diode(channel)  # get the enveloped trace
+                times = np.copy(channel.get_times())  # get the corresponding time bins
 
             if cut_times != (None,None):
                 left_bin = np.argmin(np.abs(times-cut_times[0]))
@@ -135,7 +160,8 @@ class triggerSimulator(phasedTrigger):
             set_not_triggered=False,
             ref_index=1.75,
             output_passband=(None,200*units.MHz),
-            cut_times=(None,None)):
+            cut_times=(None,None),
+            trigger_adc=False):
         """
         simulates phased array trigger for each event
 
@@ -175,6 +201,9 @@ class triggerSimulator(phasedTrigger):
             the number of noise-induced triggers. Doing it the other way, that is,
             cutting and then filtering, will create two artificial pulses on the
             edges of the trace.
+        trigger_adc: bool
+            If True, analog to digital conversion is performed. It must be specified in the
+            detector file. See analogToDigitalConverter module for information
 
         Returns
         -------
@@ -204,8 +233,9 @@ class triggerSimulator(phasedTrigger):
             beam_rolls = self.get_beam_rolls(station, det, triggered_channels,
                                              phasing_angles, ref_index=ref_index)
 
-            is_triggered, trigger_delays = self.envelope_trigger(station, beam_rolls,
-                triggered_channels, threshold_factor, power_mean, power_std, output_passband, cut_times)
+            is_triggered, trigger_delays = self.envelope_trigger(station, det, beam_rolls,
+                triggered_channels, threshold_factor, power_mean, power_std, output_passband, cut_times,
+                trigger_adc)
 
         trigger = EnvelopePhasedTrigger(trigger_name, threshold_factor, power_mean, power_std,
                                         triggered_channels, phasing_angles, trigger_delays,
