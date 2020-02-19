@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import os
 from radiotools import helper as hp
@@ -78,7 +79,7 @@ for amp_type in ['10']:
 amp_measurements = {}  # buffer for amp measurements
 
 
-def get_amplifier_response(ff, amp_type, amp_measurement=None):
+def get_amplifier_response(ff, amp_type='10', amp_measurement='surface_-60dBm_chan0_RI_20dB'):
     if(amp_measurement is not None):
         if amp_measurement not in amp_measurements:
             load_amp_measurement(amp_measurement)
