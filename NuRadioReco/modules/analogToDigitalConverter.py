@@ -7,11 +7,11 @@ from scipy.interpolate import interp1d
 from scipy.signal import resample
 from NuRadioReco.modules.base.module import register_run
 
-def perfect_floor_comparator(trace, adc_n_bits, adc_ref_voltage):
+def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor'):
     """
     Simulates a perfect comparator flash ADC that compares the voltage to the
-    voltage for the least significative bit and takes the floor of their ratio
-    as a digitised value of the trace.
+    voltage for the least significative bit and takes the floor or the ceiling
+    of their ratio as a digitised value of the trace.
 
     Parameters
     ----------
@@ -22,6 +22,8 @@ def perfect_floor_comparator(trace, adc_n_bits, adc_ref_voltage):
     adc_ref_voltage: float
         Voltage corresponding to the maximum number of counts given by the
         ADC: 2**adc_n_bits - 1
+    mode: string
+        'floor' or 'ceiling'
 
     Returns
     -------
@@ -31,7 +33,12 @@ def perfect_floor_comparator(trace, adc_n_bits, adc_ref_voltage):
 
     lsb_voltage = adc_ref_voltage/(2 ** (adc_n_bits-1) - 1)
 
-    digital_trace = np.floor(trace / lsb_voltage)
+    if (mode == 'floor'):
+        digital_trace = np.floor(trace / lsb_voltage)
+    elif (mode == 'ceiling'):
+        digital_trace = np.ceil(trace / lsb_voltage)
+    else:
+        raise ValueError('Choose floor or ceiing as modes for the comparator ADC')
 
     digital_trace = apply_saturation(digital_trace, adc_n_bits, adc_ref_voltage)
     digital_trace = round_to_int(digital_trace)
@@ -39,6 +46,22 @@ def perfect_floor_comparator(trace, adc_n_bits, adc_ref_voltage):
     digital_trace = lsb_voltage * digital_trace.astype(np.float)
 
     return digital_trace
+
+def perfect_floor_comparator(trace, adc_n_bits, adc_ref_voltage):
+    """
+    Perfect comparator ADC that takes the floor value of the comparison.
+    See perfect_comparator
+    """
+
+    return perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor')
+
+def perfect_ceiling_comparator(trace, adc_n_bits, adc_ref_voltage):
+    """
+    Perfect comparator ADC that takes the floor value of the comparison.
+    See perfect_floor.
+    """
+
+    return perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='ceiling')
 
 def apply_saturation(adc_counts_trace, adc_n_bits, adc_ref_voltage):
     """
@@ -102,6 +125,7 @@ class analogToDigitalConverter():
     counts (discrete values). The available types are listed in the list
     _adc_types, which are (see functions with the same names for documentation):
         - 'perfect_floor_comparator'
+        - 'perfect_ceiling_comparator'
 
     IMPORTANT: Since this module already performs a downsampling, there is no
     need to use the channelResampler in those channels that possess an ADC.
@@ -119,7 +143,8 @@ class analogToDigitalConverter():
 
     def __init__(self):
         self.__t = 0
-        self._adc_types = {'perfect_floor_comparator': perfect_floor_comparator}
+        self._adc_types = {'perfect_floor_comparator': perfect_floor_comparator,
+                           'perfect_ceiling_comparator': perfect_ceiling_comparator}
         self._mandatory_fields = ['adc_nbits',
                                   'adc_reference_voltage',
                                   'adc_sampling_frequency']
