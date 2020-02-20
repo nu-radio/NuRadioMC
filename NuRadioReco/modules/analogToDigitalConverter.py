@@ -155,7 +155,8 @@ class analogToDigitalConverter():
                           trigger_adc=False,
                           random_clock_offset=True,
                           adc_type='perfect_floor_comparator',
-                          diode=None):
+                          diode=None,
+                          return_sampling_frequency=False):
         """
         Returns the digital trace for a channel, without setting it. This allows
         the creation of a digital trace that can be used for triggering purposes
@@ -177,6 +178,15 @@ class analogToDigitalConverter():
             See functions with the same name on this module for documentation
         diode: utilities.diodeSimulator.diodeSimulator object
             Diode used to envelope filter the signal
+        return_sampling_frequency: bool
+            If True, returns the trace and the ADC sampling frequency
+
+        Returns
+        -------
+        digital_trace: array of floats
+            Digitised voltage trace
+        adc_sampling_frequency: float
+            ADC sampling frequency for the channel
         """
 
         station_id = station.get_id()
@@ -211,11 +221,11 @@ class analogToDigitalConverter():
             adc_ref_voltage_label = "adc_reference_voltage"
             adc_sampling_frequency_label = "adc_sampling_frequency"
 
+        adc_time_delay = 0
+
         if adc_time_delay_label in det_channel:
             if det_channel[adc_time_delay_label] is not None:
                 adc_time_delay = channel[adc_time_delay_label] * units.ns
-        else:
-            adc_time_delay = 0
 
         if random_clock_offset:
             clock_offset = np.random.uniform(-1, 1)
@@ -243,7 +253,10 @@ class analogToDigitalConverter():
         digital_trace = self._adc_types[adc_type](delayed_trace, adc_n_bits,
                                                   adc_ref_voltage)
 
-        return digital_trace
+        if return_sampling_frequency:
+            return digital_trace, adc_sampling_frequency
+        else:
+            return digital_trace
 
     @register_run()
     def run(self, evt, station, det,
@@ -270,9 +283,10 @@ class analogToDigitalConverter():
 
         for channel in station.iter_channels():
 
-            digital_trace = self.get_digital_trace(channel,
-                                                   random_clock_offset=random_clock_offset,
-                                                   adc_type=adc_type)
+            digital_trace, adc_sampling_frequency = self.get_digital_trace(station, det, channel,
+                                                        random_clock_offset=random_clock_offset,
+                                                        adc_type=adc_type,
+                                                        return_sampling_frequency=True)
 
             channel.set_trace(digital_trace, adc_sampling_frequency)
 
