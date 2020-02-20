@@ -271,6 +271,12 @@ class triggerSimulator:
 
         Parameters
         ----------
+        evt: Event object
+            Description of the current event
+        station: Station object
+            Description of the current station
+        det: Detector object
+            Description of the current detector
         threshold: float
             threshold above (or below) a trigger is issued, absolute amplitude
         triggered_channels: array of ints
