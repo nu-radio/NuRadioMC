@@ -25,7 +25,7 @@
             "cab_time_delay": 19.8,
             "cab_type": "LMR_400",
             "channel_id": 0,
-            "commission_time": "{TinyDate}:2018-12-05T00:00:00",
+            "commission_time": "{TinyDate}:2017-12-05T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 101
         },
@@ -53,7 +53,7 @@
             "cab_time_delay": 19.8,
             "cab_type": "LMR_400",
             "channel_id": 1,
-            "commission_time": "{TinyDate}:2018-12-05T00:00:00",
+            "commission_time": "{TinyDate}:2017-12-05T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 101
         },
@@ -81,7 +81,7 @@
             "cab_time_delay": 19.8,
             "cab_type": "LMR_400",
             "channel_id": 2,
-            "commission_time": "{TinyDate}:2018-12-05T00:00:00",
+            "commission_time": "{TinyDate}:2017-12-05T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 101
         },
@@ -109,7 +109,7 @@
             "cab_time_delay": 19.7,
             "cab_type": "LMR_400",
             "channel_id": 3,
-            "commission_time": "{TinyDate}:2018-12-05T00:00:00",
+            "commission_time": "{TinyDate}:2017-12-05T00:00:00",
             "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
             "station_id": 101
         },
@@ -240,8 +240,9 @@
           "board_number": 203,
           "commission_time": "{TinyDate}:2017-11-04T00:00:00",
           "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
-          "pos_altitude": 2800.0,
-          "pos_easting": null,
+          "pos_altitude": 0,
+          "pos_easting": 0,
+          "pos_northing": 0,
           "pos_measurement_time": null,
           "pos_position": "",
           "pos_site": "mooresbay",
