@@ -174,6 +174,12 @@ class triggerSimulator(phasedTrigger):
 
         Parameters
         ----------
+        evt: Event object
+            Description of the current event
+        station: Station object
+            Description of the current station
+        det: Detector object
+            Description of the current detector
         threshold_factor: float
             threshold factor to be used for the envelope trigger
         power_mean: float

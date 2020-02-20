@@ -9,7 +9,24 @@ from NuRadioReco.modules.base.module import register_run
 
 def perfect_floor_comparator(trace, adc_n_bits, adc_ref_voltage):
     """
+    Simulates a perfect comparator flash ADC that compares the voltage to the
+    voltage for the least significative bit and takes the floor of their ratio
+    as a digitised value of the trace.
 
+    Parameters
+    ----------
+    trace: array of floats
+        Trace containing the voltage to be digitised
+    adc_n_bits: int
+        Number of bits of the ADC
+    adc_ref_voltage: float
+        Voltage corresponding to the maximum number of counts given by the
+        ADC: 2**adc_n_bits - 1
+
+    Returns
+    -------
+    digital_trace: array of floats
+        Digitised voltage trace
     """
 
     lsb_voltage = adc_ref_voltage/(2 ** (adc_n_bits-1) - 1)
@@ -24,6 +41,26 @@ def perfect_floor_comparator(trace, adc_n_bits, adc_ref_voltage):
     return digital_trace
 
 def apply_saturation(adc_counts_trace, adc_n_bits, adc_ref_voltage):
+    """
+    Takes a digitised trace in ADC counts and clips the parts of the
+    trace with values higher than 2*adc_n_bits-1 or lower than
+    -2*adc_n_bits.
+
+    Parameters
+    ----------
+    adc_counts_trace: array of floats
+        Voltage in ADC counts, unclipped
+    adc_n_bits: int
+        Number of bits of the ADC
+    adc_ref_voltage: float
+        Voltage corresponding to the maximum number of counts given by the
+        ADC: 2**adc_n_bits - 1
+
+    Returns
+    -------
+    saturated_trace: array of floats
+        The clipped or saturated voltage trace
+    """
 
     saturated_trace = adc_counts_trace[:]
 
@@ -47,11 +84,11 @@ def round_to_int(digital_trace):
 class analogToDigitalConverter():
     """
     This class simulates an analog to digital converter. The steps followed
-    by this modeule are:
+    by this module to achieve the conversion are:
     1) The following properties of the channel are read. They must be in the
     detector configuration file:
         - "adc_nbits", the number of bits of the ADC
-        - "adc_reference_voltage", the reference voltage in mV, that is, the
+        - "adc_reference_voltage", the reference voltage in volts, that is, the
         maximum voltage the ADC can convert without saturating
         - "adc_sampling_frequency", the sampling frequency in GHz
     2) A random clock offset (jitter) can be added, as it would happen in
@@ -160,7 +197,7 @@ class analogToDigitalConverter():
             adc_time_delay += clock_offset / channel.get_sampling_rate()
 
         adc_n_bits = det_channel[adc_n_bits_label]
-        adc_ref_voltage = det_channel[adc_ref_voltage_label] * units.mV
+        adc_ref_voltage = det_channel[adc_ref_voltage_label] * units.V
         adc_sampling_frequency = det_channel[adc_sampling_frequency_label] * units.GHz
 
         if (adc_sampling_frequency > channel.get_sampling_rate()):
