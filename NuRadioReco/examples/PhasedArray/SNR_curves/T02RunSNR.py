@@ -42,8 +42,9 @@ from NuRadioMC.simulation import simulation
 import json
 import numpy as np
 import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("runstrawman")
+from NuRadioReco.modules.base import module
+import logging
+logger = module.setup_logger(level=logging.WARNING)
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
@@ -187,7 +188,7 @@ parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=No
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
 
-sim = mySimulation(eventlist=args.inputfilename,
+sim = mySimulation(inputfilename=args.inputfilename,
                             outputfilename=args.outputfilename,
                             detectorfile=args.detectordescription,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,

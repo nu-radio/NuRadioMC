@@ -11,8 +11,7 @@ import astropy.time
 from datetime import datetime
 from tinydb_serialization import Serializer
 import six  # # used for compatibility between py2 and py3
-logger = logging.getLogger('detector')
-logging.basicConfig()
+logger = logging.getLogger('NuRadioReco.detector')
 
 
 class DateTimeSerializer(Serializer):
@@ -403,6 +402,8 @@ class Detector(object):
             easting = res['pos_easting'] * unit_xy
         if(res['pos_northing'] is not None):
             northing = res['pos_northing'] * unit_xy
+        if(res['pos_altitude'] is not None):
+            altitude = res['pos_altitude']
         return np.array([easting, northing, altitude])
 
     def get_absolute_position_site(self, site):

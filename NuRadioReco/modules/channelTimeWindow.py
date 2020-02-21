@@ -1,16 +1,17 @@
-from NuRadioReco.modules.base.module import register_run
 import numpy as np
+import logging
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import channelParameters as chp
-import logging
-logger = logging.getLogger("channelTimeWindow")
-logging.basicConfig()
+from NuRadioReco.modules.base.module import register_run
 
 
 class channelTimeWindow:
     """
     Set trace outside time window to zero.
     """
+    def __init__(self):
+        self.logger = logging.getLogger("NuRadioReco.channelTimeWindow")
+        self.begin()
 
     def begin(self, debug=False):
         self.__debug = debug

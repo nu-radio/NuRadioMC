@@ -18,9 +18,8 @@ class DataProvider(object):
             return
         if user_id not in self.__user_instances:
             self.__user_instances[user_id] = NuRadioRecoio.NuRadioRecoio(filename)
-        if filename != self.__user_instances[user_id].get_filenames():
+        if filename != self.__user_instances[user_id].get_filenames()[0]:
             # user is requesting new file -> close current file and open new one
             self.__user_instances[user_id].close_files()
-            del self.__user_instances[user_id]
             self.__user_instances[user_id] = NuRadioRecoio.NuRadioRecoio(filename)
         return self.__user_instances[user_id]

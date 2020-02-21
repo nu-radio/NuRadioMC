@@ -5,8 +5,6 @@ import time
 
 from NuRadioReco.utilities import units
 
-logger = logging.getLogger('simulationSelector')
-
 
 class simulationSelector:
 
@@ -19,6 +17,7 @@ class simulationSelector:
     def __init__(self):
         self.__t = 0
         self.begin()
+        self.logger = logging.getLogger('NuRadioReco.simulationSelector')
 
     def begin(self, debug=False):
         pass
@@ -70,15 +69,15 @@ class simulationSelector:
             noise_region = fft[max_pol][np.where(freq > 1.5 * units.GHz)]
             noise = np.mean(noise_region)
             if noise == 0:
-                logger.warning("Trace seems to have bee upsampled beyong 1.5 GHz, using lower noise window")
+                self.logger.warning("Trace seems to have bee upsampled beyong 1.5 GHz, using lower noise window")
                 noise_region = fft[max_pol][np.where(freq > 1. * units.GHz)]
                 noise = np.mean(noise_region)
             if noise == 0:
-                logger.warning("Trace seems to have bee upsampled beyong 1. GHz, using lower noise window")
+                self.logger.warning("Trace seems to have bee upsampled beyong 1. GHz, using lower noise window")
                 noise_region = fft[max_pol][np.where(freq > 800. * units.MHz)]
                 noise = np.mean(noise_region)
             if noise == 0:
-                logger.error("Trace seems to have bee upsampled beyong 800 MHz, unsuitable simulations")
+                self.logger.error("Trace seems to have bee upsampled beyong 800 MHz, unsuitable simulations")
 
             noise_std = np.std(noise_region)
 
@@ -95,7 +94,7 @@ class simulationSelector:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
+        self.logger.info("total time used by this module is {}".format(dt))
         return dt
