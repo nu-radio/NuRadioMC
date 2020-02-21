@@ -63,7 +63,7 @@ class triggerSimulator:
             coinc_window=200 * units.ns,
             trigger_name='default_powerint'):
         """
-        simulates a power integration trigger. The squared voltages are integrated over a sliding window 
+        simulates a power integration trigger. The squared voltages are integrated over a sliding window
 
         Parameters
         ----------
@@ -118,7 +118,7 @@ class triggerSimulator:
         trigger.set_triggered_channels(channels_that_passed_trigger)
         if has_triggered:
             trigger.set_triggered(True)
-            trigger.set_trigger_time(triggered_times.min())
+            trigger.set_trigger_time(triggered_times.min()+channel_trace_start_time)
             logger.debug("station has triggered")
         else:
             trigger.set_triggered(False)
