@@ -26,7 +26,8 @@ single window filled with noise.
 """
 
 parser = argparse.ArgumentParser(description='calculates noise trigger rate for phased array')
-parser.add_argument('--ntries', type=int, help='number noise traces to which a trigger is applied for each threshold', default=100)
+parser.add_argument('--ntries', type=int, help='number noise traces to which a trigger is applied for each threshold', default=1000)
+parser.add_argument('--array', type=str, help='array type: RNO or ARA', default='RNO')
 args = parser.parse_args()
 
 main_low_angle = -53. * units.deg
@@ -56,38 +57,39 @@ def get_beam_rolls(ant_z, channel_list, phasing_angles=default_angles, time_step
 
         return beam_rolls
 
-array_type = 'RNO'
+array_type = args.array
 
 if (array_type == 'ARA'):
     min_freq = 130*units.MHz
     max_freq = 750*units.MHz
     sampling_rate = 1.5*units.GHz
+    time_step = 1./sampling_rate
     window_width = 16
     only_primary = False
     primary_angles = default_angles
     secondary_angles = default_sec_angles
+    ant_z_primary = [-46.5, -47.5, -48.5, -49.5, -50.5, -51.5, -52.5, -53.5] # primary antennas positions
+    primary_channels = [0, 1, 2, 3, 4, 5, 6, 7] # channels used for primary beam
+    beam_rolls = get_beam_rolls(ant_z_primary, primary_channels, primary_angles, time_step)
 elif (array_type == 'RNO'):
     min_freq = 132*units.MHz
     max_freq = 700*units.MHz
     sampling_rate = 3*units.GHz
+    time_step = 1./sampling_rate
     window_width = 32
     only_primary = True
     primary_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
+    ant_z_primary = [-98.5, -99.5, -100.5, -101.5] # primary antennas positions
+    primary_channels = [0, 1, 2, 3] # channels used for primary beam
+    beam_rolls = get_beam_rolls(ant_z_primary, primary_channels, primary_angles, time_step)
 
 n_samples = 1000000 # number of samples
-time_step = 1./sampling_rate
 bandwidth = max_freq-min_freq
 amplitude = (300 * 50 * constants.k * bandwidth / units.Hz) ** 0.5
 
 Ntries = args.ntries # number of tries
 
-threshold_factors = [2.1, 2.15, 2.20, 2.25, 2.3]
-
-ratios = []
-
-ant_z_primary = [-46.5, -47.5, -48.5, -49.5, -50.5, -51.5, -52.5, -53.5] # primary antennas positions
-primary_channels = [0, 1, 2, 3, 4, 5, 6, 7] # channels used for primary beam
-beam_rolls = get_beam_rolls(ant_z_primary, primary_channels, primary_angles, time_step)
+threshold_factors = [2.15, 2.2, 2.25, 2.3, 2.35, 2.40]
 
 if not only_primary:
     sec_channels = [0, 1, 3, 4, 6, 7] # channels used for secondary beam
@@ -104,7 +106,7 @@ n_beams = len(primary_angles)
 
 
 for threshold_factor in threshold_factors:
-    prob_cross = 0
+    prob_per_window = 0
     for Ntry in range(Ntries):
         noise_array = []
 
@@ -131,20 +133,22 @@ for threshold_factor in threshold_factors:
             n_windows = int(n_samples/window_width)
             n_windows = int(2*n_windows - 1)
 
-            windowed_traces = [ np.sum(np.lib.stride_tricks.as_strided(noise[int(i_window*window_width/2):],(window_width,))**2) \
-                                for i_window in np.linspace(0,n_windows-1,n_windows) ]
-            windowed_traces = np.array(windowed_traces)
-
             n_phased = len(primary_channels) + len(sec_channels)
-            mask = windowed_traces > n_phased * window_width * threshold_factor**2 * amplitude**2
+
+            strides = noise.strides
+            windowed_traces = np.lib.stride_tricks.as_strided(noise, \
+                              shape=(n_windows, window_width), \
+                              strides=(int(window_width / 2) * strides[0], strides[0]))
+
+            squared_mean = np.sum(windowed_traces ** 2 / window_width, axis=1)
+            squared_mean_threshold = n_phased * threshold_factor**2 * amplitude**2
+            mask = squared_mean > squared_mean_threshold
+
             # If a phased direction triggers, the whole phased array triggers.
-            # That is why we multiply the probability by the number of beams, or phasing directions.
-            # This is justified as long as the probability is small and each direction triggers
-            # independently of the rest.
-            prob_cross += np.sum( mask * np.ones(len(mask)) )/n_windows * n_beams
+            # The following formula is justified as long as the probability is small
+            # and each direction triggers independently of the rest.
+            prob_per_window += np.sum( mask * np.ones(len(mask)) )/(n_windows*Ntries)
 
-    ratio = float(prob_cross)/Ntries
-    trigger_frequency = 2*ratio/window_width / units.Hz
-    print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.5f}%, Noise trigger rate: {:.2f}'.format(threshold_factor, ratio*100., trigger_frequency))
-
-    ratios.append(ratio)
+    # The 2 comes from the use of overlapping windows
+    trigger_frequency = prob_per_window / (window_width/2)
+    print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.8f}%, Noise trigger rate: {:.2f}'.format(threshold_factor, prob_per_window*100., trigger_frequency/units.Hz))

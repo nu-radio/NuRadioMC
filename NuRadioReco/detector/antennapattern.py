@@ -8,8 +8,7 @@ from radiotools import coordinatesystems as cs
 from scipy import constants
 import logging
 import pickle
-logger = logging.getLogger('antennapattern')
-logging.basicConfig()
+logger = logging.getLogger('NuRadioReco.antennapattern')
 
 # config = ConfigParser.RawConfigParser()
 # config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'antennamodels.cfg')
@@ -124,8 +123,8 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
     Returns: all parameters of the files
     """
     boresight, tines = np.loadtxt(orientation, delimiter=',')
-    zen_boresight, azi_boresight = hp.cartesian_to_spherical(*boresight)
-    zen_ori, azi_ori = hp.cartesian_to_spherical(*tines)
+    orientation_theta, orientation_phi = hp.cartesian_to_spherical(*boresight)
+    rotation_theta, rotation_phi = hp.cartesian_to_spherical(*tines)
 
     ad1_data = np.loadtxt(ad1, comments='>')
     S_1 = ad1_data[:, 1]
@@ -172,7 +171,7 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_paramateres=[1, 1]):
             return None
         logger.debug(np.unique(np.array(phis)))
         logger.debug(np.unique(np.array(thetas)))
-        return zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, S, np.array(ff2), np.deg2rad(np.array(phis)), np.deg2rad(np.array(thetas)), np.array(Ephis), np.array(Ethetas), np.array(gains)
+        return orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff, Z, S, np.array(ff2), np.deg2rad(np.array(phis)), np.deg2rad(np.array(thetas)), np.array(Ephis), np.array(Ethetas), np.array(gains)
 
 
 def preprocess_WIPLD_old(path, gen_num=1, s_paramateres=[1, 1]):
@@ -192,10 +191,10 @@ def preprocess_WIPLD_old(path, gen_num=1, s_paramateres=[1, 1]):
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
 
     Returns:
-        * zen_boresight: zenith angle of the boresight direction of the antenna
-        * azi_boresight: azimuth angle of the boresight direction of the antenna
-        * zen_ori: zenith angle of the orientation of the antenna (the vector perpendicular to the boresight direction and the tines (for LPDAs)
-        * azi_ori: azimuth angle of the orientation of the antenna (the vector perpendicular to the boresight direction and the tines (for LPDAs)
+        * orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
+        * orientation phi: boresight direction (azimuth angle counting from East counterclockwise)
+        * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+        * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
         * ff2: array of frequencies
         * theta: zenith angle of inicdent electric field
         * phi: azimuth angle of incident electric field
@@ -209,7 +208,7 @@ def preprocess_WIPLD_old(path, gen_num=1, s_paramateres=[1, 1]):
     name = split[1]
     path = split[0]
 
-    zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, S, ff2, phi, theta, Iphi, Itheta, gains = parse_WIPLD_file(os.path.join(path, name, '{}.ad1'.format(name)),
+    orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff, Z, S, ff2, phi, theta, Iphi, Itheta, gains = parse_WIPLD_file(os.path.join(path, name, '{}.ad1'.format(name)),
                                                                                                                    os.path.join(path, name, '{}.ra1'.format(name)),
                                                                                                                    os.path.join(path, name, '{}.orientation'.format(name)),
                                                                                                                    gen_num=gen_num, s_paramateres=s_paramateres)
@@ -229,9 +228,10 @@ def preprocess_WIPLD_old(path, gen_num=1, s_paramateres=[1, 1]):
     H_phi = (2 * wavelength * get_Z(ff2) * Iphi) / (Z_0) / 1j
     H_theta = (2 * wavelength * get_Z(ff2) * Itheta) / (Z_0) / 1j
 
-    return zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta
+    return orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff2, theta, phi, H_phi, H_theta
 
 #     H = wavelength * (np.real(get_Z(ff2)) / (np.pi * Z_0)) ** 0.5 * gains ** 0.5
+
 
 def save_preprocessed_WIPLD_old(path):
     """
@@ -242,14 +242,15 @@ def save_preprocessed_WIPLD_old(path):
     path: string
         path to folder containing ad1, ra1, and orientation files.
     """
-    zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta = preprocess_WIPLD_old(path)
+    orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff2, theta, phi, H_phi, H_theta = preprocess_WIPLD_old(path)
     split = os.path.split(os.path.dirname(path))
     name = split[1]
     path = split[0]
     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
-        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=4)
+        pickle.dump([orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff2, theta, phi, H_phi, H_theta], fout, protocol=4)
+
 
 def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
     """
@@ -268,10 +269,10 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
 
     Returns:
-        * zen_boresight: zenith angle of the boresight direction of the antenna
-        * azi_boresight: azimuth angle of the boresight direction of the antenna
-        * zen_ori: zenith angle of the orientation of the antenna (the vector perpendicular to the boresight direction and the tines (for LPDAs)
-        * azi_ori: azimuth angle of the orientation of the antenna (the vector perpendicular to the boresight direction and the tines (for LPDAs)
+        * orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
+        * orientation phi: boresight direction (azimuth angle counting from East counterclockwise)
+        * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+        * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
         * ff2: array of frequencies
         * theta: zenith angle of inicdent electric field
         * phi: azimuth angle of incident electric field
@@ -285,7 +286,7 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
     name = split[1]
     path = split[0]
 
-    zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, S, ff2, phi, theta, Iphi, Itheta, gains = parse_WIPLD_file(os.path.join(path, name, '{}.ad1'.format(name)),
+    orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff, Z, S, ff2, phi, theta, Iphi, Itheta, gains = parse_WIPLD_file(os.path.join(path, name, '{}.ad1'.format(name)),
                                                                                                                    os.path.join(path, name, '{}.ra1'.format(name)),
                                                                                                                    os.path.join(path, name, '{}.orientation'.format(name)),
                                                                                                                    gen_num=gen_num, s_paramateres=s_paramateres)
@@ -309,12 +310,13 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
     H_theta = wavelength * (1 + get_S(ff2)) * Itheta * Z_L / (Z_0) / 1j / V
 
 #     H = wavelength * (np.real(get_Z(ff2)) / (np.pi * Z_0)) ** 0.5 * gains ** 0.5
-    return zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta
+    return orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff2, theta, phi, H_phi, H_theta
 
 #     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
 #     with open(output_filename, 'wb') as fout:
 #         logger.info('saving output to {}'.format(output_filename))
-#         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=4)
+#         pickle.dump([orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff2, theta, phi, H_phi, H_theta], fout, protocol=4)
+
 
 def save_preprocessed_WIPLD(path):
     """
@@ -325,14 +327,15 @@ def save_preprocessed_WIPLD(path):
     path: string
         path to folder containing ad1, ra1, and orientation files.
     """
-    zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta = preprocess_WIPLD(path)
+    orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff2, theta, phi, H_phi, H_theta = preprocess_WIPLD(path)
     split = os.path.split(os.path.dirname(path))
     name = split[1]
     path = split[0]
     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
-        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff2, theta, phi, H_phi, H_theta], fout, protocol=4)
+        pickle.dump([orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff2, theta, phi, H_phi, H_theta], fout, protocol=4)
+
 
 def save_preprocessed_WIPLD_forARA(path):
     """
@@ -350,7 +353,7 @@ def save_preprocessed_WIPLD_forARA(path):
     name = split[1]
     path = split[0]
 
-    zen_boresight, azi_boresight, zen_ori, azi_ori, ff, Z, S, ff2, phi, theta, Iphi, Itheta, gains = parse_WIPLD_file(os.path.join(path, name, '{}.ad1'.format(name)),
+    orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff, Z, S, ff2, phi, theta, Iphi, Itheta, gains = parse_WIPLD_file(os.path.join(path, name, '{}.ad1'.format(name)),
                                                                                                                    os.path.join(path, name, '{}.ra1'.format(name)),
                                                                                                                    os.path.join(path, name, '{}.orientation'.format(name)))
 
@@ -369,24 +372,24 @@ def save_preprocessed_WIPLD_forARA(path):
     Z_L = 50 * units.ohm
 
     get_S = interp1d(ff, S, kind='nearest')
-    Gr = gains * (1-np.abs(get_S(ff2))**2)
+    Gr = gains * (1 - np.abs(get_S(ff2)) ** 2)
     H_phi = wavelength * (1 + get_S(ff2)) * Iphi * Z_L / (Z_0) / 1j / V
     H_theta = wavelength * (1 + get_S(ff2)) * Itheta * Z_L / (Z_0) / 1j / V
 
     output_filename = '{}.ara'.format(os.path.join(path, name, name))
-    with open(output_filename,'w') as fout:
+    with open(output_filename, 'w') as fout:
         for f in sorted(np.unique(ff2)):
-            fout.write("freq : {} MHz\n".format(f/units.MHz))
+            fout.write("freq : {} MHz\n".format(f / units.MHz))
             fout.write("SWR : ???\n")
             fout.write("Theta   Phi      Gain(dB)          Gain          Phase(deg)\n")
             mask = ff2 == f
             for i in range(np.sum(mask)):
-                fout.write("{:.4f} {:.4f} {:.4g} {:.4g} {:.2f} {:.2f}\n".format(theta[mask][i]/units.deg,
-                                                                       phi[mask][i]/units.deg,
+                fout.write("{:.4f} {:.4f} {:.4g} {:.4g} {:.2f} {:.2f}\n".format(theta[mask][i] / units.deg,
+                                                                       phi[mask][i] / units.deg,
                                                                        0,
                                                                        Gr[mask][i],
-                                                                       np.angle(H_theta[mask][i])/units.deg,
-                                                                       np.angle(H_phi[mask][i])/units.deg))
+                                                                       np.angle(H_theta[mask][i]) / units.deg,
+                                                                       np.angle(H_phi[mask][i]) / units.deg))
 
 
 def get_pickle_antenna_response(path):
@@ -548,7 +551,7 @@ def preprocess_AERA(path):
     H_theta = np.where(np.abs(VEL_thetas) > 0.01, VEL_thetas, 0)
 
     # values for a upwards pointing LPDA with the arm aligned to the magnetic field
-    zen_boresight, azi_boresight, zen_ori, azi_ori = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg
+    orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg
 
     fname = os.path.split(os.path.basename(path))[1].replace('.xml', '')
     output_filename = '{}_InfAir.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
@@ -559,7 +562,7 @@ def preprocess_AERA(path):
 
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
-        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=4)
+        pickle.dump([orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff, theta, phi, H_phi, H_theta], fout, protocol=4)
 
 
 def parse_ARA_file(ara):
@@ -639,7 +642,7 @@ def preprocess_ARA(path):
     split = os.path.split(os.path.dirname(path))
     name = split[1]
     path = split[0]
-    zen_boresight, azi_boresight, zen_ori, azi_ori, ff, phi, theta, gain, phase = parse_ARA_file(os.path.join(path, name, '{}.txt'.format(name)),
+    orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff, phi, theta, gain, phase = parse_ARA_file(os.path.join(path, name, '{}.txt'.format(name)),
                                                                                                  os.path.join(path, name, '{}.orientation'.format(name)))
 
     wavelength = c / ff
@@ -648,8 +651,7 @@ def preprocess_ARA(path):
     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
-        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=4)
-
+        pickle.dump([orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff, theta, phi, H_phi, H_theta], fout, protocol=4)
 
 
 def parse_HFSS_file(hfss):
@@ -677,15 +679,14 @@ def parse_HFSS_file(hfss):
         * phases_theta: array of floats
             corresponding phases theta component
      """
-    ff, phi, theta, mag_phi, mag_theta, phase_phi, phase_theta = [],[],[],[],[],[],[]
+    ff, phi, theta, mag_phi, mag_theta, phase_phi, phase_theta = [], [], [], [], [], [], []
     import re
-
 
     with open(hfss, 'r') as csv_file:
 
         for j, row in enumerate(csv_file.readlines()):
 
-            if j==0:
+            if j == 0:
                 array_names = row.split(',')
             else:
                 array = row.split(',')
@@ -694,7 +695,7 @@ def parse_HFSS_file(hfss):
                         freq = array[i]
                     if 'log10(mag(rEPhi))' in array_names[i]:
                         mag_phi.append(float(array[i]))
-                        ff.append(float(freq)*units.MHz)
+                        ff.append(float(freq) * units.MHz)
 
                         p = re.search("Phi='(.+?)deg'", array_names[i])
                         t = re.search("Theta='(.+?)deg'", array_names[i])
@@ -707,13 +708,11 @@ def parse_HFSS_file(hfss):
                     if 'ang_rad(rETheta)' in array_names[i]:
                         phase_theta.append(float(array[i]))
 
-        for i in range(len(np.unique(ff))+1):
+        for i in range(len(np.unique(ff)) + 1):
             for arr in [theta, mag_theta, mag_phi, phase_theta, phase_phi, ff, phi]:
-                arr[(i-1)*len(ff)/len(np.unique(ff)):i*len(ff)/len(np.unique(ff))] = [x for _, x in sorted(zip(phi[(i-1)*len(ff)/len(np.unique(ff)):i*len(ff)/len(np.unique(ff))],arr[(i-1)*len(ff)/len(np.unique(ff)):i*len(ff)/len(np.unique(ff))]), key=lambda pair: pair[0])]
+                arr[(i - 1) * len(ff) / len(np.unique(ff)):i * len(ff) / len(np.unique(ff))] = [x for _, x in sorted(zip(phi[(i - 1) * len(ff) / len(np.unique(ff)):i * len(ff) / len(np.unique(ff))], arr[(i - 1) * len(ff) / len(np.unique(ff)):i * len(ff) / len(np.unique(ff))]), key=lambda pair: pair[0])]
 
         return np.array(ff), np.array(phi), np.array(theta), np.array(mag_phi), np.array(mag_theta), np.array(phase_phi), np.array(phase_theta)
-
-
 
 
 def preprocess_HFSS(path):
@@ -738,33 +737,28 @@ def preprocess_HFSS(path):
     path = split[0]
 
     ff, phi, theta, mag_phi, mag_theta, phase_phi, phase_theta = parse_HFSS_file((os.path.join(path, name, '{}.csv'.format(name))))
-    mag_theta = 10**(mag_theta/10)
-    mag_phi = 10**(mag_phi/10)
-    gain_theta =  4.0 * np.pi * (mag_theta**2) / (2 * 120 * np.pi)
-    gain_phi = 4.0 * np.pi * (mag_phi**2) / (2 * 120 * np.pi)
+    mag_theta = 10 ** (mag_theta / 10)
+    mag_phi = 10 ** (mag_phi / 10)
+    gain_theta = 4.0 * np.pi * (mag_theta ** 2) / (2 * 120 * np.pi)
+    gain_phi = 4.0 * np.pi * (mag_phi ** 2) / (2 * 120 * np.pi)
     c = constants.c * units.m / units.s
     Z_0 = 119.9169 * np.pi
     wavelength = c / np.array(ff)
     n_index = 1.78
 
-    H_theta = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
-    H_phi = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
+    H_theta = wavelength / n_index ** 0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
+    H_phi = wavelength / n_index ** 0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
 
-
-    zen_boresight = 0
-    azi_boresight = 0
-    zen_ori = 0
-    azi_ori = 0
+    orientation_theta = 0
+    orientation_phi = 0
+    rotation_theta = 0
+    rotation_phi = 0
 
     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
 
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
-        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=4)
-
-
-
-
+        pickle.dump([orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff, theta, phi, H_phi, H_theta], fout, protocol=4)
 
 
 def preprocess_XFDTD(path):
@@ -785,15 +779,15 @@ def preprocess_XFDTD(path):
     import yaml
     with open(os.path.join(path, name, '{}.yaml'.format(name))) as fin:
         info = yaml.load(fin)
-        zen_boresight, azi_boresight = hp.cartesian_to_spherical(*info['boresight_direction'])
-        zen_ori, azi_ori = hp.cartesian_to_spherical(*info['orientation'])
+        orientation_theta, orientation_phi = hp.cartesian_to_spherical(*info['boresight_direction'])
+        rotation_theta, rotation_phi = hp.cartesian_to_spherical(*info['orientation'])
         n_index = info['n']
 
         c = constants.c * units.m / units.s
         Z_0 = 119.9169 * np.pi
         ff, phi, theta, gain, phase = parse_ARA_file(os.path.join(path, name, '{}.txt'.format(name)))
         wavelength = c / ff
-        H = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain ** 0.5 * np.exp(1j * phase)
+        H = wavelength / n_index ** 0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain ** 0.5 * np.exp(1j * phase)
         if(info['type'] == 'Vpol'):
             H_theta = H
             H_phi = H * 1e-6
@@ -807,14 +801,15 @@ def preprocess_XFDTD(path):
         output_filename = '{}.pkl'.format(os.path.join(path, name, name))
         with open(output_filename, 'wb') as fout:
             logger.info('saving output to {}'.format(output_filename))
-            pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=4)
+            pickle.dump([orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff, theta, phi, H_phi, H_theta], fout, protocol=4)
 
 
 class AntennaPatternBase():
     """
     base class of utility class that handles access and buffering to antenna pattern
     """
-    def _get_antenna_rotation(self, zen_boresight, azi_boresight, zen_ori, azi_ori):
+
+    def _get_antenna_rotation(self, orientation_theta, orientation_phi, rotation_theta, rotation_phi):
         """
 
         Parameters:
@@ -822,8 +817,8 @@ class AntennaPatternBase():
 
         """
         # define orientation of wiplD antenna simulation (in ARIANNA CS)
-        e1 = hp.spherical_to_cartesian(self._zen_boresight, self._azi_boresight)  # boresight direction
-        e2 = hp.spherical_to_cartesian(self._zen_ori, self._azi_ori)  # vector perpendicular to tine plane
+        e1 = hp.spherical_to_cartesian(self._orientation_theta, self._orientation_phi)  # boresight direction
+        e2 = hp.spherical_to_cartesian(self._rotation_theta, self._rotation_phi)  # vector perpendicular to tine plane
         e3 = np.cross(e1, e2)
         E = np.array([e1, e2, e3])
         if(np.linalg.norm(e3) < 0.9):
@@ -831,8 +826,8 @@ class AntennaPatternBase():
             raise AssertionError("orientation of antenna not properly defined in WIPL-D orientation file")
 
         # get normal vectors for antenne orientation in field (in ARIANNA CS)
-        a1 = hp.spherical_to_cartesian(zen_boresight, azi_boresight)
-        a2 = hp.spherical_to_cartesian(zen_ori, azi_ori)
+        a1 = hp.spherical_to_cartesian(orientation_theta, orientation_phi)
+        a2 = hp.spherical_to_cartesian(rotation_theta, rotation_phi)
         a3 = np.cross(a1, a2)
         A = np.array([a1, a2, a3])
         if(np.linalg.norm(a3) < 0.9):
@@ -842,7 +837,7 @@ class AntennaPatternBase():
 
         return np.matmul(inv(E), A)
 
-    def _get_theta_and_phi(self, zenith, azimuth, zen_boresight, azi_boresight, zen_ori, azi_ori):
+    def _get_theta_and_phi(self, zenith, azimuth, orientation_theta, orientation_phi, rotation_theta, rotation_phi):
         """
         transform zenith and azimuth angle in ARIANNA coordinate system to the WIPLD coordinate system.
         In addition the orientation of the antenna as deployed in the field is taken into account.
@@ -851,7 +846,7 @@ class AntennaPatternBase():
         ----------
         """
 
-        rot = self._get_antenna_rotation(zen_boresight, azi_boresight, zen_ori, azi_ori)
+        rot = self._get_antenna_rotation(orientation_theta, orientation_phi, rotation_theta, rotation_phi)
 
         incoming_direction = hp.spherical_to_cartesian(zenith, azimuth)
         incoming_direction_WIPLD = np.dot(rot, incoming_direction.T).T
@@ -870,7 +865,7 @@ class AntennaPatternBase():
                                                                               phi / units.deg))
         return theta, phi
 
-    def get_antenna_response_vectorized(self, freq, zenith, azimuth, zen_boresight, azi_boresight, zen_ori, azi_ori):
+    def get_antenna_response_vectorized(self, freq, zenith, azimuth, orientation_theta, orientation_phi, rotation_theta, rotation_phi):
         """
         get the antenna response for a specific frequency, zenith and azimuth angle
 
@@ -884,14 +879,14 @@ class AntennaPatternBase():
             zenith angle of incoming signal direction
         azimuth : float
             azimuth angle of incoming signal direction
-        zen_boresight : float
-            zenith angle of the boresight direction of the antenna. Specifies the orientation of the antenna in the field
-        azi_boresight : float
-            azimuth angle of the boresight direction of the antenna. Specifies the orientation of the antenna in the field
-        zen_ori : float
-            zenith angle of the vector perpendicular to the plane defined by the antenna tines, and into the direction of the connector
-        azi_ori : float
-            azimuth angle of the vector perpendicular to the plane defined by the antenna tines, and into the direction of the connector
+        orientation_theta: float 
+            boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
+        orientation_phi: float 
+            boresight direction (azimuth angle counting from East counterclockwise)
+        rotation_theta: float
+            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+        rotation_phi: float 
+            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
 
         Returns
         -------
@@ -908,7 +903,7 @@ class AntennaPatternBase():
 
         if(isinstance(freq, (float, int))):
             freq = np.array([freq])
-        theta, phi = self._get_theta_and_phi(zenith, azimuth, zen_boresight, azi_boresight, zen_ori, azi_ori)
+        theta, phi = self._get_theta_and_phi(zenith, azimuth, orientation_theta, orientation_phi, rotation_theta, rotation_phi)
 
         Vtheta_raw, Vphi_raw = self._get_antenna_response_vectorized_raw(freq, theta, phi)
 
@@ -917,7 +912,7 @@ class AntennaPatternBase():
         # eTheta and ePhi unit vectors are different.
         cstrans = cs.cstrafo(zenith=theta, azimuth=phi)
         V_xyz_raw = cstrans.transform_from_onsky_to_ground(np.array([np.zeros(Vtheta_raw.shape[0]), Vtheta_raw, Vphi_raw]))
-        rot = self._get_antenna_rotation(zen_boresight, azi_boresight, zen_ori, azi_ori)
+        rot = self._get_antenna_rotation(orientation_theta, orientation_phi, rotation_theta, rotation_phi)
         from numpy.linalg import inv
         V_xyz = np.dot(inv(rot), V_xyz_raw)
 
@@ -957,7 +952,7 @@ class AntennaPattern(AntennaPatternBase):
         filename = os.path.join(path, antenna_model, "{}.pkl".format(antenna_model))
         self._notfound = False
         try:
-            self._zen_boresight, self._azi_boresight, self._zen_ori, self._azi_ori, \
+            self._orientation_theta, self._orientation_phi, self._rotation_theta, self._rotation_phi, \
                     ff, thetas, phis, H_phi, H_theta = get_pickle_antenna_response(filename)
 
         except IOError:
@@ -1169,17 +1164,17 @@ class AntennaPatternAnalytic(AntennaPatternBase):
         if(self._model == 'analytic_LPDA'):
             # LPDA dummy model points towards z direction and has its tines in the y-z plane
             logger.info("setting boresight direction")
-            self._zen_boresight = 0 * units.deg
-            self._azi_boresight = 0 * units.deg
-            self._zen_ori = 90 * units.deg
-            self._azi_ori = 0 * units.deg
+            self._orientation_theta = 0 * units.deg
+            self._orientation_phi = 0 * units.deg
+            self._rotation_theta = 90 * units.deg
+            self._rotation_phi = 0 * units.deg
 
     def parametric_phase(self, freq, type='theoretical'):
         """
 
         """
         if type == 'frontlobe_lpda':
-            a = 100 * (freq  - 400 * units.MHz) ** 2 - 20
+            a = 100 * (freq - 400 * units.MHz) ** 2 - 20
             a[np.where(freq > 400 * units.MHz)] -= 0.00007 * (freq[np.where(freq > 400 * units.MHz)] - 400 * units.MHz) ** 2
         elif type == 'side_lpda':
             a = 40 * (freq - 950 * units.MHz) ** 2 - 40

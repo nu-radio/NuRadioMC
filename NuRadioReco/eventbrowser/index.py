@@ -16,6 +16,7 @@ from app import app
 from apps import overview
 from apps import traces
 from apps import cosmic_rays
+from apps import simulation
 from apps.common import get_point_index
 import apps.simulation
 import os
@@ -24,8 +25,8 @@ import dataprovider
 import logging
 import datetime
 import webbrowser
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('index')
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(level=logging.INFO)
 
 argparser = argparse.ArgumentParser(description="Starts the Event Display, which then can be accessed via a webbrowser")
 argparser.add_argument('file_location', type=str, help="Path of folder or filename.")
@@ -35,11 +36,11 @@ argparser.add_argument('--port', default=8080, help="Specify the port the event 
 parsed_args = argparser.parse_args()
 data_folder = os.path.dirname(parsed_args.file_location)
 if os.path.isfile(parsed_args.file_location):
-    starting_filename = [parsed_args.file_location]
+    starting_filename = parsed_args.file_location
 else:
     starting_filename = None
 if parsed_args.open_window:
-    webbrowser.open('http://127.0.0.1:{}/'.format(parsed_args.port))    
+    webbrowser.open('http://127.0.0.1:{}/'.format(parsed_args.port))
 
 provider = dataprovider.DataProvider()
 
@@ -64,7 +65,7 @@ app.layout = html.Div([
             html.Div([
                 dcc.Dropdown(id='filename',
                              options=[],
-                             multi=True,
+                             multi=False,
                              value=starting_filename,
                              className='custom-dropdown'),
                  html.Div([
@@ -137,36 +138,53 @@ app.layout = html.Div([
             ], className='custom-table-row')
         ], style={'flex': '1'}, className='event-info-table')
     ], style={'display': 'flex'}),
-    dcc.Tabs([
-        dcc.Tab([
-            overview.layout
-        ], id='summary-tab', label='Summary'),
-        dcc.Tab([
-            traces.layout
-        ], label='Traces'),
-        dcc.Tab([
-            apps.simulation.layout
-        ], label='Simulation'),
-        dcc.Tab([
-            cosmic_rays.layout
-        ], label='Cosmic Rays')
-    ])
+    dcc.RadioItems(
+        options=[
+            {'label': 'Summary', 'value': 'summary'},
+            {'label': 'Traces', 'value': 'traces'},
+            {'label': 'Simulation', 'value': 'simulation'},
+            {'label': 'Cosmic Rays', 'value': 'cosmic_rays'}
+        ],
+        value='summary',
+        id='content-selector',
+        className='radio-content-selector',
+        style={'background-color': '#f9f9f9'},
+        labelStyle={'flex': '1', 'padding': '5px 50px'}
+
+    ),
+    html.Div('', id='content')
 ])
 
+@app.callback(
+Output('content', 'children'),
+[Input('content-selector', 'value')]
+)
+def get_page_content(selection):
+    if selection == 'summary':
+        return [overview.layout]
+    if selection == 'traces':
+        return [traces.layout]
+    if selection == 'simulation':
+        return [simulation.layout]
+    if selection == 'cosmic_rays':
+        return [cosmic_rays.layout]
+    return []
 
 # next/previous buttons
 @app.callback(
 Output('event-counter-slider', 'value'),
 [Input('btn-next-event', 'n_clicks_timestamp'),
 Input('btn-previous-event', 'n_clicks_timestamp'),
-Input('event-click-coordinator', 'children')],
+Input('event-click-coordinator', 'children'),
+Input('filename', 'value')],
 [State('event-counter-slider', 'value'),
-State('user_id', 'children'),
-State('filename', 'value')]
+State('user_id', 'children')]
 )
-def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_click_info, i_event, juser_id, filename):
+def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_click_info, filename, i_event, juser_id):
     context = dash.callback_context
     if filename is None:
+        return 0
+    if context.triggered[0]['prop_id'] == 'filename.value':
         return 0
     if context.triggered[0]['prop_id'] == 'event-click-coordinator.children':
         if context.triggered[0]['value'] is None:
@@ -182,8 +200,8 @@ def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_
                 return i_event - 1
         if context.triggered[0]['prop_id'] == 'btn-next-event.n_clicks_timestamp':
             user_id = json.loads(juser_id)
-            
-            number_of_events = provider.get_arianna_io(user_id, filename).get_n_events()    
+
+            number_of_events = provider.get_arianna_io(user_id, filename).get_n_events()
             if number_of_events == i_event + 1:
                 return number_of_events -1
             else:
@@ -230,7 +248,7 @@ def update_slider_marks(filename, juser_id):
     if n_events%step_size != 0:
         marks[n_events] = str(n_events)
     return marks
-    
+
 
 @app.callback(Output('user_id', 'children'),
               [Input('url', 'pathname')],
@@ -279,50 +297,6 @@ def set_to_first_station_in_event(filename, event_i, juser_id):
     event = ariio.get_event_i(event_i)
     for station in event.get_stations():
         return station.get_id()
-
-@app.callback(Output('skyplot-xcorr', 'figure'),
-              [Input('filename', 'value'),
-               Input('trigger', 'children'),
-               Input('event-ids', 'children'),
-               Input('station-id-dropdown', 'value')],
-              [State('user_id', 'children')])
-def plot_skyplot_xcorr(filename, trigger, jcurrent_selection, station_id, juser_id):
-    if filename is None or station_id is None:
-        return {}
-    user_id = json.loads(juser_id)
-    current_selection = json.loads(jcurrent_selection)
-    ariio = provider.get_arianna_io(user_id, filename)
-    traces = []
-    keys = ariio.get_header()[station_id].keys()
-    if stnp.zenith in keys and stnp.azimuth in keys:
-        traces.append(go.Scatterpolar(
-            r=np.rad2deg(ariio.get_header()[station_id][stnp.zenith]),
-            theta=np.rad2deg(ariio.get_header()[station_id][stnp.azimuth]),
-            text=[str(x) for x in ariio.get_event_ids()],
-            mode='markers',
-            name='all events',
-            opacity=1,
-            marker=dict(
-                color='blue'
-            )
-        ))
-    else:
-        return {}
-
-    # update with current selection
-    if current_selection != []:
-        for trace in traces:
-            trace['selectedpoints'] = current_selection
-
-    return {
-        'data': traces,
-        'layout': go.Layout(
-            showlegend= True,
-            hovermode='closest',
-            height=500
-        )
-    }
-
 
 # update event ids list from plot selection
 @app.callback(Output('event-ids', 'children'),
@@ -376,7 +350,7 @@ def update_event_info_run(event_i, filename, juser_id):
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(event_i)
-    return evt.get_run_number()    
+    return evt.get_run_number()
 
 @app.callback(Output('event-info-id', 'children'),
             [Input('event-counter-slider', 'value'),

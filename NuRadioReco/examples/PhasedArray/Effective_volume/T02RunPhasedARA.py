@@ -27,10 +27,11 @@ import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
+from NuRadioReco.utilities.traceWindows import get_window_around_maximum
 import numpy as np
 import logging
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runstrawman")
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(level=logging.WARNING)
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
@@ -41,53 +42,30 @@ channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPas
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
-left_edge_around_max = 20 * units.ns
-right_edge_around_max = 40 * units.ns
-
 class mySimulation(simulation.simulation):
 
     def _detector_simulation(self):
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
-        # downsample trace to 3 ns
+        # downsample trace to 1.5 Gs/s
         new_sampling_rate = 1.5 * units.GHz
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
 
-        threshold_cut = True
-        # Forcing a threshold cut BEFORE adding noise for limiting the noise-induced triggers
-        if threshold_cut:
-
-            thresholdSimulator.run(self._evt, self._station, self._det,
-                                 threshold=1 * self._Vrms,
-                                 triggered_channels=None,  # run trigger on all channels
-                                 number_concidences=1,
-                                 trigger_name='simple_threshold')
-
-        max_times = []
+        cut_times = get_window_around_maximum(self._station)
 
         # Bool for checking the noise triggering rate
         check_only_noise = False
 
-        for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
-
-            times = channel.get_times()
-            argmax = np.argmax( np.abs(channel.get_trace()) )
-            max_times.append(times[argmax])
-            if check_only_noise:
+        if check_only_noise:
+            for channel in self._station.iter_channels():
                 trace = channel.get_trace() * 0
                 channel.set_trace(trace, sampling_rate = new_sampling_rate)
 
-        left_time = np.min(max_times) - left_edge_around_max
-        right_time = np.max(max_times) + right_edge_around_max
-
-        noise = True
-
-        if noise:
+        if self._is_simulate_noise():
             max_freq = 0.5 / self._dt
             norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
-            Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
-                                         max_freq=max_freq, type='rayleigh')
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms, min_freq=0 * units.MHz,
+                                         max_freq=max_freq, type='rayleigh', bandwidth=norm)
 
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[130 * units.MHz, 1000 * units.GHz],
@@ -95,26 +73,14 @@ class mySimulation(simulation.simulation):
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 750 * units.MHz],
                                   filter_type='butter', order=10)
 
-        # Setting the trace values far from the amplitude maxima to zero
-        # to reduce the noise trigger rate
-        for channel in self._station.iter_channels():
-
-            times = channel.get_times()
-            left_bin = np.argmin(np.abs(times-left_time))
-            right_bin = np.argmin(np.abs(times-right_time))
-            trace = channel.get_trace()
-            trace[0:left_bin] = 0
-            trace[right_bin:None] = 0
-            channel.set_trace(trace, sampling_rate = new_sampling_rate)
-
-        # first run a simple threshold trigger
+        # run the phased trigger
         triggerSimulator.run(self._evt, self._station, self._det,
                              threshold=2.5 * self._Vrms, # see phased trigger module for explanation
                              triggered_channels=None,  # run trigger on all channels
                              secondary_channels=[0,1,3,4,6,7], # secondary channels
                              trigger_name='primary_and_secondary_phasing', # the name of the trigger
-                             set_not_triggered=(not self._station.has_triggered("simple_threshold")),
-                             coupled=True)
+                             coupled=True,
+                             cut_times=cut_times)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
@@ -130,7 +96,7 @@ parser.add_argument('--outputfilenameNuRadioReco', type=str, nargs='?', default=
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
 
-sim = mySimulation(eventlist=args.inputfilename,
+sim = mySimulation(inputfilename=args.inputfilename,
                             outputfilename=args.outputfilename,
                             detectorfile=args.detectordescription,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,

@@ -17,8 +17,8 @@ import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioReco.detector import detector
 det = detector.Detector(json_filename='../example_data/dummy_detector.json')
 
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("TriggerComparison")
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(level=logging.WARNING)
 
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 channelGenericNoiseAdder.begin(debug=False)

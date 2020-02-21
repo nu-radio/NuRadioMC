@@ -1,28 +1,28 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
+import time
+import copy
 from scipy import signal, fftpack
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.optimize as opt
+import logging
+
+from radiotools import helper as hp
+from radiotools import plthelpers as php
+
+import NuRadioReco.framework.base_trace
+from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.utilities import ice
+from NuRadioReco.detector import antennapattern
+
+from NuRadioReco.framework import electric_field as ef
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import NuRadioReco.modules.voltageToEfieldConverterPerChannel
-import scipy.optimize as opt
-from radiotools import helper as hp
-from radiotools import plthelpers as php
-import time
-import copy
-from NuRadioReco.utilities import trace_utilities
-from NuRadioReco.utilities import ice
-from NuRadioReco.detector import antennapattern
-import NuRadioReco.framework.base_trace
-
-from NuRadioReco.framework import electric_field as ef
-
-import logging
-logger = logging.getLogger('beamFormingDirectionFitter')
-logging.basicConfig()
 import NuRadioReco.modules.electricFieldBandPassFilter
+
+
 
 electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
 voltageToEfieldConverterPerChannel = NuRadioReco.modules.voltageToEfieldConverterPerChannel.voltageToEfieldConverterPerChannel()
@@ -97,10 +97,11 @@ class beamFormingDirectionFitter:
         self.__delta_zenith = []
         self.__delta_azimuth = []
         self.begin()
+        self.logger = logging.getLogger("NuRadioReco.beamFormingDirectionFitter")
 
     def begin(self, debug=False, log_level=None):
         if(log_level is not None):
-            logger.setLevel(log_level)
+            self.logger.setLevel(log_level)
         self.__debug = debug
 
     def run(self, evt, station, det, polarization, n_index=None,channels=[4,5,6,7], ZenLim=[90 * units.deg, 180 * units.deg],

@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from numpy.polynomial import polynomial as poly
@@ -25,8 +24,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import electric_field as ef
 
 import logging
-logger = logging.getLogger('voltageToEfieldConverterPerChannel')
-logging.basicConfig()
+
 
 
 class voltageToEfieldConverterPerChannel:
@@ -37,12 +35,12 @@ class voltageToEfieldConverterPerChannel:
     """
 
     def __init__(self):
+        self.logger = logging.getLogger('NuRadioReco.voltageToEfieldConverterPerChannel')
         self.__counter = 0
         self.begin()
 
     def begin(self):
         self.antenna_provider = antennapattern.AntennaPatternProvider()
-        pass
 
     @register_run()
     def run(self, evt, station, det, pol=0, debug=True):
@@ -67,12 +65,12 @@ class voltageToEfieldConverterPerChannel:
         self.__counter += 1
         event_time = station.get_station_time()
         station_id = station.get_id()
-        logger.debug("event {}, station {}".format(evt.get_id(), station_id))
+        self.logger.debug("event {}, station {}".format(evt.get_id(), station_id))
         if station.get_sim_station() is not None and station.get_sim_station().has_parameter(stnp.zenith):
             zenith = station.get_sim_station()[stnp.zenith]
             azimuth = station.get_sim_station()[stnp.azimuth]
         else:
-            logger.debug("Using reconstructed angles as no simulation present")
+            self.logger.debug("Using reconstructed angles as no simulation present")
             zenith = station[stnp.zenith]
             azimuth = station[stnp.azimuth]
 

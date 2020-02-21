@@ -22,6 +22,9 @@ def deserialize(triggers_pkl):
         elif(trigger_type == 'simple_phased'):
             trigger = SimplePhasedTrigger(None, None)
             trigger.deserialize(data_pkl)
+        elif(trigger_type == 'envelope_trigger'):
+            trigger = EnvelopeTrigger(None, None, None, None)
+            trigger.deserialize(data_pkl)
         else:
             raise ValueError("unknown trigger type")
         triggers[trigger.get_name()] = trigger
@@ -159,6 +162,47 @@ class SimpleThresholdTrigger(Trigger):
         self._coinc_window = channel_coincidence_window
 
 
+class EnvelopePhasedTrigger(Trigger):
+
+    def __init__(self, name, threshold_factor, power_mean, power_std,
+                 triggered_channels=None, phasing_angles=None, trigger_delays=None,
+                 output_passband=(None, None)):
+        """
+        initialize trigger class
+        Parameters
+        -----------
+        name: string
+            unique name of the trigger
+        threshold_factor: float
+            the threshold factor
+        power_mean: float
+            mean of the noise trace after being filtered with the diode
+        power_std: float
+            standard deviation of the noise trace after being filtered with the
+            diode. power_mean and power_std can be calculated with the function
+            calculate_noise_parameters from utilities.diodeSimulator
+        triggered_channels: array of ints or None
+            the channels that are involved in the main phased beam
+            default: None, i.e. all channels
+        phasing_angles: array of floats or None
+            the angles for each beam
+        trigger_delays: dictionary
+            the delays for the channels that have caused a trigger.
+            If there is no trigger, it's an empty dictionary
+        output_passband: (float, float) tuple
+            Frequencies for a 6th-order Butterworth filter to be applied after
+            the diode filtering.
+        """
+        Trigger.__init__(self, name, triggered_channels, 'envelope_phased')
+        self._triggered_channels = triggered_channels
+        self._phasing_angles = phasing_angles
+        self._threshold_factor = threshold_factor
+        self._power_mean = power_mean
+        self._power_std = power_std
+        self._trigger_delays = trigger_delays
+        self._output_passband = output_passband
+
+
 class SimplePhasedTrigger(Trigger):
 
     def __init__(self, name, threshold, channels=None, secondary_channels=None,
@@ -194,8 +238,9 @@ class SimplePhasedTrigger(Trigger):
         self._secondary_channels = secondary_channels
         self._secondary_angles = secondary_angles
         self._threshold = threshold
-        self._trigger_delays = None
-        self._sec_trigger_delays = None
+        self._trigger_delays = trigger_delays
+        self._sec_trigger_delays = sec_trigger_delays
+
 
 class HighLowTrigger(Trigger):
 
@@ -234,7 +279,7 @@ class HighLowTrigger(Trigger):
 class IntegratedPowerTrigger(Trigger):
 
     def __init__(self, name, threshold, channel_coincidence_window, channels=None, number_of_coincidences=1,
-                 power_mean=None, power_std=None):
+                 power_mean=None, power_std=None, integration_window=None):
         """
         initialize trigger class
 
@@ -259,3 +304,38 @@ class IntegratedPowerTrigger(Trigger):
         self._coinc_window = channel_coincidence_window
         self._power_mean = power_mean
         self._power_std = power_std
+        self._integration_window = integration_window
+
+
+class EnvelopeTrigger(Trigger):
+
+    def __init__(self, name, passband, order, threshold, number_of_coincidences=2,
+                 channel_coincidence_window=None, channels=None):
+        """
+        initialize trigger class
+
+        Parameters
+        -----------
+        name: string
+            unique name of the trigger
+        passband: array
+            the passband in which the trigger should apply
+        order: int
+            order of filtertype 'butterabs'
+        threshold: float
+            the threshold
+        channels: array of ints or None
+            the channels that are involved in the trigger
+            default: None, i.e. all channels
+        number_of_coincidences: int
+            the number of channels that need to fulfill the trigger condition
+            default: 1
+        channel_coincidence_window: float or None (default)
+            the coincidence time between triggers of different channels
+        """
+        Trigger.__init__(self, name, channels, 'envelope_trigger')
+        self._passband = passband
+        self._order = order
+        self._threshold = threshold
+        self._number_of_coincidences = number_of_coincidences
+        self._coinc_window = channel_coincidence_window
