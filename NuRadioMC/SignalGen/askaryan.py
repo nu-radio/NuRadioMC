@@ -68,7 +68,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
     if(energy == 0):
         return np.zeros(N)
     if model in par.get_parametrizations():
-        return par.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=seed)
+        return par.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=seed, same_shower=same_shower)
     elif(model == 'HCRB2017'):
         from NuRadioMC.SignalGen import HCRB2017
         is_em_shower = None
