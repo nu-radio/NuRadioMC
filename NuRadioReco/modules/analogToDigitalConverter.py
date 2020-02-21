@@ -7,7 +7,7 @@ from scipy.interpolate import interp1d
 from scipy.signal import resample
 from NuRadioReco.modules.base.module import register_run
 
-def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor'):
+def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output='voltage'):
     """
     Simulates a perfect comparator flash ADC that compares the voltage to the
     voltage for the least significative bit and takes the floor or the ceiling
@@ -24,11 +24,14 @@ def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor'):
         ADC: 2**adc_n_bits - 1
     mode: string
         'floor' or 'ceiling'
+    output: string
+        - 'voltage' to store the ADC output as discretised voltage trace
+        - 'counts' to store the ADC output in ADC counts
 
     Returns
     -------
     digital_trace: array of floats
-        Digitised voltage trace
+        Digitised voltage trace in volts or ADC counts
     """
 
     lsb_voltage = adc_ref_voltage/(2 ** (adc_n_bits-1) - 1)
@@ -43,25 +46,30 @@ def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor'):
     digital_trace = apply_saturation(digital_trace, adc_n_bits, adc_ref_voltage)
     digital_trace = round_to_int(digital_trace)
 
-    digital_trace = lsb_voltage * digital_trace.astype(np.float)
+    if (output == 'voltage'):
+        digital_trace = lsb_voltage * digital_trace.astype(np.float)
+    elif (output == 'counts'):
+        pass
+    else:
+        raise ValueError("The ADC output format is unknown. Please choose 'voltage' or 'counts'" )
 
     return digital_trace
 
-def perfect_floor_comparator(trace, adc_n_bits, adc_ref_voltage):
+def perfect_floor_comparator(trace, adc_n_bits, adc_ref_voltage, output='voltage'):
     """
     Perfect comparator ADC that takes the floor value of the comparison.
     See perfect_comparator
     """
 
-    return perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor')
+    return perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output=output)
 
-def perfect_ceiling_comparator(trace, adc_n_bits, adc_ref_voltage):
+def perfect_ceiling_comparator(trace, adc_n_bits, adc_ref_voltage, output='voltage'):
     """
     Perfect comparator ADC that takes the floor value of the comparison.
     See perfect_floor.
     """
 
-    return perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='ceiling')
+    return perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='ceiling', output=output)
 
 def apply_saturation(adc_counts_trace, adc_n_bits, adc_ref_voltage):
     """
@@ -156,7 +164,8 @@ class analogToDigitalConverter():
                           random_clock_offset=True,
                           adc_type='perfect_floor_comparator',
                           diode=None,
-                          return_sampling_frequency=False):
+                          return_sampling_frequency=False,
+                          output='voltage'):
         """
         Returns the digital trace for a channel, without setting it. This allows
         the creation of a digital trace that can be used for triggering purposes
@@ -180,6 +189,9 @@ class analogToDigitalConverter():
             Diode used to envelope filter the signal
         return_sampling_frequency: bool
             If True, returns the trace and the ADC sampling frequency
+        output: string
+            - 'voltage' to store the ADC output as discretised voltage trace
+            - 'counts' to store the ADC output in ADC counts
 
         Returns
         -------
@@ -251,7 +263,7 @@ class analogToDigitalConverter():
         resampled_trace = resample(delayed_trace, new_n_samples)
 
         digital_trace = self._adc_types[adc_type](delayed_trace, adc_n_bits,
-                                                  adc_ref_voltage)
+                                                  adc_ref_voltage, output)
 
         if return_sampling_frequency:
             return digital_trace, adc_sampling_frequency
@@ -261,7 +273,8 @@ class analogToDigitalConverter():
     @register_run()
     def run(self, evt, station, det,
             random_clock_offset=True,
-            adc_type='perfect_floor_comparator'):
+            adc_type='perfect_floor_comparator',
+            output='voltage'):
         """
         Runs the analogToDigitalConverter and transforms the traces from all
         the channels of an input station to digital voltage values.
@@ -277,6 +290,9 @@ class analogToDigitalConverter():
             The type of ADC used. The following are available:
             - perfect_floor_comparator
             See functions with the same name on this module for documentation
+        output: string
+            - 'voltage' to store the ADC output as discretised voltage trace
+            - 'counts' to store the ADC output in ADC counts
         """
 
         t = time.time()
@@ -286,7 +302,8 @@ class analogToDigitalConverter():
             digital_trace, adc_sampling_frequency = self.get_digital_trace(station, det, channel,
                                                         random_clock_offset=random_clock_offset,
                                                         adc_type=adc_type,
-                                                        return_sampling_frequency=True)
+                                                        return_sampling_frequency=True,
+                                                        output=output)
 
             channel.set_trace(digital_trace, adc_sampling_frequency)
 
