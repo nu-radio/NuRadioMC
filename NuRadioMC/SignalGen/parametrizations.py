@@ -140,6 +140,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
                 else:
                     log10_k_L_bar = log10_k_0 + gamma_1 * (log10_E_0 - log10_E_LPM)
 
+                global _Alvarez2009_k_L
                 if(same_shower):
                     if _Alvarez2009_k_L is None:
                         logger.error("the same shower was requested but the function hasn't been called before.")
