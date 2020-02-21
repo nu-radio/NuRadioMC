@@ -320,6 +320,7 @@ class simulation():
         t_start = time.time()
 
         for self._iE in range(self._n_events):
+            same_shower = False  # a varibale that tracks if a new event comes in to allow to use the same shower realization for each station, channel and ray tracing solution
             if(self._event_list is not None and self._fin['event_ids'][self._iE] not in self._event_list):
                 logger.debug(f"skipping event {self._fin['event_ids'][self._iE]} because it is not in the event list provided to the __init__ function")
                 continue
@@ -444,8 +445,6 @@ class simulation():
                         continue
 
                     n = r.get_number_of_solutions()
-                    Rs = np.zeros(n)
-                    Ts = np.zeros(n)
                     for iS in range(n):  # loop through all ray tracing solution
                         # skip individual channels where the viewing angle difference is too large
                         # discard event if delta_C (angle off cherenkov cone) is too large
@@ -474,7 +473,7 @@ class simulation():
                         t_ask = time.time()
                         spectrum = signalgen.get_frequency_spectrum(
                             self._energy * fhad, viewing_angles[iS], self._n_samples, self._dt, "HAD", n_index, R,
-                            self._cfg['signal']['model'], same_shower=(iS > 0), seed=self._cfg['seed'])
+                            self._cfg['signal']['model'], same_shower=same_shower, seed=self._cfg['seed'])
                         askaryan_time += (time.time() - t_ask)
 
                         # apply frequency dependent attenuation
@@ -488,13 +487,14 @@ class simulation():
                             t_ask = time.time()
                             spectrum_em = signalgen.get_frequency_spectrum(
                                 self._energy * fem, viewing_angles[iS], self._n_samples, self._dt, "EM", n_index, R,
-                                self._cfg['signal']['model'], same_shower=(iS > 0), seed=self._cfg['seed'])
+                                self._cfg['signal']['model'], same_shower=same_shower, seed=self._cfg['seed'])
                             askaryan_time += (time.time() - t_ask)
                             if self._cfg['propagation']['attenuate_ice']:
                                 spectrum_em *= attn
                             # add EM signal to had signal in the time domain
                             spectrum = fft.time2freq(fft.freq2time(spectrum, 1 / self._dt) + fft.freq2time(spectrum_em, 1 / self._dt), 1 / self._dt)
 
+                        same_shower = True
                         # apply the focusing effect
                         if self._cfg['propagation']['focusing']:
                             dZRec = -0.01 * units.m
@@ -576,11 +576,9 @@ class simulation():
                         electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
                         electric_field[efp.reflection_coefficient_theta] = r_theta
                         electric_field[efp.reflection_coefficient_phi] = r_phi
-                        electric_field[efp.shower_energy] = {"EM": self._energy * fem, "HAD": self._energy * fhad}
                         if(self._cfg['signal']['model'] in ['ARZ2019', 'ARZ2020']):
                             from NuRadioMC.SignalGen.ARZ import ARZ
                             gARZ = ARZ.ARZ(arz_version=self._cfg['signal']['model'])
-                            electric_field[efp.charge_excess_profile_index] = gARZ.get_last_shower_profile_id()
                         self._sim_station.add_electric_field(electric_field)
 
                         # apply a simple threshold cut to speed up the simulation,
