@@ -74,8 +74,8 @@ def perfect_ceiling_comparator(trace, adc_n_bits, adc_ref_voltage, output='volta
 def apply_saturation(adc_counts_trace, adc_n_bits, adc_ref_voltage):
     """
     Takes a digitised trace in ADC counts and clips the parts of the
-    trace with values higher than 2*adc_n_bits-1 or lower than
-    -2*adc_n_bits.
+    trace with values higher than 2**(adc_n_bits-1)-1 or lower than
+    -2**(adc_n_bits-1).
 
     Parameters
     ----------
@@ -85,7 +85,7 @@ def apply_saturation(adc_counts_trace, adc_n_bits, adc_ref_voltage):
         Number of bits of the ADC
     adc_ref_voltage: float
         Voltage corresponding to the maximum number of counts given by the
-        ADC: 2**adc_n_bits - 1
+        ADC: 2**(adc_n_bits-1) - 1
 
     Returns
     -------
