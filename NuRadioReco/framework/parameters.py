@@ -56,7 +56,6 @@ class electricFieldParameters(Enum):
     reflection_coefficient_theta = 14  # for reflected rays: the complex Fresnel reflection coefficient of the eTheta component
     reflection_coefficient_phi = 15  # for reflected rays: the complex Fresnel reflection coefficient of the ePhi component
     cr_spectrum_quadratic_term = 16  # result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
-    shower_id = 17  # reference to the shower corresponding for this efield
 
 
 class ARIANNAParameters(Enum):  # this class stores parameters specific to the ARIANNA data taking
