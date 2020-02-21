@@ -5,7 +5,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 new features:
 - changed the way logging in handled.
 
-version 1.0.1 - ????/??/??
+version 1.0.1 - 2020/02/05
 
 new features:
 - added module registry. By adding a decorator to the run methods of every module, we keep track of the modules applied to an event
@@ -17,6 +17,7 @@ new features:
    V/GHz/bin. This way, the values of trace.get_frequency_spectrum() are independent of the sampling rate. The fft utilities
    now also need the sampling rate as an argument.
 -Envelope phased array available
+-Trigger times now include the time with respect to the first interaction (vertex times)
 
 Detector description can be stored in .nur files
 Large overhaul of the event structure. Adds shower classes and hybrid detector information.
