@@ -94,13 +94,7 @@ def buffer_db(in_memory, filename=None):
                                 'adc_time_delay': channel['adcs.time_delay'],
                                 'adc_nbits': channel['adcs.nbits'],
                                 'adc_n_samples': channel['adcs.n_samples'],
-                                'adc_sampling_frequency': channel['adcs.sampling_frequency'],
-                                'adc_reference_voltage': channel['adcs.reference_voltage'],
-                                'trigger_adc_time_delay': channel['trigger_adcs.time_delay'],
-                                'trigger_adc_nbits': channel['trigger_adcs.nbits'],
-                                'trigger_adc_n_samples': channel['trigger_adcs.n_samples'],
-                                'trigger_adc_sampling_frequency': channel['trigger_adcs.sampling_frequency'],
-                                'trigger_adc_reference_voltage': channel['trigger_adcs.reference_voltage']})
+                                'adc_sampling_frequency': channel['adcs.sampling_frequency']})
 
     results = sqldet.get_everything_positions()
     table_positions = db.table('positions')
