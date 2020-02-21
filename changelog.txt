@@ -9,6 +9,9 @@ version 1.1.1
   This is useful for a quick resimulation of certain events. 
 - Alvarez???? Askaryan models now place the trace into the center of the trace (instead of 50ns into the trace) 
 
+bugfixes:
+- ARZxxxx and Alvarez2009 Askaryan modules now use the same (random) shower per event. 
+
 version 1.1.0 - 2020/01/15
 new features:
 - specifying the bandwidth of the detector is no longer required. Now, the bandwidth is calculated automatically from the
@@ -28,5 +31,6 @@ bugfixes:
 	- fixed that Veff utility script didn't calculate effective volumes for individual triggers
 	- fixed that the multiple_triggers key was not created for multiple stations
 	- Angular distribution now accounts for projected area
+	- 
 
 version 1.0.0 - 2019/08/30 - first python 3 release
