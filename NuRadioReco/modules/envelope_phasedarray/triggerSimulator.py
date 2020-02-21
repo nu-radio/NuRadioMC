@@ -92,9 +92,6 @@ class triggerSimulator(phasedTrigger):
             channel_id = channel.get_id()
             time_step = 1 / channel.get_sampling_rate()
 
-            trace = diode.tunnel_diode(channel)  # get the enveloped trace
-            times = np.copy(channel.get_times())  # get the corresponding time bins
-
             if trigger_adc:
 
                 ADC = analogToDigitalConverter()

@@ -184,6 +184,7 @@ class analogToDigitalConverter():
         adc_type: string
             The type of ADC used. The following are available:
             - perfect_floor_comparator
+            - perfect_ceiling_comparator
             See functions with the same name on this module for documentation
         diode: utilities.diodeSimulator.diodeSimulator object
             Diode used to envelope filter the signal
@@ -312,7 +313,7 @@ class analogToDigitalConverter():
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt
