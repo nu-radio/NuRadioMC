@@ -22,6 +22,7 @@ argument of the respective function.
 """
 
 _random_generators = {}
+_Alvarez2009_k_L = None
 
 
 def get_parametrizations():
@@ -29,7 +30,7 @@ def get_parametrizations():
     return ['ZHS1992', 'Alvarez2000', 'Alvarez2009', 'Alvarez2012']
 
 
-def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=None):
+def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=None, same_shower=False):
     """
     returns the Askaryan pulse in the time domain of the eTheta component
 
@@ -139,7 +140,15 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
                 else:
                     log10_k_L_bar = log10_k_0 + gamma_1 * (log10_E_0 - log10_E_LPM)
 
-                k_L = 10 ** _random_generators[model].normal(log10_k_L_bar, sigma_k_L)
+                if(same_shower):
+                    if _Alvarez2009_k_L is None:
+                        logger.error("the same shower was requested but the function hasn't been called before.")
+                        raise AttributeError("the same shower was requested but the function hasn't been called before.")
+                    else:
+                        k_L = _Alvarez2009_k_L
+                else:
+                    _Alvarez2009_k_L = 10 ** _random_generators[model].normal(log10_k_L_bar, sigma_k_L)
+                    k_L = _Alvarez2009_k_L
             else:
                 raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
 
