@@ -16,7 +16,6 @@ logger = logging.getLogger("SignalGen.ARZ")
 logging.basicConfig()
 
 
-#
 class Singleton(type):
     _instances = {}
 
