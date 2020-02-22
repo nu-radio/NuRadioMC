@@ -7,6 +7,8 @@ import numpy as np
 import plotly.graph_objs as go
 import json
 import sys
+from io import StringIO
+import csv
 
 from NuRadioReco.detector import detector_mongo as det
 
@@ -24,19 +26,7 @@ layout = html.Div([
     html.H3('Add new amplifier', id='trigger'),
     dcc.Link('Go back to menu', href='/apps/menu'),
     html.H3('', id='override-warning', style={"color": "Red"}),
-    html.Div([html.Div("What type of measurement are you adding?:", style={'float':'left'}),
-    dcc.Dropdown(
-        id='S-dropdown',
-        options=[
-            {'label': 'S11', 'value': "S11"},
-            {'label': 'S12', 'value': "S12"},
-            {'label': 'S21', 'value': "S21"},
-            {'label': 'S22', 'value': "S22"}
-        ],
-        placeholder="select S parameter",
-        value="S12",
-        style={'width': '200px', 'float':'left'}
-    ),
+    html.Div([
     dcc.Checklist(
         id="allow-override",
         options=[
@@ -74,89 +64,72 @@ layout = html.Div([
             id='separator',
             options=[
                 {'label': 'comma separated ","', 'value': ','},
-                {'label': 'new value per line "\\n"', 'value': '\n'}
                      ],
             clearable=False,
             value=",",
             style={'width': '200px', 'float':'left'}
         ),
-    html.Br(),
-    html.Br(),
-    html.Div([
-        dcc.Textarea(
-            id='frequencies',
-            placeholder='frequencies',
-            value='',
-            style={'width': '60%',
-                   'float': 'left'}
-        ),
-        dcc.Dropdown(
-            id='dropdown-frequencies',
-            options=[
-                {'label': 'GHz', 'value': "GHz"},
-                {'label': 'MHz', 'value': "MHz"},
-                {'label': 'Hz', 'value': "Hz"}
-            ],
-            value="GHz",
-            style={'width': '40%',
-                   'float': 'left'}
-        )
-    ], style={'width':'100%', 'float': 'hidden'}),
-    html.Div(id='validation-frequencies-output'),
-    html.Div([
-        dcc.Textarea(
-            id='magnitude',
-            placeholder='magnitudes',
-            value='',
-            style={'width': '60%',
-                   'float': 'left'}
-        ),
-        dcc.Dropdown(
+    html.Div("units"),
+    dcc.Dropdown(
+        id='dropdown-frequencies',
+        options=[
+            {'label': 'GHz', 'value': "GHz"},
+            {'label': 'MHz', 'value': "MHz"},
+            {'label': 'Hz', 'value': "Hz"}
+        ],
+        value="Hz",
+        style={'width': '20%',
+#                'float': 'left'
+        }
+    ),
+    dcc.Dropdown(
             id='dropdown-magnitude',
             options=[
                 {'label': 'V', 'value': "V"},
                 {'label': 'mV', 'value': "mV"}
             ],
             value="V",
-            style={'width': '40%',
-                   'float': 'left'}
-        )
-    ], style={'width':'100%'}),
-    html.Div(id='validation-magnitude-output'),
-    html.Div([
-        dcc.Textarea(
-            id='phases',
-            placeholder='phase',
-            value='',
-            style={'width': '60%',
-                   'float': 'left'}
+            style={'width': '20%',
+#                    'float': 'left'}
+                   }
         ),
-        dcc.Dropdown(
+    dcc.Dropdown(
             id='dropdown-phase',
             options=[
                 {'label': 'degree', 'value': "deg"},
                 {'label': 'rad', 'value': "rad"}
             ],
             value="deg",
-            style={'width': '40%',
-                   'float': 'left'}
-        )
-    ], style={'width':'100%'}),
-    html.Div(id='validation-phase-output'),
+            style={'width': '20%',
+#                    'float': 'left'}
+            }
+        ),
     html.Br(),
+    html.Br(),
+    html.Div([
+        dcc.Textarea(
+            id='Sdata',
+            placeholder='data array from spectrum analyzser of the form Freq, S11(MAG)    S11(DEG)    S12(MAG)    S12(DEG)    S21(MAG)    S21(DEG)    S22(MAG)    S22(DEG)',
+            value='',
+            style={'width': '60%',
+                   'float': 'left'}
+        ),
+    ], style={'width':'100%', 'float': 'hidden'}),
+    html.Br(),
+    html.Div('', id='validation-Sdata-output', style={'whiteSpace': 'pre-wrap'}),
     html.H4('', id='validation-global-output'),
     html.Div("false", id='validation-global', style={'display': 'none'}),
     html.Div([
         html.Button('insert to DB', id='button-insert', disabled=True),
     ], style={'width':"100%", "overflow": "hidden"}),
     html.Div(id='dd-output-container'),
-    dcc.Graph(id='figure-amp')
+    dcc.Graph(id='figure-amp', style={"height": "1000px", "width" : "100%"})
 ])
 
 
 @app.callback(
     Output("amp-board-list", "options"),
-    [Input("trigger", "value")],
+    [Input("trigger", "children")],
     [State("amp-board-list", "options")]
 )
 def update_dropdown_amp_names(n_intervals, options):
@@ -187,14 +160,16 @@ def warn_override(channel_id, amp_name, S_parameter):
 
 
 @app.callback(
-    [Output("validation-frequencies-output", "children"),
-     Output("validation-frequencies-output", "style"),
-    Output("validation-frequencies-output", "data-validated")],
-    [Input('frequencies', 'value'),
+    [Output("validation-Sdata-output", "children"),
+     Output("validation-Sdata-output", "style"),
+    Output("validation-Sdata-output", "data-validated")],
+    [Input('Sdata', 'value'),
      Input('dropdown-frequencies', 'value'),
+     Input('dropdown-magnitude', 'value'),
+     Input('dropdown-phase', 'value'),
      Input('separator', 'value')
      ])
-def validate_frequencies(ff, unit_ff, sep):
+def validate_Sdata(Sdata, unit_ff, unit_A, unit_phase, sep):
     """
     validates frequency array
     
@@ -202,56 +177,28 @@ def validate_frequencies(ff, unit_ff, sep):
     
     The outcome of the validataion (True/False) is saved in the 'data-validated' attribute to trigger other actions. 
     """
-    try:
-        ff = np.array([float(i) for i in ff.split(sep)]) * str_to_unit[unit_ff]
-
-        return f"you entered {len(ff)} frequencies from {ff.min()/units.MHz:.4g}MHz to {ff.max()/units.MHz:.4g}MHz", {"color": "Green"}, True
-    except:
-        return f"{sys.exc_info()[0].__name__}:{sys.exc_info()[1]}", {"color": "Red"}, False
-
-
-@app.callback(
-    [Output("validation-magnitude-output", "children"),
-     Output("validation-magnitude-output", "style"),
-    Output("validation-magnitude-output", "data-validated")],
-    [Input('magnitude', 'value'),
-     Input('dropdown-magnitude', 'value'),
-     Input('separator', 'value')])
-def validate_mag(mag, unit_mag, sep):
-    """
-    validates magnitude array
-    
-    displays string with validation information for the user
-    
-    The outcome of the validataion (True/False) is saved in the 'data-validated' attribute to trigger other actions. 
-    """
-    try:
-        mag = np.array([float(i) for i in mag.split(sep)]) * str_to_unit[unit_mag]
-        return f"you entered {len(mag)} values within the range of {mag.min()/units.V:.4g}V to {mag.max()/units.V:.4g}V", {"color": "Green"}, True
-    except:
-        return f"{sys.exc_info()[0].__name__}:{sys.exc_info()[1]}", {"color": "Red"}, False
-
-
-@app.callback(
-    [Output("validation-phase-output", "children"),
-     Output("validation-phase-output", "style"),
-     Output("validation-phase-output", "data-validated")],
-    [Input('phases', 'value'),
-     Input('dropdown-phase', 'value'),
-     Input('separator', 'value')])
-def validate_phase(phase, unit_phase, sep):
-    """
-    validates phase array
-    
-    displays string with validation information for the user
-    
-    The outcome of the validataion (True/False) is saved in the 'data-validated' attribute to trigger other actions. 
-    """
-    try:
-        phase = np.array([float(i) for i in phase.split(sep)]) * str_to_unit[unit_phase]
-        return f"you entered {len(phase)} values within the range of {phase.min()/units.degree:.1f}degree to {phase.max()/units.degree:.1f}degree", {"color": "Green"}, True
-    except:
-        return f"{sys.exc_info()[0].__name__}:{sys.exc_info()[1]}", {"color": "Red"}, False
+    if(Sdata != ""):
+        try:
+            S_data_io = StringIO(Sdata)
+            S_data = np.genfromtxt(S_data_io, delimiter=sep).T
+            S_data[0] *= str_to_unit[unit_ff]
+            for i in range(4):
+                S_data[1 + 2 * i] *= str_to_unit[unit_A]
+                S_data[2 + 2 * i] *= str_to_unit[unit_phase]
+            tmp = [f"you entered {len(S_data[0])} frequencies from {S_data[0].min()/units.MHz:.4g}MHz to {S_data[0].max()/units.MHz:.4g}MHz"]
+            tmp.append(html.Br())
+            S_names = ["S11", "S12", "S21", "S22"]
+            for i in range(4):
+                tmp.append(f"{S_names[i]} mag {len(S_data[1+i*2])} values within the range of {S_data[1+2*i].min()/units.V:.4g}V to {S_data[1+2*i].max()/units.V:.4g}V")
+                tmp.append(html.Br())
+                tmp.append(f"{S_names[i]} phase {len(S_data[2+i*2])} values within the range of {S_data[2+2*i].min()/units.degree:.1f}deg to {S_data[2+2*i].max()/units.degree:.1f}deg")
+                tmp.append(html.Br())
+            return tmp, {"color": "Green"}, True
+        except:
+    #         print(sys.exc_info())
+            return f"{sys.exc_info()[0].__name__}:{sys.exc_info()[1]}", {"color": "Red"}, False
+    else:
+        return f"no data inserted", {"color": "Red"}, False
 
 
 @app.callback(
@@ -261,26 +208,15 @@ def validate_phase(phase, unit_phase, sep):
         Output("validation-global-output", "data-validated"),
         Output('button-insert', 'disabled')
     ],
-    [Input("validation-frequencies-output", "data-validated"),
-     Input("validation-magnitude-output", "data-validated"),
-     Input("validation-phase-output", "data-validated"),
+    [Input("validation-Sdata-output", "data-validated"),
      Input('amp-board-list', 'value'),
      Input('new-board-input', 'value'),
-     Input("channel-id", "value")],
-    [State('frequencies', 'value'),
-    State('magnitude', 'value'),
-    State('phases', 'value'),
-    State('dropdown-frequencies', 'value'),
-    State('dropdown-magnitude', 'value'),
-    State('dropdown-phase', 'value'),
-    State('separator', 'value')])
-def validate_global(ff_validated, mag_validated, phase_validated, board_dropdown, new_board_name, channel_id,
-                    ff, mag, phase, unit_ff, unit_mag, unit_phase, sep
+     Input("channel-id", "value")])
+def validate_global(Sdata_validated, board_dropdown, new_board_name, channel_id
                     ):
     """
     validates all three inputs, this callback is triggered by the individual input validation
     """
-    print("validate_global")
     if(board_dropdown == ""):
         return "board name not set", {"color": "Red"}, False, True
     if(board_dropdown == "new" and (new_board_name is None or new_board_name == "")):
@@ -288,14 +224,8 @@ def validate_global(ff_validated, mag_validated, phase_validated, board_dropdown
     if(channel_id not in range(100)):
         return "no channel id selected", {"color": "Red"}, False, True
 
-    if(ff_validated and mag_validated and phase_validated):
-        ff = np.array([float(i) for i in ff.split(sep)]) * str_to_unit[unit_ff]
-        mag = np.array([float(i) for i in mag.split(sep)]) * str_to_unit[unit_mag]
-        phase = np.array([float(i) for i in phase.split(sep)]) * str_to_unit[unit_phase]
-        if(len(ff) == len(mag) == len(phase)):
-            return "all inputs validated", {"color": "Green"}, True, False
-        else:
-            return "inputs don't have the same length", {"color": "Red"}, False, True
+    if(Sdata_validated):
+        return "all inputs validated", {"color": "Green"}, True, False
 
     return "input fields not validated", {"color": "Red"}, False, True
 
@@ -303,22 +233,22 @@ def validate_global(ff_validated, mag_validated, phase_validated, board_dropdown
 @app.callback(
     [Output("channel-id", "options"),
      Output("channel-id", "value")],
-    [Input("trigger", "value"),
+    [Input("trigger", "children"),
     Input("amp-board-list", "value"),
-    Input("S-dropdown", "value"),
     Input("allow-override", "value")
     ]
 )
-def update_dropdown_channel_ids(n_intervals, amp_name, S_parameter, allow_override_checkbox):
+def update_dropdown_channel_ids(n_intervals, amp_name, allow_override_checkbox):
     """
     disable all channels that are already in the database for that amp board and S parameter
     """
+    print("update_dropdown_channel_ids")
     allow_override = False
     if 1 in allow_override_checkbox:
         allow_override = True
 
-    existing_ids = det.db.amp_boards.distinct("channels.id", {"name": amp_name, "channels.S_parameter": S_parameter})
-    print(f"existing ids for amp {amp_name} and channels.{S_parameter}: {existing_ids}")
+    existing_ids = det.db.amp_boards.distinct("channels.id", {"name": amp_name, "channels.S_parameter": {"$in": ["S11", "S12", "S21", "S22"]}})
+    print(f"existing ids for amp {amp_name}: {existing_ids}")
     options = []
     for i in range(24):
         if(i in existing_ids):
@@ -345,70 +275,69 @@ def enable_board_name_input(value):
               [Input('button-insert', 'n_clicks_timestamp')],
               [State('amp-board-list', 'value'),
                State('new-board-input', 'value'),
-             State('frequencies', 'value'),
-             State('magnitude', 'value'),
-             State('phases', 'value'),
+             State('Sdata', 'value'),
              State('dropdown-frequencies', 'value'),
              State('dropdown-magnitude', 'value'),
              State('dropdown-phase', 'value'),
              State("channel-id", "value"),
-             State('separator', 'value'),
-             State('S-dropdown', 'value')])
-def insert_to_db(n_clicks, board_dropdown, new_board_name, ff, mag, phase, unit_ff, unit_mag, unit_phase, channel_id, sep, S_parameter):
+             State('separator', 'value')])
+def insert_to_db(n_clicks, board_dropdown, new_board_name, Sdata, unit_ff, unit_mag, unit_phase, channel_id, sep):
     print("insert to db")
-    ff = np.array([float(i) for i in ff.split(sep)]) * str_to_unit[unit_ff]
-    mag = np.array([float(i) for i in mag.split(sep)]) * str_to_unit[unit_mag]
-    phase = np.array([float(i) for i in phase.split(sep)]) * str_to_unit[unit_phase]
+    S_data_io = StringIO(Sdata)
+    S_data = np.genfromtxt(S_data_io, delimiter=sep).T
+    S_data[0] *= str_to_unit[unit_ff]
+    for i in range(4):
+        S_data[1 + 2 * i] *= str_to_unit[unit_mag]
+        S_data[2 + 2 * i] *= str_to_unit[unit_phase]
 
     board_name = board_dropdown
     if(board_dropdown == "new"):
         board_name = new_board_name
-    print(board_name, channel_id, ff, mag, phase)
-    det.insert_amp_board_channel_S12(board_name, S_parameter, channel_id, ff, mag, phase)
+    print(board_name, channel_id, S_data)
+    det.insert_amp_board_channel_Sparameters(board_name, channel_id, S_data)
 
     return "/apps/menu"
 
 
 @app.callback(
     Output('figure-amp', 'figure'),
-    [Input("validation-frequencies-output", "data-validated"),
-     Input("validation-magnitude-output", "data-validated"),
-     Input("validation-phase-output", "data-validated")],
-    [State('frequencies', 'value'),
-     State('magnitude', 'value'),
-     State('phases', 'value'),
-     State('dropdown-frequencies', 'value'),
-     State('dropdown-magnitude', 'value'),
-     State('dropdown-phase', 'value'),
-     State('separator', 'value')])
-def display_value(val_ff, val_mag, val_phase, ff, mag, phase, unit_ff, unit_mag, unit_phase, sep):
+    [Input("validation-Sdata-output", "data-validated")],
+    [State('Sdata', 'value'),
+             State('dropdown-frequencies', 'value'),
+             State('dropdown-magnitude', 'value'),
+             State('dropdown-phase', 'value'),
+             State('separator', 'value')])
+def display_value(val_Sdata, Sdata, unit_ff, unit_mag, unit_phase, sep):
     print("display_value")
-    if(val_ff and val_mag and val_phase):
-        ff = np.array([float(i) for i in ff.split(sep)]) * str_to_unit[unit_ff]
-        mag = np.array([float(i) for i in mag.split(sep)]) * str_to_unit[unit_mag]
-        phase = np.array([float(i) for i in phase.split(sep)]) * str_to_unit[unit_phase]
-        print(unit_ff)
-        fig = subplots.make_subplots(rows=1, cols=2)
-        fig.append_trace(go.Scatter(
-                    x=ff / units.MHz,
-                    y=mag / units.V,
-                    opacity=0.7,
-                    marker={
-                        'color': "blue",
-                        'line': {'color': "blue"}
-                    },
-                    name='magnitude'
-                ), 1, 1)
-        fig.append_trace(go.Scatter(
-                    x=ff / units.MHz,
-                    y=phase / units.deg,
-                    opacity=0.7,
-                    marker={
-                        'color': "blue",
-                        'line': {'color': "blue"}
-                    },
-                    name='phase'
-                ), 1, 2)
+    if(val_Sdata):
+        S_data_io = StringIO(Sdata)
+        S_data = np.genfromtxt(S_data_io, delimiter=sep).T
+        S_data[0] *= str_to_unit[unit_ff]
+        for i in range(4):
+            S_data[1 + 2 * i] *= str_to_unit[unit_mag]
+            S_data[2 + 2 * i] *= str_to_unit[unit_phase]
+        fig = subplots.make_subplots(rows=4, cols=2)
+        for i in range(4):
+            fig.append_trace(go.Scatter(
+                        x=S_data[0] / units.MHz,
+                        y=S_data[i * 2 + 1] / units.V,
+                        opacity=0.7,
+                        marker={
+                            'color': "blue",
+                            'line': {'color': "blue"}
+                        },
+                        name='magnitude'
+                    ), i + 1, 1)
+            fig.append_trace(go.Scatter(
+                        x=S_data[0] / units.MHz,
+                        y=S_data[i * 2 + 2] / units.deg,
+                        opacity=0.7,
+                        marker={
+                            'color': "blue",
+                            'line': {'color': "blue"}
+                        },
+                        name='phase'
+                    ), i + 1, 2)
         fig['layout']['xaxis1'].update(title='frequency [MHz]')
         fig['layout']['yaxis1'].update(title='magnitude [V]')
         fig['layout']['yaxis2'].update(title='phase [deg]')

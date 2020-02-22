@@ -39,3 +39,36 @@ def insert_amp_board_channel_S12(board_name, Sparameter, channel_id, ff, mag, ph
                                   }}},
                              upsert=True)
 
+
+def insert_amp_board_channel_Sparameters(board_name, channel_id, S_data):
+    """
+    inserts a new S parameter measurement of one channel of an amp board
+    If the board dosn't exist yet, it will be created. 
+    
+    Parameters
+    ---------
+    board_name: string
+        the unique identifier of the board
+    channel_id: int
+        the channel id
+    S_data: array of floats
+        1st collumn: frequencies
+        2nd/3rd collumn: S11 mag/phase
+        4th/5th collumn: S12 mag/phase
+        6th/7th collumn: S21 mag/phase
+        8th/9th collumn: S22 mag/phase
+        
+    """
+    S_names = ["S11", "S12", "S21", "S22"]
+    for i in range(4):
+        db.amp_boards.update_one({'name': board_name},
+                                  {"$push" :{'channels': {
+                                      'id': channel_id,
+                                      'last_updated': datetime.datetime.utcnow(),
+                                      'S_parameter': S_names[i],
+                                      'frequencies': list(S_data[0]),
+                                      'mag': list(S_data[2 * i + 1]),
+                                      'phase': list(S_data[2 * i + 2])
+                                      }}},
+                                 upsert=True)
+
