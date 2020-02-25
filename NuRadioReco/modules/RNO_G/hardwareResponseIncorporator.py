@@ -73,7 +73,7 @@ class hardwareResponseIncorporator:
             return 1./ (amp_response * cable_response)
 
     @register_run()
-    def run(self, evt, station, det, sim_to_data=True, phase_only=False,mode=None,mingainlin=None):
+    def run(self, evt, station, det, sim_to_data=False, phase_only=False,mode=None,mingainlin=None):
         """
         Switch sim_to_data to go from simulation to data or otherwise.
         The option zero_noise can be used to zero the noise around the pulse. It is unclear, how useful this is.
