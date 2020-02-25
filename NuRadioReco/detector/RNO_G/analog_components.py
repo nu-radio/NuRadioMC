@@ -8,22 +8,22 @@ import logging
 logger = logging.getLogger('analog_components')
 
 
-def load_amp_response(amp_type='rno-surface', path=os.path.dirname(os.path.realpath(__file__))):  # here we use log data
+def load_amp_response(amp_type='rno_surface', path=os.path.dirname(os.path.realpath(__file__))):  # here we use log data
     """
     Read out amplifier gain and phase. Currently only examples have been implemented.
     Needs a better structure in the future, possibly with database.
     """
     amp_response = {}
-    if amp_type == 'rno-surface':
+    if amp_type == 'rno_surface':
         ph = os.path.join(path, 'HardwareResponses/surface_-60dBm_chan0_LogA_20dB.csv')
-        ff = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=(0))
-        amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= (5))
-        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= (6))
-    if amp_type == 'iglu':
+        ff = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=0)
+        amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= 5)
+        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= 6)
+    elif amp_type == 'iglu':
         ph = os.path.join(path, 'HardwareResponses/iglu_drab_chan0_-60dBm_LogA_20dB.csv')
-        ff = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=(0))
-        amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= (5))
-        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= (6))
+        ff = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=0)
+        amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= 5)
+        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= 6)
     else:
         logger.error("Amp type not recognized")
         return amp_response
@@ -31,7 +31,7 @@ def load_amp_response(amp_type='rno-surface', path=os.path.dirname(os.path.realp
     # Convert to GHz and add 20dB for attenuation in measurement circuit
     ff *= units.Hz
 
-    if amp_type == 'rno-surface' or amp_type == 'iglu':
+    if amp_type == 'rno_surface' or amp_type == 'iglu':
         amp_gain_discrete += 20
     amp_gain_db_f = interp1d(ff, amp_gain_discrete, bounds_error=False, fill_value=1)
     # all requests outside of measurement range are set to 0
