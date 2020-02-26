@@ -263,7 +263,7 @@ class eventWriter:
         """
         if(self.__check_for_duplicates):
             if [run_number, event_id] in self.__event_ids_and_runs:
-                raise ValueError('An event with ID {} and run number {} already exists in the file'.format(event_id, run_number))
+                raise ValueError("An event with ID {} and run number {} already exists in the file\nif you don't want unique event ids enforced you can turn it of by passing `check_for_duplicates=True` to the begin method.".format(event_id, run_number))
         return
 
     def end(self):
