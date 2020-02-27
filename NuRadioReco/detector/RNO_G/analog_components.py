@@ -8,10 +8,14 @@ import logging
 logger = logging.getLogger('analog_components')
 
 
-def load_amp_response(amp_type='rno_surface', path=os.path.dirname(os.path.realpath(__file__))):  # here we use log data
+
+def load_amp_response(amp_type='rno_surface', path=os.path.dirname(os.path.realpath(__file__))):  # use this function to read in log data
     """
     Read out amplifier gain and phase. Currently only examples have been implemented.
     Needs a better structure in the future, possibly with database.
+    The hardware response incorporator currently reads in the load amp response.
+    If you want to read in the RI function fur your reconstruction it needs to be changed
+    in modules/RNO_G/hardweareResponseIncorporator.py l. 52, amp respone
     """
     amp_response = {}
     if amp_type == 'rno_surface':
@@ -57,7 +61,7 @@ def load_amp_response(amp_type='rno_surface', path=os.path.dirname(os.path.realp
 
     return amp_response
 
-def load_amp_measurement(amp_measurement='surface_-60dBm_chan0_RI_20dB'):  # here we use Real and Imaginary
+def load_amp_measurement(amp_measurement='surface_-60dBm_chan0_RI_20dB'):  # use this function to read in RI data
     """
     load individual amp measurement from file and buffer interpolation function
     """
