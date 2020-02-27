@@ -30,7 +30,7 @@ if __name__ == "__main__":
     # we also want the water equivalent effective volume times 4pi
     Veff = get_Veff_water_equivalent(Veff) * 4 * np.pi
     # calculate the uncertainty for the average over all zenith angle bins. The error relative error is just 1./sqrt(N)
-    Veff_error = Veff / np.sum(Veffs[:, :, get_index("all_triggers", utrigger_names), 2], axis=1, weights=zenith_weights) ** 0.5
+    Veff_error = Veff / np.sum(Veffs[:, :, get_index("all_triggers", utrigger_names), 2], axis=1) ** 0.5
     # plot effective volume
     fig, ax = plt.subplots(1, 1, figsize=(6, 6))
     ax.errorbar(energies / units.eV, Veff / units.km ** 3 / units.sr,
