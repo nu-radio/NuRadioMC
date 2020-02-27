@@ -382,7 +382,9 @@ def get_Veff(folder, trigger_combinations={}, station=101, correct_zenith_sampli
         V = area * dZ
         # calculate the average projected area in this zenith angle bin
         Aproj_avg = get_projected_area_cylinder_integral(thetamax, R=rmax, d=dZ) - get_projected_area_cylinder_integral(thetamin, R=rmax, d=dZ)
-        Aproj_avg /= np.cos(thetamin) - np.cos(thetamax)
+        # by not dividing by dCosTheta we automatically also integrate the solid angle into the weight.
+        # Hence, simulations with zenith slices of different zenith angle coverage are possible.
+        # Aproj_avg /= np.cos(thetamin) - np.cos(thetamax)
         out['Aproj'] = Aproj_avg
         Vrms = fin.attrs['Vrms']
 
@@ -597,7 +599,7 @@ def get_Veff_array(data):
     uzenith_bins = np.unique(zenith_bins, axis=0)
     utrigger_names = np.unique(trigger_names)
     output = np.zeros((len(uenergies), len(uzenith_bins), len(utrigger_names), 3))
-    weights = np.zeros((len(uenergies), len(uzenith_bins)))
+    weights = np.ones((len(uenergies), len(uzenith_bins)))
     logger.debug(f"unique energies {uenergies}")
     logger.debug(f"unique zenith angle bins {uzenith_bins/units.deg}")
     logger.debug(f"unique energies {utrigger_names}")
@@ -612,7 +614,8 @@ def get_Veff_array(data):
     for d in data:
         iE = np.squeeze(np.argwhere(d['energy'] == uenergies))
         iT = np.squeeze(np.argwhere([d['thetamin'], d['thetamax']] == uzenith_bins))[0][0]
-        weights[iE, iT] = d['Aproj']
+        if('Aproj' in d):
+            weights[iE, iT] = d['Aproj']
     for iE in range(len(uenergies)):
         weights[iE] /= np.sum(weights[iE])
 
