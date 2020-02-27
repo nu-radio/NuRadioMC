@@ -668,7 +668,7 @@ def get_product_position_time(data_sets, product, iE):
     return x, y, z, time
 
 
-def A_proj(theta, R, d):
+def get_projected_area_cylinder(theta, R, d):
     """
     calculates the projected area of a cylinder
 
@@ -722,7 +722,7 @@ def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
     d = full_zmax - full_zmin
 
     def zenith_distribution(theta, R, d):
-        return A_proj(theta, R, d) * np.sin(theta)
+        return get_projected_area_cylinder(theta, R, d) * np.sin(theta)
 
     distr_max = np.max(zenith_distribution(np.linspace(thetamin, thetamax, 1000), R, d))
 

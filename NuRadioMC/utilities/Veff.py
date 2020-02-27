@@ -384,7 +384,7 @@ def get_Veff(folder, trigger_combinations={}, station=101, correct_zenith_sampli
         if(correct_zenith_sampling):
             if(len(weights) > 0):
 
-                from NuRadioMC.EvtGen.generator import A_proj
+                from NuRadioMC.EvtGen.generator import get_projected_area_cylinder
 
                 def get_weights(zeniths, thetamin, thetamax, R, d):
                     """
@@ -394,7 +394,7 @@ def get_Veff(folder, trigger_combinations={}, station=101, correct_zenith_sampli
                     
                     """
                     zeniths = np.array(zeniths)
-                    yy = A_proj(zeniths, R, d)
+                    yy = get_projected_area_cylinder(zeniths, R, d)
 
                     def integral(theta, R, d):
                         """
