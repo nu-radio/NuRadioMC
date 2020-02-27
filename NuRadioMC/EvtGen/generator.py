@@ -688,6 +688,25 @@ def get_projected_area_cylinder(theta, R, d):
     return np.pi * R ** 2 * np.abs(np.cos(theta)) + 2 * R * d * np.sin(theta)
 
 
+def get_projected_area_cylinder_integral(theta, R, d):
+    """
+    integral of get_projected_area_cylinder
+    
+    Parameters
+    ----------
+    theta: float
+        zenith angle
+    R: float
+        radius of zylinder
+    d: float
+        height of zylinder
+
+    Returns:
+        float: integral of projected area
+    """
+    return (-np.pi * R ** 2 * 0.5 * np.cos(theta) ** 2 * np.sign(np.cos(theta)) + 0.5 * 2 * R * d * (theta - np.sin(theta) * np.cos(theta)))
+
+
 def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
     """
     Generates zenith incoming directions according to a distribution given by
@@ -1527,9 +1546,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                         data_sets_fiducial['zz'][-1] = z
 
                         # Calculating vertex interaction time with respect to the primary neutrino
-                        vertex_time = np.sqrt( (x - x_first) ** 2 +
+                        vertex_time = np.sqrt((x - x_first) ** 2 +
                                                (y - y_first) ** 2 +
-                                               (z - z_first) ** 2 ) / cspeed
+                                               (z - z_first) ** 2) / cspeed
                         data_sets_fiducial['vertex_times'][-1] = vertex_time
 
                         # set flavor to tau
