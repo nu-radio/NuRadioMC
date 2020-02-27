@@ -8,21 +8,13 @@ from scipy import integrate as int
 from scipy import constants
 from matplotlib import pyplot as plt
 from radiotools import coordinatesystems as cstrafo
+from NuRadioReco.utilities.metaclasses import Singleton
 import os
 import copy
 import logging
 import six
 logger = logging.getLogger("SignalGen.ARZ")
 logging.basicConfig()
-
-
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if Singleton._instances.get(cls, None) is None:
-            Singleton._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return Singleton._instances[cls]
 
 ######################
 ######################
@@ -31,7 +23,6 @@ class Singleton(type):
 # to hadronic showers. Thanks a lot to Jaime Alvarez-Muñiz for providing us with this unpublished work!
 #####################
 #####################
-
 
 # define constants
 # x0 = 36.08 * units.g / units.cm**2  # radiation length g cm^-2
