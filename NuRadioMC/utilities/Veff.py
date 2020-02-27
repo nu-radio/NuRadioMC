@@ -8,6 +8,7 @@ import os
 import copy
 
 from NuRadioReco.utilities import units
+from NuRadioMC.EvtGen.generator import get_projected_area_cylinder, get_projected_area_cylinder_integral
 
 import logging
 logger = logging.getLogger("Veff")
@@ -281,7 +282,7 @@ def get_Veff(folder, trigger_combinations={}, station=101, correct_zenith_sampli
     trigger_combinations: dict, optional
         keys are the names of triggers to calculate. Values are dicts again:
             * 'triggers': list of strings
-                name of individual triggers that are combines with an OR
+                name of individual triggers that are combined with an OR
             the following additional options are optional
             * 'efficiency': string
                 the signal efficiency vs. SNR (=Vmax/Vrms) to use. E.g. 'Chris'
@@ -379,12 +380,14 @@ def get_Veff(folder, trigger_combinations={}, station=101, correct_zenith_sampli
         dZ = fin.attrs['zmax'] - fin.attrs['zmin']
         area = np.pi * (rmax ** 2 - rmin ** 2)
         V = area * dZ
+        # calculate the average projected area in this zenith angle bin
+        Aproj_avg = get_projected_area_cylinder_integral(thetamax, R=rmax, d=dZ) - get_projected_area_cylinder_integral(thetamin, R=rmax, d=dZ)
+        Aproj_avg /= np.cos(thetamin) - np.cos(thetamax)
+        out['Aproj'] = Aproj_avg
         Vrms = fin.attrs['Vrms']
 
         if(correct_zenith_sampling):
             if(len(weights) > 0):
-
-                from NuRadioMC.EvtGen.generator import get_projected_area_cylinder, get_projected_area_cylinder_integral
 
                 def get_weights(zeniths, thetamin, thetamax, R, d):
                     """
@@ -520,6 +523,7 @@ def get_Veff_array(data):
      * array of unique energies
      * array of unique zenith bins
      * array of unique trigger names
+     * array of weights for zenith averaging
 
 
     Examples
@@ -528,12 +532,12 @@ def get_Veff_array(data):
     To plot the full sky effective volume for 'all_triggers' do
 
     ```
-    output, uenergies, uzenith_bins, utrigger_names = get_Veff_array(data)
+    output, uenergies, uzenith_bins, utrigger_names, zenith_weights = get_Veff_array(data)
 
 
     fig, ax = plt.subplots(1, 1)
     tname = "all_triggers"
-    Veff = np.average(output[:,:,get_index(tname, utrigger_names),0], axis=1)
+    Veff = np.average(output[:,:,get_index(tname, utrigger_names),0], axis=1, weights=zenith_weights)
     Vefferror = Veff / np.sum(output[:,:,get_index(tname, utrigger_names),2], axis=1)**0.5
     ax.errorbar(uenergies/units.eV, Veff/units.km**3 * 4 * np.pi, yerr=Vefferror/units.km**3 * 4 * np.pi, fmt='-o', label=tname)
 
@@ -593,6 +597,7 @@ def get_Veff_array(data):
     uzenith_bins = np.unique(zenith_bins, axis=0)
     utrigger_names = np.unique(trigger_names)
     output = np.zeros((len(uenergies), len(uzenith_bins), len(utrigger_names), 3))
+    weights = np.zeros((len(uenergies), len(uzenith_bins)))
     logger.debug(f"unique energies {uenergies}")
     logger.debug(f"unique zenith angle bins {uzenith_bins/units.deg}")
     logger.debug(f"unique energies {utrigger_names}")
@@ -604,7 +609,14 @@ def get_Veff_array(data):
             iTrig = np.squeeze(np.argwhere(triggername == utrigger_names))
             output[iE, iT, iTrig] = Veff
 
-    return output, uenergies, uzenith_bins, utrigger_names
+    for d in data:
+        iE = np.squeeze(np.argwhere(d['energy'] == uenergies))
+        iT = np.squeeze(np.argwhere([d['thetamin'], d['thetamax']] == uzenith_bins))[0][0]
+        weights[iE, iT] = d['Aproj']
+    for iE in range(len(uenergies)):
+        weights[iE] /= np.sum(weights[iE])
+
+    return output, uenergies, uzenith_bins, utrigger_names, weights
 
 
 def get_Aeff_array(data):
