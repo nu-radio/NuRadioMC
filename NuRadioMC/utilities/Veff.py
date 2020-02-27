@@ -384,7 +384,7 @@ def get_Veff(folder, trigger_combinations={}, station=101, correct_zenith_sampli
         if(correct_zenith_sampling):
             if(len(weights) > 0):
 
-                from NuRadioMC.EvtGen.generator import get_projected_area_cylinder
+                from NuRadioMC.EvtGen.generator import get_projected_area_cylinder, get_projected_area_cylinder_integral
 
                 def get_weights(zeniths, thetamin, thetamax, R, d):
                     """
@@ -395,15 +395,8 @@ def get_Veff(folder, trigger_combinations={}, station=101, correct_zenith_sampli
                     """
                     zeniths = np.array(zeniths)
                     yy = get_projected_area_cylinder(zeniths, R, d)
-
-                    def integral(theta, R, d):
-                        """
-                        integral of Aproj
-                        """
-                        return (-np.pi * R ** 2 * 0.5 * np.cos(theta) ** 2 * np.sign(np.cos(theta)) + 0.5 * 2 * R * d * (theta - np.sin(theta) * np.cos(theta)))
-
                     # calculate the average value of Aproj within the zenith band -> int(Aproc(theta) dcostheta)/int(1, dcostheta)
-                    norm = integral(thetamax, R, d) - integral(thetamin, R, d)  # int(Aproc(theta) dcostheta)
+                    norm = get_projected_area_cylinder_integral(thetamax, R, d) - get_projected_area_cylinder_integral(thetamin, R, d)  # int(Aproc(theta) dcostheta)
                     norm /= (np.cos(thetamin) - np.cos(thetamax))  # int(1, dcostheta)
                     weights = yy / norm
                     logger.debug(f"{thetamin/units.deg:.0f} - {thetamax/units.deg:.0f}: average correction factor {weights.mean():.2f} max = {weights.max():.2f} min = {weights.min():.2f}")
