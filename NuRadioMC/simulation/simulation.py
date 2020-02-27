@@ -140,6 +140,9 @@ class simulation():
                 self._cfg = new_cfg
 
         if(self._cfg['seed'] is None):
+            # the config seeting None means a random seed. To have the simulation be reproducable, we generate a new
+            # random seed once and save this seed to the config setting. If the simulation is rerun, we can get
+            # the same random sequence.
             self._cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
 
         self._inputfilename = inputfilename

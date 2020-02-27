@@ -64,6 +64,10 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
         * Alvarez2009: parameterization based on ZHS from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas, Coherent cherenkov radio pulses fromhadronic showers up to eev energies,Astroparticle Physics35(2012), no. 6 287 – 299 and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas, Thinned simulations of extremely energeticshowers in dense media for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111
     seed: None or int
         the random seed for the Askaryan modules
+    same_shower: bool (default False)
+        if False, for each request a new random shower realization is choosen.
+        if True, the shower from the last request of the same shower type is used. This is needed to get the Askaryan
+        signal for both ray tracing solutions from the same shower.
 
     Returns
     -------
