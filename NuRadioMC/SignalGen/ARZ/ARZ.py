@@ -8,9 +8,11 @@ from scipy import integrate as int
 from scipy import constants
 from matplotlib import pyplot as plt
 from radiotools import coordinatesystems as cstrafo
+from NuRadioReco.utilities.metaclasses import Singleton
 import os
 import copy
 import logging
+import six
 logger = logging.getLogger("SignalGen.ARZ")
 logging.basicConfig()
 
@@ -48,19 +50,13 @@ def theta_to_thetaprime(theta, xmax, R):
     return np.arctan2(b, a)
 
 
+@six.add_metaclass(Singleton)
 class ARZ(object):
-    __instance = None
-
-    def __new__(cls, seed=1234, interp_factor=1, interp_factor2=100, library=None,
-                arz_version='ARZ2020'):
-        if ARZ.__instance is None:
-            ARZ.__instance = object.__new__(cls) #, seed, interp_factor, interp_factor2, library)
-        return ARZ.__instance
 
     def __init__(self, seed=1234, interp_factor=1, interp_factor2=100, library=None,
                  arz_version='ARZ2020'):
         logger.warning("setting seed to {}".format(seed, interp_factor))
-        np.random.seed(seed)
+        self._random_generator = np.random.RandomState(seed)
         self._interp_factor = interp_factor
         self._interp_factor2 = interp_factor2
         self._random_numbers = {}
@@ -177,9 +173,9 @@ class ARZ(object):
         if not self._include_em_factor:
             return 1
 
-        epsilon = np.log10(energy/units.eV)
-        f_epsilon  = -21.98905 - 2.32492 * epsilon
-        f_epsilon += 0.019650 * epsilon**2 + 13.76152 * np.sqrt(epsilon)
+        epsilon = np.log10(energy / units.eV)
+        f_epsilon = -21.98905 - 2.32492 * epsilon
+        f_epsilon += 0.019650 * epsilon ** 2 + 13.76152 * np.sqrt(epsilon)
 
         return f_epsilon
 
@@ -187,7 +183,7 @@ class ARZ(object):
         """
         allow to set a new random seed
         """
-        np.random.seed(seed)
+        self._random_generator.seed(seed)
 
     def set_interpolation_factor(self, interp_factor):
         """
@@ -267,11 +263,11 @@ class ARZ(object):
                     logger.info("using previously used shower {}/{}".format(iN, N_profiles))
                 else:
                     logger.warning("no previous random number for shower type {} exists. Generating a new random number.".format(shower_type))
-                    iN = np.random.randint(N_profiles)
+                    iN = self._random_generator.randint(N_profiles)
                     self._random_numbers[shower_type] = iN
                     logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
             else:
-                iN = np.random.randint(N_profiles)
+                iN = self._random_generator.randint(N_profiles)
                 self._random_numbers[shower_type] = iN
                 logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
         else:
@@ -305,6 +301,14 @@ class ARZ(object):
             return trace_onsky, Lmax
         return trace_onsky
 
+    def get_last_shower_profile_id(self):
+        """
+        returns dict
+            the index of the randomly selected shower profile per shower type
+            key is the shower type (string)
+            value is the index (int)
+        """
+        return self._random_numbers
 
     def get_vector_potential_fast(self, shower_energy, theta, N, dt, profile_depth, profile_ce,
                                   shower_type="HAD", n_index=1.78, distance=1 * units.m,
@@ -577,7 +581,6 @@ class ARZ(object):
             plt.show()
         return vp
 
-
     def get_vector_potential(self, energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m,
                              profile_depth=None, profile_ce=None):
         """
@@ -676,7 +679,7 @@ class ARZ(object):
                 A_e = self._Af_e * E_TeV * (np.exp(-np.abs(tt) / self._t0_e_pos) +
                                       (1. + self._freq_e_pos * np.abs(tt)) ** self._exp_e_pos)  # electromagnetic
                 A_p = self._Af_p * E_TeV * em_fraction * (np.exp(-np.abs(tt) / self._t0_p_pos) +
-                                      (1. + self._freq_p_pos * np.abs(tt)) ** self._exp_p_pos) # hadronic
+                                      (1. + self._freq_p_pos * np.abs(tt)) ** self._exp_p_pos)  # hadronic
             else:
                 A_e = self._Af_e * E_TeV * (np.exp(-np.abs(tt) / self._t0_e_neg) +
                                       (1. + self._freq_e_neg * np.abs(tt)) ** self._exp_e_neg)  # electromagnetic
@@ -720,7 +723,7 @@ class ARZ_tabulated(object):
 
     def __init__(self, seed=1234, library=None):
         logger.warning("setting seed to {}".format(seed))
-        np.random.seed(seed)
+        self._random_generator = np.random.RandomState(seed)
         self._random_numbers = {}
         self._version = (1, 1)
         # # load shower library into memory
@@ -787,7 +790,7 @@ class ARZ_tabulated(object):
         """
         allow to set a new random seed
         """
-        np.random.seed(seed)
+        self._random_generator.seed(seed)
 
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R,
                        same_shower=False, iN=None, output_mode='trace', theta_reference='X0'):
@@ -844,11 +847,11 @@ class ARZ_tabulated(object):
                     logger.info("using previously used shower {}/{}".format(iN, N_profiles))
                 else:
                     logger.warning("no previous random number for shower type {} exists. Generating a new random number.".format(shower_type))
-                    iN = np.random.randint(N_profiles)
+                    iN = self._random_generator.randint(N_profiles)
                     self._random_numbers[shower_type] = iN
                     logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
             else:
-                iN = np.random.randint(N_profiles)
+                iN = self._random_generator.randint(N_profiles)
                 self._random_numbers[shower_type] = iN
                 logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
         else:

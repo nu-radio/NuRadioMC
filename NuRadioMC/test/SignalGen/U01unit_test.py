@@ -37,7 +37,7 @@ for model in models:
         for shower_type in shower_types:
             for theta in thetas:
                 i += 1
-                trace = get_time_trace(E, theta, n_samples, dt, shower_type, n_index, R, model)
+                trace = get_time_trace(E, theta, n_samples, dt, shower_type, n_index, R, model, seed=1234)
                 try:
                     testing.assert_almost_equal(trace, reference[i])
                 except AssertionError as e:
