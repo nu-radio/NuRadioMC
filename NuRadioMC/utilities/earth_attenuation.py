@@ -154,15 +154,15 @@ class PREM:
     # `x` is fraction of earth radius
     densities = (
         lambda x: (13.0885 * units.g / units.cm ** 3 - 8.8381 * units.g / units.cm ** 3 * x ** 2),
-        lambda x: 12.5815 - 1.2638 * x - 3.6426 * x ** 2 - 5.5281 * x ** 3,
-        lambda x: 7.9565 - 6.4761 * x + 5.5283 * x ** 2 - 3.0807 * x ** 3,
-        lambda x: 5.3197 - 1.4836 * x,
-        lambda x: 11.2494 - 8.0298 * x,
-        lambda x: 7.1089 - 3.8045 * x,
-        lambda x: 2.691 + 0.6924 * x,
-        2.9,
-        2.6,
-        1.02
+        lambda x: 12.5815 * units.g / units.cm ** 3 - 1.2638 * units.g / units.cm ** 3 * x - 3.6426 * units.g / units.cm ** 3 * x ** 2 - 5.5281 * units.g / units.cm ** 3 * x ** 3,
+        lambda x: 7.9565 * units.g / units.cm ** 3 - 6.4761 * units.g / units.cm ** 3 * x + 5.5283 * units.g / units.cm ** 3 * x ** 2 - 3.0807 * units.g / units.cm ** 3 * x ** 3,
+        lambda x: 5.3197 * units.g / units.cm ** 3 - 1.4836 * units.g / units.cm ** 3 * x,
+        lambda x: 11.2494 * units.g / units.cm ** 3 - 8.0298 * units.g / units.cm ** 3 * x,
+        lambda x: 7.1089 * units.g / units.cm ** 3 - 3.8045 * units.g / units.cm ** 3 * x,
+        lambda x: 2.691 * units.g / units.cm ** 3 + 0.6924 * units.g / units.cm ** 3 * x,
+        2.9 * units.g / units.cm ** 3,
+        2.6 * units.g / units.cm ** 3,
+        1.02 * units.g / units.cm ** 3
     )
 
     def density(self, r):
