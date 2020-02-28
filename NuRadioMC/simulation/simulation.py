@@ -1006,8 +1006,7 @@ class simulation():
 
         n_triggered = np.sum(self._mout['triggered'])
         n_triggered_weighted = np.sum(self._mout['weights'][self._mout['triggered']])
-        logger.warning('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(
-            n_triggered, self._n_events, n_triggered / self._n_events))
+        logger.warning(f'fraction of triggered events = {n_triggered:.0f}/{self._n_events:.0f} = {n_triggered / self._n_events:.3f} (sum of weights = {n_triggered_weighted:.2f})')
 
         V = None
         if('xmax' in self._fin_attrs):
@@ -1021,7 +1020,7 @@ class simulation():
             dZ = self._fin_attrs['zmax'] - self._fin_attrs['zmin']
             V = np.pi * (rmax ** 2 - rmin ** 2) * dZ
         Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
-        logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
+        logger.warning("Veff = {:.4g} km^3 sr".format(Veff / units.km ** 3))
 
     def _get_em_had_fraction(self, inelasticity, inttype, flavor):
         """
