@@ -125,7 +125,9 @@ class diodeSimulator:
                                    min_freq=50*units.MHz,
                                    max_freq=1*units.GHz,
                                    amplitude=10*units.microvolt,
-                                   type='rayleigh'):
+                                   type='rayleigh',
+                                   n_tries=10000,
+                                   n_samples=10000):
         """
         Calculates the mean and the standard deviation for the diode-filtered noise.
 
@@ -139,9 +141,13 @@ class diodeSimulator:
             Maximum frequency of the bandwidth
         amplitude: float
             Voltage amplitude (RMS) for the noise
-
         type: string
             Noise type
+        n_tries: int
+            Number of times the calculation is carried out, to get proper
+            averages for the mean and the standard deviation.
+        n_samples: int
+            Number of samples for each individual noise trace
 
         Returns
         -------
@@ -150,20 +156,29 @@ class diodeSimulator:
         power_std: float
             Standard deviation of the diode-filtered noise
         """
-        noise = NuRadioReco.framework.channel.Channel(0)
 
-        long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=min_freq,
-                                        max_freq=max_freq,
-                                        n_samples=10000,
-                                        sampling_rate=sampling_rate,
-                                        amplitude=amplitude,
-                                        type=type)
+        power_mean_list = []
+        power_std_list = []
 
-        noise.set_trace(long_noise, sampling_rate)
-        power_noise = self.tunnel_diode(noise)
+        for i_try in range(n_tries):
 
-        power_mean = np.mean(power_noise)
-        power_std = np.std(power_noise)
+            noise = NuRadioReco.framework.channel.Channel(0)
+
+            long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=min_freq,
+                                                                      max_freq=max_freq,
+                                                                      n_samples=n_samples,
+                                                                      sampling_rate=sampling_rate,
+                                                                      amplitude=amplitude,
+                                                                      type=type)
+
+            noise.set_trace(long_noise, sampling_rate)
+            power_noise = self.tunnel_diode(noise)
+
+            power_mean_list.append(np.mean(power_noise))
+            power_std_list.append(np.std(power_noise))
+
+        power_mean = np.mean(power_mean_list)
+        power_std = np.mean(power_std_list)
 
         return power_mean, power_std
 

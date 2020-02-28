@@ -163,7 +163,7 @@ class triggerSimulator:
             trigger.set_trigger_time(0)
         else:
             trigger.set_triggered(True)
-            trigger.set_trigger_time(triggered_times.min())
+            trigger.set_trigger_time(triggered_times.min()+channel_trace_start_time)
             logger.info("Station has passed trigger, trigger time is {:.1f} ns".format(
                 trigger.get_trigger_time() / units.ns))
 
