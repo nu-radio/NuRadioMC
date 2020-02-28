@@ -5,12 +5,7 @@ from NuRadioMC.utilities import cross_sections
 import logging
 logger = logging.getLogger("utilities.earth_attenuation")
 
-R_earth = 6357390 * units.m
-DensityCRUST = 2900 * units.kg / units.m ** 3
 AMU = 1.66e-27 * units.kg
-R_EARTH = 6.378140e6 * units.m
-densities = np.array([14000.0, 3400.0, 2900.0]) * units.kg / units.m ** 3  # inner layer, middle layer, outer layer
-radii = np.array([3.46e6 * units.m, R_EARTH - 4.0e4 * units.m, R_EARTH])  # average radii of boundaries between earth layers
 
 
 def get_weight(theta_nu, pnu, flavors, mode='simple', cross_section_type='ctw',
@@ -24,14 +19,21 @@ def get_weight(theta_nu, pnu, flavors, mode='simple', cross_section_type='ctw',
         the zenith angle of the neutrino direction (where it came from, i.e., opposite to the direction of propagation)
     pnu: float or array of floats
         the momentum of the neutrino
+    mode: string
+        * 'simple': assuming interaction happens at the surface and approximating the Earth with constant density
+        * 'core_mantle_crust_simple': assuming interaction happens at the surface and approximating the Earth with 3 layers of constant density
+        * 'core_mantle_crust': approximating the Earth with 3 layers of constant density, path through Earth to interaction vertex is considered
+        * 'PREM': density of Earth is parameterized as a fuction of radius, path through Earth to interaction vertex is considered
+    cross_section_type: string
+        'ghandi', 'ctw' or 'csms' (see description in `cross_sections.py`)
     vertex_position: 3-dim array or None (default)
         the position of the neutrino interaction
     """
     if(mode == 'simple'):
         return get_simple_weight(theta_nu, pnu, cross_section_type=cross_section_type)
-    elif (mode == "core_mantle_crust"):
+    elif (mode == "core_mantle_crust_simple"):
         return get_core_mantle_crust_weight(theta_nu, pnu, flavors, cross_section_type=cross_section_type)
-    elif (mode == "core_mantle_crust2"):
+    elif (mode == "core_mantle_crust"):
         earth = CoreMantleCrustModel()
         slant_depth = earth.slant_depth(theta_nu, -vertex_position[2])
         # by requesting the interaction length for a density of 1, we get it in units of length**2/weight
@@ -52,7 +54,7 @@ def get_weight(theta_nu, pnu, flavors, mode='simple', cross_section_type='ctw',
         raise NotImplementedError
 
 
-def get_simple_weight(theta_nu, pnu, cross_section_type='ghandi'):
+def get_simple_weight(theta_nu, pnu, cross_section_type='ctw'):
     """
     calculates neutrino weight due to Earth absorption, i.e. probability of the
     neutrino to reach the detector
@@ -67,6 +69,8 @@ def get_simple_weight(theta_nu, pnu, cross_section_type='ghandi'):
     pnu: float or array of floats
         the momentum of the neutrino
     """
+    R_earth = 6357390 * units.m
+    DensityCRUST = 2900 * units.kg / units.m ** 3
     if(theta_nu <= 0.5 * np.pi):  # coming from above
         return np.ones_like(theta_nu)
     else:  # coming from below
@@ -83,7 +87,7 @@ def get_core_mantle_crust_weight(theta_nu, pnu, flavors, cross_section_type='ctw
     simple parametrization using momentum, zenith angle, flavor and current type information
     of the neutrino
 
-    as implemented in ARAsim (2018)
+    parameters from ARAsim (2018)
 
     Parameters
     ----------
@@ -94,6 +98,9 @@ def get_core_mantle_crust_weight(theta_nu, pnu, flavors, cross_section_type='ctw
     flavors: float or array of floats
         the flavor of the neutrino
     """
+    R_EARTH = 6.378140e6 * units.m
+    densities = np.array([14000.0, 3400.0, 2900.0]) * units.kg / units.m ** 3  # inner layer, middle layer, outer layer
+    radii = np.array([3.46e6 * units.m, R_EARTH - 4.0e4 * units.m, R_EARTH])  # average radii of boundaries between earth layers
     sigma = cross_sections.get_nu_cross_section(pnu, flavors, cross_section_type=cross_section_type)
     if(theta_nu <= 0.5 * np.pi):  # coming from above
         return np.ones_like(theta_nu)
@@ -252,7 +259,7 @@ class CoreMantleCrustModel(PREM):
     """
     Class describing the Earth's density.
 
-    Uses densities from the Core-Mantle-Crust model as implemented in AraSim.
+    Uses densities from the Core-Mantle-Crust model. Parameters from ARASim
 
     Attributes
     ----------
