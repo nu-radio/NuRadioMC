@@ -537,7 +537,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         if(iFile == 0 and len(evt_ids_next_file) == 0):  # case 4
             n_events_this_file = total_number_of_events
         elif(len(evt_ids_next_file) == 0):  # last file -> case 2
-            n_events_this_file = total_number_of_events - evt_id_last_previous + attributes['start_event_id']
+            n_events_this_file = total_number_of_events - (evt_id_last_previous + 1) + attributes['start_event_id']
         elif(iFile == 0):  # case 3
             n_events_this_file = evt_id_last - attributes['start_event_id'] + 1
         else:  # case 1
