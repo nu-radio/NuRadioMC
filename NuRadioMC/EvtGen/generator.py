@@ -1527,9 +1527,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                         data_sets_fiducial['zz'][-1] = z
 
                         # Calculating vertex interaction time with respect to the primary neutrino
-                        vertex_time = np.sqrt( (x - x_first) ** 2 +
+                        vertex_time = np.sqrt((x - x_first) ** 2 +
                                                (y - y_first) ** 2 +
-                                               (z - z_first) ** 2 ) / cspeed
+                                               (z - z_first) ** 2) / cspeed
                         data_sets_fiducial['vertex_times'][-1] = vertex_time
 
                         # set flavor to tau
