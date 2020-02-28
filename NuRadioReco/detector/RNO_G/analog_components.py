@@ -15,7 +15,7 @@ def load_amp_response(amp_type='rno_surface', path=os.path.dirname(os.path.realp
     Needs a better structure in the future, possibly with database.
     The hardware response incorporator currently reads in the load amp response.
     If you want to read in the RI function fur your reconstruction it needs to be changed
-    in modules/RNO_G/hardweareResponseIncorporator.py l. 52, amp respone
+    in modules/RNO_G/hardweareResponseIncorporator.py l. 52, amp response.
     """
     amp_response = {}
     if amp_type == 'rno_surface':
