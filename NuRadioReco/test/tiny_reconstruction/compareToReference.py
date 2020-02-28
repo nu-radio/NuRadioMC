@@ -79,7 +79,7 @@ def assertDeepAlmostEqual(expected, actual, *args, **kwargs):
     trace = kwargs.pop('__trace', 'ROOT')
     try:
         if isinstance(expected, (int, float, complex)):
-            np.testing.assert_allclose(expected, actual, *args, **kwargs)
+            np.testing.assert_allclose(actual, expected, *args, **kwargs)
         elif isinstance(expected, (list, tuple, np.ndarray)):
             np.testing.assert_equal(len(expected), len(actual))
             for index in range(len(expected)):
@@ -87,12 +87,16 @@ def assertDeepAlmostEqual(expected, actual, *args, **kwargs):
                 assertDeepAlmostEqual(v1, v2,
                                       __trace=repr(index), *args, **kwargs)
         elif isinstance(expected, dict):
-            np.testing.assert_equal(set(expected), set(actual))
-            for key in expected:
-                assertDeepAlmostEqual(expected[key], actual[key],
+            for key in actual:
+                if key not in expected:
+                    print('Key {} found in reconstruction but not in reference. '\
+                        'This is fine if you just added it, but you should update '\
+                        'the reference file to include it in future tests!'.format(key))
+                else:
+                    assertDeepAlmostEqual(expected[key], actual[key],
                                       __trace=repr(key), *args, **kwargs)
         else:
-            np.testing.assert_equal(expected, actual)
+            np.testing.assert_equal(actual, expected)
     except AssertionError as exc:
         exc.__dict__.setdefault('traces', []).append(trace)
         if is_root:
@@ -103,10 +107,9 @@ def assertDeepAlmostEqual(expected, actual, *args, **kwargs):
 
 if args.create_reference:
     with open(args.reference_file, 'w') as f:
-        json.dump(parameter_values, f)          
+        json.dump(parameter_values, f)
 else:
     with open(args.reference_file, 'r') as f:
         parameter_reference = json.load(f)
         found_error = False
         assertDeepAlmostEqual(parameter_reference, parameter_values, rtol=1e-6)
-
