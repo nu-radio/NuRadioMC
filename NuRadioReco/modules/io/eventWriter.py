@@ -38,7 +38,7 @@ class eventWriter:
         self.__fout.write(b)
         self.__header_written = True
 
-    def begin(self, filename, max_file_size=1024, check_for_duplicates=True):
+    def begin(self, filename, max_file_size=1024, check_for_duplicates=False):
         """
         begin method
 
@@ -46,7 +46,7 @@ class eventWriter:
         ----------
         max_file_size: maximum file size in Mbytes
                     (if the file exceeds the maximum file the output will be split into another file)
-        check_for_duplicates: bool (default True)
+        check_for_duplicates: bool (default False)
             if True, the event writer raises an exception when an event with a (run,eventid) pair is written that is already
             present in the data file
         """
