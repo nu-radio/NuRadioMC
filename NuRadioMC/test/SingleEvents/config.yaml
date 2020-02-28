@@ -13,7 +13,4 @@ signal:
 trigger:
   noise_temperature: 300  # in Kelvin
 weights:
-  weight_mode: core_mantle_crust # core_mantle_crust: use the three
-  #layer earth model, which considers the different densities of the
-  #core, mantle and crust. simple: use the simple earth model, which
-  #apply a constant earth density
+  weight_mode: core_mantle_crust_simple
