@@ -139,6 +139,12 @@ class simulation():
                 new_cfg = merge_config(local_config, self._cfg)
                 self._cfg = new_cfg
 
+        if(self._cfg['seed'] is None):
+            # the config seeting None means a random seed. To have the simulation be reproducable, we generate a new
+            # random seed once and save this seed to the config setting. If the simulation is rerun, we can get
+            # the same random sequence.
+            self._cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
+
         self._inputfilename = inputfilename
         self._outputfilename = outputfilename
         if(os.path.exists(self._outputfilename)):
@@ -320,6 +326,7 @@ class simulation():
         t_start = time.time()
 
         for self._iE in range(self._n_events):
+            same_shower = False  # a varibale that tracks if a new event comes in to allow to use the same shower realization for each station, channel and ray tracing solution
             if(self._event_list is not None and self._fin['event_ids'][self._iE] not in self._event_list):
                 logger.debug(f"skipping event {self._fin['event_ids'][self._iE]} because it is not in the event list provided to the __init__ function")
                 continue
@@ -351,17 +358,23 @@ class simulation():
                     if(self._inttype == "cc" and np.abs(self._flavor) != 12):  # skip all cc interaction that are not electron neutrinos
                         continue
 
+            x1 = np.array([self._x, self._y, self._z])  # the interaction point
             # calculate weight
             # if we have a second interaction, the weight needs to be calculated from the initial neutrino
             if(self._n_interaction > 1):
                 iE_mother = np.argwhere(self._fin['event_ids'] == self._fin['event_ids'][self._iE]).min()  # get index of mother neutrino
+                x_int_mother = np.array([self._fin['xx'][iE_mother], self._fin['yy'][iE_mother], self._fin['zz'][iE_mother]])
                 self._mout['weights'][self._iE] = get_weight(self._fin['zeniths'][iE_mother],
                                                      self._fin['energies'][iE_mother],
                                                      self._fin['flavors'][iE_mother],
                                                      mode=self._cfg['weights']['weight_mode'],
-                                                     cross_section_type=self._cfg['weights']['cross_section_type'])
+                                                     cross_section_type=self._cfg['weights']['cross_section_type'],
+                                                     vertex_position=x_int_mother)
             else:
-                self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, mode=self._cfg['weights']['weight_mode'], cross_section_type=self._cfg['weights']['cross_section_type'])
+                self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor,
+                                                             mode=self._cfg['weights']['weight_mode'],
+                                                             cross_section_type=self._cfg['weights']['cross_section_type'],
+                                                             vertex_position=x1)
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if(self._mout['weights'][self._iE] < self._cfg['speedup']['minimum_weight_cut']):
@@ -372,7 +385,6 @@ class simulation():
             # i.e., opposite to the direction of propagation. We need the propagation directio nhere,
             # so we multiply the shower axis with '-1'
             self._shower_axis = -1 * hp.spherical_to_cartesian(self._zenith_nu, self._azimuth_nu)
-            x1 = np.array([self._x, self._y, self._z])
 
             # calculate correct chereknov angle for ice density at vertex position
             n_index = self._ice.get_index_of_refraction(x1)
@@ -444,8 +456,6 @@ class simulation():
                         continue
 
                     n = r.get_number_of_solutions()
-                    Rs = np.zeros(n)
-                    Ts = np.zeros(n)
                     for iS in range(n):  # loop through all ray tracing solution
                         # skip individual channels where the viewing angle difference is too large
                         # discard event if delta_C (angle off cherenkov cone) is too large
@@ -474,7 +484,7 @@ class simulation():
                         t_ask = time.time()
                         spectrum = signalgen.get_frequency_spectrum(
                             self._energy * fhad, viewing_angles[iS], self._n_samples, self._dt, "HAD", n_index, R,
-                            self._cfg['signal']['model'], same_shower=(iS > 0))
+                            self._cfg['signal']['model'], same_shower=same_shower, seed=self._cfg['seed'])
                         askaryan_time += (time.time() - t_ask)
 
                         # apply frequency dependent attenuation
@@ -488,13 +498,14 @@ class simulation():
                             t_ask = time.time()
                             spectrum_em = signalgen.get_frequency_spectrum(
                                 self._energy * fem, viewing_angles[iS], self._n_samples, self._dt, "EM", n_index, R,
-                                self._cfg['signal']['model'], same_shower=(iS > 0))
+                                self._cfg['signal']['model'], same_shower=same_shower, seed=self._cfg['seed'])
                             askaryan_time += (time.time() - t_ask)
                             if self._cfg['propagation']['attenuate_ice']:
                                 spectrum_em *= attn
                             # add EM signal to had signal in the time domain
                             spectrum = fft.time2freq(fft.freq2time(spectrum, 1 / self._dt) + fft.freq2time(spectrum_em, 1 / self._dt), 1 / self._dt)
 
+                        same_shower = True
                         # apply the focusing effect
                         if self._cfg['propagation']['focusing']:
                             dZRec = -0.01 * units.m
@@ -582,6 +593,9 @@ class simulation():
                         electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
                         electric_field[efp.reflection_coefficient_theta] = r_theta
                         electric_field[efp.reflection_coefficient_phi] = r_phi
+                        if(self._cfg['signal']['model'] in ['ARZ2019', 'ARZ2020']):
+                            from NuRadioMC.SignalGen.ARZ import ARZ
+                            gARZ = ARZ.ARZ(arz_version=self._cfg['signal']['model'])
                         self._sim_station.add_electric_field(electric_field)
 
                         # apply a simple threshold cut to speed up the simulation,
@@ -757,7 +771,7 @@ class simulation():
         if 'vertex_times' in self._fin:
             return True
         else:
-            warn_msg  = 'The input file does not include vertex times. '
+            warn_msg = 'The input file does not include vertex times. '
             warn_msg += 'Vertices from the same event will not be time-ordered.'
             logger.warning(warn_msg)
             return False
@@ -992,8 +1006,7 @@ class simulation():
 
         n_triggered = np.sum(self._mout['triggered'])
         n_triggered_weighted = np.sum(self._mout['weights'][self._mout['triggered']])
-        logger.warning('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(
-            n_triggered, self._n_events, n_triggered / self._n_events))
+        logger.warning(f'fraction of triggered events = {n_triggered:.0f}/{self._n_events:.0f} = {n_triggered / self._n_events:.3f} (sum of weights = {n_triggered_weighted:.2f})')
 
         V = None
         if('xmax' in self._fin_attrs):
@@ -1007,7 +1020,7 @@ class simulation():
             dZ = self._fin_attrs['zmax'] - self._fin_attrs['zmin']
             V = np.pi * (rmax ** 2 - rmin ** 2) * dZ
         Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
-        logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
+        logger.warning("Veff = {:.4g} km^3 sr".format(Veff / units.km ** 3))
 
     def _get_em_had_fraction(self, inelasticity, inttype, flavor):
         """
