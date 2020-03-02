@@ -17,7 +17,6 @@ class hardwareResponseIncorporator:
 
     def __init__(self):
         self.logger = logging.getLogger("NuRadioReco.hardwareResponseIncorporator")
-        self.__debug = False
         self.__time_delays = {}
         self.__t = 0
         self.__mingainlin = None
@@ -28,7 +27,7 @@ class hardwareResponseIncorporator:
         self.__debug = debug
         #analog_components
 
-    def get_filter(self, frequencies, station_id, channel_id, det, sim_to_data=True, phase_only=False, mode=None, mingainlin=None):
+    def get_filter(self, frequencies, station_id, channel_id, det, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
         """
         helper function to return the filter that the module applies.
 
