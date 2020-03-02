@@ -6,6 +6,6 @@ RI: Real und imaginary part
 
 Attenuation 20dB in end of filename
 
-S21 is Gain
+S21 is Gain 
 
 IGLU = In-ice Gain with Low-power Unit (https://radio.uchicago.edu/wiki/index.php/RF_Boards#IGLU:_In-ice_Gain_with_Low-power_Unit)
