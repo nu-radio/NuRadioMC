@@ -7,7 +7,6 @@ logger = logging.getLogger("utilities.earth_attenuation")
 
 AMU = 1.66e-27 * units.kg
 
-
 def get_weight(theta_nu, pnu, flavors, mode='simple', cross_section_type='ctw',
                vertex_position=None):
     """
