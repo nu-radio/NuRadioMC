@@ -91,7 +91,7 @@ class triggerSimulator:
 
             f = np.zeros_like(frequencies, dtype=np.complex)
             mask = frequencies > 0
-            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True, output='ba')  #Numerator (b) and denominator (a) polynomials of the IIR filter
+            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)  #Numerator (b) and denominator (a) polynomials of the IIR filter
             w, h = scipy.signal.freqs(b, a, frequencies[mask])  #	w :The angular frequencies at which h was computed. h :The frequency response.
             f[mask] = h
 
