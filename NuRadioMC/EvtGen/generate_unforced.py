@@ -1,16 +1,13 @@
 import numpy as np
 from NuRadioReco.utilities import units
 from matplotlib import pyplot as plt
-from radiotools import plthelpers as php
 from radiotools import helper as hp
 from NuRadioMC.utilities import cross_sections as cs
 from NuRadioMC.utilities import earth_attenuation
 from scipy.integrate import quad
 from scipy.optimize import brentq
 from scipy.interpolate import interp1d
-from scipy import constants
-from shapely.geometry import LineString
-from shapely.geometry import Point
+from NuRadioMC.simulation.simulation import pretty_time_delta
 from NuRadioMC.EvtGen.generator import write_events_to_hdf5
 import pickle
 import os
@@ -195,6 +192,7 @@ if 0:
     plt.show()
 
 n_events = int(1e7)
+failed = 0
 Enu = np.ones(n_events) * 1 * units.EeV
 az = np.random.uniform(phimin, phimax, n_events)
 zen = np.arccos(np.random.uniform(-1, 1, n_events))
@@ -218,14 +216,46 @@ data_sets = {'xx': [],
 mask_int = np.zeros_like(mask, dtype=np.bool)
 t0 = time.perf_counter()
 for j, i in enumerate(np.arange(n_events, dtype=np.int)[mask]):
+    if(j % 1000 == 0):
+        eta = (time.perf_counter() - t0) * (n_events - i) / i
+        logger.info(f"{i}/{n_events} interacting = {np.sum(mask_int)}, failed = {failed}, eta = {pretty_time_delta(eta)}")
 #     print(f"calculating interaction point of event {i}")
     R = hp.get_rotation(np.array([0, 0, 1]), hp.spherical_to_cartesian(zen[i], az[i]))
     v = -hp.spherical_to_cartesian(zen[i], az[i])  # neutrino direction
     X = np.matmul(R, np.array([ax[i], ay[i], 0])) + np.array([0, 0, R_earth - 0.5 * h_cylinder])
-    if(not points_in_cylinder(pt1, pt2, r_cylinder, X) or np.linalg.norm(X) > R_earth):
-        continue
+
+    # check if trajectory passes through cylinder
+    if(not points_in_cylinder(pt1, pt2, r_cylinder, X)):
+        # if point is not in cylinder, check if trajectory passes through
+        x = (X[0] ** 2 + X[1] ** 2) ** 0.5
+        if(x > r_cylinder):
+            continue
+        # we reduce it to a 2D problem in (x**2+y**2)0.5, z
+        alpha = min(zen[i], 180 * units.deg - zen[i])
+        z = X[2] - R_earth
+        # case 1: z > 0
+        if(z > 0):
+            d = np.tan(alpha) * z + x
+            if(d > r_cylinder):
+                continue
+        elif(z < h_cylinder):
+            d = np.tan(alpha) * (-z - h_cylinder) + x
+            if(d > r_cylinder):
+                continue
     # calculate point where neutrino enters Earth
-    t = brentq(obj_dist_to_surface, 0, 2 * R_earth, args=(-v, X))
+    try:
+        if(X[2] > R_earth):
+            s = (X[2] - R_earth) / np.cos(min(zen[i], 180 * units.deg - zen[i]))
+            if(zen[i] > 90 * units.deg):
+                t = brentq(obj_dist_to_surface, 0.8 * s - 100, 1.2 * s + 100, args=(-v, X))
+            else:
+                t = brentq(obj_dist_to_surface, 0.8 * s - 100, 1.2 * s + 100, args=(v, X))
+        else:
+            t = brentq(obj_dist_to_surface, 0, 2 * R_earth, args=(-v, X))
+    except:
+        logger.warning("failed to converge, skipping event")
+        failed += 1
+        continue
     exit_point = X + (-v * t)
 #     logger.debug(f"zen = {zen[i]/units.deg:.0f}deg, trajectory enters Earth at {exit_point[0]:.1f}, {exit_point[0]:.1f}, {exit_point[0]:.1f}. Dist to core = {np.linalg.norm(exit_point)/R_earth:.5f}, dist to (0,0,R) = {np.linalg.norm(exit_point - np.array([0,0,R_earth]))/R_earth:.4f}")
 
@@ -239,6 +269,7 @@ for j, i in enumerate(np.arange(n_events, dtype=np.int)[mask]):
         t = brentq(obj, 0, 2 * R_earth, args=(v, exit_point, Lint[i]), maxiter=500)
     except:
         logger.warning("failed to converge, skipping event")
+        failed += 1
         continue
     Xint = X + v * t  # calculate interaction point
 
@@ -251,9 +282,6 @@ for j, i in enumerate(np.arange(n_events, dtype=np.int)[mask]):
         data_sets['zz'].append(Xint[2] - R_earth)
         data_sets['zeniths'].append(zen[i])
         data_sets['azimuths'].append(az[i])
-    if(j % 100 == 0):
-        eta = (time.perf_counter() - t0) / i * n_events
-        logger.info(f"{i}/{n_events} ({np.sum(mask_int)}), eta = {eta:.0f} seconds")
 
 data_sets['event_ids'] = range(np.sum(mask_int))
 data_sets['inelasticity'] = np.ones(np.sum(mask_int))
