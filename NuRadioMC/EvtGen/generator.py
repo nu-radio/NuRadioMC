@@ -682,7 +682,7 @@ def get_projected_area_cylinder(theta, R, d):
         height of zylinder
 
     Returns:
-    float: projected ares
+    float: projected area
     """
 
     return np.pi * R ** 2 * np.abs(np.cos(theta)) + 2 * R * d * np.sin(theta)
