@@ -537,7 +537,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         if(iFile == 0 and len(evt_ids_next_file) == 0):  # case 4
             n_events_this_file = total_number_of_events
         elif(len(evt_ids_next_file) == 0):  # last file -> case 2
-            n_events_this_file = total_number_of_events - evt_id_last_previous + attributes['start_event_id']
+            n_events_this_file = total_number_of_events - (evt_id_last_previous + 1) + attributes['start_event_id']
         elif(iFile == 0):  # case 3
             n_events_this_file = evt_id_last - attributes['start_event_id'] + 1
         else:  # case 1
@@ -668,7 +668,7 @@ def get_product_position_time(data_sets, product, iE):
     return x, y, z, time
 
 
-def A_proj(theta, R, d):
+def get_projected_area_cylinder(theta, R, d):
     """
     calculates the projected area of a cylinder
 
@@ -686,6 +686,25 @@ def A_proj(theta, R, d):
     """
 
     return np.pi * R ** 2 * np.abs(np.cos(theta)) + 2 * R * d * np.sin(theta)
+
+
+def get_projected_area_cylinder_integral(theta, R, d):
+    """
+    integral of get_projected_area_cylinder
+    
+    Parameters
+    ----------
+    theta: float
+        zenith angle
+    R: float
+        radius of zylinder
+    d: float
+        height of zylinder
+
+    Returns:
+        float: integral of projected area
+    """
+    return (-np.pi * R ** 2 * 0.5 * np.cos(theta) ** 2 * np.sign(np.cos(theta)) + 0.5 * 2 * R * d * (theta - np.sin(theta) * np.cos(theta)))
 
 
 def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
@@ -722,7 +741,7 @@ def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
     d = full_zmax - full_zmin
 
     def zenith_distribution(theta, R, d):
-        return A_proj(theta, R, d) * np.sin(theta)
+        return get_projected_area_cylinder(theta, R, d) * np.sin(theta)
 
     distr_max = np.max(zenith_distribution(np.linspace(thetamin, thetamax, 1000), R, d))
 

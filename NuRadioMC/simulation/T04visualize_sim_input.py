@@ -93,6 +93,7 @@ fig.tight_layout()
 plt.title('vertex distribution')
 plt.savefig(os.path.join(plot_folder, "simInputVertex.png"))
 
+
 # plot incoming direction
 zeniths = np.array(zeniths)
 azimuths = np.array(azimuths)
