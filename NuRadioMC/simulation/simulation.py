@@ -358,17 +358,23 @@ class simulation():
                     if(self._inttype == "cc" and np.abs(self._flavor) != 12):  # skip all cc interaction that are not electron neutrinos
                         continue
 
+            x1 = np.array([self._x, self._y, self._z])  # the interaction point
             # calculate weight
             # if we have a second interaction, the weight needs to be calculated from the initial neutrino
             if(self._n_interaction > 1):
                 iE_mother = np.argwhere(self._fin['event_ids'] == self._fin['event_ids'][self._iE]).min()  # get index of mother neutrino
+                x_int_mother = np.array([self._fin['xx'][iE_mother], self._fin['yy'][iE_mother], self._fin['zz'][iE_mother]])
                 self._mout['weights'][self._iE] = get_weight(self._fin['zeniths'][iE_mother],
                                                      self._fin['energies'][iE_mother],
                                                      self._fin['flavors'][iE_mother],
                                                      mode=self._cfg['weights']['weight_mode'],
-                                                     cross_section_type=self._cfg['weights']['cross_section_type'])
+                                                     cross_section_type=self._cfg['weights']['cross_section_type'],
+                                                     vertex_position=x_int_mother)
             else:
-                self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor, mode=self._cfg['weights']['weight_mode'], cross_section_type=self._cfg['weights']['cross_section_type'])
+                self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor,
+                                                             mode=self._cfg['weights']['weight_mode'],
+                                                             cross_section_type=self._cfg['weights']['cross_section_type'],
+                                                             vertex_position=x1)
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if(self._mout['weights'][self._iE] < self._cfg['speedup']['minimum_weight_cut']):
@@ -379,7 +385,6 @@ class simulation():
             # i.e., opposite to the direction of propagation. We need the propagation directio nhere,
             # so we multiply the shower axis with '-1'
             self._shower_axis = -1 * hp.spherical_to_cartesian(self._zenith_nu, self._azimuth_nu)
-            x1 = np.array([self._x, self._y, self._z])
 
             # calculate correct chereknov angle for ice density at vertex position
             n_index = self._ice.get_index_of_refraction(x1)
@@ -766,7 +771,7 @@ class simulation():
         if 'vertex_times' in self._fin:
             return True
         else:
-            warn_msg  = 'The input file does not include vertex times. '
+            warn_msg = 'The input file does not include vertex times. '
             warn_msg += 'Vertices from the same event will not be time-ordered.'
             logger.warning(warn_msg)
             return False
@@ -1001,8 +1006,7 @@ class simulation():
 
         n_triggered = np.sum(self._mout['triggered'])
         n_triggered_weighted = np.sum(self._mout['weights'][self._mout['triggered']])
-        logger.warning('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(
-            n_triggered, self._n_events, n_triggered / self._n_events))
+        logger.warning(f'fraction of triggered events = {n_triggered:.0f}/{self._n_events:.0f} = {n_triggered / self._n_events:.3f} (sum of weights = {n_triggered_weighted:.2f})')
 
         V = None
         if('xmax' in self._fin_attrs):
@@ -1016,7 +1020,7 @@ class simulation():
             dZ = self._fin_attrs['zmax'] - self._fin_attrs['zmin']
             V = np.pi * (rmax ** 2 - rmin ** 2) * dZ
         Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
-        logger.warning("Veff = {:.2g} km^3 sr".format(Veff / units.km ** 3))
+        logger.warning("Veff = {:.4g} km^3 sr".format(Veff / units.km ** 3))
 
     def _get_em_had_fraction(self, inelasticity, inttype, flavor):
         """
