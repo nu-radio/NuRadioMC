@@ -47,7 +47,6 @@ class hardwareResponseIncorporator:
             the complex filter amplitudes
         """
         amp_type = det.get_amplifier_type(station_id, channel_id)
-        amp_measurement = det.get_amplifier_measurement(station_id, channel_id)
         amp_response = analog_components.load_amp_response(amp_type)  #it reads the log file. change this to load_amp_measurement if you want the RI file
         amp_response = amp_response['gain'](frequencies) * np.exp(1j * amp_response['phase'](frequencies))
 

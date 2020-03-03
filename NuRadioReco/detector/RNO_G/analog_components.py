@@ -56,8 +56,8 @@ def load_amp_response(amp_type='rno_surface', path=os.path.dirname(os.path.realp
     amp_response['gain'] = get_amp_gain
     amp_response['phase'] = get_amp_phase
 
-    def get_amp_response(ff):
-        return print(amp_response['gain'](ff) * np.exp(1j * amp_response['phase'](ff)))
+    #def get_amp_response(ff):
+    #    return print(amp_response['gain'](ff) * np.exp(1j * amp_response['phase'](ff)))
 
     return amp_response
 
@@ -82,7 +82,7 @@ def load_amp_measurement(amp_measurement='surface_-60dBm_chan0_RI_20dB'):  # use
     amp_measures['gain'] = amp_gain_f
     amp_measures['phase'] = amp_phase_f
 
-    def get_amp_measure(ff):
-        return print(amp_measures['gain'](ff) * np.exp(1j * amp_measures['phase'](ff)))
+    #def get_amp_measure(ff):
+     #   return print(amp_measures['gain'](ff) * np.exp(1j * amp_measures['phase'](ff)))
 
     return amp_measures
