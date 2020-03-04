@@ -32,16 +32,18 @@ if(not os.path.exists(plot_folder)):
     os.makedirs(plot_folder)
 
 for input_filename in args.inputfilename:
+    print(f"parsing file {input_filename}")
     fin = h5py.File(input_filename, 'r')
-    xx.extend(fin['xx'])
-    yy.extend(fin['yy'])
-    zz.extend(fin['zz'])
-    zeniths.extend(fin['zeniths'])
-    azimuths.extend(fin['azimuths'])
-    inelasticity.extend(fin['inelasticity'])
-    flavors.extend(fin['flavors'])
-    interaction_type.extend(fin['interaction_type'])
+    xx.extend(np.array(fin['xx']))
+    yy.extend(np.array(fin['yy']))
+    zz.extend(np.array(fin['zz']))
+    zeniths.extend(np.array(fin['zeniths']))
+    azimuths.extend(np.array(fin['azimuths']))
+    inelasticity.extend(np.array(fin['inelasticity']))
+    flavors.extend(np.array(fin['flavors']))
+    interaction_type.extend(np.array(fin['interaction_type']))
 
+print(f"starting plotting")
 ###########################
 # plot flavor ratios
 ###########################
@@ -89,18 +91,20 @@ ax.set_xlabel("r [m]")
 ax.set_ylabel("z [m]")
 fig.tight_layout()
 plt.title('vertex distribution')
-plt.savefig(os.path.join(plot_folder, "simInputVertex.pdf"))
+plt.savefig(os.path.join(plot_folder, "simInputVertex.png"))
+
 
 # plot incoming direction
 zeniths = np.array(zeniths)
 azimuths = np.array(azimuths)
 fig, axs = php.get_histograms([zeniths / units.deg, azimuths / units.deg],
-                              bins=[np.arange(0, 181, 10), np.arange(0, 361, 45)],
+                              bins=[np.arange(0, 181, 2), np.arange(0, 361, 5)],
                               xlabels=['zenith [deg]', 'azimuth [deg]'],
                               stats=False)
 fig.suptitle('neutrino direction')
-plt.title('incoming direction')
-plt.savefig(os.path.join(plot_folder, "simInputIncoming.pdf"))
+fig.subplots_adjust(top=0.9)
+
+plt.savefig(os.path.join(plot_folder, "simInputIncoming.png"))
 
 # plot inelasticity
 inelasticity = np.array(inelasticity)
@@ -110,4 +114,4 @@ fig, axs = php.get_histogram(inelasticity,
                              stats=True)
 axs.semilogx(True)
 plt.title('inelasticity')
-plt.savefig(os.path.join(plot_folder, "simInputInelasticity.pdf"))
+plt.savefig(os.path.join(plot_folder, "simInputInelasticity.png"))
