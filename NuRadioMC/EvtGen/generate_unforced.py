@@ -13,7 +13,7 @@ import pickle
 import os
 import time
 import logging
-np.random.seed(10)  # just for testing
+# np.random.seed(10)  # just for testing
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ earth = earth_attenuation.PREM()
 h_cylinder = 2.7 * units.km
 pt1 = np.array([0, 0, R_earth])
 pt2 = np.array([0, 0, R_earth - h_cylinder])
-r_cylinder = 10 * units.km
+r_cylinder = 5 * units.km
 
 # calculate maximum width of projected area
 theta_max = np.arctan(h_cylinder / 2 / r_cylinder)
@@ -36,8 +36,8 @@ print(f"cylinder r = {r_cylinder/units.km:.1f}km, h = {h_cylinder/units.km:.1f}k
 
 phimin = 0
 phimax = 360 * units.deg
-thetamin = 0
-thetamax = 180 * units.deg
+thetamin = 90 * units.deg
+thetamax = 92 * units.deg
 
 
 def perp(a) :
@@ -163,7 +163,7 @@ def points_in_cylinder(pt1, pt2, r, q):
 
 # precalculate the maximum slant depth to the detector
 if(not os.path.exists("buffer_Llimit.pkl")):
-    zens = np.linspace(0, 180 * units.deg, 100)
+    zens = np.arange(0, 180.1 * units.deg, 2 * units.deg)
     Lint_max = np.zeros_like(zens)
     Lint_min = np.zeros_like(zens)
     Xs = np.array([[0, -0.5 * r_cylinder, -h_cylinder + R_earth],
@@ -196,16 +196,17 @@ get_Lmin = interp1d(zens, Lint_min, kind='previous')
 if 0:
     fig, a = plt.subplots(1, 1)
     ztmp = np.linspace(0, 180 * units.deg, 10000)
-    a.plot(ztmp / units.deg, get_Lmax(ztmp) / units.g * units.cm ** 2, 'C0-')
-    a.plot(zens / units.deg, Lint_max / units.g * units.cm ** 2, 'oC0', label="max possible Lint")
-    a.plot(ztmp / units.deg, get_Lmin(ztmp) / units.g * units.cm ** 2, 'C1-')
-    a.plot(zens / units.deg, Lint_min / units.g * units.cm ** 2, 'dC1', label="min possible Lint")
+    a.plot(ztmp / units.deg, get_Lmax(ztmp) / units.g * units.cm ** 2, 'C0-', label="max possible Lint")
+#     a.plot(zens / units.deg, Lint_max / units.g * units.cm ** 2, 'oC0')
+    a.plot(ztmp / units.deg, get_Lmin(ztmp) / units.g * units.cm ** 2, 'C1-', label="min possible Lint")
+#     a.plot(zens / units.deg, Lint_min / units.g * units.cm ** 2, 'dC1')
     a.hlines(cs.get_interaction_length(.1 * units.EeV, 1, 12, "total") / units.g * units.cm ** 2, 0, 180, label="0.1 EeV", colors='C2')
     a.hlines(cs.get_interaction_length(1 * units.EeV, 1, 12, "total") / units.g * units.cm ** 2, 0, 180 , label="1 EeV", colors='C3')
     a.hlines(cs.get_interaction_length(10 * units.EeV, 1, 12, "total") / units.g * units.cm ** 2, 0, 180 , label="10 EeV", colors='C4')
     a.set_xlabel("zenith angle [deg]")
     a.set_ylabel("slant depth [g/cm^2]")
     a.semilogy(True)
+    a.set_xticks(np.arange(0, 181, 10))
     a.set_ylim(5e5)
     a.legend()
 
@@ -217,7 +218,7 @@ n_events = int(1e6)
 failed = 0
 Enu = np.ones(n_events) * 1 * units.EeV
 az = np.random.uniform(phimin, phimax, n_events)
-zen = np.arccos(np.random.uniform(-1, 1, n_events))
+zen = np.arccos(np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events))
 # generate random positions on an area perpendicular do neutrino direction
 ax, ay = np.random.uniform(-0.5 * d, 0.5 * d, (2, n_events))
 # az = np.ones(n_events) * (R_earth - .5 * h_cylinder)  # move plane to the center of the cylinder
@@ -237,21 +238,83 @@ data_sets = {'xx': [],
 # calculate rotation matrix to transform position on area to 3D
 mask_int = np.zeros_like(mask, dtype=np.bool)
 t0 = time.perf_counter()
+n_cylinder = 0
 for j, i in enumerate(np.arange(n_events, dtype=np.int)[mask]):
-    if(j % 1000 == 0):
+    if(j % 1000 == 0 and i > 0):
         eta = (time.perf_counter() - t0) * (n_events - i) / i
-        logger.info(f"{i}/{n_events} interacting = {np.sum(mask_int)}, failed = {failed}, eta = {pretty_time_delta(eta)}")
-#     print(f"calculating interaction point of event {i}")
-    R = hp.get_rotation(np.array([0, 0, 1]), hp.spherical_to_cartesian(zen[i], az[i]))
+        logger.info(f"{i}/{n_events} interacting = {np.sum(mask_int)}, failed = {failed}, n_cylinder = {n_cylinder}, eta = {pretty_time_delta(eta)}")
+#     print(f"calculating interaction point of event {i}"),
+    c, s = np.cos(az[i]), np.sin(az[i])
+    Raz = np.array(((c, -s, 0), (s, c, 0), (0, 0, 1)))
+    c, s = np.cos(zen[i]), np.sin(zen[i])
+#     Rzen = np.array(((c, 1, -s), (0, 1, 0), (s, 0, c)))
+    Rzen = hp.get_rotation(hp.spherical_to_cartesian(0, az[i]), hp.spherical_to_cartesian(zen[i], az[i]))
+#     R = hp.get_rotation(np.array([0, 0, 1]), hp.spherical_to_cartesian(zen[i], az[i]))
+    R = np.matmul(Rzen, Raz)
     v = -hp.spherical_to_cartesian(zen[i], az[i])  # neutrino direction
     X = np.matmul(R, np.array([ax[i], ay[i], 0])) + np.array([0, 0, -0.5 * h_cylinder])
+    if 0:
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import Axes3D
+        from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+        fig = plt.figure()
+        a = fig.add_subplot(111, projection='3d')
+        # Cylinder
+        x = np.linspace(-r_cylinder, r_cylinder, 100)
+        z = np.linspace(0, -h_cylinder, 100)
+        Xc, Zc = np.meshgrid(x, z)
+        Yc = np.sqrt(r_cylinder ** 2 - Xc ** 2)
+
+        # Draw parameters
+        rstride = 20
+        cstride = 10
+        a.plot_surface(Xc, Yc, Zc, alpha=0.2, rstride=rstride, cstride=cstride)
+        a.plot_surface(Xc, -Yc, Zc, alpha=0.2, rstride=rstride, cstride=cstride)
+        a.set_title(f"zenith = {zen[i]/units.deg:.0f}")
+        xx = []
+        yy = []
+        zz = []
+        for vert in np.array([[-0.5 * d, -0.5 * d, 0], [0.5 * d, -0.5 * d, 0], [0.5 * d, 0.5 * d, 0], [-0.5 * d, 0.5 * d, 0]]):
+            t = np.matmul(Raz, vert) + np.array([0, 0, -0.5 * h_cylinder])
+            xx.append(t[0])
+            yy.append(t[1])
+            zz.append(t[2])
+        verts = [list(zip(xx, yy, zz))]
+        a.add_collection3d(Poly3DCollection(verts, alpha=0.5))
+
+        xx = []
+        yy = []
+        zz = []
+        for vert in np.array([[-0.5 * d, -0.5 * d, 0], [0.5 * d, -0.5 * d, 0], [0.5 * d, 0.5 * d, 0], [-0.5 * d, 0.5 * d, 0]]):
+            t = np.matmul(Rzen, np.matmul(Raz, vert)) + np.array([0, 0, -0.5 * h_cylinder])
+            xx.append(t[0])
+            yy.append(t[1])
+            zz.append(t[2])
+        verts = [list(zip(xx, yy, zz))]
+        a.add_collection3d(Poly3DCollection(verts, alpha=0.5))
+
+        s = np.array([0, 0, -0.5 * h_cylinder])
+        t = v * 10 * units.km + s
+        a.plot([s[0], t[0]], [s[1], t[1]], [s[2], t[2]], '-d')
+
+        s = np.array([0, 0, -0.5 * h_cylinder])
+        t = -hp.spherical_to_cartesian(90 * units.deg, az[i]) * 10 * units.km + s
+        a.plot([s[0], t[0]], [s[1], t[1]], [s[2], t[2]], '--d')
+
+        # check if neutrino axis is perpendicular
+        t = np.array(verts[0][0]) - np.array(verts[0][1])
+        t /= np.linalg.norm(t)
+        print(np.dot(t, v))
+
+        a.set_xlabel("x")
+        a.set_zlabel("z")
+        a.set_ylabel("y")
+        plt.show()
 
     # check if trajectory passes through cylinder
 #     if(not points_in_cylinder(pt1, pt2, r_cylinder, X)):
     # we rotate everything in the plane defined by z and the propagration direction (such that v_y = 0)
-    c, s = np.cos(az[i]), np.sin(az[i])
-    Raz = np.array(((c, -s, 0), (s, c, 0), (0, 0, 1))).T
-    Xaz = np.matmul(Raz, X)
+    Xaz = np.matmul(Raz.T, X)
     rmin = Xaz[1]  # the closest distance to the z axis (center of cyllinder)
     if(abs(rmin) >= r_cylinder):
         continue
@@ -265,7 +328,7 @@ for j, i in enumerate(np.arange(n_events, dtype=np.int)[mask]):
     Lv2 = np.array([[xtmp, 0], [xtmp, -h_cylinder]])
 
     # define line of neutrino propagation by two points
-    vaz = np.matmul(Raz, v)
+    vaz = np.matmul(Raz.T, v)
     if(abs(vaz[1]) > 1e-10):
         a = 1 / 0
     v2d = np.array([vaz[0], vaz[2]])
@@ -323,6 +386,7 @@ for j, i in enumerate(np.arange(n_events, dtype=np.int)[mask]):
             a.legend()
             plt.show()
         continue  # neutrino is not passing through cylinder
+    n_cylinder += 1
     ss = []
     for tmp in intersects:
         ss.append(np.dot(tmp - X2d, v2d.T))
@@ -342,14 +406,35 @@ for j, i in enumerate(np.arange(n_events, dtype=np.int)[mask]):
             a.set_zlabel("z")
             a.set_ylabel("y")
             a.legend()
-            plt.ion()
+#             plt.ion()
             plt.show()
-            a = 1 / 0
 
     # calculate the 3D points where the neutrino enters/leaves the cylinder and transform to outside Earth
-    X_enter = np.matmul(Raz.T, np.array([intersects[argsort][0][0], rmin, intersects[argsort][0][1]])) + np.array([0, 0, R_earth])
-    X_leave = np.matmul(Raz.T, np.array([intersects[argsort][1][0], rmin, intersects[argsort][1][1]])) + np.array([0, 0, R_earth])
+    X_enter = np.matmul(Raz, np.array([intersects[argsort][0][0], rmin, intersects[argsort][0][1]])) + np.array([0, 0, R_earth])
+    X_leave = np.matmul(Raz, np.array([intersects[argsort][1][0], rmin, intersects[argsort][1][1]])) + np.array([0, 0, R_earth])
     X += np.array([0, 0, R_earth])
+
+    # calculate point where neutrino enters Earth
+    if(np.linalg.norm(X_enter) > R_earth):  # if enter point is outside of Earth (can happen because cylinder does not account for Earth curvature)
+        if(np.linalg.norm(X_leave) > R_earth):  # check if leave point is also outside of Earth (can also happen because cylinder does not account for Earth curvature)
+            continue
+        t = brentq(obj_dist_to_surface, 0, 5 * d, args=(-v, X_leave))
+        enter_point = X_leave + (-v * t)
+        X_enter = enter_point  # define point where neutrino enters the cylinder as the point where it enters the Earth
+    else:
+        t = brentq(obj_dist_to_surface, 0, 2 * R_earth, args=(-v, X_enter))
+        enter_point = X_enter + (-v * t)
+#     logger.debug(f"zen = {zen[i]/units.deg:.0f}deg, trajectory enters Earth at {enter_point[0]:.1f}, {enter_point[0]:.1f}, {enter_point[0]:.1f}. Dist to core = {np.linalg.norm(enter_point)/R_earth:.5f}, dist to (0,0,R) = {np.linalg.norm(enter_point - np.array([0,0,R_earth]))/R_earth:.4f}")
+
+    # check if event interacts at all
+    # calcualte slant depth to point of entering cylinder
+    t = np.linalg.norm(enter_point - X_enter)
+    slant_depth_min = slant_depth(t, v, enter_point)
+    if(t == 0):
+        slant_depth_min = 0
+    # calculate slant depth through the cylinder
+    s = np.linalg.norm(X_leave - X_enter)
+    slant_depth_max = slant_depth(s, v, X_enter) + slant_depth_min  # full slant depth from outside Earth to point when it leaves the cylinder
 
     if 0:
         import matplotlib.pyplot as plt
@@ -372,29 +457,10 @@ for j, i in enumerate(np.arange(n_events, dtype=np.int)[mask]):
         a.set_xlabel("x")
         a.set_zlabel("z")
         a.set_ylabel("y")
+        print(f"Lmin = {slant_depth_min:.2g}, Lmax = {slant_depth_max:.2g}, Lnu = {Lint[i]:.2g}")
         a.legend()
         plt.show()
 #         a = 1 / 0
-
-    # calculate point where neutrino enters Earth
-    if(np.linalg.norm(X_enter) > R_earth):  # if enter point is outside of Earth (can happen because cylinder does not account for Earth curvature)
-        if(np.linalg.norm(X_leave) > R_earth):  # check if leave point is also outside of Earth (can also happen because cylinder does not account for Earth curvature)
-            continue
-        t = brentq(obj_dist_to_surface, 0, 5 * d, args=(-v, X_leave))
-        enter_point = X_leave + (-v * t)
-        X_enter = enter_point  # define point where neutrino enters the cylinder as the point where it enters the Earth
-    else:
-        t = brentq(obj_dist_to_surface, 0, 2 * R_earth, args=(-v, X_enter))
-        enter_point = X_enter + (-v * t)
-#     logger.debug(f"zen = {zen[i]/units.deg:.0f}deg, trajectory enters Earth at {enter_point[0]:.1f}, {enter_point[0]:.1f}, {enter_point[0]:.1f}. Dist to core = {np.linalg.norm(enter_point)/R_earth:.5f}, dist to (0,0,R) = {np.linalg.norm(enter_point - np.array([0,0,R_earth]))/R_earth:.4f}")
-
-#     # check if event interacts at all
-    t = np.linalg.norm(enter_point - X_enter)
-    slant_depth_min = slant_depth(t, v, enter_point)
-    if(t == 0):
-        slant_depth_min = 0
-    s = np.linalg.norm(X_leave - X_enter)
-    slant_depth_max = slant_depth(s, v, X_enter)
     if((Lint[i] <= slant_depth_min) or (Lint[i] >= slant_depth_max)):
         logger.debug("neutrino does not interact in cylinder, skipping to next event")
         continue
@@ -411,7 +477,7 @@ for j, i in enumerate(np.arange(n_events, dtype=np.int)[mask]):
     is_in_cylinder = points_in_cylinder(pt1, pt2, r_cylinder, Xint)
     mask_int[i] = is_in_cylinder
     if(is_in_cylinder):
-        logger.debug(f"event {i}, interaction point ({Xint[0]:.1f}, {Xint[1]:.1f}, {Xint[2]-R_earth:.1f}), in cylinder {is_in_cylinder}")
+        logger.info(f"event {i}, interaction point ({Xint[0]:.1f}, {Xint[1]:.1f}, {Xint[2]-R_earth:.1f}), in cylinder {is_in_cylinder}")
         data_sets['xx'].append(Xint[0])
         data_sets['yy'].append(Xint[1])
         data_sets['zz'].append(Xint[2] - R_earth)
