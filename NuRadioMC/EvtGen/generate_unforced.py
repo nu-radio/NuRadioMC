@@ -36,8 +36,8 @@ print(f"cylinder r = {r_cylinder/units.km:.1f}km, h = {h_cylinder/units.km:.1f}k
 
 phimin = 0
 phimax = 360 * units.deg
-thetamin = 90 * units.deg
-thetamax = 92 * units.deg
+thetamin = 0 * units.deg
+thetamax = 180 * units.deg
 
 
 def perp(a) :
@@ -477,7 +477,7 @@ for j, i in enumerate(np.arange(n_events, dtype=np.int)[mask]):
     is_in_cylinder = points_in_cylinder(pt1, pt2, r_cylinder, Xint)
     mask_int[i] = is_in_cylinder
     if(is_in_cylinder):
-        logger.info(f"event {i}, interaction point ({Xint[0]:.1f}, {Xint[1]:.1f}, {Xint[2]-R_earth:.1f}), in cylinder {is_in_cylinder}")
+        logger.debug(f"event {i}, interaction point ({Xint[0]:.1f}, {Xint[1]:.1f}, {Xint[2]-R_earth:.1f}), in cylinder {is_in_cylinder}")
         data_sets['xx'].append(Xint[0])
         data_sets['yy'].append(Xint[1])
         data_sets['zz'].append(Xint[2] - R_earth)
