@@ -13,6 +13,7 @@ import pickle
 import os
 import time
 import logging
+np.random.seed(10)  # just for testing
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -25,7 +26,7 @@ earth = earth_attenuation.PREM()
 h_cylinder = 2.7 * units.km
 pt1 = np.array([0, 0, R_earth])
 pt2 = np.array([0, 0, R_earth - h_cylinder])
-r_cylinder = 5 * units.km
+r_cylinder = 10 * units.km
 
 # calculate maximum width of projected area
 theta_max = np.arctan(h_cylinder / 2 / r_cylinder)
@@ -37,6 +38,26 @@ phimin = 0
 phimax = 360 * units.deg
 thetamin = 0
 thetamax = 180 * units.deg
+
+
+def perp(a) :
+    b = np.empty_like(a)
+    b[0] = -a[1]
+    b[1] = a[0]
+    return b
+
+
+# line segment a given by endpoints a1, a2
+# line segment b given by endpoints b1, b2
+# return
+def seg_intersect(a1, a2, b1, b2) :
+    da = a2 - a1
+    db = b2 - b1
+    dp = a1 - b1
+    dap = perp(da)
+    denom = np.dot(dap, db)
+    num = np.dot(dap, dp)
+    return (num / denom) * db + b1
 
 
 def get_R(t, v, X):
@@ -84,7 +105,7 @@ def slant_depth(t, v, X):
     X: 3dim array
         start point
     """
-    res = quad(get_density, 0, t, args=(v, X), limit=50)
+    res = quad(get_density, 0, t, args=(v, X), limit=200)
     return res[0]
 
 
@@ -115,7 +136,7 @@ def obj(t, v, X, Lint):
     """
     objective function to determine at which travel distance we reached the interaction point
     """
-    return slant_depth_num(t, v, X) - Lint
+    return slant_depth(t, v, X) - Lint
 
 
 def points_in_cylinder(pt1, pt2, r, q):
@@ -162,7 +183,7 @@ if(not os.path.exists("buffer_Llimit.pkl")):
                 t = brentq(obj_dist_to_surface, 100, 2 * R_earth, args=(-v, X))
                 sdepth_tmp[j] = slant_depth_num(t, -v, X)
     #         print(i, zens[i] / units.deg, X, sdepth_tmp[j])
-    #     exit_point = X + (-v * t)
+    #     enter_point = X + (-v * t)
         Lint_max[i] = np.max(sdepth_tmp)
         Lint_min[i] = np.min(sdepth_tmp)
     pickle.dump([zens, Lint_max, Lint_min], open("buffer_Llimit.pkl", "wb"), protocol=4)
@@ -187,11 +208,12 @@ if 0:
     a.semilogy(True)
     a.set_ylim(5e5)
     a.legend()
+
     fig.tight_layout()
     fig.savefig("Lvszen.png")
     plt.show()
 
-n_events = int(1e7)
+n_events = int(1e6)
 failed = 0
 Enu = np.ones(n_events) * 1 * units.EeV
 az = np.random.uniform(phimin, phimax, n_events)
@@ -222,56 +244,169 @@ for j, i in enumerate(np.arange(n_events, dtype=np.int)[mask]):
 #     print(f"calculating interaction point of event {i}")
     R = hp.get_rotation(np.array([0, 0, 1]), hp.spherical_to_cartesian(zen[i], az[i]))
     v = -hp.spherical_to_cartesian(zen[i], az[i])  # neutrino direction
-    X = np.matmul(R, np.array([ax[i], ay[i], 0])) + np.array([0, 0, R_earth - 0.5 * h_cylinder])
+    X = np.matmul(R, np.array([ax[i], ay[i], 0])) + np.array([0, 0, -0.5 * h_cylinder])
 
     # check if trajectory passes through cylinder
-    if(not points_in_cylinder(pt1, pt2, r_cylinder, X)):
-        # if point is not in cylinder, check if trajectory passes through
-        x = (X[0] ** 2 + X[1] ** 2) ** 0.5
-        if(x > r_cylinder):
-            continue
-        # we reduce it to a 2D problem in (x**2+y**2)0.5, z
-        alpha = min(zen[i], 180 * units.deg - zen[i])
-        z = X[2] - R_earth
-        # case 1: z > 0
-        if(z > 0):
-            d = np.tan(alpha) * z + x
-            if(d > r_cylinder):
-                continue
-        elif(z < h_cylinder):
-            d = np.tan(alpha) * (-z - h_cylinder) + x
-            if(d > r_cylinder):
-                continue
-    # calculate point where neutrino enters Earth
-    try:
-        if(X[2] > R_earth):
-            s = (X[2] - R_earth) / np.cos(min(zen[i], 180 * units.deg - zen[i]))
-            if(zen[i] > 90 * units.deg):
-                t = brentq(obj_dist_to_surface, 0.8 * s - 100, 1.2 * s + 100, args=(-v, X))
-            else:
-                t = brentq(obj_dist_to_surface, 0.8 * s - 100, 1.2 * s + 100, args=(v, X))
-        else:
-            t = brentq(obj_dist_to_surface, 0, 2 * R_earth, args=(-v, X))
-    except:
-        logger.warning("failed to converge, skipping event")
-        failed += 1
+#     if(not points_in_cylinder(pt1, pt2, r_cylinder, X)):
+    # we rotate everything in the plane defined by z and the propagration direction (such that v_y = 0)
+    c, s = np.cos(az[i]), np.sin(az[i])
+    Raz = np.array(((c, -s, 0), (s, c, 0), (0, 0, 1))).T
+    Xaz = np.matmul(Raz, X)
+    rmin = Xaz[1]  # the closest distance to the z axis (center of cyllinder)
+    if(abs(rmin) >= r_cylinder):
         continue
-    exit_point = X + (-v * t)
-#     logger.debug(f"zen = {zen[i]/units.deg:.0f}deg, trajectory enters Earth at {exit_point[0]:.1f}, {exit_point[0]:.1f}, {exit_point[0]:.1f}. Dist to core = {np.linalg.norm(exit_point)/R_earth:.5f}, dist to (0,0,R) = {np.linalg.norm(exit_point - np.array([0,0,R_earth]))/R_earth:.4f}")
+    # define the projected square of the cylinder
+    # the two endpoints of the two horizontal lines are
+    xtmp = (r_cylinder ** 2 - rmin ** 2) ** 0.5
+    Lh1 = np.array([[-xtmp, 0], [xtmp, 0]])
+    Lh2 = np.array([[-xtmp, -h_cylinder], [xtmp, -h_cylinder]])
+    # the two endpoints of the two vertical lines are
+    Lv1 = np.array([[-xtmp, 0], [-xtmp, -h_cylinder]])
+    Lv2 = np.array([[xtmp, 0], [xtmp, -h_cylinder]])
+
+    # define line of neutrino propagation by two points
+    vaz = np.matmul(Raz, v)
+    if(abs(vaz[1]) > 1e-10):
+        a = 1 / 0
+    v2d = np.array([vaz[0], vaz[2]])
+    X2d = np.array([Xaz[0], Xaz[2]])
+    t = 2 * d
+    Paz = np.array([X2d + -t * v2d, X2d + t * v2d])
+
+    # calculate points that intersect any of the 4 area (projected cylinder) boundaries
+    intersects = []
+    for k, (a1, a2) in enumerate([Lh1, Lh2]):
+        tmp = seg_intersect(a1, a2, Paz[0], Paz[1])
+        if((tmp[0] >= a1[0]) and (tmp[0] <= a2[0])):
+            intersects.append(tmp)
+    for k, (a1, a2) in enumerate([Lv1, Lv2]):
+        tmp = seg_intersect(a1, a2, Paz[0], Paz[1])
+        if((tmp[1] <= a1[1]) and (tmp[1] >= a2[1])):
+            intersects.append(tmp)
+    intersects = np.array(intersects)
+    if(len(intersects) != 2):
+        if 0:
+            print(len(intersects))
+            import matplotlib.pyplot as plt
+            from mpl_toolkits.mplot3d import Axes3D
+            fig = plt.figure()
+            a = fig.add_subplot(111, projection='3d')
+            # Cylinder
+            x = np.linspace(-r_cylinder, r_cylinder, 100)
+            z = np.linspace(0, -h_cylinder, 100)
+            Xc, Zc = np.meshgrid(x, z)
+            Yc = np.sqrt(r_cylinder ** 2 - Xc ** 2)
+
+            # Draw parameters
+            rstride = 20
+            cstride = 10
+            a.plot_surface(Xc, Yc, Zc, alpha=0.2, rstride=rstride, cstride=cstride)
+            a.plot_surface(Xc, -Yc, Zc, alpha=0.2, rstride=rstride, cstride=cstride)
+            X_enter = X + 10 * units.km * v
+            X_leave = X - 10 * units.km * v
+            a.plot([X_enter[0], X_leave[0]], [X_enter[1], X_leave[1]], [X_enter[2], X_leave[2]], '-o')
+
+            a.set_xlabel("x")
+            a.set_zlabel("z")
+            a.set_ylabel("y")
+            a.legend()
+            a.set_title("no intersection")
+
+            fig = plt.figure()
+            a = fig.add_subplot(111, projection='3d')
+            for (a1, a2) in [Lh1, Lh2, Lv1, Lv2]:
+                a.plot([a1[0], a2[0]], [rmin, rmin], [a1[1], a2[1]])
+            a.plot([Paz[0][0], Paz[1][0]], [rmin, rmin], [Paz[0][1], Paz[1][1]])
+            a.set_xlabel("x")
+            a.set_zlabel("z")
+            a.set_ylabel("y")
+            a.legend()
+            plt.show()
+        continue  # neutrino is not passing through cylinder
+    ss = []
+    for tmp in intersects:
+        ss.append(np.dot(tmp - X2d, v2d.T))
+    argsort = np.argsort(np.array(ss))  # check which intersection happens first along neutrino path
+    if 0:
+        if(len(intersects)):
+            import matplotlib.pyplot as plt
+            from mpl_toolkits.mplot3d import Axes3D
+            fig = plt.figure()
+            a = fig.add_subplot(111, projection='3d')
+            for (a1, a2) in [Lh1, Lh2, Lv1, Lv2]:
+                a.plot([a1[0], a2[0]], [rmin, rmin], [a1[1], a2[1]])
+            a.plot([Paz[0][0], Paz[1][0]], [rmin, rmin], [Paz[0][1], Paz[1][1]])
+            for k, tmp in enumerate(intersects):
+                a.plot([tmp[0]], [rmin], [tmp[1]], 'o', label=f"s = {ss[k]:.0f}")
+            a.set_xlabel("x")
+            a.set_zlabel("z")
+            a.set_ylabel("y")
+            a.legend()
+            plt.ion()
+            plt.show()
+            a = 1 / 0
+
+    # calculate the 3D points where the neutrino enters/leaves the cylinder and transform to outside Earth
+    X_enter = np.matmul(Raz.T, np.array([intersects[argsort][0][0], rmin, intersects[argsort][0][1]])) + np.array([0, 0, R_earth])
+    X_leave = np.matmul(Raz.T, np.array([intersects[argsort][1][0], rmin, intersects[argsort][1][1]])) + np.array([0, 0, R_earth])
+    X += np.array([0, 0, R_earth])
+
+    if 0:
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import Axes3D
+        fig = plt.figure()
+        a = fig.add_subplot(111, projection='3d')
+        # Cylinder
+        x = np.linspace(-r_cylinder, r_cylinder, 100)
+        z = np.linspace(0, -h_cylinder, 100)
+        Xc, Zc = np.meshgrid(x, z)
+        Yc = np.sqrt(r_cylinder ** 2 - Xc ** 2)
+
+        # Draw parameters
+        rstride = 20
+        cstride = 10
+        a.plot_surface(Xc, Yc, Zc, alpha=0.2, rstride=rstride, cstride=cstride)
+        a.plot_surface(Xc, -Yc, Zc, alpha=0.2, rstride=rstride, cstride=cstride)
+        a.plot([X_enter[0], X_leave[0]], [X_enter[1], X_leave[1]], [X_enter[2] - R_earth, X_leave[2] - R_earth], '-o')
+
+        a.set_xlabel("x")
+        a.set_zlabel("z")
+        a.set_ylabel("y")
+        a.legend()
+        plt.show()
+#         a = 1 / 0
+
+    # calculate point where neutrino enters Earth
+    if(np.linalg.norm(X_enter) > R_earth):  # if enter point is outside of Earth (can happen because cylinder does not account for Earth curvature)
+        if(np.linalg.norm(X_leave) > R_earth):  # check if leave point is also outside of Earth (can also happen because cylinder does not account for Earth curvature)
+            continue
+        t = brentq(obj_dist_to_surface, 0, 5 * d, args=(-v, X_leave))
+        enter_point = X_leave + (-v * t)
+        X_enter = enter_point  # define point where neutrino enters the cylinder as the point where it enters the Earth
+    else:
+        t = brentq(obj_dist_to_surface, 0, 2 * R_earth, args=(-v, X_enter))
+        enter_point = X_enter + (-v * t)
+#     logger.debug(f"zen = {zen[i]/units.deg:.0f}deg, trajectory enters Earth at {enter_point[0]:.1f}, {enter_point[0]:.1f}, {enter_point[0]:.1f}. Dist to core = {np.linalg.norm(enter_point)/R_earth:.5f}, dist to (0,0,R) = {np.linalg.norm(enter_point - np.array([0,0,R_earth]))/R_earth:.4f}")
 
 #     # check if event interacts at all
-    if(Lint[i] > slant_depth_num(2 * R_earth, v, X)):
-#         logger.debug("neutrino does not interact in Earth, skipping to next event")
+    t = np.linalg.norm(enter_point - X_enter)
+    slant_depth_min = slant_depth(t, v, enter_point)
+    if(t == 0):
+        slant_depth_min = 0
+    s = np.linalg.norm(X_leave - X_enter)
+    slant_depth_max = slant_depth(s, v, X_enter)
+    if((Lint[i] <= slant_depth_min) or (Lint[i] >= slant_depth_max)):
+        logger.debug("neutrino does not interact in cylinder, skipping to next event")
         continue
 
     try:
         # calculate interaction point by inegrating the density of Earth along the neutrino path until we wind the interaction length
-        t = brentq(obj, 0, 2 * R_earth, args=(v, exit_point, Lint[i]), maxiter=500)
+        t = brentq(obj, 0, s, args=(v, X_enter, Lint[i] - slant_depth_min), maxiter=500)
     except:
         logger.warning("failed to converge, skipping event")
         failed += 1
         continue
-    Xint = X + v * t  # calculate interaction point
+    Xint = X_enter + v * t  # calculate interaction point
 
     is_in_cylinder = points_in_cylinder(pt1, pt2, r_cylinder, Xint)
     mask_int[i] = is_in_cylinder
@@ -282,6 +417,9 @@ for j, i in enumerate(np.arange(n_events, dtype=np.int)[mask]):
         data_sets['zz'].append(Xint[2] - R_earth)
         data_sets['zeniths'].append(zen[i])
         data_sets['azimuths'].append(az[i])
+    else:
+        logger.error("interaction is not in cylinder but it should be")
+        a = 1 / 0
 
 data_sets['event_ids'] = range(np.sum(mask_int))
 data_sets['inelasticity'] = np.ones(np.sum(mask_int))
