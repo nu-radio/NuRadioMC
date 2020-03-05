@@ -74,11 +74,14 @@ parser.add_argument('outputfilename', type=str,
 parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
+outputfilenameNuRadioReco = args.outputfilenameNuRadioReco
+if(outputfilenameNuRadioReco is not None):
+    outputfilenameNuRadioReco = os.path.join(path, outputfilenameNuRadioReco)
 
 sim = mySimulation(inputfilename=os.path.join(path, args.inputfilename),
                             outputfilename=os.path.join(path, args.outputfilename),
                             detectorfile=os.path.join(path, args.detectordescription),
-                            outputfilenameNuRadioReco=os.path.join(path, args.outputfilenameNuRadioReco),
+                            outputfilenameNuRadioReco=outputfilenameNuRadioReco,
                             config_file=os.path.join(path, args.config))
 sim.run()
 
