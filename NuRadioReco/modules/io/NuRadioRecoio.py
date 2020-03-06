@@ -208,13 +208,16 @@ class NuRadioRecoio(object):
     def get_event(self, event_id):
         if(not self.__file_scanned):
             self.__scan_files()
-        for i in range(self.get_n_events()):
-            if self.__event_ids[i][0] == event_id[0] and self.__event_ids[i][1] == event_id[1]:
-                self._current_run_number = self.__event_ids[i][0]
-                self._current_event_id = self.__event_ids[i][1]
-                return self.get_event_i(i)
-        self.logger.error('event number {} not found in file'.format(event_id))
-        return None
+        mask = (self.__event_ids[:, 0] == event_id[0]) & (self.__event_ids[:, 1] == event_id[1])
+        if(np.sum(mask) == 0):
+            self.logger.error('event number {} not found in file'.format(event_id))
+            return None
+        elif(np.sum(mask) > 1):
+            self.logger.warning(f"{np.sum(mask):d} events with the same run event id pair found. Returning first occurence.")
+        self._current_run_number = event_id[0]
+        self._current_event_id = event_id[1]
+        i = np.argwhere(mask)[0][0]
+        return self.get_event_i(i)
 
     def get_events(self):
         self._current_file_id = 0
@@ -239,7 +242,7 @@ class NuRadioRecoio(object):
         if self._current_file_id not in self.__detectors.keys():
             # Detector object for current file does not exist, so we create it
             if self._current_file_id not in self._detector_dicts:
-                self.__scan_files()     #Maybe we just forgot to scan the file
+                self.__scan_files()  # Maybe we just forgot to scan the file
                 if self._current_file_id not in self._detector_dicts:
                     raise AttributeError('The current file does not contain a detector description.')
             detector_dict = self._detector_dicts[self._current_file_id]
