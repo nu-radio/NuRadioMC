@@ -38,7 +38,7 @@ class eventWriter:
         self.__fout.write(b)
         self.__header_written = True
 
-    def begin(self, filename, max_file_size=1024):
+    def begin(self, filename, max_file_size=1024, check_for_duplicates=False):
         """
         begin method
 
@@ -46,6 +46,9 @@ class eventWriter:
         ----------
         max_file_size: maximum file size in Mbytes
                     (if the file exceeds the maximum file the output will be split into another file)
+        check_for_duplicates: bool (default False)
+            if True, the event writer raises an exception when an event with a (run,eventid) pair is written that is already
+            present in the data file
         """
         if filename[-4:] == '.nur':
             self.__filename = filename[:-4]
@@ -53,6 +56,7 @@ class eventWriter:
             self.__filename = filename
         if filename[-4:] == '.ari':
             logger.warning('The file ending .ari for NuRadioReco files is deprecated. Please use .nur instead.')
+        self.__check_for_duplicates = check_for_duplicates
         self.__number_of_events = 0
         self.__current_file_size = 0
         self.__number_of_files = 1
@@ -257,8 +261,9 @@ class eventWriter:
         Checks if an event with the same ID and run number has already been written to the file
         and throws an error if that is the case.
         """
-        if [run_number, event_id] in self.__event_ids_and_runs:
-            raise ValueError('An event with ID {} and run number {} already exists in the file'.format(event_id, run_number))
+        if(self.__check_for_duplicates):
+            if [run_number, event_id] in self.__event_ids_and_runs:
+                raise ValueError("An event with ID {} and run number {} already exists in the file\nif you don't want unique event ids enforced you can turn it of by passing `check_for_duplicates=True` to the begin method.".format(event_id, run_number))
         return
 
     def end(self):
