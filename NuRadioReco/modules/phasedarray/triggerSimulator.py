@@ -1,6 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import SimplePhasedTrigger
+from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 import numpy as np
 from scipy import constants
 import time
@@ -46,11 +47,32 @@ class triggerSimulator:
         return np.array(ant_pos)
 
     def get_beam_rolls(self, station, det, triggered_channels,
-                       phasing_angles=default_angles, ref_index=1.55):
+                       phasing_angles=default_angles, ref_index=1.55,
+                       trigger_adc=False):
         """
         Calculates the delays needed for phasing the array.
         """
-        sampling_rate = station.get_channel(0).get_sampling_rate()
+        station_id = station.get_id()
+        sampling_rate = None
+        value_error = False
+
+        for channel in station.iter_channels(use_channels=triggered_channels):
+            channel_id = channel.get_id()
+            if trigger_adc:
+                if sampling_rate is None:
+                    sampling_rate = det.get_channel(station_id, channel_id)["trigger_adc_sampling_frequency"]
+                elif sampling_rate != det.get_channel(station_id, channel_id)["trigger_adc_sampling_frequency"]:
+                    value_error = True
+            else:
+                if sampling_rate is None:
+                        sampling_rate = channel.get_sampling_rate()
+                elif sampling_rate != channel.get_sampling_rate():
+                    value_error = True
+            if value_error:
+                error_msg  = 'Phased array channels do not have matching sampling rates. '
+                error_msg += 'Please specify a common sampling rate.'
+                raise ValueError(error_msg)
+
         time_step = 1. / sampling_rate
 
         ant_z = self.get_antenna_positions(station, det, triggered_channels, 2)
@@ -72,16 +94,14 @@ class triggerSimulator:
 
     def get_channel_trace_start_time(self, station, triggered_channels):
 
-        if triggered_channels is None:
-            for channel in station.iter_channels():
+        channel_trace_start_time = None
+        for channel in station.iter_channels(use_channels=triggered_channels):
+            if channel_trace_start_time is None:
                 channel_trace_start_time = channel.get_trace_start_time()
-                break
-        else:
-            channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
-
-        for channel in station.iter_channels():
-            if channel.get_trace_start_time() != channel_trace_start_time:
-                self.logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
+            elif channel_trace_start_time != channel.get_trace_start_time():
+                error_msg  = 'Phased array channels do not have matching trace start times. '
+                error_msg += 'This module is not prepared for this case.'
+                raise ValueError(error_msg)
 
         return channel_trace_start_time
 
@@ -100,12 +120,14 @@ class triggerSimulator:
 
     def phased_trigger(self,
                        station,
+                       det,
                        beam_rolls,
                        sec_beam_rolls,
                        triggered_channels,
                        threshold,
                        window_time=10.67 * units.ns,
-                       cut_times=(None,None)):
+                       cut_times=(None,None),
+                       trigger_adc=False):
         """
         Calculates the trigger for a certain phasing configuration.
         Beams are formed. A set of overlapping time windows is created and
@@ -118,6 +140,8 @@ class triggerSimulator:
         ----------
         station: Station object
             Description of the current station
+        det: Detector object
+            Description of the current detector
         beam_rolls: array of ints
             Contains the integers for rolling the voltage traces (delays)
         sec_beam_rolls: array of ints
@@ -131,6 +155,9 @@ class triggerSimulator:
             Width of the time window used in the power integration
         cut_times: (float, float) tuple
             Times for cutting the trace. This helps reducing the number of noise-induced triggers.
+        trigger_adc: bool
+            If True, analog to digital conversion is performed. It must be specified in the
+            detector file. See analogToDigitalConverter module for information
 
         Returns
         -------
@@ -143,15 +170,28 @@ class triggerSimulator:
             the delays for the secondary channels that have caused a trigger.
             If there is no trigger or no secondary channels, it's an empty dictionary
         """
-        sampling_rate = station.get_channel(0).get_sampling_rate()
-        time_step = 1. / sampling_rate
+        station_id = station.get_id()
 
         traces = {}
         for channel in station.iter_channels(use_channels=triggered_channels):
             channel_id = channel.get_id()
+            time_step = 1 / channel.get_sampling_rate()
 
-            trace = np.copy(channel.get_trace())  # get the enveloped trace
-            times = np.copy(channel.get_times())  # get the corresponding time bins
+            if trigger_adc:
+
+                ADC = analogToDigitalConverter()
+                trace = ADC.get_digital_trace(station, det, channel,
+                                        trigger_adc=trigger_adc,
+                                        random_clock_offset=True,
+                                        adc_type='perfect_floor_comparator')
+                time_step = 1 / det.get_channel(station_id, channel_id)['trigger_adc_sampling_frequency']
+                times  = np.arange(len(trace), dtype=np.float)
+                times += channel.get_trace_start_time()
+
+            else:
+
+                trace = np.copy(channel.get_trace())  # get the enveloped trace
+                times = np.copy(channel.get_times())  # get the corresponding time bins
 
             if cut_times != (None,None):
                 left_bin = np.argmin(np.abs(times-cut_times[0]))
@@ -217,7 +257,8 @@ class triggerSimulator:
             window_time=10.67 * units.ns,
             coupled=True,
             ref_index=1.75,
-            cut_times=(None,None)):
+            cut_times=(None,None),
+            trigger_adc=False):
         """
         simulates phased array trigger for each event
 
@@ -230,6 +271,12 @@ class triggerSimulator:
 
         Parameters
         ----------
+        evt: Event object
+            Description of the current event
+        station: Station object
+            Description of the current station
+        det: Detector object
+            Description of the current detector
         threshold: float
             threshold above (or below) a trigger is issued, absolute amplitude
         triggered_channels: array of ints
@@ -255,6 +302,9 @@ class triggerSimulator:
             refractive index for beam forming
         cut_times: (float, float) tuple
             Times for cutting the trace. This helps reducing the number of noise-induced triggers.
+        trigger_adc: bool
+            If True, analog to digital conversion is performed. It must be specified in the
+            detector file. See analogToDigitalConverter module for information
 
         Returns
         -------
@@ -280,24 +330,30 @@ class triggerSimulator:
             channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
 
             logger.debug("primary channels:", triggered_channels)
-            beam_rolls = self.get_beam_rolls(station, det, triggered_channels, phasing_angles, ref_index=ref_index)
+            beam_rolls = self.get_beam_rolls(station, det, triggered_channels, phasing_angles,
+                                             ref_index=ref_index, trigger_adc=trigger_adc)
             empty_rolls = [ {} for direction in range(len(phasing_angles)) ]
             logger.debug("secondary_channels:", secondary_channels)
             if (len(secondary_channels) == 0):
                 only_primary = True
             else:
                 only_primary = False
-                secondary_beam_rolls = self.get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles, ref_index=ref_index)
+                secondary_beam_rolls = self.get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles,
+                                                           ref_index=ref_index, trigger_adc=trigger_adc)
 
             if only_primary:
-                is_triggered, trigger_delays, sec_trigger_delays = self.phased_trigger(station,
-                        beam_rolls, empty_rolls, triggered_channels, threshold, window_time, cut_times)
+                is_triggered, trigger_delays, sec_trigger_delays = self.phased_trigger(station, det,
+                        beam_rolls, empty_rolls, triggered_channels, threshold, window_time, cut_times,
+                        trigger_adc=trigger_adc)
             elif coupled:
-                is_triggered, trigger_delays, sec_trigger_delays = self.phased_trigger(station,
-                        beam_rolls, secondary_beam_rolls, triggered_channels, threshold, window_time, cut_times)
+                is_triggered, trigger_delays, sec_trigger_delays = self.phased_trigger(station, det,
+                        beam_rolls, secondary_beam_rolls, triggered_channels, threshold, window_time, cut_times,
+                        trigger_adc=trigger_adc)
             else:
-                primary_trigger, trigger_delays, dummy_delays = self.phased_trigger(station, beam_rolls, empty_rolls, triggered_channels, threshold, window_time, cut_times)
-                secondary_trigger, sec_trigger_delays, dummy_delays = self.phased_trigger(station, secondary_beam_rolls, empty_rolls, secondary_channels, threshold, window_time, cut_times)
+                primary_trigger, trigger_delays, dummy_delays = self.phased_trigger(station, det, beam_rolls, empty_rolls,
+                        triggered_channels, threshold, window_time, cut_times, trigger_adc=trigger_adc)
+                secondary_trigger, sec_trigger_delays, dummy_delays = self.phased_trigger(station, det, secondary_beam_rolls, empty_rolls,
+                        secondary_channels, threshold, window_time, cut_times, trigger_adc=trigger_adc)
                 is_triggered = primary_trigger or secondary_trigger
 
         trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, secondary_channels,
