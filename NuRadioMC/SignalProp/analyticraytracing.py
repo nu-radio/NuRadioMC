@@ -658,7 +658,7 @@ class ray_tracing_2D():
             x1[0] = x1[0] - 2 * dy
 
         for i in range(reflection + 1):
-            self.__logger.debug("calculation path for reflection = {}".format(i))
+            self.__logger.debug("calculation path for reflection = {}".format(i + 1))
             C_1 = self.get_C_1(x1, C_0)
             x2 = self.get_reflection_point(C_0, C_1)
             stop_loop = False
@@ -1611,6 +1611,11 @@ class ray_tracing:
         for i in range(self.__n_reflections):
             for j in range(2):
                 self.__results.extend(self.__r2d.find_solutions(self.__x1, self.__x2, reflection=i + 1, reflection_case=j + 1))
+
+        # check if not too many solutions were found (the same solution can potentially found twice because of numerical imprecision)
+        if(self.get_number_of_solutions() > (2 + 4 * self.__n_reflections)):
+            self.__logger.error(f"{self.get_number_of_solutions()} were found but only {(2 + 4 * self.__n_reflections)} are allowed! Returning zero solutions")
+            self.__results = []
 
     def has_solution(self):
         """
