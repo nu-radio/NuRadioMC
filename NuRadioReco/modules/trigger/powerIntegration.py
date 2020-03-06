@@ -35,8 +35,8 @@ def get_power_int_triggers(trace, threshold, window=10 * units.ns, dt=1 * units.
     int_power = np.convolve(power, np.ones(i_window, dtype=int), 'valid') * dt
 
     if full_output:
-        return np.any(threshold < int_power), int_power
-    return np.any(threshold < int_power)
+        return threshold < int_power, int_power
+    return threshold < int_power
 
 
 class triggerSimulator:
