@@ -71,10 +71,6 @@ class mySimulation(simulation.simulation):
                                     trigger_name='surface_dipoles_4of4_3sigma',
                                     set_not_triggered=(not self._station.has_triggered("simple_threshold")))  # calculate more time consuming ARIANNA trigger only if station passes simple trigger
 
-        # downsample trace back to detector sampling rate
-        channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
-        electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
-
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('inputfilename', type=str,
