@@ -28,4 +28,7 @@ if __name__ == "__main__":
         log_val = eval(f'logging.{args.loglevel}')
         logger.setLevel(log_val)
 
+    if(not os.path.exists(args.outputfolder)):
+        os.makedirs(args.outputfolder)
+
     split_hdf5_input_file(args.file, os.path.join(args.outputfolder, args.file), args.n_events)
