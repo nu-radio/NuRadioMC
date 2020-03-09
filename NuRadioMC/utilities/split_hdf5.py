@@ -18,9 +18,9 @@ if __name__ == "__main__":
     Optional log level setting to either set DEBUG, INFO, or WARNING to the readout. Example: add --loglevel DEBUG when calling script to set loglevel to DEBUG. 
     """
     parser = argparse.ArgumentParser(description='Merge hdf5 files')
-    parser.add_argument('file', type='str', help='input file')
-    parser.add_argument('outputfolder', type='str', help='output folder')
-    parser.add_argument('n_events', type='int', help='number of events per file')
+    parser.add_argument('file', type=str, help='input file')
+    parser.add_argument('outputfolder', type=str, help='output folder')
+    parser.add_argument('n_events', type=int, help='number of events per file')
     parser.add_argument('--loglevel', metavar='level', help='loglevel set to either DEBUG, INFO, or WARNING')
     args = parser.parse_args()
 
