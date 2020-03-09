@@ -1,4 +1,3 @@
-from NuRadioMC.EvtGen.generator import split_hdf5_input_file
 import os
 import argparse
 import logging
@@ -27,8 +26,10 @@ if __name__ == "__main__":
     if args.loglevel is not None:
         log_val = eval(f'logging.{args.loglevel}')
         logger.setLevel(log_val)
+    from NuRadioMC.EvtGen.generator import split_hdf5_input_file
 
     if(not os.path.exists(args.outputfolder)):
         os.makedirs(args.outputfolder)
+    input_filename = os.path.basename(args.file)
 
-    split_hdf5_input_file(args.file, os.path.join(args.outputfolder, args.file), args.n_events)
+    split_hdf5_input_file(args.file, os.path.join(args.outputfolder, input_filename), args.n_events)
