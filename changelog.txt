@@ -20,6 +20,7 @@ new features:
 -Trigger times now include the time with respect to the first interaction (vertex times)
 -Analog to digital converter module added
 -Improved calculation of the diode noise parameters
+-Added the ability to force polarization to be eTheta in the reconstruction of the electric field using voltageToEfieldConverter.py
 
 Detector description can be stored in .nur files
 Large overhaul of the event structure. Adds shower classes and hybrid detector information.
