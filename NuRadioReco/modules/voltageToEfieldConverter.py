@@ -120,7 +120,7 @@ class voltageToEfieldConverter:
         pass
 
     @register_run()
-    def run(self, evt, station, det, debug=False, debug_plotpath=None, use_channels=[0, 1, 2, 3], use_MC_direction=False):
+    def run(self, evt, station, det, debug=False, debug_plotpath=None, use_channels=[0, 1, 2, 3], use_MC_direction=False, force_Polarization=False):
         """
         run method. This function is executed for each event
 
@@ -136,6 +136,9 @@ class voltageToEfieldConverter:
             be save into the `debug_plotpath` directory
         use_channels: array of ints
             the channel ids to use for the electric field reconstruction
+        use_MC_direction:
+        force_Polarization:
+            Only reconstructs eTheta polarization of electric field, assuming ePhi is 0
         """
         event_time = station.get_station_time()
         station_id = station.get_id()
@@ -165,7 +168,10 @@ class voltageToEfieldConverter:
         E2[mask] = (V[-1] - efield_antenna_factor[-1][0] * E1)[mask] / efield_antenna_factor[-1][1][mask]
         # solve it in a vectorized way
         efield3_f = np.zeros((2, n_frequencies), dtype=np.complex)
-        efield3_f[:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, :, mask], 2, 0), np.moveaxis(V[:, mask], 1, 0)), 0, 1)
+        if force_Polarization:
+            efield3_f[:1, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 0, mask], 1, 0)[:,:,np.newaxis], np.moveaxis(V[:, mask], 1, 0)), 0, 1)
+        else:
+            efield3_f[:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, :, mask], 2, 0), np.moveaxis(V[:, mask], 1, 0)), 0, 1)
         # add eR direction
         efield3_f = np.array([np.zeros_like(efield3_f[0], dtype=np.complex),
                              efield3_f[0],
