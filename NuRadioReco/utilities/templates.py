@@ -1,11 +1,10 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.io_utilities import read_pickle
 import logging
 from six import iteritems
 import os
-logger = logging.getLogger("Templates")
+
 
 
 class Templates(object):
@@ -25,6 +24,7 @@ class Templates(object):
         self.__nu_templates = {}
         self.__nu_template_set = {}
         self.__path = path
+        self.logger = logging.getLogger("NuRadioReco.Templates")
 
 
     def set_template_directory(self, path):
@@ -39,7 +39,7 @@ class Templates(object):
             az_ref = np.deg2rad(0)
             self.__ref_cr_templates[station_id] = self.__cr_templates[station_id][0][zen_ref][az_ref]
         else:
-            logger.error("template file {} not found".format(path))
+            self.logger.error("template file {} not found".format(path))
             raise IOError
 
     def get_cr_ref_templates(self, station_id):
@@ -54,7 +54,7 @@ class Templates(object):
         """
         returns one cosmic ray template for the reference direction, the same for all channels
         """
-        logger.info("Getting template for station ID {}".format(station_id))
+        self.logger.info("Getting template for station ID {}".format(station_id))
         if station_id in [51, 52]:
             tmpl = self.get_cr_ref_templates(station_id)[4]  # FIXME: hardcoded that channel 4 is a cosmic-ray sensitive channel
         elif station_id == 32:
@@ -62,7 +62,7 @@ class Templates(object):
         elif station_id == 61:
             tmpl = self.get_cr_ref_templates(station_id)[5]
         else:
-            logger.error("Provided value for CR senistive channel of station {} in templates.py".format(station_id))
+            self.logger.error("Provided value for CR senistive channel of station {} in templates.py".format(station_id))
             tmpl = None
 
         return tmpl
@@ -74,7 +74,7 @@ class Templates(object):
         if station_id not in self.__ref_cr_templates.keys():
             self.__load_cr_template(station_id)
         if self.__cr_template_set_full == {}:
-            logger.info("Getting set of templates for station ID {}".format(station_id))
+            self.logger.info("Getting set of templates for station ID {}".format(station_id))
             cr_set = {}
             n_tmpl = 0
 
@@ -100,7 +100,7 @@ class Templates(object):
         if station_id not in self.__ref_cr_templates.keys():
             self.__load_cr_template(station_id)
         if self.__cr_template_set == {}:
-            logger.info("Getting set of templates for station ID {}".format(station_id))
+            self.logger.info("Getting set of templates for station ID {}".format(station_id))
             n_tmpl = 0
             zen_refs = np.deg2rad([60, 50, 70])
             az_refs = np.deg2rad([0, 22.5, 45])
@@ -125,7 +125,7 @@ class Templates(object):
         if station_id not in self.__ref_nu_templates.keys():
             self.__load_nu_template(station_id)
         if self.__nu_template_set == {}:
-            logger.info("Getting set of templates for station ID {}".format(station_id))
+            self.logger.info("Getting set of templates for station ID {}".format(station_id))
             n_tmpl = 0
             zen_refs = np.deg2rad([100, 120, 140])
             az_refs = np.deg2rad([0, 22.5, 45])
@@ -148,7 +148,7 @@ class Templates(object):
             az_ref = np.deg2rad(45)
             self.__ref_nu_templates[station_id] = self.__nu_templates[station_id][zen_ref][az_ref]
         else:
-            logger.error("template file {} not found".format(path))
+            self.logger.error("template file {} not found".format(path))
             raise IOError
 
     def get_nu_ref_templates(self, station_id):

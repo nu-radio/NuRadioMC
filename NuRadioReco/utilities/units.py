@@ -146,6 +146,7 @@ kilohertz = kilo * hertz
 megahertz = mega * hertz
 gigahertz = giga * hertz
 
+mHz = milli * hertz
 Hz = hertz
 kHz = kilohertz
 MHz = megahertz

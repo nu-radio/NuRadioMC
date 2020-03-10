@@ -169,10 +169,10 @@ class channelTemplateCorrelation:
                 xcorrs_max.append(np.nanmax(np.abs(xcorrs_ch)))
 
             if self.__debug:
-                print "per channel", len(xcorrs_ch)
+                print("per channel", len(xcorrs_ch))
                 plt.hist(xcorrs_ch,range=(0,1),bins=50)
                 plt.show()
-                print xcorrs
+                print(xcorrs)
             #Writing information to channel
             if cosmic_ray:
                 channel[chp.cr_xcorrelations] = xcorrelations

@@ -49,16 +49,18 @@ class triggerTimeAdjuster:
         if trigger.has_triggered():
             trigger_time = trigger.get_trigger_time()
             for channel in station.iter_channels():
+                trigger_time_channel = trigger_time - channel.get_trace_start_time()
+
                 trace = channel.get_trace()
                 trace_length = len(trace)
                 number_of_samples = int(detector.get_number_of_samples(station.get_id(), channel.get_id()) * channel.get_sampling_rate() / detector.get_sampling_frequency(station.get_id(), channel.get_id()))
                 if number_of_samples > trace.shape[0]:
                     logger.error("Input has fewer samples than desired output. Channels has only {} samples but {} samples are requested.".format(
                         trace.shape[0], number_of_samples))
-                    raise StandardError
+                    raise AttributeError
                 else:
                     sampling_rate = channel.get_sampling_rate()
-                    trigger_time_sample = int(np.round(trigger_time * sampling_rate))
+                    trigger_time_sample = int(np.round(trigger_time_channel * sampling_rate))
                     samples_before_trigger = int(self.__pre_trigger_time * sampling_rate)
                     rel_station_time_samples = 0
                     cut_samples_beginning = 0

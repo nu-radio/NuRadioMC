@@ -8,8 +8,7 @@ from tinydb_serialization import Serializer
 import NuRadioReco.detector.detector
 from NuRadioReco.detector.detector import DateTimeSerializer
 import copy
-logger = logging.getLogger('genericDetector')
-logging.basicConfig()
+logger = logging.getLogger('NuRadioReco.genericDetector')
 
 serialization = SerializationMiddleware()
 serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
@@ -288,6 +287,9 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             ID of the requested channel
         """
 
+        if station_id in self._buffered_channels.keys():
+            if channel_id in self._buffered_channels[station_id].keys():
+                return self._buffered_channels[station_id][channel_id]
         channels = self._query_channels(station_id, True)
         for channel in channels:
             if channel['channel_id'] == channel_id:
@@ -300,3 +302,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         Station = Query()
         res = self._stations.get(Station.station_id == station_id)
         return res != None
+
+    # overwrite update function to do nothing
+    def update(self, time):
+        return

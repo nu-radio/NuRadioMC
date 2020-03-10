@@ -67,7 +67,7 @@ class ARIANNAParameters(Enum):  # this class stores parameters specific to the A
     comm_duration = 5  # maximum diration of communication window
     trigger_thresholds = 6  # trigger thresholds converted to voltage
     l1_supression_value = 7  # This provieds the L1 supression value for given event
-    internal_clock_time = 8 # time since last trigger with ms precision
+    internal_clock_time = 8  # time since last trigger with ms precision
 
 
 class showerParameters(Enum):
@@ -90,3 +90,10 @@ class showerParameters(Enum):
     magnetic_field_rotation = 102
     magnetic_field_vector = 103  # magnetic field used in simulation in local coordinate system
     observation_level = 104  # altitude a.s.l where the particles are stored
+
+    charge_excess_profile_id = 105  # the id of the charge-excess profile used in the ARZ Askaryan calculation
+    type = 106  # for neutrino induces showers in ice: can be "HAD" or "EM"
+
+
+class eventParameters(Enum):
+    sim_config = 1  # contents of the config file that the NuRadioMC simulation was run with

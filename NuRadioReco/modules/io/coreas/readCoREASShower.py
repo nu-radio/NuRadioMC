@@ -54,7 +54,7 @@ class readCoREASShower:
 
     def run(self):
         """
-        read in a full CoREAS simulation
+        Reads in a CoREAS file and returns an event containing all simulated stations
 
         """
         while (self.__current_input_file < len(self.__input_files)):
@@ -78,18 +78,24 @@ class readCoREASShower:
             f_coreas = corsika["CoREAS"]
 
             if self.__ascending_run_and_event_number:
-                evt = NuRadioReco.framework.event.Event(self.__ascending_run_and_event_number, self.__ascending_run_and_event_number)
+                evt = NuRadioReco.framework.event.Event(self.__ascending_run_and_event_number,
+                                                        self.__ascending_run_and_event_number)
                 self.__ascending_run_and_event_number += 1
             else:
                 evt = NuRadioReco.framework.event.Event(corsika['inputs'].attrs['RUNNR'], corsika['inputs'].attrs['EVTNR'])
 
             evt.__event_time = f_coreas.attrs["GPSSecs"]
 
+            # create sim shower, no core is set since no external detector description is given
             sim_shower = coreas.make_sim_shower(corsika)
-            sim_shower.set_parameter(shp.core, np.array([0, 0, f_coreas.attrs["CoreCoordinateVertical"] / 100]))  # overwrite core
+            sim_shower.set_parameter(shp.core, np.array([0, 0, f_coreas.attrs["CoreCoordinateVertical"] / 100])) # set core
             evt.add_sim_shower(sim_shower)
-            cs = coordinatesystems.cstrafo(sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth), magnetic_field_vector=sim_shower.get_parameter(shp.magnetic_field_vector))
 
+            # initialize coordinate transformation
+            cs = coordinatesystems.cstrafo(sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth),
+                                           magnetic_field_vector=sim_shower.get_parameter(shp.magnetic_field_vector))
+
+            # add simulated pulses as sim station
             for idx, (name, observer) in enumerate(f_coreas['observers'].items()):
                 station_id = antenna_id(name, idx)  # returns proper station id if possible
 
@@ -103,7 +109,6 @@ class readCoREASShower:
                     antenna_position = np.zeros(3)
                     antenna_position[0], antenna_position[1], antenna_position[2] = -position[1] * units.cm, position[0] * units.cm, position[2] * units.cm
                     antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
-
                     if not self.__det.has_station(station_id):
                         self.__det.add_generic_station({
                             'station_id': station_id,

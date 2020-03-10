@@ -33,8 +33,8 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 
 # Logging level
 import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('FullExample')
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(level=logging.INFO)
 
 plt.switch_backend('agg')
 
