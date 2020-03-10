@@ -258,6 +258,8 @@ class ProposalFunctions:
             config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_mooresbay.json')
         elif (config_file == 'InfIce'):
             config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_infice.json')
+        elif (config_file == 'Greenland'):
+            config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_greenland.json')
         elif (os.path.exists(config_file)):
             config_file_full_path = config_file
         else:
