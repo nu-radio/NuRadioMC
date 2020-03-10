@@ -691,7 +691,7 @@ def get_projected_area_cylinder(theta, R, d):
 def get_projected_area_cylinder_integral(theta, R, d):
     """
     integral of get_projected_area_cylinder
-    
+
     Parameters
     ----------
     theta: float
@@ -841,6 +841,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         -'SouthPole', a config file for the South Pole (spherical Earth)
         -'MooresBay', a config file for Moore's Bay (spherical Earth)
         -'InfIce', a config file with a medium of infinite ice
+        -'Greenland', a config file for Summit Station, Greenland (spherical Earth)
         If one of these three options is chosen, the user is supposed to edit
         the corresponding config_PROPOSAL_xxx.json.sample file to include valid
         table paths and then copy this file to config_PROPOSAL_xxx.json.
@@ -1156,6 +1157,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         -'SouthPole', a config file for the South Pole (spherical Earth)
         -'MooresBay', a config file for Moore's Bay (spherical Earth)
         -'InfIce', a config file with a medium of infinite ice
+        -'Greenland', a config file for Summit Station, Greenland (spherical Earth)
         If one of these three options is chosen, the user is supposed to edit
         the corresponding config_PROPOSAL_xxx.json.sample file to include valid
         table paths and then copy this file to config_PROPOSAL_xxx.json.
