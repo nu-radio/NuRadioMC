@@ -1,5 +1,6 @@
 import NuRadioReco.modules.io.coreas.readCoREASShower
 import NuRadioReco.modules.io.eventWriter
+import NuRadioReco.modules.efieldToVoltageConverter
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import showerParameters as shP
 
@@ -32,12 +33,15 @@ args = parser.parse_args()
 det = detector.GenericDetector(json_filename=args.detectordescription, default_station=102, default_channel=0)
 readCoREASShower = NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower()
 readCoREASShower.begin(args.inputfilename, det, set_ascending_run_and_event_number=args.set_run_number)
-
+efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
+efieldToVoltageConverter.begin()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 eventWriter.begin(args.output_filename)
 
 for event, gen_det in readCoREASShower.run():
     print('Event {} {}'.format(event.get_run_number(), event.get_id()))
+    for station in event.get_stations():
+        efieldToVoltageConverter.run(event, station, gen_det)
     eventWriter.run(event, gen_det)
 
 nevents = eventWriter.end()

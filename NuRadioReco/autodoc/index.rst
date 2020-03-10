@@ -7,13 +7,17 @@ Welcome to NuRadioReco's documentation!
 =======================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   NuRadioReco.framework
-   NuRadioReco.modules
-   NuRadioReco.detector
-   NuRadioReco.utilities
-   includeme
+   pages/introduction
+   pages/event_structure
+   pages/detector
+   pages/nur_modules
+   pages/event_display
+   pages/utilities
+   pages/contributing
+   pages/code_documentation
+   pages/detector_database_fields.rst
 
 Indices and tables
 ==================

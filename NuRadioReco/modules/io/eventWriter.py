@@ -38,7 +38,7 @@ class eventWriter:
         self.__fout.write(b)
         self.__header_written = True
 
-    def begin(self, filename, max_file_size=1024):
+    def begin(self, filename, max_file_size=1024, check_for_duplicates=False):
         """
         begin method
 
@@ -46,6 +46,9 @@ class eventWriter:
         ----------
         max_file_size: maximum file size in Mbytes
                     (if the file exceeds the maximum file the output will be split into another file)
+        check_for_duplicates: bool (default False)
+            if True, the event writer raises an exception when an event with a (run,eventid) pair is written that is already
+            present in the data file
         """
         if filename[-4:] == '.nur':
             self.__filename = filename[:-4]
@@ -53,17 +56,18 @@ class eventWriter:
             self.__filename = filename
         if filename[-4:] == '.ari':
             logger.warning('The file ending .ari for NuRadioReco files is deprecated. Please use .nur instead.')
+        self.__check_for_duplicates = check_for_duplicates
         self.__number_of_events = 0
         self.__current_file_size = 0
         self.__number_of_files = 1
         self.__max_file_size = max_file_size * 1024 * 1024  # in bytes
         self.__stored_stations = []
         self.__stored_channels = []
-        self.__event_ids_and_runs = []  #Remember which event IDs are already in file to catch duplicates
-        self.__header_written = False   #Remember if we still have to write the current file header
+        self.__event_ids_and_runs = []  # Remember which event IDs are already in file to catch duplicates
+        self.__header_written = False  # Remember if we still have to write the current file header
 
     @register_run()
-    def run(self, evt, det = None, mode='full'):
+    def run(self, evt, det=None, mode='full'):
         """
         writes NuRadioReco event into a file
 
@@ -94,7 +98,7 @@ class eventWriter:
         self.__event_ids_and_runs.append([evt.get_run_number(), evt.get_id()])
 
         if det is not None:
-            detector_dict = self.__get_detector_dict(evt, det)  #returns None if detector is already saved
+            detector_dict = self.__get_detector_dict(evt, det)  # returns None if detector is already saved
             if detector_dict is not None:
                 detector_bytearray = self.__get_detector_bytearray(detector_dict)
                 self.__fout.write(detector_bytearray)
@@ -113,12 +117,11 @@ class eventWriter:
             self.__current_file_size = 0
             self.__fout.close()
             self.__number_of_files += 1
-            #self.__filename = "{}_part{:02d}".format(self.__filename, self.__number_of_files)
+            # self.__filename = "{}_part{:02d}".format(self.__filename, self.__number_of_files)
             self.__stored_stations = []
             self.__stored_channels = []
             self.__event_ids_and_runs = []
             self.__header_written = False
-
 
     def __get_event_bytearray(self, event, mode):
         evt_header_str = pickle.dumps(get_header(event), protocol=4)
@@ -181,8 +184,8 @@ class eventWriter:
                         'decommission_time': channel_description['decommission_time']
                     })
                     i_channel += 1
-        #If we have a genericDetector, the default station may not be in the event.
-        #In that case, we have to add it manually to make sure it ends up in the file
+        # If we have a genericDetector, the default station may not be in the event.
+        # In that case, we have to add it manually to make sure it ends up in the file
         if is_generic_detector:
             if not self.__is_station_already_in_file(det.get_default_station_id(), None):
                 station_description = det.get_raw_station(det.get_default_station_id())
@@ -201,7 +204,7 @@ class eventWriter:
                             'decommission_time': channel_description['decommission_time']
                         })
                         i_channel += 1
-        if i_station == 0 and i_channel == 0:   #All stations and channels have already been saved
+        if i_station == 0 and i_channel == 0:  # All stations and channels have already been saved
             return None
         else:
             return det_dict
@@ -218,14 +221,13 @@ class eventWriter:
         detector_bytearray.extend(detector_string)
         return detector_bytearray
 
-
     def __is_station_already_in_file(self, station_id, station_time):
         for entry in self.__stored_stations:
             if entry['station_id'] == station_id:
-                #if there is no commission and decommission time it is a generic detector and we don't have to check
+                # if there is no commission and decommission time it is a generic detector and we don't have to check
                 if 'commission_time' not in entry.keys() or 'decommission_time' not in entry.keys() or station_time is None:
                     return True
-                #it's a normal detector and we have to check commission/decommission times
+                # it's a normal detector and we have to check commission/decommission times
                 if entry['commission_time'] < station_time and entry['decommission_time'] > station_time:
                     return True
         return False
@@ -259,10 +261,12 @@ class eventWriter:
         Checks if an event with the same ID and run number has already been written to the file
         and throws an error if that is the case.
         """
-        if [run_number, event_id] in self.__event_ids_and_runs:
-            raise ValueError('An event with ID {} and run number {} already exists in the file'.format(event_id, run_number))
+        if(self.__check_for_duplicates):
+            if [run_number, event_id] in self.__event_ids_and_runs:
+                raise ValueError("An event with ID {} and run number {} already exists in the file\nif you don't want unique event ids enforced you can turn it of by passing `check_for_duplicates=True` to the begin method.".format(event_id, run_number))
         return
 
     def end(self):
-        self.__fout.close()
+        if(hasattr(self, "__fout")):
+            self.__fout.close()
         return self.__number_of_events
