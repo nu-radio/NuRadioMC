@@ -226,6 +226,7 @@ class ProposalFunctions:
             -'SouthPole', a config file for the South Pole (spherical Earth)
             -'MooresBay', a config file for Moore's Bay (spherical Earth)
             -'InfIce', a config file with a medium of infinite ice
+            -'Greenland', a config file for Summit Station, Greenland (spherical Earth)
             IMPORTANT: If these options are used, the code is more efficient if the
             user requests their own "path_to_tables" and "path_to_tables_readonly",
             pointing them to a writable directory
@@ -505,6 +506,7 @@ class ProposalFunctions:
             -'SouthPole', a config file for the South Pole (spherical Earth)
             -'MooresBay', a config file for Moore's Bay (spherical Earth)
             -'InfIce', a config file with a medium of infinite ice
+            -'Greenland', a config file for Summit Station, Greenland (spherical Earth)
             IMPORTANT: If these options are used, the code is more efficient if the
             user requests their own "path_to_tables" and "path_to_tables_readonly",
             pointing them to a writable directory
@@ -655,6 +657,7 @@ class ProposalFunctions:
             -'SouthPole', a config file for the South Pole (spherical Earth)
             -'MooresBay', a config file for Moore's Bay (spherical Earth)
             -'InfIce', a config file with a medium of infinite ice
+            -'Greenland', a config file for Summit Station, Greenland (spherical Earth)
             IMPORTANT: If these options are used, the code is more efficient if the
             user requests their own "path_to_tables" and "path_to_tables_readonly",
             pointing them to a writable directory
