@@ -4,8 +4,10 @@ import pickle
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units
 import NuRadioReco.utilities.io_utilities
+import NuRadioReco.framework.electric_field
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 class neutrino2DVertexReconstructor:
 
@@ -132,14 +134,14 @@ class neutrino2DVertexReconstructor:
                 self.__current_ray_types = self.__ray_types[i_ray]
                 correlation_array = np.maximum(self.get_correlation_array_2d(x_coords, z_coords), correlation_array)
             correlation_sum = correlation_sum + correlation_array / np.max(correlation_array) * corr_snr
-            
-            
+
+
             max_corr_index = np.unravel_index(np.argmax(correlation_sum), correlation_sum.shape)
             max_corr_r = x_coords[max_corr_index[0]][max_corr_index[1]]
             max_corr_z = z_coords[max_corr_index[0]][max_corr_index[1]]
-            
+
             if debug:
-                
+
                 fig1 = plt.figure(figsize=(12,4))
                 fig2 = plt.figure(figsize=(8,12))
                 ax1_1 = fig1.add_subplot(1, 3, 1)
@@ -177,7 +179,7 @@ class neutrino2DVertexReconstructor:
                     ax2_2.axvline(np.sqrt(sim_vertex[0]**2+sim_vertex[1]**2), c='r', linestyle=':')
                     ax2_2.axhline(sim_vertex[2], c='r', linestyle=':')
 
-                
+
                 ax2_1.axvline(max_corr_r, c='k', linestyle=':')
                 ax2_1.axhline(max_corr_z, c='k', linestyle=':')
                 ax2_2.axvline(max_corr_r, c='k', linestyle=':')
@@ -185,12 +187,16 @@ class neutrino2DVertexReconstructor:
 
                 fig2.tight_layout()
                 plt.show()
-    
-                plt.close('all')
-        station.set_parameter(stnp.vertex_2D_fit, [x_coords[max_corr_index[0]][max_corr_index[1]], z_coords[max_corr_index[0]][max_corr_index[1]]] )
-        
-        
 
+                plt.close('all')
+        self.__rec_x = x_coords[max_corr_index[0]][max_corr_index[1]]
+        self.__rec_z = z_coords[max_corr_index[0]][max_corr_index[1]]
+        station.set_parameter(stnp.vertex_2D_fit, [self.__rec_x, self.__rec_z])
+        for channel_id in self.__channel_ids:
+            ray_type = self.find_ray_type(station, station.get_channel(channel_id))
+            efield = NuRadioReco.framework.electric_field.ElectricField([channel_id], self.__detector.get_relative_position(station.get_id(), channel_id))
+            efield.set_parameter(efp.ray_path_type, ray_type)
+            station.add_electric_field(efield)
 
         return
 
@@ -230,5 +236,36 @@ class neutrino2DVertexReconstructor:
         indices = np.array([i_x.flatten(), i_z.flatten()])
         travel_times = self.__lookup_table[channel_type][ray_type][[i_x, i_z]]
         travel_times[~mask] = np.nan
-
         return travel_times
+
+    def find_ray_type(self, station, ch1):
+        corr_range = 50.*units.ns
+        ray_types = ['direct', 'refracted', 'reflected']
+        ray_type_correlations = np.zeros(3)
+        for i_ray_type, ray_type in enumerate(ray_types):
+            for channel_id in self.__channel_ids:
+                if channel_id != ch1.get_id():
+                    ch2 = station.get_channel(channel_id)
+                    snr1 = np.max(np.abs(ch1.get_trace()))
+                    snr2 = np.max(np.abs(ch2.get_trace()))
+                    trace1 = np.copy(ch1.get_trace())
+                    t_max1 = ch1.get_times()[np.argmax(np.abs(trace1))]
+                    trace2 = np.copy(ch2.get_trace())
+                    t_max2 = ch2.get_times()[np.argmax(np.abs(trace2))]
+                    if snr1 > snr2:
+                        trace1[np.abs(ch1.get_times()-t_max1)>corr_range] = 0
+                        t_max = t_max1
+                        max_channel = ch1
+                    else:
+                        trace2[np.abs(ch2.get_times()-t_max2)>corr_range] = 0
+                        t_max = t_max2
+                        max_channel = ch2
+                    correlation = np.abs(scipy.signal.hilbert(scipy.signal.correlate(trace1, trace2)))
+                    correlation /= np.sum(np.abs(correlation))
+                    t_1 = self.get_signal_travel_time(np.array([self.__rec_x]), np.array([self.__rec_z]), ray_type, ch1.get_id())[0]
+                    t_2 = self.get_signal_travel_time(np.array([self.__rec_x]), np.array([self.__rec_z]), ray_type, ch2.get_id())[0]
+                    delta_t = t_1 - t_2
+                    corr_index = int(correlation.shape[0]/2 + np.round(delta_t*self.__sampling_rate))
+                    if corr_index > 0 and corr_index < len(correlation):
+                        ray_type_correlations[i_ray_type] += correlation[int(corr_index)]
+        return ray_types[np.argmax(ray_type_correlations)]
