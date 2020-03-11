@@ -137,7 +137,9 @@ def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
         observer_position = np.zeros(3)
         observer_position[0], observer_position[1], observer_position[2] = -position[1] * units.cm, position[0] * units.cm, position[2] * units.cm
         observer_position = cs.transform_from_magnetic_to_geographic(observer_position)
-        sim_shower.set_parameter(shp.core, -observer_position + station_position)
+        core_position = (-observer_position + station_position)
+        core_position[2] = 0
+        sim_shower.set_parameter(shp.core, core_position)
 
     sim_shower.set_parameter(shp.shower_maximum, corsika['CoREAS'].attrs['DepthOfShowerMaximum'] * units.g / units.cm2)
     sim_shower.set_parameter(shp.refractive_index_at_ground, corsika['CoREAS'].attrs["GroundLevelRefractiveIndex"])
