@@ -3,7 +3,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import add_amps, menu
+from apps import add_surface_board
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -14,8 +14,8 @@ app.layout = html.Div([
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/apps/add_amps':
-        return add_amps.layout
+    if pathname == '/apps/add_surface_board':
+        return add_surface_board.layout
 #     elif pathname == '/apps/app2':
 #         return app2.layout
     elif pathname == "/apps/menu":
