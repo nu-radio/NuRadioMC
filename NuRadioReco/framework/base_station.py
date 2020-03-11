@@ -98,6 +98,9 @@ class BaseStation():
     def get_id(self):
         return self._station_id
 
+    def remove_triggers(self):
+        self._triggers = collections.OrderedDict()
+
     def get_trigger(self, name):
         if(name not in self._triggers):
             raise ValueError("trigger with name {} not present".format(name))
