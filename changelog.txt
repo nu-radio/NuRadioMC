@@ -18,6 +18,8 @@ new features:
    now also need the sampling rate as an argument.
 -Envelope phased array available
 -Trigger times now include the time with respect to the first interaction (vertex times)
+-Analog to digital converter module added
+-Improved calculation of the diode noise parameters
 
 Detector description can be stored in .nur files
 Large overhaul of the event structure. Adds shower classes and hybrid detector information.

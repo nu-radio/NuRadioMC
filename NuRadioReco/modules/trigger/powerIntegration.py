@@ -30,12 +30,9 @@ def get_power_int_triggers(trace, threshold, window=10 * units.ns, dt=1 * units.
     triggered bins: array of bools
         the bins where the trigger condition is satisfied
     """
-
     i_window = int(window / dt)
     power = trace ** 2
-    int_power = np.zeros(len(trace) - i_window)
-    for i in range(len(trace) - i_window):
-        int_power[i] = np.sum(power[i:(i + i_window)]) * dt
+    int_power = np.convolve(power, np.ones(i_window, dtype=int), 'valid') * dt
 
     if full_output:
         return threshold < int_power, int_power
@@ -118,7 +115,7 @@ class triggerSimulator:
         trigger.set_triggered_channels(channels_that_passed_trigger)
         if has_triggered:
             trigger.set_triggered(True)
-            trigger.set_trigger_time(triggered_times.min()+channel_trace_start_time)
+            trigger.set_trigger_time(triggered_times.min() + channel_trace_start_time)
             logger.debug("station has triggered")
         else:
             trigger.set_triggered(False)

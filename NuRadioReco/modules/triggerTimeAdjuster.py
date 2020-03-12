@@ -50,6 +50,7 @@ class triggerTimeAdjuster:
             trigger_time = trigger.get_trigger_time()
             for channel in station.iter_channels():
                 trigger_time_channel = trigger_time - channel.get_trace_start_time()
+
                 trace = channel.get_trace()
                 trace_length = len(trace)
                 number_of_samples = int(detector.get_number_of_samples(station.get_id(), channel.get_id()) * channel.get_sampling_rate() / detector.get_sampling_frequency(station.get_id(), channel.get_id()))
