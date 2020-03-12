@@ -5,6 +5,8 @@ layout = html.Div([
     html.H3('Welcome to NuRadioReco database web interface'),
     dcc.Link('Add S parameter measurement of surface board', href='/apps/add_surface_board'),
     html.Br(),
-    dcc.Link('Add another DRAB unit measurement', href='/apps/add_DRAB')
+    dcc.Link('Add DRAB unit measurement', href='/apps/add_DRAB'),
+    html.Br(),
+    dcc.Link('Add S parameter measurement of IGLO board', href='/apps/add_IGLO')
 ])
 

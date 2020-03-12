@@ -4,6 +4,7 @@ from dash.dependencies import Input, Output
 from NuRadioReco.detector.webinterface.apps import add_surface_board
 from NuRadioReco.detector.webinterface.apps import menu
 from NuRadioReco.detector.webinterface.apps import add_DRAB
+from NuRadioReco.detector.webinterface.apps import add_IGLO
 from NuRadioReco.detector.webinterface.app import app
 
 # app.config.suppress_callback_exceptions = True
@@ -21,6 +22,8 @@ def display_page(pathname):
         return add_surface_board.layout
     elif pathname == '/apps/add_DRAB':
         return add_DRAB.layout
+    elif pathname == '/apps/add_IGLO':
+        return add_IGLO.layout
     else:
         return menu.layout
 
