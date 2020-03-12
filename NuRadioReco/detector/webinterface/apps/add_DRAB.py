@@ -13,8 +13,8 @@ import csv
 from NuRadioReco.detector import detector_mongo as det
 from NuRadioReco.detector.webinterface.utils.sparameter_helper import validate_Sdata, warn_override, update_dropdown_amp_names, update_dropdown_channel_ids, enable_board_name_input, plot_Sparameters, sparameters_layout
 from NuRadioReco.detector.webinterface.utils.table import get_table
-from app import app
 from NuRadioReco.detector.webinterface.utils.units import str_to_unit
+from NuRadioReco.detector.webinterface.app import app
 
 table_name = "DRAB"
 
@@ -22,7 +22,9 @@ layout = html.Div([
     html.H3('Add S parameter measurement of DRAB unit', id='trigger'),
     html.Div(table_name, id='table-name'),
     dcc.Link('Go back to menu', href='/apps/menu'),
-    html.H3('', id='override-warning', style={"color": "Red"}),
+    html.Div([html.Div(dcc.Link('Add another DRAB unit measurement', href='/apps/add_DRAB'), id=table_name + "-menu"),
+              html.Div([
+    html.H3('', id=table_name + 'override-warning', style={"color": "Red"}),
     html.Div([
     dcc.Checklist(
         id="allow-override",
@@ -33,17 +35,17 @@ layout = html.Div([
     ], style={'width':'100%', 'float': 'hidden'}),
     html.Br(),
     html.Br(),
-    html.Div([html.Div("Select existing DRAB or enter unique name of new DRAB:", style={'float':'left'}),
+    html.Div([html.Div("Select existing board or enter unique name of new board:", style={'float':'left'}),
         dcc.Dropdown(
-            id='amp-board-list',
+            id='drab-list',
             options=[
                 {'label': 'new DRAB', 'value': "new"}
             ],
-            value="",
+            value="new",
             style={'width': '200px', 'float':'left'}
         ),
-        dcc.Input(id="new-board-input",
-                  disabled=True,
+        dcc.Input(id="new-drab-input",
+                  disabled=False,
                   placeholder='new unique DRAB name',
                   style={'width': '200px',
                          'float': 'left'}),
@@ -51,26 +53,58 @@ layout = html.Div([
     html.Br(),
     html.Br(),
     sparameters_layout,
-    html.H4('', id='validation-global-output'),
+    html.H4('', id=table_name + '-validation-global-output'),
     html.Div("false", id='validation-global', style={'display': 'none'}),
     html.Div([
-        html.Button('insert to DB', id='button-insert', disabled=True),
+        html.Button('insert to DB', id=table_name + '-button-insert', disabled=True),
     ], style={'width':"100%", "overflow": "hidden"}),
     html.Div(id='dd-output-container'),
     dcc.Graph(id='figure-amp', style={"height": "1000px", "width" : "100%"})
-])
+    ], id=table_name + "-main")])])
+
+
+@app.callback(
+    [Output('new-drab-input', 'disabled'),
+     Output(table_name + "override-warning", "children")],
+    [Input('drab-list', 'value')])
+def enable_board_name_input(value):
+    """
+    enable text field for new DRAB unit
+    """
+    if(value == "new"):
+        return False, ""
+    else:
+        return True, f"You are about to override the DRAB unit {value}!"
+
+
+@app.callback(
+    Output("drab-list", "options"),
+    [Input("trigger", "children")],
+    [State("drab-list", "options"),
+     State("table-name", "children")]
+)
+def update_dropdown_drab_names(n_intervals, options, table_name):
+    """
+    updates the dropdown menu with existing board names from the database
+    """
+    if(get_table(table_name) is not None):
+        for amp_name in get_table(table_name).distinct("name"):
+            options.append(
+                {"label": amp_name, "value": amp_name}
+            )
+        return options
 
 
 @app.callback(
     [
-        Output("validation-global-output", "children"),
-        Output("validation-global-output", "style"),
-        Output("validation-global-output", "data-validated"),
-        Output('button-insert', 'disabled')
+        Output(table_name + "-validation-global-output", "children"),
+        Output(table_name + "-validation-global-output", "style"),
+        Output(table_name + "-validation-global-output", "data-validated"),
+        Output(table_name + '-button-insert', 'disabled')
     ],
     [Input("validation-Sdata-output", "data-validated"),
-     Input('amp-board-list', 'value'),
-     Input('new-board-input', 'value'),
+     Input('drab-list', 'value'),
+     Input('new-drab-input', 'value'),
      Input("function-test", "value")])
 def validate_global(Sdata_validated, board_dropdown, new_board_name, function_test):
     """
@@ -90,10 +124,11 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, function_te
     return "input fields not validated", {"color": "Red"}, False, True
 
 
-@app.callback(Output('url', 'pathname'),
-              [Input('button-insert', 'n_clicks_timestamp')],
-              [State('amp-board-list', 'value'),
-               State('new-board-input', 'value'),
+@app.callback([Output(table_name + '-main', 'style'),
+               Output(table_name + '-menu', 'style')],
+              [Input(table_name + '-button-insert', 'n_clicks')],
+              [State('drab-list', 'value'),
+               State('new-drab-input', 'value'),
              State('Sdata', 'value'),
              State('dropdown-frequencies', 'value'),
              State('dropdown-magnitude', 'value'),
@@ -101,21 +136,25 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, function_te
              State('separator', 'value'),
              State("function-test", "value")])
 def insert_to_db(n_clicks, board_dropdown, new_board_name, Sdata, unit_ff, unit_mag, unit_phase, sep, function_test):
-    print("insert to db")
-    board_name = board_dropdown
-    if(board_dropdown == "new"):
-        board_name = new_board_name
-    if('working' not in function_test):
-        det.surface_board_channel_set_not_working(board_name)
-    else:
-        S_data_io = StringIO(Sdata)
-        S_data = np.genfromtxt(S_data_io, delimiter=sep).T
-        S_data[0] *= str_to_unit[unit_ff]
-        for i in range(4):
-            S_data[1 + 2 * i] *= str_to_unit[unit_mag]
-            S_data[2 + 2 * i] *= str_to_unit[unit_phase]
-        print(board_name, channel_id, S_data)
-        det.surface_board_channel_add_Sparameters(board_name, channel_id, S_data)
+    print(f"n_clicks is {n_clicks}")
+    if(not n_clicks is None):
+        print("insert to db")
+        board_name = board_dropdown
+        if(board_dropdown == "new"):
+            board_name = new_board_name
+        if('working' not in function_test):
+            det.DRAB_set_not_working(board_name)
+        else:
+            S_data_io = StringIO(Sdata)
+            S_data = np.genfromtxt(S_data_io, delimiter=sep).T
+            S_data[0] *= str_to_unit[unit_ff]
+            for i in range(4):
+                S_data[1 + 2 * i] *= str_to_unit[unit_mag]
+                S_data[2 + 2 * i] *= str_to_unit[unit_phase]
+            print(board_name, S_data)
+            det.DRAB_add_Sparameters(board_name, S_data)
 
-    return "/apps/menu"
+        return {'display': 'none'}, {}
+    else:
+        return {}, {'display': 'none'}
 

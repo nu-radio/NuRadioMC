@@ -101,3 +101,49 @@ def surface_board_channel_add_Sparameters(board_name, channel_id, S_data):
                                       }}},
                                  upsert=True)
 
+# DRAB
+
+
+def DRAB_set_not_working(board_name):
+    """
+    inserts a new S parameter measurement of one channel of an amp board
+    If the board dosn't exist yet, it will be created. 
+    
+    Parameters
+    ---------
+    board_name: string
+        the unique identifier of the board
+    """
+    db.DRAB.insert_one({'name': board_name,
+                          'last_updated': datetime.datetime.utcnow(),
+                          'function_test': False,
+                              })
+
+
+def DRAB_add_Sparameters(board_name, S_data):
+    """
+    inserts a new S parameter measurement of one channel of an amp board
+    If the board dosn't exist yet, it will be created. 
+    
+    Parameters
+    ---------
+    board_name: string
+        the unique identifier of the board
+    S_data: array of floats
+        1st collumn: frequencies
+        2nd/3rd collumn: S11 mag/phase
+        4th/5th collumn: S12 mag/phase
+        6th/7th collumn: S21 mag/phase
+        8th/9th collumn: S22 mag/phase
+        
+    """
+    S_names = ["S11", "S12", "S21", "S22"]
+    for i in range(4):
+        db.DRAB.insert_one({'name': board_name,
+                                    'last_updated': datetime.datetime.utcnow(),
+                                     'function_test': True,
+                                     'S_parameter': S_names[i],
+                                     'frequencies': list(S_data[0]),
+                                     'mag': list(S_data[2 * i + 1]),
+                                     'phase': list(S_data[2 * i + 2])
+                                  })
