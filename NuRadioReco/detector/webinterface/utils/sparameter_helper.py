@@ -9,7 +9,7 @@ import json
 import sys
 from io import StringIO
 import csv
-from app import app
+from NuRadioReco.detector.webinterface.app import app
 from NuRadioReco.detector import detector_mongo as det
 from NuRadioReco.detector.webinterface.utils.table import get_table
 from NuRadioReco.detector.webinterface.utils.units import str_to_unit
