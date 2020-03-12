@@ -11,36 +11,36 @@ logger.setLevel(logging.DEBUG)
 
 # connect to MongoDB, change the << MONGODB URL >> to reflect your own connection string
 client = MongoClient("mongodb+srv://detector_write:detector_write@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+# client = MongoClient("mongodb+srv://detector_write:detector_write@localhost/test?retryWrites=true&w=majority")
 db = client.detector
 
 
-def get_amp_board_names():
+def get_surface_board_names():
     """
     returns the unique names of all amplifier boards
     
     Returns list of strings
     """
-    return db.amp_boards.distinct("name")
+    return db.surface_boards.distinct("name")
+
+# def insert_amp_board_channel_S12(board_name, Sparameter, channel_id, ff, mag, phase):
+#     """
+#     inserts a new S12 measurement of one channel of an amp board
+#     If the board dosn't exist yet, it will be created.
+#     """
+#     db.amp_boards.update_one({'name': board_name},
+#                               {"$push" :{'channels': {
+#                                   'id': channel_id,
+#                                   'last_updated': datetime.datetime.utcnow(),
+#                                   'S_parameter': Sparameter,
+#                                   'frequencies': list(ff),
+#                                   'mag': list(mag),
+#                                   'phase': list(phase)
+#                                   }}},
+#                              upsert=True)
 
 
-def insert_amp_board_channel_S12(board_name, Sparameter, channel_id, ff, mag, phase):
-    """
-    inserts a new S12 measurement of one channel of an amp board
-    If the board dosn't exist yet, it will be created. 
-    """
-    db.amp_boards.update_one({'name': board_name},
-                              {"$push" :{'channels': {
-                                  'id': channel_id,
-                                  'last_updated': datetime.datetime.utcnow(),
-                                  'S_parameter': Sparameter,
-                                  'frequencies': list(ff),
-                                  'mag': list(mag),
-                                  'phase': list(phase)
-                                  }}},
-                             upsert=True)
-
-
-def insert_amp_board_channel_Sparameters(board_name, channel_id, S_data):
+def insert_surface_board_channel_Sparameters(board_name, channel_id, S_data):
     """
     inserts a new S parameter measurement of one channel of an amp board
     If the board dosn't exist yet, it will be created. 
@@ -61,7 +61,7 @@ def insert_amp_board_channel_Sparameters(board_name, channel_id, S_data):
     """
     S_names = ["S11", "S12", "S21", "S22"]
     for i in range(4):
-        db.amp_boards.update_one({'name': board_name},
+        db.surface_boards.update_one({'name': board_name},
                                   {"$push" :{'channels': {
                                       'id': channel_id,
                                       'last_updated': datetime.datetime.utcnow(),
