@@ -10,9 +10,9 @@ logger = logging.getLogger("database")
 logger.setLevel(logging.DEBUG)
 
 # connect to MongoDB, change the << MONGODB URL >> to reflect your own connection string
-client = MongoClient("mongodb+srv://detector_write:detector_write@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
-# client = MongoClient("mongodb+srv://detector_write:detector_write@localhost/test?retryWrites=true&w=majority")
-db = client.detector
+# client = MongoClient("mongodb+srv://detector_write:detector_write@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+client = MongoClient("mongodb://localhost:27017/test?retryWrites=true&w=majority")
+db = client.RNOG_test
 
 
 def get_surface_board_names():
