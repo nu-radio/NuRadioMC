@@ -1,9 +1,13 @@
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-
+import apps
+import apps.add_surface_board
+import apps.menu
+import apps.add_DRAB
 from app import app
-from apps import add_surface_board, menu
+
+app.config.suppress_callback_exceptions = True
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -15,11 +19,11 @@ app.layout = html.Div([
               [Input('url', 'pathname')])
 def display_page(pathname):
     if pathname == '/apps/add_surface_board':
-        return add_surface_board.layout
-#     elif pathname == '/apps/app2':
-#         return app2.layout
+        return apps.add_surface_board.layout
+    if pathname == '/apps/add_DRAB':
+        return apps.add_DRAB.layout
     elif pathname == "/apps/menu":
-        return menu.layout
+        return apps.menu.layout
     else:
         return "404"
 
