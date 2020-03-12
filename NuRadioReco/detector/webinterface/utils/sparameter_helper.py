@@ -12,14 +12,7 @@ import csv
 from app import app
 from NuRadioReco.detector import detector_mongo as det
 from NuRadioReco.detector.webinterface.utils.table import get_table
-
-str_to_unit = {"GHz": units.GHz,
-               "MHz": units.MHz,
-               "Hz": units.Hz,
-               "deg": units.deg,
-               "rad": units.rad,
-               "V": units.V,
-               "mV": units.mV }
+from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 
 sparameters_layout = html.Div([
     dcc.Checklist(id="function-test",

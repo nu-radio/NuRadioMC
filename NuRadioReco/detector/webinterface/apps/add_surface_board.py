@@ -13,15 +13,8 @@ import csv
 from NuRadioReco.detector import detector_mongo as det
 from NuRadioReco.detector.webinterface.utils.sparameter_helper import validate_Sdata, warn_override, update_dropdown_amp_names, update_dropdown_channel_ids, enable_board_name_input, plot_Sparameters, sparameters_layout
 from NuRadioReco.detector.webinterface.utils.table import get_table
+from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 from app import app
-
-str_to_unit = {"GHz": units.GHz,
-               "MHz": units.MHz,
-               "Hz": units.Hz,
-               "deg": units.deg,
-               "rad": units.rad,
-               "V": units.V,
-               "mV": units.mV }
 
 number_of_channels = 5  # define number of channels for surface board
 table_name = "surface_boards"
