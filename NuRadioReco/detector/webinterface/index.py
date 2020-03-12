@@ -3,7 +3,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import add_surface_board
+from apps import add_surface_board, menu
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),

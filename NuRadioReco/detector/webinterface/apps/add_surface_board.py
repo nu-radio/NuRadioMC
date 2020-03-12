@@ -86,9 +86,9 @@ layout = html.Div([
     [Input("validation-Sdata-output", "data-validated"),
      Input('amp-board-list', 'value'),
      Input('new-board-input', 'value'),
-     Input("channel-id", "value")])
-def validate_global(Sdata_validated, board_dropdown, new_board_name, channel_id
-                    ):
+     Input("channel-id", "value"),
+     Input("function-test", "value")])
+def validate_global(Sdata_validated, board_dropdown, new_board_name, channel_id, function_test):
     """
     validates all three inputs, this callback is triggered by the individual input validation
     """
@@ -99,7 +99,10 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, channel_id
     if(channel_id not in range(100)):
         return "no channel id selected", {"color": "Red"}, False, True
 
-    if(Sdata_validated):
+    print(function_test)
+    if('working' not in function_test):
+        return "all inputs validated", {"color": "Green"}, True, False
+    elif(Sdata_validated):
         return "all inputs validated", {"color": "Green"}, True, False
 
     return "input fields not validated", {"color": "Red"}, False, True
@@ -114,21 +117,24 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, channel_id
              State('dropdown-magnitude', 'value'),
              State('dropdown-phase', 'value'),
              State("channel-id", "value"),
-             State('separator', 'value')])
-def insert_to_db(n_clicks, board_dropdown, new_board_name, Sdata, unit_ff, unit_mag, unit_phase, channel_id, sep):
+             State('separator', 'value'),
+             State("function-test", "value")])
+def insert_to_db(n_clicks, board_dropdown, new_board_name, Sdata, unit_ff, unit_mag, unit_phase, channel_id, sep, function_test):
     print("insert to db")
-    S_data_io = StringIO(Sdata)
-    S_data = np.genfromtxt(S_data_io, delimiter=sep).T
-    S_data[0] *= str_to_unit[unit_ff]
-    for i in range(4):
-        S_data[1 + 2 * i] *= str_to_unit[unit_mag]
-        S_data[2 + 2 * i] *= str_to_unit[unit_phase]
-
     board_name = board_dropdown
     if(board_dropdown == "new"):
         board_name = new_board_name
-    print(board_name, channel_id, S_data)
-    det.insert_surface_board_channel_Sparameters(board_name, channel_id, S_data)
+    if('working' not in function_test):
+        det.surface_board_channel_set_not_working(board_name, channel_id)
+    else:
+        S_data_io = StringIO(Sdata)
+        S_data = np.genfromtxt(S_data_io, delimiter=sep).T
+        S_data[0] *= str_to_unit[unit_ff]
+        for i in range(4):
+            S_data[1 + 2 * i] *= str_to_unit[unit_mag]
+            S_data[2 + 2 * i] *= str_to_unit[unit_phase]
+        print(board_name, channel_id, S_data)
+        det.surface_board_channel_add_Sparameters(board_name, channel_id, S_data)
 
     return "/apps/menu"
 

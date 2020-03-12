@@ -21,7 +21,15 @@ str_to_unit = {"GHz": units.GHz,
                "V": units.V,
                "mV": units.mV }
 
-sparameters_layout = html.Div([html.Div("specify data format:"),
+sparameters_layout = html.Div([
+    dcc.Checklist(id="function-test",
+        options=[
+            {'label': 'channel is working', 'value': 'working'}
+            ],
+        value=['working']
+    ), html.Br(),
+
+    html.Div("specify data format:"),
     dcc.Dropdown(
             id='separator',
             options=[
@@ -127,7 +135,8 @@ def update_dropdown_channel_ids(n_intervals, amp_name, allow_override_checkbox, 
     if 1 in allow_override_checkbox:
         allow_override = True
 
-    existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.S_parameter": {"$in": ["S11", "S12", "S21", "S22"]}})
+#     existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.S_parameter": {"$in": ["S11", "S12", "S21", "S22"]}})
+    existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.function_test": {"$in": [True, False]}})
     print(f"existing ids for amp {amp_name}: {existing_ids}")
     options = []
     for i in range(number_of_channels):
