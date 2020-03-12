@@ -11,12 +11,7 @@ from io import StringIO
 import csv
 from app import app
 from NuRadioReco.detector import detector_mongo as det
-
-
-def get_table(name):
-    if(name == "amp_boards"):
-        return det.db.amp_boards
-
+from NuRadioReco.detector.webinterface.utils.table import get_table
 
 str_to_unit = {"GHz": units.GHz,
                "MHz": units.MHz,
@@ -25,6 +20,65 @@ str_to_unit = {"GHz": units.GHz,
                "rad": units.rad,
                "V": units.V,
                "mV": units.mV }
+
+sparameters_layout = html.Div([html.Div("specify data format:"),
+    dcc.Dropdown(
+            id='separator',
+            options=[
+                {'label': 'comma separated ","', 'value': ','},
+                     ],
+            clearable=False,
+            value=",",
+            style={'width': '200px', 'float':'left'}
+        ),
+    html.Div("units"),
+    dcc.Dropdown(
+        id='dropdown-frequencies',
+        options=[
+            {'label': 'GHz', 'value': "GHz"},
+            {'label': 'MHz', 'value': "MHz"},
+            {'label': 'Hz', 'value': "Hz"}
+        ],
+        value="Hz",
+        style={'width': '20%',
+#                'float': 'left'
+        }
+    ),
+    dcc.Dropdown(
+            id='dropdown-magnitude',
+            options=[
+                {'label': 'V', 'value': "V"},
+                {'label': 'mV', 'value': "mV"}
+            ],
+            value="V",
+            style={'width': '20%',
+#                    'float': 'left'}
+                   }
+        ),
+    dcc.Dropdown(
+            id='dropdown-phase',
+            options=[
+                {'label': 'degree', 'value': "deg"},
+                {'label': 'rad', 'value': "rad"}
+            ],
+            value="deg",
+            style={'width': '20%',
+#                    'float': 'left'}
+            }
+        ),
+    html.Br(),
+    html.Br(),
+    html.Div([
+        dcc.Textarea(
+            id='Sdata',
+            placeholder='data array from spectrum analyzser of the form Freq, S11(MAG)    S11(DEG)    S12(MAG)    S12(DEG)    S21(MAG)    S21(DEG)    S22(MAG)    S22(DEG)',
+            value='',
+            style={'width': '60%',
+                   'float': 'left'}
+        ),
+    ], style={'width':'100%', 'float': 'hidden'}),
+    html.Br(),
+    html.Div('', id='validation-Sdata-output', style={'whiteSpace': 'pre-wrap'})])
 
 
 @app.callback(

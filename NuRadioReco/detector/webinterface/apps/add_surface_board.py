@@ -11,8 +11,8 @@ from io import StringIO
 import csv
 
 from NuRadioReco.detector import detector_mongo as det
-from NuRadioReco.detector.webinterface.apps.sparameter_helper import validate_Sdata, warn_override, update_dropdown_amp_names, update_dropdown_channel_ids, enable_board_name_input, plot_Sparameters
-
+from NuRadioReco.detector.webinterface.utils.sparameter_helper import validate_Sdata, warn_override, update_dropdown_amp_names, update_dropdown_channel_ids, enable_board_name_input, plot_Sparameters, sparameters_layout
+from NuRadioReco.detector.webinterface.utils.table import get_table
 from app import app
 
 str_to_unit = {"GHz": units.GHz,
@@ -24,10 +24,11 @@ str_to_unit = {"GHz": units.GHz,
                "mV": units.mV }
 
 number_of_channels = 5  # define number of channels for surface board
+table_name = "surface_boards"
 
 layout = html.Div([
-    html.H3('Add new amplifier', id='trigger'),
-    html.Div("amp_boards", id='table-name'),
+    html.H3('Add S parameter measurement of surface board', id='trigger'),
+    html.Div(table_name, id='table-name'),
     html.Div(number_of_channels, id='number-of-channels'),
     dcc.Link('Go back to menu', href='/apps/menu'),
     html.H3('', id='override-warning', style={"color": "Red"}),
@@ -64,64 +65,7 @@ layout = html.Div([
     ], style={'width':'100%', 'float': 'hidden'}),
     html.Br(),
     html.Br(),
-    html.Div("specify data format:"),
-    dcc.Dropdown(
-            id='separator',
-            options=[
-                {'label': 'comma separated ","', 'value': ','},
-                     ],
-            clearable=False,
-            value=",",
-            style={'width': '200px', 'float':'left'}
-        ),
-    html.Div("units"),
-    dcc.Dropdown(
-        id='dropdown-frequencies',
-        options=[
-            {'label': 'GHz', 'value': "GHz"},
-            {'label': 'MHz', 'value': "MHz"},
-            {'label': 'Hz', 'value': "Hz"}
-        ],
-        value="Hz",
-        style={'width': '20%',
-#                'float': 'left'
-        }
-    ),
-    dcc.Dropdown(
-            id='dropdown-magnitude',
-            options=[
-                {'label': 'V', 'value': "V"},
-                {'label': 'mV', 'value': "mV"}
-            ],
-            value="V",
-            style={'width': '20%',
-#                    'float': 'left'}
-                   }
-        ),
-    dcc.Dropdown(
-            id='dropdown-phase',
-            options=[
-                {'label': 'degree', 'value': "deg"},
-                {'label': 'rad', 'value': "rad"}
-            ],
-            value="deg",
-            style={'width': '20%',
-#                    'float': 'left'}
-            }
-        ),
-    html.Br(),
-    html.Br(),
-    html.Div([
-        dcc.Textarea(
-            id='Sdata',
-            placeholder='data array from spectrum analyzser of the form Freq, S11(MAG)    S11(DEG)    S12(MAG)    S12(DEG)    S21(MAG)    S21(DEG)    S22(MAG)    S22(DEG)',
-            value='',
-            style={'width': '60%',
-                   'float': 'left'}
-        ),
-    ], style={'width':'100%', 'float': 'hidden'}),
-    html.Br(),
-    html.Div('', id='validation-Sdata-output', style={'whiteSpace': 'pre-wrap'}),
+    sparameters_layout,
     html.H4('', id='validation-global-output'),
     html.Div("false", id='validation-global', style={'display': 'none'}),
     html.Div([
@@ -184,7 +128,7 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, Sdata, unit_ff, unit_
     if(board_dropdown == "new"):
         board_name = new_board_name
     print(board_name, channel_id, S_data)
-    det.insert_amp_board_channel_Sparameters(board_name, channel_id, S_data)
+    det.insert_surface_board_channel_Sparameters(board_name, channel_id, S_data)
 
     return "/apps/menu"
 
