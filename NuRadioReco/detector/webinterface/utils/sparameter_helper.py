@@ -83,22 +83,6 @@ sparameters_layout = html.Div([
 
 
 @app.callback(
-    Output("override-warning", "children"),
-    [Input("channel-id", "value")],
-     [State("amp-board-list", "value"),
-      State("table-name", "children")])
-def warn_override(channel_id, amp_name, table_name):
-    """
-    in case the user selects a channel that is already existing in the DB, a big warning is issued
-    """
-    existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.S_parameter": {"$in": ["S11", "S12", "S21", "S22"]}})
-    if(channel_id in existing_ids):
-        return f"You are about to override the S parameters of channel {channel_id} of board {amp_name}!"
-    else:
-        return ""
-
-
-@app.callback(
     Output('new-board-input', 'disabled'),
     [Input('amp-board-list', 'value')])
 def enable_board_name_input(value):
@@ -106,41 +90,6 @@ def enable_board_name_input(value):
         return False
     else:
         return True
-
-
-@app.callback(
-    [Output("channel-id", "options"),
-     Output("channel-id", "value")],
-    [Input("trigger", "children"),
-    Input("amp-board-list", "value"),
-    Input("allow-override", "value")
-    ],
-    [State("table-name", "children"),
-     State("number-of-channels", "children")]
-)
-def update_dropdown_channel_ids(n_intervals, amp_name, allow_override_checkbox, table_name, number_of_channels):
-    """
-    disable all channels that are already in the database for that amp board and S parameter
-    """
-    number_of_channels = int(number_of_channels)
-    print("update_dropdown_channel_ids")
-    allow_override = False
-    if 1 in allow_override_checkbox:
-        allow_override = True
-
-#     existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.S_parameter": {"$in": ["S11", "S12", "S21", "S22"]}})
-    existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.function_test": {"$in": [True, False]}})
-    print(f"existing ids for amp {amp_name}: {existing_ids}")
-    options = []
-    for i in range(number_of_channels):
-        if(i in existing_ids):
-            if(allow_override):
-                options.append({"label": f"{i} (already exists)", "value": i})
-            else:
-                options.append({"label": i, "value": i, 'disabled': True})
-        else:
-            options.append({"label": i, "value": i})
-    return options, ""
 
 
 @app.callback(
@@ -157,6 +106,7 @@ def update_dropdown_amp_names(n_intervals, options, table_name):
         options.append(
             {"label": amp_name, "value": amp_name}
         )
+    print(f"update_dropdown_amp_names = {options}")
     return options
 
 

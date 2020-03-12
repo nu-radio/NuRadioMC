@@ -11,7 +11,7 @@ from io import StringIO
 import csv
 
 from NuRadioReco.detector import detector_mongo as det
-from NuRadioReco.detector.webinterface.utils.sparameter_helper import validate_Sdata, warn_override, update_dropdown_amp_names, update_dropdown_channel_ids, enable_board_name_input, plot_Sparameters, sparameters_layout
+from NuRadioReco.detector.webinterface.utils.sparameter_helper import validate_Sdata, update_dropdown_amp_names, enable_board_name_input, plot_Sparameters, sparameters_layout
 from NuRadioReco.detector.webinterface.utils.table import get_table
 from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 from NuRadioReco.detector.webinterface.app import app
@@ -26,7 +26,7 @@ layout = html.Div([
     dcc.Link('Go back to menu', href='/apps/menu'),
     html.Div([html.Div(dcc.Link('Add another surface board measurement', href='/apps/add_surface_board'), id=table_name + "-menu"),
               html.Div([
-    html.H3('', id='override-warning', style={"color": "Red"}),
+    html.H3('', id=table_name + 'override-warning', style={"color": "Red"}),
     html.Div([
     dcc.Checklist(
         id="allow-override",
@@ -52,7 +52,7 @@ layout = html.Div([
                   style={'width': '200px',
                          'float': 'left'}),
         dcc.Dropdown(
-            id='channel-id',
+            id=table_name + "channel-id",
             options=[{'label': x, 'value': x} for x in range(number_of_channels)],
             placeholder='channel-id',
             style={'width': '200px', 'float':'left'}
@@ -72,6 +72,57 @@ layout = html.Div([
 
 
 @app.callback(
+    Output(table_name + "override-warning", "children"),
+    [Input(table_name + "channel-id", "value")],
+     [State("amp-board-list", "value"),
+      State("table-name", "children")])
+def warn_override(channel_id, amp_name, table_name):
+    """
+    in case the user selects a channel that is already existing in the DB, a big warning is issued
+    """
+    existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.S_parameter": {"$in": ["S11", "S12", "S21", "S22"]}})
+    if(channel_id in existing_ids):
+        return f"You are about to override the S parameters of channel {channel_id} of board {amp_name}!"
+    else:
+        return ""
+
+
+@app.callback(
+    [Output(table_name + "channel-id", "options"),
+     Output(table_name + "channel-id", "value")],
+    [Input("trigger", "children"),
+    Input("amp-board-list", "value"),
+    Input("allow-override", "value")
+    ],
+    [State("table-name", "children"),
+     State("number-of-channels", "children")]
+)
+def update_dropdown_channel_ids(n_intervals, amp_name, allow_override_checkbox, table_name, number_of_channels):
+    """
+    disable all channels that are already in the database for that amp board and S parameter
+    """
+    number_of_channels = int(number_of_channels)
+    print("update_dropdown_channel_ids")
+    allow_override = False
+    if 1 in allow_override_checkbox:
+        allow_override = True
+
+#     existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.S_parameter": {"$in": ["S11", "S12", "S21", "S22"]}})
+    existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.function_test": {"$in": [True, False]}})
+    print(f"existing ids for amp {amp_name}: {existing_ids}")
+    options = []
+    for i in range(number_of_channels):
+        if(i in existing_ids):
+            if(allow_override):
+                options.append({"label": f"{i} (already exists)", "value": i})
+            else:
+                options.append({"label": i, "value": i, 'disabled': True})
+        else:
+            options.append({"label": i, "value": i})
+    return options, ""
+
+
+@app.callback(
     [
         Output(table_name + "-validation-global-output", "children"),
         Output(table_name + "-validation-global-output", "style"),
@@ -81,7 +132,7 @@ layout = html.Div([
     [Input("validation-Sdata-output", "data-validated"),
      Input('amp-board-list', 'value'),
      Input('new-board-input', 'value'),
-     Input("channel-id", "value"),
+     Input(table_name + "channel-id", "value"),
      Input("function-test", "value")])
 def validate_global(Sdata_validated, board_dropdown, new_board_name, channel_id, function_test):
     """
@@ -112,7 +163,7 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, channel_id,
              State('dropdown-frequencies', 'value'),
              State('dropdown-magnitude', 'value'),
              State('dropdown-phase', 'value'),
-             State("channel-id", "value"),
+             State(table_name + "channel-id", "value"),
              State('separator', 'value'),
              State("function-test", "value")])
 def insert_to_db(n_clicks, board_dropdown, new_board_name, Sdata, unit_ff, unit_mag, unit_phase, channel_id, sep, function_test):
