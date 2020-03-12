@@ -1,13 +1,12 @@
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-import apps
-import apps.add_surface_board
-import apps.menu
-import apps.add_DRAB
-from app import app
+from NuRadioReco.detector.webinterface.apps import add_surface_board
+from NuRadioReco.detector.webinterface.apps import menu
+from NuRadioReco.detector.webinterface.apps import add_DRAB
+from NuRadioReco.detector.webinterface.app import app
 
-app.config.suppress_callback_exceptions = True
+# app.config.suppress_callback_exceptions = True
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -19,11 +18,11 @@ app.layout = html.Div([
               [Input('url', 'pathname')])
 def display_page(pathname):
     if pathname == '/apps/add_surface_board':
-        return apps.add_surface_board.layout
+        return add_surface_board.layout
     if pathname == '/apps/add_DRAB':
-        return apps.add_DRAB.layout
+        return add_DRAB.layout
     elif pathname == "/apps/menu":
-        return apps.menu.layout
+        return menu.layout
     else:
         return "404"
 
