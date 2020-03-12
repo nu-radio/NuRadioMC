@@ -19,12 +19,10 @@ app.layout = html.Div([
 def display_page(pathname):
     if pathname == '/apps/add_surface_board':
         return add_surface_board.layout
-    if pathname == '/apps/add_DRAB':
+    elif pathname == '/apps/add_DRAB':
         return add_DRAB.layout
-    elif pathname == "/apps/menu":
-        return menu.layout
     else:
-        return "404"
+        return menu.layout
 
 
 if __name__ == '__main__':
