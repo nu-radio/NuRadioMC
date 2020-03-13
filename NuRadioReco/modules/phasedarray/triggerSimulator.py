@@ -48,7 +48,7 @@ class triggerSimulator:
 
     def get_beam_rolls(self, station, det, triggered_channels,
                        phasing_angles=default_angles, ref_index=1.55,
-                       trigger_adc=False):
+                       trigger_adc=False, upsampling_factor=None):
         """
         Calculates the delays needed for phasing the array.
         """
@@ -73,7 +73,12 @@ class triggerSimulator:
                 error_msg += 'Please specify a common sampling rate.'
                 raise ValueError(error_msg)
 
-        time_step = 1. / sampling_rate
+        if trigger_adc and (upsampling_factor is not None):
+            upsampling_factor = int(upsampling_factor)
+        else:
+            upsampling_factor = 1
+
+        time_step = 1. / sampling_rate / upsampling_factor
 
         ant_z = self.get_antenna_positions(station, det, triggered_channels, 2)
         self.check_vertical_string(station, det, triggered_channels)
@@ -127,7 +132,8 @@ class triggerSimulator:
                        threshold,
                        window_time=10.67 * units.ns,
                        cut_times=(None,None),
-                       trigger_adc=False):
+                       trigger_adc=False,
+                       upsampling_factor=None):
         """
         Calculates the trigger for a certain phasing configuration.
         Beams are formed. A set of overlapping time windows is created and
@@ -158,6 +164,10 @@ class triggerSimulator:
         trigger_adc: bool
             If True, analog to digital conversion is performed. It must be specified in the
             detector file. See analogToDigitalConverter module for information
+        upsampling_factor: integer
+            Upsampling factor. The trace will be a upsampled to a
+            sampling frequency int_factor times higher than the original one
+            before conversion to digital
 
         Returns
         -------
@@ -183,8 +193,13 @@ class triggerSimulator:
                 trace = ADC.get_digital_trace(station, det, channel,
                                         trigger_adc=trigger_adc,
                                         random_clock_offset=True,
-                                        adc_type='perfect_floor_comparator')
+                                        adc_type='perfect_floor_comparator',
+                                        upsampling_factor=upsampling_factor)
                 time_step = 1 / det.get_channel(station_id, channel_id)['trigger_adc_sampling_frequency']
+                if upsampling_factor is not None:
+                    upsampling_factor = int(upsampling_factor)
+                    if upsampling_factor >= 2:
+                        time_step /= upsampling_factor
                 times  = np.arange(len(trace), dtype=np.float) * time_step
                 times += channel.get_trace_start_time()
 
@@ -258,7 +273,8 @@ class triggerSimulator:
             coupled=True,
             ref_index=1.75,
             cut_times=(None,None),
-            trigger_adc=False):
+            trigger_adc=False,
+            upsampling_factor=None):
         """
         simulates phased array trigger for each event
 
@@ -305,12 +321,19 @@ class triggerSimulator:
         trigger_adc: bool
             If True, analog to digital conversion is performed. It must be specified in the
             detector file. See analogToDigitalConverter module for information
+        upsampling_factor: integer
+            Upsampling factor. The trace will be a upsampled to a
+            sampling frequency int_factor times higher than the original one
+            before conversion to digital
 
         Returns
         -------
         is_triggered: bool
             True if the triggering condition is met
         """
+
+        if upsampling_factor is not None:
+            upsampling_factor = int(upsampling_factor)
 
         if (triggered_channels == None):
         	triggered_channels = [channel._id for channel in station.iter_channels()]
@@ -331,7 +354,8 @@ class triggerSimulator:
 
             logger.debug("primary channels:", triggered_channels)
             beam_rolls = self.get_beam_rolls(station, det, triggered_channels, phasing_angles,
-                                             ref_index=ref_index, trigger_adc=trigger_adc)
+                                             ref_index=ref_index, trigger_adc=trigger_adc,
+                                             upsampling_factor=upsampling_factor)
             empty_rolls = [ {} for direction in range(len(phasing_angles)) ]
             logger.debug("secondary_channels:", secondary_channels)
             if (len(secondary_channels) == 0):
@@ -339,21 +363,24 @@ class triggerSimulator:
             else:
                 only_primary = False
                 secondary_beam_rolls = self.get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles,
-                                                           ref_index=ref_index, trigger_adc=trigger_adc)
+                                                           ref_index=ref_index, trigger_adc=trigger_adc,
+                                                           upsampling_factor=upsampling_factor)
 
             if only_primary:
                 is_triggered, trigger_delays, sec_trigger_delays = self.phased_trigger(station, det,
                         beam_rolls, empty_rolls, triggered_channels, threshold, window_time, cut_times,
-                        trigger_adc=trigger_adc)
+                        trigger_adc=trigger_adc, upsampling_factor=upsampling_factor)
             elif coupled:
                 is_triggered, trigger_delays, sec_trigger_delays = self.phased_trigger(station, det,
                         beam_rolls, secondary_beam_rolls, triggered_channels, threshold, window_time, cut_times,
-                        trigger_adc=trigger_adc)
+                        trigger_adc=trigger_adc, upsampling_factor=upsampling_factor)
             else:
                 primary_trigger, trigger_delays, dummy_delays = self.phased_trigger(station, det, beam_rolls, empty_rolls,
-                        triggered_channels, threshold, window_time, cut_times, trigger_adc=trigger_adc)
+                        triggered_channels, threshold, window_time, cut_times, trigger_adc=trigger_adc,
+                        upsampling_factor=upsampling_factor)
                 secondary_trigger, sec_trigger_delays, dummy_delays = self.phased_trigger(station, det, secondary_beam_rolls, empty_rolls,
-                        secondary_channels, threshold, window_time, cut_times, trigger_adc=trigger_adc)
+                        secondary_channels, threshold, window_time, cut_times, trigger_adc=trigger_adc,
+                        upsampling_factor=upsampling_factor)
                 is_triggered = primary_trigger or secondary_trigger
 
         trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, secondary_channels,
