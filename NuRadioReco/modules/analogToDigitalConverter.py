@@ -1,11 +1,11 @@
 import logging
 import time
 import numpy as np
-import NuRadioReco.modules.channelResampler
 from NuRadioReco.utilities import units
 from scipy.interpolate import interp1d
 from scipy.signal import resample
 from NuRadioReco.modules.base.module import register_run
+from NuRadioReco.utilities.trace_utilities import upsampling_fir
 
 def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output='voltage'):
     """
@@ -128,7 +128,8 @@ class analogToDigitalConverter():
     The channel trace is interpolated to get the trace values at the clock
     times displaced from the channel times. This is fine as long as the input
     channel traces have been simulated with a sampling rate greater than the
-    ADC sampling rate, which should be the case.
+    ADC sampling rate, which should be the case. Upsampling is also possible,
+    and recommended for phased array simulations.
     3) A type of ADC converter is chosen, which transforms the trace in ADC
     counts (discrete values). The available types are listed in the list
     _adc_types, which are (see functions with the same names for documentation):
@@ -136,7 +137,10 @@ class analogToDigitalConverter():
         - 'perfect_ceiling_comparator'
 
     IMPORTANT: Since this module already performs a downsampling, there is no
-    need to use the channelResampler in those channels that possess an ADC.
+    need to use the channelResampler in those channels that possess an ADC. The
+    chosen method for resampling is interpolation, since filtering only the
+    spectrum below half the sampling frequency would eliminate the higher Nyquist
+    zones.
 
     Note that after this module the traces are still expressed in voltage units,
     only the possible values are discretised.
@@ -165,7 +169,8 @@ class analogToDigitalConverter():
                           adc_type='perfect_floor_comparator',
                           diode=None,
                           return_sampling_frequency=False,
-                          output='voltage'):
+                          output='voltage',
+                          upsampling_factor=1):
         """
         Returns the digital trace for a channel, without setting it. This allows
         the creation of a digital trace that can be used for triggering purposes
@@ -193,6 +198,9 @@ class analogToDigitalConverter():
         output: string
             - 'voltage' to store the ADC output as discretised voltage trace
             - 'counts' to store the ADC output in ADC counts
+        upsampling_factor: integer
+            Upsampling factor. The digital trace will be a upsampled to a
+            sampling frequency int_factor times higher than the original one
 
         Returns
         -------
@@ -254,16 +262,31 @@ class analogToDigitalConverter():
             error_msg += 'Please change the ADC sampling rate.'
             raise ValueError(error_msg)
 
+        # Random clock offset
         delayed_times = times + adc_time_delay
         interpolate_trace = interp1d(times, trace, kind='quadratic',
                                      fill_value='extrapolate')
 
         delayed_trace = interpolate_trace(delayed_times)
 
-        new_n_samples = int( (adc_sampling_frequency / channel.get_sampling_rate()) * len(delayed_trace) )
-        resampled_trace = resample(delayed_trace, new_n_samples)
+        interpolate_delayed_trace = interp1d(times, delayed_trace, kind='quadratic',
+                                             fill_value='extrapolate')
 
-        digital_trace = self._adc_types[adc_type](delayed_trace, adc_n_bits,
+        # Downsampling to ADC frequency
+        new_n_samples = int( (adc_sampling_frequency / channel.get_sampling_rate()) * len(delayed_trace) )
+        resampled_times = np.linspace(0, new_n_samples/adc_sampling_frequency, new_n_samples)
+        resampled_times += channel.get_trace_start_time()
+        resampled_trace = interpolate_delayed_trace(resampled_times)
+
+        # Upsampling with an FIR filter (if desired)
+        if (upsampling_factor >= 2):
+            upsampling_factor = int(upsampling_factor)
+            upsampled_trace = upsampling_fir(resampled_trace, adc_sampling_frequency,
+                                             int_factor=upsampling_factor, ntaps=2**7)
+            adc_sampling_frequency *= upsampling_factor
+
+        # Digitisation
+        digital_trace = self._adc_types[adc_type](resampled_trace, adc_n_bits,
                                                   adc_ref_voltage, output)
 
         if return_sampling_frequency:
@@ -275,7 +298,8 @@ class analogToDigitalConverter():
     def run(self, evt, station, det,
             random_clock_offset=True,
             adc_type='perfect_floor_comparator',
-            output='voltage'):
+            output='voltage',
+            upsampling_factor=1):
         """
         Runs the analogToDigitalConverter and transforms the traces from all
         the channels of an input station to digital voltage values.
@@ -294,6 +318,9 @@ class analogToDigitalConverter():
         output: string
             - 'voltage' to store the ADC output as discretised voltage trace
             - 'counts' to store the ADC output in ADC counts
+        upsampling_factor: integer
+            Upsampling factor. The digital trace will be a upsampled to a
+            sampling frequency int_factor times higher than the original one
         """
 
         t = time.time()
@@ -304,7 +331,8 @@ class analogToDigitalConverter():
                                                         random_clock_offset=random_clock_offset,
                                                         adc_type=adc_type,
                                                         return_sampling_frequency=True,
-                                                        output=output)
+                                                        output=output,
+                                                        upsampling_factor=upsampling_factor)
 
             channel.set_trace(digital_trace, adc_sampling_frequency)
 
