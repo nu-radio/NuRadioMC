@@ -130,6 +130,12 @@ class analogToDigitalConverter():
     channel traces have been simulated with a sampling rate greater than the
     ADC sampling rate, which should be the case. Upsampling is also possible,
     and recommended for phased array simulations.
+
+    IMPORTANT: Upsampling after digitisation is performed by the FPGA, which
+    means that the digitised trace is no longer discretised after being upsampled.
+    The FPGA uses fixed point arithmetic, which in practice can be approximated
+    as floats for our simulation purposes.
+    
     3) A type of ADC converter is chosen, which transforms the trace in ADC
     counts (discrete values). The available types are listed in the list
     _adc_types, which are (see functions with the same names for documentation):
@@ -170,7 +176,7 @@ class analogToDigitalConverter():
                           diode=None,
                           return_sampling_frequency=False,
                           output='voltage',
-                          upsampling_factor=1):
+                          upsampling_factor=None):
         """
         Returns the digital trace for a channel, without setting it. This allows
         the creation of a digital trace that can be used for triggering purposes
@@ -278,16 +284,23 @@ class analogToDigitalConverter():
         resampled_times += channel.get_trace_start_time()
         resampled_trace = interpolate_delayed_trace(resampled_times)
 
-        # Upsampling with an FIR filter (if desired)
-        if (upsampling_factor >= 2):
-            upsampling_factor = int(upsampling_factor)
-            upsampled_trace = upsampling_fir(resampled_trace, adc_sampling_frequency,
-                                             int_factor=upsampling_factor, ntaps=2**7)
-            adc_sampling_frequency *= upsampling_factor
-
         # Digitisation
         digital_trace = self._adc_types[adc_type](resampled_trace, adc_n_bits,
                                                   adc_ref_voltage, output)
+
+        # Upsampling with an FIR filter (if desired)
+        if upsampling_factor is not None:
+            if (upsampling_factor >= 2):
+                upsampling_factor = int(upsampling_factor)
+                upsampled_trace = upsampling_fir(digital_trace, adc_sampling_frequency,
+                                                 int_factor=upsampling_factor, ntaps=2**7)
+                adc_sampling_frequency *= upsampling_factor
+
+                digital_trace = upsampled_trace[:]
+
+        # Ensuring trace has an even number of samples
+        if ( len(digital_trace) % 2 == 1 ):
+            digital_trace = digital_trace[:-1]
 
         if return_sampling_frequency:
             return digital_trace, adc_sampling_frequency
