@@ -7,7 +7,7 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.utilities import ice
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import fft
-from scipy.signal import firwin
+from scipy.signal import firwin, butter, freqs
 import logging
 logger = logging.getLogger('NuRadioReco.trace_utilities')
 
@@ -162,3 +162,66 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7)
     upsampled_trace = np.convolve(zeroed_trace, fir_coeffs)[:len(upsampled_times)] * int_factor
 
     return upsampled_trace
+
+def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
+    """
+    Filters a trace using a Butterworth filter.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace to be filtered
+    sampling_frequency: float
+        Sampling frequency
+    passband: (float, float) tuple
+        Tuple indicating the cutoff frequencies
+    order: integer
+        Filter order
+
+    Returns
+    ------
+    filtered_trace: array of floats
+        The filtered trace
+    """
+
+    n_samples = len(trace)
+
+    spectrum = fft.time2freq(trace, sampling_frequency)
+    frequencies = np.fft.rfftfreq(n_samples, 1/sampling_frequency)
+
+    filtered_spectrum = apply_butterworth(spectrum, frequencies, passband)
+    filtered_trace = fft.freq2time(filtered_spectrum, sampling_frequency)
+
+    return filtered_trace
+
+def apply_butterworth(spectrum, frequencies, passband, order=8):
+    """
+    Calculates the response from a Butterworth filter and applies it to the
+    input spectrum
+
+    Parameters
+    ----------
+    spectrum: array of complex
+        Fourier spectrum to be filtere
+    frequencies: array of floats
+        Frequencies of the input spectrum
+    passband: (float, float) tuple
+        Tuple indicating the cutoff frequencies
+    order: integer
+        Filter order
+
+    Returns
+    -------
+    filtered_spectrum: array of complex
+        The filtered spectrum
+    """
+
+    f = np.zeros_like(frequencies, dtype=np.complex)
+    mask = frequencies > 0
+    b, a = butter(order, passband, 'bandpass', analog=True)
+    w, h = freqs(b, a, frequencies[mask])
+    f[mask] = h
+
+    filtered_spectrum = f * spectrum
+
+    return filtered_spectrum
