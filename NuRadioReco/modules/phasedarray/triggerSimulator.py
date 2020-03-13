@@ -65,7 +65,7 @@ class triggerSimulator:
                     value_error = True
             else:
                 if sampling_rate is None:
-                        sampling_rate = channel.get_sampling_rate()
+                    sampling_rate = channel.get_sampling_rate()
                 elif sampling_rate != channel.get_sampling_rate():
                     value_error = True
             if value_error:
@@ -185,7 +185,7 @@ class triggerSimulator:
                                         random_clock_offset=True,
                                         adc_type='perfect_floor_comparator')
                 time_step = 1 / det.get_channel(station_id, channel_id)['trigger_adc_sampling_frequency']
-                times  = np.arange(len(trace), dtype=np.float)
+                times  = np.arange(len(trace), dtype=np.float) * time_step
                 times += channel.get_trace_start_time()
 
             else:

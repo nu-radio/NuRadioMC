@@ -101,7 +101,7 @@ class triggerSimulator(phasedTrigger):
                                         adc_type='perfect_floor_comparator',
                                         diode=diode)
                 time_step = 1 / det.get_channel(station_id, channel_id)['trigger_adc_sampling_frequency']
-                times  = np.arange(len(trace), dtype=np.float)
+                times  = np.arange(len(trace), dtype=np.float) * time_step
                 times += channel.get_trace_start_time()
 
             else:
