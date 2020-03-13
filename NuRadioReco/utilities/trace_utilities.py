@@ -7,6 +7,7 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.utilities import ice
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import fft
+from scipy.signal import firwin
 import logging
 logger = logging.getLogger('NuRadioReco.trace_utilities')
 
@@ -111,3 +112,53 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
         f_signal -= f_noise * np.sum(signal_window_mask) / np.sum(noise_window_mask)
 
     return f_signal * dt * conversion_factor_integrated_signal
+
+def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7):
+    """
+    This function performs an upsampling by inserting a number of zeroes
+    between samples and then applying a finite impulse response (FIR) filter.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace to be upsampled
+    original_sampling_frequency: float
+        Sampling frequency of the input trace
+    int_factor: integer
+        Upsampling factor. The resulting trace will have a sampling frequency
+        int_factor times higher than the original one
+    ntaps: integer
+        Number of taps (order) of the FIR filter
+
+    Returns
+    -------
+    upsampled_trace: array of floats
+        The upsampled trace
+    """
+
+    if (np.abs(int(int_factor) - int_factor) > 1e-3):
+        warning_msg  = "The input upsampling factor does not seem to be close to an integer."
+        warning_msg += "It has been rounded to {}".format(int(int_factor))
+        logger.warning(warning_msg)
+
+    int_factor = int(int_factor)
+
+    if (int_factor <= 1):
+        error_msg = "Upsampling factor is less or equal to 1. Upsampling will not be performed."
+        raise ValueError(error_msg)
+
+    n_zeroes = int_factor - 1
+    zeroed_trace = []
+    for point in trace[:-1]:
+        zeroed_trace.append(point)
+        for zero in range(n_zeroes):
+            zeroed_trace.append(0.)
+
+    upsampled_delta_time = 1 / (int_factor * original_sampling_frequency)
+    upsampled_times = np.arange(0, len(zeroed_trace) * upsampled_delta_time, upsampled_delta_time)
+
+    cutoff = 1./int_factor
+    fir_coeffs = firwin(ntaps, cutoff)
+    upsampled_trace = np.convolve(zeroed_trace, fir_coeffs)[:len(upsampled_times)] * int_factor
+
+    return upsampled_trace
