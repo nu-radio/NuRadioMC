@@ -11,7 +11,7 @@ logger.setLevel(logging.DEBUG)
 
 # connect to MongoDB, change the << MONGODB URL >> to reflect your own connection string
 # client = MongoClient("mongodb+srv://detector_write:detector_write@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
-client = MongoClient("mongodb://localhost:27017/test?retryWrites=true&w=majority")
+client = MongoClient("localhost")
 db = client.RNOG_test
 
 
