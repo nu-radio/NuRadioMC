@@ -209,9 +209,6 @@ class analogToDigitalConverter():
         upsampling_factor: integer
             Upsampling factor. The digital trace will be a upsampled to a
             sampling frequency int_factor times higher than the original one
-        upsampling_factor: integer
-            Upsampling factor. The digital trace will be a upsampled to a
-            sampling frequency int_factor times higher than the original one
         nyquist_zone: integer
             If None, the trace is not filtered
             If n, it uses the n-th Nyquist zone by applying an 8th-order
@@ -250,7 +247,7 @@ class analogToDigitalConverter():
         times = channel.get_times()[:]
         trace = channel.get_trace()[:]
         input_sampling_frequency = channel.get_sampling_rate()
-        
+
         if diode is not None:
             trace = diode.tunnel_diode(channel)
 
