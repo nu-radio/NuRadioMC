@@ -83,6 +83,8 @@ elif (array_type == 'RNO'):
     primary_channels = [0, 1, 2, 3] # channels used for primary beam
     beam_rolls = get_beam_rolls(ant_z_primary, primary_channels, primary_angles, time_step)
 
+window_time = window_width * time_step
+
 n_samples = 1000000 # number of samples
 bandwidth = max_freq-min_freq
 amplitude = (300 * 50 * constants.k * bandwidth / units.Hz) ** 0.5
@@ -150,5 +152,5 @@ for threshold_factor in threshold_factors:
             prob_per_window += np.sum( mask * np.ones(len(mask)) )/(n_windows*Ntries)
 
     # The 2 comes from the use of overlapping windows
-    trigger_frequency = prob_per_window / (window_width/2)
+    trigger_frequency = prob_per_window / (window_time/2)
     print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.8f}%, Noise trigger rate: {:.2f}'.format(threshold_factor, prob_per_window*100., trigger_frequency/units.Hz))

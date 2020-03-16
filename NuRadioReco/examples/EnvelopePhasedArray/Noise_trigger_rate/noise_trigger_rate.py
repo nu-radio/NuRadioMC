@@ -61,7 +61,8 @@ def get_beam_rolls(ant_z, channel_list, phasing_angles=default_angles, time_step
 min_freq = 132*units.MHz
 max_freq = 700*units.MHz
 sampling_rate = 3*units.GHz
-window_width = int(40*units.ns * sampling_rate)
+window_time = 40*units.ns
+window_width = int(window_time * sampling_rate)
 
 primary_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
 
@@ -140,5 +141,5 @@ for threshold_factor in threshold_factors:
             # and each direction triggers independently of the rest.
             prob_per_window += np.sum( threshold_passed )/(n_windows*Ntries)
 
-    trigger_frequency = prob_per_window / window_width
+    trigger_frequency = prob_per_window / window_time
     print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.8f}%, Noise trigger rate: {:.2f} Hz'.format(threshold_factor, prob_per_window*100., trigger_frequency/units.Hz))
