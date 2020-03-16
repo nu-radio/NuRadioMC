@@ -133,7 +133,9 @@ class triggerSimulator:
                        window_time=10.67 * units.ns,
                        cut_times=(None,None),
                        trigger_adc=False,
-                       upsampling_factor=None):
+                       upsampling_factor=None,
+                       nyquist_zone=None,
+                       bandwidth_edge=20*units.MHz):
         """
         Calculates the trigger for a certain phasing configuration.
         Beams are formed. A set of overlapping time windows is created and
@@ -168,6 +170,17 @@ class triggerSimulator:
             Upsampling factor. The trace will be a upsampled to a
             sampling frequency int_factor times higher than the original one
             before conversion to digital
+        nyquist_zone: integer
+            To be used with the trigger_adc function
+            If None, the trace is not filtered
+            If n, it uses the n-th Nyquist zone by applying an 8th-order
+            Butterworth filter with critical frequencies:
+            (n-1) * adc_sampling_frequency/2 + bandwidth_edge
+            and
+            n * adc_sampling_frequency/2 - bandwidth_edge
+        bandwidth_edge: float
+            Frequency interval used for filtering the chosen Nyquist zone.
+            See above
 
         Returns
         -------
@@ -194,7 +207,9 @@ class triggerSimulator:
                                         trigger_adc=trigger_adc,
                                         random_clock_offset=True,
                                         adc_type='perfect_floor_comparator',
-                                        upsampling_factor=upsampling_factor)
+                                        upsampling_factor=upsampling_factor,
+                                        nyquist_zone=nyquist_zone,
+                                        bandwidth_edge=bandwidth_edge)
                 time_step = 1 / det.get_channel(station_id, channel_id)['trigger_adc_sampling_frequency']
                 if upsampling_factor is not None:
                     upsampling_factor = int(upsampling_factor)
@@ -274,7 +289,9 @@ class triggerSimulator:
             ref_index=1.75,
             cut_times=(None,None),
             trigger_adc=False,
-            upsampling_factor=None):
+            upsampling_factor=None,
+            nyquist_zone=None,
+            bandwidth_edge=20*units.MHz):
         """
         simulates phased array trigger for each event
 
@@ -325,6 +342,17 @@ class triggerSimulator:
             Upsampling factor. The trace will be a upsampled to a
             sampling frequency int_factor times higher than the original one
             before conversion to digital
+        nyquist_zone: integer
+            To be used with the trigger_adc function
+            If None, the trace is not filtered
+            If n, it uses the n-th Nyquist zone by applying an 8th-order
+            Butterworth filter with critical frequencies:
+            (n-1) * adc_sampling_frequency/2 + bandwidth_edge
+            and
+            n * adc_sampling_frequency/2 - bandwidth_edge
+        bandwidth_edge: float
+            Frequency interval used for filtering the chosen Nyquist zone.
+            See above
 
         Returns
         -------
@@ -364,23 +392,27 @@ class triggerSimulator:
                 only_primary = False
                 secondary_beam_rolls = self.get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles,
                                                            ref_index=ref_index, trigger_adc=trigger_adc,
-                                                           upsampling_factor=upsampling_factor)
+                                                           upsampling_factor=upsampling_factor,
+                                                           nyquist_zone=nyquist_zone,
+                                                           bandwidth_edge=bandwidth_edge)
 
             if only_primary:
                 is_triggered, trigger_delays, sec_trigger_delays = self.phased_trigger(station, det,
                         beam_rolls, empty_rolls, triggered_channels, threshold, window_time, cut_times,
-                        trigger_adc=trigger_adc, upsampling_factor=upsampling_factor)
+                        trigger_adc=trigger_adc, upsampling_factor=upsampling_factor,
+                        nyquist_zone=nyquist_zone, bandwidth_edge=bandwidth_edge)
             elif coupled:
                 is_triggered, trigger_delays, sec_trigger_delays = self.phased_trigger(station, det,
                         beam_rolls, secondary_beam_rolls, triggered_channels, threshold, window_time, cut_times,
-                        trigger_adc=trigger_adc, upsampling_factor=upsampling_factor)
+                        trigger_adc=trigger_adc, upsampling_factor=upsampling_factor,
+                        nyquist_zone=nyquist_zone, bandwidth_edge=bandwidth_edge)
             else:
                 primary_trigger, trigger_delays, dummy_delays = self.phased_trigger(station, det, beam_rolls, empty_rolls,
                         triggered_channels, threshold, window_time, cut_times, trigger_adc=trigger_adc,
-                        upsampling_factor=upsampling_factor)
+                        upsampling_factor=upsampling_factor, nyquist_zone=nyquist_zone, bandwidth_edge=bandwidth_edge)
                 secondary_trigger, sec_trigger_delays, dummy_delays = self.phased_trigger(station, det, secondary_beam_rolls, empty_rolls,
                         secondary_channels, threshold, window_time, cut_times, trigger_adc=trigger_adc,
-                        upsampling_factor=upsampling_factor)
+                        upsampling_factor=upsampling_factor, nyquist_zone=nyquist_zone, bandwidth_edge=bandwidth_edge)
                 is_triggered = primary_trigger or secondary_trigger
 
         trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, secondary_channels,
