@@ -5,7 +5,7 @@ from NuRadioReco.utilities import units
 from scipy.interpolate import interp1d
 from scipy.signal import resample
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities.trace_utilities import upsampling_fir
+from NuRadioReco.utilities.trace_utilities import upsampling_fir, butterworth_filter_trace
 
 def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output='voltage'):
     """
@@ -135,7 +135,7 @@ class analogToDigitalConverter():
     means that the digitised trace is no longer discretised after being upsampled.
     The FPGA uses fixed point arithmetic, which in practice can be approximated
     as floats for our simulation purposes.
-    
+
     3) A type of ADC converter is chosen, which transforms the trace in ADC
     counts (discrete values). The available types are listed in the list
     _adc_types, which are (see functions with the same names for documentation):
@@ -176,7 +176,9 @@ class analogToDigitalConverter():
                           diode=None,
                           return_sampling_frequency=False,
                           output='voltage',
-                          upsampling_factor=None):
+                          upsampling_factor=None,
+                          nyquist_zone=None,
+                          bandwidth_edge=20*units.MHz):
         """
         Returns the digital trace for a channel, without setting it. This allows
         the creation of a digital trace that can be used for triggering purposes
@@ -207,6 +209,19 @@ class analogToDigitalConverter():
         upsampling_factor: integer
             Upsampling factor. The digital trace will be a upsampled to a
             sampling frequency int_factor times higher than the original one
+        upsampling_factor: integer
+            Upsampling factor. The digital trace will be a upsampled to a
+            sampling frequency int_factor times higher than the original one
+        nyquist_zone: integer
+            If None, the trace is not filtered
+            If n, it uses the n-th Nyquist zone by applying an 8th-order
+            Butterworth filter with critical frequencies:
+            (n-1) * adc_sampling_frequency/2 + bandwidth_edge
+            and
+            n * adc_sampling_frequency/2 - bandwidth_edge
+        bandwidth_edge: float
+            Frequency interval used for filtering the chosen Nyquist zone.
+            See above
 
         Returns
         -------
@@ -234,6 +249,8 @@ class analogToDigitalConverter():
 
         times = channel.get_times()[:]
         trace = channel.get_trace()[:]
+        input_sampling_frequency = channel.get_sampling_rate()
+        
         if diode is not None:
             trace = diode.tunnel_diode(channel)
 
@@ -267,6 +284,24 @@ class analogToDigitalConverter():
             error_msg += 'the channel {} sampling rate. '.format(channel.get_id())
             error_msg += 'Please change the ADC sampling rate.'
             raise ValueError(error_msg)
+
+        # Choosing Nyquist zone
+        if nyquist_zone is not None:
+
+            if nyquist_zone < 1:
+                error_msg = "Nyquist zone is less than one. Exiting."
+                raise ValueError(error_msg)
+            if not isinstance(nyquist_zone, int):
+                try:
+                    nyquist_zone = int(nyquist_zone)
+                except:
+                    error_msg = "Could not convert nyquist_zone to integer. Exiting."
+                    raise ValueError(error_msg)
+
+            passband = ( (nyquist_zone-1) * adc_sampling_frequency/2 + bandwidth_edge,
+                         nyquist_zone * adc_sampling_frequency/2 - bandwidth_edge )
+            filtered_trace = butterworth_filter_trace(trace, input_sampling_frequency,
+                                                      passband)
 
         # Random clock offset
         delayed_times = times + adc_time_delay
@@ -331,9 +366,6 @@ class analogToDigitalConverter():
         output: string
             - 'voltage' to store the ADC output as discretised voltage trace
             - 'counts' to store the ADC output in ADC counts
-        upsampling_factor: integer
-            Upsampling factor. The digital trace will be a upsampled to a
-            sampling frequency int_factor times higher than the original one
         """
 
         t = time.time()
