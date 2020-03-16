@@ -392,9 +392,7 @@ class triggerSimulator:
                 only_primary = False
                 secondary_beam_rolls = self.get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles,
                                                            ref_index=ref_index, trigger_adc=trigger_adc,
-                                                           upsampling_factor=upsampling_factor,
-                                                           nyquist_zone=nyquist_zone,
-                                                           bandwidth_edge=bandwidth_edge)
+                                                           upsampling_factor=upsampling_factor)
 
             if only_primary:
                 is_triggered, trigger_delays, sec_trigger_delays = self.phased_trigger(station, det,
