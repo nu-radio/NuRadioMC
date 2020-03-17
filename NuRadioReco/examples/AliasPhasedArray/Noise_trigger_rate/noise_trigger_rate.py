@@ -73,6 +73,28 @@ def get_noise_rms_nyquist_zone(trace,
                                adc_sampling_frequency,
                                nyquist_zone=2,
                                bandwidth_edge=20*units.MHz):
+    """
+    Calculates the noise RMS in one of the Nyquist zones for the ADC
+
+    Parameters
+    ----------
+    trace: array of floats
+        Noise trace
+    input_sampling_frequency: float
+        Sampling frequency of the input trace
+    adc_sampling_frequency: float
+        ADC sampling frequency
+    nyquist_zone: integer
+        Nyquist zone number
+    bandwidth_edge: float
+        Frequency interval used for filtering the chosen Nyquist zone.
+        See above
+
+    Returns
+    -------
+    np.std(filtered_trace): float
+        Standard deviation of the trace filtered in the chosen Nyquist zone
+    """
 
     passband = ( (nyquist_zone-1) * adc_sampling_frequency/2 + bandwidth_edge,
                  nyquist_zone * adc_sampling_frequency/2 - bandwidth_edge )
@@ -145,7 +167,7 @@ def get_digital_trace(trace,
         ADC sampling frequency for the channel
     """
 
-    times = np.arange(len(trace)) / adc_sampling_frequency
+    times = np.arange(len(trace)) / input_sampling_frequency
 
     adc_time_delay = 0
 
@@ -168,18 +190,18 @@ def get_digital_trace(trace,
 
         passband = ( (nyquist_zone-1) * adc_sampling_frequency/2 + bandwidth_edge,
                      nyquist_zone * adc_sampling_frequency/2 - bandwidth_edge )
-        filtered_trace = butterworth_filter_trace(trace, adc_sampling_frequency,
+        filtered_trace = butterworth_filter_trace(trace, input_sampling_frequency,
                                                   passband)
 
     # Random clock offset
     delayed_times = times + adc_time_delay
     interpolate_trace = interp1d(times, trace, kind='quadratic',
-                                 fill_value='extrapolate')
+                                 fill_value=(trace[0],trace[-1]))
 
     delayed_trace = interpolate_trace(delayed_times)
 
     interpolate_delayed_trace = interp1d(times, delayed_trace, kind='quadratic',
-                                         fill_value='extrapolate')
+                                         fill_value=(delayed_trace[0],delayed_trace[-1]))
 
     # Downsampling to ADC frequency
     new_n_samples = int( (adc_sampling_frequency / input_sampling_frequency) * len(delayed_trace) )
@@ -232,7 +254,7 @@ adc_n_samples = int( n_samples * adc_sampling_frequency * upsampling_factor / in
 bandwidth = max_freq-min_freq
 amplitude = (300 * 50 * constants.k * bandwidth / units.Hz) ** 0.5
 
-threshold_factors = [2.15, 2.2, 2.25, 2.3, 2.35, 2.40]
+threshold_factors = [6.5, 6.6, 6.7, 6.8]
 
 noise_trace = channelGenericNoiseAdder.bandlimited_noise(min_freq, max_freq, n_samples,
                                                          input_sampling_frequency, amplitude,
@@ -251,7 +273,7 @@ n_beams = len(primary_angles)
 
 for threshold_factor in threshold_factors:
 
-    threshold_voltage = threshold_factor * noise_rms
+    threshold_voltage = threshold_factor * noise_rms# noise_rms
     prob_per_window = 0
     for Ntry in range(Ntries):
         noise_array = []
@@ -289,7 +311,7 @@ for threshold_factor in threshold_factors:
                               strides=(int(window_width / 2) * strides[0], strides[0]))
 
             squared_mean = np.sum(windowed_traces ** 2 / window_width, axis=1)
-            squared_mean_threshold = n_phased * threshold_factor**2 * amplitude**2
+            squared_mean_threshold = n_phased * (threshold_voltage)**2
             mask = squared_mean > squared_mean_threshold
 
             # If a phased direction triggers, the whole phased array triggers.
@@ -300,4 +322,4 @@ for threshold_factor in threshold_factors:
     # The 2 comes from the use of overlapping windows
     trigger_frequency = prob_per_window / (window_time/2)
 
-    print('Threshold voltage: {:.3e} V, Fraction of noise triggers: {:.8f}%, Noise trigger rate: {:.2f}'.format(threshold_voltage, prob_per_window*100., trigger_frequency/units.Hz))
+    print('Threshold voltage: {:.3e} V, Fraction of noise triggers: {:.8f}%, Noise trigger rate: {:.2f} Hz'.format(threshold_voltage, prob_per_window*100., trigger_frequency/units.Hz))
