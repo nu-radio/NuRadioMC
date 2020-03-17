@@ -153,4 +153,4 @@ for threshold_factor in threshold_factors:
 
     # The 2 comes from the use of overlapping windows
     trigger_frequency = prob_per_window / (window_time/2)
-    print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.8f}%, Noise trigger rate: {:.2f}'.format(threshold_factor, prob_per_window*100., trigger_frequency/units.Hz))
+    print('Threshold factor: {:.2f}, Fraction of noise triggers: {:.8f}%, Noise trigger rate: {:.2f} Hz'.format(threshold_factor, prob_per_window*100., trigger_frequency/units.Hz))
