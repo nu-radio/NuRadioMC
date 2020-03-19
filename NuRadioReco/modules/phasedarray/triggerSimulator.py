@@ -203,6 +203,7 @@ class triggerSimulator:
             if trigger_adc:
 
                 ADC = analogToDigitalConverter()
+
                 trace = ADC.get_digital_trace(station, det, channel,
                                         trigger_adc=trigger_adc,
                                         random_clock_offset=True,
