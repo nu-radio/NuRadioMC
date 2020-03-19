@@ -6,7 +6,6 @@ from six import iteritems
 import os
 
 
-
 class Templates(object):
     __instance = None
 
@@ -26,13 +25,11 @@ class Templates(object):
         self.__path = path
         self.logger = logging.getLogger("NuRadioReco.Templates")
 
-
     def set_template_directory(self, path):
         self.__path = path
 
-
     def __load_cr_template(self, station_id):
-        path= os.path.join(self.__path, 'templates_cr_station_{}.pickle'.format(station_id))
+        path = os.path.join(self.__path, 'templates_cr_station_{}.pickle'.format(station_id))
         if(os.path.exists(path)):
             self.__cr_templates[station_id] = read_pickle(path)
             zen_ref = np.deg2rad(60)
@@ -86,6 +83,8 @@ class Templates(object):
                         if n_tmpl >= n:
                             self.__cr_template_set_full = cr_set
                             return self.__cr_template_set_full
+            self.logger.warning(f"{n} templates requested but only {n_tmpl} are available. Returning only {n_tmpl} templates.")
+            return self.__cr_template_set_full
         else:
             return self.__cr_template_set_full
 
@@ -141,7 +140,7 @@ class Templates(object):
         return self.__nu_template_set
 
     def __load_nu_template(self, station_id):
-        path= os.path.join(self.__path, 'templates_nu_station_{}.pickle'.format(station_id))
+        path = os.path.join(self.__path, 'templates_nu_station_{}.pickle'.format(station_id))
         if(os.path.exists(path)):
             self.__nu_templates[station_id] = read_pickle(path)
             zen_ref = np.deg2rad(140)
