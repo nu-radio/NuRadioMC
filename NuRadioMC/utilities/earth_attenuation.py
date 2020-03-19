@@ -251,9 +251,10 @@ class PREM:
         if distance % step:
             n_steps += 1
         ts = np.linspace(0, 1, n_steps)
-        # Array of parameterized positions with shape (n_steps, 3)
-        positions = endpoint + np.vstack(ts) * distance * direction
-        rs = np.sqrt(np.sum(positions ** 2, axis=1))
+        xs = endpoint[0] + ts * distance * direction[0]
+        ys = endpoint[1] + ts * distance * direction[1]
+        zs = endpoint[2] + ts * distance * direction[2]
+        rs = np.sqrt(xs ** 2 + ys ** 2 + zs ** 2)
         rhos = self.density(rs)
         return np.trapz(rhos * distance, ts)
 
