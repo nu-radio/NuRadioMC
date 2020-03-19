@@ -369,12 +369,14 @@ class simulation():
                                                      self._fin['flavors'][iE_mother],
                                                      mode=self._cfg['weights']['weight_mode'],
                                                      cross_section_type=self._cfg['weights']['cross_section_type'],
-                                                     vertex_position=x_int_mother)
+                                                     vertex_position=x_int_mother,
+                                                     phi_nu=self._fin['azimuths'][iE_mother])
             else:
                 self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor,
                                                              mode=self._cfg['weights']['weight_mode'],
                                                              cross_section_type=self._cfg['weights']['cross_section_type'],
-                                                             vertex_position=x1)
+                                                             vertex_position=x1,
+                                                             phi_nu=self._azimuth_nu)
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if(self._mout['weights'][self._iE] < self._cfg['speedup']['minimum_weight_cut']):
