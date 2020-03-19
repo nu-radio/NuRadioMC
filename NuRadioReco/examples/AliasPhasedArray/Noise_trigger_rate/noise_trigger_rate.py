@@ -38,6 +38,8 @@ parser.add_argument('--ntries', type=int, help='number noise traces to which a t
 parser.add_argument('--nyquist_zone', type=int, help='Nyquist zone', default=1)
 parser.add_argument('--upsampling_factor', type=int, help='Upsampling factor (integer)', default=4)
 parser.add_argument('--adc_sampling_frequency', type=float, help='Sampling frequency in GHz', default=250*units.MHz)
+parser.add_argument('--noise_rms_bits', type=float, help='Bits reserved for the noise RMS', default=2)
+parser.add_argument('--adc_n_bits', type=float, help='ADC number of bits', default=8)
 args = parser.parse_args()
 
 main_low_angle = -50. * units.deg
@@ -196,12 +198,14 @@ def get_digital_trace(trace,
     # Random clock offset
     delayed_times = times + adc_time_delay
     interpolate_trace = interp1d(times, trace, kind='quadratic',
-                                 fill_value=(trace[0],trace[-1]))
+                                 fill_value=(trace[0],trace[-1]),
+                                 bounds_error=False)
 
     delayed_trace = interpolate_trace(delayed_times)
 
     interpolate_delayed_trace = interp1d(times, delayed_trace, kind='quadratic',
-                                         fill_value=(delayed_trace[0],delayed_trace[-1]))
+                                         fill_value=(delayed_trace[0],delayed_trace[-1]),
+                                         bounds_error=False)
 
     # Downsampling to ADC frequency
     new_n_samples = int( (adc_sampling_frequency / input_sampling_frequency) * len(delayed_trace) )
@@ -221,7 +225,7 @@ def get_digital_trace(trace,
         if (upsampling_factor >= 2):
             upsampling_factor = int(upsampling_factor)
             upsampled_trace = upsampling_fir(digital_trace, adc_sampling_frequency,
-                                             int_factor=upsampling_factor, ntaps=2**7)
+                                             int_factor=upsampling_factor, ntaps=2**4)
             adc_sampling_frequency *= upsampling_factor
 
             digital_trace = upsampled_trace[:]
@@ -235,6 +239,8 @@ def get_digital_trace(trace,
 nyquist_zone = args.nyquist_zone
 upsampling_factor = args.upsampling_factor
 adc_sampling_frequency = args.adc_sampling_frequency
+noise_rms_bits = args.noise_rms_bits
+adc_n_bits = args.adc_n_bits
 Ntries = args.ntries # number of tries
 
 input_sampling_frequency = 3 * units.GHz
@@ -254,7 +260,7 @@ adc_n_samples = int( n_samples * adc_sampling_frequency * upsampling_factor / in
 bandwidth = max_freq-min_freq
 amplitude = (300 * 50 * constants.k * bandwidth / units.Hz) ** 0.5
 
-threshold_factors = [6.5, 6.6, 6.7, 6.8]
+threshold_factors = [8.0, 8.1, 8.2, 8.3]
 
 noise_trace = channelGenericNoiseAdder.bandlimited_noise(min_freq, max_freq, n_samples,
                                                          input_sampling_frequency, amplitude,
@@ -266,7 +272,13 @@ noise_rms = get_noise_rms_nyquist_zone(noise_trace,
                                        nyquist_zone=nyquist_zone,
                                        bandwidth_edge=20*units.MHz)
 
-adc_ref_voltage = get_ref_voltage(noise_rms, adc_n_bits=8, noise_rms_bits=2)
+adc_ref_voltage = get_ref_voltage(noise_rms, adc_n_bits=8, noise_rms_bits=noise_rms_bits)
+
+print("Number of bits for noise RMS: {:.1f}".format(noise_rms_bits))
+print("Number of bits of the ADC: {:d}".format(adc_n_bits))
+print("Reference voltage: {:.3e} V".format(adc_ref_voltage/units.V))
+print("Noise for the Nyquist zone: {:.3e} V".format(noise_rms/units.V))
+print("Nyquist zone number {:d}".format(nyquist_zone))
 
 n_beams = len(primary_angles)
 
