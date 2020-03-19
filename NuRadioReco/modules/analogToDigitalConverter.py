@@ -303,12 +303,14 @@ class analogToDigitalConverter():
         # Random clock offset
         delayed_times = times + adc_time_delay
         interpolate_trace = interp1d(times, trace, kind='quadratic',
-                                     fill_value=(trace[0],trace[-1]))
+                                     fill_value=(trace[0],trace[-1]),
+                                     bounds_error=False)
 
         delayed_trace = interpolate_trace(delayed_times)
 
         interpolate_delayed_trace = interp1d(times, delayed_trace, kind='quadratic',
-                                             fill_value=(delayed_trace[0],delayed_trace[-1]))
+                                             fill_value=(delayed_trace[0],delayed_trace[-1]),
+                                             bounds_error=False)
 
         # Downsampling to ADC frequency
         new_n_samples = int( (adc_sampling_frequency / channel.get_sampling_rate()) * len(delayed_trace) )
@@ -325,7 +327,7 @@ class analogToDigitalConverter():
             if (upsampling_factor >= 2):
                 upsampling_factor = int(upsampling_factor)
                 upsampled_trace = upsampling_fir(digital_trace, adc_sampling_frequency,
-                                                 int_factor=upsampling_factor, ntaps=2**7)
+                                                 int_factor=upsampling_factor, ntaps=2**4)
                 # If upsampled is performed, the final sampling frequency changes
                 adc_sampling_frequency *= upsampling_factor
 
