@@ -201,7 +201,7 @@ def update_electric_field_plot(
     polarization_angle = polarization_angle * units.deg
     propagation_length  = propagation_length * units.km
     energy = np.power(10., log_energy)
-    samples = 512
+    samples = int(512 * sampling_rate)
     ior = 1.78
     cherenkov_angle = np.arccos(1./ior)
     distance = 1.*units.km
@@ -263,7 +263,8 @@ def update_electric_field_plot(
         y=np.abs(efield_spectrum_phi)/(units.mV/units.m/units.GHz),
         name='E_phi (f)'
     ),1,2)
-    fig.update_xaxes(title_text='t [ns]', row=1, col=1)
+    max_time = times[np.argmax(np.sqrt(efield_trace_phi**2+efield_trace_theta**2))]
+    fig.update_xaxes(title_text='t [ns]', range=[max_time-50*units.ns, max_time+50*units.ns], row=1, col=1)
     fig.update_xaxes(title_text='f [MHz]', row=1, col=2)
     fig.update_yaxes(title_text='E[mV/m]', row=1, col=1)
     fig.update_yaxes(title_text='E [mV/m/GHz]', row=1, col=2)

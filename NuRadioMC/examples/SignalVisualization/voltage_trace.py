@@ -191,7 +191,7 @@ def update_voltage_plot(
     filter_band,
     sampling_rate
 ):
-    samples = 512
+    samples = int(512 * sampling_rate)
     electric_field = json.loads(electric_field)
     if electric_field is None:
         return {}, {}
@@ -231,6 +231,7 @@ def update_voltage_plot(
         detector_response_theta[mask] *= np.abs(h)
         detector_response_phi[mask] *= np.abs(h)
     channel_trace = fft.freq2time(channel_spectrum, sampling_rate)
+    max_time = times[np.argmax(np.abs(channel_trace))]
     fig = plotly.subplots.make_subplots(rows=1, cols=2,
         shared_xaxes=False, shared_yaxes=False,
         vertical_spacing=0.01, subplot_titles=['Time Trace', 'Spectrum'])
@@ -244,7 +245,7 @@ def update_voltage_plot(
         y=np.abs(channel_spectrum)/(units.mV/units.GHz),
         name='U (f)'
     ), 1, 2)
-    fig.update_xaxes(title_text='t [ns]', row=1, col=1)
+    fig.update_xaxes(title_text='t [ns]', range=[max_time-50.*units.ns, max_time+50.*units.ns], row=1, col=1)
     fig.update_xaxes(title_text='f [MHz]', row=1, col=2)
     fig.update_yaxes(title_text='U [mV]', row=1, col=1)
     fig.update_yaxes(title_text='U [mV/GHz]', row=1, col=2)
