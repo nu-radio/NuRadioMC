@@ -9,8 +9,10 @@ import os
 # Reference values from previous run, have to be updated, if code changes
 ###########################
 
-Veff_mean = 3.530440897143047
-Veff_sigma = 0.05885641838442946
+# the event generation has a fixed seed and I switched to Alvarez2000 (also no randomness)
+# thus, the Veff has no statistical scatter
+Veff_mean = 5.45361
+Veff_sigma = 0.0001
 
 path = os.path.dirname(os.path.abspath(__file__))
 fin = h5py.File(os.path.join(path, "output.hdf5"), 'r')
@@ -19,8 +21,6 @@ fin = h5py.File(os.path.join(path, "output.hdf5"), 'r')
 def calculate_veff(fin):
     weights = np.array(fin['weights'])
     n_events = fin.attrs['n_events']
-    density_ice = 0.9167 * units.g / units.cm ** 3
-    density_water = 997 * units.kg / units.m ** 3
 
     n_triggered = np.sum(weights)
 
@@ -29,7 +29,7 @@ def calculate_veff(fin):
     rmax = fin.attrs['rmax']
     dZ = fin.attrs['zmax'] - fin.attrs['zmin']
     V = np.pi * (rmax ** 2 - rmin ** 2) * dZ
-    Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights) / n_events
+    Veff = V * 4 * np.pi * np.sum(weights) / n_events
     return n_triggered, n_events, Veff
 
 ###########################
