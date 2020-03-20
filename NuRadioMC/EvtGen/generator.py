@@ -682,7 +682,7 @@ def get_projected_area_cylinder(theta, R, d):
         height of zylinder
 
     Returns:
-    float: projected ares
+    float: projected area
     """
 
     return np.pi * R ** 2 * np.abs(np.cos(theta)) + 2 * R * d * np.sin(theta)
@@ -1247,8 +1247,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     # generate neutrino vertices randomly
     logger.debug("generating azimuths")
     data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
-    data_sets["zeniths"] = draw_zeniths(n_events, full_rmax, full_zmax, full_zmin,
-                                        thetamin, thetamax)
+    data_sets["zeniths"] = np.arccos(np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events))
+
     logger.debug("generating vertex positions")
     rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
     phiphi = np.random.uniform(0, 2 * np.pi, n_events)
