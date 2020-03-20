@@ -691,7 +691,7 @@ def get_projected_area_cylinder(theta, R, d):
 def get_projected_area_cylinder_integral(theta, R, d):
     """
     integral of get_projected_area_cylinder
-    
+
     Parameters
     ----------
     theta: float
@@ -838,9 +838,17 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     config_file: string
         The user can specify the path to their own config file or choose among
         the three available options:
-        -'SouthPole', a config file for the South Pole (spherical Earth)
-        -'MooresBay', a config file for Moore's Bay (spherical Earth)
+        -'SouthPole', a config file for the South Pole (spherical Earth). It
+        consists of a 2.7 km deep layer of ice, bedrock below and air above.
+        -'MooresBay', a config file for Moore's Bay (spherical Earth). It
+        consists of a 576 m deep ice layer with a 2234 m deep water layer below,
+        and bedrock below that.
         -'InfIce', a config file with a medium of infinite ice
+        -'Greenland', a config file for Summit Station, Greenland (spherical Earth),
+        same as SouthPole but with a 3 km deep ice layer.
+        IMPORTANT: If these options are used, the code is more efficient if the
+        user requests their own "path_to_tables" and "path_to_tables_readonly",
+        pointing them to a writable directory
         If one of these three options is chosen, the user is supposed to edit
         the corresponding config_PROPOSAL_xxx.json.sample file to include valid
         table paths and then copy this file to config_PROPOSAL_xxx.json.
@@ -1153,9 +1161,17 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     proposal_config: string or path
         The user can specify the path to their own config file or choose among
         the three available options:
-        -'SouthPole', a config file for the South Pole (spherical Earth)
-        -'MooresBay', a config file for Moore's Bay (spherical Earth)
+        -'SouthPole', a config file for the South Pole (spherical Earth). It
+        consists of a 2.7 km deep layer of ice, bedrock below and air above.
+        -'MooresBay', a config file for Moore's Bay (spherical Earth). It
+        consists of a 576 m deep ice layer with a 2234 m deep water layer below,
+        and bedrock below that.
         -'InfIce', a config file with a medium of infinite ice
+        -'Greenland', a config file for Summit Station, Greenland (spherical Earth),
+        same as SouthPole but with a 3 km deep ice layer.
+        IMPORTANT: If these options are used, the code is more efficient if the
+        user requests their own "path_to_tables" and "path_to_tables_readonly",
+        pointing them to a writable directory
         If one of these three options is chosen, the user is supposed to edit
         the corresponding config_PROPOSAL_xxx.json.sample file to include valid
         table paths and then copy this file to config_PROPOSAL_xxx.json.
@@ -1231,8 +1247,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     # generate neutrino vertices randomly
     logger.debug("generating azimuths")
     data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
-#     data_sets["zeniths"] = draw_zeniths(n_events, full_rmax, full_zmax, full_zmin,
-#                                         thetamin, thetamax)
     data_sets["zeniths"] = np.arccos(np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events))
 
     logger.debug("generating vertex positions")
