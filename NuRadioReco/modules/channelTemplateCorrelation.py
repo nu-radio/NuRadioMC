@@ -15,6 +15,7 @@ logger = logging.getLogger('channelTemplateCorrelation')
 
 import matplotlib.pyplot as plt
 
+
 class channelTemplateCorrelation:
     """
     Calculates correlation of waveform with neutrino/cr templates
@@ -107,7 +108,6 @@ class channelTemplateCorrelation:
                 xcorrs.append(xcorr)
                 xcorrelations['{}_ref_xcorr_time'.format(ref_str)] = xcorrpos * dt
 
-
                 if self.__debug:
                     if(xcorr > 0.1):
                         fig, (ax, ax2) = plt.subplots(2, 1)
@@ -126,11 +126,10 @@ class channelTemplateCorrelation:
             else:
                 template_key = []
 
-                for key in ref_templates.keys():
+                for key in ref_templates:
 
                     ref_template = ref_templates[key][channel.get_id()]
                     ref_template_resampled = self.match_sampling(ref_template, resampling_factor)
-
 
                     xcorr_trace = hp.get_normalized_xcorr(trace, ref_template_resampled)
                     xcorrpos = np.argmax(np.abs(xcorr_trace))
@@ -143,15 +142,11 @@ class channelTemplateCorrelation:
                 if self.__debug:
                     print(event_id)
                     plt.figure()
-                    plt.hist(xcorrs_ch,range=(0,1),bins=50)
+                    plt.hist(xcorrs_ch, range=(0, 1), bins=50)
                     plt.axvline(np.mean(np.abs(xcorrs_ch)))
                     plt.axvline(np.max(np.abs(xcorrs_ch)))
                     print(np.mean(np.abs(xcorrs_ch)), np.max(np.abs(xcorrs_ch)),
-                            channel[chp.maximum_amplitude]/units.mV)
-
-
-
-
+                            channel[chp.maximum_amplitude] / units.mV)
 
                 xcorrelations['{}_ref_xcorr'.format(ref_str)] = np.abs(xcorrs_ch).mean()
                 xcorrelations['{}_ref_xcorr_all'.format(ref_str)] = np.abs(xcorrs_ch)
@@ -170,15 +165,14 @@ class channelTemplateCorrelation:
 
             if self.__debug:
                 print("per channel", len(xcorrs_ch))
-                plt.hist(xcorrs_ch,range=(0,1),bins=50)
+                plt.hist(xcorrs_ch, range=(0, 1), bins=50)
                 plt.show()
                 print(xcorrs)
-            #Writing information to channel
+            # Writing information to channel
             if cosmic_ray:
                 channel[chp.cr_xcorrelations] = xcorrelations
             else:
                 channel[chp.nu_xcorrelations] = xcorrelations
-
 
         xcorrs = np.array(xcorrs)
         xcorrs_max = np.array(xcorrs_max)
@@ -215,7 +209,7 @@ class channelTemplateCorrelation:
                      {1:.02f}".format(ref_str,
                      xcorrelations_station['{0}_avg_xcorr_parallel_{0}channels'.format(ref_str)]))
 
-        #Writing information to station
+        # Writing information to station
         if cosmic_ray:
             station[stnp.cr_xcorrelations] = xcorrelations_station
         else:
