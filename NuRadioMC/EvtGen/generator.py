@@ -1247,7 +1247,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     # generate neutrino vertices randomly
     logger.debug("generating azimuths")
     data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
-    data_sets["zeniths"] = np.arccos( np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events) )
+    data_sets["zeniths"] = draw_zeniths(n_events, full_rmax, full_zmax, full_zmin,
+                                        thetamin, thetamax)
     logger.debug("generating vertex positions")
     rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
     phiphi = np.random.uniform(0, 2 * np.pi, n_events)
