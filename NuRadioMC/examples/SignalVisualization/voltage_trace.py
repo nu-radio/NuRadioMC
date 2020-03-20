@@ -12,6 +12,8 @@ import NuRadioReco.detector.ARIANNA.analog_components
 import NuRadioReco.detector.RNO_G.analog_components
 import radiotools.helper as hp
 from app import app
+import antennas
+import amplifiers
 import scipy.signal
 
 antennapattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
@@ -24,17 +26,22 @@ layout = html.Div([
                 html.Div([
                     html.Div([
                         html.Div('Antenna Type'),
-                        dcc.Dropdown(
-                            id='antenna-type-radio-items',
-                            options=[
-                                {'label': 'Bicone', 'value': 'bicone_v8_InfFirn'},
-                                {'label': 'LPDA', 'value': 'createLPDA_100MHz_InfFirn'},
-                                {'label': 'RNO V-pol', 'value': 'greenland_vpol_InfFirn'},
-                                {'label': 'RNO H-pol', 'value': 'fourslot_InfFirn'}
-                            ],
-                            value='bicone_v8_InfFirn',
-                            multi=False
-                        )
+                        html.Div([
+                            html.Div([
+                                dcc.Dropdown(
+                                    id='antenna-type-radio-items',
+                                    options=antennas.antenna_options,
+                                    value='bicone_v8_InfFirn',
+                                    multi=False
+                                )
+                            ], style={'flex': '1'}),
+                            html.Div([
+                                html.Div([
+                                    html.Div('', className='icon-question-circle-o')
+                                ], className='popup-symbol'),
+                                html.Div('', id='antenna-type-popup', className='popup-box')
+                            ], className='popup-container', style={'flex': 'none'})
+                        ], style={'display': 'flex'})
                     ], className='input-group'),
                     html.Div([
                         html.Div('Signal Zenith Angle'),
@@ -77,28 +84,43 @@ layout = html.Div([
                 html.Div([
                     html.Div([
                         html.Div('Amplifier'),
-                        dcc.Dropdown(
-                            id='amplifier-type-dropdown',
-                            options=[
-                                {'label': 'None', 'value': None},
-                                {'label': 'RNO-G, Iglu', 'value': 'iglu'},
-                                {'label': 'RNO-G, Surface', 'value': 'rno_surface'},
-                                {'label': 'ARIANNA-100', 'value': '100'},
-                                {'label': 'ARIANNA-200', 'value': '200'},
-                                {'label': 'ARIANNA-300', 'value': '300'}
-                            ],
-                            value=None,
-                            multi=False
-                        )
+                        html.Div([
+                            html.Div([
+                                dcc.Dropdown(
+                                    id='amplifier-type-dropdown',
+                                    options=amplifiers.amplifier_options,
+                                    value=None,
+                                    multi=False
+                                )
+                            ], style={'flex': 1}),
+                            html.Div([
+                                html.Div([
+                                    html.Div('', className='icon-question-circle-o')
+                                ], className='popup-symbol'),
+                                html.Div('', id='amplifier-popup', className='popup-box')
+                            ], className='popup-container', style={'flex': 'none'})
+                        ], style={'display': 'flex'})
                     ], className='input-group'),
                     html.Div([
-                        dcc.Checklist(
-                            id='filter-toggle-checklist',
-                            options=[
-                                {'label': 'Filter', 'value': 'filter'}
-                            ],
-                            value=[]
-                        ),
+                        html.Div([
+                            html.Div([
+                                dcc.Checklist(
+                                    id='filter-toggle-checklist',
+                                    options=[
+                                        {'label': 'Filter', 'value': 'filter'}
+                                    ],
+                                    value=[]
+                                )
+                            ], style={'flex': '1'}),
+                            html.Div([
+                                html.Div([
+                                    html.Div('', className='icon-question-circle-o')
+                                ], className='popup-symbol'),
+                                html.Div(('Apply a 10th order Butterworth filter '
+                                    'to the channel spectrum. Phase is not affected'
+                                ), className='popup-box')
+                            ], className='popup-container', style={'flex': 'none'})
+                        ], style={'display': 'flex'}),
                         dcc.RangeSlider(
                             id='filter-band-range-slider',
                             min=0,
@@ -342,3 +364,23 @@ def update_signal_direction_plot(zenith, azimuth, antenna_type):
         )
     )
     return fig
+
+@app.callback(
+    Output('antenna-type-popup', 'children'),
+    [Input('antenna-type-radio-items', 'value')]
+)
+def get_antenna_type_tooltip(selected_antenna):
+    for antenna in antennas.antenna_options:
+        if antenna['value'] == selected_antenna:
+            return antenna['description']
+    return ''
+
+@app.callback(
+    Output('amplifier-popup', 'children'),
+    [Input('amplifier-type-dropdown', 'value')]
+)
+def get_amplifier_tooltip(selected_amplifier):
+    for amp in amplifiers.amplifier_options:
+        if amp['value'] == selected_amplifier:
+            return amp['description']
+    return ''

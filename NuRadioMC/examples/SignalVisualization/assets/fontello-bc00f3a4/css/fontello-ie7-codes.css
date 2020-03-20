@@ -1,0 +1,2 @@
+
+.icon-question-circle-o { *zoom: expression( this.runtimeStyle['zoom'] = '1', this.innerHTML = '&#xf29c;&nbsp;'); }
