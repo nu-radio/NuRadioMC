@@ -369,12 +369,14 @@ class simulation():
                                                      self._fin['flavors'][iE_mother],
                                                      mode=self._cfg['weights']['weight_mode'],
                                                      cross_section_type=self._cfg['weights']['cross_section_type'],
-                                                     vertex_position=x_int_mother)
+                                                     vertex_position=x_int_mother,
+                                                     phi_nu=self._fin['azimuths'][iE_mother])
             else:
                 self._mout['weights'][self._iE] = get_weight(self._zenith_nu, self._energy, self._flavor,
                                                              mode=self._cfg['weights']['weight_mode'],
                                                              cross_section_type=self._cfg['weights']['cross_section_type'],
-                                                             vertex_position=x1)
+                                                             vertex_position=x1,
+                                                             phi_nu=self._azimuth_nu)
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if(self._mout['weights'][self._iE] < self._cfg['speedup']['minimum_weight_cut']):
@@ -1001,9 +1003,6 @@ class simulation():
 
     def calculate_Veff(self):
         # calculate effective
-        density_ice = 0.9167 * units.g / units.cm ** 3
-        density_water = 1000 * units.kg / units.m ** 3
-
         n_triggered = np.sum(self._mout['triggered'])
         n_triggered_weighted = np.sum(self._mout['weights'][self._mout['triggered']])
         logger.warning(f'fraction of triggered events = {n_triggered:.0f}/{self._n_events:.0f} = {n_triggered / self._n_events:.3f} (sum of weights = {n_triggered_weighted:.2f})')
@@ -1019,7 +1018,7 @@ class simulation():
             rmax = self._fin_attrs['rmax']
             dZ = self._fin_attrs['zmax'] - self._fin_attrs['zmin']
             V = np.pi * (rmax ** 2 - rmin ** 2) * dZ
-        Veff = V * density_ice / density_water * 4 * np.pi * n_triggered_weighted / self._n_events
+        Veff = V * 4 * np.pi * n_triggered_weighted / self._n_events
         logger.warning("Veff = {:.4g} km^3 sr".format(Veff / units.km ** 3))
 
     def _get_em_had_fraction(self, inelasticity, inttype, flavor):

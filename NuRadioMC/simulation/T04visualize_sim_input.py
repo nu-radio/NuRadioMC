@@ -93,7 +93,6 @@ fig.tight_layout()
 plt.title('vertex distribution')
 plt.savefig(os.path.join(plot_folder, "simInputVertex.png"))
 
-
 # plot incoming direction
 zeniths = np.array(zeniths)
 azimuths = np.array(azimuths)
@@ -106,6 +105,9 @@ fig.subplots_adjust(top=0.9)
 
 plt.savefig(os.path.join(plot_folder, "simInputIncoming.png"))
 
+fig, ax = php.get_histogram(np.cos(zeniths), bins=np.arange(-1, 1.01, 0.1),
+                            xlabel="cos zenith")
+plt.savefig(os.path.join(plot_folder, "simInputIncoming_coszenith.png"))
 # plot inelasticity
 inelasticity = np.array(inelasticity)
 fig, axs = php.get_histogram(inelasticity,

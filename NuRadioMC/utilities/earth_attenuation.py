@@ -2,13 +2,15 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import cross_sections
+from radiotools import helper as hp
 import logging
 logger = logging.getLogger("utilities.earth_attenuation")
 
 AMU = 1.66e-27 * units.kg
 
+
 def get_weight(theta_nu, pnu, flavors, mode='simple', cross_section_type='ctw',
-               vertex_position=None):
+               vertex_position=None, phi_nu=None):
     """
     calculates neutrino weight due to Earth absorption for different models
 
@@ -27,6 +29,8 @@ def get_weight(theta_nu, pnu, flavors, mode='simple', cross_section_type='ctw',
         'ghandi', 'ctw' or 'csms' (see description in `cross_sections.py`)
     vertex_position: 3-dim array or None (default)
         the position of the neutrino interaction
+    phi_nu: float
+        the azimuth angle of the neutrino direction
     """
     if(mode == 'simple'):
         return get_simple_weight(theta_nu, pnu, cross_section_type=cross_section_type)
@@ -34,14 +38,16 @@ def get_weight(theta_nu, pnu, flavors, mode='simple', cross_section_type='ctw',
         return get_core_mantle_crust_weight(theta_nu, pnu, flavors, cross_section_type=cross_section_type)
     elif (mode == "core_mantle_crust"):
         earth = CoreMantleCrustModel()
-        slant_depth = earth.slant_depth(theta_nu, -vertex_position[2])
+        direction = hp.spherical_to_cartesian(theta_nu, phi_nu)
+        slant_depth = earth.slant_depth(vertex_position, direction)
         # by requesting the interaction length for a density of 1, we get it in units of length**2/weight
         L_int = cross_sections.get_interaction_length(pnu, density=1., flavor=flavors, inttype='total',
                                                       cross_section_type=cross_section_type)
         return np.exp(-slant_depth / L_int)
     elif (mode == "PREM"):
         earth = PREM()
-        slant_depth = earth.slant_depth(theta_nu, -vertex_position[2])
+        direction = hp.spherical_to_cartesian(theta_nu, phi_nu)
+        slant_depth = earth.slant_depth(vertex_position, direction)
         # by requesting the interaction length for a density of 1, we get it in units of length**2/weight
         L_int = cross_sections.get_interaction_length(pnu, density=1., flavor=flavors, inttype='total',
                                                       cross_section_type=cross_section_type)
@@ -194,7 +200,7 @@ class PREM:
                           zip(radius_bounds[:-1], radius_bounds[1:]))
         return np.piecewise(r / self.earth_radius, conditions, self.densities)
 
-    def slant_depth(self, angle, depth, step=500 * units.m):
+    def slant_depth(self, endpoint, direction, step=500 * units.m):
         """
         Calculates the column density of a chord cutting through Earth.
 
@@ -203,10 +209,14 @@ class PREM:
 
         Parameters
         ----------
-        angle : float
-            Zenith angle of the chord's direction.
-        depth : float
-            (Positive-valued) depth of the chord endpoint.
+        endpoint : array_like
+            Vector position of the chord endpoint, in a coordinate system
+            centered on the surface of the Earth (e.g. a negative third
+            coordinate represents the depth below the surface).
+        direction : array_like
+            Vector direction of the chord, in a coordinate system
+            centered on the surface of the Earth (e.g. a negative third
+            coordinate represents the chord pointing into the Earth).
         step : float, optional
             Step size for the integration.
 
@@ -221,37 +231,32 @@ class PREM:
         PREM.density : Calculates the Earth's density at a given radius.
 
         """
-        angle = 180 * units.deg - angle  # convert zenith angle to nadir
-        # Starting point (x0, z0)
-        x0 = 0
-        z0 = self.earth_radius - depth
-        # Find exit point (x1, z1)
-        if angle == 0:
-            x1 = 0
-            z1 = -self.earth_radius
-        else:
-            m = -np.cos(angle) / np.sin(angle)
-            a = z0 - m * x0
-            b = 1 + m ** 2
-            if angle < 0:
-                x1 = -m * a / b - np.sqrt(m ** 2 * a ** 2 / b ** 2
-                                      -(a ** 2 - self.earth_radius ** 2) / b)
-            else:
-                x1 = -m * a / b + np.sqrt(m ** 2 * a ** 2 / b ** 2
-                                      -(a ** 2 - self.earth_radius ** 2) / b)
-            z1 = z0 + m * (x1 - x0)
-
-        # Parameterize line integral with t from 0 to 1, with steps just under the
-        # given step size (in meters)
-        l = np.sqrt((x1 - x0) ** 2 + (z1 - z0) ** 2)
-        ts = np.linspace(0, 1, int(l / step) + 2)
-        xs = x0 + (x1 - x0) * ts
-        zs = z0 + (z1 - z0) * ts
-        rs = np.sqrt(xs ** 2 + zs ** 2)
+        # Convert to Earth-centric coordiante system (e.g. center of the Earth
+        # is at (0, 0, 0))
+        endpoint = np.array([endpoint[0], endpoint[1],
+                             endpoint[2] + self.earth_radius])
+        direction /= np.linalg.norm(direction)
+        dot_prod = np.dot(endpoint, direction)
+        # Check for intersection of line and sphere
+        discriminant = dot_prod ** 2 - np.sum(endpoint ** 2) + self.earth_radius ** 2
+        if discriminant <= 0:
+            return 0
+        # Calculate the distance at which the line intersects the sphere
+        distance = -dot_prod + np.sqrt(discriminant)
+        if distance <= 0:
+            return 0
+        # Parameterize line integral with ts from 0 to 1, with steps just under
+        # the given step size (in meters)
+        n_steps = int(distance / step)
+        if distance % step:
+            n_steps += 1
+        ts = np.linspace(0, 1, n_steps)
+        xs = endpoint[0] + ts * distance * direction[0]
+        ys = endpoint[1] + ts * distance * direction[1]
+        zs = endpoint[2] + ts * distance * direction[2]
+        rs = np.sqrt(xs ** 2 + ys ** 2 + zs ** 2)
         rhos = self.density(rs)
-        x_int = np.trapz(rhos * (x1 - x0), ts)
-        z_int = np.trapz(rhos * (z1 - z0), ts)
-        return np.sqrt(x_int ** 2 + z_int ** 2)
+        return np.trapz(rhos * distance, ts)
 
 
 class CoreMantleCrustModel(PREM):
