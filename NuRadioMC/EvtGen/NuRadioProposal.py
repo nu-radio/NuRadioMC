@@ -223,9 +223,14 @@ class ProposalFunctions:
         config_file: string or path
             The user can specify the path to their own config file or choose among
             the three available options:
-            -'SouthPole', a config file for the South Pole (spherical Earth)
-            -'MooresBay', a config file for Moore's Bay (spherical Earth)
+            -'SouthPole', a config file for the South Pole (spherical Earth). It
+            consists of a 2.7 km deep layer of ice, bedrock below and air above.
+            -'MooresBay', a config file for Moore's Bay (spherical Earth). It
+            consists of a 576 m deep ice layer with a 2234 m deep water layer below,
+            and bedrock below that.
             -'InfIce', a config file with a medium of infinite ice
+            -'Greenland', a config file for Summit Station, Greenland (spherical Earth),
+            same as SouthPole but with a 3 km deep ice layer.
             IMPORTANT: If these options are used, the code is more efficient if the
             user requests their own "path_to_tables" and "path_to_tables_readonly",
             pointing them to a writable directory
@@ -258,6 +263,8 @@ class ProposalFunctions:
             config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_mooresbay.json')
         elif (config_file == 'InfIce'):
             config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_infice.json')
+        elif (config_file == 'Greenland'):
+            config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_greenland.json')
         elif (os.path.exists(config_file)):
             config_file_full_path = config_file
         else:
@@ -503,6 +510,7 @@ class ProposalFunctions:
             -'SouthPole', a config file for the South Pole (spherical Earth)
             -'MooresBay', a config file for Moore's Bay (spherical Earth)
             -'InfIce', a config file with a medium of infinite ice
+            -'Greenland', a config file for Summit Station, Greenland (spherical Earth)
             IMPORTANT: If these options are used, the code is more efficient if the
             user requests their own "path_to_tables" and "path_to_tables_readonly",
             pointing them to a writable directory
@@ -653,6 +661,7 @@ class ProposalFunctions:
             -'SouthPole', a config file for the South Pole (spherical Earth)
             -'MooresBay', a config file for Moore's Bay (spherical Earth)
             -'InfIce', a config file with a medium of infinite ice
+            -'Greenland', a config file for Summit Station, Greenland (spherical Earth)
             IMPORTANT: If these options are used, the code is more efficient if the
             user requests their own "path_to_tables" and "path_to_tables_readonly",
             pointing them to a writable directory
