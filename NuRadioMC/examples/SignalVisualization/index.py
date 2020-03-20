@@ -87,6 +87,11 @@ app.layout = html.Div([
                             labelStyle={'padding':'0 5px'}
                         )
                     ], className='input-group'),
+                ], className='panel-body')
+            ], className='panel panel-default'),
+            html.Div([
+                html.Div('Simulation Settings', className='panel-heading'),
+                html.Div([
                     html.Div([
                         html.Div('Shower Model'),
                         dcc.Dropdown(
@@ -100,6 +105,23 @@ app.layout = html.Div([
                             ],
                             multi=False,
                             value='ARZ2020'
+                        )
+                    ], className='input-group'),
+                    html.Div([
+                        html.Div('Sampling Rate'),
+                        dcc.Slider(
+                            id='sampling-rate-slider',
+                            min=1.,
+                            max=5.,
+                            step=.5,
+                            value=2.,
+                            marks={
+                                1: '1GHz',
+                                2: '2GHz',
+                                3: '3GHz',
+                                4: '4GHz',
+                                5: '5GHz'
+                            }
                         )
                     ], className='input-group')
                 ], className='panel-body')
@@ -162,7 +184,8 @@ app.layout = html.Div([
     Input('polarization-angle-slider', 'value'),
     Input('shower-model-dropdown', 'value'),
     Input('propagation-length-slider', 'value'),
-    Input('attenuation-model-radio-items', 'value')]
+    Input('attenuation-model-radio-items', 'value'),
+    Input('sampling-rate-slider', 'value')]
 )
 def update_electric_field_plot(
     log_energy,
@@ -171,14 +194,14 @@ def update_electric_field_plot(
     polarization_angle,
     model,
     propagation_length,
-    attenuation_model):
+    attenuation_model,
+    sampling_rate):
 
     viewing_angle = viewing_angle * units.deg
     polarization_angle = polarization_angle * units.deg
     propagation_length  = propagation_length * units.km
     energy = np.power(10., log_energy)
     samples = 512
-    sampling_rate = 1.*units.GHz
     ior = 1.78
     cherenkov_angle = np.arccos(1./ior)
     distance = 1.*units.km

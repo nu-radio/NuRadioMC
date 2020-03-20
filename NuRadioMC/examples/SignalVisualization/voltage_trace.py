@@ -156,7 +156,8 @@ layout = html.Div([
     Input('signal-azimuth-slider', 'value'),
     Input('amplifier-type-dropdown', 'value'),
     Input('filter-toggle-checklist', 'value'),
-    Input('filter-band-range-slider', 'value')]
+    Input('filter-band-range-slider', 'value'),
+    Input('sampling-rate-slider', 'value')]
 )
 def update_voltage_plot(
     electric_field,
@@ -165,10 +166,10 @@ def update_voltage_plot(
     signal_azimuth,
     amplifier_type,
     filter_toggle,
-    filter_band
+    filter_band,
+    sampling_rate
 ):
     samples = 512
-    sampling_rate = 1.*units.GHz
     electric_field = json.loads(electric_field)
     if electric_field is None:
         return {}, {}
