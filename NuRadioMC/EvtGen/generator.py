@@ -841,7 +841,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         -'SouthPole', a config file for the South Pole (spherical Earth). It
         consists of a 2.7 km deep layer of ice, bedrock below and air above.
         -'MooresBay', a config file for Moore's Bay (spherical Earth). It
-        consists of a 550 m deep ice layer with a 2.2 km deep water layer below,
+        consists of a 576 m deep ice layer with a 2234 m deep water layer below,
         and bedrock below that.
         -'InfIce', a config file with a medium of infinite ice
         -'Greenland', a config file for Summit Station, Greenland (spherical Earth),
@@ -1164,7 +1164,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         -'SouthPole', a config file for the South Pole (spherical Earth). It
         consists of a 2.7 km deep layer of ice, bedrock below and air above.
         -'MooresBay', a config file for Moore's Bay (spherical Earth). It
-        consists of a 550 m deep ice layer with a 2.2 km deep water layer below,
+        consists of a 576 m deep ice layer with a 2234 m deep water layer below,
         and bedrock below that.
         -'InfIce', a config file with a medium of infinite ice
         -'Greenland', a config file for Summit Station, Greenland (spherical Earth),
