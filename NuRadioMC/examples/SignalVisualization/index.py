@@ -39,41 +39,64 @@ app.layout = html.Div([
                     ], className='input-group'),
                     html.Div([
                         html.Div('Viewing angle'),
-                        dcc.Slider(
-                            id='viewing-angle-slider',
-                            min=-10,
-                            max=10,
-                            step=1,
-                            value=2,
-                            marks={
-                                -10: '-10°',
-                                -5: '-5°',
-                                -2: '-2°',
-                                0: '0°',
-                                2: '2°',
-                                5: '5°',
-                                10: '10°'
-                            }
-                        )
+                        html.Div([
+                            html.Div([
+                                dcc.Slider(
+                                    id='viewing-angle-slider',
+                                    min=-10,
+                                    max=10,
+                                    step=1,
+                                    value=2,
+                                    marks={
+                                        -10: '-10°',
+                                        -5: '-5°',
+                                        -2: '-2°',
+                                        0: '0°',
+                                        2: '2°',
+                                        5: '5°',
+                                        10: '10°'
+                                    }
+                                )
+                            ], style={'flex': '1'}),
+                            html.Div([
+                                html.Div([
+                                    html.Div('', className='icon-question-circle-o')
+                                ], className='popup-symbol'),
+                                html.Div(('Angle between the emission direction '
+                                'of the signal and the Cherenkov angle'),
+                                className='popup-box')
+                            ], className='popup-container', style={'flex': 'none'})
+                        ], style={'display': 'flex'})
                     ], className='input-group'),
                     html.Div([
                         html.Div('Polarization Angle'),
-                        dcc.Slider(
-                            id='polarization-angle-slider',
-                            min=-180,
-                            max=180,
-                            step=5,
-                            value=0,
-                            marks={
-                                -180: '-180°',
-                                -90: '-90°',
-                                -45: '-45°',
-                                0: '0°',
-                                45: '45°',
-                                90: '90°',
-                                180: '180°'
-                            }
-                        )
+                        html.Div([
+                            html.Div([
+                            dcc.Slider(
+                                id='polarization-angle-slider',
+                                min=-180,
+                                max=180,
+                                step=5,
+                                value=0,
+                                marks={
+                                    -180: '-180°',
+                                    -90: '-90°',
+                                    -45: '-45°',
+                                    0: '0°',
+                                    45: '45°',
+                                    90: '90°',
+                                    180: '180°'
+                                }
+                            )
+                        ], style={'flex': '1'}),
+                        html.Div([
+                            html.Div([
+                                html.Div('', className='icon-question-circle-o')
+                            ], className='popup-symbol'),
+                            html.Div(('Angle between the electric field vector and'
+                                ' e_theta'), className='popup-box')
+                        ], className='popup-container', style={'flex': 'none'})
+                    ], style={'display': 'flex'})
                     ], className='input-group'),
                     html.Div([
                         html.Div('Shower Type'),
