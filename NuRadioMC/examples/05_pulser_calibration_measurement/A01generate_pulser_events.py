@@ -7,13 +7,14 @@ from scipy.integrate import quad
 from scipy.interpolate import interp1d
 from scipy.optimize import fsolve
 import h5py
-from NuRadioMC.EvtGen.generator import write_events_to_hdf5, split_hdf5_input_file
+from NuRadioMC.EvtGen.generator import write_events_to_hdf5
 import logging
 logger = logging.getLogger("EventGen")
 logging.basicConfig()
 
 VERSION_MAJOR = 1
 VERSION_MINOR = 1
+
 
 def generate_my_events(filename, n_events):
     """
@@ -63,8 +64,7 @@ def generate_my_events(filename, n_events):
     # again these parameters are irrelevant for our simulation but still need to be set
     data_sets["flavors"] = np.array([12 for i in range(n_events)])
     data_sets["energies"] = np.ones(n_events) * 1 * units.eV
-    data_sets["inelasticity"] = np.ones(n_events) *  0.5
-
+    data_sets["inelasticity"] = np.ones(n_events) * 0.5
 
     # write events to file
     write_events_to_hdf5(filename, data_sets, attributes)
