@@ -124,16 +124,16 @@ layout = html.Div([
                         dcc.RangeSlider(
                             id='filter-band-range-slider',
                             min=0,
-                            max=.5,
-                            step=.01,
-                            value=[0,.5],
+                            max=1.,
+                            step=.05,
+                            value=[0,1.],
                             marks={
                                 0: '0MHz',
-                                .1: '100MHz',
                                 .2: '200MHz',
-                                .3: '300MHz',
                                 .4: '400MHz',
-                                .5: '500MHz'
+                                .6: '600MHz',
+                                .8: '800MHz',
+                                1.: '1GHz'
                             }
                         )
                     ], className='input-group')
@@ -178,8 +178,8 @@ layout = html.Div([
     Input('signal-azimuth-slider', 'value'),
     Input('amplifier-type-dropdown', 'value'),
     Input('filter-toggle-checklist', 'value'),
-    Input('filter-band-range-slider', 'value'),
-    Input('sampling-rate-slider', 'value')]
+    Input('filter-band-range-slider', 'value')],
+    [State('sampling-rate-slider', 'value')]
 )
 def update_voltage_plot(
     electric_field,
