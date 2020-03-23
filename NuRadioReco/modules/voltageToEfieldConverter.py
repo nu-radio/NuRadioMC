@@ -136,7 +136,9 @@ class voltageToEfieldConverter:
             be save into the `debug_plotpath` directory
         use_channels: array of ints
             the channel ids to use for the electric field reconstruction
-        use_MC_direction:
+        use_MC_direction: bool
+            if True uses zenith and azimuth direction from simulated station
+            if False uses reconstructed direction from station parameters.
         force_Polarization: str
             if eTheta or ePhi, then only reconstructs chosen polarization of electric field,
             assuming the other is 0. Otherwise, reconstructs electric field for both eTheta and ePhi
