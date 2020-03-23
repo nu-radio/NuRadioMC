@@ -2,10 +2,20 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 1.1.2 -
+
+new features:
+
+bug fixes:
+
+
+version 1.1.1 - 2020/03/23
+
 new features:
 - changed the way logging in handled.
+- RNO-G hardware response added
 
-version 1.0.1 - 2020/02/05
+version 1.1.0 - 2020/01/15
 
 new features:
 - added module registry. By adding a decorator to the run methods of every module, we keep track of the modules applied to an event
