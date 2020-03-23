@@ -14,6 +14,7 @@ from scipy.optimize import fsolve
 from scipy.interpolate import RectBivariateSpline
 import h5py
 import os
+import math
 import logging
 logger = logging.getLogger("EventGen")
 logging.basicConfig()
@@ -1576,30 +1577,3 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             data_sets_fiducial[key] = np.array(data_sets_fiducial[key])
 
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
-
-
-def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_file):
-    """
-    splits up an existing hdf5 file into multiple subfiles
-
-    Parameters
-    ----------
-    input_filename: string
-        the input filename
-    output_filename: string
-        the desired output filename (if multiple files are generated, a 'part000x' is appended to the filename
-    n_events_per_file: int (optional, default None)
-        the number of events per file
-    """
-    fin = h5py.File(input_filename, 'r')
-    data_sets = {}
-    attributes = {}
-    for key, value in iteritems(fin):
-        if isinstance(value, h5py.Dataset):  # the loop is also over potential subgroupu that we don't want to consider here
-            data_sets[key] = np.array(value)
-    for key, value in iteritems(fin.attrs):
-        attributes[key] = value
-
-    fin.close()
-
-    write_events_to_hdf5(output_filename, data_sets, attributes, n_events_per_file=number_of_events_per_file)
