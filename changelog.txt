@@ -39,5 +39,8 @@ bugfixes:
 -Fixes increase in filesize caused by switch to python3
 -Fixed bug when using no secondary channels on the phased array
 -Fixed bug when using ARA trigger
+-Removed function "get_relative_positions(self, station_id)" from detector.py because the ordering of channels is different from a sql initiated detector compared to a json initiated detector. Must use "get_relative_position(self, station_id, channel_id)", which specifies which channel to get the position for.
+-Fixed correlationDirectionFitter and beamFormingDirectionFitter to use "get_relative_position" instead of "get_relative_positions", see previous comment.
+-Added "self."" to all occurrences of "logger" in channelTimeWindow.py
 
 version 1.0.0 - 2019/08/30 - first python 3 release

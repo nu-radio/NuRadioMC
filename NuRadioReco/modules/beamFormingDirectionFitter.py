@@ -177,10 +177,9 @@ class beamFormingDirectionFitter:
 
 
         station_id = station.get_id()
-        positions_all = det.get_relative_positions(station_id)
         positions = []
         for chan in channels:
-            positions.append(positions_all[chan])
+            positions.append(det.get_relative_position(station_id,chan))
         sampling_rate = station.get_channel(0).get_sampling_rate()
 
         ll = opt.brute(ll_regular_station, ranges=(slice(ZenLim[0], ZenLim[1], 1.0*units.deg),
