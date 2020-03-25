@@ -1,16 +1,17 @@
-import scipy.optimize as opt
+from __future__ import absolute_import, division, print_function, unicode_literals
+from NuRadioReco.modules.base.module import register_run
 from scipy import signal, fftpack
 import matplotlib.pyplot as plt
 import numpy as np
-import logging
-
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.modules.base.module import register_run
-
+import scipy.optimize as opt
 from radiotools import helper as hp
+import logging
+logger = logging.getLogger('correlationDirectionFitter')
+logging.basicConfig()
 
 
 class correlationDirectionFitter:
@@ -23,12 +24,11 @@ class correlationDirectionFitter:
         self.__azimuth = []
         self.__delta_zenith = []
         self.__delta_azimuth = []
-        self.logger = logging.getLogger('NuRadioReco.correlationDirectionFitter')
         self.begin()
 
     def begin(self, debug=False, log_level=None):
         if(log_level is not None):
-            self.logger.setLevel(log_level)
+            logger.setLevel(log_level)
         self.__debug = debug
 
     @register_run()
@@ -43,7 +43,6 @@ class correlationDirectionFitter:
         ----------
         n_index: float
             the index of refraction
-
         ZenLim: 2-dim array/list of floats
             the zenith angle limits for the fit
             default if 0-90deg (upward coming signal)
@@ -135,9 +134,8 @@ class correlationDirectionFitter:
             return likelihood
 
         station_id = station.get_id()
-        positions = det.get_relative_positions(station_id)
-        positions_pairs = [[positions[channel_pairs[0][0]], positions[channel_pairs[0][1]]],
-                           [positions[channel_pairs[1][0]], positions[channel_pairs[1][1]]]]
+        positions_pairs = [[det.get_relative_position(station_id,channel_pairs[0][0]), det.get_relative_position(station_id,channel_pairs[0][1])],
+                           [det.get_relative_position(station_id,channel_pairs[1][0]), det.get_relative_position(station_id,channel_pairs[1][1])]]
         sampling_rate = station.get_channel(0).get_sampling_rate()  # assume that channels have the same sampling rate
         trace_start_time_pairs = [[station.get_channel(channel_pairs[0][0]).get_trace_start_time(), station.get_channel(channel_pairs[0][1]).get_trace_start_time()],
                                     [station.get_channel(channel_pairs[1][0]).get_trace_start_time(), station.get_channel(channel_pairs[1][1]).get_trace_start_time()]]
@@ -218,7 +216,7 @@ class correlationDirectionFitter:
             t02s = toffset[indices]
             ax.plot(toffset[indices], corr_02[indices], 'o')
             imax = np.argmax(corr_02[indices])
-            self.logger.debug("offset 02= {:.3f}".format(toffset[indices[imax]] -  (delta_t_02 / sampling_rate)))
+#             print("offset 02= {:.3f}".format(toffset[indices[imax]] -  (delta_t_02 / sampling_rate)))
 
             ax2.plot(toffset, corr_13)
             indices = peakutils.indexes(corr_13, thres=0.8, min_dist=5)
@@ -256,14 +254,14 @@ class correlationDirectionFitter:
                 for x in sim_zen:
                     ops += "{:.1f}, ".format(x / units.deg)
                 ops += ")"
-                self.logger.debug(ops)
+                logger.debug(ops)
                 ops = "average incident azimuth {:.1f} +- {:.1f}".format(np.mean(sim_az) / units.deg, np.std(sim_az) / units.deg)
                 ops += " (individual: "
                 for x in sim_az:
                     ops += "{:.1f}, ".format(x / units.deg)
                 ops += ")"
 
-                self.logger.debug(ops)
+                logger.debug(ops)
                 sim_zen = np.mean(np.array(sim_zen))
                 sim_az = np.mean(np.array(sim_az))
 
@@ -275,7 +273,7 @@ class correlationDirectionFitter:
                 self.__delta_zenith.append(station[stnp.zenith] - sim_zen)
                 self.__delta_azimuth.append(station[stnp.azimuth] - hp.get_normalized_angle(sim_az))
 
-        self.logger.info(output_str)
+        logger.info(output_str)
         # Still have to add fit quality parameter to output
 
         if self.__debug:
@@ -290,8 +288,8 @@ class correlationDirectionFitter:
                     sim_present = True
 
             if sim_present:
-                self.logger.debug("True CoREAS zenith {0}, azimuth {1}".format(zenith_orig, azimuth_orig))
-            self.logger.debug("Result of direction fitting: [zenith, azimuth] {}".format(np.rad2deg(ll[0])))
+                logger.debug("True CoREAS zenith {0}, azimuth {1}".format(zenith_orig, azimuth_orig))
+            logger.debug("Result of direction fitting: [zenith, azimuth] {}".format(np.rad2deg(ll[0])))
 
             # Show fit space
             zen = np.arange(ZenLim[0], ZenLim[1], 1 * units.deg)
@@ -348,12 +346,12 @@ class correlationDirectionFitter:
                 dist = np.linalg.norm(r)
                 t0 = -dist * n_index / c
                 Phic = np.arccos(dt / t0)  # cone angle for allowable solutions
-                self.logger.debug('dist = {}, dt = {}, t0 = {}, phic = {}'.format(dist, dt, t0, Phic))
+                logger.debug('dist = {}, dt = {}, t0 = {}, phic = {}'.format(dist, dt, t0, Phic))
                 nr = r / dist  # normalize
                 p = np.cross([0, 0, 1], nr)  # create a perpendicular normal vector to r
                 p = p / np.linalg.norm(p)
                 q = np.cross(nr, p)  # nr, p, and q form an orthonormal basis
-                self.logger.debug('nr = {}\np = {}\nq = {}\n'.format(nr, p, q))
+                logger.debug('nr = {}\np = {}\nq = {}\n'.format(nr, p, q))
                 ThetaC = np.linspace(0, 2 * np.pi, 1000)
                 Phis = np.zeros(len(ThetaC))
                 Thetas = np.zeros(len(ThetaC))
@@ -370,7 +368,7 @@ class correlationDirectionFitter:
             # phis = np.deg2rad(np.linspace(0, 360, 10000))
             r0_2 = positions_pairs[0][1] - positions_pairs[0][0]  # vector pointing from Ch2 to Ch0
             r1_3 = positions_pairs[1][1] - positions_pairs[1][0]  # vector pointing from Ch3 to Ch1
-            self.logger.debug('r02 {}\nr13 {}'.format(r0_2, r1_3))
+            logger.debug('r02 {}\nr13 {}'.format(r0_2, r1_3))
             linestyles = ['-', '--', ':', '-.']
             for i, t02 in enumerate(t02s):
                 # theta02 = get_deltat02(t02, phis)
