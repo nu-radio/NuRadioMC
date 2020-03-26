@@ -1095,11 +1095,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     n_events: int
         number of events to generate
     Emin: float
-        the minimum neutrino energy (energies are randomly chosen assuming a
-        uniform distribution in the logarithm of the energy)
+        the minimum neutrino energy
     Emax: float
-        the maximum neutrino energy (energies are randomly chosen assuming a
-        uniform distribution in the logarithm of the energy)
+        the maximum neutrino energy
 
     fiducial_rmin: float
         lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
@@ -1118,7 +1116,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     full_zmax: float (default None)
         upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
     thetamin: float
-        lower zenith angle for neutrino arrival direction
+        lower zenith angle for neutrino arrival direction (default 0deg)
     thetamax: float
         upper zenith angle for neutrino arrival direction
     phimin: float
@@ -1182,7 +1180,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
-        if True, generate deposited energies instead of primary neutrino energies
     """
     if proposal:
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
