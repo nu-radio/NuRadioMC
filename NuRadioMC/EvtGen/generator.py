@@ -1123,7 +1123,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         lower azimuth angle for neutrino arrival direction
     phimax: float
          upper azimuth angle for neutrino arrival direction
-    start_event: int
+    start_event_id: int
         default: 1
         event number of first event
     flavor: array of ints
