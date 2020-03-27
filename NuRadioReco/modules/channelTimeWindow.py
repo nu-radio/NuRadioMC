@@ -16,7 +16,7 @@ class channelTimeWindow:
     def begin(self, debug=False):
         self.__debug = debug
         if(debug):
-            logger.setLevel(logging.DEBUG)
+            self.logger.setLevel(logging.DEBUG)
 
     @register_run()
     def run(self, evt, station, det, window=None,
@@ -39,6 +39,10 @@ class channelTimeWindow:
         around_pulse: float or None
             if not None: specifies time interval around 'signal_time',
             if this option is set, 'window' is ignored
+        window_width: float
+            if around_pulse is set, defines the time width of the trace where the filter is 1.
+        window_rise_time: float
+            if window_function is not rectangular, defines the rise time where the filter goes from 0 to 1.
         """
 
         for channel in station.iter_channels():
@@ -60,11 +64,11 @@ class channelTimeWindow:
                 i10 = np.argmin(np.abs(times - window[1]))
                 i11 = np.argmin(np.abs(times - (window[1] + window_rise_time)))
 #                 print(window)
-#                 logger.debug("times = {:.2f} {:.2f} {:.2f} {:.2f}".format(times - (window[0] - window_rise_time),
+#                 self.logger.debug("times = {:.2f} {:.2f} {:.2f} {:.2f}".format(times - (window[0] - window_rise_time),
 #                                                           times - window[0],
 #                                                           times - window[1],
 #                                                           times - (window[1] + window_rise_time)))
-                logger.debug("indices = {} {} {} {}".format(i00, i01, i10, i11))
+                self.logger.debug("indices = {} {} {} {}".format(i00, i01, i10, i11))
                 window_fkt[i01:i10] = 1
                 if(window_function == 'hanning'):
                     n = i01 - i00

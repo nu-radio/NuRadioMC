@@ -5,14 +5,16 @@ please update the categories "new features" and "bugfixes" before a pull request
 version 1.1.2 -
 
 new features:
+-Added the ability to force polarization to be only eTheta or ePhi in the reconstruction of the electric field using voltageToEfieldConverter.py
 
 bug fixes:
+-Removed function "get_relative_positions(self, station_id)" from detector.py because the ordering of channels is different from a sql initiated detector compared to a json initiated detector. Must use "get_relative_position(self, station_id, channel_id)", which specifies which channel to get the position for.
 
 
 version 1.1.1 - 2020/03/23
 
 new features:
-- changed the way logging in handled.
+- changed the way logging is handled.
 - RNO-G hardware response added
 
 version 1.1.0 - 2020/01/15
@@ -30,7 +32,6 @@ new features:
 -Trigger times now include the time with respect to the first interaction (vertex times)
 -Analog to digital converter module added
 -Improved calculation of the diode noise parameters
--Added the ability to force polarization to be only eTheta or ePhi in the reconstruction of the electric field using voltageToEfieldConverter.py
 
 Detector description can be stored in .nur files
 Large overhaul of the event structure. Adds shower classes and hybrid detector information.
@@ -39,5 +40,6 @@ bugfixes:
 -Fixes increase in filesize caused by switch to python3
 -Fixed bug when using no secondary channels on the phased array
 -Fixed bug when using ARA trigger
+
 
 version 1.0.0 - 2019/08/30 - first python 3 release
