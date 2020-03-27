@@ -299,10 +299,12 @@ class analogToDigitalConverter():
                          nyquist_zone * adc_sampling_frequency/2 - bandwidth_edge )
             filtered_trace = butterworth_filter_trace(trace, input_sampling_frequency,
                                                       passband)
+        else:
+            filtered_trace = trace[:]
 
         # Random clock offset
         delayed_times = times + adc_time_delay
-        interpolate_trace = interp1d(times, trace, kind='quadratic',
+        interpolate_trace = interp1d(times, filtered_trace, kind='quadratic',
                                      fill_value=(trace[0],trace[-1]),
                                      bounds_error=False)
 
