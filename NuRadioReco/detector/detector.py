@@ -447,24 +447,6 @@ class Detector(object):
         res = self.__get_channel(station_id, channel_id)
         return np.array([res['ant_position_x'], res['ant_position_y'], res['ant_position_z']])
 
-    def get_relative_positions(self, station_id):
-        """
-        get the relative positions of all channels/antennas with respeect to the station center
-
-        Parameters
-        ---------
-        station_id: int
-            the station id
-
-        Returns: List of 3-dim array of relative station positions
-        """
-        res = self.__get_channels(station_id)
-        positions = np.zeros((len(res), 3))
-        for i, r in enumerate(res.values()):
-            logger.debug("position channel {}: {:.0f}m, {:.0f}m, {:.0f}m".format(r['channel_id'], r['ant_position_x'], r['ant_position_y'], r['ant_position_z']))
-            positions[i] = [r['ant_position_x'], r['ant_position_y'], r['ant_position_z']]
-        return positions
-
     def get_site(self, station_id):
         """
         get the site where the station is deployed (e.g. MooresBay or South Pole)
