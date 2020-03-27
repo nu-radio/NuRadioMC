@@ -39,7 +39,8 @@ parser.add_argument('--nyquist_zone', type=int, help='Nyquist zone', default=1)
 parser.add_argument('--upsampling_factor', type=int, help='Upsampling factor (integer)', default=4)
 parser.add_argument('--adc_sampling_frequency', type=float, help='Sampling frequency in GHz', default=250*units.MHz)
 parser.add_argument('--noise_rms_bits', type=float, help='Bits reserved for the noise RMS', default=2)
-parser.add_argument('--adc_n_bits', type=float, help='ADC number of bits', default=8)
+parser.add_argument('--adc_n_bits', type=int, help='ADC number of bits', default=8)
+parser.add_argument('--threshold_factor', type=float, help='Threshold factor', default=8)
 args = parser.parse_args()
 
 main_low_angle = -50. * units.deg
@@ -74,6 +75,8 @@ def get_noise_rms_nyquist_zone(trace,
                                input_sampling_frequency,
                                adc_sampling_frequency,
                                nyquist_zone=2,
+                               adc_n_bits=8,
+                               noise_rms_bits=2,
                                bandwidth_edge=20*units.MHz):
     """
     Calculates the noise RMS in one of the Nyquist zones for the ADC
@@ -88,13 +91,17 @@ def get_noise_rms_nyquist_zone(trace,
         ADC sampling frequency
     nyquist_zone: integer
         Nyquist zone number
+    adc_n_bits: integer
+        ADC number of bits
+    noise_rms_bits: float
+        Bits reserved for the noise RMS
     bandwidth_edge: float
         Frequency interval used for filtering the chosen Nyquist zone.
         See above
 
     Returns
     -------
-    np.std(filtered_trace): float
+    noise_rms: float
         Standard deviation of the trace filtered in the chosen Nyquist zone
     """
 
@@ -104,7 +111,23 @@ def get_noise_rms_nyquist_zone(trace,
     filtered_trace = butterworth_filter_trace(trace, input_sampling_frequency,
                                               passband)
 
-    return np.std(filtered_trace)
+    noise_rms_previous = 0
+    noise_rms = np.std(filtered_trace)
+    adc_ref_voltage = get_ref_voltage(noise_rms, adc_n_bits, noise_rms_bits=noise_rms_bits)
+
+    while( np.abs(noise_rms_previous - noise_rms) > 5e-8 ):
+
+        noise_rms_previous = noise_rms
+        digital_trace = get_digital_trace(trace,
+                              input_sampling_frequency,
+                              adc_sampling_frequency,
+                              adc_ref_voltage=adc_ref_voltage,
+                              upsampling_factor=upsampling_factor,
+                              nyquist_zone=nyquist_zone)
+        noise_rms = np.std(digital_trace)
+        print(noise_rms_previous, noise_rms)
+
+    return noise_rms
 
 def get_ref_voltage(noise_rms,
                     adc_n_bits,
@@ -195,9 +218,9 @@ def get_digital_trace(trace,
         filtered_trace = butterworth_filter_trace(trace, input_sampling_frequency,
                                                   passband)
 
-    # Random clock offset
+    # Random clock offset
     delayed_times = times + adc_time_delay
-    interpolate_trace = interp1d(times, trace, kind='quadratic',
+    interpolate_trace = interp1d(times, filtered_trace, kind='quadratic',
                                  fill_value=(trace[0],trace[-1]),
                                  bounds_error=False)
 
@@ -241,6 +264,7 @@ upsampling_factor = args.upsampling_factor
 adc_sampling_frequency = args.adc_sampling_frequency
 noise_rms_bits = args.noise_rms_bits
 adc_n_bits = args.adc_n_bits
+threshold_factor = args.threshold_factor
 Ntries = args.ntries # number of tries
 
 input_sampling_frequency = 3 * units.GHz
@@ -260,9 +284,9 @@ adc_n_samples = int( n_samples * adc_sampling_frequency * upsampling_factor / in
 bandwidth = max_freq-min_freq
 amplitude = (300 * 50 * constants.k * bandwidth / units.Hz) ** 0.5
 
-threshold_factors = [8.0, 8.1, 8.2, 8.3]
+threshold_factors = [threshold_factor]
 
-noise_trace = channelGenericNoiseAdder.bandlimited_noise(min_freq, max_freq, n_samples,
+noise_trace = channelGenericNoiseAdder.bandlimited_noise(min_freq, max_freq, 10*n_samples,
                                                          input_sampling_frequency, amplitude,
                                                          type='rayleigh')
 
@@ -270,15 +294,16 @@ noise_rms = get_noise_rms_nyquist_zone(noise_trace,
                                        input_sampling_frequency,
                                        adc_sampling_frequency,
                                        nyquist_zone=nyquist_zone,
+                                       adc_n_bits=adc_n_bits,
+                                       noise_rms_bits=noise_rms_bits,
                                        bandwidth_edge=20*units.MHz)
-
-adc_ref_voltage = get_ref_voltage(noise_rms, adc_n_bits=8, noise_rms_bits=noise_rms_bits)
+adc_ref_voltage = get_ref_voltage(noise_rms, adc_n_bits=adc_n_bits, noise_rms_bits=noise_rms_bits)
 
 print("Number of bits for noise RMS: {:.1f}".format(noise_rms_bits))
 print("Number of bits of the ADC: {:d}".format(adc_n_bits))
+print("Nyquist zone number {:d}".format(nyquist_zone))
 print("Reference voltage: {:.3e} V".format(adc_ref_voltage/units.V))
 print("Noise for the Nyquist zone: {:.3e} V".format(noise_rms/units.V))
-print("Nyquist zone number {:d}".format(nyquist_zone))
 
 n_beams = len(primary_angles)
 
@@ -320,7 +345,8 @@ for threshold_factor in threshold_factors:
             strides = noise.strides
             windowed_traces = np.lib.stride_tricks.as_strided(noise, \
                               shape=(n_windows, window_width), \
-                              strides=(int(window_width / 2) * strides[0], strides[0]))
+                              strides=(int(window_width / 2) * strides[0], strides[0]),
+                              writeable=False)
 
             squared_mean = np.sum(windowed_traces ** 2 / window_width, axis=1)
             squared_mean_threshold = n_phased * (threshold_voltage)**2
