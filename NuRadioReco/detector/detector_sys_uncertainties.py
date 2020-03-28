@@ -67,6 +67,12 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
                 key = station_id
         self._antenna_orientation_override[key] = [ori_theta, ori_phi, rot_theta, rot_phi]
 
+    def reset_antenna_orientation_offsets(self):
+        """
+        resets all previously set antenna orientation offsets
+        """
+        self._antenna_orientation_override = {}
+
     def get_antenna_orientation(self, station_id, channel_id):
         """
         returns the orientation of a specific antenna + a systematic offset
