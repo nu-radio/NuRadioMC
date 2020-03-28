@@ -125,7 +125,7 @@ def get_noise_rms_nyquist_zone(trace,
                               upsampling_factor=upsampling_factor,
                               nyquist_zone=nyquist_zone)
         noise_rms = np.std(digital_trace)
-        print(noise_rms_previous, noise_rms)
+        adc_ref_voltage = get_ref_voltage(noise_rms, adc_n_bits, noise_rms_bits=noise_rms_bits)
 
     return noise_rms
 
@@ -133,7 +133,7 @@ def get_ref_voltage(noise_rms,
                     adc_n_bits,
                     noise_rms_bits=2):
 
-    ref_voltage = noise_rms * ( 2**(adc_n_bits-1) -1 )/noise_rms_bits
+    ref_voltage = noise_rms * ( 2**(adc_n_bits-1) -1 ) / 2**(noise_rms_bits-1)
 
     return ref_voltage
 
@@ -286,7 +286,7 @@ amplitude = (300 * 50 * constants.k * bandwidth / units.Hz) ** 0.5
 
 threshold_factors = [threshold_factor]
 
-noise_trace = channelGenericNoiseAdder.bandlimited_noise(min_freq, max_freq, 10*n_samples,
+noise_trace = channelGenericNoiseAdder.bandlimited_noise(min_freq, max_freq, 5*n_samples,
                                                          input_sampling_frequency, amplitude,
                                                          type='rayleigh')
 
