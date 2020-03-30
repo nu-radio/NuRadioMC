@@ -39,11 +39,13 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
         self.det = super(DetectorSysUncertainties, self)
         self.det.__init__(source, json_filename, dictionary, assume_inf)
         self._antenna_orientation_override = {}
+        self._antenna_position_override = {}
+
 
     def set_antenna_orientation_offsets(self, ori_theta, ori_phi, rot_theta, rot_phi, station_id=None, channel_id=None):
         """
         sets a systematic offset for the antenna orientation
-        
+
         Parameters
         ---------
         ori_theta: float
@@ -105,3 +107,64 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
             ori += tmp
         return ori
 
+    def set_antenna_position_offsets(self, x, y, z, station_id=None, channel_id=None):
+        """
+        sets a systematic offset for the antenna position
+
+        Parameters
+        ---------
+        x: float
+            x-position of antenna
+        y: float
+            y-position of antenna
+        z: float
+            z-position of antenna ( (-) is below the surface)
+        station_id: int or None
+            the station id, if None offset will be applied to all stations/channels
+        channel_id: int or None
+            the channel id, if None offset will be applied to all channels
+        """
+        key = "any"
+        if station_id is not None:
+            if(channel_id is not None):
+                key = (station_id, channel_id)
+            else:
+                key = station_id
+        self._antenna_position_override[key] = [x, y, z]
+
+    def reset_antenna_position_offsets(self):
+        """
+        resets all previously set antenna position offsets
+        """
+        self._antenna_position_override = {}
+
+    def get_relative_position(self, station_id, channel_id):
+        """
+        returns the orientation of a specific antenna + a systematic offset
+
+        Parameters
+        ---------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+
+        Returns tuple of floats
+            * x-position of antenna
+            * y-position of antenna
+            * z-position of antenna
+        """
+        pos = self.det.get_relative_position(station_id, channel_id)
+        if("any" in self._antenna_position_override):
+            tmp = self._antenna_position_override["any"]
+            pos += tmp
+            logger.info(f"adding position x = {tmp[0]/units.m:.1f} m, y = {tmp[1]/units.m:.1f} m, z = {tmp[2]/units.m:.1f} m to all channels of any station")
+        if station_id in self._antenna_position_override:
+            tmp = self._antenna_position_override[station_id]
+            pos += tmp
+            logger.info(f"adding position x = {tmp[0]/units.m:.1f} m, y = {tmp[1]/units.m:.1f} m, z = {tmp[2]/units.m:.1f} m to all channels of station {station_id}")
+        if((station_id, channel_id) in self._antenna_position_override):
+            tmp = self._antenna_position_override[(station_id, channel_id)]
+            logger.info(f"adding position x = {tmp[0]/units.m:.1f} m, y = {tmp[1]/units.m:.1f} m, z = {tmp[2]/units.m:.1f} m to channel {channel_id} of station {station_id}")
+            pos += tmp
+        return pos
