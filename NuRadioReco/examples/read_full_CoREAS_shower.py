@@ -13,6 +13,7 @@ import datetime
 # Parse eventfile as argument
 parser = argparse.ArgumentParser(description='NuRadioSim file')
 parser.add_argument('inputfilename', type=str, nargs='*',
+                    default=['example_data/example_event.h5'],
                     help='path to NuRadioMC simulation result')
 
 parser.add_argument('-o', '--output_filename', type=str, nargs='?',
