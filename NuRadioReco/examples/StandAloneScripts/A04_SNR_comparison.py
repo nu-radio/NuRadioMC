@@ -122,6 +122,7 @@ if 0:
             electric_field[efp.ray_path_type] = 'direct'
             sim_station.add_electric_field(electric_field)
             sim_station[stnp.zenith] = (90 + 45) * units.deg
+            sim_station.set_is_neutrino()
             sim_station[stnp.zenith] = 0
             station.set_sim_station(sim_station)
             event.set_station(station)
@@ -169,7 +170,6 @@ if not os.path.isdir('plots'):
 for signal_scaling in np.linspace(1, 100, NN):
     for theta in np.linspace(cherenkov_angle - 3 * units.deg, cherenkov_angle * units.deg, 1):
         counter += 1
-        print(counter)
         pulse = signalgen.get_time_trace(1e18, theta, N, dt, 'HAD', n_index, 1000 * units.m, 'Alvarez2000')
         event = NuRadioReco.framework.event.Event(1, 1)
         station = NuRadioReco.framework.station.Station(101)
@@ -187,6 +187,7 @@ for signal_scaling in np.linspace(1, 100, NN):
         electric_field[efp.zenith] = (90 + 45) * units.deg
         electric_field[efp.azimuth] = 0
         sim_station.add_electric_field(electric_field)
+        sim_station.set_is_neutrino()
         station.set_sim_station(sim_station)
         event.set_station(station)
 
