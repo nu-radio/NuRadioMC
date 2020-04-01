@@ -303,7 +303,9 @@ def get_E2_limit_figure(diffuse=True,
                         show_grand_200k=False,
                         show_radar=False,
                         show_Heinze=True,
-                        show_TA=False):
+                        show_TA=False,
+                        show_RNOG=False,
+                        show_IceCubeGen2=False):
 
     # Limit E2 Plot
     # ---------------------------------------------------------------------------
@@ -512,6 +514,45 @@ def get_E2_limit_figure(diffuse=True,
         else:
             ax.annotate('ARIANNA',
                     xy=(3e8, 1.05e-6), xycoords='data',
+                    horizontalalignment='right', color='red', rotation=0, fontsize=legendfontsize)
+
+    if show_IceCubeGen2:
+        # flux limit for 5 years
+        gen2_E = np.array([1.04811313e+07, 1.32571137e+07, 1.67683294e+07, 2.12095089e+07,
+                 2.68269580e+07, 3.39322177e+07, 4.29193426e+07, 5.42867544e+07,
+                 6.86648845e+07, 8.68511374e+07, 1.09854114e+08, 1.38949549e+08,
+                 1.75751062e+08, 2.22299648e+08, 2.81176870e+08, 3.55648031e+08,
+                 4.49843267e+08, 5.68986603e+08, 7.19685673e+08, 9.10298178e+08,
+                 1.15139540e+09, 1.45634848e+09, 1.84206997e+09, 2.32995181e+09,
+                 2.94705170e+09, 3.72759372e+09, 4.71486636e+09, 5.96362332e+09,
+                 7.54312006e+09, 9.54095476e+09, 1.20679264e+10, 1.52641797e+10,
+                 1.93069773e+10, 2.44205309e+10, 3.08884360e+10, 3.90693994e+10,
+                 4.94171336e+10, 6.25055193e+10, 7.90604321e+10]) * units.GeV
+        gen2_flux = np.array([4.31746055e-09, 3.35020540e-09, 3.05749445e-09, 2.03012634e-09,
+                 1.63506056e-09, 1.40330116e-09, 1.15462951e-09, 9.20314379e-10,
+                 8.30543484e-10, 7.39576420e-10, 6.62805773e-10, 6.53304354e-10,
+                 5.41809080e-10, 5.34471053e-10, 5.23081048e-10, 5.20402393e-10,
+                 5.02987613e-10, 5.15328224e-10, 5.07092113e-10, 5.21866877e-10,
+                 5.30937694e-10, 5.38624813e-10, 5.66520488e-10, 5.71916762e-10,
+                 5.93193816e-10, 6.19149497e-10, 6.54847181e-10, 6.78492966e-10,
+                 7.15178112e-10, 7.64935941e-10, 8.08811879e-10, 8.58068389e-10,
+                 9.13675213e-10, 9.87276891e-10, 1.06320301e-09, 1.15183347e-09,
+                 1.25627989e-09, 1.36100197e-09, 1.49171667e-09]) * plotUnitsFlux
+        ax.plot(gen2_E / plotUnitsEnergy, gen2_flux / 2 / plotUnitsFlux, color='purple', linestyle=":")
+#         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
+        ax.annotate('IceCube-Gen2 radio',
+                    xy=(.8e8, 1.6e-10), xycoords='data',
+                    horizontalalignment='left', color='purple', rotation=0, fontsize=legendfontsize)
+    if show_RNOG:
+        # flux limit for 5 years
+        RNOG_E = np.array([1.77827941e+07, 5.62341325e+07, 1.77827941e+08, 5.62341325e+08,
+                           1.77827941e+09, 5.62341325e+09, 1.77827941e+10, 5.62341325e+10]) * units.GeV
+        RNOG_flux = np.array([4.51342568e-08, 1.57748718e-08, 1.03345333e-08, 7.98437261e-09,
+                              7.22245212e-09, 7.62588582e-09, 9.28033358e-09, 1.28698605e-08]) * plotUnitsFlux
+        ax.plot(RNOG_E / plotUnitsEnergy, RNOG_flux / 2 / plotUnitsFlux, color='red', linestyle="-.")
+#         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
+        ax.annotate('RNO-G',
+                    xy=(3e8, 3e-9), xycoords='data',
                     horizontalalignment='right', color='red', rotation=0, fontsize=legendfontsize)
 
     ax.set_yscale('log')
