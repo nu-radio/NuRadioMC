@@ -1,16 +1,15 @@
-import scipy.optimize as opt
+from __future__ import absolute_import, division, print_function, unicode_literals
+from NuRadioReco.modules.base.module import register_run
 from scipy import signal, fftpack
 import matplotlib.pyplot as plt
 import numpy as np
-import logging
-
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.modules.base.module import register_run
-
+import scipy.optimize as opt
 from radiotools import helper as hp
+import logging
 
 
 class correlationDirectionFitter:
@@ -23,7 +22,7 @@ class correlationDirectionFitter:
         self.__azimuth = []
         self.__delta_zenith = []
         self.__delta_azimuth = []
-        self.logger = logging.getLogger('NuRadioReco.correlationDirectionFitter')
+        self.logger = logging.getLogger('correlationDirectionFitter')
         self.begin()
 
     def begin(self, debug=False, log_level=None):
@@ -43,7 +42,6 @@ class correlationDirectionFitter:
         ----------
         n_index: float
             the index of refraction
-
         ZenLim: 2-dim array/list of floats
             the zenith angle limits for the fit
             default if 0-90deg (upward coming signal)
@@ -135,9 +133,8 @@ class correlationDirectionFitter:
             return likelihood
 
         station_id = station.get_id()
-        positions = det.get_relative_positions(station_id)
-        positions_pairs = [[positions[channel_pairs[0][0]], positions[channel_pairs[0][1]]],
-                           [positions[channel_pairs[1][0]], positions[channel_pairs[1][1]]]]
+        positions_pairs = [[det.get_relative_position(station_id,channel_pairs[0][0]), det.get_relative_position(station_id,channel_pairs[0][1])],
+                           [det.get_relative_position(station_id,channel_pairs[1][0]), det.get_relative_position(station_id,channel_pairs[1][1])]]
         sampling_rate = station.get_channel(0).get_sampling_rate()  # assume that channels have the same sampling rate
         trace_start_time_pairs = [[station.get_channel(channel_pairs[0][0]).get_trace_start_time(), station.get_channel(channel_pairs[0][1]).get_trace_start_time()],
                                     [station.get_channel(channel_pairs[1][0]).get_trace_start_time(), station.get_channel(channel_pairs[1][1]).get_trace_start_time()]]
@@ -219,6 +216,7 @@ class correlationDirectionFitter:
             ax.plot(toffset[indices], corr_02[indices], 'o')
             imax = np.argmax(corr_02[indices])
             self.logger.debug("offset 02= {:.3f}".format(toffset[indices[imax]] -  (delta_t_02 / sampling_rate)))
+#             print("offset 02= {:.3f}".format(toffset[indices[imax]] -  (delta_t_02 / sampling_rate)))
 
             ax2.plot(toffset, corr_13)
             indices = peakutils.indexes(corr_13, thres=0.8, min_dist=5)

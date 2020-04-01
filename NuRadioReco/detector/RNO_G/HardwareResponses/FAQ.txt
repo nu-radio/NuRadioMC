@@ -1,0 +1,11 @@
+Filnames are with output powers (-60dBm i.e. and for some I had a 20dB attenuator in.)
+And then the S-Parameter format (linear + angle, log + angle, real + imaginary, whatever fits best).
+Linear: Amplitude in MAG Phase in DEG
+Log: Amplitude in dB Phase in DEG
+RI: Real und imaginary part
+
+Attenuation 20dB in end of filename
+
+S21 is Gain 
+
+IGLU = In-ice Gain with Low-power Unit (https://radio.uchicago.edu/wiki/index.php/RF_Boards#IGLU:_In-ice_Gain_with_Low-power_Unit)

@@ -8,7 +8,7 @@ class stationParameters(Enum):
     nu_flavor = 4  # the flavor of the neutrino
     ccnc = 5  # neutral current of charged current interaction
     nu_vertex = 6  # the neutrino vertex position
-    inelasticity = 7  # inelasiticy ot neutrino interaction
+    inelasticity = 7  # inelasticity ot neutrino interaction
     triggered = 8  # flag if station was triggered or not
     cr_energy = 9  # the cosmic-ray energy
     cr_zenith = 10  # zenith angle of the cosmic-ray incoming direction
