@@ -74,21 +74,11 @@ class BaseStation():
         self._parameters.pop(key, None)
 
     def set_station_time(self, time):
+        print('astropy version is ', astropy.__version__)
         if isinstance(time, datetime.datetime):
-            print('!!! 1')
             time_strings = str(time).split(' ')
             self._station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
-        elif isinstance(time, astropy.time.Time):
-            #if time.format == 'datetime':
-            #    print('!!! 2')
-            #    print(time)
-            #    time_strings = str(time).split(' ')
-            #    self._station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
-            #else:
-            print('!!! 3')
-            self._station_time = time
         else:
-            print('!!! 4')
             self._station_time = time
 
     def get_station_time(self):
