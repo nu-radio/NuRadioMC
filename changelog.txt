@@ -22,6 +22,7 @@ new features
 - detector description is saved to nur output files
 - new handling of random numbers. Each module has its own random generator instance. Global seed can be controlled via 
   config file setting. 
+- all events can now be saved to nur files
 
 bugfixes:
 - ARZxxxx and Alvarez2009 Askaryan modules now use the same (random) shower per event. 
