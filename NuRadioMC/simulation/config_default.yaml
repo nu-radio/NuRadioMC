@@ -29,10 +29,11 @@ signal:
   zerosignal: False  # if True, the signal is set to zero. This is useful to study 'noise' only simulations
   polarization: auto # can be either 'auto' or 'custom'
   ePhi: 0.  # only used if 'polarization = custom', fraction of ePhi component, the eTheta component is eTheta = (1 - ePhi**2)**0.5
-  shower_type: null # optional argument to only simulate certain shower types. Arguments can be "had" or "em". 
+  shower_type: null # optional argument to only simulate certain shower types. Arguments can be "had" or "em".
 
 trigger:
   noise_temperature: 300  # in Kelvin
   Vrms: null  # the RMS noise value in volts. Not compatible with 'noise_temperature', if Vrms is set, 'noise_temperature' must be None
 
 save_all: False # if True, save all events
+save_all_nur: False # if True, save all events in the nur file
