@@ -589,6 +589,8 @@ class simulation():
                             trace_start_time = self._vertex_time + T
                         else:
                             trace_start_time = T
+                        if(self._cfg['signal']['model'] in ['ARZ2019', 'ARZ2020']):
+                            trace_start_time -= 0.5 * electric_field.get_number_of_samples() / electric_field.get_sampling_rate()
                         electric_field.set_trace_start_time(trace_start_time)
                         electric_field[efp.azimuth] = azimuth
                         electric_field[efp.zenith] = zenith
