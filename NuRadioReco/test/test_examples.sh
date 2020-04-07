@@ -16,4 +16,5 @@ python3 noise_trigger_rate.py --ntries 10
 cd ../..
 python3 FullReconstruction.py 32 example_data/example_data.hdf5 example_data/arianna_station_32.json
 python3 read_full_CoREAS_shower.py example_data/example_data.hdf5
+python3 SimpleMCReconstruction.py
 python3 CustomHybridDetector.py
