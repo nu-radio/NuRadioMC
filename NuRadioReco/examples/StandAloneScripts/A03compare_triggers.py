@@ -11,6 +11,7 @@ import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.channelLengthAdjuster
 
+import NuRadioReco.utilities.diodeSimulator
 import NuRadioReco.modules.ARA.triggerSimulator
 import NuRadioReco.modules.trigger.highLowThreshold
 
@@ -32,8 +33,14 @@ channelLengthAdjuster.begin(number_of_samples=400, offset=50)
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 
+diodeSimulator = NuRadioReco.utilities.diodeSimulator.diodeSimulator()
+noise_mean, noise_std = diodeSimulator.calculate_noise_parameters(
+    amplitude=20*units.mV,
+    min_freq=50*units.MHz,
+    max_freq=1000*units.MHz,
+    sampling_rate=1.*units.GHz
+)
 triggerSimulator_ARA = NuRadioReco.modules.ARA.triggerSimulator.triggerSimulator()
-triggerSimulator_ARA.begin()
 triggerSimulator_ARIANNA = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 triggerSimulator_ARIANNA.begin()
 
@@ -95,10 +102,11 @@ for scaling in np.linspace(10*units.mV,200*units.mV,n_scaling):
 
         channel_ARA.set_trace(test_pulse_sc,10*units.GHz)
         station_ARA.add_channel(channel_ARA)
-
+        station_ARA.remove_triggers()
 
         channel_ARIANNA.set_trace(test_pulse_sc,10*units.GHz)
         station_ARIANNA.add_channel(channel_ARIANNA)
+        station_ARIANNA.remove_triggers()
 
         channelBandPassFilter.run(event_ARIANNA, station_ARIANNA, det, passband=[50 * units.MHz, 1000 * units.MHz],
             filter_type='rectangular')
@@ -123,7 +131,9 @@ for scaling in np.linspace(10*units.mV,200*units.mV,n_scaling):
         triggerSimulator_ARA.run(event_ARA, station_ARA, det, power_threshold=6.5,
                                         coinc_window = 110 * units.ns,
                                         number_concidences =  1,
-                                        triggered_channels = [0, 1, 2, 3, 4, 5, 6, 7])
+                                        triggered_channels = [0, 1, 2, 3, 4, 5, 6, 7],
+                                        power_mean = noise_mean,
+                                        power_std = noise_std)
 
         triggerSimulator_ARIANNA.run(event_ARIANNA, station_ARIANNA, det,threshold_high=36 * units.mV,
                 threshold_low=-36 * units.mV,

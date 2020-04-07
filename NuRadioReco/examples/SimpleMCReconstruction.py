@@ -16,7 +16,7 @@ import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.electricFieldBandPassFilter
-import NuRadioReco.modules.cosmicRayIdentifier
+import NuRadioReco.modules.eventTypeIdentifier
 import NuRadioReco.modules.channelStopFilter
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.correlationDirectionFitter
@@ -80,7 +80,7 @@ try:
     print("Using {0} as detector".format(detector_file))
 except:
     print("Using default file for detector")
-    detector_file = '../examples/example_data/arianna_detector_db.json'
+    detector_file = 'example_data/arianna_station_32.json'
 
 det = detector.Detector(json_filename=detector_file)  # detector file
 det.update(datetime.datetime(2018, 10, 1))
@@ -118,7 +118,7 @@ voltageToAnalyticEfieldConverter = \
     NuRadioReco.modules.voltageToAnalyticEfieldConverter.voltageToAnalyticEfieldConverter()
 voltageToAnalyticEfieldConverter.begin()
 
-cosmicRayIdentifier = NuRadioReco.modules.cosmicRayIdentifier.cosmicRayIdentifier()
+eventTypeIdentifier = NuRadioReco.modules.eventTypeIdentifier.eventTypeIdentifier()
 
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelResampler.begin()
@@ -135,7 +135,7 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
 
     if simulationSelector.run(evt, station.get_sim_station(), det):
 
-        cosmicRayIdentifier.run(evt, station, "forced")
+        eventTypeIdentifier.run(evt, station, 'forced', 'cosmic_ray')
 
         efieldToVoltageConverter.run(evt, station, det)
 
@@ -156,7 +156,7 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
 
         # channelSignalReconstructor.run(evt, station, det)
         # new analytic approach
-        voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[30*units.MHz, 80*units.MHz], useMCdirection=True)
+        voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[30*units.MHz, 80*units.MHz], use_MC_direction=True)
 
         eventWriter.run(evt)
 
