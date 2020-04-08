@@ -119,7 +119,9 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
         fin = h5py.File(filename, 'r')
         out = {}
-        E = fin.attrs['Emin']
+        Emin = fin.attrs['Emin']
+        Emax = fin.attrs['Emax']
+        E = 10 ** ( 0.5 * (np.log10(Emin) + np.log10(Emax)) )
         out['energy'] = E
 
         weights = np.array(fin['weights'])
@@ -269,7 +271,11 @@ def get_Veff_water_equivalent(Veff, density_medium=0.917 * units.g / units.cm **
     return Veff * density_medium / density_water
 
 
-def get_Veff(folder, trigger_combinations={}, station=101, correct_zenith_sampling=False):
+def get_Veff(folder,
+             trigger_combinations={},
+             station=101,
+             correct_zenith_sampling=False,
+             point_bins=True):
     """
     calculates the effective volume from NuRadioMC hdf5 files
 
@@ -296,6 +302,9 @@ def get_Veff(folder, trigger_combinations={}, station=101, correct_zenith_sampli
         the station that should be considered
     correct_zenith_sampling: bool
         if True, correct a zenith sampling from np.sin(zenith) to an isotropic flux for a cylindrical geometry
+    point_bins: bool
+        if True, the bins are expected to only have one energy. If False, the
+        centre of the interval in log scale is taken as the bin energy
 
     Returns
     ----------
@@ -341,9 +350,14 @@ def get_Veff(folder, trigger_combinations={}, station=101, correct_zenith_sampli
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
         fin = h5py.File(filename, 'r')
         out = {}
-        E = fin.attrs['Emin']
-        if(fin.attrs['Emax'] != E):
-            raise AttributeError("min and max energy do not match!")
+        if point_bins:
+            E = fin.attrs['Emin']
+            if(fin.attrs['Emax'] != E):
+                raise AttributeError("min and max energy do not match!")
+        else:
+            Emin = fin.attrs['Emin']
+            Emax = fin.attrs['Emax']
+            E = 10 ** (0.5 * (np.log10(Emin) + np.log10(Emax)))
         out['energy'] = E
 
         weights = np.array(fin['weights'])
@@ -394,9 +408,9 @@ def get_Veff(folder, trigger_combinations={}, station=101, correct_zenith_sampli
                 def get_weights(zeniths, thetamin, thetamax, R, d):
                     """
                     calculates a correction to the weight to go from a zenith distribution proportional from
-                    theta ~ sin(theta) to an isotropic flux, i.e., the same number of events for the same 
-                    projected area perpendicular to the incoming direction.  
-                    
+                    theta ~ sin(theta) to an isotropic flux, i.e., the same number of events for the same
+                    projected area perpendicular to the incoming direction.
+
                     """
                     zeniths = np.array(zeniths)
                     yy = get_projected_area_cylinder(zeniths, R, d)
@@ -632,7 +646,7 @@ def get_Aeff_array(data):
     Parameters
     -----------
     data: dict
-        the result of the `get_Aeff` function
+        the result of the `get_Aeff_proposal` function
 
     Returns
     --------
