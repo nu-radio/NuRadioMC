@@ -1,0 +1,10 @@
+noise: True
+
+signal:
+  model: Alvarez2009
+  zerosignal: False
+propagation:
+  ice_model: greenland_simple
+  attenuation_model: GL1
+
+save_all: True
