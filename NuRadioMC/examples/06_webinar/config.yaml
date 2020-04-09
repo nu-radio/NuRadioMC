@@ -1,10 +1,28 @@
+# We will add noise to our signals. Keep in mind that this will cause some events
+# to trigger on noise. To study the number of fortuitious triggers, setting
+# zerosignal: True will perform a simulation with noise only.
 noise: True
 
+# This controls the electric field model that is used
 signal:
+  # We recommend the Alvarez2009 model for the simulation of effective volumes
+  # For reconstruction purposes, where accuracy is most needed, we recommend the
+  # ARZ2020 model.
   model: Alvarez2009
   zerosignal: False
+# There is a variety of ice models we can choose from.
 propagation:
+  # For the refractive index, there are: greenland_simple, mooresbay_simple,
+  # southpole_2015, southpole_simple, and ARAsim_southpole. See utilities.medium
+  # to know their refractive index profile.
   ice_model: greenland_simple
+  # We have three available attenuation models: GL1 for Greenland, MB1 for
+  # Moore's Bay, and SP1 for South Pole.
   attenuation_model: GL1
 
+# Usually, we save only the events that have triggered. For this example, however,
+# we are going to save all the events in the input file after they have been processed.
 save_all: True
+
+trigger:
+  noise_temperature: 300  # in Kelvin
