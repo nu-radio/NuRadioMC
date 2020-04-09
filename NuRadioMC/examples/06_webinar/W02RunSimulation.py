@@ -31,7 +31,8 @@ The last argument is optional, only needed if the user wants a nur file. nur fil
 contain lots of information on triggering events, so they're a great tool for
 visualisation (see NuRadioReco documentation and Christoph's webinar). However,
 because of their massive amount of information, they can be really heavy. So, when
-running NuRadioMC with millions of events, most of the time nur files are not created.
+running NuRadioMC with millions of events, most of the time nur files should not
+be created.
 """
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
