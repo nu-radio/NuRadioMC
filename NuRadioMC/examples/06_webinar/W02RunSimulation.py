@@ -33,6 +33,9 @@ reconstruction (see NuRadioReco documentation and Christoph's webinar). However,
 because of their massive amount of information, they can be really heavy. So, when
 running NuRadioMC with millions of events, most of the time nur files should not
 be created.
+
+Be sure to read the comments in the config.yaml file and also the file
+comments_detector.txt to understand how the detector.json function is structured.
 """
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
