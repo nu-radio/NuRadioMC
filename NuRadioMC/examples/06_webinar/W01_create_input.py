@@ -18,7 +18,8 @@ units of length. Let us define it as equal to 5 kilometres:
 
 length = 5 * units.km
 
-If we want to print it in centimeters, we can do:
+NuRadioReco will store this length unit in metres and perform all the calculations
+in metres. If we want to print it in centimeters, we can do:
 
 print(length/units.cm)
 """
