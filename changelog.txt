@@ -4,6 +4,8 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 1.1.2 - 
 new features:
+- Veff utility can now handle extended bins
+- New tutorial and example for the webinar
 
 bugfixes:
 
@@ -22,7 +24,6 @@ new features
 - detector description is saved to nur output files
 - new handling of random numbers. Each module has its own random generator instance. Global seed can be controlled via 
   config file setting. 
-- Veff utility can now handle extended bins
 
 bugfixes:
 - ARZxxxx and Alvarez2009 Askaryan modules now use the same (random) shower per event. 
