@@ -3,6 +3,8 @@ having an antenna. The mandatory parameters for a channel are:
 
 - channel_id, the ID that will be used interally in NuRadioMC and NuRadioReco
 - station_id, the ID of the station the channel belongs to
+- adc_sampling_frequency, the sampling frequency for the analog-to-digital converter,
+which can be used for resampling traces.
 - ant_type, the antenna type. For instance, 'bicone_v8' or 'createLPDA_100MHz'
 - ant_position_x, the x coordinate of the antenna in metres
 - ant_position_y, the y coordinate of the antenna in metres

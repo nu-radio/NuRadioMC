@@ -85,10 +85,12 @@ class mySimulation(simulation.simulation):
         equivalently, a time step of 0.2 ns. Such a high resolution is not common
         at all in radio experiments, where the sampling rates tend to lie around
         the gigahertz. So, if we want our simulation as realistic as possible,
-        we must resample to lower sampling rates. Let us a assume we have a
-        sampling rate of 2 GHz. Then, we can use the channelResampler to downsample.
+        we must resample to lower sampling rates, to the actual sampling rate of
+        our analog-to-digital converter. We have specified in our detector.json
+        file an adc_sampling_frequency of 2 GHz, which can be accessed using the
+        property _sampling_rate_detector.
         """
-        new_sampling_rate = 2 * units.GHz
+        new_sampling_rate = self._sampling_rate_detector
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
 
         """
