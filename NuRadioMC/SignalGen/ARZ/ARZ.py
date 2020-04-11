@@ -238,9 +238,6 @@ class ARZ(object):
             * 'trace' (default): return only the electric field trace
             * 'Xmax': return trace and position of xmax in units of length
             * 'full' return trace, depth and charge_excess profile
-        theta_reference: string (default: X0)
-            * 'X0': viewing angle relativ to start of the shower
-            * 'Xmax': viewing angle is relativ to Xmax, internally it will be converted to be relative to X0
 
         Returns: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
