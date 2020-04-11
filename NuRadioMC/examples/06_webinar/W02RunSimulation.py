@@ -100,6 +100,14 @@ class mySimulation(simulation.simulation):
         If our config file has specified 'noise: True', this steering file will add
         noise to the simulation. Keep in mind that adding noise can cause some
         events to trigger on noise, while they should not be triggering at all.
+        This problem is partially mitigated by a speed-up cut that can be
+        controlled with the config file. As default, we have:
+        speedup:
+            min_efield_amplitude: 2
+        This means that if the electric field amplitude is less than twice the
+        noise voltage RMS (assuming an antenna effective height of 1), the trigger
+        will not be calculated to save time.
+        
         This is a typical problem with detectors. The solution would be to find
         a threshold to trigger on as many signals as possible while keeping the
         noise trigger rate as low as possible. This can be studied setting
