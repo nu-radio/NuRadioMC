@@ -106,9 +106,9 @@ plt.show()
 """
 If the user wants to use the ARZ model and specify the distance and viewing angle with
 respect to the shower, they will have to import the ARZ class from the SignalGen.ARZ.ARZ.py
-module and use the get_time_trace function with the arguments:
+module and use the get_time_trace function with the argument:
 
-shift_for_xmax=True, theta_reference='Xmax'
+shift_for_xmax=True
 
 This function will return an array with three elements: e_R, e_theta, and e_phi, each
 one of them is an array containing the radial, zenithal, and azimuthal component of
@@ -126,4 +126,4 @@ R_from_xmax = 1 * units.km
 theta_from_xmax = 58 * units.deg
 
 trace = ARZ_object.get_time_trace(energy, theta_from_xmax, N, dt, shower_type, n_index, R_from_xmax,
-                                  shift_for_xmax=True, theta_reference='X0')
+                                  shift_for_xmax=True)
