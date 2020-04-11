@@ -82,9 +82,12 @@ class mySimulation(simulation.simulation):
         efieldToVoltageConverter.run(self._evt, self._station, self._det)
         """
         Our simulation uses the default sampling rate of 5 GHz, or 5 GS/s, or
-        equivalently, a time step of 0.2 ns. Such a high resolution is not common
+        equivalently, a time step of 0.2 ns. Such a high resolution, while needed
+        during simulations to capture all the details of the radio wave, is not common
         at all in radio experiments, where the sampling rates tend to lie around
-        the gigahertz. So, if we want our simulation as realistic as possible,
+        the gigahertz. If we want our simulation to be a theoretical study, we
+        can use 5 GHz as the electric field sampling rate. However, if we want
+        to simulate what an actual radio detector would see,
         we must resample to lower sampling rates, to the actual sampling rate of
         our analog-to-digital converter. We have specified in our detector.json
         file an adc_sampling_frequency of 2 GHz, which can be accessed using the
