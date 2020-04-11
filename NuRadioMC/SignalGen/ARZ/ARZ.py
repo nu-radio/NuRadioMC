@@ -225,7 +225,7 @@ class ARZ(object):
         interp_factor: int (default 10)
             interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial
             for small vertex distances but also slows down the calculation proportional to the interpolation factor.
-        shift_for_xmax: bool (default True)
+        shift_for_xmax: bool (default False)
             if True the observer position is placed relative to the position of the shower maximum, if False it is placed
             with respect to (0,0,0) which is the start of the charge-excess profile
         same_shower: bool (default False)
