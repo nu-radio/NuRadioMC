@@ -198,7 +198,7 @@ class ARZ(object):
         self._interp_factor2 = interp_factor
 
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
-                       same_shower=False, iN=None, output_mode='trace', theta_reference='X0'):
+                       same_shower=False, iN=None, output_mode='trace'):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
 
