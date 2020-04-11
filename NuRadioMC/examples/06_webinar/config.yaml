@@ -20,6 +20,18 @@ propagation:
   # Moore's Bay, and SP1 for South Pole.
   attenuation_model: GL1
 
+# With the speedum parameters, we can ignore the events that do not pass certain
+# geometric or amplitude cuts. Their triggers will not be calculated and they
+# will be counted as a non-triggering event.
+speedup:
+  # If the weight of a neutrino event is less than minimum_weight_cut, it will be ignored.
+  minimum_weight_cut: 1.e-5
+  # min_efield_amplitude is the minimum signal amplitude of the efield as a factor of the noise RMS.
+  # If the value is smaller, no detector simulation is performed. As the vector effecive length of
+  # antennas is typically less than 1, this cut does not introduce any bias as long as the value is
+  # smaller than the trigger threshold.
+  min_efield_amplitude: 2
+
 # Usually, we save only the events that have triggered. For this example, however,
 # we are going to save all the events in the input file after they have been processed.
 save_all: True
