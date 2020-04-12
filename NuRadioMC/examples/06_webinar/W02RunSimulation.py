@@ -106,7 +106,9 @@ class mySimulation(simulation.simulation):
             min_efield_amplitude: 2
         This means that if the electric field amplitude is less than twice the
         noise voltage RMS (assuming an antenna effective height of 1), the trigger
-        will not be calculated to save time.
+        will not be calculated to save time. Thus, we only simulate noise and calculate 
+        the full trigger for events which have a good chance of triggering. This largely 
+        reduces the chance of randomly triggering on a thermal noise fluctuation. 
 
         This is a typical problem with detectors. The solution would be to find
         a threshold to trigger on as many signals as possible while keeping the
