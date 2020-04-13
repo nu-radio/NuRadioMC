@@ -86,14 +86,15 @@ class mySimulation(simulation.simulation):
         during simulations to capture all the details of the radio wave, is not common
         at all in radio experiments after the wave has been digitised, with
         sampling rates around the gigahertz. However, we are going to suppose
-        that our trigger is analog, so it sees a continuous waveform. We can upsample
-        our trace from 5 GS/s to 10 GS/s to illustrate the use of the channel
-        resampler. Keep in mind that if the trigger were digital and we needed
-        a sampling rate of, for instance, 2 GHz, the same channelResampler
-        module can also perform a downsampling.
-        """
-        new_sampling_rate = 2 * self._sampling_rate_detector
+        that our trigger is analog, so it sees a continuous waveform.
+
+        If the trigger were digital and we needed a sampling rate of, for instance,
+        2 GHz, which is what is specified in the detector file, we could use the
+        channelResampler module can also to perform a downsampling as follows:
+
+        new_sampling_rate = self._sampling_rate_detector
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
+        """
 
         """
         If our config file has specified 'noise: True', this steering file will add
@@ -105,9 +106,9 @@ class mySimulation(simulation.simulation):
             min_efield_amplitude: 2
         This means that if the electric field amplitude is less than twice the
         noise voltage RMS (assuming an antenna effective height of 1), the trigger
-        will not be calculated to save time. Thus, we only simulate noise and calculate 
-        the full trigger for events which have a good chance of triggering. This largely 
-        reduces the chance of randomly triggering on a thermal noise fluctuation. 
+        will not be calculated to save time. Thus, we only simulate noise and calculate
+        the full trigger for events which have a good chance of triggering. This largely
+        reduces the chance of randomly triggering on a thermal noise fluctuation.
 
         This is a typical problem with detectors. The solution would be to find
         a threshold to trigger on as many signals as possible while keeping the
