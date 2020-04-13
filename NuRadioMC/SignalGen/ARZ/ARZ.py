@@ -32,17 +32,37 @@ c = 2.99792458e8 * units.m / units.s
 # e = 1.602177e-19 * units.coulomb
 
 
-def thetaprime_to_theta(thetaprime, xmax, R):
+def thetaprime_to_theta(thetaprime, xmax, R_prime):
     """
-    convertes a viewing angle relative to the shower maximum to a viewing angle relative to the start of the shower.
+    converts a viewing angle relative to the shower maximum to a viewing angle relative to the start of the shower.
+
+    Parameters
+    ----------
+    thetaprime: float
+        Angle formed between the shower axis and the shower maximum-observer line
+    xmax: float
+        The shower maximum depth in amount of matter traversed
+    R_prime: float
+        The distance between shower maximum and observer
     """
     L = xmax / rho
-    return thetaprime - np.arcsin((L * np.sin(np.pi - thetaprime)) / R)
+    b = R * np.sin(thetaprime)
+    a = R * np.cos(thetaprime) + L
+    return np.arctan2(b, a)
 
 
 def theta_to_thetaprime(theta, xmax, R):
     """
     converts a viewing angle relative to the start of the shower to a viewing angle relative to the shower maximum
+
+    Parameters
+    ----------
+    theta: float
+        The angle between the shower axis and the vertex-observer line
+    xmax: float
+        The shower maximum depth in amount of matter traversed
+    R: float
+        The distance between shower vertex and observer
     """
     L = xmax / rho
     b = R * np.sin(theta)
