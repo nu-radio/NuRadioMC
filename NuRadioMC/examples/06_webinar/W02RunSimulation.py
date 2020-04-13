@@ -94,7 +94,13 @@ class mySimulation(simulation.simulation):
 
         new_sampling_rate = self._sampling_rate_detector
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
+
+        In this case, we are just going to use the resampler with the same sampling
+        rate as the simulation, which will leave the trace intact, but we will
+        do it for illustration purposes.
         """
+        new_sampling_rate = 1 / self._dt
+        channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
 
         """
         If our config file has specified 'noise: True', this steering file will add
