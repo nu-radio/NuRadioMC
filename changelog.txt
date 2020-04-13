@@ -4,6 +4,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 1.1.2 - 
 new features:
+- Simplified treatment of reference angles and polarization for the ARZ module
 
 bugfixes:
 
