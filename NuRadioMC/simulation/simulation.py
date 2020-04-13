@@ -589,8 +589,13 @@ class simulation():
                             trace_start_time = self._vertex_time + T
                         else:
                             trace_start_time = T
-                        if(self._cfg['signal']['model'] in ['ARZ2019', 'ARZ2020']):
-                            trace_start_time -= 0.5 * electric_field.get_number_of_samples() / electric_field.get_sampling_rate()
+
+                        # We shift the trace start time so that the trace time matches the propagation time.
+                        # The centre of the trace corresponds to the instant when the signal from the shower
+                        # vertex arrives at the observer. The next line makes sure that the centre time
+                        # of the trace is equal to vertex_time + T (wave propagation time)
+                        trace_start_time -= 0.5 * electric_field.get_number_of_samples() / electric_field.get_sampling_rate()
+
                         electric_field.set_trace_start_time(trace_start_time)
                         electric_field[efp.azimuth] = azimuth
                         electric_field[efp.zenith] = zenith
