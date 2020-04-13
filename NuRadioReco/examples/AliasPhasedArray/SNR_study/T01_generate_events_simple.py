@@ -45,6 +45,8 @@ z_ant = -100 * units.m
 distance = 1 * units.km
 vertex_angle_min = 90 * units.deg
 vertex_angle_max = 145 * units.deg
+#vertex_angle_min = 115 * units.deg
+#vertex_angle_max = 120 * units.deg
 vertex_angles = np.random.uniform(vertex_angle_min, vertex_angle_max, n_events)
 
 data_sets["yy"] = np.zeros(n_events, dtype=np.float)
@@ -53,6 +55,8 @@ data_sets["xx"] = distance * np.sin(vertex_angles)
 
 thetamin = 65 * units.deg
 thetamax = 100 * units.deg
+#thetamin = vertex_angle_min - np.arccos(1/1.55) - delta_zenith
+#thetamax = vertex_angle_max - np.arccos(1/1.55) + delta_zenith
 data_sets["zeniths"] = np.arccos( np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events) )
 
 data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
