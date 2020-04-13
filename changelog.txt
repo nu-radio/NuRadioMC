@@ -6,6 +6,7 @@ version 1.1.2 -
 new features:
 - Veff utility can now handle extended bins
 - New tutorial and example for the webinar
+- trace start time for the electric field models adjusted such that global time of pulse position corresponds to propagation time
 
 bugfixes:
 
@@ -23,8 +24,7 @@ new features
   to happen at the surface)
 - detector description is saved to nur output files
 - new handling of random numbers. Each module has its own random generator instance. Global seed can be controlled via 
-  config file setting. 
-- trace start time for the electric field models adjusted such that global time of pulse position corresponds to propagation time
+  config file setting.
 
 bugfixes:
 - ARZxxxx and Alvarez2009 Askaryan modules now use the same (random) shower per event. 
