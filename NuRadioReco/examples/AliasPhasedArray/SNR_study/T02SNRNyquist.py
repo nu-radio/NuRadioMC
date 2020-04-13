@@ -14,7 +14,7 @@ The usage of this file is:
 python T02SNRNyquist.py input_neutrino_file.hdf5 phased_array_file.json
 config.yaml output_NuRadioMC_file.hdf5 output_SNR_file.hdf5 output_NuRadioReco_file.nur(optional)
 
-The Nyquist zone and the upsampling factors can be changed in this file. The
+The Nyquist zone and the upsampling factors can be passed as arguments. The
 following configurations are the most interesting:
 
             ADC freq (GHz)        Upsampling factor     Nyquist zone
@@ -55,10 +55,37 @@ from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 from NuRadioReco.modules import analogToDigitalConverter
 from NuRadioReco.utilities.trace_utilities import butterworth_filter_trace
+from scipy import constants
 import numpy as np
+import json
 import logging
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("runstrawman")
+
+parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
+parser.add_argument('inputfilename', type=str,
+                    help='path to NuRadioMC input event list')
+parser.add_argument('detectordescription', type=str,
+                    help='path to file containing the detector description')
+parser.add_argument('config', type=str,
+                    help='NuRadioMC yaml config file')
+parser.add_argument('outputfilename', type=str,
+                    help='hdf5 output filename')
+parser.add_argument('outputSNR', type=str,
+                    help='outputfilename for the snr files')
+parser.add_argument('--nyquist_zone', type=int, default=1,
+                    help='Nyquist zone number')
+parser.add_argument('--upsampling_factor', type=int, default=2,
+                    help='Upsampling factor')
+parser.add_argument('--noise_rate', type=float, default=1,
+                    help='Noise trigger rate in hertz')
+parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
+                    help='outputfilename of NuRadioReco detector sim file')
+args = parser.parse_args()
+
+nyquist_zone = args.nyquist_zone
+upsampling_factor = args.upsampling_factor
+noise_rate = args.noise_rate
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
@@ -70,9 +97,6 @@ channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelG
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 ADC = NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter()
 
-upsampling_factor = 4
-nyquist_zone = 2
-
 main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
 phasing_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
@@ -80,25 +104,46 @@ phasing_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_hig
 diode_passband = (None, 200*units.MHz)
 diodeSimulator = NuRadioReco.utilities.diodeSimulator.diodeSimulator(diode_passband)
 
-thresholds = {'try': 3e-5}
+# The 2nd and 3rd zone thresholds have been calculated for a 0.25 GHz ADC,
+# with 8 bits and a noise level of 2 bits.
+threshold_2nd_zone = { '1Hz' : 15.5 * units.microvolt,
+                       '2Hz' : 15.25 * units.microvolt,
+                       '5Hz' : 14.85 * units.microvolt,
+                       '10Hz' : 14.5 * units.microvolt }
+threshold_3rd_zone = { '1Hz' : 15.5 * units.microvolt,
+                       '2Hz' : 15.25 * units.microvolt,
+                       '5Hz' : 14.85 * units.microvolt,
+                       '10Hz' : 14.5 * units.microvolt }
+# The 1st zone thresholds have been calculated for a 0.5 GHz ADC,
+# with 8 bits and a noise level of 2 bits.
+threshold_1st_zone = { '1Hz' : 15.71 * units.microvolt,
+                       '2Hz' : 15.45 * units.microvolt,
+                       '5Hz' : 15.20 * units.microvolt,
+                       '10Hz' : 14.85 * units.microvolt }
+thresholds = { 2 : threshold_2nd_zone,
+               3 : threshold_3rd_zone,
+               1 : threshold_1st_zone }
 
 low_freq = 132 * units.MHz
 high_freq = 700 * units.MHz
 
 N = 51
 SNRs = np.linspace(0.5,5,N)
-SNRtriggered = np.ones(N) * -1
+SNRtriggered = np.ones(N) * 0
 def count_events():
     count_events.events += 1
-count_events.events = -1
+count_events.events = 0
+
+bandwidth_Vrms = (300 * 50 * constants.k *
+                  (high_freq-low_freq) / units.Hz) ** 0.5
 
 class mySimulation(simulation.simulation):
 
     def _detector_simulation(self):
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
-        # downsample trace to 5 ns
-        new_sampling_rate = 5 * units.GHz
+
+        new_sampling_rate = 3 * units.GHz
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
 
         cut_times = get_window_around_maximum(self._station, diodeSimulator, ratio=0.01)
@@ -109,20 +154,22 @@ class mySimulation(simulation.simulation):
 
             times = np.array(channel.get_times())
             trace = np.array(channel.get_trace())
-
             trace = butterworth_filter_trace(trace, new_sampling_rate, (low_freq, high_freq))
+
             left_bin = np.argmin(np.abs(times-cut_times[0]))
             right_bin = np.argmin(np.abs(times-cut_times[1]))
 
             Vpp = np.max( trace[left_bin:right_bin] ) - np.min( trace[left_bin:right_bin] )
             Vpps.append(Vpp)
 
-        factor = 1./(np.mean(Vpps)/2/self._Vrms)
-        print(factor)
+        factor = 1./(np.mean(Vpps)/2/bandwidth_Vrms)
         mult_factors = factor * SNRs
-
+#        print("SNR", 1/factor)
+#        print(bandwidth_Vrms)
         reject_event = False
         if True in mult_factors > 1.e10:
+            reject_event = True
+        if 1/factor > 3e4:
             reject_event = True
 
         # Copying original traces
@@ -147,7 +194,7 @@ class mySimulation(simulation.simulation):
             if noise:
                 max_freq = 0.5 * new_sampling_rate
                 norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
-                Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
+                Vrms = bandwidth_Vrms / ((high_freq-low_freq)/max_freq) ** 0.5
                 channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
                                              max_freq=max_freq, type='rayleigh')
 
@@ -157,14 +204,16 @@ class mySimulation(simulation.simulation):
             channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, high_freq],
                                       filter_type='butter', order=10)
 
+#            for channel in self._station.iter_channels():
+#                print('ejte', np.std(channel.get_trace()))
+#                print(bandwidth_Vrms, self._Vrms)
+
             # Running the phased array trigger with ADC, Nyquist zones and upsampling incorporated
             trig = triggerSimulator.run(self._evt, self._station, self._det,
-                                 threshold=thresholds['try'], # see phased trigger module for explanation
+                                 threshold=thresholds[nyquist_zone]['{:.0f}Hz'.format(noise_rate)], # see phased trigger module for explanation
                                  triggered_channels=None,  # run trigger on all channels
-                                 trigger_name='primary_phasing', # the name of the trigger
+                                 trigger_name='alias_phasing', # the name of the trigger
                                  phasing_angles=phasing_angles,
-                                 secondary_phasing_angles=None,
-                                 coupled=False,
                                  ref_index=1.55,
                                  cut_times=cut_times,
                                  trigger_adc=True,
@@ -176,34 +225,18 @@ class mySimulation(simulation.simulation):
                 ADC.run(self._evt, self._station, self._det)
 
             if (trig and not reject_event):
-                print('Trigger for SNR', SNRs[iSNR])
                 SNRtriggered[iSNR] += 1
 
         if not reject_event:
             count_events()
-            print(count_events.events)
             print(SNRtriggered)
 
-parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
-parser.add_argument('inputfilename', type=str,
-                    help='path to NuRadioMC input event list')
-parser.add_argument('detectordescription', type=str,
-                    help='path to file containing the detector description')
-parser.add_argument('config', type=str,
-                    help='NuRadioMC yaml config file')
-parser.add_argument('outputfilename', type=str,
-                    help='hdf5 output filename')
-parser.add_argument('outputSNR', type=str,
-                    help='outputfilename for the snr files')
-parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
-                    help='outputfilename of NuRadioReco detector sim file')
-args = parser.parse_args()
 
 sim = mySimulation(inputfilename=args.inputfilename,
-                            outputfilename=args.outputfilename,
-                            detectorfile=args.detectordescription,
-                            outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-                            config_file=args.config)
+                   outputfilename=args.outputfilename,
+                   detectorfile=args.detectordescription,
+                   outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
+                   config_file=args.config)
 sim.run()
 
 print("Total events", count_events.events)
