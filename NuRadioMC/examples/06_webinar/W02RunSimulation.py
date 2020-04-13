@@ -90,7 +90,7 @@ class mySimulation(simulation.simulation):
 
         If the trigger were digital and we needed a sampling rate of, for instance,
         2 GHz, which is what is specified in the detector file, we could use the
-        channelResampler module can also to perform a downsampling as follows:
+        channelResampler module to perform a downsampling as follows:
 
         new_sampling_rate = self._sampling_rate_detector
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
