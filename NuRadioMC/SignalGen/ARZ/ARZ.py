@@ -46,8 +46,8 @@ def thetaprime_to_theta(thetaprime, xmax, R_prime):
         The distance between shower maximum and observer
     """
     L = xmax / rho
-    b = R * np.sin(thetaprime)
-    a = R * np.cos(thetaprime) + L
+    b = R_prime * np.sin(thetaprime)
+    a = R_prime * np.cos(thetaprime) + L
     return np.arctan2(b, a)
 
 
