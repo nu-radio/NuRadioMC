@@ -24,7 +24,7 @@ new features
 - detector description is saved to nur output files
 - new handling of random numbers. Each module has its own random generator instance. Global seed can be controlled via 
   config file setting. 
-- trace start time for the ARZ models adjusted such that global time of pulse position corresponds to propagation time
+- trace start time for the electric field models adjusted such that global time of pulse position corresponds to propagation time
 
 bugfixes:
 - ARZxxxx and Alvarez2009 Askaryan modules now use the same (random) shower per event. 
