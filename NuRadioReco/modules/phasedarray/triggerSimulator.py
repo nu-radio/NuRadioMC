@@ -89,7 +89,7 @@ class triggerSimulator:
             subbeam_rolls = {}
             for z, channel_id in zip(ant_z, triggered_channels):
                 delay = (z - ref_z) / cspeed * ref_index * np.sin(angle)
-                roll = int(delay / time_step)
+                roll = int(np.round(delay / time_step))
                 subbeam_rolls[channel_id] = roll
             logger.debug("angle:", angle / units.deg)
             logger.debug(subbeam_rolls)
