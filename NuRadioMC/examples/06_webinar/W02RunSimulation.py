@@ -68,7 +68,7 @@ module. This class is incomplete by design, since it lacks the _detector_simulat
 function that controls what the detector does after the electric field arrives
 at the antenna. That allows us to create our own class that inherits from
 the simulation class that we will call mySimulation, and define in it a
-_detector_simulation class with all the characteristics of our detector setup.
+_detector_simulation function with all the characteristics of our detector setup.
 """
 
 class mySimulation(simulation.simulation):
