@@ -39,8 +39,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
             if(zenith > 0.5 * np.pi):
                 refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
         if station.get_sim_station().is_neutrino():
-                refractive_index = ice.get_refractive_index(antenna_position[2], site)
-                        
+            refractive_index = ice.get_refractive_index(antenna_position[2], site)
         time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
         t_geos[iCh] = time_shift
         t_cables[iCh] = channel.get_trace_start_time()
