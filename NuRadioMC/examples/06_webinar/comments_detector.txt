@@ -1,0 +1,48 @@
+To write a json detector file, first we start with the channels, each one
+having an antenna. The mandatory parameters for a channel are:
+
+- channel_id, the ID that will be used interally in NuRadioMC and NuRadioReco
+- station_id, the ID of the station the channel belongs to
+- adc_sampling_frequency, the sampling frequency for the analog-to-digital converter,
+which can be used for resampling traces.
+- ant_type, the antenna type. For instance, 'bicone_v8' or 'createLPDA_100MHz'
+- ant_position_x, the x coordinate of the antenna in metres
+- ant_position_y, the y coordinate of the antenna in metres
+- ant_position_z, the z coordinate of the antenna in metres
+These positions are referred to the altitude, northing, and easting of the
+associated station.
+- ant_orientation_theta. For dipoles, this theta marks the zenith of the direction
+along which the axis is placed. For LPDAs, it marks the boresight, the direction of
+maximum gain. All angles are in degrees.
+- ant_orientation_phi. The same as ant_orientation_theta, but for azimuth.
+- ant_rotation_theta. The zenith angle of the direction of the tines of the antenna,
+that must be perpendicular to the direction defined by ant_orientation_theta and
+ant_orientation_phi.
+- ant_rotation_phi. The same as ant_rotation_theta, but for azimuth.
+
+For instance, a vertical dipole would have ant_orientation_theta: 0 and any
+ant_orientation_phi. ant_rotation_theta and ant_rotation_phi can be any direction
+perpendicular to the orientation, for instance ant_rotation_theta: 90 and
+ant_rotation_phi: 90
+
+Another example: a 45-degree downward-pointing LPDA antenna with the tines on the XZ plane
+would have ant_orientation_theta: 135, ant_orientation_phi: 0, ant_rotation_theta: 45,
+ant_rotation_phi: 0
+
+The rest of the parametres are either not used yet (they're here for future modules)
+or they are used by modules not needed for the present example.
+
+After the channels, the stations must be defined. The mandatory parameters for a
+station are:
+
+- pos_altitude, the altitude of the station in metres
+- pos_easting, the easting of the station in metres
+- pos_northing, the northing of the station in metres
+- station_id, the ID of the station that will be used internally by NuRadioMC and NuRadioReco
+
+One of the advantages of the default_detector_station option given by NuRadioReco
+is that, if we want to create another station 102 that has a channel setup identical
+to station 101, we can just define station 102 without any channel associated and then
+run our simulation using default_detector_station=101. The channels from station 101
+will be copied to station 102, and their coordinates will be read as relative to the
+easting, northing, and altitude of station 102.
