@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 import h5py
+import time
 import os
 
 """
@@ -41,8 +42,7 @@ print("-----------------------------------------")
 for key in fin.keys():
     print(key)
 print("-----------------------------------------")
-print("Please press Enter\n")
-input()
+time.sleep(2)
 
 """
 We can also print the attributes that give general information about the simulation,
@@ -53,8 +53,7 @@ print("----------------------------------------------------")
 for key in fin.attrs.keys():
     print(key)
 print("----------------------------------------------------")
-print("Please press Enter\n")
-input()
+time.sleep(2)
 
 """
 Some of the keys begin with 'station_'. This means that these keys link to
@@ -66,8 +65,7 @@ print("----------------------------------------------------")
 for key in fin['station_101'].keys():
     print(key)
 print("----------------------------------------------------")
-print("Please press Enter\n")
-input()
+time.sleep(2)
 
 """
 And the station groups also contain an attribute with the antenna positions
@@ -77,8 +75,7 @@ print("-----------------------------------------------------------------")
 for key in fin['station_101'].attrs.keys():
     print(key)
 print("-----------------------------------------------------------------")
-print("Please press Enter\n")
-input()
+time.sleep(2)
 
 """
 Let us now extract some information from the output file. Let's say we are
@@ -98,8 +95,7 @@ to the trigger we want. Let's say we want to know the results for the trigger
 chosen_trigger = 'hilo_2of4_5_sigma'
 trigger_index = np.squeeze(np.argwhere(trigger_names == chosen_trigger))
 print("The trigger {} corresponds to the index {}".format(chosen_trigger, trigger_index))
-print("Please press Enter\n")
-input()
+time.sleep(2)
 
 """
 It should be 0 if we have followed all the steps of the example correctly. Now,
