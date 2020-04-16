@@ -12,6 +12,5 @@ aenum
 cython
 requests
 future
+proposal
 ###### Requirements with Version Specifiers ######
-
-
