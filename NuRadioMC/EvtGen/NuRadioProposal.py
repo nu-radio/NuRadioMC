@@ -487,7 +487,7 @@ class ProposalFunctions:
                 distance += ( (sec.position.y - lepton_position[1]) * units.cm )**2
                 distance += ( (sec.position.z - lepton_position[2]) * units.cm )**2
                 distance  = np.sqrt(distance)
-                energy = sec.energy * units.MeV
+                energy = (sec.parent_particle_energy - sec.energy) * units.MeV
 
                 shower_type, code, name = self.__shower_properties(sec)
 
@@ -606,7 +606,7 @@ class ProposalFunctions:
                         elif sec.particle_def == pp.particle.MuPlusDef():
                             mu_code = -13
 
-                        mu_energy = sec.energy
+                        mu_energy = (sec.parent_particle_energy - sec.energy)
                         if (mu_energy <= low):
                             continue
                         mu_position = (sec.position.x, sec.position.y, sec.position.z)
