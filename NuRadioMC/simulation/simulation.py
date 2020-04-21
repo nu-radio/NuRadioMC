@@ -537,14 +537,16 @@ class simulation():
                         logger.debug(f"st {self._station_id}, ch {channel_id}, solutino {iS}: n_ref bottom = {i_reflections:d}," + \
                                      f" n_ref surface = {n_surface_reflections:d},  R = {R / units.m:.1f} m, T = {T / units.ns:.1f}ns," + \
                                      f" receive angles zen={zenith / units.deg:.0f}deg, az={azimuth / units.deg:.0f}deg")
-                        tmp_output = "attenuation factor"
-                        iF = len(self._ff) // 4
-                        tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
-                        iF = len(self._ff) // 3
-                        tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
-                        iF = len(self._ff) // 2
-                        tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
-                        logger.debug(tmp_output)
+
+                        if self._cfg['propagation']['attenuate_ice']:
+                            tmp_output = "attenuation factor"
+                            iF = len(self._ff) // 4
+                            tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
+                            iF = len(self._ff) // 3
+                            tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
+                            iF = len(self._ff) // 2
+                            tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
+                            logger.debug(tmp_output)
                         for zenith_reflection in zenith_reflections:  # loop through all possible reflections
                             if(zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
                                 continue
@@ -587,6 +589,13 @@ class simulation():
                             trace_start_time = self._vertex_time + T
                         else:
                             trace_start_time = T
+
+                        # We shift the trace start time so that the trace time matches the propagation time.
+                        # The centre of the trace corresponds to the instant when the signal from the shower
+                        # vertex arrives at the observer. The next line makes sure that the centre time
+                        # of the trace is equal to vertex_time + T (wave propagation time)
+                        trace_start_time -= 0.5 * electric_field.get_number_of_samples() / electric_field.get_sampling_rate()
+
                         electric_field.set_trace_start_time(trace_start_time)
                         electric_field[efp.azimuth] = azimuth
                         electric_field[efp.zenith] = zenith

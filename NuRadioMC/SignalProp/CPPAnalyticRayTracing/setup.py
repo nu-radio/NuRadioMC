@@ -13,8 +13,8 @@ except:
 
 extensions = [
     Extension('wrapper', ['wrapper.pyx'],
-              #include_dirs=[numpy.get_include(), '../../utilities/'],
               include_dirs=[numpy.get_include(), '../../utilities/', str(os.environ['GSLDIR']) + '/include/'],
+              library_dirs=[str(os.environ['GSLDIR']) + '/lib/'],
               extra_compile_args=['-O3',"-mfpmath=sse"],
               libraries=['gsl', 'gslcblas'],
               language='c++'
