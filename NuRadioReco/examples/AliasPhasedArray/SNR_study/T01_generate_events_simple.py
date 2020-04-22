@@ -23,7 +23,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Generates a simple event list for alias SNR studies')
 parser.add_argument('--filename', type=str, help='Output filename', default='input_alias_SNR.hdf5')
-parser.add_argument('--n_events', type=int, help='Number of events', default=int(1e4))
+parser.add_argument('--n_events', type=int, help='Number of events', default=2500)
 args = parser.parse_args()
 
 filename = args.filename
