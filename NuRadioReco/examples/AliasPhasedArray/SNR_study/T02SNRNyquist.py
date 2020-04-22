@@ -12,7 +12,7 @@ The phased array configuration is the same used for the RNO example.
 The usage of this file is:
 
 python T02SNRNyquist.py input_neutrino_file.hdf5 phased_array_file.json
-config.yaml output_NuRadioMC_file.hdf5 output_SNR_file.hdf5 output_NuRadioReco_file.nur(optional)
+config.yaml output_NuRadioMC_file.hdf5 output_SNR_file.json output_NuRadioReco_file.nur(optional)
 
 The Nyquist zone and the upsampling factors can be passed as arguments. The
 following configurations are the most interesting:
@@ -59,7 +59,7 @@ from scipy import constants
 import numpy as np
 import json
 import logging
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.CRITICAL)
 logger = logging.getLogger("runstrawman")
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
@@ -143,7 +143,7 @@ class mySimulation(simulation.simulation):
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
 
-        new_sampling_rate = 3 * units.GHz
+        new_sampling_rate = 1 / self._dt
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
 
         cut_times = get_window_around_maximum(self._station, diodeSimulator, ratio=0.01)
@@ -164,8 +164,10 @@ class mySimulation(simulation.simulation):
 
         factor = 1./(np.mean(Vpps)/2/bandwidth_Vrms)
         mult_factors = factor * SNRs
-#        print("SNR", 1/factor)
-#        print(bandwidth_Vrms)
+
+        # Rejecting events if one of the multiplying factors is too large.
+        # Similarly, if factor is too low it means the event is the dummy event
+        # when the simulation starts, so we reject it too.
         reject_event = False
         if True in mult_factors > 1.e10:
             reject_event = True
@@ -204,17 +206,13 @@ class mySimulation(simulation.simulation):
             channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, high_freq],
                                       filter_type='butter', order=10)
 
-#            for channel in self._station.iter_channels():
-#                print('ejte', np.std(channel.get_trace()))
-#                print(bandwidth_Vrms, self._Vrms)
-
             # Running the phased array trigger with ADC, Nyquist zones and upsampling incorporated
             trig = triggerSimulator.run(self._evt, self._station, self._det,
                                  threshold=thresholds[nyquist_zone]['{:.0f}Hz'.format(noise_rate)], # see phased trigger module for explanation
                                  triggered_channels=None,  # run trigger on all channels
                                  trigger_name='alias_phasing', # the name of the trigger
                                  phasing_angles=phasing_angles,
-                                 ref_index=1.55,
+                                 ref_index=1.75,
                                  cut_times=cut_times,
                                  trigger_adc=True,
                                  upsampling_factor=upsampling_factor,
