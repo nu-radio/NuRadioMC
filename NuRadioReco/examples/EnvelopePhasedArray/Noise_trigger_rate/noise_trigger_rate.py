@@ -56,7 +56,7 @@ def get_beam_rolls(ant_z, channel_list, phasing_angles=default_angles, time_step
             subbeam_rolls[channel_id] = roll
         beam_rolls.append(subbeam_rolls)
 
-        return beam_rolls
+    return beam_rolls
 
 min_freq = 132*units.MHz
 max_freq = 700*units.MHz
