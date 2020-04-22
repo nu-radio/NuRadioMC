@@ -65,7 +65,7 @@ def get_beam_rolls(ant_z, channel_list,
         subbeam_rolls = {}
         for z, channel_id in zip(ant_z, range(n_phased)):
             delay = (z-ref_z)/0.3 * ref_index * np.sin(angle)
-            roll = int(delay * upsampling_factor / time_step)
+            roll = int(np.round(delay * upsampling_factor / time_step))
             subbeam_rolls[channel_id] = roll
         beam_rolls.append(subbeam_rolls)
 
@@ -270,17 +270,15 @@ Ntries = args.ntries # number of tries
 input_sampling_frequency = 3 * units.GHz
 min_freq = 132*units.MHz
 max_freq = 700*units.MHz
-time_step = 1 / (adc_sampling_frequency * upsampling_factor)
+input_time_step = 1 / adc_sampling_frequency
+time_step = input_time_step / upsampling_factor
 window_time = 12 * units.ns
 window_width = int(window_time / time_step)
 primary_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
 ant_z_primary = [-98.5, -99.5, -100.5, -101.5] # primary antennas positions
 primary_channels = [0, 1, 2, 3] # channels used for primary beam
 beam_rolls = get_beam_rolls(ant_z_primary, primary_channels, primary_angles,
-                            time_step, upsampling_factor=upsampling_factor)
-print(primary_angles)
-print(beam_rolls)
-exit()
+                            input_time_step, upsampling_factor=upsampling_factor)
 
 n_samples = 1000000 # number of samples
 adc_n_samples = int( n_samples * adc_sampling_frequency * upsampling_factor / input_sampling_frequency )
