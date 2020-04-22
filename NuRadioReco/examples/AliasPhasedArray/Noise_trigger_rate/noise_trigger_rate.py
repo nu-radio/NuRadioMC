@@ -50,7 +50,7 @@ default_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_hig
 def get_beam_rolls(ant_z, channel_list,
                    phasing_angles=default_angles,
                    time_step=2./3*units.ns,
-                   ref_index=1.55,
+                   ref_index=1.75,
                    upsampling_factor=1):
     """
     Calculates the delays needed for phasing the array.
@@ -69,7 +69,7 @@ def get_beam_rolls(ant_z, channel_list,
             subbeam_rolls[channel_id] = roll
         beam_rolls.append(subbeam_rolls)
 
-        return beam_rolls
+    return beam_rolls
 
 def get_noise_rms_nyquist_zone(trace,
                                input_sampling_frequency,
@@ -278,6 +278,9 @@ ant_z_primary = [-98.5, -99.5, -100.5, -101.5] # primary antennas positions
 primary_channels = [0, 1, 2, 3] # channels used for primary beam
 beam_rolls = get_beam_rolls(ant_z_primary, primary_channels, primary_angles,
                             time_step, upsampling_factor=upsampling_factor)
+print(primary_angles)
+print(beam_rolls)
+exit()
 
 n_samples = 1000000 # number of samples
 adc_n_samples = int( n_samples * adc_sampling_frequency * upsampling_factor / input_sampling_frequency )
