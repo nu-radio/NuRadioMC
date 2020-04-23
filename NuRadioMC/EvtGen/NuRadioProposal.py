@@ -399,7 +399,8 @@ class ProposalFunctions:
                              lepton_position,
                              lepton_direction,
                              propagation_length,
-                             propagators):
+                             propagators,
+                             low=1*pp_PeV):
         """
         Calculates secondary particles using a PROPOSAL propagator. It needs to
         be given a propagators dictionary with particle codes as key
@@ -416,6 +417,8 @@ class ProposalFunctions:
             Lepton direction vector, normalised to 1
         propagation_length: float
             Maximum length the particle is propagated, in PROPOSAL units (cm)
+        low: float
+            Low energy limit for the propagating particle in Proposal units (MeV)
 
         Returns
         -------
@@ -424,13 +427,6 @@ class ProposalFunctions:
         """
         x, y, z = lepton_position
         px, py, pz = lepton_direction
-#        propagators[lepton_code].particle.position = pp.Vector3D(x, y, z)
-#        propagators[lepton_code].particle.direction = pp.Vector3D(px, py, pz)
-#        propagators[lepton_code].particle.propagated_distance = 0
-#        propagators[lepton_code].particle.energy = energy_lepton
-
-        #particle_def = pp.particle.MuMinusDef()
-        #mu_def = pp.particle.DynamicData(particle_def.particle_type)
 
         if (lepton_code == 13):
             particle_def = pp.particle.MuMinusDef()
@@ -447,7 +443,9 @@ class ProposalFunctions:
         initial_condition.energy = energy_lepton
         initial_condition.propagated_distance = 0
 
-        secondaries = propagators[lepton_code].propagate(initial_condition, propagation_length).particles
+        secondaries = propagators[lepton_code].propagate(initial_condition,
+                                                         propagation_length,
+                                                         minimal_energy=low).particles
 
         return secondaries
 
@@ -487,7 +485,11 @@ class ProposalFunctions:
                 distance += ( (sec.position.y - lepton_position[1]) * units.cm )**2
                 distance += ( (sec.position.z - lepton_position[2]) * units.cm )**2
                 distance  = np.sqrt(distance)
-                energy = (sec.parent_particle_energy - sec.energy) * units.MeV
+
+                if (sec.type > 1000000000):
+                    energy = (sec.parent_particle_energy - sec.energy) * units.MeV
+                else:
+                    energy = sec.energy * units.MeV
 
                 shower_type, code, name = self.__shower_properties(sec)
 
@@ -501,7 +503,7 @@ class ProposalFunctions:
                               lepton_positions_nu=None,
                               lepton_directions=None,
                               config_file='SouthPole',
-                              low_nu=0.1*units.PeV,
+                              low_nu=1*units.PeV,
                               propagation_length_nu=1000*units.km,
                               min_energy_loss_nu=1*units.PeV,
                               propagate_decay_muons=True):
@@ -585,7 +587,7 @@ class ProposalFunctions:
 
             secondaries = self.__propagate_particle(energy_lepton, lepton_code,
                                                     lepton_position, lepton_direction,
-                                                    propagation_length, propagators)
+                                                    propagation_length, propagators, low=low)
 
             shower_inducing_prods = self.__filter_secondaries(secondaries, min_energy_loss, lepton_position)
 
@@ -606,7 +608,7 @@ class ProposalFunctions:
                         elif sec.particle_def == pp.particle.MuPlusDef():
                             mu_code = -13
 
-                        mu_energy = (sec.parent_particle_energy - sec.energy)
+                        mu_energy = sec.energy
                         if (mu_energy <= low):
                             continue
                         mu_position = (sec.position.x, sec.position.y, sec.position.z)
@@ -640,7 +642,7 @@ class ProposalFunctions:
                     continue
                 mu_energy, mu_code, mu_position, mu_direction = decay_muon
                 mu_secondaries = self.__propagate_particle(mu_energy, mu_code, mu_position, mu_direction,
-                                                           propagation_length, mu_propagators)
+                                                           propagation_length, mu_propagators, low=low)
 
                 mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
 
@@ -721,7 +723,7 @@ class ProposalFunctions:
             while( decay_prop == (None,None) ):
 
                 secondaries = self.__propagate_particle(energy_lepton, lepton_code, lepton_position, lepton_direction,
-                                                        propagation_length, propagators)
+                                                        propagation_length, propagators, low=low)
 
                 decay_particles = np.array([p for p in secondaries if p.type not in proposal_interaction_codes])
                 decay_energies = np.array([p.energy for p in decay_particles])
