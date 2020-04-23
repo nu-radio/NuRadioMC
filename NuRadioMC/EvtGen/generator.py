@@ -1381,8 +1381,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         lepton_codes[lepton_codes == -16] = -15
 
         lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
+        lepton_positions = np.array(lepton_positions)[mask_leptons]
         lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
                             for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
+        lepton_directions = np.array(lepton_directions)[mask_leptons]
 
         if resample:
             if (len(np.unique(lepton_codes)) > 1):
