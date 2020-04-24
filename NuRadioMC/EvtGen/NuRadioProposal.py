@@ -486,8 +486,11 @@ class ProposalFunctions:
                 distance += ( (sec.position.z - lepton_position[2]) * units.cm )**2
                 distance  = np.sqrt(distance)
 
+                # Checking if the secondary type is greater than 1000000000, which means
+                # that the secondary is an interaction particle.
                 if (sec.type > 1000000000):
                     energy = (sec.parent_particle_energy - sec.energy) * units.MeV
+                # Else, the secondary is a particle issued upon decay.
                 else:
                     energy = sec.energy * units.MeV
 
