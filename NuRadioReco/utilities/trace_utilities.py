@@ -157,7 +157,7 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7)
     upsampled_times = np.arange(0, len(zeroed_trace) * upsampled_delta_time, upsampled_delta_time)
 
     cutoff = 1./int_factor
-    fir_coeffs = scipy.signal.firwin(ntaps, cutoff)
+    fir_coeffs = scipy.signal.firwin(ntaps, cutoff, window='boxcar')
     upsampled_trace = np.convolve(zeroed_trace, fir_coeffs)[:len(upsampled_times)] * int_factor
 
     return upsampled_trace
