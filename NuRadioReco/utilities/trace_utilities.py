@@ -7,7 +7,6 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.utilities import ice
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import fft
-from scipy.signal import firwin, butter, freqs
 import logging
 logger = logging.getLogger('NuRadioReco.trace_utilities')
 
@@ -158,7 +157,7 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7)
     upsampled_times = np.arange(0, len(zeroed_trace) * upsampled_delta_time, upsampled_delta_time)
 
     cutoff = 1./int_factor
-    fir_coeffs = firwin(ntaps, cutoff)
+    fir_coeffs = scipy.signal.firwin(ntaps, cutoff)
     upsampled_trace = np.convolve(zeroed_trace, fir_coeffs)[:len(upsampled_times)] * int_factor
 
     return upsampled_trace
@@ -218,8 +217,8 @@ def apply_butterworth(spectrum, frequencies, passband, order=8):
 
     f = np.zeros_like(frequencies, dtype=np.complex)
     mask = frequencies > 0
-    b, a = butter(order, passband, 'bandpass', analog=True)
-    w, h = freqs(b, a, frequencies[mask])
+    b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
+    w, h = scipy.signal.freqs(b, a, frequencies[mask])
     f[mask] = h
 
     filtered_spectrum = f * spectrum
