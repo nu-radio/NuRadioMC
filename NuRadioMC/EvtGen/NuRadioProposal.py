@@ -263,7 +263,6 @@ class ProposalFunctions:
             error_str += "Please choose between -/+muon (13/-13) and -/+tau (15/-15)"
             raise NotImplementedError(error_str)
 
-        mu_def_builder.SetLow(low)
         mu_def = mu_def_builder.build()
 
         if (config_file == 'SouthPole'):
