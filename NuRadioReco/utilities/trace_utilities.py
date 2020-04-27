@@ -224,3 +224,48 @@ def apply_butterworth(spectrum, frequencies, passband, order=8):
     filtered_spectrum = f * spectrum
 
     return filtered_spectrum
+
+def delay_trace(trace, sampling_frequency, time_delay, delayed_samples):
+    """
+    Delays a trace by transforming it to frequency and multiplying by phases.
+    Since this method is cyclic, the trace has to be cropped. It only accepts
+    positive delays, so some samples from the beginning are thrown away and then
+    some samples from the end so that the total number of samples is equal to
+    the argument delayed samples.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Array containing the trace
+    sampling_frequency: float
+        Sampling rate for the trace
+    time_delay: float
+        Time delay used for transforming the trace. Must be positive or 0
+    delayed_samples: integer
+        Number of samples that the delayed trace must contain
+
+    Returns
+    -------
+    delayed_trace: array of floats
+        The delayed, cropped trace
+    """
+
+    if time_delay < 0:
+        msg = 'Time delay must be positive'
+        raise ValueError(msg)
+
+    n_samples = len(trace)
+
+    spectrum = fft.time2freq(trace, sampling_frequency)
+    frequencies = np.fft.rfftfreq(n_samples, 1/sampling_frequency)
+
+    spectrum *= np.exp(-1j * 2 * np.pi * frequencies * time_delay)
+
+    delayed_trace = fft.freq2time(spectrum, sampling_frequency)
+
+    init_sample = int(time_delay * sampling_frequency) + 1
+
+    delayed_trace = delayed_trace[init_sample:None]
+    delayed_trace = delayed_trace[:delayed_samples]
+
+    return delayed_trace
