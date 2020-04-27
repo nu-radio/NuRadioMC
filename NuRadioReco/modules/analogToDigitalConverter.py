@@ -256,17 +256,19 @@ class analogToDigitalConverter():
             adc_n_bits_label = "trigger_adc_nbits"
             adc_ref_voltage_label = "trigger_adc_reference_voltage"
             adc_sampling_frequency_label = "trigger_adc_sampling_frequency"
+            adc_ntaps_label = "trigger_adc_ntaps"
         else:
             adc_time_delay_label = "adc_time_delay"
             adc_n_bits_label = "adc_nbits"
             adc_ref_voltage_label = "adc_reference_voltage"
             adc_sampling_frequency_label = "adc_sampling_frequency"
+            adc_ntaps_label = "adc_ntaps"
 
         adc_time_delay = 0
 
         if adc_time_delay_label in det_channel:
             if det_channel[adc_time_delay_label] is not None:
-                adc_time_delay = channel[adc_time_delay_label] * units.ns
+                adc_time_delay = det_channel[adc_time_delay_label] * units.ns
 
         adc_n_bits = det_channel[adc_n_bits_label]
         adc_ref_voltage = det_channel[adc_ref_voltage_label] * units.V
@@ -333,7 +335,7 @@ class analogToDigitalConverter():
 
             perfectly_upsampled_trace = delayed_trace[:]
             perfectly_upsampled_times = delayed_times[:]
-        print(len(perfectly_upsampled_times), len(perfectly_upsampled_trace))
+
         interpolate_delayed_trace = interp1d(perfectly_upsampled_times,
                                              perfectly_upsampled_trace,
                                              kind='linear',
@@ -352,10 +354,20 @@ class analogToDigitalConverter():
 
         # Upsampling with an FIR filter (if desired)
         if upsampling_factor is not None:
+
+            ntaps = None
+
+            if adc_ntaps_label in det_channel:
+                if det_channel[adc_ntaps_label] is not None:
+                    ntaps = det_channel[adc_ntaps_label]
+
+            if ntaps is None:
+                ntaps = upsampling_factor * 4
+
             if (upsampling_factor >= 2):
                 upsampling_factor = int(upsampling_factor)
                 upsampled_trace = upsampling_fir(digital_trace, adc_sampling_frequency,
-                                                 int_factor=upsampling_factor, ntaps=2**4)
+                                                 int_factor=upsampling_factor, ntaps=ntaps)
                 # If upsampled is performed, the final sampling frequency changes
                 adc_sampling_frequency *= upsampling_factor
 
