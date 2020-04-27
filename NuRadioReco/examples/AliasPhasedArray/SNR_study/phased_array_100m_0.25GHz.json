@@ -11,6 +11,7 @@
             "trigger_adc_nbits": 8,
             "trigger_adc_sampling_frequency": 0.25,
             "trigger_adc_reference_voltage": 0.267e-3,
+            "trigger_adc_ntaps": 16,
             "amp_reference_measurement": null,
             "amp_type": "300",
             "ant_comment": "South Pole Station channel0",
