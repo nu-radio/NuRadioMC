@@ -147,11 +147,9 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7)
         raise ValueError(error_msg)
 
     n_zeroes = int_factor - 1
-    zeroed_trace = []
-    for point in trace[:-1]:
-        zeroed_trace.append(point)
-        for zero in range(n_zeroes):
-            zeroed_trace.append(0.)
+    zeroed_trace = np.zeros( len(trace) * int_factor )
+    for i_point, point in enumerate(trace[:-1]):
+        zeroed_trace[i_point * int_factor] = point
 
     upsampled_delta_time = 1 / (int_factor * original_sampling_frequency)
     upsampled_times = np.arange(0, len(zeroed_trace) * upsampled_delta_time, upsampled_delta_time)
