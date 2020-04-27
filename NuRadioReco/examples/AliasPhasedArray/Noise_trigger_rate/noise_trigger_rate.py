@@ -220,13 +220,13 @@ def get_digital_trace(trace,
 
     # Random clock offset
     delayed_times = times + adc_time_delay
-    interpolate_trace = interp1d(times, filtered_trace, kind='quadratic',
+    interpolate_trace = interp1d(times, filtered_trace, kind='linear',
                                  fill_value=(trace[0],trace[-1]),
                                  bounds_error=False)
 
     delayed_trace = interpolate_trace(delayed_times)
 
-    interpolate_delayed_trace = interp1d(times, delayed_trace, kind='quadratic',
+    interpolate_delayed_trace = interp1d(times, delayed_trace, kind='linear',
                                          fill_value=(delayed_trace[0],delayed_trace[-1]),
                                          bounds_error=False)
 
