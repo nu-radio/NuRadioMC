@@ -215,6 +215,34 @@ class ProposalFunctions:
     not be used from the outside to avoid mismatching units.
     """
 
+    def __init__(self, config_file='SouthPole', low_nu =1*units.PeV):
+        """
+        Parameters
+        ----------
+        config_file: string or path
+            The user can specify the path to their own config file or choose among
+            the three available options:
+            -'SouthPole', a config file for the South Pole (spherical Earth)
+            -'MooresBay', a config file for Moore's Bay (spherical Earth)
+            -'InfIce', a config file with a medium of infinite ice
+            -'Greenland', a config file for Summit Station, Greenland (spherical Earth)
+            IMPORTANT: If these options are used, the code is more efficient if the
+            user requests their own "path_to_tables" and "path_to_tables_readonly",
+            pointing them to a writable directory
+        low_nu: float
+            Low energy limit for the propagating particle in NuRadioMC units (eV)
+        """
+        self.propagators = {}
+        low = low_nu * pp_eV
+        for lepton_code in [13, -13, 15, -15]:
+            self.propagators[lepton_code] = self.__create_propagator(low=low, particle_code=lepton_code,
+                                                                     config_file=config_file)
+
+        self.mu_propagators = {}
+        for lepton_code in [13, -13]:
+            self.mu_propagators[lepton_code] = self.__create_propagator(low=low, particle_code=lepton_code,
+                                                                        config_file=config_file)
+
     def __create_propagator(self,
                             low=0.1*pp_PeV,
                             particle_code=13,
@@ -398,8 +426,8 @@ class ProposalFunctions:
                              lepton_position,
                              lepton_direction,
                              propagation_length,
-                             propagators,
-                             low=1*pp_PeV):
+                             low=1*pp_PeV,
+                             decay_muon=False):
         """
         Calculates secondary particles using a PROPOSAL propagator. It needs to
         be given a propagators dictionary with particle codes as key
@@ -442,9 +470,14 @@ class ProposalFunctions:
         initial_condition.energy = energy_lepton
         initial_condition.propagated_distance = 0
 
-        secondaries = propagators[lepton_code].propagate(initial_condition,
-                                                         propagation_length,
-                                                         minimal_energy=low).particles
+        if not decay_muon:
+            secondaries = self.propagators[lepton_code].propagate(initial_condition,
+                                                                  propagation_length,
+                                                                  minimal_energy=low).particles
+        else:
+            secondaries = self.mu_propagators[lepton_code].propagate(initial_condition,
+                                                                     propagation_length,
+                                                                     minimal_energy=low).particles
 
         return secondaries
 
@@ -504,7 +537,6 @@ class ProposalFunctions:
                               lepton_codes,
                               lepton_positions_nu=None,
                               lepton_directions=None,
-                              config_file='SouthPole',
                               low_nu=1*units.PeV,
                               propagation_length_nu=1000*units.km,
                               min_energy_loss_nu=1*units.PeV,
@@ -523,16 +555,6 @@ class ProposalFunctions:
             Array containing the lepton positions in NuRadioMC units (m)
         lepton_directions: array of (float, float, float) tuples
             Array containing the lepton directions, normalised to 1
-        config_file: string or path
-            The user can specify the path to their own config file or choose among
-            the three available options:
-            -'SouthPole', a config file for the South Pole (spherical Earth)
-            -'MooresBay', a config file for Moore's Bay (spherical Earth)
-            -'InfIce', a config file with a medium of infinite ice
-            -'Greenland', a config file for Summit Station, Greenland (spherical Earth)
-            IMPORTANT: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
         low_nu: float
             Low energy limit for the propagating particle in NuRadioMC units (eV)
         propagation_length_nu: float
@@ -567,19 +589,8 @@ class ProposalFunctions:
         if lepton_directions is None:
             lepton_directions = [(0, 0, -1)] * len(energy_leptons)
 
-        propagators = {}
-        for lepton_code in np.unique(lepton_codes):
-            if lepton_code not in propagators:
-                propagators[lepton_code] = self.__create_propagator(low=low, particle_code=lepton_code,
-                                                                    config_file=config_file)
-
         if propagate_decay_muons:
-            # We create another muon propagator dictionary to try to avoid a segmentation
-            # fault happening in some installations of Proposal
-            mu_propagators = {}
-            for muon_code in [13, -13]:
-                mu_propagators[muon_code] = self.__create_propagator(low=low, particle_code=muon_code,
-                                                                     config_file=config_file)
+
             decay_muons_array = []
 
         secondaries_array = []
@@ -589,7 +600,7 @@ class ProposalFunctions:
 
             secondaries = self.__propagate_particle(energy_lepton, lepton_code,
                                                     lepton_position, lepton_direction,
-                                                    propagation_length, propagators, low=low)
+                                                    propagation_length, low=low)
 
             shower_inducing_prods = self.__filter_secondaries(secondaries, min_energy_loss, lepton_position)
 
@@ -644,7 +655,7 @@ class ProposalFunctions:
                     continue
                 mu_energy, mu_code, mu_position, mu_direction = decay_muon
                 mu_secondaries = self.__propagate_particle(mu_energy, mu_code, mu_position, mu_direction,
-                                                           propagation_length, mu_propagators, low=low)
+                                                           propagation_length, low=low, decay_muon=True)
 
                 mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
 
@@ -657,7 +668,6 @@ class ProposalFunctions:
                    lepton_codes,
                    lepton_positions_nu = None,
                    lepton_directions = None,
-                   config_file='InfIce',
                    low_nu=0.1*units.PeV,
                    propagation_length_nu=1000*units.km):
         """
@@ -674,16 +684,6 @@ class ProposalFunctions:
             Array containing the lepton positions in NuRadioMC units (m)
         lepton_directions: array of (float, float, float) tuples
             Array containing the lepton directions, normalised to 1
-        config_file: string or path
-            The user can specify the path to their own config file or choose among
-            the three available options:
-            -'SouthPole', a config file for the South Pole (spherical Earth)
-            -'MooresBay', a config file for Moore's Bay (spherical Earth)
-            -'InfIce', a config file with a medium of infinite ice
-            -'Greenland', a config file for Summit Station, Greenland (spherical Earth)
-            IMPORTANT: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
         low_nu: float
             Low energy limit for the propagating particle in NuRadioMC units (eV)
         propagation_length_nu: float
@@ -709,12 +709,6 @@ class ProposalFunctions:
         if lepton_directions is None:
             lepton_directions = [(0, 0, 1)] * len(energy_leptons)
 
-        propagators = {}
-        for lepton_code in lepton_codes:
-            if lepton_code not in propagators:
-                propagators[lepton_code] = self.__create_propagator(low=low, particle_code=lepton_code,
-                                                                    config_file=config_file)
-
         decays_array = []
 
         for energy_lepton, lepton_code, lepton_position, lepton_direction in zip(energy_leptons,
@@ -725,7 +719,7 @@ class ProposalFunctions:
             while( decay_prop == (None,None) ):
 
                 secondaries = self.__propagate_particle(energy_lepton, lepton_code, lepton_position, lepton_direction,
-                                                        propagation_length, propagators, low=low)
+                                                        propagation_length, low=low)
 
                 decay_particles = np.array([p for p in secondaries if p.type not in proposal_interaction_codes])
                 decay_energies = np.array([p.energy for p in decay_particles])
