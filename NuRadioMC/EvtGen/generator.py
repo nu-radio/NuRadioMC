@@ -856,7 +856,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     """
 
     from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-    proposal_functions = ProposalFunctions()
+    proposal_functions = ProposalFunctions(config_file=config_file)
 
     attributes = {}
     n_events = int(n_events)
@@ -1005,8 +1005,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     products_array = proposal_functions.get_secondaries_array(E_all_leptons,
                                                               lepton_codes,
                                                               lepton_positions,
-                                                              lepton_directions,
-                                                              config_file=config_file)
+                                                              lepton_directions)
 
     for event_id in data_sets["event_ids"]:
         iE = event_id - start_event_id
@@ -1183,7 +1182,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     """
     if proposal:
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-        proposal_functions = ProposalFunctions()
+        proposal_functions = ProposalFunctions(config_file=proposal_config)
 
     attributes = {}
     n_events = int(n_events)
@@ -1373,18 +1372,18 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
         mask_leptons = mask_leptons & mask_theta & mask_phi
 
-        E_all_leptons = (1 - data_sets["inelasticity"][mask_leptons]) * data_sets["energies"][mask_leptons]
-        lepton_codes = data_sets["flavors"][mask_leptons]
+        E_all_leptons = (1 - data_sets["inelasticity"]) * data_sets["energies"]
+        lepton_codes = data_sets["flavors"]
         lepton_codes[lepton_codes == 14] = 13
         lepton_codes[lepton_codes == -14] = -13
         lepton_codes[lepton_codes == 16] = 15
         lepton_codes[lepton_codes == -16] = -15
 
         lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
-        lepton_positions = np.array(lepton_positions)[mask_leptons]
+        lepton_positions = np.array(lepton_positions)
         lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
                             for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
-        lepton_directions = np.array(lepton_directions)[mask_leptons]
+        lepton_directions = np.array(lepton_directions)
 
         if resample:
             if (len(np.unique(lepton_codes)) > 1):
@@ -1397,11 +1396,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             lepton_directions = None
             proposal_config = 'InfIce'
 
-        products_array = proposal_functions.get_secondaries_array(E_all_leptons,
-                                                                  lepton_codes,
-                                                                  lepton_positions,
-                                                                  lepton_directions,
-                                                                  config_file=proposal_config)
 
         for event_id in data_sets["event_ids"]:
             iE = event_id - start_event_id
@@ -1423,6 +1417,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     first_inserted = True
 
             if mask_leptons[iE]:
+    
+                products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
+                                                                          np.array([lepton_codes[iE]]),
+                                                                          np.array([lepton_positions[iE]]),
+                                                                          np.array([lepton_directions[iE]]))
 
                 Elepton = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
                 if data_sets["flavors"][iE] > 0:
