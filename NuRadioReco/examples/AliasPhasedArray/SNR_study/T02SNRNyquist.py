@@ -106,20 +106,20 @@ diodeSimulator = NuRadioReco.utilities.diodeSimulator.diodeSimulator(diode_passb
 
 # The 2nd and 3rd zone thresholds have been calculated for a 0.25 GHz ADC,
 # with 8 bits and a noise level of 2 bits.
-threshold_2nd_zone = { '1Hz' : 15.5 * units.microvolt,
-                       '2Hz' : 15.25 * units.microvolt,
-                       '5Hz' : 14.85 * units.microvolt,
-                       '10Hz' : 14.5 * units.microvolt }
-threshold_3rd_zone = { '1Hz' : 15.5 * units.microvolt,
-                       '2Hz' : 15.25 * units.microvolt,
-                       '5Hz' : 14.85 * units.microvolt,
-                       '10Hz' : 14.5 * units.microvolt }
+threshold_2nd_zone = { '1Hz' : 19.0 * units.microvolt,
+                       '2Hz' : 18.75 * units.microvolt,
+                       '5Hz' : 18.0 * units.microvolt,
+                       '10Hz' : 17.25 * units.microvolt }
+threshold_3rd_zone = { '1Hz' : 19.0 * units.microvolt,
+                       '2Hz' : 18.75 * units.microvolt,
+                       '5Hz' : 18.0 * units.microvolt,
+                       '10Hz' : 17.25 * units.microvolt }
 # The 1st zone thresholds have been calculated for a 0.5 GHz ADC,
 # with 8 bits and a noise level of 2 bits.
-threshold_1st_zone = { '1Hz' : 15.71 * units.microvolt,
-                       '2Hz' : 15.45 * units.microvolt,
-                       '5Hz' : 15.20 * units.microvolt,
-                       '10Hz' : 14.85 * units.microvolt }
+threshold_1st_zone = { '1Hz' : 17.0 * units.microvolt,
+                       '2Hz' : 16.75 * units.microvolt,
+                       '5Hz' : 16.3 * units.microvolt,
+                       '10Hz' : 16.0 * units.microvolt }
 thresholds = { 2 : threshold_2nd_zone,
                3 : threshold_3rd_zone,
                1 : threshold_1st_zone }
@@ -129,6 +129,7 @@ high_freq = 700 * units.MHz
 
 N = 51
 SNRs = np.linspace(0.5,5,N)
+SNRs = np.array([10])
 SNRtriggered = np.ones(N) * 0
 def count_events():
     count_events.events += 1
