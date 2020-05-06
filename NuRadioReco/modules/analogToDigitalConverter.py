@@ -312,7 +312,7 @@ class analogToDigitalConverter():
 
         # Random clock offset
         delayed_samples = len(trace) - np.int(np.round(input_sampling_frequency/adc_sampling_frequency)) - 1
-        delayed_trace = delay_trace(trace, input_sampling_frequency, adc_time_delay, delayed_samples)
+        delayed_trace = delay_trace(filtered_trace, input_sampling_frequency, adc_time_delay, delayed_samples)
 
         channel.set_trace_start_time( channel.get_trace_start_time() + 1 / adc_sampling_frequency )
         delayed_times = channel.get_times()
@@ -356,7 +356,6 @@ class analogToDigitalConverter():
         if upsampling_factor is not None:
 
             ntaps = None
-
             if adc_ntaps_label in det_channel:
                 if det_channel[adc_ntaps_label] is not None:
                     ntaps = det_channel[adc_ntaps_label]
