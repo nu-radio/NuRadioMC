@@ -215,7 +215,7 @@ class ProposalFunctions:
     not be used from the outside to avoid mismatching units.
     """
 
-    def __init__(self, config_file='SouthPole', low_nu =1*units.PeV):
+    def __init__(self, config_file='SouthPole', low_nu=1*units.PeV):
         """
         Parameters
         ----------
@@ -537,9 +537,9 @@ class ProposalFunctions:
                               lepton_codes,
                               lepton_positions_nu=None,
                               lepton_directions=None,
-                              low_nu=1*units.PeV,
+                              low_nu=0.5*units.PeV,
                               propagation_length_nu=1000*units.km,
-                              min_energy_loss_nu=1*units.PeV,
+                              min_energy_loss_nu=0.5*units.PeV,
                               propagate_decay_muons=True):
         """
         Propagates a set of leptons and returns a list with the properties for
