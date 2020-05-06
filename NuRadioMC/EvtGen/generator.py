@@ -1041,6 +1041,11 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     print("number of fiducial showers", len(data_sets_fiducial['flavors']))
 
+    if len(data_sets_fiducial['event_ids']) == 0:
+        for key, value in data_sets.items():
+            data_sets_fiducial[key] = np.array( [datay_sets[key][0]] )
+        data_sets_fiducial['flavors'] = np.array( [14] )
+
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
 
     return None
