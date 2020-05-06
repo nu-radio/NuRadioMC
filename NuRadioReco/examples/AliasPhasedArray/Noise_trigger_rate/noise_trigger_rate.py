@@ -77,7 +77,8 @@ def get_noise_rms_nyquist_zone(trace,
                                nyquist_zone=2,
                                adc_n_bits=8,
                                noise_rms_bits=2,
-                               bandwidth_edge=20*units.MHz):
+                               bandwidth_edge=20*units.MHz,
+                               min_freq=120*units.MHz):
     """
     Calculates the noise RMS in one of the Nyquist zones for the ADC
 
@@ -98,6 +99,8 @@ def get_noise_rms_nyquist_zone(trace,
     bandwidth_edge: float
         Frequency interval used for filtering the chosen Nyquist zone.
         See above
+    min_freq: float
+        Lower frequency for the first Nyquist zone
 
     Returns
     -------
@@ -107,6 +110,9 @@ def get_noise_rms_nyquist_zone(trace,
 
     passband = ( (nyquist_zone-1) * adc_sampling_frequency/2 + bandwidth_edge,
                  nyquist_zone * adc_sampling_frequency/2 - bandwidth_edge )
+
+    if nyquist_zone == 1:
+        passband = (min_freq, passband[1])
 
     filtered_trace = butterworth_filter_trace(trace, input_sampling_frequency,
                                               passband)
@@ -147,7 +153,8 @@ def get_digital_trace(trace,
                       output='voltage',
                       upsampling_factor=None,
                       nyquist_zone=2,
-                      bandwidth_edge=20*units.MHz):
+                      bandwidth_edge=20*units.MHz,
+                      min_freq=120*units.MHz):
     """
     Returns the trace converted by an ADC.
 
@@ -183,6 +190,8 @@ def get_digital_trace(trace,
     bandwidth_edge: float
         Frequency interval used for filtering the chosen Nyquist zone.
         See above
+    min_freq: float
+        Lower frequency for the first Nyquist zone
 
     Returns
     -------
@@ -215,8 +224,12 @@ def get_digital_trace(trace,
 
         passband = ( (nyquist_zone-1) * adc_sampling_frequency/2 + bandwidth_edge,
                      nyquist_zone * adc_sampling_frequency/2 - bandwidth_edge )
+        if nyquist_zone == 1:
+            passband = (min_freq, passband[1])
+
         filtered_trace = butterworth_filter_trace(trace, input_sampling_frequency,
                                                   passband)
+
 
     # Random clock offset
     delayed_times = times + adc_time_delay
@@ -267,7 +280,7 @@ adc_n_bits = args.adc_n_bits
 threshold_factor = args.threshold_factor
 Ntries = args.ntries # number of tries
 
-input_sampling_frequency = 3 * units.GHz
+input_sampling_frequency = 5 * units.GHz
 min_freq = 132*units.MHz
 max_freq = 700*units.MHz
 input_time_step = 1 / adc_sampling_frequency
@@ -297,7 +310,8 @@ noise_rms = get_noise_rms_nyquist_zone(noise_trace,
                                        nyquist_zone=nyquist_zone,
                                        adc_n_bits=adc_n_bits,
                                        noise_rms_bits=noise_rms_bits,
-                                       bandwidth_edge=20*units.MHz)
+                                       bandwidth_edge=20*units.MHz,
+                                       min_freq=min_freq)
 adc_ref_voltage = get_ref_voltage(noise_rms, adc_n_bits=adc_n_bits, noise_rms_bits=noise_rms_bits)
 
 print("Number of bits for noise RMS: {:.1f}".format(noise_rms_bits))
