@@ -129,7 +129,6 @@ high_freq = 700 * units.MHz
 
 N = 51
 SNRs = np.linspace(0.5,5,N)
-SNRs = np.array([10])
 SNRtriggered = np.ones(N) * 0
 def count_events():
     count_events.events += 1
