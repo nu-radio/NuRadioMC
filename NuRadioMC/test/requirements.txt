@@ -3,7 +3,7 @@
 pyyaml
 numpy
 astropy
-tinydb
+tinydb==3.15.2
 tinydb-serialization
 h5py
 matplotlib
@@ -13,5 +13,3 @@ cython
 requests
 future
 ###### Requirements with Version Specifiers ######
-
-
