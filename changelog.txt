@@ -7,6 +7,7 @@ new features:
 - Veff utility can now handle extended bins
 - New tutorial and example for the webinar
 - trace start time for the electric field models adjusted such that global time of pulse position corresponds to propagation time
+- Simplified treatment of reference angles and polarization for the ARZ module
 - Proposal 6.1.1 supported
 
 bugfixes:
