@@ -1041,6 +1041,14 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     print("number of fiducial showers", len(data_sets_fiducial['flavors']))
 
+    # If there are no fiducial showers, passing an empty data_sets_fiducial to
+    # write_events_to_hdf5 will cause the program to crash. However, we need
+    # the output file to have empty data sets but also to have the total
+    # number of input muons even though none of them triggers, so as not to
+    # bias an effective volume calculation done with several files.
+    # As a solution, we take a muon neutrino event (not an atmospheric muon)
+    # at the top of the ice, and since its inelasticity is zero, it won't create
+    # an electric field or trigger.
     if len(data_sets_fiducial['event_ids']) == 0:
         for key, value in data_sets.items():
             data_sets_fiducial[key] = np.array( [data_sets[key][0]] )
