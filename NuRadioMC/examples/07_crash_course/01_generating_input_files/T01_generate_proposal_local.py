@@ -16,7 +16,7 @@ to generate files for each energy bin.
 
 To use it, type:
 
-python T01_generate_local.py right_folder --init init
+python T01_generate_proposal_local.py right_folder --init init
 
 Where right_folder is an integer that controls the energy bin and init (optional)
 defines the number of the first input file we will generate. So, to get files from
