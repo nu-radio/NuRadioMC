@@ -314,7 +314,7 @@ class analogToDigitalConverter():
         delayed_samples = len(trace) - np.int(np.round(input_sampling_frequency/adc_sampling_frequency)) - 1
         delayed_trace = delay_trace(filtered_trace, input_sampling_frequency, adc_time_delay, delayed_samples)
 
-        delayed_start_time = channel.get_trace_start_time() + 1 / adc_sampling_frequency
+        delayed_start_time = 1 / adc_sampling_frequency
         delayed_times = channel.get_times() + delayed_start_time
         delayed_times = delayed_times[:delayed_samples]
 
