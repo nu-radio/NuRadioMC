@@ -53,10 +53,12 @@ Emaxs = Es[1:]
 
 """
 Let us generate one million events per energy bin and split each bin into
-ten files with 100 000 events each.
+ten files with 50 000 events each. When using only one station, we could
+request 100 000 events or more, but if you're using the RNO array or a
+10x10 array, it's better to use smaller files.
 """
 nevt = 1e6
-nevt_perfile = 1e5
+nevt_perfile = 5e4
 
 for thetamin, thetamax in zip(thetamins, thetamaxs):
 
