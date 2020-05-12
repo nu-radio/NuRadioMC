@@ -326,7 +326,7 @@ class analogToDigitalConverter():
         if upsampling_frequency > input_sampling_frequency:
 
             upsampling_nsamples = int( upsampling_frequency / input_sampling_frequency )
-            perfectly_upsampled_trace = np.resample(delayed_trace, upsampling_nsamples)
+            perfectly_upsampled_trace = resample(delayed_trace, upsampling_nsamples)
 
             perfectly_upsampled_times  = np.arange(len(perfectly_upsampled_trace)) / upsampling_frequency
             perfectly_upsampled_times += delayed_times[0]
