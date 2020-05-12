@@ -315,7 +315,7 @@ class analogToDigitalConverter():
         delayed_trace = delay_trace(filtered_trace, input_sampling_frequency, adc_time_delay, delayed_samples)
 
         delayed_start_time = 1 / adc_sampling_frequency
-        delayed_times = channel.get_times() + delayed_start_time
+        delayed_times = times + delayed_start_time
         delayed_times = delayed_times[:delayed_samples]
 
         # Upsampling to 5 GHz before downsampling using interpolation.
