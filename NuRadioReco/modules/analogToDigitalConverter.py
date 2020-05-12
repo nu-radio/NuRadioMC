@@ -314,8 +314,8 @@ class analogToDigitalConverter():
         delayed_samples = len(trace) - np.int(np.round(input_sampling_frequency/adc_sampling_frequency)) - 1
         delayed_trace = delay_trace(filtered_trace, input_sampling_frequency, adc_time_delay, delayed_samples)
 
-        channel.set_trace_start_time( channel.get_trace_start_time() + 1 / adc_sampling_frequency )
-        delayed_times = channel.get_times()
+        delayed_start_time = channel.get_trace_start_time() + 1 / adc_sampling_frequency
+        delayed_times = channel.get_times() + delayed_start_time
         delayed_times = delayed_times[:delayed_samples]
 
         # Upsampling to 5 GHz before downsampling using interpolation.
@@ -325,7 +325,7 @@ class analogToDigitalConverter():
 
         if upsampling_frequency > input_sampling_frequency:
 
-            upsampling_nsamples = int( upsampling_frequency * len(delayed_trace) / input_sampling_frequency ) 
+            upsampling_nsamples = int( upsampling_frequency * len(delayed_trace) / input_sampling_frequency )
             perfectly_upsampled_trace = resample(delayed_trace, upsampling_nsamples)
 
             perfectly_upsampled_times  = np.arange(len(perfectly_upsampled_trace)) / upsampling_frequency
