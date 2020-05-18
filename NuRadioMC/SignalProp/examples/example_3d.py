@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-from NuRadioMC.SignalProp import analyticraytraycing as ray
+from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import medium
 import logging
@@ -38,14 +38,14 @@ for i, x in enumerate([x2, x3, x4, x5]):
         for iS in range(r.get_number_of_solutions()):
             ray_tracing_C0[i, iS] = r.get_results()[iS]['C0']
             ray_tracing_solution_type[i, iS] = r.get_solution_type(iS)
-            print "     Solution %d, Type %d: "%(iS,ray_tracing_solution_type[i, iS])
+            print("     Solution %d, Type %d: "%(iS,ray_tracing_solution_type[i, iS]))
             R = r.get_path_length(iS)  # calculate path length
             T = r.get_travel_time(iS)  # calculate travel time
-            print "     Ray Distance %.3f and Travel Time %.3f"%(R/units.m,T/units.ns)
+            print("     Ray Distance %.3f and Travel Time %.3f"%(R/units.m,T/units.ns))
             receive_vector = r.get_receive_vector(iS)
             receive_vectors[i, iS] = receive_vector
             zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
-            print "     Receiving Zenith %.3f and Azimuth %.3f "%(zenith/units.deg, azimuth/units.deg)
+            print("     Receiving Zenith %.3f and Azimuth %.3f "%(zenith/units.deg, azimuth/units.deg))
 
             #to readout the actual trace, we have to flatten to 2D
             dX = x - x1
