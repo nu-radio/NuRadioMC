@@ -5,7 +5,7 @@ from radiotools import plthelpers as php
 from matplotlib import pyplot as plt
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import medium
-from NuRadioMC.SignalProp import analyticraytraycing as ray
+from NuRadioMC.SignalProp import analyticraytracing as ray
 import h5py
 import argparse
 import json
