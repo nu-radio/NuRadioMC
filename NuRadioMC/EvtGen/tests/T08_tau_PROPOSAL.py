@@ -26,7 +26,7 @@ energies = 10**energies * units.eV
 dists_arr = []
 energy_arr = []
 
-proposal_functions = ProposalFunctions()
+proposal_functions = ProposalFunctions(config_file='InfIce')
 
 for Elepton in energies:
 

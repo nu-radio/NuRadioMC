@@ -1,4 +1,4 @@
-import pyPROPOSAL as pp
+import proposal as pp
 import numpy as np
 from NuRadioReco.utilities import units
 import os
@@ -11,13 +11,16 @@ and conversion between them must be done carefully. The definition of PROPOSAL
 units can be found in this file. The most important are the energy unit (MeV)
 and the distance unit (cm).
 When a muon or a tau is propagated using PROPOSAL and its secondaries are obtained,
-most of the secondaries belong to a DynamicData type. The ones we should care
-about are the following:
+most of the secondaries have an InteractionType associated. The more important for
+us are the following:
 - Brems: a bremsstrahlung photon
 - DeltaE: an ionized electron
 - EPair: an electron/positron pair
 - Hadrons: a set of unspecified hadrons
 - NuclInt: the products of a nuclear interaction
+- MuPair: a muon/antimuon pair
+- WeakInt: a weak interaction
+- Compton: Compton effect
 The last secondaries obtained via the propagation belong to the Particle DynamicData
 type, and represent the products of the decay. They are standard particles with
 a PDG code.
@@ -66,6 +69,85 @@ class SecondaryProperties:
         s += "Shower type: {:}\n".format(self.shower_type)
         return s
 
+"""
+Codes for the InteractionType class from PROPOSAL. These represent interactions
+calculated by PROPOSAL, and although most of them correspond to actual particles -
+Brems is a bremsstrahlung photon, DeltaE is an ionised electron, and EPair is an
+electron-positron pair, it is useful to treat them as separate entities so that
+we know they come from an interaction. PROPOSAL returns particles as decay products
+only, in our case.
+
+We have followed the PDG recommendation and used numbers between 80 and 89 for
+our own-defined particles, although we have needed also 90 and 91 (they are
+very rarely used).
+"""
+
+proposal_interaction_names = { 1000000001: 'particle',
+                               1000000002: 'brems',
+                               1000000003: 'ionized_e',
+                               1000000004: 'e_pair',
+                               1000000005: 'nucl_int',
+                               1000000006: 'mu_pair',
+                               1000000007: 'hadrons',
+                               1000000008: 'cont_loss',
+                               1000000009: 'weak_int',
+                               1000000010: 'compton',
+                               1000000011: 'decay' }
+
+proposal_interaction_codes = { 1000000001: 80,
+                               1000000002: 81,
+                               1000000003: 82,
+                               1000000004: 83,
+                               1000000005: 85,
+                               1000000006: 87,
+                               1000000007: 84,
+                               1000000008: 88,
+                               1000000009: 89,
+                               1000000010: 90,
+                               1000000011: 91 }
+
+# NuRadioMC internal particle names organised using the PDG codes as keys
+particle_name = { 0 : 'gamma',
+                 11 : 'e-',
+                -11 : 'e+',
+                 12 : 'nu_e',
+                -12 : 'nu_e_bar',
+                 13 : 'mu-',
+                -13 : 'mu+',
+                 14 : 'nu_mu',
+                -14 : 'nu_mu_bar',
+                 15 : 'tau-',
+                -15 : 'tau+',
+                 16 : 'nu_tau',
+                -16 : 'nu_tau_bar',
+                 80 : 'particle',
+                 81 : 'brems',
+                 82 : 'ionized_e',
+                 83 : 'e_pair',
+                 84 : 'hadrons',
+                 85 : 'nucl_int',
+                 86 : 'decay_bundle',
+                 87 : 'mu_pair',
+                 88 : 'cont_loss',
+                 89 : 'weak_int',
+                 90 : 'compton',
+                 91 : 'decay',
+                111 : 'pi0',
+                211 : 'pi+',
+               -211 : 'pi-',
+                311 : 'K0',
+                321 : 'K+',
+               -321 : 'K-',
+               2212 : 'p+',
+              -2212 : 'p-' }
+
+em_primary_names = [ 'gamma', 'e-', 'e+', 'brems', 'ionized_e', 'e_pair', 'weak_int', 'compton' ]
+
+had_primary_names = [ 'hadrons', 'nucl_int', 'decay_bundle', 'pi0', 'pi+', 'pi-',
+                      'K0', 'K+', 'K-', 'p+', 'p-' ]
+
+primary_names = em_primary_names + had_primary_names
+
 def particle_code (particle):
     """
     If a particle object from PROPOSAL is passed as input, it returns the
@@ -80,124 +162,51 @@ def particle_code (particle):
     -------
     integer with the particle code. None if the argument is not a particle
     """
-    if particle.particle_def == pp.particle.GammaDef.get()      : return    0
-    elif particle.particle_def == pp.particle.EMinusDef.get()   : return   11
-    elif particle.particle_def == pp.particle.EPlusDef.get()    : return  -11
-    elif particle.particle_def == pp.particle.NuEDef.get()      : return   12
-    elif particle.particle_def == pp.particle.NuEBarDef.get()   : return  -12
-    elif particle.particle_def == pp.particle.MuMinusDef.get()  : return   13
-    elif particle.particle_def == pp.particle.MuPlusDef.get()   : return  -13
-    elif particle.particle_def == pp.particle.NuMuDef.get()     : return   14
-    elif particle.particle_def == pp.particle.NuMuBarDef.get()  : return  -14
-    elif particle.particle_def == pp.particle.TauMinusDef.get() : return   15
-    elif particle.particle_def == pp.particle.TauPlusDef.get()  : return  -15
-    elif particle.particle_def == pp.particle.NuTauDef.get()    : return   16
-    elif particle.particle_def == pp.particle.NuTauBarDef.get() : return  -16
-    elif particle.particle_def == pp.particle.Pi0Def.get()      : return  111
-    elif particle.particle_def == pp.particle.PiPlusDef.get()   : return  211
-    elif particle.particle_def == pp.particle.PiMinusDef.get()  : return -211
-    elif particle.particle_def == pp.particle.K0Def.get()       : return  130
-    elif particle.particle_def == pp.particle.KPlusDef.get()    : return  310
-    elif particle.particle_def == pp.particle.KMinusDef.get()   : return -310
-    elif particle.particle_def == pp.particle.PPlusDef.get()    : return 2212
-    elif particle.particle_def == pp.particle.PMinusDef.get()   : return-2212
-    else: return None
+    particle_type = particle.type
+
+    if particle_type in proposal_interaction_codes:
+        return proposal_interaction_codes[particle_type]
+    elif particle_type in particle_name:
+        return particle_type
+    else:
+        print(particle_type)
+        return None
 
 def is_em_primary (particle):
     """
     Given a PROPOSAL particle object as an input, returns True if the particle
     can be an electromagnetic shower primary and False otherwise
     """
-    if particle.particle_def == pp.particle.EMinusDef.get(): return True
-    elif particle.particle_def == pp.particle.EPlusDef.get(): return True
-    elif particle.particle_def == pp.particle.GammaDef.get(): return True
+    code = particle_code(particle)
+    name = particle_name[code]
+    if name in em_primary_names:
+        return True
     else:
-       return False
+        return False
 
 def is_had_primary(particle):
     """
     Given a PROPOSAL particle object as an input, returns True if the particle
-    can be a hadronic shower primary and Fasle otherwise
+    can be a hadronic shower primary and False otherwise
     """
-    if particle.particle_def == pp.particle.PMinusDef.get(): return True
-    elif particle.particle_def == pp.particle.PPlusDef.get(): return True
-    elif particle.particle_def == pp.particle.Pi0Def.get(): return True
-    elif particle.particle_def == pp.particle.PiMinusDef.get(): return True
-    elif particle.particle_def == pp.particle.PiPlusDef.get(): return True
-    elif particle.particle_def == pp.particle.K0Def.get(): return True
-    elif particle.particle_def == pp.particle.KMinusDef.get(): return True
-    elif particle.particle_def == pp.particle.KPlusDef.get(): return True
-    else: return False
+    code = particle_code(particle)
+    name = particle_name[code]
+    if name in had_primary_names:
+        return True
+    else:
+        return False
 
 def is_shower_primary(particle):
     """
     Given a PROPOSAL particle object, returns True if the particle can be
     a shower primary and False otherwise
     """
-    return is_em_primary(particle) or is_had_primary(particle)
-
-"""
-Codes for the DynamicData class from PROPOSAL. These represent interactions
-calculated by PROPOSAL, and although most of them correspond to actual particles -
-Brems is a bremsstrahlung photon, DeltaE is an ionised electron, and EPair is an
-electron-positron pair, it is useful to treat them as separate entities so that
-we know they come from an interaction. PROPOSAL returns particles as decay products
-only, in our case.
-
-We have followed the PDG recommendation and used numbers between 80 and 89 for
-our own-defined particles.
-"""
-datatype_code = {
-    'Data.Brems'   : 81,
-    'Data.DeltaE'  : 82,
-    'Data.EPair'   : 83,
-    'Data.Hadrons' : 84,
-    'Data.NuclInt' : 85
-}
-
-em_datatypes = [
-    'Data.Brems',
-    'Data.DeltaE',
-    'Data.EPair'
-]
-
-hadrons_datatypes = [
-    'Data.Hadrons',
-    'Data.NuclInt'
-]
-
-datatype_primaries = em_datatypes + hadrons_datatypes
-
-# NuRadioMC internal particle names organised using the PDG codes as keys
-particle_name = {
-        0 : 'gamma',
-       11 : 'e-',
-      -11 : 'e+',
-       12 : 'nu_e',
-      -12 : 'nu_e_bar',
-       13 : 'mu-',
-      -13 : 'mu+',
-       14 : 'nu_mu',
-      -14 : 'nu_mu_bar',
-       15 : 'tau-',
-      -15 : 'tau+',
-       16 : 'nu_tau',
-      -16 : 'nu_tau_bar',
-       81 : 'brems',
-       82 : 'ionized_e',
-       83 : 'e_pair',
-       84 : 'hadrons',
-       85 : 'nucl_int',
-       86 : 'decay_bundle',
-      111 : 'pi0',
-      211 : 'pi+',
-     -211 : 'pi-',
-      130 : 'K0',
-      310 : 'K+',
-     -310 : 'K-',
-     2212 : 'p+',
-    -2212 : 'p-'
-}
+    code = particle_code(particle)
+    name = particle_name[code]
+    if name in primary_names:
+        return True
+    else:
+        return False
 
 class ProposalFunctions:
     """
@@ -205,6 +214,34 @@ class ProposalFunctions:
     start with double underscore take PROPOSAL units as an argument and should
     not be used from the outside to avoid mismatching units.
     """
+
+    def __init__(self, config_file='SouthPole', low_nu=1*units.PeV):
+        """
+        Parameters
+        ----------
+        config_file: string or path
+            The user can specify the path to their own config file or choose among
+            the three available options:
+            -'SouthPole', a config file for the South Pole (spherical Earth)
+            -'MooresBay', a config file for Moore's Bay (spherical Earth)
+            -'InfIce', a config file with a medium of infinite ice
+            -'Greenland', a config file for Summit Station, Greenland (spherical Earth)
+            IMPORTANT: If these options are used, the code is more efficient if the
+            user requests their own "path_to_tables" and "path_to_tables_readonly",
+            pointing them to a writable directory
+        low_nu: float
+            Low energy limit for the propagating particle in NuRadioMC units (eV)
+        """
+        self.propagators = {}
+        low = low_nu * pp_eV
+        for lepton_code in [13, -13, 15, -15]:
+            self.propagators[lepton_code] = self.__create_propagator(low=low, particle_code=lepton_code,
+                                                                     config_file=config_file)
+
+        self.mu_propagators = {}
+        for lepton_code in [13, -13]:
+            self.mu_propagators[lepton_code] = self.__create_propagator(low=low, particle_code=lepton_code,
+                                                                        config_file=config_file)
 
     def __create_propagator(self,
                             low=0.1*pp_PeV,
@@ -242,19 +279,18 @@ class ProposalFunctions:
         """
         mu_def_builder = pp.particle.ParticleDefBuilder()
         if (particle_code == 13):
-            mu_def_builder.SetParticleDef(pp.particle.MuMinusDef.get())
+            mu_def_builder.SetParticleDef(pp.particle.MuMinusDef())
         elif (particle_code == -13):
-            mu_def_builder.SetParticleDef(pp.particle.MuPlusDef.get())
+            mu_def_builder.SetParticleDef(pp.particle.MuPlusDef())
         elif (particle_code == 15):
-            mu_def_builder.SetParticleDef(pp.particle.TauMinusDef.get())
+            mu_def_builder.SetParticleDef(pp.particle.TauMinusDef())
         elif (particle_code == -15):
-            mu_def_builder.SetParticleDef(pp.particle.TauPlusDef.get())
+            mu_def_builder.SetParticleDef(pp.particle.TauPlusDef())
         else:
             error_str = "The propagation of this particle via PROPOSAL is not currently supported.\n"
             error_str += "Please choose between -/+muon (13/-13) and -/+tau (15/-15)"
             raise NotImplementedError(error_str)
 
-        mu_def_builder.SetLow(low)
         mu_def = mu_def_builder.build()
 
         if (config_file == 'SouthPole'):
@@ -348,12 +384,7 @@ class ProposalFunctions:
         if not energy_threshold:
             return False
 
-        if particle.id == pp.particle.Data.Particle:
-            shower_inducing = is_shower_primary(particle)
-        elif str(particle.id) in datatype_primaries:
-            shower_inducing = True
-        else:
-            return False
+        shower_inducing = is_shower_primary(particle)
 
         return shower_inducing
 
@@ -374,23 +405,16 @@ class ProposalFunctions:
         name: string
             Name of the shower primary
         """
-        if particle.id == pp.particle.Data.Particle:
-            if is_em_primary(particle):
-                shower_type = 'em'
-            elif is_had_primary(particle):
-                shower_type = 'had'
-            else:
-                return None, None, None
+        if not is_shower_primary(particle):
+            return None, None, None
 
-            code = particle_code(particle)
+        code = particle_code(particle)
 
-        elif str(particle.id) in em_datatypes:
+        if is_em_primary(particle):
             shower_type = 'em'
-            code = datatype_code[str(particle.id)]
 
-        elif str(particle.id) in hadrons_datatypes:
+        if is_had_primary(particle):
             shower_type = 'had'
-            code = datatype_code[str(particle.id)]
 
         name = particle_name[code]
 
@@ -402,7 +426,8 @@ class ProposalFunctions:
                              lepton_position,
                              lepton_direction,
                              propagation_length,
-                             propagators):
+                             low=1*pp_PeV,
+                             decay_muon=False):
         """
         Calculates secondary particles using a PROPOSAL propagator. It needs to
         be given a propagators dictionary with particle codes as key
@@ -419,6 +444,8 @@ class ProposalFunctions:
             Lepton direction vector, normalised to 1
         propagation_length: float
             Maximum length the particle is propagated, in PROPOSAL units (cm)
+        low: float
+            Low energy limit for the propagating particle in Proposal units (MeV)
 
         Returns
         -------
@@ -427,12 +454,30 @@ class ProposalFunctions:
         """
         x, y, z = lepton_position
         px, py, pz = lepton_direction
-        propagators[lepton_code].particle.position = pp.Vector3D(x, y, z)
-        propagators[lepton_code].particle.direction = pp.Vector3D(px, py, pz)
-        propagators[lepton_code].particle.propagated_distance = 0
-        propagators[lepton_code].particle.energy = energy_lepton
 
-        secondaries = propagators[lepton_code].propagate(propagation_length)
+        if (lepton_code == 13):
+            particle_def = pp.particle.MuMinusDef()
+        elif (lepton_code == -13):
+            particle_def = pp.particle.MuPlusDef()
+        elif (lepton_code == 15):
+            particle_def = pp.particle.TauMinusDef()
+        elif (lepton_code == -15):
+            particle_def = pp.particle.TauPlusDef()
+
+        initial_condition = pp.particle.DynamicData(particle_def.particle_type)
+        initial_condition.position = pp.Vector3D(x, y, z)
+        initial_condition.direction = pp.Vector3D(px, py, pz)
+        initial_condition.energy = energy_lepton
+        initial_condition.propagated_distance = 0
+
+        if not decay_muon:
+            secondaries = self.propagators[lepton_code].propagate(initial_condition,
+                                                                  propagation_length,
+                                                                  minimal_energy=low).particles
+        else:
+            secondaries = self.mu_propagators[lepton_code].propagate(initial_condition,
+                                                                     propagation_length,
+                                                                     minimal_energy=low).particles
 
         return secondaries
 
@@ -472,7 +517,14 @@ class ProposalFunctions:
                 distance += ( (sec.position.y - lepton_position[1]) * units.cm )**2
                 distance += ( (sec.position.z - lepton_position[2]) * units.cm )**2
                 distance  = np.sqrt(distance)
-                energy = sec.energy * units.MeV
+
+                # Checking if the secondary type is greater than 1000000000, which means
+                # that the secondary is an interaction particle.
+                if (sec.type > 1000000000):
+                    energy = (sec.parent_particle_energy - sec.energy) * units.MeV
+                # Else, the secondary is a particle issued upon decay.
+                else:
+                    energy = sec.energy * units.MeV
 
                 shower_type, code, name = self.__shower_properties(sec)
 
@@ -485,10 +537,9 @@ class ProposalFunctions:
                               lepton_codes,
                               lepton_positions_nu=None,
                               lepton_directions=None,
-                              config_file='SouthPole',
-                              low_nu=0.1*units.PeV,
+                              low_nu=0.5*units.PeV,
                               propagation_length_nu=1000*units.km,
-                              min_energy_loss_nu=1*units.PeV,
+                              min_energy_loss_nu=0.5*units.PeV,
                               propagate_decay_muons=True):
         """
         Propagates a set of leptons and returns a list with the properties for
@@ -504,16 +555,6 @@ class ProposalFunctions:
             Array containing the lepton positions in NuRadioMC units (m)
         lepton_directions: array of (float, float, float) tuples
             Array containing the lepton directions, normalised to 1
-        config_file: string or path
-            The user can specify the path to their own config file or choose among
-            the three available options:
-            -'SouthPole', a config file for the South Pole (spherical Earth)
-            -'MooresBay', a config file for Moore's Bay (spherical Earth)
-            -'InfIce', a config file with a medium of infinite ice
-            -'Greenland', a config file for Summit Station, Greenland (spherical Earth)
-            IMPORTANT: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
         low_nu: float
             Low energy limit for the propagating particle in NuRadioMC units (eV)
         propagation_length_nu: float
@@ -548,19 +589,8 @@ class ProposalFunctions:
         if lepton_directions is None:
             lepton_directions = [(0, 0, -1)] * len(energy_leptons)
 
-        propagators = {}
-        for lepton_code in np.unique(lepton_codes):
-            if lepton_code not in propagators:
-                propagators[lepton_code] = self.__create_propagator(low=low, particle_code=lepton_code,
-                                                                    config_file=config_file)
-
         if propagate_decay_muons:
-            # We create another muon propagator dictionary to try to avoid a segmentation
-            # fault happening in some installations of Proposal
-            mu_propagators = {}
-            for muon_code in [13, -13]:
-                mu_propagators[muon_code] = self.__create_propagator(low=low, particle_code=muon_code,
-                                                                     config_file=config_file)
+
             decay_muons_array = []
 
         secondaries_array = []
@@ -570,7 +600,7 @@ class ProposalFunctions:
 
             secondaries = self.__propagate_particle(energy_lepton, lepton_code,
                                                     lepton_position, lepton_direction,
-                                                    propagation_length, propagators)
+                                                    propagation_length, low=low)
 
             shower_inducing_prods = self.__filter_secondaries(secondaries, min_energy_loss, lepton_position)
 
@@ -581,14 +611,14 @@ class ProposalFunctions:
 
                 for sec in secondaries:
 
-                    if (sec.id != pp.particle.Data.Particle):
+                    if (sec.type not in proposal_interaction_codes) or (sec.type not in particle_name):
                         continue
 
-                    if (sec.particle_def == pp.particle.MuMinusDef.get()) or (sec.particle_def == pp.particle.MuPlusDef.get()):
+                    if (sec.particle_def == pp.particle.MuMinusDef()) or (sec.particle_def == pp.particle.MuPlusDef()):
 
-                        if sec.particle_def == pp.particle.MuMinusDef.get():
+                        if sec.particle_def == pp.particle.MuMinusDef():
                             mu_code = 13
-                        elif sec.particle_def == pp.particle.MuPlusDef.get():
+                        elif sec.particle_def == pp.particle.MuPlusDef():
                             mu_code = -13
 
                         mu_energy = sec.energy
@@ -625,7 +655,7 @@ class ProposalFunctions:
                     continue
                 mu_energy, mu_code, mu_position, mu_direction = decay_muon
                 mu_secondaries = self.__propagate_particle(mu_energy, mu_code, mu_position, mu_direction,
-                                                           propagation_length, mu_propagators)
+                                                           propagation_length, low=low, decay_muon=True)
 
                 mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
 
@@ -638,7 +668,6 @@ class ProposalFunctions:
                    lepton_codes,
                    lepton_positions_nu = None,
                    lepton_directions = None,
-                   config_file='InfIce',
                    low_nu=0.1*units.PeV,
                    propagation_length_nu=1000*units.km):
         """
@@ -655,16 +684,6 @@ class ProposalFunctions:
             Array containing the lepton positions in NuRadioMC units (m)
         lepton_directions: array of (float, float, float) tuples
             Array containing the lepton directions, normalised to 1
-        config_file: string or path
-            The user can specify the path to their own config file or choose among
-            the three available options:
-            -'SouthPole', a config file for the South Pole (spherical Earth)
-            -'MooresBay', a config file for Moore's Bay (spherical Earth)
-            -'InfIce', a config file with a medium of infinite ice
-            -'Greenland', a config file for Summit Station, Greenland (spherical Earth)
-            IMPORTANT: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
         low_nu: float
             Low energy limit for the propagating particle in NuRadioMC units (eV)
         propagation_length_nu: float
@@ -690,12 +709,6 @@ class ProposalFunctions:
         if lepton_directions is None:
             lepton_directions = [(0, 0, 1)] * len(energy_leptons)
 
-        propagators = {}
-        for lepton_code in lepton_codes:
-            if lepton_code not in propagators:
-                propagators[lepton_code] = self.__create_propagator(low=low, particle_code=lepton_code,
-                                                                    config_file=config_file)
-
         decays_array = []
 
         for energy_lepton, lepton_code, lepton_position, lepton_direction in zip(energy_leptons,
@@ -706,9 +719,9 @@ class ProposalFunctions:
             while( decay_prop == (None,None) ):
 
                 secondaries = self.__propagate_particle(energy_lepton, lepton_code, lepton_position, lepton_direction,
-                                                        propagation_length, propagators)
+                                                        propagation_length, low=low)
 
-                decay_particles = np.array([p for p in secondaries if p.id == pp.particle.Data.Particle])
+                decay_particles = np.array([p for p in secondaries if p.type not in proposal_interaction_codes])
                 decay_energies = np.array([p.energy for p in decay_particles])
                 decay_energy = np.sum(decay_energies) * units.MeV
 
