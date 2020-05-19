@@ -245,7 +245,7 @@ def update_voltage_plot(
     if amplifier_type is not None:
         if amplifier_type == 'iglu' or amplifier_type == 'rno_surface':
             amp_response = NuRadioReco.detector.RNO_G.analog_components.load_amp_response(amplifier_type)
-            amplifier_response = amp_response['gain'](freqs) * np.exp(1j * amp_response['phase'](freqs))
+            amplifier_response = amp_response['gain'](freqs) * amp_response['phase'](freqs)
         else:
             amp_response = NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response(amplifier_type)
             amplifier_response = amp_response['gain'](freqs) * amp_response['phase'](freqs)
