@@ -1094,8 +1094,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         array_code = np.array(data_sets_fiducial['flavors'])
 
     else:
-        # save only events with interactions in fiducial volume
-        for key, value in iteritems(data_sets):
-            data_sets_fiducial[key] = value[fmask]
+        data_sets_fiducial = data_sets
 
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
