@@ -767,7 +767,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                            plus_minus='mix',
                            n_events_per_file=None,
                            spectrum='log_uniform',
-                           resample=False,
                            start_file_id=0,
                            config_file='SouthPole'):
     """
@@ -829,9 +828,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         defines the probability distribution for which the neutrino energies are generated
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
-    resample: integer or None
-        if integer, PROPOSAL generates a number of propagations equal to resample
-        and then reuses them. Only to be used with a single kind of lepton (muon or tau)
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
@@ -856,7 +852,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     """
 
     from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-    proposal_functions = ProposalFunctions()
+    proposal_functions = ProposalFunctions(config_file=config_file)
 
     attributes = {}
     n_events = int(n_events)
@@ -992,21 +988,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
                         for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
 
-    if resample:
-        if (len(np.unique(lepton_codes)) > 1):
-            raise ValueError('Resample must be used with one kind of leptons only')
-        n_resample = resample
-        i_resample = 0
-        E_all_leptons = E_all_leptons[:n_resample]
-        lepton_codes = lepton_codes[:n_resample]
-        lepton_positions = None
-        lepton_directions = None
-
-    products_array = proposal_functions.get_secondaries_array(E_all_leptons,
-                                                              lepton_codes,
-                                                              lepton_positions,
-                                                              lepton_directions,
-                                                              config_file=config_file)
 
     for event_id in data_sets["event_ids"]:
         iE = event_id - start_event_id
@@ -1016,13 +997,13 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
         if geometry_selection:
 
-            if resample:
-                lepton_code = lepton_codes[iE % n_resample]
-                products = products_array[i_resample % n_resample]
-                i_resample += 1
-            else:
-                lepton_code = lepton_codes[iE]
-                products = products_array.pop(0)
+            products_array = proposal_functions.get_secondaries_array( np.array([E_all_leptons[iE]]),
+                                                                       np.array([lepton_codes[iE]]),
+                                                                       np.array([lepton_positions[iE]]),
+                                                                       np.array([lepton_directions[iE]]) )
+            products = products_array[0]
+
+            lepton_code = lepton_codes[iE]
             n_interaction = 1
 
             for product in products:
@@ -1060,6 +1041,19 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     print("number of fiducial showers", len(data_sets_fiducial['flavors']))
 
+    # If there are no fiducial showers, passing an empty data_sets_fiducial to
+    # write_events_to_hdf5 will cause the program to crash. However, we need
+    # the output file to have empty data sets but also to have the total
+    # number of input muons even though none of them triggers, so as not to
+    # bias an effective volume calculation done with several files.
+    # As a solution, we take a muon neutrino event (not an atmospheric muon)
+    # at the top of the ice, and since its inelasticity is zero, it won't create
+    # an electric field or trigger.
+    if len(data_sets_fiducial['event_ids']) == 0:
+        for key, value in data_sets.items():
+            data_sets_fiducial[key] = np.array( [data_sets[key][0]] )
+        data_sets_fiducial['flavors'] = np.array( [14] )
+
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
 
     return None
@@ -1079,7 +1073,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 deposited=False,
                                 proposal=False,
                                 proposal_config='SouthPole',
-                                resample=None,
                                 start_file_id=0):
     """
     Event generator
@@ -1174,16 +1167,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         If one of these three options is chosen, the user is supposed to edit
         the corresponding config_PROPOSAL_xxx.json.sample file to include valid
         table paths and then copy this file to config_PROPOSAL_xxx.json.
-    resample: integer or None
-        if integer, PROPOSAL generates a number of propagations equal to resample
-        and then reuses them. Only to be used with a single kind of lepton (muon or tau)
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
     """
     if proposal:
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-        proposal_functions = ProposalFunctions()
+        proposal_functions = ProposalFunctions(config_file=proposal_config)
 
     attributes = {}
     n_events = int(n_events)
@@ -1373,33 +1363,19 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
         mask_leptons = mask_leptons & mask_theta & mask_phi
 
-        E_all_leptons = (1 - data_sets["inelasticity"][mask_leptons]) * data_sets["energies"][mask_leptons]
-        lepton_codes = data_sets["flavors"][mask_leptons]
+        E_all_leptons = (1 - data_sets["inelasticity"]) * data_sets["energies"]
+        lepton_codes = data_sets["flavors"]
         lepton_codes[lepton_codes == 14] = 13
         lepton_codes[lepton_codes == -14] = -13
         lepton_codes[lepton_codes == 16] = 15
         lepton_codes[lepton_codes == -16] = -15
 
         lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
+        lepton_positions = np.array(lepton_positions)
         lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
                             for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
+        lepton_directions = np.array(lepton_directions)
 
-        if resample:
-            if (len(np.unique(lepton_codes)) > 1):
-                raise ValueError('Resample must be used with one kind of leptons only')
-            n_resample = resample
-            i_resample = 0
-            E_all_leptons = E_all_leptons[:n_resample]
-            lepton_codes = lepton_codes[:n_resample]
-            lepton_positions = None
-            lepton_directions = None
-            proposal_config = 'InfIce'
-
-        products_array = proposal_functions.get_secondaries_array(E_all_leptons,
-                                                                  lepton_codes,
-                                                                  lepton_positions,
-                                                                  lepton_directions,
-                                                                  config_file=proposal_config)
 
         for event_id in data_sets["event_ids"]:
             iE = event_id - start_event_id
@@ -1422,17 +1398,18 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
             if mask_leptons[iE]:
 
+                products_array = proposal_functions.get_secondaries_array( np.array([E_all_leptons[iE]]),
+                                                                           np.array([lepton_codes[iE]]),
+                                                                           np.array([lepton_positions[iE]]),
+                                                                           np.array([lepton_directions[iE]]) )
+                products = products_array[0]
+
                 Elepton = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
                 if data_sets["flavors"][iE] > 0:
                     lepton_code = data_sets["flavors"][iE] - 1
                 else:
                     lepton_code = data_sets["flavors"][iE] + 1
 
-                if resample:
-                    products = products_array[i_resample % n_resample]
-                    i_resample += 1
-                else:
-                    products = products_array.pop(0)
                 n_interaction = 2
 
                 for product in products:

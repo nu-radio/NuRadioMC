@@ -17,6 +17,7 @@ python3 A04plot_results.py
 
 cd ../06_webinar
 python3 W01_create_input.py
+python3 W01_create_input_extended.py
 python3 W02RunSimulation.py
 python3 W03CheckOutput.py
 python3 W04EffectiveVolumes.py
