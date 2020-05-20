@@ -836,19 +836,24 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             tau_95_length = get_tau_95_length(Emax)
             if (tau_95_length > fiducial_rmax):
                 full_rmax = tau_95_length
-                n_events = n_events * int((full_rmax / fiducial_rmax) ** 2)
                 attributes['n_events'] = n_events
             else:
                 full_rmax = fiducial_rmax
+        n_events = n_events * int((full_rmax / fiducial_rmax) ** 2)
         # The zmin and zmax should not be touched. If zmin goes all the way down to
         # the bedrock, tau propagation through the bedrock should be taken into account.
         if(full_zmax is None):
             full_zmax = fiducial_zmax / 3.
         if(full_zmin is None):
             full_zmin = fiducial_zmin
+        logger.info("simulation of second interactions via PROPOSAL activated")
+        logger.info(f"increasing rmax from {fiducial_rmax/units.km:.01f}km to {full_rmax/units.km:.01f}km, zmax from {fiducial_zmax/units.km:.01f}km to {full_zmax/units.km:.01f}km")
+        logger.info(f"decreasing rmin from {fiducial_rmin/units.km:.01f}km to {full_rmin/units.km:.01f}km")
+        logger.info(f"increasing number of events to {n_events}")
     else:
         # if proposal (i.e. second interactions) is not enabled, then the concept of fiducial volume makes no
         # difference and the full volume is set to the fiducial volume
+        logger.info("setting full volume to fiducial volume because no second interactions are simulated")
         full_rmin = fiducial_rmin
         full_rmax = fiducial_rmax
         full_zmax = fiducial_zmax
@@ -963,6 +968,27 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 data_sets["flavors"], data_sets["inelasticity"])]
         data_sets["energies"] = np.array(data_sets["energies"])
 
+    # all interactions will produce a hadronic shower, add this information to the input file
+    data_sets['energies_shower'] = data_sets['energies'] * data_sets['inelasticity']
+    data_sets['shower_type'] = ['had'] * n_events
+
+    # now add EM showers if appropriate
+    em_shower_mask = (data_sets["interaction_type"] == "cc") & (np.abs(data_sets['flavors']) == 12)
+
+    for key in data_sets:  # transform datatype to list so that inserting elements is faster
+        data_sets[key] = list(data_sets[key])
+    n_inserted = 0
+    for i in np.arange(n_events, dtype=np.int)[em_shower_mask]:  # loop over all events where an EM shower needs to be inserted
+        for key in data_sets:
+            data_sets[key].insert(i + 1 + n_inserted, data_sets[key][i + n_inserted])  # copy event
+        data_sets['energies_shower'][i + 1 + n_inserted] = (1 - data_sets['inelasticity'][i + 1 + n_inserted]) * data_sets['energies'][i + 1 + n_inserted]
+        data_sets['shower_type'][i + 1 + n_inserted] = 'em'
+        n_inserted += 1
+
+    # make all arrays numpy arrays
+    for key in data_sets:
+        data_sets[key] = np.array(data_sets[key])
+
     data_sets_fiducial = {}
 
     if proposal:
@@ -1012,9 +1038,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                             for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
         lepton_directions = np.array(lepton_directions)
 
-        for event_id in data_sets["event_ids"]:
-            iE = event_id - start_event_id
-
+        for iE, event_id in enumerate(data_sets["event_ids"]):
             first_inserted = False
 
             x_nu = data_sets['xx'][iE]
@@ -1070,10 +1094,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                             data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
                             n_interaction += 1
-                            data_sets_fiducial['energies'][-1] = product.energy
-                            data_sets_fiducial['inelasticity'][-1] = 1
+                            data_sets_fiducial['energies_shower'][-1] = product.energy
+                            data_sets_fiducial['inelasticity'][-1] = np.nan
                             # interaction_type is either 'had' or 'em' for proposal products
                             data_sets_fiducial['interaction_type'][-1] = product.shower_type
+                            data_sets_fiducial['shower_type'][-1] = product.shower_type
 
                             data_sets_fiducial['xx'][-1] = x
                             data_sets_fiducial['yy'][-1] = y
