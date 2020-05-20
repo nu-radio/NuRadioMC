@@ -70,15 +70,15 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
 
     """
     shower_type = shower_type.upper()  # some convenience to be sloppy with upper/lower case
-    tmp = None
+    trace = None
     additional_output = {}
     if(energy == 0):
-        tmp = np.zeros(N)
+        trace = np.zeros(N)
     if model in par.get_parametrizations():
         tmp = par.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=seed, same_shower=same_shower,
                                      full_output=full_output)
         if(full_output):
-            tmp, additional_output = tmp
+            trace, additional_output = tmp
     elif(model == 'HCRB2017'):
         from NuRadioMC.SignalGen import HCRB2017
         is_em_shower = None
@@ -94,7 +94,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
             LPM = kwargs['LPM']
         if('a' in kwargs):
             a = kwargs['a']
-        tmp = HCRB2017.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, LPM, a)[1]
+        trace = HCRB2017.get_time_trace(energy, theta, N, dt, is_em_shower, n_index, R, LPM, a)[1]
     elif(model == 'ARZ2019' or model == 'ARZ2020'):
         from NuRadioMC.SignalGen.ARZ import ARZ
         gARZ = ARZ.ARZ(arz_version=model, seed=seed)
@@ -103,20 +103,19 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
 
         if(interp_factor2 is not None):
             gARZ.set_interpolation_factor2(interp_factor2)
-        tmp = gARZ.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, same_shower=same_shower, **kwargs)[1]
+        trace = gARZ.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, same_shower=same_shower, **kwargs)[1]
         additional_output['iN'] = gARZ.get_last_shower_profile_id()[shower_type]
 
     elif(model == 'spherical'):
         amplitude = 1. * energy / R
         trace = np.zeros(N)
         trace[N // 2] = amplitude
-        tmp = trace
     else:
         raise NotImplementedError("model {} unknown".format(model))
     if(full_output):
-        return tmp, additional_output
+        return trace, additional_output
     else:
-        return tmp
+        return trace
 
 
 def get_frequency_spectrum(energy, theta, N, dt, shower_type, n_index, R, model, full_output=False, **kwargs):
