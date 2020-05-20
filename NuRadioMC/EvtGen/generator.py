@@ -169,7 +169,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
             data_sets[key] = np.array(data_sets[key])
         for key, value in data_sets.items():
             if value.dtype.kind == 'U':
-                fout[key] = [np.char.encode(c, 'utf8') for c in value[start_index:stop_index]]
+                fout[key] = np.array(value, dtype=h5py.string_dtype(encoding='utf-8'))[start_index:stop_index]
             else:
                 fout[key] = value[start_index:stop_index]
 
@@ -998,6 +998,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         for key, value in iteritems(data_sets):
             data_sets_fiducial[key] = []
 
+        # we need to be careful to not double cound events. electron CC interactions apear twice in the event list
+        # because of the two distinct showers that get created. Because second interactions are only calculated
+        # for mu and tau cc interactions, this is not a problem.
         mask_tau_cc = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 16)
         mask_mu_cc = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 14)
         mask_leptons = mask_tau_cc | mask_mu_cc
