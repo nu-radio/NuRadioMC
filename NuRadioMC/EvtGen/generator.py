@@ -1062,15 +1062,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                                                            np.array([lepton_positions[iE]]),
                                                                            np.array([lepton_directions[iE]]))
                 products = products_array[0]
-
-                Elepton = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
-                if data_sets["flavors"][iE] > 0:
-                    lepton_code = data_sets["flavors"][iE] - 1
-                else:
-                    lepton_code = data_sets["flavors"][iE] + 1
-
                 n_interaction = 2
-
                 for product in products:
 
                     x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
@@ -1115,8 +1107,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         print("Total time", time.time() - init_time)
 
         print("number of fiducial showers", len(data_sets_fiducial['flavors']))
-        array_int = np.array(data_sets_fiducial['n_interaction'])
-        array_code = np.array(data_sets_fiducial['flavors'])
 
     else:
         data_sets_fiducial = data_sets
