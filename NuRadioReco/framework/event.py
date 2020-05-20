@@ -17,8 +17,8 @@ class Event:
         self.__run_number = run_number
         self._id = event_id
         self.__stations = collections.OrderedDict()
-        self.__radio_showers = []
-        self.__sim_showers = []
+        self.__radio_showers = collections.OrderedDict()
+        self.__sim_showers = collections.OrderedDict()
         self.__event_time = 0
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
@@ -125,7 +125,10 @@ class Event:
         shower: RadioShower object
             The shower to be added to the event
         """
-        self.__radio_showers.append(shower)
+        if(shower.get_id() in self.__radio_showers):
+            logger.error("shower with id {shower.get_id()} already exists. Shower id needs to be unique per event")
+            raise AttributeError("shower with id {shower.get_id()} already exists. Shower id needs to be unique per event")
+        self.__radio_showers[shower.get_id()] = shower
 
     def get_showers(self, ids=None):
         """
@@ -137,11 +140,19 @@ class Event:
             A list of station IDs. Only showers that are associated with
             all stations in the list are returned
         """
-        for shower in self.__radio_showers:
+        for shower in self.__radio_showers.items():
             if ids is None:
                 yield shower
             elif shower.has_station_ids(ids):
                 yield shower
+
+    def get_shower(self, shower_id):
+        """
+        returns a specific shower identified by its unique id
+        """
+        if(shower_id not in self.__radio_showers):
+            raise AttributeError(f"shower with id {shower_id} not present")
+        return self.__radio_showers[shower_id]
 
     def get_first_shower(self, ids=None):
         """
@@ -157,7 +168,8 @@ class Event:
         if len(self.__radio_showers) == 0:
             return None
         if ids is None:
-            return self.__radio_showers[0]
+            shower_ids = list(self.__radio_showers.keys())
+            return self.__radio_showers[shower_ids[0]]
         for shower in self.__radio_showers:
             if shower.has_station_ids(ids):
                 return shower
@@ -172,15 +184,25 @@ class Event:
         shower: RadioShower object
             The shower to be added to the event
         """
-
-        self.__sim_showers.append(sim_shower)
+        if(sim_shower.get_id() in self.__sim_showers):
+            logger.error("sim shower with id {sim_shower.get_id()} already exists. Shower id needs to be unique per event")
+            raise AttributeError("sim shower with id {sim_shower.get_id()} already exists. Shower id needs to be unique per event")
+        self.__sim_showers[sim_shower.get_id()] = sim_shower
 
     def get_sim_showers(self):
         """
         Get an iterator over all simulated showers in the event
         """
-        for shower in self.__sim_showers:
+        for shower in self.__sim_showers.items():
             yield shower
+
+    def get_sim_shower(self, shower_id):
+        """
+        returns a specific shower identified by its unique id
+        """
+        if(shower_id not in self.__sim_showers):
+            raise AttributeError(f"sim shower with id {shower_id} not present")
+        return self.__sim_showers[shower_id]
 
     def has_sim_shower(self):
         """
