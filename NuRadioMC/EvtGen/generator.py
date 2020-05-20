@@ -13,6 +13,7 @@ import scipy.interpolate as interpolate
 from scipy.optimize import fsolve
 from scipy.interpolate import RectBivariateSpline
 import h5py
+from NuRadioMC.simulation.simulation import pretty_time_delta
 import os
 import math
 import logging
@@ -1102,10 +1103,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                             data_sets_fiducial['flavors'][-1] = product.code
 
         time_per_evt = (time.time() - init_time) / (iE + 1)
-        print("Time per event:", time_per_evt)
-        print("Total time", time.time() - init_time)
+        logger.info(f"Time per event (PROPOSAL only): {time_per_evt*1e3:.4f} ms")
+        logger.info(f"Total time (PROPOSAL only) {pretty_time_delta(time.time() - init_time)}")
 
-        print("number of fiducial showers", len(data_sets_fiducial['flavors']))
+        logger.info(f"number of fiducial showers {len(data_sets_fiducial['flavors'])}")
 
     else:
         data_sets_fiducial = data_sets
