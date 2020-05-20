@@ -820,7 +820,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     attributes['NuRadioMC_EvtGen_version'] = NuRadioMC.__version__
     attributes['NuRadioMC_EvtGen_version_hash'] = version.get_NuRadioMC_commit_hash()
 
-    attributes['n_events'] = n_events
     attributes['start_event_id'] = start_event_id
 
     attributes['fiducial_rmin'] = fiducial_rmin
@@ -836,7 +835,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             tau_95_length = get_tau_95_length(Emax)
             if (tau_95_length > fiducial_rmax):
                 full_rmax = tau_95_length
-                attributes['n_events'] = n_events
             else:
                 full_rmax = fiducial_rmax
         n_events = n_events * int((full_rmax / fiducial_rmax) ** 2)
@@ -859,6 +857,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         full_zmax = fiducial_zmax
         full_zmin = fiducial_zmin
 
+    attributes['n_events'] = n_events
     attributes['rmin'] = full_rmin
     attributes['rmax'] = full_rmax
     attributes['zmin'] = full_zmin
