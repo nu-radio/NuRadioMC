@@ -968,7 +968,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         data_sets["energies"] = np.array(data_sets["energies"])
 
     # all interactions will produce a hadronic shower, add this information to the input file
-    data_sets['energies_shower'] = data_sets['energies'] * data_sets['inelasticity']
+    data_sets['shower_energies'] = data_sets['energies'] * data_sets['inelasticity']
     data_sets['shower_type'] = ['had'] * n_events
 
     # now add EM showers if appropriate
@@ -980,7 +980,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     for i in np.arange(n_events, dtype=np.int)[em_shower_mask]:  # loop over all events where an EM shower needs to be inserted
         for key in data_sets:
             data_sets[key].insert(i + 1 + n_inserted, data_sets[key][i + n_inserted])  # copy event
-        data_sets['energies_shower'][i + 1 + n_inserted] = (1 - data_sets['inelasticity'][i + 1 + n_inserted]) * data_sets['energies'][i + 1 + n_inserted]
+        data_sets['shower_energies'][i + 1 + n_inserted] = (1 - data_sets['inelasticity'][i + 1 + n_inserted]) * data_sets['energies'][i + 1 + n_inserted]
         data_sets['shower_type'][i + 1 + n_inserted] = 'em'
         n_inserted += 1
 
@@ -1085,7 +1085,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                             data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
                             n_interaction += 1
-                            data_sets_fiducial['energies_shower'][-1] = product.energy
+                            data_sets_fiducial['shower_energies'][-1] = product.energy
                             data_sets_fiducial['inelasticity'][-1] = np.nan
                             # interaction_type is either 'had' or 'em' for proposal products
                             data_sets_fiducial['interaction_type'][-1] = product.shower_type
