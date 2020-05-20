@@ -8,7 +8,8 @@ logger = logging.getLogger('Shower')
 
 class BaseShower:
 
-    def __init__(self):
+    def __init__(self, shower_id=0):
+        self._id = shower_id
         self._parameters = {}
 
     def __setitem__(self, key, value):
@@ -16,6 +17,9 @@ class BaseShower:
 
     def __getitem__(self, key):
         return self.get_parameter(key)
+
+    def get_id(self):
+        return self._id
 
     def get_parameter(self, key):
         if not isinstance(key, parameters.showerParameters):
