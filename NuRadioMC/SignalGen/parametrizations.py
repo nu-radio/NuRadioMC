@@ -30,7 +30,8 @@ def get_parametrizations():
     return ['ZHS1992', 'Alvarez2000', 'Alvarez2009', 'Alvarez2012']
 
 
-def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=None, same_shower=False):
+def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=None, same_shower=False,
+                   k_L=None, full_output=True):
     """
     returns the Askaryan pulse in the time domain of the eTheta component
 
@@ -68,11 +69,19 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
         if False, for each request a new random shower realization is choosen.
         if True, the shower from the last request of the same shower type is used. This is needed to get the Askaryan
         signal for both ray tracing solutions from the same shower.
+    k_L: None or float
+        the k_L parameter for EM showers of the Alvarez2009 model. If a this parameter is provided, this value is used
+        and the parameter will not be drawn from a random distribution. 
+        This setting overrides the `same_shower` setting
+    full_output: bool (default False)    
+        if True, askaryan modules can return additional output
 
     Returns
     -------
     spectrum: array
         the complex amplitudes for the given frequencies
+    additional information: dict
+        only available if `full_output` enabled
 
     """
     if(model not in _random_generators):
@@ -90,7 +99,10 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
         # the factor 0.5 is introduced to compensate the unusual fourier transform normalization used in the ZHS code
         trace = 0.5 * np.fft.irfft(tmp) / dt
         trace = np.roll(trace, int(2 * units.ns / dt))
-        return trace
+        if(full_output):
+            return trace, {}
+        else:
+            return trace
 
     elif(model == 'Alvarez2009'):
         # This parameterisation is not very accurate for energies above 10 EeV
@@ -117,7 +129,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
 
             return k_E_bar * E_0 / E_C * X_0 / rho * np.sin(theta) * freq
 
-        def nu_L(E_0, theta):
+        def get_nu_L(E_0, theta):
 
             if (shower_type == 'HAD'):
                 k_L_0 = 31.25
@@ -145,15 +157,16 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
                     log10_k_L_bar = log10_k_0 + gamma_1 * (log10_E_0 - log10_E_LPM)
 
                 global _Alvarez2009_k_L
-                if(same_shower):
-                    if _Alvarez2009_k_L is None:
-                        logger.error("the same shower was requested but the function hasn't been called before.")
-                        raise AttributeError("the same shower was requested but the function hasn't been called before.")
+                if(k_L is None):
+                    if(same_shower):
+                        if _Alvarez2009_k_L is None:
+                            logger.error("the same shower was requested but the function hasn't been called before.")
+                            raise AttributeError("the same shower was requested but the function hasn't been called before.")
+                        else:
+                            k_L = _Alvarez2009_k_L
                     else:
+                        _Alvarez2009_k_L = 10 ** _random_generators[model].normal(log10_k_L_bar, sigma_k_L)
                         k_L = _Alvarez2009_k_L
-                else:
-                    _Alvarez2009_k_L = 10 ** _random_generators[model].normal(log10_k_L_bar, sigma_k_L)
-                    k_L = _Alvarez2009_k_L
             else:
                 raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
 
@@ -167,7 +180,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
 
             return nu_L
 
-        def d_L(E_0, theta, freq):
+        def get_d_L(E_0, theta, freq):
 
             if (shower_type == "HAD"):
                 beta = 2.57
@@ -176,9 +189,9 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
             else:
                 raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
 
-            return 1 / (1 + (freq / nu_L(E_0, theta)) ** beta)
+            return 1 / (1 + (freq / get_nu_L(E_0, theta)) ** beta)
 
-        def d_R(E_0, theta, freq):
+        def get_d_R(E_0, theta, freq):
 
             if (shower_type == "HAD"):
                 k_R_0 = 2.73
@@ -194,14 +207,17 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
             alpha = 1.27
             return 1 / (1 + (freq / nu_R) ** alpha)
 
-        spectrum = A(energy, theta, freqs) * d_L(energy, theta, freqs) * d_R(energy, theta, freqs)
+        spectrum = A(energy, theta, freqs) * get_d_L(energy, theta, freqs) * get_d_R(energy, theta, freqs)
         spectrum *= 0.5  #  ZHS Fourier transform normalisation
         spectrum /= R
         spectrum = np.insert(spectrum, 0, 0)
 
         trace = np.fft.irfft(spectrum * np.exp(0.5j * np.pi)) / dt  # set phases to 90deg
         trace = np.roll(trace, len(trace) // 2)
-        return trace
+        if(full_output):
+            return trace, {'k_L': k_L}
+        else:
+            return trace
 
     elif(model == 'Alvarez2000'):
         freqs = np.fft.rfftfreq(N, dt)[1:]  # exclude zero frequency
@@ -255,7 +271,10 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
 #         df = np.mean(freqs[1:] - freqs[:-1])
         trace = np.fft.irfft(tmp * np.exp(0.5j * np.pi)) / dt  # set phases to 90deg
         trace = np.roll(trace, len(trace) // 2)
-        return trace
+        if(full_output):
+            return trace, {}
+        else:
+            return trace
 
     else:
         raise NotImplementedError("model {} unknown".format(model))
