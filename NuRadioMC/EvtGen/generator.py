@@ -125,14 +125,14 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
     else:
         n_events_per_file = int(n_events_per_file)
     iFile = -1
-    evt_id_first = data_sets['event_ids'][0]
+    evt_id_first = data_sets["event_group_ids"][0]
     evt_id_last_previous = 0  # save the last event id of the previous file
     start_index = 0
     n_events_total = 0
     while True:
         iFile += 1
         filename2 = filename
-        evt_ids_this_file = np.unique(data_sets['event_ids'])[iFile * n_events_per_file : (iFile + 1) * n_events_per_file]
+        evt_ids_this_file = np.unique(data_sets["event_group_ids"])[iFile * n_events_per_file : (iFile + 1) * n_events_per_file]
         if(len(evt_ids_this_file) == 0):
             logger.info("no more events to write in file {}".format(iFile))
             break
@@ -150,16 +150,16 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         evt_id_first = evt_ids_this_file[0]
         evt_id_last = evt_ids_this_file[-1]
 
-        tmp = np.squeeze(np.argwhere(data_sets['event_ids'] == evt_id_last))  # set stop index such that last event is competely in file
+        tmp = np.squeeze(np.argwhere(data_sets["event_group_ids"] == evt_id_last))  # set stop index such that last event is competely in file
         if(tmp.size == 1):
             stop_index = tmp + 1
         else:
             stop_index = tmp[-1] + 1
 #         if(evt_id_last >= n_events):
 #             evt_id_last = n_events
-#             stop_index = len(data_sets['event_ids'])
+#             stop_index = len(data_sets["event_group_ids"])
 #         else:
-#             tmp = np.squeeze(np.argwhere(data_sets['event_ids'] > evt_id_last))  # set stop index such that last event is competely in file
+#             tmp = np.squeeze(np.argwhere(data_sets["event_group_ids"] > evt_id_last))  # set stop index such that last event is competely in file
 #             if(tmp.size == 1):
 #                 stop_index = tmp
 #             else:
@@ -178,7 +178,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         # case 2) it is the last file -> total number of simulated events - last event id of previous file
         # case 3) it is the first file -> last event id + 1 - start_event_id
         # case 4) it is the first and last file -> total number of simulated events
-        evt_ids_next_file = np.unique(data_sets['event_ids'])[(iFile + 1) * n_events_per_file : (iFile + 2) * n_events_per_file]
+        evt_ids_next_file = np.unique(data_sets["event_group_ids"])[(iFile + 1) * n_events_per_file : (iFile + 2) * n_events_per_file]
         n_events_this_file = None
         if(iFile == 0 and len(evt_ids_next_file) == 0):  # case 4
             n_events_this_file = total_number_of_events
@@ -564,7 +564,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
-    data_sets["event_ids"] = np.arange(n_events) + start_event_id
+    data_sets["event_group_ids"] = np.arange(n_events) + start_event_id
     data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
     data_sets["vertex_times"] = np.zeros(n_events, dtype=np.float)
 
@@ -633,7 +633,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
                         for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
 
-    for event_id in data_sets["event_ids"]:
+    for event_id in data_sets["event_group_ids"]:
         iE = event_id - start_event_id
 
         geometry_selection = mask_theta[iE] and mask_phi[iE]
@@ -693,7 +693,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     # As a solution, we take a muon neutrino event (not an atmospheric muon)
     # at the top of the ice, and since its inelasticity is zero, it won't create
     # an electric field or trigger.
-    if len(data_sets_fiducial['event_ids']) == 0:
+    if len(data_sets_fiducial["event_group_ids"]) == 0:
         for key, value in data_sets.items():
             data_sets_fiducial[key] = np.array([data_sets[key][0]])
         data_sets_fiducial['flavors'] = np.array([14])
@@ -888,7 +888,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
     logger.debug("generating event ids")
-    data_sets["event_ids"] = np.arange(n_events) + start_event_id
+    data_sets["event_group_ids"] = np.arange(n_events) + start_event_id
     logger.debug("generating number of interactions")
     data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
     data_sets["vertex_times"] = np.zeros(n_events, dtype=np.float)
@@ -1038,7 +1038,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                             for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
         lepton_directions = np.array(lepton_directions)
 
-        for iE, event_id in enumerate(data_sets["event_ids"]):
+        for iE, event_id in enumerate(data_sets["event_group_ids"]):
             first_inserted = False
 
             x_nu = data_sets['xx'][iE]
