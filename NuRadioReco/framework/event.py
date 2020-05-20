@@ -154,6 +154,17 @@ class Event:
             raise AttributeError(f"shower with id {shower_id} not present")
         return self.__radio_showers[shower_id]
 
+    def has_shower(self, shower_id=None):
+        """
+        Returns true if at least one shower is stored in the event
+        
+        If shower_id is given, it checks if this particular shower exists
+        """
+        if(shower_id is None):
+            return shower_id in self.__radio_showers.keys()
+        else:
+            return len(self.__radio_showers) > 0
+
     def get_first_shower(self, ids=None):
         """
         Returns only the first shower stored in the event. Useful in cases
@@ -204,11 +215,16 @@ class Event:
             raise AttributeError(f"sim shower with id {shower_id} not present")
         return self.__sim_showers[shower_id]
 
-    def has_sim_shower(self):
+    def has_sim_shower(self, shower_id=None):
         """
         Returns true if at least one simulated shower is stored in the event
+        
+        If shower_id is given, it checks if this particular shower exists
         """
-        return len(self.__sim_showers) > 0
+        if(shower_id is None):
+            return shower_id in self.__sim_showers.keys()
+        else:
+            return len(self.__sim_showers) > 0
 
     def get_hybrid_information(self):
         """
