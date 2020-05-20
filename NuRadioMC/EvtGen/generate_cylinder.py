@@ -1,6 +1,10 @@
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 from NuRadioReco.utilities import units
 import argparse
+import logging
+logger = logging.getLogger("EventGen")
+logging.basicConfig()
+logger.setLevel(logging.INFO)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate input data files using forced event generator for cylinder geometry')
@@ -57,13 +61,9 @@ if __name__ == "__main__":
                             * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for
                                        10 percent proton fraction (see get_GZK_1 function for details)
                             * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux""")
-    parser.add_argument('--add_tau_second_bang', type=bool, default=False,
-                        help='if True simulate second vertices from tau decays')
-    parser.add_argument('--tabulated_taus', type=bool, default=True,
-                        help='if True the tau decay properties are taken from a table')
     parser.add_argument('--deposited', type=bool, default=False,
                         help='if True, generate deposited energies instead of primary neutrino energies')
-    parser.add_argument('--proposal', type=bool, default=False,
+    parser.add_argument('--proposal', default=False, action='store_true',
                         help='if integer, PROPOSAL generates a number of propagations equal to resample and then reuses them. Only to be used with a single kind of lepton (muon or tau)')
     parser.add_argument('--proposal_config', type=str, default="SouthPole",
                         help="""The user can specify the path to their own config file or choose among
@@ -82,8 +82,6 @@ if __name__ == "__main__":
         If one of these three options is chosen, the user is supposed to edit
         the corresponding config_PROPOSAL_xxx.json.sample file to include valid
         table paths and then copy this file to config_PROPOSAL_xxx.json.""")
-    parser.add_argument('--resample', type=int, default=None,
-                        help='if True the tau decay properties are taken from a table')
     parser.add_argument('--start_file_id', type=int, default=0,
                         help="in case the data set is distributed over several files, this number specifies the id of the first file (useful if an existing data set is extended)")
     args = parser.parse_args()
@@ -97,10 +95,7 @@ if __name__ == "__main__":
                                 args.flavor,
                                 args.n_events_per_file,
                                 args.spectrum,
-                                args.add_tau_second_bang,
-                                args.tabulated_taus,
                                 args.deposited,
                                 args.proposal,
                                 args.proposal_config,
-                                args.resample,
                                 args.start_file_id)
