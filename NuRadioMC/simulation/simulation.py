@@ -417,6 +417,18 @@ class simulation():
                                    n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
                                    n_reflections=self._n_reflections)
 
+                    find_solutions = True
+
+                    if self._cfg['speedup']['distance_cut']:
+
+                        fem, fhad = self._get_em_had_fraction(self._inelasticity, self._inttype, self._flavor)
+                        shower_energy = (fem + fhad) * self._energy
+                        distance_cut = self._get_distance_cut(shower_energy)
+                        distance = np.linalg.norm(x1 - x2)
+
+                        if distance > distance_cut:
+                            find_solutions = False
+
                     if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                         sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
                         temp_reflection = None
@@ -426,9 +438,15 @@ class simulation():
                             temp_reflection_case = sg_pre['ray_tracing_reflection_case'][self._iE][channel_id]
                         r.set_solution(sg_pre['ray_tracing_C0'][self._iE][channel_id], sg_pre['ray_tracing_C1'][self._iE][channel_id],
                                        sg_pre['ray_tracing_solution_type'][self._iE][channel_id], temp_reflection, temp_reflection_case)
-                    else:
+                    elif find_solutions:
                         r.find_solutions()
 
+                    if (not find_solutions):
+                        logger.debug('A distance speed up cut has been applied')
+                        logger.debug('Shower energy: {:.2e} eV'.format(shower_energy / units.eV))
+                        logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
+                        logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
+                        continue
                     if(not r.has_solution()):
                         logger.debug("event {} and station {}, channel {} does not have any ray tracing solution ({} to {})".format(
                             self._event_id, self._station_id, channel_id, x1, x2))
@@ -1083,6 +1101,31 @@ class simulation():
             if(self._cfg['signal']['shower_type'] == "had"):
                 fem = 0
         return fem, fhad
+
+    def _get_distance_cut(self, shower_energy):
+        """
+        This function returns a distance cut as a function of shower energy for
+        speeding up the code. The cut comes from a fit to the maximum values of
+        distances taken from distance histograms for several shower energy bins,
+        increased a 50% as a margin.
+        """
+
+        if shower_energy < 1 * units.PeV:
+            return 100 * units.m
+
+        margin = 1.5
+
+        fit_pars = np.array([-1.71858223e+02, 2.76889420e+01, -1.46200554e+00, 2.58455216e-02])
+
+        log_shower_energy = np.log10(shower_energy / units.eV)
+
+        log_distance_cut = 0
+        for i_power, fit_par in enumerate(fit_pars):
+            log_distance_cut += fit_par * log_shower_energy**i_power
+
+        distance_cut = margin * 10**log_distance_cut
+
+        return distance_cut
 
     # TODO verify that calculation of polarization vector is correct!
     def _calculate_polarization_vector(self):
