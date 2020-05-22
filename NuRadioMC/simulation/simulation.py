@@ -1105,28 +1105,29 @@ class simulation():
     def _get_distance_cut(self, shower_energy):
         """
         This function returns a distance cut as a function of shower energy for
-        speeding up the code. The cut comes from a fit to the maximum values of
-        distances taken from distance histograms for several shower energy bins,
-        increased a 50% as a margin. The setup used for the simulations used
-        for creating the histogram was a 10x10 vertical dipole array with an
-        amplitude threshold of 1.5 times the noise RMS. The ice used was the
-        Greenland ice, for attenuation and refractive index.
+        speeding up the code. The cut is a linear function of the shower energy
+        logarithm:
+
+        log10(distance_cut) = intercept + slope * log10(shower_energy/eV)
+
+        The intercept and slope must be specified in the config file.
+
+        Parameters
+        ----------
+        shower_energy: float
+            Shower energy
+
+        Returns
+        -------
+        distance_cut: float
+            Maximum distance for ray tracing
         """
 
-        if shower_energy < 1 * units.PeV:
-            return 100 * units.m
+        intercept = self._cfg['speedup']['distance_cut_intercept']
+        slope = self._cfg['speedup']['distance_cut_slope']
 
-        margin = 1.5
-
-        fit_pars = np.array([-1.71858223e+02, 2.76889420e+01, -1.46200554e+00, 2.58455216e-02])
-
-        log_shower_energy = np.log10(shower_energy / units.eV)
-
-        log_distance_cut = 0
-        for i_power, fit_par in enumerate(fit_pars):
-            log_distance_cut += fit_par * log_shower_energy**i_power
-
-        distance_cut = margin * 10**log_distance_cut
+        log_distance_cut = intercept + slope * np.log10(shower_energy)
+        distance_cut = 10 ** log_distance_cut
 
         return distance_cut
 
