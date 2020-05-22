@@ -5,6 +5,7 @@ speedup:
   minimum_weight_cut: 0 # disable neutrino weight cut -> we're not simulating neutrinos here
   delta_C_cut: 10  # more than 360deg, disable cone angle cut
   min_efield_amplitude: 0
+  distance_cut: False
 
 propagation:
   module: analytic
