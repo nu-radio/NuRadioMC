@@ -1107,7 +1107,10 @@ class simulation():
         This function returns a distance cut as a function of shower energy for
         speeding up the code. The cut comes from a fit to the maximum values of
         distances taken from distance histograms for several shower energy bins,
-        increased a 50% as a margin.
+        increased a 50% as a margin. The setup used for the simulations used
+        for creating the histogram was a 10x10 vertical dipole array with an
+        amplitude threshold of 1.5 times the noise RMS. The ice used was the
+        Greenland ice, for attenuation and refractive index.
         """
 
         if shower_energy < 1 * units.PeV:
