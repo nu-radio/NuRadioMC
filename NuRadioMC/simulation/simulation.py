@@ -445,8 +445,6 @@ class simulation():
                                    n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
                                    n_reflections=self._n_reflections)
 
-                    find_solutions = True
-
                     if self._cfg['speedup']['distance_cut']:
 
                         fem, fhad = self._get_em_had_fraction(self._inelasticity, self._inttype, self._flavor)
@@ -458,7 +456,11 @@ class simulation():
                         distance = np.linalg.norm(x1 - x2)
 
                         if distance > distance_cut:
-                            find_solutions = False
+                            logger.debug('A distance speed up cut has been applied')
+                            logger.debug('Shower energy: {:.2e} eV'.format(shower_energy / units.eV))
+                            logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
+                            logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
+                            continue
 
                     if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                         sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
@@ -469,15 +471,9 @@ class simulation():
                             temp_reflection_case = sg_pre['ray_tracing_reflection_case'][self._iE][channel_id]
                         r.set_solution(sg_pre['ray_tracing_C0'][self._iE][channel_id], sg_pre['ray_tracing_C1'][self._iE][channel_id],
                                        sg_pre['ray_tracing_solution_type'][self._iE][channel_id], temp_reflection, temp_reflection_case)
-                    elif find_solutions:
+                    else:
                         r.find_solutions()
 
-                    if (not find_solutions):
-                        logger.debug('A distance speed up cut has been applied')
-                        logger.debug('Shower energy: {:.2e} eV'.format(shower_energy / units.eV))
-                        logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
-                        logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
-                        continue
                     if(not r.has_solution()):
                         logger.debug("event {} and station {}, channel {} does not have any ray tracing solution ({} to {})".format(
                             self._event_id, self._station_id, channel_id, x1, x2))
