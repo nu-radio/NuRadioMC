@@ -84,8 +84,8 @@ def get_distance_cut(shower_energy, intercept, slope):
         Maximum distance for ray tracing
     """
 
-    log_distance_cut = intercept + slope * np.log10(shower_energy)
-    distance_cut = 10 ** log_distance_cut
+    log_distance_cut = intercept + slope * np.log10(shower_energy / units.eV)
+    distance_cut = 10 ** log_distance_cut * units.m
 
     return distance_cut
 
