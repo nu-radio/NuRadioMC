@@ -70,7 +70,8 @@ class efieldGenericNoiseAdder:
 
                 freq_range_raw = electric_field.get_frequencies()
                 lower_lim = freq_range_raw > passband[0]
-                freq_range = freq_range_raw[lower_lim]
+                upper_lim = freq_range_raw < passband[1]
+                freq_range = freq_range_raw[lower_lim&upper_lim]
                 noise_idx = int(efield_fft.shape[1]) - int(freq_range.shape[0])
 
                 # Power law found by fit to Fig 3.2. "An absolute calibration of the antennas at LOFAR", Tijs Karskens (2015)
@@ -78,8 +79,7 @@ class efieldGenericNoiseAdder:
                     return k * x ** n
 
                 S = np.zeros(efield_fft.shape[1])
-                S[noise_idx:] = 4 * np.pi * ((2 * sp.constants.Boltzmann) / (sp.constants.speed_of_light ** 2)) * (freq_range / units.MHz) ** 2 * GalTemp(freq_range / units.MHz) * 50 * units.ohm
-                S = S * sampling_rate
+                S[lower_lim&upper_lim] = 4 * np.pi * ((2 * sp.constants.Boltzmann) / (sp.constants.speed_of_light ** 2)) * (freq_range / units.MHz) ** 2 * GalTemp(freq_range / units.MHz) * 50 * units.ohm
 
                 for i, x in enumerate(S):
                     if x != 0.: S[i] = np.sqrt(x)
