@@ -10,6 +10,7 @@ Welcome to NuRadioReco's documentation!
    :maxdepth: 1
 
    pages/introduction
+   pages/installation
    pages/event_structure
    pages/detector
    pages/nur_modules
