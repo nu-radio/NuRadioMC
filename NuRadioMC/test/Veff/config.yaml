@@ -4,6 +4,7 @@ speedup:
   minimum_weight_cut: 1.e-5
   delta_C_cut: 0.698  # 40 degree
   redo_raytracing: True  # redo ray tracing even if previous calculated ray tracing solutions are present
+  distance_cut: True # Skip ray tracing if vertex distance is greater than a distance cut that is a function of shower energy.
 propagation:
   ice_model: southpole_2015
 signal:
