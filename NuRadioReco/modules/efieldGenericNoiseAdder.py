@@ -7,13 +7,14 @@ import numpy as np
 logger = logging.getLogger('efieldGenericNoiseAdder')
 import matplotlib.pyplot as plt
 import scipy as sp
+import scipy.constants
 
 
 class efieldGenericNoiseAdder:
     """
     Module that adds noise to the electric field -- such as Galactic emission and background from human communication.
-    
-    
+
+
     """
 
     def __init__(self):
@@ -25,15 +26,15 @@ class efieldGenericNoiseAdder:
     @register_run()
     def run(self, evt, station, det, type, narrowband_freq, narrowband_power, passband):
         """
-        
+
         Parameters
         ----------
         event
-        
+
         station
-        
+
         detector
-        
+
         type: string
             narrowband: single frequency background with FM
             galactic: galactic emission calculated from temperature plots
@@ -83,10 +84,10 @@ class efieldGenericNoiseAdder:
                 for i, x in enumerate(S):
                     if x != 0.: S[i] = np.sqrt(x)
 
-                angle = np.random.uniform(0, 2 * np.pi)
-                gal_noise = S * np.exp(angle * 1j) * 100.
 
                 for i in range(3):  # The power of the galactic background is assumed to be the same in all polarizations
+                    angle = np.random.uniform(0, 2 * np.pi, len(S))
+                    gal_noise = S * np.exp(angle * 1j) * 100.
                     efield_fft[i] = efield_fft[i] + gal_noise
 
                 electric_field.set_frequency_spectrum(efield_fft, sampling_rate)
