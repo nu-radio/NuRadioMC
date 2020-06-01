@@ -61,6 +61,34 @@ def merge_config(user, default):
                 user[k] = merge_config(user[k], v)
     return user
 
+def get_distance_cut(shower_energy, intercept, slope):
+    """
+    This function returns a distance cut as a function of shower energy for
+    speeding up the code. The cut is a linear function of the shower energy
+    logarithm:
+
+    log10(distance_cut/m) = intercept + slope * log10(shower_energy/eV)
+
+    Parameters
+    ----------
+    shower_energy: float
+        Shower energy
+    intercept: float
+        Intercept for the linear cut
+    slope: float
+        Slope for the linear cut
+
+    Returns
+    -------
+    distance_cut: float
+        Maximum distance for ray tracing
+    """
+
+    log_distance_cut = intercept + slope * np.log10(shower_energy / units.eV)
+    distance_cut = 10 ** log_distance_cut * units.m
+
+    return distance_cut
+
 
 class simulation():
 
@@ -416,6 +444,23 @@ class simulation():
                     r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=self._log_level_ray_propagation,
                                    n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
                                    n_reflections=self._n_reflections)
+
+                    if self._cfg['speedup']['distance_cut']:
+
+                        fem, fhad = self._get_em_had_fraction(self._inelasticity, self._inttype, self._flavor)
+                        shower_energy = (fem + fhad) * self._energy
+                        intercept = self._cfg['speedup']['distance_cut_intercept']
+                        slope = self._cfg['speedup']['distance_cut_slope']
+
+                        distance_cut = get_distance_cut(shower_energy, intercept, slope)
+                        distance = np.linalg.norm(x1 - x2)
+
+                        if distance > distance_cut:
+                            logger.debug('A distance speed up cut has been applied')
+                            logger.debug('Shower energy: {:.2e} eV'.format(shower_energy / units.eV))
+                            logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
+                            logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
+                            continue
 
                     if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                         sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
