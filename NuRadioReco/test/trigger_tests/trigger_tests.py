@@ -11,7 +11,8 @@ import NuRadioReco.modules.efieldToVoltageConverter
 from NuRadioReco.utilities import units
 import datetime
 
-det = NuRadioReco.detector.detector.Detector(json_filename='NuRadioReco/test/trigger_tests/trigger_test_detector.json')
+det = NuRadioReco.detector.detector.Detector(json_filename='NuRadioReco/test/trigger_tests/trigger_test_detector.json',
+                                             antenna_by_depth=False)
 det.update(datetime.datetime(2018, 10, 1))
 event_reader = NuRadioReco.modules.io.eventReader.eventReader()
 event_reader.begin('NuRadioReco/test/trigger_tests/trigger_test_input.nur')
@@ -34,6 +35,6 @@ for event in event_reader.run():
     multi_high_low_trigger.run(event, station, det, trigger_name="default_multi_high_low", threshold_high=40 * units.mV, threshold_low=-40 * units.mV, n_high_lows=2)
     simple_threshold_trigger.run(event, station, det)
     phased_array_trigger.run(event, station, det, threshold=40 * units.mV,
-                             secondary_channels=[0,1,3,4,6,7])
+                             secondary_channels=[0, 1, 3, 4, 6, 7])
 
     event_writer.run(event)
