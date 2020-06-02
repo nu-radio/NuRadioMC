@@ -265,6 +265,19 @@ class ARZ(object):
         if not shower_type in self._library.keys():
             raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
 
+        # Due to the oscillatory nature of the ARZ integral, some numerical instabilities arise
+        # for angles near the axis and near 90 degrees. This creates some waveforms with large
+        # spikes due to numerical errors, while the real electric field should be much smaller
+        # than near the Cherenkov cone due to the loss of coherence. Since incoherent events
+        # should not trigger, we return an empty trace for angular differences > 20 degrees.
+        cherenkov_angle = np.arccos(1 / n_index)
+        maximum_angle = 20 * units.deg
+
+        if np.abs(theta - cherenkov_angle) > maximum_angle:
+
+            empty_trace = np.zeros(3, N)
+            return empty_trace
+
         # determine closes available energy in shower library
         energies = np.array([*self._library[shower_type]])
         iE = np.argmin(np.abs(energies - shower_energy))
