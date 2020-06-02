@@ -61,6 +61,7 @@ def merge_config(user, default):
                 user[k] = merge_config(user[k], v)
     return user
 
+
 def get_distance_cut(shower_energy, intercept, slope):
     """
     This function returns a distance cut as a function of shower energy for
@@ -206,9 +207,9 @@ class simulation():
         if(default_detector_station):
             logger.warning(f"Default detector station provided (station {default_detector_station}) -> Using generic detector")
             self._det = gdetector.GenericDetector(json_filename=self._detectorfile, default_station=default_detector_station,
-                                                 default_channel=default_detector_channel)
+                                                 default_channel=default_detector_channel, antenna_by_depth=False)
         else:
-            self._det = detector.Detector(json_filename=self._detectorfile)
+            self._det = detector.Detector(json_filename=self._detectorfile, antenna_by_depth=False)
         self._det.update(evt_time)
 
         self._station_ids = self._det.get_station_ids()
