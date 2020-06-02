@@ -59,7 +59,7 @@ class NuRadioRecoio(object):
         if(iF not in self.__open_files):
             self.logger.debug("file {} is not yet open, opening file".format(iF))
             self.__open_files[iF] = {}
-            self.__open_files[iF]['file'] = open(self._filenames[iF], 'rb')
+            self.__open_files[iF]['file'] = open(self._filenames[iF], 'rb', buffering=104857600)  # 100 MB buffering
             self.__open_files[iF]['time'] = time.time()
             self.__check_file_version(iF)
             if(len(self.__open_files) > self.__max_open_files):
