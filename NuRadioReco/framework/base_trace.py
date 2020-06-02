@@ -1,4 +1,4 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_functionmv
 import numpy as np
 import logging
 from NuRadioReco.utilities import fft
@@ -56,7 +56,7 @@ class BaseTrace:
             the sampling rage of the trace, i.e., the inverse of the bin width
         """
         if trace is not None:
-            if trace.shape[trace.ndim - 1]%2 != 0:
+            if trace.shape[trace.ndim - 1] % 2 != 0:
                 raise ValueError('Attempted to set trace with an uneven number ({}) of samples. Only traces with an even number of samples are allowed.'.format(trace.shape[trace.ndim - 1]))
         self.__time_domain_up_to_date = True
         self._time_trace = trace
@@ -81,7 +81,7 @@ class BaseTrace:
     def get_times(self):
         try:
             length = self.get_number_of_samples()
-            times = np.arange(0, length / self._sampling_rate - 0.1/self._sampling_rate, 1. / self._sampling_rate) + self._trace_start_time
+            times = np.arange(0, length / self._sampling_rate - 0.1 / self._sampling_rate, 1. / self._sampling_rate) + self._trace_start_time
             if(len(times) != length):
                 logger.error("time array does not have the same length as the trace. n_samples = {:d}, sampling rate = {:.5g}".format(length, self._sampling_rate))
                 raise ValueError("time array does not have the same length as the trace")

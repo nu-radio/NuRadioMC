@@ -1,7 +1,9 @@
 from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_station
+import NuRadioReco.framework.channel
 import numpy as np
 from six import iteritems
+import collections
 try:
     import cPickle as pickle
 except ImportError:
@@ -18,6 +20,7 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
         self.__simulation_weight = None
         if(trace is not None and sampling_rate is not None):
             self.set_electric_fields(trace, sampling_rate)
+        self.__channels = collections.OrderedDict()
 
     def get_magnetic_field_vector(self):
         return self.__magnetic_field_vector
@@ -31,6 +34,19 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
     def set_simulation_weight(self, simulation_weight):
         self.__simulation_weight = simulation_weight
 
+    def add_channel(self, channel):
+        """
+        adds a NuRadioReco.framework.channel ot the SimStation object
+        """
+        if not isinstance(channel, NuRadioReco.framework.channel):
+            raise AttributeError(f"channel needs to be of type NuRadioReco.framework.channel")
+        self.__channels[channel.get_id()] = channel
+
+    def get_channel(self, channel_id):
+        """
+        returns channel identified by its channel id
+        """
+
     def serialize(self, mode):
         base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(self, mode)
         data = {'__magnetic_field_vector': self.__magnetic_field_vector,
@@ -43,4 +59,4 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
         NuRadioReco.framework.base_station.BaseStation.deserialize(self, data['base_station'])
         self.__magnetic_field_vector = data['__magnetic_field_vector']
         self.__simulation_weight = data['__simulation_weight']
-        
+
