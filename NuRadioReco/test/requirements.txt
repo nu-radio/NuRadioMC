@@ -3,7 +3,7 @@
 pyyaml
 numpy
 astropy
-tinydb==3.15.2
+tinydb
 tinydb-serialization
 h5py
 matplotlib
