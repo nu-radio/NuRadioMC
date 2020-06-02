@@ -218,7 +218,7 @@ class ARZ(object):
         self._interp_factor2 = interp_factor
 
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
-                       same_shower=False, iN=None, output_mode='trace'):
+                       same_shower=False, iN=None, output_mode='trace', maximum_angle=20*units.deg):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
 
@@ -258,6 +258,9 @@ class ARZ(object):
             * 'trace' (default): return only the electric field trace
             * 'Xmax': return trace and position of xmax in units of length
             * 'full' return trace, depth and charge_excess profile
+        maximum_angle: float
+            Maximum angular difference allowed between the observer angle and the Cherenkov angle.
+            If the difference is greater, the function returns an empty trace.
 
         Returns: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
@@ -271,7 +274,6 @@ class ARZ(object):
         # than near the Cherenkov cone due to the loss of coherence. Since incoherent events
         # should not trigger, we return an empty trace for angular differences > 20 degrees.
         cherenkov_angle = np.arccos(1 / n_index)
-        maximum_angle = 20 * units.deg
 
         if np.abs(theta - cherenkov_angle) > maximum_angle:
 
