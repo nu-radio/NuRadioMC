@@ -277,7 +277,7 @@ class ARZ(object):
 
         if np.abs(theta - cherenkov_angle) > maximum_angle:
 
-            empty_trace = np.zeros(3, N)
+            empty_trace = np.zeros((3, N))
             return empty_trace
 
         # determine closes available energy in shower library
