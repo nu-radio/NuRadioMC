@@ -218,7 +218,7 @@ class ARZ(object):
         self._interp_factor2 = interp_factor
 
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
-                       same_shower=False, iN=None, output_mode='trace'):
+                       same_shower=False, iN=None, output_mode='trace', maximum_angle=20*units.deg):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
 
@@ -258,12 +258,27 @@ class ARZ(object):
             * 'trace' (default): return only the electric field trace
             * 'Xmax': return trace and position of xmax in units of length
             * 'full' return trace, depth and charge_excess profile
+        maximum_angle: float
+            Maximum angular difference allowed between the observer angle and the Cherenkov angle.
+            If the difference is greater, the function returns an empty trace.
 
         Returns: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
         """
         if not shower_type in self._library.keys():
             raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
+
+        # Due to the oscillatory nature of the ARZ integral, some numerical instabilities arise
+        # for angles near the axis and near 90 degrees. This creates some waveforms with large
+        # spikes due to numerical errors, while the real electric field should be much smaller
+        # than near the Cherenkov cone due to the loss of coherence. Since incoherent events
+        # should not trigger, we return an empty trace for angular differences > 20 degrees.
+        cherenkov_angle = np.arccos(1 / n_index)
+
+        if np.abs(theta - cherenkov_angle) > maximum_angle:
+
+            empty_trace = np.zeros(3, N)
+            return empty_trace
 
         # determine closes available energy in shower library
         energies = np.array([*self._library[shower_type]])
