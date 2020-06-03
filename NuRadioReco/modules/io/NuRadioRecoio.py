@@ -16,7 +16,7 @@ class NuRadioRecoio(object):
 
     def __init__(self, filenames, parse_header=True, parse_detector=True, fail_on_version_mismatch=True,
                  fail_on_minor_version_mismatch=False,
-                 max_open_files=10, log_level=None):
+                 max_open_files=10, log_level=None, buffer_size=104857600):
         """
         Initialize NuRadioReco io
 
@@ -36,6 +36,10 @@ class NuRadioRecoio(object):
             Controls if the module should try to read files with a different minor version
         max_open_files: int
             the maximum number of files that remain open simultaneously
+        log_level: None or log level
+            the log level of this class
+        buffer_size: int
+            the size of the read buffer in bytes (default 100MB)
         """
         if(not isinstance(filenames, list)):
             filenames = [filenames]
@@ -54,12 +58,13 @@ class NuRadioRecoio(object):
         self.openFile(filenames)
         self._current_file_id = 0
         self.logger.info("... finished in {:.0f} seconds".format(time.time() - t))
+        self.__buffer_size = buffer_size
 
     def _get_file(self, iF):
         if(iF not in self.__open_files):
             self.logger.debug("file {} is not yet open, opening file".format(iF))
             self.__open_files[iF] = {}
-            self.__open_files[iF]['file'] = open(self._filenames[iF], 'rb')
+            self.__open_files[iF]['file'] = open(self._filenames[iF], 'rb', buffering=self.__buffer_size)  # 100 MB buffering
             self.__open_files[iF]['time'] = time.time()
             self.__check_file_version(iF)
             if(len(self.__open_files) > self.__max_open_files):
