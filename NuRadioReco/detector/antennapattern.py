@@ -957,8 +957,8 @@ class AntennaPattern(AntennaPatternBase):
 
         except IOError:
             self._notfound = True
-            logger.warning("antenna response for {} not found".format(antenna_model))
-            return
+            logger.errror("antenna response for {} not found".format(antenna_model))
+            raise FileNotFoundError("antenna response for {} not found".format(antenna_model))
 
         self.frequencies = np.unique(ff)
         self.frequency_lower_bound = self.frequencies[0]
