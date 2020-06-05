@@ -8,14 +8,36 @@ except ImportError:
 import logging
 logger = logging.getLogger('electric_field')
 
+
 class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
 
-    def __init__(self, channel_ids, position=[0,0,0]):
+    def __init__(self, channel_ids, position=[0, 0, 0],
+                 shower_id=None, ray_tracing_id=None):
+        """
+        Initialize a new electric field object
+        
+        This object stores a 3 dimensional trace plus additional meta parameters
+        
+        Parameters
+        ---------
+        channel_ids: array of ints
+            the channels ids this electric field is valid for. (For cosmic rays one electric field is typically valid
+            for several channels. For neutrino simulations, we typically simulate the electric field for each 
+            channel separately)
+        position: 3-dim array/list of floats
+            the position of the electric field
+        shower_id: int or None
+            the id of the corresponding shower object
+        ray_tracing_id: int or None
+            the id of the corresponding ray tracing solution
+        """
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
         self._channel_ids = channel_ids
         self._parameters = {}
         self._parameter_covariances = {}
         self._position = position
+        self._shower_id = shower_id
+        self._ray_tracing_id = ray_tracing_id
 
     def get_parameter(self, key):
         if not isinstance(key, parameters.electricFieldParameters):
@@ -74,6 +96,12 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
                 return False
         return True
 
+    def get_shower_id(self):
+        return self._shower_id
+
+    def get_ray_tracing_solution_id(self):
+        return self._ray_tracing_id
+
     def get_position(self):
         """
         get position of the electric field relative to station position
@@ -101,7 +129,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         data = pickle.loads(data_pkl)
         if(data['base_trace'] is not None):
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
-        if 'position' in data:  #for backward compatibility
+        if 'position' in data:  # for backward compatibility
             self._position = data['position']
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.electricFieldParameters)
         self._channel_ids = data['channel_ids']
