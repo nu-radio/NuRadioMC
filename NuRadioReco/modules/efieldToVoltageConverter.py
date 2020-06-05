@@ -22,8 +22,6 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import stationParameters as stnp
 
 
-
-
 class efieldToVoltageConverter():
     """
     Module that should be used to convert simulations to data.
@@ -240,7 +238,7 @@ class efieldToVoltageConverter():
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
+        self.logger.info("total time used by this module is {}".format(dt))
         return dt
