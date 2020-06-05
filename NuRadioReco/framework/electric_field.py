@@ -38,6 +38,13 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         self._position = position
         self._shower_id = shower_id
         self._ray_tracing_id = ray_tracing_id
+        logger.warning(f"setting ray tracing id to {ray_tracing_id}")
+
+    def get_unique_identifier(self):
+        """
+        returns a unique identifier consisting of the tuple channel_ids, shower_id and ray_tracing_id
+        """
+        return (self._channel_ids, self._shower_id, self._ray_tracing_id)
 
     def get_parameter(self, key):
         if not isinstance(key, parameters.electricFieldParameters):

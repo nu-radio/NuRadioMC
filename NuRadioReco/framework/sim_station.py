@@ -34,18 +34,25 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
     def set_simulation_weight(self, simulation_weight):
         self.__simulation_weight = simulation_weight
 
+    def iter_channels(self):
+        for channel in self.__channels.values():
+            yield channel
+
     def add_channel(self, channel):
         """
         adds a NuRadioReco.framework.channel ot the SimStation object
         """
-        if not isinstance(channel, NuRadioReco.framework.channel):
-            raise AttributeError(f"channel needs to be of type NuRadioReco.framework.channel")
-        self.__channels[channel.get_id()] = channel
+        if not isinstance(channel, NuRadioReco.framework.sim_channel.SimChannel):
+            raise AttributeError(f"channel needs to be of type NuRadioReco.framework.sim_channel")
+        if(channel.get_unique_identifier() in self.__channels):
+            raise AttributeError(f"channel with the unique identifier {channel.get_unique_identifier()} is already present in SimStation")
+        self.__channels[channel.get_unique_identifier()] = channel
 
-    def get_channel(self, channel_id):
+    def get_channel(self, unique_identifier):
         """
-        returns channel identified by its channel id
+        returns channel identified by the triple (channel_id, shower_id, ray_tracing_id)
         """
+        return self.__channels[unique_identifier]
 
     def serialize(self, mode):
         base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(self, mode)
