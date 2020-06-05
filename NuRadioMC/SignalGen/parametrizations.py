@@ -131,6 +131,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
 
         def get_nu_L(E_0, theta):
 
+            global k_L
             if (shower_type == 'HAD'):
                 k_L_0 = 31.25
                 gamma = 3.01e-2
