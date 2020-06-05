@@ -1,4 +1,4 @@
-from __future__ import absolute_import, division, print_functionmv
+from __future__ import absolute_import, division, print_function
 import numpy as np
 import logging
 from NuRadioReco.utilities import fft
