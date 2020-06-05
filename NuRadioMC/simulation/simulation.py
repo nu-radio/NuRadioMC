@@ -304,6 +304,7 @@ class simulation():
         """
         run the NuRadioMC simulation
         """
+        logger.warning(f"Starting NuRadioMC simulation")
 
         self._channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
         self._eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
@@ -381,7 +382,6 @@ class simulation():
 
                 self._evt_tmp = NuRadioReco.framework.event.Event(0, 0)
                 self._create_sim_station()
-                self._evt_tmp = NuRadioReco.framework.event.Event(0, 0)  # temporary NuRadioReco event structure
                 # loop over all showers in event group
                 for self._iE in event_indices:
                     if(self._iE > 0 and self._iE % max(1, int(self._n_events / 100.)) == 0):
@@ -435,7 +435,7 @@ class simulation():
                     n_index = self._ice.get_index_of_refraction(x1)
                     cherenkov_angle = np.arccos(1. / n_index)
 
-                    # first step: peorform raytracing to see if solution exists
+                    # first step: perform raytracing to see if solution exists
                     t2 = time.time()
                     input_time += (time.time() - t1)
 
@@ -518,7 +518,7 @@ class simulation():
                                     kwargs = {'iN': self._sim_shower.get_parameter(shp.charge_excess_profile_id)}
                             if(self._cfg['signal']['model'] == "Alvarez2009"):
                                 if(self._sim_shower.has_parameter(shp.k_L)):
-                                    kwargs = {'k_L': self._sim_shower.get_parameter(shp.charge_excess_profile_id)}
+                                    kwargs = {'k_L': self._sim_shower.get_parameter(shp.k_L)}
                             spectrum, additional_output = signalgen.get_frequency_spectrum(self._shower_energy, viewing_angles[iS],
                                             self._n_samples, self._dt, self._shower_type, n_index, R,
                                             self._cfg['signal']['model'], seed=self._cfg['seed'], full_output=True, **kwargs)
@@ -613,7 +613,10 @@ class simulation():
                                 plt.show()
 
                             electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id],
-                                                self._det.get_relative_position(self._sim_station.get_id(), channel_id))
+                                                position=self._det.get_relative_position(self._sim_station.get_id(), channel_id),
+                                                shower_id=self._iE, ray_tracing_id=iS)
+                            if(iS is None):
+                                a = 1 / 0
                             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / self._dt)
                             # Trace start time is equal to the interaction time relative to the first
                             # interaction plus the wave travel time.
@@ -643,40 +646,56 @@ class simulation():
                             # signal amplitude
                             if(np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield):
                                 candidate_station = True
+                        # end of ray tracing solutions loop
+                    # end of channels loop
+                # end of showers loop
+                # now perform first part of detector simulation -> convert each efield to voltage
+                # (i.e. apply antenna response) and apply additional simulation of signal chain (such as cable delays,
+                # amp response etc.)
+                if(not candidate_station):
+                    logger.debug("electric field amplitude too small in all channels, skipping to next event")
+                    continue
+                self._station = NuRadioReco.framework.station.Station(self._station_id)
+                self._station.set_sim_station(self._sim_station)
+#                 for efield in self._sim_station.get_electric_fields():
+#                     print(efield.get_unique_identifier())
+                self._detector_simulation_part1()
+                start_times = []
+                for channel in self._sim_station.iter_channels():
+                    start_times.append(channel.get_trace_start_time())
 
-                    t3 = time.time()
-                    rayTracingTime += t3 - t2
-                    # perform only a detector simulation if event had at least one
-                    # candidate channel
-                    if(not candidate_station):
-                        logger.debug("electric field amplitude too small in all channels, skipping to next event")
-                        continue
-                    logger.debug("performing detector simulation")
-                    # self._finalize NuRadioReco event structure
-                    self._station = NuRadioReco.framework.station.Station(self._station_id)
-                    self._station.set_sim_station(self._sim_station)
-
-                    self._station.set_station_time(self._evt_time)
-                    self._evt.set_station(self._station)
-                    if(bool(self._cfg['signal']['zerosignal'])):
-                        self._increase_signal(None, 0)
-                    if(self._cfg['speedup']['amp_per_ray_solution']):
-                        self._calculate_amplitude_per_ray_tracing_solution()
-
-                    self._detector_simulation()
-                    self._calculate_signal_properties()
-                    self._save_triggers_to_hdf5()
-                    t4 = time.time()
-                    detSimTime += (t4 - t3)
-                if(self._outputfilenameNuRadioReco is not None and self._mout['triggered'][self._iE]):
-                    # downsample traces to detector sampling rate to save file size
-                    self._channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
-                    self._electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
-
-                    if self.__write_detector:
-                        self._eventWriter.run(self._evt, self._det)
-                    else:
-                        self._eventWriter.run(self._evt)
+                print(f"start times {start_times}")
+                a = 1 / 0
+#                     t3 = time.time()
+#                     rayTracingTime += t3 - t2
+#                     # perform only a detector simulation if event had at least one
+#                     # candidate channel
+#                     logger.debug("performing detector simulation")
+#                     # self._finalize NuRadioReco event structure
+#                     self._station = NuRadioReco.framework.station.Station(self._station_id)
+#                     self._station.set_sim_station(self._sim_station)
+#
+#                     self._station.set_station_time(self._evt_time)
+#                     self._evt.set_station(self._station)
+#                     if(bool(self._cfg['signal']['zerosignal'])):
+#                         self._increase_signal(None, 0)
+#                     if(self._cfg['speedup']['amp_per_ray_solution']):
+#                         self._calculate_amplitude_per_ray_tracing_solution()
+#
+#                     self._detector_simulation()
+#                     self._calculate_signal_properties()
+#                     self._save_triggers_to_hdf5()
+#                     t4 = time.time()
+#                     detSimTime += (t4 - t3)
+#                 if(self._outputfilenameNuRadioReco is not None and self._mout['triggered'][self._iE]):
+#                     # downsample traces to detector sampling rate to save file size
+#                     self._channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
+#                     self._electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
+#
+#                     if self.__write_detector:
+#                         self._eventWriter.run(self._evt, self._det)
+#                     else:
+#                         self._eventWriter.run(self._evt)
 
         # Create trigger structures if there are no triggering events.
         # This is done to ensure that files with no triggering n_events
