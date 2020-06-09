@@ -20,7 +20,7 @@ import logging
 logger = logging.getLogger("EventGen")
 logging.basicConfig()
 
-VERSION_MAJOR = 1
+VERSION_MAJOR = 2
 VERSION_MINOR = 1
 
 HEADER = """
