@@ -70,6 +70,7 @@ ______________________
       pip install astropy
 
   - tinydb:
+    tinydb version 4.1.1 or newer is required.
 
     .. code-block:: Bash
 
