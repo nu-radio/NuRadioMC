@@ -38,7 +38,6 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         self._position = position
         self._shower_id = shower_id
         self._ray_tracing_id = ray_tracing_id
-        logger.warning(f"setting ray tracing id to {ray_tracing_id}")
 
     def get_unique_identifier(self):
         """
