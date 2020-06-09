@@ -11,12 +11,17 @@ from NuRadioMC.SignalProp import propagation
 import h5py
 import time
 import six
+import copy
 from scipy import constants
 # import detector simulation modules
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution
 import NuRadioReco.modules.electricFieldResampler
+import NuRadioReco.modules.channelGenericNoiseAdder
+import NuRadioReco.modules.efieldToVoltageConverterPerEfield
+import NuRadioReco.modules.efieldToVoltageConverter
+import NuRadioReco.modules.channelAddCableDelay
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.detector.generic_detector as gdetector
@@ -239,7 +244,7 @@ class simulation():
             self._station.set_station_time(self._evt_time)
             self._evt.set_station(self._station)
 
-            self._detector_simulation()
+            self._detector_simulation_filter_amp(self._evt, self._station, self._det)
             self._bandwidth_per_channel[self._station_id] = {}
             self._amplification_per_channel[self._station_id] = {}
             self.__noise_adder_normalization[self._station_id] = {}
@@ -308,8 +313,12 @@ class simulation():
 
         self._channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
         self._eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-        self._channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
-        self._electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
+        efieldToVoltageConverterPerEfield = NuRadioReco.modules.efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield()
+        efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
+        channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
+        channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+        channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
+        electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
         if(self._outputfilenameNuRadioReco is not None):
             self._eventWriter.begin(self._outputfilenameNuRadioReco)
         unique_event_group_ids = np.unique(self._fin['event_group_ids'])
@@ -647,6 +656,8 @@ class simulation():
                             if(np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield):
                                 candidate_station = True
                         # end of ray tracing solutions loop
+                    t3 = time.time()
+                    rayTracingTime += t3 - t2
                     # end of channels loop
                 # end of showers loop
                 # now perform first part of detector simulation -> convert each efield to voltage
@@ -659,43 +670,92 @@ class simulation():
                 self._station.set_sim_station(self._sim_station)
 #                 for efield in self._sim_station.get_electric_fields():
 #                     print(efield.get_unique_identifier())
-                self._detector_simulation_part1()
-                start_times = []
-                for channel in self._sim_station.iter_channels():
-                    start_times.append(channel.get_trace_start_time())
+#                 self._detector_simulation_part1()
 
-                print(f"start times {start_times}")
-                a = 1 / 0
-#                     t3 = time.time()
-#                     rayTracingTime += t3 - t2
-#                     # perform only a detector simulation if event had at least one
-#                     # candidate channel
-#                     logger.debug("performing detector simulation")
-#                     # self._finalize NuRadioReco event structure
-#                     self._station = NuRadioReco.framework.station.Station(self._station_id)
-#                     self._station.set_sim_station(self._sim_station)
-#
-#                     self._station.set_station_time(self._evt_time)
-#                     self._evt.set_station(self._station)
-#                     if(bool(self._cfg['signal']['zerosignal'])):
-#                         self._increase_signal(None, 0)
-#                     if(self._cfg['speedup']['amp_per_ray_solution']):
-#                         self._calculate_amplitude_per_ray_tracing_solution()
-#
-#                     self._detector_simulation()
-#                     self._calculate_signal_properties()
-#                     self._save_triggers_to_hdf5()
-#                     t4 = time.time()
-#                     detSimTime += (t4 - t3)
-#                 if(self._outputfilenameNuRadioReco is not None and self._mout['triggered'][self._iE]):
-#                     # downsample traces to detector sampling rate to save file size
-#                     self._channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
-#                     self._electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
-#
-#                     if self.__write_detector:
-#                         self._eventWriter.run(self._evt, self._det)
-#                     else:
-#                         self._eventWriter.run(self._evt)
+                # convert efields to voltages at digitizer
+                efieldToVoltageConverterPerEfield.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
+                self._detector_simulation_filter_amp(self._evt, self._station.get_sim_station(), self._det)
+                channelAddCableDelay.run(self._evt, self._sim_station, self._det)
+
+                start_times = []
+                channel_identifiers = []
+                for channel in self._sim_station.iter_channels():
+                    channel_identifiers.append(channel.get_unique_identifier())
+                    start_times.append(channel.get_trace_start_time())
+                start_times = np.array(start_times)
+                start_times_sort = np.argsort(start_times)
+                delta_start_times = start_times[start_times_sort][1:] - start_times[start_times_sort][:-1]  # this array is sorted in time
+                split_event_time_diff = float(self._cfg['split_event_time_diff'])
+                iSplit = np.atleast_1d(np.squeeze(np.argwhere(delta_start_times > split_event_time_diff)))
+#                 print(f"start times {start_times}")
+#                 print(f"sort array {start_times_sort}")
+#                 print(f"delta times {delta_start_times}")
+#                 print(f"split at indices {iSplit}")
+                n_sub_events = len(iSplit) + 1
+
+                tmp_station = copy.deepcopy(self._station)
+
+                for iEvent in range(n_sub_events):
+                    iStart = 0
+                    iStop = len(channel_identifiers)
+                    if(n_sub_events > 1):
+                        if(iEvent > 0):
+                            iStart = iSplit[iEvent - 1] + 1
+                    if(iEvent < n_sub_events - 1):
+                        iStop = iSplit[iEvent] + 1
+                    indices = start_times_sort[iStart: iStop]
+                    logger.info(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices}")
+                    self._evt = NuRadioReco.framework.event.Event(self._event_group_id, iEvent)  # create new event
+                    self._station = NuRadioReco.framework.station.Station(self._station_id)
+                    sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
+                    sim_station.set_is_neutrino()
+                    tmp_sim_station = tmp_station.get_sim_station()
+                    for iCh in indices:
+                        ch_uid = channel_identifiers[iCh]
+                        sim_station.add_channel(tmp_sim_station.get_channel(ch_uid))
+                        efield_uid = ([ch_uid[0]], ch_uid[1], ch_uid[2])  # the efield unique identifier has as first parameter an array of the channels it is valid for
+                        for efield in tmp_sim_station.get_electric_fields():
+                            if(efield.get_unique_identifier() == efield_uid):
+                                sim_station.add_electric_field(efield)
+                    self._station.set_sim_station(sim_station)
+                    self._station.set_station_time(self._evt_time)
+                    self._evt.set_station(self._station)
+                    if(bool(self._cfg['signal']['zerosignal'])):
+                        self._increase_signal(None, 0)
+                    # TODO: Concept of amplitude per ray tracing solution does not work anymore
+                    # because we have potentially multiple showers.
+                    # if(self._cfg['speedup']['amp_per_ray_solution']):
+                    #     self._calculate_amplitude_per_ray_tracing_solution()
+
+                    logger.debug("performing detector simulation")
+                    # start detector simulation
+                    efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
+                    # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
+                    # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
+                    channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
+                    self._detector_simulation_filter_amp(self._evt, self._station, self._det)
+
+                    if self._is_simulate_noise():
+                        max_freq = 0.5 / self._dt
+                        norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
+                        Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
+                        channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
+                                                     max_freq=max_freq, type='rayleigh')
+
+                    self._detector_simulation_trigger(self._evt, self._station, self._det)
+                    self._calculate_signal_properties()
+                    self._save_triggers_to_hdf5()
+                    t4 = time.time()
+                    detSimTime += (t4 - t3)
+                    if(self._outputfilenameNuRadioReco is not None and self._station.has_triggered()):
+                        # downsample traces to detector sampling rate to save file size
+                        channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
+                        electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
+
+                        if self.__write_detector:
+                            self._eventWriter.run(self._evt, self._det)
+                        else:
+                            self._eventWriter.run(self._evt)
 
         # Create trigger structures if there are no triggering events.
         # This is done to ensure that files with no triggering n_events
