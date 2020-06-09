@@ -692,6 +692,8 @@ class simulation():
 #                 print(f"delta times {delta_start_times}")
 #                 print(f"split at indices {iSplit}")
                 n_sub_events = len(iSplit) + 1
+                if(n_sub_events > 1):
+                    logger.warning("splitting event group id {self._event_group_id} into {n_sub_events} sub events")
 
                 tmp_station = copy.deepcopy(self._station)
 
