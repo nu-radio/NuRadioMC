@@ -342,6 +342,8 @@ class simulation():
 
         # loop over event groups
         for event_group_id in unique_event_group_ids:
+            if(event_group_id > 1000):
+                continue
             logger.debug(f"simulating event group id {event_group_id}")
             if(self._event_group_list is not None and event_group_id not in self._event_group_list):
                 logger.debug(f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
@@ -700,7 +702,7 @@ class simulation():
                     logger.warning("splitting event group id {self._event_group_id} into {n_sub_events} sub events")
 
                 tmp_station = copy.deepcopy(self._station)
-
+                triggered = False  # a variable that tracks if any of the sub events triggered
                 for iEvent in range(n_sub_events):
                     iStart = 0
                     iStop = len(channel_identifiers)
@@ -761,6 +763,10 @@ class simulation():
                                                          max_freq=max_freq, type='rayleigh')
 
                         self._detector_simulation_trigger(self._evt, self._station, self._det)
+                    if(self._station.has_triggered()):
+                        triggered = True
+                    else:
+                        continue
                     self._calculate_signal_properties()
                     self._save_triggers_to_hdf5()
                     t4 = time.time()
@@ -774,6 +780,20 @@ class simulation():
                             self._eventWriter.run(self._evt, self._det)
                         else:
                             self._eventWriter.run(self._evt)
+                # end sub events loop
+
+                # now calculate if an event group triggered with any of its sub showers and save it to the
+                # hdf5 output file structure
+                # the hdf5 file contains a line per shower, thus we will save the same trigger information for each
+                # shower of this event group
+                for self._iE in event_indices:
+                    for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
+                        self._mout['multiple_triggers'][self._iE, iT] |= triggered
+                    self._mout['triggered'][self._iE] = np.any(self._mout['multiple_triggers'][self._iE])
+
+            # end station loop
+
+        # end event group loop
 
         # Create trigger structures if there are no triggering events.
         # This is done to ensure that files with no triggering n_events
@@ -916,13 +936,14 @@ class simulation():
 
     def _calculate_signal_properties(self):
         if(self._station.has_triggered()):
-            sg = self._mout_groups[self._station_id]
             self._channelSignalReconstructor.run(self._evt, self._station, self._det)
+            amplitudes = np.zeros(self._station.get_number_of_channels())
+            amplitudes_envelope = np.zeros(self._station.get_number_of_channels())
             for channel in self._station.iter_channels():
-                sg['maximum_amplitudes'][self._iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
-                sg['maximum_amplitudes_envelope'][self._iE, channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
-
-            sg['SNRs'][self._iE] = self._station.get_parameter(stnp.channels_max_amplitude) / self._Vrms
+                amplitudes[channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
+                amplitudes_envelope[channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
+            self._output_maximum_amplitudes[self._station.get_id()].append(amplitudes)
+            self._output_maximum_amplitudes_envelope[self._station.get_id()].append(amplitudes_envelope)
 
     def _create_empty_multiple_triggers(self):
         if ('trigger_names' not in self._mout_attrs):
@@ -946,37 +967,23 @@ class simulation():
         # we first create this data structure
         if('multiple_triggers' not in self._mout):
             self._mout['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-            for station_id in self._station_ids:
-                sg = self._mout_groups[station_id]
-                sg['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
         elif(extend_array):
             tmp = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             nx, ny = self._mout['multiple_triggers'].shape
             tmp[:, 0:ny] = self._mout['multiple_triggers']
             self._mout['multiple_triggers'] = tmp
 
-            for station_id in self._station_ids:
-                sg = self._mout_groups[station_id]
-                tmp = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-                nx, ny = sg['multiple_triggers'].shape
-                tmp[:, 0:ny] = sg['multiple_triggers']
-                sg['multiple_triggers'] = tmp
-
     def _save_triggers_to_hdf5(self):
-
         self._create_trigger_structures()
-        sg = self._mout_groups[self._station_id]
+        self._output_event_group_ids[self._station_id].append(self._evt.get_run_number())
+        self._output_sub_event_ids[self._station_id].append(self._evt.get_id())
+        multiple_triggers = np.zeros(len(self._mout_attrs['trigger_names']), dtype=np.bool)
         for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
             if(self._station.has_trigger(trigger_name)):
-                self._mout['multiple_triggers'][self._iE, iT] |= self._station.get_trigger(trigger_name).has_triggered()
-                sg['multiple_triggers'][self._iE, iT] = self._station.get_trigger(trigger_name).has_triggered()
-            else:
-                sg['multiple_triggers'][self._iE, iT] = False
+                multiple_triggers[iT] = self._station.get_trigger(trigger_name).has_triggered()
+        self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
 
-        self._mout['triggered'][self._iE] = np.any(self._mout['multiple_triggers'][self._iE])
-        sg['triggered'][self._iE] = np.any(sg['multiple_triggers'][self._iE])
-        if(self._mout['triggered'][self._iE]):
-            logger.debug("event triggered")
+        self._output_triggered_station[self._station_id].append(np.any(multiple_triggers))
 
     def get_Vrms(self):
         return self._Vrms
@@ -1009,13 +1016,20 @@ class simulation():
         self._mout['triggered'] = np.zeros(self._n_events, dtype=np.bool)
 #         self._mout['multiple_triggers'] = np.zeros((self._n_events, self._number_of_triggers), dtype=np.bool)
         self._mout_attributes['trigger_names'] = None
+        self._amplitudes = {}
+        self._amplitudes_envelope = {}
+        self._output_triggered_station = {}
+        self._output_event_group_ids = {}
+        self._output_sub_event_ids = {}
+        self._output_multiple_triggers_station = {}
+        self._output_maximum_amplitudes = {}
+        self._output_maximum_amplitudes_envelope = {}
 
         for station_id in self._station_ids:
             n_antennas = self._det.get_number_of_channels(station_id)
             self._mout_groups[station_id] = {}
             sg = self._mout_groups[station_id]
             nS = 2 + 4 * self._n_reflections  # number of possible ray-tracing solutions
-            sg['triggered'] = np.zeros(self._n_events, dtype=np.bool)
             sg['launch_vectors'] = np.zeros((self._n_events, n_antennas, nS, 3)) * np.nan
             sg['receive_vectors'] = np.zeros((self._n_events, n_antennas, nS, 3)) * np.nan
             sg['ray_tracing_C0'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
@@ -1026,10 +1040,14 @@ class simulation():
             sg['polarization'] = np.zeros((self._n_events, n_antennas, nS, 3)) * np.nan
             sg['travel_times'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
             sg['travel_distances'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
-            sg['SNRs'] = np.zeros(self._n_events) * np.nan
-            sg['maximum_amplitudes'] = np.zeros((self._n_events, n_antennas)) * np.nan
-            sg['maximum_amplitudes_envelope'] = np.zeros((self._n_events, n_antennas)) * np.nan
             sg['focusing_factor'] = np.ones((self._n_events, n_antennas, nS))
+
+            self._output_event_group_ids[station_id] = []
+            self._output_sub_event_ids[station_id] = []
+            self._output_triggered_station[station_id] = []
+            self._output_multiple_triggers_station[station_id] = []
+            self._output_maximum_amplitudes[station_id] = []
+            self._output_maximum_amplitudes_envelope[station_id] = []
 
     def _read_input_neutrino_properties(self):
         self._event_group_id = self._fin['event_group_ids'][self._iE]
@@ -1106,6 +1124,28 @@ class simulation():
             sg = fout.create_group("station_{:d}".format(key))
             for (key2, value2) in iteritems(value):
                 sg[key2] = value2[saved]
+
+        # save "per event" quantities
+        n_triggers = len(self._mout_attrs['trigger_names'])
+        for station_id in self._mout_groups:
+            n_events_for_station = len(self._output_triggered_station[station_id])
+            n_channels = self._det.get_number_of_channels(station_id)
+            sg = fout["station_{:d}".format(station_id)]
+            sg['event_group_ids'] = np.array(self._output_event_group_ids[station_id])
+            sg['event_ids'] = np.array(self._output_sub_event_ids[station_id])
+            sg['maximum_amplitudes'] = np.array(self._output_maximum_amplitudes[station_id])
+            sg['maximum_amplitudes_envelope'] = np.array(self._output_maximum_amplitudes_envelope[station_id])
+            sg['triggered'] = np.array(self._output_triggered_station[station_id])
+
+            # the multiple triggeres 2d array might have different number of entries per event
+            # because the number of different triggers can increase dynamically
+            # therefore we first create an array with the right size and then fill it
+            tmp = np.zeros((n_events_for_station, n_triggers), dtype=np.bool)
+            for iE, values in enumerate(self._output_multiple_triggers_station[station_id]):
+                print(f"setting event {iE} with {values}, {len(values)}")
+                tmp[iE] = values
+            print(tmp)
+            sg['multiple_triggers'] = tmp
 
         # save meta arguments
         for (key, value) in iteritems(self._mout_attrs):
