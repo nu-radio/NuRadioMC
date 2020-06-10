@@ -242,7 +242,6 @@ class Event:
             showers_pkl.append(shower.serialize())
         sim_showers_pkl = []
         for shower in self.get_sim_showers():
-            print(shower)
             sim_showers_pkl.append(shower.serialize())
         hybrid_info = self.__hybrid_information.serialize()
         modules_out_event = []
