@@ -673,9 +673,13 @@ class simulation():
 #                 self._detector_simulation_part1()
 
                 # convert efields to voltages at digitizer
-                efieldToVoltageConverterPerEfield.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
-                self._detector_simulation_filter_amp(self._evt, self._station.get_sim_station(), self._det)
-                channelAddCableDelay.run(self._evt, self._sim_station, self._det)
+                if(hasattr(self, '_detector_simulation_part1')):
+                    # we give the user the opportunity to define a custom detector simulation
+                    self._detector_simulation_part1()
+                else:
+                    efieldToVoltageConverterPerEfield.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
+                    self._detector_simulation_filter_amp(self._evt, self._station.get_sim_station(), self._det)
+                    channelAddCableDelay.run(self._evt, self._sim_station, self._det)
 
                 start_times = []
                 channel_identifiers = []
@@ -730,21 +734,26 @@ class simulation():
                     #     self._calculate_amplitude_per_ray_tracing_solution()
 
                     logger.debug("performing detector simulation")
-                    # start detector simulation
-                    efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
-                    # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
-                    # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
-                    channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
-                    self._detector_simulation_filter_amp(self._evt, self._station, self._det)
+                    if(hasattr(self, '_detector_simulation_part2')):
+                        # we give the user the opportunity to specify a custom detector simulation module sequence
+                        # which might be needed for certain analyses
+                        self._detector_simulation_part2()
+                    else:
+                        # start detector simulation
+                        efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
+                        # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
+                        # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
+                        channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
+                        self._detector_simulation_filter_amp(self._evt, self._station, self._det)
 
-                    if self._is_simulate_noise():
-                        max_freq = 0.5 / self._dt
-                        norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
-                        Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
-                        channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
-                                                     max_freq=max_freq, type='rayleigh')
+                        if self._is_simulate_noise():
+                            max_freq = 0.5 / self._dt
+                            norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
+                            Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
+                            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
+                                                         max_freq=max_freq, type='rayleigh')
 
-                    self._detector_simulation_trigger(self._evt, self._station, self._det)
+                        self._detector_simulation_trigger(self._evt, self._station, self._det)
                     self._calculate_signal_properties()
                     self._save_triggers_to_hdf5()
                     t4 = time.time()
