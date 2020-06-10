@@ -1142,9 +1142,7 @@ class simulation():
             # therefore we first create an array with the right size and then fill it
             tmp = np.zeros((n_events_for_station, n_triggers), dtype=np.bool)
             for iE, values in enumerate(self._output_multiple_triggers_station[station_id]):
-                print(f"setting event {iE} with {values}, {len(values)}")
                 tmp[iE] = values
-            print(tmp)
             sg['multiple_triggers'] = tmp
 
         # save meta arguments
