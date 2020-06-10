@@ -140,7 +140,7 @@ class Event:
             A list of station IDs. Only showers that are associated with
             all stations in the list are returned
         """
-        for shower in self.__radio_showers.items():
+        for shower in self.__radio_showers.values():
             if ids is None:
                 yield shower
             elif shower.has_station_ids(ids):
@@ -204,7 +204,7 @@ class Event:
         """
         Get an iterator over all simulated showers in the event
         """
-        for shower in self.__sim_showers.items():
+        for shower in self.__sim_showers.values():
             yield shower
 
     def get_sim_shower(self, shower_id):
@@ -242,6 +242,7 @@ class Event:
             showers_pkl.append(shower.serialize())
         sim_showers_pkl = []
         for shower in self.get_sim_showers():
+            print(shower)
             sim_showers_pkl.append(shower.serialize())
         hybrid_info = self.__hybrid_information.serialize()
         modules_out_event = []
