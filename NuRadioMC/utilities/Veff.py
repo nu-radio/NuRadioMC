@@ -14,7 +14,35 @@ import logging
 logger = logging.getLogger("Veff")
 logging.basicConfig()
 
+
 # collection of utility function regarding the calculation of the effective volume of a neutrino detector
+def remove_duplicate_triggers(triggered, gids):
+    """
+    remove duplicate entried from triggered array
+    
+    The hdf5 file contains a line per shower. One event can contain many showers, i.e. if we count all triggeres
+    from all showers we overestimate the effective volume. This function modifies the triggered array such
+    that it contains not more than one True value for each event group. 
+    
+    Parameters
+    ----------
+    triggered: array of bools
+        
+    gids: array of ints
+        the event group ids
+        
+    Returns: array of floats
+        the corrected triggered array
+    """
+    gids = np.array(gids)
+    triggered = np.array(triggered)
+    uids, unique_mask = np.unique(gids, return_index=True)
+    for gid in uids:
+        mask = gids == gid
+        if(np.sum(triggered[mask]) > 1):
+            idx = np.arange(len(triggered), dtype=np.int)[mask][triggered[mask] == True][1:]
+            triggered[idx] = False
+    return triggered
 
 
 def get_triggered(fin):
@@ -32,16 +60,22 @@ def get_triggered(fin):
     -------
     triggered: numpy array with bools
        The bools indicate if the events have triggered
+    unique_mask: numpy array of bools
+        mask to select only one entry for each event group id
     """
 
     triggered = np.copy(fin['triggered'])
+    uids, unique_mask = np.unique(np.array(fin['event_group_ids']), return_index=True)
+    mask = np.zeros(len(triggered), dtype=np.bool)
+    mask[unique_mask] = True
+    triggered[~mask] = False
 
     if (len(triggered) == 0):
-        return triggered
+        return triggered, unique_mask
 
     mask_secondaries = np.array(fin['n_interaction']) > 1
     if (True not in mask_secondaries):
-        return triggered
+        return triggered, unique_mask
 
     # We count the multiple triggering bangs as a single triggered event
     for event_id in np.unique(np.array(fin['event_ids'])[mask_secondaries]):
@@ -54,7 +88,7 @@ def get_triggered(fin):
             triggered[int_index] = False
         triggered[multiple_interaction_indexes[0]] = True
 
-    return triggered
+    return triggered, mask
 
 
 def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
@@ -121,12 +155,12 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
         out = {}
         Emin = fin.attrs['Emin']
         Emax = fin.attrs['Emax']
-        E = 10 ** ( 0.5 * (np.log10(Emin) + np.log10(Emax)) )
+        E = 10 ** (0.5 * (np.log10(Emin) + np.log10(Emax)))
         out['energy'] = E
 
         weights = np.array(fin['weights'])
         # triggered = np.array(fin['triggered'])
-        triggered = get_triggered(fin)
+        triggered, unique_mask = get_triggered(fin)
         n_events = fin.attrs['n_events']
         if(trigger_names is None):
             trigger_names = fin.attrs['trigger_names']
@@ -284,7 +318,7 @@ def get_Veff(folder,
     Parameters
     ----------
     folder: string
-        folder conaining the hdf5 files, one per energy
+        folder conaining the hdf5 files, one per energy OR filename
     trigger_combinations: dict, optional
         keys are the names of triggers to calculate. Values are dicts again:
             * 'triggers': list of strings
@@ -317,9 +351,13 @@ def get_Veff(folder,
     prev_deposited = None
     deposited = False
 
-    if(len(glob.glob(os.path.join(folder, '*.hdf5'))) == 0):
-        raise FileNotFoundError(f"couldnt find any hdf5 file in folder {folder}")
-    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
+    if(os.path.isfile(folder)):
+        filenames = [folder]
+    else:
+        if(len(glob.glob(os.path.join(folder, '*.hdf5'))) == 0):
+            raise FileNotFoundError(f"couldnt find any hdf5 file in folder {folder}")
+        filenames = sorted(glob.glob(os.path.join(folder, '*.hdf5')))
+    for iF, filename in enumerate(filenames):
         logger.info(f"reading {filename}")
         fin = h5py.File(filename, 'r')
         if 'deposited' in fin.attrs:
@@ -347,7 +385,7 @@ def get_Veff(folder,
                 trigger_combinations[key]['triggers'].pop(i)
                 i -= 1
 
-    for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
+    for iF, filename in enumerate(filenames):
         fin = h5py.File(filename, 'r')
         out = {}
         if point_bins:
@@ -361,8 +399,7 @@ def get_Veff(folder,
         out['energy'] = E
 
         weights = np.array(fin['weights'])
-        # triggered = np.array(fin['triggered'])
-        triggered = get_triggered(fin)
+        triggered, unique_mask = get_triggered(fin)
         n_events = fin.attrs['n_events']
         if(trigger_names is None):
             trigger_names = fin.attrs['trigger_names']
@@ -394,34 +431,7 @@ def get_Veff(folder,
         dZ = fin.attrs['zmax'] - fin.attrs['zmin']
         area = np.pi * (rmax ** 2 - rmin ** 2)
         V = area * dZ
-        # calculate the average projected area in this zenith angle bin
-        Aproj_avg = get_projected_area_cylinder_integral(thetamax, R=rmax, d=dZ) - get_projected_area_cylinder_integral(thetamin, R=rmax, d=dZ)
-        # by not dividing by dCosTheta we automatically also integrate the solid angle into the weight.
-        # Hence, simulations with zenith slices of different zenith angle coverage are possible.
-        # Aproj_avg /= np.cos(thetamin) - np.cos(thetamax)
-        out['Aproj'] = Aproj_avg
         Vrms = fin.attrs['Vrms']
-
-        if(correct_zenith_sampling):
-            if(len(weights) > 0):
-
-                def get_weights(zeniths, thetamin, thetamax, R, d):
-                    """
-                    calculates a correction to the weight to go from a zenith distribution proportional from
-                    theta ~ sin(theta) to an isotropic flux, i.e., the same number of events for the same
-                    projected area perpendicular to the incoming direction.
-
-                    """
-                    zeniths = np.array(zeniths)
-                    yy = get_projected_area_cylinder(zeniths, R, d)
-                    # calculate the average value of Aproj within the zenith band -> int(Aproc(theta) dcostheta)/int(1, dcostheta)
-                    norm = get_projected_area_cylinder_integral(thetamax, R, d) - get_projected_area_cylinder_integral(thetamin, R, d)  # int(Aproc(theta) dcostheta)
-                    norm /= (np.cos(thetamin) - np.cos(thetamax))  # int(1, dcostheta)
-                    weights = yy / norm
-                    logger.debug(f"{thetamin/units.deg:.0f} - {thetamax/units.deg:.0f}: average correction factor {weights.mean():.2f} max = {weights.max():.2f} min = {weights.min():.2f}")
-                    return weights
-
-                weights *= get_weights(fin['zeniths'], thetamin, thetamax, rmax, dZ)
 
         # Solid angle needed for the effective volume calculations
         out['domega'] = np.abs(phimax - phimin) * np.abs(np.cos(thetamin) - np.cos(thetamax))
@@ -440,6 +450,7 @@ def get_Veff(folder,
         else:
             for iT, trigger_name in enumerate(trigger_names):
                 triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
+                triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
                 Veff = V * np.sum(weights[triggered]) / n_events
                 Veff_error = 0
                 if(np.sum(weights[triggered]) > 0):
@@ -501,6 +512,7 @@ def get_Veff(folder,
                         # advanced indexing: selects the ray tracing solution per event with the highest amplitude
                         triggered = triggered & (np.array(fin[f'station_{station:d}/ray_tracing_reflection'])[..., max_amps, 0][:, 0] == values['n_reflections'])
 
+                triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
                 Veff = V * np.sum(weights[triggered]) / n_events
 
                 if('efficiency' in values.keys()):

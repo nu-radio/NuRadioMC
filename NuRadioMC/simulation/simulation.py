@@ -342,8 +342,6 @@ class simulation():
 
         # loop over event groups
         for event_group_id in unique_event_group_ids:
-            if(event_group_id > 1000):
-                continue
             logger.debug(f"simulating event group id {event_group_id}")
             if(self._event_group_list is not None and event_group_id not in self._event_group_list):
                 logger.debug(f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
@@ -782,14 +780,15 @@ class simulation():
                             self._eventWriter.run(self._evt)
                 # end sub events loop
 
-                # now calculate if an event group triggered with any of its sub showers and save it to the
-                # hdf5 output file structure
-                # the hdf5 file contains a line per shower, thus we will save the same trigger information for each
-                # shower of this event group
-                for self._iE in event_indices:
-                    for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
-                        self._mout['multiple_triggers'][self._iE, iT] |= triggered
-                    self._mout['triggered'][self._iE] = np.any(self._mout['multiple_triggers'][self._iE])
+                if triggered:  # variable is True if any sub event triggered
+                    # now calculate if an event group triggered with any of its sub showers and save it to the
+                    # hdf5 output file structure
+                    # the hdf5 file contains a line per shower, thus we will save the same trigger information for each
+                    # shower of this event group
+                    for self._iE in event_indices:
+                        for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
+                            self._mout['multiple_triggers'][self._iE, iT] |= triggered
+                        self._mout['triggered'][self._iE] = np.any(self._mout['multiple_triggers'][self._iE])
 
             # end station loop
 
@@ -804,8 +803,9 @@ class simulation():
         t5 = time.time()
         self._write_ouput_file()
 
+        self.calculate_Veff()
         try:
-            self.calculate_Veff()
+            pass
         except:
             logger.error("error in calculating effective volume")
 
@@ -1187,8 +1187,10 @@ class simulation():
 
     def calculate_Veff(self):
         # calculate effective
-        n_triggered = np.sum(self._mout['triggered'])
-        n_triggered_weighted = np.sum(self._mout['weights'][self._mout['triggered']])
+        uids, unique_mask = np.unique(np.array(self._fin['event_group_ids']), return_index=True)
+        n_triggered = np.sum(self._mout['triggered'][unique_mask])
+        unique_triggered_mask = self._mout['triggered'][unique_mask]
+        n_triggered_weighted = np.sum(self._mout['weights'][unique_mask][unique_triggered_mask])
         logger.warning(f'fraction of triggered events = {n_triggered:.0f}/{self._n_events:.0f} = {n_triggered / self._n_events:.3f} (sum of weights = {n_triggered_weighted:.2f})')
 
         V = None
