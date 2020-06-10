@@ -716,13 +716,20 @@ class simulation():
                     sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
                     sim_station.set_is_neutrino()
                     tmp_sim_station = tmp_station.get_sim_station()
+                    shower_ids_of_sub_event = []
                     for iCh in indices:
                         ch_uid = channel_identifiers[iCh]
+                        shower_id = ch_uid[1]
+                        if(shower_id not in shower_ids_of_sub_event):
+                            shower_ids_of_sub_event.append(shower_id)
                         sim_station.add_channel(tmp_sim_station.get_channel(ch_uid))
                         efield_uid = ([ch_uid[0]], ch_uid[1], ch_uid[2])  # the efield unique identifier has as first parameter an array of the channels it is valid for
                         for efield in tmp_sim_station.get_electric_fields():
                             if(efield.get_unique_identifier() == efield_uid):
                                 sim_station.add_electric_field(efield)
+                    # add showers that contribute to this (sub) event to event structure
+                    for shower_id in shower_ids_of_sub_event:
+                        self._evt.add_sim_shower(self._evt_tmp.get_sim_shower(shower_id))
                     self._station.set_sim_station(sim_station)
                     self._station.set_station_time(self._evt_time)
                     self._evt.set_station(self._station)
