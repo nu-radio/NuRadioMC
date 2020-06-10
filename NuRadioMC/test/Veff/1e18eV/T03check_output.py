@@ -19,12 +19,12 @@ fin = h5py.File(os.path.join(path, "output.hdf5"), 'r')
 
 
 def calculate_veff(fin):
-    weights = np.array(fin['weights'])
     n_events = fin.attrs['n_events']
+    uids, unique_mask = np.unique(np.array(fin['event_group_ids']), return_index=True)
+    weights = np.array(fin['weights'])[unique_mask]
 
     n_triggered = np.sum(weights)
 
-    V = None
     rmin = fin.attrs['rmin']
     rmax = fin.attrs['rmax']
     dZ = fin.attrs['zmax'] - fin.attrs['zmin']
@@ -48,6 +48,16 @@ print("effective volume deviates {:.1f} sigma ({:.0f}%) from the mean".format(de
 if(np.abs(Veff / units.km ** 3 - Veff_mean) > 3 * Veff_sigma):
     print("deviation is more than 3 sigma -> this should only happen in less than 1\% of the tests. Rerun the test and see if the error persists.")
     sys.exit(-1)
+
+# calculate Veff using veff utility
+import NuRadioMC.utilities.Veff
+data = NuRadioMC.utilities.Veff.get_Veff(os.path.join(path, "output.hdf5"))[0]
+Veff_utl, Veff_utl_error, utl_weighed_sum = data['Veffs']['all_triggers']
+Veff_utl = Veff_utl * 4 * np.pi
+np.testing.assert_almost_equal(Veff_utl, Veff)
+Veff_utl, Veff_utl_error, utl_weighed_sum = data['Veffs']['highlow_2sigma']
+Veff_utl = Veff_utl * 4 * np.pi
+np.testing.assert_almost_equal(Veff_utl, Veff)
 
 ###########################
 # Code to generate new average values for this test
