@@ -1364,7 +1364,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         mask_leptons = mask_leptons & mask_theta & mask_phi
 
         E_all_leptons = (1 - data_sets["inelasticity"]) * data_sets["energies"]
-        lepton_codes = data_sets["flavors"]
+        lepton_codes = data_sets["flavors"][:]
         lepton_codes[lepton_codes == 14] = 13
         lepton_codes[lepton_codes == -14] = -13
         lepton_codes[lepton_codes == 16] = 15
