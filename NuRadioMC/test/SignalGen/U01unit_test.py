@@ -33,9 +33,13 @@ thetas = np.arccos(1. / n_index) + domegas
 reference = io_utilities.read_pickle(reference_file, encoding='latin1')
 i = -1
 for model in models:
+    print(f"testing model {model}")
     for E in Es:
+        print(f"testing energy {E}")
         for shower_type in shower_types:
+            print(f"testing shower type {shower_type}")
             for theta in thetas:
+                print(f"testing theta {theta/units.deg} deg")
                 i += 1
                 trace = get_time_trace(E, theta, n_samples, dt, shower_type, n_index, R, model, seed=1234)
                 try:

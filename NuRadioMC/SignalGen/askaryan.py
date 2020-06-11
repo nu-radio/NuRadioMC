@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 import numpy as np
 from NuRadioReco.utilities import units, fft
 from NuRadioMC.SignalGen import parametrizations as par
@@ -79,6 +78,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
                                      full_output=full_output)
         if(full_output):
             trace, additional_output = tmp
+        else:
+            trace = tmp
     elif(model == 'HCRB2017'):
         from NuRadioMC.SignalGen import HCRB2017
         is_em_shower = None
