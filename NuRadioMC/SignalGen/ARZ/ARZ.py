@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function
 import numpy as np
 from NuRadioReco.utilities import units, io_utilities
 from scipy import interpolate as intp
 from scipy import integrate as int
-from scipy import constants
-from matplotlib import pyplot as plt
 from radiotools import coordinatesystems as cstrafo
 from NuRadioReco.utilities.metaclasses import Singleton
 import os
-import copy
 import logging
 import six
 logger = logging.getLogger("SignalGen.ARZ")
