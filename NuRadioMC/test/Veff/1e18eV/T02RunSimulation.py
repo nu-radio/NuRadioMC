@@ -59,6 +59,7 @@ sim = mySimulation(inputfilename=os.path.join(path, args.inputfilename),
                             outputfilename=os.path.join(path, args.outputfilename),
                             detectorfile=os.path.join(path, args.detectordescription),
                             outputfilenameNuRadioReco=outputfilenameNuRadioReco,
-                            config_file=os.path.join(path, args.config))
+                            config_file=os.path.join(path, args.config),
+                            file_overwrite=True)
 sim.run()
 

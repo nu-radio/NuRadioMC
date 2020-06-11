@@ -322,7 +322,7 @@ class simulation():
         if(self._outputfilenameNuRadioReco is not None):
             self._eventWriter.begin(self._outputfilenameNuRadioReco)
         unique_event_group_ids = np.unique(self._fin['event_group_ids'])
-        self._n_events = len(self._fin['event_group_ids'])
+        self._n_showers = len(self._fin['event_group_ids'])
 
         self._create_meta_output_datastructures()
 
@@ -393,12 +393,12 @@ class simulation():
                 self._create_sim_station()
                 # loop over all showers in event group
                 for self._iE in event_indices:
-                    if(self._iE > 0 and self._iE % max(1, int(self._n_events / 100.)) == 0):
-                        eta = pretty_time_delta((time.time() - t_start) * (self._n_events - self._iE) / self._iE)
+                    if(self._iE > 0 and self._iE % max(1, int(self._n_showers / 100.)) == 0):
+                        eta = pretty_time_delta((time.time() - t_start) * (self._n_showers - self._iE) / self._iE)
                         total_time = input_time + rayTracingTime + detSimTime + outputTime
                         if total_time > 0:
                             logger.warning("processing event {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%".format(
-                                self._iE, self._n_events, np.sum(self._mout['triggered']), 100. * self._iE / self._n_events,
+                                self._iE, self._n_showers, np.sum(self._mout['triggered']), 100. * self._iE / self._n_showers,
                                 eta, 100. * (rayTracingTime - askaryan_time) / total_time,
                                 100. * time_attenuation_length / (rayTracingTime - askaryan_time),
                                 100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*input_time / total_time))
@@ -823,8 +823,8 @@ class simulation():
             output_NuRadioRecoTime += f"{name}: {t} {trel:.1f}%\n"
         logger.warning(output_NuRadioRecoTime)
 
-        logger.warning("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output)".format(self._n_events,
-                                                                                         pretty_time_delta(t_total), 1.e3 * t_total / self._n_events,
+        logger.warning("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output)".format(self._n_showers,
+                                                                                         pretty_time_delta(t_total), 1.e3 * t_total / self._n_showers,
                                                                                          100 * input_time / t_total,
                                                                                          100 * rayTracingTime / t_total,
                                                                                          100 * askaryan_time / t_total,
@@ -858,7 +858,7 @@ class simulation():
         n_antennas = self._det.get_number_of_channels(self._station_id)
         nS = 2 + 4 * self._n_reflections  # number of possible ray-tracing solutions
         if('max_amp_ray_solution' not in sg):
-            sg['max_amp_ray_solution'] = np.zeros((self._n_events, n_antennas, nS))
+            sg['max_amp_ray_solution'] = np.zeros((self._n_showers, n_antennas, nS))
         ch_counter = np.zeros(n_antennas, dtype=np.int)
         for efield in self._station.get_sim_station().get_electric_fields():
             for channel_id, maximum in iteritems(efield[efp.max_amp_antenna]):
@@ -948,10 +948,10 @@ class simulation():
     def _create_empty_multiple_triggers(self):
         if ('trigger_names' not in self._mout_attrs):
             self._mout_attrs['trigger_names'] = np.array([])
-            self._mout['multiple_triggers'] = np.zeros((self._n_events, 1), dtype=np.bool)
+            self._mout['multiple_triggers'] = np.zeros((self._n_showers, 1), dtype=np.bool)
             for station_id in self._station_ids:
                 sg = self._mout_groups[station_id]
-                sg['multiple_triggers'] = np.zeros((self._n_events, 1), dtype=np.bool)
+                sg['multiple_triggers'] = np.zeros((self._n_showers, 1), dtype=np.bool)
 
     def _create_trigger_structures(self):
 
@@ -966,9 +966,9 @@ class simulation():
         # simulated triggers is unknown at the beginning. So we check if the key already exists and if not,
         # we first create this data structure
         if('multiple_triggers' not in self._mout):
-            self._mout['multiple_triggers'] = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            self._mout['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
         elif(extend_array):
-            tmp = np.zeros((self._n_events, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             nx, ny = self._mout['multiple_triggers'].shape
             tmp[:, 0:ny] = self._mout['multiple_triggers']
             self._mout['multiple_triggers'] = tmp
@@ -1012,9 +1012,9 @@ class simulation():
         """
         self._mout = {}
         self._mout_attributes = {}
-        self._mout['weights'] = np.zeros(self._n_events)
-        self._mout['triggered'] = np.zeros(self._n_events, dtype=np.bool)
-#         self._mout['multiple_triggers'] = np.zeros((self._n_events, self._number_of_triggers), dtype=np.bool)
+        self._mout['weights'] = np.zeros(self._n_showers)
+        self._mout['triggered'] = np.zeros(self._n_showers, dtype=np.bool)
+#         self._mout['multiple_triggers'] = np.zeros((self._n_showers, self._number_of_triggers), dtype=np.bool)
         self._mout_attributes['trigger_names'] = None
         self._amplitudes = {}
         self._amplitudes_envelope = {}
@@ -1030,17 +1030,17 @@ class simulation():
             self._mout_groups[station_id] = {}
             sg = self._mout_groups[station_id]
             nS = 2 + 4 * self._n_reflections  # number of possible ray-tracing solutions
-            sg['launch_vectors'] = np.zeros((self._n_events, n_antennas, nS, 3)) * np.nan
-            sg['receive_vectors'] = np.zeros((self._n_events, n_antennas, nS, 3)) * np.nan
-            sg['ray_tracing_C0'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
-            sg['ray_tracing_C1'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
-            sg['ray_tracing_reflection'] = np.ones((self._n_events, n_antennas, nS), dtype=np.int) * -1
-            sg['ray_tracing_reflection_case'] = np.ones((self._n_events, n_antennas, nS), dtype=np.int) * -1
-            sg['ray_tracing_solution_type'] = np.ones((self._n_events, n_antennas, nS), dtype=np.int) * -1
-            sg['polarization'] = np.zeros((self._n_events, n_antennas, nS, 3)) * np.nan
-            sg['travel_times'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
-            sg['travel_distances'] = np.zeros((self._n_events, n_antennas, nS)) * np.nan
-            sg['focusing_factor'] = np.ones((self._n_events, n_antennas, nS))
+            sg['launch_vectors'] = np.zeros((self._n_showers, n_antennas, nS, 3)) * np.nan
+            sg['receive_vectors'] = np.zeros((self._n_showers, n_antennas, nS, 3)) * np.nan
+            sg['ray_tracing_C0'] = np.zeros((self._n_showers, n_antennas, nS)) * np.nan
+            sg['ray_tracing_C1'] = np.zeros((self._n_showers, n_antennas, nS)) * np.nan
+            sg['ray_tracing_reflection'] = np.ones((self._n_showers, n_antennas, nS), dtype=np.int) * -1
+            sg['ray_tracing_reflection_case'] = np.ones((self._n_showers, n_antennas, nS), dtype=np.int) * -1
+            sg['ray_tracing_solution_type'] = np.ones((self._n_showers, n_antennas, nS), dtype=np.int) * -1
+            sg['polarization'] = np.zeros((self._n_showers, n_antennas, nS, 3)) * np.nan
+            sg['travel_times'] = np.zeros((self._n_showers, n_antennas, nS)) * np.nan
+            sg['travel_distances'] = np.zeros((self._n_showers, n_antennas, nS)) * np.nan
+            sg['focusing_factor'] = np.ones((self._n_showers, n_antennas, nS))
 
             self._output_event_group_ids[station_id] = []
             self._output_sub_event_ids[station_id] = []
@@ -1187,11 +1187,11 @@ class simulation():
 
     def calculate_Veff(self):
         # calculate effective
-        uids, unique_mask = np.unique(np.array(self._fin['event_group_ids']), return_index=True)
-        n_triggered = np.sum(self._mout['triggered'][unique_mask])
-        unique_triggered_mask = self._mout['triggered'][unique_mask]
-        n_triggered_weighted = np.sum(self._mout['weights'][unique_mask][unique_triggered_mask])
-        logger.warning(f'fraction of triggered events = {n_triggered:.0f}/{self._n_events:.0f} = {n_triggered / self._n_events:.3f} (sum of weights = {n_triggered_weighted:.2f})')
+        from NuRadioMC.utilities.Veff import remove_duplicate_triggers
+        triggered = remove_duplicate_triggers(self._mout['triggered'], self._fin['event_group_ids'])
+        n_triggered = np.sum(triggered)
+        n_triggered_weighted = np.sum(self._mout['weights'][triggered])
+        logger.warning(f'fraction of triggered events = {n_triggered:.0f}/{self._n_showers:.0f} = {n_triggered / self._n_showers:.3f} (sum of weights = {n_triggered_weighted:.2f})')
 
         V = None
         if('xmax' in self._fin_attrs):
@@ -1204,64 +1204,9 @@ class simulation():
             rmax = self._fin_attrs['rmax']
             dZ = self._fin_attrs['zmax'] - self._fin_attrs['zmin']
             V = np.pi * (rmax ** 2 - rmin ** 2) * dZ
-        Veff = V * 4 * np.pi * n_triggered_weighted / self._n_events
-        logger.warning("Veff = {:.4g} km^3 sr".format(Veff / units.km ** 3))
+        Veff = V * n_triggered_weighted / self._fin_attrs['n_events']
+        logger.warning(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
 
-    def _get_em_had_fraction(self, inelasticity, inttype, flavor):
-        """
-        calculates the fraction of the neutrino energy that goes into the
-        electromagnetic cascade (em) and the hadronic cascade (had)
-
-        Parameters
-        ----------
-        inelasticity: float
-            the inelasticity (fraction of energy that goes into had. cascade)
-        inttype: string ['nc', 'cc', 'tau_had', 'tau_e']
-            neutral current (nc) or carged currend (cc) interaction
-        flavor: int
-            flavor id
-
-        returns
-        --------
-        fem: float
-            electrogmatnetic fraction
-        fhad: float
-            hadroninc fraction
-        """
-        fem = 0  # electrogmatnetic fraction
-        fhad = 0  # hadronic fraction
-        if(inttype == 'nc'):
-            fhad = inelasticity
-        elif(inttype == 'cc'):
-            if(np.abs(flavor) == 12):
-                fem = (1 - inelasticity)
-                fhad = inelasticity
-            elif(np.abs(flavor) == 14):
-                fhad = inelasticity
-            elif(np.abs(flavor) == 16):
-                fhad = inelasticity
-        elif(inttype == 'had'):
-            fem = 0
-            fhad = 1
-        elif(inttype == 'em'):
-            fem = 1
-            fhad = 0
-        elif(np.abs(flavor) == 15):
-            if (inttype == 'tau_e'):
-                fem = inelasticity
-            elif (inttype == 'tau_had'):
-                fhad = inelasticity
-        else:
-            raise AttributeError("interaction type {} with flavor {} is not implemented".format(inttype, flavor))
-
-        if(self._cfg['signal']['shower_type'] is not None):
-            if(self._cfg['signal']['shower_type'] == "em"):
-                fhad = 0
-            if(self._cfg['signal']['shower_type'] == "had"):
-                fem = 0
-        return fem, fhad
-
-    # TODO verify that calculation of polarization vector is correct!
     def _calculate_polarization_vector(self):
         """ calculates the polarization vector in spherical coordinates (eR, eTheta, ePhi)
         """
