@@ -53,7 +53,7 @@ for key in attributes:
 
 keys = [u'azimuths',
  u'energies',
- u'event_ids',
+ u'event_group_ids',
  u'flavors',
  u'inelasticity',
  u'interaction_type',
@@ -82,7 +82,7 @@ for key in keys:
         print(e)
         error = -1
 
-keys2 = [u'SNRs',
+keys2 = [
  u'maximum_amplitudes',
  u'maximum_amplitudes_envelope']
 for key in keys2:
