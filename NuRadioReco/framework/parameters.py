@@ -96,7 +96,7 @@ class showerParameters(Enum):
     vertex_time = 108  # the propagation time relative to the first interactions
     interaction_type = 109  # the interaction type, e.g. cc or nc
     k_L = 110  # the k_L parameter of the Alvarez2009 parameter that controls the longitudional width of the charge excess profile
-    flavor = 110  # the flavor of the particle initiating the shower
+    flavor = 111  # the flavor of the particle initiating the shower
 
 
 class eventParameters(Enum):
