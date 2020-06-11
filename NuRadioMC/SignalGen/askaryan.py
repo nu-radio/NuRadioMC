@@ -75,7 +75,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
         trace = np.zeros(N)
     if model in par.get_parametrizations():
         tmp = par.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=seed, same_shower=same_shower,
-                                     full_output=full_output)
+                                     full_output=full_output, **kwargs)
         if(full_output):
             trace, additional_output = tmp
         else:
