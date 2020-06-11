@@ -668,9 +668,6 @@ class simulation():
                     continue
                 self._station = NuRadioReco.framework.station.Station(self._station_id)
                 self._station.set_sim_station(self._sim_station)
-#                 for efield in self._sim_station.get_electric_fields():
-#                     print(efield.get_unique_identifier())
-#                 self._detector_simulation_part1()
 
                 # convert efields to voltages at digitizer
                 if(hasattr(self, '_detector_simulation_part1')):
@@ -736,7 +733,7 @@ class simulation():
                     if(bool(self._cfg['signal']['zerosignal'])):
                         self._increase_signal(None, 0)
                     # TODO: Concept of amplitude per ray tracing solution does not work anymore
-                    # because we have potentially multiple showers.
+                    # because we have potentially multiple showers contributing to the same event.
                     # if(self._cfg['speedup']['amp_per_ray_solution']):
                     #     self._calculate_amplitude_per_ray_tracing_solution()
 
