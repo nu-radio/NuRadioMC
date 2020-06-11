@@ -13,6 +13,7 @@ new features:
 - Antenna model now needs to be fully specified in the detector description (previously `_InfFirn` was automatically appended to the antenna name for antennas below the surface)
 
 bugfixes:
+- Fixed primary particle code bug when using Proposal
 
 version 1.1.1 - 2020/03/23
 new features
