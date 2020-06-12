@@ -374,9 +374,10 @@ class simulation():
                                                                  cross_section_type=self._cfg['weights']['cross_section_type'],
                                                                  vertex_position=x1,
                                                                  phi_nu=self._azimuth_shower)
-
+            triggered_showers = {}  # this variable tracks which showers triggered a particular station
             # loop over all stations (each station is treated independently)
             for iSt, self._station_id in enumerate(self._station_ids):
+                triggered_showers[self._station_id] = []
                 logger.debug(f"simulating station {self._station_id}")
                 candidate_station = False
                 self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
@@ -525,10 +526,10 @@ class simulation():
                             # if the input file specifies a specific shower realization, use that realization
                             if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"] and "shower_realization_ARZ" in self._fin):
                                 kwargs['iN'] = int(self._fin['shower_realization_ARZ'][self._iSh])
-                                logger.info(f"reusing shower {kwargs['iN']} ARZ shower library")
+                                logger.debug(f"reusing shower {kwargs['iN']} ARZ shower library")
                             elif(self._cfg['signal']['model'] == "Alvarez2009" and "shower_realization_Alvarez2009" in self._fin):
                                 kwargs['k_L'] = self._fin['shower_realization_Alvarez2009'][self._iSh]
-                                logger.info(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
+                                logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
                             else:
                                 # check if the shower was already simulated (e.g. for a different channel or ray tracing solution)
                                 if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]):
@@ -549,14 +550,14 @@ class simulation():
                                 if(not self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
                                     self._sim_shower.set_parameter(shp.charge_excess_profile_id, additional_output['iN'])
                                     self._mout['shower_realization_ARZ'][self._iSh] = additional_output['iN']
-                                    logger.info(f"setting shower profile for ARZ shower library to i = {additional_output['iN']}")
+                                    logger.debug(f"setting shower profile for ARZ shower library to i = {additional_output['iN']}")
                             if(self._cfg['signal']['model'] == "Alvarez2009"):
                                 if('shower_realization_Alvarez2009' not in self._mout):
                                     self._mout['shower_realization_Alvarez2009'] = np.zeros(self._n_showers)
                                 if(not self._sim_shower.has_parameter(shp.k_L)):
                                     self._sim_shower.set_parameter(shp.k_L, additional_output['k_L'])
                                     self._mout['shower_realization_Alvarez2009'][self._iSh] = additional_output['k_L']
-                                    logger.info(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
+                                    logger.debug(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
                             askaryan_time += (time.time() - t_ask)
 
                             # apply frequency dependent attenuation
@@ -731,19 +732,19 @@ class simulation():
                     sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
                     sim_station.set_is_neutrino()
                     tmp_sim_station = tmp_station.get_sim_station()
-                    shower_ids_of_sub_event = []
+                    self._shower_ids_of_sub_event = []
                     for iCh in indices:
                         ch_uid = channel_identifiers[iCh]
                         shower_id = ch_uid[1]
-                        if(shower_id not in shower_ids_of_sub_event):
-                            shower_ids_of_sub_event.append(shower_id)
+                        if(shower_id not in self._shower_ids_of_sub_event):
+                            self._shower_ids_of_sub_event.append(shower_id)
                         sim_station.add_channel(tmp_sim_station.get_channel(ch_uid))
                         efield_uid = ([ch_uid[0]], ch_uid[1], ch_uid[2])  # the efield unique identifier has as first parameter an array of the channels it is valid for
                         for efield in tmp_sim_station.get_electric_fields():
                             if(efield.get_unique_identifier() == efield_uid):
                                 sim_station.add_electric_field(efield)
                     # add showers that contribute to this (sub) event to event structure
-                    for shower_id in shower_ids_of_sub_event:
+                    for shower_id in self._shower_ids_of_sub_event:
                         self._evt.add_sim_shower(self._evt_tmp.get_sim_shower(shower_id))
                     self._station.set_sim_station(sim_station)
                     self._station.set_station_time(self._evt_time)
@@ -776,10 +777,11 @@ class simulation():
                                                          max_freq=max_freq, type='rayleigh')
 
                         self._detector_simulation_trigger(self._evt, self._station, self._det)
-                    if(self._station.has_triggered()):
-                        triggered = True
-                    else:
+                    if(not self._station.has_triggered()):
                         continue
+
+                    triggered = True
+                    triggered_showers[self._station_id].extend(self._shower_ids_of_sub_event)
                     self._calculate_signal_properties()
                     self._save_triggers_to_hdf5()
                     t4 = time.time()
@@ -794,16 +796,6 @@ class simulation():
                         else:
                             self._eventWriter.run(self._evt)
                 # end sub events loop
-
-                if triggered:  # variable is True if any sub event triggered
-                    # now calculate if an event group triggered with any of its sub showers and save it to the
-                    # hdf5 output file structure
-                    # the hdf5 file contains a line per shower, thus we will save the same trigger information for each
-                    # shower of this event group
-                    for self._iSh in event_indices:
-                        for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
-                            self._mout['multiple_triggers'][self._iSh, iT] |= triggered
-                        self._mout['triggered'][self._iSh] = np.any(self._mout['multiple_triggers'][self._iSh])
 
             # end station loop
 
@@ -966,6 +958,7 @@ class simulation():
             for station_id in self._station_ids:
                 sg = self._mout_groups[station_id]
                 sg['multiple_triggers'] = np.zeros((self._n_showers, 1), dtype=np.bool)
+                sg['triggered'] = np.zeros(self._n_showers, dtype=np.bool)
 
     def _create_trigger_structures(self):
 
@@ -981,20 +974,36 @@ class simulation():
         # we first create this data structure
         if('multiple_triggers' not in self._mout):
             self._mout['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            for station_id in self._station_ids:
+                sg = self._mout_groups[station_id]
+                sg['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
         elif(extend_array):
             tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             nx, ny = self._mout['multiple_triggers'].shape
             tmp[:, 0:ny] = self._mout['multiple_triggers']
             self._mout['multiple_triggers'] = tmp
+            for station_id in self._station_ids:
+                sg = self._mout_groups[station_id]
+                tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+                nx, ny = sg['multiple_triggers'].shape
+                tmp[:, 0:ny] = sg['multiple_triggers']
+                sg['multiple_triggers'] = tmp
 
     def _save_triggers_to_hdf5(self):
         self._create_trigger_structures()
+        sg = self._mout_groups[self._station_id]
         self._output_event_group_ids[self._station_id].append(self._evt.get_run_number())
         self._output_sub_event_ids[self._station_id].append(self._evt.get_id())
         multiple_triggers = np.zeros(len(self._mout_attrs['trigger_names']), dtype=np.bool)
         for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
             if(self._station.has_trigger(trigger_name)):
                 multiple_triggers[iT] = self._station.get_trigger(trigger_name).has_triggered()
+                for iSh in self._shower_ids_of_sub_event:  # now save trigger information per shower of the current station
+                    sg['multiple_triggers'][iSh][iT] = self._station.get_trigger(trigger_name).has_triggered()
+                    self._mout['multiple_triggers'][iSh][iT] |= sg['multiple_triggers'][iSh][iT]
+        for iSh in self._shower_ids_of_sub_event:  # now save trigger information per shower of the current station
+            sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
+            self._mout['triggered'][iSh] |= sg['triggered'][iSh]
         self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
 
         self._output_triggered_station[self._station_id].append(np.any(multiple_triggers))
@@ -1044,6 +1053,7 @@ class simulation():
             self._mout_groups[station_id] = {}
             sg = self._mout_groups[station_id]
             nS = 2 + 4 * self._n_reflections  # number of possible ray-tracing solutions
+            sg['triggered'] = np.zeros(self._n_showers, dtype=np.bool)
             sg['launch_vectors'] = np.zeros((self._n_showers, n_antennas, nS, 3)) * np.nan
             sg['receive_vectors'] = np.zeros((self._n_showers, n_antennas, nS, 3)) * np.nan
             sg['ray_tracing_C0'] = np.zeros((self._n_showers, n_antennas, nS)) * np.nan
@@ -1149,7 +1159,7 @@ class simulation():
             sg['event_ids'] = np.array(self._output_sub_event_ids[station_id])
             sg['maximum_amplitudes'] = np.array(self._output_maximum_amplitudes[station_id])
             sg['maximum_amplitudes_envelope'] = np.array(self._output_maximum_amplitudes_envelope[station_id])
-            sg['triggered'] = np.array(self._output_triggered_station[station_id])
+            sg['triggered_per_event'] = np.array(self._output_triggered_station[station_id])
 
             # the multiple triggeres 2d array might have different number of entries per event
             # because the number of different triggers can increase dynamically
@@ -1157,7 +1167,7 @@ class simulation():
             tmp = np.zeros((n_events_for_station, n_triggers), dtype=np.bool)
             for iE, values in enumerate(self._output_multiple_triggers_station[station_id]):
                 tmp[iE] = values
-            sg['multiple_triggers'] = tmp
+            sg['multiple_triggers_per_event'] = tmp
 
         # save meta arguments
         for (key, value) in iteritems(self._mout_attrs):
