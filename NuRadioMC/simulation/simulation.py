@@ -323,6 +323,10 @@ class simulation():
             self._eventWriter.begin(self._outputfilenameNuRadioReco)
         unique_event_group_ids = np.unique(self._fin['event_group_ids'])
         self._n_showers = len(self._fin['event_group_ids'])
+        self._shower_ids = np.array(self._fin['shower_ids'])
+        self._shower_index = np.zeros_like(self._shower_ids)  # this array allows to convert the shower id to an index that starts from 0 to be used to access the arrays in the hdf5 file.
+        for shower_index, shower_id in enumerate(self._shower_ids):
+            self._shower_index[shower_id] = shower_index
 
         self._create_meta_output_datastructures()
 
@@ -392,6 +396,7 @@ class simulation():
 
                 self._evt_tmp = NuRadioReco.framework.event.Event(0, 0)
                 self._create_sim_station()
+
                 # loop over all showers in event group
                 for self._iSh in event_indices:
                     if(self._iSh > 0 and self._iSh % max(1, int(self._n_showers / 100.)) == 0):
@@ -642,7 +647,7 @@ class simulation():
 
                             electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id],
                                                 position=self._det.get_relative_position(self._sim_station.get_id(), channel_id),
-                                                shower_id=self._iSh, ray_tracing_id=iS)
+                                                shower_id=self._shower_ids[self._iSh], ray_tracing_id=iS)
                             if(iS is None):
                                 a = 1 / 0
                             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / self._dt)
@@ -697,6 +702,21 @@ class simulation():
                     self._detector_simulation_filter_amp(self._evt, self._station.get_sim_station(), self._det)
                     channelAddCableDelay.run(self._evt, self._sim_station, self._det)
 
+                if(self._cfg['speedup']['amp_per_ray_solution']):
+#                     self._calculate_amplitude_per_ray_tracing_solution()
+                    if('max_amp_shower_and_ray' not in sg):
+                        n_antennas = self._det.get_number_of_channels(self._station_id)
+                        nS = 2 + 4 * self._n_reflections  # number of possible ray-tracing solutions
+                        sg['max_amp_shower_and_ray'] = np.zeros((self._n_showers, n_antennas, nS))
+                    if('time_shower_and_ray' not in sg):
+                        n_antennas = self._det.get_number_of_channels(self._station_id)
+                        nS = 2 + 4 * self._n_reflections  # number of possible ray-tracing solutions
+                        sg['time_shower_and_ray'] = np.zeros((self._n_showers, n_antennas, nS))
+                    self._channelSignalReconstructor.run(self._evt, self._station.get_sim_station(), self._det)
+                    for channel in self._station.get_sim_station().iter_channels():
+                        sg['max_amp_shower_and_ray'][channel.get_shower_id(), channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
+                        sg['time_shower_and_ray'][channel.get_shower_id(), channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.signal_time)
+
                 start_times = []
                 channel_identifiers = []
                 for channel in self._sim_station.iter_channels():
@@ -716,7 +736,6 @@ class simulation():
                     logger.warning("splitting event group id {self._event_group_id} into {n_sub_events} sub events")
 
                 tmp_station = copy.deepcopy(self._station)
-                triggered = False  # a variable that tracks if any of the sub events triggered
                 for iEvent in range(n_sub_events):
                     iStart = 0
                     iStop = len(channel_identifiers)
@@ -751,10 +770,6 @@ class simulation():
                     self._evt.set_station(self._station)
                     if(bool(self._cfg['signal']['zerosignal'])):
                         self._increase_signal(None, 0)
-                    # TODO: Concept of amplitude per ray tracing solution does not work anymore
-                    # because we have potentially multiple showers contributing to the same event.
-                    # if(self._cfg['speedup']['amp_per_ray_solution']):
-                    #     self._calculate_amplitude_per_ray_tracing_solution()
 
                     logger.debug("performing detector simulation")
                     if(hasattr(self, '_detector_simulation_part2')):
@@ -780,8 +795,7 @@ class simulation():
                     if(not self._station.has_triggered()):
                         continue
 
-                    triggered = True
-                    triggered_showers[self._station_id].extend(self._shower_ids_of_sub_event)
+                    triggered_showers[self._station_id].extend(self._shower_index[self._shower_ids_of_sub_event])
                     self._calculate_signal_properties()
                     self._save_triggers_to_hdf5()
                     t4 = time.time()
@@ -1103,7 +1117,7 @@ class simulation():
         creates a sim_shower object and saves the meta arguments such as neutrino direction, self._energy and self._flavor
         """
         # create NuRadioReco event structure
-        self._sim_shower = NuRadioReco.framework.base_shower.BaseShower(self._iSh)
+        self._sim_shower = NuRadioReco.framework.base_shower.BaseShower(self._shower_ids[self._iSh])
         # save relevant neutrino properties
         self._sim_shower[shp.zenith] = self._zenith_shower
         self._sim_shower[shp.azimuth] = self._azimuth_shower
