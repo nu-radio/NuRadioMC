@@ -1097,6 +1097,12 @@ class simulation():
         fhad: float
             hadroninc fraction
         """
+        forbidden_codes = [13, -13, 15, -15]
+        if flavor in forbidden_codes:
+            error_msg  = "Particle code is {}".format(flavor)
+            error_msg += "Muons and leptons must be propagated using Proposal."
+            raise ValueError(error_msg)
+
         fem = 0  # electrogmatnetic fraction
         fhad = 0  # hadronic fraction
         if(inttype == 'nc'):
@@ -1115,11 +1121,6 @@ class simulation():
         elif(inttype == 'em'):
             fem = 1
             fhad = 0
-        elif(np.abs(flavor) == 15):
-            if (inttype == 'tau_e'):
-                fem = inelasticity
-            elif (inttype == 'tau_had'):
-                fhad = inelasticity
         else:
             raise AttributeError("interaction type {} with flavor {} is not implemented".format(inttype, flavor))
 
