@@ -1114,4 +1114,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     else:
         data_sets_fiducial = data_sets
 
+    # assign every shower a unique id
+    data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=np.int)
+
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
