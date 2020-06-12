@@ -522,24 +522,40 @@ class simulation():
                             # get neutrino pulse from Askaryan module
                             t_ask = time.time()
                             kwargs = {}
-                            if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]):
-                                if(self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
-                                    kwargs = {'iN': self._sim_shower.get_parameter(shp.charge_excess_profile_id)}
-                                    self._mout['shower_realization'][self._iSh] = kwargs['iN']
-                            if(self._cfg['signal']['model'] == "Alvarez2009"):
-                                if(self._sim_shower.has_parameter(shp.k_L)):
-                                    kwargs = {'k_L': self._sim_shower.get_parameter(shp.k_L)}
-                                    self._mout['shower_realization'][self._iSh] = kwargs['k_L']
+                            # if the input file specifies a specific shower realization, use that realization
+                            if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"] and "shower_realization_ARZ" in self._fin):
+                                kwargs['iN'] = int(self._fin['shower_realization_ARZ'][self._iSh])
+                                logger.info(f"reusing shower {kwargs['iN']} ARZ shower library")
+                            elif(self._cfg['signal']['model'] == "Alvarez2009" and "shower_realization_Alvarez2009" in self._fin):
+                                kwargs['k_L'] = self._fin['shower_realization_Alvarez2009'][self._iSh]
+                                logger.info(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
+                            else:
+                                # check if the shower was already simulated (e.g. for a different channel or ray tracing solution)
+                                if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]):
+                                    if(self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
+                                        kwargs = {'iN': self._sim_shower.get_parameter(shp.charge_excess_profile_id)}
+                                if(self._cfg['signal']['model'] == "Alvarez2009"):
+                                    if(self._sim_shower.has_parameter(shp.k_L)):
+                                        kwargs = {'k_L': self._sim_shower.get_parameter(shp.k_L)}
+                                        logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
+
                             spectrum, additional_output = signalgen.get_frequency_spectrum(self._shower_energy, viewing_angles[iS],
                                             self._n_samples, self._dt, self._shower_type, n_index, R,
                                             self._cfg['signal']['model'], seed=self._cfg['seed'], full_output=True, **kwargs)
+                            # save shower realization to SimShower and hdf5 file
                             if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]):
+                                if('shower_realization_ARZ' not in self._mout):
+                                    self._mout['shower_realization_ARZ'] = np.zeros(self._n_showers, dtype=np.int)
                                 if(not self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
                                     self._sim_shower.set_parameter(shp.charge_excess_profile_id, additional_output['iN'])
+                                    self._mout['shower_realization_ARZ'][self._iSh] = additional_output['iN']
                                     logger.info(f"setting shower profile for ARZ shower library to i = {additional_output['iN']}")
                             if(self._cfg['signal']['model'] == "Alvarez2009"):
+                                if('shower_realization_Alvarez2009' not in self._mout):
+                                    self._mout['shower_realization_Alvarez2009'] = np.zeros(self._n_showers)
                                 if(not self._sim_shower.has_parameter(shp.k_L)):
                                     self._sim_shower.set_parameter(shp.k_L, additional_output['k_L'])
+                                    self._mout['shower_realization_Alvarez2009'][self._iSh] = additional_output['k_L']
                                     logger.info(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
                             askaryan_time += (time.time() - t_ask)
 
@@ -861,7 +877,6 @@ class simulation():
         ch_counter = np.zeros(n_antennas, dtype=np.int)
         for efield in self._station.get_sim_station().get_electric_fields():
             for channel_id, maximum in iteritems(efield[efp.max_amp_antenna]):
-                print(self._iSh, channel_id, ch_counter[channel_id])
                 sg['max_amp_ray_solution'][self._iSh, channel_id, ch_counter[channel_id]] = maximum
                 ch_counter[channel_id] += 1
 
@@ -1013,7 +1028,6 @@ class simulation():
         self._mout_attributes = {}
         self._mout['weights'] = np.zeros(self._n_showers)
         self._mout['triggered'] = np.zeros(self._n_showers, dtype=np.bool)
-        self._mout['shower_realization'] = np.zeros(self._n_showers)
 #         self._mout['multiple_triggers'] = np.zeros((self._n_showers, self._number_of_triggers), dtype=np.bool)
         self._mout_attributes['trigger_names'] = None
         self._amplitudes = {}
@@ -1191,7 +1205,8 @@ class simulation():
         triggered = remove_duplicate_triggers(self._mout['triggered'], self._fin['event_group_ids'])
         n_triggered = np.sum(triggered)
         n_triggered_weighted = np.sum(self._mout['weights'][triggered])
-        logger.warning(f'fraction of triggered events = {n_triggered:.0f}/{self._n_showers:.0f} = {n_triggered / self._n_showers:.3f} (sum of weights = {n_triggered_weighted:.2f})')
+        n_events = self._fin_attrs['n_events']
+        logger.warning(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} = {n_triggered / self._n_showers:.3f} (sum of weights = {n_triggered_weighted:.2f})')
 
         V = None
         if('xmax' in self._fin_attrs):
@@ -1204,7 +1219,7 @@ class simulation():
             rmax = self._fin_attrs['rmax']
             dZ = self._fin_attrs['zmax'] - self._fin_attrs['zmin']
             V = np.pi * (rmax ** 2 - rmin ** 2) * dZ
-        Veff = V * n_triggered_weighted / self._fin_attrs['n_events']
+        Veff = V * n_triggered_weighted / n_events
         logger.warning(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
 
     def _calculate_polarization_vector(self):
