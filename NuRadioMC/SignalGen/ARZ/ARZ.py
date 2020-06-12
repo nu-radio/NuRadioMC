@@ -11,6 +11,7 @@ import logging
 import six
 logger = logging.getLogger("SignalGen.ARZ")
 logging.basicConfig()
+# logger.setLevel(logging.INFO)
 
 ######################
 ######################
@@ -285,6 +286,7 @@ class ARZ(object):
                 logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
         else:
             logger.info("using shower {}/{} as specified by user".format(iN, N_profiles))
+            self._random_numbers[shower_type] = iN
 
         profile_depth = profiles['depth']
         profile_ce = profiles['charge_excess'][iN] * rescaling_factor
@@ -866,6 +868,7 @@ class ARZ_tabulated(object):
                 logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
         else:
             logger.info("using shower {}/{} as specified by user".format(iN, N_profiles))
+            self._random_numbers[shower_type] = iN
 
         thetas = profiles[iN].keys()
         iT = np.argmin(np.abs(thetas - theta))
