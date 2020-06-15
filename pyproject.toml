@@ -9,7 +9,7 @@ author-email = "work@c-glaser.de"
 home-page = "https://github.com/nu-radio/NuRadioReco"
 classifiers = ["License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"]
 requires = [
-    "tinydb",
+    "tinydb>=4.1.1",
     "tinydb-serialization",
     "aenum",
     "astropy<=2.0.14",
@@ -18,8 +18,7 @@ requires = [
     "peakutils",
     "requests"
 ]
-requires-python=">3.4"
+requires-python=">3.6"
 
 [tool.flit.metadata.requires-extra]
 doc = ["sphinx"]
-
