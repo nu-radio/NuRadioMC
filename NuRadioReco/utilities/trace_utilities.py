@@ -111,3 +111,159 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
         f_signal -= f_noise * np.sum(signal_window_mask) / np.sum(noise_window_mask)
 
     return f_signal * dt * conversion_factor_integrated_signal
+
+def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7):
+    """
+    This function performs an upsampling by inserting a number of zeroes
+    between samples and then applying a finite impulse response (FIR) filter.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace to be upsampled
+    original_sampling_frequency: float
+        Sampling frequency of the input trace
+    int_factor: integer
+        Upsampling factor. The resulting trace will have a sampling frequency
+        int_factor times higher than the original one
+    ntaps: integer
+        Number of taps (order) of the FIR filter
+
+    Returns
+    -------
+    upsampled_trace: array of floats
+        The upsampled trace
+    """
+
+    if (np.abs(int(int_factor) - int_factor) > 1e-3):
+        warning_msg  = "The input upsampling factor does not seem to be close to an integer."
+        warning_msg += "It has been rounded to {}".format(int(int_factor))
+        logger.warning(warning_msg)
+
+    int_factor = int(int_factor)
+
+    if (int_factor <= 1):
+        error_msg = "Upsampling factor is less or equal to 1. Upsampling will not be performed."
+        raise ValueError(error_msg)
+
+    n_zeroes = int_factor - 1
+    zeroed_trace = np.zeros( len(trace) * int_factor )
+    for i_point, point in enumerate(trace[:-1]):
+        zeroed_trace[i_point * int_factor] = point
+
+    upsampled_delta_time = 1 / (int_factor * original_sampling_frequency)
+    upsampled_times = np.arange(0, len(zeroed_trace) * upsampled_delta_time, upsampled_delta_time)
+
+    cutoff = 1./int_factor
+    fir_coeffs = scipy.signal.firwin(ntaps, cutoff, window='boxcar')
+    upsampled_trace = np.convolve(zeroed_trace, fir_coeffs)[:len(upsampled_times)] * int_factor
+
+    return upsampled_trace
+
+def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
+    """
+    Filters a trace using a Butterworth filter.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace to be filtered
+    sampling_frequency: float
+        Sampling frequency
+    passband: (float, float) tuple
+        Tuple indicating the cutoff frequencies
+    order: integer
+        Filter order
+
+    Returns
+    ------
+    filtered_trace: array of floats
+        The filtered trace
+    """
+
+    n_samples = len(trace)
+
+    spectrum = fft.time2freq(trace, sampling_frequency)
+    frequencies = np.fft.rfftfreq(n_samples, 1/sampling_frequency)
+
+    filtered_spectrum = apply_butterworth(spectrum, frequencies, passband)
+    filtered_trace = fft.freq2time(filtered_spectrum, sampling_frequency)
+
+    return filtered_trace
+
+def apply_butterworth(spectrum, frequencies, passband, order=8):
+    """
+    Calculates the response from a Butterworth filter and applies it to the
+    input spectrum
+
+    Parameters
+    ----------
+    spectrum: array of complex
+        Fourier spectrum to be filtere
+    frequencies: array of floats
+        Frequencies of the input spectrum
+    passband: (float, float) tuple
+        Tuple indicating the cutoff frequencies
+    order: integer
+        Filter order
+
+    Returns
+    -------
+    filtered_spectrum: array of complex
+        The filtered spectrum
+    """
+
+    f = np.zeros_like(frequencies, dtype=np.complex)
+    mask = frequencies > 0
+    b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
+    w, h = scipy.signal.freqs(b, a, frequencies[mask])
+    f[mask] = h
+
+    filtered_spectrum = f * spectrum
+
+    return filtered_spectrum
+
+def delay_trace(trace, sampling_frequency, time_delay, delayed_samples):
+    """
+    Delays a trace by transforming it to frequency and multiplying by phases.
+    Since this method is cyclic, the trace has to be cropped. It only accepts
+    positive delays, so some samples from the beginning are thrown away and then
+    some samples from the end so that the total number of samples is equal to
+    the argument delayed samples.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Array containing the trace
+    sampling_frequency: float
+        Sampling rate for the trace
+    time_delay: float
+        Time delay used for transforming the trace. Must be positive or 0
+    delayed_samples: integer
+        Number of samples that the delayed trace must contain
+
+    Returns
+    -------
+    delayed_trace: array of floats
+        The delayed, cropped trace
+    """
+
+    if time_delay < 0:
+        msg = 'Time delay must be positive'
+        raise ValueError(msg)
+
+    n_samples = len(trace)
+
+    spectrum = fft.time2freq(trace, sampling_frequency)
+    frequencies = np.fft.rfftfreq(n_samples, 1/sampling_frequency)
+
+    spectrum *= np.exp(-1j * 2 * np.pi * frequencies * time_delay)
+
+    delayed_trace = fft.freq2time(spectrum, sampling_frequency)
+
+    init_sample = int(time_delay * sampling_frequency) + 1
+
+    delayed_trace = delayed_trace[init_sample:None]
+    delayed_trace = delayed_trace[:delayed_samples]
+
+    return delayed_trace
