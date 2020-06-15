@@ -7,6 +7,10 @@ version 1.1.2 -
 new features:
 - Added the ability to force polarization to be only eTheta or ePhi in the reconstruction of the electric field using voltageToEfieldConverter.py
 - new detector which allows to change certain parameters of the detector description to study systematic uncertainties.
+- Simulations with alias (higher Nyquist zones) for the phased array now supported
+- NuRadioRecoIO has a 100MB read buffer by default
+- Changed detector description to optionally take antenna model name directly from detector description (without automatically selecting antenna model dependent on depth of the antenna)
+- NuRadioReco now fails if no antenna pattern was found
 
 bug fixes:
 -Removed function "get_relative_positions(self, station_id)" from detector.py because the ordering of channels is different from a sql initiated detector compared to a json initiated detector. Must use "get_relative_position(self, station_id, channel_id)", which specifies which channel to get the position for.
