@@ -44,7 +44,7 @@ class readCoREASStation:
         for input_file in self.__input_files:
             self.__current_event = 0
             with h5py.File(input_file, "r") as corsika:
-                if list(corsika["highlevel"].values()) == []:
+                if "highlevel" not in corsika.keys() or list(corsika["highlevel"].values()) == []:
                     logger.warning(" No highlevel quantities in simulated hdf5 files, weights will be one")
                     weights = np.ones(len(corsika['CoREAS']['observers']))
                 else:
