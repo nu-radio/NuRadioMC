@@ -195,9 +195,11 @@ class Event:
         shower: RadioShower object
             The shower to be added to the event
         """
+        if not isinstance(sim_shower, NuRadioReco.framework.radio_shower.RadioShower):
+            raise AttributeError(f"sim_shower needs to be of type NuRadioReco.framework.radio_shower.RadioShower")
         if(sim_shower.get_id() in self.__sim_showers):
-            logger.error("sim shower with id {sim_shower.get_id()} already exists. Shower id needs to be unique per event")
-            raise AttributeError("sim shower with id {sim_shower.get_id()} already exists. Shower id needs to be unique per event")
+            logger.error(f"sim shower with id {sim_shower.get_id()} already exists. Shower id needs to be unique per event")
+            raise AttributeError(f"sim shower with id {sim_shower.get_id()} already exists. Shower id needs to be unique per event")
         self.__sim_showers[sim_shower.get_id()] = sim_shower
 
     def get_sim_showers(self):

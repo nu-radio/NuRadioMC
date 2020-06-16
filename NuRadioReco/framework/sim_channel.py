@@ -78,13 +78,13 @@ class SimChannel(NuRadioReco.framework.base_trace.BaseTrace):
         """
         return (self._id, self._shower_id, self._ray_tracing_id)
 
-    def serialize(self, mode):
-        if(mode == 'micro' or mode == 'mini'):
-            base_trace_pkl = None
-        else:
+    def serialize(self, save_trace):
+        if save_trace:
             base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
+        else:
+            base_trace_pkl = None
         data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
-                'id': self.get_id(),
+                'unique_id': self.get_unique_identifier(),
                 'base_trace': base_trace_pkl}
 
         return pickle.dumps(data, protocol=4)
@@ -94,4 +94,6 @@ class SimChannel(NuRadioReco.framework.base_trace.BaseTrace):
         if(data['base_trace'] is not None):
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.channelParameters)
-        self._id = data['id']
+        self._id = data['unique_id'][0]
+        self._shower_id = data['unique_id'][1]
+        self._ray_tracing_id = data['unique_id'][2]
