@@ -55,11 +55,11 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
         """
         return self.__channels[unique_identifier]
 
-    def serialize(self, mode):
-        base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(self, mode)
+    def serialize(self, save_channel_traces, save_efield_traces):
+        base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(self, save_efield_traces=save_efield_traces)
         channels_pkl = []
         for channel in self.iter_channels():
-            channels_pkl.append(channel.serialize(mode))
+            channels_pkl.append(channel.serialize(save_trace=save_channel_traces))
         data = {'__magnetic_field_vector': self.__magnetic_field_vector,
                 '__simulation_weight': self.__simulation_weight,
                 'channels': channels_pkl,

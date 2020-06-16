@@ -40,10 +40,12 @@ class BaseShower:
         return key in self._parameters
 
     def serialize(self):
-        data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters)}
+        data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
+                '_id': self._id}
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
+        self._id = data['_id']
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'],
                                     parameters.showerParameters)

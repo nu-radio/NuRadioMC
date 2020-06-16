@@ -27,5 +27,6 @@ class RadioShower(NuRadioReco.framework.base_shower.BaseShower):
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
+        print(data)
         NuRadioReco.framework.base_shower.BaseShower.deserialize(self, data['base_shower'])
         self.__station_ids = data['station_ids']

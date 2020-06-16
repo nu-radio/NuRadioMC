@@ -120,13 +120,15 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         """
         self._position = position
 
-    def serialize(self, mode):
-        if(mode == 'micro'):
-            base_trace_pkl = None
-        else:
+    def serialize(self, save_trace):
+        if(save_trace):
             base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
+        else:
+            base_trace_pkl = None
         data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 'channel_ids': self._channel_ids,
+                '_shower_id': self._shower_id,
+                '_ray_tracing_id': self._ray_tracing_id,
                 'position': self._position,
                 'base_trace': base_trace_pkl}
         return pickle.dumps(data, protocol=4)
@@ -139,3 +141,5 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
             self._position = data['position']
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.electricFieldParameters)
         self._channel_ids = data['channel_ids']
+        self._shower_id = data['_shower_id']
+        self._ray_tracing_id = data['_ray_tracing_id']
