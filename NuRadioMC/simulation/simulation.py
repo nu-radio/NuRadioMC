@@ -1117,7 +1117,7 @@ class simulation():
         creates a sim_shower object and saves the meta arguments such as neutrino direction, self._energy and self._flavor
         """
         # create NuRadioReco event structure
-        self._sim_shower = NuRadioReco.framework.base_shower.BaseShower(self._shower_ids[self._iSh])
+        self._sim_shower = NuRadioReco.framework.radio_shower.RadioShower(self._shower_ids[self._iSh])
         # save relevant neutrino properties
         self._sim_shower[shp.zenith] = self._zenith_shower
         self._sim_shower[shp.azimuth] = self._azimuth_shower
