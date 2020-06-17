@@ -99,6 +99,7 @@ def get_distance_cut(shower_energy, intercept, slope):
 
 class simulation():
 
+#
     def __init__(self, inputfilename,
                  outputfilename,
                  detectorfile,
