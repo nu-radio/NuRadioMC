@@ -1339,13 +1339,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         phis_low = 2 * np.pi - tangent_angles
         phis_high = tangent_angles
         phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
-        # NuRadioMC azimuth angles span [0, 2pi), unlike the result of arctan2: [-pi, pi)
-        phis_0[phis_0 < 0] += 2 * np.pi
-        phis = data_sets["azimuths"] - phis_0  # phi is the azimuth angle of the incoming neutrino if
+        phis = data_sets["azimuths"] - phis_0  # Phi is the azimuth angle of the incoming neutrino if
                                                # we take phi = 0 as the vertex position
-        phis[phis < 0] += 2 * np.pi
-
-        mask_phi = [ (phi > phi_low and phi < 2 * np.pi) or (phi < phi_high and phi > 0) or rho < fiducial_rmax
+        mask_phi = [ (phi > phi_low and phi < phi_high) or rho < fiducial_rmax
                      for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
 
         mask_phi = np.array(mask_phi)
