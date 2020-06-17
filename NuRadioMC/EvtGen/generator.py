@@ -989,7 +989,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
                         for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
 
-
     for event_id in data_sets["event_ids"]:
         iE = event_id - start_event_id
 
@@ -998,10 +997,10 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
         if geometry_selection:
 
-            products_array = proposal_functions.get_secondaries_array( np.array([E_all_leptons[iE]]),
+            products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
                                                                        np.array([lepton_codes[iE]]),
                                                                        np.array([lepton_positions[iE]]),
-                                                                       np.array([lepton_directions[iE]]) )
+                                                                       np.array([lepton_directions[iE]]))
             products = products_array[0]
 
             lepton_code = lepton_codes[iE]
@@ -1052,8 +1051,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     # an electric field or trigger.
     if len(data_sets_fiducial['event_ids']) == 0:
         for key, value in data_sets.items():
-            data_sets_fiducial[key] = np.array( [data_sets[key][0]] )
-        data_sets_fiducial['flavors'] = np.array( [14] )
+            data_sets_fiducial[key] = np.array([data_sets[key][0]])
+        data_sets_fiducial['flavors'] = np.array([14])
 
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
 
@@ -1074,7 +1073,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 deposited=False,
                                 proposal=False,
                                 proposal_config='SouthPole',
-                                start_file_id=0):
+                                start_file_id=0,
+                                log_level=logging.WARNING):
     """
     Event generator
 
@@ -1172,6 +1172,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
     """
+    logger.setLevel(log_level)
     if proposal:
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
         proposal_functions = ProposalFunctions(config_file=proposal_config)
@@ -1246,7 +1247,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets["zz"] = np.random.uniform(full_zmin, full_zmax, n_events)
 
     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
-
+    logger.info(f"{np.sum(fmask)} of {n_events} in figucial volume")
     logger.debug("generating event ids")
     data_sets["event_ids"] = np.arange(n_events) + start_event_id
     logger.debug("generating number of interactions")
@@ -1331,6 +1332,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets_fiducial = {}
 
     if proposal:
+        logger.debug("starting proposal simulation")
         import time
         init_time = time.time()
         # Initialising data_sets_fiducial with empty values
@@ -1355,7 +1357,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         phis_high = 360 * units.deg - phis_low
         phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
         phis = data_sets["azimuths"] - phis_0  # Phi is the azimuth angle of the incoming neutrino if
-                                              # we take phi = 0 as the vertex position
+                                               # we take phi = 0 as the vertex position
         mask_phi = [ (phi > phi_low and phi < phi_high) or rho < fiducial_rmax
                      for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
 
@@ -1377,7 +1379,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                             for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
         lepton_directions = np.array(lepton_directions)
 
-
+        logger.debug(f"generating secondary interactions for {np.sum(mask_leptons)}")
         for event_id in data_sets["event_ids"]:
             iE = event_id - start_event_id
 
@@ -1399,11 +1401,12 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
             if mask_leptons[iE]:
 
-                products_array = proposal_functions.get_secondaries_array( np.array([E_all_leptons[iE]]),
+                products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
                                                                            np.array([lepton_codes[iE]]),
                                                                            np.array([lepton_positions[iE]]),
-                                                                           np.array([lepton_directions[iE]]) )
+                                                                           np.array([lepton_directions[iE]]))
                 products = products_array[0]
+#                 logger.debug(f"generated {len(products)} secondary interactions")
 
                 Elepton = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
                 if data_sets["flavors"][iE] > 0:
