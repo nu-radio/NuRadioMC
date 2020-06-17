@@ -1392,15 +1392,19 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     first_inserted = True
 
             if mask_leptons[iE]:
-                from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
                 import multiprocessing
                 q = multiprocessing.Queue()
-                args = (q, np.array([E_all_leptons[iE]]),
-                                  np.array([lepton_codes[iE]]),
-                                  np.array([lepton_positions[iE]]),
-                                  np.array([lepton_directions[iE]]))
-                proposal_functions = ProposalFunctions(config_file=proposal_config)
-                p = multiprocessing.Process(target=proposal_functions.get_secondaries_array, args=args)
+                args = (np.array([E_all_leptons[iE]]),
+                        np.array([lepton_codes[iE]]),
+                        np.array([lepton_positions[iE]]),
+                        np.array([lepton_directions[iE]]))
+
+                def wrapper(q, proposal_config, args):
+                    from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
+                    proposal_functions = ProposalFunctions(config_file=proposal_config)
+                    q.put(proposal_functions.get_secondaries_array(*args))
+
+                p = multiprocessing.Process(target=wrapper, args=(q, proposal_config, args))
                 p.start()
                 products_array = q.get()
                 p.join()
@@ -1408,8 +1412,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                 products = products_array[0]
                 print("products")
                 print(products, flush=True)
-                del proposal_functions
-
                 Elepton = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
                 if data_sets["flavors"][iE] > 0:
                     lepton_code = data_sets["flavors"][iE] - 1

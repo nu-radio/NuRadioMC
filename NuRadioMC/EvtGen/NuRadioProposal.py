@@ -540,7 +540,6 @@ class ProposalFunctions:
         return shower_inducing_prods
 
     def get_secondaries_array(self,
-                              q,
                               energy_leptons_nu,
                               lepton_codes,
                               lepton_positions_nu=None,
@@ -668,7 +667,7 @@ class ProposalFunctions:
 
                 shower_inducing_prods += mu_shower_inducing_prods
         print(f'proposal: secondary array {secondaries_array}', flush=True)
-        q.put(secondaries_array)
+        return secondaries_array
 
     def get_decays(self,
                    energy_leptons_nu,
