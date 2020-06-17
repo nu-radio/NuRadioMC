@@ -1394,8 +1394,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             if mask_leptons[iE]:
                 from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
                 import multiprocessing
-                products_array = []
-                args = (products_array, np.array([E_all_leptons[iE]]),
+                manager = multiprocessing.Manager()
+                return_dict = manager.dict()
+                args = (return_dict, np.array([E_all_leptons[iE]]),
                                   np.array([lepton_codes[iE]]),
                                   np.array([lepton_positions[iE]]),
                                   np.array([lepton_directions[iE]]))
@@ -1403,7 +1404,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                 p = multiprocessing.Process(target=proposal_functions.get_secondaries_array, args=args)
                 p.start()
                 p.join()
-                p.terminate()  # Memory is freed up here, (by the OS?)
+                products_array = return_dict['secondaries_array']
+                p.terminate()
 
                 products = products_array[0]
 

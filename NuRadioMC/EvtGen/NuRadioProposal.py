@@ -540,7 +540,7 @@ class ProposalFunctions:
         return shower_inducing_prods
 
     def get_secondaries_array(self,
-                              secondaries_array,
+                              return_dict,
                               energy_leptons_nu,
                               lepton_codes,
                               lepton_positions_nu=None,
@@ -601,6 +601,7 @@ class ProposalFunctions:
 
             decay_muons_array = []
 
+        secondaries_array = []
         for energy_lepton, lepton_code, lepton_position, lepton_direction in zip(energy_leptons,
             lepton_codes, lepton_positions, lepton_directions):
 
@@ -666,6 +667,7 @@ class ProposalFunctions:
                 mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
 
                 shower_inducing_prods += mu_shower_inducing_prods
+        return_dict['secondaries_array'] = secondaries_array
 
     def get_decays(self,
                    energy_leptons_nu,
