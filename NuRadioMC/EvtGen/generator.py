@@ -1176,7 +1176,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         # We use the thread pool to explicitly free the memory taken by the
         # Proposal functions.
         from multiprocessing.pool import ThreadPool
-        pool = ThreadPool(processes=1)
 
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
         proposal_functions = ProposalFunctions(config_file=proposal_config)
@@ -1404,6 +1403,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
             if mask_leptons[iE]:
 
+                pool = ThreadPool(processes=1)
                 async_result = pool.apply_async( proposal_functions.get_secondaries_array,
                                                  (np.array([E_all_leptons[iE]]),
                                                   np.array([lepton_codes[iE]]),
@@ -1411,6 +1411,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                                   np.array([lepton_directions[iE]])) )
 
                 products_array = async_result.get()
+                pool.terminate()
 
                 products = products_array[0]
 
