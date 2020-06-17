@@ -16,6 +16,7 @@ import h5py
 from NuRadioMC.simulation.simulation import pretty_time_delta
 import os
 import math
+import copy
 import logging
 logger = logging.getLogger("EventGen")
 logging.basicConfig()
@@ -1029,7 +1030,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         mask_leptons = mask_leptons & mask_theta & mask_phi
 
         E_all_leptons = (1 - data_sets["inelasticity"]) * data_sets["energies"]
-        lepton_codes = data_sets["flavors"]
+        lepton_codes = copy.copy(data_sets["flavors"])
         lepton_codes[lepton_codes == 14] = 13
         lepton_codes[lepton_codes == -14] = -13
         lepton_codes[lepton_codes == 16] = 15

@@ -9,8 +9,11 @@ new features:
 - trace start time for the electric field models adjusted such that global time of pulse position corresponds to propagation time
 - Simplified treatment of reference angles and polarization for the ARZ module
 - Proposal 6.1.1 supported
+- Safeguard for events at more than 20 degrees from the Cherenkov angle when using the ARZ models
+- Antenna model now needs to be fully specified in the detector description (previously `_InfFirn` was automatically appended to the antenna name for antennas below the surface)
 
 bugfixes:
+- Fixed primary particle code bug when using Proposal
 
 version 1.1.1 - 2020/03/23
 new features

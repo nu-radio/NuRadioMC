@@ -68,6 +68,35 @@ def merge_config(user, default):
     return user
 
 
+def get_distance_cut(shower_energy, intercept, slope):
+    """
+    This function returns a distance cut as a function of shower energy for
+    speeding up the code. The cut is a linear function of the shower energy
+    logarithm:
+
+    log10(distance_cut/m) = intercept + slope * log10(shower_energy/eV)
+
+    Parameters
+    ----------
+    shower_energy: float
+        Shower energy
+    intercept: float
+        Intercept for the linear cut
+    slope: float
+        Slope for the linear cut
+
+    Returns
+    -------
+    distance_cut: float
+        Maximum distance for ray tracing
+    """
+
+    log_distance_cut = intercept + slope * np.log10(shower_energy / units.eV)
+    distance_cut = 10 ** log_distance_cut * units.m
+
+    return distance_cut
+
+
 class simulation():
 
     def __init__(self, inputfilename,
@@ -184,9 +213,9 @@ class simulation():
         if(default_detector_station):
             logger.warning(f"Default detector station provided (station {default_detector_station}) -> Using generic detector")
             self._det = gdetector.GenericDetector(json_filename=self._detectorfile, default_station=default_detector_station,
-                                                 default_channel=default_detector_channel)
+                                                 default_channel=default_detector_channel, antenna_by_depth=False)
         else:
-            self._det = detector.Detector(json_filename=self._detectorfile)
+            self._det = detector.Detector(json_filename=self._detectorfile, antenna_by_depth=False)
         self._det.update(evt_time)
 
         self._station_ids = self._det.get_station_ids()
@@ -396,7 +425,6 @@ class simulation():
 
                 self._evt_tmp = NuRadioReco.framework.event.Event(0, 0)
                 self._create_sim_station()
-
                 # loop over all showers in event group
                 for self._iSh in event_indices:
                     if(self._iSh > 0 and self._iSh % max(1, int(self._n_showers / 100.)) == 0):
