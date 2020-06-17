@@ -55,10 +55,10 @@ class NuRadioRecoio(object):
         self.__parse_detector = parse_detector
         self.__read_lock = False
         self.__max_open_files = max_open_files
+        self.__buffer_size = buffer_size
         self.openFile(filenames)
         self._current_file_id = 0
         self.logger.info("... finished in {:.0f} seconds".format(time.time() - t))
-        self.__buffer_size = buffer_size
 
     def _get_file(self, iF):
         if(iF not in self.__open_files):

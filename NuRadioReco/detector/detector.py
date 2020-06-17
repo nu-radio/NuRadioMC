@@ -150,15 +150,15 @@ class Detector(object):
         assume_inf : Bool
             Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
         antenna_by_depth: bool (default True)
-            if True the antenna model is determined automatically depending on the depth of the antenna. This is done by 
-            appending e.g. '_InfFirn' to the antenna model name. 
-            if False, the antenna model as specified in the database is used. 
+            if True the antenna model is determined automatically depending on the depth of the antenna. This is done by
+            appending e.g. '_InfFirn' to the antenna model name.
+            if False, the antenna model as specified in the database is used.
         """
         if(source == 'sql'):
             self._db = buffer_db(in_memory=True)
         elif source == 'dictionary':
             self._db = TinyDB(storage=MemoryStorage)
-            self._db.purge()
+            self._db.truncate()
             stations_table = self._db.table('stations', cache_size=1000)
             for station in dictionary['stations'].values():
                 stations_table.insert(station)
