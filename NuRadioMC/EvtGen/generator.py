@@ -1019,7 +1019,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         phis_high = 360 * units.deg - phis_low
         phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
         phis = data_sets["azimuths"] - phis_0  # Phi is the azimuth angle of the incoming neutrino if
-                                              # we take phi = 0 as the vertex position
+                                               # we take phi = 0 as the vertex position
         mask_phi = [ (phi > phi_low and phi < phi_high) or rho < fiducial_rmax
                      for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
 
