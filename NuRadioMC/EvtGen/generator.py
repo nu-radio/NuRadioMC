@@ -1406,8 +1406,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                 p.join()
                 products_array = return_dict['secondaries_array']
                 p.terminate()
-
                 products = products_array[0]
+                del proposal_functions
 
                 Elepton = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
                 if data_sets["flavors"][iE] > 0:
