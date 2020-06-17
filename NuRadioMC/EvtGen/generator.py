@@ -1173,6 +1173,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         (useful if an existing data set is extended)
     """
     if proposal:
+        # We use the thread pool to explicitly free the memory taken by the
+        # Proposal functions.
+        from multiprocessing.pool import ThreadPool
+        pool = ThreadPool(processes=1)
+
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
         proposal_functions = ProposalFunctions(config_file=proposal_config)
 
@@ -1399,10 +1404,14 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
             if mask_leptons[iE]:
 
-                products_array = proposal_functions.get_secondaries_array( np.array([E_all_leptons[iE]]),
-                                                                           np.array([lepton_codes[iE]]),
-                                                                           np.array([lepton_positions[iE]]),
-                                                                           np.array([lepton_directions[iE]]) )
+                async_result = pool.apply_async( proposal_functions.get_secondaries_array,
+                                                 (np.array([E_all_leptons[iE]]),
+                                                  np.array([lepton_codes[iE]]),
+                                                  np.array([lepton_positions[iE]]),
+                                                  np.array([lepton_directions[iE]])) )
+
+                products_array = async_result.get()
+
                 products = products_array[0]
 
                 Elepton = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
