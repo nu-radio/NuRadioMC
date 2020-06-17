@@ -324,7 +324,7 @@ class simulation():
         unique_event_group_ids = np.unique(self._fin['event_group_ids'])
         self._n_showers = len(self._fin['event_group_ids'])
         self._shower_ids = np.array(self._fin['shower_ids'])
-        self._shower_index = np.zeros_like(self._shower_ids)  # this array allows to convert the shower id to an index that starts from 0 to be used to access the arrays in the hdf5 file.
+        self._shower_index = {}  # this array allows to convert the shower id to an index that starts from 0 to be used to access the arrays in the hdf5 file.
         for shower_index, shower_id in enumerate(self._shower_ids):
             self._shower_index[shower_id] = shower_index
 
@@ -714,8 +714,8 @@ class simulation():
                         sg['time_shower_and_ray'] = np.zeros((self._n_showers, n_antennas, nS))
                     self._channelSignalReconstructor.run(self._evt, self._station.get_sim_station(), self._det)
                     for channel in self._station.get_sim_station().iter_channels():
-                        sg['max_amp_shower_and_ray'][channel.get_shower_id(), channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
-                        sg['time_shower_and_ray'][channel.get_shower_id(), channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.signal_time)
+                        sg['max_amp_shower_and_ray'][self._get_shower_index(channel.get_shower_id()), channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
+                        sg['time_shower_and_ray'][self._get_shower_index(channel.get_shower_id()), channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.signal_time)
 
                 start_times = []
                 channel_identifiers = []
@@ -795,7 +795,7 @@ class simulation():
                     if(not self._station.has_triggered()):
                         continue
 
-                    triggered_showers[self._station_id].extend(self._shower_index[self._shower_ids_of_sub_event])
+                    triggered_showers[self._station_id].extend(self._get_shower_index(self._shower_ids_of_sub_event))
                     self._calculate_signal_properties()
                     self._save_triggers_to_hdf5()
                     t4 = time.time()
@@ -851,6 +851,12 @@ class simulation():
                                                                                          100 * askaryan_time / t_total,
                                                                                          100 * detSimTime / t_total,
                                                                                          100 * outputTime / t_total))
+
+    def _get_shower_index(self, shower_id):
+        if(hasattr(shower_id, "__len__")):
+            return np.array([self._shower_index[x] for x in shower_id])
+        else:
+            return self._shower_index[shower_id]
 
     def _is_simulate_noise(self):
         """
@@ -1012,10 +1018,10 @@ class simulation():
         for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
             if(self._station.has_trigger(trigger_name)):
                 multiple_triggers[iT] = self._station.get_trigger(trigger_name).has_triggered()
-                for iSh in self._shower_ids_of_sub_event:  # now save trigger information per shower of the current station
+                for iSh in self._get_shower_index(self._shower_ids_of_sub_event):  # now save trigger information per shower of the current station
                     sg['multiple_triggers'][iSh][iT] = self._station.get_trigger(trigger_name).has_triggered()
                     self._mout['multiple_triggers'][iSh][iT] |= sg['multiple_triggers'][iSh][iT]
-        for iSh in self._shower_ids_of_sub_event:  # now save trigger information per shower of the current station
+        for iSh in self._get_shower_index(self._shower_ids_of_sub_event):  # now save trigger information per shower of the current station
             sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
             self._mout['triggered'][iSh] |= sg['triggered'][iSh]
         self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)

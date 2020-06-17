@@ -73,7 +73,8 @@ def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
         arr1 = np.array(fin1['station_101'][key])
         arr2 = np.array(fin2['station_101'][key])
         for i in range(arr1.shape[0]):
-            max_diff = np.max(np.abs((arr1[i] - arr2[i]) / arr2[i]))
+            zero_mask = arr2[i] == 0
+            max_diff = np.max(np.abs((arr1[i][~zero_mask] - arr2[i][~zero_mask]) / arr2[i][~zero_mask]))
 #             print('Reconstruction of {} of event {} (relative error: {})'.format(key, i, np.abs((arr1[i] - arr2[i]) / arr2[i])))
             if max_diff > accuracy:
 #                 print(arr1.shape)
@@ -81,6 +82,12 @@ def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
                 print("\n attribute {} not almost equal".format(key))
 #                 print(np.abs((arr1[i] - arr2[i]) / arr2[i]))
 #                 print(arr1[i])
+                error = -1
+            # now test zero entries for equality
+            if not np.all(arr1[i][zero_mask] == arr2[i][zero_mask]):
+                max_diff = np.max(np.abs(arr1[i][zero_mask] - arr2[i][zero_mask]))
+                print('Reconstruction of {} of event {} does not agree with reference (absolute error: {})'.format(key, i, max_diff))
+                print("\n attribute {} not almost equal".format(key))
                 error = -1
     return error
 
@@ -138,7 +145,7 @@ error = test_almost_equal_attributes(attributes, fin1=fin1, fin2=fin2, error=err
 
 keys = [u'azimuths',
  u'energies',
- u'event_ids',
+ u'event_group_ids',
  u'flavors',
  u'inelasticity',
  u'interaction_type',
@@ -165,7 +172,6 @@ keys = [
 error = test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error)
 
 keys = [
- u'SNRs',
  u'maximum_amplitudes',
  u'maximum_amplitudes_envelope',
 u'polarization',
