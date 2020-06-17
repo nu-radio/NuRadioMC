@@ -54,7 +54,7 @@ class mySimulation(simulation.simulation):
                                     triggered_channels=[0, 1, 2, 3],  # select the LPDA channels
                                     number_concidences=2,  # 2/4 majority logic
                                     trigger_name='LPDA_2of4_4.1sigma',
-                                    set_not_triggered=(not self._station.has_triggered("simple_threshold")))  # calculate more time consuming ARIANNA trigger only if station passes simple trigger
+                                    set_not_triggered=(not station.has_triggered("simple_threshold")))  # calculate more time consuming ARIANNA trigger only if station passes simple trigger
 
         # run a high/low trigger on the 4 surface dipoles
         triggerSimulatorHighLow.run(evt, station, det,
@@ -63,7 +63,7 @@ class mySimulation(simulation.simulation):
                                     triggered_channels=[4, 5, 6, 7],  # select the bicone channels
                                     number_concidences=4,  # 4/4 majority logic
                                     trigger_name='surface_dipoles_4of4_3sigma',
-                                    set_not_triggered=(not self._station.has_triggered("simple_threshold")))  # calculate more time consuming ARIANNA trigger only if station passes simple trigger
+                                    set_not_triggered=(not station.has_triggered("simple_threshold")))  # calculate more time consuming ARIANNA trigger only if station passes simple trigger
         triggerTimeAdjuster.run(evt, station, det)
 
 
