@@ -80,8 +80,8 @@ def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
 #                 print(arr1.shape)
                 print('Reconstruction of {} of event {} does not agree with reference (relative error: {})'.format(key, i, max_diff))
                 print("\n attribute {} not almost equal".format(key))
-#                 print(np.abs((arr1[i] - arr2[i]) / arr2[i]))
-#                 print(arr1[i])
+                print(np.abs((arr1[i] - arr2[i]) / arr2[i]))
+                print(arr1[i])
                 error = -1
             # now test zero entries for equality
             if not np.all(arr1[i][zero_mask] == arr2[i][zero_mask]):
