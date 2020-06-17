@@ -1394,17 +1394,16 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             if mask_leptons[iE]:
                 from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
                 import multiprocessing
-                manager = multiprocessing.Manager()
-                return_dict = manager.dict()
-                args = (return_dict, np.array([E_all_leptons[iE]]),
+                q = multiprocessing.Queue()
+                args = (q, np.array([E_all_leptons[iE]]),
                                   np.array([lepton_codes[iE]]),
                                   np.array([lepton_positions[iE]]),
                                   np.array([lepton_directions[iE]]))
                 proposal_functions = ProposalFunctions(config_file=proposal_config)
                 p = multiprocessing.Process(target=proposal_functions.get_secondaries_array, args=args)
                 p.start()
+                products_array = q.get()
                 p.join()
-                products_array = return_dict['secondaries_array']
                 p.terminate()
                 products = products_array[0]
                 print("products")
