@@ -2,6 +2,7 @@ import proposal as pp
 import numpy as np
 from NuRadioReco.utilities import units
 import os
+import six
 
 """
 This module takes care of the PROPOSAL implementation. Some important things
@@ -27,7 +28,7 @@ a PDG code.
 """
 
 # Units definition in PROPOSAL
-pp_eV  = 1.e-6
+pp_eV = 1.e-6
 pp_keV = 1.e-3
 pp_MeV = 1.e0
 pp_GeV = 1.e3
@@ -38,6 +39,16 @@ pp_ZeV = 1.e15
 
 pp_m = 1.e2
 pp_km = 1.e5
+
+
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if Singleton._instances.get(cls, None) is None:
+            Singleton._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return Singleton._instances[cls]
+
 
 class SecondaryProperties:
     """
@@ -50,6 +61,7 @@ class SecondaryProperties:
 
     Distance and energy are expected to be in NuRadioMC units
     """
+
     def __init__(self,
                  distance,
                  energy,
@@ -63,9 +75,9 @@ class SecondaryProperties:
         self.name = name
 
     def __str__(self):
-        s  = "Particle and code: {:} ({:})\n".format(self.name, self.code)
-        s += "Energy in PeV: {:}\n".format(self.energy/units.PeV)
-        s += "Distance from vertex in km: {:}\n".format(self.distance/units.km)
+        s = "Particle and code: {:} ({:})\n".format(self.name, self.code)
+        s += "Energy in PeV: {:}\n".format(self.energy / units.PeV)
+        s += "Distance from vertex in km: {:}\n".format(self.distance / units.km)
         s += "Shower type: {:}\n".format(self.shower_type)
         return s
 
@@ -148,6 +160,7 @@ had_primary_names = [ 'hadrons', 'nucl_int', 'decay_bundle', 'pi0', 'pi+', 'pi-'
 
 primary_names = em_primary_names + had_primary_names
 
+
 def particle_code (particle):
     """
     If a particle object from PROPOSAL is passed as input, it returns the
@@ -172,6 +185,7 @@ def particle_code (particle):
         print(particle_type)
         return None
 
+
 def is_em_primary (particle):
     """
     Given a PROPOSAL particle object as an input, returns True if the particle
@@ -183,6 +197,7 @@ def is_em_primary (particle):
         return True
     else:
         return False
+
 
 def is_had_primary(particle):
     """
@@ -196,6 +211,7 @@ def is_had_primary(particle):
     else:
         return False
 
+
 def is_shower_primary(particle):
     """
     Given a PROPOSAL particle object, returns True if the particle can be
@@ -208,14 +224,16 @@ def is_shower_primary(particle):
     else:
         return False
 
-class ProposalFunctions:
+
+@six.add_metaclass(Singleton)
+class ProposalFunctions(object):
     """
     This class serves as a container for PROPOSAL functions. The functions that
     start with double underscore take PROPOSAL units as an argument and should
     not be used from the outside to avoid mismatching units.
     """
 
-    def __init__(self, config_file='SouthPole', low_nu=1*units.PeV):
+    def __init__(self, config_file='SouthPole', low_nu=1 * units.PeV):
         """
         Parameters
         ----------
@@ -244,7 +262,7 @@ class ProposalFunctions:
                                                                         config_file=config_file)
 
     def __create_propagator(self,
-                            low=0.1*pp_PeV,
+                            low=0.1 * pp_PeV,
                             particle_code=13,
                             config_file='SouthPole'):
         """
@@ -307,7 +325,7 @@ class ProposalFunctions:
             raise ValueError("Proposal config file is not valid. Please provide a valid option.")
 
         if not os.path.exists(config_file_full_path):
-            error_message  = "Proposal config file does not exist.\n"
+            error_message = "Proposal config file does not exist.\n"
             error_message += "Please provide valid paths for the interpolation tables "
             error_message += "in file {}.sample ".format(config_file_full_path)
             error_message += "and copy the file to {}.".format(os.path.basename(config_file_full_path))
@@ -354,7 +372,7 @@ class ProposalFunctions:
 
         # We transform the compact_dist into meters, since the above histogram
         # has a bin length of 1 m
-        convolved_comp_arr = np.convolve(np.ones(int(compact_dist/pp_m)), bincount, mode='valid')
+        convolved_comp_arr = np.convolve(np.ones(int(compact_dist / pp_m)), bincount, mode='valid')
         if np.any(convolved_comp_arr > min_energy_loss):
             return [np.max(convolved_10m_arr)]
         else:
@@ -362,7 +380,7 @@ class ProposalFunctions:
 
     def __produces_shower(self,
                           particle,
-                          min_energy_loss=1*pp_PeV):
+                          min_energy_loss=1 * pp_PeV):
         """
         Returns True if the input particle or interaction can be a shower primary
         and its energy is above min_energy_loss
@@ -426,7 +444,7 @@ class ProposalFunctions:
                              lepton_position,
                              lepton_direction,
                              propagation_length,
-                             low=1*pp_PeV,
+                             low=1 * pp_PeV,
                              decay_muon=False):
         """
         Calculates secondary particles using a PROPOSAL propagator. It needs to
@@ -513,10 +531,10 @@ class ProposalFunctions:
             # Muons and neutrinos resulting from decays are ignored
             if self.__produces_shower(sec, min_energy_loss):
 
-                distance  = ( (sec.position.x - lepton_position[0]) * units.cm )**2
-                distance += ( (sec.position.y - lepton_position[1]) * units.cm )**2
-                distance += ( (sec.position.z - lepton_position[2]) * units.cm )**2
-                distance  = np.sqrt(distance)
+                distance = ((sec.position.x - lepton_position[0]) * units.cm) ** 2
+                distance += ((sec.position.y - lepton_position[1]) * units.cm) ** 2
+                distance += ((sec.position.z - lepton_position[2]) * units.cm) ** 2
+                distance = np.sqrt(distance)
 
                 # Checking if the secondary type is greater than 1000000000, which means
                 # that the secondary is an interaction particle.
@@ -528,7 +546,7 @@ class ProposalFunctions:
 
                 shower_type, code, name = self.__shower_properties(sec)
 
-                shower_inducing_prods.append( SecondaryProperties(distance, energy, shower_type, code, name) )
+                shower_inducing_prods.append(SecondaryProperties(distance, energy, shower_type, code, name))
 
         return shower_inducing_prods
 
@@ -537,9 +555,9 @@ class ProposalFunctions:
                               lepton_codes,
                               lepton_positions_nu=None,
                               lepton_directions=None,
-                              low_nu=0.5*units.PeV,
-                              propagation_length_nu=1000*units.km,
-                              min_energy_loss_nu=0.5*units.PeV,
+                              low_nu=0.5 * units.PeV,
+                              propagation_length_nu=1000 * units.km,
+                              min_energy_loss_nu=0.5 * units.PeV,
                               propagate_decay_muons=True):
         """
         Propagates a set of leptons and returns a list with the properties for
@@ -625,7 +643,7 @@ class ProposalFunctions:
                         if (mu_energy <= low):
                             continue
                         mu_position = (sec.position.x, sec.position.y, sec.position.z)
-                        mu_direction = lepton_direction # We reuse the primary lepton direction
+                        mu_direction = lepton_direction  # We reuse the primary lepton direction
                                                         # At these energies the muon direction is the same
                         decay_muons_array[-1] = [mu_energy, mu_code, mu_position, mu_direction]
                         # I store the properties of each muon in an array because they cannot be
@@ -635,7 +653,7 @@ class ProposalFunctions:
 
             # group shower-inducing decay products so that they create a single shower
             min_distance = 0.1 * units.m
-            while( len(shower_inducing_prods) > 1 and
+            while(len(shower_inducing_prods) > 1 and
                    np.abs(shower_inducing_prods[-1].distance - shower_inducing_prods[-2].distance) < min_distance):
 
                 last_decay_prod = shower_inducing_prods.pop(-1)
@@ -666,10 +684,10 @@ class ProposalFunctions:
     def get_decays(self,
                    energy_leptons_nu,
                    lepton_codes,
-                   lepton_positions_nu = None,
-                   lepton_directions = None,
-                   low_nu=0.1*units.PeV,
-                   propagation_length_nu=1000*units.km):
+                   lepton_positions_nu=None,
+                   lepton_directions=None,
+                   low_nu=0.1 * units.PeV,
+                   propagation_length_nu=1000 * units.km):
         """
         Propagates a set of leptons and returns a list with the properties of
         the decay particles.
@@ -716,7 +734,7 @@ class ProposalFunctions:
 
             decay_prop = (None, None)
 
-            while( decay_prop == (None,None) ):
+            while(decay_prop == (None, None)):
 
                 secondaries = self.__propagate_particle(energy_lepton, lepton_code, lepton_position, lepton_direction,
                                                         propagation_length, low=low)
@@ -728,10 +746,10 @@ class ProposalFunctions:
                 try:
                     # If Proposal fails and there is no decay (sometimes it happens),
                     # the particle is propagated again
-                    decay_distance  = ( (decay_particles[0].position.x - lepton_position[0]) * units.cm )**2
-                    decay_distance += ( (decay_particles[0].position.y - lepton_position[1]) * units.cm )**2
-                    decay_distance += ( (decay_particles[0].position.z - lepton_position[2]) * units.cm )**2
-                    decay_distance  = np.sqrt(decay_distance)
+                    decay_distance = ((decay_particles[0].position.x - lepton_position[0]) * units.cm) ** 2
+                    decay_distance += ((decay_particles[0].position.y - lepton_position[1]) * units.cm) ** 2
+                    decay_distance += ((decay_particles[0].position.z - lepton_position[2]) * units.cm) ** 2
+                    decay_distance = np.sqrt(decay_distance)
 
                     decay_prop = (decay_distance, decay_energy)
                     decays_array.append(decay_prop)
