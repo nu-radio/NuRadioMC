@@ -667,6 +667,7 @@ class ProposalFunctions:
                 mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
 
                 shower_inducing_prods += mu_shower_inducing_prods
+        print(f'proposal: secondary array {secondaries_array}', flush=True)
         q.put(secondaries_array)
 
     def get_decays(self,
