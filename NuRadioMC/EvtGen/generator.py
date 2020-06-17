@@ -989,7 +989,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
                         for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
 
-
     for event_id in data_sets["event_ids"]:
         iE = event_id - start_event_id
 
@@ -998,10 +997,10 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
         if geometry_selection:
 
-            products_array = proposal_functions.get_secondaries_array( np.array([E_all_leptons[iE]]),
+            products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
                                                                        np.array([lepton_codes[iE]]),
                                                                        np.array([lepton_positions[iE]]),
-                                                                       np.array([lepton_directions[iE]]) )
+                                                                       np.array([lepton_directions[iE]]))
             products = products_array[0]
 
             lepton_code = lepton_codes[iE]
@@ -1052,8 +1051,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     # an electric field or trigger.
     if len(data_sets_fiducial['event_ids']) == 0:
         for key, value in data_sets.items():
-            data_sets_fiducial[key] = np.array( [data_sets[key][0]] )
-        data_sets_fiducial['flavors'] = np.array( [14] )
+            data_sets_fiducial[key] = np.array([data_sets[key][0]])
+        data_sets_fiducial['flavors'] = np.array([14])
 
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
 
@@ -1172,14 +1171,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
     """
-    if proposal:
-        # We use the thread pool to explicitly free the memory taken by the
-        # Proposal functions.
-        from multiprocessing.pool import ThreadPool
-
-        from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-        proposal_functions = ProposalFunctions(config_file=proposal_config)
-
     attributes = {}
     n_events = int(n_events)
 
@@ -1381,7 +1372,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                             for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
         lepton_directions = np.array(lepton_directions)
 
-
         for event_id in data_sets["event_ids"]:
             iE = event_id - start_event_id
 
@@ -1402,16 +1392,18 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     first_inserted = True
 
             if mask_leptons[iE]:
-
-                pool = ThreadPool(processes=1)
-                async_result = pool.apply_async( proposal_functions.get_secondaries_array,
-                                                 (np.array([E_all_leptons[iE]]),
-                                                  np.array([lepton_codes[iE]]),
-                                                  np.array([lepton_positions[iE]]),
-                                                  np.array([lepton_directions[iE]])) )
-
-                products_array = async_result.get()
-                pool.terminate()
+                from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
+                import multiprocessing
+                products_array = []
+                args = (products_array, np.array([E_all_leptons[iE]]),
+                                  np.array([lepton_codes[iE]]),
+                                  np.array([lepton_positions[iE]]),
+                                  np.array([lepton_directions[iE]]))
+                proposal_functions = ProposalFunctions(config_file=proposal_config)
+                p = multiprocessing.Process(target=proposal_functions.get_secondaries_array, args=args)
+                p.start()
+                p.join()
+                p.terminate()  # Memory is freed up here, (by the OS?)
 
                 products = products_array[0]
 
