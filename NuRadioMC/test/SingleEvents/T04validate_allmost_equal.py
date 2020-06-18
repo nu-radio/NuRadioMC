@@ -174,6 +174,7 @@ error = test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error)
 keys = [
  u'maximum_amplitudes',
  u'maximum_amplitudes_envelope',
+ u'max_amp_shower_and_ray',
  u'polarization',
  u'ray_tracing_C0',
  u'launch_vectors',
