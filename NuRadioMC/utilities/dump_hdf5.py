@@ -1,6 +1,8 @@
 import h5py
 import numpy as np
 import argparse
+from radiotools import helper as hp
+from NuRadioReco.utilities import units
 
 keys_event = [
  u'event_group_ids',
@@ -61,6 +63,7 @@ def dump(filename):
             t += f"{key}, "
         for key in station_keys_3dim:
             t += f"{key}, "
+        t += f" zen, az"
         print(t)
         for station in stations:
             nCh, nR = np.array(fin[station]['ray_tracing_C0'][iE]).shape
@@ -72,8 +75,10 @@ def dump(filename):
                     for key in station_keys_3dim:
                         t += "("
                         for iD in range(3):
-                            t += f"{fin[station][key][iE][iCh][iR][iD]:.3g},"
+                            t += f"{fin[station][key][iE][iCh][iR][iD]:.5g},"
                         t += ") "
+                    zen, az = hp.cartesian_to_spherical(np.array(fin[station]["receive_vectors"][iE][iCh][iR]))
+                    t += " {zen/units.deg:.2f} {az/units.deg:.2f}"
                     print(t)
 
 
