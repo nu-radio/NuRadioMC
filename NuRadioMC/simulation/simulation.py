@@ -1250,6 +1250,8 @@ class simulation():
 
         # now we also save all input parameters back into the out file
         for key in self._fin.keys():
+            if(key.startswith("station_")):
+                continue
             if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
                 fout[key] = np.array(self._fin[key])[saved]
 
