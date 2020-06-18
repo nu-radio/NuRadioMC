@@ -41,7 +41,7 @@ station_keys_event = [
 
 
 def dump(filename):
-    fin = h5py.File(filename)
+    fin = h5py.File(filename, 'r')
     stations = []
     for key in fin.keys():
         if(key.startswith("station_")):

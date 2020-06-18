@@ -69,7 +69,7 @@ def test_almost_equal_attributes(keys, fin1=fin1, fin2=fin2, error=error):
 
 
 def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
-    gids = np.array(fin1['event_group_ids'])
+    gids = np.array(fin1["station_101"]['event_group_ids'])
     for key in keys:
         arr1 = np.array(fin1['station_101'][key])
         arr2 = np.array(fin2['station_101'][key])
@@ -189,9 +189,9 @@ error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
 
 if error == -1:
     from NuRadioMC.utilities.dump_hdf5 import dump
-    print("file 1 {file1}")
+    print(f"file 1 {file1}")
     dump(file1)
-    print("file 2 {file2}")
+    print(f"file 2 {file2}")
     dump(file2)
     sys.exit(error)
 else:
