@@ -174,7 +174,7 @@ error = test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error)
 keys = [
  u'maximum_amplitudes',
  u'maximum_amplitudes_envelope',
-u'polarization',
+ u'polarization',
  u'ray_tracing_C0',
  u'launch_vectors',
  u'receive_vectors',
@@ -186,6 +186,11 @@ u'polarization',
 error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
 
 if error == -1:
+    from NuRadioMC.utilities.dump_hdf5 import dump
+    print("file 1 {file1}")
+    dump(file1)
+    print("file 2 {file2}")
+    dump(file2)
     sys.exit(error)
 else:
     print("The two files are (almost) identical.")
