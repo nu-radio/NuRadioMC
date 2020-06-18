@@ -79,7 +79,7 @@ def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
 #             print('Reconstruction of {} of event {} (relative error: {})'.format(key, i, np.abs((arr1[i] - arr2[i]) / arr2[i])))
             if max_diff > accuracy:
 #                 print(arr1.shape)
-                print(f'Reconstruction of {key} of event index {i} = {gids[i]} does not agree with reference (relative error: {max_diff})')
+                print(f'Reconstruction of {key} of event index {i} = group event id {gids[i]} does not agree with reference (relative error: {max_diff})')
                 print("\n attribute {} not almost equal".format(key))
                 print(np.abs((arr1[i] - arr2[i]) / arr2[i]))
                 print(arr1[i])

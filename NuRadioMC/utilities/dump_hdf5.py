@@ -68,7 +68,7 @@ def dump(filename):
                 for iR in range(nR):
                     t = f"\t{station} {iCh} {iR}: "
                     for key in station_keys:
-                        t += f"{fin[station][key][iE][iCh][iR]:.3g} "
+                        t += f"{fin[station][key][iE][iCh][iR]:.9g} "
                     for key in station_keys_3dim:
                         t += "("
                         for iD in range(3):
