@@ -4,6 +4,7 @@ speedup:
   minimum_weight_cut: 1.e-5
   delta_C_cut: 0.698  # 40 degree
   redo_raytracing: True  # redo ray tracing even if previous calculated ray tracing solutions are present
+  time_res_efieldconverter: 0.01  # the time resolution (in ns) used in the efieldtovoltage converter to combine multiple efield traces into one voltage trace
   min_efield_amplitude: 2
 propagation:
   ice_model: ARAsim_southpole

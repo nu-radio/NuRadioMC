@@ -345,6 +345,7 @@ class simulation():
         self._eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
         efieldToVoltageConverterPerEfield = NuRadioReco.modules.efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield()
         efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
+        efieldToVoltageConverter.begin(time_resolution=self._cfg['speedup']['time_res_efieldconverter'])
         channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
         channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
         channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
@@ -371,6 +372,7 @@ class simulation():
         rayTracingTime = 0.0
         detSimTime = 0.0
         outputTime = 0.0
+        weightTime = 0
         time_attenuation_length = 0.
         t_start = time.time()
 
@@ -380,18 +382,20 @@ class simulation():
             if(self._event_group_list is not None and event_group_id not in self._event_group_list):
                 logger.debug(f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
                 continue
-            t1 = time.time()
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(self._fin['event_group_ids'] == event_group_id)))
 
             # loop over all showers in event group and calculate weight
             # the weight calculation is independent of the station, so we do this calculation only once
             for self._iSh in event_indices:
+                t1 = time.time()
                 # read all quantities from hdf5 file and store them in local variables
                 self._read_input_neutrino_properties()
+                input_time += time.time() - t1
 
                 x1 = np.array([self._x, self._y, self._z])  # the interaction point
                 # calculate weight
                 # if we have a second interaction, the weight needs to be calculated from the initial neutrino
+                t1 = time.time()
                 if(self._n_interaction > 1):
                     iE_mother = np.argwhere(self._fin['event_group_ids'] == self._fin['event_group_ids'][self._iSh]).min()  # get index of mother neutrino
                     x_int_mother = np.array([self._fin['xx'][iE_mother], self._fin['yy'][iE_mother], self._fin['zz'][iE_mother]])
@@ -408,9 +412,11 @@ class simulation():
                                                                  cross_section_type=self._cfg['weights']['cross_section_type'],
                                                                  vertex_position=x1,
                                                                  phi_nu=self._azimuth_shower)
+                weightTime += time.time() - t1
             triggered_showers = {}  # this variable tracks which showers triggered a particular station
             # loop over all stations (each station is treated independently)
             for iSt, self._station_id in enumerate(self._station_ids):
+                t1 = time.time()
                 triggered_showers[self._station_id] = []
                 logger.debug(f"simulating station {self._station_id}")
                 candidate_station = False
@@ -716,6 +722,7 @@ class simulation():
                 # now perform first part of detector simulation -> convert each efield to voltage
                 # (i.e. apply antenna response) and apply additional simulation of signal chain (such as cable delays,
                 # amp response etc.)
+                t1 = time.time()
                 if(not candidate_station):
                     logger.debug("electric field amplitude too small in all channels, skipping to next event")
                     continue
@@ -745,7 +752,6 @@ class simulation():
                     for channel in self._station.get_sim_station().iter_channels():
                         sg['max_amp_shower_and_ray'][self._get_shower_index(channel.get_shower_id()), channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
                         sg['time_shower_and_ray'][self._get_shower_index(channel.get_shower_id()), channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.signal_time)
-
                 start_times = []
                 channel_identifiers = []
                 for channel in self._sim_station.iter_channels():
@@ -827,8 +833,6 @@ class simulation():
                     triggered_showers[self._station_id].extend(self._get_shower_index(self._shower_ids_of_sub_event))
                     self._calculate_signal_properties()
                     self._save_triggers_to_hdf5()
-                    t4 = time.time()
-                    detSimTime += (t4 - t3)
                     if(self._outputfilenameNuRadioReco is not None and self._station.has_triggered()):
                         # downsample traces to detector sampling rate to save file size
                         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
@@ -839,6 +843,7 @@ class simulation():
                         else:
                             self._eventWriter.run(self._evt)
                 # end sub events loop
+                detSimTime += time.time() - t1
 
             # end station loop
 
@@ -876,7 +881,7 @@ class simulation():
         logger.warning("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output)".format(self._n_showers,
                                                                                          pretty_time_delta(t_total), 1.e3 * t_total / self._n_showers,
                                                                                          100 * input_time / t_total,
-                                                                                         100 * rayTracingTime / t_total,
+                                                                                         100 * (rayTracingTime - askaryan_time) / t_total,
                                                                                          100 * askaryan_time / t_total,
                                                                                          100 * detSimTime / t_total,
                                                                                          100 * outputTime / t_total))
