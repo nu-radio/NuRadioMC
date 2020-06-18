@@ -154,8 +154,12 @@ class channelSignalReconstructor:
             trace = channel.get_trace()
             h = np.abs(signal.hilbert(trace))
             max_amplitude = np.max(np.abs(trace))
-            logger.info(f"station {station.get_id()} channel {channel.get_id} max amp = {max_amplitude:.6f} max amp env {h.max()}")
-            logger.debug(trace)
+            logger.info(f"event {evt.get_run_number()}.{evt.get_id()} station {station.get_id()} channel {channel.get_id()} max amp = {max_amplitude:.6g} max amp env {h.max():.6g}")
+            if(logger.level >= logging.DEBUG):
+                tmp = ""
+                for amp in trace:
+                    tmp += f"{amp:.6g}, "
+                logger.debug(tmp)
             channel[chp.signal_time] = times[np.argmax(h)]
             max_amplitude_station = max(max_amplitude_station, max_amplitude)
             channel[chp.maximum_amplitude] = max_amplitude
