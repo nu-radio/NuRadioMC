@@ -217,6 +217,27 @@ class Event:
             raise AttributeError(f"sim shower with id {shower_id} not present")
         return self.__sim_showers[shower_id]
 
+    def get_first_sim_shower(self, ids=None):
+        """
+        Returns only the first sim shower stored in the event. Useful in cases
+        when there is only one shower in the event.
+
+        Parameters
+        ---------------------------
+        ids: list of integers
+            A list of station IDs. The first shower that is associated with
+            all stations in the list is returned
+        """
+        if len(self.__sim_showers) == 0:
+            return None
+        if ids is None:
+            shower_ids = list(self.__sim_showers.keys())
+            return self.__sim_showers[shower_ids[0]]
+        for shower in self.__sim_showers:
+            if shower.has_station_ids(ids):
+                return shower
+        return None
+
     def has_sim_shower(self, shower_id=None):
         """
         Returns true if at least one simulated shower is stored in the event
