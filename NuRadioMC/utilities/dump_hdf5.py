@@ -78,7 +78,7 @@ def dump(filename):
                             t += f"{fin[station][key][iE][iCh][iR][iD]:.5g},"
                         t += ") "
                     zen, az = hp.cartesian_to_spherical(*np.array(fin[station]["receive_vectors"][iE][iCh][iR]))
-                    t += " {zen/units.deg:.2f} {az/units.deg:.2f}"
+                    t += f" {zen/units.deg:.2f} {az/units.deg:.2f}"
                     print(t)
 
 
