@@ -7,12 +7,13 @@ from scipy import signal
 import argparse
 from datetime import datetime
 import pickle
-import os 
+import os
 
 from NuRadioReco.utilities import units
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.modules.io.eventReader
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 import NuRadioReco.modules.channelBandPassFilter
@@ -32,7 +33,6 @@ plt.switch_backend('agg')
 
 plot = 1
 
-
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 correlationDirectionFitter = NuRadioReco.modules.correlationDirectionFitter.correlationDirectionFitter()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
@@ -42,7 +42,6 @@ electricFieldSignalReconstructor = NuRadioReco.modules.electricFieldSignalRecons
 efieldTimeDirectionFitter = NuRadioReco.modules.efieldTimeDirectionFitter.efieldTimeDirectionFitter()
 channelTimeWindow = NuRadioReco.modules.channelTimeWindow.channelTimeWindow()
 channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
-
 
 efieldTimeDirectionFitter.begin(debug=plot)
 channelTimeWindow.begin(debug=False)
@@ -58,7 +57,7 @@ parser.add_argument('inputfilename', type=str,
 #                     help='path to detectordescription')
 args = parser.parse_args()
 
-pos_SP1 = np.array([41153.2175* units.feet, 50381.75* units.feet, -1.5* units.m]) 
+pos_SP1 = np.array([41153.2175 * units.feet, 50381.75 * units.feet, -1.5 * units.m])
 pos_spice = np.array([42600, 48800, 0]) * units.feet
 
 print('distance = {:.2f}'.format(np.linalg.norm(pos_SP1 - pos_spice)))
@@ -87,14 +86,14 @@ for evt in eventReader.run():
         station_id = station.get_id()
         t = station.get_station_time()
         det.update(t)
-        d = station.get_sim_station().get_parameter(stnp.nu_vertex)[2]
+        d = evt.get_first_sim_shower().get_parameter(shp.vertex)[2]
         if(np.any(np.isclose(d, dds, atol=5))):
             dds = np.delete(dds, np.argwhere(np.isclose(d, dds, atol=5)))
         else:
             continue
 #         if(d > -800):
 #             continue
-        
+
         # calcualte expected angles
         r = ray.ray_tracing(pos_spice + np.array([0, 0, d]), pos_SP1, medium.southpole_simple(), log_level=logging.WARNING)
         r.find_solutions()
@@ -107,7 +106,7 @@ for evt in eventReader.run():
         az = hp.get_normalized_angle(az)
         results['exp'].append((zen, az))
         print("{} depth = {:.1f}m -> {:.2f} {:.2f} (solution type {})".format(t, d, zen / units.deg, az / units.deg, r.get_solution_type(0)))
-        
+
         channelResampler.run(evt, station, det, 50 * units.GHz)
         channelBandPassFilter.run(evt, station, det, passband=[120 * units.MHz, 300 * units.MHz], filter_type='butterabs', order=10)
         channelBandPassFilter.run(evt, station, det, passband=[10 * units.MHz, 1000 * units.MHz], filter_type='rectangular')
@@ -115,45 +114,44 @@ for evt in eventReader.run():
         channelSignalReconstructor.run(evt, station, det)
 #         channelTimeWindow.run(evt, station, det, window_function='hanning', around_pulse=True, window_width=20*units.ns,
 #                             window_rise_time=20*units.ns)
-        
-        
+
         correlationDirectionFitter.run(evt, station, det, n_index=1.353, ZenLim=[90 * units.deg, 180 * units.deg],
-                                       AziLim=[300 * units.deg, 330*units.deg],
+                                       AziLim=[300 * units.deg, 330 * units.deg],
                                        channel_pairs=((0, 2), (1, 3)))
-      
+
         print("reco correlation LPDAs = {:.1f} ({:.1f}) {:.1f} ({:.1f})".format(station[stnp.zenith] / units.deg,
-                                                                          (station[stnp.zenith] - zen)/ units.deg,
+                                                                          (station[stnp.zenith] - zen) / units.deg,
                                                                           station[stnp.azimuth] / units.deg,
-                                                                          (station[stnp.azimuth] - az)/ units.deg))
+                                                                          (station[stnp.azimuth] - az) / units.deg))
         results['corr_LPDA'].append((station[stnp.zenith], station[stnp.azimuth]))
-#         
-        correlationDirectionFitter.run(evt, station, det, n_index=1.353, ZenLim=[90 * units.deg, 180 * units.deg], 
-                                       AziLim=[300 * units.deg, 330*units.deg],
+#
+        correlationDirectionFitter.run(evt, station, det, n_index=1.353, ZenLim=[90 * units.deg, 180 * units.deg],
+                                       AziLim=[300 * units.deg, 330 * units.deg],
                                        channel_pairs=((6, 4), (5, 7)))
-       
+
         print("reco correlation dipoles = {:.1f} ({:.1f}) {:.1f} ({:.1f})".format(station[stnp.zenith] / units.deg,
-                                                                          (station[stnp.zenith] - zen)/ units.deg,
+                                                                          (station[stnp.zenith] - zen) / units.deg,
                                                                           station[stnp.azimuth] / units.deg,
-                                                                          (station[stnp.azimuth] - az)/ units.deg))
+                                                                          (station[stnp.azimuth] - az) / units.deg))
         results['corr_dipole'].append((station[stnp.zenith], station[stnp.azimuth]))
-         
+
         voltageToEfieldConverterPerChannel.run(evt, station, det, pol=0)
         electricFieldSignalReconstructor.run(evt, station, det)
-        efieldTimeDirectionFitter.run(evt, station, det, channels_to_use=[0,1,2,3])
+        efieldTimeDirectionFitter.run(evt, station, det, channels_to_use=[0, 1, 2, 3])
         print("reco time LPDAs = {:.1f} ({:.1f}) {:.1f} ({:.1f})".format(station[stnp.zenith] / units.deg,
-                                                                          (station[stnp.zenith] - zen)/ units.deg,
+                                                                          (station[stnp.zenith] - zen) / units.deg,
                                                                           station[stnp.azimuth] / units.deg,
-                                                                          (station[stnp.azimuth] - az)/ units.deg))
+                                                                          (station[stnp.azimuth] - az) / units.deg))
         results['time_LPDA'].append((station[stnp.zenith], station[stnp.azimuth]))
         results['chi2_time_LPDA'].append(station[stnp.chi2_efield_time_direction_fit])
         efieldTimeDirectionFitter.run(evt, station, det, channels_to_use=range(4, 8))
         print("reco time 4 dipoles = {:.1f} ({:.1f}) {:.1f} ({:.1f})".format(station[stnp.zenith] / units.deg,
-                                                                          (station[stnp.zenith] - zen)/ units.deg,
+                                                                          (station[stnp.zenith] - zen) / units.deg,
                                                                           station[stnp.azimuth] / units.deg,
-                                                                          (station[stnp.azimuth] - az)/ units.deg))
+                                                                          (station[stnp.azimuth] - az) / units.deg))
         results['time_dipole'].append((station[stnp.zenith], station[stnp.azimuth]))
         results['chi2_time_dipole'].append(station[stnp.chi2_efield_time_direction_fit])
-        
+
         if plot:
             fig, ax = plt.subplots(4, 2, sharex=True, sharey=True)
             ax = ax.flatten(order='F')
@@ -161,9 +159,9 @@ for evt in eventReader.run():
                 cid = channel.get_id()
                 if not cid in range(8):
                     continue
-                tt = channel.get_times() #+ channel.get_trace_start_time()
+                tt = channel.get_times()  # + channel.get_trace_start_time()
                 tt -= tt[0]
-                ax[cid].plot(tt/units.ns, channel.get_trace()/units.mV, lw=1)
+                ax[cid].plot(tt / units.ns, channel.get_trace() / units.mV, lw=1)
 #                 ax[cid].plot(tt/units.ns, channel.get_trace()[2]/units.mV)
 #                 ax[cid].axvline(channel[efp.signal_time] + channel.get_trace_start_time())
                 ax[cid].set_xlim(10, 150)
@@ -173,19 +171,19 @@ for evt in eventReader.run():
             fig.suptitle("voltage trace (signal chain deconvolved) d = {:.0f}m".format(d))
             fig.tight_layout()
             fig.subplots_adjust(top=0.9)
-            
+
             fig, ax = plt.subplots(4, 2, sharex=True, sharey=True)
             ax = ax.flatten(order='F')
             for efield in station.get_electric_fields():
                 eid = efield.get_channel_ids()[0]
                 if not eid in range(8):
                     continue
-                tt = efield.get_times() #+ efield.get_trace_start_time()
+                tt = efield.get_times()  # + efield.get_trace_start_time()
                 t0 = tt[0]
                 tt -= t0
-                ax[eid].plot(tt/units.ns, efield.get_trace()[1]/units.mV, lw=1, label='rec')
-                ax[eid].plot(tt/units.ns, np.abs(signal.hilbert(efield.get_trace()[1]))/units.mV, '--', lw=1)
-                
+                ax[eid].plot(tt / units.ns, efield.get_trace()[1] / units.mV, lw=1, label='rec')
+                ax[eid].plot(tt / units.ns, np.abs(signal.hilbert(efield.get_trace()[1])) / units.mV, '--', lw=1)
+
 #                 ax[eid].plot(tt/units.ns, efield.get_trace()[2]/units.mV)
                 ax[eid].axvline(efield[efp.signal_time] - t0, linestyle='--', lw=1)
                 ax[eid].set_xlim(10, 150)
@@ -209,7 +207,6 @@ for evt in eventReader.run():
             fig.savefig("plots/efields/d_{:04.0f}m.png".format(d))
             plt.close("all")
 #             a = 1/0
-            
-        
+
 with open("sim_results_02.pkl", 'wb') as fout:
-    pickle.dump(results, fout, protocol=2)        
+    pickle.dump(results, fout, protocol=2)

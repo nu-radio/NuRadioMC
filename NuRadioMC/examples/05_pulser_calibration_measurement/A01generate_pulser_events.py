@@ -57,7 +57,8 @@ def generate_my_events(filename, n_events):
     data_sets["yy"] = np.ones(n_events) * 48800 * units.feet
     # simualte different depth
     data_sets["zz"] = -np.linspace(0, 1800, n_events) * units.m
-    data_sets["event_ids"] = np.arange(n_events)
+    data_sets["event_group_ids"] = np.arange(n_events)
+    data_sets["shower_ids"] = np.arange(n_events)
     data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
     data_sets["interaction_type"] = np.array(['had'] * n_events)
 
@@ -65,6 +66,8 @@ def generate_my_events(filename, n_events):
     data_sets["flavors"] = np.array([12 for i in range(n_events)])
     data_sets["energies"] = np.ones(n_events) * 1 * units.eV
     data_sets["inelasticity"] = np.ones(n_events) * 0.5
+    data_sets["shower_energies"] = data_sets["inelasticity"] * data_sets["energies"]
+    data_sets["shower_type"] = np.array(['had'] * n_events)
 
     # write events to file
     write_events_to_hdf5(filename, data_sets, attributes)

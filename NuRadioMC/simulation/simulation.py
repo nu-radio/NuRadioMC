@@ -55,9 +55,6 @@ logging.addLevelName(STATUS, 'STATUS')
 logger = logging.getLogger("NuRadioMC")
 assert isinstance(logger, NuRadioMCLogger)
 
-logger.critical("test")
-logger.status("status test")
-
 
 def pretty_time_delta(seconds):
     seconds = int(seconds)
@@ -1104,7 +1101,7 @@ class simulation():
             with open(self._detectorfile, 'r') as fdet:
                 if(fdet.read() == self._fin_attrs['detector']):
                     self._was_pre_simulated = True
-                    print("the simulation was already performed with the same detector")
+                    logger.status("the simulation was already performed with the same detector")
         return self._was_pre_simulated
 
     def _create_meta_output_datastructures(self):
@@ -1161,6 +1158,7 @@ class simulation():
         self._z = self._fin['zz'][self._iSh]
         self._shower_type = self._fin['shower_type'][self._iSh]
         self._shower_energy = self._fin['shower_energies'][self._iSh]
+        self._vertex_time = 0
         if 'vertex_times' in self._fin:
             self._vertex_time = self._fin['vertex_times'][self._iSh]
         self._zenith_shower = self._fin['zeniths'][self._iSh]
@@ -1309,8 +1307,6 @@ class simulation():
             rmax = self._fin_attrs['rmax']
             dZ = self._fin_attrs['zmax'] - self._fin_attrs['zmin']
             V = np.pi * (rmax ** 2 - rmin ** 2) * dZ
-        print(V)
-        print(n_triggered_weighted)
         Veff = V * n_triggered_weighted / n_events
         logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
 
