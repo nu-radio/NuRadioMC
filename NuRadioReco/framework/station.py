@@ -77,7 +77,6 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
             channels_pkl.append(channel.serialize(save_channel_trace))
         save_sim_channel_trace = 'SimChannels' in mode and mode['SimChannels'] == True
         save_sim_efield_trace = 'SimElectricFields' in mode and mode['SimElectricFields'] == True
-        print(save_sim_efield_trace)
         sim_station_pkl = None
         if(self.has_sim_station()):
             sim_station_pkl = self.get_sim_station().serialize(save_channel_traces=save_sim_channel_trace,
