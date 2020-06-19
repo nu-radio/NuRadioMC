@@ -22,7 +22,6 @@ python3 A03reconstruct_sim.py output.nur
 python3 A04plot_results.py
 rm input_spice.hdf5
 rm output.nur
-rm output_spice.hdf5
 rm -r plots
 rm sim_results_02.pkl
 
@@ -38,4 +37,4 @@ rm input_3.2e+19_1.0e+20.hdf5
 rm input_3.2e+18_1.0e+19.hdf5.part0000
 rm input_3.2e+18_1.0e+19.hdf5.part0001
 rm input_3.2e+18_1.0e+19.hdf5.part0002
-rm -r tables
+rm tables/*.txt
