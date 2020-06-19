@@ -882,9 +882,8 @@ class simulation():
         t5 = time.time()
         self._write_ouput_file()
 
-        self.calculate_Veff()
         try:
-            pass
+            self.calculate_Veff()
         except:
             logger.error("error in calculating effective volume")
 
@@ -1310,6 +1309,8 @@ class simulation():
             rmax = self._fin_attrs['rmax']
             dZ = self._fin_attrs['zmax'] - self._fin_attrs['zmin']
             V = np.pi * (rmax ** 2 - rmin ** 2) * dZ
+        print(V)
+        print(n_triggered_weighted)
         Veff = V * n_triggered_weighted / n_events
         logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
 
