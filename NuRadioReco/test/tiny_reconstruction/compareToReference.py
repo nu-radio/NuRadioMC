@@ -59,7 +59,6 @@ for event in event_reader.run():
                 parameter_values[f"{event.get_id():d}"]['electric_field_parameters'][param_name.name].append(None)
 
 
-
 def assertDeepAlmostEqual(expected, actual, *args, **kwargs):
     """
     Assert that two complex structures have almost equal contents.
