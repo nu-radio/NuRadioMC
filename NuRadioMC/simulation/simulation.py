@@ -39,8 +39,24 @@ from six import iteritems
 import yaml
 import os
 import collections
-# import confuse
-logger = logging.getLogger("sim")
+
+STATUS = 31
+
+
+class NuRadioMCLogger(logging.Logger):
+
+    def status(self, msg, *args, **kwargs):
+        if self.isEnabledFor(STATUS):
+            self._log(STATUS, msg, args, **kwargs)
+
+
+logging.setLoggerClass(NuRadioMCLogger)
+logging.addLevelName(STATUS, 'STATUS')
+logger = logging.getLogger("NuRadioMC")
+assert isinstance(logger, NuRadioMCLogger)
+
+logger.critical("test")
+logger.status("status test")
 
 
 def pretty_time_delta(seconds):
@@ -108,7 +124,7 @@ class simulation():
                  write_mode='full',
                  evt_time=datetime.datetime(2018, 1, 1),
                  config_file=None,
-                 log_level=logging.INFO,
+                 log_level=logging.WARNING,
                  default_detector_station=None,
                  default_detector_channel=None,
                  file_overwrite=False,
@@ -165,11 +181,11 @@ class simulation():
         logger.setLevel(log_level)
         self._log_level_ray_propagation = log_level_propagation
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
-        logger.info('reading default config from {}'.format(config_file_default))
+        logger.status('reading default config from {}'.format(config_file_default))
         with open(config_file_default, 'r') as ymlfile:
             self._cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
         if(config_file is not None):
-            logger.info('reading local config overrides from {}'.format(config_file))
+            logger.status('reading local config overrides from {}'.format(config_file))
             with open(config_file, 'r') as ymlfile:
                 local_config = yaml.load(ymlfile, Loader=yaml.FullLoader)
                 new_cfg = merge_config(local_config, self._cfg)
@@ -196,7 +212,7 @@ class simulation():
         self._debug = debug
         self._evt_time = evt_time
         self.__write_detector = write_detector
-        logger.info("setting event time to {}".format(evt_time))
+        logger.status("setting event time to {}".format(evt_time))
         self._event_group_list = event_list
 
         # initialize propagation module
@@ -209,10 +225,10 @@ class simulation():
         self._mout_attrs = collections.OrderedDict()
 
         # read in detector positions
-        logger.info("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
+        logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
         self._det = None
         if(default_detector_station):
-            logger.info(f"Default detector station provided (station {default_detector_station}) -> Using generic detector")
+            logger.status(f"Default detector station provided (station {default_detector_station}) -> Using generic detector")
             self._det = gdetector.GenericDetector(json_filename=self._detectorfile, default_station=default_detector_station,
                                                  default_channel=default_detector_channel, antenna_by_depth=False)
         else:
@@ -225,10 +241,10 @@ class simulation():
             self._event_ids_counter[station_id] = -1  # we initialize with -1 becaue we increment the counter before we use it the first time
 
         # print noise information
-        logger.info("running with noise {}".format(bool(self._cfg['noise'])))
-        logger.info("setting signal to zero {}".format(bool(self._cfg['signal']['zerosignal'])))
+        logger.status("running with noise {}".format(bool(self._cfg['noise'])))
+        logger.status("setting signal to zero {}".format(bool(self._cfg['signal']['zerosignal'])))
         if(bool(self._cfg['propagation']['focusing'])):
-            logger.info("simulating signal amplification due to focusing of ray paths in the firn.")
+            logger.status("simulating signal amplification due to focusing of ray paths in the firn.")
 
         # read sampling rate from config (this sampling rate will be used internally)
         self._dt = 1. / (self._cfg['sampling_rate'] * units.GHz)
@@ -292,7 +308,7 @@ class simulation():
                 self._amplification_per_channel[self._station_id][channel_id] = np.abs(filt).max()
                 bandwidth = np.trapz(np.abs(filt) ** 2, ff)
                 self._bandwidth_per_channel[self._station_id][channel_id] = bandwidth
-                logger.info(f"bandwidth of station {self._station_id} channel {channel_id} is {bandwidth/units.MHz:.1f}MHz")
+                logger.status(f"bandwidth of station {self._station_id} channel {channel_id} is {bandwidth/units.MHz:.1f}MHz")
 
                 # in case noise is added, we need to determine what filters are applied after noise is added to
                 # rescale the noise level accordingly
@@ -310,7 +326,7 @@ class simulation():
                                 filt_noise *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
                         norm = np.trapz(np.abs(filt_noise) ** 2, ff)
                         self.__noise_adder_normalization[self._station_id][channel_id] = norm
-                        logger.info(f"noise normalization of station {self._station_id} channel {channel_id} is {norm/units.MHz:.1g}MHz")
+                        logger.status(f"noise normalization of station {self._station_id} channel {channel_id} is {norm/units.MHz:.1g}MHz")
         ################################
 
         # for now just assume that bandwidth is the same for all stations and channels
@@ -324,7 +340,7 @@ class simulation():
             self._Tnoise = float(Tnoise)
             self._Vrms = (self._Tnoise * 50 * constants.k *
                            self._bandwidth / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
-            logger.info('noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
+            logger.status('noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
         elif(Vrms is not None):
             self._Vrms = float(Vrms) * units.V
             self._Tnoise = None
@@ -333,13 +349,13 @@ class simulation():
 
         self._Vrms_efield = self._Vrms / amplification / units.m
         tmp_cut = float(self._cfg['speedup']['min_efield_amplitude'])
-        logger.info(f"final Vrms {self._Vrms/units.V:.2g}V corresponds to an efield of {self._Vrms_efield/units.V/units.m/units.micro:.2g} muV/m for a VEL = 1m (amplification factor of system is {amplification:.1f}).\n -> all signals with less then {tmp_cut:.1f} x Vrms_efield = {tmp_cut * self._Vrms_efield/units.m/units.V/units.micro:.2g}muV/m will be skipped")
+        logger.status(f"final Vrms {self._Vrms/units.V:.2g}V corresponds to an efield of {self._Vrms_efield/units.V/units.m/units.micro:.2g} muV/m for a VEL = 1m (amplification factor of system is {amplification:.1f}).\n -> all signals with less then {tmp_cut:.1f} x Vrms_efield = {tmp_cut * self._Vrms_efield/units.m/units.V/units.micro:.2g}muV/m will be skipped")
 
     def run(self):
         """
         run the NuRadioMC simulation
         """
-        logger.info(f"Starting NuRadioMC simulation")
+        logger.status(f"Starting NuRadioMC simulation")
 
         self._channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
         self._eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
@@ -438,7 +454,7 @@ class simulation():
                         eta = pretty_time_delta((time.time() - t_start) * (self._n_showers - self._iSh) / self._iSh)
                         total_time = input_time + rayTracingTime + detSimTime + outputTime
                         if total_time > 0:
-                            logger.info("processing event {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%".format(
+                            logger.status("processing event {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%".format(
                                 self._iSh, self._n_showers, np.sum(self._mout['triggered']), 100. * self._iSh / self._n_showers,
                                 eta, 100. * (rayTracingTime - askaryan_time) / total_time,
                                 100. * time_attenuation_length / (rayTracingTime - askaryan_time),
@@ -565,7 +581,7 @@ class simulation():
                             kwargs = {}
                             # if the input file specifies a specific shower realization, use that realization
                             if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"] and "shower_realization_ARZ" in self._fin):
-                                kwargs['iN'] = int(self._fin['shower_realization_ARZ'][self._iSh])
+                                kwargs['iN'] = self._fin['shower_realization_ARZ'][self._iSh]
                                 logger.debug(f"reusing shower {kwargs['iN']} ARZ shower library")
                             elif(self._cfg['signal']['model'] == "Alvarez2009" and "shower_realization_Alvarez2009" in self._fin):
                                 kwargs['k_L'] = self._fin['shower_realization_Alvarez2009'][self._iSh]
@@ -586,7 +602,7 @@ class simulation():
                             # save shower realization to SimShower and hdf5 file
                             if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]):
                                 if('shower_realization_ARZ' not in self._mout):
-                                    self._mout['shower_realization_ARZ'] = np.zeros(self._n_showers, dtype=np.int)
+                                    self._mout['shower_realization_ARZ'] = np.zeros(self._n_showers)
                                 if(not self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
                                     self._sim_shower.set_parameter(shp.charge_excess_profile_id, additional_output['iN'])
                                     self._mout['shower_realization_ARZ'][self._iSh] = additional_output['iN']
@@ -768,7 +784,7 @@ class simulation():
 #                 print(f"split at indices {iSplit}")
                 n_sub_events = len(iSplit) + 1
                 if(n_sub_events > 1):
-                    logger.info(f"splitting event group id {self._event_group_id} into {n_sub_events} sub events")
+                    logger.status(f"splitting event group id {self._event_group_id} into {n_sub_events} sub events")
 
                 tmp_station = copy.deepcopy(self._station)
                 for iEvent in range(n_sub_events):
@@ -785,7 +801,7 @@ class simulation():
                         for start_time in start_times[indices]:
                             tmp += f"{start_time/units.ns:.0f}, "
                         tmp = tmp[:-2] + " ns"
-                        logger.info(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
+                        logger.status(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
                     self._evt = NuRadioReco.framework.event.Event(self._event_group_id, iEvent)  # create new event
                     self._station = NuRadioReco.framework.station.Station(self._station_id)
                     sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
@@ -881,9 +897,9 @@ class simulation():
             t = pretty_time_delta(ts[i])
             trel = 100.*ts[i] / ttot
             output_NuRadioRecoTime += f"{name}: {t} {trel:.1f}%\n"
-        logger.info(output_NuRadioRecoTime)
+        logger.status(output_NuRadioRecoTime)
 
-        logger.info("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output, {:.1f}% weights calculation)".format(self._n_showers,
+        logger.status("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output, {:.1f}% weights calculation)".format(self._n_showers,
                                                                                          pretty_time_delta(t_total), 1.e3 * t_total / self._n_showers,
                                                                                          100 * input_time / t_total,
                                                                                          100 * (rayTracingTime - askaryan_time) / t_total,
@@ -1183,7 +1199,7 @@ class simulation():
 
         saved = np.ones(len(self._mout['triggered']), dtype=np.bool)
         if (self._cfg['save_all'] == False):
-            logger.info("saving only triggered events")
+            logger.status("saving only triggered events")
             # Careful! saved should be a copy of the triggered array, and not
             # a reference! saved indicates the interactions to be saved, while
             # triggered should indicate if an interaction has produced a trigger
@@ -1197,7 +1213,7 @@ class simulation():
                 if (True in self._mout['triggered'][event_mask]):
                     saved[ np.intersect1d(parent_indices, event_indices)[0] ] = True
         else:
-            logger.info("saving all events")
+            logger.status("saving all events")
 
         # save data sets
         for (key, value) in iteritems(self._mout):
@@ -1278,7 +1294,7 @@ class simulation():
         n_triggered = np.sum(triggered)
         n_triggered_weighted = np.sum(self._mout['weights'][triggered])
         n_events = self._fin_attrs['n_events']
-        logger.info(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} = {n_triggered / self._n_showers:.3f} (sum of weights = {n_triggered_weighted:.2f})')
+        logger.status(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} = {n_triggered / self._n_showers:.3f} (sum of weights = {n_triggered_weighted:.2f})')
 
         V = None
         if('xmax' in self._fin_attrs):
@@ -1292,7 +1308,7 @@ class simulation():
             dZ = self._fin_attrs['zmax'] - self._fin_attrs['zmin']
             V = np.pi * (rmax ** 2 - rmin ** 2) * dZ
         Veff = V * n_triggered_weighted / n_events
-        logger.info(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
+        logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
 
     def _calculate_polarization_vector(self):
         """ calculates the polarization vector in spherical coordinates (eR, eTheta, ePhi)

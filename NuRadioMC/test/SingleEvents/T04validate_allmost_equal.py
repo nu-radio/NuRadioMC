@@ -68,7 +68,7 @@ def test_almost_equal_attributes(keys, fin1=fin1, fin2=fin2, error=error):
     return error
 
 
-def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
+def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=accuracy):
     gids = np.array(fin1["station_101"]['event_group_ids'])
     for key in keys:
         arr1 = np.array(fin1['station_101'][key])
@@ -174,7 +174,6 @@ keys = [
 error = test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error)
 
 keys = [
- u'maximum_amplitudes',
  u'maximum_amplitudes_envelope',
  u'max_amp_shower_and_ray',
  u'polarization',
@@ -187,6 +186,10 @@ keys = [
  ]
 
 error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
+
+# test maximimum amplitude separately because it might differ slightly because of differences in the interferene between signals
+keys = [u'maximum_amplitudes']
+error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=0.01)
 
 if error == -1:
     from NuRadioMC.utilities.dump_hdf5 import dump
