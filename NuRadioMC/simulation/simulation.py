@@ -878,13 +878,14 @@ class simulation():
             output_NuRadioRecoTime += f"{name}: {t} {trel:.1f}%\n"
         logger.warning(output_NuRadioRecoTime)
 
-        logger.warning("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output)".format(self._n_showers,
+        logger.warning("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output, {:.1f}% weights calculation)".format(self._n_showers,
                                                                                          pretty_time_delta(t_total), 1.e3 * t_total / self._n_showers,
                                                                                          100 * input_time / t_total,
                                                                                          100 * (rayTracingTime - askaryan_time) / t_total,
                                                                                          100 * askaryan_time / t_total,
                                                                                          100 * detSimTime / t_total,
-                                                                                         100 * outputTime / t_total))
+                                                                                         100 * outputTime / t_total,
+                                                                                         100 * weightTime / t_total))
 
     def _get_shower_index(self, shower_id):
         if(hasattr(shower_id, "__len__")):
