@@ -453,11 +453,14 @@ class simulation():
                     if(self._iSh > 0 and self._iSh % max(1, int(self._n_showers / 100.)) == 0):
                         eta = pretty_time_delta((time.time() - t_start) * (self._n_showers - self._iSh) / self._iSh)
                         total_time = input_time + rayTracingTime + detSimTime + outputTime
+                        tmp_att = 0
+                        if(rayTracingTime - askaryan_time != 0):
+                            tmp_att = 100. * time_attenuation_length / (rayTracingTime - askaryan_time)
                         if total_time > 0:
                             logger.status("processing event {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%".format(
                                 self._iSh, self._n_showers, np.sum(self._mout['triggered']), 100. * self._iSh / self._n_showers,
                                 eta, 100. * (rayTracingTime - askaryan_time) / total_time,
-                                100. * time_attenuation_length / (rayTracingTime - askaryan_time),
+                                tmp_att,
                                 100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*input_time / total_time))
 
                     # read all quantities from hdf5 file and store them in local variables
