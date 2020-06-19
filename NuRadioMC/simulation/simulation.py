@@ -781,7 +781,11 @@ class simulation():
                         iStop = iSplit[iEvent] + 1
                     indices = start_times_sort[iStart: iStop]
                     if(n_sub_events > 1):
-                        logger.info(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices}")
+                        tmp = ""
+                        for start_time in start_times[indices]:
+                            tmp += f"{start_time/units.ns:.0f}, "
+                        tmp = tmp[:-2] + " ns"
+                        logger.info(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
                     self._evt = NuRadioReco.framework.event.Event(self._event_group_id, iEvent)  # create new event
                     self._station = NuRadioReco.framework.station.Station(self._station_id)
                     sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
