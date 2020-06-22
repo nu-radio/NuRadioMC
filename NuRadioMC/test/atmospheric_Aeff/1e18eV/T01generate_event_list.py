@@ -4,10 +4,9 @@ import os
 from NuRadioReco.utilities import units
 from NuRadioMC.EvtGen.generator import generate_surface_muons
 import numpy as np
-np.random.seed(0)
 
 # define simulation volume
-zmin = -2.7 * units.km  # the ice sheet at South Pole is 2.7km deep
+zmin = -3 * units.km  # the ice sheet at Summit Station is 3 km deep
 zmax = 0 * units.km
 rmin = 0 * units.km
 rmax = 4 * units.km
@@ -17,9 +16,9 @@ thetamax = 62 * units.deg
 
 path = os.path.dirname(os.path.abspath(__file__))
 
-# generate one event list at 1e18 eV with 10000 neutrinos
+# generate one event list at 1e18 eV with 1000 atmospheric muons
 generate_surface_muons(os.path.join(path,'1e18_full.hdf5'),
-                       1e3, 1e18 * units.eV, 1e18 * units.eV,
+                       5e3, 1e18 * units.eV, 1e18 * units.eV,
                        rmin, rmax, zmin, zmax,
                        full_rmin=rmin, full_rmax=rmax,
                        full_zmin=zmin, full_zmax=zmax,
