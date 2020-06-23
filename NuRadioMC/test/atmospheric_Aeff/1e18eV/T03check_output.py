@@ -15,6 +15,8 @@ import os
 # Proposal gives a different result for the same seed depending on the system,
 # so now we don't fix the seed and check that the calculated effective area is
 # within a number of standard of the previous calculation.
+# The following numbers have been obtained with 5e3 input events. The mean
+# and uncertainty have been calculated using the function calculate_aeff.
 Aeff_mean = 0.406902 * units.km2
 Aeff_sigma = 0.045211 * units.km2
 
