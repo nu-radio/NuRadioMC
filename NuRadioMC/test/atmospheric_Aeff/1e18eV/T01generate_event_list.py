@@ -18,7 +18,7 @@ path = os.path.dirname(os.path.abspath(__file__))
 
 # generate one event list at 1e18 eV with 1000 atmospheric muons
 generate_surface_muons(os.path.join(path,'1e18_full.hdf5'),
-                       5e4, 1e18 * units.eV, 1e18 * units.eV,
+                       2.5e3, 1e18 * units.eV, 1e18 * units.eV,
                        rmin, rmax, zmin, zmax,
                        full_rmin=rmin, full_rmax=rmax,
                        full_zmin=zmin, full_zmax=zmax,
