@@ -15,10 +15,10 @@ import os
 # Proposal gives a different result for the same seed depending on the system,
 # so now we don't fix the seed and check that the calculated effective area is
 # within a number of standard of the previous calculation.
-# The following numbers have been obtained with 1e4 input events. The mean
+# The following numbers have been obtained with 5e3 input events. The mean
 # and uncertainty have been calculated using the function calculate_aeff.
-Aeff_mean = 0.419456 * units.km2
-Aeff_sigma = 0.032459 * units.km2
+Aeff_mean = 0.406902 * units.km2
+Aeff_sigma = 0.045211 * units.km2
 
 path = os.path.dirname(os.path.abspath(__file__))
 fin = h5py.File(os.path.join(path, "output.hdf5"), 'r')
