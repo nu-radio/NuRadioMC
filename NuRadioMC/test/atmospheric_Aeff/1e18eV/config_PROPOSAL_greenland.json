@@ -27,7 +27,7 @@
 		"ioniz_multiplier" : 1,
 		"epair_multiplier" : 1,
     "ioniz": "IonizBetheBlochRossi",
-    "epair": "EpairKelnerKokoulinPetrukhin",
+    "epair": "none",
 		"brems" : "BremsKelnerKokoulinPetrukhin",
 		"photo" : "PhotoAbramowiczLevinLevyMaor97",
     "annihilation": "none",
