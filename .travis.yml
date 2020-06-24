@@ -44,6 +44,8 @@ jobs:
       name: "Test Examples"
     - script: NuRadioMC/test/Veff/1e18eV/test_build.sh
       name: "Veff test"
+    - script: NuRadioMC/test/atmospheric_Aeff/1e18eV/test_build.sh
+      name: "Atmospheric Aeff test" 
     - stage: "Run NuRadioReco test"
       name: "Tiny reconstrucution"
       script: NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
