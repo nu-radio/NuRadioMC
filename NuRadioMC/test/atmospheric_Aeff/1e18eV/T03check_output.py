@@ -30,8 +30,6 @@ def calculate_aeff(fin):
     weights = np.array(fin['weights'])
     n_events = fin.attrs['n_events']
 
-    print(triggered)
-    print(weights.shape)
     n_triggered = np.sum(weights[triggered])
 
     rmin = fin.attrs['rmin']
