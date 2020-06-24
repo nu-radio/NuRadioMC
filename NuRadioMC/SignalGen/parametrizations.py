@@ -69,7 +69,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
         if True, the shower from the last request of the same shower type is used. This is needed to get the Askaryan
         signal for both ray tracing solutions from the same shower.
     average_shower: bool (default False)
-        if True, for the Alvarez2009 model no random shower is generated, but the average shower is choosen
+        if True, for the Alvarez2009 model electromagnetic showers, no random shower is generated, but the average shower is choosen. 
 
     Returns
     -------
