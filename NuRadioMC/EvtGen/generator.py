@@ -404,6 +404,62 @@ def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
     return np.array(zeniths)
 
 
+def get_energies(n_events, Emin, Emax, spectrum_type):
+    """
+    generates a random distribution of enrgies following a certain spectrum
+    
+    Parameters
+    -----------
+    n_events: int
+        the total number of events
+    Emin: float
+        the minimal energy
+    Emax: float
+        the maximum energy
+    spectrum_type: string
+        defines the probability distribution for which the neutrino energies are generated
+        * 'log_uniform': uniformly distributed in the logarithm of energy
+        * 'E-?': E to the -? spectrum where ? can be any float
+        * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
+        * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for
+                   10% proton fraction (see get_GZK_1 function for details)
+        * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
+    """
+    logger.debug("generating energies")
+    if(spectrum_type == 'log_uniform'):
+        energies = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_events)
+    elif(spectrum_type.startswith("E-")):  # enerate an E^gamma spectrum.
+        gamma = float(spectrum_type[1:])
+        gamma += 1
+        Nmin = (Emin) ** gamma
+        Nmax = (Emax) ** gamma
+
+        def get_inverse_spectrum(N, gamma):
+            return np.exp(np.log(N) / gamma)
+
+        energies = get_inverse_spectrum(np.random.uniform(Nmax, Nmin, size=n_events), gamma)
+    elif(spectrum_type == "GZK-1"):
+        """
+        model of (van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1) of the cosmogenic neutrino ﬂux
+        for a source evolution parameter of m = 3.4,
+        a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
+        and a proton fraction of 10% at E = 10^19.6 eV
+        """
+        energies = get_energy_from_flux(Emin, Emax, n_events, get_GZK_1)
+    elif(spectrum_type == "IceCube-nu-2017"):
+        energies = get_energy_from_flux(Emin, Emax, n_events, ice_cube_nu_fit)
+    elif(spectrum_type == "GZK-1+IceCube-nu-2017"):
+
+        def J(E):
+            return ice_cube_nu_fit(E) + get_GZK_1(E)
+
+        energies = get_energy_from_flux(Emin, Emax, n_events, J)
+    else:
+        logger.error("spectrum {} not implemented".format(spectrum_type))
+        raise NotImplementedError("spectrum {} not implemented".format(spectrum_type))
+    return energies
+
+
 def generate_surface_muons(filename, n_events, Emin, Emax,
                            fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
                            full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
@@ -474,6 +530,10 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         defines the probability distribution for which the neutrino energies are generated
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
+        * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
+        * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for
+                   10% proton fraction (see get_GZK_1 function for details)
+        * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
@@ -573,22 +633,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     data_sets["flavors"] = np.array([flavor[i] for i in np.random.randint(0, high=len(flavor), size=n_events)])
 
-    # generate energies randomly
-    if(spectrum == 'log_uniform'):
-        data_sets["energies"] = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_events)
-    elif(spectrum.startswith("E-")):  # enerate an E^gamma spectrum.
-        gamma = float(spectrum[1:])
-        gamma += 1
-        Nmin = (Emin) ** gamma
-        Nmax = (Emax) ** gamma
-
-        def get_inverse_spectrum(N, gamma):
-            return np.exp(np.log(N) / gamma)
-
-        data_sets["energies"] = get_inverse_spectrum(np.random.uniform(Nmax, Nmin, size=n_events), gamma)
-    else:
-        logger.error("spectrum {} not implemented".format(spectrum))
-        raise NotImplementedError("spectrum {} not implemented".format(spectrum))
+    data_sets["energies"] = get_energies(n_events, Emin, Emax, spectrum)
 
     # generate charged/neutral current randomly
     data_sets["interaction_type"] = [ '' ] * n_events
@@ -598,6 +643,10 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     data_sets["energies"] = np.array(data_sets["energies"])
     data_sets["muon_energies"] = np.copy(data_sets["energies"])
+
+    # create dummy entries for shower energies and types
+    data_sets['shower_energies'] = data_sets['energies'] * data_sets['inelasticity']
+    data_sets['shower_type'] = ['had'] * n_events
 
     data_sets_fiducial = {}
 
@@ -621,7 +670,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     phis_high = 360 * units.deg - phis_low
     phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
     phis = data_sets["azimuths"] - phis_0  # Phi is the azimuth angle of the incoming neutrino if
-                                          # we take phi = 0 as the vertex position
+                                           # we take phi = 0 as the vertex position
     mask_phi = [ (phi > phi_low and phi < phi_high) or rho < fiducial_rmax
                  for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
 
@@ -648,7 +697,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                                                                        np.array([lepton_directions[iE]]))
             products = products_array[0]
 
-            lepton_code = lepton_codes[iE]
             n_interaction = 1
 
             for product in products:
@@ -665,10 +713,11 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
                         data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
                         n_interaction += 1
-                        data_sets_fiducial['energies'][-1] = product.energy
+                        data_sets_fiducial['shower_energies'][-1] = product.energy
                         data_sets_fiducial['inelasticity'][-1] = 1
                         # interaction_type is either 'had' or 'em' for proposal products
                         data_sets_fiducial['interaction_type'][-1] = product.shower_type
+                        data_sets_fiducial['shower_type'][-1] = product.shower_type
 
                         data_sets_fiducial['xx'][-1] = x
                         data_sets_fiducial['yy'][-1] = y
@@ -681,8 +730,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                         data_sets_fiducial['flavors'][-1] = product.code
 
     time_per_evt = (time.time() - init_time) / (iE + 1)
-    print("Time per event:", time_per_evt)
-    print("Total time", time.time() - init_time)
+    print(f"Time per event: {time_per_evt*1e3:.01f}ms")
+    print(f"Total time {pretty_time_delta(time.time() - init_time)}")
 
     print("number of fiducial showers", len(data_sets_fiducial['flavors']))
 
@@ -699,6 +748,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
             data_sets_fiducial[key] = np.array([data_sets[key][0]])
         data_sets_fiducial['flavors'] = np.array([14])
 
+    data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=np.int)
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
 
     return None
@@ -915,40 +965,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         else:
             flavors[i] = flavor[5]
     """
+
     # generate energies randomly
-    logger.debug("generating energies")
-    if(spectrum == 'log_uniform'):
-        data_sets["energies"] = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_events)
-    elif(spectrum.startswith("E-")):  # enerate an E^gamma spectrum.
-        gamma = float(spectrum[1:])
-        gamma += 1
-        Nmin = (Emin) ** gamma
-        Nmax = (Emax) ** gamma
-
-        def get_inverse_spectrum(N, gamma):
-            return np.exp(np.log(N) / gamma)
-
-        data_sets["energies"] = get_inverse_spectrum(np.random.uniform(Nmax, Nmin, size=n_events), gamma)
-    elif(spectrum == "GZK-1"):
-        """
-        model of (van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1) of the cosmogenic neutrino ﬂux
-        for a source evolution parameter of m = 3.4,
-        a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
-        and a proton fraction of 10% at E = 10^19.6 eV
-        """
-        data_sets["energies"] = get_energy_from_flux(Emin, Emax, n_events, get_GZK_1)
-    elif(spectrum == "IceCube-nu-2017"):
-        data_sets["energies"] = get_energy_from_flux(Emin, Emax, n_events, ice_cube_nu_fit)
-    elif(spectrum == "GZK-1+IceCube-nu-2017"):
-
-        def J(E):
-            return ice_cube_nu_fit(E) + get_GZK_1(E)
-
-        data_sets["energies"] = get_energy_from_flux(Emin, Emax, n_events, J)
-    else:
-        logger.error("spectrum {} not implemented".format(spectrum))
-        raise NotImplementedError("spectrum {} not implemented".format(spectrum))
-
+    data_sets["energies"] = get_energies(n_events, Emin, Emax, spectrum)
     # generate charged/neutral current randomly
     logger.debug("interaction type")
     data_sets["interaction_type"] = inelasticities.get_ccnc(n_events)
