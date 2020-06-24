@@ -30,7 +30,7 @@ def get_parametrizations():
     return ['ZHS1992', 'Alvarez2000', 'Alvarez2009', 'Alvarez2012']
 
 
-def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=None, same_shower=False):
+def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=None, same_shower=False, average_shower=False):
     """
     returns the Askaryan pulse in the time domain of the eTheta component
 
@@ -68,6 +68,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
         if False, for each request a new random shower realization is choosen.
         if True, the shower from the last request of the same shower type is used. This is needed to get the Askaryan
         signal for both ray tracing solutions from the same shower.
+    average_shower: bool (default False)
+        if True, for the Alvarez2009 model electromagnetic showers, no random shower is generated, but the average shower is choosen. 
 
     Returns
     -------
@@ -151,9 +153,13 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
                         raise AttributeError("the same shower was requested but the function hasn't been called before.")
                     else:
                         k_L = _Alvarez2009_k_L
+
+            
                 else:
                     _Alvarez2009_k_L = 10 ** _random_generators[model].normal(log10_k_L_bar, sigma_k_L)
                     k_L = _Alvarez2009_k_L
+                if(average_shower):
+                    k_L = 10**log10_k_L_bar
             else:
                 raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
 
