@@ -25,11 +25,13 @@ fin = h5py.File(sys.argv[1], 'r')
 
 
 def calculate_aeff(fin):
-    triggered = get_triggered(fin)
+    triggered = get_triggered(fin)[0]
 
     weights = np.array(fin['weights'])
     n_events = fin.attrs['n_events']
 
+    print(triggered)
+    print(weights.shape)
     n_triggered = np.sum(weights[triggered])
 
     rmin = fin.attrs['rmin']
