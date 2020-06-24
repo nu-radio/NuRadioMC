@@ -508,6 +508,21 @@ class simulation():
                     for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                         logger.debug(f"simulationg channel {channel_id}")
                         x2 = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
+
+                        if self._cfg['speedup']['distance_cut']:
+                            intercept = self._cfg['speedup']['distance_cut_intercept']
+                            slope = self._cfg['speedup']['distance_cut_slope']
+
+                            distance_cut = get_distance_cut(self._shower_energy, intercept, slope)
+                            distance = np.linalg.norm(x1 - x2)
+
+                            if distance > distance_cut:
+                                logger.debug('A distance speed up cut has been applied')
+                                logger.debug('Shower energy: {:.2e} eV'.format(self._shower_energy / units.eV))
+                                logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
+                                logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
+                                continue
+
                         r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=self._log_level_ray_propagation,
                                        n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
                                        n_reflections=self._n_reflections)
