@@ -78,9 +78,9 @@ def get_triggered(fin):
         return triggered, unique_mask
 
     # We count the multiple triggering bangs as a single triggered event
-    for event_id in np.unique(np.array(fin['event_ids'])[mask_secondaries]):
-        mask_interactions = np.array(fin['event_ids']) == event_id
-        multiple_interaction_indexes = np.squeeze(np.argwhere(np.array(fin['event_ids']) == event_id))
+    for event_id in np.unique(np.array(fin['event_group_ids'])[mask_secondaries]):
+        mask_interactions = np.array(fin['event_group_ids']) == event_id
+        multiple_interaction_indexes = np.squeeze(np.argwhere(np.array(fin['event_group_ids']) == event_id))
         if (len(multiple_interaction_indexes) == 1):
             continue
 
