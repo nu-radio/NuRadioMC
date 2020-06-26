@@ -798,13 +798,13 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     fiducial_zmax: float
         upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
     full_rmin: float (default None)
-        lower r coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+        lower r coordinate of simulated volume (if None it is set to fiducial_rmin)
     full_rmax: float (default None)
-        upper r coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+        upper r coordinate of simulated volume (if None it is set to fiducial_rmax)
     full_zmin: float (default None)
-        lower z coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+        lower z coordinate of simulated volume (if None it is set to fiducial_zmin)
     full_zmax: float (default None)
-        upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+        upper z coordinate of simulated volume (if None it is set to fiducial_zmax)
     thetamin: float
         lower zenith angle for neutrino arrival direction
     thetamax: float
@@ -825,10 +825,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         means that all events are saved in one file. If 'n_events_per_file' is
         smaller than 'n_events' the event list is split up into multiple files.
         This is useful to split up the computing on multiple cores.
-    spectrum: string
-        defines the probability distribution for which the neutrino energies are generated
-        * 'log_uniform': uniformly distributed in the logarithm of energy
-        * 'E-?': E to the -? spectrum where ? can be any float
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
@@ -1076,13 +1072,16 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     fiducial_zmax: float
         upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
     full_rmin: float (default None)
-        lower r coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+        lower r coordinate of simulated volume (if None and add_tau_second_bang is False it is set to fiducial_rmin.
+        If None and add_tau_second_bang is True it is set to 1/3 of fiducial_rmin)
     full_rmax: float (default None)
-        upper r coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+        upper r coordinate of simulated volume (if None and add_tau_second_bang is False it is set to fiducial_rmax.
+        If None and add_tau_second_bang is True it is set to the 95% CL percentile for tau range)
     full_zmin: float (default None)
-        lower z coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+        lower z coordinate of simulated volume (if None it is set to fiducial_zmin)
     full_zmax: float (default None)
-        upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+        upper z coordinate of simulated volume (if None and add_tau_second_bang is False it is set to fiducial_zmax.
+        If None and add_tau_second_bang is True it is set to 1/3 of fiducial_zmax)
     thetamin: float
         lower zenith angle for neutrino arrival direction (default 0deg)
     thetamax: float
