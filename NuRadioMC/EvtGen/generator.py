@@ -758,6 +758,36 @@ def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
 
     return np.array(zeniths)
 
+def mask_arrival_azimuth(data_sets, fiducial_rmax):
+
+    # Now we filter the events as a function of their arrival direction to
+    # save computing time. Those events that won't make it to the fiducial
+    # cylinder are discarded.
+
+    rhos = np.sqrt(data_sets['xx'] ** 2 + data_sets['yy'] ** 2)
+
+    # Let us considered our problem seen from above, projected on the z = vertex_z plane.
+    # tangent_angle is the angle a tangent to the cylinder that reaches the vertex makes
+    # with the antenna-vertex line on that plane.
+    sine_tangent_angles = fiducial_rmax / rhos
+    sine_tangent_angles[sine_tangent_angles > 1] = 1
+    tangent_angles = np.arcsin( sine_tangent_angles )
+    phis_low = 2 * np.pi - tangent_angles
+    phis_high = tangent_angles
+    phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
+    # NuRadioMC azimuth angles span [0, 2pi), unlike the result of arctan2: [-pi, pi)
+    phis_0[phis_0 < 0] += 2 * np.pi
+    phis = data_sets["azimuths"] - phis_0  # phi is the azimuth angle of the incoming neutrino if
+                                           # we take phi = 0 as the vertex position
+    phis[phis < 0] += 2 * np.pi
+
+    mask_phi = [ (phi > phi_low and phi < 2 * np.pi) or (phi < phi_high and phi > 0) or rho < fiducial_rmax
+                 for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
+
+    mask_phi = np.array(mask_phi)
+
+    return mask_phi
+
 
 def generate_surface_muons(filename, n_events, Emin, Emax,
                            fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
@@ -1324,27 +1354,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         lepton_codes[lepton_codes == 16] = 15
         lepton_codes[lepton_codes == -16] = -15
 
-        # Now we filter the events as a function of their arrival direction to
-        # save computing time. Those events that won't make it to the fiducial
-        # cylinder are discarded.
-
-        rhos = np.sqrt(data_sets['xx'] ** 2 + data_sets['yy'] ** 2)
-
-        # Let us considered our problem seen from above, projected on the z = vertex_z plane.
-        # tangent_angle is the angle a tangent to the cylinder that reaches the vertex makes
-        # with the antenna-vertex line on that plane.
-        sine_tangent_angles = fiducial_rmax / rhos
-        sine_tangent_angles[sine_tangent_angles > 1] = 1
-        tangent_angles = np.arcsin( sine_tangent_angles )
-        phis_low = 2 * np.pi - tangent_angles
-        phis_high = tangent_angles
-        phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
-        phis = data_sets["azimuths"] - phis_0  # Phi is the azimuth angle of the incoming neutrino if
-                                               # we take phi = 0 as the vertex position
-        mask_phi = [ (phi > phi_low and phi < phi_high) or rho < fiducial_rmax
-                     for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
-
-        mask_phi = np.array(mask_phi)
+        mask_phi = mask_arrival_azimuth(data_sets, fiducial_rmax)
 
         mask_leptons = mask_leptons & mask_phi
 
