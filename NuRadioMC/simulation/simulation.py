@@ -1311,17 +1311,7 @@ class simulation():
         n_events = self._fin_attrs['n_events']
         logger.status(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} = {n_triggered / self._n_showers:.3f} (sum of weights = {n_triggered_weighted:.2f})')
 
-        V = None
-        if('xmax' in self._fin_attrs):
-            dX = self._fin_attrs['xmax'] - self._fin_attrs['xmin']
-            dY = self._fin_attrs['ymax'] - self._fin_attrs['ymin']
-            dZ = self._fin_attrs['zmax'] - self._fin_attrs['zmin']
-            V = dX * dY * dZ
-        elif('rmin' in self._fin_attrs):
-            rmin = self._fin_attrs['rmin']
-            rmax = self._fin_attrs['rmax']
-            dZ = self._fin_attrs['zmax'] - self._fin_attrs['zmin']
-            V = np.pi * (rmax ** 2 - rmin ** 2) * dZ
+        V = self._fin_attrs['volume']
         Veff = V * n_triggered_weighted / n_events
         logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
 
