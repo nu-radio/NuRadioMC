@@ -22,7 +22,7 @@ logger = logging.getLogger("EventGen")
 logging.basicConfig()
 
 VERSION_MAJOR = 2
-VERSION_MINOR = 1
+VERSION_MINOR = 2
 
 HEADER = """
 # all quantities are in the default NuRadioMC units (i.e., meters, radians and eV)
@@ -315,95 +315,6 @@ def get_product_position_time(data_sets, product, iE):
     return x, y, z, time
 
 
-def get_projected_area_cylinder(theta, R, d):
-    """
-    calculates the projected area of a cylinder
-
-    Parameters
-    ----------
-    theta: float
-        zenith angle
-    R: float
-        radius of zylinder
-    d: float
-        height of zylinder
-
-    Returns:
-    float: projected area
-    """
-
-    return np.pi * R ** 2 * np.abs(np.cos(theta)) + 2 * R * d * np.sin(theta)
-
-
-def get_projected_area_cylinder_integral(theta, R, d):
-    """
-    integral of get_projected_area_cylinder
-
-    Parameters
-    ----------
-    theta: float
-        zenith angle
-    R: float
-        radius of zylinder
-    d: float
-        height of zylinder
-
-    Returns:
-        float: integral of projected area
-    """
-    return (-np.pi * R ** 2 * 0.5 * np.cos(theta) ** 2 * np.sign(np.cos(theta)) + 0.5 * 2 * R * d * (theta - np.sin(theta) * np.cos(theta)))
-
-
-def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
-    """
-    Generates zenith incoming directions according to a distribution given by
-    the product of the projected area of the cylinder and the sine of theta.
-    The projected area must be there because the total number of neutrinos
-    is proportional to the projected area times the incoming flux. The sine
-    of theta comes from the isotropic distribution, dp/d(cos(theta)) = constant
-
-    Parameters
-    ----------
-    n_events: integer
-        Number of events
-    full_rmax: float
-        Radius of the cylinder
-    full_zmax: float
-        Upper z coordinate for the cylinder
-    full_zmin: float
-        Lower z coordinate for the cylinder
-    thetamin: float
-        Minimum zenith angle
-    thetamax: float
-        Maximum zenith angle
-
-    Returns
-    -------
-    zeniths: array of floats
-        Incoming direction zeniths
-    """
-
-    n_events = int(n_events)
-    R = full_rmax
-    d = full_zmax - full_zmin
-
-    def zenith_distribution(theta, R, d):
-        return get_projected_area_cylinder(theta, R, d) * np.sin(theta)
-
-    distr_max = np.max(zenith_distribution(np.linspace(thetamin, thetamax, 1000), R, d))
-
-    zeniths = np.array([])
-    while(len(zeniths) < n_events):
-        random_thetas = np.random.uniform(thetamin, thetamax, n_events)
-        random_ys = np.random.uniform(0, distr_max, n_events)
-        mask_accepted = random_ys < zenith_distribution(random_thetas, R, d)
-        zeniths = np.concatenate((zeniths, random_thetas[mask_accepted]))
-
-    zeniths = zeniths[0:n_events]
-
-    return np.array(zeniths)
-
-
 def get_energies(n_events, Emin, Emax, spectrum_type):
     """
     generates a random distribution of enrgies following a certain spectrum
@@ -460,9 +371,134 @@ def get_energies(n_events, Emin, Emax, spectrum_type):
     return energies
 
 
+def generate_vertex_positions(volume, proposal, attributes):
+    """
+    helper function that generates the vertex position randomly distributed in simulation volume. 
+    The relevant quantities are also saved into the hdf5 attributes
+    
+    Parameters
+    volume: dictionarty
+        dict specifying the volume
+    proposal: bool
+        specifies if secondary interaction via proposal are calculated
+    attributes: dicitionary
+        dict storing hdf5 attributes
+    """
+    n_events = attributes['n_events']
+    if("fiducial_rmax" in volume):  # user specifies a cylinder
+        if('fiducial_rmin' in volume):
+            attributes['fiducial_rmin'] = volume['fiducial_rmin']
+        else:
+            attributes['fiducial_rmin'] = 0
+        attributes['fiducial_rmax'] = volume['fiducial_rmax']
+        attributes['fiducial_zmin'] = volume['fiducial_zmin']
+        attributes['fiducial_zmax'] = volume['fiducial_zmax']
+
+        rmin = attributes['fiducial_rmin']
+        rmax = attributes['fiducial_rmax']
+        zmin = attributes['fiducial_zmin']
+        zmax = attributes['fiducial_zmax']
+
+        # We increase the radius of the cylinder according to the tau track length
+        if(proposal):
+            tau_95_length = get_tau_95_length(attributes['Emax'])
+            if("full_rmin" in volume):
+                rmin = volume['full_rmin']
+            else:
+                rmin = attributes['fiducial_rmin'] / 3.
+            if('full_rmax' in volume):
+                rmax = volume['full_rmax']
+            else:
+                full_rmax = tau_95_length + attributes['fiducial_rmax']
+            if('full_zmax' in volume):
+                zmax = volume['full_zmax']
+            else:
+                zmax = attributes['fiducial_zmax'] / 3.
+            if('full_zmin' in volume):
+                zmin = volume['full_zmin']
+            else:
+                zmin = attributes['fiducial_zmin'] - tau_95_length  # we have a minus sign here because the zmin coordinate is negative
+            # increase the total number of events such that we end up with the same number of events in the fiducial volume
+            n_events = n_events * int((rmax / attributes['fiducial_rmax']) ** 2 * zmin / attributes['fiducial_zmin'])
+            logger.info("simulation of second interactions via PROPOSAL activated")
+            logger.info(f"increasing rmax from {attributes['fiducial_rmax']/units.km:.01f}km to {rmax/units.km:.01f}km, zmax from {attributes['fiducial_zmax']/units.km:.01f}km to {attributes['zmax']/units.km:.01f}km")
+            logger.info(f"decreasing rmin from {attributes['fiducial_rmin']/units.km:.01f}km to {rmin/units.km:.01f}km")
+            logger.info(f"decreasing zmin from {attributes['fiducial_zmin']/units.km:.01f}km to {zmin/units.km:.01f}km")
+            logger.info(f"increasing number of events to {n_events}")
+
+        attributes['rmin'] = rmin
+        attributes['rmax'] = rmax
+        attributes['zmin'] = zmin
+        attributes['zmax'] = zmax
+
+        V = np.pi * (rmax ** 2 - rmin ** 2) * (zmax - zmin)
+        attributes['volume'] = V  # save full simulation volume to simplify effective volume calculation
+
+        logger.debug("generating vertex positions")
+        rr_full = np.random.uniform(rmin ** 2, full_rmax ** 2, n_events) ** 0.5
+        phiphi = np.random.uniform(0, 2 * np.pi, n_events)
+        xx = rr_full * np.cos(phiphi)
+        yy = rr_full * np.sin(phiphi)
+        zz = np.random.uniform(zmin, zmax, n_events)
+        return xx, yy, zz
+    elif("fiducial_xmax" in volume):  # user specifies a cube
+        attributes['fiducial_xmax'] = volume['fiducial_xmax']
+        attributes['fiducial_xmin'] = volume['fiducial_xmin']
+        attributes['fiducial_ymax'] = volume['fiducial_ymax']
+        attributes['fiducial_ymin'] = volume['fiducial_ymin']
+        attributes['fiducial_zmin'] = volume['fiducial_zmin']
+        attributes['fiducial_zmax'] = volume['fiducial_zmax']
+
+        xmin = attributes['fiducial_xmin']
+        xmax = attributes['fiducial_xmax']
+        ymin = attributes['fiducial_ymin']
+        ymax = attributes['fiducial_ymax']
+        zmin = attributes['fiducial_zmin']
+        zmax = attributes['fiducial_zmax']
+        volume_fiducial = (xmax - xmin) * (ymax - ymin) * (zmax - zmin)
+
+        # We increase the simulation volume according to the tau track length
+        if(proposal):
+            logger.info("simulation of second interactions via PROPOSAL activated")
+            if('full_xmax' not in volume):  # assuming that also full_xmin, full_ymin, full_ymax are not set.
+                # extent fiducial by tau decay length
+                tau_95_length = get_tau_95_length(attributes['Emax'])
+                xmax += tau_95_length
+                xmin -= tau_95_length
+                ymax += tau_95_length
+                ymin -= tau_95_length
+                zmin -= tau_95_length
+                logger.info(f"increasing cube by the 95% quantile of the tau decay length of {tau_95_length/units.m:.0f} km to all sides except the positive z direction")
+            else:
+                xmin = attributes['full_xmin']
+                xmax = attributes['full_xmax']
+                ymin = attributes['full_ymin']
+                ymax = attributes['full_ymax']
+                zmin = attributes['full_zmin']
+                zmax = attributes['full_zmax']
+            volume_full = (xmax - xmin) * (ymax - ymin) * (zmax - zmin)
+            n_events = n_events * int(volume_full / volume_fiducial)
+            logger.info(f"increasing number of events to {n_events}")
+
+        attributes['xmin'] = xmin
+        attributes['xmax'] = xmax
+        attributes['ymin'] = ymin
+        attributes['ymax'] = ymax
+        attributes['zmin'] = zmin
+        attributes['zmax'] = zmax
+
+        V = (xmax - xmin) * (ymax - ymin) * (zmax - zmin)
+        attributes['volume'] = V  # save full simulation volume to simplify effective volume calculation
+
+        logger.debug("generating vertex positions")
+        xx = np.random.uniform(xmin, xmax, n_events)
+        yy = np.random.uniform(ymin, ymax, n_events)
+        zz = np.random.uniform(zmin, zmax, n_events)
+        return xx, yy, zz
+
+
 def generate_surface_muons(filename, n_events, Emin, Emax,
-                           fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
-                           full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
+                           volume,
                            thetamin=0.*units.rad, thetamax=np.pi * units.rad,
                            phimin=0.*units.rad, phimax=2 * np.pi * units.rad,
                            start_event_id=1,
@@ -489,23 +525,50 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     Emax: float
         the maximum neutrino energy (energies are randomly chosen assuming a
         uniform distribution in the logarithm of the energy)
-
-    fiducial_rmin: float
-        lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-    fiducial_rmax: float
-        upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-    fiducial_zmin: float
-        lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-    fiducial_zmax: float
-        upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-    full_rmin: float (default None)
-        lower r coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-    full_rmax: float (default None)
-        upper r coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-    full_zmin: float (default None)
-        lower z coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-    full_zmax: float (default None)
-        upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+    volume: dict
+            a dictionary specifying the simulation volume
+            can be either a cylinder spefified via the keys
+                * fiducial_rmin: float
+                    lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_rmax: float
+                    upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_zmin: float
+                    lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_zmax: float
+                    upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * full_rmin: float (optional)
+                    lower r coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                * full_rmax: float (optional)
+                    upper r coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                * full_zmin: float (optional)
+                    lower z coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                * full_zmax: float (optional)
+                    upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+            or a cube specified with 
+                * fiducial_xmin: float
+                    lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_xmax: float
+                    upper x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_ymin: float
+                    lower y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_ymax: float
+                    upper y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_zmin: float
+                    lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_zmax: float
+                    upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * full_xmin: float (optional)
+                    lower x coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                * full_xmax: float (optional)
+                    upper x coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                * full_ymin: float (optional)
+                    lower y coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                * full_ymax: float (optional)
+                    upper y coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                * full_zmin: float (optional)
+                    lower z coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                * full_zmax: float (optional)
+                    upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
     thetamin: float
         lower zenith angle for neutrino arrival direction
     thetamax: float
@@ -571,23 +634,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     attributes['n_events'] = n_events
     attributes['start_event_id'] = start_event_id
 
-    attributes['fiducial_rmin'] = fiducial_rmin
-    attributes['fiducial_rmax'] = fiducial_rmax
-    attributes['fiducial_zmin'] = fiducial_zmin
-    attributes['fiducial_zmax'] = fiducial_zmax
-
-    # We increase the radius of the cylinder according to the tau track length
-    if(full_rmin is None):
-        full_rmin = fiducial_rmin
-    if(full_rmax is None):
-        full_rmax = fiducial_rmax
-    # The zmin and zmax should not be touched. If zmin goes all the way down to
-    # the bedrock, tau propagation through the bedrock should be taken into account.
-    if(full_zmin is None):
-        full_zmin = fiducial_zmin
-    if(full_zmax is None):
-        full_zmax = fiducial_zmax
-
     if (plus_minus == 'plus'):
         flavor = [-13]
     elif (plus_minus == 'minus'):
@@ -595,10 +641,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     else:
         flavor = [13, -13]
 
-    attributes['rmin'] = full_rmin
-    attributes['rmax'] = full_rmax
-    attributes['zmin'] = full_zmin
-    attributes['zmax'] = full_zmax
     attributes['flavors'] = flavor
     attributes['Emin'] = Emin
     attributes['Emax'] = Emax
@@ -608,22 +650,13 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     attributes['phimax'] = phimax
     attributes['deposited'] = False
 
-    surface_thickness = 0.1 * units.m
-
     data_sets = {}
     # generate neutrino vertices randomly
     data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
-    data_sets["zeniths"] = draw_zeniths(n_events, full_rmax, fiducial_zmax,
-                                        fiducial_zmax - surface_thickness,
-                                        thetamin, thetamax)
+    # zenith directions are distruted as sin(theta) (to make the distribution istotropic) * cos(theta) (to account for the projection onto the surface)
+    data_sets["zeniths"] = np.arcsin(np.random.uniform(np.sin(thetamin) ** 2, np.sin(thetamax) ** 2, n_events) ** 0.5)
 
-    rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
-    phiphi = np.random.uniform(0, 2 * np.pi, n_events)
-    data_sets["xx"] = rr_full * np.cos(phiphi)
-    data_sets["yy"] = rr_full * np.sin(phiphi)
-    data_sets["zz"] = np.random.uniform(fiducial_zmax, fiducial_zmax - surface_thickness, n_events)
-
-    fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
+    data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(volume, proposal=False, attributes=attributes)
 
     data_sets["event_group_ids"] = np.arange(n_events) + start_event_id
     data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
@@ -653,29 +686,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     import time
     init_time = time.time()
     # Initialising data_sets_fiducial with empty values
-    for key, value in data_sets.items():
+    for key in data_sets:
         data_sets_fiducial[key] = []
-
-    rhos = np.sqrt(data_sets['xx'] ** 2 + data_sets['yy'] ** 2)
-
-    thetas_up = (fiducial_zmax - data_sets['zz']) / rhos
-    thetas_up = np.arctan(thetas_up)
-    thetas_down = (data_sets['zz'] - fiducial_zmin) / rhos
-    thetas_down = np.arctan(thetas_down)
-    thetas = 90 * units.deg - data_sets["zeniths"]  # Theta is the elevation angle of the incoming neutrino
-    mask_theta = [ (theta < theta_up and theta > theta_down) or rho < fiducial_rmax
-                   for theta, theta_up, theta_down, rho in zip(thetas, thetas_up, thetas_down, rhos) ]
-
-    phis_low = 180 * units.deg - np.arctan(fiducial_rmax ** 2 / rhos ** 2)
-    phis_high = 360 * units.deg - phis_low
-    phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
-    phis = data_sets["azimuths"] - phis_0  # Phi is the azimuth angle of the incoming neutrino if
-                                           # we take phi = 0 as the vertex position
-    mask_phi = [ (phi > phi_low and phi < phi_high) or rho < fiducial_rmax
-                 for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
-
-    mask_theta = np.array(mask_theta)
-    mask_phi = np.array(mask_phi)
 
     E_all_leptons = data_sets["energies"]
     lepton_codes = data_sets["flavors"]
@@ -686,7 +698,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     for event_id in data_sets["event_group_ids"]:
         iE = event_id - start_event_id
 
-        geometry_selection = mask_theta[iE] and mask_phi[iE]
         geometry_selection = True
 
         if geometry_selection:
@@ -702,32 +713,27 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
             for product in products:
 
                 x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
-                r = (x ** 2 + y ** 2) ** 0.5
 
-                if(r >= fiducial_rmin and r <= fiducial_rmax):
-                    if(z >= fiducial_zmin and z <= fiducial_zmax):  # z coordinate is negative
-                        # the energy loss or particle is in our fiducial volume
+                for key in iterkeys(data_sets):
+                    data_sets_fiducial[key].append(data_sets[key][iE])
 
-                        for key in iterkeys(data_sets):
-                            data_sets_fiducial[key].append(data_sets[key][iE])
+                data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
+                n_interaction += 1
+                data_sets_fiducial['shower_energies'][-1] = product.energy
+                data_sets_fiducial['inelasticity'][-1] = 1
+                # interaction_type is either 'had' or 'em' for proposal products
+                data_sets_fiducial['interaction_type'][-1] = product.shower_type
+                data_sets_fiducial['shower_type'][-1] = product.shower_type
 
-                        data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
-                        n_interaction += 1
-                        data_sets_fiducial['shower_energies'][-1] = product.energy
-                        data_sets_fiducial['inelasticity'][-1] = 1
-                        # interaction_type is either 'had' or 'em' for proposal products
-                        data_sets_fiducial['interaction_type'][-1] = product.shower_type
-                        data_sets_fiducial['shower_type'][-1] = product.shower_type
+                data_sets_fiducial['xx'][-1] = x
+                data_sets_fiducial['yy'][-1] = y
+                data_sets_fiducial['zz'][-1] = z
 
-                        data_sets_fiducial['xx'][-1] = x
-                        data_sets_fiducial['yy'][-1] = y
-                        data_sets_fiducial['zz'][-1] = z
+                # Calculating vertex interaction time with respect to the primary neutrino
+                data_sets_fiducial['vertex_times'][-1] = vertex_time
 
-                        # Calculating vertex interaction time with respect to the primary neutrino
-                        data_sets_fiducial['vertex_times'][-1] = vertex_time
-
-                        # Flavors are particle codes taken from NuRadioProposal.py
-                        data_sets_fiducial['flavors'][-1] = product.code
+                # Flavors are particle codes taken from NuRadioProposal.py
+                data_sets_fiducial['flavors'][-1] = product.code
 
     time_per_evt = (time.time() - init_time) / (iE + 1)
     print(f"Time per event: {time_per_evt*1e3:.01f}ms")
@@ -755,8 +761,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
 
 def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
-                                fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
-                                full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
+                                volume,
                                 thetamin=0.*units.rad, thetamax=np.pi * units.rad,
                                 phimin=0.*units.rad, phimax=2 * np.pi * units.rad,
                                 start_event_id=1,
@@ -784,23 +789,50 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         the minimum neutrino energy
     Emax: float
         the maximum neutrino energy
-
-    fiducial_rmin: float
-        lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-    fiducial_rmax: float
-        upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-    fiducial_zmin: float
-        lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-    fiducial_zmax: float
-        upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-    full_rmin: float (default None)
-        lower r coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-    full_rmax: float (default None)
-        upper r coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-    full_zmin: float (default None)
-        lower z coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-    full_zmax: float (default None)
-        upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+    volume: dict
+        a dictionary specifying the simulation volume
+        can be either a cylinder spefified via the keys
+            * fiducial_rmin: float
+                lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+            * fiducial_rmax: float
+                upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+            * fiducial_zmin: float
+                lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+            * fiducial_zmax: float
+                upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+            * full_rmin: float (optional)
+                lower r coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+            * full_rmax: float (optional)
+                upper r coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+            * full_zmin: float (optional)
+                lower z coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+            * full_zmax: float (optional)
+                upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+        or a cube specified with 
+            * fiducial_xmin: float
+                lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+            * fiducial_xmax: float
+                upper x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+            * fiducial_ymin: float
+                lower y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+            * fiducial_ymax: float
+                upper y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+            * fiducial_zmin: float
+                lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+            * fiducial_zmax: float
+                upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+            * full_xmin: float (optional)
+                lower x coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+            * full_xmax: float (optional)
+                upper x coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+            * full_ymin: float (optional)
+                lower y coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+            * full_ymax: float (optional)
+                upper y coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+            * full_zmin: float (optional)
+                lower z coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+            * full_zmax: float (optional)
+                upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
     thetamin: float
         lower zenith angle for neutrino arrival direction (default 0deg)
     thetamax: float
@@ -871,49 +903,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     # save NuRadioMC and NuRadioReco versions
     attributes['NuRadioMC_EvtGen_version'] = NuRadioMC.__version__
     attributes['NuRadioMC_EvtGen_version_hash'] = version.get_NuRadioMC_commit_hash()
-
     attributes['start_event_id'] = start_event_id
-
-    attributes['fiducial_rmin'] = fiducial_rmin
-    attributes['fiducial_rmax'] = fiducial_rmax
-    attributes['fiducial_zmin'] = fiducial_zmin
-    attributes['fiducial_zmax'] = fiducial_zmax
-
-    # We increase the radius of the cylinder according to the tau track length
-    if(proposal):
-        if(full_rmin is None):
-            full_rmin = fiducial_rmin / 3.
-        if(full_rmax is None):
-            tau_95_length = get_tau_95_length(Emax)
-            if (tau_95_length > fiducial_rmax):
-                full_rmax = tau_95_length
-            else:
-                full_rmax = fiducial_rmax
-        n_events = n_events * int((full_rmax / fiducial_rmax) ** 2)
-        # The zmin and zmax should not be touched. If zmin goes all the way down to
-        # the bedrock, tau propagation through the bedrock should be taken into account.
-        if(full_zmax is None):
-            full_zmax = fiducial_zmax / 3.
-        if(full_zmin is None):
-            full_zmin = fiducial_zmin
-        logger.info("simulation of second interactions via PROPOSAL activated")
-        logger.info(f"increasing rmax from {fiducial_rmax/units.km:.01f}km to {full_rmax/units.km:.01f}km, zmax from {fiducial_zmax/units.km:.01f}km to {full_zmax/units.km:.01f}km")
-        logger.info(f"decreasing rmin from {fiducial_rmin/units.km:.01f}km to {full_rmin/units.km:.01f}km")
-        logger.info(f"increasing number of events to {n_events}")
-    else:
-        # if proposal (i.e. second interactions) is not enabled, then the concept of fiducial volume makes no
-        # difference and the full volume is set to the fiducial volume
-        logger.info("setting full volume to fiducial volume because no second interactions are simulated")
-        full_rmin = fiducial_rmin
-        full_rmax = fiducial_rmax
-        full_zmax = fiducial_zmax
-        full_zmin = fiducial_zmin
-
     attributes['n_events'] = n_events
-    attributes['rmin'] = full_rmin
-    attributes['rmax'] = full_rmax
-    attributes['zmin'] = full_zmin
-    attributes['zmax'] = full_zmax
     attributes['flavors'] = flavor
     attributes['Emin'] = Emin
     attributes['Emax'] = Emax
@@ -929,12 +920,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
     data_sets["zeniths"] = np.arccos(np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events))
 
-    logger.debug("generating vertex positions")
-    rr_full = np.random.uniform(full_rmin ** 2, full_rmax ** 2, n_events) ** 0.5
-    phiphi = np.random.uniform(0, 2 * np.pi, n_events)
-    data_sets["xx"] = rr_full * np.cos(phiphi)
-    data_sets["yy"] = rr_full * np.sin(phiphi)
-    data_sets["zz"] = np.random.uniform(full_zmin, full_zmax, n_events)
+    data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(volume, proposal, attributes)
 
 #     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
@@ -1004,20 +990,20 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
         rhos = np.sqrt(data_sets['xx'] ** 2 + data_sets['yy'] ** 2)
 
-        thetas_up = (fiducial_zmax - data_sets['zz']) / rhos
+        thetas_up = (attributes['fiducial_zmax'] - data_sets['zz']) / rhos
         thetas_up = np.arctan(thetas_up)
-        thetas_down = (data_sets['zz'] - fiducial_zmin) / rhos
+        thetas_down = (data_sets['zz'] - attributes['fiducial_zmin']) / rhos
         thetas_down = np.arctan(thetas_down)
         thetas = 90 * units.deg - data_sets["zeniths"]  # Theta is the elevation angle of the incoming neutrino
-        mask_theta = [ (theta < theta_up and theta > theta_down) or rho < fiducial_rmax
+        mask_theta = [ (theta < theta_up and theta > theta_down) or rho < attributes['fiducial_rmax']
                        for theta, theta_up, theta_down, rho in zip(thetas, thetas_up, thetas_down, rhos) ]
 
-        phis_low = 180 * units.deg - np.arctan(fiducial_rmax ** 2 / rhos ** 2)
+        phis_low = 180 * units.deg - np.arctan(attributes['fiducial_rmax'] ** 2 / rhos ** 2)
         phis_high = 360 * units.deg - phis_low
         phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
         phis = data_sets["azimuths"] - phis_0  # Phi is the azimuth angle of the incoming neutrino if
                                                # we take phi = 0 as the vertex position
-        mask_phi = [ (phi > phi_low and phi < phi_high) or rho < fiducial_rmax
+        mask_phi = [ (phi > phi_low and phi < phi_high) or rho < attributes['fiducial_rmax']
                      for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
 
         mask_theta = np.array(mask_theta)
@@ -1047,8 +1033,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             r_nu = (x_nu ** 2 + y_nu ** 2) ** 0.5
 
             # Appending event if it interacts within the fiducial volume
-            if (r_nu >= fiducial_rmin and r_nu <= fiducial_rmax):
-                if (z_nu >= fiducial_zmin and z_nu <= fiducial_zmax):
+            if (r_nu >= attributes['fiducial_rmin'] and r_nu <= attributes['fiducial_rmax']):
+                if (z_nu >= attributes['fiducial_zmin'] and z_nu <= attributes['fiducial_zmax']):
 
                     for key in iterkeys(data_sets):
                         data_sets_fiducial[key].append(data_sets[key][iE])
@@ -1068,8 +1054,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
                     r = (x ** 2 + y ** 2) ** 0.5
 
-                    if(r >= fiducial_rmin and r <= fiducial_rmax):
-                        if(z >= fiducial_zmin and z <= fiducial_zmax):  # z coordinate is negative
+                    if(r >= attributes['fiducial_rmin'] and r <= attributes['fiducial_rmax']):
+                        if(z >= attributes['fiducial_zmin'] and z <= attributes['fiducial_zmax']):  # z coordinate is negative
                             # the energy loss or particle is in our fiducial volume
 
                             # If the energy loss or particle is in the fiducial volume but the parent
