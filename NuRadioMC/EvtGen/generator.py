@@ -497,6 +497,68 @@ def generate_vertex_positions(volume, proposal, attributes):
         return xx, yy, zz
 
 
+def intersection_box_ray(bounds, ray):
+    """
+    this function calculates the intersection between a ray and an axis-aligned box
+    code adapted from https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
+    
+    Parameters
+    ----------
+    box: array with shape (2,3)
+        definition of box with two points
+    ray: array with shape (2,3)
+        definiton of ray using origin and direction 3-dim vectors
+    """
+    orig = ray[0]
+    direction = ray[1]
+    invdir = 1 / direction
+    sign = np.zeros(3, dtype=np.int)
+    sign[0] = (invdir[0] < 0)
+    sign[1] = (invdir[1] < 0)
+    sign[2] = (invdir[2] < 0)
+
+    tmin = (bounds[sign[0]][0] - orig[0]) * invdir[0]
+    tmax = (bounds[1 - sign[0]][0] - orig[0]) * invdir[1]
+    tymin = (bounds[sign[1]][1] - orig[1]) * invdir[1]
+    tymax = (bounds[1 - sign[1]][1] - orig[1]) * invdir[1]
+
+    if ((tmin > tymax) or (tymin > tmax)):
+        return False
+    if (tymin > tmin):
+        tmin = tymin
+    if (tymax < tmax):
+        tmax = tymax
+
+    tzmin = (bounds[sign[2]][2] - orig[2]) * invdir[2]
+    tzmax = (bounds[1 - sign[2]][2] - orig[2]) * invdir[2]
+
+    if ((tmin > tzmax) or (tzmin > tmax)):
+        return False
+    if (tzmin > tmin):
+        tmin = tzmin
+    if (tzmax < tmax):
+        tmax = tzmax
+
+    t = tmin
+
+    if (t < 0):
+        t = tmax
+        if (t < 0):
+            return False
+    return True
+
+
+def get_intersection_volume_neutrino(attributes, vertex, direction):
+    if('xmax' in attributes):  # cube volume
+        bounds = [[attributes['fiducial_xmin'], attributes['fiducial_ymin'], attributes['fiducial_zmin']],
+                  [attributes['fiducial_xmax'], attributes['fiducial_ymax'], attributes['fiducial_zmax']]]
+        ray = [vertex, direction]
+        return intersection_box_ray(bounds, ray)
+
+    else:  # cylinder volume, not yet implemented
+        return True
+
+
 def generate_surface_muons(filename, n_events, Emin, Emax,
                            volume,
                            thetamin=0.*units.rad, thetamax=np.pi * units.rad,
@@ -695,11 +757,12 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
                         for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
 
-    for event_id in data_sets["event_group_ids"]:
-        iE = event_id - start_event_id
+    for iE, event_id in enumerate(data_sets["event_group_ids"]):
 
-        geometry_selection = True
-
+        # calculate if the lepton/neutrino direction intersects the fiducial simulation volume
+        geometry_selection = get_intersection_volume_neutrino(attributes,
+                                                              [data_sets['xx'][iE], data_sets['yy'][iE], data_sets['zz'][iE]],
+                                                              lepton_directions[iE])
         if geometry_selection:
 
             products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
@@ -1019,51 +1082,54 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     first_inserted = True
 
             if mask_leptons[iE]:
+                geometry_selection = get_intersection_volume_neutrino(attributes,
+                                                      [data_sets['xx'][iE], data_sets['yy'][iE], data_sets['zz'][iE]],
+                                                      lepton_directions[iE])
+                if geometry_selection:
+                    products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
+                                                                               np.array([lepton_codes[iE]]),
+                                                                               np.array([lepton_positions[iE]]),
+                                                                               np.array([lepton_directions[iE]]))
+                    products = products_array[0]
+                    n_interaction = 2
+                    for product in products:
 
-                products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
-                                                                           np.array([lepton_codes[iE]]),
-                                                                           np.array([lepton_positions[iE]]),
-                                                                           np.array([lepton_directions[iE]]))
-                products = products_array[0]
-                n_interaction = 2
-                for product in products:
+                        x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
+                        r = (x ** 2 + y ** 2) ** 0.5
 
-                    x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
-                    r = (x ** 2 + y ** 2) ** 0.5
+                        if(r >= attributes['fiducial_rmin'] and r <= attributes['fiducial_rmax']):
+                            if(z >= attributes['fiducial_zmin'] and z <= attributes['fiducial_zmax']):  # z coordinate is negative
+                                # the energy loss or particle is in our fiducial volume
 
-                    if(r >= attributes['fiducial_rmin'] and r <= attributes['fiducial_rmax']):
-                        if(z >= attributes['fiducial_zmin'] and z <= attributes['fiducial_zmax']):  # z coordinate is negative
-                            # the energy loss or particle is in our fiducial volume
+                                # If the energy loss or particle is in the fiducial volume but the parent
+                                # neutrino does not interact there, we add it to know its properties.
+                                if not first_inserted:
+                                    copies = 2
+                                    first_inserted = True
+                                else:
+                                    copies = 1
 
-                            # If the energy loss or particle is in the fiducial volume but the parent
-                            # neutrino does not interact there, we add it to know its properties.
-                            if not first_inserted:
-                                copies = 2
-                                first_inserted = True
-                            else:
-                                copies = 1
+                                for icopy in range(copies):
+                                    for key in iterkeys(data_sets):
+                                        data_sets_fiducial[key].append(data_sets[key][iE])
 
-                            for icopy in range(copies):
-                                for key in iterkeys(data_sets):
-                                    data_sets_fiducial[key].append(data_sets[key][iE])
+                                data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
+                                n_interaction += 1
+                                data_sets_fiducial['shower_energies'][-1] = product.energy
+                                data_sets_fiducial['inelasticity'][-1] = np.nan
+                                # interaction_type is either 'had' or 'em' for proposal products
+                                data_sets_fiducial['interaction_type'][-1] = product.shower_type
+                                data_sets_fiducial['shower_type'][-1] = product.shower_type
 
-                            data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
-                            n_interaction += 1
-                            data_sets_fiducial['shower_energies'][-1] = product.energy
-                            data_sets_fiducial['inelasticity'][-1] = np.nan
-                            # interaction_type is either 'had' or 'em' for proposal products
-                            data_sets_fiducial['interaction_type'][-1] = product.shower_type
-                            data_sets_fiducial['shower_type'][-1] = product.shower_type
+                                data_sets_fiducial['xx'][-1] = x
+                                data_sets_fiducial['yy'][-1] = y
+                                data_sets_fiducial['zz'][-1] = z
 
-                            data_sets_fiducial['xx'][-1] = x
-                            data_sets_fiducial['yy'][-1] = y
-                            data_sets_fiducial['zz'][-1] = z
+                                # Calculating vertex interaction time with respect to the primary neutrino
+                                data_sets_fiducial['vertex_times'][-1] = vertex_time
 
-                            # Calculating vertex interaction time with respect to the primary neutrino
-                            data_sets_fiducial['vertex_times'][-1] = vertex_time
-
-                            # Flavors are particle codes taken from NuRadioProposal.py
-                            data_sets_fiducial['flavors'][-1] = product.code
+                                # Flavors are particle codes taken from NuRadioProposal.py
+                                data_sets_fiducial['flavors'][-1] = product.code
 
         time_per_evt = (time.time() - init_time) / (iE + 1)
         logger.info(f"Time per event (PROPOSAL only): {time_per_evt*1e3:.4f} ms")
