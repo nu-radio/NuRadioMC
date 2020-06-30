@@ -930,13 +930,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets["zeniths"] = np.arccos(np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events))
 
     logger.debug("generating vertex positions")
-    rr_full = np.random.triangular(full_rmin, full_rmax, full_rmax, n_events)
+    rr_full = np.random.uniform(full_rmin ** 2, full_rmax ** 2, n_events) ** 0.5
     phiphi = np.random.uniform(0, 2 * np.pi, n_events)
     data_sets["xx"] = rr_full * np.cos(phiphi)
     data_sets["yy"] = rr_full * np.sin(phiphi)
     data_sets["zz"] = np.random.uniform(full_zmin, full_zmax, n_events)
 
-    fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
+#     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
     logger.debug("generating event ids")
     data_sets["event_group_ids"] = np.arange(n_events) + start_event_id
@@ -947,24 +947,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     # generate neutrino flavors randomly
     logger.debug("generating flavors")
     data_sets["flavors"] = np.array([flavor[i] for i in np.random.randint(0, high=len(flavor), size=n_events)])
-    """
-    #from AraSim nue:nueb:numu:numub:nutau:nutaub = 0.78: 0.22: 0.61: 0.39: 0.61: 0.39
-    flaRnd = np.random.uniform(0., 3., n_events)
-    flavors = np.ones(n_events, dtype = np.int64)
-    for i, r in enumerate(flaRnd):
-        if (r <= 0.78):
-            flavors[i] = flavor[0]
-        elif (r <= 1.0):
-            flavors[i] = flavor[1]
-        elif (r <= 1.61):
-            flavors[i] = flavor[2]
-        elif (r <= 2.0):
-            flavors[i] = flavor[3]
-        elif (r <= 2.61):
-            flavors[i] = flavor[4]
-        else:
-            flavors[i] = flavor[5]
-    """
 
     # generate energies randomly
     data_sets["energies"] = get_energies(n_events, Emin, Emax, spectrum)
@@ -976,11 +958,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     logger.debug("generating inelasticities")
     data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(n_events)
 
-    """
-    #from AraSim
-    epsilon = np.log10(energies / 1e9)
-    inelasticity = pickY(flavors, ccncs, epsilon)
-    """
     if deposited:
         data_sets["energies"] = [primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity) \
                                 for Edep, ccnc, flavor, inelasticity in \
