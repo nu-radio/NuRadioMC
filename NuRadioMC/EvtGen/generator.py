@@ -780,27 +780,32 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
             for product in products:
 
                 x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
+                r = (x ** 2 + y ** 2) ** 0.5
 
-                for key in iterkeys(data_sets):
-                    data_sets_fiducial[key].append(data_sets[key][iE])
+                if(r >= attributes['fiducial_rmin'] and r <= attributes['fiducial_rmax']):
+                    if(z >= attributes['fiducial_zmin'] and z <= attributes['fiducial_zmax']):  # z coordinate is negative
+                        # the energy loss or particle is in our fiducial volume
 
-                data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
-                n_interaction += 1
-                data_sets_fiducial['shower_energies'][-1] = product.energy
-                data_sets_fiducial['inelasticity'][-1] = 1
-                # interaction_type is either 'had' or 'em' for proposal products
-                data_sets_fiducial['interaction_type'][-1] = product.shower_type
-                data_sets_fiducial['shower_type'][-1] = product.shower_type
+                        for key in iterkeys(data_sets):
+                            data_sets_fiducial[key].append(data_sets[key][iE])
 
-                data_sets_fiducial['xx'][-1] = x
-                data_sets_fiducial['yy'][-1] = y
-                data_sets_fiducial['zz'][-1] = z
+                        data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
+                        n_interaction += 1
+                        data_sets_fiducial['shower_energies'][-1] = product.energy
+                        data_sets_fiducial['inelasticity'][-1] = 1
+                        # interaction_type is either 'had' or 'em' for proposal products
+                        data_sets_fiducial['interaction_type'][-1] = product.shower_type
+                        data_sets_fiducial['shower_type'][-1] = product.shower_type
 
-                # Calculating vertex interaction time with respect to the primary neutrino
-                data_sets_fiducial['vertex_times'][-1] = vertex_time
+                        data_sets_fiducial['xx'][-1] = x
+                        data_sets_fiducial['yy'][-1] = y
+                        data_sets_fiducial['zz'][-1] = z
 
-                # Flavors are particle codes taken from NuRadioProposal.py
-                data_sets_fiducial['flavors'][-1] = product.code
+                        # Calculating vertex interaction time with respect to the primary neutrino
+                        data_sets_fiducial['vertex_times'][-1] = vertex_time
+
+                        # Flavors are particle codes taken from NuRadioProposal.py
+                        data_sets_fiducial['flavors'][-1] = product.code
 
     time_per_evt = (time.time() - init_time) / (iE + 1)
     print(f"Time per event: {time_per_evt*1e3:.01f}ms")

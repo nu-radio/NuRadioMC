@@ -54,6 +54,7 @@ logging.setLoggerClass(NuRadioMCLogger)
 logging.addLevelName(STATUS, 'STATUS')
 logger = logging.getLogger("NuRadioMC")
 assert isinstance(logger, NuRadioMCLogger)
+logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 
 
 def pretty_time_delta(seconds):
@@ -1230,6 +1231,7 @@ class simulation():
         else:
             logger.status("saving all events")
 
+        logger.status("start saving events")
         # save data sets
         for (key, value) in iteritems(self._mout):
             fout[key] = value[saved]
