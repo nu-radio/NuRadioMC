@@ -34,7 +34,5 @@ python3 W04EffectiveVolumes.py
 python3 W05ElectricFields.py
 rm -r results
 rm input_3.2e+19_1.0e+20.hdf5
-rm input_3.2e+18_1.0e+19.hdf5.part0000
-rm input_3.2e+18_1.0e+19.hdf5.part0001
-rm input_3.2e+18_1.0e+19.hdf5.part0002
+rm input_3.2e+18_1.0e+19.hdf5.part000?
 rm tables/*.txt
