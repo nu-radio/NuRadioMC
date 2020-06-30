@@ -398,6 +398,7 @@ def generate_vertex_positions(volume, proposal, attributes):
         rmax = attributes['fiducial_rmax']
         zmin = attributes['fiducial_zmin']
         zmax = attributes['fiducial_zmax']
+        volume_fiducial = np.pi * (rmax ** 2 - rmin ** 2) * (zmax - zmin)
 
         # We increase the radius of the cylinder according to the tau track length
         if(proposal):
@@ -409,7 +410,7 @@ def generate_vertex_positions(volume, proposal, attributes):
             if('full_rmax' in volume):
                 rmax = volume['full_rmax']
             else:
-                full_rmax = tau_95_length + attributes['fiducial_rmax']
+                rmax = tau_95_length + attributes['fiducial_rmax']
             if('full_zmax' in volume):
                 zmax = volume['full_zmax']
             else:
@@ -418,10 +419,11 @@ def generate_vertex_positions(volume, proposal, attributes):
                 zmin = volume['full_zmin']
             else:
                 zmin = attributes['fiducial_zmin'] - tau_95_length  # we have a minus sign here because the zmin coordinate is negative
+            volume_full = np.pi * (rmax ** 2 - rmin ** 2) * (zmax - zmin)
             # increase the total number of events such that we end up with the same number of events in the fiducial volume
-            n_events = n_events * int((rmax / attributes['fiducial_rmax']) ** 2 * zmin / attributes['fiducial_zmin'])
+            n_events = n_events * int(volume_full / volume_fiducial)
             logger.info("simulation of second interactions via PROPOSAL activated")
-            logger.info(f"increasing rmax from {attributes['fiducial_rmax']/units.km:.01f}km to {rmax/units.km:.01f}km, zmax from {attributes['fiducial_zmax']/units.km:.01f}km to {attributes['zmax']/units.km:.01f}km")
+            logger.info(f"increasing rmax from {attributes['fiducial_rmax']/units.km:.01f}km to {rmax/units.km:.01f}km, zmax from {attributes['fiducial_zmax']/units.km:.01f}km to {zmax/units.km:.01f}km")
             logger.info(f"decreasing rmin from {attributes['fiducial_rmin']/units.km:.01f}km to {rmin/units.km:.01f}km")
             logger.info(f"decreasing zmin from {attributes['fiducial_zmin']/units.km:.01f}km to {zmin/units.km:.01f}km")
             logger.info(f"increasing number of events to {n_events}")
@@ -433,9 +435,10 @@ def generate_vertex_positions(volume, proposal, attributes):
 
         V = np.pi * (rmax ** 2 - rmin ** 2) * (zmax - zmin)
         attributes['volume'] = V  # save full simulation volume to simplify effective volume calculation
+        attributes['area'] = np.pi * (rmax ** 2 - rmin ** 2)
 
         logger.debug("generating vertex positions")
-        rr_full = np.random.uniform(rmin ** 2, full_rmax ** 2, n_events) ** 0.5
+        rr_full = np.random.uniform(rmin ** 2, rmax ** 2, n_events) ** 0.5
         phiphi = np.random.uniform(0, 2 * np.pi, n_events)
         xx = rr_full * np.cos(phiphi)
         yy = rr_full * np.sin(phiphi)
@@ -489,6 +492,7 @@ def generate_vertex_positions(volume, proposal, attributes):
 
         V = (xmax - xmin) * (ymax - ymin) * (zmax - zmin)
         attributes['volume'] = V  # save full simulation volume to simplify effective volume calculation
+        attributes['area'] = (xmax - xmin) * (ymax - ymin)
 
         logger.debug("generating vertex positions")
         xx = np.random.uniform(xmin, xmax, n_events)
@@ -599,13 +603,13 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                 * fiducial_zmax: float
                     upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
                 * full_rmin: float (optional)
-                    lower r coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                    lower r coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
                 * full_rmax: float (optional)
-                    upper r coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                    upper r coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
                 * full_zmin: float (optional)
-                    lower z coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                    lower z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
                 * full_zmax: float (optional)
-                    upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                    upper z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume , if second vertices are not activated it is set to the fiducial volume)
             or a cube specified with 
                 * fiducial_xmin: float
                     lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
@@ -620,17 +624,17 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                 * fiducial_zmax: float
                     upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
                 * full_xmin: float (optional)
-                    lower x coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                    lower x coordinate of simulated volume (if not set it is set to the fiducial volume - the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
                 * full_xmax: float (optional)
-                    upper x coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                    upper x coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
                 * full_ymin: float (optional)
-                    lower y coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                    lower y coordinate of simulated volume (if not set it is set to the fiducial volume - the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
                 * full_ymax: float (optional)
-                    upper y coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                    upper y coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
                 * full_zmin: float (optional)
-                    lower z coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                    lower z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
                 * full_zmax: float (optional)
-                    upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                    upper z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
     thetamin: float
         lower zenith angle for neutrino arrival direction
     thetamax: float
@@ -854,48 +858,48 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         the maximum neutrino energy
     volume: dict
         a dictionary specifying the simulation volume
-        can be either a cylinder spefified via the keys
-            * fiducial_rmin: float
-                lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-            * fiducial_rmax: float
-                upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-            * fiducial_zmin: float
-                lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-            * fiducial_zmax: float
-                upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-            * full_rmin: float (optional)
-                lower r coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-            * full_rmax: float (optional)
-                upper r coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-            * full_zmin: float (optional)
-                lower z coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-            * full_zmax: float (optional)
-                upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-        or a cube specified with 
-            * fiducial_xmin: float
-                lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-            * fiducial_xmax: float
-                upper x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-            * fiducial_ymin: float
-                lower y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-            * fiducial_ymax: float
-                upper y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-            * fiducial_zmin: float
-                lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-            * fiducial_zmax: float
-                upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-            * full_xmin: float (optional)
-                lower x coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-            * full_xmax: float (optional)
-                upper x coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-            * full_ymin: float (optional)
-                lower y coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-            * full_ymax: float (optional)
-                upper y coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-            * full_zmin: float (optional)
-                lower z coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-            * full_zmax: float (optional)
-                upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+            can be either a cylinder spefified via the keys
+                * fiducial_rmin: float
+                    lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_rmax: float
+                    upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_zmin: float
+                    lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_zmax: float
+                    upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * full_rmin: float (optional)
+                    lower r coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                * full_rmax: float (optional)
+                    upper r coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+                * full_zmin: float (optional)
+                    lower z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+                * full_zmax: float (optional)
+                    upper z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume , if second vertices are not activated it is set to the fiducial volume)
+            or a cube specified with 
+                * fiducial_xmin: float
+                    lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_xmax: float
+                    upper x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_ymin: float
+                    lower y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_ymax: float
+                    upper y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_zmin: float
+                    lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * fiducial_zmax: float
+                    upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+                * full_xmin: float (optional)
+                    lower x coordinate of simulated volume (if not set it is set to the fiducial volume - the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+                * full_xmax: float (optional)
+                    upper x coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+                * full_ymin: float (optional)
+                    lower y coordinate of simulated volume (if not set it is set to the fiducial volume - the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+                * full_ymax: float (optional)
+                    upper y coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+                * full_zmin: float (optional)
+                    lower z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                * full_zmax: float (optional)
+                    upper z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
     thetamin: float
         lower zenith angle for neutrino arrival direction (default 0deg)
     thetamax: float

@@ -8,7 +8,6 @@ import os
 import copy
 
 from NuRadioReco.utilities import units
-from NuRadioMC.EvtGen.generator import get_projected_area_cylinder, get_projected_area_cylinder_integral
 
 import logging
 logger = logging.getLogger("Veff")
@@ -414,8 +413,6 @@ def get_Veff(folder,
                     raise
 
         # calculate effective
-        rmin = fin.attrs['rmin']
-        rmax = fin.attrs['rmax']
         thetamin = 0
         thetamax = np.pi
         phimin = 0
@@ -428,9 +425,7 @@ def get_Veff(folder,
             fin.attrs['phimin']
         if('phimax' in fin.attrs):
             fin.attrs['phimax']
-        dZ = fin.attrs['zmax'] - fin.attrs['zmin']
-        area = np.pi * (rmax ** 2 - rmin ** 2)
-        V = area * dZ
+        V = fin.attrs['volume']
         Vrms = fin.attrs['Vrms']
 
         # Solid angle needed for the effective volume calculations
