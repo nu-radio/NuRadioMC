@@ -988,29 +988,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         mask_mu_cc = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 14)
         mask_leptons = mask_tau_cc | mask_mu_cc
 
-        rhos = np.sqrt(data_sets['xx'] ** 2 + data_sets['yy'] ** 2)
-
-        thetas_up = (attributes['fiducial_zmax'] - data_sets['zz']) / rhos
-        thetas_up = np.arctan(thetas_up)
-        thetas_down = (data_sets['zz'] - attributes['fiducial_zmin']) / rhos
-        thetas_down = np.arctan(thetas_down)
-        thetas = 90 * units.deg - data_sets["zeniths"]  # Theta is the elevation angle of the incoming neutrino
-        mask_theta = [ (theta < theta_up and theta > theta_down) or rho < attributes['fiducial_rmax']
-                       for theta, theta_up, theta_down, rho in zip(thetas, thetas_up, thetas_down, rhos) ]
-
-        phis_low = 180 * units.deg - np.arctan(attributes['fiducial_rmax'] ** 2 / rhos ** 2)
-        phis_high = 360 * units.deg - phis_low
-        phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
-        phis = data_sets["azimuths"] - phis_0  # Phi is the azimuth angle of the incoming neutrino if
-                                               # we take phi = 0 as the vertex position
-        mask_phi = [ (phi > phi_low and phi < phi_high) or rho < attributes['fiducial_rmax']
-                     for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
-
-        mask_theta = np.array(mask_theta)
-        mask_phi = np.array(mask_phi)
-
-        mask_leptons = mask_leptons & mask_theta & mask_phi
-
         E_all_leptons = (1 - data_sets["inelasticity"]) * data_sets["energies"]
         lepton_codes = copy.copy(data_sets["flavors"])
         lepton_codes[lepton_codes == 14] = 13
