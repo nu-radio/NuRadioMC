@@ -723,6 +723,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     data_sets["zeniths"] = np.arcsin(np.random.uniform(np.sin(thetamin) ** 2, np.sin(thetamax) ** 2, n_events) ** 0.5)
 
     data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(volume, proposal=False, attributes=attributes)
+    data_sets["zz"] = np.zeros_like(data_sets["yy"])  # muons interact at the surface
 
     data_sets["event_group_ids"] = np.arange(n_events) + start_event_id
     data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
