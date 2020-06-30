@@ -544,7 +544,7 @@ def intersection_box_ray(bounds, ray):
     if (t < 0):
         t = tmax
         if (t < 0):
-            return False
+            return False  # I think this removes events where the box is behind the the neutrino interaction which is what we want
     return True
 
 
