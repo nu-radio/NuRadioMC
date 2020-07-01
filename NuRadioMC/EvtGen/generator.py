@@ -401,6 +401,15 @@ def generate_vertex_positions(volume, proposal, attributes):
         zmax = attributes['fiducial_zmax']
         volume_fiducial = np.pi * (rmax ** 2 - rmin ** 2) * (zmax - zmin)
 
+        if('full_rmax' in volume):
+            rmax = volume['full_rmax']
+        if('full_rmin' in volume):
+            rmin = volume['full_rmin']
+        if('full_zmax' in volume):
+            zmax = volume['full_zmax']
+        if('full_zmin' in volume):
+            zmin = volume['full_zmin']
+
         # We increase the radius of the cylinder according to the tau track length
         if(proposal):
             tau_95_length = get_tau_95_length(attributes['Emax'])
@@ -420,15 +429,15 @@ def generate_vertex_positions(volume, proposal, attributes):
                 zmin = volume['full_zmin']
             else:
                 zmin = attributes['fiducial_zmin'] - tau_95_length  # we have a minus sign here because the zmin coordinate is negative
-            volume_full = np.pi * (rmax ** 2 - rmin ** 2) * (zmax - zmin)
-            # increase the total number of events such that we end up with the same number of events in the fiducial volume
-            n_events = int(n_events * volume_full / volume_fiducial)
-            attributes['n_events'] = n_events
-            logger.info("simulation of second interactions via PROPOSAL activated")
-            logger.info(f"increasing rmax from {attributes['fiducial_rmax']/units.km:.01f}km to {rmax/units.km:.01f}km, zmax from {attributes['fiducial_zmax']/units.km:.01f}km to {zmax/units.km:.01f}km")
-            logger.info(f"decreasing rmin from {attributes['fiducial_rmin']/units.km:.01f}km to {rmin/units.km:.01f}km")
-            logger.info(f"decreasing zmin from {attributes['fiducial_zmin']/units.km:.01f}km to {zmin/units.km:.01f}km")
-            logger.info(f"increasing number of events to {n_events}")
+        volume_full = np.pi * (rmax ** 2 - rmin ** 2) * (zmax - zmin)
+        # increase the total number of events such that we end up with the same number of events in the fiducial volume
+        n_events = int(n_events * volume_full / volume_fiducial)
+        attributes['n_events'] = n_events
+        logger.info("simulation of second interactions via PROPOSAL activated")
+        logger.info(f"increasing rmax from {attributes['fiducial_rmax']/units.km:.01f}km to {rmax/units.km:.01f}km, zmax from {attributes['fiducial_zmax']/units.km:.01f}km to {zmax/units.km:.01f}km")
+        logger.info(f"decreasing rmin from {attributes['fiducial_rmin']/units.km:.01f}km to {rmin/units.km:.01f}km")
+        logger.info(f"decreasing zmin from {attributes['fiducial_zmin']/units.km:.01f}km to {zmin/units.km:.01f}km")
+        logger.info(f"increasing number of events to {n_events}")
 
         attributes['rmin'] = rmin
         attributes['rmax'] = rmax
@@ -461,6 +470,13 @@ def generate_vertex_positions(volume, proposal, attributes):
         zmin = attributes['fiducial_zmin']
         zmax = attributes['fiducial_zmax']
         volume_fiducial = (xmax - xmin) * (ymax - ymin) * (zmax - zmin)
+        if('full_xmax' in volume):
+            xmin = volume['full_xmin']
+            xmax = volume['full_xmax']
+            ymin = volume['full_ymin']
+            ymax = volume['full_ymax']
+            zmin = volume['full_zmin']
+            zmax = volume['full_zmax']
 
         # We increase the simulation volume according to the tau track length
         if(proposal):
@@ -474,17 +490,10 @@ def generate_vertex_positions(volume, proposal, attributes):
                 ymin -= tau_95_length
                 zmin -= tau_95_length
                 logger.info(f"increasing cube by the 95% quantile of the tau decay length of {tau_95_length/units.m:.0f} km to all sides except the positive z direction")
-            else:
-                xmin = volume['full_xmin']
-                xmax = volume['full_xmax']
-                ymin = volume['full_ymin']
-                ymax = volume['full_ymax']
-                zmin = volume['full_zmin']
-                zmax = volume['full_zmax']
-            volume_full = (xmax - xmin) * (ymax - ymin) * (zmax - zmin)
-            n_events = int(n_events * volume_full / volume_fiducial)
-            attributes['n_events'] = n_events
-            logger.info(f"increasing number of events to {n_events}")
+        volume_full = (xmax - xmin) * (ymax - ymin) * (zmax - zmin)
+        n_events = int(n_events * volume_full / volume_fiducial)
+        attributes['n_events'] = n_events
+        logger.info(f"increasing number of events to {n_events}")
 
         attributes['xmin'] = xmin
         attributes['xmax'] = xmax
@@ -622,13 +631,13 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                 * fiducial_zmax: float
                     upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
                 * full_rmin: float (optional)
-                    lower r coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                    lower r coordinate of simulated volume (if not set it is set to the fiducial volume)
                 * full_rmax: float (optional)
-                    upper r coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+                    upper r coordinate of simulated volume (if not set it is set to the fiducial volume)
                 * full_zmin: float (optional)
-                    lower z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+                    lower z coordinate of simulated volume (if not set it is set to the fiducial volume)
                 * full_zmax: float (optional)
-                    upper z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume , if second vertices are not activated it is set to the fiducial volume)
+                    upper z coordinate of simulated volume (if not set it is set to the fiducial volume)
             or a cube specified with 
                 * fiducial_xmin: float
                     lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
@@ -643,17 +652,17 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                 * fiducial_zmax: float
                     upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
                 * full_xmin: float (optional)
-                    lower x coordinate of simulated volume (if not set it is set to the fiducial volume - the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+                    lower x coordinate of simulated volume (if not set it is set to the fiducial volume)
                 * full_xmax: float (optional)
-                    upper x coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+                    upper x coordinate of simulated volume (if not set it is set to the fiducial volume)
                 * full_ymin: float (optional)
-                    lower y coordinate of simulated volume (if not set it is set to the fiducial volume - the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+                    lower y coordinate of simulated volume (if not set it is set to the fiducial volume)
                 * full_ymax: float (optional)
-                    upper y coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+                    upper y coordinate of simulated volume (if not set it is set to the fiducial volume)
                 * full_zmin: float (optional)
-                    lower z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+                    lower z coordinate of simulated volume (if not set it is set to the fiducial volume)
                 * full_zmax: float (optional)
-                    upper z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+                    upper z coordinate of simulated volume (if not set it is set to the fiducial volume)
     thetamin: float
         lower zenith angle for neutrino arrival direction
     thetamax: float
@@ -737,7 +746,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     data_sets = {}
 
-    data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(volume, proposal=True, attributes=attributes)
+    data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(volume, proposal=False, attributes=attributes)
     data_sets["zz"] = np.zeros_like(data_sets["yy"])  # muons interact at the surface
     n_events = attributes['n_events']  # important! the number of events might have been increased by the generate vertex function
 

@@ -25,10 +25,7 @@ def calculate_veff(fin):
 
     n_triggered = np.sum(weights)
 
-    rmin = fin.attrs['rmin']
-    rmax = fin.attrs['rmax']
-    dZ = fin.attrs['zmax'] - fin.attrs['zmin']
-    V = np.pi * (rmax ** 2 - rmin ** 2) * dZ
+    V = fin.attrs['volume']
     Veff = V * 4 * np.pi * np.sum(weights) / n_events
     return n_triggered, n_events, Veff
 
