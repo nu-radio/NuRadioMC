@@ -174,8 +174,6 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
                     raise
 
         # calculate effective
-        rmin = fin.attrs['rmin']
-        rmax = fin.attrs['rmax']
         thetamin = 0
         thetamax = np.pi
         phimin = 0
@@ -188,13 +186,11 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
             fin.attrs['phimin']
         if('phimax' in fin.attrs):
             fin.attrs['phimax']
-        dZ = fin.attrs['zmax'] - fin.attrs['zmin']
-        area = np.pi * (rmax ** 2 - rmin ** 2)
+        area = fin.attrs['area']
         # The used area must be the projected area, perpendicular to the incoming
         # flux, which leaves us with the following correction. Remember that the
         # zenith bins must be small for the effective area to be correct.
         proj_area = area * 0.5 * (np.abs(np.cos(thetamin)) + np.abs(np.cos(thetamax)))
-        V = area * dZ
         Vrms = fin.attrs['Vrms']
 
         # Solid angle needed for the effective volume calculations
@@ -307,7 +303,6 @@ def get_Veff_water_equivalent(Veff, density_medium=0.917 * units.g / units.cm **
 def get_Veff(folder,
              trigger_combinations={},
              station=101,
-             correct_zenith_sampling=False,
              point_bins=True):
     """
     calculates the effective volume from NuRadioMC hdf5 files
@@ -333,8 +328,6 @@ def get_Veff(folder,
 
     station: int
         the station that should be considered
-    correct_zenith_sampling: bool
-        if True, correct a zenith sampling from np.sin(zenith) to an isotropic flux for a cylindrical geometry
     point_bins: bool
         if True, the bins are expected to only have one energy. If False, the
         centre of the interval in log scale is taken as the bin energy
