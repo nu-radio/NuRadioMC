@@ -8,6 +8,9 @@ import NuRadioReco.framework.electric_field
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+import radiotools.helper as hp
+import NuRadioMC.SignalProp.analyticraytracing
+import NuRadioMC.utilities.medium
 
 class neutrino2DVertexReconstructor:
 
@@ -58,7 +61,6 @@ class neutrino2DVertexReconstructor:
             if channel_z not in self.__lookup_table.keys():
                 f = NuRadioReco.utilities.io_utilities.read_pickle('{}/lookup_table_{}.p'.format(self.__lookup_table_location, int(abs(channel_z))))
                 self.__header[int(channel_z)] = f['header']
-                print(f['header'])
                 self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
 
 
@@ -109,6 +111,8 @@ class neutrino2DVertexReconstructor:
             #snr2 = ch2.get_parameter(chp.SNR)['peak_2_peak_amplitude']
             snr1 = np.max(np.abs(ch1.get_trace()))
             snr2 = np.max(np.abs(ch2.get_trace()))
+            if snr1 == 0 or snr2 == 0:
+                continue
             trace1 = np.copy(ch1.get_trace())
             t_max1 = ch1.get_times()[np.argmax(np.abs(trace1))]
             trace2 = np.copy(ch2.get_trace())
@@ -122,7 +126,8 @@ class neutrino2DVertexReconstructor:
                 t_max = t_max2
                 max_channel = ch2
             self.__correlation = np.abs(scipy.signal.correlate(trace1, trace2))
-            self.__correlation /= np.sum(np.abs(self.__correlation))
+            if np.sum(np.abs(self.__correlation)) > 0:
+                self.__correlation /= np.sum(np.abs(self.__correlation))
             corr_snr = np.max(self.__correlation)/np.mean(self.__correlation[self.__correlation>0])
             arg_max_corr = np.argmax(self.__correlation)
             toffset = -(np.arange(0, self.__correlation.shape[0]) - self.__correlation.shape[0] / 2.) / ch1.get_sampling_rate()
@@ -133,7 +138,8 @@ class neutrino2DVertexReconstructor:
             for i_ray in range(len(self.__ray_types)):
                 self.__current_ray_types = self.__ray_types[i_ray]
                 correlation_array = np.maximum(self.get_correlation_array_2d(x_coords, z_coords), correlation_array)
-            correlation_sum = correlation_sum + correlation_array / np.max(correlation_array) * corr_snr
+            if np.max(correlation_array) > 0:
+                correlation_sum += correlation_array / np.max(correlation_array) * corr_snr
 
 
             max_corr_index = np.unravel_index(np.argmax(correlation_sum), correlation_sum.shape)
@@ -194,8 +200,11 @@ class neutrino2DVertexReconstructor:
         station.set_parameter(stnp.vertex_2D_fit, [self.__rec_x, self.__rec_z])
         for channel_id in self.__channel_ids:
             ray_type = self.find_ray_type(station, station.get_channel(channel_id))
+            zenith = self.find_receiving_zenith(station, ray_type, channel_id)
             efield = NuRadioReco.framework.electric_field.ElectricField([channel_id], self.__detector.get_relative_position(station.get_id(), channel_id))
             efield.set_parameter(efp.ray_path_type, ray_type)
+            if zenith is not None:
+                efield.set_parameter(efp.zenith, zenith)
             station.add_electric_field(efield)
 
         return
@@ -264,8 +273,30 @@ class neutrino2DVertexReconstructor:
                     correlation /= np.sum(np.abs(correlation))
                     t_1 = self.get_signal_travel_time(np.array([self.__rec_x]), np.array([self.__rec_z]), ray_type, ch1.get_id())[0]
                     t_2 = self.get_signal_travel_time(np.array([self.__rec_x]), np.array([self.__rec_z]), ray_type, ch2.get_id())[0]
+                    if np.isnan(t_1) or np.isnan(t_2):
+                        return None
                     delta_t = t_1 - t_2
-                    corr_index = int(correlation.shape[0]/2 + np.round(delta_t*self.__sampling_rate))
+                    corr_index = correlation.shape[0]/2 + np.round(delta_t*self.__sampling_rate)
+                    if np.isnan(corr_index):
+                        return None
+                    corr_index = int(corr_index)
                     if corr_index > 0 and corr_index < len(correlation):
                         ray_type_correlations[i_ray_type] += correlation[int(corr_index)]
         return ray_types[np.argmax(ray_type_correlations)]
+    def find_receiving_zenith(self, station, ray_type, channel_id):
+        solution_types = {1: 'direct',
+                          2: 'refracted',
+                          3: 'reflected'}
+        nu_vertex_2D = station.get_parameter(stnp.vertex_2D_fit)
+        nu_vertex = [nu_vertex_2D[0], 0, nu_vertex_2D[1]]
+        ray_tracer = NuRadioMC.SignalProp.analyticraytracing.ray_tracing(
+            nu_vertex,
+            self.__detector.get_relative_position(station.get_id(),channel_id)+self.__detector.get_absolute_position(station.get_id()),
+            NuRadioMC.utilities.medium.get_ice_model('greenland_simple')
+        )
+        ray_tracer.find_solutions()
+        for i_solution, solution in enumerate(ray_tracer.get_results()):
+            if solution_types[ray_tracer.get_solution_type(i_solution)] == ray_type:
+                receive_vector = ray_tracer.get_receive_vector(i_solution)
+                return hp.cartesian_to_spherical(receive_vector[0], receive_vector[1], receive_vector[2])[0]
+        return None
