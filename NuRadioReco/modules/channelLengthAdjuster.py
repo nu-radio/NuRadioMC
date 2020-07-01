@@ -29,12 +29,33 @@ class channelLengthAdjuster:
 
         self.number_of_samples = number_of_samples
         self.offset = offset
-    
+
     @register_run()
-    def run(self, evt, station, det):
+    def run(self, evt, station, det=None, channel_ids=None):
+        """
+        Run method for the channelLengthAdjuster
+
+        Parameters
+        ..............
+        evt: Event object
+            The event containing the station whose channels should be cut
+        station: Station object
+            The station whose channels should be cut
+        det: Detector object
+            The detector description. It is not actually needed and just
+            kept as a parameter to comply with the module template
+        channel_ids: List of ints
+            Can be used to specify, which channels shall be cut. If it is None,
+            all channels are cut.
+        """
         max_pos = []
-        for channel in station.iter_channels():
-            max_pos.append(np.argmax(np.abs(channel.get_trace())))
+        if channel_ids is None:
+            for channel in station.iter_channels():
+                max_pos.append(np.argmax(np.abs(channel.get_trace())))
+        else:
+            for channel_id in channel_ids:
+                channel = station.get_channel(channel_id)
+                max_pos.append(np.argmax(np.abs(channel.get_trace())))
 
         pulse_start = min(max_pos) - self.offset
         change_time = -1
