@@ -428,7 +428,7 @@ def generate_vertex_positions(volume, proposal, attributes):
             if('full_zmin' in volume):
                 zmin = volume['full_zmin']
             else:
-                zmin = attributes['fiducial_zmin'] - tau_95_length  # we have a minus sign here because the zmin coordinate is negative
+                zmin = attributes['fiducial_zmin']
         volume_full = np.pi * (rmax ** 2 - rmin ** 2) * (zmax - zmin)
         # increase the total number of events such that we end up with the same number of events in the fiducial volume
         n_events = int(n_events * volume_full / volume_fiducial)
@@ -488,7 +488,6 @@ def generate_vertex_positions(volume, proposal, attributes):
                 xmin -= tau_95_length
                 ymax += tau_95_length
                 ymin -= tau_95_length
-                zmin -= tau_95_length
                 logger.info(f"increasing cube by the 95% quantile of the tau decay length of {tau_95_length/units.m:.0f} km to all sides except the positive z direction")
         volume_full = (xmax - xmin) * (ymax - ymin) * (zmax - zmin)
         n_events = int(n_events * volume_full / volume_fiducial)
