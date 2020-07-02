@@ -898,7 +898,7 @@ class simulation():
                     triggered_showers[self._station_id].extend(self._get_shower_index(self._shower_ids_of_sub_event))
                     self._calculate_signal_properties()
                     local_shower_index = np.atleast_1d(np.squeeze(np.argwhere(event_indices == self._get_shower_index(self._shower_ids_of_sub_event))))
-                    self._save_triggers_to_hdf5(sg, local_shower_index)
+                    self._save_triggers_to_hdf5(sg, local_shower_index, self._get_shower_index(self._shower_ids_of_sub_event))
                     if(self._outputfilenameNuRadioReco is not None and self._station.has_triggered()):
                         # downsample traces to detector sampling rate to save file size
                         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
@@ -1105,7 +1105,7 @@ class simulation():
 #                 sg['multiple_triggers'] = tmp
         return extend_array
 
-    def _save_triggers_to_hdf5(self, sg, local_shower_index):
+    def _save_triggers_to_hdf5(self, sg, local_shower_index, global_shower_index):
         extend_array = self._create_trigger_structures()
         # now we also need to create the trigger structure also in the sg (station group) dictionary that contains
         # the information fo the current station and event group
@@ -1127,9 +1127,9 @@ class simulation():
                 for iSh in local_shower_index:  # now save trigger information per shower of the current station
                     sg['multiple_triggers'][iSh][iT] = self._station.get_trigger(trigger_name).has_triggered()
                     self._mout['multiple_triggers'][iSh][iT] |= sg['multiple_triggers'][iSh][iT]
-        for iSh in local_shower_index:  # now save trigger information per shower of the current station
+        for iSh, iSh2 in zip(local_shower_index, global_shower_index):  # now save trigger information per shower of the current station
             sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
-            self._mout['triggered'][iSh] |= sg['triggered'][iSh]
+            self._mout['triggered'][iSh2] |= sg['triggered'][iSh]
         self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
         self._output_triggered_station[self._station_id].append(np.any(multiple_triggers))
 
