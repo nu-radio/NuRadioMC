@@ -493,7 +493,7 @@ class simulation():
                     if self._cfg['speedup']['distance_cut']:
                         # quick speedup cut using barycenter of station as position
                         distance_to_station = np.linalg.norm(x1 - self._station_barycenter[iSt])
-                        distance_cut = self._get_distance_cut(self._shower_energy)
+                        distance_cut = self._get_distance_cut(self._shower_energy) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
                         if distance_to_station > distance_cut:
                             logger.debug(f"skipping station {self._station_id} because distance {distance_to_station/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {self._shower_energy:.2g}eV) between vertex {x1} and bary center of station {self._station_barycenter[iSt]}")
                             continue
