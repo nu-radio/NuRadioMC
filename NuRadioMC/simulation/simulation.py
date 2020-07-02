@@ -349,11 +349,22 @@ class simulation():
         tmp_cut = float(self._cfg['speedup']['min_efield_amplitude'])
         logger.status(f"final Vrms {self._Vrms/units.V:.2g}V corresponds to an efield of {self._Vrms_efield/units.V/units.m/units.micro:.2g} muV/m for a VEL = 1m (amplification factor of system is {amplification:.1f}).\n -> all signals with less then {tmp_cut:.1f} x Vrms_efield = {tmp_cut * self._Vrms_efield/units.m/units.V/units.micro:.2g}muV/m will be skipped")
 
+        self._distance_cut_polynomial = None
+        if self._cfg['speedup']['distance_cut']:
+            coef = self._cfg['speedup']['distance_cut_coefficients']
+            self.__distance_cut_polynomial = np.polynomial.polynomial.Polynomial(coef)
+
+            def get_distance_cut(shower_energy):
+                return 10 ** self.__distance_cut_polynomial(np.log10(shower_energy))
+
+            self._get_distance_cut = get_distance_cut
+
     def run(self):
         """
         run the NuRadioMC simulation
         """
         logger.status(f"Starting NuRadioMC simulation")
+        t_start = time.time()
 
         self._channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
         self._eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
@@ -388,7 +399,17 @@ class simulation():
         outputTime = 0.0
         weightTime = 0
         time_attenuation_length = 0.
-        t_start = time.time()
+
+        n_shower_station = len(self._station_ids) * self._n_showers
+        iCounter = 0
+
+        # calculate bary centers of station
+        self._station_barycenter = np.zeros((len(self._station_ids), 3))
+        for iSt, station_id in enumerate(self._station_ids):
+            pos = []
+            for channel_id in range(self._det.get_number_of_channels(station_id)):
+                pos.append(self._det.get_relative_position(station_id, channel_id))
+            self._station_barycenter[iSt] = np.mean(np.array(pos), axis=0) + self._det.get_absolute_position(station_id)
 
         # loop over event groups
         for event_group_id in unique_event_group_ids:
@@ -448,23 +469,34 @@ class simulation():
                 self._create_sim_station()
                 # loop over all showers in event group
                 for self._iSh in event_indices:
-                    if(self._iSh > 0 and self._iSh % max(1, int(self._n_showers / 100.)) == 0):
-                        eta = pretty_time_delta((time.time() - t_start) * (self._n_showers - self._iSh) / self._iSh)
-                        total_time = input_time + rayTracingTime + detSimTime + outputTime
+                    iCounter += 1
+                    if(iCounter % max(1, int(n_shower_station / 1000.)) == 0):
+                        eta = pretty_time_delta((time.time() - t_start) * (n_shower_station - iCounter) / iCounter)
+                        total_time_sum = input_time + rayTracingTime + detSimTime + outputTime + weightTime  # askaryan time is part of the ray tracing time, so it is not counted here.
+                        total_time = time.time() - t_start
                         tmp_att = 0
                         if(rayTracingTime - askaryan_time != 0):
                             tmp_att = 100. * time_attenuation_length / (rayTracingTime - askaryan_time)
                         if total_time > 0:
-                            logger.status("processing event {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%".format(
-                                self._iSh, self._n_showers, np.sum(self._mout['triggered']), 100. * self._iSh / self._n_showers,
+                            logger.status("processing {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, unaccounted = {:.0f}% ".format(
+                                iCounter, n_shower_station, np.sum(self._mout['triggered']), 100. * iCounter / n_shower_station,
                                 eta, 100. * (rayTracingTime - askaryan_time) / total_time,
                                 tmp_att,
-                                100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*input_time / total_time))
+                                100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*input_time / total_time,
+                                100 * weightTime / total_time, 100 * (total_time - total_time_sum) / total_time))
 
                     # read all quantities from hdf5 file and store them in local variables
                     self._read_input_neutrino_properties()
                     logger.debug(f"simulating shower {self._iSh}: {self._shower_type} with E = {self._shower_energy/units.eV:.2g}eV")
                     x1 = np.array([self._x, self._y, self._z])  # the interaction point
+
+                    if self._cfg['speedup']['distance_cut']:
+                        # quick speedup cut using barycenter of station as position
+                        distance_to_station = np.linalg.norm(x1 - self._station_barycenter[iSt])
+                        distance_cut = self._get_distance_cut(self._shower_energy)
+                        if distance_to_station > distance_cut:
+                            logger.debug(f"skipping station {self._station_id} because distance {distance_to_station/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {self._shower_energy:.2g}eV) between vertex {x1} and bary center of station {self._station_barycenter[iSt]}")
+                            continue
 
                     # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
                     # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
@@ -504,17 +536,14 @@ class simulation():
 
                     # first step: perform raytracing to see if solution exists
                     t2 = time.time()
-                    input_time += (time.time() - t1)
+#                     input_time += (time.time() - t1)
 
                     for channel_id in range(self._det.get_number_of_channels(self._station_id)):
-                        logger.debug(f"simulationg channel {channel_id}")
                         x2 = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
+                        logger.debug(f"simulationg channel {channel_id} at {x2}")
 
                         if self._cfg['speedup']['distance_cut']:
-                            intercept = self._cfg['speedup']['distance_cut_intercept']
-                            slope = self._cfg['speedup']['distance_cut_slope']
-
-                            distance_cut = get_distance_cut(self._shower_energy, intercept, slope)
+                            distance_cut = self._get_distance_cut(self._shower_energy)
                             distance = np.linalg.norm(x1 - x2)
 
                             if distance > distance_cut:
@@ -754,10 +783,10 @@ class simulation():
                 # now perform first part of detector simulation -> convert each efield to voltage
                 # (i.e. apply antenna response) and apply additional simulation of signal chain (such as cable delays,
                 # amp response etc.)
-                t1 = time.time()
                 if(not candidate_station):
                     logger.debug("electric field amplitude too small in all channels, skipping to next event")
                     continue
+                t1 = time.time()
                 self._station = NuRadioReco.framework.station.Station(self._station_id)
                 self._station.set_sim_station(self._sim_station)
 
