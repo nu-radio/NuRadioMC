@@ -26,7 +26,12 @@ def update_station_info_table(station_id):
     if detector is None:
         return ''
     station_info = detector.get_station(station_id)
-    table_rows = []
+    table_rows = [
+        html.Div(
+            'Station {}'.format(station_id),
+            className='custom-table-header'
+            )
+    ]
     for key, value in station_info.items():
         table_rows.append(html.Div([
             html.Div(key, className='custom-table-title'),
