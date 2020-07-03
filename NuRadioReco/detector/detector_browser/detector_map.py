@@ -1,7 +1,5 @@
 import numpy as np
 from app import app
-import NuRadioReco.detector.detector
-import NuRadioReco.detector.generic_detector
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -14,6 +12,7 @@ layout = html.Div([
     html.Div([
         html.Div('Station Map', className='panel panel-heading'),
         html.Div([
+            html.Div(None, id='selected-station', style={'display': 'none'}),
             dcc.Graph(id='station-position-map')
         ], className='panel panel-body')
     ], className='panel panel-default')
@@ -40,6 +39,7 @@ def draw_station_position_map(dummy):
         go.Scatter(
             x=xx,
             y=yy,
+            ids=labels,
             text=labels,
             mode='markers+text',
             textposition='middle right'
@@ -58,3 +58,12 @@ def draw_station_position_map(dummy):
         )
     )
     return fig
+
+@app.callback(
+    Output('selected-station', 'children'),
+    [Input('station-position-map', 'clickData')]
+)
+def select_station(click):
+    if click is None:
+        return None
+    return click['points'][0]['id']

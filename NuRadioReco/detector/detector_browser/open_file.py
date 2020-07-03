@@ -18,7 +18,6 @@ class DetectorProvider(object):
         self.__detector.update(astropy.time.Time('2020-1-1'))
 
     def set_generic_detector(self, filename, default_station, default_channel):
-        print('!!!!!!!!! set generic_detector')
         self.__detector = NuRadioReco.detector.generic_detector.GenericDetector(filename, default_station, default_channel)
 
     def get_detector(self):
@@ -114,7 +113,6 @@ def update_file_name_options(folder_dummy, refresh_button, file_type, folder_inp
     [State('detector-file-dropdown', 'value'),
     State('file-type-dropdown', 'value')])
 def open_detector(n_clicks, filename, detector_type):
-    print('click')
     if filename is None:
         return ''
     detector_provider = DetectorProvider()
