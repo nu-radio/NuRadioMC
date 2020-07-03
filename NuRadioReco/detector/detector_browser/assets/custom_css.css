@@ -3,3 +3,17 @@
   width: 100%;
   display: flex;
 }
+
+.custom-table-row {
+  display: flex;
+}
+.custom-table-row:nth-child(2n+1) {
+  background-color: #f1f1f1;
+  padding: 2px;
+}
+.custom-table-title {
+  flex: 1;
+}
+.custom-table-cell {
+  flex: 2;
+}

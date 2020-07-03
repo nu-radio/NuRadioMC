@@ -8,6 +8,7 @@ import NuRadioReco.detector.detector
 import NuRadioReco.detector.generic_detector
 import open_file
 import detector_map
+import station_info
 import argparse
 import os
 from app import app
@@ -23,7 +24,8 @@ app.layout = html.Div([
     html.Div([
         html.Div([
             html.Div(id='folder-dummy', style={'display': 'none'}, children=data_folder),
-            open_file.layout
+            open_file.layout,
+            station_info.layout
         ], style={'flex': '1'}),
         html.Div([
             detector_map.layout
