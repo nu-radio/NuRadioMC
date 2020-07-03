@@ -11,6 +11,10 @@
   background-color: #f1f1f1;
   padding: 2px;
 }
+.custom-table-header {
+  background-color: #f1f1f1;
+  font-weight: bold;
+}
 .custom-table-title {
   flex: 1;
 }
