@@ -7,6 +7,7 @@ import plotly.graph_objs as go
 import NuRadioReco.detector.detector
 import NuRadioReco.detector.generic_detector
 import open_file
+import detector_map
 import argparse
 import os
 from app import app
@@ -25,12 +26,7 @@ app.layout = html.Div([
             open_file.layout
         ], style={'flex': '1'}),
         html.Div([
-            html.Div([
-                html.Div('Title', className='panel panel-heading'),
-                html.Div([
-                    html.Div('Panel')
-                ], className='panel panel-body')
-            ], className='panel panel-default')
+            detector_map.layout
         ], style={'flex': '2'})
     ], style={'display': 'flex'})
 ])
