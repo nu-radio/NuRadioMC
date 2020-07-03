@@ -902,7 +902,10 @@ class simulation():
                         """
                         finds the indices for the values `x` in array `y`
                         
-                        from https://stackoverflow.com/questions/8251541/numpy-for-every-element-in-one-array-find-the-index-in-another-array
+                        modified from https://stackoverflow.com/questions/8251541/numpy-for-every-element-in-one-array-find-the-index-in-another-array
+                        the original solution returned a masked array which also indicated the elements in y that were
+                        not available in x. We don't need that. x will be always a subset of y, and we want only the 
+                        indices in y for the subset x. 
                         
                         Parameters
                         ----------
@@ -920,9 +923,8 @@ class simulation():
 
                         yindex = np.take(index, sorted_index, mode="clip")
                         mask = x[yindex] != y
-
-                        result = np.ma.array(yindex, mask=mask)
-                        return result
+                        result2 = yindex[~mask]
+                        return result2
 
                     global_shower_indices = self._get_shower_index(self._shower_ids_of_sub_event)
                     local_shower_index = find_indices(global_shower_indices, event_indices)
@@ -1155,7 +1157,6 @@ class simulation():
                 multiple_triggers[iT] = self._station.get_trigger(trigger_name).has_triggered()
                 for iSh in local_shower_index:  # now save trigger information per shower of the current station
                     sg['multiple_triggers'][iSh][iT] = self._station.get_trigger(trigger_name).has_triggered()
-#                     self._mout['multiple_triggers'][iSh][iT] |= sg['multiple_triggers'][iSh][iT]
         for iSh, iSh2 in zip(local_shower_index, global_shower_index):  # now save trigger information per shower of the current station
             sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
             self._mout['triggered'][iSh2] |= sg['triggered'][iSh]
