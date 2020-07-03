@@ -11,11 +11,14 @@ import astropy.time
 
 @six.add_metaclass(NuRadioReco.detector.detector.Singleton)
 class DetectorProvider(object):
+    def __init__(self):
+        self.__detector = None
     def set_detector(self, filename):
         self.__detector = NuRadioReco.detector.detector.Detector(source='json', json_filename=filename)
         self.__detector.update(astropy.time.Time('2020-1-1'))
 
     def set_generic_detector(self, filename, default_station, default_channel):
+        print('!!!!!!!!! set generic_detector')
         self.__detector = NuRadioReco.detector.generic_detector.GenericDetector(filename, default_station, default_channel)
 
     def get_detector(self):
@@ -118,5 +121,5 @@ def open_detector(n_clicks, filename, detector_type):
     if detector_type == 'detector':
         detector_provider.set_detector(filename)
     elif detector_type == 'generic_detector':
-        detector_provider.set_generic_detector(filename, 101,1)
+        detector_provider.set_generic_detector(filename, 101,9)
     return ''
