@@ -10,12 +10,20 @@ from NuRadioReco.utilities import units
 
 layout = html.Div([
     html.Div([
-        html.Div('Station Map', className='panel panel-heading'),
         html.Div([
-            html.Div(None, id='selected-station', style={'display': 'none'}),
-            dcc.Graph(id='station-position-map')
-        ], className='panel panel-body')
-    ], className='panel panel-default')
+            html.Div('Station Map', className='panel panel-heading'),
+            html.Div([
+                html.Div(None, id='selected-station', style={'display': 'none'}),
+                dcc.Graph(id='station-position-map')
+            ], className='panel panel-body')
+        ], className='panel panel-default', style={'flex': '1'}),
+        html.Div([
+            html.Div('Station View', className='panel panel-heading'),
+            html.Div([
+                dcc.Graph(id='station-view')
+            ], className='panel panel-body')
+        ], className='panel panel-default', style={'flex': '1'})
+    ], style={'display': 'flex'})
 ])
 
 @app.callback(
@@ -67,3 +75,33 @@ def select_station(click):
     if click is None:
         return None
     return click['points'][0]['id']
+
+@app.callback(
+    Output('station-view', 'figure'),
+    [Input('selected-station', 'children')]
+)
+def draw_station_view(station_id):
+    if station_id is None:
+        return go.Figure([])
+    detector_provider = DetectorProvider()
+    detector = detector_provider.get_detector()
+    channel_positions = []
+    channel_ids = detector.get_channel_ids(station_id)
+    for channel_id in channel_ids:
+        channel_positions.append(detector.get_relative_position(station_id, channel_id))
+    channel_positions = np.array(channel_positions)
+    data = []
+    data.append(go.Scatter3d(
+        x = channel_positions[:,0],
+        y = channel_positions[:,1],
+        z = channel_positions[:,2],
+        ids = channel_ids,
+        text = channel_ids,
+        mode = 'markers+text',
+        textposition = 'middle right',
+        marker = dict(
+            size=2
+        )
+    ))
+    fig = go.Figure(data)
+    return fig
