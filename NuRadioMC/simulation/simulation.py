@@ -1283,24 +1283,18 @@ class simulation():
             os.makedirs(folder)
         fout = h5py.File(self._outputfilename, 'w')
 
-        saved = np.ones(len(self._mout['triggered']), dtype=np.bool)
-        if (self._cfg['save_all'] == False):
-            logger.status("saving only triggered events")
+        # here we add the first interaction to the saved events
+        # if any of its children triggered
 
-            # here we add the first interaction to the saved events
-            # if any of its children triggered
-
-            # Careful! saved should be a copy of the triggered array, and not
-            # a reference! saved indicates the interactions to be saved, while
-            # triggered should indicate if an interaction has produced a trigger
-            saved = np.copy(self._mout['triggered'])
-            parent_mask = self._fin['n_interaction'] == 1
-            for event_id in np.unique(self._fin['event_group_ids']):
-                event_mask = self._fin['event_group_ids'] == event_id
-                if (True in self._mout['triggered'][event_mask]):
-                    saved[parent_mask & event_mask] = True
-        else:
-            logger.status("saving all events")
+        # Careful! saved should be a copy of the triggered array, and not
+        # a reference! saved indicates the interactions to be saved, while
+        # triggered should indicate if an interaction has produced a trigger
+        saved = np.copy(self._mout['triggered'])
+        parent_mask = self._fin['n_interaction'] == 1
+        for event_id in np.unique(self._fin['event_group_ids']):
+            event_mask = self._fin['event_group_ids'] == event_id
+            if (True in self._mout['triggered'][event_mask]):
+                saved[parent_mask & event_mask] = True
 
         logger.status("start saving events")
         # save data sets
