@@ -6,6 +6,7 @@ version 1.2.0
 new features:
 - merge hdf5 utility has multithreading option
 
+
 version 1.1.2 - 
 new features:
 - Veff utility can now handle extended bins
