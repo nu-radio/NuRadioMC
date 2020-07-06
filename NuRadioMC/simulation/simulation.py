@@ -472,6 +472,7 @@ class simulation():
                 # create output data structure for this channel
                 sg = self._create_station_output_structure(len(event_indices), self._det.get_number_of_channels(self._station_id))
                 for iSh, self._shower_index in enumerate(event_indices):
+                    sg['shower_id'][iSh] = self._shower_ids[self._shower_index]
                     iCounter += 1
                     if(iCounter % max(1, int(n_shower_station / 1000.)) == 0):
                         eta = pretty_time_delta((time.time() - t_start) * (n_shower_station - iCounter) / iCounter)
@@ -1218,6 +1219,7 @@ class simulation():
         nS = 2 + 4 * self._n_reflections  # number of possible ray-tracing solutions
         sg = {}
         sg['triggered'] = np.zeros(n_showers, dtype=np.bool)
+        sg['shower_id'] = np.zeros(n_showers, dtype=np.int) * -1  # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
         sg['launch_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['receive_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['ray_tracing_C0'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
