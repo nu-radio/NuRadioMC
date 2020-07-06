@@ -379,6 +379,7 @@ def get_Veff(folder,
 
     for iF, filename in enumerate(filenames):
         fin = h5py.File(filename, 'r')
+        logger.warning(f"processing file {iF}/{len(filenames)} {filename}")
         out = {}
         if point_bins:
             E = fin.attrs['Emin']
