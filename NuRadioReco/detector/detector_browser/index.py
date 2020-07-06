@@ -10,6 +10,7 @@ import open_file
 import detector_map
 import station_info
 import channel_info
+import hardware_response
 import argparse
 import os
 from app import app
@@ -30,7 +31,8 @@ app.layout = html.Div([
             channel_info.layout
         ], style={'flex': '1'}),
         html.Div([
-            detector_map.layout
+            detector_map.layout,
+            hardware_response.layout
         ], style={'flex': '2'})
     ], style={'display': 'flex'})
 ])
