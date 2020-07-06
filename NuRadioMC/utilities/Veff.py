@@ -393,17 +393,16 @@ def get_Veff(folder,
         weights = np.array(fin['weights'])
         triggered, unique_mask = get_triggered(fin)
         n_events = fin.attrs['n_events']
-        if(trigger_names is None):
-            trigger_names = fin.attrs['trigger_names']
-            for iT, trigger_name in enumerate(trigger_names):
-                trigger_names_dict[trigger_name] = iT
-        else:
+
+        if('trigger_names' in fin.attrs):
             if(np.any(trigger_names != fin.attrs['trigger_names'])):
                 if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
                     logger.warning("file {} has no triggering events. Using trigger names from another file".format(filename))
                 else:
                     logger.error("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
                     raise
+        else:
+            logger.warning(f"file {filename} has no triggering events. Using trigger names from a different file: {trigger_names}")
 
         # calculate effective
         thetamin = 0
