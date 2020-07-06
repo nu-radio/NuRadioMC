@@ -136,7 +136,7 @@ def merge2(filenames, output_filename):
         for key in attrs:
             fout.attrs[key] = attrs[key]
     else:  # now handle the case
-        logger.warning("All files are empty. Copying content of first file to output file and keepting track of total number of simulated events.")
+        logger.warning("All files are empty. Copying content of first file to output file and keeping track of total number of simulated events.")
         # all files are empty, so just copy the content of the first file (attributes and empyt data sets) to the output file
         # update n_events attribute with the total number of events
         fin = h5py.File(filenames[0], 'r')
