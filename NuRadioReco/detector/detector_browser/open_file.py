@@ -26,6 +26,14 @@ class DetectorProvider(object):
     def get_detector(self):
         return self.__detector
 
+    def set_time_periods(self, unix, astropy_time):
+        self.__unix_time_periods = unix
+        self.__astropy_time_periods = astropy_time
+
+    def get_time_periods(self):
+        return self.__unix_time_periods, self.__astropy_time_periods
+
+
 layout = html.Div([
     html.Div([
         html.Div('', id='output-dummy', style={'display': 'none'}),
@@ -90,7 +98,29 @@ layout = html.Div([
                     placeholder='Default Channel',
                     className='form-control'
                 )
-            ],id='default-settings-div', className='input-group')
+            ],id='default-settings-div', className='input-group'),
+            html.Div([
+                html.Button(
+                    '',
+                    id='selected-data-button',
+                    className='badge badge-light'
+                ),
+                html.Div([
+                    dcc.Slider(
+                        id='detector-time-slider',
+                        value=10000,
+                        min=0,
+                        max=1551092200,
+                        step=1000
+                    )
+                ], style={'flex': '1'}),
+                html.Button(
+                'Update',
+                id='update-detector-time-button',
+                n_clicks=0,
+                className='btn btn-primary'
+                )
+            ], id='detector-time-div', className='input-group')
         ], className='panel panel-body')
     ], className='panel panel-default')
 ])
@@ -127,15 +157,21 @@ def update_file_name_options(folder_dummy, refresh_button, file_type, folder_inp
     return options
 
 @app.callback(Output('output-dummy', 'children'),
-    [Input('load-detector-button', 'n_clicks')],
+    [Input('load-detector-button', 'n_clicks'),
+    Input('update-detector-time-button', 'n_clicks')],
     [State('detector-file-dropdown', 'value'),
     State('file-type-dropdown', 'value'),
     State('default-station-input', 'value'),
-    State('default-channel-input', 'value')])
-def open_detector(n_clicks, filename, detector_type, default_station, default_channel):
+    State('default-channel-input', 'value'),
+    State('detector-time-slider', 'value')])
+def open_detector(n_clicks, time_n_clicks, filename, detector_type, default_station, default_channel, detector_time):
     if filename is None:
         return ''
     detector_provider = DetectorProvider()
+    context = dash.callback_context
+    if context.triggered[0]['prop_id'] == 'update-detector-time-button.n_clicks':
+        detector_provider.get_detector().update(astropy.time.Time(detector_time, format='unix'))
+        return n_clicks
     if detector_type == 'detector':
         detector_provider.set_detector(filename)
         detector = detector_provider.get_detector()
@@ -146,6 +182,7 @@ def open_detector(n_clicks, filename, detector_type, default_station, default_ch
                 if dt.unix not in unix_times:
                     unix_times.append(dt.unix)
                     datetimes.append(dt)
+        detector_provider.set_time_periods(unix_times, datetimes)
         detector.update(datetimes[np.argmin(unix_times)])
     elif detector_type == 'generic_detector':
         detector_provider.set_generic_detector(filename, default_station,default_channel)
@@ -173,3 +210,48 @@ def toggle_open_button_active(filename, detector_type, default_station):
     if detector_type == 'generic_detector' and default_station is None:
         return True
     return False
+
+@app.callback(
+    Output('detector-time-div', 'style'),
+    [Input('load-detector-button', 'n_clicks'),
+    Input('file-type-dropdown', 'value')]
+)
+def show_detector_time_slider(load_detector_click,detector_type):
+    if detector_type == 'detector':
+        detector_provider = DetectorProvider()
+        if detector_provider.get_detector() is not None:
+            return {'z-index': '0'}
+    return {'display': 'none'}
+
+@app.callback(
+    [Output('detector-time-slider', 'value'),
+    Output('detector-time-slider', 'min'),
+    Output('detector-time-slider', 'max'),
+    Output('detector-time-slider', 'marks')],
+    [Input('output-dummy', 'children'),
+    Input('file-type-dropdown', 'value')]
+)
+def set_detector_time_slider(load_detector_click, detector_type):
+    detector_provider = DetectorProvider()
+    detector = detector_provider.get_detector()
+    if detector is None:
+        return None, 0, 1, {}
+    if detector_type != 'detector':
+        return None, 0, 1, {}
+    unix_times, datetimes = detector_provider.get_time_periods()
+    marks = {}
+    for i_time, unix_time in enumerate(unix_times):
+        datetimes[i_time].format = 'iso'
+        marks[unix_time] = {'label': str(datetimes[i_time].value)}
+    return detector.get_detector_time().unix, np.min(unix_times), np.max(unix_times), marks
+
+@app.callback(
+    Output('selected-data-button', 'children'),
+    [Input('detector-time-slider', 'value')]
+)
+def set_selected_date_button(unix_time):
+    if unix_time is None:
+        return ''
+    t = astropy.time.Time(unix_time, format='unix')
+    t.format = 'iso'
+    return str(t.value).split(' ')[0]
