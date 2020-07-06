@@ -218,7 +218,7 @@ if __name__ == "__main__":
                     input_args.append({'filenames': input_files[mask], 'output_filename': output_filename})
         if(args.cores == 1):
             for i in range(len(input_args)):
-                merge2(input_args['filenames'][i], input_args['output_filename'][i])
+                merge2(input_args[i]['filenames'], input_args[i]['output_filename'])
         else:
             from multiprocessing import Pool
             logger.warning(f"running {len(input_args)} job on {args.cores} cores")
@@ -227,7 +227,7 @@ if __name__ == "__main__":
                 merge2(**kwargs)
 
             with Pool(args.cores) as p:
-                print(p.map(tmp, input_args))
+                p.map(tmp, input_args)
 
     elif(len(args.files) > 1):
         output_filename = args.files[0]
