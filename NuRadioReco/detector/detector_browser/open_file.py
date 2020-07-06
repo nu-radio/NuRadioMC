@@ -14,18 +14,20 @@ class DetectorProvider(object):
     def __init__(self):
         self.__detector = None
     def set_detector(self, filename):
-        self.__detector = NuRadioReco.detector.detector.Detector(source='json', json_filename=filename)
+        self.__detector = NuRadioReco.detector.detector.Detector.__new__(NuRadioReco.detector.detector.Detector)
+        self.__detector.__init__(source='json', json_filename=filename)
         self.__detector.update(astropy.time.Time('2020-1-1'))
 
     def set_generic_detector(self, filename, default_station, default_channel):
-        self.__detector = NuRadioReco.detector.generic_detector.GenericDetector(filename, default_station, default_channel)
+        self.__detector = NuRadioReco.detector.generic_detector.GenericDetector.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
+        self.__detector.__init__(filename, default_station, default_channel)
 
     def get_detector(self):
         return self.__detector
 
 layout = html.Div([
     html.Div([
-        html.Div('', id='output-dummy', style={'display': 'none'}),
+        html.Div('', id='output-dummy', style={'display': 'block'}),
         html.Div('File Selection', className='panel panel-heading'),
         html.Div([
             html.Div([
@@ -71,8 +73,23 @@ layout = html.Div([
                     n_clicks=0,
                     className='btn btn-primary'
                 )
-            ], className='input-group')
-
+            ], className='input-group'),
+            html.Div([
+                dcc.Input(
+                    id='default-station-input',
+                    type='number',
+                    value=None,
+                    placeholder='Default Station',
+                    className='form-control'
+                ),
+                dcc.Input(
+                    id='default-channel-input',
+                    type='number',
+                    value=None,
+                    placeholder='Default Channel',
+                    className='form-control'
+                )
+            ],id='default-settings-div', className='input-group')
         ], className='panel panel-body')
     ], className='panel panel-default')
 ])
@@ -111,13 +128,38 @@ def update_file_name_options(folder_dummy, refresh_button, file_type, folder_inp
 @app.callback(Output('output-dummy', 'children'),
     [Input('load-detector-button', 'n_clicks')],
     [State('detector-file-dropdown', 'value'),
-    State('file-type-dropdown', 'value')])
-def open_detector(n_clicks, filename, detector_type):
+    State('file-type-dropdown', 'value'),
+    State('default-station-input', 'value'),
+    State('default-channel-input', 'value')])
+def open_detector(n_clicks, filename, detector_type, default_station, default_channel):
     if filename is None:
         return ''
     detector_provider = DetectorProvider()
     if detector_type == 'detector':
         detector_provider.set_detector(filename)
     elif detector_type == 'generic_detector':
-        detector_provider.set_generic_detector(filename, 101,9)
-    return ''
+        detector_provider.set_generic_detector(filename, default_station,default_channel)
+    return n_clicks
+
+@app.callback(
+    Output('default-settings-div', 'style'),
+    [Input('file-type-dropdown', 'value')]
+)
+def show_default_settings_div(detector_type):
+    if detector_type == 'generic_detector':
+        return {'z-index': '0'}
+    else:
+        return {'display': 'none'}
+
+@app.callback(
+    Output('load-detector-button', 'disabled'),
+    [Input('detector-file-dropdown', 'value'),
+    Input('file-type-dropdown', 'value'),
+    Input('default-station-input', 'value')]
+)
+def toggle_open_button_active(filename, detector_type, default_station):
+    if filename is None:
+        return True
+    if detector_type == 'generic_detector' and default_station is None:
+        return True
+    return False
