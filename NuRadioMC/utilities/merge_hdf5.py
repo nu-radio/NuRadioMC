@@ -37,7 +37,7 @@ def merge2(filenames, output_filename):
         groups[f] = {}
 
         for key in fin:
-            if isinstance(fin[key], h5py._hl.group.Group):
+            if isinstance(fin[key], h5py._hl.group.Group):  # loop through station groups
                 groups[f][key] = {}
                 if(key not in n_groups):
                     n_groups[key] = {}
@@ -103,19 +103,19 @@ def merge2(filenames, output_filename):
                                 compression='gzip')[...] = tmp
 
         keys = groups[non_empty_filenames[0]]
-        for key in keys:
+        for key in keys:  # loop through all groups
             logger.info("writing group {}".format(key))
             g = fout.create_group(key)
-            for key2 in groups[non_empty_filenames[0]][key]:
+            for key2 in groups[non_empty_filenames[0]][key]:  # loop through all attributes of this group
                 logger.info("writing data set {}".format(key2))
-                all_files_have_key = True
-                for f in non_empty_filenames:
-                    if(not key2 in groups[f][key]):
-                        logger.debug(f"key {key2} of group {key} not in {f}")
-                        all_files_have_key = False
-                if(not all_files_have_key):
-                    logger.warning(f"not all files have the key {key2}. This key will not be present in the merged file.")
-                    continue
+#                 all_files_have_key = True
+#                 for f in non_empty_filenames:
+#                     if(not key2 in groups[f][key]):
+#                         logger.debug(f"key {key2} of group {key} not in {f}")
+#                         all_files_have_key = False
+#                 if(not all_files_have_key):
+#                     logger.warning(f"not all files have the key {key2}. This key will not be present in the merged file.")
+#                     continue
 
                 shape = list(groups[non_empty_filenames[0]][key][key2].shape)
                 shape[0] = n_groups[key][key2]
