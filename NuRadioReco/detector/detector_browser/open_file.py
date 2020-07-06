@@ -8,6 +8,8 @@ from dash.dependencies import Input, Output, State
 from app import app
 import glob
 import astropy.time
+import numpy as np
+
 
 @six.add_metaclass(NuRadioReco.detector.detector.Singleton)
 class DetectorProvider(object):
@@ -16,7 +18,6 @@ class DetectorProvider(object):
     def set_detector(self, filename):
         self.__detector = NuRadioReco.detector.detector.Detector.__new__(NuRadioReco.detector.detector.Detector)
         self.__detector.__init__(source='json', json_filename=filename)
-        self.__detector.update(astropy.time.Time('2020-1-1'))
 
     def set_generic_detector(self, filename, default_station, default_channel):
         self.__detector = NuRadioReco.detector.generic_detector.GenericDetector.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
@@ -27,7 +28,7 @@ class DetectorProvider(object):
 
 layout = html.Div([
     html.Div([
-        html.Div('', id='output-dummy', style={'display': 'block'}),
+        html.Div('', id='output-dummy', style={'display': 'none'}),
         html.Div('File Selection', className='panel panel-heading'),
         html.Div([
             html.Div([
@@ -137,6 +138,15 @@ def open_detector(n_clicks, filename, detector_type, default_station, default_ch
     detector_provider = DetectorProvider()
     if detector_type == 'detector':
         detector_provider.set_detector(filename)
+        detector = detector_provider.get_detector()
+        unix_times = []
+        datetimes = []
+        for station_id in detector.get_station_ids():
+            for dt in detector.get_unique_time_periods(station_id):
+                if dt.unix not in unix_times:
+                    unix_times.append(dt.unix)
+                    datetimes.append(dt)
+        detector.update(datetimes[np.argmin(unix_times)])
     elif detector_type == 'generic_detector':
         detector_provider.set_generic_detector(filename, default_station,default_channel)
     return n_clicks
