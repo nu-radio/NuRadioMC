@@ -133,7 +133,7 @@ def merge2(filenames, output_filename):
                     else:
                         logger.info(f"data set {key2} not in file {f} of station {key}")
 
-                g.create_dataset(key2, shape, dtype=groups[non_empty_filenames[0]][key][key2].dtype,
+                g.create_dataset(key2, shape, dtype=list_of_dtypes[key2],
                                  compression='gzip')[...] = tmp
             # save group attributes
             for key2 in group_attrs[key]:
