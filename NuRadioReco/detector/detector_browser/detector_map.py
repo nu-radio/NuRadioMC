@@ -20,6 +20,7 @@ layout = html.Div([
         html.Div([
             html.Div('Station View', className='panel panel-heading'),
             html.Div([
+                html.Div(None, id='selected-channel', style={'display': 'none'}),
                 dcc.Graph(id='station-view')
             ], className='panel panel-body')
         ], className='panel panel-default', style={'flex': '1'})
@@ -105,3 +106,12 @@ def draw_station_view(station_id):
     ))
     fig = go.Figure(data)
     return fig
+
+@app.callback(
+    Output('selected-channel', 'children'),
+    [Input('station-view', 'clickData')]
+)
+def select_channel(click):
+    if click is None:
+        return None
+    return click['points'][0]['id']
