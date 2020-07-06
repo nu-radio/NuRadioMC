@@ -40,10 +40,13 @@ def draw_station_position_map(dummy):
     yy = []
     labels = []
     for station_id in detector.get_station_ids():
-        pos = detector.get_absolute_position(station_id)
-        xx.append(pos[0]/units.km)
-        yy.append(pos[1]/units.km)
-        labels.append(station_id)
+        try:
+            pos = detector.get_absolute_position(station_id)
+            xx.append(pos[0]/units.km)
+            yy.append(pos[1]/units.km)
+            labels.append(station_id)
+        except:
+            continue
     data = [
         go.Scatter(
             x=xx,
@@ -92,18 +95,20 @@ def draw_station_view(station_id):
         channel_positions.append(detector.get_relative_position(station_id, channel_id))
     channel_positions = np.array(channel_positions)
     data = []
-    data.append(go.Scatter3d(
-        x = channel_positions[:,0],
-        y = channel_positions[:,1],
-        z = channel_positions[:,2],
-        ids = channel_ids,
-        text = channel_ids,
-        mode = 'markers+text',
-        textposition = 'middle right',
-        marker = dict(
-            size=2
-        )
-    ))
+    if len(channel_positions) > 0:
+
+        data.append(go.Scatter3d(
+            x = channel_positions[:,0],
+            y = channel_positions[:,1],
+            z = channel_positions[:,2],
+            ids = channel_ids,
+            text = channel_ids,
+            mode = 'markers+text',
+            textposition = 'middle right',
+            marker = dict(
+                size=2
+            )
+        ))
     fig = go.Figure(data)
     return fig
 
