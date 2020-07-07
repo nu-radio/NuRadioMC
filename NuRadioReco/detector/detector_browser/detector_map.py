@@ -91,22 +91,73 @@ def draw_station_view(station_id):
     detector = detector_provider.get_detector()
     channel_positions = []
     channel_ids = detector.get_channel_ids(station_id)
+    antenna_types = []
     for channel_id in channel_ids:
         channel_positions.append(detector.get_relative_position(station_id, channel_id))
+        antenna_types.append(detector.get_antenna_type(station_id, channel_id))
     channel_positions = np.array(channel_positions)
+    antenna_types = np.array(antenna_types)
     data = []
-    if len(channel_positions) > 0:
-
+    lpda_mask = (np.char.find(antenna_types, 'createLPDA')>=0)
+    vpol_mask = (np.char.find(antenna_types, 'bicone_v8')>=0)|(np.char.find(antenna_types, 'greenland_vpol')>=0)
+    hpol_mask = (np.char.find(antenna_types, 'fourslot')>=0)
+    if len(channel_positions[:,0][lpda_mask]) > 0:
         data.append(go.Scatter3d(
-            x = channel_positions[:,0],
-            y = channel_positions[:,1],
-            z = channel_positions[:,2],
+            x = channel_positions[:,0][lpda_mask],
+            y = channel_positions[:,1][lpda_mask],
+            z = channel_positions[:,2][lpda_mask],
             ids = channel_ids,
             text = channel_ids,
             mode = 'markers+text',
+            name='LPDAs',
+            textposition = 'middle right',
+            marker_symbol='diamond-open',
+            marker = dict(
+                size=4
+            )
+        ))
+    if len(channel_positions[:,0][vpol_mask]) > 0:
+        data.append(go.Scatter3d(
+            x = channel_positions[:,0][vpol_mask],
+            y = channel_positions[:,1][vpol_mask],
+            z = channel_positions[:,2][vpol_mask],
+            ids = channel_ids,
+            text = channel_ids,
+            mode = 'markers+text',
+            name='V-pol',
+            textposition = 'middle right',
+            marker_symbol='x',
+            marker = dict(
+                size=4
+            )
+        ))
+    if len(channel_positions[:,0][hpol_mask]) > 0:
+        data.append(go.Scatter3d(
+            x = channel_positions[:,0][hpol_mask],
+            y = channel_positions[:,1][hpol_mask],
+            z = channel_positions[:,2][hpol_mask],
+            ids = channel_ids,
+            text = channel_ids,
+            mode = 'markers+text',
+            name='H-pol',
+            textposition = 'middle right',
+            marker_symbol='cross',
+            marker = dict(
+                size=4
+            )
+        ))
+    if len(channel_positions[:,0][(~lpda_mask)&(~vpol_mask)&(~hpol_mask)]) > 0:
+        data.append(go.Scatter3d(
+            x = channel_positions[:,0][(~lpda_mask)&(~vpol_mask)&(~hpol_mask)],
+            y = channel_positions[:,1][(~lpda_mask)&(~vpol_mask)&(~hpol_mask)],
+            z = channel_positions[:,2][(~lpda_mask)&(~vpol_mask)&(~hpol_mask)],
+            ids = channel_ids,
+            text = channel_ids,
+            mode = 'markers+text',
+            name='other',
             textposition = 'middle right',
             marker = dict(
-                size=2
+                size=3
             )
         ))
     fig = go.Figure(data)
