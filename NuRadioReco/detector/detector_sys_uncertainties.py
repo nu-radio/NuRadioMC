@@ -49,13 +49,13 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
         Parameters
         ---------
         ori_theta: float
-            boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
+            orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
         ori_phi: float
-            boresight direction (azimuth angle counting from East counterclockwise)
+            orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
         rot_theta: float
-            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         rot_phi: float
-            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         station_id: int or None
             the station id, if None offset will be applied to all stations/channels
         channel_id: int or None
@@ -87,10 +87,10 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
             the channel id
 
         Returns typle of floats
-            * orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
-            * orientation phi: boresight direction (azimuth angle counting from East counterclockwise)
-            * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
-            * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+            * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+            * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+            * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+            * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         """
         ori = self.det.get_antenna_orientation(station_id, channel_id)
         if("any" in self._antenna_orientation_override):
