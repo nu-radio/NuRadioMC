@@ -612,9 +612,9 @@ class Detector(object):
             the channel id
 
         Returns typle of floats
-            * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: along boresight; for dipoles: along axis of azimuthal symmetry
-            * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: along boresight; for dipoles: along axis of azimuthal symmetry
-            * rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+            * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+            * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+            * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
             * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         """
         res = self.__get_channel(station_id, channel_id)
