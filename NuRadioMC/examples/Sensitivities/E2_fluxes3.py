@@ -609,8 +609,6 @@ def add_limit(ax, limit_labels, E, Veffsr, n_stations, label, livetime=3 * units
                                          upperLimOnEvents=2.44,
                                          nuCrsScn='ctw')
 
-        print(E / plotUnitsEnergy, limit / plotUnitsFlux)
-
     #         _plt, = ax.plot(E/plotUnitsEnergy,limit/ plotUnitsFlux, linestyle=linestyle, color=color,
     #                         label="{2}: {0} stations, {1} years".format(n_stations,int(livetime/units.year),label),
     #                         linewidth=linewidth)
