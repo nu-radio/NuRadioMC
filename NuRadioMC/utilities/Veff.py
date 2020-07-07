@@ -300,95 +300,6 @@ def get_Veff_water_equivalent(Veff, density_medium=0.917 * units.g / units.cm **
     return Veff * density_medium / density_water
 
 
-def get_Veff(folder,
-             trigger_combinations={},
-             station=101,
-             point_bins=True,
-             n_cores=1):
-    """
-    calculates the effective volume from NuRadioMC hdf5 files
-
-    the effective volume is NOT normalized to a water equivalent. It is also NOT multiplied with the solid angle (typically 4pi).
-
-    Parameters
-    ----------
-    folder: string
-        folder conaining the hdf5 files, one per energy OR filename
-    trigger_combinations: dict, optional
-        keys are the names of triggers to calculate. Values are dicts again:
-            * 'triggers': list of strings
-                name of individual triggers that are combined with an OR
-            the following additional options are optional
-            * 'efficiency': string
-                the signal efficiency vs. SNR (=Vmax/Vrms) to use. E.g. 'Chris'
-            * 'efficiency_scale': float
-                rescaling of the efficiency curve by SNR' = SNR * scale
-            * 'n_reflections': int
-                the number of bottom reflections of the ray tracing solution that likely triggered
-                assuming that the solution with the shortest travel time caused the trigger, only considering channel 0
-
-    station: int
-        the station that should be considered
-    point_bins: bool
-        if True, the bins are expected to only have one energy. If False, the
-        centre of the interval in log scale is taken as the bin energy
-
-    Returns
-    ----------
-    list of dictionary. Each file is one entry. The dictionary keys store all relevant properties
-    """
-    trigger_combinations = copy.copy(trigger_combinations)
-    Veff_output = []
-    trigger_names = None
-    trigger_names_dict = {}
-    prev_deposited = None
-    deposited = False
-
-    if(os.path.isfile(folder)):
-        filenames = [folder]
-    else:
-        if(len(glob.glob(os.path.join(folder, '*.hdf5'))) == 0):
-            raise FileNotFoundError(f"couldnt find any hdf5 file in folder {folder}")
-        filenames = sorted(glob.glob(os.path.join(folder, '*.hdf5')))
-    for iF, filename in enumerate(filenames):
-        logger.info(f"reading {filename}")
-        fin = h5py.File(filename, 'r')
-        if 'deposited' in fin.attrs:
-            deposited = fin.attrs['deposited']
-            if prev_deposited is None:
-                prev_deposited = deposited
-            elif prev_deposited != deposited:
-                raise AttributeError("The deposited parameter is not consistent among the input files!")
-
-        if('trigger_names' in fin.attrs):
-            trigger_names = fin.attrs['trigger_names']
-        if(len(trigger_names) > 0):
-            for iT, trigger_name in enumerate(trigger_names):
-                trigger_names_dict[trigger_name] = iT
-            break
-
-    trigger_combinations['all_triggers'] = {'triggers': trigger_names}
-    logger.info("Trigger names:", trigger_names)
-    for key in trigger_combinations:
-        i = -1
-        for value in trigger_combinations[key]['triggers']:
-            i += 1
-            if value not in trigger_names:
-                logger.warning(f"trigger {value} not available, removing this trigger from the trigger combination {key}")
-                trigger_combinations[key]['triggers'].pop(i)
-                i -= 1
-    from multiprocessing import Pool
-    logger.warning(f"running {len(filenames)} jobs on {n_cores} cores")
-
-    def tmp(args):
-        get_Veff_single(*args)
-
-    with Pool(n_cores) as p:
-        output = p.map(tmp, [filename, trigger_names, trigger_names_dict, trigger_combinations, point_bins, deposited, station])
-        return output
-
-
-#     for iF, filename in enumerate(filenames):
 def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combinations, point_bins, deposited, station):
     fin = h5py.File(filename, 'r')
     logger.warning(f"processing file  {filename}")
@@ -529,6 +440,100 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
                 Vefferror = Veff / np.sum(weights[triggered]) ** 0.5
             out['Veffs'][trigger_name] = [Veff, Vefferror, np.sum(weights[triggered])]
     return out
+
+
+def tmp(args):
+    return get_Veff_single(*args)
+
+
+def get_Veff(folder,
+             trigger_combinations={},
+             station=101,
+             point_bins=True,
+             n_cores=1):
+    """
+    calculates the effective volume from NuRadioMC hdf5 files
+
+    the effective volume is NOT normalized to a water equivalent. It is also NOT multiplied with the solid angle (typically 4pi).
+
+    Parameters
+    ----------
+    folder: string
+        folder conaining the hdf5 files, one per energy OR filename
+    trigger_combinations: dict, optional
+        keys are the names of triggers to calculate. Values are dicts again:
+            * 'triggers': list of strings
+                name of individual triggers that are combined with an OR
+            the following additional options are optional
+            * 'efficiency': string
+                the signal efficiency vs. SNR (=Vmax/Vrms) to use. E.g. 'Chris'
+            * 'efficiency_scale': float
+                rescaling of the efficiency curve by SNR' = SNR * scale
+            * 'n_reflections': int
+                the number of bottom reflections of the ray tracing solution that likely triggered
+                assuming that the solution with the shortest travel time caused the trigger, only considering channel 0
+
+    station: int
+        the station that should be considered
+    point_bins: bool
+        if True, the bins are expected to only have one energy. If False, the
+        centre of the interval in log scale is taken as the bin energy
+
+    Returns
+    ----------
+    list of dictionary. Each file is one entry. The dictionary keys store all relevant properties
+    """
+    trigger_combinations = copy.copy(trigger_combinations)
+    Veff_output = []
+    trigger_names = None
+    trigger_names_dict = {}
+    prev_deposited = None
+    deposited = False
+
+    if(os.path.isfile(folder)):
+        filenames = [folder]
+    else:
+        if(len(glob.glob(os.path.join(folder, '*.hdf5'))) == 0):
+            raise FileNotFoundError(f"couldnt find any hdf5 file in folder {folder}")
+        filenames = sorted(glob.glob(os.path.join(folder, '*.hdf5')))
+    for iF, filename in enumerate(filenames):
+        logger.info(f"reading {filename}")
+        fin = h5py.File(filename, 'r')
+        if 'deposited' in fin.attrs:
+            deposited = fin.attrs['deposited']
+            if prev_deposited is None:
+                prev_deposited = deposited
+            elif prev_deposited != deposited:
+                raise AttributeError("The deposited parameter is not consistent among the input files!")
+
+        if('trigger_names' in fin.attrs):
+            trigger_names = fin.attrs['trigger_names']
+        if(len(trigger_names) > 0):
+            for iT, trigger_name in enumerate(trigger_names):
+                trigger_names_dict[trigger_name] = iT
+            break
+
+    trigger_combinations['all_triggers'] = {'triggers': trigger_names}
+    logger.info("Trigger names:", trigger_names)
+    for key in trigger_combinations:
+        i = -1
+        for value in trigger_combinations[key]['triggers']:
+            i += 1
+            if value not in trigger_names:
+                logger.warning(f"trigger {value} not available, removing this trigger from the trigger combination {key}")
+                trigger_combinations[key]['triggers'].pop(i)
+                i -= 1
+    from multiprocessing import Pool
+    logger.warning(f"running {len(filenames)} jobs on {n_cores} cores")
+
+    args = []
+    for f in filenames:
+        args.append([f, trigger_names, trigger_names_dict, trigger_combinations, point_bins, deposited, station])
+    with Pool(n_cores) as p:
+        output = p.map(tmp, args)
+        print("output")
+        print(output)
+        return output
 
 
 def get_Veff_array(data):
