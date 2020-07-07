@@ -6,6 +6,7 @@ from six import iteritems
 import json
 import os
 import copy
+import time
 
 from NuRadioReco.utilities import units
 
@@ -35,8 +36,8 @@ def remove_duplicate_triggers(triggered, gids):
     """
     gids = np.array(gids)
     triggered = np.array(triggered)
-    uids, unique_mask = np.unique(gids, return_index=True)
-    for gid in uids:
+    uids, unique_mask, inv_mask, counts = np.unique(gids, return_index=True, return_inverse=True, return_counts=True)
+    for gid in uids[counts > 1]:
         mask = gids == gid
         if(np.sum(triggered[mask]) > 1):
             idx = np.arange(len(triggered), dtype=np.int)[mask][triggered[mask] == True][1:]
@@ -367,7 +368,6 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
             if(np.sum(weights[triggered]) > 0):
                 Veff_error = Veff / np.sum(weights[triggered]) ** 0.5
             out['Veffs'][trigger_name] = [Veff, Veff_error, np.sum(weights[triggered])]
-
         for trigger_name, values in iteritems(trigger_combinations):
             indiv_triggers = values['triggers']
             triggered = np.zeros_like(fin['multiple_triggers'][:, 0], dtype=np.bool)
