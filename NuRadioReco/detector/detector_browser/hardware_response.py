@@ -156,7 +156,7 @@ def draw_hardware_response(response_type, zenith, azimuth, station_id, channel_i
         if 'detrend' in log_checklist:
             phase = [scipy.signal.detrend(np.unwrap(np.angle(response[0]))),scipy.signal.detrend(np.unwrap(np.angle(response[1])))]
         else:
-            phase = [np.unwrap(np.angle(response[1])), np.unwrap(np.angle(response[1]))]
+            phase = [np.unwrap(np.angle(response[0])), np.unwrap(np.angle(response[1]))]
 
         phase_data = [
             go.Scatter(

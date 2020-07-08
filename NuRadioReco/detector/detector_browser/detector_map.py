@@ -7,6 +7,7 @@ import plotly.graph_objs as go
 from dash.dependencies import Input, Output, State
 from open_file import DetectorProvider
 from NuRadioReco.utilities import units
+import radiotools.helper as hp
 
 layout = html.Div([
     html.Div([
@@ -20,8 +21,20 @@ layout = html.Div([
         html.Div([
             html.Div('Station View', className='panel panel-heading'),
             html.Div([
-                html.Div(None, id='selected-channel', style={'display': 'none'}),
-                dcc.Graph(id='station-view')
+                dcc.Graph(id='station-view'),
+                html.Div([
+                    html.Div([
+                        dcc.Checklist(
+                            id='station-view-checklist',
+                            options=[
+                                {'label': 'Antenna Sketch', 'value': 'sketch'}
+                            ],
+                            value=['sketch'],
+                            labelStyle={'padding': '2px'}
+                        )
+                    ], className='option-select')
+                ], className='option-set'),
+                html.Div(None, id='selected-channel', style={'display': 'none'})
             ], className='panel panel-body')
         ], className='panel panel-default', style={'flex': '1'})
     ], style={'display': 'flex'})
@@ -67,7 +80,8 @@ def draw_station_position_map(dummy):
             title='Northing [km]',
             scaleanchor = 'x',
             scaleratio = 1
-        )
+        ),
+        margin=dict(l=10, r=10, t=30, b=10)
     )
     return fig
 
@@ -82,9 +96,10 @@ def select_station(click):
 
 @app.callback(
     Output('station-view', 'figure'),
-    [Input('selected-station', 'children')]
+    [Input('selected-station', 'children'),
+    Input('station-view-checklist', 'value')]
 )
-def draw_station_view(station_id):
+def draw_station_view(station_id, checklist):
     if station_id is None:
         return go.Figure([])
     detector_provider = DetectorProvider()
@@ -92,11 +107,23 @@ def draw_station_view(station_id):
     channel_positions = []
     channel_ids = detector.get_channel_ids(station_id)
     antenna_types = []
+    antenna_orientations = []
+    antenna_rotations = []
     for channel_id in channel_ids:
-        channel_positions.append(detector.get_relative_position(station_id, channel_id))
+        channel_position = detector.get_relative_position(station_id, channel_id)
+        channel_positions.append(channel_position)
         antenna_types.append(detector.get_antenna_type(station_id, channel_id))
+        orientation = detector.get_antenna_orientation(station_id, channel_id)
+        antenna_orientations.append(channel_position)
+        antenna_orientations.append(channel_position + hp.spherical_to_cartesian(orientation[0], orientation[1]))
+        antenna_orientations.append([None, None, None])
+        antenna_rotations.append(channel_position)
+        antenna_rotations.append(channel_position + hp.spherical_to_cartesian(orientation[2], orientation[3]))
+        antenna_rotations.append([None, None, None])
     channel_positions = np.array(channel_positions)
     antenna_types = np.array(antenna_types)
+    antenna_orientations = np.array(antenna_orientations)
+    antenna_rotations = np.array(antenna_rotations)
     data = []
     lpda_mask = (np.char.find(antenna_types, 'createLPDA')>=0)
     vpol_mask = (np.char.find(antenna_types, 'bicone_v8')>=0)|(np.char.find(antenna_types, 'greenland_vpol')>=0)
@@ -160,7 +187,36 @@ def draw_station_view(station_id):
                 size=3
             )
         ))
+    if len(channel_positions[:,0]) > 0:
+        data.append(go.Scatter3d(
+            x = antenna_orientations[:,0],
+            y = antenna_orientations[:,1],
+            z = antenna_orientations[:,2],
+            mode='lines',
+            name='Orientations',
+            marker_color='red',
+            hoverinfo='skip'
+        ))
+        data.append(go.Scatter3d(
+            x = antenna_rotations[:,0],
+            y = antenna_rotations[:,1],
+            z = antenna_rotations[:,2],
+            mode='lines',
+            name='Rotations',
+            marker_color='blue',
+            hoverinfo='skip'
+        ))
     fig = go.Figure(data)
+    fig.update_layout(
+        scene=dict(
+            aspectmode='data'
+        ),
+        legend_orientation='h',
+        legend=dict(x=.0, y=1.),
+        height=600,
+        margin=dict(l=10, r=10, t=30, b=10)
+
+    )
     return fig
 
 @app.callback(
