@@ -223,8 +223,8 @@
             "ant_position_x": 6,
             "ant_position_y": 0,
             "ant_position_z": -2,
-            "ant_rotation_phi": 180.0,
-            "ant_rotation_theta": 225.0,
+            "ant_rotation_phi": 90.0,
+            "ant_rotation_theta": 90.0,
             "ant_type": "createLPDA_100MHz",
             "channel_id": 15,
             "station_id": 101
@@ -236,8 +236,8 @@
             "ant_orientation_theta": 0.0,
             "ant_position_x": 7.5,
             "ant_position_y": 0.0,
-            "ant_position_z": -1.0,
-            "ant_rotation_phi": 180.0,
+            "ant_position_z": -2.0,
+            "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
             "ant_type": "createLPDA_100MHz",
             "channel_id": 16,
@@ -251,8 +251,8 @@
             "ant_position_x": 9,
             "ant_position_y": 0,
             "ant_position_z": -2,
-            "ant_rotation_phi": 0.0,
-            "ant_rotation_theta": 225.0,
+            "ant_rotation_phi": 90.0,
+            "ant_rotation_theta": 90.0,
             "ant_type": "createLPDA_100MHz",
             "channel_id": 17,
             "station_id": 101
@@ -265,8 +265,8 @@
             "ant_position_x": -3.0,
             "ant_position_y": 5.2,
             "ant_position_z": -2,
-            "ant_rotation_phi": 300.0,
-            "ant_rotation_theta": 225.0,
+            "ant_rotation_phi": 30.0,
+            "ant_rotation_theta": 90.0,
             "ant_type": "createLPDA_100MHz",
             "channel_id": 18,
             "station_id": 101
@@ -278,8 +278,8 @@
             "ant_orientation_theta": 0.0,
             "ant_position_x": -3.75,
             "ant_position_y": 6.5,
-            "ant_position_z": -1.0,
-            "ant_rotation_phi": 300.0,
+            "ant_position_z": -2.0,
+            "ant_rotation_phi": 30.0,
             "ant_rotation_theta": 90.0,
             "ant_type": "createLPDA_100MHz",
             "channel_id": 19,
@@ -293,8 +293,8 @@
             "ant_position_x": -4.5,
             "ant_position_y": 7.79,
             "ant_position_z": -2.0,
-            "ant_rotation_phi": 120.0,
-            "ant_rotation_theta": 225.0,
+            "ant_rotation_phi": 30.0,
+            "ant_rotation_theta": 90.0,
             "ant_type": "createLPDA_100MHz",
             "channel_id": 20,
             "station_id": 101
@@ -307,8 +307,8 @@
             "ant_position_x": -3,
             "ant_position_y": -5.2,
             "ant_position_z": -2.0,
-            "ant_rotation_phi": 60.0,
-            "ant_rotation_theta": 225.0,
+            "ant_rotation_phi": 150.0,
+            "ant_rotation_theta": 90.0,
             "ant_type": "createLPDA_100MHz",
             "channel_id": 21,
             "station_id": 101
@@ -320,8 +320,8 @@
             "ant_orientation_theta": 0.0,
             "ant_position_x": -3.75,
             "ant_position_y": -6.5,
-            "ant_position_z": -1.0,
-            "ant_rotation_phi": 60.0,
+            "ant_position_z": -2.0,
+            "ant_rotation_phi": 150.0,
             "ant_rotation_theta": 90.0,
             "ant_type": "createLPDA_100MHz",
             "channel_id": 22,
@@ -335,8 +335,8 @@
             "ant_position_x": -4.5,
             "ant_position_y": -7.79,
             "ant_position_z": -2.0,
-            "ant_rotation_phi": 240.0,
-            "ant_rotation_theta": 225.0,
+            "ant_rotation_phi": 150.0,
+            "ant_rotation_theta": 90.0,
             "ant_type": "createLPDA_100MHz",
             "channel_id": 23,
             "station_id": 101
@@ -346,11 +346,181 @@
     "stations": {
         "01": {
             "pos_altitude": 0.0,
-            "pos_easting": 0.0,
-            "pos_northing": 0,
-            "pos_site": "greenland",
+            "pos_easting": -2333.333333333333,
+            "pos_northing": -3000.0,
+            "pos_site": "summit",
             "station_id": 101,
             "station_type": null
+        },
+        "02": {
+            "pos_easting": -1166.6666666666665,
+            "pos_northing": -3000.0,
+            "station_id": 102
+        },
+        "03": {
+            "pos_easting": 0.0,
+            "pos_northing": -3000.0,
+            "station_id": 103
+        },
+        "04": {
+            "pos_easting": 1166.666666666667,
+            "pos_northing": -3000.0,
+            "station_id": 104
+        },
+        "05": {
+            "pos_easting": 2333.333333333334,
+            "pos_northing": -3000.0,
+            "station_id": 105
+        },
+        "06": {
+            "pos_easting": 3500.0,
+            "pos_northing": -3000.0,
+            "station_id": 106
+        },
+        "07": {
+            "pos_easting": -3500.0,
+            "pos_northing": -1800.0,
+            "station_id": 107
+        },
+        "08": {
+            "pos_easting": -2333.333333333333,
+            "pos_northing": -1800.0,
+            "station_id": 108
+        },
+        "09": {
+            "pos_easting": -1166.6666666666665,
+            "pos_northing": -1800.0,
+            "station_id": 109
+        },
+        "10": {
+            "pos_easting": 0.0,
+            "pos_northing": -1800.0,
+            "station_id": 110
+        },
+        "11": {
+            "pos_easting": 1166.666666666667,
+            "pos_northing": -1800.0,
+            "station_id": 111
+        },
+        "12": {
+            "pos_easting": 2333.333333333334,
+            "pos_northing": -1800.0,
+            "station_id": 112
+        },
+        "13": {
+            "pos_easting": 3500.0,
+            "pos_northing": -1800.0,
+            "station_id": 113
+        },
+        "14": {
+            "pos_easting": -3500.0,
+            "pos_northing": -600.0,
+            "station_id": 114
+        },
+        "15": {
+            "pos_easting": -2333.333333333333,
+            "pos_northing": -600.0,
+            "station_id": 115
+        },
+        "16": {
+            "pos_easting": -1166.6666666666665,
+            "pos_northing": -600.0,
+            "station_id": 116
+        },
+        "17": {
+            "pos_easting": 0.0,
+            "pos_northing": -600.0,
+            "station_id": 117
+        },
+        "18": {
+            "pos_easting": 1166.666666666667,
+            "pos_northing": -600.0,
+            "station_id": 118
+        },
+        "19": {
+            "pos_easting": 2333.333333333334,
+            "pos_northing": -600.0,
+            "station_id": 119
+        },
+        "20": {
+            "pos_easting": 3500.0,
+            "pos_northing": -600.0,
+            "station_id": 120
+        },
+        "21": {
+            "pos_easting": -2333.333333333333,
+            "pos_northing": 600.0,
+            "station_id": 121
+        },
+        "22": {
+            "pos_easting": -1166.6666666666665,
+            "pos_northing": 600.0,
+            "station_id": 122
+        },
+        "23": {
+            "pos_easting": 0.0,
+            "pos_northing": 600.0,
+            "station_id": 123
+        },
+        "24": {
+            "pos_easting": 1166.666666666667,
+            "pos_northing": 600.0,
+            "station_id": 124
+        },
+        "25": {
+            "pos_easting": 2333.333333333334,
+            "pos_northing": 600.0,
+            "station_id": 125
+        },
+        "26": {
+            "pos_easting": 3500.0,
+            "pos_northing": 600.0,
+            "station_id": 126
+        },
+        "27": {
+            "pos_easting": -1166.6666666666665,
+            "pos_northing": 1800.0,
+            "station_id": 127
+        },
+        "28": {
+            "pos_easting": 0.0,
+            "pos_northing": 1800.0,
+            "station_id": 128
+        },
+        "29": {
+            "pos_easting": 1166.666666666667,
+            "pos_northing": 1800.0,
+            "station_id": 129
+        },
+        "30": {
+            "pos_easting": 2333.333333333334,
+            "pos_northing": 1800.0,
+            "station_id": 130
+        },
+        "31": {
+            "pos_easting": 3500.0,
+            "pos_northing": 1800.0,
+            "station_id": 131
+        },
+        "32": {
+            "pos_easting": -1166.6666666666665,
+            "pos_northing": 3000.0,
+            "station_id": 132
+        },
+        "33": {
+            "pos_easting": 0.0,
+            "pos_northing": 3000.0,
+            "station_id": 133
+        },
+        "34": {
+            "pos_easting": 1166.666666666667,
+            "pos_northing": 3000.0,
+            "station_id": 134
+        },
+        "35": {
+            "pos_easting": 2333.333333333334,
+            "pos_northing": 3000.0,
+            "station_id": 135
         }
     }
 }
