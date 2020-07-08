@@ -30,7 +30,9 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
     therefore not be used for real data, but only for simulation studies.
     This detector only accepts json detector descriptions or dictionary.
     """
-    def __init__(self, json_filename, default_station, default_channel=None, source='json', dictionary=None, assume_inf=True):
+
+    def __init__(self, json_filename, default_station, default_channel=None, source='json', dictionary=None,
+                 assume_inf=True, antenna_by_depth=True):
         """
         Initialize the stations detector properties.
 
@@ -59,9 +61,13 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             passed to this parameter will be used for the detector description.
         assume_inf : Bool
             Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
+        antenna_by_depth: bool (default True)
+            if True the antenna model is determined automatically depending on the depth of the antenna. This is done by 
+            appending e.g. '_InfFirn' to the antenna model name. 
+            if False, the antenna model as specified in the database is used. 
         """
-        super(GenericDetector, self).__init__(source, json_filename, dictionary, assume_inf)
-
+        super(GenericDetector, self).__init__(source=source, json_filename=json_filename, dictionary=dictionary,
+                                              assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
         self.__default_station_id = default_station
         self.__default_channel_id = default_channel
         self.__station_changes_for_event = []
@@ -75,7 +81,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
 
         if default_channel is not None:
             Channel = Query()
-            self.__default_channel = self._channels.get((Channel.station_id == default_station)&(Channel.channel_id == default_channel))
+            self.__default_channel = self._channels.get((Channel.station_id == default_station) & (Channel.channel_id == default_channel))
             if self.__default_channel is None:
                 raise ValueError('The default channel {} of station {} was not found in the detector description'.format(default_channel, self.__default_station_id))
         else:
@@ -210,7 +216,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
                     changes.append(change)
         return changes
 
-    def set_event(self,run_number, event_id):
+    def set_event(self, run_number, event_id):
         """
         Sets the run number and event ID for which the detector description
         should be returned. This is needed if event-specific changes to the
