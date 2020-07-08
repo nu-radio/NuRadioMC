@@ -29,7 +29,7 @@ layout = html.Div([
                             options=[
                                 {'label': 'Antenna Sketch', 'value': 'sketch'}
                             ],
-                            value=['sketch'],
+                            value=[],
                             labelStyle={'padding': '2px'}
                         )
                     ], className='option-select')
@@ -109,22 +109,37 @@ def draw_station_view(station_id, checklist):
     antenna_types = []
     antenna_orientations = []
     antenna_rotations = []
+    data = []
     for channel_id in channel_ids:
         channel_position = detector.get_relative_position(station_id, channel_id)
         channel_positions.append(channel_position)
         antenna_types.append(detector.get_antenna_type(station_id, channel_id))
         orientation = detector.get_antenna_orientation(station_id, channel_id)
+        ant_ori = hp.spherical_to_cartesian(orientation[0], orientation[1])
         antenna_orientations.append(channel_position)
-        antenna_orientations.append(channel_position + hp.spherical_to_cartesian(orientation[0], orientation[1]))
+        antenna_orientations.append(channel_position + ant_ori)
         antenna_orientations.append([None, None, None])
+        ant_rot = hp.spherical_to_cartesian(orientation[2], orientation[3])
         antenna_rotations.append(channel_position)
-        antenna_rotations.append(channel_position + hp.spherical_to_cartesian(orientation[2], orientation[3]))
+        antenna_rotations.append(channel_position + ant_rot)
         antenna_rotations.append([None, None, None])
+        if 'createLPDA' in detector.get_antenna_type(station_id, channel_id) and 'sketch' in checklist:
+            antenna_tip = channel_position + ant_ori
+            antenna_tine_1 = channel_position + np.cross(ant_ori, ant_rot)
+            antenna_tine_2 = channel_position - np.cross(ant_ori, ant_rot)
+            data.append(go.Mesh3d(
+                x = [antenna_tip[0], antenna_tine_1[0], antenna_tine_2[0]],
+                y = [antenna_tip[1], antenna_tine_1[1], antenna_tine_2[1]],
+                z = [antenna_tip[2], antenna_tine_1[2], antenna_tine_2[2]],
+                opacity=.5,
+                color='black',
+                delaunayaxis='x',
+                hoverinfo='skip'
+            ))
     channel_positions = np.array(channel_positions)
     antenna_types = np.array(antenna_types)
     antenna_orientations = np.array(antenna_orientations)
     antenna_rotations = np.array(antenna_rotations)
-    data = []
     lpda_mask = (np.char.find(antenna_types, 'createLPDA')>=0)
     vpol_mask = (np.char.find(antenna_types, 'bicone_v8')>=0)|(np.char.find(antenna_types, 'greenland_vpol')>=0)
     hpol_mask = (np.char.find(antenna_types, 'fourslot')>=0)
@@ -206,6 +221,7 @@ def draw_station_view(station_id, checklist):
             marker_color='blue',
             hoverinfo='skip'
         ))
+
     fig = go.Figure(data)
     fig.update_layout(
         scene=dict(
