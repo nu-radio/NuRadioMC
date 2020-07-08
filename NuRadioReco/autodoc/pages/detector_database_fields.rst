@@ -31,7 +31,7 @@ The user must specify *both* the orientation vector and the rotation vector.
 Here are a few examples.
 
 1. For an LPDA, the following points the LPDA straight down, with tines aligned with
-(parallel to) the x-axis, and therefore pointing eastward.
+(parallel to) the x-axis (i.e. the east-west direction), and therefore the orientation vector points northwards.
 ::
 
 	orientation_phi = 0
