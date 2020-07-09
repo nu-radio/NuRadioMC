@@ -69,7 +69,7 @@ layout = html.Div([
                             min=0,
                             max=180,
                             step=5,
-                            value=90,
+                            value=45,
                             marks={
                                 0: '0°',
                                 45: '45°',
@@ -237,7 +237,7 @@ def update_voltage_plot(
         0.,
         0.,
         90.*units.deg,
-        0.
+        180.*units.deg
     )
     detector_response_theta = antenna_response['theta']
     detector_response_phi = antenna_response['phi']
@@ -329,10 +329,11 @@ def update_signal_direction_plot(zenith, azimuth, antenna_type):
         mode='lines',
         name='Antenna Orientation'
     ))
+    rot = hp.spherical_to_cartesian(90.*units.deg, 180*units.deg)
     data.append(go.Scatter3d(
-        x=[0, 0],
-        y=[0, 1],
-        z=[0, 0],
+        x=[0, rot[0]],
+        y=[0, rot[1]],
+        z=[0, rot[2]],
         mode='lines',
         name='Antenna Rotation'
     ))
