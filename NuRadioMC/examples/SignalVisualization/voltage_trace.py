@@ -294,8 +294,8 @@ def update_voltage_plot(
     ), 1, 2)
     fig2.update_xaxes(title_text='f [MHz]', row=1, col=1)
     fig2.update_xaxes(title_text='f [MHz]', row=1, col=2)
-    fig2.update_yaxes(title_text='VEL', row=1, col=1)
-    fig2.update_yaxes(title_text='VEL', row=1, col=2)
+    fig2.update_yaxes(title_text='VEL [m]', row=1, col=1)
+    fig2.update_yaxes(title_text='VEL [m]', row=1, col=2)
 
     s = io.StringIO()
     np.savetxt(s, np.array([times, channel_trace]).T, delimiter=',')
