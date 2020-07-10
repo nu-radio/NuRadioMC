@@ -124,6 +124,11 @@ class BaseTrace:
             length = (self._frequency_spectrum.shape[-1] - 1) * 2
         return length
 
+    def apply_time_shift(self, delta_t):
+        spec = self.get_frequency_spectrum()
+        spec *= np.exp(-2.j*np.pi*delta_t*self.get_frequencies())
+        self.set_frequency_spectrum(spec, self._sampling_rate)
+
     def serialize(self):
         data = {'sampling_rate': self.get_sampling_rate(),
                 'time_trace': self.get_trace(),
