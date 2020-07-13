@@ -94,7 +94,6 @@ class efieldToVoltageConverter():
         if(len(sim_station.get_electric_fields()) == 0):
             raise LookupError(f"station {station.get_id()} has no efields")
         sim_station_id = sim_station.get_id()
-        event_time = sim_station.get_station_time()
 
         # first we determine the trace start time of all channels and correct
         # for different cable delays
@@ -102,7 +101,7 @@ class efieldToVoltageConverter():
         times_max = []
         for iCh in det.get_channel_ids(sim_station_id):
             for electric_field in sim_station.get_electric_fields_for_channels([iCh]):
-                original_binning = 1. / electric_field.get_sampling_rate()
+                time_resolution = 1. / electric_field.get_sampling_rate()
                 cab_delay = det.get_cable_delay(sim_station_id, iCh)
                 t0 = electric_field.get_trace_start_time() + cab_delay
                 # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
@@ -120,7 +119,6 @@ class efieldToVoltageConverter():
                     times_min.append(t0)
                     times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
                     self.logger.debug("trace start time {}, cab_delty {}, tracelength {}".format(electric_field.get_trace_start_time(), cab_delay, electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
-        time_resolution = original_binning
         times_min = np.array(times_min)
         times_max = np.array(times_max)
         if times_min.min() < 0:
@@ -154,9 +152,6 @@ class efieldToVoltageConverter():
                 # in a measurement, all channels have the same physical start time
                 # so we need to create one long trace that can hold all the different channel times
                 # to achieve a good time resolution, we upsample the trace first.
-                orig_binning = 1. / electric_field.get_sampling_rate()  # assume that all channels have the same sampling rate
-                target_binning = time_resolution
-                resampling_factor = fractions.Fraction(Decimal(orig_binning / target_binning)).limit_denominator(self.__max_upsampling_factor)
                 new_efield = NuRadioReco.framework.base_trace.BaseTrace()  # create new data structure with new efield length
                 new_efield.set_trace(copy.copy(electric_field.get_trace()), electric_field.get_sampling_rate())
                 new_trace = np.zeros((3, trace_length_samples))
