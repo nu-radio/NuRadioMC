@@ -191,10 +191,10 @@ def preprocess_WIPLD_old(path, gen_num=1, s_paramateres=[1, 1]):
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
 
     Returns:
-        * orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
-        * orientation phi: boresight direction (azimuth angle counting from East counterclockwise)
-        * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
-        * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+        * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+        * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+        * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+        * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         * ff2: array of frequencies
         * theta: zenith angle of inicdent electric field
         * phi: azimuth angle of incident electric field
@@ -269,10 +269,10 @@ def preprocess_WIPLD(path, gen_num=1, s_paramateres=[1, 1]):
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
 
     Returns:
-        * orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
-        * orientation phi: boresight direction (azimuth angle counting from East counterclockwise)
-        * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
-        * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+        * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+        * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+        * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+        * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         * ff2: array of frequencies
         * theta: zenith angle of inicdent electric field
         * phi: azimuth angle of incident electric field
@@ -880,13 +880,13 @@ class AntennaPatternBase():
         azimuth : float
             azimuth angle of incoming signal direction
         orientation_theta: float 
-            boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
+            orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
         orientation_phi: float 
-            boresight direction (azimuth angle counting from East counterclockwise)
+            orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
         rotation_theta: float
-            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         rotation_phi: float 
-            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
 
         Returns
         -------
@@ -957,8 +957,8 @@ class AntennaPattern(AntennaPatternBase):
 
         except IOError:
             self._notfound = True
-            logger.warning("antenna response for {} not found".format(antenna_model))
-            return
+            logger.error("antenna response for {} not found".format(antenna_model))
+            raise FileNotFoundError("antenna response for {} not found".format(antenna_model))
 
         self.frequencies = np.unique(ff)
         self.frequency_lower_bound = self.frequencies[0]
