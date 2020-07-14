@@ -131,7 +131,7 @@ class Detector(object):
     """
 
     def __init__(self, source='json', json_filename='ARIANNA/arianna_detector_db.json',
-                 dictionary=None, assume_inf=True):
+                 dictionary=None, assume_inf=True, antenna_by_depth=True):
         """
         Initialize the stations detector properties.
 
@@ -149,12 +149,16 @@ class Detector(object):
             default value is 'ARIANNA/arianna_detector_db.json'
         assume_inf : Bool
             Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
+        antenna_by_depth: bool (default True)
+            if True the antenna model is determined automatically depending on the depth of the antenna. This is done by
+            appending e.g. '_InfFirn' to the antenna model name.
+            if False, the antenna model as specified in the database is used.
         """
         if(source == 'sql'):
             self._db = buffer_db(in_memory=True)
         elif source == 'dictionary':
             self._db = TinyDB(storage=MemoryStorage)
-            self._db.purge()
+            self._db.truncate()
             stations_table = self._db.table('stations', cache_size=1000)
             for station in dictionary['stations'].values():
                 stations_table.insert(station)
@@ -192,6 +196,9 @@ class Detector(object):
         self.__current_time = None
 
         self.__assume_inf = assume_inf
+        if antenna_by_depth:
+            logger.info("the correct antenna model will be determined automatically based on the depth of the antenna")
+        self._antenna_by_depth = antenna_by_depth
 
     def __query_channel(self, station_id, channel_id):
         Channel = Query()
@@ -605,10 +612,10 @@ class Detector(object):
             the channel id
 
         Returns typle of floats
-            * orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
-            * orientation phi: boresight direction (azimuth angle counting from East counterclockwise)
-            * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
-            * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+            * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+            * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+            * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+            * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         """
         res = self.__get_channel(station_id, channel_id)
         return np.deg2rad([res['ant_orientation_theta'], res['ant_orientation_phi'], res['ant_rotation_theta'], res['ant_rotation_phi']])
@@ -697,22 +704,25 @@ class Detector(object):
         antenna_type = self.get_antenna_type(station_id, channel_id)
         antenna_relative_position = self.get_relative_position(station_id, channel_id)
 
-        antenna_model = ""
-        if(zenith is not None and (antenna_type == 'createLPDA_100MHz')):
-            if(antenna_relative_position[2] > 0):
-                antenna_model = "{}_InfAir".format(antenna_type)
-                if((not self.__assume_inf) and zenith < 90 * units.deg):
-                    antenna_model = "{}_z1cm_InAir_RG".format(antenna_type)
-            else:  # antenna in firn
-                antenna_model = "{}_InfFirn".format(antenna_type)
-                if((not self.__assume_inf) and zenith > 90 * units.deg):  # signal comes from below
-                    antenna_model = "{}_z1cm_InFirn_RG".format(antenna_type)
-                    # we need to add further distinction here
-        elif(not antenna_type.startswith('analytic')):
-            if(antenna_relative_position[2] > 0):
-                antenna_model = "{}_InfAir".format(antenna_type)
+        if self._antenna_by_depth:
+            antenna_model = ""
+            if(zenith is not None and (antenna_type == 'createLPDA_100MHz')):
+                if(antenna_relative_position[2] > 0):
+                    antenna_model = "{}_InfAir".format(antenna_type)
+                    if((not self.__assume_inf) and zenith < 90 * units.deg):
+                        antenna_model = "{}_z1cm_InAir_RG".format(antenna_type)
+                else:  # antenna in firn
+                    antenna_model = "{}_InfFirn".format(antenna_type)
+                    if((not self.__assume_inf) and zenith > 90 * units.deg):  # signal comes from below
+                        antenna_model = "{}_z1cm_InFirn_RG".format(antenna_type)
+                        # we need to add further distinction here
+            elif(not antenna_type.startswith('analytic')):
+                if(antenna_relative_position[2] > 0):
+                    antenna_model = "{}_InfAir".format(antenna_type)
+                else:
+                    antenna_model = "{}_InfFirn".format(antenna_type)
             else:
-                antenna_model = "{}_InfFirn".format(antenna_type)
+                antenna_model = antenna_type
         else:
             antenna_model = antenna_type
         return antenna_model
