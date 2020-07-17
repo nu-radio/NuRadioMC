@@ -50,22 +50,33 @@ class channelGalacticNoiseAdder:
             times = channel.get_times()
             sampling_rate = channel.get_sampling_rate()
             channel_trace = channel.get_trace()
-            #channel_spectrum = channel.get_frequency_spectrum()
-            channel_spectrum = np.zeros_like(channel.get_frequency_spectrum())
+            channel_spectrum = channel.get_frequency_spectrum()
+            #channel_spectrum = np.zeros_like(channel.get_frequency_spectrum())
             passband_filter = (freqs>passband[0])&(freqs<passband[1])
             #S = np.zeros(freqs[passband_filter].shape)
             self.__solid_angle_sum = 0
             plt.close('all')
             fig = plt.figure(figsize=(12,8))
-            ax_1 = fig.add_subplot(131)
-            ax_2 = fig.add_subplot(132)
-            ax_3 = fig.add_subplot(133)
+            ax_1 = fig.add_subplot(221)
+            ax_2 = fig.add_subplot(222)
+            ax_3 = fig.add_subplot(223)
+            ax_4 = fig.add_subplot(224)
             ax_1.grid()
             ax_1.set_yscale('log')
             ax_2.grid()
             ax_2.set_yscale('log')
             ax_3.grid()
             ax_3.set_yscale('log')
+            ax_4.grid()
+            #ax_4.set_yscale('log')
+            ax_1.set_xlabel('f [MHz]')
+            ax_2.set_xlabel('f [MHz]')
+            ax_3.set_xlabel('f [MHz]')
+            ax_4.set_xlabel('f [MHz]')
+            ax_1.set_ylabel('T [K]')
+            ax_2.set_ylabel('S [Jy]')
+            ax_3.set_ylabel('E [V/m]')
+            ax_4.set_ylabel('U [V]')
             for i_zenith, zenith in enumerate(self.__zenith_sample):
                 solid_angle = np.sin(zenith) * self.__delta_zenith * self.__delta_azimuth
                 for i_azimuth, azimuth in enumerate(self.__azimuth_sample):
@@ -76,11 +87,11 @@ class channelGalacticNoiseAdder:
                     S = 2. * (scipy.constants.Boltzmann*(units.joule/units.kelvin)) * (freqs[passband_filter])**2 / (scipy.constants.c*(units.m/units.s))**2 * noise_temperature * solid_angle
                     S[np.isnan(S)] = 0
                     E = np.sqrt(S/(scipy.constants.c*(units.m/units.s))/(scipy.constants.epsilon_0*(units.farad/units.m)))
+                    #E = np.sqrt(S/trace_utilities.conversion_factor_integrated_signal)
                     ax_1.scatter(self.__interpolaiton_frequencies/units.MHz, noise_temperatures[:,i_zenith, i_azimuth], c='k', alpha=.01)
                     ax_1.plot(freqs[passband_filter]/units.MHz, noise_temperature, c='k', alpha=.02)
-                    ax_2.plot(freqs[passband_filter]/units.MHz, S, c='k', alpha=.02)
-                    ax_3.plot(freqs[passband_filter]/units.MHz, E, c='k', alpha=.02)
-
+                    ax_2.plot(freqs[passband_filter]/units.MHz, S/units.jansky, c='k', alpha=.02)
+                    ax_3.plot(freqs[passband_filter]/units.MHz, E/(units.V/units.m), c='k', alpha=.02)
 
                     noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=np.complex)
                     phases = np.random.uniform(0, 2 * np.pi, len(S))
@@ -97,6 +108,7 @@ class channelGalacticNoiseAdder:
                         self.__antenna_pattern_provider
                     )[0]
                     channel_noise_spectrum = np.sum(VEL * np.array([noise_spectrum[1], noise_spectrum[2]]), axis=0)
+                    ax_4.plot(freqs/units.MHz, np.abs(channel_noise_spectrum)/units.V, c='k', alpha=.01)
                     #channel_trace += fft.freq2time(channel_noise_spectrum, sampling_rate)
                     channel_spectrum += channel_noise_spectrum
                     #if self.__debug:
@@ -114,6 +126,9 @@ class channelGalacticNoiseAdder:
                     #    ax3.plot(freqs/units.MHz, np.abs(fft.time2freq(channel_trace, sampling_rate)))
                     #    ax4.plot(times, channel_trace)
                     #    plt.show()
+            for efield in station.get_sim_station().get_electric_fields_for_channels([channel.get_id()]):
+                ax_3.plot(efield.get_frequencies()/units.MHz, np.abs(efield.get_frequency_spectrum()[1])/(units.V/units.m), c='C0')
+                ax_3.plot(efield.get_frequencies()/units.MHz, np.abs(efield.get_frequency_spectrum()[2])/(units.V/units.m), c='C1')
             fig.tight_layout()
             plt.show()
             #channel.set_trace(channel_trace, sampling_rate)
