@@ -8,6 +8,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy as sp
 import scipy.constants
+import scipy.interpolate
+import pygsm
+import healpy
 
 logger = logging.getLogger('channelGalacticNoiseAdder')
 
@@ -15,34 +18,75 @@ class channelGalacticNoiseAdder:
     def __init__(self):
         self.begin()
 
-    def begin(self, debug=False, n_zenith=18, n_azimuth=36):
+    def begin(self, debug=False, n_zenith=18, n_azimuth=36, interpolation_frequencies=np.arange(10, 1100, 100)*units.MHz):
         self.__debug = debug
         self.__zenith_sample = np.linspace(0, 90, n_zenith)[1:] * units.deg
         self.__azimuth_sample = np.linspace(0, 360, n_azimuth)[1:] * units.deg
         self.__delta_zenith = self.__zenith_sample[1] - self.__zenith_sample[0]
         self.__delta_azimuth = self.__azimuth_sample[1] - self.__azimuth_sample[0]
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
+        self.__interpolaiton_frequencies = interpolation_frequencies
     def run(self, event, station, detector, passband=[10*units.MHz, 1000*units.MHz]):
+        self.__sky_observer = pygsm.GSMObserver()
+        site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
+        self.__sky_observer.longitude = site_longitude
+        self.__sky_observer.latitude = site_latitude
+        station_time = station.get_station_time()
+        station_time.format = 'iso'
+        self.__sky_observer.date = station_time.value
+        noise_temperatures = np.zeros((len(self.__interpolaiton_frequencies), len(self.__zenith_sample), len(self.__azimuth_sample)))
+        for i_freq, noise_freq in enumerate(self.__interpolaiton_frequencies):
+            radio_sky = self.__sky_observer.generate(noise_freq/units.MHz)
+            radio_sky[np.isnan(radio_sky)] = 0
+            for i_zenith, zenith in enumerate(self.__zenith_sample):
+                elevation = 90.*units.deg - zenith
+                for i_azimuth, azimuth in enumerate(self.__azimuth_sample):
+                    i_pix = healpy.pixelfunc.ang2pix(self.__sky_observer._n_side, elevation, azimuth)
+                    noise_temperatures[i_freq,i_zenith, i_azimuth] = radio_sky[i_pix]
+
 
         for channel in station.iter_channels():
             freqs = channel.get_frequencies()   #assume all channels have the same fequencies
             times = channel.get_times()
             sampling_rate = channel.get_sampling_rate()
             channel_trace = channel.get_trace()
-
+            #channel_spectrum = channel.get_frequency_spectrum()
+            channel_spectrum = np.zeros_like(channel.get_frequency_spectrum())
             passband_filter = (freqs>passband[0])&(freqs<passband[1])
             #S = np.zeros(freqs[passband_filter].shape)
             self.__solid_angle_sum = 0
-            for zenith in self.__zenith_sample:
-                for azimuth in self.__azimuth_sample:
-                    noise_temperature = self.__get_galactic_noise_temp(freqs[passband_filter] / units.MHz, zenith, azimuth)
-                    S = 4 * np.pi * ((2 * sp.constants.Boltzmann/(units.joule/units.kelvin)) / ((sp.constants.speed_of_light/(units.m/units.s)) ** 2)) * (freqs[passband_filter] / units.MHz) ** 2 * noise_temperature * 50 * units.ohm
+            plt.close('all')
+            fig = plt.figure(figsize=(12,8))
+            ax_1 = fig.add_subplot(131)
+            ax_2 = fig.add_subplot(132)
+            ax_3 = fig.add_subplot(133)
+            ax_1.grid()
+            ax_1.set_yscale('log')
+            ax_2.grid()
+            ax_2.set_yscale('log')
+            ax_3.grid()
+            ax_3.set_yscale('log')
+            for i_zenith, zenith in enumerate(self.__zenith_sample):
+                solid_angle = np.sin(zenith) * self.__delta_zenith * self.__delta_azimuth
+                for i_azimuth, azimuth in enumerate(self.__azimuth_sample):
+                    #noise_temperature = self.__get_galactic_noise_temp(freqs[passband_filter] / units.MHz, zenith, azimuth)
+                    #S = 4 * np.pi * ((2 * sp.constants.Boltzmann/(units.joule/units.kelvin)) / ((sp.constants.speed_of_light/(units.m/units.s)) ** 2)) * (freqs[passband_filter] / units.MHz) ** 2 * noise_temperature * 50 * units.ohm
+                    temperature_interpolator = scipy.interpolate.interp1d(self.__interpolaiton_frequencies, np.log10(noise_temperatures[:,i_zenith,i_azimuth]), kind='quadratic')
+                    noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
+                    S = 2. * (scipy.constants.Boltzmann*(units.joule/units.kelvin)) * (freqs[passband_filter])**2 / (scipy.constants.c*(units.m/units.s))**2 * noise_temperature * solid_angle
+                    S[np.isnan(S)] = 0
+                    E = np.sqrt(S/(scipy.constants.c*(units.m/units.s))/(scipy.constants.epsilon_0*(units.farad/units.m)))
+                    ax_1.scatter(self.__interpolaiton_frequencies/units.MHz, noise_temperatures[:,i_zenith, i_azimuth], c='k', alpha=.01)
+                    ax_1.plot(freqs[passband_filter]/units.MHz, noise_temperature, c='k', alpha=.02)
+                    ax_2.plot(freqs[passband_filter]/units.MHz, S, c='k', alpha=.02)
+                    ax_3.plot(freqs[passband_filter]/units.MHz, E, c='k', alpha=.02)
+
 
                     noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=np.complex)
                     phases = np.random.uniform(0, 2 * np.pi, len(S))
                     polarizations = np.random.uniform(0,2*np.pi, len(S))
-                    noise_spectrum[1][passband_filter] = S * np.exp(1j*phases) * np.cos(polarizations)
-                    noise_spectrum[2][passband_filter] = S * np.exp(1j*phases) * np.sin(polarizations)
+                    noise_spectrum[1][passband_filter] = E * np.exp(1j*phases) * np.cos(polarizations)
+                    noise_spectrum[2][passband_filter] = E * np.exp(1j*phases) * np.sin(polarizations)
                     VEL = trace_utilities.get_efield_antenna_factor(
                         station,
                         freqs,
@@ -54,6 +98,7 @@ class channelGalacticNoiseAdder:
                     )[0]
                     channel_noise_spectrum = np.sum(VEL * np.array([noise_spectrum[1], noise_spectrum[2]]), axis=0)
                     #channel_trace += fft.freq2time(channel_noise_spectrum, sampling_rate)
+                    channel_spectrum += channel_noise_spectrum
                     #if self.__debug:
                     #    plt.close('all')
                     #    fig = plt.figure()
@@ -69,7 +114,10 @@ class channelGalacticNoiseAdder:
                     #    ax3.plot(freqs/units.MHz, np.abs(fft.time2freq(channel_trace, sampling_rate)))
                     #    ax4.plot(times, channel_trace)
                     #    plt.show()
-            channel.set_trace(channel_trace, sampling_rate)
+            fig.tight_layout()
+            plt.show()
+            #channel.set_trace(channel_trace, sampling_rate)
+            channel.set_frequency_spectrum(channel_spectrum, sampling_rate)
             if self.__debug:
                 plt.close('all')
                 fig = plt.figure()
