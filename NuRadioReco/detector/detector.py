@@ -469,6 +469,15 @@ class Detector(object):
         res = self._get_station(station_id)
         return res['pos_site']
 
+    def get_site_coordinates(self, station_id):
+        sites = {
+            'summit' : (78.58, -38.46)
+        }
+        site = self.get_site(station_id)
+        if site in sites.keys():
+            return sites[site]
+        return (None, None)
+
     def get_number_of_channels(self, station_id):
         """
         Get the number of channels per statoin
