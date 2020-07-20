@@ -125,6 +125,18 @@ class BaseTrace:
         return length
 
     def apply_time_shift(self, delta_t):
+        """
+        Uses the fourier shift theorem to apply a time shift to the trace
+        Note that this is a cyclic shift, which means the trace will wrap
+        around, which might lead to problems, especially for large time shifts.
+
+        Parameters:
+        --------------------
+        delta_t: float
+            Time by which the trace should be shifted
+        """
+        if delta_t > .1*self.get_number_of_samples()/self.get_sampling_rate():
+            logger.warning('Trace is shifted by more than 10% of its length')
         spec = self.get_frequency_spectrum()
         spec *= np.exp(-2.j*np.pi*delta_t*self.get_frequencies())
         self.set_frequency_spectrum(spec, self._sampling_rate)
