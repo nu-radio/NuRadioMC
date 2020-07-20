@@ -1,6 +1,7 @@
 import six
 import NuRadioReco.detector.detector
 import NuRadioReco.detector.generic_detector
+import NuRadioReco.modules.io.NuRadioRecoio
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -15,6 +16,7 @@ import numpy as np
 class DetectorProvider(object):
     def __init__(self):
         self.__detector = None
+        self.__io = None
     def set_detector(self, filename):
         self.__detector = NuRadioReco.detector.detector.Detector.__new__(NuRadioReco.detector.detector.Detector)
         self.__detector.__init__(source='json', json_filename=filename)
@@ -22,6 +24,14 @@ class DetectorProvider(object):
     def set_generic_detector(self, filename, default_station, default_channel):
         self.__detector = NuRadioReco.detector.generic_detector.GenericDetector.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
         self.__detector.__init__(filename, default_station, default_channel)
+
+    def set_event_file(self, filename):
+        self.__io = NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio([filename])
+        event = self.__io.get_event_i(0)
+        self.__detector = self.__io.get_detector()
+        for station in event.get_stations():
+            self.__detector.update(station.get_station_time())
+            break
 
     def get_detector(self):
         return self.__detector
@@ -32,6 +42,16 @@ class DetectorProvider(object):
 
     def get_time_periods(self):
         return self.__unix_time_periods, self.__astropy_time_periods
+
+    def get_n_events(self):
+        if self.__io is None:
+            return 0
+        return self.__io.get_n_events()
+
+    def get_event_ids(self):
+        if self.__io is None:
+            return None
+        return self.__io.get_event_ids()
 
 
 layout = html.Div([
@@ -120,7 +140,29 @@ layout = html.Div([
                 n_clicks=0,
                 className='btn btn-primary'
                 )
-            ], id='detector-time-div', className='input-group')
+            ], id='detector-time-div', className='input-group'),
+            html.Div([
+                html.Button(
+                    '     ',
+                    id='selected-event-button',
+                    className='badge badge-light'
+                ),
+                html.Div([
+                    dcc.Slider(
+                        id='detector-event-slider',
+                        value=0,
+                        min=0,
+                        max=1,
+                        step=1
+                    )
+                ], style={'flex': '1'}),
+                html.Button(
+                    'Update',
+                    id='update-detector-event-button',
+                    n_clicks=0,
+                    className='btn btn-primary'
+                )
+            ], id='detector-event-div', className='input-group')
         ], className='panel panel-body')
     ], className='panel panel-default')
 ])
@@ -186,6 +228,8 @@ def open_detector(n_clicks, time_n_clicks, filename, detector_type, default_stat
         detector.update(datetimes[np.argmin(unix_times)])
     elif detector_type == 'generic_detector':
         detector_provider.set_generic_detector(filename, default_station,default_channel)
+    elif detector_type == 'event_file':
+        detector_provider.set_event_file(filename)
     return n_clicks
 
 @app.callback(
@@ -255,3 +299,39 @@ def set_selected_date_button(unix_time):
     t = astropy.time.Time(unix_time, format='unix')
     t.format = 'iso'
     return str(t.value).split(' ')[0]
+
+@app.callback(
+    Output('detector-event-div', 'style'),
+    [Input('file-type-dropdown', 'value')]
+)
+def show_event_selection(file_type):
+    if file_type == 'event_file':
+        return {}
+    else:
+        return {'display': 'none'}
+
+@app.callback(
+    [Output('detector-event-slider', 'value'),
+    Output('detector-event-slider', 'max')],
+    [Input('output-dummy', 'children'),
+    Input('file-type-dropdown', 'value')]
+)
+def set_detector_event_slider(load_detector_click, detector_type):
+    detector_provider = DetectorProvider()
+    detector = detector_provider.get_detector()
+    if detector is None:
+        return 0, 0
+    if detector_type != 'event_file':
+        return 0, 0
+    return 0, detector_provider.get_n_events()
+
+@app.callback(
+    Output('selected-event-button', 'children'),
+    [Input('detector-event-slider', 'value')]
+)
+def set_event_id_display(i_event):
+    detector_provider = DetectorProvider()
+    event_ids = detector_provider.get_event_ids()
+    if event_ids is None:
+        return '     '
+    return 'Run {}, Event {}'.format(event_ids[i_event][0], event_ids[i_event][1])
