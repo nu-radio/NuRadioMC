@@ -17,6 +17,7 @@ class DetectorProvider(object):
     def __init__(self):
         self.__detector = None
         self.__io = None
+        self.__current_event_i = None
     def set_detector(self, filename):
         self.__detector = NuRadioReco.detector.detector.Detector.__new__(NuRadioReco.detector.detector.Detector)
         self.__detector.__init__(source='json', json_filename=filename)
@@ -29,6 +30,7 @@ class DetectorProvider(object):
         self.__io = NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio([filename])
         event = self.__io.get_event_i(0)
         self.__detector = self.__io.get_detector()
+        self.__current_event_i = 0
         for station in event.get_stations():
             self.__detector.update(station.get_station_time())
             break
@@ -52,6 +54,19 @@ class DetectorProvider(object):
         if self.__io is None:
             return None
         return self.__io.get_event_ids()
+
+    def set_event(self, i_event):
+        if self.__io is None:
+            return
+        event = self.__io.get_event_i(i_event)
+        self.__detector = self.__io.get_detector()
+        self.__current_event_i = i_event
+        for station in event.get_stations():
+            self.__detector.update(station.get_station_time())
+            break
+
+    def get_current_event_i(self):
+        return self.__current_event_i
 
 
 layout = html.Div([
@@ -200,19 +215,34 @@ def update_file_name_options(folder_dummy, refresh_button, file_type, folder_inp
 
 @app.callback(Output('output-dummy', 'children'),
     [Input('load-detector-button', 'n_clicks'),
-    Input('update-detector-time-button', 'n_clicks')],
+    Input('update-detector-time-button', 'n_clicks'),
+    Input('update-detector-event-button', 'n_clicks')],
     [State('detector-file-dropdown', 'value'),
     State('file-type-dropdown', 'value'),
     State('default-station-input', 'value'),
     State('default-channel-input', 'value'),
-    State('detector-time-slider', 'value')])
-def open_detector(n_clicks, time_n_clicks, filename, detector_type, default_station, default_channel, detector_time):
+    State('detector-time-slider', 'value'),
+    State('detector-event-slider', 'value')])
+def open_detector(
+        n_clicks,
+        time_n_clicks,
+        event_n_clicks,
+        filename,
+        detector_type,
+        default_station,
+        default_channel,
+        detector_time,
+        i_event
+    ):
     if filename is None:
         return ''
     detector_provider = DetectorProvider()
     context = dash.callback_context
     if context.triggered[0]['prop_id'] == 'update-detector-time-button.n_clicks':
         detector_provider.get_detector().update(astropy.time.Time(detector_time, format='unix'))
+        return n_clicks
+    if context.triggered[0]['prop_id'] == 'update-detector-event-button.n_clicks':
+        detector_provider.set_event(i_event)
         return n_clicks
     if detector_type == 'detector':
         detector_provider.set_detector(filename)
@@ -323,7 +353,7 @@ def set_detector_event_slider(load_detector_click, detector_type):
         return 0, 0
     if detector_type != 'event_file':
         return 0, 0
-    return 0, detector_provider.get_n_events()
+    return detector_provider.get_current_event_i(), detector_provider.get_n_events()
 
 @app.callback(
     Output('selected-event-button', 'children'),
