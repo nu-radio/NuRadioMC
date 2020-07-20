@@ -353,7 +353,7 @@ def set_detector_event_slider(load_detector_click, detector_type):
         return 0, 0
     if detector_type != 'event_file':
         return 0, 0
-    return detector_provider.get_current_event_i(), detector_provider.get_n_events()
+    return detector_provider.get_current_event_i(), detector_provider.get_n_events()-1
 
 @app.callback(
     Output('selected-event-button', 'children'),
