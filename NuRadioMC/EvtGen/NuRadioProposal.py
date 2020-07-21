@@ -250,6 +250,7 @@ class ProposalFunctions(object):
         low_nu: float
             Low energy limit for the propagating particle in NuRadioMC units (eV)
         """
+        print("initializing proposal interface class", flush=True)
         self.propagators = {}
         low = low_nu * pp_eV
         for lepton_code in [13, -13, 15, -15]:
