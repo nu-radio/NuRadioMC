@@ -477,7 +477,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         attributes["start_event_id"] = 0  # backward compatibility
 
     if(n_events_per_file is None):
-        n_events_per_file = n_events
+        n_events_per_file = len(data_sets['event_ids'])
     else:
         n_events_per_file = int(n_events_per_file)
     iFile = -1
@@ -758,6 +758,7 @@ def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
 
     return np.array(zeniths)
 
+
 def mask_arrival_azimuth(data_sets, fiducial_rmax):
 
     # Now we filter the events as a function of their arrival direction to
@@ -771,7 +772,7 @@ def mask_arrival_azimuth(data_sets, fiducial_rmax):
     # with the antenna-vertex line on that plane.
     sine_tangent_angles = fiducial_rmax / rhos
     sine_tangent_angles[sine_tangent_angles > 1] = 1
-    tangent_angles = np.arcsin( sine_tangent_angles )
+    tangent_angles = np.arcsin(sine_tangent_angles)
     phis_low = 2 * np.pi - tangent_angles
     phis_high = tangent_angles
     phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
@@ -1007,10 +1008,10 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
             continue
 
-        products_array = proposal_functions.get_secondaries_array( np.array([E_all_leptons[iE]]),
+        products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
                                                                    np.array([lepton_codes[iE]]),
                                                                    np.array([lepton_positions[iE]]),
-                                                                   np.array([lepton_directions[iE]]) )
+                                                                   np.array([lepton_directions[iE]]))
         products = products_array[0]
 
         lepton_code = lepton_codes[iE]
