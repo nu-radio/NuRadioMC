@@ -998,8 +998,14 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
                         for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
 
+    mask_phi = mask_arrival_azimuth(data_sets, fiducial_rmax)
+
     for event_id in data_sets["event_ids"]:
         iE = event_id - start_event_id
+
+        if not mask_phi[iE]:
+
+            continue
 
         products_array = proposal_functions.get_secondaries_array( np.array([E_all_leptons[iE]]),
                                                                    np.array([lepton_codes[iE]]),
