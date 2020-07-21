@@ -477,7 +477,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         attributes["start_event_id"] = 0  # backward compatibility
 
     if(n_events_per_file is None):
-        n_events_per_file = len(data_sets['event_ids'])
+        n_events_per_file = n_events
     else:
         n_events_per_file = int(n_events_per_file)
     iFile = -1
@@ -493,7 +493,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
             logger.info("no more events to write in file {}".format(iFile))
             break
 
-        if((iFile > 0) or (n_events_per_file < n_events)):
+        if((iFile > 0) or (n_events_per_file <= n_events)):
             filename2 = filename + ".part{:04}".format(iFile + start_file_id)
         fout = h5py.File(filename2, 'w')
         fout.attrs['VERSION_MAJOR'] = VERSION_MAJOR
