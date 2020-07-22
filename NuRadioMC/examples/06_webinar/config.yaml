@@ -32,9 +32,5 @@ speedup:
   # smaller than the trigger threshold.
   min_efield_amplitude: 2
 
-# Usually, we save only the events that have triggered. For this example, however,
-# we are going to save all the events in the input file after they have been processed.
-save_all: True
-
 trigger:
   noise_temperature: 300  # in Kelvin
