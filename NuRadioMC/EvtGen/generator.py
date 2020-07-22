@@ -759,6 +759,37 @@ def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
     return np.array(zeniths)
 
 
+def mask_arrival_azimuth(data_sets, fiducial_rmax):
+
+    # Now we filter the events as a function of their arrival direction to
+    # save computing time. Those events that won't make it to the fiducial
+    # cylinder are discarded.
+
+    rhos = np.sqrt(data_sets['xx'] ** 2 + data_sets['yy'] ** 2)
+
+    # Let us considered our problem seen from above, projected on the z = vertex_z plane.
+    # tangent_angle is the angle a tangent to the cylinder that reaches the vertex makes
+    # with the antenna-vertex line on that plane.
+    sine_tangent_angles = fiducial_rmax / rhos
+    sine_tangent_angles[sine_tangent_angles > 1] = 1
+    tangent_angles = np.arcsin(sine_tangent_angles)
+    phis_low = 2 * np.pi - tangent_angles
+    phis_high = tangent_angles
+    phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
+    # NuRadioMC azimuth angles span [0, 2pi), unlike the result of arctan2: [-pi, pi)
+    phis_0[phis_0 < 0] += 2 * np.pi
+    phis = data_sets["azimuths"] - phis_0  # phi is the azimuth angle of the incoming neutrino if
+                                           # we take phi = 0 as the vertex position
+    phis[phis < 0] += 2 * np.pi
+
+    mask_phi = [ (phi > phi_low and phi < 2 * np.pi) or (phi < phi_high and phi > 0) or rho < fiducial_rmax
+                 for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
+
+    mask_phi = np.array(mask_phi)
+
+    return mask_phi
+
+
 def generate_surface_muons(filename, n_events, Emin, Emax,
                            fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
                            full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
@@ -962,78 +993,58 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     for key, value in data_sets.items():
         data_sets_fiducial[key] = []
 
-    rhos = np.sqrt(data_sets['xx'] ** 2 + data_sets['yy'] ** 2)
-
-    thetas_up = (fiducial_zmax - data_sets['zz']) / rhos
-    thetas_up = np.arctan(thetas_up)
-    thetas_down = (data_sets['zz'] - fiducial_zmin) / rhos
-    thetas_down = np.arctan(thetas_down)
-    thetas = 90 * units.deg - data_sets["zeniths"]  # Theta is the elevation angle of the incoming neutrino
-    mask_theta = [ (theta < theta_up and theta > theta_down) or rho < fiducial_rmax
-                   for theta, theta_up, theta_down, rho in zip(thetas, thetas_up, thetas_down, rhos) ]
-
-    phis_low = 180 * units.deg - np.arctan(fiducial_rmax ** 2 / rhos ** 2)
-    phis_high = 360 * units.deg - phis_low
-    phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
-    phis = data_sets["azimuths"] - phis_0  # Phi is the azimuth angle of the incoming neutrino if
-                                          # we take phi = 0 as the vertex position
-    mask_phi = [ (phi > phi_low and phi < phi_high) or rho < fiducial_rmax
-                 for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
-
-    mask_theta = np.array(mask_theta)
-    mask_phi = np.array(mask_phi)
-
     E_all_leptons = data_sets["energies"]
     lepton_codes = data_sets["flavors"]
     lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
     lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
                         for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
 
+    mask_phi = mask_arrival_azimuth(data_sets, fiducial_rmax)
+
     for event_id in data_sets["event_ids"]:
         iE = event_id - start_event_id
 
-        geometry_selection = mask_theta[iE] and mask_phi[iE]
-        geometry_selection = True
+        if not mask_phi[iE]:
 
-        if geometry_selection:
+            continue
 
-            products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
-                                                                       np.array([lepton_codes[iE]]),
-                                                                       np.array([lepton_positions[iE]]),
-                                                                       np.array([lepton_directions[iE]]))
-            products = products_array[0]
+        products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
+                                                                   np.array([lepton_codes[iE]]),
+                                                                   np.array([lepton_positions[iE]]),
+                                                                   np.array([lepton_directions[iE]]))
+        products = products_array[0]
 
-            lepton_code = lepton_codes[iE]
-            n_interaction = 1
+        lepton_code = lepton_codes[iE]
+        n_interaction = 1
 
-            for product in products:
+        for product in products:
 
-                x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
-                r = (x ** 2 + y ** 2) ** 0.5
+            x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
+            r = (x ** 2 + y ** 2) ** 0.5
 
-                if(r >= fiducial_rmin and r <= fiducial_rmax):
-                    if(z >= fiducial_zmin and z <= fiducial_zmax):  # z coordinate is negative
-                        # the energy loss or particle is in our fiducial volume
+            if(r >= fiducial_rmin and r <= fiducial_rmax):
+                if(z >= fiducial_zmin and z <= fiducial_zmax):  # z coordinate is negative
+                    # the energy loss or particle is in our fiducial volume
 
-                        for key in iterkeys(data_sets):
-                            data_sets_fiducial[key].append(data_sets[key][iE])
+                    for key in iterkeys(data_sets):
+                        data_sets_fiducial[key].append(data_sets[key][iE])
 
-                        data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
-                        n_interaction += 1
-                        data_sets_fiducial['energies'][-1] = product.energy
-                        data_sets_fiducial['inelasticity'][-1] = 1
-                        # interaction_type is either 'had' or 'em' for proposal products
-                        data_sets_fiducial['interaction_type'][-1] = product.shower_type
+                    data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
+                    n_interaction += 1
+                    data_sets_fiducial['energies'][-1] = product.energy
+                    data_sets_fiducial['inelasticity'][-1] = 1
+                    # interaction_type is either 'had' or 'em' for proposal products
+                    data_sets_fiducial['interaction_type'][-1] = product.shower_type
 
-                        data_sets_fiducial['xx'][-1] = x
-                        data_sets_fiducial['yy'][-1] = y
-                        data_sets_fiducial['zz'][-1] = z
+                    data_sets_fiducial['xx'][-1] = x
+                    data_sets_fiducial['yy'][-1] = y
+                    data_sets_fiducial['zz'][-1] = z
 
-                        # Calculating vertex interaction time with respect to the primary neutrino
-                        data_sets_fiducial['vertex_times'][-1] = vertex_time
+                    # Calculating vertex interaction time with respect to the primary neutrino
+                    data_sets_fiducial['vertex_times'][-1] = vertex_time
 
-                        # Flavors are particle codes taken from NuRadioProposal.py
-                        data_sets_fiducial['flavors'][-1] = product.code
+                    # Flavors are particle codes taken from NuRadioProposal.py
+                    data_sets_fiducial['flavors'][-1] = product.code
 
     time_per_evt = (time.time() - init_time) / (iE + 1)
     print("Time per event:", time_per_evt)
@@ -1343,35 +1354,16 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         mask_mu_cc = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 14)
         mask_leptons = mask_tau_cc | mask_mu_cc
 
-        rhos = np.sqrt(data_sets['xx'] ** 2 + data_sets['yy'] ** 2)
-
-        thetas_up = (fiducial_zmax - data_sets['zz']) / rhos
-        thetas_up = np.arctan(thetas_up)
-        thetas_down = (data_sets['zz'] - fiducial_zmin) / rhos
-        thetas_down = np.arctan(thetas_down)
-        thetas = 90 * units.deg - data_sets["zeniths"]  # Theta is the elevation angle of the incoming neutrino
-        mask_theta = [ (theta < theta_up and theta > theta_down) or rho < fiducial_rmax
-                       for theta, theta_up, theta_down, rho in zip(thetas, thetas_up, thetas_down, rhos) ]
-
-        phis_low = 180 * units.deg - np.arctan(fiducial_rmax ** 2 / rhos ** 2)
-        phis_high = 360 * units.deg - phis_low
-        phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
-        phis = data_sets["azimuths"] - phis_0  # Phi is the azimuth angle of the incoming neutrino if
-                                               # we take phi = 0 as the vertex position
-        mask_phi = [ (phi > phi_low and phi < phi_high) or rho < fiducial_rmax
-                     for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
-
-        mask_theta = np.array(mask_theta)
-        mask_phi = np.array(mask_phi)
-
-        mask_leptons = mask_leptons & mask_theta & mask_phi
-
         E_all_leptons = (1 - data_sets["inelasticity"]) * data_sets["energies"]
         lepton_codes = copy.copy(data_sets["flavors"])
         lepton_codes[lepton_codes == 14] = 13
         lepton_codes[lepton_codes == -14] = -13
         lepton_codes[lepton_codes == 16] = 15
         lepton_codes[lepton_codes == -16] = -15
+
+        mask_phi = mask_arrival_azimuth(data_sets, fiducial_rmax)
+
+        mask_leptons = mask_leptons & mask_phi
 
         lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
         lepton_positions = np.array(lepton_positions)
