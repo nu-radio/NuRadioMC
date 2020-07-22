@@ -3,7 +3,6 @@ This file illustrates how to create an input file for NuRadioMC and introduces
 the most basic function and arguments to do so.
 """
 
-
 """
 One of the first lines in every code that uses NuRadioMC or NuRadioReco should
 be an import of the units module in NuRadioReco.utilities. NuRadioMC and NuRadioReco
@@ -34,7 +33,7 @@ from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 # Choose the number of events for this file
 n_events = 1000
 # Choose the minimum energy for the simulated bin.
-Emin = 10**19.5 * units.eV
+Emin = 10 ** 19.5 * units.eV
 # Choose the maximum energy for the simulated bin.
 Emax = 1e20 * units.eV
 """
@@ -55,10 +54,11 @@ cylinder is large enough so that every possible trigger interaction is contained
 inside the volume, or, equivalently, the probability of trigger at the edges of
 the cylinder is negligible.
 """
-fiducial_rmin =  0 * units.km
-fiducial_rmax =  4 * units.km
-fiducial_zmin = -3 * units.km
-fiducial_zmax =  0 * units.km
+volume = {
+'fiducial_rmin':0 * units.km,
+'fiducial_rmax': 4 * units.km,
+'fiducial_zmin':-3 * units.km,
+'fiducial_zmax': 0 * units.km}
 
 """
 The generator module allows the user to narrow the zenith band for the incoming
@@ -88,7 +88,7 @@ pass the flavour choice as a list of particle codes, and the generator will rand
 choose flavours contained in this list. For instance, to get a 1:1:1 flux, which
 is also the one by default, we can write:
 """
-flavor=[12, -12, 14, -14, 16, -16]
+flavor = [12, -12, 14, -14, 16, -16]
 
 """
 We choose a name for the file to be generated.
@@ -99,7 +99,6 @@ filename = 'input_{:.1e}_{:.1e}.hdf5'.format(Emin, Emax)
 And we call the function to generate the events.
 """
 generate_eventlist_cylinder(filename, n_events, Emin, Emax,
-                            fiducial_rmin, fiducial_rmax,
-                            fiducial_zmin, fiducial_zmax,
+                            volume,
                             thetamin=thetamin, thetamax=thetamax,
                             flavor=flavor)

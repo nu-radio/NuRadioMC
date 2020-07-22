@@ -1,0 +1,7 @@
+Scripts to determine the relationship between shower energy and maximum distance to a station. This is used
+in the code to speed up the calculation as antennas that are too far away can just be skipped.
+
+Json files contain the relevant data points (maximum distance as a function of shower energy)
+
+dist_vs_edge_Greenland_1.5sigma:
+	- 1.5 sigma dipole (bicone_v8) at 100m depth in Greenland ice for a noise temperature of 300K and a band of 80-500MHz. 
