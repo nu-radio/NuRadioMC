@@ -590,6 +590,37 @@ def is_in_fiducial_volume(attributes, X):
         raise AttributeError("neither 'fiducial_rmin' nor 'fiducial_xmax' is in attributes.")
 
 
+def mask_arrival_azimuth(data_sets, fiducial_rmax):
+
+    # Now we filter the events as a function of their arrival direction to
+    # save computing time. Those events that won't make it to the fiducial
+    # cylinder are discarded.
+
+    rhos = np.sqrt(data_sets['xx'] ** 2 + data_sets['yy'] ** 2)
+
+    # Let us considered our problem seen from above, projected on the z = vertex_z plane.
+    # tangent_angle is the angle a tangent to the cylinder that reaches the vertex makes
+    # with the antenna-vertex line on that plane.
+    sine_tangent_angles = fiducial_rmax / rhos
+    sine_tangent_angles[sine_tangent_angles > 1] = 1
+    tangent_angles = np.arcsin(sine_tangent_angles)
+    phis_low = 2 * np.pi - tangent_angles
+    phis_high = tangent_angles
+    phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
+    # NuRadioMC azimuth angles span [0, 2pi), unlike the result of arctan2: [-pi, pi)
+    phis_0[phis_0 < 0] += 2 * np.pi
+    phis = data_sets["azimuths"] - phis_0  # phi is the azimuth angle of the incoming neutrino if
+                                           # we take phi = 0 as the vertex position
+    phis[phis < 0] += 2 * np.pi
+
+    mask_phi = [ (phi > phi_low and phi < 2 * np.pi) or (phi < phi_high and phi > 0) or rho < fiducial_rmax
+                 for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
+
+    mask_phi = np.array(mask_phi)
+
+    return mask_phi
+
+
 def generate_surface_muons(filename, n_events, Emin, Emax,
                            volume,
                            thetamin=0.*units.rad, thetamax=np.pi * units.rad,
@@ -791,7 +822,14 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
                         for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
 
+    if('fiducial_rmax' in attributes):
+        mask_phi = mask_arrival_azimuth(data_sets, attributes['fiducial_rmax'])  # this currently only works for cylindrical volumes
+    else:
+        mask_phi = np.ones(len(data_sets["event_group_ids"]), dtype=np.bool)
+    # TODO: combine with `get_intersection_volume_neutrino` function
     for iE, event_id in enumerate(data_sets["event_group_ids"]):
+        if not mask_phi[iE]:
+            continue
 
         # calculate if the lepton/neutrino direction intersects the fiducial simulation volume
         geometry_selection = get_intersection_volume_neutrino(attributes,
@@ -822,7 +860,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                     # interaction_type is either 'had' or 'em' for proposal products
                     data_sets_fiducial['interaction_type'][-1] = product.shower_type
                     data_sets_fiducial['shower_type'][-1] = product.shower_type
-
                     data_sets_fiducial['xx'][-1] = x
                     data_sets_fiducial['yy'][-1] = y
                     data_sets_fiducial['zz'][-1] = z
@@ -869,7 +906,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 deposited=False,
                                 proposal=False,
                                 proposal_config='SouthPole',
-                                start_file_id=0):
+                                start_file_id=0,
+                                log_level=logging.WARNING):
     """
     Event generator
 
@@ -990,6 +1028,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
     """
+    logger.setLevel(log_level)
     if proposal:
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
         proposal_functions = ProposalFunctions(config_file=proposal_config)
@@ -1075,6 +1114,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets_fiducial = {}
 
     if proposal:
+        logger.debug("starting proposal simulation")
         import time
         init_time = time.time()
         # Initialising data_sets_fiducial with empty values
@@ -1094,6 +1134,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         lepton_codes[lepton_codes == -14] = -13
         lepton_codes[lepton_codes == 16] = 15
         lepton_codes[lepton_codes == -16] = -15
+
+        if("fiducial_rmax" in attributes):
+            mask_phi = mask_arrival_azimuth(data_sets, attributes['fiducial_rmax'])
+            mask_leptons = mask_leptons & mask_phi
+            # TODO: combine with `get_intersection_volume_neutrino` function
 
         lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
         lepton_positions = np.array(lepton_positions)
@@ -1129,6 +1174,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                         x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
                         if(is_in_fiducial_volume(attributes, np.array([x, y, z]))):
+
                             # the energy loss or particle is in our fiducial volume
 
                             # If the energy loss or particle is in the fiducial volume but the parent

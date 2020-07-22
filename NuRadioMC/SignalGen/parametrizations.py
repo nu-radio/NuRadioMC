@@ -31,7 +31,7 @@ def get_parametrizations():
 
 
 def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=None, same_shower=False,
-                   k_L=None, full_output=True):
+                   k_L=None, full_output=True, average_shower=False):
     """
     returns the Askaryan pulse in the time domain of the eTheta component
 
@@ -75,6 +75,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
         This setting overrides the `same_shower` setting
     full_output: bool (default False)    
         if True, askaryan modules can return additional output
+    average_shower: bool (default False)
+        if True, for the Alvarez2009 model electromagnetic showers, no random shower is generated, but the average shower is choosen. 
 
     Returns
     -------
@@ -156,19 +158,21 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
 
             global _Alvarez2009_k_L
             if(k_L is None):
-                if(same_shower):
+                if(average_shower):
+                    k_L = 10 ** log10_k_L_bar
+                elif(same_shower):
                     if _Alvarez2009_k_L is None:
                         logger.error("the same shower was requested but the function hasn't been called before.")
                         raise AttributeError("the same shower was requested but the function hasn't been called before.")
                     else:
                         k_L = _Alvarez2009_k_L
+
                 else:
                     _Alvarez2009_k_L = 10 ** _random_generators[model].normal(log10_k_L_bar, sigma_k_L)
                     k_L = _Alvarez2009_k_L
         else:
             raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
         nu_L = rho / k_L / X_0
-
         cher_cut = 1.e-8
         if (np.abs(1 - n_index * np.cos(theta)) < cher_cut):
             nu_L *= c / cher_cut
