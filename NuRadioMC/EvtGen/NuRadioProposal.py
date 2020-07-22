@@ -240,14 +240,16 @@ def check_path_to_tables(config_file_path):
 
     if not os.path.isdir(path_to_tables):
 
-        error_msg  = "'path_to_tables' in {} points to a non-existing directory. ".format(config_file_path)
-        error_msg += "Please choose a valid path."
+        error_msg  = "'path_to_tables' in {} points to {}, which is non-existing directory. ".format(config_file_path,
+                                                                                                     path_to_tables)
+        error_msg += "Please choose a valid path for the PROPOSAL config file in {}.".format(config_file_path)
         raise ValueError(error_msg)
 
     if not os.path.isdir(path_to_tables_readonly):
 
-        error_msg  = "'path_to_tables_readonly' in {} points to a non-existing directory. ".format(config_file_path)
-        error_msg += "Please choose a valid path."
+        error_msg  = "'path_to_tables_readonly' in {} points to {}, which is non-existing directory. ".format(config_file_path,
+                                                                                                              path_to_tables_readonly)
+        error_msg += "Please choose a valid path for the PROPOSAL config file in {}.".format(config_file_path)
         raise ValueError(error_msg)
 
 @six.add_metaclass(Singleton)
