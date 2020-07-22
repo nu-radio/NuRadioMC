@@ -32,9 +32,7 @@ def calculate_aeff(fin):
 
     n_triggered = np.sum(weights[triggered])
 
-    rmin = fin.attrs['rmin']
-    rmax = fin.attrs['rmax']
-    geometrical_area = np.pi * (rmax - rmin) ** 2
+    geometrical_area = fin.attrs['area']
 
     thetamin = fin.attrs['thetamin']
     thetamax = fin.attrs['thetamax']
