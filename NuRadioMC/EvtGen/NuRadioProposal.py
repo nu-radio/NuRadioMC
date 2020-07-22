@@ -3,6 +3,7 @@ import numpy as np
 from NuRadioReco.utilities import units
 import os
 import six
+import json
 
 """
 This module takes care of the PROPOSAL implementation. Some important things
@@ -224,6 +225,32 @@ def is_shower_primary(particle):
     else:
         return False
 
+def check_path_to_tables(config_file_path):
+    """
+    Checks if the paths for the PROPOSAL tables in the input config file are
+    existing directories.
+    """
+
+    with open(config_file_path, 'r') as f:
+
+        config_file = json.load(f)
+
+    path_to_tables = config_file['global']['interpolation']['path_to_tables']
+    path_to_tables_readonly = config_file['global']['interpolation']['path_to_tables_readonly']
+
+    if not os.path.isdir(path_to_tables):
+
+        error_msg  = "'path_to_tables' in {} points to {}, which is a non-existing directory. ".format(config_file_path,
+                                                                                                     path_to_tables)
+        error_msg += "Please choose a valid path for the PROPOSAL config file in {}.".format(config_file_path)
+        raise ValueError(error_msg)
+
+    if not os.path.isdir(path_to_tables_readonly):
+
+        error_msg  = "'path_to_tables_readonly' in {} points to {}, which is a non-existing directory. ".format(config_file_path,
+                                                                                                              path_to_tables_readonly)
+        error_msg += "Please choose a valid path for the PROPOSAL config file in {}.".format(config_file_path)
+        raise ValueError(error_msg)
 
 @six.add_metaclass(Singleton)
 class ProposalFunctions(object):
@@ -250,6 +277,7 @@ class ProposalFunctions(object):
         low_nu: float
             Low energy limit for the propagating particle in NuRadioMC units (eV)
         """
+        print("initializing proposal interface class", flush=True)
         self.propagators = {}
         low = low_nu * pp_eV
         for lepton_code in [13, -13, 15, -15]:
@@ -330,6 +358,8 @@ class ProposalFunctions(object):
             error_message += "in file {}.sample ".format(config_file_full_path)
             error_message += "and copy the file to {}.".format(os.path.basename(config_file_full_path))
             raise ValueError(error_message)
+
+        check_path_to_tables(config_file_full_path)
 
         propagator = pp.Propagator(particle_def=mu_def, config_file=config_file_full_path)
 
