@@ -196,6 +196,31 @@ class Event:
 
     def serialize(self, mode):
         stations_pkl = []
+        try:
+            import git
+            repo = git.Repo(NuRadioReco.__file__, search_parent_directories=True)
+            hash = repo.head.object.hexsha
+            self.set_parameter(parameters.eventParameters.hash_NuRadioReco, hash)
+        except:
+            self.set_parameter(parameters.eventParameters.hash_NuRadioReco, None)
+        try:
+            import git
+            import NuRadioMC
+            repo = git.Repo(NuRadioMC.__file__, search_parent_directories=True)
+            hash = repo.head.object.hexsha
+            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, hash)
+        except:
+            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, None)
+        try:
+            import git
+            import radiotools
+            repo = git.Repo(radiotools.__file__, search_parent_directories=True)
+            hash = repo.head.object.hexsha
+            self.set_parameter(parameters.eventParameters.hash_radiotools, hash)
+        except:
+            self.set_parameter(parameters.eventParameters.hash_radiotools, None)
+
+
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
 
