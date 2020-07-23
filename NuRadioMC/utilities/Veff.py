@@ -17,7 +17,7 @@ logging.basicConfig()
 # collection of utility function regarding the calculation of the effective volume of a neutrino detector
 
 
-def get_triggered(fin):
+def get_triggered(fin, iT=None):
     """
     Computes an array indicating the triggered events.
     If a double bang is seen, removes the second bang from the actual triggered
@@ -26,7 +26,9 @@ def get_triggered(fin):
     Parameters
     ----------
     fin: dictionary
-       Dictionary containing the output data sets from the simulation
+        Dictionary containing the output data sets from the simulation
+    iT: int
+        Index corresponding to the chosen trigger. If None, fin['trigggered'] is used
 
     Returns
     -------
@@ -34,7 +36,10 @@ def get_triggered(fin):
        The bools indicate if the events have triggered
     """
 
-    triggered = np.copy(fin['triggered'])
+    if iT is None:
+        triggered = np.copy(fin['triggered'])
+    else:
+        triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
 
     if (len(triggered) == 0):
         return triggered
@@ -125,8 +130,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
         out['energy'] = E
 
         weights = np.array(fin['weights'])
-        # triggered = np.array(fin['triggered'])
-        triggered = get_triggered(fin)
+        triggered = np.array(fin['triggered'])
         n_events = fin.attrs['n_events']
         if(trigger_names is None):
             trigger_names = fin.attrs['trigger_names']
@@ -180,7 +184,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
                 out['Aeffs'][trigger_name] = [0, 0, 0]
         else:
             for iT, trigger_name in enumerate(trigger_names):
-                triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
+                triggered = get_triggered(fin, iT)
                 Aeff = proj_area * np.sum(weights[triggered]) / n_events
                 Aeff_error = 0
                 if(np.sum(weights[triggered]) > 0):
@@ -361,8 +365,7 @@ def get_Veff(folder,
         out['energy'] = E
 
         weights = np.array(fin['weights'])
-        # triggered = np.array(fin['triggered'])
-        triggered = get_triggered(fin)
+        triggered = np.array(fin['triggered'])
         n_events = fin.attrs['n_events']
         if(trigger_names is None):
             trigger_names = fin.attrs['trigger_names']
@@ -439,7 +442,7 @@ def get_Veff(folder,
                 out['Veffs'][trigger_name] = [0, 0, 0]
         else:
             for iT, trigger_name in enumerate(trigger_names):
-                triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
+                triggered = get_triggered(fin, iT)
                 Veff = V * np.sum(weights[triggered]) / n_events
                 Veff_error = 0
                 if(np.sum(weights[triggered]) > 0):
