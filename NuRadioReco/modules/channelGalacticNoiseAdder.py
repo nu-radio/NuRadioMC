@@ -20,12 +20,13 @@ class channelGalacticNoiseAdder:
 
     def begin(self, debug=False, n_zenith=18, n_azimuth=36, interpolation_frequencies=np.arange(10, 1100, 100)*units.MHz):
         self.__debug = debug
-        self.__zenith_sample = np.linspace(0, 90, n_zenith)[1:] * units.deg
-        self.__azimuth_sample = np.linspace(0, 360, n_azimuth)[1:] * units.deg
+        self.__zenith_sample = np.linspace(0, 90, n_zenith)[:-1] * units.deg
+        self.__azimuth_sample = np.linspace(0, 360, n_azimuth)[:-1] * units.deg
         self.__delta_zenith = self.__zenith_sample[1] - self.__zenith_sample[0]
         self.__delta_azimuth = self.__azimuth_sample[1] - self.__azimuth_sample[0]
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
         self.__interpolaiton_frequencies = interpolation_frequencies
+
     def run(self, event, station, detector, passband=[10*units.MHz, 1000*units.MHz]):
         self.__sky_observer = pygsm.GSMObserver()
         site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
@@ -92,7 +93,7 @@ class channelGalacticNoiseAdder:
                 ax1.grid()
                 ax2.grid()
             for i_zenith, zenith in enumerate(self.__zenith_sample):
-                solid_angle = np.sin(zenith) * self.__delta_zenith * self.__delta_azimuth
+                solid_angle = (np.cos(zenith) - np.cos(zenith+self.__delta_zenith)) * self.__delta_azimuth
                 for i_azimuth, azimuth in enumerate(self.__azimuth_sample):
                     temperature_interpolator = scipy.interpolate.interp1d(self.__interpolaiton_frequencies, np.log10(noise_temperatures[:,i_zenith,i_azimuth]), kind='quadratic')
                     noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
