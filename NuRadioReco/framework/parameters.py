@@ -98,4 +98,3 @@ class eventParameters(Enum):
     sim_config = 1  # contents of the config file that the NuRadioMC simulation was run with
     hash_NuRadioReco = 2    # git hash of the NuRadioReco commit that the file was created with
     hash_NuRadioMC = 3  # git hash of the NuRadioMC commit that the file was created with
-    hash_radiotools = 4 # git hash of the radiotools commit that the file was created with
