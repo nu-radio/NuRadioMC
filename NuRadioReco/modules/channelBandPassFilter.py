@@ -2,6 +2,7 @@ import numpy as np
 from scipy import signal
 import scipy.signal
 import logging
+import copy
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
@@ -13,6 +14,7 @@ class channelBandPassFilter:
     """
     Band pass filters the channels using different band-pass filters.
     """
+
     def __init__(self):
         self.__t = 0
         self.begin()
@@ -32,17 +34,22 @@ class channelBandPassFilter:
 
         evt, station, det
             Event, Station, Detector
-        passband: list
+        passband: list or dict of lists
             passband[0]: lower boundary of filter, passband[1]: upper boundary of filter
-        filter_type: string
+            a dict can be used to specify a different bandwidth per channel, the key is the channel_id
+        filter_type: string or dict
             'rectangular': perfect straight line filter
             'butter': butterworth filter from scipy
             'butterabs': absolute of butterworth filter from scipy
             or any filter that is implemented in NuRadioReco.detector.filterresponse. In this case the
             passband parameter is ignored
             or 'FIR <type> <parameter>' - see below for FIR filter options
-        order: int (optional, default 2)
+            
+            a dict can be used to specify a different bandwidth per channel, the key is the channel_id
+        order: int (optional, default 2) or dict
             for a butterworth filter: specifies the order of the filter
+            
+            a dict can be used to specify a different bandwidth per channel, the key is the channel_id
 
         Added Jan-07-2018 by robert.lahmann@fau.de:
         FIR filter:
@@ -66,7 +73,25 @@ class channelBandPassFilter:
         """
 
         for channel in station.iter_channels():
-            self._apply_filter(channel, passband, filter_type, order, False)
+            tmp_passband = None
+            if(isinstance(passband, dict)):
+                tmp_passband = passband[channel.get_id()]
+            else:
+                tmp_passband = passband
+
+            tmp_order = None
+            if(isinstance(order, dict)):
+                tmp_order = order[channel.get_id()]
+            else:
+                tmp_order = order
+
+            tmp_filter_type = None
+            if(isinstance(filter_type, dict)):
+                tmp_filter_type = filter_type[channel.get_id()]
+            else:
+                tmp_filter_type = filter_type
+
+            self._apply_filter(channel, tmp_passband, tmp_filter_type, tmp_order, False)
 
     def get_filter(self, frequencies, station_id, channel_id, det, passband, filter_type, order=2):
         """
