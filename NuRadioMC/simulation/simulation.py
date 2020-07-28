@@ -337,9 +337,9 @@ class simulation():
         if(Tnoise is not None):
             self._Tnoise = float(Tnoise)
             self._Vrms_per_channel = {}
-            for station_id in self._bandwidth:
+            for station_id in self._bandwidth_per_channel:
                 self._Vrms_per_channel[station_id] = {}
-                for channel_id in self._bandwidth[station_id]:
+                for channel_id in self._bandwidth_per_channel[station_id]:
                     self._Vrms_per_channel[station_id][channel_id] = (self._Tnoise * 50 * constants.k *
                            self._bandwidth_per_channel[station_id][channel_id] / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
                     logger.status(f'station {station_id} channel {channel_id} noise temperature = {self._Tnoise}, bandwidth = {self._bandwidth_per_channel[station_id][channel_id]/ units.MHz:.2f} MHz -> Vrms = {self._Vrms_per_channel[station_id][channel_id]/ units.V / units.micro:.2f} muV')
@@ -352,9 +352,9 @@ class simulation():
             raise AttributeError(f"noise temperature and Vrms are both set to None")
 
         self._Vrms_efield_per_channel = {}
-        for station_id in self._bandwidth:
+        for station_id in self._bandwidth_per_channel:
             self._Vrms_efield_per_channel[station_id] = {}
-            for channel_id in self._bandwidth[station_id]:
+            for channel_id in self._bandwidth_per_channel[station_id]:
                 self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / self._amplification_per_channel[station_id][channel_id] / units.m
         self._Vrms_efield = next(iter(next(iter(self._Vrms_efield_per_channel.values())).values()))
         tmp_cut = float(self._cfg['speedup']['min_efield_amplitude'])
