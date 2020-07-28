@@ -4,7 +4,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 1.2
 new features:
-- users can specify a different bandwidth for each channel in the channelBandPassFilter module 
+- users can specify a different bandwidth for each channel in the channelBandPassFilter and channelGenericNoiseAdder module 
 
 version 1.1.2 -
 
