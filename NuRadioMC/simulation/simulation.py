@@ -336,16 +336,27 @@ class simulation():
             raise AttributeError(f"Specifying noise temperature (set to {Tnoise}) and Vrms (set to {Vrms} is not allowed.")
         if(Tnoise is not None):
             self._Tnoise = float(Tnoise)
-            self._Vrms = (self._Tnoise * 50 * constants.k *
-                           self._bandwidth / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
-            logger.status('noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
+            self._Vrms_per_channel = {}
+            for station_id in self._bandwidth:
+                self._Vrms_per_channel[station_id] = {}
+                for channel_id in self._bandwidth[station_id]:
+                    self._Vrms_per_channel[station_id][channel_id] = (self._Tnoise * 50 * constants.k *
+                           self._bandwidth_per_channel[station_id][channel_id] / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
+                    logger.status(f'station {station_id} channel {channel_id} noise temperature = {self._Tnoise}, bandwidth = {self._bandwidth_per_channel[station_id][channel_id]/ units.MHz:.2f} MHz -> Vrms = {self._Vrms_per_channel[station_id][channel_id]/ units.V / units.micro:.2f} muV')
+            self._Vrms = next(iter(next(iter(self._Vrms_per_channel.values())).values()))
+            logger.status('(if same bandwidth for all stations/channels is assumed:) noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
         elif(Vrms is not None):
             self._Vrms = float(Vrms) * units.V
             self._Tnoise = None
         else:
             raise AttributeError(f"noise temperature and Vrms are both set to None")
 
-        self._Vrms_efield = self._Vrms / amplification / units.m
+        self._Vrms_efield_per_channel = {}
+        for station_id in self._bandwidth:
+            self._Vrms_efield_per_channel[station_id] = {}
+            for channel_id in self._bandwidth[station_id]:
+                self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / self._amplification_per_channel[station_id][channel_id] / units.m
+        self._Vrms_efield = next(iter(next(iter(self._Vrms_efield_per_channel.values())).values()))
         tmp_cut = float(self._cfg['speedup']['min_efield_amplitude'])
         logger.status(f"final Vrms {self._Vrms/units.V:.2g}V corresponds to an efield of {self._Vrms_efield/units.V/units.m/units.micro:.2g} muV/m for a VEL = 1m (amplification factor of system is {amplification:.1f}).\n -> all signals with less then {tmp_cut:.1f} x Vrms_efield = {tmp_cut * self._Vrms_efield/units.m/units.V/units.micro:.2g}muV/m will be skipped")
 
@@ -390,7 +401,7 @@ class simulation():
         pre_simulated = self._check_if_was_pre_simulated()
 
         # Check if vertex_times exists:
-        vertex_times_exists = self._check_vertex_times()
+        self._check_vertex_times()
 
         input_time = 0.0
         askaryan_time = 0.
@@ -779,7 +790,7 @@ class simulation():
                             # apply a simple threshold cut to speed up the simulation,
                             # application of antenna response will just decrease the
                             # signal amplitude
-                            if(np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield):
+                            if(np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]):
                                 candidate_station = True
                         # end of ray tracing solutions loop
                     t3 = time.time()
@@ -886,8 +897,11 @@ class simulation():
 
                         if self._is_simulate_noise():
                             max_freq = 0.5 / self._dt
-                            norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
-                            Vrms = self._Vrms / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
+                            channel_ids = self._det.get_channel_ids(self._station.get_id())
+                            Vrms = np.ones(len(channel_ids))
+                            for channel_id in channel_ids:
+                                norm = self._get_noise_normalization(self._station.get_id(), channel_id)  # assuming the same noise level for all channels
+                                Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id][channel_id] / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
                             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
                                                          max_freq=max_freq, type='rayleigh')
 
