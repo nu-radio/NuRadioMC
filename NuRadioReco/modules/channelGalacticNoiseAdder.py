@@ -38,15 +38,10 @@ class channelGalacticNoiseAdder:
         noise_temperatures = np.zeros((len(self.__interpolaiton_frequencies), len(self.__zenith_sample), len(self.__azimuth_sample)))
         for i_freq, noise_freq in enumerate(self.__interpolaiton_frequencies):
             radio_sky = self.__sky_observer.generate(noise_freq/units.MHz)
-            healpy.orthview(radio_sky, half_sky=True, title='Brightness temperature at f={:.0f}MHz'.format(noise_freq/units.MHz))
-            import pylab
-            radio_sky[np.isnan(radio_sky)] = 0
             for i_zenith, zenith in enumerate(self.__zenith_sample):
-                elevation = 90.*units.deg - zenith
                 for i_azimuth, azimuth in enumerate(self.__azimuth_sample):
-                    i_pix = healpy.pixelfunc.ang2pix(self.__sky_observer._n_side, elevation, azimuth, lonlat=True)
+                    i_pix = healpy.pixelfunc.ang2pix(self.__sky_observer._n_side, zenith, azimuth, lonlat=False, nest=False)
                     noise_temperatures[i_freq,i_zenith, i_azimuth] = radio_sky[i_pix]
-            pylab.close('all')
 
 
         for channel in station.iter_channels():
