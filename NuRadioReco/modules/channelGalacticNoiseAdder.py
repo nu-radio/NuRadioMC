@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import scipy as sp
 import scipy.constants
 import scipy.interpolate
-import pygsm
+import pygdsm
 import healpy
 
 logger = logging.getLogger('channelGalacticNoiseAdder')
@@ -28,7 +28,7 @@ class channelGalacticNoiseAdder:
         self.__interpolaiton_frequencies = interpolation_frequencies
 
     def run(self, event, station, detector, passband=[10*units.MHz, 1000*units.MHz]):
-        self.__sky_observer = pygsm.GSMObserver()
+        self.__sky_observer = pygdsm.GSMObserver()
         site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
         self.__sky_observer.longitude = site_longitude
         self.__sky_observer.latitude = site_latitude
