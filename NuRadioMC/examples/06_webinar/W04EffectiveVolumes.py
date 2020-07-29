@@ -75,6 +75,10 @@ Then, each Veff_item has three numbers.
 - Veff_item[1] is the poissonian uncertainty of the effective volume
 - Veff_item[2] is the sum of the weights of all the triggering events contained
 in a given energy and zenith band for the chosen trigger.
+- Veff_item[3] is the 68% confidence belt lower limit for the effective volume
+using the Feldman-Cousins method.
+- Veff_item[4] is the 68% confidence belt upper limit for the effective volume 
+using the Feldman-Cousins method.
 
 For our example, we only have a single file, so we choose the only zenith index.
 We choose as well the first trigger (index 0) just as an example.
