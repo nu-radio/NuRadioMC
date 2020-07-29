@@ -430,6 +430,13 @@ class simulation():
                 continue
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(self._fin['event_group_ids'] == event_group_id)))
 
+            # these quantities get computed to apply the distance cut as a function of shower energies
+            # the shower energies of closeby showers will be added as they can constructively interfere
+            if self._cfg['speedup']['distance_cut']:
+                shower_energies = np.array(self._fin['shower_energies'])[event_indices]
+                vertex_positions = np.array([np.array(self._fin['xx'])[event_indices], np.array(self._fin['yy'])[event_indices], np.array(self._fin['zz'])[event_indices]]).T
+                vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
+
             # loop over all showers in event group and calculate weight
             # the weight calculation is independent of the station, so we do this calculation only once
             for self._shower_index in event_indices:
@@ -506,9 +513,12 @@ class simulation():
                     x1 = np.array([self._x, self._y, self._z])  # the interaction point
 
                     if self._cfg['speedup']['distance_cut']:
+                        # calculate the sum of shower energies for all showers within self._cfg['speedup']['distance_cut_sum_length']
+                        mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup']['distance_cut_sum_length']
+                        shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
                         # quick speedup cut using barycenter of station as position
                         distance_to_station = np.linalg.norm(x1 - self._station_barycenter[iSt])
-                        distance_cut = self._get_distance_cut(self._shower_energy) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
+                        distance_cut = self._get_distance_cut(shower_energy_sum) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
                         if distance_to_station > distance_cut:
                             logger.debug(f"skipping station {self._station_id} because distance {distance_to_station/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {self._shower_energy:.2g}eV) between vertex {x1} and bary center of station {self._station_barycenter[iSt]}")
                             continue
@@ -558,7 +568,7 @@ class simulation():
                         logger.debug(f"simulationg channel {channel_id} at {x2}")
 
                         if self._cfg['speedup']['distance_cut']:
-                            distance_cut = self._get_distance_cut(self._shower_energy)
+                            distance_cut = self._get_distance_cut(shower_energy_sum)
                             distance = np.linalg.norm(x1 - x2)
 
                             if distance > distance_cut:
