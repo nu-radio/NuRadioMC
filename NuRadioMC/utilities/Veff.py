@@ -523,10 +523,13 @@ def get_Veff(folder,
         out['SNRs'] = {}
 
         if(triggered.size == 0):
+            FC_low, FC_high = FC_limits(0)
+            Veff_low = V * FC_low / n_events
+            Veff_high = V * FC_high / n_events
             for iT, trigger_name in enumerate(trigger_names):
-                out['Veffs'][trigger_name] = [0, 0, 0]
+                out['Veffs'][trigger_name] = [0, 0, 0, Veff_low, Veff_high]
             for trigger_name, values in iteritems(trigger_combinations):
-                out['Veffs'][trigger_name] = [0, 0, 0]
+                out['Veffs'][trigger_name] = [0, 0, 0, Veff_low, Veff_high]
         else:
             for iT, trigger_name in enumerate(trigger_names):
                 triggered = get_triggered(fin, iT)
@@ -534,7 +537,13 @@ def get_Veff(folder,
                 Veff_error = 0
                 if(np.sum(weights[triggered]) > 0):
                     Veff_error = Veff / np.sum(weights[triggered]) ** 0.5
-                out['Veffs'][trigger_name] = [Veff, Veff_error, np.sum(weights[triggered])]
+
+                FC_low, FC_high = FC_limits(np.sum(weights[triggered]))
+                Veff_low = V * FC_low / n_events
+                Veff_high = V * FC_high / n_events
+
+                out['Veffs'][trigger_name] = [Veff, Veff_error, np.sum(weights[triggered]),
+                                              Veff_low, Veff_high]
 
             for trigger_name, values in iteritems(trigger_combinations):
                 indiv_triggers = values['triggers']
@@ -606,7 +615,12 @@ def get_Veff(folder,
                 Vefferror = 0
                 if(np.sum(weights[triggered]) > 0):
                     Vefferror = Veff / np.sum(weights[triggered]) ** 0.5
-                out['Veffs'][trigger_name] = [Veff, Vefferror, np.sum(weights[triggered])]
+
+                FC_low, FC_high = FC_limits(np.sum(weights[triggered]))
+                Veff_low = V * FC_low / n_events
+                Veff_high = V * FC_high / n_events
+                out['Veffs'][trigger_name] = [Veff, Vefferror, np.sum(weights[triggered]),
+                                              Veff_low, Veff_high]
         Veff_output.append(out)
 
     return Veff_output
