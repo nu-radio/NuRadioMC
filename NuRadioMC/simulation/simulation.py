@@ -408,8 +408,8 @@ class simulation():
         rayTracingTime = 0.0
         detSimTime = 0.0
         outputTime = 0.0
-        weightTime = 0
-        distance_cut_time = 0
+        weightTime = 0.0
+        distance_cut_time = 0.
         time_attenuation_length = 0.
 
         n_shower_station = len(self._station_ids) * self._n_showers
@@ -452,15 +452,15 @@ class simulation():
                 # calculate weight
                 # if we have a second interaction, the weight needs to be calculated from the initial neutrino
                 t1 = time.time()
-                if(self._n_interaction > 1):
-                    iE_mother = np.argwhere(self._fin['event_group_ids'] == self._fin['event_group_ids'][self._shower_index]).min()  # get index of mother neutrino
-                    self._mout['weights'][self._shower_index] = self._mout['weights'][iE_mother]
-                else:
-                    self._mout['weights'][self._shower_index] = get_weight(self._zenith_shower, self._energy, self._flavor,
-                                                                 mode=self._cfg['weights']['weight_mode'],
-                                                                 cross_section_type=self._cfg['weights']['cross_section_type'],
-                                                                 vertex_position=x1,
-                                                                 phi_nu=self._azimuth_shower)
+#                 if(self._n_interaction > 1):
+#                     iE_mother = np.argwhere(self._fin['event_group_ids'] == self._fin['event_group_ids'][self._shower_index]).min()  # get index of mother neutrino
+#                     self._mout['weights'][self._shower_index] = self._mout['weights'][iE_mother]
+#                 else:
+#                     self._mout['weights'][self._shower_index] = get_weight(self._zenith_shower, self._energy, self._flavor,
+#                                                                  mode=self._cfg['weights']['weight_mode'],
+#                                                                  cross_section_type=self._cfg['weights']['cross_section_type'],
+#                                                                  vertex_position=x1,
+#                                                                  phi_nu=self._azimuth_shower)
                 weightTime += time.time() - t1
             triggered_showers = {}  # this variable tracks which showers triggered a particular station
             # loop over all stations (each station is treated independently)
@@ -501,7 +501,7 @@ class simulation():
                                 eta, 100. * (rayTracingTime - askaryan_time) / total_time,
                                 tmp_att,
                                 100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*input_time / total_time,
-                                100 * weightTime / total_time,
+                                100. * weightTime / total_time,
                                 100 * distance_cut_time / total_time,
                                 100 * (total_time - total_time_sum) / total_time))
 
