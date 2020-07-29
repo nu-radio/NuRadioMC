@@ -1,6 +1,7 @@
 import numpy as np
 import h5py
 from scipy import interpolate
+from scipy.interpolate import interp1d
 import glob
 from six import iteritems
 import json
@@ -63,7 +64,20 @@ def get_triggered(fin, iT=None):
 
 def FC_limits(counts):
 
-    from scipy.interpolate import interp1d
+    """
+    Returns the 68% confidence belt for a number of counts, using the
+    Feldman-Cousins method.
+
+    Parameters
+    ----------
+    counts: integer or float
+        Number of counts. Can be non-integer (weighted counts)
+
+    Returns
+    -------
+    (low_limit, upper_limit): float tuple
+        Lower and upper limits for the confidence belt.
+    """
 
     count_list = np.arange(0, 21)
     lower_limits = [0.00,
