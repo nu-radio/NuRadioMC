@@ -440,29 +440,19 @@ class simulation():
                 vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
                 distance_cut_time += time.time() - t_tmp
 
-            # loop over all showers in event group and calculate weight
             # the weight calculation is independent of the station, so we do this calculation only once
-            for self._shower_index in event_indices:
-                t1 = time.time()
-                # read all quantities from hdf5 file and store them in local variables
-                self._read_input_neutrino_properties()
-                input_time += time.time() - t1
+            t1 = time.time()
+            iE_mother = event_indices[0]
+            x_int_mother = np.array([self._fin['xx'][iE_mother], self._fin['yy'][iE_mother], self._fin['zz'][iE_mother]])
+            self._mout['weights'][event_indices] = get_weight(self._fin['zeniths'][iE_mother],
+                                                         self._fin['energies'][iE_mother],
+                                                         self._fin['flavors'][iE_mother],
+                                                         mode=self._cfg['weights']['weight_mode'],
+                                                         cross_section_type=self._cfg['weights']['cross_section_type'],
+                                                         vertex_position=x_int_mother,
+                                                         phi_nu=self._fin['azimuths'][iE_mother])
+            weightTime += time.time() - t1
 
-                x1 = np.array([self._x, self._y, self._z])  # the interaction point
-                # calculate weight
-                # if we have a second interaction, the weight needs to be calculated from the initial neutrino
-                t1 = time.time()
-                print(self._n_interaction)
-                if(self._n_interaction > 1):
-                    iE_mother = np.argwhere(self._fin['event_group_ids'] == self._fin['event_group_ids'][self._shower_index]).min()  # get index of mother neutrino
-                    self._mout['weights'][self._shower_index] = self._mout['weights'][iE_mother]
-                else:
-                    self._mout['weights'][self._shower_index] = get_weight(self._zenith_shower, self._energy, self._flavor,
-                                                                 mode=self._cfg['weights']['weight_mode'],
-                                                                 cross_section_type=self._cfg['weights']['cross_section_type'],
-                                                                 vertex_position=x1,
-                                                                 phi_nu=self._azimuth_shower)
-                weightTime += time.time() - t1
             triggered_showers = {}  # this variable tracks which showers triggered a particular station
             # loop over all stations (each station is treated independently)
             for iSt, self._station_id in enumerate(self._station_ids):
