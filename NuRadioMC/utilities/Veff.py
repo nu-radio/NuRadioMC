@@ -717,7 +717,7 @@ def get_Veff_array(data):
     uenergies = np.unique(energies)
     uzenith_bins = np.unique(zenith_bins, axis=0)
     utrigger_names = np.unique(trigger_names)
-    output = np.zeros((len(uenergies), len(uzenith_bins), len(utrigger_names), 3))
+    output = np.zeros((len(uenergies), len(uzenith_bins), len(utrigger_names), 5))
     weights = np.ones((len(uenergies), len(uzenith_bins)))
     logger.debug(f"unique energies {uenergies}")
     logger.debug(f"unique zenith angle bins {uzenith_bins/units.deg}")
