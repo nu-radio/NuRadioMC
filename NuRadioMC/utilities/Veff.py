@@ -282,11 +282,12 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
                     for indiv_trigger in indiv_triggers:
                         triggered = triggered | get_triggered(fin, trigger_names_dict[indiv_trigger])
                 if 'triggerAND' in values:
-                    triggered = triggered & get_triggered(fin, trigger_names_dict[indiv_trigger])
+                    for and_trigger in values['triggerAND']:
+                        triggered = triggered & get_triggered(fin, trigger_names_dict[and_trigger])
                 if 'notriggers' in values:
                     indiv_triggers = values['notriggers']
                     if(isinstance(indiv_triggers, str)):
-                        triggered = triggered & ~get_triggered(fin, trigger_names_dict[indiv_trigger])
+                        triggered = triggered & ~get_triggered(fin, trigger_names_dict[indiv_triggers])
                     else:
                         for indiv_trigger in indiv_triggers:
                             triggered = triggered & ~get_triggered(fin, trigger_names_dict[indiv_trigger])
@@ -539,19 +540,20 @@ def get_Veff(folder,
                 indiv_triggers = values['triggers']
                 triggered = np.zeros_like(fin['multiple_triggers'][:, 0], dtype=np.bool)
                 if(isinstance(indiv_triggers, str)):
-                    triggered = triggered | np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_triggers]], dtype=np.bool)
+                    triggered = triggered | get_triggered(fin, trigger_names_dict[indiv_triggers])
                 else:
                     for indiv_trigger in indiv_triggers:
-                        triggered = triggered | np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_trigger]], dtype=np.bool)
+                        triggered = triggered | get_triggered(fin, trigger_names_dict[indiv_trigger])
                 if 'triggerAND' in values:
-                    triggered = triggered & np.array(fin['multiple_triggers'][:, trigger_names_dict[values['triggerAND']]], dtype=np.bool)
+                    for and_trigger in values['triggerAND']:
+                        triggered = triggered & get_triggered(fin, trigger_names_dict[and_trigger])
                 if 'notriggers' in values:
                     indiv_triggers = values['notriggers']
                     if(isinstance(indiv_triggers, str)):
-                        triggered = triggered & ~np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_triggers]], dtype=np.bool)
+                        triggered = triggered & ~get_triggered(fin, trigger_names_dict[indiv_triggers])
                     else:
                         for indiv_trigger in indiv_triggers:
-                            triggered = triggered & ~np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_trigger]], dtype=np.bool)
+                            triggered = triggered & ~get_triggered(fin, trigger_names_dict[indiv_trigger])
                 if('min_sigma' in values.keys()):
                     if(isinstance(values['min_sigma'], list)):
                         if(trigger_name not in out['SNR']):
