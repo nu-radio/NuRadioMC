@@ -45,51 +45,50 @@ def remove_duplicate_triggers(triggered, gids):
             triggered[idx] = False
     return triggered
 
-
-def get_triggered(fin):
-    """
-    Computes an array indicating the triggered events.
-    If a double bang is seen, removes the second bang from the actual triggered
-    array so as not to count twice the same event for the effective volume.
-
-    Parameters
-    ----------
-    fin: dictionary
-       Dictionary containing the output data sets from the simulation
-
-    Returns
-    -------
-    triggered: numpy array with bools
-       The bools indicate if the events have triggered
-    unique_mask: numpy array of bools
-        mask to select only one entry for each event group id
-    """
-
-    triggered = np.copy(fin['triggered'])
-    uids, unique_mask = np.unique(np.array(fin['event_group_ids']), return_index=True)
-    mask = np.zeros(len(triggered), dtype=np.bool)
-    mask[unique_mask] = True
-    triggered[~mask] = False
-
-    if (len(triggered) == 0):
-        return triggered, unique_mask
-
-    mask_secondaries = np.array(fin['n_interaction']) > 1
-    if (True not in mask_secondaries):
-        return triggered, unique_mask
-
-    # We count the multiple triggering bangs as a single triggered event
-    for event_id in np.unique(np.array(fin['event_group_ids'])[mask_secondaries]):
-        mask_interactions = np.array(fin['event_group_ids']) == event_id
-        multiple_interaction_indexes = np.squeeze(np.argwhere(np.array(fin['event_group_ids']) == event_id))
-        if (len(multiple_interaction_indexes) == 1):
-            continue
-
-        for int_index in multiple_interaction_indexes[1:]:
-            triggered[int_index] = False
-        triggered[multiple_interaction_indexes[0]] = True
-
-    return triggered, mask
+# def get_triggered(fin):
+#     """
+#     Computes an array indicating the triggered events.
+#     If a double bang is seen, removes the second bang from the actual triggered
+#     array so as not to count twice the same event for the effective volume.
+#
+#     Parameters
+#     ----------
+#     fin: dictionary
+#        Dictionary containing the output data sets from the simulation
+#
+#     Returns
+#     -------
+#     triggered: numpy array with bools
+#        The bools indicate if the events have triggered
+#     unique_mask: numpy array of bools
+#         mask to select only one entry for each event group id
+#     """
+#
+#     triggered = np.copy(fin['triggered'])
+#     uids, unique_mask = np.unique(np.array(fin['event_group_ids']), return_index=True)
+#     mask = np.zeros(len(triggered), dtype=np.bool)
+#     mask[unique_mask] = True
+#     triggered[~mask] = False
+#
+#     if (len(triggered) == 0):
+#         return triggered, unique_mask
+#
+#     mask_secondaries = np.array(fin['n_interaction']) > 1
+#     if (True not in mask_secondaries):
+#         return triggered, unique_mask
+#
+#     # We count the multiple triggering bangs as a single triggered event
+#     for event_id in np.unique(np.array(fin['event_group_ids'])[mask_secondaries]):
+#         mask_interactions = np.array(fin['event_group_ids']) == event_id
+#         multiple_interaction_indexes = np.squeeze(np.argwhere(np.array(fin['event_group_ids']) == event_id))
+#         if (len(multiple_interaction_indexes) == 1):
+#             continue
+#
+#         for int_index in multiple_interaction_indexes[1:]:
+#             triggered[int_index] = False
+#         triggered[multiple_interaction_indexes[0]] = True
+#
+#     return triggered, mask
 
 
 def FC_limits(counts):
