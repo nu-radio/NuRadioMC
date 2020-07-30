@@ -428,13 +428,38 @@ class ProposalFunctions(object):
         bool
             True if particle produces shower, False otherwise
         """
-        energy_threshold = particle.energy > min_energy_loss
+        energy_threshold = self.__secondary_energy(particle) > min_energy_loss
         if not energy_threshold:
             return False
 
         shower_inducing = is_shower_primary(particle)
 
         return shower_inducing
+
+    def __secondary_energy(self, sec):
+        """
+        Retrieves the energy of the secondary particle
+
+        Parameters
+        ----------
+        sec: Particle
+            Secondary particle issued by Proposal
+
+        Returns
+        -------
+        energy: float
+            Energy in MeV
+        """
+
+        # Checking if the secondary type is greater than 1000000000, which means
+        # that the secondary is an interaction particle.
+        if (sec.type > 1000000000):
+            energy = (sec.parent_particle_energy - sec.energy) * units.MeV
+        # Else, the secondary is a particle issued upon decay.
+        else:
+            energy = sec.energy * units.MeV
+
+        return energy
 
     def __shower_properties(self, particle):
         """
@@ -566,13 +591,7 @@ class ProposalFunctions(object):
                 distance += ((sec.position.z - lepton_position[2]) * units.cm) ** 2
                 distance = np.sqrt(distance)
 
-                # Checking if the secondary type is greater than 1000000000, which means
-                # that the secondary is an interaction particle.
-                if (sec.type > 1000000000):
-                    energy = (sec.parent_particle_energy - sec.energy) * units.MeV
-                # Else, the secondary is a particle issued upon decay.
-                else:
-                    energy = sec.energy * units.MeV
+                energy = self.__secondary_energy(sec)
 
                 shower_type, code, name = self.__shower_properties(sec)
 
