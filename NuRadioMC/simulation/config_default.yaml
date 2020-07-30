@@ -19,6 +19,7 @@ speedup:
   distance_cut: False # if True, a cut for the vertex-observer distance as a function of shower energy is applied (log10(max_dist / m) = polynomial(log10(shower_energy / eV))
   # The coefficients of a polynomial below have been obtained from distance histograms for several shower energy bins. A 10x10 array of 1.5 sigma dipoles in Greenland was used. The distance cut is a 4th order polynomial of the maximum distances with a cover factor of 1.5, or 50%.
   distance_cut_coefficients: [-1.56434411e+02,  2.54131322e+01, -1.34932379e+00,  2.39984185e-02] # coefficients of a polynomial
+  distance_cut_sum_length: 10  # the distance (in meters) over which the shower energies of the surrounding showers are added up
 
 propagation:
   module: analytic

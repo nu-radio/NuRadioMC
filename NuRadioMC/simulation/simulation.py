@@ -408,7 +408,8 @@ class simulation():
         rayTracingTime = 0.0
         detSimTime = 0.0
         outputTime = 0.0
-        weightTime = 0
+        weightTime = 0.0
+        distance_cut_time = 0.
         time_attenuation_length = 0.
 
         n_shower_station = len(self._station_ids) * self._n_showers
@@ -430,35 +431,31 @@ class simulation():
                 continue
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(self._fin['event_group_ids'] == event_group_id)))
 
-            # loop over all showers in event group and calculate weight
-            # the weight calculation is independent of the station, so we do this calculation only once
-            for self._shower_index in event_indices:
-                t1 = time.time()
-                # read all quantities from hdf5 file and store them in local variables
-                self._read_input_neutrino_properties()
-                input_time += time.time() - t1
+            # these quantities get computed to apply the distance cut as a function of shower energies
+            # the shower energies of closeby showers will be added as they can constructively interfere
+            if self._cfg['speedup']['distance_cut']:
+                t_tmp = time.time()
+                shower_energies = np.array(self._fin['shower_energies'])[event_indices]
+                vertex_positions = np.array([np.array(self._fin['xx'])[event_indices], np.array(self._fin['yy'])[event_indices], np.array(self._fin['zz'])[event_indices]]).T
+                vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
+                distance_cut_time += time.time() - t_tmp
 
-                x1 = np.array([self._x, self._y, self._z])  # the interaction point
-                # calculate weight
-                # if we have a second interaction, the weight needs to be calculated from the initial neutrino
-                t1 = time.time()
-                if(self._n_interaction > 1):
-                    iE_mother = np.argwhere(self._fin['event_group_ids'] == self._fin['event_group_ids'][self._shower_index]).min()  # get index of mother neutrino
-                    x_int_mother = np.array([self._fin['xx'][iE_mother], self._fin['yy'][iE_mother], self._fin['zz'][iE_mother]])
-                    self._mout['weights'][self._shower_index] = get_weight(self._fin['zeniths'][iE_mother],
+            # the weight calculation is independent of the station, so we do this calculation only once
+            # the weight also depends just on the "mother" particle, i.e. the incident neutrino which determines
+            # the propability of arriving at our simulation volume. All subsequent showers have the same weight. So
+            # we calculate it just once and save it to all subshowers.
+            t1 = time.time()
+            iE_mother = event_indices[0]
+            x_int_mother = np.array([self._fin['xx'][iE_mother], self._fin['yy'][iE_mother], self._fin['zz'][iE_mother]])
+            self._mout['weights'][event_indices] = get_weight(self._fin['zeniths'][iE_mother],
                                                          self._fin['energies'][iE_mother],
                                                          self._fin['flavors'][iE_mother],
                                                          mode=self._cfg['weights']['weight_mode'],
                                                          cross_section_type=self._cfg['weights']['cross_section_type'],
                                                          vertex_position=x_int_mother,
                                                          phi_nu=self._fin['azimuths'][iE_mother])
-                else:
-                    self._mout['weights'][self._shower_index] = get_weight(self._zenith_shower, self._energy, self._flavor,
-                                                                 mode=self._cfg['weights']['weight_mode'],
-                                                                 cross_section_type=self._cfg['weights']['cross_section_type'],
-                                                                 vertex_position=x1,
-                                                                 phi_nu=self._azimuth_shower)
-                weightTime += time.time() - t1
+            weightTime += time.time() - t1
+
             triggered_showers = {}  # this variable tracks which showers triggered a particular station
             # loop over all stations (each station is treated independently)
             for iSt, self._station_id in enumerate(self._station_ids):
@@ -487,18 +484,20 @@ class simulation():
                     iCounter += 1
                     if(iCounter % max(1, int(n_shower_station / 1000.)) == 0):
                         eta = pretty_time_delta((time.time() - t_start) * (n_shower_station - iCounter) / iCounter)
-                        total_time_sum = input_time + rayTracingTime + detSimTime + outputTime + weightTime  # askaryan time is part of the ray tracing time, so it is not counted here.
+                        total_time_sum = input_time + rayTracingTime + detSimTime + outputTime + weightTime + distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
                         total_time = time.time() - t_start
                         tmp_att = 0
                         if(rayTracingTime - askaryan_time != 0):
                             tmp_att = 100. * time_attenuation_length / (rayTracingTime - askaryan_time)
                         if total_time > 0:
-                            logger.status("processing {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, unaccounted = {:.0f}% ".format(
+                            logger.status("processing {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
                                 iCounter, n_shower_station, np.sum(self._mout['triggered']), 100. * iCounter / n_shower_station,
                                 eta, 100. * (rayTracingTime - askaryan_time) / total_time,
                                 tmp_att,
                                 100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*input_time / total_time,
-                                100 * weightTime / total_time, 100 * (total_time - total_time_sum) / total_time))
+                                100. * weightTime / total_time,
+                                100 * distance_cut_time / total_time,
+                                100 * (total_time - total_time_sum) / total_time))
 
                     # read all quantities from hdf5 file and store them in local variables
                     self._read_input_neutrino_properties()
@@ -506,12 +505,19 @@ class simulation():
                     x1 = np.array([self._x, self._y, self._z])  # the interaction point
 
                     if self._cfg['speedup']['distance_cut']:
+                        t_tmp = time.time()
+                        # calculate the sum of shower energies for all showers within self._cfg['speedup']['distance_cut_sum_length']
+                        mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup']['distance_cut_sum_length']
+                        shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
                         # quick speedup cut using barycenter of station as position
                         distance_to_station = np.linalg.norm(x1 - self._station_barycenter[iSt])
-                        distance_cut = self._get_distance_cut(self._shower_energy) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
+                        distance_cut = self._get_distance_cut(shower_energy_sum) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
+                        logger.debug(f"calculating distance cut. Current event has energy {self._shower_energy:.4g}, it is event number {iSh} and {np.sum(mask_shower_sum)} are within {self._cfg['speedup']['distance_cut_sum_length']/units.m:.1f}m -> {shower_energy_sum:.4g}")
                         if distance_to_station > distance_cut:
                             logger.debug(f"skipping station {self._station_id} because distance {distance_to_station/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {self._shower_energy:.2g}eV) between vertex {x1} and bary center of station {self._station_barycenter[iSt]}")
+                            distance_cut_time += time.time() - t_tmp
                             continue
+                        distance_cut_time += time.time() - t_tmp
 
                     # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
                     # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
@@ -558,7 +564,8 @@ class simulation():
                         logger.debug(f"simulationg channel {channel_id} at {x2}")
 
                         if self._cfg['speedup']['distance_cut']:
-                            distance_cut = self._get_distance_cut(self._shower_energy)
+                            t_tmp = time.time()
+                            distance_cut = self._get_distance_cut(shower_energy_sum)
                             distance = np.linalg.norm(x1 - x2)
 
                             if distance > distance_cut:
@@ -566,7 +573,9 @@ class simulation():
                                 logger.debug('Shower energy: {:.2e} eV'.format(self._shower_energy / units.eV))
                                 logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
                                 logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
+                                distance_cut_time += time.time() - t_tmp
                                 continue
+                            distance_cut_time += time.time() - t_tmp
 
                         r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=self._log_level_ray_propagation,
                                        n_frequencies_integration=int(self._cfg['propagation']['n_freq']),

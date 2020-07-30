@@ -1515,7 +1515,7 @@ class ray_tracing:
                       3: 'reflected'}
 
     def __init__(self, x1, x2, medium, attenuation_model="SP1", log_level=logging.WARNING,
-                 n_frequencies_integration=6,
+                 n_frequencies_integration=100,
                  n_reflections=0):
         """
         class initilization
