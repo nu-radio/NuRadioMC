@@ -82,35 +82,6 @@ def merge_config(user, default):
     return user
 
 
-def get_distance_cut(shower_energy, intercept, slope):
-    """
-    This function returns a distance cut as a function of shower energy for
-    speeding up the code. The cut is a linear function of the shower energy
-    logarithm:
-
-    log10(distance_cut/m) = intercept + slope * log10(shower_energy/eV)
-
-    Parameters
-    ----------
-    shower_energy: float
-        Shower energy
-    intercept: float
-        Intercept for the linear cut
-    slope: float
-        Slope for the linear cut
-
-    Returns
-    -------
-    distance_cut: float
-        Maximum distance for ray tracing
-    """
-
-    log_distance_cut = intercept + slope * np.log10(shower_energy / units.eV)
-    distance_cut = 10 ** log_distance_cut * units.m
-
-    return distance_cut
-
-
 class simulation():
 
 #
