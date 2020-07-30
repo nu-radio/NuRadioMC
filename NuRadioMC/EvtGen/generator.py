@@ -447,12 +447,15 @@ def generate_vertex_positions(volume, proposal, attributes):
         volume_full = np.pi * (rmax ** 2 - rmin ** 2) * (zmax - zmin)
         # increase the total number of events such that we end up with the same number of events in the fiducial volume
         n_events = int(n_events * volume_full / volume_fiducial)
-        attributes['n_events'] = n_events
         logger.info("simulation of second interactions via PROPOSAL activated")
         logger.info(f"increasing rmax from {attributes['fiducial_rmax']/units.km:.01f}km to {rmax/units.km:.01f}km, zmax from {attributes['fiducial_zmax']/units.km:.01f}km to {zmax/units.km:.01f}km")
         logger.info(f"decreasing rmin from {attributes['fiducial_rmin']/units.km:.01f}km to {rmin/units.km:.01f}km")
         logger.info(f"decreasing zmin from {attributes['fiducial_zmin']/units.km:.01f}km to {zmin/units.km:.01f}km")
         logger.info(f"increasing number of events to {n_events}")
+        if(n_events > 1e6):
+            logger.warning(f"limiting number of events to 1 million to not run into memory issues.")
+            n_events = 1e6
+        attributes['n_events'] = n_events
 
         attributes['rmin'] = rmin
         attributes['rmax'] = rmax
