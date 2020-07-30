@@ -35,11 +35,11 @@ poly = np.polynomial.polynomial.Polynomial(results2)
 slope = (np.log10(900) - np.log10(100)) / 1
 intercept = np.log10(150) - slope * 15
 print(f"coefficients of a straight line fit {intercept}, {slope}")
-
-plt.loglog(10 ** log_centres, 10 ** log_dists, label='Maximum distances to vertex')
-plt.loglog(10 ** log_centres, 10 ** pol(log_centres, *results), label='Fit')
-plt.loglog(10 ** log_centres, 1.5 * 10 ** pol(log_centres, *results), label='Fit with 50% cover factor')
-plt.loglog(10 ** log_centres, 10 ** poly(log_centres), '--', label='Fit with 50% cover factor')
+xx = np.linspace(14.8, 20, 1000)
+plt.loglog(10 ** log_centres, 10 ** log_dists, "o", label='Maximum distances to vertex')
+plt.loglog(10 ** xx, 10 ** pol(xx, *results), label='Fit')
+plt.loglog(10 ** xx, 1.5 * 10 ** pol(xx, *results), label='Fit with 50% cover factor')
+plt.loglog(10 ** xx, 10 ** poly(xx), '--', label='Fit with 50% cover factor')
 plt.loglog(10 ** log_centres[0:10], 10 ** pol(log_centres[0:10], intercept, slope, 0, 0), label='Linear cut')
 plt.xlabel(r'Shower energy[eV]')
 plt.ylabel(r'Maximum distance [m]')
