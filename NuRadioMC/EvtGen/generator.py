@@ -1137,7 +1137,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     if proposal:
         logger.debug("starting proposal simulation")
-        import time
         init_time = time.time()
         # Initialising data_sets_fiducial with empty values
         for key, value in iteritems(data_sets):
