@@ -454,7 +454,7 @@ def generate_vertex_positions(volume, proposal, attributes):
         logger.info(f"increasing number of events to {n_events}")
         if(n_events > 1e6):
             logger.warning(f"limiting number of events to 1 million to not run into memory issues.")
-            n_events = 1e6
+            n_events = int(1e6)
         attributes['n_events'] = n_events
 
         attributes['rmin'] = rmin
