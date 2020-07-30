@@ -1,23 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
-import numpy as np
-import NuRadioMC
-from NuRadioReco.utilities import units
-from NuRadioMC.utilities import inelasticities
-from NuRadioMC.utilities import version
-from six import iterkeys, iteritems
-from scipy import constants
-from scipy.integrate import quad
-from scipy.interpolate import interp1d
-import scipy.interpolate as interpolate
-from scipy.optimize import fsolve
-from scipy.interpolate import RectBivariateSpline
-import h5py
-import time
-from NuRadioMC.simulation.simulation import pretty_time_delta
-import os
-import math
-import copy
 import logging
 
 STATUS = 31
@@ -36,6 +17,25 @@ logger = logging.getLogger("NuRadioMC-EvtGen")
 assert isinstance(logger, NuRadioMCLogger)
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 logger.setLevel(logging.INFO)
+
+import numpy as np
+import NuRadioMC
+from NuRadioReco.utilities import units
+from NuRadioMC.utilities import inelasticities
+from NuRadioMC.utilities import version
+from six import iterkeys, iteritems
+from scipy import constants
+from scipy.integrate import quad
+from scipy.interpolate import interp1d
+import scipy.interpolate as interpolate
+from scipy.optimize import fsolve
+from scipy.interpolate import RectBivariateSpline
+import h5py
+import time
+from NuRadioMC.simulation.simulation import pretty_time_delta
+import os
+import math
+import copy
 
 VERSION_MAJOR = 2
 VERSION_MINOR = 2
