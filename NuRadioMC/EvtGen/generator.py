@@ -13,14 +13,28 @@ import scipy.interpolate as interpolate
 from scipy.optimize import fsolve
 from scipy.interpolate import RectBivariateSpline
 import h5py
+import time
 from NuRadioMC.simulation.simulation import pretty_time_delta
 import os
 import math
 import copy
 import logging
-logger = logging.getLogger("EventGen")
-logging.basicConfig()
-logger.setLevel(logging.INFO)
+
+STATUS = 31
+
+
+class NuRadioMCLogger(logging.Logger):
+
+    def status(self, msg, *args, **kwargs):
+        if self.isEnabledFor(STATUS):
+            self._log(STATUS, msg, args, **kwargs)
+
+
+logging.setLoggerClass(NuRadioMCLogger)
+logging.addLevelName(STATUS, 'STATUS')
+logger = logging.getLogger("NuRadioMC-EvtGen")
+assert isinstance(logger, NuRadioMCLogger)
+logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 
 VERSION_MAJOR = 2
 VERSION_MINOR = 2
@@ -743,7 +757,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         the corresponding config_PROPOSAL_xxx.json.sample file to include valid
         table paths and then copy this file to config_PROPOSAL_xxx.json.
     """
-
+    t_start = time.time()
     from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
     proposal_functions = ProposalFunctions(config_file=config_file)
 
@@ -891,7 +905,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=np.int)
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
-
+    logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
     return None
 
 
@@ -1028,6 +1042,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
     """
+    t_start = time.time()
     logger.setLevel(log_level)
     if proposal:
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
@@ -1220,3 +1235,4 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=np.int)
 
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
+    logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
