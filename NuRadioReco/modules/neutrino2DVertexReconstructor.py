@@ -103,6 +103,7 @@ class neutrino2DVertexReconstructor:
         correlation_sum = np.zeros(x_coords.shape)
 
         corr_range = 50.*units.ns
+        max_corr_index = None
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
             ch1 = station.get_channel(channel_pair[0])
             ch2 = station.get_channel(channel_pair[1])
@@ -195,6 +196,8 @@ class neutrino2DVertexReconstructor:
                 plt.show()
 
                 plt.close('all')
+        if max_corr_index is None:
+            return
         self.__rec_x = x_coords[max_corr_index[0]][max_corr_index[1]]
         self.__rec_z = z_coords[max_corr_index[0]][max_corr_index[1]]
         station.set_parameter(stnp.vertex_2D_fit, [self.__rec_x, self.__rec_z])
@@ -225,6 +228,7 @@ class neutrino2DVertexReconstructor:
         delta_t = delta_t.astype(float)
         corr_index = self.__correlation.shape[0]/2 + np.round(delta_t*self.__sampling_rate)
         res = np.zeros_like(d_hor[0])
+        corr_index[np.isnan(corr_index)] = 0
         mask = (~np.isnan(delta_t)) & (corr_index > 0) & (corr_index < self.__correlation.shape[0]) & (~np.isinf(delta_t))
         corr_index[~mask] = 0
         res = np.take(self.__correlation, corr_index.astype(int))
@@ -243,7 +247,7 @@ class neutrino2DVertexReconstructor:
         i_x[~mask] = 0
         i_z[~mask] = 0
         indices = np.array([i_x.flatten(), i_z.flatten()])
-        travel_times = self.__lookup_table[channel_type][ray_type][[i_x, i_z]]
+        travel_times = self.__lookup_table[channel_type][ray_type][(i_x, i_z)]
         travel_times[~mask] = np.nan
         return travel_times
 
