@@ -322,12 +322,12 @@ def get_product_position_time(data_sets, product, iE):
     """
 
     dist = product.distance
-    time = dist / cspeed
+    prop_time = dist / cspeed
     x = data_sets["xx"][iE] - dist * np.sin(data_sets["zeniths"][iE]) * np.cos(data_sets["azimuths"][iE])
     y = data_sets["yy"][iE] - dist * np.sin(data_sets["zeniths"][iE]) * np.sin(data_sets["azimuths"][iE])
     z = data_sets["zz"][iE] - dist * np.cos(data_sets["zeniths"][iE])
 
-    return x, y, z, time
+    return x, y, z, prop_time
 
 
 def get_energies(n_events, Emin, Emax, spectrum_type):
@@ -824,7 +824,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
     data_sets_fiducial = {}
 
-    import time
     init_time = time.time()
     # Initialising data_sets_fiducial with empty values
     for key in data_sets:
