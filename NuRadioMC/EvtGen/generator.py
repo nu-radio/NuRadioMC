@@ -35,6 +35,7 @@ logging.addLevelName(STATUS, 'STATUS')
 logger = logging.getLogger("NuRadioMC-EvtGen")
 assert isinstance(logger, NuRadioMCLogger)
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
+logger.setLevel(logging.INFO)
 
 VERSION_MAJOR = 2
 VERSION_MINOR = 2
