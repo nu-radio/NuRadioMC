@@ -926,7 +926,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 proposal_config='SouthPole',
                                 start_file_id=0,
                                 log_level=logging.WARNING,
-                                proposal_kwargs):
+                                proposal_kwargs={}):
     """
     Event generator
 
