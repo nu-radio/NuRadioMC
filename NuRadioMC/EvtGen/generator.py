@@ -645,7 +645,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                            n_events_per_file=None,
                            spectrum='log_uniform',
                            start_file_id=0,
-                           config_file='SouthPole'):
+                           config_file='SouthPole',
+                           proposal_kwargs={}):
     """
     Event generator for surface muons
 
@@ -757,6 +758,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         If one of these three options is chosen, the user is supposed to edit
         the corresponding config_PROPOSAL_xxx.json.sample file to include valid
         table paths and then copy this file to config_PROPOSAL_xxx.json.
+    proposal_kwargs: dict
+        additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
     """
     t_start = time.time()
     from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
@@ -855,7 +858,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
             products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
                                                                        np.array([lepton_codes[iE]]),
                                                                        np.array([lepton_positions[iE]]),
-                                                                       np.array([lepton_directions[iE]]))
+                                                                       np.array([lepton_directions[iE]]),
+                                                                       **proposal_kwargs)
             products = products_array[0]
 
             n_interaction = 1
@@ -921,7 +925,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 proposal=False,
                                 proposal_config='SouthPole',
                                 start_file_id=0,
-                                log_level=logging.WARNING):
+                                log_level=logging.WARNING,
+                                proposal_kwargs):
     """
     Event generator
 
@@ -1041,6 +1046,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
+    proposal_kwargs: dict
+        additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
     """
     t_start = time.time()
     logger.setLevel(log_level)
@@ -1182,7 +1189,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
                                                                                np.array([lepton_codes[iE]]),
                                                                                np.array([lepton_positions[iE]]),
-                                                                               np.array([lepton_directions[iE]]))
+                                                                               np.array([lepton_directions[iE]]),
+                                                                               **proposal_kwargs)
                     products = products_array[0]
                     n_interaction = 2
                     for product in products:
