@@ -441,6 +441,9 @@ class simulation():
                 distance_cut_time += time.time() - t_tmp
 
             # the weight calculation is independent of the station, so we do this calculation only once
+            # the weight also depends just on the "mother" particle, i.e. the incident neutrino which determines
+            # the propability of arriving at our simulation volume. All subsequent showers have the same weight. So
+            # we calculate it just once and save it to all subshowers.
             t1 = time.time()
             iE_mother = event_indices[0]
             x_int_mother = np.array([self._fin['xx'][iE_mother], self._fin['yy'][iE_mother], self._fin['zz'][iE_mother]])
@@ -509,6 +512,7 @@ class simulation():
                         # quick speedup cut using barycenter of station as position
                         distance_to_station = np.linalg.norm(x1 - self._station_barycenter[iSt])
                         distance_cut = self._get_distance_cut(shower_energy_sum) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
+                        logger.debug(f"calculating distance cut. Current event has energy {self._shower_energy:.4g}, it is event number {iSh} and {np.sum(mask_shower_sum)} are within {self._cfg['speedup']['distance_cut_sum_length']/units.m:.1f}m -> {shower_energy_sum:.4g}")
                         if distance_to_station > distance_cut:
                             logger.debug(f"skipping station {self._station_id} because distance {distance_to_station/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {self._shower_energy:.2g}eV) between vertex {x1} and bary center of station {self._station_barycenter[iSt]}")
                             distance_cut_time += time.time() - t_tmp
