@@ -878,7 +878,7 @@ class simulation():
                         if self._is_simulate_noise():
                             max_freq = 0.5 / self._dt
                             channel_ids = self._det.get_channel_ids(self._station.get_id())
-                            Vrms = np.ones(len(channel_ids))
+                            Vrms = {}
                             for channel_id in channel_ids:
                                 norm = self._get_noise_normalization(self._station.get_id(), channel_id)  # assuming the same noise level for all channels
                                 Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
