@@ -1,6 +1,7 @@
 import numpy as np
 import h5py
 from scipy import interpolate
+from scipy.interpolate import interp1d
 import glob
 from six import iteritems
 import json
@@ -91,6 +92,80 @@ def get_triggered(fin):
     return triggered, mask
 
 
+def FC_limits(counts):
+
+    """
+    Returns the 68% confidence belt for a number of counts, using the
+    Feldman-Cousins method.
+
+    Parameters
+    ----------
+    counts: integer or float
+        Number of counts. Can be non-integer (weighted counts)
+
+    Returns
+    -------
+    (low_limit, upper_limit): float tuple
+        Lower and upper limits for the confidence belt.
+    """
+
+    count_list = np.arange(0, 21)
+    lower_limits = [0.00,
+                    0.37,
+                    0.74,
+                    1.10,
+                    2.34,
+                    2.75,
+                    3.82,
+                    4.25,
+                    5.30,
+                    6.33,
+                    6.78,
+                    7.81,
+                    8.83,
+                    9.28,
+                    10.30,
+                    11.32,
+                    12.33,
+                    12.79,
+                    13.81,
+                    14.82,
+                    15.83]
+    upper_limits = [1.29,
+                    2.75,
+                    4.25,
+                    5.30,
+                    6.78,
+                    7, 81,
+                    9.28,
+                    10.30,
+                    11.32,
+                    12.79,
+                    13.81,
+                    14.82,
+                    16.29,
+                    17.30,
+                    18.32,
+                    19.32,
+                    20.80,
+                    21.81,
+                    22.82,
+                    25.30]
+
+    if counts > count_list[-1]:
+
+        return (counts - np.sqrt(counts), counts + np.sqrt(counts))
+
+    elif counts < 0:
+
+        return (0.00, 1.29)
+
+    low_interp = interp1d(count_list, lower_limits)
+    up_interp = interp1d(count_list, upper_limits)
+
+    return (low_interp(counts), up_interp(counts))
+
+
 def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
     """
     Calculates the effective area from NuRadioMC hdf5 files simulated after
@@ -159,8 +234,7 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
         out['energy'] = E
 
         weights = np.array(fin['weights'])
-        # triggered = np.array(fin['triggered'])
-        triggered, unique_mask = get_triggered(fin)
+        triggered = np.array(fin['triggered'])
         n_events = fin.attrs['n_events']
         if(trigger_names is None):
             trigger_names = fin.attrs['trigger_names']
@@ -204,10 +278,13 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
         out['SNRs'] = {}
 
         if(triggered.size == 0):
+            FC_low, FC_high = FC_limits(0)
+            Aeff_low = proj_area * FC_low / n_events
+            Aeff_high = proj_area * FC_high / n_events
             for iT, trigger_name in enumerate(trigger_names):
-                out['Aeffs'][trigger_name] = [0, 0, 0]
+                out['Aeffs'][trigger_name] = [0, 0, 0, Aeff_low, Aeff_high]
             for trigger_name, values in iteritems(trigger_combinations):
-                out['Aeffs'][trigger_name] = [0, 0, 0]
+                out['Aeffs'][trigger_name] = [0, 0, 0, Aeff_low, Aeff_high]
         else:
             for iT, trigger_name in enumerate(trigger_names):
                 triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
@@ -215,7 +292,13 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
                 Aeff_error = 0
                 if(np.sum(weights[triggered]) > 0):
                     Aeff_error = Aeff / np.sum(weights[triggered]) ** 0.5
-                out['Aeffs'][trigger_name] = [Aeff, Aeff_error, np.sum(weights[triggered])]
+
+                triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
+                FC_low, FC_high = FC_limits(np.sum(weights[triggered]))
+                Aeff_low = proj_area * FC_low / n_events
+                Aeff_high = proj_area * FC_high / n_events
+                out['Aeffs'][trigger_name] = [Aeff, Aeff_error, np.sum(weights[triggered]),
+                                              Aeff_low, Aeff_high]
 
             for trigger_name, values in iteritems(trigger_combinations):
                 indiv_triggers = values['triggers']
@@ -276,7 +359,12 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
                     e = get_eff(As / Vrms)
                     Aeff = proj_area * np.sum((weights * e)[triggered]) / n_events
 
-                out['Aeffs'][trigger_name] = [Aeff, Aeff / np.sum(weights[triggered]) ** 0.5, np.sum(weights[triggered])]
+                triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
+                FC_low, FC_high = FC_limits(np.sum(weights[triggered]))
+                Aeff_low = proj_area * FC_low / n_events
+                Aeff_high = proj_area * FC_high / n_events
+                out['Aeffs'][trigger_name] = [Aeff, Aeff / np.sum(weights[triggered]) ** 0.5, np.sum(weights[triggered]),
+                                              Aeff_low, Aeff_high]
         Aeff_output.append(out)
 
     return Aeff_output
@@ -316,7 +404,7 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
     out['energy'] = E
 
     weights = np.array(fin['weights'])
-    triggered, unique_mask = get_triggered(fin)
+    triggered = np.array(fin['triggered'])
     n_events = fin.attrs['n_events']
 
     if('trigger_names' in fin.attrs):
@@ -355,10 +443,13 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
     out['SNRs'] = {}
 
     if(triggered.size == 0):
+        FC_low, FC_high = FC_limits(0)
+        Veff_low = V * FC_low / n_events
+        Veff_high = V * FC_high / n_events
         for iT, trigger_name in enumerate(trigger_names):
-            out['Veffs'][trigger_name] = [0, 0, 0]
+            out['Veffs'][trigger_name] = [0, 0, 0, Veff_low, Veff_high]
         for trigger_name, values in iteritems(trigger_combinations):
-            out['Veffs'][trigger_name] = [0, 0, 0]
+            out['Veffs'][trigger_name] = [0, 0, 0, Veff_low, Veff_high]
     else:
         for iT, trigger_name in enumerate(trigger_names):
             triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
@@ -367,7 +458,11 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
             Veff_error = 0
             if(np.sum(weights[triggered]) > 0):
                 Veff_error = Veff / np.sum(weights[triggered]) ** 0.5
-            out['Veffs'][trigger_name] = [Veff, Veff_error, np.sum(weights[triggered])]
+            FC_low, FC_high = FC_limits(np.sum(weights[triggered]))
+            Veff_low = V * FC_low / n_events
+            Veff_high = V * FC_high / n_events
+            out['Veffs'][trigger_name] = [Veff, Veff_error, np.sum(weights[triggered]), Veff_low, Veff_high]
+
         for trigger_name, values in iteritems(trigger_combinations):
             indiv_triggers = values['triggers']
             triggered = np.zeros_like(fin['multiple_triggers'][:, 0], dtype=np.bool)
@@ -438,7 +533,10 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
             Vefferror = 0
             if(np.sum(weights[triggered]) > 0):
                 Vefferror = Veff / np.sum(weights[triggered]) ** 0.5
-            out['Veffs'][trigger_name] = [Veff, Vefferror, np.sum(weights[triggered])]
+            FC_low, FC_high = FC_limits(np.sum(weights[triggered]))
+            Veff_low = V * FC_low / n_events
+            Veff_high = V * FC_high / n_events
+            out['Veffs'][trigger_name] = [Veff, Vefferror, np.sum(weights[triggered]), Veff_low, Veff_high]
     return out
 
 
@@ -627,7 +725,7 @@ def get_Veff_array(data):
     uenergies = np.unique(energies)
     uzenith_bins = np.unique(zenith_bins, axis=0)
     utrigger_names = np.unique(trigger_names)
-    output = np.zeros((len(uenergies), len(uzenith_bins), len(utrigger_names), 3))
+    output = np.zeros((len(uenergies), len(uzenith_bins), len(utrigger_names), 5))
     weights = np.ones((len(uenergies), len(uzenith_bins)))
     logger.debug(f"unique energies {uenergies}")
     logger.debug(f"unique zenith angle bins {uzenith_bins/units.deg}")
@@ -741,7 +839,7 @@ def get_Aeff_array(data):
     uenergies = np.unique(energies)
     uzenith_bins = np.unique(zenith_bins, axis=0)
     utrigger_names = np.unique(trigger_names)
-    output = np.zeros((len(uenergies), len(uzenith_bins), len(utrigger_names), 3))
+    output = np.zeros((len(uenergies), len(uzenith_bins), len(utrigger_names), 5))
     logger.debug(f"unique energies {uenergies}")
     logger.debug(f"unique zenith angle bins {uzenith_bins/units.deg}")
     logger.debug(f"unique energies {utrigger_names}")
