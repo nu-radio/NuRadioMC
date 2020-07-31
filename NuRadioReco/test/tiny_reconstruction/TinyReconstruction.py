@@ -115,7 +115,7 @@ channelBandPassFilter.begin()
 eventTypeIdentifier = NuRadioReco.modules.eventTypeIdentifier.eventTypeIdentifier()
 channelStopFilter = NuRadioReco.modules.channelStopFilter.channelStopFilter()
 channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
-channelSignalReconstructor.begin()
+channelSignalReconstructor.begin(signal_window_start = 20 * units.ns, signal_window_length = 80 * units.ns, noise_window_start = 150 * units.ns, noise_window_length = 200 * units.ns)
 correlationDirectionFitter = NuRadioReco.modules.correlationDirectionFitter.correlationDirectionFitter()
 voltageToEfieldConverter = NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter()
 
