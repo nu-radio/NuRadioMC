@@ -581,7 +581,7 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
                 sorter = np.argsort(ugids_triggered)
                 max_amplitudes = np.zeros(n_unique_gids)
                 for key in fin.keys():
-                    if(key.startswith("station")):
+                    if(key.startswith("station_")):
                         if('event_group_ids' not in fin[key]):
                             continue  # the station might have no triggers
                         sgids = np.array(fin[key]['event_group_ids'])
@@ -608,6 +608,8 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
                             max_amplitudes[usgids_index] = np.maximum(max_amplitudes[usgids_index], max_amps_per_event)
                 if('scale' in values['efficiency']):
                     max_amplitudes *= values['efficiency']['scale']
+                if("Vrms" in values['efficiency']):
+                    Vrms = values['efficiency']['Vrms']
                 e = get_efficiency(max_amplitudes / Vrms)  # we calculated the maximum amplitudes for all gids, now we select only those that triggered
                 Veff = V * np.sum(weights[triggered] * e) / n_events
 
