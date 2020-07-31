@@ -23,8 +23,13 @@ class channelSignalReconstructor:
         self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
         self.begin()
 
-    def begin(self, debug=False, signal_start=20 * units.ns, signal_stop=100 * units.ns,
-              noise_start=150 * units.ns, noise_stop=350 * units.ns):
+    def begin(self,
+            debug=False,
+            signal_window_start = 20 * units.ns,
+            signal_window_length = 80 * units.ns,
+            noise_window_start = 150 * units.ns,
+            noise_window_length = 200 * units.ns
+        ):
         """
         Parameters
         -----------
@@ -39,10 +44,10 @@ class channelSignalReconstructor:
         noise_stop: float
             Stop time (relative to the trace start time) of the window in which noise quantities will be calculated, with time units
         """
-        self.__signal_window_start = signal_start
-        self.__signal_window_stop = signal_stop
-        self.__noise_window_start = noise_start
-        self.__noise_window_stop = noise_stop
+        self.__signal_window_start = signal_window_start
+        self.__signal_window_length = signal_window_length
+        self.__noise_window_start = noise_window_start
+        self.__noise_window_length = noise_window_length
         self.__debug = debug
 
     def get_SNR(self, station_id, channel, det, stored_noise=False, rms_stage=None):
@@ -65,18 +70,13 @@ class channelSignalReconstructor:
         trace = channel.get_trace()
         times = channel.get_times() - channel.get_trace_start_time()
 
-        if (self.__noise_window_start >= self.__noise_window_stop):
-            logger.error("Noise cannot end before noise starts")
-        if self.__signal_window_start >= self.__signal_window_stop:
-            logger.error("Signal cannot end before signal starts")
-
-        noise_window_mask = (times > self.__noise_window_start) & (times < self.__noise_window_stop)
-        signal_window_mask = (times > self.__signal_window_start) & (times < self.__signal_window_stop)
+        noise_window_mask = (times > self.__noise_window_start) & (times < self.__noise_window_start + self.__noise_window_length)
+        signal_window_mask = (times > self.__signal_window_start) & (times < self.__signal_window_start + self.__signal_window_length)
 
         # Various definitions
         noise_int = np.sum(np.square(trace[noise_window_mask]))
-        noise_int *= (self.__signal_window_stop - self.__signal_window_start) / \
-            float(self.__noise_window_stop - self.__noise_window_start)
+        noise_int *= (self.__signal_window_length) / \
+            float(self.__noise_window_length)
 
         if stored_noise:
             # we use the RMS from forced triggers
@@ -125,9 +125,9 @@ class channelSignalReconstructor:
             plt.figure()
             plt.plot(times, trace)
             plt.axvline(self.__noise_window_start, c='k', label='Noise Window')
-            plt.axvline(self.__noise_window_stop, c='k', linestyle='--')
+            plt.axvline(self.__noise_window_start + self.__noise_window_length, c='k', linestyle='--')
             plt.axvline(self.__signal_window_start, c='r', label='Signal Window')
-            plt.axvline(self.__signal_window_stop, c='r', linestyle='--')
+            plt.axvline(self.__signal_window_start + self.__signal_window_length, c='r', linestyle='--')
             plt.legend()
             plt.show()
 
