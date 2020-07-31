@@ -471,7 +471,7 @@ class Detector(object):
 
     def get_site_coordinates(self, station_id):
         sites = {
-            'summit' : (78.58, -38.46)
+            'summit' : (72.57, -38.46)
         }
         site = self.get_site(station_id)
         if site in sites.keys():
