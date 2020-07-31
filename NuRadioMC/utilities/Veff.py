@@ -556,7 +556,7 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
             triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
             Veff = V * np.sum(weights[triggered]) / n_events
 
-            if('efficiency' in values.keys()):
+            if('efficiency' in values.keys() and Veff > 0):
                 get_efficiency = values['efficiency']['func']
                 channel_ids = values['efficiency']['channel_ids']
                 gids = np.array(fin['event_group_ids'])
