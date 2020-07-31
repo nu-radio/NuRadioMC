@@ -594,7 +594,7 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
                         usgids_index = sorter[np.searchsorted(ugids_triggered, usgids, sorter=sorter)]
                         # each station might have multiple triggeres per event group id. We need to select the one
                         # event with the largest amplitude. Let's first check if one event group created more than one event
-                        max_amps_per_event_channel = np.array(fin[key]['maximum_amplitudes_envelope'])[common_mask]
+                        max_amps_per_event_channel = np.nan_to_num(np.array(fin[key]['maximum_amplitudes_envelope'])[common_mask])
                         max_amps_per_event = np.amax(max_amps_per_event_channel[:, channel_ids], axis=1)  # select the maximum amplitude of all considered channels
                         if(len(sgids) != len(usgids)):
                             # at least one event group created more than one event. Let's calculate it the slow but correct way
