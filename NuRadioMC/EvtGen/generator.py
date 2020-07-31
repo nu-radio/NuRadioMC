@@ -447,12 +447,15 @@ def generate_vertex_positions(volume, proposal, attributes):
         volume_full = np.pi * (rmax ** 2 - rmin ** 2) * (zmax - zmin)
         # increase the total number of events such that we end up with the same number of events in the fiducial volume
         n_events = int(n_events * volume_full / volume_fiducial)
-        attributes['n_events'] = n_events
         logger.info("simulation of second interactions via PROPOSAL activated")
         logger.info(f"increasing rmax from {attributes['fiducial_rmax']/units.km:.01f}km to {rmax/units.km:.01f}km, zmax from {attributes['fiducial_zmax']/units.km:.01f}km to {zmax/units.km:.01f}km")
         logger.info(f"decreasing rmin from {attributes['fiducial_rmin']/units.km:.01f}km to {rmin/units.km:.01f}km")
         logger.info(f"decreasing zmin from {attributes['fiducial_zmin']/units.km:.01f}km to {zmin/units.km:.01f}km")
         logger.info(f"increasing number of events to {n_events}")
+        if(n_events > 1e6):
+            logger.warning(f"limiting number of events to 1 million to not run into memory issues.")
+            n_events = int(1e6)
+        attributes['n_events'] = n_events
 
         attributes['rmin'] = rmin
         attributes['rmax'] = rmax
@@ -506,8 +509,11 @@ def generate_vertex_positions(volume, proposal, attributes):
                 logger.info(f"increasing cube by the 95% quantile of the tau decay length of {tau_95_length/units.m:.0f} km to all sides except the positive z direction")
         volume_full = (xmax - xmin) * (ymax - ymin) * (zmax - zmin)
         n_events = int(n_events * volume_full / volume_fiducial)
-        attributes['n_events'] = n_events
         logger.info(f"increasing number of events to {n_events}")
+        if(n_events > 1e6):
+            logger.warning(f"limiting number of events to 1 million to not run into memory issues.")
+            n_events = int(1e6)
+        attributes['n_events'] = n_events
 
         attributes['xmin'] = xmin
         attributes['xmax'] = xmax
@@ -645,7 +651,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                            n_events_per_file=None,
                            spectrum='log_uniform',
                            start_file_id=0,
-                           config_file='SouthPole'):
+                           config_file='SouthPole',
+                           proposal_kwargs={}):
     """
     Event generator for surface muons
 
@@ -757,6 +764,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         If one of these three options is chosen, the user is supposed to edit
         the corresponding config_PROPOSAL_xxx.json.sample file to include valid
         table paths and then copy this file to config_PROPOSAL_xxx.json.
+    proposal_kwargs: dict
+        additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
     """
     t_start = time.time()
     from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
@@ -855,7 +864,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
             products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
                                                                        np.array([lepton_codes[iE]]),
                                                                        np.array([lepton_positions[iE]]),
-                                                                       np.array([lepton_directions[iE]]))
+                                                                       np.array([lepton_directions[iE]]),
+                                                                       **proposal_kwargs)
             products = products_array[0]
 
             n_interaction = 1
@@ -921,7 +931,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 proposal=False,
                                 proposal_config='SouthPole',
                                 start_file_id=0,
-                                log_level=logging.WARNING):
+                                log_level=logging.WARNING,
+                                proposal_kwargs={}):
     """
     Event generator
 
@@ -1041,6 +1052,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
+    proposal_kwargs: dict
+        additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
     """
     t_start = time.time()
     logger.setLevel(log_level)
@@ -1130,7 +1143,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     if proposal:
         logger.debug("starting proposal simulation")
-        import time
         init_time = time.time()
         # Initialising data_sets_fiducial with empty values
         for key, value in iteritems(data_sets):
@@ -1182,7 +1194,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                     products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
                                                                                np.array([lepton_codes[iE]]),
                                                                                np.array([lepton_positions[iE]]),
-                                                                               np.array([lepton_directions[iE]]))
+                                                                               np.array([lepton_directions[iE]]),
+                                                                               **proposal_kwargs)
                     products = products_array[0]
                     n_interaction = 2
                     for product in products:

@@ -2,9 +2,9 @@
 import numpy as np
 import h5py
 from NuRadioReco.utilities import units
-from NuRadioMC.utilities.Veff import get_triggered
 import sys
 import os
+from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 
 ###########################
 # Reference values from previous run, have to be updated, if code changes
@@ -25,7 +25,8 @@ fin = h5py.File(sys.argv[1], 'r')
 
 
 def calculate_aeff(fin):
-    triggered = get_triggered(fin)[0]
+    triggered = np.array(fin['triggered'])
+    triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
 
     weights = np.array(fin['weights'])
     n_events = fin.attrs['n_events']
