@@ -559,25 +559,29 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
             if('efficiency' in values.keys()):
                 get_efficiency = values['efficiency']['func']
                 channel_ids = values['efficiency']['channel_ids']
-                gids = np.array(fin['event_group_ids'])
-                max_amplitudes = np.zeros_like(gids, dtype=np.float)
+                ugids = np.unique(np.array(fin['event_group_ids']))
+                n_unique_gids = len(ugids)
+                sorter = np.argsort(ugids)
+
+                max_amplitudes = np.zeros(n_unique_gids)
                 for key in fin.keys():
                     if(key.startswith("station")):
                         if('event_group_ids' not in fin[key]):
                             continue  # the station might have no triggers
                         sgids = np.array(fin[key]['event_group_ids'])
+                        usgids = np.unique(sgids)
+                        usgids_index = sorter[np.searchsorted(ugids, usgids, sorter=sorter)]
                         # each station might have multiple triggeres per event group id. We need to select the one
                         # event with the largest amplitude. Let's first check if one event group created more than one event
-                        sevent_ids = np.array(fin[key]['event_ids'])
                         max_amps_per_event_channel = np.array(fin[key]['maximum_amplitudes_envelope'])
                         max_amps_per_event = np.amax(max_amps_per_event_channel[:, channel_ids], axis=1)  # select the maximum amplitude of all considered channels
-                        if(np.any(sevent_ids > 0)):
+                        if(len(sgids) != len(usgids)):
                             # at least one event group created more than one event. Let's calculate it the slow but correct way
                             for sgid in np.unique(sgids):  # loop over all event groups which triggered this station
                                 mask_gid = sgid == sgids  # select all event that are part of this event group
                                 max_amplitudes[sgid] = max(max_amplitudes[sgid], max_amps_per_event[mask_gid].max())
                         else:
-                            max_amplitudes[sgids] = np.maximum(max_amplitudes[sgids], max_amps_per_event)
+                            max_amplitudes[usgids_index] = np.maximum(max_amplitudes[usgids_index], max_amps_per_event)
                 if('scale' in values['efficiency']):
                     As *= values['efficiency']['scale']
                 e = get_efficiency(As / Vrms)
