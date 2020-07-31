@@ -407,10 +407,14 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
             * 'triggers': list of strings
                 name of individual triggers that are combined with an OR
             the following additional options are optional
-            * 'efficiency': string
-                the signal efficiency vs. SNR (=Vmax/Vrms) to use. E.g. 'Chris'
-            * 'efficiency_scale': float
-                rescaling of the efficiency curve by SNR' = SNR * scale
+            * 'efficiency': dict
+                allows to apply an (analysis) efficiency cut for calculating effective volumes
+                * 'func': function
+                    a function that paramaterized the efficiency as a function of SNR (=Vmax/Vrms)
+                * 'channel_ids': array on ints
+                    the channels for which the maximum signal amplitude should be determined
+                * 'scale': float
+                    rescaling of the efficiency curve by SNR' = SNR * scale
             * 'n_reflections': int
                 the number of bottom reflections of the ray tracing solution that likely triggered
                 assuming that the solution with the shortest travel time caused the trigger, only considering channel 0
@@ -560,18 +564,21 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
                 get_efficiency = values['efficiency']['func']
                 channel_ids = values['efficiency']['channel_ids']
                 gids = np.array(fin['event_group_ids'])
-                ugids, ugids_index = np.unique(np.array(fin['event_group_ids']), return_index=True)
-                n_unique_gids = len(ugids)
-                sorter = np.argsort(ugids)
+                ugids = np.unique(np.array(fin['event_group_ids']))
 
                 # calculate the group event ids that triggered
                 ugids_triggered_index = []
+                ugids_triggered = []
                 for i_ugid, ugid in enumerate(ugids):
                     mask = ugid == gids
                     if(np.any(triggered[mask])):
                         ugids_triggered_index.append(i_ugid)
+                        ugids_triggered.append(ugid)
+                ugids_triggered = np.array(ugids_triggered)
                 ugids_triggered_index = np.array(ugids_triggered_index)
 
+                n_unique_gids = len(ugids_triggered)
+                sorter = np.argsort(ugids_triggered)
                 max_amplitudes = np.zeros(n_unique_gids)
                 for key in fin.keys():
                     if(key.startswith("station")):
@@ -579,21 +586,29 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
                             continue  # the station might have no triggers
                         sgids = np.array(fin[key]['event_group_ids'])
                         usgids = np.unique(sgids)
-                        usgids_index = sorter[np.searchsorted(ugids, usgids, sorter=sorter)]
+                        usgids, comm1, comm2 = np.intersect1d(usgids, ugids_triggered, assume_unique=True, return_indices=True)  # select only the gids that triggered
+                        common_mask = np.isin(sgids, usgids)
+                        sgids = sgids[common_mask]  # also reduce gids array to the event groups that triggered
+                        if(len(usgids) == 0):  # skip stations that don't have any trigger for this trigger combination
+                            continue
+                        usgids_index = sorter[np.searchsorted(ugids_triggered, usgids, sorter=sorter)]
                         # each station might have multiple triggeres per event group id. We need to select the one
                         # event with the largest amplitude. Let's first check if one event group created more than one event
-                        max_amps_per_event_channel = np.array(fin[key]['maximum_amplitudes_envelope'])
+                        max_amps_per_event_channel = np.array(fin[key]['maximum_amplitudes_envelope'])[common_mask]
                         max_amps_per_event = np.amax(max_amps_per_event_channel[:, channel_ids], axis=1)  # select the maximum amplitude of all considered channels
                         if(len(sgids) != len(usgids)):
                             # at least one event group created more than one event. Let's calculate it the slow but correct way
                             for sgid in np.unique(sgids):  # loop over all event groups which triggered this station
+                                if(sgid not in usgids):
+                                    continue
                                 mask_gid = sgid == sgids  # select all event that are part of this event group
-                                max_amplitudes[sgid] = max(max_amplitudes[sgid], max_amps_per_event[mask_gid].max())
+                                index = np.squeeze(np.argwhere(ugids_triggered == sgid))
+                                max_amplitudes[index] = max(max_amplitudes[index], max_amps_per_event[mask_gid].max())
                         else:
                             max_amplitudes[usgids_index] = np.maximum(max_amplitudes[usgids_index], max_amps_per_event)
                 if('scale' in values['efficiency']):
                     max_amplitudes *= values['efficiency']['scale']
-                e = get_efficiency(max_amplitudes / Vrms)[ugids_triggered_index]  # we calculated the maximum amplitudes for all gids, now we select only those that triggered
+                e = get_efficiency(max_amplitudes / Vrms)  # we calculated the maximum amplitudes for all gids, now we select only those that triggered
                 Veff = V * np.sum(weights[triggered] * e) / n_events
 
             Vefferror = 0
@@ -629,10 +644,14 @@ def get_Veff(folder,
             * 'triggers': list of strings
                 name of individual triggers that are combined with an OR
             the following additional options are optional
-            * 'efficiency': string
-                the signal efficiency vs. SNR (=Vmax/Vrms) to use. E.g. 'Chris'
-            * 'efficiency_scale': float
-                rescaling of the efficiency curve by SNR' = SNR * scale
+            * 'efficiency': dict
+                allows to apply an (analysis) efficiency cut for calculating effective volumes
+                * 'func': function
+                    a function that paramaterized the efficiency as a function of SNR (=Vmax/Vrms)
+                * 'channel_ids': array on ints
+                    the channels for which the maximum signal amplitude should be determined
+                * 'scale': float
+                    rescaling of the efficiency curve by SNR' = SNR * scale
             * 'n_reflections': int
                 the number of bottom reflections of the ray tracing solution that likely triggered
                 assuming that the solution with the shortest travel time caused the trigger, only considering channel 0
