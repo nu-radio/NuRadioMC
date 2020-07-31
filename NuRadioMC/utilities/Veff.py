@@ -389,6 +389,42 @@ def get_Veff_water_equivalent(Veff, density_medium=0.917 * units.g / units.cm **
 
 
 def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combinations, point_bins, deposited, station):
+    """
+    calculates the effective volume from a single NuRadioMC hdf5 file
+
+    the effective volume is NOT normalized to a water equivalent. It is also NOT multiplied with the solid angle (typically 4pi).
+
+    Parameters
+    ----------
+    filename: string
+        filename of the hdf5 file
+    trigger_names: list of strings
+        list of the trigger names contained in the file
+    trigger_names_dict: dict
+        map from trigger name to index
+    trigger_combinations: dict, optional
+        keys are the names of triggers to calculate. Values are dicts again:
+            * 'triggers': list of strings
+                name of individual triggers that are combined with an OR
+            the following additional options are optional
+            * 'efficiency': string
+                the signal efficiency vs. SNR (=Vmax/Vrms) to use. E.g. 'Chris'
+            * 'efficiency_scale': float
+                rescaling of the efficiency curve by SNR' = SNR * scale
+            * 'n_reflections': int
+                the number of bottom reflections of the ray tracing solution that likely triggered
+                assuming that the solution with the shortest travel time caused the trigger, only considering channel 0
+
+    station: int
+        the station that should be considered
+    point_bins: bool
+        if True, the bins are expected to only have one energy. If False, the
+        centre of the interval in log scale is taken as the bin energy
+
+    Returns
+    ----------
+    list of dictionary. Each file is one entry. The dictionary keys store all relevant properties
+    """
     fin = h5py.File(filename, 'r')
     logger.warning(f"processing file  {filename}")
     out = {}
@@ -521,12 +557,28 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
             Veff = V * np.sum(weights[triggered]) / n_events
 
             if('efficiency' in values.keys()):
-                SNReff, eff = np.loadtxt("analysis_efficiency_{}.csv".format(values['efficiency']), delimiter=",", unpack=True)
-                get_eff = interpolate.interp1d(SNReff, eff, bounds_error=False, fill_value=(0, eff[-1]))
-                As = np.max(np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)[:, np.append(range(0, 8), range(12, 20))], axis=-1)  # we use the this quantity because it is always computed before noise is added!
+                get_efficiency = values['efficiency']['func']
+                channel_ids = values['efficiency']['channel_ids']
+                gids = np.array(fin['event_group_ids'])
+                max_amplitudes = np.zeros_like(gids, dtype=np.float)
+                for key in fin.keys():
+                    if(key.startswith("station")):
+                        sgids = np.array(fin[key]['event_group_ids'])
+                        # each station might have multiple triggeres per event group id. We need to select the one
+                        # event with the largest amplitude. Let's first check if one event group created more than one event
+                        sevent_ids = np.array(fin[key]['event_ids'])
+                        max_amps_per_event_channel = np.array(fin[key]['maximum_amplitude_envelope'])
+                        max_amps_per_event = np.amax(max_amps_per_event_channel[:, channel_ids], axis=1)  # select the maximum amplitude of all considered channels
+                        if(np.any(sevent_ids > 0)):
+                            # at least one event group created more than one event. Let's calculate it the slow but correct way
+                            for sgid in np.unique(sgids):  # loop over all event groups which triggered this station
+                                mask_gid = sgid == sgids  # select all event that are part of this event group
+                                max_amplitudes[sgid] = max(max_amplitudes[sgid], max_amps_per_event[mask_gid].max())
+                        else:
+                            max_amplitudes[sgids] = np.maximum(max_amplitudes[sgids], max_amps_per_event)
                 if('efficiency_scale' in values.keys()):
                     As *= values['efficiency_scale']
-                e = get_eff(As / Vrms)
+                e = get_efficiency(As / Vrms)
                 Veff = V * np.sum((weights * e)[triggered]) / n_events
 
             Vefferror = 0
