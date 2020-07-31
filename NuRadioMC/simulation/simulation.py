@@ -1339,8 +1339,8 @@ class simulation():
             for channel_id in range(n_channels):
                 positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
             fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
-            fout["station_{:d}".format(station_id)].attrs['Vrms'] = self._Vrms_per_channel[station_id]
-            fout["station_{:d}".format(station_id)].attrs['bandwidth'] = self._bandwidth_per_channel[station_id]
+            fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
+            fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())
 
         fout.attrs.create("Tnoise", self._Tnoise, dtype=np.float)
         fout.attrs.create("Vrms", self._Vrms, dtype=np.float)

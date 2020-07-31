@@ -305,7 +305,8 @@ def get_E2_limit_figure(diffuse=True,
                         show_Heinze=True,
                         show_TA=False,
                         show_RNOG=False,
-                        show_IceCubeGen2=False):
+                        show_IceCubeGen2=False,
+                        shower_Auger=True):
 
     # Limit E2 Plot
     # ---------------------------------------------------------------------------
@@ -315,20 +316,21 @@ def get_E2_limit_figure(diffuse=True,
     # Version for a diffuse flux and for a source dominated flux
     if diffuse:
         legends = []
+        if(shower_Auger):
 
-        vanVliet_max_1 = np.loadtxt(os.path.join(os.path.dirname(__file__), "MaxNeutrinos1.txt"))
-        vanVliet_max_2 = np.loadtxt(os.path.join(os.path.dirname(__file__), "MaxNeutrinos2.txt"))
-        vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), "ReasonableNeutrinos1.txt"))
+            vanVliet_max_1 = np.loadtxt(os.path.join(os.path.dirname(__file__), "MaxNeutrinos1.txt"))
+            vanVliet_max_2 = np.loadtxt(os.path.join(os.path.dirname(__file__), "MaxNeutrinos2.txt"))
+            vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), "ReasonableNeutrinos1.txt"))
 
-        vanVliet_max = np.maximum(vanVliet_max_1[1, :], vanVliet_max_2[1, :])
+            vanVliet_max = np.maximum(vanVliet_max_1[1, :], vanVliet_max_2[1, :])
 
-        prot10, = ax.plot(vanVliet_reas[0, :] * units.GeV / plotUnitsEnergy, vanVliet_reas[1, :],
-                          label=r'10% protons in UHECRs (Auger), m=3.4, van Vliet et al.', linestyle='--', color='k')
+            prot10, = ax.plot(vanVliet_reas[0, :] * units.GeV / plotUnitsEnergy, vanVliet_reas[1, :],
+                              label=r'10% protons in UHECRs (Auger), m=3.4, van Vliet et al.', linestyle='--', color='k')
 
-        prot = ax.fill_between(vanVliet_max_1[0, :] * units.GeV / plotUnitsEnergy, vanVliet_max,
-                               vanVliet_reas[1, :] / 50, color='0.9', label=r'allowed from UHECRs (Auger), van Vliet et al.', zorder=-2)
-        legends.append(prot10)
-        legends.append(prot)
+            prot = ax.fill_between(vanVliet_max_1[0, :] * units.GeV / plotUnitsEnergy, vanVliet_max,
+                                   vanVliet_reas[1, :] / 50, color='0.9', label=r'allowed from UHECRs (Auger), van Vliet et al.', zorder=-2)
+            legends.append(prot10)
+            legends.append(prot)
 
         if(show_Heinze):
             Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_bands.out"))
