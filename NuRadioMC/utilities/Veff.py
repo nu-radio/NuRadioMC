@@ -563,6 +563,8 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
                 max_amplitudes = np.zeros_like(gids, dtype=np.float)
                 for key in fin.keys():
                     if(key.startswith("station")):
+                        if('event_group_ids' not in fin[key]):
+                            continue  # the station might have no triggers
                         sgids = np.array(fin[key]['event_group_ids'])
                         # each station might have multiple triggeres per event group id. We need to select the one
                         # event with the largest amplitude. Let's first check if one event group created more than one event
@@ -576,8 +578,8 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
                                 max_amplitudes[sgid] = max(max_amplitudes[sgid], max_amps_per_event[mask_gid].max())
                         else:
                             max_amplitudes[sgids] = np.maximum(max_amplitudes[sgids], max_amps_per_event)
-                if('efficiency_scale' in values.keys()):
-                    As *= values['efficiency_scale']
+                if('scale' in values['efficiency']):
+                    As *= values['efficiency']['scale']
                 e = get_efficiency(As / Vrms)
                 Veff = V * np.sum((weights * e)[triggered]) / n_events
 
