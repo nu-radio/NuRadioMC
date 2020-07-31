@@ -559,9 +559,18 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
             if('efficiency' in values.keys()):
                 get_efficiency = values['efficiency']['func']
                 channel_ids = values['efficiency']['channel_ids']
-                ugids = np.unique(np.array(fin['event_group_ids']))
+                gids = np.array(fin['event_group_ids'])
+                ugids, ugids_index = np.unique(np.array(fin['event_group_ids']), return_index=True)
                 n_unique_gids = len(ugids)
                 sorter = np.argsort(ugids)
+
+                # calculate the group event ids that triggered
+                ugids_triggered_index = []
+                for i_ugid, ugid in enumerate(ugids):
+                    mask = ugid == gids
+                    if(np.any(triggered[mask])):
+                        ugids_triggered_index.append(i_ugid)
+                ugids_triggered_index = np.array(ugids_triggered_index)
 
                 max_amplitudes = np.zeros(n_unique_gids)
                 for key in fin.keys():
@@ -584,7 +593,7 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
                             max_amplitudes[usgids_index] = np.maximum(max_amplitudes[usgids_index], max_amps_per_event)
                 if('scale' in values['efficiency']):
                     max_amplitudes *= values['efficiency']['scale']
-                e = get_efficiency(max_amplitudes / Vrms)
+                e = get_efficiency(max_amplitudes / Vrms)[ugids_triggered_index]  # we calculated the maximum amplitudes for all gids, now we select only those that triggered
                 Veff = V * np.sum(weights[triggered] * e) / n_events
 
             Vefferror = 0
