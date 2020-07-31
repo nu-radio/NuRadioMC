@@ -583,9 +583,9 @@ def get_Veff_single(filename, trigger_names, trigger_names_dict, trigger_combina
                         else:
                             max_amplitudes[usgids_index] = np.maximum(max_amplitudes[usgids_index], max_amps_per_event)
                 if('scale' in values['efficiency']):
-                    As *= values['efficiency']['scale']
-                e = get_efficiency(As / Vrms)
-                Veff = V * np.sum((weights * e)[triggered]) / n_events
+                    max_amplitudes *= values['efficiency']['scale']
+                e = get_efficiency(max_amplitudes / Vrms)
+                Veff = V * np.sum(weights[triggered] * e) / n_events
 
             Vefferror = 0
             if(np.sum(weights[triggered]) > 0):
