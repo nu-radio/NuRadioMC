@@ -100,7 +100,7 @@ det.update(datetime.datetime(2018, 10, 1))
 # initialize all modules that are needed for processing
 # provide input parameters that are to remain constant during processung
 readCoREAS = NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS()
-readCoREAS.begin([input_file], station_id, n_cores=10, max_distance=None)
+readCoREAS.begin([input_file], station_id, n_cores=10, max_distance=None, seed=0)
 simulationSelector = NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector()
 simulationSelector.begin()
 efieldToVoltageConverter =  NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
