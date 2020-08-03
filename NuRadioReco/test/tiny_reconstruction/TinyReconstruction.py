@@ -90,11 +90,8 @@ except:
     logger.warning("Using default file for detector")
     detector_file = os.path.join(dir_path,"../../examples/example_data/arianna_station_32.json")
 
-
-np.random.seed(1)
 det = detector.Detector(json_filename=detector_file) # detector file
 det.update(datetime.datetime(2018, 10, 1))
-
 
 
 # initialize all modules that are needed for processing
