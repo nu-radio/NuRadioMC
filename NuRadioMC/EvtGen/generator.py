@@ -531,6 +531,8 @@ def generate_vertex_positions(volume, proposal, attributes):
         yy = np.random.uniform(ymin, ymax, n_events)
         zz = np.random.uniform(zmin, zmax, n_events)
         return xx, yy, zz
+    else:
+        raise AttributeError(f"'fiducial_rmin' or 'fiducial_rmax' is not part of 'volume'")
 
 
 def intersection_box_ray(bounds, ray):
@@ -652,7 +654,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                            spectrum='log_uniform',
                            start_file_id=0,
                            config_file='SouthPole',
-                           proposal_kwargs={}):
+                           proposal_kwargs={},
+                           log_level=None):
     """
     Event generator for surface muons
 
@@ -766,7 +769,11 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         table paths and then copy this file to config_PROPOSAL_xxx.json.
     proposal_kwargs: dict
         additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
+    log_level: logging log level or None
+        sets the log level in the event generation. None means system default.
     """
+    if(log_level is not None):
+        logger.setLevel(log_level)
     t_start = time.time()
     from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
     proposal_functions = ProposalFunctions(config_file=config_file)
@@ -931,7 +938,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 proposal=False,
                                 proposal_config='SouthPole',
                                 start_file_id=0,
-                                log_level=logging.WARNING,
+                                log_level=None,
                                 proposal_kwargs={}):
     """
     Event generator
@@ -1052,11 +1059,14 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
+    log_level: logging log level or None
+        sets the log level in the event generation. None means system default.
     proposal_kwargs: dict
         additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
     """
     t_start = time.time()
-    logger.setLevel(log_level)
+    if(log_level is not None):
+        logger.setLevel(log_level)
     if proposal:
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
         proposal_functions = ProposalFunctions(config_file=proposal_config)
