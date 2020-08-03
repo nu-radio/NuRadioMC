@@ -2,6 +2,7 @@ from __future__ import print_function
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from NuRadioReco.utilities import units, fft
+from numpy.random import RandomState
 import logging
 
 
@@ -13,7 +14,7 @@ class channelGenericNoiseAdder:
 
     """
 
-    def add_random_phases(self, amps, n_samples_time_domain):
+    def add_random_phases(self, amps, n_samples_time_domain, seed=None):
         """
         Adding random phase information to given amplitude spectrum.
 
@@ -27,13 +28,14 @@ class channelGenericNoiseAdder:
         """
         amps = np.array(amps, dtype='complex')
         Np = (n_samples_time_domain - 1) // 2
-        phases = np.random.rand(Np) * 2 * np.pi
+        random_generator = np.random.RandomState(seed)
+        phases = random_generator.rand(Np) * 2 * np.pi
         phases = np.cos(phases) + 1j * np.sin(phases)
         amps[1:Np + 1] *= phases  # Note that the last entry of the index slice is f[Np] !
 
         return amps
 
-    def fftnoise_fullfft(self, f):
+    def fftnoise_fullfft(self, f, seed=None):
         """
         Adding random phase information to given amplitude spectrum.
 
@@ -45,7 +47,8 @@ class channelGenericNoiseAdder:
         """
         f = np.array(f, dtype='complex')
         Np = (len(f) - 1) // 2
-        phases = np.random.rand(Np) * 2 * np.pi
+        random_generator = np.random.RandomState(seed)
+        phases = random_generator.rand(Np) * 2 * np.pi
         phases = np.cos(phases) + 1j * np.sin(phases)
         f[1:Np + 1] *= phases  # Note that the last entry of the index slice is f[Np] !
         f[-1:-1 - Np:-1] = np.conj(f[1:Np + 1])
