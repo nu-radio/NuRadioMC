@@ -14,7 +14,7 @@ class channelGenericNoiseAdder:
 
     """
 
-    def add_random_phases(self, amps, n_samples_time_domain, seed=None):
+    def add_random_phases(self, amps, n_samples_time_domain):
         """
         Adding random phase information to given amplitude spectrum.
 
@@ -28,14 +28,13 @@ class channelGenericNoiseAdder:
         """
         amps = np.array(amps, dtype='complex')
         Np = (n_samples_time_domain - 1) // 2
-        random_generator = np.random.RandomState(seed)
-        phases = random_generator.rand(Np) * 2 * np.pi
+        phases = self.__random_generator.rand(Np) * 2 * np.pi
         phases = np.cos(phases) + 1j * np.sin(phases)
         amps[1:Np + 1] *= phases  # Note that the last entry of the index slice is f[Np] !
 
         return amps
 
-    def fftnoise_fullfft(self, f, seed=None):
+    def fftnoise_fullfft(self, f):
         """
         Adding random phase information to given amplitude spectrum.
 
@@ -47,8 +46,7 @@ class channelGenericNoiseAdder:
         """
         f = np.array(f, dtype='complex')
         Np = (len(f) - 1) // 2
-        random_generator = np.random.RandomState(seed)
-        phases = random_generator.rand(Np) * 2 * np.pi
+        phases = self.__random_generator.rand(Np) * 2 * np.pi
         phases = np.cos(phases) + 1j * np.sin(phases)
         f[1:Np + 1] *= phases  # Note that the last entry of the index slice is f[Np] !
         f[-1:-1 - Np:-1] = np.conj(f[1:Np + 1])
@@ -144,7 +142,7 @@ class channelGenericNoiseAdder:
             ampl[selection] = amplitude * sigscale
         elif type == 'rayleigh':
             fsigma = amplitude * sigscale / np.sqrt(2.)
-            ampl[selection] = np.random.rayleigh(fsigma, nbinsactive)
+            ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
 #         elif type == 'white':
 # FIXME: amplitude normalization is not correct for 'white'
 #             ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
@@ -162,8 +160,9 @@ class channelGenericNoiseAdder:
         self.begin()
         self.logger = logging.getLogger('NuRadioReco.channelGenericNoiseAdder')
 
-    def begin(self, debug=False):
+    def begin(self, debug=False, seed=None):
         self.__debug = debug
+        self.__random_generator = np.random.RandomState(seed)
         if debug:
             self.logger.setLevel(logging.DEBUG)
 

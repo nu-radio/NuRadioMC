@@ -91,7 +91,7 @@ except:
     detector_file = os.path.join(dir_path,"../../examples/example_data/arianna_station_32.json")
 
 
-np.random.seed(1)
+
 det = detector.Detector(json_filename=detector_file) # detector file
 det.update(datetime.datetime(2018, 10, 1))
 
@@ -107,7 +107,7 @@ efieldToVoltageConverter =  NuRadioReco.modules.efieldToVoltageConverter.efieldT
 efieldToVoltageConverter.begin(debug=False)
 hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-channelGenericNoiseAdder.begin()
+channelGenericNoiseAdder.begin(seed=1)
 triggerSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 triggerSimulator.begin()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
