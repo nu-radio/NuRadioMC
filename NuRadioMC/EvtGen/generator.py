@@ -659,7 +659,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                            config_file='SouthPole',
                            proposal_kwargs={},
                            log_level=None,
-                           max_n_events_batch=1e6):
+                           max_n_events_batch=1e5):
     """
     Event generator for surface muons
 
@@ -955,7 +955,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 start_file_id=0,
                                 log_level=None,
                                 proposal_kwargs={},
-                                max_n_events_batch=1e6):
+                                max_n_events_batch=1e5):
     """
     Event generator
 
