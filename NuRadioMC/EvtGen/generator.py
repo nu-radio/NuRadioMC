@@ -812,13 +812,13 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     attributes['phimax'] = phimax
     attributes['deposited'] = False
 
-    data_sets = {}
     data_sets_fiducial = {}
 
     set_volume_attributes(volume, proposal=False, attributes=attributes)
     n_events = attributes['n_events']  # important! the number of events might have been increased by the set_volume_attributes function
     n_batches = int(np.ceil(n_events / max_n_events_batch))
     for i_batch in range(n_batches):  # do generation of events in batches
+        data_sets = {}
         n_events_batch = max_n_events_batch
         if(i_batch + 1 == n_batches):  # last batch?
             n_events_batch = n_events - (i_batch * max_n_events_batch)
