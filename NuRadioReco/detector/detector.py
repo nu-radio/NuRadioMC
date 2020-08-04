@@ -470,8 +470,19 @@ class Detector(object):
         return res['pos_site']
 
     def get_site_coordinates(self, station_id):
+        """
+        get the (latitude, longitude) coordinates (in degrees) for a given
+        detector site.
+
+        Parameters
+        -------------
+        station_id: int
+            the station ID
+        """
         sites = {
-            'summit' : (72.57, -38.46)
+            'summit' : (72.57, -38.46),
+            'mooresbay': (-78.74, 165.09),
+            'auger': (-35.10, -69.55)
         }
         site = self.get_site(station_id)
         if site in sites.keys():

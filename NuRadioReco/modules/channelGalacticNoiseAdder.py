@@ -15,10 +15,47 @@ import healpy
 logger = logging.getLogger('channelGalacticNoiseAdder')
 
 class channelGalacticNoiseAdder:
+    """
+    Class that simulates the noise produced by galactic radio emission
+    Uses the pydgsm package (https://github.com/telegraphic/pygdsm), which provides
+    radio background data based on Oliveira-Costa et al. (2008) (https://arxiv.org/abs/0802.1525)
+    and Zheng et al. (2016) (https://arxiv.org/abs/1605.04920)
+
+    The radio sky model is evaluated on a grid of azimuths and zenith angles and
+    folded with the antenna response. Since evaluating every frequency individually
+    would be too slow, the model is evaluated for a few frequencies and the log10
+    of the brightness temperature is interpolated in between.
+    """
     def __init__(self):
         self.begin()
 
-    def begin(self, debug=False, n_zenith=18, n_azimuth=36, interpolation_frequencies=np.arange(10, 1100, 100)*units.MHz):
+    def begin(
+            self,
+            debug=False,
+            n_zenith=18,
+            n_azimuth=36,
+            interpolation_frequencies=np.arange(10, 1100, 100)*units.MHz
+        ):
+        """
+        Set up important parameters for the module
+
+        Parameters
+        ---------------
+        debug: bool, default: False
+            It True, debug plots will be shown
+        n_zenith: int, default: 18
+        n_azimuth: int, default: 36
+            The sky brightness temperature will be evaluated on a
+            n_zenith*n_azimuth grid and the radio noise produced in the channel
+            will be evaluated for each direction and added up. More points will
+            result in greater accuracy, but also slower execution
+        interpolation_frequencies: array of float
+            The sky brightness temperature will be evaluated for the frequencies
+            in this list. Brightness temperature for frequencies in between are
+            calculated by interpolation the log10 of the temperature
+            The interpolation_frequencies have to cover the entire passband
+            specified in the run method.
+        """
         self.__debug = debug
         self.__zenith_sample = np.linspace(0, 90, n_zenith)[:-1] * units.deg
         self.__azimuth_sample = np.linspace(0, 360, n_azimuth)[:-1] * units.deg
@@ -27,7 +64,28 @@ class channelGalacticNoiseAdder:
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
         self.__interpolaiton_frequencies = interpolation_frequencies
 
-    def run(self, event, station, detector, passband=[10*units.MHz, 1000*units.MHz]):
+    def run(
+            self,
+            event,
+            station,
+            detector,
+            passband=[10*units.MHz, 1000*units.MHz]
+        ):
+        """
+        Adds noise resulting from galactic radio emission to the channel traces
+
+        Parameters
+        --------------
+        event: Event object
+            The event containing the station to whose channels noise shall be added
+        station: Station object
+            The station whose channels noise shall be added to
+        detector: Detector object
+            The detector description
+        passband: list of float
+            Lower and upper bound of the frequency range in which noise shall be
+            added
+        """
         self.__sky_observer = pygdsm.GSMObserver()
         site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
         self.__sky_observer.longitude = site_longitude
@@ -36,6 +94,7 @@ class channelGalacticNoiseAdder:
         station_time.format = 'iso'
         self.__sky_observer.date = station_time.value
         noise_temperatures = np.zeros((len(self.__interpolaiton_frequencies), len(self.__zenith_sample), len(self.__azimuth_sample)))
+        # save noise temperatures for all directions and frequencies
         for i_freq, noise_freq in enumerate(self.__interpolaiton_frequencies):
             radio_sky = self.__sky_observer.generate(noise_freq/units.MHz)
             for i_zenith, zenith in enumerate(self.__zenith_sample):
