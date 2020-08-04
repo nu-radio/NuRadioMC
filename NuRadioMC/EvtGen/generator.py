@@ -450,7 +450,7 @@ def set_volume_attributes(volume, proposal, attributes):
         logger.info(f"increasing rmax from {attributes['fiducial_rmax']/units.km:.01f}km to {rmax/units.km:.01f}km, zmax from {attributes['fiducial_zmax']/units.km:.01f}km to {zmax/units.km:.01f}km")
         logger.info(f"decreasing rmin from {attributes['fiducial_rmin']/units.km:.01f}km to {rmin/units.km:.01f}km")
         logger.info(f"decreasing zmin from {attributes['fiducial_zmin']/units.km:.01f}km to {zmin/units.km:.01f}km")
-        logger.info(f"increasing number of events to {n_events}")
+        logger.info(f"increasing number of events to {n_events:.6g}")
         attributes['n_events'] = n_events
 
         attributes['rmin'] = rmin
@@ -822,7 +822,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         n_events_batch = max_n_events_batch
         if(i_batch + 1 == n_batches):  # last batch?
             n_events_batch = n_events - (i_batch * max_n_events_batch)
-        logger.info(f"processing batch {i_batch+1:.2g}/{n_batches:.2g} with {n_events_batch:.2g} events")
+        logger.info(f"processing batch {i_batch+1:.2g}/{n_batches:.2g} with {n_events_batch:.2g} events ({len(data_sets_fiducial['event_group_ids'])} showers in fiducial volume so far.)")
         data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(attributes=attributes, n_events=n_events_batch)
         data_sets["zz"] = np.zeros_like(data_sets["yy"])  # muons interact at the surface
 
