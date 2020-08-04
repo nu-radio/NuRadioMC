@@ -21,11 +21,24 @@ class IftElectricFieldReconstructor:
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
         return
 
-    def begin(self, passband=None, amp_dct=None, phase_dct=None, trace_length=128, debug = False):
+    def begin(
+            self,
+            passband=None,
+            filter_type='butter',
+            amp_dct=None,
+            phase_dct=None,
+            trace_length=128,
+            efield_scaling = True,
+            debug = False
+        ):
         self.__passband = passband
+        self.__filter_type = filter_type
         self.__debug = debug
         self.__trace_length = trace_length
         self.__noiseless_spec = {}
+        self.__noiseless_traces = None
+        self.__efield_scaling = efield_scaling
+        self.__n_event = 0
         if amp_dct is None:
             self.__amp_dct = {
                 'n_pix': 64,  #spectral bins
@@ -108,7 +121,7 @@ class IftElectricFieldReconstructor:
         minimizer = ift.NewtonCG(ic_newton)
         median = ift.MultiField.full(H.domain, 0.)
         N_iterations = 5
-        N_samples = 10
+        N_samples = 15
         min_energy = None
         min_energy = None
         for k in range(N_iterations):
@@ -129,6 +142,7 @@ class IftElectricFieldReconstructor:
         self.__store_reconstructed_efields(
             event, station, best_reco_KL
         )
+        self.__n_event += 1
         return True
     def __prepare_traces(self,
         event,
@@ -177,14 +191,15 @@ class IftElectricFieldReconstructor:
                 ax1_2.set_title('Channel {}'.format(channel_id))
                 ax1_2.grid()
                 #ax1_2.axvline(np.roll(station.get_channel(channel_id).get_times(), n_max-n_padding_samples-n_offsets[i_channel])[self.__trace_samples], c='k', linestyle='--')
-                ax1_2.plot(station.get_channel(channel_id).get_times(), self.__noiseless_traces[str(channel_id)], c='k', linestyle=':')
                 ax1_2.text(.05, .9, 'SNR={:.1f}'.format(self.__snrs[i_channel]), transform=ax1_2.transAxes, fontsize=12, bbox=dict(facecolor='w', alpha=.5))
-                self.__noiseless_traces[str(channel_id)] = np.roll(self.__noiseless_traces[str(channel_id)], n_shifts[i_channel])[:self.__trace_samples]
-                self.__noiseless_spec[str(channel_id)] = fft.time2freq(self.__noiseless_traces[str(channel_id)], station.get_channel(channel_id).get_sampling_rate())
+                if self.__noiseless_traces is not None:
+                    ax1_2.plot(station.get_channel(channel_id).get_times(), self.__noiseless_traces[str(channel_id)], c='k', linestyle=':')
+                    self.__noiseless_traces[str(channel_id)] = np.roll(self.__noiseless_traces[str(channel_id)], n_shifts[i_channel])[:self.__trace_samples]
+                    self.__noiseless_spec[str(channel_id)] = fft.time2freq(self.__noiseless_traces[str(channel_id)], station.get_channel(channel_id).get_sampling_rate())
             ax1_1.grid()
             ax1_1.legend()
             fig1.tight_layout()
-            fig1.savefig('traces_{}_{}.png'.format(event.get_run_number(), event.get_id()[1]))
+            fig1.savefig('traces_{}_{}.png'.format(event.get_run_number(), event.get_id()))
 
     def __get_detector_operators(self,
         station,
@@ -202,8 +217,13 @@ class IftElectricFieldReconstructor:
             w, h = scipy.signal.freqs(b, a, frequencies)
             filter_field = ift.Field(ift.DomainTuple.make(frequency_domain), np.abs(h))
             filter_operator = ift.DiagonalOperator(filter_field, frequency_domain)
+            if self.__filter_type == 'butter':
+                filter_phase = np.unwrap(np.angle(h))
+            else:
+                filter_phase = 0
         else:
             filter_operator = ift.ScalingOperator(1., frequency_domain)
+            filter_phase = 0
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             electric_field = list(station.get_electric_fields_for_channels([channel_id]))[0]
             receiving_zenith = electric_field.get_parameter(efp.zenith)
@@ -224,7 +244,7 @@ class IftElectricFieldReconstructor:
             max_gain = np.max(total_gain)
             self.__gain_scaling.append(max_gain)
             total_gain /= max_gain
-            total_phase = np.unwrap(np.angle(antenna_response))+amp_phase
+            total_phase = np.unwrap(np.angle(antenna_response))+amp_phase + filter_phase
             total_phase[len(total_phase)//2:] *= -1
             total_phase[len(total_phase)//2+1] = 0
             total_phase *= -1
@@ -283,11 +303,13 @@ class IftElectricFieldReconstructor:
             phi_S_h = realizer2.adjoint @ phi_S_h
             scaling_field = (inserter @ add_one @ (.1 * ift.FieldAdapter(scaling_domain, 'pol{}'.format(i_channel))))
             efield_spec_operator = ((filter_operator @ (mag_S_h * (1.j*phi_S_h).exp())))
-            efield_trace_operator = ((realizer @ fft_operator.inverse @ efield_spec_operator)) * scaling_field
-            #efield_trace_operator = ((realizer @ fft_operator.inverse @ efield_spec_operator))
             channel_spec_operator = (hardware_operators[i_channel] @ efield_spec_operator)
-            channel_trace_operator = ((realizer @ fft_operator.inverse @ (channel_spec_operator))) * scaling_field
-            #channel_trace_operator = ((realizer @ fft_operator.inverse @ (channel_spec_operator)))
+            if self.__efield_scaling:
+                efield_trace_operator = ((realizer @ fft_operator.inverse @ efield_spec_operator)) * scaling_field
+                channel_trace_operator = ((realizer @ fft_operator.inverse @ (channel_spec_operator))) * scaling_field
+            else:
+                efield_trace_operator = ((realizer @ fft_operator.inverse @ efield_spec_operator))
+                channel_trace_operator = ((realizer @ fft_operator.inverse @ (channel_spec_operator)))
             noise_operator = ift.ScalingOperator(self.__noise_levels[i_channel]**2, frequency_domain.get_default_codomain())
             data_field = ift.Field(ift.DomainTuple.make(frequency_domain.get_default_codomain()), self.__data_traces[i_channel])
             self.__efield_spec_operators.append(efield_spec_operator)
@@ -393,31 +415,34 @@ class IftElectricFieldReconstructor:
             ax2_2 = fig2.add_subplot(n_channels, 4, 4*i_channel+3)
             ax2_3 = fig2.add_subplot(n_channels, 4, 4*i_channel+4)
             ax1_1.plot(freqs/units.MHz, np.abs(fft.time2freq(self.__data_traces[i_channel], sampling_rate))*self.__scaling_factor/units.mV, c='C0', label='data')
-            ax1_1.plot(freqs/units.MHz, np.abs(self.__noiseless_spec[str(channel_id)])/units.mV, c='C1', label='MC truth')
+            if self.__noiseless_traces is not None:
+                ax1_1.plot(freqs/units.MHz, np.abs(self.__noiseless_spec[str(channel_id)])/units.mV, c='C1', label='MC truth')
             ax2_1.plot(times, self.__data_traces[i_channel]*self.__scaling_factor/units.mV, c='C0', alpha=1., zorder=5, label='data')
             ax2_1.plot(times, np.abs(scipy.signal.hilbert(self.__data_traces[i_channel]*self.__scaling_factor))/units.mV, c='C0', alpha=.2, zorder=3)
             #ax2_1.scatter(times, self.__data_traces[i_channel]*self.__scaling_factor/units.mV, c='C0', alpha=.5, zorder=0)
 
             ax1_1.plot(freqs/units.MHz, amp_trace_stat_calculator.mean*self.__scaling_factor/units.mV, c='C2', label='IFT reco')
-            ax2_1.plot(times, trace_stat_calculator.mean*self.__scaling_factor/units.mV, c='C2', linestyle='--', zorder=2, linewidth=4, label='IFT reconstruction')
-            ax2_1.plot(times, np.abs(scipy.signal.hilbert(trace_stat_calculator.mean*self.__scaling_factor))/units.mV, c='C2', linestyle='--', zorder=2, linewidth=4, alpha=.5)
-            ax2_1.plot(times, self.__noiseless_traces[str(channel_id)]/units.mV, c='C1', linewidth=6,zorder=1, label='MC truth')
-            ax2_1.plot(times, np.abs(scipy.signal.hilbert(self.__noiseless_traces[str(channel_id)]))/units.mV, c='C1', linewidth=6,zorder=1, alpha=.5)
-            ax2_2.plot(times, (self.__data_traces[i_channel]*self.__scaling_factor-self.__noiseless_traces[str(channel_id)])/units.mV, c='C0', label='data')
-            ax2_2.plot(times, (trace_stat_calculator.mean*self.__scaling_factor-self.__noiseless_traces[str(channel_id)])/units.mV, c='C2', label='IFT reco')
-            ax2_2.plot(times, (np.sum(self.__data_traces, axis=0)*self.__scaling_factor/len(self.__used_channel_ids)-self.__noiseless_traces[str(channel_id)])/units.mV, c='k', linestyle='--', label='classic reco')
-            ax2_3.plot(times, (np.abs(scipy.signal.hilbert(self.__data_traces[i_channel]*self.__scaling_factor))-np.abs(scipy.signal.hilbert(self.__noiseless_traces[str(channel_id)])))/units.mV, c='C0')
-            ax2_3.plot(times, (np.abs(scipy.signal.hilbert(trace_stat_calculator.mean*self.__scaling_factor))-np.abs(scipy.signal.hilbert(self.__noiseless_traces[str(channel_id)])))/units.mV, c='C2')
-            ax2_3.plot(times, (np.abs(scipy.signal.hilbert(np.sum(self.__data_traces, axis=0)*self.__scaling_factor/len(self.__used_channel_ids)))-np.abs(scipy.signal.hilbert(self.__noiseless_traces[str(channel_id)])))/units.mV, c='k', linestyle='--')
+            ax2_1.plot(times, trace_stat_calculator.mean*self.__scaling_factor/units.mV, c='C2', linestyle='-', zorder=2, linewidth=4, label='IFT reconstruction')
+            ax2_1.plot(times, np.abs(scipy.signal.hilbert(trace_stat_calculator.mean*self.__scaling_factor))/units.mV, c='C2', linestyle='-', zorder=2, linewidth=4, alpha=.5)
+            if self.__noiseless_traces is not None:
+                ax2_1.plot(times, self.__noiseless_traces[str(channel_id)]/units.mV, c='C1', linewidth=6,zorder=1, label='MC truth')
+                ax2_1.plot(times, np.abs(scipy.signal.hilbert(self.__noiseless_traces[str(channel_id)]))/units.mV, c='C1', linewidth=6,zorder=1, alpha=.5)
+                ax2_2.plot(times, (self.__data_traces[i_channel]*self.__scaling_factor-self.__noiseless_traces[str(channel_id)])/units.mV, c='C0', label='data')
+                ax2_2.plot(times, (trace_stat_calculator.mean*self.__scaling_factor-self.__noiseless_traces[str(channel_id)])/units.mV, c='C2', label='IFT reco')
+                ax2_2.plot(times, (np.sum(self.__data_traces, axis=0)*self.__scaling_factor/len(self.__used_channel_ids)-self.__noiseless_traces[str(channel_id)])/units.mV, c='k', linestyle='-', label='classic reco', alpha=.5)
+                ax2_3.plot(times, (np.abs(scipy.signal.hilbert(self.__data_traces[i_channel]*self.__scaling_factor))-np.abs(scipy.signal.hilbert(self.__noiseless_traces[str(channel_id)])))/units.mV, c='C0')
+                ax2_3.plot(times, (np.abs(scipy.signal.hilbert(trace_stat_calculator.mean*self.__scaling_factor))-np.abs(scipy.signal.hilbert(self.__noiseless_traces[str(channel_id)])))/units.mV, c='C2')
+                ax2_3.plot(times, (np.abs(scipy.signal.hilbert(np.sum(self.__data_traces, axis=0)*self.__scaling_factor/len(self.__used_channel_ids)))-np.abs(scipy.signal.hilbert(self.__noiseless_traces[str(channel_id)])))/units.mV, c='k', linestyle='-', alpha=.5)
 
             #ax2_1.plot(np.arange(len(self.__noiseless_traces[str(channel_id)]/channel.get_sampling_rate())), self.__noiseless_traces[str(channel_id)]/units.mV, c='C1')
             for efield in station.get_sim_station().get_electric_fields_for_channels([channel_id]):
                 ax1_2.plot(efield.get_frequencies()/units.MHz, np.abs(efield.get_frequency_spectrum()[1]), c='C1')
-            ax1_2.plot(freqs[(freqs>self.__passband[0])&(freqs<.5)]/units.MHz, np.abs(self.__classic_efield_recos[i_channel])[(freqs>self.__passband[0])&(freqs<.5)]*self.__scaling_factor, c='C0', alpha=.5)
-            ax1_2.plot(freqs[(freqs>self.__passband[0])&(freqs<.5)]/units.MHz, classic_mean_efield_spec[(freqs>self.__passband[0])&(freqs<.5)], c='k', alpha=.5, label='classic reco')
+            ax1_2.plot(freqs[(freqs>self.__passband[0])&(freqs<self.__passband[1])]/units.MHz, np.abs(self.__classic_efield_recos[i_channel])[(freqs>self.__passband[0])&(freqs<self.__passband[1])]*self.__scaling_factor, c='C0', alpha=.5)
+            ax1_2.plot(freqs[(freqs>self.__passband[0])&(freqs<self.__passband[1])]/units.MHz, classic_mean_efield_spec[(freqs>self.__passband[0])&(freqs<self.__passband[1])], c='k', alpha=.5, label='classic reco')
             ax1_2.plot(freqs/units.MHz, amp_efield_stat_calculator.mean*self.__scaling_factor/self.__gain_scaling[i_channel], c='C2')
-            ax1_3.plot(freqs[(freqs>self.__passband[0])&(freqs<.5)]/units.MHz, (np.unwrap(np.angle(self.__noiseless_spec[str(channel_id)][(freqs>self.__passband[0])&(freqs<.5)])))/np.pi, c='C1')
-            ax1_3.plot(freqs[(freqs>self.__passband[0])&(freqs<.5)]/units.MHz, (np.unwrap(np.angle(fft.time2freq(trace_stat_calculator.mean, station.get_channel(channel_id).get_sampling_rate())[(freqs>self.__passband[0])&(freqs<.5)])))/np.pi, c='C2')
+            ax1_3.plot(freqs[(freqs>self.__passband[0])&(freqs<self.__passband[1])]/units.MHz, (np.unwrap(np.angle(fft.time2freq(trace_stat_calculator.mean, station.get_channel(channel_id).get_sampling_rate())[(freqs>self.__passband[0])&(freqs<self.__passband[1])])))/np.pi, c='C2')
+            if self.__noiseless_traces is not None:
+                ax1_3.plot(freqs[(freqs>self.__passband[0])&(freqs<self.__passband[1])]/units.MHz, (np.unwrap(np.angle(self.__noiseless_spec[str(channel_id)][(freqs>self.__passband[0])&(freqs<self.__passband[1])])))/np.pi, c='C1')
             ax1_1.axvline(self.__passband[0]/units.MHz, c='k', alpha=.5, linestyle=':')
             ax1_1.axvline(self.__passband[1]/units.MHz, c='k', alpha=.5, linestyle=':')
             ax1_2.axvline(self.__passband[0]/units.MHz, c='k', alpha=.5, linestyle=':')
@@ -437,9 +462,9 @@ class IftElectricFieldReconstructor:
                 ax2_2.legend()
                 ax1_1.legend()
                 ax1_2.legend()
-            ax1_1.set_xlim([0,500])
-            ax1_2.set_xlim([0,500])
-            ax1_3.set_xlim([0,500])
+            ax1_1.set_xlim([0,750])
+            ax1_2.set_xlim([0,750])
+            ax1_3.set_xlim([0,750])
             ax1_1.set_title('Channel {}'.format(channel_id))
             ax2_1.set_title('Channel {}'.format(channel_id))
             ax1_1.set_xlabel('f [MHz]')
@@ -455,6 +480,6 @@ class IftElectricFieldReconstructor:
             ax2_2.set_ylabel('residuals [mV]')
             ax2_3.set_ylabel('residuals of Hilbert envelopes [mV]')
         fig1.tight_layout()
-        fig1.savefig('spec_reco_{}_{}.png'.format(event.get_run_number(), event.get_id()[1]))
+        fig1.savefig('spec_reco_{}_{}.png'.format(event.get_run_number(), event.get_id()))
         fig2.tight_layout()
-        fig2.savefig('trace_reco_{}_{}.png'.format(event.get_run_number(), event.get_id()[1]))
+        fig2.savefig('trace_reco_{}_{}.png'.format(event.get_run_number(), event.get_id()))
