@@ -1285,7 +1285,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     logger.info(f"Time per event (PROPOSAL only): {time_per_evt*1e3:.4f} ms")
     logger.info(f"Total time (PROPOSAL only) {pretty_time_delta(time_proposal)}")
 
-    logger.info(f"number of fiducial showers {len(data_sets_fiducial['flavors'])}")
+    logger.info(f"number of fiducial showers {len(data_sets_fiducial['xx'])}")
 
     # assign every shower a unique id
     data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=np.int)
