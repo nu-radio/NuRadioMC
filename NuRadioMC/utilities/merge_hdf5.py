@@ -74,6 +74,17 @@ def merge2(filenames, output_filename):
                 attrs['trigger_names'] = fin.attrs['trigger_names']
         fin.close()
 
+    # check event group ids for uniqueness (this is important because effective volume/area calculation uses the event
+    # group id to determine if a multi station coincidence exists
+    unique_egids = np.unique(data[filenames[0]]['event_group_ids'])
+    for iF, f in enumerate(filenames):
+        if(iF == 0):
+            continue
+        current_egids = np.unique(data[f]['event_group_ids'])
+        if(np.sum(np.intersect1d(unique_egids, current_egids))):
+            logger.error("event group ids are not unique per file")
+            raise("event group ids are not unique per file")
+
     # create data sets
     logger.info("creating data sets")
     fout = h5py.File(output_filename, 'w')
