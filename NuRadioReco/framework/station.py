@@ -89,7 +89,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         if(data['sim_station'] is None):
             self.__sim_station = None
         else:
-            self.__sim_station = NuRadioReco.framework.sim_station.SimStation(None, None, None)
+            self.__sim_station = NuRadioReco.framework.sim_station.SimStation(None)
             self.__sim_station.deserialize(data['sim_station'])
         for channel_pkl in data['channels']:
             channel = NuRadioReco.framework.channel.Channel(0)
