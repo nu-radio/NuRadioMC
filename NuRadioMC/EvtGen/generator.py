@@ -206,7 +206,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         else:  # case 1
             n_events_this_file = evt_id_last - evt_id_last_previous
 
-        print('writing file {} with {} events (id {} - {}) and {} entries'.format(filename2, n_events_this_file, evt_id_first,
+        logger.status('writing file {} with {} events (id {} - {}) and {} entries'.format(filename2, n_events_this_file, evt_id_first,
                                                                                   evt_id_last, stop_index - start_index))
         fout.attrs['n_events'] = n_events_this_file
         fout.close()
@@ -824,6 +824,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     attributes['deposited'] = False
 
     data_sets_fiducial = {}
+    proposal_time = 0
 
     set_volume_attributes(volume, proposal=False, attributes=attributes)
     n_events = attributes['n_events']  # important! the number of events might have been increased by the set_volume_attributes function
@@ -925,12 +926,13 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
                         # Flavors are particle codes taken from NuRadioProposal.py
                         data_sets_fiducial['flavors'][-1] = product.code
+        proposal_time += time.time() - init_time
 
-    time_per_evt = (time.time() - init_time) / (iE + 1)
-    print(f"Time per event: {time_per_evt*1e3:.01f}ms")
-    print(f"Total time {pretty_time_delta(time.time() - init_time)}")
+    time_per_evt = proposal_time / len(data_sets_fiducial['flavors'])
+    logger.info(f"Time per event: {time_per_evt*1e3:.01f}ms")
+    logger.info(f"Total time {pretty_time_delta(proposal_time)}")
 
-    print("number of fiducial showers", len(data_sets_fiducial['flavors']))
+    logger.status(f"number of fiducial showers {len(data_sets_fiducial['flavors'])}")
 
     # If there are no fiducial showers, passing an empty data_sets_fiducial to
     # write_events_to_hdf5 will cause the program to crash. However, we need
