@@ -426,7 +426,6 @@ def set_volume_attributes(volume, proposal, attributes):
 
         # We increase the radius of the cylinder according to the tau track length
         if(proposal):
-            tau_95_length = get_tau_95_length(attributes['Emax'])
             if("full_rmin" in volume):
                 rmin = volume['full_rmin']
             else:
@@ -434,7 +433,12 @@ def set_volume_attributes(volume, proposal, attributes):
             if('full_rmax' in volume):
                 rmax = volume['full_rmax']
             else:
-                rmax = tau_95_length + attributes['fiducial_rmax']
+                tau_95_length = get_tau_95_length(attributes['Emax'])
+                max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
+                d_extent = min(tau_95_length, max_horizontal_dist)
+                logger.info(f"95% quantile of tau decay length is {tau_95_length/units.km:.1f}km. Maximum horizontal distance for zenith range of {attributes['thetamin']/units.deg:.0f} - {attributes['thetamax']/units.deg:.0f}deg and depth of {volume['fiducial_zmin']/units.km:.1f}km is {max_horizontal_dist/units.km:.1f}km -> extending horizontal volume by {d_extent/units.km:.1f}km")
+
+                rmax = d_extent + attributes['fiducial_rmax']
             if('full_zmax' in volume):
                 zmax = volume['full_zmax']
             else:
@@ -490,13 +494,20 @@ def set_volume_attributes(volume, proposal, attributes):
             if('full_xmax' not in volume):  # assuming that also full_xmin, full_ymin, full_ymax are not set.
                 # extent fiducial by tau decay length
                 tau_95_length = get_tau_95_length(attributes['Emax'])
-                xmax += tau_95_length
-                xmin -= tau_95_length
-                ymax += tau_95_length
-                ymin -= tau_95_length
-                logger.info(f"increasing cube by the 95% quantile of the tau decay length of {tau_95_length/units.m:.0f} km to all sides except the positive z direction")
+                max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
+                d_extent = min(tau_95_length, max_horizontal_dist)
+                logger.info(f"95% quantile of tau decay length is {tau_95_length/units.km:.1f}km. Maximum horizontal distance for zenith range of {attributes['thetamin']/units.deg:.0f} - {attributes['thetamax']/units.deg:.0f}deg and depth of {volume['fiducial_zmin']/units.km:.1f}km is {max_horizontal_dist/units.km:.1f}km -> extending horizontal volume by {d_extent/units.km:.1f}km")
+                xmax += d_extent
+                xmin -= d_extent
+                ymax += d_extent
+                ymin -= d_extent
+        logger.info(f"increasing xmax from {attributes['fiducial_xmax']/units.km:.01f}km to {xmax/units.km:.01f}km, ymax from {attributes['fiducial_ymax']/units.km:.01f}km to {ymax/units.km:.01f}km, zmax from {attributes['fiducial_zmax']/units.km:.01f}km to {zmax/units.km:.01f}km")
+        logger.info(f"decreasing xmin from {attributes['fiducial_xmin']/units.km:.01f}km to {xmin/units.km:.01f}km, ymin from {attributes['fiducial_ymin']/units.km:.01f}km to {ymin/units.km:.01f}km")
+        logger.info(f"decreasing zmin from {attributes['fiducial_zmin']/units.km:.01f}km to {zmin/units.km:.01f}km")
+
         volume_full = (xmax - xmin) * (ymax - ymin) * (zmax - zmin)
         n_events = int(n_events * volume_full / volume_fiducial)
+        logger.info(f"increasing number of events from {attributes['n_events']} to {n_events:.6g}")
         attributes['n_events'] = n_events
 
         attributes['xmin'] = xmin
@@ -593,8 +604,8 @@ def get_intersection_volume_neutrino(attributes, vertex, direction):
                            [attributes['fiducial_xmax'], attributes['fiducial_ymax'], attributes['fiducial_zmax']]])
         ray = np.array([vertex, direction])
         cut = intersection_box_ray(bounds, ray)
-        if(cut == False):
-            print(f"rejecting event with vertex {vertex[0]:.0f}, {vertex[1]:.0f}, {vertex[2]:.0f} and direction {direction[0]:.1f}, {direction[1]:.1f}, {direction[2]:.1f}")
+#         if(cut == False):
+#             print(f"rejecting event with vertex {vertex[0]:.0f}, {vertex[1]:.0f}, {vertex[2]:.0f} and direction {direction[0]:.1f}, {direction[1]:.1f}, {direction[2]:.1f}")
         return cut
 
     else:  # cylinder volume, not yet implemented
@@ -830,7 +841,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         # zenith directions are distruted as sin(theta) (to make the distribution istotropic) * cos(theta) (to account for the projection onto the surface)
         data_sets["zeniths"] = np.arcsin(np.random.uniform(np.sin(thetamin) ** 2, np.sin(thetamax) ** 2, n_events_batch) ** 0.5)
 
-        data_sets["event_group_ids"] = np.arange(n_events_batch) + start_event_id
+        data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch) + start_event_id
         data_sets["n_interaction"] = np.ones(n_events_batch, dtype=np.int)
         data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=np.float)
 
@@ -1109,12 +1120,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     data_sets = {}
     data_sets_fiducial = {}
-    # generate neutrino vertices randomly
-    logger.debug("generating azimuths")
 
     time_proposal = 0
 
-    set_volume_attributes(volume, proposal=False, attributes=attributes)
+    set_volume_attributes(volume, proposal=proposal, attributes=attributes)
     n_events = attributes['n_events']  # important! the number of events might have been increased by the generate vertex function
     n_batches = int(np.ceil(n_events / max_n_events_batch))
     for i_batch in range(n_batches):  # do generation of events in batches
@@ -1130,10 +1139,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     #     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
         logger.debug("generating event ids")
-        data_sets["event_group_ids"] = np.arange(n_events) + start_event_id
+        data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch) + start_event_id
         logger.debug("generating number of interactions")
-        data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
-        data_sets["vertex_times"] = np.zeros(n_events, dtype=np.float)
+        data_sets["n_interaction"] = np.ones(n_events_batch, dtype=np.int)
+        data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=np.float)
 
         # generate neutrino flavors randomly
         logger.debug("generating flavors")
