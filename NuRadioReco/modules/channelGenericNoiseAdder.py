@@ -186,7 +186,7 @@ class channelGenericNoiseAdder:
 
         amplitude: float or dict of floats
             desired voltage of noise as V_rms for the specified bandwidth
-            a dict can be used to specify a different bandwidth per channel, the key is the channel_id
+            a dict can be used to specify a different amplitude per channel, the key is the channel_id
         min_freq: float
             Minimum frequency of passband for noise generation
         max_freq: float
