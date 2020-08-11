@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_trace
+import NuRadioReco.framework.channel
 import NuRadioReco.framework.parameters as parameters
 try:
     import cPickle as pickle
@@ -9,7 +10,7 @@ import logging
 logger = logging.getLogger('channel')
 
 
-class SimChannel(NuRadioReco.framework.base_trace.BaseTrace):
+class SimChannel(NuRadioReco.framework.channel.Channel):
     """
     Object to store simulated channels. 
     
@@ -30,41 +31,9 @@ class SimChannel(NuRadioReco.framework.base_trace.BaseTrace):
         ray_tracing_id: int or None
             the id of the corresponding ray tracing solution
         """
-        NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
-        self._parameters = {}
-        self._id = channel_id
+        NuRadioReco.framework.channel.Channel.__init__(self, channel_id)
         self._shower_id = shower_id
         self._ray_tracing_id = ray_tracing_id
-
-    def get_parameter(self, key):
-        if not isinstance(key, parameters.channelParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.channelParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.channelParameters")
-        return self._parameters[key]
-
-    def get_parameters(self):
-        return self._parameters
-
-    def set_parameter(self, key, value):
-        if not isinstance(key, parameters.channelParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.channelParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.channelParameters")
-        self._parameters[key] = value
-
-    def has_parameter(self, key):
-        if not isinstance(key, parameters.channelParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.channelParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.channelParameters")
-        return key in self._parameters
-
-    def __setitem__(self, key, value):
-        self.set_parameter(key, value)
-
-    def __getitem__(self, key):
-        return self.get_parameter(key)
-
-    def get_id(self):
-        return self._id
 
     def get_shower_id(self):
         return self._shower_id
@@ -79,21 +48,16 @@ class SimChannel(NuRadioReco.framework.base_trace.BaseTrace):
         return (self._id, self._shower_id, self._ray_tracing_id)
 
     def serialize(self, save_trace):
-        if save_trace:
-            base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
-        else:
-            base_trace_pkl = None
+        channel_pkl = NuRadioReco.framework.channel.Channel.serialize(self, save_trace)
         data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
-                'unique_id': self.get_unique_identifier(),
-                'base_trace': base_trace_pkl}
+                'shower_id': self.get_shower_id(),
+                'ray_tracing_id': self.get_ray_tracing_solution_id(),
+                'channel': channel_pkl}
 
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        if(data['base_trace'] is not None):
-            NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
-        self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.channelParameters)
-        self._id = data['unique_id'][0]
-        self._shower_id = data['unique_id'][1]
-        self._ray_tracing_id = data['unique_id'][2]
+        NuRadioReco.framework.channel.Channel.deserialize(self, data['channel'])
+        self._shower_id = data['shower_id']
+        self._ray_tracing_id = data['ray_tracing_id']
