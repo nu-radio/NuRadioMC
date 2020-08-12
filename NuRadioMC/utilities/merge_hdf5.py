@@ -81,7 +81,7 @@ def merge2(filenames, output_filename):
         if(iF == 0):
             continue
         current_egids = np.unique(data[f]['event_group_ids'])
-        if(np.sum(np.intersect1d(unique_egids, current_egids))):
+        if(np.sum(np.intersect1d(unique_egids, current_egids, assume_unique=True))):
             logger.error("event group ids are not unique per file")
             raise("event group ids are not unique per file")
 
@@ -203,6 +203,7 @@ if __name__ == "__main__":
         print("usage: python merge_hdf5.py /path/to/simulation/output/folder\nor python merge_hdf5.py outputfilename input1 input2 ...")
     elif(len(args.files) == 1):
         filenames = glob.glob("{}/*/*.hdf5.part????".format(args.files[0]))
+        filenames.extend(glob.glob("{}/*/*.hdf5.part??????".format(args.files[0])))
         filenames2 = []
         for i, filename in enumerate(filenames):
             filename, ext = os.path.splitext(filename)
@@ -223,6 +224,7 @@ if __name__ == "__main__":
                 else:
                     #                 try:
                     input_files = np.array(sorted(glob.glob(filename + '.part????')))
+                    input_files.extend(np.array(sorted(glob.glob(filename + '.part??????'))))
                     mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=np.bool)
                     if(np.sum(~mask)):
                         logger.warning("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
