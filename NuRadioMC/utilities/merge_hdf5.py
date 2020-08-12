@@ -68,11 +68,37 @@ def merge2(filenames, output_filename):
                     if(not np.all(attrs[key] == fin.attrs[key])):
                         if(key == "n_events"):
                             logger.warning(f"number of events in file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. We keep track of the total number of events, but in case the simulation was performed with different settings per file (e.g. different zenith angle bins), the averaging might be effected.")
+                        elif(key == "start_event_id"):
+                            continue
                         else:
                             logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. Using attribute value of first file, but you have been warned!")
             if((('trigger_names' not in attrs) or (len(attrs['trigger_names']) == 0)) and 'trigger_names' in fin.attrs):
                 attrs['trigger_names'] = fin.attrs['trigger_names']
         fin.close()
+
+    # check event group ids for uniqueness (this is important because effective volume/area calculation uses the event
+    # group id to determine if a multi station coincidence exists
+    unique_uegids = np.unique(data[filenames[0]]['event_group_ids'])
+    for iF, f in enumerate(filenames):
+        if(iF == 0):
+            continue
+        current_uegids = np.unique(data[f]['event_group_ids'])
+        intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
+        if(np.sum(intersect)):
+            current_egids = data[f]['event_group_ids']
+            new_egid = max(unique_uegids.max(), current_uegids.max()) + 1
+            for gid in intersect:
+                mask = gid == current_egids
+                current_egids[mask] = new_egid
+                new_egid += 1
+            logger.warning(f"event group ids are not unique per file, current file is {f}, new unique ids have been generated.")
+            logger.debug(f"non-unique event ids: {intersect}")
+#         # test again for uniqueness
+#         current_uegids = np.unique(data[f]['event_group_ids'])
+#         intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
+#         if(np.sum(intersect)):
+#             raise IndexError(f"event group ids are not unique per file, current file is {f}")
+        unique_uegids = np.append(unique_uegids, current_uegids)
 
     # create data sets
     logger.info("creating data sets")
@@ -192,6 +218,7 @@ if __name__ == "__main__":
         print("usage: python merge_hdf5.py /path/to/simulation/output/folder\nor python merge_hdf5.py outputfilename input1 input2 ...")
     elif(len(args.files) == 1):
         filenames = glob.glob("{}/*/*.hdf5.part????".format(args.files[0]))
+        filenames = np.append(filenames, glob.glob("{}/*/*.hdf5.part??????".format(args.files[0])))
         filenames2 = []
         for i, filename in enumerate(filenames):
             filename, ext = os.path.splitext(filename)
@@ -212,6 +239,7 @@ if __name__ == "__main__":
                 else:
                     #                 try:
                     input_files = np.array(sorted(glob.glob(filename + '.part????')))
+                    input_files = np.append(input_files, np.array(sorted(glob.glob(filename + '.part??????'))))
                     mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=np.bool)
                     if(np.sum(~mask)):
                         logger.warning("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
