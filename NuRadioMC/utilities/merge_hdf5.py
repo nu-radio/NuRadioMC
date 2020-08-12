@@ -68,6 +68,8 @@ def merge2(filenames, output_filename):
                     if(not np.all(attrs[key] == fin.attrs[key])):
                         if(key == "n_events"):
                             logger.warning(f"number of events in file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. We keep track of the total number of events, but in case the simulation was performed with different settings per file (e.g. different zenith angle bins), the averaging might be effected.")
+                        elif(key == "start_event_id"):
+                            continue
                         else:
                             logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. Using attribute value of first file, but you have been warned!")
             if((('trigger_names' not in attrs) or (len(attrs['trigger_names']) == 0)) and 'trigger_names' in fin.attrs):
@@ -76,14 +78,26 @@ def merge2(filenames, output_filename):
 
     # check event group ids for uniqueness (this is important because effective volume/area calculation uses the event
     # group id to determine if a multi station coincidence exists
-    unique_egids = np.unique(data[filenames[0]]['event_group_ids'])
+    unique_uegids = np.unique(data[filenames[0]]['event_group_ids'])
     for iF, f in enumerate(filenames):
         if(iF == 0):
             continue
-        current_egids = np.unique(data[f]['event_group_ids'])
-        if(np.sum(np.intersect1d(unique_egids, current_egids, assume_unique=True))):
-            logger.error("event group ids are not unique per file")
-            raise("event group ids are not unique per file")
+        current_uegids = np.unique(data[f]['event_group_ids'])
+        intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
+        if(np.sum(intersect)):
+            current_egids = data[f]['event_group_ids']
+            new_egid = max(unique_uegids.max(), current_uegids.max()) + 1
+            for gid in intersect:
+                mask = gid == current_egids
+                current_egids[mask] = new_egid
+                new_egid += 1
+
+            logger.warning(f"event group ids are not unique per file, current file is {f}, new unique ids have been generated.")
+        current_uegids = np.unique(data[f]['event_group_ids'])
+        intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
+        if(np.sum(intersect)):
+            raise IndexError(f"event group ids are not unique per file, current file is {f}")
+        unique_uegids = np.append(unique_uegids, current_uegids)
 
     # create data sets
     logger.info("creating data sets")
