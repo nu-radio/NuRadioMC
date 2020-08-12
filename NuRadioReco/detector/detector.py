@@ -761,3 +761,20 @@ class Detector(object):
             logger.warning("no RMS values for station {} available, returning default noise for stage {}: RMS={:.2g} mV".format(station_id, stage, rms / units.mV))
             return rms
         return self.__noise_RMS[key][stage]
+
+    def get_noise_temperature(self, station_id, channel_id):
+        """
+        returns the noise temperature of the channel
+        
+        Parameters
+        ----------
+        station_id: int
+            station id
+        channel_id: int
+            the channel id, not used at the moment, only station averages are computed
+
+        """
+        res = self.__get_channel(station_id, channel_id)
+        if(not 'noise_temperature' in res):
+            raise AttributeError(f"field noise_temperature not present in detector description of station {station_id} and channel {channel_id}")
+        return res['noise_temperature']
