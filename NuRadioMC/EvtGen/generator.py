@@ -206,7 +206,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         else:  # case 1
             n_events_this_file = evt_id_last - evt_id_last_previous
 
-        print('writing file {} with {} events (id {} - {}) and {} entries'.format(filename2, n_events_this_file, evt_id_first,
+        logger.status('writing file {} with {} events (id {} - {}) and {} entries'.format(filename2, n_events_this_file, evt_id_first,
                                                                                   evt_id_last, stop_index - start_index))
         fout.attrs['n_events'] = n_events_this_file
         fout.close()
@@ -387,10 +387,9 @@ def get_energies(n_events, Emin, Emax, spectrum_type):
     return energies
 
 
-def generate_vertex_positions(volume, proposal, attributes):
+def set_volume_attributes(volume, proposal, attributes):
     """
-    helper function that generates the vertex position randomly distributed in simulation volume. 
-    The relevant quantities are also saved into the hdf5 attributes
+    helper function that interprets the volume settings and sets the relevant quantities as hdf5 attributes.
     
     Parameters
     volume: dictionarty
@@ -427,7 +426,6 @@ def generate_vertex_positions(volume, proposal, attributes):
 
         # We increase the radius of the cylinder according to the tau track length
         if(proposal):
-            tau_95_length = get_tau_95_length(attributes['Emax'])
             if("full_rmin" in volume):
                 rmin = volume['full_rmin']
             else:
@@ -435,7 +433,12 @@ def generate_vertex_positions(volume, proposal, attributes):
             if('full_rmax' in volume):
                 rmax = volume['full_rmax']
             else:
-                rmax = tau_95_length + attributes['fiducial_rmax']
+                tau_95_length = get_tau_95_length(attributes['Emax'])
+                max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
+                d_extent = min(tau_95_length, max_horizontal_dist)
+                logger.info(f"95% quantile of tau decay length is {tau_95_length/units.km:.1f}km. Maximum horizontal distance for zenith range of {attributes['thetamin']/units.deg:.0f} - {attributes['thetamax']/units.deg:.0f}deg and depth of {volume['fiducial_zmin']/units.km:.1f}km is {max_horizontal_dist/units.km:.1f}km -> extending horizontal volume by {d_extent/units.km:.1f}km")
+
+                rmax = d_extent + attributes['fiducial_rmax']
             if('full_zmax' in volume):
                 zmax = volume['full_zmax']
             else:
@@ -451,10 +454,7 @@ def generate_vertex_positions(volume, proposal, attributes):
         logger.info(f"increasing rmax from {attributes['fiducial_rmax']/units.km:.01f}km to {rmax/units.km:.01f}km, zmax from {attributes['fiducial_zmax']/units.km:.01f}km to {zmax/units.km:.01f}km")
         logger.info(f"decreasing rmin from {attributes['fiducial_rmin']/units.km:.01f}km to {rmin/units.km:.01f}km")
         logger.info(f"decreasing zmin from {attributes['fiducial_zmin']/units.km:.01f}km to {zmin/units.km:.01f}km")
-        logger.info(f"increasing number of events to {n_events}")
-        if(n_events > 1e6):
-            logger.warning(f"limiting number of events to 1 million to not run into memory issues.")
-            n_events = int(1e6)
+        logger.info(f"increasing number of events to {n_events:.6g}")
         attributes['n_events'] = n_events
 
         attributes['rmin'] = rmin
@@ -465,14 +465,6 @@ def generate_vertex_positions(volume, proposal, attributes):
         V = np.pi * (rmax ** 2 - rmin ** 2) * (zmax - zmin)
         attributes['volume'] = V  # save full simulation volume to simplify effective volume calculation
         attributes['area'] = np.pi * (rmax ** 2 - rmin ** 2)
-
-        logger.debug("generating vertex positions")
-        rr_full = np.random.uniform(rmin ** 2, rmax ** 2, n_events) ** 0.5
-        phiphi = np.random.uniform(0, 2 * np.pi, n_events)
-        xx = rr_full * np.cos(phiphi)
-        yy = rr_full * np.sin(phiphi)
-        zz = np.random.uniform(zmin, zmax, n_events)
-        return xx, yy, zz
     elif("fiducial_xmax" in volume):  # user specifies a cube
         attributes['fiducial_xmax'] = volume['fiducial_xmax']
         attributes['fiducial_xmin'] = volume['fiducial_xmin']
@@ -502,17 +494,20 @@ def generate_vertex_positions(volume, proposal, attributes):
             if('full_xmax' not in volume):  # assuming that also full_xmin, full_ymin, full_ymax are not set.
                 # extent fiducial by tau decay length
                 tau_95_length = get_tau_95_length(attributes['Emax'])
-                xmax += tau_95_length
-                xmin -= tau_95_length
-                ymax += tau_95_length
-                ymin -= tau_95_length
-                logger.info(f"increasing cube by the 95% quantile of the tau decay length of {tau_95_length/units.m:.0f} km to all sides except the positive z direction")
+                max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
+                d_extent = min(tau_95_length, max_horizontal_dist)
+                logger.info(f"95% quantile of tau decay length is {tau_95_length/units.km:.1f}km. Maximum horizontal distance for zenith range of {attributes['thetamin']/units.deg:.0f} - {attributes['thetamax']/units.deg:.0f}deg and depth of {volume['fiducial_zmin']/units.km:.1f}km is {max_horizontal_dist/units.km:.1f}km -> extending horizontal volume by {d_extent/units.km:.1f}km")
+                xmax += d_extent
+                xmin -= d_extent
+                ymax += d_extent
+                ymin -= d_extent
+        logger.info(f"increasing xmax from {attributes['fiducial_xmax']/units.km:.01f}km to {xmax/units.km:.01f}km, ymax from {attributes['fiducial_ymax']/units.km:.01f}km to {ymax/units.km:.01f}km, zmax from {attributes['fiducial_zmax']/units.km:.01f}km to {zmax/units.km:.01f}km")
+        logger.info(f"decreasing xmin from {attributes['fiducial_xmin']/units.km:.01f}km to {xmin/units.km:.01f}km, ymin from {attributes['fiducial_ymin']/units.km:.01f}km to {ymin/units.km:.01f}km")
+        logger.info(f"decreasing zmin from {attributes['fiducial_zmin']/units.km:.01f}km to {zmin/units.km:.01f}km")
+
         volume_full = (xmax - xmin) * (ymax - ymin) * (zmax - zmin)
         n_events = int(n_events * volume_full / volume_fiducial)
-        logger.info(f"increasing number of events to {n_events}")
-        if(n_events > 1e6):
-            logger.warning(f"limiting number of events to 1 million to not run into memory issues.")
-            n_events = int(1e6)
+        logger.info(f"increasing number of events from {attributes['n_events']} to {n_events:.6g}")
         attributes['n_events'] = n_events
 
         attributes['xmin'] = xmin
@@ -525,12 +520,33 @@ def generate_vertex_positions(volume, proposal, attributes):
         V = (xmax - xmin) * (ymax - ymin) * (zmax - zmin)
         attributes['volume'] = V  # save full simulation volume to simplify effective volume calculation
         attributes['area'] = (xmax - xmin) * (ymax - ymin)
+    else:
+        raise AttributeError(f"'fiducial_rmin' or 'fiducial_rmax' is not part of 'volume'")
 
-        logger.debug("generating vertex positions")
-        xx = np.random.uniform(xmin, xmax, n_events)
-        yy = np.random.uniform(ymin, ymax, n_events)
-        zz = np.random.uniform(zmin, zmax, n_events)
+
+def generate_vertex_positions(attributes, n_events):
+    """
+    helper function that generates the vertex position randomly distributed in simulation volume. 
+    The relevant quantities are also saved into the hdf5 attributes
+    
+    Parameters
+    attributes: dicitionary
+        dict storing hdf5 attributes
+    """
+    if("fiducial_rmax" in attributes):  # user specifies a cylinder
+        rr_full = np.random.uniform(attributes['rmin'] ** 2, attributes['rmax'] ** 2, n_events) ** 0.5
+        phiphi = np.random.uniform(0, 2 * np.pi, n_events)
+        xx = rr_full * np.cos(phiphi)
+        yy = rr_full * np.sin(phiphi)
+        zz = np.random.uniform(attributes['zmin'], attributes['zmax'], n_events)
         return xx, yy, zz
+    elif("fiducial_xmax" in attributes):  # user specifies a cube
+        xx = np.random.uniform(attributes['xmin'], attributes['xmax'], n_events)
+        yy = np.random.uniform(attributes['ymin'], attributes['ymax'], n_events)
+        zz = np.random.uniform(attributes['zmin'], attributes['zmax'], n_events)
+        return xx, yy, zz
+    else:
+        raise AttributeError(f"'fiducial_rmin' or 'fiducial_rmax' is not part of 'attributes'")
 
 
 def intersection_box_ray(bounds, ray):
@@ -588,8 +604,8 @@ def get_intersection_volume_neutrino(attributes, vertex, direction):
                            [attributes['fiducial_xmax'], attributes['fiducial_ymax'], attributes['fiducial_zmax']]])
         ray = np.array([vertex, direction])
         cut = intersection_box_ray(bounds, ray)
-        if(cut == False):
-            print(f"rejecting event with vertex {vertex[0]:.0f}, {vertex[1]:.0f}, {vertex[2]:.0f} and direction {direction[0]:.1f}, {direction[1]:.1f}, {direction[2]:.1f}")
+#         if(cut == False):
+#             print(f"rejecting event with vertex {vertex[0]:.0f}, {vertex[1]:.0f}, {vertex[2]:.0f} and direction {direction[0]:.1f}, {direction[1]:.1f}, {direction[2]:.1f}")
         return cut
 
     else:  # cylinder volume, not yet implemented
@@ -652,7 +668,9 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                            spectrum='log_uniform',
                            start_file_id=0,
                            config_file='SouthPole',
-                           proposal_kwargs={}):
+                           proposal_kwargs={},
+                           log_level=None,
+                           max_n_events_batch=1e5):
     """
     Event generator for surface muons
 
@@ -766,8 +784,15 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         table paths and then copy this file to config_PROPOSAL_xxx.json.
     proposal_kwargs: dict
         additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
+    log_level: logging log level or None
+        sets the log level in the event generation. None means system default.
+    max_n_events_batch: int (default 1e6)
+        the maximum numbe of events that get generated per batch. Relevant if a fiducial volume cut is applied)
     """
+    if(log_level is not None):
+        logger.setLevel(log_level)
     t_start = time.time()
+    max_n_events_batch = int(max_n_events_batch)
     from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
     proposal_functions = ProposalFunctions(config_file=config_file)
 
@@ -798,107 +823,116 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     attributes['phimax'] = phimax
     attributes['deposited'] = False
 
-    data_sets = {}
-
-    data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(volume, proposal=False, attributes=attributes)
-    data_sets["zz"] = np.zeros_like(data_sets["yy"])  # muons interact at the surface
-    n_events = attributes['n_events']  # important! the number of events might have been increased by the generate vertex function
-
-    # generate neutrino vertices randomly
-    data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
-    # zenith directions are distruted as sin(theta) (to make the distribution istotropic) * cos(theta) (to account for the projection onto the surface)
-    data_sets["zeniths"] = np.arcsin(np.random.uniform(np.sin(thetamin) ** 2, np.sin(thetamax) ** 2, n_events) ** 0.5)
-
-    data_sets["event_group_ids"] = np.arange(n_events) + start_event_id
-    data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
-    data_sets["vertex_times"] = np.zeros(n_events, dtype=np.float)
-
-    # generate neutrino flavors randomly
-
-    data_sets["flavors"] = np.array([flavor[i] for i in np.random.randint(0, high=len(flavor), size=n_events)])
-
-    data_sets["energies"] = get_energies(n_events, Emin, Emax, spectrum)
-
-    # generate charged/neutral current randomly
-    data_sets["interaction_type"] = [ '' ] * n_events
-
-    # generate inelasticity
-    data_sets["inelasticity"] = np.zeros(n_events)
-
-    data_sets["energies"] = np.array(data_sets["energies"])
-    data_sets["muon_energies"] = np.copy(data_sets["energies"])
-
-    # create dummy entries for shower energies and types
-    data_sets['shower_energies'] = data_sets['energies'] * data_sets['inelasticity']
-    data_sets['shower_type'] = ['had'] * n_events
-
     data_sets_fiducial = {}
+    proposal_time = 0
 
-    init_time = time.time()
-    # Initialising data_sets_fiducial with empty values
-    for key in data_sets:
-        data_sets_fiducial[key] = []
+    set_volume_attributes(volume, proposal=False, attributes=attributes)
+    n_events = attributes['n_events']  # important! the number of events might have been increased by the set_volume_attributes function
+    n_batches = int(np.ceil(n_events / max_n_events_batch))
+    for i_batch in range(n_batches):  # do generation of events in batches
+        data_sets = {}
+        n_events_batch = max_n_events_batch
+        if(i_batch + 1 == n_batches):  # last batch?
+            n_events_batch = n_events - (i_batch * max_n_events_batch)
+        data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(attributes=attributes, n_events=n_events_batch)
+        data_sets["zz"] = np.zeros_like(data_sets["yy"])  # muons interact at the surface
 
-    E_all_leptons = data_sets["energies"]
-    lepton_codes = data_sets["flavors"]
-    lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
-    lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
-                        for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
+        # generate neutrino vertices randomly
+        data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events_batch)
+        # zenith directions are distruted as sin(theta) (to make the distribution istotropic) * cos(theta) (to account for the projection onto the surface)
+        data_sets["zeniths"] = np.arcsin(np.random.uniform(np.sin(thetamin) ** 2, np.sin(thetamax) ** 2, n_events_batch) ** 0.5)
 
-    if('fiducial_rmax' in attributes):
-        mask_phi = mask_arrival_azimuth(data_sets, attributes['fiducial_rmax'])  # this currently only works for cylindrical volumes
-    else:
-        mask_phi = np.ones(len(data_sets["event_group_ids"]), dtype=np.bool)
-    # TODO: combine with `get_intersection_volume_neutrino` function
-    for iE, event_id in enumerate(data_sets["event_group_ids"]):
-        if not mask_phi[iE]:
-            continue
+        data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch) + start_event_id
+        data_sets["n_interaction"] = np.ones(n_events_batch, dtype=np.int)
+        data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=np.float)
 
-        # calculate if the lepton/neutrino direction intersects the fiducial simulation volume
-        geometry_selection = get_intersection_volume_neutrino(attributes,
-                                                              [data_sets['xx'][iE], data_sets['yy'][iE], data_sets['zz'][iE]],
-                                                              lepton_directions[iE])
-#         geometry_selection = True
-        if geometry_selection:
+        # generate neutrino flavors randomly
 
-            products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
-                                                                       np.array([lepton_codes[iE]]),
-                                                                       np.array([lepton_positions[iE]]),
-                                                                       np.array([lepton_directions[iE]]),
-                                                                       **proposal_kwargs)
-            products = products_array[0]
+        data_sets["flavors"] = np.array([flavor[i] for i in np.random.randint(0, high=len(flavor), size=n_events_batch)])
 
-            n_interaction = 1
+        data_sets["energies"] = get_energies(n_events_batch, Emin, Emax, spectrum)
 
-            for product in products:
-                x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
-                if(is_in_fiducial_volume(attributes, np.array([x, y, z]))):
-                    # the energy loss or particle is in our fiducial volume
-                    for key in iterkeys(data_sets):
-                        data_sets_fiducial[key].append(data_sets[key][iE])
+        # generate charged/neutral current randomly
+        data_sets["interaction_type"] = [ '' ] * n_events_batch
 
-                    data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
-                    n_interaction += 1
-                    data_sets_fiducial['shower_energies'][-1] = product.energy
-                    data_sets_fiducial['inelasticity'][-1] = 1
-                    # interaction_type is either 'had' or 'em' for proposal products
-                    data_sets_fiducial['interaction_type'][-1] = product.shower_type
-                    data_sets_fiducial['shower_type'][-1] = product.shower_type
-                    data_sets_fiducial['xx'][-1] = x
-                    data_sets_fiducial['yy'][-1] = y
-                    data_sets_fiducial['zz'][-1] = z
+        # generate inelasticity
+        data_sets["inelasticity"] = np.zeros(n_events_batch)
 
-                    # Calculating vertex interaction time with respect to the primary neutrino
-                    data_sets_fiducial['vertex_times'][-1] = vertex_time
+        data_sets["energies"] = np.array(data_sets["energies"])
+        data_sets["muon_energies"] = np.copy(data_sets["energies"])
 
-                    # Flavors are particle codes taken from NuRadioProposal.py
-                    data_sets_fiducial['flavors'][-1] = product.code
+        # create dummy entries for shower energies and types
+        data_sets['shower_energies'] = data_sets['energies'] * data_sets['inelasticity']
+        data_sets['shower_type'] = ['had'] * n_events_batch
 
-    time_per_evt = (time.time() - init_time) / (iE + 1)
-    print(f"Time per event: {time_per_evt*1e3:.01f}ms")
-    print(f"Total time {pretty_time_delta(time.time() - init_time)}")
+        init_time = time.time()
+        # Initialising data_sets_fiducial with empty values
+        for key in data_sets:
+            if(key not in data_sets_fiducial):
+                data_sets_fiducial[key] = []
+        logger.info(f"processing batch {i_batch+1:.4g}/{n_batches:.4g} with {n_events_batch:.6g} events ({len(data_sets_fiducial['event_group_ids'])} showers in fiducial volume so far.)")
 
-    print("number of fiducial showers", len(data_sets_fiducial['flavors']))
+        E_all_leptons = data_sets["energies"]
+        lepton_codes = data_sets["flavors"]
+        lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
+        lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
+                            for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
+
+        if('fiducial_rmax' in attributes):
+            mask_phi = mask_arrival_azimuth(data_sets, attributes['fiducial_rmax'])  # this currently only works for cylindrical volumes
+        else:
+            mask_phi = np.ones(len(data_sets["event_group_ids"]), dtype=np.bool)
+        # TODO: combine with `get_intersection_volume_neutrino` function
+        for iE, event_id in enumerate(data_sets["event_group_ids"]):
+            if not mask_phi[iE]:
+                continue
+
+            # calculate if the lepton/neutrino direction intersects the fiducial simulation volume
+            geometry_selection = get_intersection_volume_neutrino(attributes,
+                                                                  [data_sets['xx'][iE], data_sets['yy'][iE], data_sets['zz'][iE]],
+                                                                  lepton_directions[iE])
+    #         geometry_selection = True
+            if geometry_selection:
+
+                products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
+                                                                           np.array([lepton_codes[iE]]),
+                                                                           np.array([lepton_positions[iE]]),
+                                                                           np.array([lepton_directions[iE]]),
+                                                                           **proposal_kwargs)
+                products = products_array[0]
+
+                n_interaction = 1
+
+                for product in products:
+                    x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
+                    if(is_in_fiducial_volume(attributes, np.array([x, y, z]))):
+                        # the energy loss or particle is in our fiducial volume
+                        for key in iterkeys(data_sets):
+                            data_sets_fiducial[key].append(data_sets[key][iE])
+
+                        data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
+                        n_interaction += 1
+                        data_sets_fiducial['shower_energies'][-1] = product.energy
+                        data_sets_fiducial['inelasticity'][-1] = 1
+                        # interaction_type is either 'had' or 'em' for proposal products
+                        data_sets_fiducial['interaction_type'][-1] = product.shower_type
+                        data_sets_fiducial['shower_type'][-1] = product.shower_type
+                        data_sets_fiducial['xx'][-1] = x
+                        data_sets_fiducial['yy'][-1] = y
+                        data_sets_fiducial['zz'][-1] = z
+
+                        # Calculating vertex interaction time with respect to the primary neutrino
+                        data_sets_fiducial['vertex_times'][-1] = vertex_time
+
+                        # Flavors are particle codes taken from NuRadioProposal.py
+                        data_sets_fiducial['flavors'][-1] = product.code
+        proposal_time += time.time() - init_time
+
+    time_per_evt = proposal_time / len(data_sets_fiducial['flavors'])
+    logger.info(f"Time per event: {time_per_evt*1e3:.01f}ms")
+    logger.info(f"Total time {pretty_time_delta(proposal_time)}")
+
+    logger.status(f"number of fiducial showers {len(data_sets_fiducial['flavors'])}")
 
     # If there are no fiducial showers, passing an empty data_sets_fiducial to
     # write_events_to_hdf5 will cause the program to crash. However, we need
@@ -912,6 +946,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         for key, value in data_sets.items():
             data_sets_fiducial[key] = np.array([data_sets[key][0]])
         data_sets_fiducial['flavors'] = np.array([14])
+        data_sets_fiducial['shower_energies'] = np.array([0])
 
     data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=np.int)
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
@@ -931,8 +966,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 proposal=False,
                                 proposal_config='SouthPole',
                                 start_file_id=0,
-                                log_level=logging.WARNING,
-                                proposal_kwargs={}):
+                                log_level=None,
+                                proposal_kwargs={},
+                                max_n_events_batch=1e5):
     """
     Event generator
 
@@ -1052,15 +1088,20 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
+    log_level: logging log level or None
+        sets the log level in the event generation. None means system default.
     proposal_kwargs: dict
         additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
+    max_n_events_batch: int (default 1e6)
+        the maximum numbe of events that get generated per batch. Relevant if a fiducial volume cut is applied)
     """
     t_start = time.time()
-    logger.setLevel(log_level)
+    if(log_level is not None):
+        logger.setLevel(log_level)
     if proposal:
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
         proposal_functions = ProposalFunctions(config_file=proposal_config)
-
+    max_n_events_batch = int(max_n_events_batch)
     attributes = {}
     n_events = int(n_events)
 
@@ -1080,169 +1121,182 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     attributes['deposited'] = deposited
 
     data_sets = {}
-    # generate neutrino vertices randomly
-    logger.debug("generating azimuths")
-
-    data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(volume, proposal, attributes)
-    n_events = attributes['n_events']  # important! the number of events might have been increased by the generate vertex function
-
-    data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
-    data_sets["zeniths"] = np.arccos(np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events))
-
-#     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
-
-    logger.debug("generating event ids")
-    data_sets["event_group_ids"] = np.arange(n_events) + start_event_id
-    logger.debug("generating number of interactions")
-    data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
-    data_sets["vertex_times"] = np.zeros(n_events, dtype=np.float)
-
-    # generate neutrino flavors randomly
-    logger.debug("generating flavors")
-    data_sets["flavors"] = np.array([flavor[i] for i in np.random.randint(0, high=len(flavor), size=n_events)])
-
-    # generate energies randomly
-    data_sets["energies"] = get_energies(n_events, Emin, Emax, spectrum)
-    # generate charged/neutral current randomly
-    logger.debug("interaction type")
-    data_sets["interaction_type"] = inelasticities.get_ccnc(n_events)
-
-    # generate inelasticity
-    logger.debug("generating inelasticities")
-    data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(n_events)
-
-    if deposited:
-        data_sets["energies"] = [primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity) \
-                                for Edep, ccnc, flavor, inelasticity in \
-                                zip(data_sets["energies"], data_sets["interaction_type"], \
-                                data_sets["flavors"], data_sets["inelasticity"])]
-        data_sets["energies"] = np.array(data_sets["energies"])
-
-    # all interactions will produce a hadronic shower, add this information to the input file
-    data_sets['shower_energies'] = data_sets['energies'] * data_sets['inelasticity']
-    data_sets['shower_type'] = ['had'] * n_events
-
-    # now add EM showers if appropriate
-    em_shower_mask = (data_sets["interaction_type"] == "cc") & (np.abs(data_sets['flavors']) == 12)
-
-    for key in data_sets:  # transform datatype to list so that inserting elements is faster
-        data_sets[key] = list(data_sets[key])
-    n_inserted = 0
-    for i in np.arange(n_events, dtype=np.int)[em_shower_mask]:  # loop over all events where an EM shower needs to be inserted
-        for key in data_sets:
-            data_sets[key].insert(i + 1 + n_inserted, data_sets[key][i + n_inserted])  # copy event
-        data_sets['shower_energies'][i + 1 + n_inserted] = (1 - data_sets['inelasticity'][i + 1 + n_inserted]) * data_sets['energies'][i + 1 + n_inserted]
-        data_sets['shower_type'][i + 1 + n_inserted] = 'em'
-        n_inserted += 1
-
-    # make all arrays numpy arrays
-    for key in data_sets:
-        data_sets[key] = np.array(data_sets[key])
-
     data_sets_fiducial = {}
 
-    if proposal:
-        logger.debug("starting proposal simulation")
-        init_time = time.time()
-        # Initialising data_sets_fiducial with empty values
-        for key, value in iteritems(data_sets):
-            data_sets_fiducial[key] = []
+    time_proposal = 0
 
-        # we need to be careful to not double cound events. electron CC interactions apear twice in the event list
-        # because of the two distinct showers that get created. Because second interactions are only calculated
-        # for mu and tau cc interactions, this is not a problem.
-        mask_tau_cc = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 16)
-        mask_mu_cc = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 14)
-        mask_leptons = mask_tau_cc | mask_mu_cc
+    set_volume_attributes(volume, proposal=proposal, attributes=attributes)
+    n_events = attributes['n_events']  # important! the number of events might have been increased by the generate vertex function
+    n_batches = int(np.ceil(n_events / max_n_events_batch))
+    for i_batch in range(n_batches):  # do generation of events in batches
+        n_events_batch = max_n_events_batch
+        if(i_batch + 1 == n_batches):  # last batch?
+            n_events_batch = n_events - (i_batch * max_n_events_batch)
+        logger.info(f"processing batch {i_batch+1:.2g}/{n_batches:.2g} with {n_events_batch:.2g} events")
+        data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(attributes=attributes, n_events=n_events_batch)
 
-        E_all_leptons = (1 - data_sets["inelasticity"]) * data_sets["energies"]
-        lepton_codes = copy.copy(data_sets["flavors"])
-        lepton_codes[lepton_codes == 14] = 13
-        lepton_codes[lepton_codes == -14] = -13
-        lepton_codes[lepton_codes == 16] = 15
-        lepton_codes[lepton_codes == -16] = -15
+        data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events_batch)
+        data_sets["zeniths"] = np.arccos(np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events_batch))
 
-        if("fiducial_rmax" in attributes):
-            mask_phi = mask_arrival_azimuth(data_sets, attributes['fiducial_rmax'])
-            mask_leptons = mask_leptons & mask_phi
-            # TODO: combine with `get_intersection_volume_neutrino` function
+    #     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
-        lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
-        lepton_positions = np.array(lepton_positions)
-        lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
-                            for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
-        lepton_directions = np.array(lepton_directions)
+        logger.debug("generating event ids")
+        data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch) + start_event_id
+        logger.debug("generating number of interactions")
+        data_sets["n_interaction"] = np.ones(n_events_batch, dtype=np.int)
+        data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=np.float)
 
-        for iE, event_id in enumerate(data_sets["event_group_ids"]):
-            first_inserted = False
+        # generate neutrino flavors randomly
+        logger.debug("generating flavors")
+        data_sets["flavors"] = np.array([flavor[i] for i in np.random.randint(0, high=len(flavor), size=n_events_batch)])
 
-            x_nu = data_sets['xx'][iE]
-            y_nu = data_sets['yy'][iE]
-            z_nu = data_sets['zz'][iE]
-            # Appending event if it interacts within the fiducial volume
-            if(is_in_fiducial_volume(attributes, np.array([x_nu, y_nu, z_nu]))):
-                for key in iterkeys(data_sets):
-                    data_sets_fiducial[key].append(data_sets[key][iE])
+        # generate energies randomly
+        data_sets["energies"] = get_energies(n_events_batch, Emin, Emax, spectrum)
+        # generate charged/neutral current randomly
+        logger.debug("interaction type")
+        data_sets["interaction_type"] = inelasticities.get_ccnc(n_events_batch)
 
-                first_inserted = True
+        # generate inelasticity
+        logger.debug("generating inelasticities")
+        data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(n_events_batch)
 
-            if mask_leptons[iE]:
-                geometry_selection = get_intersection_volume_neutrino(attributes,
-                                                      [data_sets['xx'][iE], data_sets['yy'][iE], data_sets['zz'][iE]],
-                                                      lepton_directions[iE])
-                if geometry_selection:
-                    products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
-                                                                               np.array([lepton_codes[iE]]),
-                                                                               np.array([lepton_positions[iE]]),
-                                                                               np.array([lepton_directions[iE]]),
-                                                                               **proposal_kwargs)
-                    products = products_array[0]
-                    n_interaction = 2
-                    for product in products:
+        if deposited:
+            data_sets["energies"] = [primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity) \
+                                    for Edep, ccnc, flavor, inelasticity in \
+                                    zip(data_sets["energies"], data_sets["interaction_type"], \
+                                    data_sets["flavors"], data_sets["inelasticity"])]
+            data_sets["energies"] = np.array(data_sets["energies"])
 
-                        x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
-                        if(is_in_fiducial_volume(attributes, np.array([x, y, z]))):
+        # all interactions will produce a hadronic shower, add this information to the input file
+        data_sets['shower_energies'] = data_sets['energies'] * data_sets['inelasticity']
+        data_sets['shower_type'] = ['had'] * n_events_batch
 
-                            # the energy loss or particle is in our fiducial volume
+        # now add EM showers if appropriate
+        em_shower_mask = (data_sets["interaction_type"] == "cc") & (np.abs(data_sets['flavors']) == 12)
 
-                            # If the energy loss or particle is in the fiducial volume but the parent
-                            # neutrino does not interact there, we add it to know its properties.
-                            if not first_inserted:
-                                copies = 2
-                                first_inserted = True
-                            else:
-                                copies = 1
+        for key in data_sets:  # transform datatype to list so that inserting elements is faster
+            data_sets[key] = list(data_sets[key])
+        n_inserted = 0
+        for i in np.arange(n_events_batch, dtype=np.int)[em_shower_mask]:  # loop over all events where an EM shower needs to be inserted
+            for key in data_sets:
+                data_sets[key].insert(i + 1 + n_inserted, data_sets[key][i + n_inserted])  # copy event
+            data_sets['shower_energies'][i + 1 + n_inserted] = (1 - data_sets['inelasticity'][i + 1 + n_inserted]) * data_sets['energies'][i + 1 + n_inserted]
+            data_sets['shower_type'][i + 1 + n_inserted] = 'em'
+            n_inserted += 1
 
-                            for icopy in range(copies):
-                                for key in iterkeys(data_sets):
-                                    data_sets_fiducial[key].append(data_sets[key][iE])
+        # make all arrays numpy arrays
+        for key in data_sets:
+            data_sets[key] = np.array(data_sets[key])
 
-                            data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
-                            n_interaction += 1
-                            data_sets_fiducial['shower_energies'][-1] = product.energy
-                            data_sets_fiducial['inelasticity'][-1] = np.nan
-                            # interaction_type is either 'had' or 'em' for proposal products
-                            data_sets_fiducial['interaction_type'][-1] = product.shower_type
-                            data_sets_fiducial['shower_type'][-1] = product.shower_type
+        if proposal:
+            logger.debug("starting proposal simulation")
+            init_time = time.time()
+            # Initialising data_sets_fiducial with empty values
+            for key, value in iteritems(data_sets):
+                if(key not in data_sets_fiducial):
+                    data_sets_fiducial[key] = []
 
-                            data_sets_fiducial['xx'][-1] = x
-                            data_sets_fiducial['yy'][-1] = y
-                            data_sets_fiducial['zz'][-1] = z
+            # we need to be careful to not double cound events. electron CC interactions apear twice in the event list
+            # because of the two distinct showers that get created. Because second interactions are only calculated
+            # for mu and tau cc interactions, this is not a problem.
+            mask_tau_cc = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 16)
+            mask_mu_cc = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 14)
+            mask_leptons = mask_tau_cc | mask_mu_cc
 
-                            # Calculating vertex interaction time with respect to the primary neutrino
-                            data_sets_fiducial['vertex_times'][-1] = vertex_time
+            E_all_leptons = (1 - data_sets["inelasticity"]) * data_sets["energies"]
+            lepton_codes = copy.copy(data_sets["flavors"])
+            lepton_codes[lepton_codes == 14] = 13
+            lepton_codes[lepton_codes == -14] = -13
+            lepton_codes[lepton_codes == 16] = 15
+            lepton_codes[lepton_codes == -16] = -15
 
-                            # Flavors are particle codes taken from NuRadioProposal.py
-                            data_sets_fiducial['flavors'][-1] = product.code
+            if("fiducial_rmax" in attributes):
+                mask_phi = mask_arrival_azimuth(data_sets, attributes['fiducial_rmax'])
+                mask_leptons = mask_leptons & mask_phi
+                # TODO: combine with `get_intersection_volume_neutrino` function
 
-        time_per_evt = (time.time() - init_time) / (iE + 1)
-        logger.info(f"Time per event (PROPOSAL only): {time_per_evt*1e3:.4f} ms")
-        logger.info(f"Total time (PROPOSAL only) {pretty_time_delta(time.time() - init_time)}")
+            lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
+            lepton_positions = np.array(lepton_positions)
+            lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
+                                for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
+            lepton_directions = np.array(lepton_directions)
 
-        logger.info(f"number of fiducial showers {len(data_sets_fiducial['flavors'])}")
+            for iE, event_id in enumerate(data_sets["event_group_ids"]):
+                first_inserted = False
 
-    else:
-        data_sets_fiducial = data_sets
+                x_nu = data_sets['xx'][iE]
+                y_nu = data_sets['yy'][iE]
+                z_nu = data_sets['zz'][iE]
+                # Appending event if it interacts within the fiducial volume
+                if(is_in_fiducial_volume(attributes, np.array([x_nu, y_nu, z_nu]))):
+                    for key in iterkeys(data_sets):
+                        data_sets_fiducial[key].append(data_sets[key][iE])
+
+                    first_inserted = True
+
+                if mask_leptons[iE]:
+                    geometry_selection = get_intersection_volume_neutrino(attributes,
+                                                          [data_sets['xx'][iE], data_sets['yy'][iE], data_sets['zz'][iE]],
+                                                          lepton_directions[iE])
+                    if geometry_selection:
+                        products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
+                                                                                   np.array([lepton_codes[iE]]),
+                                                                                   np.array([lepton_positions[iE]]),
+                                                                                   np.array([lepton_directions[iE]]),
+                                                                                   **proposal_kwargs)
+                        products = products_array[0]
+                        n_interaction = 2
+                        for product in products:
+
+                            x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
+                            if(is_in_fiducial_volume(attributes, np.array([x, y, z]))):
+
+                                # the energy loss or particle is in our fiducial volume
+
+                                # If the energy loss or particle is in the fiducial volume but the parent
+                                # neutrino does not interact there, we add it to know its properties.
+                                if not first_inserted:
+                                    copies = 2
+                                    first_inserted = True
+                                else:
+                                    copies = 1
+
+                                for icopy in range(copies):
+                                    for key in iterkeys(data_sets):
+                                        data_sets_fiducial[key].append(data_sets[key][iE])
+
+                                data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
+                                n_interaction += 1
+                                data_sets_fiducial['shower_energies'][-1] = product.energy
+                                data_sets_fiducial['inelasticity'][-1] = np.nan
+                                # interaction_type is either 'had' or 'em' for proposal products
+                                data_sets_fiducial['interaction_type'][-1] = product.shower_type
+                                data_sets_fiducial['shower_type'][-1] = product.shower_type
+
+                                data_sets_fiducial['xx'][-1] = x
+                                data_sets_fiducial['yy'][-1] = y
+                                data_sets_fiducial['zz'][-1] = z
+
+                                # Calculating vertex interaction time with respect to the primary neutrino
+                                data_sets_fiducial['vertex_times'][-1] = vertex_time
+
+                                # Flavors are particle codes taken from NuRadioProposal.py
+                                data_sets_fiducial['flavors'][-1] = product.code
+            time_proposal = time.time() - init_time
+        else:
+            if(n_batches == 1):
+                data_sets_fiducial = data_sets
+            else:
+                for key in data_sets:
+                    if(key not in data_sets_fiducial):
+                        data_sets_fiducial[key] = []
+                    data_sets_fiducial[key].extend(data_sets[key])
+
+    time_per_evt = time_proposal / (n_events + 1)
+    logger.info(f"Time per event (PROPOSAL only): {time_per_evt*1e3:.4f} ms")
+    logger.info(f"Total time (PROPOSAL only) {pretty_time_delta(time_proposal)}")
+
+    logger.info(f"number of fiducial showers {len(data_sets_fiducial['xx'])}")
 
     # assign every shower a unique id
     data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=np.int)
