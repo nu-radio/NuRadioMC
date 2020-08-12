@@ -6,6 +6,7 @@ version 1.2.0
 new features:
 - merge hdf5 utility has multithreading option
 - distance cut can sum up all sourounding shower energies to properly account for possible interference
+- noise temperature can be specified per station and channel
 
 
 version 1.1.2 - 
