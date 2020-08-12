@@ -306,14 +306,22 @@ class simulation():
         if(Tnoise is not None and Vrms is not None):
             raise AttributeError(f"Specifying noise temperature (set to {Tnoise}) and Vrms (set to {Vrms} is not allowed.")
         if(Tnoise is not None):
-            self._Tnoise = float(Tnoise)
+            if(Tnoise == "detector"):
+                self._Tnoise = None  # the noise temperature is defined in the detector description
+            else:
+                self._Tnoise = float(Tnoise)
             self._Vrms_per_channel = {}
             for station_id in self._bandwidth_per_channel:
                 self._Vrms_per_channel[station_id] = {}
                 for channel_id in self._bandwidth_per_channel[station_id]:
-                    self._Vrms_per_channel[station_id][channel_id] = (self._Tnoise * 50 * constants.k *
+                    if(self._Tnoise is None):
+                        Tnoise_channel = self._det.get_noise_temperature(station_id, channel_id)
+                    else:
+                        Tnoise_channel = self._Tnoise
+
+                    self._Vrms_per_channel[station_id][channel_id] = (Tnoise_channel * 50 * constants.k *
                            self._bandwidth_per_channel[station_id][channel_id] / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
-                    logger.status(f'station {station_id} channel {channel_id} noise temperature = {self._Tnoise}, bandwidth = {self._bandwidth_per_channel[station_id][channel_id]/ units.MHz:.2f} MHz -> Vrms = {self._Vrms_per_channel[station_id][channel_id]/ units.V / units.micro:.2f} muV')
+                    logger.status(f'station {station_id} channel {channel_id} noise temperature = {Tnoise_channel}, bandwidth = {self._bandwidth_per_channel[station_id][channel_id]/ units.MHz:.2f} MHz -> Vrms = {self._Vrms_per_channel[station_id][channel_id]/ units.V / units.micro:.2f} muV')
             self._Vrms = next(iter(next(iter(self._Vrms_per_channel.values())).values()))
             logger.status('(if same bandwidth for all stations/channels is assumed:) noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
         elif(Vrms is not None):
