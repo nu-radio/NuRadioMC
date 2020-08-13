@@ -279,7 +279,7 @@ class ProposalFunctions(object):
             pointing them to a writable directory
         """
         self.__logger = logging.getLogger("proposal")
-        self.__logger.SetLevel(log_level)
+        self.__logger.setLevel(log_level)
         self.__logger.info("initializing proposal interface class")
 
         self.__propagators = {}
