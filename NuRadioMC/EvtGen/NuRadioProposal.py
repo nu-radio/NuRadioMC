@@ -4,6 +4,7 @@ from NuRadioReco.utilities import units
 import os
 import six
 import json
+import logging
 
 """
 This module takes care of the PROPOSAL implementation. Some important things
@@ -262,7 +263,7 @@ class ProposalFunctions(object):
     not be used from the outside to avoid mismatching units.
     """
 
-    def __init__(self, config_file='SouthPole'):
+    def __init__(self, config_file='SouthPole', log_level=logging.INFO):
         """
         Parameters
         ----------
@@ -277,22 +278,17 @@ class ProposalFunctions(object):
             user requests their own "path_to_tables" and "path_to_tables_readonly",
             pointing them to a writable directory
         """
-        print("initializing proposal interface class", flush=True)
-        self.propagators = {}
-        for lepton_code in [13, -13, 15, -15]:
-            self.propagators[lepton_code] = self.__create_propagator(particle_code=lepton_code,
-                                                                     config_file=config_file)
+        self.__logger = logging.getLogger("proposal")
+        self.__logger.SetLevel(log_level)
+        self.__logger.info("initializing proposal interface class")
 
-        self.mu_propagators = {}
-        for lepton_code in [13, -13]:
-            self.mu_propagators[lepton_code] = self.__create_propagator(particle_code=lepton_code,
-                                                                        config_file=config_file)
+        self.__propagators = {}
+        self.__config_file = config_file
 
-    def __create_propagator(self,
-                            particle_code=13,
-                            config_file='SouthPole'):
+    def __get_propagator(self,
+                            particle_code=13):
         """
-        Creates a PROPOSAL propagator for muons or taus
+        Returns a PROPOSAL propagator for muons or taus. If it does not exist yet it is being generated.
 
         Parameters
         ----------
@@ -318,47 +314,49 @@ class ProposalFunctions(object):
         propagator: PROPOSAL propagator
             Propagator that can be used to calculate the interactions of a muon or tau
         """
-        mu_def_builder = pp.particle.ParticleDefBuilder()
-        if (particle_code == 13):
-            mu_def_builder.SetParticleDef(pp.particle.MuMinusDef())
-        elif (particle_code == -13):
-            mu_def_builder.SetParticleDef(pp.particle.MuPlusDef())
-        elif (particle_code == 15):
-            mu_def_builder.SetParticleDef(pp.particle.TauMinusDef())
-        elif (particle_code == -15):
-            mu_def_builder.SetParticleDef(pp.particle.TauPlusDef())
-        else:
-            error_str = "The propagation of this particle via PROPOSAL is not currently supported.\n"
-            error_str += "Please choose between -/+muon (13/-13) and -/+tau (15/-15)"
-            raise NotImplementedError(error_str)
+        if(particle_code not in self.__propagators):
+            self.__logger.info(f"initializing propagator for particle code {particle_code}")
+            mu_def_builder = pp.particle.ParticleDefBuilder()
+            if (particle_code == 13):
+                mu_def_builder.SetParticleDef(pp.particle.MuMinusDef())
+            elif (particle_code == -13):
+                mu_def_builder.SetParticleDef(pp.particle.MuPlusDef())
+            elif (particle_code == 15):
+                mu_def_builder.SetParticleDef(pp.particle.TauMinusDef())
+            elif (particle_code == -15):
+                mu_def_builder.SetParticleDef(pp.particle.TauPlusDef())
+            else:
+                error_str = "The propagation of this particle via PROPOSAL is not currently supported.\n"
+                error_str += "Please choose between -/+muon (13/-13) and -/+tau (15/-15)"
+                raise NotImplementedError(error_str)
 
-        mu_def = mu_def_builder.build()
+            mu_def = mu_def_builder.build()
 
-        if (config_file == 'SouthPole'):
-            config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL.json')
-        elif (config_file == 'MooresBay'):
-            config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_mooresbay.json')
-        elif (config_file == 'InfIce'):
-            config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_infice.json')
-        elif (config_file == 'Greenland'):
-            config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_greenland.json')
-        elif (os.path.exists(config_file)):
-            config_file_full_path = config_file
-        else:
-            raise ValueError("Proposal config file is not valid. Please provide a valid option.")
+            if (self.__config_file == 'SouthPole'):
+                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL.json')
+            elif (self.__config_file == 'MooresBay'):
+                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_mooresbay.json')
+            elif (self.__config_file == 'InfIce'):
+                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_infice.json')
+            elif (self.__config_file == 'Greenland'):
+                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_greenland.json')
+            elif (os.path.exists(self.__config_file)):
+                config_file_full_path = self.__config_file
+            else:
+                raise ValueError("Proposal config file is not valid. Please provide a valid option.")
 
-        if not os.path.exists(config_file_full_path):
-            error_message = "Proposal config file does not exist.\n"
-            error_message += "Please provide valid paths for the interpolation tables "
-            error_message += "in file {}.sample ".format(config_file_full_path)
-            error_message += "and copy the file to {}.".format(os.path.basename(config_file_full_path))
-            raise ValueError(error_message)
+            if not os.path.exists(config_file_full_path):
+                error_message = "Proposal config file does not exist.\n"
+                error_message += "Please provide valid paths for the interpolation tables "
+                error_message += "in file {}.sample ".format(config_file_full_path)
+                error_message += "and copy the file to {}.".format(os.path.basename(config_file_full_path))
+                raise ValueError(error_message)
 
-        check_path_to_tables(config_file_full_path)
+            check_path_to_tables(config_file_full_path)
 
-        propagator = pp.Propagator(particle_def=mu_def, config_file=config_file_full_path)
+            self.__propagators[particle_code] = pp.Propagator(particle_def=mu_def, config_file=config_file_full_path)
 
-        return propagator
+        return self.__propagators[particle_code]
 
     def __produces_shower(self,
                           particle,
@@ -451,8 +449,7 @@ class ProposalFunctions(object):
                              lepton_position,
                              lepton_direction,
                              propagation_length,
-                             low=1 * pp_PeV,
-                             decay_muon=False):
+                             low=1 * pp_PeV):
         """
         Calculates secondary particles using a PROPOSAL propagator. It needs to
         be given a propagators dictionary with particle codes as key
@@ -495,15 +492,9 @@ class ProposalFunctions(object):
         initial_condition.energy = energy_lepton
         initial_condition.propagated_distance = 0
 
-        if not decay_muon:
-            secondaries = self.propagators[lepton_code].propagate(initial_condition,
+        secondaries = self.__get_propagator(lepton_code).propagate(initial_condition,
                                                                   propagation_length,
                                                                   minimal_energy=low).particles
-        else:
-            secondaries = self.mu_propagators[lepton_code].propagate(initial_condition,
-                                                                     propagation_length,
-                                                                     minimal_energy=low).particles
-
         return secondaries
 
     def __filter_secondaries(self,
@@ -676,7 +667,7 @@ class ProposalFunctions(object):
                     continue
                 mu_energy, mu_code, mu_position, mu_direction = decay_muon
                 mu_secondaries = self.__propagate_particle(mu_energy, mu_code, mu_position, mu_direction,
-                                                           propagation_length, low=low, decay_muon=True)
+                                                           propagation_length, low=low)
 
                 mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
 
