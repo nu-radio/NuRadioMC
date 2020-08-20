@@ -12,12 +12,10 @@ logger = logging.getLogger('SimStation')
 
 class SimStation(NuRadioReco.framework.base_station.BaseStation):
 
-    def __init__(self, station_id, sampling_rate=None, trace=None):
+    def __init__(self, station_id):
         NuRadioReco.framework.base_station.BaseStation.__init__(self, station_id)
         self.__magnetic_field_vector = None
         self.__simulation_weight = None
-        if(trace is not None and sampling_rate is not None):
-            self.set_electric_fields(trace, sampling_rate)
 
     def get_magnetic_field_vector(self):
         return self.__magnetic_field_vector
@@ -43,4 +41,3 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
         NuRadioReco.framework.base_station.BaseStation.deserialize(self, data['base_station'])
         self.__magnetic_field_vector = data['__magnetic_field_vector']
         self.__simulation_weight = data['__simulation_weight']
-        
