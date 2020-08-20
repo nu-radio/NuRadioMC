@@ -62,6 +62,35 @@ def merge_config(user, default):
     return user
 
 
+def get_distance_cut(shower_energy, intercept, slope):
+    """
+    This function returns a distance cut as a function of shower energy for
+    speeding up the code. The cut is a linear function of the shower energy
+    logarithm:
+
+    log10(distance_cut/m) = intercept + slope * log10(shower_energy/eV)
+
+    Parameters
+    ----------
+    shower_energy: float
+        Shower energy
+    intercept: float
+        Intercept for the linear cut
+    slope: float
+        Slope for the linear cut
+
+    Returns
+    -------
+    distance_cut: float
+        Maximum distance for ray tracing
+    """
+
+    log_distance_cut = intercept + slope * np.log10(shower_energy / units.eV)
+    distance_cut = 10 ** log_distance_cut * units.m
+
+    return distance_cut
+
+
 class simulation():
 
     def __init__(self, inputfilename,
@@ -178,9 +207,9 @@ class simulation():
         if(default_detector_station):
             logger.warning(f"Default detector station provided (station {default_detector_station}) -> Using generic detector")
             self._det = gdetector.GenericDetector(json_filename=self._detectorfile, default_station=default_detector_station,
-                                                 default_channel=default_detector_channel)
+                                                 default_channel=default_detector_channel, antenna_by_depth=False)
         else:
-            self._det = detector.Detector(json_filename=self._detectorfile)
+            self._det = detector.Detector(json_filename=self._detectorfile, antenna_by_depth=False)
         self._det.update(evt_time)
 
         self._station_ids = self._det.get_station_ids()
@@ -417,6 +446,23 @@ class simulation():
                                    n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
                                    n_reflections=self._n_reflections)
 
+                    if self._cfg['speedup']['distance_cut']:
+
+                        fem, fhad = self._get_em_had_fraction(self._inelasticity, self._inttype, self._flavor)
+                        shower_energy = (fem + fhad) * self._energy
+                        intercept = self._cfg['speedup']['distance_cut_intercept']
+                        slope = self._cfg['speedup']['distance_cut_slope']
+
+                        distance_cut = get_distance_cut(shower_energy, intercept, slope)
+                        distance = np.linalg.norm(x1 - x2)
+
+                        if distance > distance_cut:
+                            logger.debug('A distance speed up cut has been applied')
+                            logger.debug('Shower energy: {:.2e} eV'.format(shower_energy / units.eV))
+                            logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
+                            logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
+                            continue
+
                     if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                         sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
                         temp_reflection = None
@@ -537,14 +583,16 @@ class simulation():
                         logger.debug(f"st {self._station_id}, ch {channel_id}, solutino {iS}: n_ref bottom = {i_reflections:d}," + \
                                      f" n_ref surface = {n_surface_reflections:d},  R = {R / units.m:.1f} m, T = {T / units.ns:.1f}ns," + \
                                      f" receive angles zen={zenith / units.deg:.0f}deg, az={azimuth / units.deg:.0f}deg")
-                        tmp_output = "attenuation factor"
-                        iF = len(self._ff) // 4
-                        tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
-                        iF = len(self._ff) // 3
-                        tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
-                        iF = len(self._ff) // 2
-                        tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
-                        logger.debug(tmp_output)
+
+                        if self._cfg['propagation']['attenuate_ice']:
+                            tmp_output = "attenuation factor"
+                            iF = len(self._ff) // 4
+                            tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
+                            iF = len(self._ff) // 3
+                            tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
+                            iF = len(self._ff) // 2
+                            tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
+                            logger.debug(tmp_output)
                         for zenith_reflection in zenith_reflections:  # loop through all possible reflections
                             if(zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
                                 continue
@@ -587,6 +635,13 @@ class simulation():
                             trace_start_time = self._vertex_time + T
                         else:
                             trace_start_time = T
+
+                        # We shift the trace start time so that the trace time matches the propagation time.
+                        # The centre of the trace corresponds to the instant when the signal from the shower
+                        # vertex arrives at the observer. The next line makes sure that the centre time
+                        # of the trace is equal to vertex_time + T (wave propagation time)
+                        trace_start_time -= 0.5 * electric_field.get_number_of_samples() / electric_field.get_sampling_rate()
+
                         electric_field.set_trace_start_time(trace_start_time)
                         electric_field[efp.azimuth] = azimuth
                         electric_field[efp.zenith] = zenith
@@ -1042,6 +1097,12 @@ class simulation():
         fhad: float
             hadroninc fraction
         """
+        forbidden_codes = [13, -13, 15, -15]
+        if flavor in forbidden_codes:
+            error_msg  = "Particle code is {}".format(flavor)
+            error_msg += "Muons and leptons must be propagated using Proposal."
+            raise ValueError(error_msg)
+
         fem = 0  # electrogmatnetic fraction
         fhad = 0  # hadronic fraction
         if(inttype == 'nc'):
@@ -1060,11 +1121,6 @@ class simulation():
         elif(inttype == 'em'):
             fem = 1
             fhad = 0
-        elif(np.abs(flavor) == 15):
-            if (inttype == 'tau_e'):
-                fem = inelasticity
-            elif (inttype == 'tau_had'):
-                fhad = inelasticity
         else:
             raise AttributeError("interaction type {} with flavor {} is not implemented".format(inttype, flavor))
 
