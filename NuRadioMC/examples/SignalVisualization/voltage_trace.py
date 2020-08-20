@@ -37,163 +37,161 @@ DEFAULT_CHART_CONFIG = {
 
 antennapattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
 
-layout = html.Div([
+antenna_panel = html.Div([
     html.Div([
+        html.Div('Antenna', className='panel-heading'),
         html.Div([
             html.Div([
-                html.Div('Antenna', className='panel-heading'),
+                html.Div('Antenna Type'),
                 html.Div([
                     html.Div([
-                        html.Div('Antenna Type'),
+                        dcc.Dropdown(
+                            id='antenna-type-radio-items',
+                            options=antennas.antenna_options,
+                            value='bicone_v8_InfFirn',
+                            multi=False
+                        )
+                    ], style={'flex': '1'}),
+                    html.Div([
                         html.Div([
-                            html.Div([
-                                dcc.Dropdown(
-                                    id='antenna-type-radio-items',
-                                    options=antennas.antenna_options,
-                                    value='bicone_v8_InfFirn',
-                                    multi=False
-                                )
-                            ], style={'flex': '1'}),
-                            html.Div([
-                                html.Div([
-                                    html.Div('', className='icon-question-circle-o')
-                                ], className='popup-symbol'),
-                                html.Div('', id='antenna-type-popup', className='popup-box')
-                            ], className='popup-container', style={'flex': 'none'})
-                        ], style={'display': 'flex'})
-                    ], className='input-group'),
-                    html.Div([
-                        html.Div('Signal Zenith Angle'),
-                        dcc.Slider(
-                            id='signal-zenith-slider',
-                            min=0,
-                            max=180,
-                            step=5,
-                            value=90,
-                            marks={
-                                0: '0°',
-                                45: '45°',
-                                90: '90°',
-                                135: '135°',
-                                180: '180°'
-                            }
-                        )
-                    ], className='input-group'),
-                    html.Div([
-                        html.Div('Signal Azimuth'),
-                        dcc.Slider(
-                            id='signal-azimuth-slider',
-                            min=0,
-                            max=360,
-                            step=10,
-                            value=180,
-                            marks={
-                                0: '0°',
-                                90: '90°',
-                                180: '180°',
-                                270: '270°',
-                                360: '360°'
-                            }
-                        )
-                    ], className='input-group')
-                ], className='panel-body')
-            ], className='panel panel-default'),
+                            html.Div('', className='icon-question-circle-o')
+                        ], className='popup-symbol'),
+                        html.Div('', id='antenna-type-popup', className='popup-box')
+                    ], className='popup-container', style={'flex': 'none'})
+                ], style={'display': 'flex'})
+            ], className='input-group'),
             html.Div([
-                html.Div('Amplifier', className='panel-heading'),
-                html.Div([
-                    html.Div([
-                        html.Div('Amplifier'),
-                        html.Div([
-                            html.Div([
-                                dcc.Dropdown(
-                                    id='amplifier-type-dropdown',
-                                    options=amplifiers.amplifier_options,
-                                    value=None,
-                                    multi=False
-                                )
-                            ], style={'flex': 1}),
-                            html.Div([
-                                html.Div([
-                                    html.Div('', className='icon-question-circle-o')
-                                ], className='popup-symbol'),
-                                html.Div('', id='amplifier-popup', className='popup-box')
-                            ], className='popup-container', style={'flex': 'none'})
-                        ], style={'display': 'flex'})
-                    ], className='input-group'),
-                    html.Div([
-                        html.Div([
-                            html.Div([
-                                dcc.Checklist(
-                                    id='filter-toggle-checklist',
-                                    options=[
-                                        {'label': 'Filter', 'value': 'filter'}
-                                    ],
-                                    value=[]
-                                )
-                            ], style={'flex': '1'}),
-                            html.Div([
-                                html.Div([
-                                    html.Div('', className='icon-question-circle-o')
-                                ], className='popup-symbol'),
-                                html.Div(('Apply a 10th order Butterworth filter '
-                                    'to the channel spectrum. Phase is not affected'
-                                ), className='popup-box')
-                            ], className='popup-container', style={'flex': 'none'})
-                        ], style={'display': 'flex'}),
-                        dcc.RangeSlider(
-                            id='filter-band-range-slider',
-                            min=0,
-                            max=1.,
-                            step=.05,
-                            value=[0, 1.],
-                            marks={
-                                0: '0MHz',
-                                .2: '200MHz',
-                                .4: '400MHz',
-                                .6: '600MHz',
-                                .8: '800MHz',
-                                1.: '1GHz'
-                            }
-                        )
-                    ], className='input-group')
-                ], className='panel-body')
-            ], className='panel panel-default')
-        ], style={'flex': '1'}),
-        html.Div([
+                html.Div('Signal Zenith Angle'),
+                dcc.Slider(
+                    id='signal-zenith-slider',
+                    min=0,
+                    max=180,
+                    step=5,
+                    value=45,
+                    marks={
+                        0: '0°',
+                        45: '45°',
+                        90: '90°',
+                        135: '135°',
+                        180: '180°'
+                    }
+                )
+            ], className='input-group'),
             html.Div([
-                html.Div('Voltage', className='panel-heading'),
-                html.A(
-                    'Download Data',
-                    id='download-link',
-                    download="voltage_trace.csv",
-                    href="",
-                    target="_blank"
-                    ),
-                html.Div([
-                    dcc.Graph(id='voltage-plots')
-                ], className='panel-body')
-            ], className='panel panel-default')
+                html.Div('Signal Azimuth'),
+                dcc.Slider(
+                    id='signal-azimuth-slider',
+                    min=0,
+                    max=360,
+                    step=10,
+                    value=180,
+                    marks={
+                        0: '0°',
+                        90: '90°',
+                        180: '180°',
+                        270: '270°',
+                        360: '360°'
+                    }
+                )
+            ], className='input-group')
+        ], className='panel-body')
+    ], className='panel panel-default')
+])
 
-        ], style={'flex': '4'})
-    ], style={'display': 'flex'}),
+amplifier_panel = html.Div([
     html.Div([
+        html.Div('Amplifier', className='panel-heading'),
         html.Div([
             html.Div([
-                html.Div('Signal Direction', className='panel-heading'),
+                html.Div('Amplifier'),
                 html.Div([
-                dcc.Graph(id='signal-direction-plot')
-                ], className='panel-body')
-            ], className='panel panel-default')
-        ], style={'flex': '1'}),
-        html.Div([
+                    html.Div([
+                        dcc.Dropdown(
+                            id='amplifier-type-dropdown',
+                            options=amplifiers.amplifier_options,
+                            value=None,
+                            multi=False
+                        )
+                    ], style={'flex': 1}),
+                    html.Div([
+                        html.Div([
+                            html.Div('', className='icon-question-circle-o')
+                        ], className='popup-symbol'),
+                        html.Div('', id='amplifier-popup', className='popup-box')
+                    ], className='popup-container', style={'flex': 'none'})
+                ], style={'display': 'flex'})
+            ], className='input-group'),
             html.Div([
-                html.Div('Detector Response', className='panel-heading'),
                 html.Div([
-                    dcc.Graph(id='detector-response-plot')
-                ], className='panel-body')
-            ], className='panel panel-default')
-        ], style={'flex': '4'})
-    ], style={'display': 'flex'})
+                    html.Div([
+                        dcc.Checklist(
+                            id='filter-toggle-checklist',
+                            options=[
+                                {'label': 'Filter', 'value': 'filter'}
+                            ],
+                            value=[]
+                        )
+                    ], style={'flex': '1'}),
+                    html.Div([
+                        html.Div([
+                            html.Div('', className='icon-question-circle-o')
+                        ], className='popup-symbol'),
+                        html.Div(('Apply a 10th order Butterworth filter '
+                            'to the channel spectrum. Phase is not affected'
+                        ), className='popup-box')
+                    ], className='popup-container', style={'flex': 'none'})
+                ], style={'display': 'flex'}),
+                dcc.RangeSlider(
+                    id='filter-band-range-slider',
+                    min=0,
+                    max=1.,
+                    step=.05,
+                    value=[0, 1.],
+                    marks={
+                        0: '0MHz',
+                        .2: '200MHz',
+                        .4: '400MHz',
+                        .6: '600MHz',
+                        .8: '800MHz',
+                        1.: '1GHz'
+                    }
+                )
+            ], className='input-group')
+        ], className='panel-body')
+    ], className='panel panel-default')
+])
+
+voltage_plot_panel = html.Div([
+    html.Div([
+        html.Div('Voltage', className='panel-heading'),
+        html.A(
+            'Download Data',
+            id='download-link',
+            download="voltage_trace.csv",
+            href="",
+            target="_blank"
+            ),
+        html.Div([
+            dcc.Graph(id='voltage-plots')
+        ], className='panel-body')
+    ], className='panel panel-default')
+])
+
+signal_direction_panel = html.Div([
+    html.Div([
+        html.Div('Signal Direction', className='panel-heading'),
+        html.Div([
+        dcc.Graph(id='signal-direction-plot')
+        ], className='panel-body')
+    ], className='panel panel-default')
+])
+hardware_response_panel = html.Div([
+    html.Div([
+        html.Div('Detector Response', className='panel-heading'),
+        html.Div([
+            dcc.Graph(id='detector-response-plot')
+        ], className='panel-body')
+    ], className='panel panel-default')
 ])
 
 
@@ -237,7 +235,7 @@ def update_voltage_plot(
         0.,
         0.,
         90.*units.deg,
-        0.
+        180.*units.deg
     )
     detector_response_theta = antenna_response['theta']
     detector_response_phi = antenna_response['phi']
@@ -294,8 +292,8 @@ def update_voltage_plot(
     ), 1, 2)
     fig2.update_xaxes(title_text='f [MHz]', row=1, col=1)
     fig2.update_xaxes(title_text='f [MHz]', row=1, col=2)
-    fig2.update_yaxes(title_text='VEL', row=1, col=1)
-    fig2.update_yaxes(title_text='VEL', row=1, col=2)
+    fig2.update_yaxes(title_text='VEL [m]', row=1, col=1)
+    fig2.update_yaxes(title_text='VEL [m]', row=1, col=2)
 
     s = io.StringIO()
     np.savetxt(s, np.array([times, channel_trace]).T, delimiter=',')
@@ -329,10 +327,11 @@ def update_signal_direction_plot(zenith, azimuth, antenna_type):
         mode='lines',
         name='Antenna Orientation'
     ))
+    rot = hp.spherical_to_cartesian(90.*units.deg, 180*units.deg)
     data.append(go.Scatter3d(
-        x=[0, 0],
-        y=[0, 1],
-        z=[0, 0],
+        x=[0, rot[0]],
+        y=[0, rot[1]],
+        z=[0, rot[2]],
         mode='lines',
         name='Antenna Rotation'
     ))
