@@ -32,17 +32,37 @@ c = 2.99792458e8 * units.m / units.s
 # e = 1.602177e-19 * units.coulomb
 
 
-def thetaprime_to_theta(thetaprime, xmax, R):
+def thetaprime_to_theta(thetaprime, xmax, R_prime):
     """
-    convertes a viewing angle relative to the shower maximum to a viewing angle relative to the start of the shower.
+    converts a viewing angle relative to the shower maximum to a viewing angle relative to the start of the shower.
+
+    Parameters
+    ----------
+    thetaprime: float
+        Angle formed between the shower axis and the shower maximum-observer line
+    xmax: float
+        The shower maximum depth in amount of matter traversed
+    R_prime: float
+        The distance between shower maximum and observer
     """
     L = xmax / rho
-    return thetaprime - np.arcsin((L * np.sin(np.pi - thetaprime)) / R)
+    b = R_prime * np.sin(thetaprime)
+    a = R_prime * np.cos(thetaprime) + L
+    return np.arctan2(b, a)
 
 
 def theta_to_thetaprime(theta, xmax, R):
     """
     converts a viewing angle relative to the start of the shower to a viewing angle relative to the shower maximum
+
+    Parameters
+    ----------
+    theta: float
+        The angle between the shower axis and the vertex-observer line
+    xmax: float
+        The shower maximum depth in amount of matter traversed
+    R: float
+        The distance between shower vertex and observer
     """
     L = xmax / rho
     b = R * np.sin(theta)
@@ -198,7 +218,7 @@ class ARZ(object):
         self._interp_factor2 = interp_factor
 
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
-                       same_shower=False, iN=None, output_mode='trace', theta_reference='X0'):
+                       same_shower=False, iN=None, output_mode='trace', maximum_angle=20*units.deg):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
 
@@ -238,15 +258,27 @@ class ARZ(object):
             * 'trace' (default): return only the electric field trace
             * 'Xmax': return trace and position of xmax in units of length
             * 'full' return trace, depth and charge_excess profile
-        theta_reference: string (default: X0)
-            * 'X0': viewing angle relativ to start of the shower
-            * 'Xmax': viewing angle is relativ to Xmax, internally it will be converted to be relative to X0
+        maximum_angle: float
+            Maximum angular difference allowed between the observer angle and the Cherenkov angle.
+            If the difference is greater, the function returns an empty trace.
 
         Returns: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
         """
         if not shower_type in self._library.keys():
             raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
+
+        # Due to the oscillatory nature of the ARZ integral, some numerical instabilities arise
+        # for angles near the axis and near 90 degrees. This creates some waveforms with large
+        # spikes due to numerical errors, while the real electric field should be much smaller
+        # than near the Cherenkov cone due to the loss of coherence. Since incoherent events
+        # should not trigger, we return an empty trace for angular differences > 20 degrees.
+        cherenkov_angle = np.arccos(1 / n_index)
+
+        if np.abs(theta - cherenkov_angle) > maximum_angle:
+
+            empty_trace = np.zeros((3, N))
+            return empty_trace
 
         # determine closes available energy in shower library
         energies = np.array([*self._library[shower_type]])
@@ -277,12 +309,6 @@ class ARZ(object):
         profile_ce = profiles['charge_excess'][iN] * rescaling_factor
 
         xmax = profile_depth[np.argmax(profile_ce)]
-        if(theta_reference == 'Xmax'):
-            thetat = copy.copy(theta)
-            theta = thetaprime_to_theta(theta, xmax, R)
-            logger.info("transforming viewing angle from {:.2f} to {:.2f}".format(thetat / units.deg, theta / units.deg))
-        elif(theta_reference != 'X0'):
-            raise NotImplementedError("theta_reference = '{}' is not implemented".format(theta_reference))
 
         vp = self.get_vector_potential_fast(shower_energy, theta, N, dt, profile_depth, profile_ce, shower_type, n_index, R,
                                             self._interp_factor, self._interp_factor2, shift_for_xmax)
@@ -290,7 +316,10 @@ class ARZ(object):
 #         trace = -np.gradient(vp, axis=0) / dt
 
         # use viewing angle relative to shower maximum for rotation into spherical coordinate system (that reduced eR component)
-        thetaprime = theta_to_thetaprime(theta, xmax, R)
+        if shift_for_xmax:
+            thetaprime = theta
+        else:
+            thetaprime = theta_to_thetaprime(theta, xmax, R)
         cs = cstrafo.cstrafo(zenith=thetaprime, azimuth=0)
         trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
         if(output_mode == 'full'):

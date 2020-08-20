@@ -26,8 +26,15 @@
 		"photo_multiplier" : 1,
 		"ioniz_multiplier" : 1,
 		"epair_multiplier" : 1,
+    "ioniz": "IonizBetheBlochRossi",
+    "epair": "EpairKelnerKokoulinPetrukhin",
 		"brems" : "BremsKelnerKokoulinPetrukhin",
 		"photo" : "PhotoAbramowiczLevinLevyMaor97",
+    "annihilation": "none",
+		"compton" : "none",
+    "photopair": "none",
+    "mupair": "none",
+    "weak": "none",
 		"lpm" : true,
 		"photo_hard_component" : true,
 		"photo_shadow" : "ShadowButkevichMikhailov",
@@ -49,6 +56,14 @@
 			"e_cut": 1e8,
 			"v_cut": -1,
 			"cont_rand": false
+		},
+		"medium": "air",
+		"geometry":
+		{
+			"shape": "sphere",
+			"origin": [0, 0, -6374134],
+			"outer_radius": 1000000000,
+			"inner_radius": 6374134
 		}
 	},
 

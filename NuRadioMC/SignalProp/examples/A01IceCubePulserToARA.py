@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-from NuRadioMC.SignalProp import analyticraytraycing as ray
+from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units
 import logging
@@ -22,7 +22,7 @@ ax.set_ylim(-1600, 0)
 ax.set_xlabel('x [m]')
 ax.set_ylabel('z [m]')
 fig.tight_layout()
-fig.savefig("plots/IceCubePulserToARA1.png")
+fig.savefig("IceCubePulserToARA1.png")
 
 x1 = [-4 * units.km, -1500. * units.m]  # pulser position
 x2 = [0., -200. * units.m]  # ARA antanna
@@ -38,5 +38,5 @@ ax.set_ylim(-1600, 0)
 ax.set_xlabel('x [m]')
 ax.set_ylabel('z [m]')
 fig.tight_layout()
-fig.savefig("plots/IceCubePulserToARA2.png")
+fig.savefig("IceCubePulserToARA2.png")
 plt.show()

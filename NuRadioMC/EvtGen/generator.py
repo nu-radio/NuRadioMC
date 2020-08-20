@@ -15,6 +15,7 @@ from scipy.interpolate import RectBivariateSpline
 import h5py
 import os
 import math
+import copy
 import logging
 logger = logging.getLogger("EventGen")
 logging.basicConfig()
@@ -758,6 +759,37 @@ def draw_zeniths(n_events, full_rmax, full_zmax, full_zmin, thetamin, thetamax):
     return np.array(zeniths)
 
 
+def mask_arrival_azimuth(data_sets, fiducial_rmax):
+
+    # Now we filter the events as a function of their arrival direction to
+    # save computing time. Those events that won't make it to the fiducial
+    # cylinder are discarded.
+
+    rhos = np.sqrt(data_sets['xx'] ** 2 + data_sets['yy'] ** 2)
+
+    # Let us considered our problem seen from above, projected on the z = vertex_z plane.
+    # tangent_angle is the angle a tangent to the cylinder that reaches the vertex makes
+    # with the antenna-vertex line on that plane.
+    sine_tangent_angles = fiducial_rmax / rhos
+    sine_tangent_angles[sine_tangent_angles > 1] = 1
+    tangent_angles = np.arcsin(sine_tangent_angles)
+    phis_low = 2 * np.pi - tangent_angles
+    phis_high = tangent_angles
+    phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
+    # NuRadioMC azimuth angles span [0, 2pi), unlike the result of arctan2: [-pi, pi)
+    phis_0[phis_0 < 0] += 2 * np.pi
+    phis = data_sets["azimuths"] - phis_0  # phi is the azimuth angle of the incoming neutrino if
+                                           # we take phi = 0 as the vertex position
+    phis[phis < 0] += 2 * np.pi
+
+    mask_phi = [ (phi > phi_low and phi < 2 * np.pi) or (phi < phi_high and phi > 0) or rho < fiducial_rmax
+                 for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
+
+    mask_phi = np.array(mask_phi)
+
+    return mask_phi
+
+
 def generate_surface_muons(filename, n_events, Emin, Emax,
                            fiducial_rmin, fiducial_rmax, fiducial_zmin, fiducial_zmax,
                            full_rmin=None, full_rmax=None, full_zmin=None, full_zmax=None,
@@ -767,7 +799,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                            plus_minus='mix',
                            n_events_per_file=None,
                            spectrum='log_uniform',
-                           resample=False,
                            start_file_id=0,
                            config_file='SouthPole'):
     """
@@ -829,9 +860,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         defines the probability distribution for which the neutrino energies are generated
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
-    resample: integer or None
-        if integer, PROPOSAL generates a number of propagations equal to resample
-        and then reuses them. Only to be used with a single kind of lepton (muon or tau)
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
@@ -856,7 +884,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     """
 
     from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-    proposal_functions = ProposalFunctions()
+    proposal_functions = ProposalFunctions(config_file=config_file)
 
     attributes = {}
     n_events = int(n_events)
@@ -965,100 +993,77 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     for key, value in data_sets.items():
         data_sets_fiducial[key] = []
 
-    rhos = np.sqrt(data_sets['xx'] ** 2 + data_sets['yy'] ** 2)
-
-    thetas_up = (fiducial_zmax - data_sets['zz']) / rhos
-    thetas_up = np.arctan(thetas_up)
-    thetas_down = (data_sets['zz'] - fiducial_zmin) / rhos
-    thetas_down = np.arctan(thetas_down)
-    thetas = 90 * units.deg - data_sets["zeniths"]  # Theta is the elevation angle of the incoming neutrino
-    mask_theta = [ (theta < theta_up and theta > theta_down) or rho < fiducial_rmax
-                   for theta, theta_up, theta_down, rho in zip(thetas, thetas_up, thetas_down, rhos) ]
-
-    phis_low = 180 * units.deg - np.arctan(fiducial_rmax ** 2 / rhos ** 2)
-    phis_high = 360 * units.deg - phis_low
-    phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
-    phis = data_sets["azimuths"] - phis_0  # Phi is the azimuth angle of the incoming neutrino if
-                                          # we take phi = 0 as the vertex position
-    mask_phi = [ (phi > phi_low and phi < phi_high) or rho < fiducial_rmax
-                 for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
-
-    mask_theta = np.array(mask_theta)
-    mask_phi = np.array(mask_phi)
-
     E_all_leptons = data_sets["energies"]
     lepton_codes = data_sets["flavors"]
     lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
     lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
                         for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
 
-    if resample:
-        if (len(np.unique(lepton_codes)) > 1):
-            raise ValueError('Resample must be used with one kind of leptons only')
-        n_resample = resample
-        i_resample = 0
-        E_all_leptons = E_all_leptons[:n_resample]
-        lepton_codes = lepton_codes[:n_resample]
-        lepton_positions = None
-        lepton_directions = None
-
-    products_array = proposal_functions.get_secondaries_array(E_all_leptons,
-                                                              lepton_codes,
-                                                              lepton_positions,
-                                                              lepton_directions,
-                                                              config_file=config_file)
+    mask_phi = mask_arrival_azimuth(data_sets, fiducial_rmax)
 
     for event_id in data_sets["event_ids"]:
         iE = event_id - start_event_id
 
-        geometry_selection = mask_theta[iE] and mask_phi[iE]
-        geometry_selection = True
+        if not mask_phi[iE]:
 
-        if geometry_selection:
+            continue
 
-            if resample:
-                lepton_code = lepton_codes[iE % n_resample]
-                products = products_array[i_resample % n_resample]
-                i_resample += 1
-            else:
-                lepton_code = lepton_codes[iE]
-                products = products_array.pop(0)
-            n_interaction = 1
+        products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
+                                                                   np.array([lepton_codes[iE]]),
+                                                                   np.array([lepton_positions[iE]]),
+                                                                   np.array([lepton_directions[iE]]))
+        products = products_array[0]
 
-            for product in products:
+        lepton_code = lepton_codes[iE]
+        n_interaction = 1
 
-                x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
-                r = (x ** 2 + y ** 2) ** 0.5
+        for product in products:
 
-                if(r >= fiducial_rmin and r <= fiducial_rmax):
-                    if(z >= fiducial_zmin and z <= fiducial_zmax):  # z coordinate is negative
-                        # the energy loss or particle is in our fiducial volume
+            x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
+            r = (x ** 2 + y ** 2) ** 0.5
 
-                        for key in iterkeys(data_sets):
-                            data_sets_fiducial[key].append(data_sets[key][iE])
+            if(r >= fiducial_rmin and r <= fiducial_rmax):
+                if(z >= fiducial_zmin and z <= fiducial_zmax):  # z coordinate is negative
+                    # the energy loss or particle is in our fiducial volume
 
-                        data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
-                        n_interaction += 1
-                        data_sets_fiducial['energies'][-1] = product.energy
-                        data_sets_fiducial['inelasticity'][-1] = 1
-                        # interaction_type is either 'had' or 'em' for proposal products
-                        data_sets_fiducial['interaction_type'][-1] = product.shower_type
+                    for key in iterkeys(data_sets):
+                        data_sets_fiducial[key].append(data_sets[key][iE])
 
-                        data_sets_fiducial['xx'][-1] = x
-                        data_sets_fiducial['yy'][-1] = y
-                        data_sets_fiducial['zz'][-1] = z
+                    data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
+                    n_interaction += 1
+                    data_sets_fiducial['energies'][-1] = product.energy
+                    data_sets_fiducial['inelasticity'][-1] = 1
+                    # interaction_type is either 'had' or 'em' for proposal products
+                    data_sets_fiducial['interaction_type'][-1] = product.shower_type
 
-                        # Calculating vertex interaction time with respect to the primary neutrino
-                        data_sets_fiducial['vertex_times'][-1] = vertex_time
+                    data_sets_fiducial['xx'][-1] = x
+                    data_sets_fiducial['yy'][-1] = y
+                    data_sets_fiducial['zz'][-1] = z
 
-                        # Flavors are particle codes taken from NuRadioProposal.py
-                        data_sets_fiducial['flavors'][-1] = product.code
+                    # Calculating vertex interaction time with respect to the primary neutrino
+                    data_sets_fiducial['vertex_times'][-1] = vertex_time
+
+                    # Flavors are particle codes taken from NuRadioProposal.py
+                    data_sets_fiducial['flavors'][-1] = product.code
 
     time_per_evt = (time.time() - init_time) / (iE + 1)
     print("Time per event:", time_per_evt)
     print("Total time", time.time() - init_time)
 
     print("number of fiducial showers", len(data_sets_fiducial['flavors']))
+
+    # If there are no fiducial showers, passing an empty data_sets_fiducial to
+    # write_events_to_hdf5 will cause the program to crash. However, we need
+    # the output file to have empty data sets but also to have the total
+    # number of input muons even though none of them triggers, so as not to
+    # bias an effective volume calculation done with several files.
+    # As a solution, we take a muon neutrino event (not an atmospheric muon)
+    # at the top of the ice, and since its inelasticity is zero, it won't create
+    # an electric field or trigger.
+    if len(data_sets_fiducial['event_ids']) == 0:
+        for key, value in data_sets.items():
+            data_sets_fiducial[key] = np.array([data_sets[key][0]])
+        data_sets_fiducial['flavors'] = np.array([14])
 
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
 
@@ -1079,8 +1084,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 deposited=False,
                                 proposal=False,
                                 proposal_config='SouthPole',
-                                resample=None,
-                                start_file_id=0):
+                                start_file_id=0,
+                                log_level=logging.WARNING):
     """
     Event generator
 
@@ -1095,11 +1100,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     n_events: int
         number of events to generate
     Emin: float
-        the minimum neutrino energy (energies are randomly chosen assuming a
-        uniform distribution in the logarithm of the energy)
+        the minimum neutrino energy
     Emax: float
-        the maximum neutrino energy (energies are randomly chosen assuming a
-        uniform distribution in the logarithm of the energy)
+        the maximum neutrino energy
 
     fiducial_rmin: float
         lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
@@ -1118,14 +1121,14 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     full_zmax: float (default None)
         upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
     thetamin: float
-        lower zenith angle for neutrino arrival direction
+        lower zenith angle for neutrino arrival direction (default 0deg)
     thetamax: float
         upper zenith angle for neutrino arrival direction
     phimin: float
         lower azimuth angle for neutrino arrival direction
     phimax: float
          upper azimuth angle for neutrino arrival direction
-    start_event: int
+    start_event_id: int
         default: 1
         event number of first event
     flavor: array of ints
@@ -1176,17 +1179,14 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         If one of these three options is chosen, the user is supposed to edit
         the corresponding config_PROPOSAL_xxx.json.sample file to include valid
         table paths and then copy this file to config_PROPOSAL_xxx.json.
-    resample: integer or None
-        if integer, PROPOSAL generates a number of propagations equal to resample
-        and then reuses them. Only to be used with a single kind of lepton (muon or tau)
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
-        if True, generate deposited energies instead of primary neutrino energies
     """
+    logger.setLevel(log_level)
     if proposal:
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-        proposal_functions = ProposalFunctions()
+        proposal_functions = ProposalFunctions(config_file=proposal_config)
 
     attributes = {}
     n_events = int(n_events)
@@ -1258,7 +1258,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets["zz"] = np.random.uniform(full_zmin, full_zmax, n_events)
 
     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
-
+    logger.info(f"{np.sum(fmask)} of {n_events} in figucial volume")
     logger.debug("generating event ids")
     data_sets["event_ids"] = np.arange(n_events) + start_event_id
     logger.debug("generating number of interactions")
@@ -1343,6 +1343,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets_fiducial = {}
 
     if proposal:
+        logger.debug("starting proposal simulation")
         import time
         init_time = time.time()
         # Initialising data_sets_fiducial with empty values
@@ -1353,57 +1354,24 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         mask_mu_cc = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 14)
         mask_leptons = mask_tau_cc | mask_mu_cc
 
-        rhos = np.sqrt(data_sets['xx'] ** 2 + data_sets['yy'] ** 2)
-
-        thetas_up = (fiducial_zmax - data_sets['zz']) / rhos
-        thetas_up = np.arctan(thetas_up)
-        thetas_down = (data_sets['zz'] - fiducial_zmin) / rhos
-        thetas_down = np.arctan(thetas_down)
-        thetas = 90 * units.deg - data_sets["zeniths"]  # Theta is the elevation angle of the incoming neutrino
-        mask_theta = [ (theta < theta_up and theta > theta_down) or rho < fiducial_rmax
-                       for theta, theta_up, theta_down, rho in zip(thetas, thetas_up, thetas_down, rhos) ]
-
-        phis_low = 180 * units.deg - np.arctan(fiducial_rmax ** 2 / rhos ** 2)
-        phis_high = 360 * units.deg - phis_low
-        phis_0 = np.arctan2(data_sets['yy'], data_sets['xx'])
-        phis = data_sets["azimuths"] - phis_0  # Phi is the azimuth angle of the incoming neutrino if
-                                              # we take phi = 0 as the vertex position
-        mask_phi = [ (phi > phi_low and phi < phi_high) or rho < fiducial_rmax
-                     for phi, phi_low, phi_high, rho in zip(phis, phis_low, phis_high, rhos) ]
-
-        mask_theta = np.array(mask_theta)
-        mask_phi = np.array(mask_phi)
-
-        mask_leptons = mask_leptons & mask_theta & mask_phi
-
-        E_all_leptons = (1 - data_sets["inelasticity"][mask_leptons]) * data_sets["energies"][mask_leptons]
-        lepton_codes = data_sets["flavors"][mask_leptons]
+        E_all_leptons = (1 - data_sets["inelasticity"]) * data_sets["energies"]
+        lepton_codes = copy.copy(data_sets["flavors"])
         lepton_codes[lepton_codes == 14] = 13
         lepton_codes[lepton_codes == -14] = -13
         lepton_codes[lepton_codes == 16] = 15
         lepton_codes[lepton_codes == -16] = -15
 
+        mask_phi = mask_arrival_azimuth(data_sets, fiducial_rmax)
+
+        mask_leptons = mask_leptons & mask_phi
+
         lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
+        lepton_positions = np.array(lepton_positions)
         lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
                             for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
+        lepton_directions = np.array(lepton_directions)
 
-        if resample:
-            if (len(np.unique(lepton_codes)) > 1):
-                raise ValueError('Resample must be used with one kind of leptons only')
-            n_resample = resample
-            i_resample = 0
-            E_all_leptons = E_all_leptons[:n_resample]
-            lepton_codes = lepton_codes[:n_resample]
-            lepton_positions = None
-            lepton_directions = None
-            proposal_config = 'InfIce'
-
-        products_array = proposal_functions.get_secondaries_array(E_all_leptons,
-                                                                  lepton_codes,
-                                                                  lepton_positions,
-                                                                  lepton_directions,
-                                                                  config_file=proposal_config)
-
+        logger.debug(f"generating secondary interactions for {np.sum(mask_leptons)}")
         for event_id in data_sets["event_ids"]:
             iE = event_id - start_event_id
 
@@ -1425,17 +1393,19 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
             if mask_leptons[iE]:
 
+                products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
+                                                                           np.array([lepton_codes[iE]]),
+                                                                           np.array([lepton_positions[iE]]),
+                                                                           np.array([lepton_directions[iE]]))
+                products = products_array[0]
+#                 logger.debug(f"generated {len(products)} secondary interactions")
+
                 Elepton = (1 - data_sets["inelasticity"][iE]) * data_sets["energies"][iE]
                 if data_sets["flavors"][iE] > 0:
                     lepton_code = data_sets["flavors"][iE] - 1
                 else:
                     lepton_code = data_sets["flavors"][iE] + 1
 
-                if resample:
-                    products = products_array[i_resample % n_resample]
-                    i_resample += 1
-                else:
-                    products = products_array.pop(0)
                 n_interaction = 2
 
                 for product in products:

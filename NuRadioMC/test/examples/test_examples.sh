@@ -14,3 +14,11 @@ python3 A01generate_pulser_events.py
 python3 A02RunSimulation.py input_spice.hdf5 detector_db.json config_spice.yaml output.hdf5 output.nur
 python3 A03reconstruct_sim.py output.nur
 python3 A04plot_results.py
+
+cd ../06_webinar
+python3 W01_create_input.py
+python3 W01_create_input_extended.py
+python3 W02RunSimulation.py
+python3 W03CheckOutput.py
+python3 W04EffectiveVolumes.py
+python3 W05ElectricFields.py
