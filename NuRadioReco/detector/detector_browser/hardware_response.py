@@ -1,13 +1,12 @@
-import dash
-from open_file import DetectorProvider
+import NuRadioReco.detector.detector_browser.detector_provider
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 import numpy as np
 import NuRadioReco.detector.ARIANNA.analog_components
 import NuRadioReco.detector.RNO_G.analog_components
-from app import app
+from NuRadioReco.detector.detector_browser.app import app
 import scipy.signal
 from NuRadioReco.utilities import units
 import NuRadioReco.detector.antennapattern
@@ -70,11 +69,10 @@ layout = html.Div([
                     ], className='option-select')
                 ], className='option-set'),
                 html.Div([
-                    #html.Div('Draw Options', className='option-label'),
                     html.Div([
                         dcc.Checklist(
                             id='log-checklist',
-                            options = [
+                            options=[
                                 {'label': 'Log', 'value': 'log'},
                                 {'label': 'Detrend', 'value': 'detrend'}
                                 ],
@@ -96,17 +94,40 @@ layout = html.Div([
     ], className='panel panel-default')
 ])
 
+
 @app.callback(
     [Output('hardware-response-amplitude', 'figure'),
-    Output('hardware-response-phase', 'figure')],
+        Output('hardware-response-phase', 'figure')],
     [Input('response-type-radio', 'value'),
-    Input('signal-zenith', 'value'),
-    Input('signal-azimuth', 'value'),
-    Input('selected-station', 'children'),
-    Input('selected-channel', 'children'),
-    Input('log-checklist', 'value')]
+        Input('signal-zenith', 'value'),
+        Input('signal-azimuth', 'value'),
+        Input('selected-station', 'children'),
+        Input('selected-channel', 'children'),
+        Input('log-checklist', 'value')]
 )
 def draw_hardware_response(response_type, zenith, azimuth, station_id, channel_id, log_checklist):
+    """
+    Draws plot for antenna and amplifier response
+
+    Parameters:
+    -----------------------
+    response_type: array of strings
+        Contains state of the radio buttons that allow to select if response of
+        only amps, only antennas or amps + antennas should be drawn
+    zenith: number
+        Value of the slider to select the zenith angle of the incoming signal
+        (relevant for antenna response)
+    azimuth: number
+        Value of the slider to select the azimuth angle of the incoming signal
+        (relevant for antenna response)
+    station_id: int
+        ID of the selected station
+    channel_id: int
+        ID of the selected channel
+    log_checklist: array of strings
+        Contains state of the checklist to select logarithmic plotting
+        of amplitude and detrending of phase
+    """
     if station_id is None or channel_id is None:
         return go.Figure([]), go.Figure([])
     zenith *= units.deg
@@ -116,8 +137,8 @@ def draw_hardware_response(response_type, zenith, azimuth, station_id, channel_i
     else:
         y_axis_type = 'linear'
     frequencies = np.arange(0, 1000, 5) * units.MHz
-    response = np.ones((2,frequencies.shape[0]), dtype=complex)
-    detector_provider = DetectorProvider()
+    response = np.ones((2, frequencies.shape[0]), dtype=complex)
+    detector_provider = NuRadioReco.detector.detector_browser.detector_provider.DetectorProvider()
     detector = detector_provider.get_detector()
     if 'amp' in response_type:
         amp_type = detector.get_amplifier_type(station_id, channel_id)
@@ -141,33 +162,33 @@ def draw_hardware_response(response_type, zenith, azimuth, station_id, channel_i
         response[1] *= VEL['phi']
         data = [
             go.Scatter(
-                x = frequencies/units.MHz,
-                y = np.abs(response[0]),
+                x=frequencies/units.MHz,
+                y=np.abs(response[0]),
                 mode='lines',
                 name='Theta component'
             ),
             go.Scatter(
-                x = frequencies/units.MHz,
-                y = np.abs(response[1]),
+                x=frequencies/units.MHz,
+                y=np.abs(response[1]),
                 mode='lines',
                 name='Phi component'
             )
         ]
         if 'detrend' in log_checklist:
-            phase = [scipy.signal.detrend(np.unwrap(np.angle(response[0]))),scipy.signal.detrend(np.unwrap(np.angle(response[1])))]
+            phase = [scipy.signal.detrend(np.unwrap(np.angle(response[0]))), scipy.signal.detrend(np.unwrap(np.angle(response[1])))]
         else:
             phase = [np.unwrap(np.angle(response[0])), np.unwrap(np.angle(response[1]))]
 
         phase_data = [
             go.Scatter(
-                x = frequencies/units.MHz,
-                y = phase[0],
+                x=frequencies/units.MHz,
+                y=phase[0],
                 mode='lines',
                 name='Theta component'
             ),
             go.Scatter(
-                x = frequencies/units.MHz,
-                y = phase[1],
+                x=frequencies/units.MHz,
+                y=phase[1],
                 mode='lines',
                 name='Phi component'
             )
@@ -175,8 +196,8 @@ def draw_hardware_response(response_type, zenith, azimuth, station_id, channel_i
         y_label = 'VEL [m]'
     else:
         data = [go.Scatter(
-            x = frequencies/units.MHz,
-            y = np.abs(response[1]),
+            x=frequencies/units.MHz,
+            y=np.abs(response[1]),
             mode='lines',
             showlegend=False
         )]
@@ -185,8 +206,8 @@ def draw_hardware_response(response_type, zenith, azimuth, station_id, channel_i
         else:
             phase = np.unwrap(np.angle(response[1]))
         phase_data = [go.Scatter(
-            x = frequencies/units.MHz,
-            y = phase,
+            x=frequencies/units.MHz,
+            y=phase,
             mode='lines',
             showlegend=False
         )
