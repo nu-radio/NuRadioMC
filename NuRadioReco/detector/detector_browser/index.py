@@ -1,19 +1,14 @@
-import numpy as np
-from dash.dependencies import Input, Output, State
-import dash_core_components as dcc
+
 import dash_html_components as html
 import dash
-import plotly.graph_objs as go
-import NuRadioReco.detector.detector
-import NuRadioReco.detector.generic_detector
-import open_file
-import detector_map
-import station_info
-import channel_info
-import hardware_response
+from NuRadioReco.detector.detector_browser import open_file
+from NuRadioReco.detector.detector_browser import detector_map
+from NuRadioReco.detector.detector_browser import station_info
+from NuRadioReco.detector.detector_browser import channel_info
+from NuRadioReco.detector.detector_browser import hardware_response
 import argparse
 import os
-from app import app
+from NuRadioReco.detector.detector_browser.app import app
 
 argparser = argparse.ArgumentParser(description="Visualization for the detector")
 argparser.add_argument('file_location', type=str, help="Path of folder or filename.")
@@ -36,9 +31,6 @@ app.layout = html.Div([
         ], style={'flex': '2'})
     ], style={'display': 'flex'})
 ])
-
-
-
 
 if __name__ == '__main__':
     if int(dash.__version__.split('.')[0]) <= 1:

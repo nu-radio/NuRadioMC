@@ -1,11 +1,7 @@
-import numpy as np
-from app import app
-import dash
-import dash_core_components as dcc
+from NuRadioReco.detector.detector_browser.app import app
 import dash_html_components as html
-import plotly.graph_objs as go
-from dash.dependencies import Input, Output, State
-from open_file import DetectorProvider
+from dash.dependencies import Input, Output
+import NuRadioReco.detector.detector_browser.detector_provider
 
 layout = html.Div([
     html.Div([
@@ -16,13 +12,25 @@ layout = html.Div([
     ], className='panel panel-default')
 ])
 
+
 @app.callback(
     Output('channel-info-table', 'children'),
     [Input('selected-station', 'children'),
-    Input('selected-channel', 'children')]
+        Input('selected-channel', 'children')]
 )
 def update_channel_info_table(station_id, channel_id):
-    detector_provider = DetectorProvider()
+    """
+    Controls the content of the channel properties table
+
+    Parameters:
+    ---------------------
+    station_id: int
+        ID of the station whose properties are displayed
+
+    channel_id: int
+        ID of the channel whose properties are displayed
+    """
+    detector_provider = NuRadioReco.detector.detector_browser.detector_provider.DetectorProvider()
     detector = detector_provider.get_detector()
     if detector is None:
         return ''
