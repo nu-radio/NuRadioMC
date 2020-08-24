@@ -41,13 +41,13 @@ def buffer_db(in_memory, filename=None):
         db = TinyDB(storage=MemoryStorage)
     else:
         db = TinyDB(filename, storage=serialization, sort_keys=True, indent=4, separators=(',', ': '))
-    db.purge()
+    db.truncate()
 
     from NuRadioReco.detector import detector_sql
     sqldet = detector_sql.Detector()
     results = sqldet.get_everything_stations()
     table_stations = db.table('stations')
-    table_stations.purge()
+    table_stations.truncate()
     for result in results:
         table_stations.insert({'station_id': result['st.station_id'],
                                'commission_time': result['st.commission_time'],
@@ -66,7 +66,7 @@ def buffer_db(in_memory, filename=None):
                                'pos_site': result['pos.site']})
 
     table_channels = db.table('channels')
-    table_channels.purge()
+    table_channels.truncate()
     results = sqldet.get_everything_channels()
     for channel in results:
         table_channels.insert({ 'station_id': channel['st.station_id'],
@@ -98,7 +98,7 @@ def buffer_db(in_memory, filename=None):
 
     results = sqldet.get_everything_positions()
     table_positions = db.table('positions')
-    table_positions.purge()
+    table_positions.truncate()
     for result in results:
         table_positions.insert({
                                'pos_position': result['pos.position'],
@@ -373,6 +373,12 @@ class Detector(object):
             self.__valid_t0 = astropy.time.Time('2100-1-1')
             self.__valid_t1 = astropy.time.Time('1970-1-1')
 
+    def get_detector_time(self):
+        """
+        Returns the time that the detector is currently set to
+        """
+        return self.__current_time
+
     def get_channel(self, station_id, channel_id):
         """
         returns a dictionary of all channel parameters
@@ -612,10 +618,10 @@ class Detector(object):
             the channel id
 
         Returns typle of floats
-            * orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
-            * orientation phi: boresight direction (azimuth angle counting from East counterclockwise)
-            * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
-            * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+            * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+            * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+            * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+            * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         """
         res = self.__get_channel(station_id, channel_id)
         return np.deg2rad([res['ant_orientation_theta'], res['ant_orientation_phi'], res['ant_rotation_theta'], res['ant_rotation_phi']])

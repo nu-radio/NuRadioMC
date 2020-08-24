@@ -4,6 +4,7 @@ import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.framework.hybrid_information
 import NuRadioReco.framework.parameters as parameters
+import NuRadioReco.utilities.version
 from six import itervalues
 import collections
 import logging
@@ -257,6 +258,18 @@ class Event:
 
     def serialize(self, mode):
         stations_pkl = []
+        try:
+            hash = NuRadioReco.utilities.version.get_NuRadioReco_commit_hash()
+            self.set_parameter(parameters.eventParameters.hash_NuRadioReco, hash)
+        except:
+            self.set_parameter(parameters.eventParameters.hash_NuRadioReco, None)
+        try:
+            hash = NuRadioReco.utilities.version.get_NuRadioMC_commit_hash()
+            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, hash)
+        except:
+            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, None)
+
+
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
 
