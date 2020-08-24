@@ -1358,7 +1358,7 @@ class simulation():
         fout.attrs['config'] = yaml.dump(self._cfg)
 
         # save NuRadioMC and NuRadioReco versions
-        from NuRadioMC.utilities import version
+        from NuRadioReco.utilities import version
         import NuRadioMC
         fout.attrs['NuRadioMC_version'] = NuRadioMC.__version__
         fout.attrs['NuRadioReco_version'] = NuRadioReco.__version__

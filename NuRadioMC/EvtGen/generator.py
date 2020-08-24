@@ -22,7 +22,7 @@ import numpy as np
 import NuRadioMC
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import inelasticities
-from NuRadioMC.utilities import version
+from NuRadioReco.utilities import version
 from six import iterkeys, iteritems
 from scipy import constants
 from scipy.integrate import quad

@@ -184,17 +184,23 @@ app.layout = html.Div([
                         )
                     ], className='input-group')
                 ], className='panel-body')
-            ], className='panel panel-default')
+            ], className='panel panel-default'),
+            voltage_trace.antenna_panel,
+            voltage_trace.amplifier_panel,
+            voltage_trace.signal_direction_panel
         ], style={'flex':'1'}),
         html.Div([
-            html.Div('Electric Field', className='panel-heading'),
             html.Div([
-                dcc.Graph(id='electric-field-plot')
-            ], className='panel-body')
-        ], className='panel panel-default', style={'flex':'4'})
+                html.Div('Electric Field', className='panel-heading'),
+                html.Div([
+                    dcc.Graph(id='electric-field-plot')
+                ], className='panel-body')
+            ], className='panel panel-default'),
+            voltage_trace.voltage_plot_panel,
+            voltage_trace.hardware_response_panel
+            ], style={'flex':'4'})
     ], style={'display': 'flex'}),
-    html.Div(id='efield-trace-storage', children=json.dumps(None), style={'display': 'none'}),
-    voltage_trace.layout
+    html.Div(id='efield-trace-storage', children=json.dumps(None), style={'display': 'none'})
 ])
 
 
