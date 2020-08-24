@@ -8,12 +8,9 @@ import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.triggerTimeAdjuster
-import NuRadioReco.modules.channelGenericNoiseAdder
-import NuRadioReco.modules.electricFieldResampler
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
-import numpy as np
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("runstrawman")
 
@@ -23,10 +20,7 @@ efieldToVoltageConverter.begin()
 triggerSimulatorHighLow = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 triggerSimulatorSimple = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
-channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-channelGenericNoiseAdder.begin(seed = 0)
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
-electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
 triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
 
 
