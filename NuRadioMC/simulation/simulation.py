@@ -363,6 +363,7 @@ class simulation():
         efieldToVoltageConverter.begin(time_resolution=self._cfg['speedup']['time_res_efieldconverter'])
         channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
         channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+        channelGenericNoiseAdder.begin(seed=self._cfg['seed'])
         channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
         electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
         if(self._outputfilenameNuRadioReco is not None):
