@@ -14,7 +14,6 @@ from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
 import numpy as np
-np.random.seed(0)
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("runstrawman")
 
@@ -25,6 +24,7 @@ triggerSimulatorHighLow = NuRadioReco.modules.trigger.highLowThreshold.triggerSi
 triggerSimulatorSimple = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+channelGenericNoiseAdder.begin(seed = 0)
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
 triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()

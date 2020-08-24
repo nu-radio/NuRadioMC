@@ -15,7 +15,7 @@ import os
 import time
 import logging
 import NuRadioMC
-from NuRadioMC.utilities import version
+from NuRadioReco.utilities import version
 # np.random.seed(10)  # just for testing
 
 logging.basicConfig(level=logging.WARNING)
