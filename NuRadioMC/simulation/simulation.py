@@ -301,24 +301,32 @@ class simulation():
         # for now just assume that bandwidth is the same for all stations and channels
         self._bandwidth = next(iter(next(iter(self._bandwidth_per_channel.values())).values()))
         amplification = next(iter(next(iter(self._amplification_per_channel.values())).values()))
-        Tnoise = self._cfg['trigger']['noise_temperature']
+        noise_temp = self._cfg['trigger']['noise_temperature']
         Vrms = self._cfg['trigger']['Vrms']
-        if(Tnoise is not None and Vrms is not None):
-            raise AttributeError(f"Specifying noise temperature (set to {Tnoise}) and Vrms (set to {Vrms} is not allowed.")
-        if(Tnoise is not None):
-            self._Tnoise = float(Tnoise)
+        if(noise_temp is not None and Vrms is not None):
+            raise AttributeError(f"Specifying noise temperature (set to {noise_temp}) and Vrms (set to {Vrms} is not allowed.")
+        if(noise_temp is not None):
+            if(noise_temp == "detector"):
+                self._noise_temp = None  # the noise temperature is defined in the detector description
+            else:
+                self._noise_temp = float(noise_temp)
             self._Vrms_per_channel = {}
             for station_id in self._bandwidth_per_channel:
                 self._Vrms_per_channel[station_id] = {}
                 for channel_id in self._bandwidth_per_channel[station_id]:
-                    self._Vrms_per_channel[station_id][channel_id] = (self._Tnoise * 50 * constants.k *
+                    if(self._noise_temp is None):
+                        noise_temp_channel = self._det.get_noise_temperature(station_id, channel_id)
+                    else:
+                        noise_temp_channel = self._noise_temp
+
+                    self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k *
                            self._bandwidth_per_channel[station_id][channel_id] / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
-                    logger.status(f'station {station_id} channel {channel_id} noise temperature = {self._Tnoise}, bandwidth = {self._bandwidth_per_channel[station_id][channel_id]/ units.MHz:.2f} MHz -> Vrms = {self._Vrms_per_channel[station_id][channel_id]/ units.V / units.micro:.2f} muV')
+                    logger.status(f'station {station_id} channel {channel_id} noise temperature = {noise_temp_channel}, bandwidth = {self._bandwidth_per_channel[station_id][channel_id]/ units.MHz:.2f} MHz -> Vrms = {self._Vrms_per_channel[station_id][channel_id]/ units.V / units.micro:.2f} muV')
             self._Vrms = next(iter(next(iter(self._Vrms_per_channel.values())).values()))
-            logger.status('(if same bandwidth for all stations/channels is assumed:) noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(self._Tnoise, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
+            logger.status('(if same bandwidth for all stations/channels is assumed:) noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(self._noise_temp, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
         elif(Vrms is not None):
             self._Vrms = float(Vrms) * units.V
-            self._Tnoise = None
+            self._noise_temp = None
         else:
             raise AttributeError(f"noise temperature and Vrms are both set to None")
 
@@ -1342,7 +1350,7 @@ class simulation():
             fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
             fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())
 
-        fout.attrs.create("Tnoise", self._Tnoise, dtype=np.float)
+        fout.attrs.create("Tnoise", self._noise_temp, dtype=np.float)
         fout.attrs.create("Vrms", self._Vrms, dtype=np.float)
         fout.attrs.create("dt", self._dt, dtype=np.float)
         fout.attrs.create("bandwidth", self._bandwidth, dtype=np.float)
