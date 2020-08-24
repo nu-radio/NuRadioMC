@@ -1,0 +1,40 @@
+.input-group {
+  padding: 2px 5px;
+  width: 100%;
+  display: flex;
+}
+
+.custom-table-row {
+  display: flex;
+}
+.custom-table-row:nth-child(2n+1) {
+  background-color: #f1f1f1;
+  padding: 2px;
+}
+.custom-table-header {
+  background-color: #f1f1f1;
+  font-weight: bold;
+}
+.custom-table-title {
+  flex: 1;
+}
+.custom-table-cell {
+  flex: 2;
+}
+.option-set {
+  margin: 2px;
+  border-color: #e1e1e1;
+  border-width: 2px;
+  display: flex;
+  border-style: solid;
+  flex: 1;
+}
+.option-label {
+  background-color: #f1f1f1;
+  flex: none;
+  padding: 12px;
+}
+.option-select {
+  flex: 1;
+  padding: 5px;
+}
