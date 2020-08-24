@@ -41,13 +41,13 @@ def buffer_db(in_memory, filename=None):
         db = TinyDB(storage=MemoryStorage)
     else:
         db = TinyDB(filename, storage=serialization, sort_keys=True, indent=4, separators=(',', ': '))
-    db.purge()
+    db.truncate()
 
     from NuRadioReco.detector import detector_sql
     sqldet = detector_sql.Detector()
     results = sqldet.get_everything_stations()
     table_stations = db.table('stations')
-    table_stations.purge()
+    table_stations.truncate()
     for result in results:
         table_stations.insert({'station_id': result['st.station_id'],
                                'commission_time': result['st.commission_time'],
@@ -66,7 +66,7 @@ def buffer_db(in_memory, filename=None):
                                'pos_site': result['pos.site']})
 
     table_channels = db.table('channels')
-    table_channels.purge()
+    table_channels.truncate()
     results = sqldet.get_everything_channels()
     for channel in results:
         table_channels.insert({ 'station_id': channel['st.station_id'],
@@ -98,7 +98,7 @@ def buffer_db(in_memory, filename=None):
 
     results = sqldet.get_everything_positions()
     table_positions = db.table('positions')
-    table_positions.purge()
+    table_positions.truncate()
     for result in results:
         table_positions.insert({
                                'pos_position': result['pos.position'],
