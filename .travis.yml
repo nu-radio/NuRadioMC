@@ -17,9 +17,9 @@ before_script:
   - unzip /tmp/radiotools.zip
   - mv radiotools-master radiotools
   - export PYTHONPATH=$PWD/radiotools
-  - wget https://github.com/nu-radio/NuRadioMC/archive/set_random_state_in_tests.zip -O /tmp/NuRadioMC.zip
+  - wget https://github.com/nu-radio/NuRadioMC/archive/master.zip -O /tmp/NuRadioMC.zip
   - unzip /tmp/NuRadioMC.zip
-  - mv NuRadioMC-set_random_state_in_tests/NuRadioMC $PWD/NuRadioMC
+  - mv NuRadioMC-master/NuRadioMC $PWD/NuRadioMC
   - export PYTHONPATH=$PYTHONPATH:$PWD
   - wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
   - mkdir -p /home/travis/build/nu-radio/NuRadioReco/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
