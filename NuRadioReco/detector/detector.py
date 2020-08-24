@@ -373,6 +373,12 @@ class Detector(object):
             self.__valid_t0 = astropy.time.Time('2100-1-1')
             self.__valid_t1 = astropy.time.Time('1970-1-1')
 
+    def get_detector_time(self):
+        """
+        Returns the time that the detector is currently set to
+        """
+        return self.__current_time
+
     def get_channel(self, station_id, channel_id):
         """
         returns a dictionary of all channel parameters
