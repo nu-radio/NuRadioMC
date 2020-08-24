@@ -44,7 +44,6 @@ class triggerSimulator:
     def begin(self, debug=False):
         self.__debug = debug
 
-
     @register_run()
     def run(self, evt, station, det, passband, order, threshold, coinc_window, number_coincidences=2, triggered_channels=None,
              trigger_name='envelope_trigger'):
@@ -56,8 +55,9 @@ class triggerSimulator:
         ----------
 
 
-        threshold: float
+        threshold: float or dict of floats
             threshold above (or below) a trigger is issued, absolute amplitude
+            a dict can be used to specify a different threshold per channel where the key is the channel id
         number_coincidences: int
             number of channels that are required in coincidence to trigger a station
         triggered_channels: array of ints or None
@@ -67,7 +67,6 @@ class triggerSimulator:
         trigger_name: string
             a unique name of this particular trigger
         """
-
 
         t = time.time()  # absolute time of system
 
@@ -91,13 +90,13 @@ class triggerSimulator:
 
             f = np.zeros_like(frequencies, dtype=np.complex)
             mask = frequencies > 0
-            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)  #Numerator (b) and denominator (a) polynomials of the IIR filter
-            w, h = scipy.signal.freqs(b, a, frequencies[mask])  #	w :The angular frequencies at which h was computed. h :The frequency response.
+            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)  # Numerator (b) and denominator (a) polynomials of the IIR filter
+            w, h = scipy.signal.freqs(b, a, frequencies[mask])  # 	w :The angular frequencies at which h was computed. h :The frequency response.
             f[mask] = h
 
             # apply filter
             freq_spectrum_fft = channel.get_frequency_spectrum()
-            freq_spectrum_fft_copy = copy.copy(freq_spectrum_fft)  #copy spectrum so it is only changed within the trigger module
+            freq_spectrum_fft_copy = copy.copy(freq_spectrum_fft)  # copy spectrum so it is only changed within the trigger module
             sampling_rate = channel.get_sampling_rate()
 
             freq_spectrum_fft_copy *= f
@@ -114,7 +113,11 @@ class triggerSimulator:
                 logger.warning('Channel has a trace_start_time that differs from '
                                '        the other channels. The trigger simulator may not work properly')
 
-            triggered_bins = get_envelope_triggers(trace, threshold)
+            if(isinstance(threshold, dict)):
+                threshold_tmp = threshold[channel_id]
+            else:
+                threshold_tmp = threshold
+            triggered_bins = get_envelope_triggers(trace, threshold_tmp)
             triggered_bins_channels.append(triggered_bins)
 
             if True in triggered_bins:
