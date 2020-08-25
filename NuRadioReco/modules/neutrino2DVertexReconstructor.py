@@ -2,7 +2,7 @@ import numpy as np
 import scipy.signal
 import pickle
 import matplotlib.pyplot as plt
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, fft
 import NuRadioReco.utilities.io_utilities
 import NuRadioReco.framework.electric_field
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -26,7 +26,7 @@ class neutrino2DVertexReconstructor:
         """
         self.__lookup_table_location = lookup_table_location
 
-    def begin(self, station_id, channel_ids, detector):
+    def begin(self, station_id, channel_ids, detector, passband=None):
         """
         General settings for vertex reconstruction
 
@@ -38,6 +38,9 @@ class neutrino2DVertexReconstructor:
             IDs of the channels to be used for the reconstruction
         detector: Detector or GenericDetector
             Detector description for the detector used in the reconstruction
+        filter_passband: array of float or None
+            Passband of the filter that should be applied to channel traces before
+            calculating the correlation. If None is passed, no filter is applied
         """
         first_channel_position = detector.get_relative_position(station_id, channel_ids[0])
         for channel_id in channel_ids:
@@ -55,6 +58,7 @@ class neutrino2DVertexReconstructor:
                 self.__channel_pairs.append([channel_ids[i], channel_ids[j]])
         self.__lookup_table = {}
         self.__header = {}
+        self.__passband = passband
         self.__ray_types = [['direct', 'direct'], ['reflected', 'reflected'], ['refracted', 'refracted'], ['direct', 'reflected'],['reflected','direct'],['direct','refracted'],['refracted','direct']]
         for channel_id in channel_ids:
             channel_z = abs(detector.get_relative_position(station_id, channel_id)[2])
@@ -114,9 +118,17 @@ class neutrino2DVertexReconstructor:
             snr2 = np.max(np.abs(ch2.get_trace()))
             if snr1 == 0 or snr2 == 0:
                 continue
-            trace1 = np.copy(ch1.get_trace())
+            spec1 = np.copy(ch1.get_frequency_spectrum())
+            spec2 = np.copy(ch2.get_frequency_spectrum())
+            if self.__passband is not None:
+                b, a = scipy.signal.butter(10, self.__passband, 'bandpass', analog=True)
+                w, h = scipy.signal.freqs(b, a, ch1.get_frequencies())
+                spec1 *= h
+                spec2 *= h
+
+            trace1 = fft.freq2time(spec1, ch1.get_sampling_rate())
             t_max1 = ch1.get_times()[np.argmax(np.abs(trace1))]
-            trace2 = np.copy(ch2.get_trace())
+            trace2 = fft.freq2time(spec2, ch2.get_sampling_rate())
             t_max2 = ch2.get_times()[np.argmax(np.abs(trace2))]
             if snr1 > snr2:
                 trace1[np.abs(ch1.get_times()-t_max1)>corr_range] = 0
