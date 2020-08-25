@@ -4,6 +4,7 @@ import os
 from radiotools import helper as hp
 from NuRadioReco.utilities import units, io_utilities
 import logging
+
 logger = logging.getLogger('analog_components')
 
 
@@ -12,7 +13,7 @@ def load_amplifier_response(amp_type='100', path=os.path.dirname(os.path.realpat
     Read out amplifier gain and phase. Currently only examples have been implemented.
     Needs a better structure in the future, possibly with database.
     """
-    amplifier_response = {}
+    amp_response = {}
     if amp_type == '100':
         amp_gain_discrete = np.loadtxt(os.path.join(path, 'HardwareResponses/Amp109_SHP100SLP1000_3L3_60dB.csv'),
                                        skiprows=44, delimiter=',')
@@ -30,7 +31,7 @@ def load_amplifier_response(amp_type='100', path=os.path.dirname(os.path.realpat
         amp_phase_discrete = np.loadtxt(ph, skiprows=3, delimiter=',')
     else:
         logger.error("Amp type not recognized")
-        return amplifier_response
+        return amp_response
 
     # Convert to GHz and add 60dB/40dB for attenuation in measurement circuit
     amp_gain_discrete[:, 0] *= units.Hz
@@ -60,45 +61,49 @@ def load_amplifier_response(amp_type='100', path=os.path.dirname(os.path.realpat
         amp_phase = amp_phase_f(ff)
         return np.exp(1j * amp_phase)
 
-    amplifier_response['gain'] = get_amp_gain
-    amplifier_response['phase'] = get_amp_phase
+    amp_response['gain'] = get_amp_gain
+    amp_response['phase'] = get_amp_phase
 
-    return amplifier_response
+    return amp_response
+
 
 def load_amp_measurement(amp_measurement):
     """
     load individual amp measurement from file and buffer interpolation function
     """
-    filename = os.path.join(os.path.dirname(__file__), 'HardwareResponses/', amp_measurement+".pkl")
+    filename = os.path.join(os.path.dirname(__file__), 'HardwareResponses/', amp_measurement + ".pkl")
     data = io_utilities.read_pickle(filename, encoding='latin1')
-    if(amp_measurement not in data):
+    if amp_measurement not in data:
         raise AttributeError("can't find amp measurement {}".format(amp_measurement))
     ff = data[amp_measurement]['freqs']
     response = data[amp_measurement]['response']
     gain = np.abs(response)
     phase = np.unwrap(np.angle(response))
-    amp_phase_f = interp1d(ff, phase, bounds_error=False, fill_value=0)  # all requests outside of measurement range are set to 0
-    amp_gain_f = interp1d(ff, gain, bounds_error=False, fill_value=1)  # all requests outside of measurement range are set to 1
-    
-    def get_response(ff):
-        return amp_gain_f(ff) * np.exp(1j * amp_phase_f(ff))
-    
+    amp_phase_f = interp1d(ff, phase, bounds_error=False,
+                           fill_value=0)  # all requests outside of measurement range are set to 0
+    amp_gain_f = interp1d(ff, gain, bounds_error=False,
+                          fill_value=1)  # all requests outside of measurement range are set to 1
+
+    def get_response(freqs):
+        return amp_gain_f(freqs) * np.exp(1j * amp_phase_f(freqs))
+
     amp_measurements[amp_measurement] = get_response
+
 
 # amp responses do not occupy a lot of memory, pre load all responses
 amplifier_response = {}
-for amp_type in ['100', '200', '300']:
-    amplifier_response[amp_type] = load_amplifier_response(amp_type)
-    
+for amplifier_type in ['100', '200', '300']:
+    amplifier_response[amplifier_type] = load_amplifier_response(amplifier_type)
+
 amp_measurements = {}  # buffer for amp measurements
 
 
 def get_amplifier_response(ff, amp_type, amp_measurement=None):
-    if(amp_measurement is not None):
+    if amp_measurement is not None:
         if amp_measurement not in amp_measurements:
             load_amp_measurement(amp_measurement)
         return amp_measurements[amp_measurement](ff)
-    elif(amp_type in amplifier_response.keys()):
+    elif amp_type in amplifier_response.keys():
         return amplifier_response[amp_type]['gain'](ff) * amplifier_response[amp_type]['phase'](ff)
     else:
         logger.error("Amplifier response for type {} not implemented, returning None".format(amp_type))
@@ -106,24 +111,26 @@ def get_amplifier_response(ff, amp_type, amp_measurement=None):
 
 
 def get_cable_response_parametrized(frequencies, cable_type, cable_length):
-    if(cable_type == "LMR_400"):
+    if cable_type == "LMR_400":
 
         def attn_db_per_100ft(f):  # from LMR-400 spec sheet
-            return 0.122290 * (f / units.MHz) ** 0.5 + 0.000260 * f / units.MHz   # https://www.timesmicrowave.com/DataSheets/CableProducts/LMR-400.pdf
+            return 0.122290 * (
+                        f / units.MHz) ** 0.5 + 0.000260 * f / units.MHz  # https://www.timesmicrowave.com/DataSheets/CableProducts/LMR-400.pdf
 
         logger.debug("{} {} {}".format(cable_type, cable_length, type(cable_length)))
         attn = attn_db_per_100ft(frequencies) / (100 * units.feet) * cable_length
-        attn += 0.01  # dB connetor loss
+        attn += 0.01  # dB connector loss
         return 1. / hp.dB_to_linear(attn) ** 0.5
-    elif(cable_type == "LMR_240"):
+    elif cable_type == "LMR_240":
 
         def attn_db_per_100ft(f):  # from LMR-400 spec sheet
-            return 0.242080 * (f / units.MHz) ** 0.5 + 0.000330 * f / units.MHz    # https://www.timesmicrowave.com/DataSheets/CableProducts/LMR-240.pdf
+            return 0.242080 * (
+                        f / units.MHz) ** 0.5 + 0.000330 * f / units.MHz  # https://www.timesmicrowave.com/DataSheets/CableProducts/LMR-240.pdf
 
         logger.debug("{} {} {}".format(cable_type, cable_length, type(cable_length)))
         attn = attn_db_per_100ft(frequencies) / (100 * units.feet) * cable_length
-        attn += 0.01  # dB connetor loss
-        return 1. / hp.dB_to_linear(attn) ** 0.5 
+        attn += 0.01  # dB connector loss
+        return 1. / hp.dB_to_linear(attn) ** 0.5
     else:
         logger.error("cable type {} not defined".format(cable_type))
         raise NotImplementedError
@@ -134,7 +141,8 @@ def get_cable_response(frequencies, path=os.path.dirname(os.path.realpath(__file
     Read out cable induced loss and phase. From standard 4 channel station.
     """
 
-    cable_discrete = np.loadtxt(os.path.join(path, 'HardwareResponses/CableAntennuation_James2016.csv'), skiprows=1, delimiter=',')
+    cable_discrete = np.loadtxt(os.path.join(path, 'HardwareResponses/CableAntennuation_James2016.csv'), skiprows=1,
+                                delimiter=',')
 
     max_frequency = 5000. * units.MHz
     if np.max(frequencies) > max_frequency:
@@ -154,4 +162,3 @@ def get_cable_response(frequencies, path=os.path.dirname(os.path.realpath(__file
     cable_phase = np.exp(1j * cable_phase)
 
     return cable_amp * cable_phase
-
