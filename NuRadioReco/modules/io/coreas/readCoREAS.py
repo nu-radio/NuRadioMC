@@ -14,7 +14,6 @@ import time
 import os
 
 
-
 class readCoREAS:
 
     def __init__(self):
@@ -169,7 +168,7 @@ class readCoREAS:
                 evt.set_station(station)
                 sim_shower = coreas.make_sim_shower(corsika, observer, detector, self.__station_id)
                 evt.add_sim_shower(sim_shower)
-                rd_shower = NuRadioReco.framework.radio_shower.RadioShower([station.get_id()])
+                rd_shower = NuRadioReco.framework.radio_shower.RadioShower(station_ids=[station.get_id()])
                 evt.add_shower(rd_shower)
                 if(output_mode == 0):
                     self.__t += time.time() - t
