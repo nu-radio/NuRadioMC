@@ -4,6 +4,7 @@ import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.framework.hybrid_information
 import NuRadioReco.framework.parameters as parameters
+import NuRadioReco.utilities.version
 from six import itervalues
 import collections
 import logging
@@ -17,8 +18,8 @@ class Event:
         self.__run_number = run_number
         self._id = event_id
         self.__stations = collections.OrderedDict()
-        self.__radio_showers = []
-        self.__sim_showers = []
+        self.__radio_showers = collections.OrderedDict()
+        self.__sim_showers = collections.OrderedDict()
         self.__event_time = 0
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
@@ -125,7 +126,10 @@ class Event:
         shower: RadioShower object
             The shower to be added to the event
         """
-        self.__radio_showers.append(shower)
+        if(shower.get_id() in self.__radio_showers):
+            logger.error("shower with id {shower.get_id()} already exists. Shower id needs to be unique per event")
+            raise AttributeError("shower with id {shower.get_id()} already exists. Shower id needs to be unique per event")
+        self.__radio_showers[shower.get_id()] = shower
 
     def get_showers(self, ids=None):
         """
@@ -137,11 +141,30 @@ class Event:
             A list of station IDs. Only showers that are associated with
             all stations in the list are returned
         """
-        for shower in self.__radio_showers:
+        for shower in self.__radio_showers.values():
             if ids is None:
                 yield shower
             elif shower.has_station_ids(ids):
                 yield shower
+
+    def get_shower(self, shower_id):
+        """
+        returns a specific shower identified by its unique id
+        """
+        if(shower_id not in self.__radio_showers):
+            raise AttributeError(f"shower with id {shower_id} not present")
+        return self.__radio_showers[shower_id]
+
+    def has_shower(self, shower_id=None):
+        """
+        Returns true if at least one shower is stored in the event
+        
+        If shower_id is given, it checks if this particular shower exists
+        """
+        if(shower_id is None):
+            return shower_id in self.__radio_showers.keys()
+        else:
+            return len(self.__radio_showers) > 0
 
     def get_first_shower(self, ids=None):
         """
@@ -157,7 +180,8 @@ class Event:
         if len(self.__radio_showers) == 0:
             return None
         if ids is None:
-            return self.__radio_showers[0]
+            shower_ids = list(self.__radio_showers.keys())
+            return self.__radio_showers[shower_ids[0]]
         for shower in self.__radio_showers:
             if shower.has_station_ids(ids):
                 return shower
@@ -172,21 +196,59 @@ class Event:
         shower: RadioShower object
             The shower to be added to the event
         """
-
-        self.__sim_showers.append(sim_shower)
+        if not isinstance(sim_shower, NuRadioReco.framework.radio_shower.RadioShower):
+            raise AttributeError(f"sim_shower needs to be of type NuRadioReco.framework.radio_shower.RadioShower")
+        if(sim_shower.get_id() in self.__sim_showers):
+            logger.error(f"sim shower with id {sim_shower.get_id()} already exists. Shower id needs to be unique per event")
+            raise AttributeError(f"sim shower with id {sim_shower.get_id()} already exists. Shower id needs to be unique per event")
+        self.__sim_showers[sim_shower.get_id()] = sim_shower
 
     def get_sim_showers(self):
         """
         Get an iterator over all simulated showers in the event
         """
-        for shower in self.__sim_showers:
+        for shower in self.__sim_showers.values():
             yield shower
 
-    def has_sim_shower(self):
+    def get_sim_shower(self, shower_id):
+        """
+        returns a specific shower identified by its unique id
+        """
+        if(shower_id not in self.__sim_showers):
+            raise AttributeError(f"sim shower with id {shower_id} not present")
+        return self.__sim_showers[shower_id]
+
+    def get_first_sim_shower(self, ids=None):
+        """
+        Returns only the first sim shower stored in the event. Useful in cases
+        when there is only one shower in the event.
+
+        Parameters
+        ---------------------------
+        ids: list of integers
+            A list of station IDs. The first shower that is associated with
+            all stations in the list is returned
+        """
+        if len(self.__sim_showers) == 0:
+            return None
+        if ids is None:
+            shower_ids = list(self.__sim_showers.keys())
+            return self.__sim_showers[shower_ids[0]]
+        for shower in self.__sim_showers:
+            if shower.has_station_ids(ids):
+                return shower
+        return None
+
+    def has_sim_shower(self, shower_id=None):
         """
         Returns true if at least one simulated shower is stored in the event
+        
+        If shower_id is given, it checks if this particular shower exists
         """
-        return len(self.__sim_showers) > 0
+        if(shower_id is None):
+            return shower_id in self.__sim_showers.keys()
+        else:
+            return len(self.__sim_showers) > 0
 
     def get_hybrid_information(self):
         """
@@ -196,6 +258,18 @@ class Event:
 
     def serialize(self, mode):
         stations_pkl = []
+        try:
+            hash = NuRadioReco.utilities.version.get_NuRadioReco_commit_hash()
+            self.set_parameter(parameters.eventParameters.hash_NuRadioReco, hash)
+        except:
+            self.set_parameter(parameters.eventParameters.hash_NuRadioReco, None)
+        try:
+            hash = NuRadioReco.utilities.version.get_NuRadioMC_commit_hash()
+            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, hash)
+        except:
+            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, None)
+
+
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
 

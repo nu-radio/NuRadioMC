@@ -69,13 +69,18 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
             return helper.get_magnetic_field_vector('arianna')
 
     def serialize(self, mode):
-        base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(self, mode)
+        save_efield_traces = 'ElectricFields' in mode and mode['ElectricFields'] == True
+        base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(self, save_efield_traces=save_efield_traces)
         channels_pkl = []
+        save_channel_trace = 'Channels' in mode and mode['Channels'] == True
         for channel in self.iter_channels():
-            channels_pkl.append(channel.serialize(mode))
+            channels_pkl.append(channel.serialize(save_channel_trace))
+        save_sim_channel_trace = 'SimChannels' in mode and mode['SimChannels'] == True
+        save_sim_efield_trace = 'SimElectricFields' in mode and mode['SimElectricFields'] == True
         sim_station_pkl = None
         if(self.has_sim_station()):
-            sim_station_pkl = self.get_sim_station().serialize(mode)
+            sim_station_pkl = self.get_sim_station().serialize(save_channel_traces=save_sim_channel_trace,
+                                                               save_efield_traces=save_sim_efield_trace)
 
         data = {'__reference_reconstruction': self.__reference_reconstruction,
                 'channels': channels_pkl,
@@ -89,7 +94,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         if(data['sim_station'] is None):
             self.__sim_station = None
         else:
-            self.__sim_station = NuRadioReco.framework.sim_station.SimStation(None, None, None)
+            self.__sim_station = NuRadioReco.framework.sim_station.SimStation(None)
             self.__sim_station.deserialize(data['sim_station'])
         for channel_pkl in data['channels']:
             channel = NuRadioReco.framework.channel.Channel(0)

@@ -56,15 +56,26 @@ channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelG
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
 N = 51
-SNRs = np.linspace(0.5,5,N)
+SNRs = np.linspace(0.5, 5, N)
 SNRtriggered = np.zeros(N)
+
+
 def count_events():
     count_events.events += 1
+
+
 count_events.events = 0
+
 
 class mySimulation(simulation.simulation):
 
-    def _detector_simulation(self):
+    def _detector_simulation_filter_amp(self, evt, station, det):
+        channelBandPassFilter.run(evt, station, det, passband=[130 * units.MHz, 1000 * units.GHz],
+                                      filter_type='butter', order=2)
+        channelBandPassFilter.run(evt, station, det, passband=[0, 750 * units.MHz],
+                                      filter_type='butter', order=10)
+
+    def _detector_simulation_part2(self):
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
         # downsample trace back to detector sampling rate
@@ -91,7 +102,7 @@ class mySimulation(simulation.simulation):
 
         for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
 
-            trace = np.array( channel.get_trace() )
+            trace = np.array(channel.get_trace())
             channel_id = channel.get_id()
             original_traces[channel_id] = trace
 
@@ -100,11 +111,11 @@ class mySimulation(simulation.simulation):
 
         for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
 
-            trace = np.array( channel.get_trace() )
+            trace = np.array(channel.get_trace())
             channel_id = channel.get_id()
-            max_bin = np.argwhere( trace == np.max(trace) )[0,0]
-            min_bin = np.argwhere( trace == np.min(trace) )[0,0]
-            if ( max_bin < min_bin ):
+            max_bin = np.argwhere(trace == np.max(trace))[0, 0]
+            min_bin = np.argwhere(trace == np.min(trace))[0, 0]
+            if (max_bin < min_bin):
                 left_bin = max_bin - 20
                 right_bin = min_bin + 20
             else:
@@ -117,16 +128,16 @@ class mySimulation(simulation.simulation):
         for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
 
             left_bin, right_bin = ext_bins[channel.get_id()]
-            trace = np.array( channel.get_trace() )
+            trace = np.array(channel.get_trace())
             try:
-                Vpp = np.max(trace[left_bin:right_bin])-np.min(trace[left_bin:right_bin])
+                Vpp = np.max(trace[left_bin:right_bin]) - np.min(trace[left_bin:right_bin])
             except:
                 Vpp = 0
-                #reject_event = True
+                # reject_event = True
             Vpps.append(Vpp)
 
-        factor = 1./(np.mean(Vpps)/2/self._Vrms)
-        #factor = 0
+        factor = 1. / (np.mean(Vpps) / 2 / self._Vrms)
+        # factor = 0
         mult_factors = factor * SNRs
         print(factor)
 
@@ -138,13 +149,13 @@ class mySimulation(simulation.simulation):
             for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
 
                 trace = original_traces[channel.get_id()][:] * factor
-                channel.set_trace( trace, sampling_rate = new_sampling_rate )
+                channel.set_trace(trace, sampling_rate=new_sampling_rate)
 
             min_freq = 100 * units.MHz
             max_freq = 750 * units.MHz
-            Vrms_ratio = ((max_freq-min_freq) / self._cfg['trigger']['bandwidth'])**2
+            Vrms_ratio = ((max_freq - min_freq) / self._cfg['trigger']['bandwidth']) ** 2
             # Adding noise AFTER the SNR calculation
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms*Vrms_ratio,
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms * Vrms_ratio,
                                          min_freq=min_freq,
                                          max_freq=max_freq,
                                          type='rayleigh')
@@ -157,9 +168,9 @@ class mySimulation(simulation.simulation):
 
             # Phased array with ARA-like power trigger
             has_triggered = triggerSimulator.run(self._evt, self._station, self._det,
-                                 threshold= 2.5 * self._Vrms,
+                                 threshold=2.5 * self._Vrms,
                                  triggered_channels=None,  # run trigger on all channels
-                                 secondary_channels=[0,1,3,4,6,7], # secondary channels
+                                 secondary_channels=[0, 1, 3, 4, 6, 7],  # secondary channels
                                  trigger_name='primary_and_secondary_phasing',
                                  set_not_triggered=(not self._station.has_triggered("simple_threshold")),
                                  ref_index=1.78)
@@ -172,6 +183,7 @@ class mySimulation(simulation.simulation):
             count_events()
             print(count_events.events)
             print(SNRtriggered)
+
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('inputfilename', type=str,
@@ -201,8 +213,8 @@ print("Triggered: ", SNRtriggered)
 
 output = {}
 output['total_events'] = count_events.events
-output['SNRs'] = list( SNRs )
-output['triggered'] = list( SNRtriggered )
+output['SNRs'] = list(SNRs)
+output['triggered'] = list(SNRtriggered)
 
 outputfile = args.outputSNR
 with open(outputfile, 'w+') as fout:
