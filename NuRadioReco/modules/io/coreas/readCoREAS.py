@@ -8,10 +8,10 @@ from radiotools import coordinatesystems as cstrafo
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import units
 import numpy as np
+from numpy.random import RandomState
 import logging
 import time
 import os
-
 
 
 class readCoREAS:
@@ -22,7 +22,7 @@ class readCoREAS:
         self.__t_per_event = 0
         self.logger = logging.getLogger('NuRadioReco.readCoREAS')
 
-    def begin(self, input_files, station_id, n_cores=10, max_distance=2 * units.km, seed=0):
+    def begin(self, input_files, station_id, n_cores=10, max_distance=2 * units.km, seed=None):
         """
         begin method
 
@@ -45,7 +45,8 @@ class readCoREAS:
         self.__n_cores = n_cores
         self.__max_distace = max_distance
         self.__current_input_file = 0
-        np.random.seed(seed)
+
+        self.__random_generator = np.random.RandomState(seed)
 
     @register_run()
     def run(self, detector, output_mode=0):
@@ -95,8 +96,8 @@ class readCoREAS:
             elif(output_mode == 1):
                 n_cores = self.__n_cores
 
-            theta = np.random.rand(n_cores) * 2 * np.pi
-            r = (np.random.rand(n_cores)) ** 0.5 * max_distance
+            theta = self.__random_generator.rand(n_cores) * 2 * np.pi
+            r = (self.__random_generator.rand(n_cores)) ** 0.5 * max_distance
             cores = np.array([r * np.cos(theta), r * np.sin(theta), np.zeros(n_cores)]).T
 
             zenith, azimuth, magnetic_field_vector = coreas.get_angles(corsika)
@@ -167,7 +168,7 @@ class readCoREAS:
                 evt.set_station(station)
                 sim_shower = coreas.make_sim_shower(corsika, observer, detector, self.__station_id)
                 evt.add_sim_shower(sim_shower)
-                rd_shower = NuRadioReco.framework.radio_shower.RadioShower([station.get_id()])
+                rd_shower = NuRadioReco.framework.radio_shower.RadioShower(station_ids=[station.get_id()])
                 evt.add_shower(rd_shower)
                 if(output_mode == 0):
                     self.__t += time.time() - t

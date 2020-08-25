@@ -2,8 +2,8 @@ from __future__ import print_function
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from NuRadioReco.utilities import units, fft
+from numpy.random import RandomState
 import logging
-
 
 
 class channelGenericNoiseAdder:
@@ -27,7 +27,7 @@ class channelGenericNoiseAdder:
         """
         amps = np.array(amps, dtype='complex')
         Np = (n_samples_time_domain - 1) // 2
-        phases = np.random.rand(Np) * 2 * np.pi
+        phases = self.__random_generator.rand(Np) * 2 * np.pi
         phases = np.cos(phases) + 1j * np.sin(phases)
         amps[1:Np + 1] *= phases  # Note that the last entry of the index slice is f[Np] !
 
@@ -45,7 +45,7 @@ class channelGenericNoiseAdder:
         """
         f = np.array(f, dtype='complex')
         Np = (len(f) - 1) // 2
-        phases = np.random.rand(Np) * 2 * np.pi
+        phases = self.__random_generator.rand(Np) * 2 * np.pi
         phases = np.cos(phases) + 1j * np.sin(phases)
         f[1:Np + 1] *= phases  # Note that the last entry of the index slice is f[Np] !
         f[-1:-1 - Np:-1] = np.conj(f[1:Np + 1])
@@ -141,7 +141,7 @@ class channelGenericNoiseAdder:
             ampl[selection] = amplitude * sigscale
         elif type == 'rayleigh':
             fsigma = amplitude * sigscale / np.sqrt(2.)
-            ampl[selection] = np.random.rayleigh(fsigma, nbinsactive)
+            ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
 #         elif type == 'white':
 # FIXME: amplitude normalization is not correct for 'white'
 #             ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
@@ -159,8 +159,9 @@ class channelGenericNoiseAdder:
         self.begin()
         self.logger = logging.getLogger('NuRadioReco.channelGenericNoiseAdder')
 
-    def begin(self, debug=False):
+    def begin(self, debug=False, seed=None):
         self.__debug = debug
+        self.__random_generator = np.random.RandomState(seed)
         if debug:
             self.logger.setLevel(logging.DEBUG)
 
@@ -185,8 +186,9 @@ class channelGenericNoiseAdder:
 
         detector
 
-        amplitude: float
+        amplitude: float or dict of floats
             desired voltage of noise as V_rms for the specified bandwidth
+            a dict can be used to specify a different amplitude per channel, the key is the channel_id
         min_freq: float
             Minimum frequency of passband for noise generation
         max_freq: float
@@ -212,11 +214,17 @@ class channelGenericNoiseAdder:
             trace = channel.get_trace()
             sampling_rate = channel.get_sampling_rate()
 
+            tmp_ampl = None
+            if(isinstance(amplitude, dict)):
+                tmp_ampl = amplitude[channel.get_id()]
+            else:
+                tmp_ampl = amplitude
+
             noise = self.bandlimited_noise(min_freq=min_freq,
                                           max_freq=max_freq,
                                           n_samples=trace.shape[0],
                                           sampling_rate=sampling_rate,
-                                          amplitude=amplitude,
+                                          amplitude=tmp_ampl,
                                           type=type,
                                           bandwidth=bandwidth)
 

@@ -47,21 +47,28 @@ thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulato
 
 main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
-phasing_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
+phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 30))
 
-diode_passband = (None, 200*units.MHz)
+diode_passband = (None, 200 * units.MHz)
 diodeSimulator = NuRadioReco.utilities.diodeSimulator.diodeSimulator(diode_passband)
+
 
 class mySimulation(simulation.simulation):
 
-    def _detector_simulation(self):
+    def _detector_simulation_filter_amp(self, evt, station, det):
+        channelBandPassFilter.run(evt, station, det, passband=[132 * units.MHz, 1150 * units.MHz],
+                                  filter_type='butter', order=8)
+        channelBandPassFilter.run(evt, station, det, passband=[0, 700 * units.MHz],
+                                  filter_type='butter', order=10)
+
+    def _detector_simulation_part2(self):
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
         # downsample trace to 3 ns
         new_sampling_rate = 3 * units.GHz
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
 
-        cut_times = get_window_around_maximum(self._station, diodeSimulator, ratio = 0.01)
+        cut_times = get_window_around_maximum(self._station, diodeSimulator, ratio=0.01)
 
         # Bool for checking the noise triggering rate
         check_only_noise = False
@@ -70,7 +77,7 @@ class mySimulation(simulation.simulation):
 
             for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
                 trace = channel.get_trace() * 0
-                channel.set_trace(trace, sampling_rate = new_sampling_rate)
+                channel.set_trace(trace, sampling_rate=new_sampling_rate)
 
         if self._is_simulate_noise():
             max_freq = 0.5 / self._dt
@@ -92,15 +99,16 @@ class mySimulation(simulation.simulation):
 
         # first run a simple threshold trigger
         triggerSimulator.run(self._evt, self._station, self._det,
-                             threshold_factor=3.9, # see envelope phased trigger module for explanation
+                             threshold_factor=3.9,  # see envelope phased trigger module for explanation
                              power_mean=power_mean,
                              power_std=power_std,
                              triggered_channels=None,  # run trigger on all channels
-                             trigger_name='envelope_phasing', # the name of the trigger
+                             trigger_name='envelope_phasing',  # the name of the trigger
                              phasing_angles=phasing_angles,
                              ref_index=1.75,
                              output_passband=diode_passband,
                              cut_times=cut_times)
+
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('--inputfilename', type=str,

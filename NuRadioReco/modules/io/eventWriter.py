@@ -67,7 +67,10 @@ class eventWriter:
         self.__header_written = False  # Remember if we still have to write the current file header
 
     @register_run()
-    def run(self, evt, det=None, mode='full'):
+    def run(self, evt, det=None, mode={'Channels': True,
+                                       'ElectricFields': True,
+                                       'SimChannels': True,
+                                       'SimElectricFields': True}):
         """
         writes NuRadioReco event into a file
 
@@ -77,16 +80,15 @@ class eventWriter:
         det: detector object
             If a detector object is passed, the detector description for the
             events is written in the file as well
-        mode: string
-            specifies the output mode:
-            * 'full' (default): the full event content is written to disk
-            * 'mini': only station traces are written to disc
-            * 'micro': no traces are written to disc
+        mode: dictionary
+            specifies what will saved into the *.nur output file
+            can contain the strings 
+            * 'Channels': if True channel traces of Stations will be saved
+            * 'ElectricFields': if True (reconstructed) electric field traces of Stations will be saved
+            * 'SimChannels': if True SimChannels of SimStations will be saved
+            * 'SimElectricFields': if True electric field traces of SimStations will be saved
         """
 
-        if(mode not in ['full', 'mini', 'micro']):
-            logger.error("output mode must be one of ['full', 'mini', 'micro'] but is {}".format(mode))
-            raise NotImplementedError
         self.__check_for_duplicate_ids(evt.get_run_number(), evt.get_id())
         if not self.__header_written:
             self.__write_fout_header()
