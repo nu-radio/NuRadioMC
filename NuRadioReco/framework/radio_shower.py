@@ -3,9 +3,10 @@ import pickle
 
 
 class RadioShower(NuRadioReco.framework.base_shower.BaseShower):
-    def __init__(self, station_ids=None):
+
+    def __init__(self, shower_id=0, station_ids=None):
         self.__station_ids = station_ids
-        super().__init__()
+        super().__init__(shower_id=shower_id)
 
     def get_station_ids(self):
         return self.__station_ids

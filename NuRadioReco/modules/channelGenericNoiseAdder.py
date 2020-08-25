@@ -6,7 +6,6 @@ from numpy.random import RandomState
 import logging
 
 
-
 class channelGenericNoiseAdder:
     """
     Module that generates noise in some generic fashion (not based on measured data), which can be added to data.
@@ -187,8 +186,9 @@ class channelGenericNoiseAdder:
 
         detector
 
-        amplitude: float
+        amplitude: float or dict of floats
             desired voltage of noise as V_rms for the specified bandwidth
+            a dict can be used to specify a different amplitude per channel, the key is the channel_id
         min_freq: float
             Minimum frequency of passband for noise generation
         max_freq: float
@@ -214,11 +214,17 @@ class channelGenericNoiseAdder:
             trace = channel.get_trace()
             sampling_rate = channel.get_sampling_rate()
 
+            tmp_ampl = None
+            if(isinstance(amplitude, dict)):
+                tmp_ampl = amplitude[channel.get_id()]
+            else:
+                tmp_ampl = amplitude
+
             noise = self.bandlimited_noise(min_freq=min_freq,
                                           max_freq=max_freq,
                                           n_samples=trace.shape[0],
                                           sampling_rate=sampling_rate,
-                                          amplitude=amplitude,
+                                          amplitude=tmp_ampl,
                                           type=type,
                                           bandwidth=bandwidth)
 
