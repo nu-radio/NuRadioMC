@@ -2,6 +2,7 @@ import numpy as np
 from scipy import signal
 import scipy.signal
 import logging
+import copy
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
@@ -13,6 +14,7 @@ class channelBandPassFilter:
     """
     Band pass filters the channels using different band-pass filters.
     """
+
     def __init__(self):
         self.__t = 0
         self.begin()
@@ -20,6 +22,26 @@ class channelBandPassFilter:
 
     def begin(self):
         pass
+
+    def get_filter_arguments(self, channel_id, passband, filter_type, order=2):
+            tmp_passband = None
+            if(isinstance(passband, dict)):
+                tmp_passband = passband[channel_id]
+            else:
+                tmp_passband = passband
+
+            tmp_order = None
+            if(isinstance(order, dict)):
+                tmp_order = order[channel_id]
+            else:
+                tmp_order = order
+
+            tmp_filter_type = None
+            if(isinstance(filter_type, dict)):
+                tmp_filter_type = filter_type[channel_id]
+            else:
+                tmp_filter_type = filter_type
+            return tmp_passband, tmp_order, tmp_filter_type
 
     @register_run()
     def run(self, evt, station, det, passband=[55 * units.MHz, 1000 * units.MHz],
@@ -32,17 +54,22 @@ class channelBandPassFilter:
 
         evt, station, det
             Event, Station, Detector
-        passband: list
+        passband: list or dict of lists
             passband[0]: lower boundary of filter, passband[1]: upper boundary of filter
-        filter_type: string
+            a dict can be used to specify a different bandwidth per channel, the key is the channel_id
+        filter_type: string or dict
             'rectangular': perfect straight line filter
             'butter': butterworth filter from scipy
             'butterabs': absolute of butterworth filter from scipy
             or any filter that is implemented in NuRadioReco.detector.filterresponse. In this case the
             passband parameter is ignored
             or 'FIR <type> <parameter>' - see below for FIR filter options
-        order: int (optional, default 2)
+            
+            a dict can be used to specify a different bandwidth per channel, the key is the channel_id
+        order: int (optional, default 2) or dict
             for a butterworth filter: specifies the order of the filter
+            
+            a dict can be used to specify a different bandwidth per channel, the key is the channel_id
 
         Added Jan-07-2018 by robert.lahmann@fau.de:
         FIR filter:
@@ -66,7 +93,8 @@ class channelBandPassFilter:
         """
 
         for channel in station.iter_channels():
-            self._apply_filter(channel, passband, filter_type, order, False)
+            tmp_passband, tmp_order, tmp_filter_type = self.get_filter_arguments(channel.get_id(), passband, filter_type, order)
+            self._apply_filter(channel, tmp_passband, tmp_filter_type, tmp_order, False)
 
     def get_filter(self, frequencies, station_id, channel_id, det, passband, filter_type, order=2):
         """
@@ -90,29 +118,30 @@ class channelBandPassFilter:
         Returns: array of complex floats
             the complex filter amplitudes
         """
-        if(filter_type == 'rectangular'):
+        tmp_passband, tmp_order, tmp_filter_type = self.get_filter_arguments(channel_id, passband, filter_type, order)
+        if(tmp_filter_type == 'rectangular'):
             f = np.ones_like(frequencies)
-            f[np.where(frequencies < passband[0])] = 0.
-            f[np.where(frequencies > passband[1])] = 0.
+            f[np.where(frequencies < tmp_passband[0])] = 0.
+            f[np.where(frequencies > tmp_passband[1])] = 0.
             return f
-        elif(filter_type == 'butter'):
+        elif(tmp_filter_type == 'butter'):
             f = np.zeros_like(frequencies, dtype=np.complex)
             mask = frequencies > 0
-            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
+            b, a = scipy.signal.butter(tmp_order, tmp_passband, 'bandpass', analog=True)
             w, h = scipy.signal.freqs(b, a, frequencies[mask])
             f[mask] = h
             return f
-        elif(filter_type == 'butterabs'):
+        elif(tmp_filter_type == 'butterabs'):
             f = np.zeros_like(frequencies, dtype=np.complex)
             mask = frequencies > 0
-            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
+            b, a = scipy.signal.butter(tmp_order, tmp_passband, 'bandpass', analog=True)
             w, h = scipy.signal.freqs(b, a, frequencies[mask])
             f[mask] = h
             return np.abs(f)
-        elif(filter_type.find('FIR') >= 0):
+        elif(tmp_filter_type.find('FIR') >= 0):
             raise NotImplementedError("FIR filter not yet implemented")
         else:
-            return filterresponse.get_filter_response(frequencies, filter_type)
+            return filterresponse.get_filter_response(frequencies, tmp_filter_type)
 
     def _apply_filter(self, channel, passband, filter_type, order, is_efield=False):
 #         print(f"apply_filter self {self}")

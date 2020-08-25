@@ -8,7 +8,8 @@ logger = logging.getLogger('Shower')
 
 class BaseShower:
 
-    def __init__(self):
+    def __init__(self, shower_id=0):
+        self._id = shower_id
         self._parameters = {}
 
     def __setitem__(self, key, value):
@@ -16,6 +17,9 @@ class BaseShower:
 
     def __getitem__(self, key):
         return self.get_parameter(key)
+
+    def get_id(self):
+        return self._id
 
     def get_parameter(self, key):
         if not isinstance(key, parameters.showerParameters):
@@ -36,10 +40,12 @@ class BaseShower:
         return key in self._parameters
 
     def serialize(self):
-        data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters)}
+        data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
+                '_id': self._id}
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
+        self._id = data['_id']
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'],
                                     parameters.showerParameters)

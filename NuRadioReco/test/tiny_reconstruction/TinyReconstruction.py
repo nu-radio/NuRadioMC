@@ -91,7 +91,7 @@ except:
     detector_file = os.path.join(dir_path,"../../examples/example_data/arianna_station_32.json")
 
 
-np.random.seed(1)
+
 det = detector.Detector(json_filename=detector_file) # detector file
 det.update(datetime.datetime(2018, 10, 1))
 
@@ -100,14 +100,14 @@ det.update(datetime.datetime(2018, 10, 1))
 # initialize all modules that are needed for processing
 # provide input parameters that are to remain constant during processung
 readCoREAS = NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS()
-readCoREAS.begin([input_file], station_id, n_cores=10, max_distance=None)
+readCoREAS.begin([input_file], station_id, n_cores=10, max_distance=None, seed=0)
 simulationSelector = NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector()
 simulationSelector.begin()
 efieldToVoltageConverter =  NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin(debug=False)
 hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-channelGenericNoiseAdder.begin()
+channelGenericNoiseAdder.begin(seed=1)
 triggerSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 triggerSimulator.begin()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()

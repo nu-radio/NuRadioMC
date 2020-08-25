@@ -18,8 +18,9 @@ class channelSignalReconstructor:
 
     """
 
-    def __init__(self):
+    def __init__(self, log_level=logging.WARNING):
         self.__t = 0
+        logger.setLevel(log_level)
         self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
         self.begin()
 
@@ -164,6 +165,12 @@ class channelSignalReconstructor:
             trace = channel.get_trace()
             h = np.abs(signal.hilbert(trace))
             max_amplitude = np.max(np.abs(trace))
+            logger.info(f"event {evt.get_run_number()}.{evt.get_id()} station {station.get_id()} channel {channel.get_id()} max amp = {max_amplitude:.6g} max amp env {h.max():.6g}")
+            if(logger.level >= logging.DEBUG):
+                tmp = ""
+                for amp in trace:
+                    tmp += f"{amp:.6g}, "
+                logger.debug(tmp)
             channel[chp.signal_time] = times[np.argmax(h)]
             max_amplitude_station = max(max_amplitude_station, max_amplitude)
             channel[chp.maximum_amplitude] = max_amplitude
@@ -174,7 +181,7 @@ class channelSignalReconstructor:
             channel[chp.SNR] = self.get_SNR(station.get_id(), channel, det,
                                             stored_noise=stored_noise, rms_stage=rms_stage)
 
-        station[stnp.channels_max_amplitude] = max_amplitude
+        station[stnp.channels_max_amplitude] = max_amplitude_station
 
         self.__t = time.time() - t
 
