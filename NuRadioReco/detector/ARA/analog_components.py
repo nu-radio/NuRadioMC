@@ -3,6 +3,7 @@ import os
 from NuRadioReco.utilities import units
 from scipy.interpolate import interp1d
 
+
 def load_system_response(path=os.path.dirname(os.path.realpath(__file__))):
     """
     Default file was imported from:
@@ -10,16 +11,16 @@ def load_system_response(path=os.path.dirname(os.path.realpath(__file__))):
 
     Parameters
     --------
-    frequencies: array
-        Frequencies for which the amp gain should be delivered
+    path: string
+        Path to the file containing the system response
     """
 
     data = np.loadtxt(os.path.join(path, "HardwareResponses/ARA_Electronics_TotalGain_TwoFilters.txt"),
-                                            skiprows=3,delimiter=',')
+                      skiprows=3, delimiter=',')
     default = {}
-    default['frequencies'] = data[:,0]*units.MHz
-    default['gain'] = data[:,1] #unitless
-    default['phase'] = data[:,2] * units.rad # rad
+    default['frequencies'] = data[:, 0] * units.MHz
+    default['gain'] = data[:, 1]  # unitless
+    default['phase'] = data[:, 2] * units.rad  # rad
 
     return default
 
@@ -27,8 +28,8 @@ def load_system_response(path=os.path.dirname(os.path.realpath(__file__))):
 system_response = {}
 system_response['default'] = load_system_response()
 
-def get_system_response(frequencies):
 
+def get_system_response(frequencies):
     orig_frequencies = system_response['default']['frequencies']
     phase = system_response['default']['phase']
     gain = system_response['default']['gain']
@@ -38,5 +39,5 @@ def get_system_response(frequencies):
 
     system = {}
     system['gain'] = interp_gain(frequencies)
-    system['phase'] =  np.exp(1j * interp_phase(frequencies))
+    system['phase'] = np.exp(1j * interp_phase(frequencies))
     return system
