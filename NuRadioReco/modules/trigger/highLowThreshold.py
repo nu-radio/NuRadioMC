@@ -112,10 +112,12 @@ class triggerSimulator:
 
         Parameters
         ----------
-        threshold_high: float
+        threshold_high: float or dict of floats
             the threshold voltage that needs to be crossed on a single channel on the high side
-        threshold_low: float
+            a dict can be used to specify a different threshold per channel where the key is the channel id
+        threshold_low: float or dict of floats
             the threshold voltage that needs to be crossed on a single channel on the low side
+            a dict can be used to specify a different threshold per channel where the key is the channel id
         high_low_window: float
            time window in which a high+low crossing needs to occur to trigger a channel
         coinc_window: float
@@ -134,10 +136,6 @@ class triggerSimulator:
 
         """
         t = time.time()
-        if threshold_low >= threshold_high:
-            logger.error("Impossible trigger configuration, high {0} low {1}.".format(threshold_high, threshold_low))
-            raise NotImplementedError
-
         sampling_rate = station.get_channel(0).get_sampling_rate()
         channels_that_passed_trigger = []
         if not set_not_triggered:
@@ -158,7 +156,15 @@ class triggerSimulator:
                 if channel.get_trace_start_time() != channel_trace_start_time:
                     logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
                 trace = channel.get_trace()
-                triggerd_bins = get_high_low_triggers(trace, threshold_high, threshold_low,
+                if(isinstance(threshold_high, dict)):
+                    threshold_high_tmp = threshold_high[channel_id]
+                else:
+                    threshold_high_tmp = threshold_high
+                if(isinstance(threshold_low, dict)):
+                    threshold_low_tmp = threshold_low[channel_id]
+                else:
+                    threshold_low_tmp = threshold_low
+                triggerd_bins = get_high_low_triggers(trace, threshold_high_tmp, threshold_low_tmp,
                                                       high_low_window, dt)
                 if True in triggerd_bins:
                     channels_that_passed_trigger.append(channel.get_id())
@@ -186,8 +192,8 @@ class triggerSimulator:
             trigger.set_trigger_time(0)
         else:
             trigger.set_triggered(True)
-            trigger.set_trigger_time(triggered_times.min()+channel_trace_start_time)
-            trigger.set_trigger_times(triggered_times+channel_trace_start_time)
+            trigger.set_trigger_time(triggered_times.min() + channel_trace_start_time)
+            trigger.set_trigger_times(triggered_times + channel_trace_start_time)
             logger.info("Station has passed trigger, trigger time is {:.1f} ns".format(
                 trigger.get_trigger_time() / units.ns))
 
