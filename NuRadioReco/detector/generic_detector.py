@@ -1,13 +1,10 @@
-import os
-import astropy.time
 import logging
-from tinydb import TinyDB, Query
+from tinydb import Query
 from tinydb_serialization import SerializationMiddleware
-from tinydb.storages import MemoryStorage
-from tinydb_serialization import Serializer
 import NuRadioReco.detector.detector
 from NuRadioReco.detector.detector import DateTimeSerializer
 import copy
+
 logger = logging.getLogger('NuRadioReco.genericDetector')
 
 serialization = SerializationMiddleware()
@@ -74,21 +71,25 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         self.__run_number = None
         self.__event_id = None
         if not self.has_station(self.__default_station_id):
-            raise ValueError('The default station {} was not found in the detector description'.format(self.__default_station_id))
+            raise ValueError(
+                'The default station {} was not found in the detector description'.format(self.__default_station_id))
 
         Station = Query()
         self.__default_station = self._stations.get((Station.station_id == self.__default_station_id))
 
         if default_channel is not None:
             Channel = Query()
-            self.__default_channel = self._channels.get((Channel.station_id == default_station) & (Channel.channel_id == default_channel))
+            self.__default_channel = self._channels.get(
+                (Channel.station_id == default_station) & (Channel.channel_id == default_channel))
             if self.__default_channel is None:
-                raise ValueError('The default channel {} of station {} was not found in the detector description'.format(default_channel, self.__default_station_id))
+                raise ValueError(
+                    'The default channel {} of station {} was not found in the detector description'.format(
+                        default_channel, self.__default_station_id))
         else:
             self.__default_channel = None
 
     def _get_station(self, station_id):
-        if(station_id not in self._buffered_stations.keys()):
+        if station_id not in self._buffered_stations.keys():
             self._buffer(station_id)
         res = copy.copy(self._buffered_stations[station_id])
         if self.__run_number is not None and self.__event_id is not None:
@@ -101,7 +102,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
     def _query_station(self, station_id, raw=False):
         Station = Query()
         res = self._stations.get((Station.station_id == station_id))
-        if(res is None and not raw):
+        if res is None and not raw:
             logger.error("query for station {} returned no results".format(station_id))
             raise LookupError("query for station {} returned no results".format(station_id))
         if not raw:
@@ -151,7 +152,8 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             default station
         """
         if station_dict['station_id'] in self._buffered_stations.keys():
-            logger.warning('Station with ID {} already exists in buffer. Cannot add station with same ID'.format(station_dict['station_id']))
+            logger.warning('Station with ID {} already exists in buffer. Cannot add station with same ID'.format(
+                station_dict['station_id']))
             return
 
         for key in self.__default_station.keys():
@@ -211,7 +213,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         changes = []
         for change in self.__station_changes_for_event:
             if (change['run_number'] == run_number and
-            change['event_id'] == event_id):
+                    change['event_id'] == event_id):
                 if station_id is None or change['station_id'] == station_id:
                     changes.append(change)
         return changes
@@ -307,7 +309,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             return True
         Station = Query()
         res = self._stations.get(Station.station_id == station_id)
-        return res != None
+        return res is None
 
     # overwrite update function to do nothing
     def update(self, time):

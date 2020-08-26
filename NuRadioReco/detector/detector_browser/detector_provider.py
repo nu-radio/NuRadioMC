@@ -44,6 +44,7 @@ class DetectorProvider(object):
         default_channel: int or None
             ID of the channel to be set as default channel
         """
+        import NuRadioReco.detector.generic_detector
         self.__detector = NuRadioReco.detector.generic_detector.GenericDetector.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
         self.__detector.__init__(filename, default_station, default_channel)
 
