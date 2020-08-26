@@ -1,10 +1,11 @@
 import dash_html_components as html
 import numbers
 
+
 def get_point_index(event_ids, selection):
     index = {}
     for i, event_id in enumerate(event_ids):
-        if(not isinstance(event_id, basestring)):
+        if(not isinstance(event_id, str)):
             event_id = str(event_id)
         index[event_id] = i
     event_index = []
@@ -12,6 +13,7 @@ def get_point_index(event_ids, selection):
         if event_id in index.keys():
             event_index.append(index[event_id])
     return event_index
+
 
 def get_properties_divs(obj, props_dic):
     props = []
@@ -34,7 +36,7 @@ def get_properties_divs(obj, props_dic):
                     v = obj.get_parameter(display_prop['param'])/display_prop['unit']
                 else:
                     v = obj.get_parameter(display_prop['param'])
-                if isinstance(v,float) or isinstance(v, int):
+                if isinstance(v, float) or isinstance(v, int):
                     prop = html.Div('{:.2f}'.format(v), className='custom-table-td custom-table-td-last')
                 else:
                     prop = html.Div('{}'.format(v), className='custom-table-td custom-table-td-last')

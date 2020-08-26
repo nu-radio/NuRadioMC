@@ -1,21 +1,17 @@
-import dash
 import json
 import plotly
-from NuRadioReco.utilities import units
-from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
 from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
-import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output, State
-from app import app
-import dataprovider
-provider = dataprovider.DataProvider()
+from NuRadioReco.eventbrowser.app import app
+import NuRadioReco.eventbrowser.dataprovider
+provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 
 layout = [
     dcc.Graph(id='cr-skyplot'),
 ]
+
 
 @app.callback(Output('cr-skyplot', 'figure'),
               [Input('filename', 'value'),
@@ -45,7 +41,7 @@ def cosmic_ray_skyplot(filename, trigger, jcurrent_selection, btn, station_id, j
                 color='blue'
             )
         ))
-    if current_selection != []:
+    if current_selection:
         for trace in traces:
             trace['selectedpoints'] = current_selection
     return {
