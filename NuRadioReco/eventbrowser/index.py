@@ -3,27 +3,19 @@ from dash.dependencies import Input, Output, State
 import dash_core_components as dcc
 import dash_html_components as html
 import dash
-import plotly.graph_objs as go
 import json
 import numpy as np
 import uuid
 import glob
-from NuRadioReco.utilities import units
-from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import channelParameters as chp
-from flask import Flask, send_from_directory
-from app import app
-from apps import overview
-from apps import traces
-from apps import cosmic_rays
-from apps import simulation
-from apps.common import get_point_index
-import apps.simulation
+from NuRadioReco.eventbrowser.app import app
+from NuRadioReco.eventbrowser.apps import overview
+from NuRadioReco.eventbrowser.apps import traces
+from NuRadioReco.eventbrowser.apps import cosmic_rays
+from NuRadioReco.eventbrowser.apps import simulation
 import os
 import argparse
-import dataprovider
+import NuRadioReco.eventbrowser.dataprovider
 import logging
-import datetime
 import webbrowser
 from NuRadioReco.modules.base import module
 logger = module.setup_logger(level=logging.INFO)
@@ -42,7 +34,7 @@ else:
 if parsed_args.open_window:
     webbrowser.open('http://127.0.0.1:{}/'.format(parsed_args.port))
 
-provider = dataprovider.DataProvider()
+provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 
 
 app.title = 'NuRadioViewer'
@@ -58,7 +50,7 @@ app.layout = html.Div([
         html.Div([
             html.Div([
                 html.Div([
-                html.Div('File location:', className='input-group-text')
+                    html.Div('File location:', className='input-group-text')
                 ], className='input-group-addon'),
                 dcc.Input(id='datafolder', placeholder='filename', type='text', value=data_folder, className='form-control')
                 ], className='input-group'),
@@ -68,7 +60,7 @@ app.layout = html.Div([
                              multi=False,
                              value=starting_filename,
                              className='custom-dropdown'),
-                 html.Div([
+                html.Div([
                     html.Button('open file', id='btn-open-file', className='btn btn-default')
                     ], className='input-group-btn'),
             ], className='input-group'),
@@ -79,11 +71,11 @@ app.layout = html.Div([
                             ],
                             id='btn-previous-event',
                             className='btn btn-primary',
-                            n_clicks_timestamp = 0
+                            n_clicks_timestamp=0
                         ),
                         html.Button(
-                            id = 'event-number-display',
-                            children = '''''',
+                            id='event-number-display',
+                            children='''''',
                             className='btn btn-primary'
                         ),
                         html.Button([
@@ -103,25 +95,26 @@ app.layout = html.Div([
                         step=1,
                         value=0,
                         marks={}
-                    ),
+                        ),
                 ],
-                style={
-                'padding': '10px 30px 20px',
-                'overflow': 'hidden',
-                'flex': '1'}
+                    style={
+                        'padding': '10px 30px 20px',
+                        'overflow': 'hidden',
+                        'flex': '1'
+                    }
                 ),
                 html.Div([
                     dcc.Dropdown(
                         id='station-id-dropdown',
-                        options = [],
+                        options=[],
                         multi=False
                     )
-                ],
-                style={'flex': 'none', 'padding': '10px', 'min-width': '200px'})
+                    ],
+                    style={'flex': 'none', 'padding': '10px', 'min-width': '200px'})
             ],
-            style={
-            'display': 'flex'
-            })
+                style={
+                    'display': 'flex'
+                })
         ], style={'flex': '7'}),
         html.Div([
             html.Div([
@@ -155,9 +148,10 @@ app.layout = html.Div([
     html.Div('', id='content')
 ])
 
+
 @app.callback(
-Output('content', 'children'),
-[Input('content-selector', 'value')]
+    Output('content', 'children'),
+    [Input('content-selector', 'value')]
 )
 def get_page_content(selection):
     if selection == 'summary':
@@ -170,15 +164,16 @@ def get_page_content(selection):
         return [cosmic_rays.layout]
     return []
 
+
 # next/previous buttons
 @app.callback(
-Output('event-counter-slider', 'value'),
-[Input('btn-next-event', 'n_clicks_timestamp'),
-Input('btn-previous-event', 'n_clicks_timestamp'),
-Input('event-click-coordinator', 'children'),
-Input('filename', 'value')],
-[State('event-counter-slider', 'value'),
-State('user_id', 'children')]
+    Output('event-counter-slider', 'value'),
+    [Input('btn-next-event', 'n_clicks_timestamp'),
+        Input('btn-previous-event', 'n_clicks_timestamp'),
+        Input('event-click-coordinator', 'children'),
+        Input('filename', 'value')],
+    [State('event-counter-slider', 'value'),
+        State('user_id', 'children')]
 )
 def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_click_info, filename, i_event, juser_id):
     context = dash.callback_context
@@ -203,20 +198,21 @@ def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_
 
             number_of_events = provider.get_arianna_io(user_id, filename).get_n_events()
             if number_of_events == i_event + 1:
-                return number_of_events -1
+                return number_of_events - 1
             else:
                 return i_event + 1
 
 
 @app.callback(
-Output('event-number-display', 'children'),
-[Input('filename', 'value'),
-Input('event-counter-slider', 'value')]
+    Output('event-number-display', 'children'),
+    [Input('filename', 'value'),
+        Input('event-counter-slider', 'value')]
 )
 def set_event_number_display(filename, event_number):
     if filename is None:
         return 'No file selected'
     return 'Event {}'.format(event_number)
+
 
 @app.callback(
     Output('event-counter-slider', 'max'),
@@ -230,10 +226,11 @@ def update_slider_options(filename, juser_id):
     number_of_events = ariio.get_n_events()
     return number_of_events - 1
 
+
 @app.callback(
-Output('event-counter-slider', 'marks'),
-[Input('filename', 'value')],
-[State('user_id', 'children')]
+    Output('event-counter-slider', 'marks'),
+    [Input('filename', 'value')],
+    [State('user_id', 'children')]
 )
 def update_slider_marks(filename, juser_id):
     if filename is None:
@@ -245,7 +242,7 @@ def update_slider_marks(filename, juser_id):
     marks = {}
     for i in range(0, n_events, step_size):
         marks[i] = str(i)
-    if n_events%step_size != 0:
+    if n_events % step_size != 0:
         marks[n_events] = str(n_events)
     return marks
 
@@ -255,7 +252,7 @@ def update_slider_marks(filename, juser_id):
               [State('user_id', 'children')])
 def set_uuid(pathname, juser_id):
     user_id = json.loads(juser_id)
-    if(user_id is None):
+    if user_id is None:
         user_id = uuid.uuid4().hex
     return json.dumps(user_id)
 
@@ -263,14 +260,14 @@ def set_uuid(pathname, juser_id):
 @app.callback(Output('filename', 'options'),
               [Input('datafolder', 'value')])
 def set_filename_dropdown(folder):
-    return [{'label': l.split('/')[-1], 'value': l} for l in sorted(glob.glob(os.path.join(folder, '*.nur*')))]
+    return [{'label': ll.split('/')[-1], 'value': ll} for ll in sorted(glob.glob(os.path.join(folder, '*.nur*')))]
 
 
-
-@app.callback(Output('station-id-dropdown', 'options'),
-            [Input('filename', 'value'),
-            Input('event-counter-slider', 'value')],
-            [State('user_id', 'children')])
+@app.callback(
+    Output('station-id-dropdown', 'options'),
+    [Input('filename', 'value'),
+        Input('event-counter-slider', 'value')],
+    [State('user_id', 'children')])
 def get_station_dropdown_options(filename, i_event, juser_id):
     if filename is None:
         return []
@@ -285,10 +282,12 @@ def get_station_dropdown_options(filename, i_event, juser_id):
         })
     return dropdown_options
 
-@app.callback(Output('station-id-dropdown', 'value'),
-            [Input('filename', 'value'),
-            Input('event-counter-slider', 'value')],
-            [State('user_id', 'children')])
+
+@app.callback(
+    Output('station-id-dropdown', 'value'),
+    [Input('filename', 'value'),
+        Input('event-counter-slider', 'value')],
+    [State('user_id', 'children')])
 def set_to_first_station_in_event(filename, event_i, juser_id):
     if filename is None:
         return None
@@ -297,6 +296,7 @@ def set_to_first_station_in_event(filename, event_i, juser_id):
     event = ariio.get_event_i(event_i)
     for station in event.get_stations():
         return station.get_id()
+
 
 # update event ids list from plot selection
 @app.callback(Output('event-ids', 'children'),
@@ -320,18 +320,21 @@ def set_event_selection(selectedData1, selectedData2, selectedData3, selectedDat
                 tcurrent_selection = event_ids
     return json.dumps(tcurrent_selection)
 
-def add_click_info(json_object, event_number_array, times_array):
-    object = json.loads(json_object)
-    if object is not None:
-        event_number_array.append(object['event_i'])
-        times_array.append(object['time'])
 
-#finds out which one of the plots was clicked last (i.e. which one triggered the event update)
-@app.callback(Output('event-click-coordinator', 'children'),
-            [Input('cr-polarization-zenith', 'clickData'),
-            Input('cr-skyplot', 'clickData'),
-            Input('cr-xcorrelation', 'clickData'),
-            Input('cr-xcorrelation-amplitude', 'clickData')])
+def add_click_info(json_object, event_number_array, times_array):
+    loaded_object = json.loads(json_object)
+    if loaded_object is not None:
+        event_number_array.append(loaded_object['event_i'])
+        times_array.append(loaded_object['time'])
+
+
+# finds out which one of the plots was clicked last (i.e. which one triggered the event update)
+@app.callback(
+    Output('event-click-coordinator', 'children'),
+    [Input('cr-polarization-zenith', 'clickData'),
+        Input('cr-skyplot', 'clickData'),
+        Input('cr-xcorrelation', 'clickData'),
+        Input('cr-xcorrelation-amplitude', 'clickData')])
 def coordinate_event_click(cr_polarization_zenith_click, cr_skyplot_click, cr_xcorrelation_click, cr_xcorrelation_amplitude_click):
     context = dash.callback_context
     if context.triggered[0]['value'] is None:
@@ -340,10 +343,12 @@ def coordinate_event_click(cr_polarization_zenith_click, cr_skyplot_click, cr_xc
         'event_i': context.triggered[0]['value']['points'][0]['customdata'],
     })
 
-@app.callback(Output('event-info-run', 'children'),
-            [Input('event-counter-slider', 'value'),
-            Input('filename', 'value')],
-            [State('user_id', 'children')])
+
+@app.callback(
+    Output('event-info-run', 'children'),
+    [Input('event-counter-slider', 'value'),
+        Input('filename', 'value')],
+    [State('user_id', 'children')])
 def update_event_info_run(event_i, filename, juser_id):
     if filename is None:
         return ""
@@ -352,10 +357,12 @@ def update_event_info_run(event_i, filename, juser_id):
     evt = ariio.get_event_i(event_i)
     return evt.get_run_number()
 
-@app.callback(Output('event-info-id', 'children'),
-            [Input('event-counter-slider', 'value'),
-            Input('filename', 'value')],
-            [State('user_id', 'children')])
+
+@app.callback(
+    Output('event-info-id', 'children'),
+    [Input('event-counter-slider', 'value'),
+        Input('filename', 'value')],
+    [State('user_id', 'children')])
 def update_event_info_id(event_i, filename, juser_id):
     if filename is None:
         return ""
@@ -364,11 +371,13 @@ def update_event_info_id(event_i, filename, juser_id):
     evt = ariio.get_event_i(event_i)
     return evt.get_id()
 
-@app.callback(Output('event-info-time', 'children'),
-            [Input('event-counter-slider', 'value'),
-            Input('filename', 'value'),
-            Input('station-id-dropdown', 'value')],
-            [State('user_id', 'children')])
+
+@app.callback(
+    Output('event-info-time', 'children'),
+    [Input('event-counter-slider', 'value'),
+        Input('filename', 'value'),
+        Input('station-id-dropdown', 'value')],
+    [State('user_id', 'children')])
 def update_event_info_time(event_i, filename, station_id, juser_id):
     if filename is None or station_id is None:
         return ""
@@ -378,6 +387,7 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
     if evt.get_station(station_id).get_station_time() is None:
         return ''
     return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_station(station_id).get_station_time().datetime)
+
 
 if __name__ == '__main__':
     if int(dash.__version__.split('.')[0]) <= 1:
