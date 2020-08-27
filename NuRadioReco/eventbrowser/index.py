@@ -18,11 +18,13 @@ import NuRadioReco.eventbrowser.dataprovider
 import logging
 import webbrowser
 from NuRadioReco.modules.base import module
+
 logger = module.setup_logger(level=logging.INFO)
 
 argparser = argparse.ArgumentParser(description="Starts the Event Display, which then can be accessed via a webbrowser")
 argparser.add_argument('file_location', type=str, help="Path of folder or filename.")
-argparser.add_argument('--open-window', const=True, default=False, action='store_const', help="Open the event display in a new browser tab on startup")
+argparser.add_argument('--open-window', const=True, default=False, action='store_const',
+                       help="Open the event display in a new browser tab on startup")
 argparser.add_argument('--port', default=8080, help="Specify the port the event display will run on")
 
 parsed_args = argparser.parse_args()
@@ -36,7 +38,6 @@ if parsed_args.open_window:
 
 provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 
-
 app.title = 'NuRadioViewer'
 
 app.layout = html.Div([
@@ -44,7 +45,7 @@ app.layout = html.Div([
     html.Div(id='event-click-coordinator', children=json.dumps(None), style={'display': 'none'}),
     html.Div(id='user_id', style={'display': 'none'},
              children=json.dumps(None)),
-    html.Div(id='event-ids',  style={'display': 'none'},
+    html.Div(id='event-ids', style={'display': 'none'},
              children=json.dumps([])),
     html.Div([
         html.Div([
@@ -52,8 +53,9 @@ app.layout = html.Div([
                 html.Div([
                     html.Div('File location:', className='input-group-text')
                 ], className='input-group-addon'),
-                dcc.Input(id='datafolder', placeholder='filename', type='text', value=data_folder, className='form-control')
-                ], className='input-group'),
+                dcc.Input(id='datafolder', placeholder='filename', type='text', value=data_folder,
+                          className='form-control')
+            ], className='input-group'),
             html.Div([
                 dcc.Dropdown(id='filename',
                              options=[],
@@ -62,59 +64,65 @@ app.layout = html.Div([
                              className='custom-dropdown'),
                 html.Div([
                     html.Button('open file', id='btn-open-file', className='btn btn-default')
-                    ], className='input-group-btn'),
+                ], className='input-group-btn'),
             ], className='input-group'),
-            html.Div([
-                html.Div([
-                        html.Button([
-                                html.Div(className='icon-arrow-left')
-                            ],
-                            id='btn-previous-event',
-                            className='btn btn-primary',
-                            n_clicks_timestamp=0
-                        ),
-                        html.Button(
-                            id='event-number-display',
-                            children='''''',
-                            className='btn btn-primary'
-                        ),
-                        html.Button([
-                                html.Div(className='icon-arrow-right')
-                            ],
-                            id='btn-next-event',
-                            className='btn btn-primary',
-                            n_clicks_timestamp=0
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.Button(
+                                [
+                                    html.Div(className='icon-arrow-left')
+                                ],
+                                id='btn-previous-event',
+                                className='btn btn-primary',
+                                n_clicks_timestamp=0
+                            ),
+                            html.Button(
+                                id='event-number-display',
+                                children='''''',
+                                className='btn btn-primary'
+                            ),
+                            html.Button(
+                                [
+                                    html.Div(className='icon-arrow-right')
+                                ],
+                                id='btn-next-event',
+                                className='btn btn-primary',
+                                n_clicks_timestamp=0
                             )
-                    ],
-                    className='btn-group',
-                    style={'margin': '10px'}
+                        ],
+                        className='btn-group',
+                        style={'margin': '10px'}
                     ),
-                html.Div([
-                     dcc.Slider(
-                        id='event-counter-slider',
-                        step=1,
-                        value=0,
-                        marks={}
-                        ),
-                ],
-                    style={
-                        'padding': '10px 30px 20px',
-                        'overflow': 'hidden',
-                        'flex': '1'
-                    }
-                ),
-                html.Div([
-                    dcc.Dropdown(
-                        id='station-id-dropdown',
-                        options=[],
-                        multi=False
-                    )
+                    html.Div(
+                        [
+                            dcc.Slider(
+                                id='event-counter-slider',
+                                step=1,
+                                value=0,
+                                marks={}
+                            ),
+                        ],
+                        style={
+                            'padding': '10px 30px 20px',
+                            'overflow': 'hidden',
+                            'flex': '1'
+                        }
+                    ),
+                    html.Div([
+                        dcc.Dropdown(
+                            id='station-id-dropdown',
+                            options=[],
+                            multi=False
+                        )
                     ],
-                    style={'flex': 'none', 'padding': '10px', 'min-width': '200px'})
-            ],
+                        style={'flex': 'none', 'padding': '10px', 'min-width': '200px'})
+                ],
                 style={
                     'display': 'flex'
-                })
+                }
+            )
         ], style={'flex': '7'}),
         html.Div([
             html.Div([
@@ -169,13 +177,14 @@ def get_page_content(selection):
 @app.callback(
     Output('event-counter-slider', 'value'),
     [Input('btn-next-event', 'n_clicks_timestamp'),
-        Input('btn-previous-event', 'n_clicks_timestamp'),
-        Input('event-click-coordinator', 'children'),
-        Input('filename', 'value')],
+     Input('btn-previous-event', 'n_clicks_timestamp'),
+     Input('event-click-coordinator', 'children'),
+     Input('filename', 'value')],
     [State('event-counter-slider', 'value'),
-        State('user_id', 'children')]
+     State('user_id', 'children')]
 )
-def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_click_info, filename, i_event, juser_id):
+def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_click_info, filename, i_event,
+                     juser_id):
     context = dash.callback_context
     if filename is None:
         return 0
@@ -206,7 +215,7 @@ def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, j_plot_
 @app.callback(
     Output('event-number-display', 'children'),
     [Input('filename', 'value'),
-        Input('event-counter-slider', 'value')]
+     Input('event-counter-slider', 'value')]
 )
 def set_event_number_display(filename, event_number):
     if filename is None:
@@ -266,7 +275,7 @@ def set_filename_dropdown(folder):
 @app.callback(
     Output('station-id-dropdown', 'options'),
     [Input('filename', 'value'),
-        Input('event-counter-slider', 'value')],
+     Input('event-counter-slider', 'value')],
     [State('user_id', 'children')])
 def get_station_dropdown_options(filename, i_event, juser_id):
     if filename is None:
@@ -286,7 +295,7 @@ def get_station_dropdown_options(filename, i_event, juser_id):
 @app.callback(
     Output('station-id-dropdown', 'value'),
     [Input('filename', 'value'),
-        Input('event-counter-slider', 'value')],
+     Input('event-counter-slider', 'value')],
     [State('user_id', 'children')])
 def set_to_first_station_in_event(filename, event_i, juser_id):
     if filename is None:
@@ -309,7 +318,8 @@ def set_to_first_station_in_event(filename, event_i, juser_id):
 def set_event_selection(selectedData1, selectedData2, selectedData3, selectedData4, selectedData5, jcurrent_selection):
     current_selection = json.loads(jcurrent_selection)
     tcurrent_selection = []
-    for i, selection in enumerate([selectedData1, selectedData2, selectedData3, selectedData4, selectedData5]):  # check which selection has fired the callback
+    for i, selection in enumerate([selectedData1, selectedData2, selectedData3, selectedData4,
+                                   selectedData5]):  # check which selection has fired the callback
         if selection is not None:
             event_ids = []
             for x in selection['points']:
@@ -332,10 +342,11 @@ def add_click_info(json_object, event_number_array, times_array):
 @app.callback(
     Output('event-click-coordinator', 'children'),
     [Input('cr-polarization-zenith', 'clickData'),
-        Input('cr-skyplot', 'clickData'),
-        Input('cr-xcorrelation', 'clickData'),
-        Input('cr-xcorrelation-amplitude', 'clickData')])
-def coordinate_event_click(cr_polarization_zenith_click, cr_skyplot_click, cr_xcorrelation_click, cr_xcorrelation_amplitude_click):
+     Input('cr-skyplot', 'clickData'),
+     Input('cr-xcorrelation', 'clickData'),
+     Input('cr-xcorrelation-amplitude', 'clickData')])
+def coordinate_event_click(cr_polarization_zenith_click, cr_skyplot_click, cr_xcorrelation_click,
+                           cr_xcorrelation_amplitude_click):
     context = dash.callback_context
     if context.triggered[0]['value'] is None:
         return None
@@ -347,7 +358,7 @@ def coordinate_event_click(cr_polarization_zenith_click, cr_skyplot_click, cr_xc
 @app.callback(
     Output('event-info-run', 'children'),
     [Input('event-counter-slider', 'value'),
-        Input('filename', 'value')],
+     Input('filename', 'value')],
     [State('user_id', 'children')])
 def update_event_info_run(event_i, filename, juser_id):
     if filename is None:
@@ -361,7 +372,7 @@ def update_event_info_run(event_i, filename, juser_id):
 @app.callback(
     Output('event-info-id', 'children'),
     [Input('event-counter-slider', 'value'),
-        Input('filename', 'value')],
+     Input('filename', 'value')],
     [State('user_id', 'children')])
 def update_event_info_id(event_i, filename, juser_id):
     if filename is None:
@@ -375,8 +386,8 @@ def update_event_info_id(event_i, filename, juser_id):
 @app.callback(
     Output('event-info-time', 'children'),
     [Input('event-counter-slider', 'value'),
-        Input('filename', 'value'),
-        Input('station-id-dropdown', 'value')],
+     Input('filename', 'value'),
+     Input('station-id-dropdown', 'value')],
     [State('user_id', 'children')])
 def update_event_info_time(event_i, filename, station_id, juser_id):
     if filename is None or station_id is None:
@@ -392,5 +403,7 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
 if __name__ == '__main__':
     if int(dash.__version__.split('.')[0]) <= 1:
         if int(dash.__version__.split('.')[1]) < 0:
-            print('WARNING: Dash version 0.39.0 or newer is required, you are running version {}. Please update.'.format(dash.__version__))
+            print(
+                'WARNING: Dash version 0.39.0 or newer is required, you are running version {}. Please update.'.format(
+                    dash.__version__))
     app.run_server(debug=False, port=parsed_args.port)

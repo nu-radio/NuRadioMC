@@ -240,8 +240,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
             ), i + 1, 1)
             template_spectrum = fft.time2freq(yy, channel.get_sampling_rate())
             template_freqs = np.fft.rfftfreq(len(yy), dt)
-            template_freq_mask = (template_freqs > channel.get_frequencies()[0]) & (
-                    template_freqs < (channel.get_frequencies()[-1]))
+            template_freq_mask = (template_freqs > channel.get_frequencies()[0]) & (template_freqs < (channel.get_frequencies()[-1]))
             fig.append_trace(plotly.graph_objs.Scatter(
                 x=template_freqs[template_freq_mask] / units.MHz,
                 y=np.abs(template_spectrum)[template_freq_mask] / units.mV,
@@ -301,8 +300,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
             ), i + 1, 1)
             template_spectrum = fft.time2freq(yy, channel.get_sampling_rate())
             template_freqs = np.fft.rfftfreq(len(yy), dt)
-            template_freq_mask = (template_freqs > channel.get_frequencies()[0]) & (
-                    template_freqs < (channel.get_frequencies()[-1]))
+            template_freq_mask = (template_freqs > channel.get_frequencies()[0]) & (template_freqs < (channel.get_frequencies()[-1]))
             fig.append_trace(plotly.graph_objs.Scatter(
                 x=template_freqs[template_freq_mask] / units.MHz,
                 y=np.abs(template_spectrum)[template_freq_mask] / units.mV,
