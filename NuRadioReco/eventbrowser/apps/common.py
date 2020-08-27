@@ -33,7 +33,7 @@ def get_properties_divs(obj, props_dic):
                 prop = html.Div(dict_entries, className='custom-table-td')
             else:
                 if display_prop['unit'] is not None:
-                    v = obj.get_parameter(display_prop['param'])/display_prop['unit']
+                    v = obj.get_parameter(display_prop['param']) / display_prop['unit']
                 else:
                     v = obj.get_parameter(display_prop['param'])
                 if isinstance(v, float) or isinstance(v, int):

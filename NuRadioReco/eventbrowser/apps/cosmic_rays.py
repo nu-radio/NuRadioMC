@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function  # , unicode_literals
 import dash_html_components as html
 import NuRadioReco.eventbrowser.dataprovider
-from NuRadioReco.eventbrowser.apps.common import get_point_index
 import NuRadioReco.eventbrowser.apps.cosmic_ray_plots.cosmic_ray_skyplot
 import NuRadioReco.eventbrowser.apps.cosmic_ray_plots.cosmic_ray_polarization_zenith
 import logging
