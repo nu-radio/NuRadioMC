@@ -12,8 +12,8 @@ class RadioShower(NuRadioReco.framework.base_shower.BaseShower):
         return self.__station_ids
 
     def has_station_ids(self, ids):
-        for id in ids:
-            if id not in self.__station_ids:
+        for station_id in ids:
+            if station_id not in self.__station_ids:
                 return False
         return True
 

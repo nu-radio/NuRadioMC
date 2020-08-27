@@ -6,12 +6,14 @@ import NuRadioReco.framework.parameters as parameters
 import datetime
 import astropy.time
 import NuRadioReco.framework.parameter_serialization
+
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
 import logging
 import collections
+
 logger = logging.getLogger('BaseStation')
 
 
@@ -83,19 +85,6 @@ class BaseStation():
     def get_station_time(self):
         return self._station_time
 
-#     def get_trace(self):
-#         return self._time_trace
-#
-#     def set_trace(self, trace, sampling_rate):
-#         self._time_trace = trace
-#         self._sampling_rate = sampling_rate
-#
-#     def get_sampling_rate(self):
-#         return self._sampling_rate
-#
-#     def get_times(self):
-#         return np.arange(0, len(self._time_trace) / self._sampling_rate, 1. / self._sampling_rate)
-
     def get_id(self):
         return self._station_id
 
@@ -103,7 +92,7 @@ class BaseStation():
         self._triggers = collections.OrderedDict()
 
     def get_trigger(self, name):
-        if(name not in self._triggers):
+        if (name not in self._triggers):
             raise ValueError("trigger with name {} not present".format(name))
         return self._triggers[name]
 
@@ -127,9 +116,10 @@ class BaseStation():
         return self._triggers
 
     def set_trigger(self, trigger):
-        if(trigger.get_name() in self._triggers):
+        if (trigger.get_name() in self._triggers):
             logger.warning(
-                "station has already a trigger with name {}. The previous trigger will be overridden!".format(trigger.get_name()))
+                "station has already a trigger with name {}. The previous trigger will be overridden!".format(
+                    trigger.get_name()))
         self._triggers[trigger.get_name()] = trigger
         self._triggered = trigger.has_triggered() or self._triggered
 
@@ -144,7 +134,7 @@ class BaseStation():
                        it returns True if any of those triggers triggered
             * if trigger name is set: return if the trigger with name 'trigger_name' has a trigger
         """
-        if(trigger_name is None):
+        if (trigger_name is None):
             return self._triggered
         else:
             return self.get_trigger(trigger_name).has_triggered()
@@ -154,7 +144,7 @@ class BaseStation():
         convenience function to set a simple trigger. The recommended interface is to set triggers through the
         set_trigger() interface.
         """
-        if(len(self._triggers) > 1):
+        if (len(self._triggers) > 1):
             raise ValueError("more then one trigger were set. Request is ambiguous")
         trigger = NuRadioReco.framework.trigger.Trigger('default')
         trigger.set_triggered(triggered)
@@ -261,10 +251,10 @@ class BaseStation():
             self.add_electric_field(efield)
 
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'],
-                                    parameters.stationParameters)
+                                                                                     parameters.stationParameters)
 
         self._parameter_covariances = data['_parameter_covariances']
-        if('_ARIANNA_parameters') in data:
+        if ('_ARIANNA_parameters') in data:
             self._ARIANNA_parameters = data['_ARIANNA_parameters']
 
         self._station_id = data['_station_id']

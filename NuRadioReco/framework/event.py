@@ -158,7 +158,7 @@ class Event:
     def has_shower(self, shower_id=None):
         """
         Returns true if at least one shower is stored in the event
-        
+
         If shower_id is given, it checks if this particular shower exists
         """
         if(shower_id is None):
@@ -193,11 +193,11 @@ class Event:
 
         Parameters
         ------------------------
-        shower: RadioShower object
+        sim_shower: RadioShower object
             The shower to be added to the event
         """
         if not isinstance(sim_shower, NuRadioReco.framework.radio_shower.RadioShower):
-            raise AttributeError(f"sim_shower needs to be of type NuRadioReco.framework.radio_shower.RadioShower")
+            raise AttributeError("sim_shower needs to be of type NuRadioReco.framework.radio_shower.RadioShower")
         if(sim_shower.get_id() in self.__sim_showers):
             logger.error(f"sim shower with id {sim_shower.get_id()} already exists. Shower id needs to be unique per event")
             raise AttributeError(f"sim shower with id {sim_shower.get_id()} already exists. Shower id needs to be unique per event")
@@ -242,7 +242,7 @@ class Event:
     def has_sim_shower(self, shower_id=None):
         """
         Returns true if at least one simulated shower is stored in the event
-        
+
         If shower_id is given, it checks if this particular shower exists
         """
         if(shower_id is None):
@@ -259,16 +259,15 @@ class Event:
     def serialize(self, mode):
         stations_pkl = []
         try:
-            hash = NuRadioReco.utilities.version.get_NuRadioReco_commit_hash()
-            self.set_parameter(parameters.eventParameters.hash_NuRadioReco, hash)
+            commit_hash = NuRadioReco.utilities.version.get_NuRadioReco_commit_hash()
+            self.set_parameter(parameters.eventParameters.hash_NuRadioReco, commit_hash)
         except:
             self.set_parameter(parameters.eventParameters.hash_NuRadioReco, None)
         try:
-            hash = NuRadioReco.utilities.version.get_NuRadioMC_commit_hash()
-            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, hash)
+            commit_hash = NuRadioReco.utilities.version.get_NuRadioMC_commit_hash()
+            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, commit_hash)
         except:
             self.set_parameter(parameters.eventParameters.hash_NuRadioMC, None)
-
 
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
