@@ -882,7 +882,6 @@ class simulation():
                         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
                         # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
                         channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
-                        self._detector_simulation_filter_amp(self._evt, self._station, self._det)
 
                         if self._is_simulate_noise():
                             max_freq = 0.5 / self._dt
@@ -893,6 +892,8 @@ class simulation():
                                 Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
                             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
                                                          max_freq=max_freq, type='rayleigh')
+
+                        self._detector_simulation_filter_amp(self._evt, self._station, self._det)
 
                         self._detector_simulation_trigger(self._evt, self._station, self._det)
                     if(not self._station.has_triggered()):
