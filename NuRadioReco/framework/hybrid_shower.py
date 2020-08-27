@@ -1,6 +1,7 @@
 import NuRadioReco.framework.base_shower
 import pickle
 
+
 class HybridShower(NuRadioReco.framework.base_shower.BaseShower):
     def __init__(self, name):
         self.__name = name
@@ -26,7 +27,7 @@ class HybridShower(NuRadioReco.framework.base_shower.BaseShower):
                 'class': det_class
             }
         else:
-            detector_info=None
+            detector_info = None
         data = {
             'base_shower': base_shower_pickle,
             'name': self.__name,

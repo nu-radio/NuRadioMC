@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.parameters as parameters
+import NuRadioReco.framework.parameter_serialization
 try:
     import cPickle as pickle
 except ImportError:
@@ -11,18 +12,18 @@ logger = logging.getLogger('electric_field')
 
 class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
 
-    def __init__(self, channel_ids, position=[0, 0, 0],
+    def __init__(self, channel_ids, position=None,
                  shower_id=None, ray_tracing_id=None):
         """
         Initialize a new electric field object
-        
+
         This object stores a 3 dimensional trace plus additional meta parameters
-        
+
         Parameters
         ---------
         channel_ids: array of ints
             the channels ids this electric field is valid for. (For cosmic rays one electric field is typically valid
-            for several channels. For neutrino simulations, we typically simulate the electric field for each 
+            for several channels. For neutrino simulations, we typically simulate the electric field for each
             channel separately)
         position: 3-dim array/list of floats
             the position of the electric field
@@ -31,6 +32,8 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         ray_tracing_id: int or None
             the id of the corresponding ray tracing solution
         """
+        if position is None:
+            position = [0, 0, 0]
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
         self._channel_ids = channel_ids
         self._parameters = {}
