@@ -97,7 +97,13 @@ class eventWriter:
             * 'SimChannels': if True SimChannels of SimStations will be saved
             * 'SimElectricFields': if True electric field traces of SimStations will be saved
         """
-
+        if mode is None:
+            mode = {
+                'Channels': True,
+                'ElectricFields': True,
+                'SimChannels': True,
+                'SimElectricFields': True
+            }
         self.__check_for_duplicate_ids(evt.get_run_number(), evt.get_id())
         if not self.__header_written:
             self.__write_fout_header()
