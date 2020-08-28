@@ -1,5 +1,4 @@
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units
 from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 from NuRadioReco.framework.trigger import EnvelopeTrigger
 import NuRadioReco.utilities.fft
@@ -41,20 +40,27 @@ class triggerSimulator:
         self.__t = 0
         self.begin()
 
-    def begin(self, debug=False):
-        self.__debug = debug
+    def begin(self):
+        return
 
     @register_run()
-    def run(self, evt, station, det, passband, order, threshold, coinc_window, number_coincidences=2, triggered_channels=None,
-             trigger_name='envelope_trigger'):
+    def run(self, evt, station, det, passband, order, threshold, coinc_window, number_coincidences=2, triggered_channels=None, trigger_name='envelope_trigger'):
         """
         Simulates simple threshold trigger based on an Hilbert-envelope of the trace. Passband of the trigger, coincidence
         window within different channels should have triggered, and the number of channels needed to trigger can be specified.
 
         Parameters
         ----------
-
-
+        evt: Event
+            Event to run the module on
+        station: Station
+            Station to run the module on
+        det: Detector
+            The detector description
+        passband: list
+            Passband of the filter to apply before the trigger
+        order: int
+            Order of the butterworth filter to apply before the trigger
         threshold: float or dict of floats
             threshold above (or below) a trigger is issued, absolute amplitude
             a dict can be used to specify a different threshold per channel where the key is the channel id
@@ -83,7 +89,6 @@ class triggerSimulator:
         else:
             channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
 
-        event_id = evt.get_id()
         for channel in station.iter_channels():
             # get filter
             frequencies = channel.get_frequencies()
@@ -91,7 +96,7 @@ class triggerSimulator:
             f = np.zeros_like(frequencies, dtype=np.complex)
             mask = frequencies > 0
             b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)  # Numerator (b) and denominator (a) polynomials of the IIR filter
-            w, h = scipy.signal.freqs(b, a, frequencies[mask])  # 	w :The angular frequencies at which h was computed. h :The frequency response.
+            w, h = scipy.signal.freqs(b, a, frequencies[mask])  # w :The angular frequencies at which h was computed. h :The frequency response.
             f[mask] = h
 
             # apply filter
@@ -133,9 +138,6 @@ class triggerSimulator:
 
         has_triggered, triggered_bins, triggered_times = get_majority_logic(triggered_bins_channels,
                                                                             number_coincidences, coinc_window, dt)
-
-        # set maximum signal amplitude
-        max_signal = 0
 
         trigger = EnvelopeTrigger(trigger_name, passband, order, threshold, number_coincidences, coinc_window, triggered_channels)
         trigger.set_triggered_channels(channels_that_passed_trigger)

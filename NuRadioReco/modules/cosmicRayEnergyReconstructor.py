@@ -41,6 +41,9 @@ class cosmicRayEnergyReconstructor:
             'southpole': 2800.,
             'auger': 1560.
         }
+        self.__site = None
+        self.__parametrization_for_site = None
+        self.__elevation = None
 
     def begin(self, site='mooresbay'):
         self.__site = site
@@ -60,7 +63,7 @@ class cosmicRayEnergyReconstructor:
             return
         zenith = station.get_parameter(stnp.zenith)
         azimuth = station.get_parameter(stnp.azimuth)
-        if zenith < 30.*units.deg:
+        if zenith < 30. * units.deg:
             self.logger.warning('Zenith angle is smaller than 30deg. Energy reconstruction is likely to be inaccurate!')
         n_efields = len(station.get_electric_fields())
         if n_efields == 0:
@@ -87,4 +90,3 @@ class cosmicRayEnergyReconstructor:
             falloff_parameter = self.__parametrization_for_site['falloff'][1][0] * zenith + self.__parametrization_for_site['falloff'][1][1]
         rec_energy = 1.e18 * np.sqrt(energy_fluence) * (xmax_distance / units.km) / (scale_parameter * np.exp(falloff_parameter * np.abs(spectrum_slope) ** 0.8))
         station.set_parameter(stnp.cr_energy_em, rec_energy)
-

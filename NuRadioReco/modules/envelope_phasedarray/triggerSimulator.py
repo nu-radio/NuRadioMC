@@ -6,7 +6,6 @@ from NuRadioReco.utilities.diodeSimulator import diodeSimulator
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 import numpy as np
 from scipy import constants
-import time
 import logging
 logger = logging.getLogger('phasedTriggerSimulator')
 
@@ -15,6 +14,7 @@ cspeed = constants.c * units.m / units.s
 main_low_angle = -50. * units.deg
 main_high_angle = 50. * units.deg
 default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 30))
+
 
 class triggerSimulator(phasedTrigger):
     """
@@ -35,8 +35,8 @@ class triggerSimulator(phasedTrigger):
                          threshold_factor,
                          power_mean,
                          power_std,
-                         output_passband=(None,200*units.MHz),
-                         cut_times=(None,None),
+                         output_passband=(None, 200 * units.MHz),
+                         cut_times=(None, None),
                          trigger_adc=False):
         """
         Calculates the envelope trigger for a certain phasing configuration.
@@ -96,12 +96,12 @@ class triggerSimulator(phasedTrigger):
 
                 ADC = analogToDigitalConverter()
                 trace = ADC.get_digital_trace(station, det, channel,
-                                        trigger_adc=trigger_adc,
-                                        random_clock_offset=True,
-                                        adc_type='perfect_floor_comparator',
-                                        diode=diode)
+                                              trigger_adc=trigger_adc,
+                                              random_clock_offset=True,
+                                              adc_type='perfect_floor_comparator',
+                                              diode=diode)
                 time_step = 1 / det.get_channel(station_id, channel_id)['trigger_adc_sampling_frequency']
-                times  = np.arange(len(trace), dtype=np.float) * time_step
+                times = np.arange(len(trace), dtype=np.float) * time_step
                 times += channel.get_trace_start_time()
 
             else:
@@ -109,9 +109,9 @@ class triggerSimulator(phasedTrigger):
                 trace = diode.tunnel_diode(channel)  # get the enveloped trace
                 times = np.copy(channel.get_times())  # get the corresponding time bins
 
-            if cut_times != (None,None):
-                left_bin = np.argmin(np.abs(times-cut_times[0]))
-                right_bin = np.argmin(np.abs(times-cut_times[1]))
+            if cut_times != (None, None):
+                left_bin = np.argmin(np.abs(times - cut_times[0]))
+                right_bin = np.argmin(np.abs(times - cut_times[1]))
                 trace[0:left_bin] = 0
                 trace[right_bin:None] = 0
 
@@ -132,7 +132,7 @@ class triggerSimulator(phasedTrigger):
                 else:
                     phased_trace += np.roll(trace, subbeam_rolls[channel_id])
 
-            low_trigger  = power_mean - power_std * np.abs(threshold_factor)
+            low_trigger = power_mean - power_std * np.abs(threshold_factor)
             low_trigger *= Nant
 
             threshold_passed = np.min(phased_trace) < low_trigger
@@ -156,8 +156,8 @@ class triggerSimulator(phasedTrigger):
             phasing_angles=default_angles,
             set_not_triggered=False,
             ref_index=1.75,
-            output_passband=(None,200*units.MHz),
-            cut_times=(None,None),
+            output_passband=(None, 200 * units.MHz),
+            cut_times=(None, None),
             trigger_adc=False):
         """
         simulates phased array trigger for each event
@@ -214,11 +214,11 @@ class triggerSimulator(phasedTrigger):
             True if the triggering condition is met
         """
 
-        if (triggered_channels == None):
-        	triggered_channels = [channel._id for channel in station.iter_channels()]
+        if (triggered_channels is None):
+            triggered_channels = [channel.get_id() for channel in station.iter_channels()]
 
         if (power_mean is None) or (power_std is None):
-            error_msg  = 'The power_mean or power_std parameters are not defined. '
+            error_msg = 'The power_mean or power_std parameters are not defined. '
             error_msg += 'Please define them. You can use the calculate_noise_parameters '
             error_msg += 'function in utilities.diodeSimulator to do so.'
             raise ValueError(error_msg)
@@ -237,8 +237,8 @@ class triggerSimulator(phasedTrigger):
                                              phasing_angles, ref_index=ref_index)
 
             is_triggered, trigger_delays = self.envelope_trigger(station, det, beam_rolls,
-                triggered_channels, threshold_factor, power_mean, power_std, output_passband, cut_times,
-                trigger_adc)
+                                                                 triggered_channels, threshold_factor, power_mean, power_std, output_passband, cut_times,
+                                                                 trigger_adc)
 
         trigger = EnvelopePhasedTrigger(trigger_name, threshold_factor, power_mean, power_std,
                                         triggered_channels, phasing_angles, trigger_delays,
