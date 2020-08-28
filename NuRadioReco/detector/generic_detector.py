@@ -309,7 +309,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             return True
         Station = Query()
         res = self._stations.get(Station.station_id == station_id)
-        return res is None
+        return res is not None
 
     # overwrite update function to do nothing
     def update(self, time):
