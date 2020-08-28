@@ -11,6 +11,7 @@ class channelTimeWindow:
     """
     def __init__(self):
         self.logger = logging.getLogger("NuRadioReco.channelTimeWindow")
+        self.__debug = None
         self.begin()
 
     def begin(self, debug=False):

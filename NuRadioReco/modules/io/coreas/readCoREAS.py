@@ -3,12 +3,11 @@ import h5py
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
-from radiotools import helper as hp
 from radiotools import coordinatesystems as cstrafo
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import units
 import numpy as np
-from numpy.random import RandomState
+import numpy.random
 import logging
 import time
 import os
@@ -20,6 +19,12 @@ class readCoREAS:
         self.__t = 0
         self.__t_event_structure = 0
         self.__t_per_event = 0
+        self.__input_files = None
+        self.__station_id = None
+        self.__n_cores = None
+        self.__max_distace = None
+        self.__current_input_file = None
+        self.__random_generator = None
         self.logger = logging.getLogger('NuRadioReco.readCoREAS')
 
     def begin(self, input_files, station_id, n_cores=10, max_distance=2 * units.km, seed=None):
@@ -39,6 +44,8 @@ class readCoREAS:
         max_distance: radius of random cores (double or None)
             if None: max distance is set to the maximum ground distance of the
             star pattern simulation
+        seed: int (default: None)
+            Seed for the random number generation. If None is passed, no seed is set
         """
         self.__input_files = input_files
         self.__station_id = station_id
@@ -46,7 +53,7 @@ class readCoREAS:
         self.__max_distace = max_distance
         self.__current_input_file = 0
 
-        self.__random_generator = np.random.RandomState(seed)
+        self.__random_generator = numpy.random.RandomState(seed)
 
     @register_run()
     def run(self, detector, output_mode=0):
@@ -76,9 +83,13 @@ class readCoREAS:
                 self.__current_input_file += 1
                 continue
             corsika = h5py.File(self.__input_files[self.__current_input_file], "r")
-            self.logger.info("using coreas simulation {} with E={:2g} theta = {:.0f}".format(self.__input_files[self.__current_input_file],
-                                                                                                      corsika['inputs'].attrs["ERANGE"][0] * units.GeV,
-                                                                                                      corsika['inputs'].attrs["THETAP"][0]))
+            self.logger.info(
+                "using coreas simulation {} with E={:2g} theta = {:.0f}".format(
+                    self.__input_files[self.__current_input_file],
+                    corsika['inputs'].attrs["ERANGE"][0] * units.GeV,
+                    corsika['inputs'].attrs["THETAP"][0]
+                )
+            )
             positions = []
             for i, observer in enumerate(corsika['CoREAS']['observers'].values()):
                 position = observer.attrs['position']
@@ -95,7 +106,8 @@ class readCoREAS:
                 n_cores = self.__n_cores * 100  # for output mode 1 we want always n_cores in star pattern. Therefore we generate more core positions to be able to select n_cores in the star pattern afterwards
             elif(output_mode == 1):
                 n_cores = self.__n_cores
-
+            else:
+                raise ValueError('output mode {} not defined.'.format(output_mode))
             theta = self.__random_generator.rand(n_cores) * 2 * np.pi
             r = (self.__random_generator.rand(n_cores)) ** 0.5 * max_distance
             cores = np.array([r * np.cos(theta), r * np.sin(theta), np.zeros(n_cores)]).T
@@ -118,7 +130,7 @@ class readCoREAS:
 
                 evt = NuRadioReco.framework.event.Event(corsika['inputs'].attrs['RUNNR'], corsika['inputs'].attrs['EVTNR'])  # create empty event
                 station = NuRadioReco.framework.station.Station(self.__station_id)
-                sim_station = coreas.make_sim_station(self.__station_id, corsika, observer)
+                sim_station = coreas.make_sim_station(self.__station_id, corsika, observer, detector.get_channel_ids(self.__station_id))
 
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
@@ -142,21 +154,19 @@ class readCoREAS:
                 index = np.argmin(distances)
                 distance = distances[index]
                 key = list(corsika['CoREAS']['observers'].keys())[index]
-                self.logger.info("generating core at ground ({:.0f}, {:.0f}), vBvvB({:.0f}, {:.0f}), nearest simulated station is {:.0f}m away at ground ({:.0f}, {:.0f}), vBvvB({:.0f}, {:.0f})".format(cores[iCore][0], cores[iCore][1], core[0], core[1], distance / units.m,
-                                                                                                                                        positions[index][0], positions[index][1], positions_vBvvB[index][0], positions_vBvvB[index][1]))
-#                 import matplotlib.pyplot as plt
-#                 indexes = np.array(range(len(cores)))
-#                 fig, ax = plt.subplots(1, 1)
-#                 ax.plot(positions_vBvvB[:, 0], positions_vBvvB[:, 1], 'o')
-#                 ax.plot(positions[:, 0], positions[:, 1], 'd')
-#                 ax.plot(core[0], core[1], '*')
-#                 ax.plot(cores[indexes[mask_cores_in_starpattern][iCore]][0], cores[indexes[mask_cores_in_starpattern][iCore]][1], 'x')
-#                 ax.plot(positions_vBvvB[index][0], positions_vBvvB[index][1], 'd')
-#                 ax.plot(positions[index][0], positions[index][1], 'D')
-#                 ax.set_aspect("equal")
-#                 ax.set_title("zen {:.0f}, az {:.0f}".format(zenith / units.deg, azimuth / units.deg))
-#                 plt.show()
-
+                self.logger.info(
+                    "generating core at ground ({:.0f}, {:.0f}), vBvvB({:.0f}, {:.0f}), nearest simulated station is {:.0f}m away at ground ({:.0f}, {:.0f}), vBvvB({:.0f}, {:.0f})".format(
+                        cores[iCore][0],
+                        cores[iCore][1],
+                        core[0],
+                        core[1],
+                        distance / units.m,
+                        positions[index][0],
+                        positions[index][1],
+                        positions_vBvvB[index][0],
+                        positions_vBvvB[index][1]
+                    )
+                )
                 t_event_structure = time.time()
                 observer = corsika['CoREAS']['observers'].get(key)
 
@@ -190,5 +200,5 @@ class readCoREAS:
         dt = timedelta(seconds=self.__t)
         self.logger.info("total time used by this module is {}".format(dt))
         self.logger.info("\tcreate event structure {}".format(timedelta(seconds=self.__t_event_structure)))
-        self.logger.info("\per event {}".format(timedelta(seconds=self.__t_per_event)))
+        self.logger.info("per event {}".format(timedelta(seconds=self.__t_per_event)))
         return dt

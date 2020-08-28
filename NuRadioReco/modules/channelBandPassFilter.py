@@ -2,12 +2,10 @@ import numpy as np
 from scipy import signal
 import scipy.signal
 import logging
-import copy
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.detector import filterresponse
-import NuRadioReco.framework.sim_station
 
 
 class channelBandPassFilter:
@@ -24,27 +22,24 @@ class channelBandPassFilter:
         pass
 
     def get_filter_arguments(self, channel_id, passband, filter_type, order=2):
-            tmp_passband = None
-            if(isinstance(passband, dict)):
-                tmp_passband = passband[channel_id]
-            else:
-                tmp_passband = passband
+        if(isinstance(passband, dict)):
+            tmp_passband = passband[channel_id]
+        else:
+            tmp_passband = passband
 
-            tmp_order = None
-            if(isinstance(order, dict)):
-                tmp_order = order[channel_id]
-            else:
-                tmp_order = order
+        if(isinstance(order, dict)):
+            tmp_order = order[channel_id]
+        else:
+            tmp_order = order
 
-            tmp_filter_type = None
-            if(isinstance(filter_type, dict)):
-                tmp_filter_type = filter_type[channel_id]
-            else:
-                tmp_filter_type = filter_type
-            return tmp_passband, tmp_order, tmp_filter_type
+        if(isinstance(filter_type, dict)):
+            tmp_filter_type = filter_type[channel_id]
+        else:
+            tmp_filter_type = filter_type
+        return tmp_passband, tmp_order, tmp_filter_type
 
     @register_run()
-    def run(self, evt, station, det, passband=[55 * units.MHz, 1000 * units.MHz],
+    def run(self, evt, station, det, passband=None,
             filter_type='rectangular', order=2):
         """
         Run the filter
@@ -54,7 +49,7 @@ class channelBandPassFilter:
 
         evt, station, det
             Event, Station, Detector
-        passband: list or dict of lists
+        passband: list or dict of lists, (default: [55 * units.MHz, 1000 * units.MHz])
             passband[0]: lower boundary of filter, passband[1]: upper boundary of filter
             a dict can be used to specify a different bandwidth per channel, the key is the channel_id
         filter_type: string or dict
@@ -64,13 +59,12 @@ class channelBandPassFilter:
             or any filter that is implemented in NuRadioReco.detector.filterresponse. In this case the
             passband parameter is ignored
             or 'FIR <type> <parameter>' - see below for FIR filter options
-            
+
             a dict can be used to specify a different bandwidth per channel, the key is the channel_id
         order: int (optional, default 2) or dict
             for a butterworth filter: specifies the order of the filter
-            
-            a dict can be used to specify a different bandwidth per channel, the key is the channel_id
 
+            a dict can be used to specify a different bandwidth per channel, the key is the channel_id
         Added Jan-07-2018 by robert.lahmann@fau.de:
         FIR filter:
         see https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.get_window.html
@@ -91,7 +85,8 @@ class channelBandPassFilter:
         BS: passband[0]=f_cut_high, passband[1] = f_cut_low (i.e. passband[0] > passband[1])
 
         """
-
+        if passband is None:
+            passband = [55 * units.MHz, 1000 * units.MHz]
         for channel in station.iter_channels():
             tmp_passband, tmp_order, tmp_filter_type = self.get_filter_arguments(channel.get_id(), passband, filter_type, order)
             self._apply_filter(channel, tmp_passband, tmp_filter_type, tmp_order, False)
@@ -113,9 +108,26 @@ class channelBandPassFilter:
             the channel id
         det: detector instance
             the detector
-        the remaining arguments are the arguments of the run method!
+        passband: list or dict of lists, (default: [55 * units.MHz, 1000 * units.MHz])
+            passband[0]: lower boundary of filter, passband[1]: upper boundary of filter
+            a dict can be used to specify a different bandwidth per channel, the key is the channel_id
+        filter_type: string or dict
+            'rectangular': perfect straight line filter
+            'butter': butterworth filter from scipy
+            'butterabs': absolute of butterworth filter from scipy
+            or any filter that is implemented in NuRadioReco.detector.filterresponse. In this case the
+            passband parameter is ignored
+            or 'FIR <type> <parameter>' - see below for FIR filter options
 
-        Returns: array of complex floats
+            a dict can be used to specify a different bandwidth per channel, the key is the channel_id
+        order: int (optional, default 2) or dict
+            for a butterworth filter: specifies the order of the filter
+
+            a dict can be used to specify a different bandwidth per channel, the key is the channel_id
+
+        Returns
+        -----------------
+         array of complex floats
             the complex filter amplitudes
         """
         tmp_passband, tmp_order, tmp_filter_type = self.get_filter_arguments(channel_id, passband, filter_type, order)
@@ -144,8 +156,6 @@ class channelBandPassFilter:
             return filterresponse.get_filter_response(frequencies, tmp_filter_type)
 
     def _apply_filter(self, channel, passband, filter_type, order, is_efield=False):
-#         print(f"apply_filter self {self}")
-#         print(channel)
 
         frequencies = channel.get_frequencies()
         trace_fft = channel.get_frequency_spectrum()
@@ -181,11 +191,11 @@ class channelBandPassFilter:
                     wtype = ('kaiser', beta)
             # print('window type: ', wtype)
             Nfir = order + 1
-            if (passband[0] == None):
+            if (passband[0] is None):
                 # this is a low pass filter
                 pass_zero = True
                 fcut = passband[1]
-            elif (passband[1] == None or passband[1] / sample_rate >= 0.5):
+            elif (passband[1] is None or passband[1] / sample_rate >= 0.5):
                 # this is a high pass filter
                 pass_zero = False
                 fcut = passband[0]
@@ -197,31 +207,22 @@ class channelBandPassFilter:
                 # this is a bandstop filter
                 pass_zero = True
                 fcut = [passband[1], passband[0]]
-                # print('bandstop with fcut = ',fcut)
             else:
                 # something went wrong!!
                 print("Error, could not define filter type")
-            # print('fcut = ',fcut)
             taps = signal.firwin(Nfir, fcut, window=wtype, scale=False, pass_zero=pass_zero, fs=sample_rate)
-            wfilt, hfilt = signal.freqz(taps, worN=len(frequencies))
 
             if ((Nfir // 2) * 2 == Nfir):
                 print("odd filter order, rolling is off by T_s/2")
 
             ndelay = int(0.5 * (Nfir - 1))
             trace_fir = signal.lfilter(taps, 1.0, channel.get_trace())
-            # print('len(trace_fir)',len(trace_fir))
             trace_fir = np.roll(trace_fir, -ndelay)
-#             channel.set_trace(trace_fir, sample_rate)
-#             #channel.set_trace(trace_fir, sample_rate)
-#             #trace_fft = hfilt
-#             trace_fft = channel.get_frequency_spectrum()
             isFIR = True
         else:
             trace_fft *= self.get_filter(frequencies, 0, 0, None, passband, filter_type)
         if isFIR:
             channel.set_trace(trace_fir, sample_rate)
-            # print('set trace for fir')
         else:
             channel.set_frequency_spectrum(trace_fft, sample_rate)
 

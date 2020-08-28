@@ -1,23 +1,17 @@
 import numpy as np
-import copy
 import time
 import logging
 import fractions
 from scipy import signal
 from decimal import Decimal
-
-from radiotools import coordinatesystems
-
 import NuRadioReco.framework.channel
-
+import NuRadioReco.framework.base_trace
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.utilities import ice
 from NuRadioReco.utilities import trace_utilities
-
-from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import stationParameters as stnp
 
@@ -33,12 +27,18 @@ class efieldToVoltageConverter():
 
     def __init__(self, log_level=logging.WARNING):
         self.__t = 0
+        self.__uncertainty = None
+        self.__debug = None
+        self.__time_resolution = None
+        self.__pre_pulse_time = None
+        self.__post_pulse_time = None
+        self.__max_upsampling_factor = None
+        self.antenna_provider = None
         self.begin()
-
         self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
         self.logger.setLevel(log_level)
 
-    def begin(self, debug=False, uncertainty={},
+    def begin(self, debug=False, uncertainty=None,
               time_resolution=0.1 * units.ns,
               pre_pulse_time=200 * units.ns,
               post_pulse_time=200 * units.ns
@@ -50,7 +50,7 @@ class efieldToVoltageConverter():
         ---------------------
         debug: bool
             enable/disable debug mode (default: False -> no debug output)
-        uncertainty: dictionary
+        uncertainty: dictionary (default: {})
             optional argument to specify systematic uncertainties. currently supported keys
              * 'sys_dx': systematic uncertainty of x position of antenna
              * 'sys_dy': systematic uncertainty of y position of antenna
@@ -71,7 +71,10 @@ class efieldToVoltageConverter():
         self.__pre_pulse_time = pre_pulse_time
         self.__post_pulse_time = post_pulse_time
         self.__max_upsampling_factor = 5000
-        self.__uncertainty = uncertainty
+        if uncertainty is None:
+            self.__uncertainty = {}
+        else:
+            self.__uncertainty = uncertainty
         # some uncertainties are systematic, fix them here
         if('sys_dx' in self.__uncertainty):
             self.__uncertainty['sys_dx'] = np.random.normal(0, self.__uncertainty['sys_dx'])
@@ -79,7 +82,7 @@ class efieldToVoltageConverter():
             self.__uncertainty['sys_dy'] = np.random.normal(0, self.__uncertainty['sys_dy'])
         if('sys_dz' in self.__uncertainty):
             self.__uncertainty['sys_dz'] = np.random.normal(0, self.__uncertainty['sys_dz'])
-        if('sys_amp'in self.__uncertainty):
+        if('sys_amp' in self.__uncertainty):
             for iCh in self.__uncertainty['sys_amp'].keys():
                 self.__uncertainty['sys_amp'][iCh] = np.random.normal(1, self.__uncertainty['sys_amp'][iCh])
         self.antenna_provider = antennapattern.AntennaPatternProvider()
@@ -98,6 +101,7 @@ class efieldToVoltageConverter():
         # for different cable delays
         times_min = []
         times_max = []
+        original_binning = None
         for iCh in det.get_channel_ids(sim_station_id):
             for electric_field in sim_station.get_electric_fields_for_channels([iCh]):
                 original_binning = 1. / electric_field.get_sampling_rate()
@@ -111,13 +115,19 @@ class efieldToVoltageConverter():
                         index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                     else:  # signal is coming from above, so we take IOR of air
                         index_of_refraction = ice.get_refractive_index(1, site)
-                    travel_time_shift = geo_utl.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith),
-                        sim_station.get_parameter(stnp.azimuth), antenna_position, index_of_refraction)
+                    travel_time_shift = geo_utl.get_time_delay_from_direction(
+                        sim_station.get_parameter(stnp.zenith),
+                        sim_station.get_parameter(stnp.azimuth),
+                        antenna_position,
+                        index_of_refraction
+                    )
                     t0 += travel_time_shift
                 if(not np.isnan(t0)):  # trace start time is None if no ray tracing solution was found and channel contains only zeros
                     times_min.append(t0)
                     times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
                     self.logger.debug(f"channel {iCh} shower {electric_field.get_shower_id()}, ray {electric_field.get_ray_tracing_solution_id()} trace start time {electric_field.get_trace_start_time()}, cab_delty {cab_delay}, tracelength {electric_field.get_number_of_samples() / electric_field.get_sampling_rate()}")
+        if original_binning is None:
+            return
         time_resolution = min(self.__time_resolution, original_binning)
         times_min = np.array(times_min)
         times_max = np.array(times_max)
@@ -177,8 +187,12 @@ class efieldToVoltageConverter():
                             index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                         else:  # signal is coming from above, so we take IOR of air
                             index_of_refraction = ice.get_refractive_index(1, site)
-                        travel_time_shift = geo_utl.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith),
-                            sim_station.get_parameter(stnp.azimuth), antenna_position, index_of_refraction)
+                        travel_time_shift = geo_utl.get_time_delay_from_direction(
+                            sim_station.get_parameter(stnp.zenith),
+                            sim_station.get_parameter(stnp.azimuth),
+                            antenna_position,
+                            index_of_refraction
+                        )
                         start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift) / time_resolution))
                     else:
                         start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min()) / time_resolution))

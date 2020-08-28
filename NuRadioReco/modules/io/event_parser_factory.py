@@ -1,6 +1,7 @@
 import pickle
 import NuRadioReco.framework.event
 
+
 def scan_files_function(version_major, version_minor):
     """
     Returns the function to scan a file with the given file version
@@ -65,7 +66,7 @@ def scan_files_function(version_major, version_minor):
             else:
                 return False, iF, current_byte
         current_byte += 6
-        if object_type == 0:    #object is an event
+        if object_type == 0:    # object is an event
             self._bytes_start_header[iF].append(current_byte)
             self._bytes_length_header[iF].append(bytes_to_read)
             current_byte += bytes_to_read
@@ -79,7 +80,7 @@ def scan_files_function(version_major, version_minor):
             bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
             self._bytes_start[iF].append(current_byte)
             self._bytes_length[iF].append(bytes_to_read)
-        elif object_type == 1:  #object is detector info
+        elif object_type == 1:  # object is detector info
             detector_dict = pickle.loads(self._get_file(iF).read(bytes_to_read))
             if 'generic_detector' not in detector_dict.keys():
                 is_generic_detector = False
@@ -106,7 +107,7 @@ def scan_files_function(version_major, version_minor):
                 else:
                     index = max(self._detector_dicts[iF]['channels'].keys()) + 1
                 self._detector_dicts[iF]['channels'][index] = channel
-        elif object_type ==2:   #object is list of event-specific changes to the detector
+        elif object_type == 2:   # object is list of event-specific changes to the detector
             changes_dict = pickle.loads(self._get_file(iF).read(bytes_to_read))
             if iF not in self._event_specific_detector_changes.keys():
                 self._event_specific_detector_changes[iF] = []
@@ -123,6 +124,7 @@ def scan_files_function(version_major, version_minor):
     else:
         raise ValueError('File version {}.{} is not supported. Major version needs to be 2 but is {}'.format(version_major, version_minor, version_major))
 
+
 def iter_events_function(version_major, version_minor):
 
     def iter_events_2_0(self):
@@ -134,11 +136,8 @@ def iter_events_function(version_major, version_minor):
                 if(self._current_file_id < (len(self._filenames) - 1)):  # are there more files to be parsed?
                     self._current_file_id += 1
                     self._get_file(self._current_file_id).seek(12)  # skip datafile header
-                    bytes_to_read_hex = self._get_file(self._current_file_id).read(6)
-                    bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
                 else:
                     break
-            evt_header_str = self._get_file(self._current_file_id).read(bytes_to_read)
 
             bytes_to_read_hex = self._get_file(self._current_file_id).read(6)
             bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
@@ -165,7 +164,6 @@ def iter_events_function(version_major, version_minor):
                 else:
                     break
             if object_type == 0:
-                evt_header_str = self._get_file(self._current_file_id).read(bytes_to_read)
                 bytes_to_read_hex = self._get_file(self._current_file_id).read(6)
                 bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
                 evtstr = self._get_file(self._current_file_id).read(bytes_to_read)

@@ -56,7 +56,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     dt: float
         the width of a time bin (inverse of sampling rate)
 
-    Returns:
+    Returns
     --------
     triggerd: bool
         returns True if majority logic is fulfilled
@@ -112,6 +112,12 @@ class triggerSimulator:
 
         Parameters
         ----------
+        evt: Event
+            The event to run the module on
+        station: Station
+            The station to run the module on
+        det: Detector
+            The detector description
         threshold_high: float or dict of floats
             the threshold voltage that needs to be crossed on a single channel on the high side
             a dict can be used to specify a different threshold per channel where the key is the channel id
@@ -126,9 +132,6 @@ class triggerSimulator:
             number of channels that are requried in coincidence to trigger a station
         triggered_channels: array of ints or None
             channels ids that are triggered on, if None trigger will run on all channels
-        cut_trace: bool
-            if true, trace is cut to the correct length (50ns before the trigger,
-            max trace length is set according to detector description)
         trigger_name: string
             a unique name of this particular trigger
         set_not_triggered: bool (default: False)
@@ -139,8 +142,6 @@ class triggerSimulator:
         sampling_rate = station.get_channel(0).get_sampling_rate()
         channels_that_passed_trigger = []
         if not set_not_triggered:
-            max_signal = 0
-
             triggerd_bins_channels = []
             dt = 1. / sampling_rate
             if triggered_channels is None:

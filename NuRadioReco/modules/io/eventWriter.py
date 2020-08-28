@@ -3,15 +3,13 @@ import pickle
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.io.NuRadioRecoio import VERSION, VERSION_MINOR
 import logging
-import datetime
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.detector import generic_detector
 logger = logging.getLogger("eventWriter")
 
 
 def get_header(evt):
-    header = {}
-    header['stations'] = {}
+    header = {'stations': {}}
     for iS, station in enumerate(evt.get_stations()):
         header['stations'][station.get_id()] = station.get_parameters().copy()
         if(station.has_sim_station()):
@@ -26,6 +24,18 @@ class eventWriter:
     """
     save events to file
     """
+    def __init__(self):
+        # initialize attributes
+        self.__filename = None
+        self.__check_for_duplicates = None
+        self.__number_of_events = None
+        self.__current_file_size = None
+        self.__number_of_files = None
+        self.__max_file_size = None
+        self.__stored_stations = None
+        self.__stored_channels = None
+        self.__header_written = None
+        self.__event_ids_and_runs = None
 
     def __write_fout_header(self):
         if self.__number_of_files > 1:
@@ -44,6 +54,8 @@ class eventWriter:
 
         Parameters
         ----------
+        filename: string
+            Name of the file into which events shall be written
         max_file_size: maximum file size in Mbytes
                     (if the file exceeds the maximum file the output will be split into another file)
         check_for_duplicates: bool (default False)
@@ -67,10 +79,7 @@ class eventWriter:
         self.__header_written = False  # Remember if we still have to write the current file header
 
     @register_run()
-    def run(self, evt, det=None, mode={'Channels': True,
-                                       'ElectricFields': True,
-                                       'SimChannels': True,
-                                       'SimElectricFields': True}):
+    def run(self, evt, det=None, mode=None):
         """
         writes NuRadioReco event into a file
 
@@ -80,9 +89,9 @@ class eventWriter:
         det: detector object
             If a detector object is passed, the detector description for the
             events is written in the file as well
-        mode: dictionary
+        mode: dictionary (default: {'Channels': True, 'ElectricFields': True, 'SimChannels': True, 'SimElectricFields': True})
             specifies what will saved into the *.nur output file
-            can contain the strings 
+            can contain the strings
             * 'Channels': if True channel traces of Stations will be saved
             * 'ElectricFields': if True (reconstructed) electric field traces of Stations will be saved
             * 'SimChannels': if True SimChannels of SimStations will be saved
@@ -161,14 +170,14 @@ class eventWriter:
                     det.update(station.get_station_time())
                     station_description = det.get_station(station.get_id())
                     self.__stored_stations.append({
-                    'station_id': station.get_id(),
-                    'commission_time': station_description['commission_time'],
-                    'decommission_time': station_description['decommission_time']
+                        'station_id': station.get_id(),
+                        'commission_time': station_description['commission_time'],
+                        'decommission_time': station_description['decommission_time']
                     })
                 else:
                     station_description = det.get_raw_station(station.get_id())
                     self.__stored_stations.append({
-                    'station_id': station.get_id()
+                        'station_id': station.get_id()
                     })
                 det_dict['stations'][str(i_station)] = station_description
                 i_station += 1
@@ -192,7 +201,7 @@ class eventWriter:
             if not self.__is_station_already_in_file(det.get_default_station_id(), None):
                 station_description = det.get_raw_station(det.get_default_station_id())
                 self.__stored_stations.append({
-                'station_id': station.get_id()
+                    'station_id': station.get_id()
                 })
                 det_dict['stations'][str(i_station)] = station_description
                 for channel_id in det.get_channel_ids(det.get_default_station_id()):
@@ -230,7 +239,7 @@ class eventWriter:
                 if 'commission_time' not in entry.keys() or 'decommission_time' not in entry.keys() or station_time is None:
                     return True
                 # it's a normal detector and we have to check commission/decommission times
-                if entry['commission_time'] < station_time and entry['decommission_time'] > station_time:
+                if entry['commission_time'] < station_time < entry['decommission_time']:
                     return True
         return False
 
@@ -239,7 +248,7 @@ class eventWriter:
             if entry['station_id'] == station_id and entry['channel_id'] == channel_id:
                 if 'commission_time' not in entry.keys() or 'decommission_time' not in entry.keys() or station_time is None:
                     return True
-                if entry['commission_time'] < station_time and entry['decommission_time'] > station_time:
+                if entry['commission_time'] < station_time < entry['decommission_time']:
                     return True
         return False
 

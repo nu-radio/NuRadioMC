@@ -22,6 +22,11 @@ class channelSignalReconstructor:
         self.__t = 0
         logger.setLevel(log_level)
         self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
+        self.__signal_window_start = None
+        self.__signal_window_stop = None
+        self.__noise_window_start = None
+        self.__noise_window_stop = None
+        self.__debug = None
         self.begin()
 
     def begin(self, debug=False, signal_start=20 * units.ns, signal_stop=100 * units.ns,
@@ -50,6 +55,8 @@ class channelSignalReconstructor:
         """
         Parameters
         -----------
+        station_id: int
+            ID of the station
         channel, det
             Channel, Detector
         stored_noise: bool
