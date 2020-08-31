@@ -9,9 +9,10 @@ import NuRadioReco.framework.channel
 
 logger = logging.getLogger('diodeSimulator')
 
+
 class diodeSimulator:
 
-    def __init__(self, output_passband=(None,None)):
+    def __init__(self, output_passband=(None, None)):
         """
         Calculate a signal as processed by the tunnel diode.
         The given signal is convolved with the tunnel diodde response as in
@@ -40,29 +41,20 @@ class diodeSimulator:
         'up': (1, 18e-9 * units.s, 7e-9 * units.s, 1e9)
     }
     # Set td_args['up'][0] based on the other args, like in arasim
-    _td_args['up'] = (-np.sqrt(2 * np.pi) *
-                      (_td_args['down1'][0] * _td_args['down1'][2] +
-                       _td_args['down2'][0] * _td_args['down2'][2]) /
-                      (2e18 * _td_args['up'][2] ** 3),) + _td_args['up'][1:]
+    _td_args['up'] = (-np.sqrt(2 * np.pi) * (_td_args['down1'][0] * _td_args['down1'][2] + _td_args['down2'][0] * _td_args['down2'][2]) / (2e18 * _td_args['up'][2] ** 3),) + _td_args['up'][1:]
 
     # Set "down" and "up" functions as in arasim
     @classmethod
     def _td_fdown1(cls, x):
-        return (cls._td_args['down1'][3] + cls._td_args['down1'][0] *
-                np.exp(-(x - cls._td_args['down1'][1]) ** 2 /
-                       (2 * cls._td_args['down1'][2] ** 2)))
+        return (cls._td_args['down1'][3] + cls._td_args['down1'][0] * np.exp(-(x - cls._td_args['down1'][1]) ** 2 / (2 * cls._td_args['down1'][2] ** 2)))
 
     @classmethod
     def _td_fdown2(cls, x):
-        return (cls._td_args['down2'][3] + cls._td_args['down2'][0] *
-                np.exp(-(x - cls._td_args['down2'][1]) ** 2 /
-                       (2 * cls._td_args['down2'][2] ** 2)))
+        return (cls._td_args['down2'][3] + cls._td_args['down2'][0] * np.exp(-(x - cls._td_args['down2'][1]) ** 2 / (2 * cls._td_args['down2'][2] ** 2)))
 
     @classmethod
     def _td_fup(cls, x):
-        return (cls._td_args['up'][0] *
-                (cls._td_args['up'][3] * (x - cls._td_args['up'][1])) ** 2 *
-                np.exp(-(x - cls._td_args['up'][1]) / cls._td_args['up'][2]))
+        return (cls._td_args['up'][0] * (cls._td_args['up'][3] * (x - cls._td_args['up'][1])) ** 2 * np.exp(-(x - cls._td_args['up'][1]) / cls._td_args['up'][2]))
 
     def tunnel_diode(self, channel):
         """
@@ -79,9 +71,6 @@ class diodeSimulator:
         ----------
         channel: Channel
             Signal to be processed by the tunnel diode.
-        output_passband: (float, float) tuple
-            Frequencies for a 6th-order Butterworth filter to be applied after
-            the diode filtering.
 
         Returns
         -------
@@ -110,7 +99,7 @@ class diodeSimulator:
 
             sampling_rate = channel.get_sampling_rate()
             trace_spectrum = time2freq(trace_after_tunnel_diode, sampling_rate)
-            frequencies = np.linspace(0, sampling_rate/2, len(trace_spectrum))
+            frequencies = np.linspace(0, sampling_rate / 2, len(trace_spectrum))
             if self._output_passband[0] is None:
                 b, a = butter(6, self._output_passband[1], 'lowpass', analog=True)
             else:
@@ -121,10 +110,10 @@ class diodeSimulator:
         return trace_after_tunnel_diode
 
     def calculate_noise_parameters(self,
-                                   sampling_rate=1*units.GHz,
-                                   min_freq=50*units.MHz,
-                                   max_freq=1*units.GHz,
-                                   amplitude=10*units.microvolt,
+                                   sampling_rate=1 * units.GHz,
+                                   min_freq=50 * units.MHz,
+                                   max_freq=1 * units.GHz,
+                                   amplitude=10 * units.microvolt,
                                    type='rayleigh',
                                    n_tries=10000,
                                    n_samples=10000):
