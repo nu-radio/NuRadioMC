@@ -98,9 +98,9 @@ if __name__ == "__main__":
     for name in ["SHP-48+", "SHP-20+", "SHP-25+", "SXHP-48+", "ZFHP-1R2-S+", "ZX75HP-44+"]:
         response1 = get_filter_response_mini_circuits(freqs, name)
         ax.plot(freqs / units.MHz, np.abs(response1), label=name)
-        grp_delay = -1./2/np.pi * np.diff(np.unwrap(np.angle(response1))) / delta_f
+        grp_delay = -1. / 2 / np.pi * np.diff(np.unwrap(np.angle(response1))) / delta_f
     #     ax2.plot(ff / units.MHz, np.unwrap(np.angle(response1)) / units.deg)
-        ax2.plot((freqs[1:] + freqs[:-1]) * 0.5 / units.MHz, grp_delay/units.ns, label=name)
+        ax2.plot((freqs[1:] + freqs[:-1]) * 0.5 / units.MHz, grp_delay / units.ns, label=name)
     ax.legend()
     ax2.legend()
     fig.tight_layout()
@@ -110,9 +110,9 @@ if __name__ == "__main__":
     for name in ["ZX75LP-470+", "ZFLP-450+", "SBLP-467+"]:
         response1 = get_filter_response_mini_circuits(freqs, name)
         ax.plot(freqs / units.MHz, np.abs(response1), label=name)
-        grp_delay = -1./2/np.pi * np.diff(np.unwrap(np.angle(response1))) / delta_f
+        grp_delay = -1. / 2 / np.pi * np.diff(np.unwrap(np.angle(response1))) / delta_f
     #     ax2.plot(ff / units.MHz, np.unwrap(np.angle(response1)) / units.deg)
-        ax2.plot((freqs[1:] + freqs[:-1]) * 0.5 / units.MHz, grp_delay/units.ns, label=name)
+        ax2.plot((freqs[1:] + freqs[:-1]) * 0.5 / units.MHz, grp_delay / units.ns, label=name)
     ax.legend()
     ax2.legend()
     fig.tight_layout()

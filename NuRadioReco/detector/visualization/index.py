@@ -30,7 +30,7 @@ app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
 
     dcc.Dropdown(id='station_id',
-                 options=[{'label': l, 'value': l} for l in [14, 15, 17, 18, 19, 30, 32, 50, 51, 52, 61]]),
+                 options=[{'label': ll, 'value': ll} for ll in [14, 15, 17, 18, 19, 30, 32, 50, 51, 52, 61]]),
 
     html.Div(id='main')
 ])

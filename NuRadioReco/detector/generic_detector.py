@@ -59,9 +59,9 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         assume_inf : Bool
             Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
         antenna_by_depth: bool (default True)
-            if True the antenna model is determined automatically depending on the depth of the antenna. This is done by 
-            appending e.g. '_InfFirn' to the antenna model name. 
-            if False, the antenna model as specified in the database is used. 
+            if True the antenna model is determined automatically depending on the depth of the antenna. This is done by
+            appending e.g. '_InfFirn' to the antenna model name.
+            if False, the antenna model as specified in the database is used.
         """
         super(GenericDetector, self).__init__(source=source, json_filename=json_filename, dictionary=dictionary,
                                               assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
@@ -212,8 +212,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         """
         changes = []
         for change in self.__station_changes_for_event:
-            if (change['run_number'] == run_number and
-                    change['event_id'] == event_id):
+            if (change['run_number'] == run_number and change['event_id'] == event_id):
                 if station_id is None or change['station_id'] == station_id:
                     changes.append(change)
         return changes

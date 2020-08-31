@@ -664,8 +664,7 @@ def preprocess_ARA(path):
         os.path.join(path, name, '{}.orientation'.format(name)))
 
     wavelength = c / ff
-    H_theta = wavelength * (50 / (
-            np.pi * Z_0)) ** 0.5 * gain ** 0.5  # * np.exp(1j * phase)  ## do not use phases, this will screw up the interpolation
+    H_theta = wavelength * (50 / (np.pi * Z_0)) ** 0.5 * gain ** 0.5  # * np.exp(1j * phase)  ## do not use phases, this will screw up the interpolation
     H_phi = H_theta * 1e-3
     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
     with open(output_filename, 'wb') as fout:
@@ -908,13 +907,13 @@ class AntennaPatternBase:
             zenith angle of incoming signal direction
         azimuth : float
             azimuth angle of incoming signal direction
-        orientation_theta: float 
+        orientation_theta: float
             orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
-        orientation_phi: float 
+        orientation_phi: float
             orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
         rotation_theta: float
             rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
-        rotation_phi: float 
+        rotation_phi: float
             rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
 
         Returns
@@ -1052,8 +1051,8 @@ class AntennaPattern(AntennaPatternBase):
             theta = self.theta_upper_bound
         if hp.is_equal(theta, self.theta_lower_bound, rel_precision=1e-5):
             theta = self.theta_lower_bound
-        if (((phi < self.phi_lower_bound) or (phi > self.phi_upper_bound)) or
-                ((theta < self.theta_lower_bound) or (theta > self.theta_upper_bound))):
+        if (((phi < self.phi_lower_bound) or (phi > self.phi_upper_bound))
+                or ((theta < self.theta_lower_bound) or (theta > self.theta_upper_bound))):
             logger.debug(self._name)
             logger.debug("theta bounds {0} ,{1}, {2}".format(self.theta_lower_bound, theta, self.theta_upper_bound))
             logger.debug("phi bounds {0} ,{1}, {2}".format(self.phi_lower_bound, phi, self.phi_upper_bound))
@@ -1067,10 +1066,10 @@ class AntennaPattern(AntennaPatternBase):
         else:
             iTheta_lower = np.array(np.floor(
                 (theta - self.theta_lower_bound) / (self.theta_upper_bound - self.theta_lower_bound) * (
-                        self.n_theta - 1)), dtype=np.int)
+                    self.n_theta - 1)), dtype=np.int)
             iTheta_upper = np.array(np.ceil(
                 (theta - self.theta_lower_bound) / (self.theta_upper_bound - self.theta_lower_bound) * (
-                        self.n_theta - 1)), dtype=np.int)
+                    self.n_theta - 1)), dtype=np.int)
         theta_lower = self.theta_angles[iTheta_lower]
         theta_upper = self.theta_angles[iTheta_upper]
         if self.phi_upper_bound == self.phi_lower_bound:
@@ -1088,10 +1087,10 @@ class AntennaPattern(AntennaPatternBase):
 
         iFrequency_lower = np.array(np.floor(
             (freq - self.frequency_lower_bound) / (self.frequency_upper_bound - self.frequency_lower_bound) * (
-                    self.n_freqs - 1)), dtype=np.int)
+                self.n_freqs - 1)), dtype=np.int)
         iFrequency_upper = np.array(np.ceil(
             (freq - self.frequency_lower_bound) / (self.frequency_upper_bound - self.frequency_lower_bound) * (
-                    self.n_freqs - 1)), dtype=np.int)
+                self.n_freqs - 1)), dtype=np.int)
         # handling frequency out of bound cases properly
         out_of_bound_freqs_low = freq < self.frequency_lower_bound
         out_of_bound_freqs_high = freq > self.frequency_upper_bound
@@ -1220,7 +1219,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
         if phase_type == 'frontlobe_lpda':
             a = 100 * (freq - 400 * units.MHz) ** 2 - 20
             a[np.where(freq > 400 * units.MHz)] -= 0.00007 * (
-                    freq[np.where(freq > 400 * units.MHz)] - 400 * units.MHz) ** 2
+                freq[np.where(freq > 400 * units.MHz)] - 400 * units.MHz) ** 2
         elif phase_type == 'side_lpda':
             a = 40 * (freq - 950 * units.MHz) ** 2 - 40
         elif phase_type == 'back_lpda':

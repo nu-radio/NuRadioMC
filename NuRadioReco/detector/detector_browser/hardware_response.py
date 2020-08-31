@@ -75,7 +75,7 @@ layout = html.Div([
                             options=[
                                 {'label': 'Log', 'value': 'log'},
                                 {'label': 'Detrend', 'value': 'detrend'}
-                                ],
+                            ],
                             value=[],
                             labelStyle={'display': 'block'}
                         )
@@ -144,10 +144,10 @@ def draw_hardware_response(response_type, zenith, azimuth, station_id, channel_i
         amp_type = detector.get_amplifier_type(station_id, channel_id)
         if amp_type in ['100', '200', '300']:
             amp_response_provider = NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response(amp_type)
-            amp_response = amp_response_provider['gain'](frequencies)*amp_response_provider['phase'](frequencies)
+            amp_response = amp_response_provider['gain'](frequencies) * amp_response_provider['phase'](frequencies)
         elif amp_type in ['rno_surface', 'iglu']:
             amp_response_provider = NuRadioReco.detector.RNO_G.analog_components.load_amp_response(amp_type)
-            amp_response = amp_response_provider['gain'](frequencies)*amp_response_provider['phase'](frequencies)
+            amp_response = amp_response_provider['gain'](frequencies) * amp_response_provider['phase'](frequencies)
         else:
             print('Warning: the specified amplifier was not found')
             amp_response = 1
@@ -162,13 +162,13 @@ def draw_hardware_response(response_type, zenith, azimuth, station_id, channel_i
         response[1] *= VEL['phi']
         data = [
             go.Scatter(
-                x=frequencies/units.MHz,
+                x=frequencies / units.MHz,
                 y=np.abs(response[0]),
                 mode='lines',
                 name='Theta component'
             ),
             go.Scatter(
-                x=frequencies/units.MHz,
+                x=frequencies / units.MHz,
                 y=np.abs(response[1]),
                 mode='lines',
                 name='Phi component'
@@ -181,13 +181,13 @@ def draw_hardware_response(response_type, zenith, azimuth, station_id, channel_i
 
         phase_data = [
             go.Scatter(
-                x=frequencies/units.MHz,
+                x=frequencies / units.MHz,
                 y=phase[0],
                 mode='lines',
                 name='Theta component'
             ),
             go.Scatter(
-                x=frequencies/units.MHz,
+                x=frequencies / units.MHz,
                 y=phase[1],
                 mode='lines',
                 name='Phi component'
@@ -196,7 +196,7 @@ def draw_hardware_response(response_type, zenith, azimuth, station_id, channel_i
         y_label = 'VEL [m]'
     else:
         data = [go.Scatter(
-            x=frequencies/units.MHz,
+            x=frequencies / units.MHz,
             y=np.abs(response[1]),
             mode='lines',
             showlegend=False
@@ -206,7 +206,7 @@ def draw_hardware_response(response_type, zenith, azimuth, station_id, channel_i
         else:
             phase = np.unwrap(np.angle(response[1]))
         phase_data = [go.Scatter(
-            x=frequencies/units.MHz,
+            x=frequencies / units.MHz,
             y=phase,
             mode='lines',
             showlegend=False
