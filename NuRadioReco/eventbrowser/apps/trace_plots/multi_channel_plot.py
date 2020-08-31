@@ -4,9 +4,13 @@ import plotly.subplots
 from NuRadioReco.utilities import units, templates, fft
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+"""
+Used in the trace from efield and trace frm sim-efield plots. Keep them
+commented out for later
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.utilities import geometryUtilities
 from NuRadioReco.utilities import trace_utilities
+"""
 import numpy as np
 import dash_html_components as html
 import dash_core_components as dcc
@@ -329,6 +333,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                     textposition='top center'
                 ),
                 i + 1, 1)
+    """
     if 'recefield' in dropdown_traces or 'simefield' in dropdown_traces:
         det.update(station.get_station_time())
     if 'recefield' in dropdown_traces:
@@ -400,6 +405,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                     ),
                     opacity=.5
                 ), i_channel + 1, 2)
+    """
     for i, channel in enumerate(station.iter_channels()):
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(range=[-ymax, ymax])
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(title='voltage [mV]')
