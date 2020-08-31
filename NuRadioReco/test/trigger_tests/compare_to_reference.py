@@ -26,10 +26,10 @@ for event in event_reader.run():
         trigger = station.get_trigger(trigger_name)
         if trigger_name not in trigger_results.keys():
             trigger_results[trigger_name] = {}
-        for property in properties:
-            if property not in trigger_results[trigger_name].keys():
-                trigger_results[trigger_name][property] = []
-            trigger_results[trigger_name][property].append(trigger.get_trigger_settings()[property])
+        for prop in properties:
+            if prop not in trigger_results[trigger_name].keys():
+                trigger_results[trigger_name][prop] = []
+            trigger_results[trigger_name][prop].append(trigger.get_trigger_settings()[prop])
 
 found_error = False
 if args.create_reference:
@@ -38,19 +38,19 @@ if args.create_reference:
                   indent=4, separators=(',', ': '))
 else:
     for trigger_name in trigger_names:
-        for property in properties:
-            if(property == "trigger_time"):
+        for prop in properties:
+            if(prop == "trigger_time"):
                 try:
-                    np.testing.assert_allclose(np.array(trigger_results[trigger_name][property], dtype=np.float), np.array(reference[trigger_name][property], dtype=np.float))
+                    np.testing.assert_allclose(np.array(trigger_results[trigger_name][prop], dtype=np.float), np.array(reference[trigger_name][prop], dtype=np.float))
                 except AssertionError as e:
-                    print('Property {} of trigger {} differs from reference'.format(property, trigger_name))
+                    print('Property {} of trigger {} differs from reference'.format(prop, trigger_name))
                     print(e)
                     found_error = True
             else:
                 try:
-                    np.testing.assert_equal(trigger_results[trigger_name][property], reference[trigger_name][property])
+                    np.testing.assert_equal(trigger_results[trigger_name][prop], reference[trigger_name][prop])
                 except AssertionError as e:
-                    print('Property {} of trigger {} differs from reference'.format(property, trigger_name))
+                    print('Property {} of trigger {} differs from reference'.format(prop, trigger_name))
                     print(e)
                     found_error = True
 
