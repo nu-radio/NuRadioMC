@@ -20,7 +20,7 @@ def get_amp_response(frequencies, amp_name):
     freqs *= units.Hz
     freqs2 *= units.Hz
     phase *= units.deg
-    linmag = 10**(logmag/20.)
+    linmag = 10**(logmag / 20.)
 
     get_phase = intp.interp1d(freqs2, np.unwrap(phase))
     get_linmag = intp.interp1d(freqs, linmag)
@@ -37,9 +37,9 @@ if __name__ == "__main__":
     fig, (ax, ax2) = plt.subplots(1, 2)
     response = get_amp_response(ff, "NTU01")
     ax.plot(ff / units.MHz, np.abs(response))
-    group_delay = -1./2/np.pi * np.diff(np.unwrap(np.angle(response))) / df
+    group_delay = -1. / 2 / np.pi * np.diff(np.unwrap(np.angle(response))) / df
     #     ax2.plot(ff / units.MHz, np.unwrap(np.angle(response1)) / units.deg)
-    ax2.plot((ff[1:] + ff[:-1]) * 0.5 / units.MHz, group_delay/units.ns)
+    ax2.plot((ff[1:] + ff[:-1]) * 0.5 / units.MHz, group_delay / units.ns)
     ax.legend()
     ax2.legend()
     fig.tight_layout()

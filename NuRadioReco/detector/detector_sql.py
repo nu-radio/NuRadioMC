@@ -193,7 +193,7 @@ class Detector(object):
     def get_absolute_position_site(self, pos):
         """
         returns the UTM coordinates
-        
+
         Parameters
         ----------
         pos: string

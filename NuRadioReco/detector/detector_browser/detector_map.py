@@ -67,8 +67,8 @@ def draw_station_position_map(dummy):
     for station_id in detector.get_station_ids():
         try:
             pos = detector.get_absolute_position(station_id)
-            xx.append(pos[0]/units.km)
-            yy.append(pos[1]/units.km)
+            xx.append(pos[0] / units.km)
+            yy.append(pos[1] / units.km)
             labels.append(station_id)
         except:
             continue

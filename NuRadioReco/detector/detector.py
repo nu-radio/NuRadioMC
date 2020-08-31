@@ -553,8 +553,8 @@ class Detector(object):
                     for u_zen_rot in np.unique(orientations[:, 2]):
                         for u_az_rot in np.unique(orientations[:, 3]):
                             mask = (antenna_types == antenna_type) \
-                                   & (orientations[:, 0] == u_zen_ori) & (orientations[:, 1] == u_az_ori) \
-                                   & (orientations[:, 2] == u_zen_rot) & (orientations[:, 3] == u_az_rot)
+                                & (orientations[:, 0] == u_zen_ori) & (orientations[:, 1] == u_az_ori) \
+                                & (orientations[:, 2] == u_zen_rot) & (orientations[:, 3] == u_az_rot)
                             if np.sum(mask):
                                 parallel_antennas.append(channel_ids[mask])
         return np.array(parallel_antennas)
@@ -792,7 +792,7 @@ class Detector(object):
     def get_noise_temperature(self, station_id, channel_id):
         """
         returns the noise temperature of the channel
-        
+
         Parameters
         ----------
         station_id: int

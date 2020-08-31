@@ -140,7 +140,7 @@ def iter_events_function(version_major, version_minor):
                     bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
                 else:
                     break
-            evt_header_str = self._get_file(self._current_file_id).read(bytes_to_read)
+            self._get_file(self._current_file_id).read(bytes_to_read)
             bytes_to_read_hex = self._get_file(self._current_file_id).read(6)
             bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
             evtstr = self._get_file(self._current_file_id).read(bytes_to_read)
@@ -166,7 +166,7 @@ def iter_events_function(version_major, version_minor):
                 else:
                     break
             if object_type == 0:
-                evt_header_str = self._get_file(self._current_file_id).read(bytes_to_read)
+                self._get_file(self._current_file_id).read(bytes_to_read)
                 bytes_to_read_hex = self._get_file(self._current_file_id).read(6)
                 bytes_to_read = int.from_bytes(bytes_to_read_hex, 'little')
                 evtstr = self._get_file(self._current_file_id).read(bytes_to_read)
