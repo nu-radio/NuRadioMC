@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger('NuRadioReco.geometryUtilities')
 
 
-def get_time_delay_from_direction(zenith, azimuth, positions, n=None):
+def get_time_delay_from_direction(zenith, azimuth, positions, n=1.000293):
     """
     Calculate the time delay between given positions for an arrival direction
 
@@ -19,10 +19,11 @@ def get_time_delay_from_direction(zenith, azimuth, positions, n=None):
         Azimuth angle in convention East = 0, counter-clock-wise
     positions: array[N x 3]
         Positions on ground
+    n: float (default: 1.000293)
+        Index of reflection of propagation medium. By default, air is assumed
+
 
     """
-    if(n is None):  # assume propagation through air as default
-        n = 1.000293
     shower_axis = np.array([np.sin(zenith) * np.cos(azimuth), np.sin(zenith) * np.sin(azimuth), np.cos(zenith)])
 
     if positions.ndim == 1:
@@ -37,28 +38,37 @@ def get_time_delay_from_direction(zenith, azimuth, positions, n=None):
 
 def rot_z(angle):
     """Angle helper function"""
-    m = np.array([  [np.cos(angle), -1 * np.sin(angle), 0],
-                    [np.sin(angle), np.cos(angle), 0],
-                    [0, 0, 1]
-                    ])
+    m = np.array(
+        [
+            [np.cos(angle), -1 * np.sin(angle), 0],
+            [np.sin(angle), np.cos(angle), 0],
+            [0, 0, 1]
+        ]
+    )
     return m
 
 
 def rot_x(angle):
     """Angle helper function"""
-    m = np.array([  [1, 0, 0],
-                    [0, np.cos(angle), -1 * np.sin(angle)],
-                    [0, np.sin(angle), np.cos(angle)]
-                    ])
+    m = np.array(
+        [
+            [1, 0, 0],
+            [0, np.cos(angle), -1 * np.sin(angle)],
+            [0, np.sin(angle), np.cos(angle)]
+        ]
+    )
     return m
 
 
 def rot_y(angle):
     """Angle helper function"""
-    m = np.array([  [np.cos(angle), 0, np.sin(angle)],
-                    [0, 1, 0],
-                    [-1 * np.sin(angle), 0, np.cos(angle)]
-                    ])
+    m = np.array(
+        [
+            [np.cos(angle), 0, np.sin(angle)],
+            [0, 1, 0],
+            [-1 * np.sin(angle), 0, np.cos(angle)]
+        ]
+    )
     return m
 
 
@@ -137,9 +147,9 @@ def get_fresnel_r_p(zenith_incoming, n_2=1.3, n_1=1.):
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
     """
-    n = n_2/n_1
+    n = n_2 / n_1
     return (-n**2 * np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2)) / \
-              (n**2 * np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2))
+           (n**2 * np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2))
 
 
 def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
@@ -152,7 +162,6 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
     """
-    n = n_2/n_1
+    n = n_2 / n_1
     return (np.cos(zenith_incoming) - SM.sqrt(n**2 - np.sin(zenith_incoming)**2)) / \
-              (np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2))
-
+           (np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2))
