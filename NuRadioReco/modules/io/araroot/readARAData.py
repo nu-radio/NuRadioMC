@@ -10,17 +10,17 @@ import os
 import logging
 import time
 from scipy import interpolate
-from ctypes import *
+import ctypes
 
 
 sys.path.append(os.path.expandvars('${ARA_UTIL_INSTALL_DIR}/lib'))
 
-libc = CDLL("libAraEvent.so")
-libc = CDLL("libAraConfig.so")
-libc = CDLL("libAraCorrelator.so")
-libc = CDLL("libAraDisplay.so")
-libc = CDLL("libAraKvp.so")
-libc = CDLL("libRootFftwWrapper.so")
+libc = ctypes.CDLL("libAraEvent.so")
+libc = ctypes.CDLL("libAraConfig.so")
+libc = ctypes.CDLL("libAraCorrelator.so")
+libc = ctypes.CDLL("libAraDisplay.so")
+libc = ctypes.CDLL("libAraKvp.so")
+libc = ctypes.CDLL("libRootFftwWrapper.so")
 
 
 class readARAData:
