@@ -1,16 +1,11 @@
 #!/usr/bin/env python
-import numpy as np
-import os, scipy, sys
-import copy
+import os
+import sys
 import datetime
-import glob
 import matplotlib
-matplotlib.use('agg')
 import matplotlib.pyplot as plt
-
 from NuRadioReco.utilities import units
 from NuRadioReco.detector import detector
-
 import NuRadioReco.modules.io.coreas.readCoREAS
 import NuRadioReco.modules.io.coreas.simulationSelector
 import NuRadioReco.modules.efieldToVoltageConverter
@@ -28,17 +23,14 @@ import NuRadioReco.modules.electricFieldBandPassFilter
 import NuRadioReco.modules.voltageToAnalyticEfieldConverter
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.electricFieldResampler
-
 import NuRadioReco.modules.io.eventWriter
-
-from NuRadioReco.framework.parameters import channelParameters as chp
-from NuRadioReco.framework.parameters import stationParameters as stnp
 
 # Logging level
 import logging
 from NuRadioReco.modules.base import module
-logger = module.setup_logger(name='NuRadioReco',level=logging.WARNING)
+logger = module.setup_logger(name='NuRadioReco', level=logging.WARNING)
 
+matplotlib.use('agg')
 plt.switch_backend('agg')
 
 
@@ -63,11 +55,11 @@ template_path: str
 
 """
 
-dir_path = os.path.dirname(os.path.realpath(__file__)) # get the directory of this file
+dir_path = os.path.dirname(os.path.realpath(__file__))  # get the directory of this file
 
 try:
     station_id = int(sys.argv[1])  # specify station id
-    input_file = sys.argv[2] # file with coreas simulations
+    input_file = sys.argv[2]    # file with coreas simulations
 except:
     logger.warning("Usage: python FullReconstruction.py station_id input_file detector templates")
     station_id = 32
@@ -75,7 +67,7 @@ except:
     logger.warning("Using default station {}".format(32))
 
 if(station_id == 32):
-    triggered_channels = [0,1,2,3]
+    triggered_channels = [0, 1, 2, 3]
     used_channels_efield = [0, 1, 2, 3]
     used_channels_fit = [0, 1, 2, 3]
     channel_pairs = ((0, 2), (1, 3))
@@ -88,14 +80,10 @@ try:
 except:
 
     logger.warning("Using default file for detector")
-    detector_file = os.path.join(dir_path,"../../examples/example_data/arianna_station_32.json")
+    detector_file = os.path.join(dir_path, "../../examples/example_data/arianna_station_32.json")
 
-
-
-det = detector.Detector(json_filename=detector_file) # detector file
+det = detector.Detector(json_filename=detector_file)    # detector file
 det.update(datetime.datetime(2018, 10, 1))
-
-
 
 # initialize all modules that are needed for processing
 # provide input parameters that are to remain constant during processung
@@ -103,7 +91,7 @@ readCoREAS = NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS()
 readCoREAS.begin([input_file], station_id, n_cores=10, max_distance=None, seed=0)
 simulationSelector = NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector()
 simulationSelector.begin()
-efieldToVoltageConverter =  NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
+efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin(debug=False)
 hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
@@ -143,20 +131,19 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
     logger.info("processing event {:d} with id {:d}".format(iE, evt.get_id()))
     station = evt.get_station(station_id)
 
-
     if simulationSelector.run(evt, station.get_sim_station(), det):
 
         efieldToVoltageConverter.run(evt, station, det)
 
         hardwareResponseIncorporator.run(evt, station, det, sim_to_data=True)
 
-        channelGenericNoiseAdder.run(evt, station, det, type = "rayleigh", amplitude = 20* units.mV)
+        channelGenericNoiseAdder.run(evt, station, det, type="rayleigh", amplitude=20 * units.mV)
 
-        triggerSimulator.run(evt, station,det, number_concidences = 2, threshold = 100 *units.mV)
+        triggerSimulator.run(evt, station, det, number_concidences=2, threshold=100 * units.mV)
 
         if station.get_trigger('default_simple_threshold').has_triggered():
 
-            channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 500 * units.MHz], filter_type='butter', order = 10)
+            channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 500 * units.MHz], filter_type='butter', order=10)
 
             eventTypeIdentifier.run(evt, station, "forced", 'cosmic_ray')
 
@@ -171,11 +158,11 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
 
             voltageToEfieldConverter.run(evt, station, det, use_channels=used_channels_efield)
 
-            electricFieldBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 300*units.MHz])
+            electricFieldBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 300 * units.MHz])
 
             electricFieldSignalReconstructor.run(evt, station, det)
 
-            voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80*units.MHz, 500*units.MHz], use_MC_direction=False)
+            voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[80 * units.MHz, 500 * units.MHz], use_MC_direction=False)
 
             channelResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
 
