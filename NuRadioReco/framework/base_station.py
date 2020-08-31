@@ -78,7 +78,11 @@ class BaseStation():
             time_strings = str(time).split(' ')
             self._station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
         else:
-            self._station_time = time
+            if time.format == 'datetime':
+                time_strings = str(time).split(' ')
+                self._station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
+            else:
+                self._station_time = time
 
     def get_station_time(self):
         return self._station_time
