@@ -1,39 +1,26 @@
-import numpy as np
-import os, scipy, sys
-import copy
+import os
+import sys
 import datetime
-import glob
 import matplotlib.pyplot as plt
-
 from NuRadioReco.utilities import units
 from NuRadioReco.detector import detector
-
 import NuRadioReco.modules.io.coreas.readCoREAS
 import NuRadioReco.modules.io.coreas.simulationSelector
 import NuRadioReco.modules.efieldToVoltageConverter
-import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 import NuRadioReco.modules.channelGenericNoiseAdder
-import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.electricFieldBandPassFilter
 import NuRadioReco.modules.eventTypeIdentifier
 import NuRadioReco.modules.channelStopFilter
-import NuRadioReco.modules.channelSignalReconstructor
-import NuRadioReco.modules.correlationDirectionFitter
 import NuRadioReco.modules.voltageToEfieldConverter
 import NuRadioReco.modules.electricFieldSignalReconstructor
 import NuRadioReco.modules.voltageToAnalyticEfieldConverter
 import NuRadioReco.modules.channelResampler
-import NuRadioReco.modules.electricFieldResampler
-
 import NuRadioReco.modules.io.eventWriter
-
-from NuRadioReco.framework.parameters import channelParameters as chp
-from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.modules.base import module
 
 # Logging level
 import logging
-from NuRadioReco.modules.base import module
 logger = module.setup_logger(level=logging.INFO)
 
 plt.switch_backend('agg')
@@ -139,15 +126,14 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
 
         efieldToVoltageConverter.run(evt, station, det)
 
-        channelGenericNoiseAdder.run(evt, station, det, min_freq=25 * units.MHz, type = "rayleigh", amplitude = 1 * units.mV)
-
+        channelGenericNoiseAdder.run(evt, station, det, min_freq=25 * units.MHz, type="rayleigh", amplitude=1 * units.mV)
 
         channelStopFilter.run(evt, station, det)
         channelResampler.run(evt, station, det, sampling_rate=0.8 * units.GHz)
 
         # voltageToAnalyticEfieldConverter expect butter filter
         channelBandPassFilter.run(evt, station, det, passband=[20 * units.MHz, 90 * units.MHz], filter_type='rectangular')
-        channelBandPassFilter.run(evt, station, det, passband=[30 * units.MHz, 80 * units.MHz], filter_type='butter', order = 10)
+        channelBandPassFilter.run(evt, station, det, passband=[30 * units.MHz, 80 * units.MHz], filter_type='butter', order=10)
 
         # traditional
         voltageToEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, use_MC_direction=True)
@@ -156,7 +142,7 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
 
         # channelSignalReconstructor.run(evt, station, det)
         # new analytic approach
-        voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[30*units.MHz, 80*units.MHz], use_MC_direction=True)
+        voltageToAnalyticEfieldConverter.run(evt, station, det, use_channels=used_channels_efield, bandpass=[30 * units.MHz, 80 * units.MHz], use_MC_direction=True)
 
         eventWriter.run(evt)
 

@@ -5,34 +5,26 @@ import matplotlib.pyplot as plt
 import logging
 import datetime
 import os
-
 from radiotools import plthelpers as php
-
 from NuRadioReco.utilities import units
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.station
 import NuRadioReco.framework.event
+import NuRadioReco.framework.sim_station
+import NuRadioReco.framework.electric_field
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.framework.parameters import stationParameters as stnp
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 import NuRadioReco.modules.channelGenericNoiseAdder
-
 import NuRadioReco.modules.ARA.triggerSimulator
 import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioMC.SignalGen import parametrizations as signalgen
-
-from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import channelParameters as chp
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
-
 from NuRadioReco.detector import detector
-
 from NuRadioReco.modules.base import module
 logger = module.setup_logger(level=logging.DEBUG)
-
-#fig = plt.gcf()
-#fig.canvas.manager.window.tkraise()
 
 
 def get_ARA_power_mean_rms(sampling_rate, Vrms, min_freq, max_freq):
@@ -147,12 +139,14 @@ if 0:
     fig.savefig('plots/SNR_ARA_ARIANNA.png')
     plt.show()
 
-long_noise = channelGenericNoiseAdder.bandlimited_noise(min_freq=min_freq,
-                                            max_freq=max_freq,
-                                            n_samples=2 ** 20,
-                                            sampling_rate=1 / dt,
-                                            amplitude=Vrms,
-                                            type='perfect_white')
+long_noise = channelGenericNoiseAdder.bandlimited_noise(
+    min_freq=min_freq,
+    max_freq=max_freq,
+    n_samples=2 ** 20,
+    sampling_rate=1 / dt,
+    amplitude=Vrms,
+    type='perfect_white'
+)
 NN = 10000
 SS_LPDA = np.zeros(NN)
 SS_LPDA_amp = np.zeros(NN)
@@ -178,7 +172,7 @@ for signal_scaling in np.linspace(1, 100, NN):
         trace[2] = pulse
         trace = trace / np.max(np.abs(trace)) * signal_scaling * Vrms
         sim_station = NuRadioReco.framework.sim_station.SimStation(101)
-        electric_field = NuRadioReco.framework.electric_field.ElectricField([2,3,4,5])
+        electric_field = NuRadioReco.framework.electric_field.ElectricField([2, 3, 4, 5])
         electric_field.set_trace(sampling_rate=1. / dt, trace=trace)
         electric_field[efp.azimuth] = 0
         electric_field[efp.zenith] = (90 + 45) * units.deg
@@ -204,7 +198,7 @@ for signal_scaling in np.linspace(1, 100, NN):
             for t in np.arange(tstart, tstop, dt):
                 n_bins = np.int(np.ceil(coincidence_window / dt))
                 bin_start = np.int(np.ceil(t / dt))
-                maximum = max(maximum, np.max(trace[bin_start:(bin_start+n_bins)]) - np.min(trace[bin_start:(bin_start+n_bins)]))
+                maximum = max(maximum, np.max(trace[bin_start:(bin_start + n_bins)]) - np.min(trace[bin_start:(bin_start + n_bins)]))
             return maximum
 #             return np.max(trace) - np.min(trace)
 #             index = np.argmax(np.abs(trace))
@@ -227,7 +221,7 @@ for signal_scaling in np.linspace(1, 100, NN):
             ax[0].plot(tt / units.ns, pulse / units.micro / units.V)
             ax[1].plot(tt / units.ns, trace_bicone / units.micro / units.V)
             ax[2].plot(tt / units.ns, trace_LPDA / units.micro / units.V)
-            ax[0].set_ylabel('voltage [$\mu$V]')
+            ax[0].set_ylabel(r'voltage [$\mu$V]')
             ax[2].set_ylabel('voltage [mV]')
             ax[0].set_title("no antenna")
             ax[1].set_title("bicone")
@@ -287,7 +281,7 @@ ax2.set_ylim(0, 250 / 10)
 ax2.set_xlim(0, 150 / 10)
 ax2.legend()
 fig.tight_layout()
-fig.savefig("plots/SNRcomparison.png".format(counter))
+fig.savefig("plots/SNRcomparison.png")
 # plt.show()
 
 # calculate trigger efficiency of ARIANNA Vp2p trigger
@@ -327,7 +321,7 @@ ax.set_ylabel("trigger efficiency")
 ax.set_title("trigger settings: Vp2p/Vrms/2 > 3, (3/8 trigger rate ~10mHz)")
 ax.legend()
 fig.tight_layout()
-fig.savefig("plots/ARIANNAtriggerefficiency_allcangles.png".format(counter))
+fig.savefig("plots/ARIANNAtriggerefficiency_allcangles.png")
 
 # with noise
 SNR_ARIANNA_bicone_1 = Vp2p_bicone_noise_1 / Vrms / 2.
@@ -388,5 +382,5 @@ ax.set_ylabel("trigger efficiency")
 ax.set_title("trigger settings: Vp2p/Vrms/2 > N, 2/2 trigger")
 ax.legend()
 fig.tight_layout()
-fig.savefig("plots/ARIANNAtriggerefficiency_allcangles_noise_5ns.png".format(counter))
+fig.savefig("plots/ARIANNAtriggerefficiency_allcangles_noise_5ns.png")
 plt.show()
