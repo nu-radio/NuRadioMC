@@ -31,7 +31,7 @@ def get_parametrizations():
 
 
 def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=None, same_shower=False,
-                   k_L=None, full_output=True, average_shower=False):
+                   k_L=None, full_output=False, average_shower=False):
     """
     returns the Askaryan pulse in the time domain of the eTheta component
 
@@ -74,7 +74,9 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
         and the parameter will not be drawn from a random distribution. 
         This setting overrides the `same_shower` setting
     full_output: bool (default False)    
-        if True, askaryan modules can return additional output
+        if True, askaryan modules can return additional output. The additional output is always a dictionary
+        For Alvarez2009: dict containing the key 'k_L'
+        For ZHS1992 and ALvarez2000 the dict is empty.
     average_shower: bool (default False)
         if True, for the Alvarez2009 model electromagnetic showers, no random shower is generated, but the average shower is choosen. 
 

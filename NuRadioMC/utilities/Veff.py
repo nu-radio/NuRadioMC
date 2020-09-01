@@ -14,6 +14,7 @@ from NuRadioReco.utilities import units
 import logging
 logger = logging.getLogger("Veff")
 logging.basicConfig()
+logger.setLevel(logging.INFO)
 
 
 # collection of utility function regarding the calculation of the effective volume of a neutrino detector
@@ -205,7 +206,6 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
     if(len(glob.glob(os.path.join(folder, '*.hdf5'))) == 0):
         raise FileNotFoundError(f"couldnt find any hdf5 file in folder {folder}")
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
-        logger.info(f"reading {filename}")
         fin = h5py.File(filename, 'r')
         if 'deposited' in fin.attrs:
             deposited = fin.attrs['deposited']
@@ -222,9 +222,10 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
             break
 
     trigger_combinations['all_triggers'] = {'triggers': trigger_names}
-    logger.info("Trigger names:", trigger_names)
+    logger.info(f"Trigger names: {trigger_names}")
 
     for iF, filename in enumerate(sorted(glob.glob(os.path.join(folder, '*.hdf5')))):
+        logger.info(f"reading {filename}")
         fin = h5py.File(filename, 'r')
         out = {}
         Emin = fin.attrs['Emin']
@@ -235,17 +236,15 @@ def get_Aeff_proposal(folder, trigger_combinations={}, station=101):
         weights = np.array(fin['weights'])
         triggered = np.array(fin['triggered'])
         n_events = fin.attrs['n_events']
-        if(trigger_names is None):
-            trigger_names = fin.attrs['trigger_names']
-            for iT, trigger_name in enumerate(trigger_names):
-                trigger_names_dict[trigger_name] = iT
-        else:
+        if('trigger_names' in fin.attrs):
             if(np.any(trigger_names != fin.attrs['trigger_names'])):
                 if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
                     logger.warning("file {} has no triggering events. Using trigger names from another file".format(filename))
                 else:
-                    logger.warning("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
+                    logger.error("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
                     raise
+        else:
+            logger.warning(f"file {filename} has no triggering events. Using trigger names from a different file: {trigger_names}")
 
         # calculate effective
         thetamin = 0
@@ -726,7 +725,7 @@ def get_Veff_array(data):
     calculates a multi dimensional array of effective volume calculations for fast slicing
 
     the array dimensions are (energy, zenith bin, triggername, 3) where the
-    last tuple is the effective volume, its uncertainty and the weighted sum of triggered events
+    last tuple is the effective volume, its uncertainty, the weighted sum of triggered events, lower 68% uncertainty, upper 68% uncertainty
 
     Parameters
     -----------
@@ -735,7 +734,7 @@ def get_Veff_array(data):
 
     Returns
     --------
-     * (n_energy, n_zenith_bins, n_triggernames, 3) dimensional array of floats
+     * (n_energy, n_zenith_bins, n_triggernames, 5) dimensional array of floats
      * array of unique energies
      * array of unique zenith bins
      * array of unique trigger names
@@ -841,7 +840,7 @@ def get_Aeff_array(data):
     calculates a multi dimensional array of effective area calculations for fast slicing
 
     the array dimensions are (energy, zenith bin, triggername, 3) where the
-    last tuple is the effective area, its uncertainty and the weighted sum of triggered events
+    last tuple is the effective volume, its uncertainty, the weighted sum of triggered events, lower 68% uncertainty, upper 68% uncertainty
 
     Parameters
     -----------
