@@ -69,7 +69,8 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
         NuRadioReco.framework.base_station.BaseStation.deserialize(self, data['base_station'])
         self.__magnetic_field_vector = data['__magnetic_field_vector']
         self.__simulation_weight = data['__simulation_weight']
-        for channel_pkl in data['channels']:
-            channel = NuRadioReco.framework.sim_channel.SimChannel(0, 0, 0)
-            channel.deserialize(channel_pkl)
-            self.add_channel(channel)
+        if 'channels' in data.keys():
+            for channel_pkl in data['channels']:
+                channel = NuRadioReco.framework.sim_channel.SimChannel(0, 0, 0)
+                channel.deserialize(channel_pkl)
+                self.add_channel(channel)
