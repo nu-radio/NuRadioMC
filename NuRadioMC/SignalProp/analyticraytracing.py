@@ -1912,8 +1912,9 @@ class ray_tracing:
             recPos = copy.copy(self.__X2)
             recPos1 = np.array([self.__X2[0], self.__X2[1], self.__X2[2] + dz])
         if(not hasattr(self, "_r1")):
-            self._r1 = ray_tracing(vetPos, recPos1, self.__medium, self.__attenuation_model, logging.WARNING,
+            self._r1 = ray_tracing(self.__medium, self.__attenuation_model, logging.WARNING,
                              self.__n_frequencies_integration, self.__n_reflections)
+            self._r1.set_start_and_end_point(vetPos, recPos1)
             self._r1.find_solutions()
         if iS < self._r1.get_number_of_solutions():
             lauVec1 = self._r1.get_launch_vector(iS)
