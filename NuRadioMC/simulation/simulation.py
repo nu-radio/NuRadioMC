@@ -372,10 +372,14 @@ class simulation():
         self._shower_ids = np.array(self._fin['shower_ids'])
         self._shower_index_array = {}  # this array allows to convert the shower id to an index that starts from 0 to be used to access the arrays in the hdf5 file.
 
-        self._raytracer= self._prop(self._ice, self._cfg['propagation']['attenuation_model'],
-                       log_level=self._log_level_ray_propagation,
-                       n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
-                       n_reflections=self._n_reflections)
+        self._raytracer= self._prop(
+            self._ice, self._cfg['propagation']['attenuation_model'],
+            log_level=self._log_level_ray_propagation,
+            n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
+            n_reflections=self._n_reflections,
+            config=self._cfg,
+            detector = self._det
+        )
         r = self._raytracer
         for shower_index, shower_id in enumerate(self._shower_ids):
             self._shower_index_array[shower_id] = shower_index
@@ -667,9 +671,6 @@ class simulation():
 
                             # apply frequency dependent attenuation
                             t_att = time.time()
-                            if self._cfg['propagation']['attenuate_ice']:
-                                attn = r.get_attenuation(iS, self._ff, 0.5 * self._sampling_rate_detector)
-                                spectrum *= attn
                             time_attenuation_length += (time.time() - t_att)
 
                             # apply the focusing effect
@@ -702,15 +703,6 @@ class simulation():
                                          f" n_ref surface = {n_surface_reflections:d},  R = {R / units.m:.1f} m, T = {T / units.ns:.1f}ns," + \
                                          f" receive angles zen={zenith / units.deg:.0f}deg, az={azimuth / units.deg:.0f}deg")
 
-                            if self._cfg['propagation']['attenuate_ice']:
-                                tmp_output = "attenuation factor"
-                                iF = len(self._ff) // 4
-                                tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
-                                iF = len(self._ff) // 3
-                                tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
-                                iF = len(self._ff) // 2
-                                tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
-                                logger.debug(tmp_output)
                             for zenith_reflection in zenith_reflections:  # loop through all possible reflections
                                 if(zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
                                     continue
@@ -751,6 +743,7 @@ class simulation():
                             if(iS is None):
                                 a = 1 / 0
                             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / self._dt)
+                            electric_field = self._raytracer.apply_propagation_effects(electric_field, iS)
                             # Trace start time is equal to the interaction time relative to the first
                             # interaction plus the wave travel time.
                             if hasattr(self, '_vertex_time'):

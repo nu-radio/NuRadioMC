@@ -222,7 +222,7 @@ class ray_tracing_base:
         """
         pass
 
-    def apply_propagation_effects(self, iS, efield):
+    def apply_propagation_effects(self, efield, iS):
         pass
 
     def create_output_data_structure(self, dictionary, n_showers, n_antennas):

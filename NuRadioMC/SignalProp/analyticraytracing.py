@@ -1516,7 +1516,7 @@ class ray_tracing:
 
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=100,
-                 n_reflections=0):
+                 n_reflections=0, config=None, detector=None):
         """
         class initilization
 
@@ -1559,7 +1559,14 @@ class ray_tracing:
         self.__n_reflections = n_reflections
         self.__r2d = ray_tracing_2D(self.__medium, self.__attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self.__n_frequencies_integration)
-
+        self.__config = config
+        self.__detector = detector
+        self.__max_detector_frequency = None
+        if self.__detector is not None:
+            for station_id in self.__detector.get_station_ids():
+                sampling_frequency = self.__detector.get_sampling_frequency(station_id, 0)
+                if self.__max_detector_frequency is None or sampling_frequency * .5 > self.__max_detector_frequency:
+                    self.__max_detector_frequency = sampling_frequency * .5
         self.__X1 = None
         self.__X2 = None
         self.__swap = None
@@ -1567,6 +1574,7 @@ class ray_tracing:
         self.__R = None
         self.__x1 = None
         self.__x2 = None
+        self.__results = None
 
     def reset_solutions(self):
         self.__X1 = None
@@ -1576,6 +1584,7 @@ class ray_tracing:
         self.__R = None
         self.__x1 = None
         self.__x2 = None
+        self.__results = None
 
     def set_start_and_end_point(self, x1, x2):
         self.reset_solutions()
@@ -1979,3 +1988,20 @@ class ray_tracing:
         dictionary['ray_tracing_reflection'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['reflection']
         dictionary['ray_tracing_reflection_case'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['reflection_case']
         dictionary['ray_tracing_solution_type'][i_shower, channel_id, i_solution] = self.get_solution_type(i_solution)
+
+    def apply_propagation_effects(self, efield, i_solution):
+        spec = efield.get_frequency_spectrum()
+        if self.__config is None:   # done for easier compatibility, by default we do attenuation
+            apply_attenuation = True
+        else:
+            apply_attenuation = self.__config['propagation']['attenuate_ice']
+        if apply_attenuation:
+            if self.__max_detector_frequency is None:
+                max_freq = np.max(efield.get_frequencies())
+            else:
+                max_freq = self.__max_detector_frequency
+            attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
+            spec *= attenuation
+
+        efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
+        return efield
