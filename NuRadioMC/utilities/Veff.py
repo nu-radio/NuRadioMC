@@ -470,12 +470,14 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
         fin.attrs['phimax']
     if(veff_aeff == "veff"):
         volume_proj_area = fin.attrs['volume']
-    elif(veff_aeff == "veff"):
+    elif(veff_aeff == "aeff_surface_muons"):
         area = fin.attrs['area']
         # The used area must be the projected area, perpendicular to the incoming
         # flux, which leaves us with the following correction. Remember that the
         # zenith bins must be small for the effective area to be correct.
         volume_proj_area = area * 0.5 * (np.abs(np.cos(thetamin)) + np.abs(np.cos(thetamax)))
+    else:
+        raise AttributeError(f"attributes do neither contain volume nor area")
 
     Vrms = fin.attrs['Vrms']
 
@@ -484,7 +486,7 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     out['thetamin'] = thetamin
     out['thetamax'] = thetamax
     out['deposited'] = deposited
-    out['Veffs'] = {}
+    out[veff_aeff] = {}
     out['n_triggered_weighted'] = {}
     out['SNRs'] = {}
 
@@ -836,7 +838,7 @@ def get_Veff_Aeff_array(data):
         energies_min.append(d['energy_min'])
         energies_max.append(d['energy_max'])
         zenith_bins.append([d['thetamin'], d['thetamax']])
-        for triggername in d['Veffs']:
+        for triggername in d[veff_aeff]:
             trigger_names.append(triggername)
 
     energies = np.array(energies)
@@ -857,7 +859,7 @@ def get_Veff_Aeff_array(data):
     for d in data:
         iE = np.squeeze(np.argwhere(d['energy'] == uenergies))
         iT = np.squeeze(np.argwhere([d['thetamin'], d['thetamax']] == uzenith_bins))[0][0]
-        for triggername, Veff in d['Veffs'].items():
+        for triggername, Veff in d[veff_aeff].items():
             iTrig = np.squeeze(np.argwhere(triggername == utrigger_names))
             output[iE, iT, iTrig] = Veff
 
@@ -893,7 +895,7 @@ def export(filename, data, trigger_names=None, export_format='yaml'):
     for i in range(len(data)):
         tmp = {}
         for key in data[i]:
-            if (key not in  ['Veffs', 'Aeffs']):
+            if (key not in  ['veffs', 'aeff_surface_muons']):
                 if isinstance(data[i][key], np.generic):
                     tmp[key] = data[i][key].item()
                 else:
