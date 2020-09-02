@@ -371,6 +371,12 @@ class simulation():
         self._n_showers = len(self._fin['event_group_ids'])
         self._shower_ids = np.array(self._fin['shower_ids'])
         self._shower_index_array = {}  # this array allows to convert the shower id to an index that starts from 0 to be used to access the arrays in the hdf5 file.
+
+        self._raytracer= self._prop(self._ice, self._cfg['propagation']['attenuation_model'],
+                       log_level=self._log_level_ray_propagation,
+                       n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
+                       n_reflections=self._n_reflections)
+        r = self._raytracer
         for shower_index, shower_id in enumerate(self._shower_ids):
             self._shower_index_array[shower_id] = shower_index
 
@@ -556,10 +562,7 @@ class simulation():
                                 continue
                             distance_cut_time += time.time() - t_tmp
 
-                        r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=self._log_level_ray_propagation,
-                                       n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
-                                       n_reflections=self._n_reflections)
-
+                        r.set_start_and_end_point(x1, x2)
                         if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                             sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
                             temp_reflection = None
@@ -582,11 +585,7 @@ class simulation():
                         viewing_angles = []
                         # loop through all ray tracing solution
                         for iS in range(r.get_number_of_solutions()):
-                            sg['ray_tracing_C0'][iSh, channel_id, iS] = r.get_results()[iS]['C0']
-                            sg['ray_tracing_C1'][iSh, channel_id, iS] = r.get_results()[iS]['C1']
-                            sg['ray_tracing_reflection'][iSh, channel_id, iS] = r.get_results()[iS]['reflection']
-                            sg['ray_tracing_reflection_case'][iSh, channel_id, iS] = r.get_results()[iS]['reflection_case']
-                            sg['ray_tracing_solution_type'][iSh, channel_id, iS] = r.get_solution_type(iS)
+                            self._raytracer.write_raytracing_output(sg, iSh, channel_id, iS)
                             self._launch_vector = r.get_launch_vector(iS)
                             sg['launch_vectors'][iSh, channel_id, iS] = self._launch_vector
                             # calculates angle between shower axis and launch vector
@@ -1219,24 +1218,19 @@ class simulation():
             self._output_maximum_amplitudes_envelope[station_id] = []
 
     def _create_station_output_structure(self, n_showers, n_antennas):
-        nS = 2 + 4 * self._n_reflections  # number of possible ray-tracing solutions
+        nS = self._raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
         sg = {}
         sg['triggered'] = np.zeros(n_showers, dtype=np.bool)
         sg['shower_id'] = np.zeros(n_showers, dtype=np.int) * -1  # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
         sg['launch_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['receive_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
-        sg['ray_tracing_C0'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-        sg['ray_tracing_C1'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-        sg['ray_tracing_reflection'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
-        sg['ray_tracing_reflection_case'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
-        sg['ray_tracing_solution_type'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
         sg['polarization'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['travel_times'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
         sg['travel_distances'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-        sg['focusing_factor'] = np.ones((n_showers, n_antennas, nS))
         if(self._cfg['speedup']['amp_per_ray_solution']):
             sg['max_amp_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
             sg['time_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
+        self._raytracer.create_output_data_structure(sg, n_showers, n_antennas)
         return sg
 
     def _read_input_neutrino_properties(self):
