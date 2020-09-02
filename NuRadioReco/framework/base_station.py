@@ -74,6 +74,9 @@ class BaseStation():
         self._parameters.pop(key, None)
 
     def set_station_time(self, time):
+        if time is None:
+            self._station_time = None
+            return
         if isinstance(time, datetime.datetime):
             time_strings = str(time).split(' ')
             self._station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
