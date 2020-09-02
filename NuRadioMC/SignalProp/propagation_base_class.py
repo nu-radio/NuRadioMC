@@ -16,7 +16,7 @@ class ray_tracing_base:
     base class of ray tracer. All ray tracing modules need to prodide the following functions
     """
 
-    def __init__(self, x1, x2, medium, attenuation_model="SP1", log_level=logging.WARNING,
+    def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=6):
         """
         class initilization
@@ -46,6 +46,8 @@ class ray_tracing_base:
         """
         pass
 
+    def set_start_and_end_point(self, x1, x2):
+        pass
 
     def find_solutions(self):
         """
@@ -230,4 +232,7 @@ class ray_tracing_base:
         pass
 
     def check_if_presimulated(self):
+        pass
+
+    def get_number_of_raytracing_solutions(self):
         pass
