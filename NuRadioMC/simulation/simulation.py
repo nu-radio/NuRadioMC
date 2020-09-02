@@ -399,7 +399,6 @@ class simulation():
         outputTime = 0.0
         weightTime = 0.0
         distance_cut_time = 0.
-        time_attenuation_length = 0.
 
         n_shower_station = len(self._station_ids) * self._n_showers
         iCounter = 0
@@ -476,13 +475,10 @@ class simulation():
                         total_time_sum = input_time + rayTracingTime + detSimTime + outputTime + weightTime + distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
                         total_time = time.time() - t_start
                         tmp_att = 0
-                        if(rayTracingTime - askaryan_time != 0):
-                            tmp_att = 100. * time_attenuation_length / (rayTracingTime - askaryan_time)
                         if total_time > 0:
-                            logger.status("processing {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
+                            logger.status("processing {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}%, askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
                                 iCounter, n_shower_station, np.sum(self._mout['triggered']), 100. * iCounter / n_shower_station,
                                 eta, 100. * (rayTracingTime - askaryan_time) / total_time,
-                                tmp_att,
                                 100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*input_time / total_time,
                                 100. * weightTime / total_time,
                                 100 * distance_cut_time / total_time,
@@ -669,9 +665,6 @@ class simulation():
                                     logger.debug(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
                             askaryan_time += (time.time() - t_ask)
 
-                            # apply frequency dependent attenuation
-                            t_att = time.time()
-                            time_attenuation_length += (time.time() - t_att)
 
                             # apply the focusing effect
                             if self._cfg['propagation']['focusing']:
