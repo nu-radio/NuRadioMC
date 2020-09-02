@@ -84,7 +84,6 @@ def merge_config(user, default):
 
 class simulation():
 
-#
     def __init__(self, inputfilename,
                  outputfilename,
                  detectorfile,
