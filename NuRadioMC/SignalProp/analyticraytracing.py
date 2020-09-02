@@ -1578,6 +1578,7 @@ class ray_tracing:
         self.__x2 = None
 
     def set_start_and_end_point(self, x1, x2):
+        self.reset_solutions()
         x1 = np.array(x1, dtype=np.float)
         x2 = np.array(x2, dtype=np.float)
         self.__swap = False
