@@ -15,7 +15,7 @@ speed_of_light = scipy.constants.c * units.m / units.s
 
 class directRayTracing():
 
-    def __init__(self, attenuation_model = "SP1", medium, detector = None):
+    def __init__(self, medium, log_level=logging.WARNING, attenuation_model = "SP1", detector = None):
         self._medium = medium
         self._attenuation_model = attenuation_model
         pass
