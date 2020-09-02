@@ -1560,6 +1560,23 @@ class ray_tracing:
         self.__r2d = ray_tracing_2D(self.__medium, self.__attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self.__n_frequencies_integration)
 
+        self.__X1 = None
+        self.__X2 = None
+        self.__swap = None
+        self.__dPhi = None
+        self.__R = None
+        self.__x1 = None
+        self.__x2 = None
+
+    def reset_solutions(self):
+        self.__X1 = None
+        self.__X2 = None
+        self.__swap = None
+        self.__dPhi = None
+        self.__R = None
+        self.__x1 = None
+        self.__x2 = None
+
     def set_start_and_end_point(self, x1, x2):
         x1 = np.array(x1, dtype=np.float)
         x2 = np.array(x2, dtype=np.float)
@@ -1948,6 +1965,16 @@ class ray_tracing:
         dictionary['ray_tracing_C0'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
         dictionary['ray_tracing_C1'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
         dictionary['focusing_factor'] = np.ones((n_showers, n_antennas, nS))
+        dictionary['ray_tracing_reflection'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
+        dictionary['ray_tracing_reflection_case'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
+        dictionary['ray_tracing_solution_type'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
 
     def get_number_of_raytracing_solutions(self):
         return 2 + 4 * self.__n_reflections  # number of possible ray-tracing solutions
+
+    def write_raytracing_output(self, dictionary, i_shower, channel_id, i_solution):
+        dictionary['ray_tracing_C0'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['C0']
+        dictionary['ray_tracing_C1'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['C1']
+        dictionary['ray_tracing_reflection'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['reflection']
+        dictionary['ray_tracing_reflection_case'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['reflection_case']
+        dictionary['ray_tracing_solution_type'][i_shower, channel_id, i_solution] = self.get_solution_type(i_solution)
