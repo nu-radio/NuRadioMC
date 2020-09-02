@@ -585,11 +585,7 @@ class simulation():
                         viewing_angles = []
                         # loop through all ray tracing solution
                         for iS in range(r.get_number_of_solutions()):
-                            sg['ray_tracing_C0'][iSh, channel_id, iS] = r.get_results()[iS]['C0']
-                            sg['ray_tracing_C1'][iSh, channel_id, iS] = r.get_results()[iS]['C1']
-                            sg['ray_tracing_reflection'][iSh, channel_id, iS] = r.get_results()[iS]['reflection']
-                            sg['ray_tracing_reflection_case'][iSh, channel_id, iS] = r.get_results()[iS]['reflection_case']
-                            sg['ray_tracing_solution_type'][iSh, channel_id, iS] = r.get_solution_type(iS)
+                            self._raytracer.write_raytracing_output(sg, iSh, channel_id, iS)
                             self._launch_vector = r.get_launch_vector(iS)
                             sg['launch_vectors'][iSh, channel_id, iS] = self._launch_vector
                             # calculates angle between shower axis and launch vector
@@ -1228,9 +1224,6 @@ class simulation():
         sg['shower_id'] = np.zeros(n_showers, dtype=np.int) * -1  # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
         sg['launch_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['receive_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
-        sg['ray_tracing_reflection'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
-        sg['ray_tracing_reflection_case'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
-        sg['ray_tracing_solution_type'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
         sg['polarization'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['travel_times'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
         sg['travel_distances'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
