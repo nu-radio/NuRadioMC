@@ -35,7 +35,8 @@ ff = np.linspace(0, 500*units.MHz, n_freqs)
 # tt = 0
 for iX, x in enumerate(points):
 #     t_start2 = time.time()
-    r = ray.ray_tracing(x, x_receiver, ice)
+    r = ray.ray_tracing(ice)
+    r.set_start_and_end_point(x, x_receiver, )
 #     tt += (time.time() - t_start2)
     r.find_solutions()
     if(r.has_solution()):
@@ -52,7 +53,8 @@ results_A_python = np.zeros((n_events, 2, n_freqs))
 ray.cpp_available = False
 t_start = time.time()
 for iX, x in enumerate(points):
-    r = ray.ray_tracing(x, x_receiver, ice)
+    r = ray.ray_tracing(ice)
+    r.set_start_and_end_point(x, x_receiver)
     r.find_solutions()
     if(r.has_solution()):
         for iS in range(r.get_number_of_solutions()):

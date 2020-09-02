@@ -95,7 +95,8 @@ for evt in eventReader.run():
 #             continue
 
         # calcualte expected angles
-        r = ray.ray_tracing(pos_spice + np.array([0, 0, d]), pos_SP1, medium.southpole_simple(), log_level=logging.WARNING)
+        r = ray.ray_tracing(medium.southpole_simple(), log_level=logging.WARNING)
+        r.set_start_and_end_point(pos_spice + np.array([0, 0, d]), pos_SP1)
         r.find_solutions()
         if(not r.has_solution()):
             continue

@@ -1514,7 +1514,7 @@ class ray_tracing:
                       2: 'refracted',
                       3: 'reflected'}
 
-    def __init__(self, x1, x2, medium, attenuation_model="SP1", log_level=logging.WARNING,
+    def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=100,
                  n_reflections=0):
         """
@@ -1547,8 +1547,6 @@ class ray_tracing:
 
         """
         # make sure that arrays are floats
-        x1 = np.array(x1, dtype=np.float)
-        x2 = np.array(x2, dtype=np.float)
         self.__logger = logging.getLogger('ray_tracing')
         self.__logger.setLevel(log_level)
         self.__medium = medium
@@ -1559,11 +1557,30 @@ class ray_tracing:
                 self.__logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
                 n_reflections = 0
         self.__n_reflections = n_reflections
-        if(n_reflections):
-            if(x1[2] < self.__medium.reflection  or x2[2] < self.__medium.reflection):
-                self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(self.__medium.reflection / units.m))
-                raise AttributeError("start or stop point is below the reflective layer at {:.1f}m".format(self.__medium.reflection / units.m))
+        self.__r2d = ray_tracing_2D(self.__medium, self.__attenuation_model, log_level=log_level,
+                                    n_frequencies_integration=self.__n_frequencies_integration)
 
+        self.__X1 = None
+        self.__X2 = None
+        self.__swap = None
+        self.__dPhi = None
+        self.__R = None
+        self.__x1 = None
+        self.__x2 = None
+
+    def reset_solutions(self):
+        self.__X1 = None
+        self.__X2 = None
+        self.__swap = None
+        self.__dPhi = None
+        self.__R = None
+        self.__x1 = None
+        self.__x2 = None
+
+    def set_start_and_end_point(self, x1, x2):
+        self.reset_solutions()
+        x1 = np.array(x1, dtype=np.float)
+        x2 = np.array(x2, dtype=np.float)
         self.__swap = False
         self.__X1 = x1
         self.__X2 = x2
@@ -1572,7 +1589,12 @@ class ray_tracing:
             self.__logger.debug('swap = True')
             self.__X2 = x1
             self.__X1 = x2
-
+        if (self.__n_reflections):
+            if (x1[2] < self.__medium.reflection or x2[2] < self.__medium.reflection):
+                self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(
+                    self.__medium.reflection / units.m))
+                raise AttributeError("start or stop point is below the reflective layer at {:.1f}m".format(
+                    self.__medium.reflection / units.m))
         dX = self.__X2 - self.__X1
         self.__dPhi = -np.arctan2(dX[1], dX[0])
         c, s = np.cos(self.__dPhi), np.sin(self.__dPhi)
@@ -1584,10 +1606,8 @@ class ray_tracing:
         self.__logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self.__X2 - self.__X1, X1r, X2r))
         self.__x1 = np.array([X1r[0], X1r[2]])
         self.__x2 = np.array([X2r[0], X2r[2]])
-
         self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
-        self.__r2d = ray_tracing_2D(self.__medium, self.__attenuation_model, log_level=log_level,
-                                    n_frequencies_integration=self.__n_frequencies_integration)
+
 
     def set_solution(self, C0s, C1s, solution_types, reflection=None, reflection_case=None):
         results = []
@@ -1909,10 +1929,10 @@ class ray_tracing:
             vetPos = copy.copy(self.__X1)
             recPos = copy.copy(self.__X2)
             recPos1 = np.array([self.__X2[0], self.__X2[1], self.__X2[2] + dz])
-        if(not hasattr(self, "_r1")):
-            self._r1 = ray_tracing(vetPos, recPos1, self.__medium, self.__attenuation_model, logging.WARNING,
-                             self.__n_frequencies_integration, self.__n_reflections)
-            self._r1.find_solutions()
+        self._r1 = ray_tracing(self.__medium, self.__attenuation_model, logging.WARNING,
+                         self.__n_frequencies_integration, self.__n_reflections)
+        self._r1.set_start_and_end_point(vetPos, recPos1)
+        self._r1.find_solutions()
         if iS < self._r1.get_number_of_solutions():
             lauVec1 = self._r1.get_launch_vector(iS)
             lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
@@ -1940,3 +1960,22 @@ class ray_tracing:
         return self.__r2d.get_path_reflections(self.__x1, self.__x2, self.__results[iS]['C0'], 10000,
                                    reflection=self.__results[iS]['reflection'],
                                    reflection_case=self.__results[iS]['reflection_case'])
+
+    def create_output_data_structure(self, dictionary, n_showers, n_antennas):
+        nS = self.get_number_of_raytracing_solutions()
+        dictionary['ray_tracing_C0'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
+        dictionary['ray_tracing_C1'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
+        dictionary['focusing_factor'] = np.ones((n_showers, n_antennas, nS))
+        dictionary['ray_tracing_reflection'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
+        dictionary['ray_tracing_reflection_case'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
+        dictionary['ray_tracing_solution_type'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
+
+    def get_number_of_raytracing_solutions(self):
+        return 2 + 4 * self.__n_reflections  # number of possible ray-tracing solutions
+
+    def write_raytracing_output(self, dictionary, i_shower, channel_id, i_solution):
+        dictionary['ray_tracing_C0'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['C0']
+        dictionary['ray_tracing_C1'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['C1']
+        dictionary['ray_tracing_reflection'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['reflection']
+        dictionary['ray_tracing_reflection_case'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['reflection_case']
+        dictionary['ray_tracing_solution_type'][i_shower, channel_id, i_solution] = self.get_solution_type(i_solution)
