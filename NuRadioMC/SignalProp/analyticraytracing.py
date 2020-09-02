@@ -1514,7 +1514,7 @@ class ray_tracing:
                       2: 'refracted',
                       3: 'reflected'}
 
-    def __init__(self, x1, x2, medium, attenuation_model="SP1", log_level=logging.WARNING,
+    def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=100,
                  n_reflections=0):
         """
@@ -1547,8 +1547,6 @@ class ray_tracing:
 
         """
         # make sure that arrays are floats
-        x1 = np.array(x1, dtype=np.float)
-        x2 = np.array(x2, dtype=np.float)
         self.__logger = logging.getLogger('ray_tracing')
         self.__logger.setLevel(log_level)
         self.__medium = medium
@@ -1559,11 +1557,12 @@ class ray_tracing:
                 self.__logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
                 n_reflections = 0
         self.__n_reflections = n_reflections
-        if(n_reflections):
-            if(x1[2] < self.__medium.reflection  or x2[2] < self.__medium.reflection):
-                self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(self.__medium.reflection / units.m))
-                raise AttributeError("start or stop point is below the reflective layer at {:.1f}m".format(self.__medium.reflection / units.m))
+        self.__r2d = ray_tracing_2D(self.__medium, self.__attenuation_model, log_level=log_level,
+                                    n_frequencies_integration=self.__n_frequencies_integration)
 
+    def set_start_and_end_point(self, x1, x2):
+        x1 = np.array(x1, dtype=np.float)
+        x2 = np.array(x2, dtype=np.float)
         self.__swap = False
         self.__X1 = x1
         self.__X2 = x2
@@ -1572,7 +1571,12 @@ class ray_tracing:
             self.__logger.debug('swap = True')
             self.__X2 = x1
             self.__X1 = x2
-
+        if (self.__n_reflections):
+            if (x1[2] < self.__medium.reflection or x2[2] < self.__medium.reflection):
+                self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(
+                    self.__medium.reflection / units.m))
+                raise AttributeError("start or stop point is below the reflective layer at {:.1f}m".format(
+                    self.__medium.reflection / units.m))
         dX = self.__X2 - self.__X1
         self.__dPhi = -np.arctan2(dX[1], dX[0])
         c, s = np.cos(self.__dPhi), np.sin(self.__dPhi)
@@ -1584,10 +1588,8 @@ class ray_tracing:
         self.__logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self.__X2 - self.__X1, X1r, X2r))
         self.__x1 = np.array([X1r[0], X1r[2]])
         self.__x2 = np.array([X2r[0], X2r[2]])
-
         self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
-        self.__r2d = ray_tracing_2D(self.__medium, self.__attenuation_model, log_level=log_level,
-                                    n_frequencies_integration=self.__n_frequencies_integration)
+
 
     def set_solution(self, C0s, C1s, solution_types, reflection=None, reflection_case=None):
         results = []
@@ -1940,3 +1942,12 @@ class ray_tracing:
         return self.__r2d.get_path_reflections(self.__x1, self.__x2, self.__results[iS]['C0'], 10000,
                                    reflection=self.__results[iS]['reflection'],
                                    reflection_case=self.__results[iS]['reflection_case'])
+
+    def create_output_data_structure(self, dictionary, n_showers, n_antennas):
+        nS = self.get_number_of_raytracing_solutions()
+        dictionary['ray_tracing_C0'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
+        dictionary['ray_tracing_C1'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
+        dictionary['focusing_factor'] = np.ones((n_showers, n_antennas, nS))
+
+    def get_number_of_raytracing_solutions(self):
+        return 2 + 4 * self.__n_reflections  # number of possible ray-tracing solutions
