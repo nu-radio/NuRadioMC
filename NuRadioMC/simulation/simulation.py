@@ -562,7 +562,7 @@ class simulation():
                                 continue
                             distance_cut_time += time.time() - t_tmp
 
-                        r.set_start_and_end_point(x1, x2)
+                        self._raytracer.set_start_and_end_point(x1, x2)
                         if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                             sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
                             temp_reflection = None
@@ -570,30 +570,30 @@ class simulation():
                             if('ray_tracing_reflection' in sg_pre):  # for backward compatibility: Check if reflection layer information exists in data file
                                 temp_reflection = sg_pre['ray_tracing_reflection'][self._shower_index][channel_id]
                                 temp_reflection_case = sg_pre['ray_tracing_reflection_case'][self._shower_index][channel_id]
-                            r.set_solution(sg_pre['ray_tracing_C0'][self._shower_index][channel_id],
+                            self._raytracer.set_solution(sg_pre['ray_tracing_C0'][self._shower_index][channel_id],
                                            sg_pre['ray_tracing_C1'][self._shower_index][channel_id],
                                            sg_pre['ray_tracing_solution_type'][self._shower_index][channel_id],
                                            temp_reflection, temp_reflection_case)
                         else:
-                            r.find_solutions()
+                            self._raytracer.find_solutions()
 
-                        if(not r.has_solution()):
+                        if(not self._raytracer.has_solution()):
                             logger.debug("event {} and station {}, channel {} does not have any ray tracing solution ({} to {})".format(
                                 self._event_group_id, self._station_id, channel_id, x1, x2))
                             continue
                         delta_Cs = []
                         viewing_angles = []
                         # loop through all ray tracing solution
-                        for iS in range(r.get_number_of_solutions()):
+                        for iS in range(self._raytracer.get_number_of_solutions()):
                             self._raytracer.write_raytracing_output(sg, iSh, channel_id, iS)
-                            self._launch_vector = r.get_launch_vector(iS)
+                            self._launch_vector = self._raytracer.get_launch_vector(iS)
                             sg['launch_vectors'][iSh, channel_id, iS] = self._launch_vector
                             # calculates angle between shower axis and launch vector
                             viewing_angle = hp.get_angle(self._shower_axis, self._launch_vector)
                             viewing_angles.append(viewing_angle)
                             delta_C = (viewing_angle - cherenkov_angle)
                             logger.debug('solution {} {}: viewing angle {:.1f} = delta_C = {:.1f}'.format(
-                                iS, self._prop.solution_types[r.get_solution_type(iS)], viewing_angle / units.deg, (viewing_angle - cherenkov_angle) / units.deg))
+                                iS, self._prop.solution_types[self._raytracer.get_solution_type(iS)], viewing_angle / units.deg, (viewing_angle - cherenkov_angle) / units.deg))
                             delta_Cs.append(delta_C)
 
                         # discard event if delta_C (angle off cherenkov cone) is too large
@@ -601,7 +601,7 @@ class simulation():
                             logger.debug('delta_C too large, event unlikely to be observed, skipping event')
                             continue
 
-                        n = r.get_number_of_solutions()
+                        n = self._raytracer.get_number_of_solutions()
                         for iS in range(n):  # loop through all ray tracing solution
                             # skip individual channels where the viewing angle difference is too large
                             # discard event if delta_C (angle off cherenkov cone) is too large
@@ -613,14 +613,14 @@ class simulation():
                                 R = sg_pre['travel_distances'][self._shower_index, channel_id, iS]
                                 T = sg_pre['travel_times'][self._shower_index, channel_id, iS]
                             else:
-                                R = r.get_path_length(iS)  # calculate path length
-                                T = r.get_travel_time(iS)  # calculate travel time
+                                R = self._raytracer.get_path_length(iS)  # calculate path length
+                                T = self._raytracer.get_travel_time(iS)  # calculate travel time
                                 if (R == None or T == None):
                                     continue
                             sg['travel_distances'][iSh, channel_id, iS] = R
                             sg['travel_times'][iSh, channel_id, iS] = T
-                            self._launch_vector = r.get_launch_vector(iS)
-                            receive_vector = r.get_receive_vector(iS)
+                            self._launch_vector = self._raytracer.get_launch_vector(iS)
+                            receive_vector = self._raytracer.get_receive_vector(iS)
                             # save receive vector
                             sg['receive_vectors'][iSh, channel_id, iS] = receive_vector
                             zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
@@ -665,7 +665,6 @@ class simulation():
                                     logger.debug(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
                             askaryan_time += (time.time() - t_ask)
 
-
                             polarization_direction_onsky = self._calculate_polarization_vector()
                             cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
                             polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
@@ -675,13 +674,6 @@ class simulation():
                                 *polarization_direction_at_antenna))
                             sg['polarization'][iSh, channel_id, iS] = polarization_direction_at_antenna
                             eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
-
-                            # in case of a reflected ray we need to account for fresnel
-                            # reflection at the surface
-                            r_theta = None
-                            r_phi = None
-                            i_reflections = r.get_results()[iS]['reflection']
-
 
                             if(self._debug):
                                 from matplotlib import pyplot as plt
@@ -718,11 +710,9 @@ class simulation():
                             electric_field.set_trace_start_time(trace_start_time)
                             electric_field[efp.azimuth] = azimuth
                             electric_field[efp.zenith] = zenith
-                            electric_field[efp.ray_path_type] = self._prop.solution_types[r.get_solution_type(iS)]
+                            electric_field[efp.ray_path_type] = self._prop.solution_types[self._raytracer.get_solution_type(iS)]
                             electric_field[efp.nu_vertex_distance] = sg['travel_distances'][iSh, channel_id, iS]
                             electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
-                            electric_field[efp.reflection_coefficient_theta] = r_theta
-                            electric_field[efp.reflection_coefficient_phi] = r_phi
                             self._sim_station.add_electric_field(electric_field)
 
                             # apply a simple threshold cut to speed up the simulation,

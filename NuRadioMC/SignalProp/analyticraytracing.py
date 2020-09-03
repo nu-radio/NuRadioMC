@@ -12,6 +12,7 @@ except ImportError:
 
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 import logging
 logging.basicConfig()
@@ -2015,6 +2016,8 @@ class ray_tracing:
                 zenith_reflection, n_2=1., n_1=self.__medium.get_index_of_refraction([self.__X2[0], self.__X2[1], -1 * units.cm]))
             r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
                 zenith_reflection, n_2=1., n_1=self.__medium.get_index_of_refraction([self.__X2[0], self.__X2[1], -1 * units.cm]))
+            efield[efp.reflection_coefficient_theta] = r_theta
+            efield[efp.reflection_coefficient_phi] = r_phi
 
             spec[1] *= r_theta
             spec[2] *= r_phi
