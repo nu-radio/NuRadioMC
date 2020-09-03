@@ -1987,6 +1987,9 @@ class ray_tracing:
         dictionary['ray_tracing_reflection'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['reflection']
         dictionary['ray_tracing_reflection_case'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['reflection_case']
         dictionary['ray_tracing_solution_type'][i_shower, channel_id, i_solution] = self.get_solution_type(i_solution)
+        dZRec = -0.01 * units.m
+        focusing = self.get_focusing(i_solution, dZRec, float(self.__config['propagation']['focusing_limit']))
+        dictionary['focusing_factor'][i_shower, channel_id, i_solution] = focusing
 
     def apply_propagation_effects(self, efield, i_solution):
         spec = efield.get_frequency_spectrum()
@@ -2028,6 +2031,12 @@ class ray_tracing:
             spec[2] *= reflection_coefficient * np.exp(1j * phase_shift)
             self.__logger.debug(
                 f"ray is reflecting {i_reflections:d} times at the bottom -> reducing the signal by a factor of {reflection_coefficient:.2f}")
+
+        # apply the focusing effect
+        if self.__config['propagation']['focusing']:
+            dZRec = -0.01 * units.m
+            focusing = self.get_focusing(i_solution, dZRec, float(self.__config['propagation']['focusing_limit']))
+            spec[1:] *= focusing
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
