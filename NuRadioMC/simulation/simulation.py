@@ -666,15 +666,6 @@ class simulation():
                             askaryan_time += (time.time() - t_ask)
 
 
-                            # apply the focusing effect
-                            if self._cfg['propagation']['focusing']:
-                                dZRec = -0.01 * units.m
-                                focusing = r.get_focusing(iS, dZRec, float(self._cfg['propagation']['focusing_limit']))
-                                sg['focusing_factor'][iSh, channel_id, iS] = focusing
-                                logger.info(f"focusing: channel {channel_id:d}, solution {iS:d} -> {focusing:.1f}x")
-                                # spectrum = fft.time2freq(fft.freq2time(spectrum) * focusing)
-                                spectrum[1:] *= focusing
-
                             polarization_direction_onsky = self._calculate_polarization_vector()
                             cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
                             polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
