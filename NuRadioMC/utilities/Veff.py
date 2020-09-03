@@ -718,7 +718,7 @@ def get_Veff_Aeff(folder,
             break
 
     trigger_combinations['all_triggers'] = {'triggers': trigger_names}
-    logger.info("Trigger names:", trigger_names)
+    logger.info(f"Trigger names:  {trigger_names}")
     for key in trigger_combinations:
         i = -1
         for value in trigger_combinations[key]['triggers']:
