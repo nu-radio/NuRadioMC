@@ -862,7 +862,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         data_sets["muon_energies"] = np.copy(data_sets["energies"])
 
         # create dummy entries for shower energies and types
-        data_sets['shower_energies'] = data_sets['energies'] * data_sets['inelasticity']
+        data_sets['shower_energies'] = np.zeros(n_events_batch)
         data_sets['shower_type'] = ['had'] * n_events_batch
 
         init_time = time.time()
@@ -907,6 +907,13 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                     x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
                     if(is_in_fiducial_volume(attributes, np.array([x, y, z]))):
                         # the energy loss or particle is in our fiducial volume
+
+                        # save parent muon if one of its induced showers interacts in the fiducial volume
+                        if(n_interaction == 1):
+                            for key in iterkeys(data_sets):
+                                data_sets_fiducial[key].append(data_sets[key][iE])
+                            n_interaction = 2
+
                         for key in iterkeys(data_sets):
                             data_sets_fiducial[key].append(data_sets[key][iE])
 
