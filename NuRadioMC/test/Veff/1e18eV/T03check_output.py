@@ -49,10 +49,10 @@ if(np.abs(Veff / units.km ** 3 - Veff_mean) > 3 * Veff_sigma):
 # calculate Veff using veff utility
 import NuRadioMC.utilities.Veff
 data = NuRadioMC.utilities.Veff.get_Veff_Aeff(os.path.join(path, "output.hdf5"))[0]
-Veff_utl, Veff_utl_error, utl_weighed_sum, t1, t2 = data['veffs']['all_triggers']
+Veff_utl, Veff_utl_error, utl_weighed_sum, t1, t2 = data['veff']['all_triggers']
 Veff_utl = Veff_utl * 4 * np.pi
 np.testing.assert_almost_equal(Veff_utl, Veff, decimal=3)
-Veff_utl, Veff_utl_error, utl_weighed_sum, t1, t2 = data['veffs']['highlow_2sigma']
+Veff_utl, Veff_utl_error, utl_weighed_sum, t1, t2 = data['veff']['highlow_2sigma']
 Veff_utl = Veff_utl * 4 * np.pi
 np.testing.assert_almost_equal(Veff_utl, Veff, decimal=3)
 
