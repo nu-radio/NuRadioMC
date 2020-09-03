@@ -884,7 +884,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
             mask_phi = np.ones(len(data_sets["event_group_ids"]), dtype=np.bool)
         # TODO: combine with `get_intersection_volume_neutrino` function
         for iE, event_id in enumerate(data_sets["event_group_ids"]):
-            logger.debug(f"event {event_id}")
             if not mask_phi[iE]:
                 continue
 
@@ -911,7 +910,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                         logger.debug(f"product in fid vol {n_interaction}")
                         # save parent muon if one of its induced showers interacts in the fiducial volume
                         if(n_interaction == 1):
-                            logger.debuug(f"adding the initial muon with z = {data_sets['zz'][iE]}")
+                            logger.debug(f"adding the initial muon with z = {data_sets['zz'][iE]}")
                             for key in iterkeys(data_sets):
                                 data_sets_fiducial[key].append(data_sets[key][iE])
                             n_interaction = 2
