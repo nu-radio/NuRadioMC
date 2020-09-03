@@ -399,7 +399,6 @@ class simulation():
         outputTime = 0.0
         weightTime = 0.0
         distance_cut_time = 0.
-        time_attenuation_length = 0.
 
         n_shower_station = len(self._station_ids) * self._n_showers
         iCounter = 0
@@ -476,13 +475,10 @@ class simulation():
                         total_time_sum = input_time + rayTracingTime + detSimTime + outputTime + weightTime + distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
                         total_time = time.time() - t_start
                         tmp_att = 0
-                        if(rayTracingTime - askaryan_time != 0):
-                            tmp_att = 100. * time_attenuation_length / (rayTracingTime - askaryan_time)
                         if total_time > 0:
-                            logger.status("processing {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
+                            logger.status("processing {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}%, askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
                                 iCounter, n_shower_station, np.sum(self._mout['triggered']), 100. * iCounter / n_shower_station,
                                 eta, 100. * (rayTracingTime - askaryan_time) / total_time,
-                                tmp_att,
                                 100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*input_time / total_time,
                                 100. * weightTime / total_time,
                                 100 * distance_cut_time / total_time,
@@ -669,18 +665,6 @@ class simulation():
                                     logger.debug(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
                             askaryan_time += (time.time() - t_ask)
 
-                            # apply frequency dependent attenuation
-                            t_att = time.time()
-                            time_attenuation_length += (time.time() - t_att)
-
-                            # apply the focusing effect
-                            if self._cfg['propagation']['focusing']:
-                                dZRec = -0.01 * units.m
-                                focusing = r.get_focusing(iS, dZRec, float(self._cfg['propagation']['focusing_limit']))
-                                sg['focusing_factor'][iSh, channel_id, iS] = focusing
-                                logger.info(f"focusing: channel {channel_id:d}, solution {iS:d} -> {focusing:.1f}x")
-                                # spectrum = fft.time2freq(fft.freq2time(spectrum) * focusing)
-                                spectrum[1:] *= focusing
 
                             polarization_direction_onsky = self._calculate_polarization_vector()
                             cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
@@ -697,33 +681,7 @@ class simulation():
                             r_theta = None
                             r_phi = None
                             i_reflections = r.get_results()[iS]['reflection']
-                            zenith_reflections = np.atleast_1d(r.get_reflection_angle(iS))  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
-                            n_surface_reflections = np.sum(zenith_reflections != None)
-                            logger.debug(f"st {self._station_id}, ch {channel_id}, solutino {iS}: n_ref bottom = {i_reflections:d}," + \
-                                         f" n_ref surface = {n_surface_reflections:d},  R = {R / units.m:.1f} m, T = {T / units.ns:.1f}ns," + \
-                                         f" receive angles zen={zenith / units.deg:.0f}deg, az={azimuth / units.deg:.0f}deg")
 
-                            for zenith_reflection in zenith_reflections:  # loop through all possible reflections
-                                if(zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
-                                    continue
-                                r_theta = geo_utl.get_fresnel_r_p(
-                                    zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
-                                r_phi = geo_utl.get_fresnel_r_s(
-                                    zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
-
-                                eTheta *= r_theta
-                                ePhi *= r_phi
-                                logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection / units.deg,
-                                    r_theta, r_phi))
-
-                            if(i_reflections > 0):  # take into account possible bottom reflections
-                                # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
-                                reflection_coefficient = self._ice.reflection_coefficient ** i_reflections
-                                phase_shift = (i_reflections * self._ice.reflection_phase_shift) % (2 * np.pi)
-                                # we assume that both efield components are equally affected
-                                eTheta *= reflection_coefficient * np.exp(1j * phase_shift)
-                                ePhi *= reflection_coefficient * np.exp(1j * phase_shift)
-                                logger.debug(f"ray is reflecting {i_reflections:d} times at the bottom -> reducing the signal by a factor of {reflection_coefficient:.2f}")
 
                             if(self._debug):
                                 from matplotlib import pyplot as plt
