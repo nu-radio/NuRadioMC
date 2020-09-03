@@ -910,6 +910,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
                         # save parent muon if one of its induced showers interacts in the fiducial volume
                         if(n_interaction == 1):
+                            logger.info(f"adding the initial muon with z = {data_sets['zz'][iE]}")
                             for key in iterkeys(data_sets):
                                 data_sets_fiducial[key].append(data_sets[key][iE])
                             n_interaction = 2
