@@ -35,14 +35,11 @@ of files for different zenith bands. get_Veff will return a dictionary with all
 the information to calculate effective volumes for different energies and
 zenith bands.
 
-We have used the keyword argument point_bins=False because the bins for our example
-are extended, that is, they contain a range of energies.
-
 IMPORTANT: if the n_events_per_file argument has been used so that the NuRadioMC
 files are split, the module utilities.merge_hdf5 should be used to merge the files.
 Once every energy bin has a unique HDF5 output file, the Veff module can be run.
 """
-data_Veff = get_Veff_Aeff(folder, point_bins=False)
+data_Veff = get_Veff_Aeff(folder)
 
 """
 Although data_Veff has all the information we need, it is a bit cumbersome
