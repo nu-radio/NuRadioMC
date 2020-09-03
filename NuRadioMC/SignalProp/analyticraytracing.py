@@ -1617,19 +1617,22 @@ class ray_tracing:
         self.__x2 = np.array([X2r[0], X2r[2]])
         self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
 
-
-    def set_solution(self, C0s, C1s, solution_types, reflection=None, reflection_case=None):
+    def set_solution(self, raytracing_results, i_shower, channel_id):
         results = []
-        if(reflection is None):
-            reflection = np.zeros_like(C0s, dtype=np.int)
-            reflection_case = np.ones_like(C0s, dtype=np.int)
+        C0s = raytracing_results['ray_tracing_C0'][i_shower][channel_id]
         for i in range(len(C0s)):
             if(not np.isnan(C0s[i])):
-                results.append({'type': solution_types[i],
+                if 'ray_tracing_reflection' in raytracing_results.keys():   # for backward compatibility: Check if reflection layer information exists in data file
+                    reflection = raytracing_results['ray_tracing_reflection'][i_shower][channel_id][i]
+                    reflection_case = raytracing_results['ray_tracing_reflection_case'][i_shower][channel_id][i]
+                else:
+                    reflection = 0
+                    reflection_case = 0
+                results.append({'type': raytracing_results['ray_tracing_solution_type'][i_shower][channel_id][i],
                                 'C0': C0s[i],
-                                'C1': C1s[i],
-                                'reflection': reflection[i],
-                                'reflection_case': reflection_case[i]})
+                                'C1': raytracing_results['ray_tracing_C1'][i_shower][channel_id][i],
+                                'reflection': reflection,
+                                'reflection_case': reflection_case})
         self.__results = results
 
     def find_solutions(self):

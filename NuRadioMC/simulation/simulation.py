@@ -27,6 +27,7 @@ import NuRadioReco.detector.detector as detector
 import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
+import NuRadioReco.framework.event
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
@@ -565,15 +566,7 @@ class simulation():
                         self._raytracer.set_start_and_end_point(x1, x2)
                         if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                             sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
-                            temp_reflection = None
-                            temp_reflection_case = None
-                            if('ray_tracing_reflection' in sg_pre):  # for backward compatibility: Check if reflection layer information exists in data file
-                                temp_reflection = sg_pre['ray_tracing_reflection'][self._shower_index][channel_id]
-                                temp_reflection_case = sg_pre['ray_tracing_reflection_case'][self._shower_index][channel_id]
-                            self._raytracer.set_solution(sg_pre['ray_tracing_C0'][self._shower_index][channel_id],
-                                           sg_pre['ray_tracing_C1'][self._shower_index][channel_id],
-                                           sg_pre['ray_tracing_solution_type'][self._shower_index][channel_id],
-                                           temp_reflection, temp_reflection_case)
+                            self._raytracer.set_solution(sg_pre, self._shower_index, channel_id)
                         else:
                             self._raytracer.find_solutions()
 
@@ -615,7 +608,7 @@ class simulation():
                             else:
                                 R = self._raytracer.get_path_length(iS)  # calculate path length
                                 T = self._raytracer.get_travel_time(iS)  # calculate travel time
-                                if (R == None or T == None):
+                                if (R is None or T is None):
                                     continue
                             sg['travel_distances'][iSh, channel_id, iS] = R
                             sg['travel_times'][iSh, channel_id, iS] = T
