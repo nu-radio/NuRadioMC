@@ -147,6 +147,7 @@ class NuRadioRecoio(object):
         return self._filenames
 
     def _parse_event_header(self, evt_header):
+        from NuRadioReco.framework.parameters import stationParameters as stnp
         self.__event_ids.append(evt_header['event_id'])
         for station_id, station in evt_header['stations'].items():
             if station_id not in self.__event_headers:
@@ -158,7 +159,16 @@ class NuRadioRecoio(object):
                 else:
                     if key not in self.__event_headers[station_id]:
                         self.__event_headers[station_id][key] = []
-                    self.__event_headers[station_id][key].append(value)
+                    if(key == stnp.station_time):
+                        import astropy.time
+                        if value.format == 'datetime':
+                            time_strings = str(value).split(' ')
+                            station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
+                        else:
+                            station_time = time
+                        self.__event_headers[station_id][key].append(station_time)
+                    else:
+                        self.__event_headers[station_id][key].append(value)
 
     def __scan_files(self):
         current_byte = 12  # skip datafile header
