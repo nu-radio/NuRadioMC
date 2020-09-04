@@ -907,10 +907,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                     x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
                     if(is_in_fiducial_volume(attributes, np.array([x, y, z]))):
                         # the energy loss or particle is in our fiducial volume
-                        logger.debug(f"product in fid vol {n_interaction}")
                         # save parent muon if one of its induced showers interacts in the fiducial volume
                         if(n_interaction == 1):
-                            logger.debug(f"adding the initial muon with z = {data_sets['zz'][iE]}")
                             for key in iterkeys(data_sets):
                                 data_sets_fiducial[key].append(data_sets[key][iE])
                             n_interaction = 2
