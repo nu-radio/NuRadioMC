@@ -54,7 +54,7 @@ only have a single zenith band equal to the whole sky)
 angle for a simulation set is larger than for the other, it should carry more weight
 when we try to patch them all together to get the total volumes.
 """
-Veff_array, energies, zenith_bins, trigger_names, weights = get_Veff_Aeff_array(data_Veff)
+Veff_array, energies, energies_low, energies_high, zenith_bins, trigger_names = get_Veff_Aeff_array(data_Veff)
 
 """
 There are some functions with the same syntax to calculate effective areas for
