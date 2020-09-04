@@ -114,7 +114,7 @@ def covariance(function, vmin, up, fast=False):
                     # (2) if stepped into nonsense region (infinite, nan, ...),
                     #     do bisection search towards last valid step
                     a = h / 8.0
-                    b = hs
+                    b = h
                     while True:
                         if 2 * (b - a) < eps * (b + a):
                             raise Exception("profile does not cross fmin + up")
