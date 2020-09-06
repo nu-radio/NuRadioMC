@@ -45,5 +45,5 @@ trigger:
 output:
   channel_traces: True
   electric_field_traces: True
-  sim_channel_traces: True,
+  sim_channel_traces: True
   sim_electric_field_traces: True
