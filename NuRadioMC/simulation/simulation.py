@@ -939,10 +939,14 @@ class simulation():
                         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
                         electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
 
+                        output_mode = {'Channels': self._cfg['output']['channel_traces'],
+                                       'ElectricFields': self._cfg['output']['electric_field_traces'],
+                                       'SimChannels': self._cfg['output']['sim_channel_traces'],
+                                       'SimElectricFields': self._cfg['output']['sim_electric_field_traces']}
                         if self.__write_detector:
-                            self._eventWriter.run(self._evt, self._det)
+                            self._eventWriter.run(self._evt, self._det, mode=output_mode)
                         else:
-                            self._eventWriter.run(self._evt)
+                            self._eventWriter.run(self._evt, mode=output_mode)
                 # end sub events loop
 
                 # add local sg array to output data structure if any
