@@ -41,13 +41,13 @@ def buffer_db(in_memory, filename=None):
         db = TinyDB(storage=MemoryStorage)
     else:
         db = TinyDB(filename, storage=serialization, sort_keys=True, indent=4, separators=(',', ': '))
-    db.purge()
+    db.truncate()
 
     from NuRadioReco.detector import detector_sql
     sqldet = detector_sql.Detector()
     results = sqldet.get_everything_stations()
     table_stations = db.table('stations')
-    table_stations.purge()
+    table_stations.truncate()
     for result in results:
         table_stations.insert({'station_id': result['st.station_id'],
                                'commission_time': result['st.commission_time'],
@@ -66,7 +66,7 @@ def buffer_db(in_memory, filename=None):
                                'pos_site': result['pos.site']})
 
     table_channels = db.table('channels')
-    table_channels.purge()
+    table_channels.truncate()
     results = sqldet.get_everything_channels()
     for channel in results:
         table_channels.insert({ 'station_id': channel['st.station_id'],
@@ -98,7 +98,7 @@ def buffer_db(in_memory, filename=None):
 
     results = sqldet.get_everything_positions()
     table_positions = db.table('positions')
-    table_positions.purge()
+    table_positions.truncate()
     for result in results:
         table_positions.insert({
                                'pos_position': result['pos.position'],
@@ -372,6 +372,12 @@ class Detector(object):
             self._buffered_channels = {}
             self.__valid_t0 = astropy.time.Time('2100-1-1')
             self.__valid_t1 = astropy.time.Time('1970-1-1')
+
+    def get_detector_time(self):
+        """
+        Returns the time that the detector is currently set to
+        """
+        return self.__current_time
 
     def get_channel(self, station_id, channel_id):
         """
@@ -761,3 +767,20 @@ class Detector(object):
             logger.warning("no RMS values for station {} available, returning default noise for stage {}: RMS={:.2g} mV".format(station_id, stage, rms / units.mV))
             return rms
         return self.__noise_RMS[key][stage]
+
+    def get_noise_temperature(self, station_id, channel_id):
+        """
+        returns the noise temperature of the channel
+        
+        Parameters
+        ----------
+        station_id: int
+            station id
+        channel_id: int
+            the channel id, not used at the moment, only station averages are computed
+
+        """
+        res = self.__get_channel(station_id, channel_id)
+        if(not 'noise_temperature' in res):
+            raise AttributeError(f"field noise_temperature not present in detector description of station {station_id} and channel {channel_id}")
+        return res['noise_temperature']
