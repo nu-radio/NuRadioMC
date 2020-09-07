@@ -73,7 +73,7 @@ class showerParameters(Enum):
     zenith = 1  # zenith angle of the shower axis pointing towards xmax
     azimuth = 2  # azimuth angle of the shower axis pointing towards xmax
     core = 3  # position of the intersection between shower axis and an observer plane
-    energy = 4  # total energy of the primary particle
+    energy = 4  # total energy of the primary particle, or shower energy for in-ice particle showers
     electromagnetic_energy = 5  # energy of the electromagnetic shower component
     radiation_energy = 6  # totally emitted radiation energy
     electromagnetic_radiation_energy = 7  # radiation energy originated from the electromagnetic emission
@@ -92,7 +92,14 @@ class showerParameters(Enum):
 
     charge_excess_profile_id = 105  # the id of the charge-excess profile used in the ARZ Askaryan calculation
     type = 106  # for neutrino induces showers in ice: can be "HAD" or "EM"
+    vertex = 107  # the interaction vertex (for air showers this corresponds to the point of X0)
+    vertex_time = 108  # the propagation time relative to the first interactions
+    interaction_type = 109  # the interaction type, e.g. cc or nc
+    k_L = 110  # the k_L parameter of the Alvarez2009 parameter that controls the longitudional width of the charge excess profile
+    flavor = 111  # the flavor of the particle initiating the shower
 
 
 class eventParameters(Enum):
     sim_config = 1  # contents of the config file that the NuRadioMC simulation was run with
+    hash_NuRadioReco = 2    # git hash of the NuRadioReco commit that the file was created with
+    hash_NuRadioMC = 3  # git hash of the NuRadioMC commit that the file was created with

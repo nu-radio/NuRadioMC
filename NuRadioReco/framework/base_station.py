@@ -74,11 +74,18 @@ class BaseStation():
         self._parameters.pop(key, None)
 
     def set_station_time(self, time):
+        if time is None:
+            self._station_time = None
+            return
         if isinstance(time, datetime.datetime):
             time_strings = str(time).split(' ')
             self._station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
         else:
-            self._station_time = time
+            if time.format == 'datetime':
+                time_strings = str(time).split(' ')
+                self._station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
+            else:
+                self._station_time = time
 
     def get_station_time(self):
         return self._station_time
@@ -206,7 +213,6 @@ class BaseStation():
         """
         self._particle_type = 'cr'
 
-
     # provide interface to ARIANNA specific parameters
     def get_ARIANNA_parameter(self, key):
         if not isinstance(key, parameters.ARIANNAParameters):
@@ -229,16 +235,13 @@ class BaseStation():
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
         self._ARIANNA_parameters[key] = value
 
-
-
-    def serialize(self, mode):
+    def serialize(self, save_efield_traces):
         trigger_pkls = []
         for trigger in self._triggers.values():
             trigger_pkls.append(trigger.serialize())
         efield_pkls = []
-        if(mode == 'full'):
-            for efield in self.get_electric_fields():
-                efield_pkls.append(efield.serialize(self))
+        for efield in self.get_electric_fields():
+            efield_pkls.append(efield.serialize(save_trace=save_efield_traces))
         data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 '_parameter_covariances': self._parameter_covariances,
                 '_ARIANNA_parameters': self._ARIANNA_parameters,

@@ -18,31 +18,40 @@ class channelSignalReconstructor:
 
     """
 
-    def __init__(self):
+    def __init__(self, log_level=logging.WARNING):
         self.__t = 0
+        logger.setLevel(log_level)
         self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
         self.begin()
 
-    def begin(self, debug=False, signal_start=20 * units.ns, signal_stop=100 * units.ns,
-              noise_start=150 * units.ns, noise_stop=350 * units.ns):
+    def begin(self,
+            debug=False,
+            signal_window_start = None,
+            signal_window_length = 120 * units.ns,
+            noise_window_start = None,
+            noise_window_length = None
+        ):
         """
         Parameters
         -----------
-        signal_start: float
-            Start time (relative to the trace start time) of the window in which signal quantities will be calculated, with time units
         debug: bool
             Set module to debug output
-        signal_stop: float
-            Stop time (relative to the trace start time) of the window in which signal quantities will be calculated, with time units
-        noise_start: float
+        signal_window_start: float or None
+            Start time (relative to the trace start time) of the window in which signal quantities will be calculated, with time units
+            If None is passed as a parameter, the signal window is laid around the trace maximum
+        signal_window_length: float
+            Length of the signal window, with time units
+        noise_window_start: float or None
             Start time (relative to the trace start time) of the window in which noise quantities will be calculated, with time units
-        noise_stop: float
-            Stop time (relative to the trace start time) of the window in which noise quantities will be calculated, with time units
+            If noise_window_start or noise_window_length are None, the noise window is the part of the trace outside the signal window
+        noise_window_length: float or None
+            Length of the noise window, with time units
+            If noise_window_start or noise_window_length are None, the noise window is the part of the trace outside the signal window
         """
-        self.__signal_window_start = signal_start
-        self.__signal_window_stop = signal_stop
-        self.__noise_window_start = noise_start
-        self.__noise_window_stop = noise_stop
+        self.__signal_window_start = signal_window_start
+        self.__signal_window_length = signal_window_length
+        self.__noise_window_start = noise_window_start
+        self.__noise_window_length = noise_window_length
         self.__debug = debug
 
     def get_SNR(self, station_id, channel, det, stored_noise=False, rms_stage=None):
@@ -65,18 +74,23 @@ class channelSignalReconstructor:
         trace = channel.get_trace()
         times = channel.get_times() - channel.get_trace_start_time()
 
-        if (self.__noise_window_start >= self.__noise_window_stop):
-            logger.error("Noise cannot end before noise starts")
-        if self.__signal_window_start >= self.__signal_window_stop:
-            logger.error("Signal cannot end before signal starts")
-
-        noise_window_mask = (times > self.__noise_window_start) & (times < self.__noise_window_stop)
-        signal_window_mask = (times > self.__signal_window_start) & (times < self.__signal_window_stop)
+        if self.__signal_window_start is not None:
+            signal_window_start = self.__signal_window_start
+            signal_window_mask = (times > self.__signal_window_start) & (times < self.__signal_window_start + self.__signal_window_length)
+        else:
+            signal_window_start = times[np.argmax(np.abs(trace))] - .5 * self.__signal_window_length
+            signal_window_mask = (times > signal_window_start) & (times < signal_window_start + self.__signal_window_length)
+        if self.__noise_window_start is not None and self.__noise_window_length is not None:
+            noise_window_mask = (times > self.__noise_window_start) & (times < self.__noise_window_start + self.__noise_window_length)
+            noise_window_length = self.__noise_window_length
+        else:
+            noise_window_mask = ~signal_window_mask
+            noise_window_length = len(trace[noise_window_mask]) / channel.get_sampling_rate()
 
         # Various definitions
         noise_int = np.sum(np.square(trace[noise_window_mask]))
-        noise_int *= (self.__signal_window_stop - self.__signal_window_start) / \
-            float(self.__noise_window_stop - self.__noise_window_start)
+        noise_int *= (self.__signal_window_length) / \
+            float(noise_window_length)
 
         if stored_noise:
             # we use the RMS from forced triggers
@@ -108,7 +122,7 @@ class channelSignalReconstructor:
                 SNR['integrated_power'] = 0.
             else:
 
-                SNR['integrated_power'] /= (noise_int / self.__signal_window_start)
+                SNR['integrated_power'] /= (noise_int / signal_window_start)
                 SNR['integrated_power'] = np.sqrt(SNR['integrated_power'])
 
             # calculate amplitude values
@@ -124,10 +138,8 @@ class channelSignalReconstructor:
         if self.__debug:
             plt.figure()
             plt.plot(times, trace)
-            plt.axvline(self.__noise_window_start, c='k', label='Noise Window')
-            plt.axvline(self.__noise_window_stop, c='k', linestyle='--')
-            plt.axvline(self.__signal_window_start, c='r', label='Signal Window')
-            plt.axvline(self.__signal_window_stop, c='r', linestyle='--')
+            plt.fill_between(times, 1.1*np.max(trace), 1.1*np.min(trace), where=noise_window_mask, color='k', alpha=.2, label='noise window')
+            plt.fill_between(times, 1.1*np.max(trace), 1.1*np.min(trace), where=signal_window_mask, color='r', alpha=.2, label='signal window')
             plt.legend()
             plt.show()
 
@@ -153,6 +165,12 @@ class channelSignalReconstructor:
             trace = channel.get_trace()
             h = np.abs(signal.hilbert(trace))
             max_amplitude = np.max(np.abs(trace))
+            logger.info(f"event {evt.get_run_number()}.{evt.get_id()} station {station.get_id()} channel {channel.get_id()} max amp = {max_amplitude:.6g} max amp env {h.max():.6g}")
+            if(logger.level >= logging.DEBUG):
+                tmp = ""
+                for amp in trace:
+                    tmp += f"{amp:.6g}, "
+                logger.debug(tmp)
             channel[chp.signal_time] = times[np.argmax(h)]
             max_amplitude_station = max(max_amplitude_station, max_amplitude)
             channel[chp.maximum_amplitude] = max_amplitude
@@ -163,7 +181,7 @@ class channelSignalReconstructor:
             channel[chp.SNR] = self.get_SNR(station.get_id(), channel, det,
                                             stored_noise=stored_noise, rms_stage=rms_stage)
 
-        station[stnp.channels_max_amplitude] = max_amplitude
+        station[stnp.channels_max_amplitude] = max_amplitude_station
 
         self.__t = time.time() - t
 

@@ -2,6 +2,10 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 1.2
+new features:
+- users can specify a different bandwidth for each channel in the channelBandPassFilter and channelGenericNoiseAdder module 
+
 version 1.1.2 -
 
 new features:
@@ -38,6 +42,8 @@ new features:
 -Trigger times now include the time with respect to the first interaction (vertex times)
 -Analog to digital converter module added
 -Improved calculation of the diode noise parameters
+-channelSignalReconstructor no longer requires static signal window but can set it automatically
+-Save the git hashes of the NuRadioReco, NuRadioMC and radiotools version a .nur file was created with
 
 Detector description can be stored in .nur files
 Large overhaul of the event structure. Adds shower classes and hybrid detector information.

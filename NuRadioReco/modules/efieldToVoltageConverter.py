@@ -22,8 +22,6 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import stationParameters as stnp
 
 
-
-
 class efieldToVoltageConverter():
     """
     Module that should be used to convert simulations to data.
@@ -33,11 +31,12 @@ class efieldToVoltageConverter():
     The station id, defines antenna location and antenna type.
     """
 
-    def __init__(self):
+    def __init__(self, log_level=logging.WARNING):
         self.__t = 0
         self.begin()
 
         self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
+        self.logger.setLevel(log_level)
 
     def begin(self, debug=False, uncertainty={},
               time_resolution=0.1 * units.ns,
@@ -233,7 +232,7 @@ class efieldToVoltageConverter():
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
+        self.logger.info("total time used by this module is {}".format(dt))
         return dt
