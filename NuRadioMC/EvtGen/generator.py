@@ -426,6 +426,7 @@ def set_volume_attributes(volume, proposal, attributes):
 
         # We increase the radius of the cylinder according to the tau track length
         if(proposal):
+            logger.info("simulation of second interactions via PROPOSAL activated")
             if("full_rmin" in volume):
                 rmin = volume['full_rmin']
             else:
@@ -450,7 +451,6 @@ def set_volume_attributes(volume, proposal, attributes):
         volume_full = np.pi * (rmax ** 2 - rmin ** 2) * (zmax - zmin)
         # increase the total number of events such that we end up with the same number of events in the fiducial volume
         n_events = int(n_events * volume_full / volume_fiducial)
-        logger.info("simulation of second interactions via PROPOSAL activated")
         logger.info(f"increasing rmax from {attributes['fiducial_rmax']/units.km:.01f}km to {rmax/units.km:.01f}km, zmax from {attributes['fiducial_zmax']/units.km:.01f}km to {zmax/units.km:.01f}km")
         logger.info(f"decreasing rmin from {attributes['fiducial_rmin']/units.km:.01f}km to {rmin/units.km:.01f}km")
         logger.info(f"decreasing zmin from {attributes['fiducial_zmin']/units.km:.01f}km to {zmin/units.km:.01f}km")
