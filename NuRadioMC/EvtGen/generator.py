@@ -842,7 +842,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         # zenith directions are distruted as sin(theta) (to make the distribution istotropic) * cos(theta) (to account for the projection onto the surface)
         data_sets["zeniths"] = np.arcsin(np.random.uniform(np.sin(thetamin) ** 2, np.sin(thetamax) ** 2, n_events_batch) ** 0.5)
 
-        data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch) + start_event_id
+        data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch, dtype=np.int) + start_event_id
         data_sets["n_interaction"] = np.ones(n_events_batch, dtype=np.int)
         data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=np.float)
 
