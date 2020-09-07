@@ -2007,6 +2007,9 @@ class ray_tracing:
         dictionary['ray_tracing_reflection_case'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
         dictionary['ray_tracing_solution_type'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
 
+    def get_ray_tracing_perfomed(self, station_dictionary, station_id):
+        return ('ray_tracing_C0' in station_dictionary[station_id])
+
     def get_number_of_raytracing_solutions(self):
         return 2 + 4 * self.__n_reflections  # number of possible ray-tracing solutions
 
