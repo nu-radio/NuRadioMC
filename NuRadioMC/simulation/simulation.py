@@ -404,7 +404,7 @@ class simulation():
             self._station_barycenter[iSt] = np.mean(np.array(pos), axis=0) + self._det.get_absolute_position(station_id)
 
         # loop over event groups
-        for event_group_id in unique_event_group_ids:
+        for i_event_group_id, event_group_id in enumerate(unique_event_group_ids):
             logger.debug(f"simulating event group id {event_group_id}")
             if(self._event_group_list is not None and event_group_id not in self._event_group_list):
                 logger.debug(f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
@@ -462,7 +462,7 @@ class simulation():
                 for iSh, self._shower_index in enumerate(event_indices):
                     sg['shower_id'][iSh] = self._shower_ids[self._shower_index]
                     iCounter += 1
-                    if(iCounter % max(1, int(n_shower_station / 1000.)) == 0):
+                    if(iCounter % max(1, int(n_shower_station / 100.)) == 0):
                         eta = pretty_time_delta((time.time() - t_start) * (n_shower_station - iCounter) / iCounter)
                         total_time_sum = input_time + rayTracingTime + detSimTime + outputTime + weightTime + distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
                         total_time = time.time() - t_start
@@ -470,7 +470,8 @@ class simulation():
                         if(rayTracingTime - askaryan_time != 0):
                             tmp_att = 100. * time_attenuation_length / (rayTracingTime - askaryan_time)
                         if total_time > 0:
-                            logger.status("processing {}/{} ({} triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
+                            logger.status("processing event group {}/{} and shower {}/{} ({} showers triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
+                                i_event_group_id, len(unique_event_group_ids),
                                 iCounter, n_shower_station, np.sum(self._mout['triggered']), 100. * iCounter / n_shower_station,
                                 eta, 100. * (rayTracingTime - askaryan_time) / total_time,
                                 tmp_att,
@@ -827,7 +828,7 @@ class simulation():
 #                 print(f"split at indices {iSplit}")
                 n_sub_events = len(iSplit) + 1
                 if(n_sub_events > 1):
-                    logger.status(f"splitting event group id {self._event_group_id} into {n_sub_events} sub events")
+                    logger.info(f"splitting event group id {self._event_group_id} into {n_sub_events} sub events")
 
                 tmp_station = copy.deepcopy(self._station)
                 event_group_has_triggered = False
@@ -845,7 +846,7 @@ class simulation():
                         for start_time in start_times[indices]:
                             tmp += f"{start_time/units.ns:.0f}, "
                         tmp = tmp[:-2] + " ns"
-                        logger.status(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
+                        logger.info(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
                     self._evt = NuRadioReco.framework.event.Event(self._event_group_id, iEvent)  # create new event
                     self._station = NuRadioReco.framework.station.Station(self._station_id)
                     sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
