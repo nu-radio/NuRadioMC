@@ -219,9 +219,9 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     if('thetamax' in fin.attrs):
         thetamax = fin.attrs['thetamax']
     if('phimin' in fin.attrs):
-        fin.attrs['phimin']
+        phimin = fin.attrs['phimin']
     if('phimax' in fin.attrs):
-        fin.attrs['phimax']
+        phimax = fin.attrs['phimax']
     if(veff_aeff == "veff"):
         volume_proj_area = fin.attrs['volume']
     elif(veff_aeff == "aeff_surface_muons"):
