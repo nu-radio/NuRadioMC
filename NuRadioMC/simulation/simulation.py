@@ -685,7 +685,7 @@ class simulation():
                 self._save_triggers_to_hdf5()
                 t4 = time.time()
                 detSimTime += (t4 - t3)
-            if(self._outputfilenameNuRadioReco is not None and (self._cfg['save_all_nur'] or self._mout['triggered'][self._iE])):
+            if(self._outputfilenameNuRadioReco is not None and self._mout['triggered'][self._iE]):
                 # downsample traces to detector sampling rate to save file size
                 self._channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
                 self._electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
