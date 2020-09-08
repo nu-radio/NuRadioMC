@@ -46,6 +46,9 @@ class BaseShower:
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        self._id = data['_id']
+        if '_id' in data.keys():
+            self._id = data['_id']
+        else:
+            self._id = None
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'],
                                     parameters.showerParameters)
