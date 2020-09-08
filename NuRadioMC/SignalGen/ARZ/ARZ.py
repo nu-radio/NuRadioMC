@@ -1,20 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function
 import numpy as np
 from NuRadioReco.utilities import units, io_utilities
 from scipy import interpolate as intp
-from scipy import integrate as int
-from scipy import constants
-from matplotlib import pyplot as plt
+from scipy import integrate
 from radiotools import coordinatesystems as cstrafo
 from NuRadioReco.utilities.metaclasses import Singleton
 import os
-import copy
 import logging
 import six
 logger = logging.getLogger("SignalGen.ARZ")
 logging.basicConfig()
+# logger.setLevel(logging.INFO)
 
 ######################
 ######################
@@ -218,7 +215,7 @@ class ARZ(object):
         self._interp_factor2 = interp_factor
 
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
-                       same_shower=False, iN=None, output_mode='trace', maximum_angle=20*units.deg):
+                       same_shower=False, iN=None, output_mode='trace', maximum_angle=20 * units.deg):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
 
@@ -269,14 +266,15 @@ class ARZ(object):
             raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
 
         # Due to the oscillatory nature of the ARZ integral, some numerical instabilities arise
-        # for angles near the axis and near 90 degrees. This creates some waveforms with large
+        #  for angles near the axis and near 90 degrees. This creates some waveforms with large
         # spikes due to numerical errors, while the real electric field should be much smaller
         # than near the Cherenkov cone due to the loss of coherence. Since incoherent events
         # should not trigger, we return an empty trace for angular differences > 20 degrees.
         cherenkov_angle = np.arccos(1 / n_index)
 
         if np.abs(theta - cherenkov_angle) > maximum_angle:
-
+            logger.info(f"viewing angle {theta/units.deg:.1f}deg is more than {maximum_angle/units.deg:.1f}deg away from the cherenkov cone. Returning zero trace.")
+            self._random_numbers[shower_type] = None
             empty_trace = np.zeros((3, N))
             return empty_trace
 
@@ -303,7 +301,9 @@ class ARZ(object):
                 self._random_numbers[shower_type] = iN
                 logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
         else:
+            iN = int(iN)  # saveguard against iN being a float
             logger.info("using shower {}/{} as specified by user".format(iN, N_profiles))
+            self._random_numbers[shower_type] = iN
 
         profile_depth = profiles['depth']
         profile_ce = profiles['charge_excess'][iN] * rescaling_factor
@@ -660,7 +660,7 @@ class ARZ(object):
         # calculate total charged track length
         xntot = np.sum(profile_ce) * (length[1] - length[0])
         # print("{:.5g}".format(xntot))
-        # res = int.quad(xnep, length.min(), length.max())
+        # res = integrate.quad(xnep, length.min(), length.max())
         # print("{:.5g} {:.5g}".format(*res))
 
         if 0:  # debug plot
@@ -733,11 +733,11 @@ class ARZ(object):
             xmin = length.min()
             xmax = length.max()
             if(X[0] != 0):
-                vp[it][0] = int.quad(xintegrand, xmin, xmax, args=(0, tobs))[0]
+                vp[it][0] = integrate.quad(xintegrand, xmin, xmax, args=(0, tobs))[0]
             if(X[1] != 0):
-                vp[it][1] = int.quad(xintegrand, xmin, xmax, args=(1, tobs))[0]
+                vp[it][1] = integrate.quad(xintegrand, xmin, xmax, args=(1, tobs))[0]
             if(X[2] != 0):
-                vp[it][2] = int.quad(xintegrand, xmin, xmax, args=(2, tobs))[0]
+                vp[it][2] = integrate.quad(xintegrand, xmin, xmax, args=(2, tobs))[0]
         vp *= factor
         return vp
 
@@ -885,6 +885,7 @@ class ARZ_tabulated(object):
                 logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
         else:
             logger.info("using shower {}/{} as specified by user".format(iN, N_profiles))
+            self._random_numbers[shower_type] = iN
 
         thetas = profiles[iN].keys()
         iT = np.argmin(np.abs(thetas - theta))

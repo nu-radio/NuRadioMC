@@ -4,6 +4,7 @@ from NuRadioReco.utilities import units
 import os
 import six
 import json
+import logging
 
 """
 This module takes care of the PROPOSAL implementation. Some important things
@@ -225,6 +226,7 @@ def is_shower_primary(particle):
     else:
         return False
 
+
 def check_path_to_tables(config_file_path):
     """
     Checks if the paths for the PROPOSAL tables in the input config file are
@@ -240,17 +242,18 @@ def check_path_to_tables(config_file_path):
 
     if not os.path.isdir(path_to_tables):
 
-        error_msg  = "'path_to_tables' in {} points to {}, which is a non-existing directory. ".format(config_file_path,
+        error_msg = "'path_to_tables' in {} points to {}, which is a non-existing directory. ".format(config_file_path,
                                                                                                      path_to_tables)
         error_msg += "Please choose a valid path for the PROPOSAL config file in {}.".format(config_file_path)
         raise ValueError(error_msg)
 
     if not os.path.isdir(path_to_tables_readonly):
 
-        error_msg  = "'path_to_tables_readonly' in {} points to {}, which is a non-existing directory. ".format(config_file_path,
+        error_msg = "'path_to_tables_readonly' in {} points to {}, which is a non-existing directory. ".format(config_file_path,
                                                                                                               path_to_tables_readonly)
         error_msg += "Please choose a valid path for the PROPOSAL config file in {}.".format(config_file_path)
         raise ValueError(error_msg)
+
 
 @six.add_metaclass(Singleton)
 class ProposalFunctions(object):
@@ -260,7 +263,7 @@ class ProposalFunctions(object):
     not be used from the outside to avoid mismatching units.
     """
 
-    def __init__(self, config_file='SouthPole', low_nu=1 * units.PeV):
+    def __init__(self, config_file='SouthPole', log_level=logging.INFO):
         """
         Parameters
         ----------
@@ -274,33 +277,21 @@ class ProposalFunctions(object):
             IMPORTANT: If these options are used, the code is more efficient if the
             user requests their own "path_to_tables" and "path_to_tables_readonly",
             pointing them to a writable directory
-        low_nu: float
-            Low energy limit for the propagating particle in NuRadioMC units (eV)
         """
-        print("initializing proposal interface class", flush=True)
-        self.propagators = {}
-        low = low_nu * pp_eV
-        for lepton_code in [13, -13, 15, -15]:
-            self.propagators[lepton_code] = self.__create_propagator(low=low, particle_code=lepton_code,
-                                                                     config_file=config_file)
+        self.__logger = logging.getLogger("proposal")
+        self.__logger.setLevel(log_level)
+        self.__logger.info("initializing proposal interface class")
 
-        self.mu_propagators = {}
-        for lepton_code in [13, -13]:
-            self.mu_propagators[lepton_code] = self.__create_propagator(low=low, particle_code=lepton_code,
-                                                                        config_file=config_file)
+        self.__propagators = {}
+        self.__config_file = config_file
 
-    def __create_propagator(self,
-                            low=0.1 * pp_PeV,
-                            particle_code=13,
-                            config_file='SouthPole'):
+    def __get_propagator(self,
+                            particle_code=13):
         """
-        Creates a PROPOSAL propagator for muons or taus
+        Returns a PROPOSAL propagator for muons or taus. If it does not exist yet it is being generated.
 
         Parameters
         ----------
-        low: float
-            Minimum energy that a particle can have. If this energy is attained,
-            propagation stops. In PROPOSAL units (MeV)
         particle_code: integer
             Particle code for the muon- (13), muon+ (-13), tau- (15), or tau+ (-15)
         config_file: string or path
@@ -323,90 +314,49 @@ class ProposalFunctions(object):
         propagator: PROPOSAL propagator
             Propagator that can be used to calculate the interactions of a muon or tau
         """
-        mu_def_builder = pp.particle.ParticleDefBuilder()
-        if (particle_code == 13):
-            mu_def_builder.SetParticleDef(pp.particle.MuMinusDef())
-        elif (particle_code == -13):
-            mu_def_builder.SetParticleDef(pp.particle.MuPlusDef())
-        elif (particle_code == 15):
-            mu_def_builder.SetParticleDef(pp.particle.TauMinusDef())
-        elif (particle_code == -15):
-            mu_def_builder.SetParticleDef(pp.particle.TauPlusDef())
-        else:
-            error_str = "The propagation of this particle via PROPOSAL is not currently supported.\n"
-            error_str += "Please choose between -/+muon (13/-13) and -/+tau (15/-15)"
-            raise NotImplementedError(error_str)
-
-        mu_def = mu_def_builder.build()
-
-        if (config_file == 'SouthPole'):
-            config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL.json')
-        elif (config_file == 'MooresBay'):
-            config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_mooresbay.json')
-        elif (config_file == 'InfIce'):
-            config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_infice.json')
-        elif (config_file == 'Greenland'):
-            config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_greenland.json')
-        elif (os.path.exists(config_file)):
-            config_file_full_path = config_file
-        else:
-            raise ValueError("Proposal config file is not valid. Please provide a valid option.")
-
-        if not os.path.exists(config_file_full_path):
-            error_message = "Proposal config file does not exist.\n"
-            error_message += "Please provide valid paths for the interpolation tables "
-            error_message += "in file {}.sample ".format(config_file_full_path)
-            error_message += "and copy the file to {}.".format(os.path.basename(config_file_full_path))
-            raise ValueError(error_message)
-
-        check_path_to_tables(config_file_full_path)
-
-        propagator = pp.Propagator(particle_def=mu_def, config_file=config_file_full_path)
-
-        return propagator
-
-    def __get_compact_sub_pev_losses(self,
-                                     energy_arr,
-                                     distance_arr,
-                                     compact_dist,
-                                     min_energy_loss):
-        r""" return biggest compact loss if above min_energy_cut
-
-        This function groups energy losses along a path and groups them into a
-        single shower. The effect is only seen for < 10 PeV energy bins and it's
-        at least one order of magnitude lower than non-grouped losses, so it does
-        not influence that much.
-
-        Parameters
-        ----------
-        energy_arr: array-like
-            energy of the energy losses below min_energy_loss, in PROPOSAL units (MeV)
-        distance_arr: array_like
-            distances of the energy losses below min_energy_loss, in PROPOSAL units (cm)
-        compact_dist: float
-            distance in centimeters (PROPOSAL units): how compact the energy losses should be
-        min_energy_loss: float
-            min energy for the sensitivity (here a PeV), in PROPOSAL units (MeV)
-        """
-        len_bins = np.arange(distance_arr[0], distance_arr[-1] + 1e-3, 100)
-        # We have used 100 to create a bin length of 1 m
-        len_indices = np.digitize(distance_arr, len_bins)
-        bincount = np.bincount(len_indices, energy_arr)
-
-        if len(bincount) <= compact_dist:
-            sum_bins = np.sum(bincount)
-            if sum_bins > min_energy_loss:
-                return [sum_bins]
+        if(particle_code not in self.__propagators):
+            self.__logger.info(f"initializing propagator for particle code {particle_code}")
+            mu_def_builder = pp.particle.ParticleDefBuilder()
+            if (particle_code == 13):
+                mu_def_builder.SetParticleDef(pp.particle.MuMinusDef())
+            elif (particle_code == -13):
+                mu_def_builder.SetParticleDef(pp.particle.MuPlusDef())
+            elif (particle_code == 15):
+                mu_def_builder.SetParticleDef(pp.particle.TauMinusDef())
+            elif (particle_code == -15):
+                mu_def_builder.SetParticleDef(pp.particle.TauPlusDef())
             else:
-                return []
+                error_str = "The propagation of this particle via PROPOSAL is not currently supported.\n"
+                error_str += "Please choose between -/+muon (13/-13) and -/+tau (15/-15)"
+                raise NotImplementedError(error_str)
 
-        # We transform the compact_dist into meters, since the above histogram
-        # has a bin length of 1 m
-        convolved_comp_arr = np.convolve(np.ones(int(compact_dist / pp_m)), bincount, mode='valid')
-        if np.any(convolved_comp_arr > min_energy_loss):
-            return [np.max(convolved_10m_arr)]
-        else:
-            return []
+            mu_def = mu_def_builder.build()
+
+            if (self.__config_file == 'SouthPole'):
+                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL.json')
+            elif (self.__config_file == 'MooresBay'):
+                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_mooresbay.json')
+            elif (self.__config_file == 'InfIce'):
+                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_infice.json')
+            elif (self.__config_file == 'Greenland'):
+                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_greenland.json')
+            elif (os.path.exists(self.__config_file)):
+                config_file_full_path = self.__config_file
+            else:
+                raise ValueError("Proposal config file is not valid. Please provide a valid option.")
+
+            if not os.path.exists(config_file_full_path):
+                error_message = "Proposal config file does not exist.\n"
+                error_message += "Please provide valid paths for the interpolation tables "
+                error_message += "in file {}.sample ".format(config_file_full_path)
+                error_message += "and copy the file to {}.".format(os.path.basename(config_file_full_path))
+                raise ValueError(error_message)
+
+            check_path_to_tables(config_file_full_path)
+
+            self.__propagators[particle_code] = pp.Propagator(particle_def=mu_def, config_file=config_file_full_path)
+
+        return self.__propagators[particle_code]
 
     def __produces_shower(self,
                           particle,
@@ -499,8 +449,7 @@ class ProposalFunctions(object):
                              lepton_position,
                              lepton_direction,
                              propagation_length,
-                             low=1 * pp_PeV,
-                             decay_muon=False):
+                             low=1 * pp_PeV):
         """
         Calculates secondary particles using a PROPOSAL propagator. It needs to
         be given a propagators dictionary with particle codes as key
@@ -543,15 +492,9 @@ class ProposalFunctions(object):
         initial_condition.energy = energy_lepton
         initial_condition.propagated_distance = 0
 
-        if not decay_muon:
-            secondaries = self.propagators[lepton_code].propagate(initial_condition,
+        secondaries = self.__get_propagator(lepton_code).propagate(initial_condition,
                                                                   propagation_length,
                                                                   minimal_energy=low).particles
-        else:
-            secondaries = self.mu_propagators[lepton_code].propagate(initial_condition,
-                                                                     propagation_length,
-                                                                     minimal_energy=low).particles
-
         return secondaries
 
     def __filter_secondaries(self,
@@ -624,10 +567,12 @@ class ProposalFunctions(object):
             Array containing the lepton directions, normalised to 1
         low_nu: float
             Low energy limit for the propagating particle in NuRadioMC units (eV)
+            controls the minimum energy of the particle. Below this energy, the propagated particle will be discarded
         propagation_length_nu: float
             Maximum propagation length in NuRadioMC units (m)
         min_energy_loss_nu: float
             Minimum energy for a selected secondary-induced shower (eV)
+            controls the minimum energy a secondary shower must have to be returned and saved in an event file
         propagate_decay_muons: bool
             If True, muons created by tau decay are propagated and their induced
             showers are stored
@@ -722,7 +667,7 @@ class ProposalFunctions(object):
                     continue
                 mu_energy, mu_code, mu_position, mu_direction = decay_muon
                 mu_secondaries = self.__propagate_particle(mu_energy, mu_code, mu_position, mu_direction,
-                                                           propagation_length, low=low, decay_muon=True)
+                                                           propagation_length, low=low)
 
                 mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
 

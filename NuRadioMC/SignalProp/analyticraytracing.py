@@ -1515,7 +1515,7 @@ class ray_tracing:
                       3: 'reflected'}
 
     def __init__(self, x1, x2, medium, attenuation_model="SP1", log_level=logging.WARNING,
-                 n_frequencies_integration=6,
+                 n_frequencies_integration=100,
                  n_reflections=0):
         """
         class initilization
@@ -1924,7 +1924,7 @@ class ray_tracing:
             self.__logger.info("too few ray tracing solutions, setting focusing factor to 1")
         self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
         if(focusing > limit):
-            self.__logger.warning(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
+            self.__logger.info(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
             focusing = limit
 
         # now also correct for differences in refractive index between emitter and receiver position

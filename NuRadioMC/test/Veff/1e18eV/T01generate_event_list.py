@@ -7,16 +7,15 @@ import numpy as np
 np.random.seed(0)
 
 # define simulation volume
-zmin = -2.7 * units.km  # the ice sheet at South Pole is 2.7km deep
-zmax = 0 * units.km
-rmin = 0 * units.km
-rmax = 4 * units.km
+volume = {
+'fiducial_rmin':0 * units.km,
+'fiducial_rmax': 4 * units.km,
+'fiducial_zmin':-2.7 * units.km,  # the ice sheet at South Pole is 2.7km deep
+'fiducial_zmax': 0 * units.km}
 
 path = os.path.dirname(os.path.abspath(__file__))
 
 # generate one event list at 1e18 eV with 10000 neutrinos
-generate_eventlist_cylinder(os.path.join(path,'1e18_full.hdf5'),
+generate_eventlist_cylinder(os.path.join(path, '1e18_full.hdf5'),
                             5e4, 1e18 * units.eV, 1e18 * units.eV,
-                            rmin, rmax, zmin, zmax,
-                            full_rmin=rmin, full_rmax=rmax,
-                            full_zmin=zmin, full_zmax=zmax)
+                            volume)

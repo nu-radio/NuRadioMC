@@ -2,9 +2,9 @@
 import numpy as np
 import h5py
 from NuRadioReco.utilities import units
-from NuRadioMC.utilities.Veff import get_triggered
 import sys
 import os
+from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 
 ###########################
 # Reference values from previous run, have to be updated, if code changes
@@ -21,24 +21,23 @@ Aeff_mean = 0.406902 * units.km2
 Aeff_sigma = 0.045211 * units.km2
 
 path = os.path.dirname(os.path.abspath(__file__))
-fin = h5py.File(os.path.join(path, "output.hdf5"), 'r')
+fin = h5py.File(sys.argv[1], 'r')
 
 
 def calculate_aeff(fin):
-    triggered = get_triggered(fin)
+    triggered = np.array(fin['triggered'])
+    triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
 
     weights = np.array(fin['weights'])
     n_events = fin.attrs['n_events']
 
     n_triggered = np.sum(weights[triggered])
 
-    rmin = fin.attrs['rmin']
-    rmax = fin.attrs['rmax']
-    geometrical_area = np.pi * ( rmax - rmin ) ** 2
+    geometrical_area = fin.attrs['area']
 
     thetamin = fin.attrs['thetamin']
     thetamax = fin.attrs['thetamax']
-    projected_area = geometrical_area * 0.5 * ( np.cos(thetamin) + np.cos(thetamax) )
+    projected_area = geometrical_area * 0.5 * (np.cos(thetamin) + np.cos(thetamax))
 
     Aeff = projected_area * n_triggered / n_events
     Aeff_unc = Aeff / np.sqrt(n_triggered)
@@ -67,5 +66,5 @@ if(np.abs(Aeff - Aeff_mean) > 4 * Aeff_sigma):
 # Code to generate new average values for this test
 ###########################
 
-print("New Aeff {} km^2".format(np.mean(Aeff/units.km2)))
-print("New sigma Aeff (poissonian) {} km^2".format(Aeff_unc/units.km2))
+print("New Aeff {} km^2".format(np.mean(Aeff / units.km2)))
+print("New sigma Aeff (poissonian) {} km^2".format(Aeff_unc / units.km2))

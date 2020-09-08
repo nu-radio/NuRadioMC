@@ -3,7 +3,6 @@ This file illustrates how to create an input file for NuRadioMC and introduces
 the most basic function and arguments, with expanded comments.
 """
 
-
 """
 One of the first lines in every code that uses NuRadioMC or NuRadioReco should
 be an import of the units module in NuRadioReco.utilities. NuRadioMC and NuRadioReco
@@ -37,7 +36,7 @@ from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 # Choose the number of events for this file
 n_events = 1000
 # Choose the minimum energy for the simulated bin.
-Emin = 10**18.5 * units.eV
+Emin = 10 ** 18.5 * units.eV
 # Choose the maximum energy for the simulated bin.
 Emax = 1e19 * units.eV
 
@@ -59,10 +58,11 @@ cylinder is large enough so that every possible trigger interaction is contained
 inside the volume, or, equivalently, the probability of trigger at the edges of
 the cylinder is negligible.
 """
-fiducial_rmin =  0 * units.km
-fiducial_rmax =  4 * units.km
-fiducial_zmin = -3 * units.km
-fiducial_zmax =  0 * units.km
+volume = {
+'fiducial_rmin':0 * units.km,
+'fiducial_rmax': 4 * units.km,
+'fiducial_zmin':-3 * units.km,
+'fiducial_zmax': 0 * units.km}
 
 """
 The generator module allows the user to narrow the zenith band for the incoming
@@ -116,26 +116,15 @@ for more info.
 spectrum = 'log_uniform'
 
 """
-NuRadioMC has a simplified way of dealing with tau decay. If we set
-add_tau_second_bang=True, a continuous slowing down approximation is applied to
-tau leptons created by CC interactions, and the decays that happen in our fiducial
-volume are stored. This option also changes the volume of the total simulation
-cylinder - the total volume is increased, so that the radius of the cylinder is
-95% percentile of the tau range. However, only interactions that happen inside
-our fiducial volume are saved.
-"""
-add_tau_second_bang = True
-
-"""
 If the user wants to specify the full volume manually, these keyword arguments can
 be used. We recommend increasing the full_zmin manually and then setting
 add_tau_second_bang=True to increase the radius of the cylinder. This also works
 when dealing with PROPOSAL simulations.
 """
-full_rmax = 6 * units.km
-full_rmin = 0 * units.km
-full_zmax = 0 * units.km
-full_zmin = -4 * units.km
+volume['full_rmax'] = 6 * units.km
+volume['full_rmin'] = 0 * units.km
+volume['full_zmax'] = 0 * units.km
+volume['full_zmin'] = -4 * units.km
 
 """
 NuRadioMC has a more rigorous way of dealing with showers created by the secondary
@@ -177,15 +166,11 @@ We choose a name for the file to be generated.
 filename = 'input_{:.1e}_{:.1e}.hdf5'.format(Emin, Emax)
 
 generate_eventlist_cylinder(filename, n_events, Emin, Emax,
-                            fiducial_rmin, fiducial_rmax,
-                            fiducial_zmin, fiducial_zmax,
+                            volume,
                             thetamin=thetamin,
                             thetamax=thetamax,
                             flavor=flavor,
                             n_events_per_file=n_events_per_file,
                             spectrum=spectrum,
-                            add_tau_second_bang=add_tau_second_bang,
-                            full_rmax=full_rmax, full_rmin=full_rmin,
-                            full_zmax=full_zmax, full_zmin=full_zmin,
                             proposal=proposal, proposal_config=proposal_config,
                             start_event_id=start_event_id)

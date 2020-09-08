@@ -5,6 +5,8 @@ weights:
 noise: False  # specify if simulation should be run with or without noise
 sampling_rate: 5.  # sampling rate in GHz used internally in the simulation. At the end the waveforms will be downsampled to the sampling rate specified in the detector description
 
+split_event_time_diff: 1e6  # the minimal time difference (in ns) between two voltage trace start times at the digitizer to split an event into two
+
 seed: 1235
 
 speedup:
@@ -13,10 +15,11 @@ speedup:
   redo_raytracing: False  # redo ray tracing even if previous calculated ray tracing solutions are present
   min_efield_amplitude: 2  # the minimum signal amplitude of the efield as a factor of the noise RMS. If the value is smaller, no detector simulation is performed. As the vector effecive length of antennas is typically less than 1, this cut does not introduce any bias as long as the value is smaller than the trigger threshold.
   amp_per_ray_solution: True  # if False, the maximum aplitude for each ray tracing solution is not calculated
-  distance_cut: False # if True, a cut for the vertex-observer distance as a function of shower energy is applied (log10(max_dist / m) = intercept + slope * log10(shower_energy / eV))
-  # The intercept and the slope below have been obtained from distance histograms for several shower energy bins. A 10x10 array of 1.5 sigma dipoles in Greenland was used. The distance cut is a linear fit of the maximum distances at shower energies around 1~10 PeV with a cover factor of 1.5, or 50%.
-  distance_cut_intercept: -12.14 # intercept for the maximum distance cut
-  distance_cut_slope: 0.9542 # slope for the maximum distance cut
+  time_res_efieldconverter: 0.1  # the time resolution (in ns) used in the efieldtovoltage converter to combine multiple efield traces into one voltage trace
+  distance_cut: False # if True, a cut for the vertex-observer distance as a function of shower energy is applied (log10(max_dist / m) = polynomial(log10(shower_energy / eV))
+  # The coefficients of a polynomial below have been obtained from distance histograms for several shower energy bins. A 10x10 array of 1.5 sigma dipoles in Greenland was used. The distance cut is a 4th order polynomial of the maximum distances with a cover factor of 1.5, or 50%.
+  distance_cut_coefficients: [-1.56434411e+02,  2.54131322e+01, -1.34932379e+00,  2.39984185e-02] # coefficients of a polynomial
+  distance_cut_sum_length: 10  # the distance (in meters) over which the shower energies of the surrounding showers are added up
 
 propagation:
   module: analytic
@@ -36,7 +39,11 @@ signal:
   shower_type: null # optional argument to only simulate certain shower types. Arguments can be "had" or "em".
 
 trigger:
-  noise_temperature: 300  # in Kelvin
+  noise_temperature: 300  # in Kelvin, can also be set to "detector" to use the station/channel specific noise temperature from the detector description
   Vrms: null  # the RMS noise value in volts. Not compatible with 'noise_temperature', if Vrms is set, 'noise_temperature' must be None
 
-save_all: False # if True, save all events
+output:
+  channel_traces: True
+  electric_field_traces: True
+  sim_channel_traces: True
+  sim_electric_field_traces: True
