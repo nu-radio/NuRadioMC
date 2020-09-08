@@ -42,9 +42,8 @@ class triggerSimulator:
         Calculates the vertical coordinates of the antennas of the detector
         """
 
-        ant_pos = [det.get_relative_position(station.get_id(), channel.get_id())[component]
-                   for channel in station.iter_channels()
-                   if channel.get_id() in triggered_channels]
+        ant_pos = [det.get_relative_position(station.get_id(), channel_id)[component]
+                   for channel_id in triggered_channels]
 
         return np.array(ant_pos)
 
@@ -58,8 +57,8 @@ class triggerSimulator:
         sampling_rate = None
         value_error = False
 
-        for channel in station.iter_channels(use_channels=triggered_channels):
-            channel_id = channel.get_id()
+        for channel_id in triggered_channels:
+            channel = station.get_channel(channel_id)
             if trigger_adc:
                 if sampling_rate is None:
                     sampling_rate = det.get_channel(station_id, channel_id)["trigger_adc_sampling_frequency"]
@@ -102,7 +101,8 @@ class triggerSimulator:
     def get_channel_trace_start_time(self, station, triggered_channels):
 
         channel_trace_start_time = None
-        for channel in station.iter_channels(use_channels=triggered_channels):
+        for channel_id in triggered_channels:
+            channel = station.get_channel(channel_id)
             if channel_trace_start_time is None:
                 channel_trace_start_time = channel.get_trace_start_time()
             elif channel_trace_start_time != channel.get_trace_start_time():
@@ -198,7 +198,8 @@ class triggerSimulator:
         station_id = station.get_id()
 
         traces = {}
-        for channel in station.iter_channels(use_channels=triggered_channels):
+        for channel_id in triggered_channels:
+            channel = station.get_channel(channel_id)
             channel_id = channel.get_id()
             time_step = 1 / channel.get_sampling_rate()
 
