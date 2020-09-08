@@ -33,6 +33,8 @@ jobs:
       script: NuRadioMC/test/SingleEvents/test_build.sh
     - script: NuRadioMC/test/SingleEvents/validate_MB.sh
       name: "Single event test (Moore's Bay)"
+    - script: NuRadioMC/test/SingleEvents/validate_ARZ.sh
+      name: "Single event test (ARZ)"
     - stage: "Test individual components"
       name: "Signal generation test"
       script: NuRadioMC/test/SignalGen/test_build.sh

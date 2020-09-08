@@ -7,7 +7,7 @@ import h5py
 import argparse
 import logging
 logger = logging.getLogger("HDF5-merger")
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 logger.setLevel(logging.WARNING)
 
 
@@ -37,7 +37,7 @@ def merge2(filenames, output_filename):
         groups[f] = {}
 
         for key in fin:
-            if isinstance(fin[key], h5py._hl.group.Group):
+            if isinstance(fin[key], h5py._hl.group.Group):  # loop through station groups
                 groups[f][key] = {}
                 if(key not in n_groups):
                     n_groups[key] = {}
@@ -68,11 +68,37 @@ def merge2(filenames, output_filename):
                     if(not np.all(attrs[key] == fin.attrs[key])):
                         if(key == "n_events"):
                             logger.warning(f"number of events in file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. We keep track of the total number of events, but in case the simulation was performed with different settings per file (e.g. different zenith angle bins), the averaging might be effected.")
+                        elif(key == "start_event_id"):
+                            continue
                         else:
                             logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. Using attribute value of first file, but you have been warned!")
             if((('trigger_names' not in attrs) or (len(attrs['trigger_names']) == 0)) and 'trigger_names' in fin.attrs):
                 attrs['trigger_names'] = fin.attrs['trigger_names']
         fin.close()
+
+    # check event group ids for uniqueness (this is important because effective volume/area calculation uses the event
+    # group id to determine if a multi station coincidence exists
+    unique_uegids = np.unique(data[filenames[0]]['event_group_ids'])
+    for iF, f in enumerate(filenames):
+        if(iF == 0):
+            continue
+        current_uegids = np.unique(data[f]['event_group_ids'])
+        intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
+        if(np.sum(intersect)):
+            current_egids = data[f]['event_group_ids']
+            new_egid = max(unique_uegids.max(), current_uegids.max()) + 1
+            for gid in intersect:
+                mask = gid == current_egids
+                current_egids[mask] = new_egid
+                new_egid += 1
+            logger.warning(f"event group ids are not unique per file, current file is {f}, new unique ids have been generated.")
+            logger.debug(f"non-unique event ids: {intersect}")
+#         # test again for uniqueness
+#         current_uegids = np.unique(data[f]['event_group_ids'])
+#         intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
+#         if(np.sum(intersect)):
+#             raise IndexError(f"event group ids are not unique per file, current file is {f}")
+        unique_uegids = np.append(unique_uegids, current_uegids)
 
     # create data sets
     logger.info("creating data sets")
@@ -103,30 +129,37 @@ def merge2(filenames, output_filename):
                                 compression='gzip')[...] = tmp
 
         keys = groups[non_empty_filenames[0]]
-        for key in keys:
+        for key in keys:  # loop through all groups
             logger.info("writing group {}".format(key))
-            g = fout.create_group(key)
-            for key2 in groups[non_empty_filenames[0]][key]:
-                logger.info("writing data set {}".format(key2))
-                all_files_have_key = True
-                for f in non_empty_filenames:
-                    if(not key2 in groups[f][key]):
-                        logger.debug(f"key {key2} of group {key} not in {f}")
-                        all_files_have_key = False
-                if(not all_files_have_key):
-                    logger.warning(f"not all files have the key {key2}. This key will not be present in the merged file.")
-                    continue
+            # first loop through all keys of this group(station) to find all available entries (necessary because some
+            # of the files might be empty
+            list_of_keys = list(groups[non_empty_filenames[0]][key].keys())
+            list_of_dtypes = {}
+            list_of_shapes = {}
+            for f in non_empty_filenames:
+                for key2 in groups[f][key]:  # loop through all datasets of this group
+                    if(key2 not in list_of_dtypes):
+                        list_of_dtypes[key2] = groups[f][key][key2].dtype
+                        list_of_shapes[key2] = list(groups[f][key][key2].shape)
+                    groups[f][key][key2].dtype
+                    if(key2 not in list_of_keys):
+                        list_of_keys.append(key2)
 
-                shape = list(groups[non_empty_filenames[0]][key][key2].shape)
+            g = fout.create_group(key)
+            for key2 in list_of_keys:  # loop through all datasets of this group
+                shape = list_of_shapes[key2]
                 shape[0] = n_groups[key][key2]
 
-                tmp = np.zeros(shape, dtype=groups[non_empty_filenames[0]][key][key2].dtype)
+                tmp = np.zeros(shape, dtype=list_of_dtypes[key2])
                 i = 0
                 for f in non_empty_filenames:
-                    tmp[i:(i + len(groups[f][key][key2]))] = groups[f][key][key2]
-                    i += len(groups[f][key][key2])
+                    if(key2 in groups[f][key]):
+                        tmp[i:(i + len(groups[f][key][key2]))] = groups[f][key][key2]
+                        i += len(groups[f][key][key2])
+                    else:
+                        logger.info(f"data set {key2} not in file {f} of station {key}")
 
-                g.create_dataset(key2, shape, dtype=groups[non_empty_filenames[0]][key][key2].dtype,
+                g.create_dataset(key2, shape, dtype=list_of_dtypes[key2],
                                  compression='gzip')[...] = tmp
             # save group attributes
             for key2 in group_attrs[key]:
@@ -136,7 +169,7 @@ def merge2(filenames, output_filename):
         for key in attrs:
             fout.attrs[key] = attrs[key]
     else:  # now handle the case
-        logger.warning("All files are empty. Copying content of first file to output file and keepting track of total number of simulated events.")
+        logger.warning("All files are empty. Copying content of first file to output file and keeping track of total number of simulated events.")
         # all files are empty, so just copy the content of the first file (attributes and empyt data sets) to the output file
         # update n_events attribute with the total number of events
         fin = h5py.File(filenames[0], 'r')
@@ -157,27 +190,6 @@ def merge2(filenames, output_filename):
                 fout.create_dataset(key, fin[key].shape, dtype=fin[key].dtype,
                                     compression='gzip')[...] = fin[key]
 
-#     # save all data to hdf5
-#     for key in data[filenames[0]]:
-#         print("writing data set {}".format(key))
-#         i = 0
-#         for f in data:
-#             fout[key][i:(i+len(data[f][key]))] = data[f][key]
-#             i += len(data[f][key])
-    # save all group data to hdf5
-#     for key in groups[filenames[0]]:
-#         print("writing group {}".format(key))
-#         for key2 in groups[filenames[0]][key]:
-#             print("writing data set {}".format(key2))
-#             i = 0
-#             for f in groups:
-#                 fout[key][key2][i:(i+len(groups[f][key][key2]))] = groups[f][key][key2]
-#                 i += len(groups[f][key][key2])
-#         # save group attributes
-#         for key2 in group_attrs[key]:
-#             fout[key].attrs[key2] = group_attrs[key][key2]
-#
-
     fout.close()
 
 
@@ -195,6 +207,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Merge hdf5 files')
     parser.add_argument('files', nargs='+', help='input file or files')
     parser.add_argument('--loglevel', metavar='level', help='loglevel set to either DEBUG, INFO, or WARNING')
+    parser.add_argument('--cores', default=1, type=int, help='number of cores to use')
     args = parser.parse_args()
 
     if args.loglevel is not None:
@@ -205,6 +218,7 @@ if __name__ == "__main__":
         print("usage: python merge_hdf5.py /path/to/simulation/output/folder\nor python merge_hdf5.py outputfilename input1 input2 ...")
     elif(len(args.files) == 1):
         filenames = glob.glob("{}/*/*.hdf5.part????".format(args.files[0]))
+        filenames = np.append(filenames, glob.glob("{}/*/*.hdf5.part??????".format(args.files[0])))
         filenames2 = []
         for i, filename in enumerate(filenames):
             filename, ext = os.path.splitext(filename)
@@ -214,6 +228,7 @@ if __name__ == "__main__":
                     a, b = os.path.split(d[0])
                     filenames2.append(filename)
 
+        input_args = []
         for filename in filenames2:
             if(os.path.splitext(filename)[1] == '.hdf5'):
                 d = os.path.split(filename)
@@ -224,13 +239,24 @@ if __name__ == "__main__":
                 else:
                     #                 try:
                     input_files = np.array(sorted(glob.glob(filename + '.part????')))
+                    input_files = np.append(input_files, np.array(sorted(glob.glob(filename + '.part??????'))))
                     mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=np.bool)
                     if(np.sum(~mask)):
                         logger.warning("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
+                    input_args.append({'filenames': input_files[mask], 'output_filename': output_filename})
+        if(args.cores == 1):
+            for i in range(len(input_args)):
+                merge2(input_args[i]['filenames'], input_args[i]['output_filename'])
+        else:
+            from multiprocessing import Pool
+            logger.warning(f"running {len(input_args)} job on {args.cores} cores")
 
-                    merge2(input_files[mask], output_filename)
-    #                 except:
-    #                     print("failed to merge {}".format(filename))
+            def tmp(kwargs):
+                merge2(**kwargs)
+
+            with Pool(args.cores) as p:
+                p.map(tmp, input_args)
+
     elif(len(args.files) > 1):
         output_filename = args.files[0]
         if(os.path.exists(output_filename)):

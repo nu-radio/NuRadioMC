@@ -30,7 +30,8 @@ def get_parametrizations():
     return ['ZHS1992', 'Alvarez2000', 'Alvarez2009', 'Alvarez2012']
 
 
-def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=None, same_shower=False, average_shower=False):
+def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=None, same_shower=False,
+                   k_L=None, full_output=False, average_shower=False):
     """
     returns the Askaryan pulse in the time domain of the eTheta component
 
@@ -68,6 +69,14 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
         if False, for each request a new random shower realization is choosen.
         if True, the shower from the last request of the same shower type is used. This is needed to get the Askaryan
         signal for both ray tracing solutions from the same shower.
+    k_L: None or float
+        the k_L parameter for EM showers of the Alvarez2009 model. If a this parameter is provided, this value is used
+        and the parameter will not be drawn from a random distribution. 
+        This setting overrides the `same_shower` setting
+    full_output: bool (default False)    
+        if True, askaryan modules can return additional output. The additional output is always a dictionary
+        For Alvarez2009: dict containing the key 'k_L'
+        For ZHS1992 and ALvarez2000 the dict is empty.
     average_shower: bool (default False)
         if True, for the Alvarez2009 model electromagnetic showers, no random shower is generated, but the average shower is choosen. 
 
@@ -75,6 +84,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
     -------
     spectrum: array
         the complex amplitudes for the given frequencies
+    additional information: dict
+        only available if `full_output` enabled
 
     """
     if(model not in _random_generators):
@@ -92,7 +103,10 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
         # the factor 0.5 is introduced to compensate the unusual fourier transform normalization used in the ZHS code
         trace = 0.5 * np.fft.irfft(tmp) / dt
         trace = np.roll(trace, int(2 * units.ns / dt))
-        return trace
+        if(full_output):
+            return trace, {}
+        else:
+            return trace
 
     elif(model == 'Alvarez2009'):
         # This parameterisation is not very accurate for energies above 10 EeV
@@ -105,109 +119,104 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
         R_M = 10.57 * units.g / units.cm ** 2
         c = constants.c * units.m / units.s
 
-        def A(E_0, theta, freq):
+        # calculate A
+        if (shower_type == 'HAD'):
+            k_E_0 = 4.13e-16 * units.V / units.cm / units.MHz ** 2
+            k_E_1 = 2.54
+            log10_E_E = 10.60
+            k_E_bar = k_E_0 * np.tanh((np.log10(energy / units.eV) - log10_E_E) / k_E_1)
+        elif (shower_type == 'EM'):
+            k_E_bar = 4.65e-16 * units.V / units.cm / units.MHz ** 2
+        else:
+            raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
 
-            if (shower_type == 'HAD'):
-                k_E_0 = 4.13e-16 * units.V / units.cm / units.MHz ** 2
-                k_E_1 = 2.54
-                log10_E_E = 10.60
-                k_E_bar = k_E_0 * np.tanh((np.log10(E_0 / units.eV) - log10_E_E) / k_E_1)
-            elif (shower_type == 'EM'):
-                k_E_bar = 4.65e-16 * units.V / units.cm / units.MHz ** 2
+        A = k_E_bar * energy / E_C * X_0 / rho * np.sin(theta) * freqs
+
+        # calculate nu_L
+        if (shower_type == 'HAD'):
+            k_L_0 = 31.25
+            gamma = 3.01e-2
+            E_L = 1.e15 * units.eV
+            k_L = k_L_0 * (energy / E_L) ** gamma
+        elif (shower_type == 'EM'):
+            sigma_0 = 3.39e-2
+            log10_E_sigma = 14.99
+            delta_0 = 0
+            delta_1 = 2.25e-2
+            log10_E_0 = np.log10(energy / units.eV)
+            if (log10_E_0 < log10_E_sigma):
+                sigma_k_L = sigma_0 + delta_0 * (log10_E_0 - log10_E_sigma)
             else:
-                raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
+                sigma_k_L = sigma_0 + delta_1 * (log10_E_0 - log10_E_sigma)
 
-            return k_E_bar * E_0 / E_C * X_0 / rho * np.sin(theta) * freq
+            log10_k_0 = 1.52
+            log10_E_LPM = 16.61
+            gamma_0 = 5.59e-2
+            gamma_1 = 0.39
+            if (log10_E_0 < log10_E_LPM):
+                log10_k_L_bar = log10_k_0 + gamma_0 * (log10_E_0 - log10_E_LPM)
+            else:
+                log10_k_L_bar = log10_k_0 + gamma_1 * (log10_E_0 - log10_E_LPM)
 
-        def nu_L(E_0, theta):
-
-            if (shower_type == 'HAD'):
-                k_L_0 = 31.25
-                gamma = 3.01e-2
-                E_L = 1.e15 * units.eV
-                k_L = k_L_0 * (E_0 / E_L) ** gamma
-            elif (shower_type == 'EM'):
-                sigma_0 = 3.39e-2
-                log10_E_sigma = 14.99
-                delta_0 = 0
-                delta_1 = 2.25e-2
-                log10_E_0 = np.log10(E_0 / units.eV)
-                if (log10_E_0 < log10_E_sigma):
-                    sigma_k_L = sigma_0 + delta_0 * (log10_E_0 - log10_E_sigma)
-                else:
-                    sigma_k_L = sigma_0 + delta_1 * (log10_E_0 - log10_E_sigma)
-
-                log10_k_0 = 1.52
-                log10_E_LPM = 16.61
-                gamma_0 = 5.59e-2
-                gamma_1 = 0.39
-                if (log10_E_0 < log10_E_LPM):
-                    log10_k_L_bar = log10_k_0 + gamma_0 * (log10_E_0 - log10_E_LPM)
-                else:
-                    log10_k_L_bar = log10_k_0 + gamma_1 * (log10_E_0 - log10_E_LPM)
-
-                global _Alvarez2009_k_L
-                if(same_shower):
+            global _Alvarez2009_k_L
+            if(k_L is None):
+                if(average_shower):
+                    k_L = 10 ** log10_k_L_bar
+                elif(same_shower):
                     if _Alvarez2009_k_L is None:
                         logger.error("the same shower was requested but the function hasn't been called before.")
                         raise AttributeError("the same shower was requested but the function hasn't been called before.")
                     else:
                         k_L = _Alvarez2009_k_L
 
-            
                 else:
                     _Alvarez2009_k_L = 10 ** _random_generators[model].normal(log10_k_L_bar, sigma_k_L)
                     k_L = _Alvarez2009_k_L
-                if(average_shower):
-                    k_L = 10**log10_k_L_bar
-            else:
-                raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
+        else:
+            raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
+        nu_L = rho / k_L / X_0
+        cher_cut = 1.e-8
+        if (np.abs(1 - n_index * np.cos(theta)) < cher_cut):
+            nu_L *= c / cher_cut
+        else:
+            nu_L *= c / np.abs(1 - n_index * np.cos(theta))
 
-            nu_L = rho / k_L / X_0
+        # calculate d_L
+        if (shower_type == "HAD"):
+            beta = 2.57
+        elif (shower_type == "EM"):
+            beta = 2.74
+        else:
+            raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
 
-            cher_cut = 1.e-8
-            if (np.abs(1 - n_index * np.cos(theta)) < cher_cut):
-                nu_L *= c / cher_cut
-            else:
-                nu_L *= c / np.abs(1 - n_index * np.cos(theta))
+        d_L = 1 / (1 + (freqs / nu_L) ** beta)
 
-            return nu_L
+        # calculate d_R
+        if (shower_type == "HAD"):
+            k_R_0 = 2.73
+            k_R_1 = 1.72
+            log10_E_R = 12.92
+            k_R_bar = k_R_0 + np.tanh((log10_E_R - np.log10(energy / units.eV)) / k_R_1)
+        elif (shower_type == "EM"):
+            k_R_bar = 1.54
+        else:
+            raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
+        nu_R = rho / k_R_bar / R_M * c / np.sqrt(n_index ** 2 - 1)
 
-        def d_L(E_0, theta, freq):
+        alpha = 1.27
+        d_R = 1 / (1 + (freqs / nu_R) ** alpha)
 
-            if (shower_type == "HAD"):
-                beta = 2.57
-            elif (shower_type == "EM"):
-                beta = 2.74
-            else:
-                raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
-
-            return 1 / (1 + (freq / nu_L(E_0, theta)) ** beta)
-
-        def d_R(E_0, theta, freq):
-
-            if (shower_type == "HAD"):
-                k_R_0 = 2.73
-                k_R_1 = 1.72
-                log10_E_R = 12.92
-                k_R_bar = k_R_0 + np.tanh((log10_E_R - np.log10(E_0 / units.eV)) / k_R_1)
-            elif (shower_type == "EM"):
-                k_R_bar = 1.54
-            else:
-                raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
-            nu_R = rho / k_R_bar / R_M * c / np.sqrt(n_index ** 2 - 1)
-
-            alpha = 1.27
-            return 1 / (1 + (freq / nu_R) ** alpha)
-
-        spectrum = A(energy, theta, freqs) * d_L(energy, theta, freqs) * d_R(energy, theta, freqs)
+        spectrum = A * d_L * d_R
         spectrum *= 0.5  #  ZHS Fourier transform normalisation
         spectrum /= R
         spectrum = np.insert(spectrum, 0, 0)
 
         trace = np.fft.irfft(spectrum * np.exp(0.5j * np.pi)) / dt  # set phases to 90deg
         trace = np.roll(trace, len(trace) // 2)
-        return trace
+        if(full_output):
+            return trace, {'k_L': k_L}
+        else:
+            return trace
 
     elif(model == 'Alvarez2000'):
         freqs = np.fft.rfftfreq(N, dt)[1:]  # exclude zero frequency
@@ -261,7 +270,10 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
 #         df = np.mean(freqs[1:] - freqs[:-1])
         trace = np.fft.irfft(tmp * np.exp(0.5j * np.pi)) / dt  # set phases to 90deg
         trace = np.roll(trace, len(trace) // 2)
-        return trace
+        if(full_output):
+            return trace, {}
+        else:
+            return trace
 
     else:
         raise NotImplementedError("model {} unknown".format(model))

@@ -64,115 +64,38 @@ channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelG
 
 """
 A typical NuRadioMC simulation uses the simulation class from the simulation
-module. This class is incomplete by design, since it lacks the _detector_simulation
-function that controls what the detector does after the electric field arrives
+module. This class is incomplete by design, since it lacks the detector simulation
+functions that controls what the detector does after the electric field arrives
 at the antenna. That allows us to create our own class that inherits from
 the simulation class that we will call mySimulation, and define in it a
-_detector_simulation function with all the characteristics of our detector setup.
+_detector_simulation_filter_amp and _detector_simulation_trigger 
+function with all the characteristics of our detector setup.
 """
 
+
 class mySimulation(simulation.simulation):
+    """
+    
+    """
 
-    def _detector_simulation(self):
-
+    def _detector_simulation_filter_amp(self, evt, station, det):
         """
-        First we convolve the electric field with the antenna pattern to obtain
-        the voltage at the antenna terminals. This is done by the efieldtoVoltageConverter.
-        """
-        efieldToVoltageConverter.run(self._evt, self._station, self._det)
-        """
-        Our simulation uses the default sampling rate of 5 GHz, or 5 GS/s, or
-        equivalently, a time step of 0.2 ns. Such a high resolution, while needed
-        during simulations to capture all the details of the radio wave, is not common
-        at all in radio experiments after the wave has been digitised, with
-        sampling rates around the gigahertz. However, we are going to suppose
-        that our trigger is analog, so it sees a continuous waveform.
-
-        If the trigger were digital and we needed a sampling rate of, for instance,
-        2 GHz, which is what is specified in the detector file, we could use the
-        channelResampler module to perform a downsampling as follows:
-
-        new_sampling_rate = self._sampling_rate_detector
-        channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
-
-        In this case, we are just going to use the resampler with the same sampling
-        rate as the simulation, which will leave the trace intact, but we will
-        do it for illustration purposes.
-        """
-        new_sampling_rate = 1 / self._dt
-        channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
-
-        """
-        If our config file has specified 'noise: True', this steering file will add
-        noise to the simulation. Keep in mind that adding noise can cause some
-        events to trigger on noise, while they should not be triggering at all.
-        This problem is partially mitigated by a speed-up cut that can be
-        controlled with the config file. As default, we have:
-        speedup:
-            min_efield_amplitude: 2
-        This means that if the electric field amplitude is less than twice the
-        noise voltage RMS (assuming an antenna effective height of 1), the trigger
-        will not be calculated to save time. Thus, we only simulate noise and calculate
-        the full trigger for events which have a good chance of triggering. This largely
-        reduces the chance of randomly triggering on a thermal noise fluctuation.
-
-        This is a typical problem with detectors. The solution would be to find
-        a threshold to trigger on as many signals as possible while keeping the
-        noise trigger rate as low as possible. This can be studied setting
-        'signal: zerosignal: True' in the yaml config file. The detector will
-        try to trigger on noise only and that will give an estimate on the noise
-        trigger rate and how many events are not triggering on signal.
-        """
-        if self._is_simulate_noise():
-
-            """
-            The noise level depends on the bandwidth, so we must specify a correct
-            level for our bandwidth. Fortunately, NuRadioMC offers a convenient
-            solution. We can generate noise for the band [0; new_sampling_rate/2]
-            and then use the detector filters to get the actual noise we would
-            have at the end of our electronics chain. First, we set the maximum
-            frequency.
-            """
-            max_freq = 0.5 * new_sampling_rate
-            """
-            Then, we use the function _get_noise_normalization from the simulation
-            class, which gives us the effective bandwidth for our detector taking
-            into account antenna, filters, and other electronic components.
-            """
-            det_bandwidth = self._get_noise_normalization(self._station.get_id())
-            """
-            After that, we calculate the noise level for the [0; max_freq] band,
-            which is given by the noise RMS in the actual detector band (self._Vrms,
-            calculated by NuRadioMC), and then divided by the square root of
-            the actual detector bandwidth and the extended [0; max_freq] bandwidth.
-            Remember that the noise RMS formula is
-            noise_RMS = sqrt( k_B * T * R * bandwidth ),
-            with k_B the Boltzmann constant, T the effective system temperature,
-            and R the output resistance.
-            """
-            Vrms = self._Vrms / (det_bandwidth / max_freq) ** 0.5
-            """
-            We can now use the channelGenericNoiseAdder, with Rayleigh noise, for
-            instance. This module creates noise in a window-like bandwidth, with
-            a sharp cut at the edges.
-            """
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms,
-                                         min_freq=0 * units.MHz,
-                                         max_freq=max_freq, type='rayleigh')
-
-        """
-        After the signal has been converted to voltage, downsampled, and the noise
-        has been added, we can apply the rest of the electronics chain. In our case,
+        This function defines the signal chain, i.e., typically the filters and amplifiers.
+        (The antenna response will be applied automatically using the antenna model defined
+        in the detector description.)
+        In our case,
         we will only implement a couple of filters, one that acts as a low-pass
         and another one that acts as a high-pass.
         """
-        channelBandPassFilter.run(self._evt, self._station, self._det,
+        channelBandPassFilter.run(evt, station, det,
                                   passband=[1 * units.MHz, 700 * units.MHz], filter_type="butter", order=10)
-        channelBandPassFilter.run(self._evt, self._station, self._det,
+        channelBandPassFilter.run(evt, station, det,
                                   passband=[150 * units.MHz, 800 * units.GHz], filter_type="butter", order=8)
 
+    def _detector_simulation_trigger(self, evt, station, det):
+
         """
-        Once the signal has been completely processed, we need no define a trigger
+        This function defines the trigger
         to know when an event has triggered. NuRadioMC and NuRadioReco support multiple
         triggers per detector. As an example, we will use a high-low threshold trigger
         with a high level of 5 times the noise RMS, and a low level of minus
@@ -182,7 +105,7 @@ class mySimulation(simulation.simulation):
         detector.json) by specifying their channel ids, defined in the detector file.
         It is also important to give a descriptive name to the trigger.
         """
-        highLowThreshold.run(self._evt, self._station, self._det,
+        highLowThreshold.run(evt, station, det,
                              threshold_high=5 * self._Vrms,
                              threshold_low=-5 * self._Vrms,
                              coinc_window=40 * units.ns,
@@ -194,7 +117,7 @@ class mySimulation(simulation.simulation):
         the noise RMS. If the absolute value of the voltage goes above that
         threshold, the event triggers.
         """
-        simpleThreshold.run(self._evt, self._station, self._det,
+        simpleThreshold.run(evt, station, det,
                             threshold=10 * self._Vrms,
                             triggered_channels=[0, 1, 2, 3],
                             trigger_name='simple_10_sigma')

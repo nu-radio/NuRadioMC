@@ -238,7 +238,7 @@
             "position": "SP1",
             "station_id": 101,
             "station_type": null
-        },
+            },
         "2": {
             "MAC_address": "0002F7F2E7B9",
             "MBED_type": "v1",
