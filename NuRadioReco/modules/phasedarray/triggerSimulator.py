@@ -112,10 +112,11 @@ def check_vertical_string(station, det, triggered_channels):
 
 def phased_trigger(station,
                    det,
-                   beam_rolls,
-                   sec_beam_rolls,
-                   triggered_channels,
                    threshold,
+                   triggered_channels=None, phasing_angles=default_angles,
+                   secondary_channels=[],
+                   secondary_phasing_angles=[],
+                   ref_index=1.75,
                    window_time=10.67 * units.ns,
                    cut_times=(None, None),
                    trigger_adc=False,
@@ -180,6 +181,15 @@ def phased_trigger(station,
         If there is no trigger or no secondary channels, it's an empty dictionary
     """
     station_id = station.get_id()
+    beam_rolls = get_beam_rolls(station, det, triggered_channels, phasing_angles,
+                                             ref_index=ref_index, trigger_adc=trigger_adc,
+                                             upsampling_factor=upsampling_factor)
+
+    secondary_beam_rolls = [{} for direction in range(len(phasing_angles))]
+    if(len(secondary_channels) > 0):
+        secondary_beam_rolls = get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles,
+                                           ref_index=ref_index, trigger_adc=trigger_adc,
+                                           upsampling_factor=upsampling_factor)
 
     traces = {}
     for channel_id in triggered_channels:
@@ -219,11 +229,11 @@ def phased_trigger(station,
 
         traces[channel_id] = trace[:]
 
-    for subbeam_rolls, sec_subbeam_rolls in zip(beam_rolls, sec_beam_rolls):
+    for subbeam_rolls, sec_subbeam_rolls in zip(beam_rolls, secondary_beam_rolls):
 
         phased_trace = None
         # Number of antennas: primary beam antennas + secondary beam antennas
-        Nant = len(beam_rolls[0]) + len(sec_beam_rolls[0])
+        Nant = len(beam_rolls[0]) + len(secondary_beam_rolls[0])
 
         for channel_id in traces:
 
@@ -379,7 +389,6 @@ class triggerSimulator:
             secondary_channels = []
 
         if set_not_triggered:
-
             is_triggered = False
             trigger_delays = {}
             sec_trigger_delays = {}
@@ -389,56 +398,42 @@ class triggerSimulator:
             channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
 
             logger.debug("primary channels:", triggered_channels)
-            beam_rolls = self.get_beam_rolls(station, det, triggered_channels, phasing_angles,
-                                             ref_index=ref_index, trigger_adc=trigger_adc,
-                                             upsampling_factor=upsampling_factor)
-            empty_rolls = [{} for direction in range(len(phasing_angles))]
-            logger.debug("secondary_channels:", secondary_channels)
-            if (len(secondary_channels) == 0):
-                only_primary = True
-            else:
-                only_primary = False
-                secondary_beam_rolls = self.get_beam_rolls(station, det, secondary_channels, secondary_phasing_angles,
-                                                           ref_index=ref_index, trigger_adc=trigger_adc,
-                                                           upsampling_factor=upsampling_factor)
-
-            if only_primary:
-                is_triggered, trigger_delays, sec_trigger_delays = phased_trigger(station, det,
-                                                                                       beam_rolls, empty_rolls,
-                                                                                       triggered_channels, threshold,
-                                                                                       window_time, cut_times,
-                                                                                       trigger_adc=trigger_adc,
-                                                                                       upsampling_factor=upsampling_factor,
-                                                                                       nyquist_zone=nyquist_zone,
-                                                                                       bandwidth_edge=bandwidth_edge)
-            elif coupled:
-                is_triggered, trigger_delays, sec_trigger_delays = phased_trigger(station, det,
-                                                                                       beam_rolls, secondary_beam_rolls,
-                                                                                       triggered_channels, threshold,
-                                                                                       window_time, cut_times,
-                                                                                       trigger_adc=trigger_adc,
-                                                                                       upsampling_factor=upsampling_factor,
-                                                                                       nyquist_zone=nyquist_zone,
-                                                                                       bandwidth_edge=bandwidth_edge)
-            else:
-                primary_trigger, trigger_delays, dummy_delays = phased_trigger(station, det, beam_rolls,
-                                                                                    empty_rolls,
-                                                                                    triggered_channels, threshold,
-                                                                                    window_time, cut_times,
-                                                                                    trigger_adc=trigger_adc,
-                                                                                    upsampling_factor=upsampling_factor,
-                                                                                    nyquist_zone=nyquist_zone,
-                                                                                    bandwidth_edge=bandwidth_edge)
-                secondary_trigger, sec_trigger_delays, dummy_delays = phased_trigger(station, det,
-                                                                                          secondary_beam_rolls,
-                                                                                          empty_rolls,
-                                                                                          secondary_channels, threshold,
-                                                                                          window_time, cut_times,
-                                                                                          trigger_adc=trigger_adc,
-                                                                                          upsampling_factor=upsampling_factor,
-                                                                                          nyquist_zone=nyquist_zone,
-                                                                                          bandwidth_edge=bandwidth_edge)
+            if ((not coupled) and (len(secondary_channels) > 0)):
+                primary_trigger, trigger_delays, dummy_delay = phased_trigger(station, det, threshold,
+                                                                  triggered_channels,
+                                                                  phasing_angles,
+                                                                  [],
+                                                                  [],
+                                                                  ref_index,
+                                                                  window_time, cut_times,
+                                                                  trigger_adc=trigger_adc,
+                                                                  upsampling_factor=upsampling_factor,
+                                                                  nyquist_zone=nyquist_zone,
+                                                                  bandwidth_edge=bandwidth_edge)
+                secondary_trigger, sec_trigger_delays, dummy_delays = phased_trigger(station, det, threshold,
+                                                                  secondary_channels,
+                                                                  secondary_phasing_angles,
+                                                                  [],
+                                                                  [],
+                                                                  ref_index,
+                                                                  window_time, cut_times,
+                                                                  trigger_adc=trigger_adc,
+                                                                  upsampling_factor=upsampling_factor,
+                                                                  nyquist_zone=nyquist_zone,
+                                                                  bandwidth_edge=bandwidth_edge)
                 is_triggered = primary_trigger or secondary_trigger
+            else:
+                is_triggered, trigger_delays, sec_trigger_delays = phased_trigger(station, det, threshold,
+                                                                                  triggered_channels,
+                                                                                  phasing_angles,
+                                                                                  secondary_channels,
+                                                                                  secondary_phasing_angles,
+                                                                                  ref_index,
+                                                                                  window_time, cut_times,
+                                                                                  trigger_adc=trigger_adc,
+                                                                                  upsampling_factor=upsampling_factor,
+                                                                                  nyquist_zone=nyquist_zone,
+                                                                                  bandwidth_edge=bandwidth_edge)
 
         trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, secondary_channels,
                                       phasing_angles, secondary_phasing_angles,
