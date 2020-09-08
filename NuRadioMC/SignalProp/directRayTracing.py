@@ -115,4 +115,5 @@ class directRayTracing():
       
         dictionary['ray_tracing_solution_type'][i_shower, channel_id, i_solution] = self.get_solution_type(i_solution)
 
-    
+    def get_ray_tracing_perfomed(self, station_dictionary, station_id):
+        return False    # This raytracer is so simple, we might as well run it every time
