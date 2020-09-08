@@ -395,7 +395,7 @@ class triggerSimulator:
 
         else:
 
-            channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
+            channel_trace_start_time = get_channel_trace_start_time(station, triggered_channels)
 
             logger.debug("primary channels:", triggered_channels)
             if ((not coupled) and (len(secondary_channels) > 0)):
