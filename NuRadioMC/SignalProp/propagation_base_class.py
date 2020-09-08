@@ -23,10 +23,6 @@ class ray_tracing_base:
 
         Parameters
         ----------
-        x1: 3dim np.array
-            start point of the ray
-        x2: 3dim np.array
-            stop point of the ray
         medium: medium class
             class describing the index-of-refraction profile
         attenuation_model: string
@@ -47,6 +43,18 @@ class ray_tracing_base:
         pass
 
     def set_start_and_end_point(self, x1, x2):
+        """
+        Set the start and end points between which raytracing solutions shall be found
+        It is recommended to also reset the solutions from any previous raytracing to avoid
+        confusing them with the current solution
+
+        Parameters:
+        --------------
+        x1: 3D array
+            Start point of the ray
+        x2: 3D array
+            End point of the ray
+        """
         pass
 
     def find_solutions(self):
@@ -103,7 +111,6 @@ class ray_tracing_base:
             number of points of path
         """
         pass
-
 
     def get_launch_vector(self, iS):
         """
@@ -222,17 +229,84 @@ class ray_tracing_base:
         """
         pass
 
-    def apply_propagation_effects(self, efield, iS):
+    def apply_propagation_effects(self, efield, i_solution):
+        """
+        Apply propagation effects to the electric field
+        Note that the 1/r weakening of the electric field is already accounted for in the signal generation
+
+        Parameters:
+        ----------------
+        efield: ElectricField object
+            The electric field that the effects should be applied to
+        i_solution: int
+            Index of the raytracing solution the propagation effects should be based on
+
+        Returns
+        -------------
+        efield: ElectricField object
+            The modified ElectricField object
+        """
         pass
 
     def create_output_data_structure(self, dictionary, n_showers, n_antennas):
+        """
+        Create data structure to store parameters specific to this raytracer.
+        This function can be used to add entries to the output dictionary, which are
+        then used to store parameters that are unique to the specific raytracing module
+
+        Parameters:
+        ------------------
+        dictionary: dict
+            The output dictionary to which the entries should be added
+        n_showers: int
+            The number of showers to be simulated
+        n_antennas: int
+            The number of antennas to be simulated for each shower
+        """
         pass
 
-    def write_raytracing_output(self, dictionary):
+    def write_raytracing_output(self, dictionary, i_shower, channel_id, i_solution):
+        """
+        Write parameters that are specific to this raytracer into the output data.
+
+        Parameters:
+        ---------------
+        dictionary: dict
+            The output dictionary into which the parameters should be written
+        i_shower: int
+            The shower index
+        channel_id: int
+            The ID of the channel
+        i_solution: int
+            The index of the raytracing solution
+        """
         pass
 
     def check_if_presimulated(self):
         pass
 
     def get_number_of_raytracing_solutions(self):
+        """
+        Function that returns the maximum number of raytracing solutions that can exist between each given
+        pair of start and end points
+        """
+        pass
+
+    def get_ray_tracing_perfomed(self, station_dictionary, station_id):
+        """
+        Function that can tell from the input dictionary if a raytracing with this raytracer has already
+        been performed and written into the dictionary.
+
+
+        Parameters:
+        -------------
+        station_dictionary: dict
+            The input dictionary in which to search for raytracing results
+        station_id: int
+            ID of the station for which to check for a raytracing solution
+
+        Returns
+        -------------------
+        True if there is a raytracing solution in the dictionary, otherwise false
+        """
         pass

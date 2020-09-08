@@ -1522,10 +1522,6 @@ class ray_tracing:
 
         Parameters
         ----------
-        x1: 3dim np.array
-            start point of the ray
-        x2: 3dim np.array
-            stop point of the ray
         medium: medium class
             class describing the index-of-refraction profile
         attenuation_model: string
@@ -1577,6 +1573,11 @@ class ray_tracing:
         self.__results = None
 
     def reset_solutions(self):
+        """
+        Resets the raytracing solutions back to None. This is useful to do when changing the start and end
+        points in order to not accidentally use results from previous raytracings.
+
+        """
         self.__X1 = None
         self.__X2 = None
         self.__swap = None
@@ -1587,6 +1588,17 @@ class ray_tracing:
         self.__results = None
 
     def set_start_and_end_point(self, x1, x2):
+        """
+        Set the start and end points of the raytracing
+
+        Parameters:
+        ----------------------
+        x1: 3dim np.array
+            start point of the ray
+        x2: 3dim np.array
+            stop point of the ray
+        """
+
         self.reset_solutions()
         x1 = np.array(x1, dtype=np.float)
         x2 = np.array(x2, dtype=np.float)
@@ -1617,19 +1629,35 @@ class ray_tracing:
         self.__x2 = np.array([X2r[0], X2r[2]])
         self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
 
+    def set_solution(self, raytracing_results, i_shower, channel_id):
+        """
+        Read an already calculated raytracing solution from the input array
 
-    def set_solution(self, C0s, C1s, solution_types, reflection=None, reflection_case=None):
+        Parameters:
+        -------------
+        raytracing_results: dict
+            The dictionary containing the input parameters.
+        i_shower: int
+            The shower index
+        channel_id: int
+            The ID of the channel
+
+        """
         results = []
-        if(reflection is None):
-            reflection = np.zeros_like(C0s, dtype=np.int)
-            reflection_case = np.ones_like(C0s, dtype=np.int)
+        C0s = raytracing_results['ray_tracing_C0'][i_shower][channel_id]
         for i in range(len(C0s)):
             if(not np.isnan(C0s[i])):
-                results.append({'type': solution_types[i],
+                if 'ray_tracing_reflection' in raytracing_results.keys():   # for backward compatibility: Check if reflection layer information exists in data file
+                    reflection = raytracing_results['ray_tracing_reflection'][i_shower][channel_id][i]
+                    reflection_case = raytracing_results['ray_tracing_reflection_case'][i_shower][channel_id][i]
+                else:
+                    reflection = 0
+                    reflection_case = 0
+                results.append({'type': raytracing_results['ray_tracing_solution_type'][i_shower][channel_id][i],
                                 'C0': C0s[i],
-                                'C1': C1s[i],
-                                'reflection': reflection[i],
-                                'reflection_case': reflection_case[i]})
+                                'C1': raytracing_results['ray_tracing_C1'][i_shower][channel_id][i],
+                                'reflection': reflection,
+                                'reflection_case': reflection_case})
         self.__results = results
 
     def find_solutions(self):
@@ -1979,6 +2007,9 @@ class ray_tracing:
         dictionary['ray_tracing_reflection_case'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
         dictionary['ray_tracing_solution_type'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
 
+    def get_ray_tracing_perfomed(self, station_dictionary, station_id):
+        return ('ray_tracing_C0' in station_dictionary[station_id])
+
     def get_number_of_raytracing_solutions(self):
         return 2 + 4 * self.__n_reflections  # number of possible ray-tracing solutions
 
@@ -2008,7 +2039,6 @@ class ray_tracing:
 
         i_reflections = self.get_results()[i_solution]['reflection']
         zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
-        n_surface_reflections = np.sum(zenith_reflections is not None)
         for zenith_reflection in zenith_reflections:  # loop through all possible reflections
             if (zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
                 continue
