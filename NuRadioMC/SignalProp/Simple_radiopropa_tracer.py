@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import logging
+import radiopropa
 logging.basicConfig()
 
 """
@@ -9,6 +10,12 @@ Structure of a ray-tracing module. For documentation and development purposes.
 solution_types = {1: 'direct',
                   2: 'refracted',
                   3: 'reflected'}
+
+def getPathCandidate(Candidate):
+    pathx = np.fromstring(Candidate.getPathX()[1:-1],sep=',')
+    pathy = np.fromstring(Candidate.getPathY()[1:-1],sep=',')
+    pathz = np.fromstring(Candidate.getPathZ()[1:-1],sep=',')
+    return np.stack([pathx,pathy,pathz], axis=1)
 
 
 class ray_tracing:
