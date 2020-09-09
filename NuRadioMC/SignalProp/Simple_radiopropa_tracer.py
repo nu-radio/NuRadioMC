@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from radiotools import helper as hp
 import logging
+import radiopropa
 logging.basicConfig()
 import radiopropa
 
@@ -10,6 +11,15 @@ Structure of a ray-tracing module. For documentation and development purposes.
 """
 
 
+
+def getPathCandidate(Candidate):
+    pathx = np.fromstring(Candidate.getPathX()[1:-1],sep=',')
+    pathy = np.fromstring(Candidate.getPathY()[1:-1],sep=',')
+    pathz = np.fromstring(Candidate.getPathZ()[1:-1],sep=',')
+    return np.stack([pathx,pathy,pathz], axis=1)
+
+def getReflectionAnglesCandidate(Candidate):
+    return np.fromstring(Candidate.getReflectionAngles()[1:-1],sep=',')
 
 
 class ray_tracing:
