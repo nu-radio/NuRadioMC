@@ -14,9 +14,8 @@ import warnings
 from astropy.utils.exceptions import ErfaWarning
 
 logger = logging.getLogger('NuRadioReco.detector')
-
-
 warnings.filterwarnings('ignore', category=ErfaWarning)
+
 
 class DateTimeSerializer(Serializer):
     """
