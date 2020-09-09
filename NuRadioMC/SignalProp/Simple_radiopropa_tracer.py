@@ -66,7 +66,7 @@ class ray_tracing:
         self._n_reflections = n_reflections
         self._shower_dir = shower_dir ## this is given so we cn limit the rays that are checked around the cherenkov angle 
         self._cut_viewing_angle = 20 #degrees wrt cherenkov angle
-        self._iceModel = radiopropa.GorhamIceModel()
+        self._iceModel = radiopropa.GorhamIceModel() 
         
        
 
@@ -93,7 +93,7 @@ class ray_tracing:
         sim = radiopropa.ModuleList()
         sim.add(radiopropa.PropagationCK(self._iceModel, 1E-8, .001, 1.)) ## add propagation to module list
         sim.add(self._airBoundary)
-        sim.add(radiopropa.MaximumTrajectoryLength(3000*radiopropa.meter))
+        sim.add(radiopropa.MaximumTrajectoryLength(1000*radiopropa.meter))
         ## define observer (channel)
         obs = radiopropa.Observer()
         obs.setDeactivateOnDetection(True)
@@ -194,10 +194,8 @@ class ray_tracing:
             * 3: 'reflected
         """
         #path = self._candidates[iS].getPathY()
-        pathx = np.fromstring(self._candidates[iS].getPathX()[1:-1],sep=',')
-        pathy = np.fromstring(self._candidates[iS].getPathY()[1:-1],sep=',')
-        pathz = np.fromstring(self._candidates[iS].getPathZ()[1:-1],sep=',')
-        self._path = np.stack([pathx,pathy,pathz], axis=1)
+        
+        self._path = getPathCandidate(self._candidates[iS])
         solution_type = 1
         
         return solution_type
