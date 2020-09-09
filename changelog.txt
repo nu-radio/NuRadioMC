@@ -4,9 +4,16 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 1.2.0
 new features:
-- merge hdf5 utility has multithreading option
+- major change in internal looping. Now, the radio signal from each shower is calculated and signal arrival times 
+  (from different shower, ray racing solutions and receiver positions) that cluster together are simualted as one event
+- merge hdf5 utility has multithreading option (and was refactored -> function names changed)
 - distance cut can sum up all sourounding shower energies to properly account for possible interference
 - noise temperature can be specified per station and channel
+- trigger thresholds can be specified per channel
+- bandwidth can be specified per station and channel 
+- specifying the detector simulation became easier (check out the updated examples)
+- memory consumption was optimized to stay <4GB per core
+- random realization of showers are saved so that triggered events can be resimulated using the same random realization
 
 
 version 1.1.2 - 

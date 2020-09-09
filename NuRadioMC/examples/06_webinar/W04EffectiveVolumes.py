@@ -1,4 +1,4 @@
-from NuRadioMC.utilities.Veff import export, get_Veff, get_Veff_array
+from NuRadioMC.utilities.Veff import export, get_Veff_Aeff, get_Veff_Aeff_array
 from NuRadioReco.utilities import units
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,14 +35,11 @@ of files for different zenith bands. get_Veff will return a dictionary with all
 the information to calculate effective volumes for different energies and
 zenith bands.
 
-We have used the keyword argument point_bins=False because the bins for our example
-are extended, that is, they contain a range of energies.
-
 IMPORTANT: if the n_events_per_file argument has been used so that the NuRadioMC
 files are split, the module utilities.merge_hdf5 should be used to merge the files.
 Once every energy bin has a unique HDF5 output file, the Veff module can be run.
 """
-data_Veff = get_Veff(folder, point_bins=False)
+data_Veff = get_Veff_Aeff(folder)
 
 """
 Although data_Veff has all the information we need, it is a bit cumbersome
@@ -57,7 +54,7 @@ only have a single zenith band equal to the whole sky)
 angle for a simulation set is larger than for the other, it should carry more weight
 when we try to patch them all together to get the total volumes.
 """
-Veff_array, energies, zenith_bins, trigger_names, weights = get_Veff_array(data_Veff)
+Veff_array, energies, energies_low, energies_high, zenith_bins, trigger_names = get_Veff_Aeff_array(data_Veff)
 
 """
 There are some functions with the same syntax to calculate effective areas for
@@ -98,7 +95,7 @@ as an error bar. For our example, this is going to look just a sad, lonely point
 but as an exercise you can create more simulations with different energy bins
 and plot the effective volumes with this same file.
 """
-plt.errorbar(energies/units.eV, Veffs/units.km3, unc_Veffs/units.km3, marker='o')
+plt.errorbar(energies / units.eV, Veffs / units.km3, unc_Veffs / units.km3, marker='o')
 plt.ylabel(r'Effective volume [km$^{3}$]')
 plt.xlabel('Neutrino energy [eV]')
 plt.xscale('log')
