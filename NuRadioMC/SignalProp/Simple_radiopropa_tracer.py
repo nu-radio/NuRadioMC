@@ -17,6 +17,9 @@ def getPathCandidate(Candidate):
     pathz = np.fromstring(Candidate.getPathZ()[1:-1],sep=',')
     return np.stack([pathx,pathy,pathz], axis=1)
 
+def getReflectionAnglesCandidate(Candidate):
+    return np.fromstring(Candidate.getReflectionAngles()[1:-1],sep=',')
+
 
 class ray_tracing:
     """
