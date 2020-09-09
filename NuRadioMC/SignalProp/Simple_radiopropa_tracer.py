@@ -256,7 +256,7 @@ class ray_tracing:
         reflection_angle: float or None
             the reflection angle (for reflected rays) or None for direct and refracted rays
         """
-        reflection_angle = self._candidates[iS].get_reflection_angle()
+        reflection_angle = getReflectionAnglesCandidate(self._candidates[iS])
         return reflection_angle
 
     def get_path_length(self, iS, analytic=True):
