@@ -426,6 +426,7 @@ def set_volume_attributes(volume, proposal, attributes):
 
         # We increase the radius of the cylinder according to the tau track length
         if(proposal):
+            logger.info("simulation of second interactions via PROPOSAL activated")
             if("full_rmin" in volume):
                 rmin = volume['full_rmin']
             else:
@@ -450,7 +451,6 @@ def set_volume_attributes(volume, proposal, attributes):
         volume_full = np.pi * (rmax ** 2 - rmin ** 2) * (zmax - zmin)
         # increase the total number of events such that we end up with the same number of events in the fiducial volume
         n_events = int(n_events * volume_full / volume_fiducial)
-        logger.info("simulation of second interactions via PROPOSAL activated")
         logger.info(f"increasing rmax from {attributes['fiducial_rmax']/units.km:.01f}km to {rmax/units.km:.01f}km, zmax from {attributes['fiducial_zmax']/units.km:.01f}km to {zmax/units.km:.01f}km")
         logger.info(f"decreasing rmin from {attributes['fiducial_rmin']/units.km:.01f}km to {rmin/units.km:.01f}km")
         logger.info(f"decreasing zmin from {attributes['fiducial_zmin']/units.km:.01f}km to {zmin/units.km:.01f}km")
@@ -842,7 +842,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         # zenith directions are distruted as sin(theta) (to make the distribution istotropic) * cos(theta) (to account for the projection onto the surface)
         data_sets["zeniths"] = np.arcsin(np.random.uniform(np.sin(thetamin) ** 2, np.sin(thetamax) ** 2, n_events_batch) ** 0.5)
 
-        data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch) + start_event_id
+        data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch, dtype=np.int) + start_event_id
         data_sets["n_interaction"] = np.ones(n_events_batch, dtype=np.int)
         data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=np.float)
 
@@ -862,7 +862,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         data_sets["muon_energies"] = np.copy(data_sets["energies"])
 
         # create dummy entries for shower energies and types
-        data_sets['shower_energies'] = data_sets['energies'] * data_sets['inelasticity']
+        data_sets['shower_energies'] = np.zeros(n_events_batch)
         data_sets['shower_type'] = ['had'] * n_events_batch
 
         init_time = time.time()
@@ -907,6 +907,12 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                     x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
                     if(is_in_fiducial_volume(attributes, np.array([x, y, z]))):
                         # the energy loss or particle is in our fiducial volume
+                        # save parent muon if one of its induced showers interacts in the fiducial volume
+                        if(n_interaction == 1):
+                            for key in iterkeys(data_sets):
+                                data_sets_fiducial[key].append(data_sets[key][iE])
+                            n_interaction = 2
+
                         for key in iterkeys(data_sets):
                             data_sets_fiducial[key].append(data_sets[key][iE])
 
