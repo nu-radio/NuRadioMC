@@ -282,9 +282,6 @@ class ray_tracing_base:
         """
         pass
 
-    def check_if_presimulated(self):
-        pass
-
     def get_number_of_raytracing_solutions(self):
         """
         Function that returns the maximum number of raytracing solutions that can exist between each given
