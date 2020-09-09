@@ -66,7 +66,7 @@ class ray_tracing:
         self._n_reflections = n_reflections
         self._shower_dir = shower_dir ## this is given so we cn limit the rays that are checked around the cherenkov angle 
         self._cut_viewing_angle = 20 #degrees wrt cherenkov angle
-        self._iceModel = radiopropa.GorhamIceModel() 
+        self._iceModel = radiopropa.GorhamIceModel() ## we need to figure out how to do this properly
         
        
 
@@ -125,7 +125,7 @@ class ray_tracing:
                 if detection == 0: #check if the channel is reached
                     candidates.append(Candidate) 
         
-        self._candidates = candidates ## for now, select the first one to make sure that we do not exceed the number of raytracing soutions possible
+        self._candidates = candidates 
         print("candidates", len(self._candidates))
        
     
@@ -338,10 +338,8 @@ class ray_tracing:
 
 
     def write_raytracing_output(self, dictionary, i_shower, channel_id, i_solution):
-        pass
+        dictionary['ray_tracing_solution_type'][i_shower, channel_id, i_solution] = self.get_solution_type(i_solution)
 
-    def check_if_presimulated(self):
-        pass
 
     def get_number_of_raytracing_solutions(self):
         return 2 + 4 * self._n_reflections 
