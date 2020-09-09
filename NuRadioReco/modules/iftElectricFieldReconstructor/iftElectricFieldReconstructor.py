@@ -110,7 +110,7 @@ class IftElectricFieldReconstructor:
             filter_operator
         )
         if self.__debug:
-            self.__draw_priors(station, frequency_domain)
+            self.__draw_priors(event, station, frequency_domain)
         ic_sampling = ift.GradientNormController(1E-8, iteration_limit=min(1000, likelihood.domain.size))
         H = ift.StandardHamiltonian(likelihood, ic_sampling)
 
@@ -120,7 +120,7 @@ class IftElectricFieldReconstructor:
                                               convergence_level=3)
         minimizer = ift.NewtonCG(ic_newton)
         median = ift.MultiField.full(H.domain, 0.)
-        N_iterations = 5
+        N_iterations = 15
         N_samples = 15
         min_energy = None
         min_energy = None
@@ -340,7 +340,9 @@ class IftElectricFieldReconstructor:
             for efield in station.get_electric_fields_for_channels([channel_id]):
                 efield.set_trace(trace, sampling_rate)
 
-    def __draw_priors(self,
+    def __draw_priors(
+            self,
+            event,
             station,
             freq_space
         ):
@@ -353,7 +355,7 @@ class IftElectricFieldReconstructor:
         sampling_rate = station.get_channel(self.__used_channel_ids[0]).get_sampling_rate()
         times = np.arange(self.__data_traces.shape[1])/sampling_rate
         freqs = freq_space.get_k_length_array().val/self.__data_traces.shape[1]*sampling_rate
-        for i in range(5):
+        for i in range(10):
             x = ift.from_random('normal', self.__efield_trace_operators[0].domain)
             efield_spec_sample = self.__efield_spec_operators[0].force(x)
             ax1_1.plot(freqs/units.MHz, np.abs(efield_spec_sample.val))
@@ -371,8 +373,20 @@ class IftElectricFieldReconstructor:
         ax1_3.grid()
         ax1_3.set_xlim([0,500])
         ax1_4.grid()
+        ax1_1.set_xlabel('f [MHz]')
+        ax1_2.set_xlabel('t [ns]')
+        ax1_3.set_xlabel('f [MHz]')
+        ax1_4.set_xlabel('t [ns]')
+        ax1_1.set_ylabel('E [a.u.]')
+        ax1_2.set_ylabel('E [a.u.]')
+        ax1_3.set_ylabel('U [a.u.]')
+        ax1_4.set_ylabel('U [a.u.]')
+        ax1_1.set_title('E-Field Spectrum')
+        ax1_2.set_title('E-Field Trace')
+        ax1_3.set_title('Channel Spectrum')
+        ax1_4.set_title('Channel Trace')
         fig1.tight_layout()
-        fig1.savefig('priors.png')
+        fig1.savefig('priors_{}.png'.format(event.get_id()))
 
     def __draw_reconstruction(self,
         event,
