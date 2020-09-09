@@ -477,14 +477,22 @@ class simulation():
                         total_time = time.time() - t_start
                         tmp_att = 0
                         if total_time > 0:
-                            logger.status("processing event group {}/{} and shower {}/{} ({} showers triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
-                                i_event_group_id, len(unique_event_group_ids),
-                                iCounter, n_shower_station, np.sum(self._mout['triggered']), 100. * iCounter / n_shower_station,
-                                eta, 100. * (rayTracingTime - askaryan_time) / total_time,
-                                100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*input_time / total_time,
-                                100. * weightTime / total_time,
-                                100 * distance_cut_time / total_time,
-                                100 * (total_time - total_time_sum) / total_time))
+                            logger.status(
+                                "processing event group {}/{} and shower {}/{} ({} showers triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}%, askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
+                                    i_event_group_id,
+                                    len(unique_event_group_ids),
+                                    iCounter,
+                                    n_shower_station,
+                                    np.sum(self._mout['triggered']),
+                                    100. * iCounter / n_shower_station,
+                                    eta,
+                                    100. * (rayTracingTime - askaryan_time) / total_time,
+                                    100. * askaryan_time / total_time,
+                                    100. * detSimTime / total_time,
+                                    100.*input_time / total_time,
+                                    100. * weightTime / total_time,
+                                    100 * distance_cut_time / total_time,
+                                    100 * (total_time - total_time_sum) / total_time))
 
                     # read all quantities from hdf5 file and store them in local variables
                     self._read_input_neutrino_properties()
