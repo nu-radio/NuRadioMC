@@ -2,6 +2,18 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from radiotools import helper as hp
 import logging
+from NuRadioMC.utilities import attenuation as attenuation_util
+from scipy import interpolate
+import NuRadioReco.utilities.geometryUtilities
+from NuRadioReco.utilities import units
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
+
+
+
+
+
+
+
 import radiopropa
 logging.basicConfig()
 import radiopropa
@@ -67,6 +79,16 @@ class ray_tracing:
         self._shower_dir = shower_dir ## this is given so we cn limit the rays that are checked around the cherenkov angle 
         self._cut_viewing_angle = 20 #degrees wrt cherenkov angle
         self._iceModel = radiopropa.GorhamIceModel() ## we need to figure out how to do this properly
+        self._config = config
+        self._n_frequencies_integration = n_frequencies_integration
+
+        self._max_detector_frequency = None
+        self._detector = detector
+        if self._detector is not None:
+            for station_id in self._detector.get_station_ids():
+                sampling_frequency = self._detector.get_sampling_frequency(station_id, 0)
+                if self._max_detector_frequency is None or sampling_frequency * .5 > self._max_detector_frequency:
+                    self._max_detector_frequency = sampling_frequency * .5
         
        
 
@@ -93,7 +115,7 @@ class ray_tracing:
         sim = radiopropa.ModuleList()
         sim.add(radiopropa.PropagationCK(self._iceModel, 1E-8, .001, 1.)) ## add propagation to module list
         sim.add(self._airBoundary)
-        sim.add(radiopropa.MaximumTrajectoryLength(1000*radiopropa.meter))
+        sim.add(radiopropa.MaximumTrajectoryLength(5000*radiopropa.meter))
         ## define observer (channel)
         obs = radiopropa.Observer()
         obs.setDeactivateOnDetection(True)
@@ -123,24 +145,23 @@ class ray_tracing:
                 Candidate = candidate.get() #candidate is a pointer to the object Candidate
                 detection = channel.checkDetection(Candidate) # check if the detection status of the channel
                 if detection == 0: #check if the channel is reached
-                    candidates.append(Candidate) 
+                    candidates.append(candidate)
+
         
         self._candidates = candidates 
-        print("candidates", len(self._candidates))
        
     
     
 
-    def find_solutions(self):
+    def find_solutions(self, reflection = 0):
         """
         find all solutions between x1 and x2
         """
         results = []
         self.RadioPropa_raytracer(self._x1, self._x2)
-        for candidate in self._candidates:
+        for iS, candidate in enumerate(self._candidates):
             
-            solution_type = 1#candidate.getSolutionType()
-            reflection = 0#candidate.getReflection()
+            solution_type = self.get_solution_type(iS)
             results.append({'type':solution_type, 'reflection':reflection})
         self._results = results
 
@@ -174,6 +195,7 @@ class ray_tracing:
         n_points: int
             number of points of path
         """
+        self._path = getPathCandidate(self._candidates[iS].get())
         
         return self._path
 
@@ -193,10 +215,17 @@ class ray_tracing:
             * 2: 'refracted'
             * 3: 'reflected
         """
-        #path = self._candidates[iS].getPathY()
+        pathz = self._candidates[iS].get().getPathZ()
+        if len(getReflectionAnglesCandidate(self._candidates[iS].get())) != 0:
+            solution_type = 3
+        elif(pathz[-1] < max(pathz)):
+            solution_type = 2
+        else:
+            solution_type = 1
+            
+            
+        print("solution type", solution_type)
         
-        self._path = getPathCandidate(self._candidates[iS])
-        solution_type = 1
         
         return solution_type
         
@@ -300,6 +329,20 @@ class ray_tracing:
         """
         travel_time = self._candidates[iS].getPropagationTime()
         return travel_time
+    
+    
+    def get_frequencies_for_attenuation(self, frequency, max_detector_freq):
+        mask = frequency > 0
+        nfreqs = min(self._n_frequencies_integration, np.sum(mask))
+        freq = np.linspace(frequency[mask].min(), frequency[mask].max(), nfreqs)
+        if(nfreqs < np.sum(mask) and max_detector_freq is not None):
+            mask2 = frequency <= max_detector_freq
+            nfreqs2 = min(self._n_frequencies_integration, np.sum(mask2 & mask))
+            freqs = np.linspace(frequency[mask2 & mask].min(), frequency[mask2 & mask].max(), nfreqs2)
+            if(np.sum(~mask2)>1):
+                freqs = np.append(freqs, np.linspace(frequency[~mask2].min(), frequency[~mask2].max(), nfreqs // 2))
+            return freqs
+        
         
     def get_attenuation(self, iS, frequency, max_detector_freq=None):
         """
@@ -324,13 +367,76 @@ class ray_tracing:
         attenuation: array of floats
             the fraction of the signal that reaches the observer
             (only ice attenuation, the 1/R signal falloff not considered here)
+        
         """
-        pass
+        self.get_path(iS)
+        
+        mask = frequency > 0
+        freqs = self.get_frequencies_for_attenuation(frequency, self._max_detector_frequency)
+        #freqs = frequency
+        
+        integral = np.zeros(len(freqs))
+        def dt(depth, freqs):
+            ds = np.sqrt((self._path[:, 0][depth] - self._path[:, 0][depth+1])**2 + (self._path[:, 1][depth] - self._path[:, 1][depth+1])**2 + (self._path[:, 2][depth] - self._path[:, 2][depth+1])**2) # get step size
+            return ds / attenuation_util.get_attenuation_length(self._path[2][depth], freqs, self._attenuation_model)
+        for z_position in range(len(self._path[2]-1)):
+            integral += dt(z_position, freqs)
+        att_func = interpolate.interp1d(freqs, integral)
+        tmp = att_func(frequency[mask])
+        attenuation = np.ones_like(frequency)
+        attenuation[mask] = np.exp(-1 * tmp)
+        return attenuation
 
-    def apply_propagation_effects(self, efield, iS):
-        
-        
+    def apply_propagation_effects(self, efield, i_solution):
+        spec = efield.get_frequency_spectrum()
+        ## aply attenuation 
+        if self._config is None:
+            apply_attenuation = True
+        else: 
+            apply_attenuation = self._config['propagation']['attenuate_ice']
+        if apply_attenuation:
+            if self._max_detector_frequency is None:
+                max_freq = np.max(efield.get_frequencies())
+            else:
+                max_freq = self._max_detector_frequency
+            attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
+            spec *= attenuation
+        ## apply reflections
+        i_reflections = self.get_results()[i_solution]['reflection']
+        zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))
+        for zenith_reflection in zenith_reflections:
+            if (zenith_reflection is None):
+                continue
+            r_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
+                zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._x2[0], self._x2[1], -1 * units.cm]))
+            r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
+                zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._x2[0], self._x2[1], -1 * units.cm]))
+            efield[efp.reflection_coefficient_theta] = r_theta
+            efield[efp.reflection_coefficient_phi] = r_phi
+
+            spec[1] *= r_theta
+            spec[2] *= r_phi
+           
+            
+            
+        if (i_reflections > 0):  # take into account possible bottom reflections
+            # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
+            reflection_coefficient = self._medium.reflection_coefficient ** i_reflections
+            phase_shift = (i_reflections * self._medium.reflection_phase_shift) % (2 * np.pi)
+            # we assume that both efield components are equally affected
+            spec[1] *= reflection_coefficient * np.exp(1j * phase_shift)
+            spec[2] *= reflection_coefficient * np.exp(1j * phase_shift)
+            
+            
+        ## apply focussing effect
+        if self._config['propagation']['focusing']:
+            dZRec = -0.01 * units.m
+            focusing = self.get_focusing(i_solution, dZRec, float(self._config['propagation']['focusing_limit']))
+            spec[1:] *= focusing
+
+        efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
+    
 
     def create_output_data_structure(self, dictionary, n_showers, n_antennas):
         nS = self.get_number_of_raytracing_solutions()
