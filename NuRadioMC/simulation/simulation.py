@@ -379,7 +379,8 @@ class simulation():
             n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
             n_reflections=self._n_reflections,
             config=self._cfg,
-            detector = self._det
+            detector = self._det, 
+            shower_dir = [self._zenith_shower, self._azimuth_shower]
         )
         r = self._raytracer
         for shower_index, shower_id in enumerate(self._shower_ids):
