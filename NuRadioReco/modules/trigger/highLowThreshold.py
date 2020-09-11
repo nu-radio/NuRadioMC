@@ -56,7 +56,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     dt: float
         the width of a time bin (inverse of sampling rate)
 
-    Returns:
+    Returns
     --------
     triggerd: bool
         returns True if majority logic is fulfilled
@@ -112,10 +112,18 @@ class triggerSimulator:
 
         Parameters
         ----------
-        threshold_high: float
+        evt: Event
+            The event to run the module on
+        station: Station
+            The station to run the module on
+        det: Detector
+            The detector description
+        threshold_high: float or dict of floats
             the threshold voltage that needs to be crossed on a single channel on the high side
-        threshold_low: float
+            a dict can be used to specify a different threshold per channel where the key is the channel id
+        threshold_low: float or dict of floats
             the threshold voltage that needs to be crossed on a single channel on the low side
+            a dict can be used to specify a different threshold per channel where the key is the channel id
         high_low_window: float
            time window in which a high+low crossing needs to occur to trigger a channel
         coinc_window: float
@@ -124,9 +132,6 @@ class triggerSimulator:
             number of channels that are requried in coincidence to trigger a station
         triggered_channels: array of ints or None
             channels ids that are triggered on, if None trigger will run on all channels
-        cut_trace: bool
-            if true, trace is cut to the correct length (50ns before the trigger,
-            max trace length is set according to detector description)
         trigger_name: string
             a unique name of this particular trigger
         set_not_triggered: bool (default: False)
@@ -134,15 +139,9 @@ class triggerSimulator:
 
         """
         t = time.time()
-        if threshold_low >= threshold_high:
-            logger.error("Impossible trigger configuration, high {0} low {1}.".format(threshold_high, threshold_low))
-            raise NotImplementedError
-
         sampling_rate = station.get_channel(0).get_sampling_rate()
         channels_that_passed_trigger = []
         if not set_not_triggered:
-            max_signal = 0
-
             triggerd_bins_channels = []
             dt = 1. / sampling_rate
             if triggered_channels is None:
@@ -158,7 +157,15 @@ class triggerSimulator:
                 if channel.get_trace_start_time() != channel_trace_start_time:
                     logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
                 trace = channel.get_trace()
-                triggerd_bins = get_high_low_triggers(trace, threshold_high, threshold_low,
+                if(isinstance(threshold_high, dict)):
+                    threshold_high_tmp = threshold_high[channel_id]
+                else:
+                    threshold_high_tmp = threshold_high
+                if(isinstance(threshold_low, dict)):
+                    threshold_low_tmp = threshold_low[channel_id]
+                else:
+                    threshold_low_tmp = threshold_low
+                triggerd_bins = get_high_low_triggers(trace, threshold_high_tmp, threshold_low_tmp,
                                                       high_low_window, dt)
                 if True in triggerd_bins:
                     channels_that_passed_trigger.append(channel.get_id())
@@ -186,8 +193,8 @@ class triggerSimulator:
             trigger.set_trigger_time(0)
         else:
             trigger.set_triggered(True)
-            trigger.set_trigger_time(triggered_times.min()+channel_trace_start_time)
-            trigger.set_trigger_times(triggered_times+channel_trace_start_time)
+            trigger.set_trigger_time(triggered_times.min() + channel_trace_start_time)
+            trigger.set_trigger_times(triggered_times + channel_trace_start_time)
             logger.info("Station has passed trigger, trigger time is {:.1f} ns".format(
                 trigger.get_trigger_time() / units.ns))
 

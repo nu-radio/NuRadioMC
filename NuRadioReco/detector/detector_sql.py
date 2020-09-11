@@ -6,6 +6,7 @@ import inspect
 import datetime
 import json
 import logging
+
 logger = logging.getLogger('sql detector')
 
 
@@ -86,7 +87,7 @@ class Detector(object):
             """.format(fields=field_str, time=self.__current_time, station_id=station_id)
         cursor.execute(query)
         result = np.array(cursor.fetchall())
-        if(len(result) == 0):
+        if len(result) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
         result_dict = []
@@ -124,7 +125,7 @@ class Detector(object):
             """.format(fields=field_str)
         cursor.execute(query)
         result = np.array(cursor.fetchall())
-        if(len(result) == 0):
+        if len(result) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
         result_dict = []
@@ -153,7 +154,7 @@ class Detector(object):
             """.format(fields=field_str)
         cursor.execute(query)
         result = np.array(cursor.fetchall())
-        if(len(result) == 0):
+        if len(result) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
         result_dict = []
@@ -178,7 +179,7 @@ class Detector(object):
             """.format(fields=field_str)
         cursor.execute(query)
         result = np.array(cursor.fetchall())
-        if(len(result) == 0):
+        if len(result) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
         result_dict = []
@@ -192,12 +193,14 @@ class Detector(object):
     def get_absolute_position_site(self, pos):
         """
         returns the UTM coordinates
-        
+
         Parameters
         ----------
         pos: string
             the position identifier (e.g. "A" or "X")
-        Returns:
+
+        Returns
+        ------------
             * easting (float)
             * northing (float)
             * UTM zone (string)
@@ -211,7 +214,7 @@ class Detector(object):
             """.format(position=pos)
         cursor.execute(query)
         position = np.array(cursor.fetchall())
-        if(len(position) == 0):
+        if len(position) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
         return np.squeeze(position)
@@ -228,7 +231,7 @@ class Detector(object):
             """.format(time=self.__current_time, station_id=station_id, channel_id=channel_id)
         cursor.execute(query)
         position = np.array(cursor.fetchall())
-        if(len(position) == 0):
+        if len(position) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
         return np.squeeze(position)
@@ -245,10 +248,10 @@ class Detector(object):
             """.format(time=self.__current_time, station_id=station_id)
         cursor.execute(query)
         position = np.array(cursor.fetchall())
-        if(len(position) == 0):
+        if len(position) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
-#         logger.debug('station {}: {}'.format(station_id, position))
+        #         logger.debug('station {}: {}'.format(station_id, position))
         return position
 
     def get_site(self, station_id):
@@ -263,10 +266,10 @@ class Detector(object):
             """.format(time=self.__current_time, station_id=station_id)
         cursor.execute(query)
         site = np.array(cursor.fetchall())
-        if(len(site) == 0):
+        if len(site) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
-#         logger.debug('station {}: {}'.format(station_id, position))
+        #         logger.debug('station {}: {}'.format(station_id, position))
         return site[0][0]
 
     def get_number_of_channels(self, station_id):
@@ -280,7 +283,7 @@ class Detector(object):
             """.format(time=self.__current_time, station_id=station_id)
         cursor.execute(query)
         channel_ids = np.array(cursor.fetchall())
-        if(len(channel_ids) == 0):
+        if len(channel_ids) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
         return len(channel_ids)
@@ -297,7 +300,7 @@ class Detector(object):
             """.format(time=self.__current_time, station_id=station_id, channel_id=channel_id)
         cursor.execute(query)
         delay = np.array(cursor.fetchall())
-        if(len(delay) == 0):
+        if len(delay) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
             return None
@@ -315,7 +318,7 @@ class Detector(object):
             """.format(time=self.__current_time, station_id=station_id, channel_id=channel_id)
         cursor.execute(query)
         type_length = np.array(cursor.fetchall())
-        if(len(type_length) == 0):
+        if len(type_length) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
             return None
@@ -333,11 +336,12 @@ class Detector(object):
             """.format(time=self.__current_time, station_id=station_id, channel_id=channel_id)
         cursor.execute(query)
         antenna_type = np.array(cursor.fetchall())
-        if(len(antenna_type) == 0):
+        if len(antenna_type) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
-        if(len(antenna_type[0]) != 1):
-            logger.error("more than one antenna type return for station channel combination -> bug in detector description, only first element is returned")
+        if len(antenna_type[0]) != 1:
+            logger.error(
+                "more than one antenna type return for station channel combination -> bug in detector description, only first element is returned")
         return antenna_type[0][0]
 
     def get_antenna_deployment_time(self, station_id, channel_id):
@@ -352,11 +356,12 @@ class Detector(object):
             """.format(time=self.__current_time, station_id=station_id, channel_id=channel_id)
         cursor.execute(query)
         deployment_time = np.array(cursor.fetchall())
-        if(len(deployment_time) == 0):
+        if len(deployment_time) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
-        if(len(deployment_time[0]) != 1):
-            logger.error("more than one antenna deployment_time return for station channel combination -> bug in detector description, only first element is returned")
+        if len(deployment_time[0]) != 1:
+            logger.error(
+                "more than one antenna deployment_time return for station channel combination -> bug in detector description, only first element is returned")
         return deployment_time[0][0]
 
     def get_antenna_orientation(self, station_id, channel_id):
@@ -377,7 +382,7 @@ class Detector(object):
             """.format(time=self.__current_time, station_id=station_id, channel_id=channel_id)
         cursor.execute(query)
         result = np.array(cursor.fetchall())
-        if(len(result) == 0):
+        if len(result) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
         return np.deg2rad(result.flatten())
@@ -394,7 +399,7 @@ class Detector(object):
             """.format(time=self.__current_time, station_id=station_id, channel_id=channel_id)
         cursor.execute(query)
         amp_type = np.array(cursor.fetchall())
-        if(len(amp_type) == 0):
+        if len(amp_type) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
         logger.debug("get_amplifier_type({},{}) returns {}".format(station_id, channel_id, amp_type.flatten()[0]))
@@ -412,7 +417,7 @@ class Detector(object):
             """.format(time=self.__current_time, station_id=station_id, channel_id=channel_id)
         cursor.execute(query)
         sampling_frequency = np.array(cursor.fetchall())
-        if(len(sampling_frequency) == 0):
+        if len(sampling_frequency) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
         return sampling_frequency.flatten()[0] * units.GHz
@@ -429,7 +434,7 @@ class Detector(object):
             """.format(time=self.__current_time, station_id=station_id, channel_id=channel_id)
         cursor.execute(query)
         n_samples = np.array(cursor.fetchall())
-        if(len(n_samples) == 0):
+        if len(n_samples) == 0:
             frame = inspect.currentframe()
             self.__error(frame)
         return n_samples.flatten()[0]
@@ -445,8 +450,7 @@ class Detector(object):
         antenna_type = self.get_antenna_type(station_id, channel_id)
         antenna_relative_position = self.get_relative_position(station_id, channel_id)
 
-        antenna_model = ""
-        if(antenna_relative_position[2] > 0):
+        if antenna_relative_position[2] > 0:
             antenna_model = "{}_infiniteair".format(antenna_type)
         else:
             antenna_model = "{}_infinitefirn".format(antenna_type)
@@ -454,7 +458,7 @@ class Detector(object):
 
 
 relative_positions = {0: np.array([0, 3, 0]) * units.m, 1: np.array([3, 0, 0]) * units.m,
-             2: np.array([0, -3, 0]) * units.m, 3: np.array([-3, 0, 0]) * units.m}
+                      2: np.array([0, -3, 0]) * units.m, 3: np.array([-3, 0, 0]) * units.m}
 
 station_types = ['HRA_4', 'CR_4', 'HRA_8', 'dummy']
 
@@ -469,7 +473,8 @@ def get_cable_delays(station_id):
     if station_id == 41:
         cable_delays = [19.95 * units.ns, 19.86 * units.ns, 18.82 * units.ns, 19.86 * units.ns]
     elif station_id == 51:
-        cable_delays = [19.8 * units.ns, 19.8 * units.ns, 19.8 * units.ns, 19.7 * units.ns, 27.3 * units.ns, 27.5 * units.ns, 27.3 * units.ns, 19.6 * units.ns]
+        cable_delays = [19.8 * units.ns, 19.8 * units.ns, 19.8 * units.ns, 19.7 * units.ns, 27.3 * units.ns,
+                        27.5 * units.ns, 27.3 * units.ns, 19.6 * units.ns]
     else:
         logger.warning("Cable delays not implemented for other stations. Using defaults from 41.")
         cable_delays = [19.95 * units.ns, 19.86 * units.ns, 18.82 * units.ns, 19.86 * units.ns]
@@ -488,29 +493,28 @@ def get_antenna_model_file(station_type):
 def get_relative_position(station, channel):
     # default 4 antenna station
     if station == 41:
-        relative_positions = {0: np.array([0, 4, 0]) * units.m, 1: np.array([4, 0, 0]) * units.m,
-             2: np.array([0, -4, 0]) * units.m, 3: np.array([-4, 0, 0]) * units.m}
+        rel_pos = {0: np.array([0, 4, 0]) * units.m, 1: np.array([4, 0, 0]) * units.m,
+                   2: np.array([0, -4, 0]) * units.m, 3: np.array([-4, 0, 0]) * units.m}
     else:
         logger.debug("Getting antenna positions for default station.")
-        relative_positions = {0: np.array([0, 3, 0]) * units.m, 1: np.array([3, 0, 0]) * units.m,
-             2: np.array([0, -3, 0]) * units.m, 3: np.array([-3, 0, 0]) * units.m}
-    return relative_positions[channel]
+        rel_pos = {0: np.array([0, 3, 0]) * units.m, 1: np.array([3, 0, 0]) * units.m,
+                   2: np.array([0, -3, 0]) * units.m, 3: np.array([-3, 0, 0]) * units.m}
+    return rel_pos[channel]
 
 
 def get_relative_positions(station):
     # default 4 antenna station
     if station == 41:
-        relative_positions = {0: np.array([0, 4, 0]) * units.m, 1: np.array([4, 0, 0]) * units.m,
-             2: np.array([0, -4, 0]) * units.m, 3: np.array([-4, 0, 0]) * units.m}
+        rel_pos = {0: np.array([0, 4, 0]) * units.m, 1: np.array([4, 0, 0]) * units.m,
+                   2: np.array([0, -4, 0]) * units.m, 3: np.array([-4, 0, 0]) * units.m}
     else:
         logger.debug("Getting antenna positions for default station.")
-        relative_positions = {0: np.array([0, 3, 0]) * units.m, 1: np.array([3, 0, 0]) * units.m,
-             2: np.array([0, -3, 0]) * units.m, 3: np.array([-3, 0, 0]) * units.m}
-    return relative_positions
+        rel_pos = {0: np.array([0, 3, 0]) * units.m, 1: np.array([3, 0, 0]) * units.m,
+                   2: np.array([0, -3, 0]) * units.m, 3: np.array([-3, 0, 0]) * units.m}
+    return rel_pos
 
 
 def get_antenna_type(station_type, channel):
-
     if station_type not in antenna_types_for_station_type.keys():
         logger.error("Station type {} not known".format(station_type))
         antenna_type = None
@@ -534,17 +538,17 @@ def get_amplifier_type(station_id, channel):
 def get_station_type(station_id, time):
     # dummy module
     if station_id == 41:
-        type = station_types[1]
+        station_type = station_types[1]
     elif station_id == 30:
-        type = station_types[0]
+        station_type = station_types[0]
     elif station_id == 52:
-        type = station_types[2]
+        station_type = station_types[2]
     elif station_id == 0:  # dummy station
-        type = 'dummy'
+        station_type = 'dummy'
     else:
         logger.error("Station id {} not assigned a station type".format(station_id))
-        type = None
-    return type
+        station_type = None
+    return station_type
 
 
 def get_number_of_channels(station_type):

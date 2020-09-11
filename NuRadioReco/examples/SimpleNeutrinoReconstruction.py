@@ -1,15 +1,10 @@
 import logging
-import numpy as np
 import argparse
-import matplotlib.pyplot as plt
 import datetime
-
-from NuRadioReco.utilities import units
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.modules.io.eventReader
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.channelSignalReconstructor
-
 from NuRadioReco.framework.parameters import channelParameters as chp
 
 
@@ -52,4 +47,3 @@ for iE, event in enumerate(eventReader.run()):
     i_events_saved += 1
     if((i_events_saved % 100) == 0):
         print("saving event {}".format(i_events_saved))
-

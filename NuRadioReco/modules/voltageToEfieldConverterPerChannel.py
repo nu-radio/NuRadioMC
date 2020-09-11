@@ -1,30 +1,11 @@
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
-from numpy.polynomial import polynomial as poly
-from scipy import signal
-from scipy.signal import correlate
-from scipy import optimize as opt
-import matplotlib.pyplot as plt
-import time
-
-from radiotools import helper as hp
-from radiotools import plthelpers as php
-
 from NuRadioReco.utilities import trace_utilities
-
-from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
-import NuRadioReco.framework.base_trace
-
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-
 from NuRadioReco.framework import electric_field as ef
-
 import logging
-
 
 
 class voltageToEfieldConverterPerChannel:
@@ -36,6 +17,7 @@ class voltageToEfieldConverterPerChannel:
 
     def __init__(self):
         self.logger = logging.getLogger('NuRadioReco.voltageToEfieldConverterPerChannel')
+        self.antenna_provider = None
         self.__counter = 0
         self.begin()
 
@@ -43,7 +25,7 @@ class voltageToEfieldConverterPerChannel:
         self.antenna_provider = antennapattern.AntennaPatternProvider()
 
     @register_run()
-    def run(self, evt, station, det, pol=0, debug=True):
+    def run(self, evt, station, det, pol=0):
         """
         Performs computation for voltage trace to electric field per channel
 
@@ -59,11 +41,8 @@ class voltageToEfieldConverterPerChannel:
             the detector object
         pol: polarization
             0 = eTheta polarized, 1 = ePhi polarized
-        debug: bool
-            if True additional debug plot(s) are displayed - currently unused
         """
         self.__counter += 1
-        event_time = station.get_station_time()
         station_id = station.get_id()
         self.logger.debug("event {}, station {}".format(evt.get_id(), station_id))
         if station.get_sim_station() is not None and station.get_sim_station().has_parameter(stnp.zenith):

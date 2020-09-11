@@ -53,16 +53,19 @@ data_sets["xx"] = distance * np.sin(vertex_angles)
 
 thetamin = 65 * units.deg
 thetamax = 100 * units.deg
-data_sets["zeniths"] = np.arccos( np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events) )
+data_sets["zeniths"] = np.arccos(np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events))
 
 data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
-data_sets["event_ids"] = np.arange(n_events)
+data_sets["event_group_ids"] = np.arange(n_events)
+data_sets["shower_ids"] = np.arange(n_events)
 data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
 data_sets["vertex_times"] = np.zeros(n_events, dtype=np.float)
 data_sets["flavors"] = np.ones(n_events, dtype=np.int) * flavor
 data_sets["energies"] = np.ones(n_events, dtype=np.int) * energy
 data_sets["interaction_type"] = ['cc'] * n_events
 data_sets["inelasticity"] = np.ones(n_events, dtype=np.int) * inelasticity
+data_sets["shower_type"] = ['had'] * n_events
+data_sets["shower_energies"] = data_sets['energies'] * data_sets["inelasticity"]
 
 write_events_to_hdf5(filename, data_sets, attributes,
                      n_events_per_file=n_events,

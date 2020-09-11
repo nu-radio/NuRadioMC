@@ -1,16 +1,15 @@
-import dash
 import json
-import plotly
+import plotly.subplots
 import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output, State
-from app import app
+from NuRadioReco.eventbrowser.app import app
 from NuRadioReco.utilities import units
 from NuRadioReco.eventbrowser.default_layout import default_layout
-import numpy as np
 from NuRadioReco.framework.parameters import stationParameters as stnp
-import dataprovider
-provider = dataprovider.DataProvider()
+import NuRadioReco.eventbrowser.dataprovider
+
+provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 
 layout = [
     html.Div([
@@ -56,7 +55,7 @@ nu_xcorr_options = [
 
 
 @app.callback(Output('cr-xcorrelation-dropdown', 'options'),
-            [Input('xcorrelation-event-type', 'value')])
+              [Input('xcorrelation-event-type', 'value')])
 def set_xcorrelation_options(event_type):
     if event_type == 'nu':
         return nu_xcorr_options
@@ -79,35 +78,35 @@ def plot_corr(xcorr_type, filename, jcurrent_selection, station_id, event_type, 
     fig = plotly.subplots.make_subplots(rows=1, cols=1)
     keys = ariio.get_header()[station_id].keys()
     if event_type == 'nu':
-        if not stnp.nu_xcorrelations in keys:
+        if stnp.nu_xcorrelations not in keys:
             return {}
         xcorrs = ariio.get_header()[station_id][stnp.nu_xcorrelations]
     else:
-        if not stnp.cr_xcorrelations in keys:
+        if stnp.cr_xcorrelations not in keys:
             return {}
         xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
     if stnp.station_time in keys:
         times = []
         for time in ariio.get_header()[station_id][stnp.station_time]:
             times.append(time.value)
+        current_selection = json.loads(jcurrent_selection)
         fig.append_trace(plotly.graph_objs.Scatter(
             x=times,
             y=[xcorrs[i][xcorr_type] for i in range(len(xcorrs))],
             text=[str(x) for x in ariio.get_event_ids()],
             customdata=[x for x in range(ariio.get_n_events())],
             mode='markers',
-            opacity=1
-        ),1,1)
+            opacity=1,
+            selectedpoints=current_selection
+        ), 1, 1)
     else:
         return {}
-    current_selection = json.loads(jcurrent_selection)
-    if current_selection != []:
-        for trace in traces:
-            trace['selectedpoints'] = current_selection
+
     fig['layout'].update(default_layout)
     fig['layout']['yaxis'].update({'title': xcorr_type, 'range': [0, 1]})
     fig['layout']['hovermode'] = 'closest'
     return fig
+
 
 @app.callback(Output('cr-xcorrelation-amplitude', 'figure'),
               [Input('cr-xcorrelation-dropdown', 'value'),
@@ -124,29 +123,26 @@ def plot_corr_amplitude(xcorr_type, filename, jcurrent_selection, event_type, st
     fig = plotly.subplots.make_subplots(rows=1, cols=1)
     keys = ariio.get_header()[station_id].keys()
     if event_type == 'nu':
-        if not stnp.nu_xcorrelations in keys:
+        if stnp.nu_xcorrelations not in keys:
             return {}
         xcorrs = ariio.get_header()[station_id][stnp.nu_xcorrelations]
     else:
-        if not stnp.cr_xcorrelations in keys:
+        if stnp.cr_xcorrelations not in keys:
             return {}
         xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
     if stnp.channels_max_amplitude in keys:
+        current_selection = json.loads(jcurrent_selection)
         fig.append_trace(plotly.graph_objs.Scatter(
             x=ariio.get_header()[station_id][stnp.channels_max_amplitude] / units.mV,
             y=[xcorrs[i][xcorr_type] for i in range(len(xcorrs))],
             text=[str(x) for x in ariio.get_event_ids()],
             customdata=[x for x in range(ariio.get_n_events())],
             mode='markers',
-            opacity=1
-        ),1,1)
+            opacity=1,
+            selectedpoints=current_selection
+        ), 1, 1)
     else:
         return {}
-    # update with current selection
-    current_selection = json.loads(jcurrent_selection)
-    if current_selection != []:
-        for trace in traces:
-            trace['selectedpoints'] = current_selection
     fig['layout'].update(default_layout)
     fig['layout']['xaxis'].update({'type': 'log', 'title': 'maximum amplitude [mV]'})
     fig['layout']['yaxis'].update({'title': xcorr_type, 'range': [0, 1]})

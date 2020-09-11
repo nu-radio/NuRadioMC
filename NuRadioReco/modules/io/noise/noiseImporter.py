@@ -25,6 +25,10 @@ class noiseImporter:
     def __init__(self):
         self.__channel_mapping = None
         self.__station_id = None
+        self.__mean_opt = None
+        self.__noise_files = None
+        self.__open_files = None
+        self.__n_tot = None
 
     def begin(self, noise_folder, station_id=None, noise_files=None,
               channel_mapping=None, log_level=logging.WARNING, mean_opt=True):
@@ -39,6 +43,8 @@ class noiseImporter:
             where ?? is replaced with the station id. If station_id is None, the noiseImporter
             will try to find the station with the same iD as the one passed to the run
             function in the noise file
+        noise_files: list of strings (default: None)
+            List of noisefiles. If None is passed, all files in the noise_folder are used
         channel_mapping: dict or None
             option relevant for MC studies of new station designs where we do not
             have forced triggers for. The channel_mapping dictionary maps the channel
@@ -76,7 +82,7 @@ class noiseImporter:
 
     def __get_noise_event(self, i):
         for f in self.__open_files:
-            if(i >= f['n_low'] and i <= f['n_high']):
+            if(f['n_low'] <= i <= f['n_high']):
                 return f['f'].get_event_i(i - f['n_low'])
 
     def __get_noise_channel(self, channel_id):
@@ -124,7 +130,7 @@ class noiseImporter:
                 std = noise_trace.std()
                 if(mean > 0.05 * std):
                     logger.warning(
-                        "the noise trace has an offset of {:.2}mV which is more than 5\% of the STD of {:.2f}mV. The module corrects for the offset but it might points to an error in the FPN subtraction.".format(mean, std))
+                        "the noise trace has an offset of {:.2}mV which is more than 5% of the STD of {:.2f}mV. The module corrects for the offset but it might points to an error in the FPN subtraction.".format(mean, std))
                 trace = trace - mean
 
             channel.set_trace(trace, channel.get_sampling_rate())

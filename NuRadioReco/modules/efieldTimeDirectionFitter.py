@@ -18,6 +18,8 @@ class efieldTimeDirectionFitter:
     """
 
     def __init__(self):
+        self.__debug = None
+        self.__time_uncertainty = None
         self.begin()
         pass
 
@@ -27,7 +29,24 @@ class efieldTimeDirectionFitter:
         pass
 
     @register_run()
-    def run(self, evt, station, det, debug=True, channels_to_use=[0, 1, 2, 3], cosmic_ray=False):
+    def run(self, evt, station, det, channels_to_use=None, cosmic_ray=False):
+        """
+        Parameters
+        ----------------
+        evt: Event
+            The event to run the module on
+        station: Station
+            The station to run the module on
+        det: Detector
+            The detector description
+        channels_to_use: list of int (default: [0, 1, 2, 3])
+            List with the IDs of channels to use for reconstruction
+        cosmic_ray: Bool (default: False)
+            Flag to mark event as cosmic ray
+
+        """
+        if channels_to_use is None:
+            channels_to_use = [0, 1, 2, 3]
         station_id = station.get_id()
 
         times = []
@@ -55,27 +74,27 @@ class efieldTimeDirectionFitter:
 
         from scipy import optimize as opt
 
-        def get_expected_times(params, positions):
+        def get_expected_times(params, channel_positions):
             zenith, azimuth = params
             if cosmic_ray:
                 if((zenith < 0) or (zenith > 0.5 * np.pi)):
-                    return np.ones(len(positions)) * np.inf
+                    return np.ones(len(channel_positions)) * np.inf
             else:
                 if((zenith < 0.5 * np.pi) or (zenith > np.pi)):
-                    return np.ones(len(positions)) * np.inf
+                    return np.ones(len(channel_positions)) * np.inf
             v = hp.spherical_to_cartesian(zenith, azimuth)
             c = constants.c * units.m / units.s
             if not cosmic_ray:
                 c = c / n_ice
                 logger.debug("using speed of light = {:.4g}".format(c))
-            t_expected = -(np.dot(v, positions.T) / c)
+            t_expected = -(np.dot(v, channel_positions.T) / c)
             return t_expected
 
-        def obj_plane(params, positions, t_measured):
-            t_expected = get_expected_times(params, positions)
-            chi2 = np.sum(((t_expected - t_expected.mean()) - (t_measured - t_measured.mean())) ** 2 / times_error ** 2)
-            logger.debug("texp = {texp}, tm = {tmeas}, {chi2}".format(texp=t_expected, tmeas=t_measured, chi2=chi2))
-            return chi2
+        def obj_plane(params, pos, t_measured):
+            t_expected = get_expected_times(params, pos)
+            chi_squared = np.sum(((t_expected - t_expected.mean()) - (t_measured - t_measured.mean())) ** 2 / times_error ** 2)
+            logger.debug("texp = {texp}, tm = {tmeas}, {chi2}".format(texp=t_expected, tmeas=t_measured, chi2=chi_squared))
+            return chi_squared
 
         method = "Nelder-Mead"
         options = {'maxiter': 1000,
@@ -99,10 +118,10 @@ class efieldTimeDirectionFitter:
             chi2prob = stats.chi2.sf(chi2, df)
 
         output_str = "reconstucted angles theta = {:.1f}, phi = {:.1f}, chi2/ndf = {:.2g}/{:d} = {:.2g}, chi2prob = {:.3g}".format(res.x[0] / units.deg,
-                                                                                              hp.get_normalized_angle(res.x[1]) / units.deg,
-                                                                                              res.fun, df,
-                                                                                              chi2ndf,
-                                                                                              chi2prob)
+                                                                                                                                   hp.get_normalized_angle(res.x[1]) / units.deg,
+                                                                                                                                   res.fun, df,
+                                                                                                                                   chi2ndf,
+                                                                                                                                   chi2prob)
 
         logger.info(output_str)
         station[stnp.zenith] = res.x[0]

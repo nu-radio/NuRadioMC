@@ -6,8 +6,6 @@ import time
 import logging
 
 
-
-
 class hardwareResponseIncorporator:
     """
     Incorporates the gain and phase induced by the ARIANNA hardware.
@@ -23,10 +21,8 @@ class hardwareResponseIncorporator:
         self.__mingainlin = None
         self.begin()
 
-
     def begin(self, debug=False):
         self.__debug = debug
-        #analog_components
 
     def get_filter(self, frequencies, station_id, channel_id, det, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
         """
@@ -42,44 +38,68 @@ class hardwareResponseIncorporator:
             the channel id
         det: detector instance
             the detector
-        the remaining arguments are the arguments of the run method!
+        sim_to_data: bool (default False)
+            if False, deconvolve the hardware response
+            if True, convolve with the hardware response
+        phase_only: bool (default False)
+            if True, only the phases response is applied but not the amplitude response
+        mode: string
+            'phase_only': only the phases response is applied but not the amplitude response
+                (identical to phase_only=True )
+            'relativ': gain of amp is divided by maximum of the gain, i.e. at the maximum of the
+                filter response is 1 (before applying cable response). This makes it easier
+                to compare the filtered to unfiltered signal
+            None : default, gain and phase effects are applied 'normally'
+        mingainlin: float
+            In frequency ranges where the gain gets very small, the reconstruction of the original signal (obtained by
+            dividing the measured signal by the gain) leads to excessively high values, due to the effect of
+            post-amplifier noise. In order to mitigate this effect, a minimum gain (linear scale!) as fraction of the
+            maximum gain can be defined. If specified, any gain value smaller than mingainlin will be replaced by mingainlin.
+            Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
+            analog_components.get_amplifier_response()
 
-        Returns: array of complex floats
+        Returns
+        -----------
+            array of complex floats
             the complex filter amplitudes
         """
         amp_type = det.get_amplifier_type(station_id, channel_id)
         amp_measurement = det.get_amplifier_measurement(station_id, channel_id)
-        amp_response = analog_components.get_amplifier_response(frequencies, amp_type=amp_type,
-                                                                    amp_measurement=amp_measurement)
+        amp_response = analog_components.get_amplifier_response(frequencies, amp_type=amp_type, amp_measurement=amp_measurement)
 
-        if mingainlin!=None:
+        if mingainlin is not None:
             mingainlin = float(mingainlin)
-            ampmax= np.max(np.abs(amp_response))
-            iamp_gain_low = np.where(np.abs(amp_response)<(mingainlin*ampmax))
-            amp_response[iamp_gain_low]=(mingainlin*ampmax) * np.exp(1j * np.angle(amp_response[iamp_gain_low]))
+            ampmax = np.max(np.abs(amp_response))
+            iamp_gain_low = np.where(np.abs(amp_response) < (mingainlin * ampmax))
+            amp_response[iamp_gain_low] = (mingainlin * ampmax) * np.exp(1j * np.angle(amp_response[iamp_gain_low]))
 
-        cable_response = analog_components.get_cable_response_parametrized(frequencies,
-                                   *det.get_cable_type_and_length(station_id, channel_id))
-        if(mode=='phase_only'):
+        cable_response = analog_components.get_cable_response_parametrized(frequencies, * det.get_cable_type_and_length(station_id, channel_id))
+        if(mode == 'phase_only'):
             cable_response = np.ones_like(cable_response) * np.exp(1j * np.angle(cable_response))
             amp_response = np.ones_like(amp_response) * np.angle(amp_response)
-        elif(mode=='relative'):
-            ampmax= np.max(np.abs(amp_response))
+        elif(mode == 'relative'):
+            ampmax = np.max(np.abs(amp_response))
             amp_response /= ampmax
 
         if sim_to_data:
             return amp_response * cable_response
         else:
-            return 1./ (amp_response * cable_response)
+            return 1. / (amp_response * cable_response)
 
     @register_run()
-    def run(self, evt, station, det, sim_to_data=False, phase_only=False,mode=None,mingainlin=None):
+    def run(self, evt, station, det, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
         """
         Switch sim_to_data to go from simulation to data or otherwise.
         The option zero_noise can be used to zero the noise around the pulse. It is unclear, how useful this is.
 
         Parameters
         -----------
+        evt: Event
+            the event on which to run the module
+        station: Station
+            The station on which to run the module
+        det: Detector or GenericDetector
+            The detector description
         sim_to_data: bool (default False)
             if False, deconvolve the hardware response
             if True, convolve with the hardware response
@@ -104,7 +124,7 @@ class hardwareResponseIncorporator:
         self.__mingainlin = mingainlin
 
         if (phase_only):
-            mode='phase_only'
+            mode = 'phase_only'
             self.logger.warning('Please use option mode=''phase_only'' in the future, use of option phase_only will be phased out')
 
         t = time.time()
@@ -126,7 +146,6 @@ class hardwareResponseIncorporator:
                 cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
                 self.logger.debug("cable delay of channel {} is {}ns".format(channel.get_id(), cable_delay / units.ns))
                 channel.add_trace_start_time(-cable_delay)
-
 
         self.__t += time.time() - t
 

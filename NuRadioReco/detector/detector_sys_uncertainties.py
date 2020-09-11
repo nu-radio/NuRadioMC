@@ -1,14 +1,6 @@
-import os
-import astropy.time
 import logging
-from tinydb import TinyDB, Query
-from tinydb_serialization import SerializationMiddleware
-from tinydb.storages import MemoryStorage
-from tinydb_serialization import Serializer
 import NuRadioReco.detector.detector
 from NuRadioReco.utilities import units
-from NuRadioReco.detector.detector import DateTimeSerializer
-import copy
 logger = logging.getLogger('NuRadioReco.DetectorSysUncertainties')
 
 
@@ -36,11 +28,9 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
         assume_inf : Bool
             Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
         """
-        self.det = super(DetectorSysUncertainties, self)
-        self.det.__init__(source, json_filename, dictionary, assume_inf)
+        NuRadioReco.detector.detector.Detector.__init__(self, source, json_filename, dictionary, assume_inf)
         self._antenna_orientation_override = {}
         self._antenna_position_override = {}
-
 
     def set_antenna_orientation_offsets(self, ori_theta, ori_phi, rot_theta, rot_phi, station_id=None, channel_id=None):
         """
@@ -49,13 +39,13 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
         Parameters
         ---------
         ori_theta: float
-            boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
+            orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
         ori_phi: float
-            boresight direction (azimuth angle counting from East counterclockwise)
+            orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
         rot_theta: float
-            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         rot_phi: float
-            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         station_id: int or None
             the station id, if None offset will be applied to all stations/channels
         channel_id: int or None
@@ -63,7 +53,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
         """
         key = "any"
         if station_id is not None:
-            if(channel_id is not None):
+            if channel_id is not None:
                 key = (station_id, channel_id)
             else:
                 key = station_id
@@ -87,13 +77,13 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
             the channel id
 
         Returns typle of floats
-            * orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
-            * orientation phi: boresight direction (azimuth angle counting from East counterclockwise)
-            * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
-            * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector in plane of tines pointing away from connector
+            * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+            * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+            * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+            * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         """
         ori = self.det.get_antenna_orientation(station_id, channel_id)
-        if("any" in self._antenna_orientation_override):
+        if "any" in self._antenna_orientation_override:
             tmp = self._antenna_orientation_override["any"]
             ori += tmp
             logger.info(f"adding orientation theta = {tmp[0]/units.deg:.1f} deg, phi = {tmp[1]/units.deg:.1f} deg, rotation theta = {tmp[2]/units.deg:.1f} deg, phi = {tmp[3]/units.deg:.1f} deg to all channels of any station")
@@ -101,7 +91,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
             tmp = self._antenna_orientation_override[station_id]
             ori += tmp
             logger.info(f"adding orientation theta = {tmp[0]/units.deg:.1f} deg, phi = {tmp[1]/units.deg:.1f} deg, rotation theta = {tmp[2]/units.deg:.1f} deg, phi = {tmp[3]/units.deg:.1f} deg to all channels of station {station_id}")
-        if((station_id, channel_id) in self._antenna_orientation_override):
+        if (station_id, channel_id) in self._antenna_orientation_override:
             tmp = self._antenna_orientation_override[(station_id, channel_id)]
             logger.info(f"adding orientation theta = {tmp[0]/units.deg:.1f} deg, phi = {tmp[1]/units.deg:.1f} deg, rotation theta = {tmp[2]/units.deg:.1f} deg, phi = {tmp[3]/units.deg:.1f} deg to channel {channel_id} of station {station_id}")
             ori += tmp
@@ -126,7 +116,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
         """
         key = "any"
         if station_id is not None:
-            if(channel_id is not None):
+            if channel_id is not None:
                 key = (station_id, channel_id)
             else:
                 key = station_id
@@ -155,7 +145,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
             * z-position of antenna
         """
         pos = self.det.get_relative_position(station_id, channel_id)
-        if("any" in self._antenna_position_override):
+        if "any" in self._antenna_position_override:
             tmp = self._antenna_position_override["any"]
             pos += tmp
             logger.info(f"adding position x = {tmp[0]/units.m:.1f} m, y = {tmp[1]/units.m:.1f} m, z = {tmp[2]/units.m:.1f} m to all channels of any station")
@@ -163,7 +153,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
             tmp = self._antenna_position_override[station_id]
             pos += tmp
             logger.info(f"adding position x = {tmp[0]/units.m:.1f} m, y = {tmp[1]/units.m:.1f} m, z = {tmp[2]/units.m:.1f} m to all channels of station {station_id}")
-        if((station_id, channel_id) in self._antenna_position_override):
+        if (station_id, channel_id) in self._antenna_position_override:
             tmp = self._antenna_position_override[(station_id, channel_id)]
             logger.info(f"adding position x = {tmp[0]/units.m:.1f} m, y = {tmp[1]/units.m:.1f} m, z = {tmp[2]/units.m:.1f} m to channel {channel_id} of station {station_id}")
             pos += tmp

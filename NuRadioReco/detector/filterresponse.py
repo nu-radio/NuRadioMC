@@ -1,8 +1,6 @@
 import numpy as np
 from NuRadioReco.utilities import units
-from radiotools import helper as hp
 from scipy import interpolate as intp
-from scipy import integrate as int
 import os
 import glob
 
@@ -47,7 +45,6 @@ def get_filter_response_mini_circuits2(frequencies, filter_name):
     ff2 *= units.MHz
     group_delay *= units.ns
     insertion_loss = 10**(-insertion_loss / 20.)
-    return_loss = 10**(-return_loss / 20.)
 
     get_insertion_loss = intp.interp1d(ff, insertion_loss)
 
@@ -68,7 +65,7 @@ def get_filter_response(frequencies, filter_name):
     Get measured filter responses.
     """
     directory = os.path.dirname(os.path.abspath(__file__))
-    if(filter_name =='NTU+cheb'):
+    if filter_name == 'NTU+cheb':
         ff, mag, phase = np.loadtxt(os.path.join(directory, 'filter/NTU+cheb_filter_mag_phase.txt'), unpack=True)
         get_phase = intp.interp1d(ff, np.unwrap(phase))
         get_insertion_loss = intp.interp1d(ff, mag)
@@ -95,44 +92,44 @@ def get_filter_response(frequencies, filter_name):
 if __name__ == "__main__":
     from matplotlib import pyplot as plt
 
-    ff = np.linspace(10 * units.MHz, 500 * units.MHz, 100)
-    df = ff[1] - ff[0]
+    freqs = np.linspace(10 * units.MHz, 500 * units.MHz, 100)
+    delta_f = freqs[1] - freqs[0]
     fig, (ax, ax2) = plt.subplots(1, 2)
     for name in ["SHP-48+", "SHP-20+", "SHP-25+", "SXHP-48+", "ZFHP-1R2-S+", "ZX75HP-44+"]:
-        response1 = get_filter_response_mini_circuits(ff, name)
-        ax.plot(ff / units.MHz, np.abs(response1), label=name)
-        group_delay = -1./2/np.pi * np.diff(np.unwrap(np.angle(response1))) / df
+        response1 = get_filter_response_mini_circuits(freqs, name)
+        ax.plot(freqs / units.MHz, np.abs(response1), label=name)
+        grp_delay = -1. / 2 / np.pi * np.diff(np.unwrap(np.angle(response1))) / delta_f
     #     ax2.plot(ff / units.MHz, np.unwrap(np.angle(response1)) / units.deg)
-        ax2.plot((ff[1:] + ff[:-1]) * 0.5 / units.MHz, group_delay/units.ns, label=name)
+        ax2.plot((freqs[1:] + freqs[:-1]) * 0.5 / units.MHz, grp_delay / units.ns, label=name)
     ax.legend()
     ax2.legend()
     fig.tight_layout()
     plt.show()
-    ff = np.linspace(200 * units.MHz, 800 * units.MHz, 100)
+    freqs = np.linspace(200 * units.MHz, 800 * units.MHz, 100)
     fig, (ax, ax2) = plt.subplots(1, 2)
     for name in ["ZX75LP-470+", "ZFLP-450+", "SBLP-467+"]:
-        response1 = get_filter_response_mini_circuits(ff, name)
-        ax.plot(ff / units.MHz, np.abs(response1), label=name)
-        group_delay = -1./2/np.pi * np.diff(np.unwrap(np.angle(response1))) / df
+        response1 = get_filter_response_mini_circuits(freqs, name)
+        ax.plot(freqs / units.MHz, np.abs(response1), label=name)
+        grp_delay = -1. / 2 / np.pi * np.diff(np.unwrap(np.angle(response1))) / delta_f
     #     ax2.plot(ff / units.MHz, np.unwrap(np.angle(response1)) / units.deg)
-        ax2.plot((ff[1:] + ff[:-1]) * 0.5 / units.MHz, group_delay/units.ns, label=name)
+        ax2.plot((freqs[1:] + freqs[:-1]) * 0.5 / units.MHz, grp_delay / units.ns, label=name)
     ax.legend()
     ax2.legend()
     fig.tight_layout()
     plt.show()
 
-    response1 = get_filter_response_mini_circuits(ff, "SHP-100+")
-    response2 = get_filter_response(ff, "SHP-100+")
+    response1 = get_filter_response_mini_circuits(freqs, "SHP-100+")
+    response2 = get_filter_response(freqs, "SHP-100+")
 
     fig, (ax, ax2) = plt.subplots(1, 2)
-    phase1 = np.unwrap(np.angle(response1))
-    phase1 = phase1 / phase1.min()
-    phase2 = np.unwrap(np.angle(response2))
-    phase2 = phase2 / phase2.min()
-    ax.plot(ff / units.MHz, phase1, label='spec sheet')
-    ax.plot(ff / units.MHz, phase2, label='measurement')
+    phase_1 = np.unwrap(np.angle(response1))
+    phase_1 = phase_1 / np.min(phase_1)
+    phase_2 = np.unwrap(np.angle(response2))
+    phase_2 = phase_2 / np.min(phase_2)
+    ax.plot(freqs / units.MHz, phase_1, label='spec sheet')
+    ax.plot(freqs / units.MHz, phase_2, label='measurement')
 
-    ax2.plot(ff[1:] / units.MHz, np.diff(np.unwrap(np.angle(response1))), label='spec sheet')
-    ax2.plot(ff[1:] / units.MHz, np.diff(np.unwrap(np.angle(response2))), label='measurement')
+    ax2.plot(freqs[1:] / units.MHz, np.diff(np.unwrap(np.angle(response1))), label='spec sheet')
+    ax2.plot(freqs[1:] / units.MHz, np.diff(np.unwrap(np.angle(response2))), label='measurement')
     ax.legend()
     plt.show()

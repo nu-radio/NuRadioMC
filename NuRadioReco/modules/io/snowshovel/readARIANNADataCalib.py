@@ -10,11 +10,10 @@ import datetime
 import sys
 import time
 import os
-sys.path.append(os.path.expandvars('$SNS'))
 from scripts.online import AriUtils
 from scripts.offline import dacs2014
 import logging
-
+sys.path.append(os.path.expandvars('$SNS'))
 
 
 class readARIANNAData:
@@ -114,8 +113,13 @@ class readARIANNAData:
                 eta = 0
                 if(self.__id_current_event > 0):
                     eta = (time.time() - self.__t) / self.__id_current_event * (self.n_events - self.__id_current_event) / 60.
-                self.logger.warning("reading in event {}/{} ({:.0f}%) ETA: {:.1f} minutes".format(self.__id_current_event, self.n_events,
-                                                                         100 * progress, eta))
+                self.logger.warning(
+                    "reading in event {}/{} ({:.0f}%) ETA: {:.1f} minutes".format(
+                        self.__id_current_event,
+                        self.n_events,
+                        100 * progress, eta
+                    )
+                )
 #             try:
             self.data_tree.GetEntry(self._evt_range[self.__id_current_event])
 

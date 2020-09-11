@@ -44,7 +44,7 @@ class readCoREASStation:
         for input_file in self.__input_files:
             self.__current_event = 0
             with h5py.File(input_file, "r") as corsika:
-                if list(corsika["highlevel"].values()) == []:
+                if "highlevel" not in corsika.keys() or list(corsika["highlevel"].values()) == []:
                     logger.warning(" No highlevel quantities in simulated hdf5 files, weights will be one")
                     weights = np.ones(len(corsika['CoREAS']['observers']))
                 else:
@@ -53,8 +53,13 @@ class readCoREASStation:
                 for i, (name, observer) in enumerate(corsika['CoREAS']['observers'].items()):
                     evt = NuRadioReco.framework.event.Event(self.__current_input_file, self.__current_event)  # create empty event
                     station = NuRadioReco.framework.station.Station(self.__station_id)
-                    sim_station = coreas.make_sim_station(self.__station_id, corsika, observer,
-                                 detector.get_channel_ids(self.__station_id), weights[i])
+                    sim_station = coreas.make_sim_station(
+                        self.__station_id,
+                        corsika,
+                        observer,
+                        detector.get_channel_ids(self.__station_id),
+                        weights[i]
+                    )
                     station.set_sim_station(sim_station)
                     sim_shower = coreas.make_sim_shower(corsika, observer, detector, self.__station_id)
                     evt.add_sim_shower(sim_shower)

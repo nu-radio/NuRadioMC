@@ -6,12 +6,14 @@ import NuRadioReco.framework.parameters as parameters
 import datetime
 import astropy.time
 import NuRadioReco.framework.parameter_serialization
+
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
 import logging
 import collections
+
 logger = logging.getLogger('BaseStation')
 
 
@@ -74,27 +76,21 @@ class BaseStation():
         self._parameters.pop(key, None)
 
     def set_station_time(self, time):
+        if time is None:
+            self._station_time = None
+            return
         if isinstance(time, datetime.datetime):
             time_strings = str(time).split(' ')
             self._station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
         else:
-            self._station_time = time
+            if time.format == 'datetime':
+                time_strings = str(time).split(' ')
+                self._station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
+            else:
+                self._station_time = time
 
     def get_station_time(self):
         return self._station_time
-
-#     def get_trace(self):
-#         return self._time_trace
-#
-#     def set_trace(self, trace, sampling_rate):
-#         self._time_trace = trace
-#         self._sampling_rate = sampling_rate
-#
-#     def get_sampling_rate(self):
-#         return self._sampling_rate
-#
-#     def get_times(self):
-#         return np.arange(0, len(self._time_trace) / self._sampling_rate, 1. / self._sampling_rate)
 
     def get_id(self):
         return self._station_id
@@ -103,7 +99,7 @@ class BaseStation():
         self._triggers = collections.OrderedDict()
 
     def get_trigger(self, name):
-        if(name not in self._triggers):
+        if (name not in self._triggers):
             raise ValueError("trigger with name {} not present".format(name))
         return self._triggers[name]
 
@@ -127,9 +123,10 @@ class BaseStation():
         return self._triggers
 
     def set_trigger(self, trigger):
-        if(trigger.get_name() in self._triggers):
+        if (trigger.get_name() in self._triggers):
             logger.warning(
-                "station has already a trigger with name {}. The previous trigger will be overridden!".format(trigger.get_name()))
+                "station has already a trigger with name {}. The previous trigger will be overridden!".format(
+                    trigger.get_name()))
         self._triggers[trigger.get_name()] = trigger
         self._triggered = trigger.has_triggered() or self._triggered
 
@@ -144,7 +141,7 @@ class BaseStation():
                        it returns True if any of those triggers triggered
             * if trigger name is set: return if the trigger with name 'trigger_name' has a trigger
         """
-        if(trigger_name is None):
+        if (trigger_name is None):
             return self._triggered
         else:
             return self.get_trigger(trigger_name).has_triggered()
@@ -154,7 +151,7 @@ class BaseStation():
         convenience function to set a simple trigger. The recommended interface is to set triggers through the
         set_trigger() interface.
         """
-        if(len(self._triggers) > 1):
+        if (len(self._triggers) > 1):
             raise ValueError("more then one trigger were set. Request is ambiguous")
         trigger = NuRadioReco.framework.trigger.Trigger('default')
         trigger.set_triggered(triggered)
@@ -206,7 +203,6 @@ class BaseStation():
         """
         self._particle_type = 'cr'
 
-
     # provide interface to ARIANNA specific parameters
     def get_ARIANNA_parameter(self, key):
         if not isinstance(key, parameters.ARIANNAParameters):
@@ -229,16 +225,13 @@ class BaseStation():
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
         self._ARIANNA_parameters[key] = value
 
-
-
-    def serialize(self, mode):
+    def serialize(self, save_efield_traces):
         trigger_pkls = []
         for trigger in self._triggers.values():
             trigger_pkls.append(trigger.serialize())
         efield_pkls = []
-        if(mode == 'full'):
-            for efield in self.get_electric_fields():
-                efield_pkls.append(efield.serialize(self))
+        for efield in self.get_electric_fields():
+            efield_pkls.append(efield.serialize(save_trace=save_efield_traces))
         data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 '_parameter_covariances': self._parameter_covariances,
                 '_ARIANNA_parameters': self._ARIANNA_parameters,
@@ -265,10 +258,10 @@ class BaseStation():
             self.add_electric_field(efield)
 
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'],
-                                    parameters.stationParameters)
+                                                                                     parameters.stationParameters)
 
         self._parameter_covariances = data['_parameter_covariances']
-        if('_ARIANNA_parameters') in data:
+        if ('_ARIANNA_parameters') in data:
             self._ARIANNA_parameters = data['_ARIANNA_parameters']
 
         self._station_id = data['_station_id']
