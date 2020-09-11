@@ -13,7 +13,6 @@ import six  # # used for compatibility between py2 and py3
 import warnings
 from astropy.utils.exceptions import ErfaWarning
 logger = logging.getLogger('NuRadioReco.detector')
-
 warnings.filterwarnings('ignore', category=ErfaWarning)
 
 

@@ -1,10 +1,6 @@
 import numpy as np
 import time
 import logging
-import fractions
-import copy
-from scipy import signal
-from decimal import Decimal
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.base_trace
 from NuRadioReco.modules.base.module import register_run
@@ -15,6 +11,7 @@ from NuRadioReco.utilities import ice
 from NuRadioReco.utilities import trace_utilities
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import stationParameters as stnp
+import copy
 
 
 class efieldToVoltageConverter():
@@ -102,7 +99,6 @@ class efieldToVoltageConverter():
         # for different cable delays
         times_min = []
         times_max = []
-        original_binning = None
         for iCh in det.get_channel_ids(sim_station_id):
             for electric_field in sim_station.get_electric_fields_for_channels([iCh]):
                 time_resolution = 1. / electric_field.get_sampling_rate()
@@ -173,8 +169,12 @@ class efieldToVoltageConverter():
                             index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                         else:  # signal is coming from above, so we take IOR of air
                             index_of_refraction = ice.get_refractive_index(1, site)
-                        travel_time_shift = geo_utl.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith),
-                            sim_station.get_parameter(stnp.azimuth), antenna_position, index_of_refraction)
+                        travel_time_shift = geo_utl.get_time_delay_from_direction(
+                            sim_station.get_parameter(stnp.zenith),
+                            sim_station.get_parameter(stnp.azimuth),
+                            antenna_position,
+                            index_of_refraction
+                        )
                         start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift
                         start_bin = int(round(start_time / time_resolution))
                         time_remainder = start_time - start_bin * time_resolution
