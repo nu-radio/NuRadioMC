@@ -50,7 +50,6 @@ class simulationSelector:
         t = time.time()
         efields = sim_station.get_electric_fields()
         selected_sim = False
-        j = 0
         for efield in efields:
             fft = np.abs(efield.get_frequency_spectrum())
             freq = efield.get_frequencies()

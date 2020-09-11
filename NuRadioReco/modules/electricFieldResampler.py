@@ -14,11 +14,11 @@ class electricFieldResampler:
     """
 
     def __init__(self):
+        self.__max_upsampling_factor = None
         self.begin()
 
-    def begin(self, debug=False):
+    def begin(self):
         self.__max_upsampling_factor = 5000
-        self.__debug = debug
         pass
 
     @register_run()
@@ -45,9 +45,10 @@ class electricFieldResampler:
 
             target_binning = 1. / sampling_rate
             resampling_factor = fractions.Fraction(Decimal(orig_binning / target_binning)).limit_denominator(self.__max_upsampling_factor)
-            logger.debug("resampling channel trace by a factor of {}. Original binning {:.3g}ns, target binning {:.3g}".format(resampling_factor,
-                                                                                                                                orig_binning / units.ns,
-                                                                                                                                target_binning / units.ns))
+            logger.debug("resampling channel trace by a factor of {}. Original binning {:.3g}ns, target binning {:.3g}".format(
+                resampling_factor,
+                orig_binning / units.ns,
+                target_binning / units.ns))
             new_length = int(efield.get_trace().shape[1] * resampling_factor)
             resampled_efield = np.zeros((3, new_length))  # create new data structure with new efield length
 
