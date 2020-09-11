@@ -130,7 +130,7 @@ class channelBandPassFilter:
             a dict can be used to specify a different bandwidth per channel, the key is the channel_id
         order: int (optional, default 2) or dict
             for a butterworth filter: specifies the order of the filter
-        
+
         rp: float
             The maximum ripple allowed below unity gain in the passband. Specified in decibels, as a positive number.
             (for chebyshev filter)
