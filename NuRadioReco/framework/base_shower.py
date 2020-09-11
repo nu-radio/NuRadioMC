@@ -50,5 +50,7 @@ class BaseShower:
             self._id = data['_id']
         else:
             self._id = None
-        self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'],
-                                    parameters.showerParameters)
+        self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(
+            data['_parameters'],
+            parameters.showerParameters
+        )

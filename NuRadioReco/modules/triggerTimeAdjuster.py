@@ -12,9 +12,11 @@ class triggerTimeAdjuster:
     """
 
     def __init__(self):
+        self.__trigger_name = None
+        self.__pre_trigger_time = None
         self.begin()
 
-    def begin(self, trigger_name=None, pre_trigger_time=55.*units.ns):
+    def begin(self, trigger_name=None, pre_trigger_time=55. * units.ns):
         """
         Setup
         ----
@@ -89,4 +91,3 @@ class triggerTimeAdjuster:
             trigger.set_trigger_time(self.__pre_trigger_time)
         else:
             logger.debug('Trigger {} has not triggered. Channel timings will not be changed.'.format(self.__trigger_name))
-

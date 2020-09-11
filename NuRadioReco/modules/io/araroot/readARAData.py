@@ -32,7 +32,12 @@ class readARAData:
     """
     def __init__(self):
         self.logger = logging.getLogger("NuRadioReco.readARAData")
-
+        self.__id_current_event = None
+        self.__t = None
+        self.f = None
+        self.raw_ptr = None
+        self.data_tree = None
+        self.n_events = None
 
     def begin(self, input_file):
 
@@ -42,7 +47,7 @@ class readARAData:
         Parameters
         ----------
         input_file: string
-        path to file to read
+            path to file to read
 
         """
 

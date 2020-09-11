@@ -12,7 +12,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 class efieldToVoltageConverterPerEfield():
     """
-    This module applies the antenna response to each electric field individually and stores the 
+    This module applies the antenna response to each electric field individually and stores the
     resulting voltage traces in the SimStationclass as SimChannel objects
     """
 

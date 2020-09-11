@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.channel
-import NuRadioReco.framework.parameters as parameters
+import NuRadioReco.framework.parameter_serialization
 try:
     import cPickle as pickle
 except ImportError:
@@ -12,16 +12,16 @@ logger = logging.getLogger('channel')
 
 class SimChannel(NuRadioReco.framework.channel.Channel):
     """
-    Object to store simulated channels. 
-    
-    This class is the same as the regular channel trace but has apart from the channel id also 
+    Object to store simulated channels.
+
+    This class is the same as the regular channel trace but has apart from the channel id also
     a shower and ray tracing solution id
     """
 
     def __init__(self, channel_id, shower_id, ray_tracing_id):
         """
         Initializes SimChannel object
-        
+
         Parameters
         --------
         channel_id: int

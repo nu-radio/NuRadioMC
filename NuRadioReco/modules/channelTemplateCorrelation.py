@@ -4,16 +4,13 @@ import fractions
 from decimal import Decimal
 from NuRadioReco.utilities import units
 from scipy import signal
-import matplotlib.pyplot as plt
 from radiotools import helper as hp
 from NuRadioReco.utilities import templates
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
-
+import matplotlib.pyplot as plt
 import logging
 logger = logging.getLogger('channelTemplateCorrelation')
-
-import matplotlib.pyplot as plt
 
 
 class channelTemplateCorrelation:
@@ -24,6 +21,9 @@ class channelTemplateCorrelation:
     def __init__(self, template_directory):
         self.__max_upsampling_factor = 5000
         self.__templates = templates.Templates(template_directory)
+        self.__cr_templates = None
+        self.__ref_cr_template = None
+        self.__debug = None
         self.begin()
 
     def begin(self, debug=False):
@@ -41,11 +41,19 @@ class channelTemplateCorrelation:
         return ref_template_resampled
 
     @register_run()
-    def run(self, evt, station, det, channels_to_use=[0, 1, 2, 3], cosmic_ray=False,
+    def run(self, evt, station, det, channels_to_use=None, cosmic_ray=False,
             n_templates=1):
         """
         Parameters
         -----------
+        evt: Event
+            Event to run the module on
+        station: Station
+            Station to run the module on
+        det: Detector
+            The detector description
+        channels_to_use: List of int (default: [0, 1, 2, 3])
+            List of channel IDs for which the template correlation shall be calculated
         cosmic_ray: bool
             Switch for cosmic ray and neutrino analysis. Default is neutrino templates.
         n_templates: int
@@ -58,8 +66,9 @@ class channelTemplateCorrelation:
             and then over azimuth angles of 0, 22.5 and 45 degree
             and then over zenith angles of 60, 50 and 70 degree
         """
+        if channels_to_use is None:
+            channels_to_use = [0, 1, 2, 3]
         station_id = station.get_id()
-        run = evt.get_run_number()
         event_id = int(evt.get_id())
 
         if n_templates == 1:
@@ -146,7 +155,7 @@ class channelTemplateCorrelation:
                     plt.axvline(np.mean(np.abs(xcorrs_ch)))
                     plt.axvline(np.max(np.abs(xcorrs_ch)))
                     print(np.mean(np.abs(xcorrs_ch)), np.max(np.abs(xcorrs_ch)),
-                            channel[chp.maximum_amplitude] / units.mV)
+                          channel[chp.maximum_amplitude] / units.mV)
 
                 xcorrelations['{}_ref_xcorr'.format(ref_str)] = np.abs(xcorrs_ch).mean()
                 xcorrelations['{}_ref_xcorr_all'.format(ref_str)] = np.abs(xcorrs_ch)
@@ -155,10 +164,10 @@ class channelTemplateCorrelation:
                 xcorrelations['{}_ref_xcorr_template'.format(ref_str)] = template_key[np.argmax(np.abs(xcorrs_ch))]
 
                 logger.debug("average xcorr over all templates {:.2f} +- {:.2f}, \
-                    best template is {} at position {:.2f}".format(np.abs(xcorrs_ch).mean(),
-                    np.abs(xcorrs_ch).std(),
-                    xcorrelations['{}_ref_xcorr_template'.format(ref_str)],
-                    xcorrelations['{}_ref_xcorr_time'.format(ref_str)]))
+                             best template is {} at position {:.2f}".format(np.abs(xcorrs_ch).mean(),
+                             np.abs(xcorrs_ch).std(),
+                             xcorrelations['{}_ref_xcorr_template'.format(ref_str)],
+                             xcorrelations['{}_ref_xcorr_time'.format(ref_str)]))
 
                 xcorrs.append(np.nanmean(np.abs(xcorrs_ch)))
                 xcorrs_max.append(np.nanmax(np.abs(xcorrs_ch)))
@@ -179,16 +188,14 @@ class channelTemplateCorrelation:
 
         if n_templates == 1:
 
-            xcorrelations_station = {}
-            xcorrelations_station['number_of_templates'] = n_templates
-            xcorrelations_station['{}_max_xcorr'.format(ref_str)] = np.abs(xcorrs).max()
+            xcorrelations_station = {'number_of_templates': n_templates,
+                                     '{}_max_xcorr'.format(ref_str): np.abs(xcorrs).max()}
             ref_mask = np.array([channel.get_id() in channels_to_use for channel in station.iter_channels()])
             xcorrelations_station['{0}_max_xcorr_{0}channels'.format(ref_str)] = np.abs(xcorrs[ref_mask]).max()
             xcorrelations_station['{0}_avg_xcorr_{0}channels'.format(ref_str)] = np.abs(xcorrs[ref_mask]).mean()
         else:
-            xcorrelations_station = {}
-            xcorrelations_station['number_of_templates'] = n_templates
-            xcorrelations_station['{}_max_xcorr'.format(ref_str)] = xcorrs_max.max()
+            xcorrelations_station = {'number_of_templates': n_templates,
+                                     '{}_max_xcorr'.format(ref_str): xcorrs_max.max()}
             ref_mask = np.array([channel.get_id() in channels_to_use for channel in station.iter_channels()])
             xcorrelations_station['{0}_max_xcorr_{0}channels'.format(ref_str)] = xcorrs_max[ref_mask].max()
             xcorrelations_station['{0}_avg_xcorr_{0}channels'.format(ref_str)] = xcorrs[ref_mask].max()

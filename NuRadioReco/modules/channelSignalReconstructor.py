@@ -22,15 +22,21 @@ class channelSignalReconstructor:
         self.__t = 0
         logger.setLevel(log_level)
         self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
+        self.__signal_window_start = None
+        self.__signal_window_stop = None
+        self.__noise_window_start = None
+        self.__noise_window_stop = None
+        self.__debug = None
         self.begin()
 
-    def begin(self,
-            debug=False,
-            signal_window_start = None,
-            signal_window_length = 120 * units.ns,
-            noise_window_start = None,
-            noise_window_length = None
-        ):
+    def begin(
+        self,
+        debug=False,
+        signal_window_start=None,
+        signal_window_length=120 * units.ns,
+        noise_window_start=None,
+        noise_window_length=None
+    ):
         """
         Parameters
         -----------
@@ -58,6 +64,8 @@ class channelSignalReconstructor:
         """
         Parameters
         -----------
+        station_id: int
+            ID of the station
         channel, det
             Channel, Detector
         stored_noise: bool
@@ -138,8 +146,8 @@ class channelSignalReconstructor:
         if self.__debug:
             plt.figure()
             plt.plot(times, trace)
-            plt.fill_between(times, 1.1*np.max(trace), 1.1*np.min(trace), where=noise_window_mask, color='k', alpha=.2, label='noise window')
-            plt.fill_between(times, 1.1*np.max(trace), 1.1*np.min(trace), where=signal_window_mask, color='r', alpha=.2, label='signal window')
+            plt.fill_between(times, 1.1 * np.max(trace), 1.1 * np.min(trace), where=noise_window_mask, color='k', alpha=.2, label='noise window')
+            plt.fill_between(times, 1.1 * np.max(trace), 1.1 * np.min(trace), where=signal_window_mask, color='r', alpha=.2, label='signal window')
             plt.legend()
             plt.show()
 

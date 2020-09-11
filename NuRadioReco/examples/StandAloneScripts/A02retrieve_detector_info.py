@@ -1,5 +1,4 @@
 import logging
-import numpy as np
 import datetime
 from NuRadioReco.utilities import units
 import NuRadioReco.detector.detector as detector
@@ -22,4 +21,5 @@ for channel_id in range(n_channels):
     antenna_orientation = det.get_antenna_orientation(station_id, channel_id)
     print("position of channel {:d} is {:.2f} m, {:.2f} m, {:.2f} ".format(channel_id, *position / units.m))
     print("antenna boresight direction ({:.0f}, {:.0f}), antenna rotation ({:.0f}, {:.0f})".format(*antenna_orientation / units.deg))
+
 

@@ -20,4 +20,3 @@ class channelAddCableDelay:
             cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
             self.logger.debug("cable delay of channel {} is {}ns".format(channel.get_id(), cable_delay / units.ns))
             channel.add_trace_start_time(cable_delay)
-

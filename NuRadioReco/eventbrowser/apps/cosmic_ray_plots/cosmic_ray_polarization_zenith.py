@@ -1,17 +1,14 @@
-import dash
 import json
 import plotly
 from NuRadioReco.utilities import units
-from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
-from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output, State
-from app import app
-import dataprovider
-provider = dataprovider.DataProvider()
+from NuRadioReco.eventbrowser.app import app
+import NuRadioReco.eventbrowser.dataprovider
+provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 
 layout = [
     html.Div([
@@ -20,6 +17,7 @@ layout = [
         ], style={'flex': '1'}),
     ], style={'display': 'flex'})
 ]
+
 
 @app.callback(Output('cr-polarization-zenith', 'figure'),
               [Input('filename', 'value'),
@@ -33,7 +31,6 @@ def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, station_id, j
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
     traces = []
-    keys = ariio.get_header()[station_id].keys()
     pol = []
     pol_exp = []
     zeniths = []
@@ -62,7 +59,7 @@ def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, station_id, j
     ))
 
     current_selection = json.loads(jcurrent_selection)
-    if current_selection != []:
+    if current_selection:
         for trace in traces:
             trace['selectedpoints'] = current_selection
 

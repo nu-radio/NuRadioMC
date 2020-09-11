@@ -1,0 +1,2 @@
+[flake8]
+ignore = E501, W391, E722, W503

@@ -1,7 +1,6 @@
 import numpy as np
 import scipy.signal
-
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import trace_utilities
 
 
@@ -19,7 +18,7 @@ def amp_from_energy(energy):
 
 
 def get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_rate,
-                            phase_p1=0, bandpass=None, quadratic_term=0, quadratic_term_offset = 0):
+                            phase_p1=0, bandpass=None, quadratic_term=0, quadratic_term_offset=0):
     """
     Analytic pulse as described in PhD thesis Glaser and NuRadioReco paper in the frequency domain
 
@@ -54,7 +53,6 @@ def get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_r
     df = frequencies[1] - frequencies[0]
     A = np.sign(amp_p0) * (np.abs(amp_p0)) ** 0.5
     amps = A * 10 ** (frequencies * amp_p1 + quadratic_term * (frequencies - quadratic_term_offset)**2)
-    norm = 1.
     if(bandpass is None):
         norm = -1. / (2 * amp_p1 * np.log(10))
     else:

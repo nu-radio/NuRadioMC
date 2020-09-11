@@ -8,7 +8,6 @@ import glob
 import astropy.time
 import numpy as np
 
-
 layout = html.Div([
     html.Div([
         html.Div('', id='output-dummy', style={'display': 'none'}),
@@ -143,8 +142,8 @@ def set_folder_name(name):
 @app.callback(
     Output('detector-file-dropdown', 'options'),
     [Input('folder-dummy', 'children'),
-        Input('folder-name-refresh', 'n_clicks'),
-        Input('file-type-dropdown', 'value')],
+     Input('folder-name-refresh', 'n_clicks'),
+     Input('file-type-dropdown', 'value')],
     [State('folder-name-input', 'value')]
 )
 def update_file_name_options(folder_dummy, refresh_button, file_type, folder_input):
@@ -174,10 +173,10 @@ def update_file_name_options(folder_dummy, refresh_button, file_type, folder_inp
     else:
         suffix = '/*.json'
     if context.triggered[0]['prop_id'] == 'folder-dummy.children':
-        for filename in glob.glob(folder_dummy+suffix):
+        for filename in glob.glob(folder_dummy + suffix):
             options.append({'label': filename, 'value': filename})
     else:
-        for filename in glob.glob(folder_input+suffix):
+        for filename in glob.glob(folder_input + suffix):
             options.append({'label': filename, 'value': filename})
     return options
 
@@ -185,14 +184,14 @@ def update_file_name_options(folder_dummy, refresh_button, file_type, folder_inp
 @app.callback(
     Output('output-dummy', 'children'),
     [Input('load-detector-button', 'n_clicks'),
-        Input('update-detector-time-button', 'n_clicks'),
-        Input('update-detector-event-button', 'n_clicks')],
+     Input('update-detector-time-button', 'n_clicks'),
+     Input('update-detector-event-button', 'n_clicks')],
     [State('detector-file-dropdown', 'value'),
-        State('file-type-dropdown', 'value'),
-        State('default-station-input', 'value'),
-        State('default-channel-input', 'value'),
-        State('detector-time-slider', 'value'),
-        State('detector-event-slider', 'value')])
+     State('file-type-dropdown', 'value'),
+     State('default-station-input', 'value'),
+     State('default-channel-input', 'value'),
+     State('detector-time-slider', 'value'),
+     State('detector-event-slider', 'value')])
 def open_detector(
         n_clicks,
         time_n_clicks,
@@ -237,9 +236,9 @@ def open_detector(
                     unix_times.append(dt.unix)
                     datetimes.append(dt)
         detector_provider.set_time_periods(unix_times, datetimes)
-        detector.update(datetimes[np.argmin(unix_times)])
+        detector.update(np.array(datetimes)[np.argmin(unix_times)])
     elif detector_type == 'generic_detector':
-        detector_provider.set_generic_detector(filename, default_station,default_channel)
+        detector_provider.set_generic_detector(filename, default_station, default_channel)
     elif detector_type == 'event_file':
         detector_provider.set_event_file(filename)
     return n_clicks
@@ -268,8 +267,8 @@ def show_default_settings_div(detector_type):
 @app.callback(
     Output('load-detector-button', 'disabled'),
     [Input('detector-file-dropdown', 'value'),
-        Input('file-type-dropdown', 'value'),
-        Input('default-station-input', 'value')]
+     Input('file-type-dropdown', 'value'),
+     Input('default-station-input', 'value')]
 )
 def toggle_open_button_active(filename, detector_type, default_station):
     """
@@ -294,9 +293,9 @@ def toggle_open_button_active(filename, detector_type, default_station):
 @app.callback(
     Output('detector-time-div', 'style'),
     [Input('load-detector-button', 'n_clicks'),
-    Input('file-type-dropdown', 'value')]
+     Input('file-type-dropdown', 'value')]
 )
-def show_detector_time_slider(load_detector_click,detector_type):
+def show_detector_time_slider(load_detector_click, detector_type):
     if detector_type == 'detector':
         detector_provider = NuRadioReco.detector.detector_browser.detector_provider.DetectorProvider()
         if detector_provider.get_detector() is not None:
@@ -306,11 +305,11 @@ def show_detector_time_slider(load_detector_click,detector_type):
 
 @app.callback(
     [Output('detector-time-slider', 'value'),
-        Output('detector-time-slider', 'min'),
-        Output('detector-time-slider', 'max'),
-        Output('detector-time-slider', 'marks')],
+     Output('detector-time-slider', 'min'),
+     Output('detector-time-slider', 'max'),
+     Output('detector-time-slider', 'marks')],
     [Input('output-dummy', 'children'),
-        Input('file-type-dropdown', 'value')]
+     Input('file-type-dropdown', 'value')]
 )
 def set_detector_time_slider(load_detector_click, detector_type):
     """
@@ -379,9 +378,9 @@ def show_event_selection(file_type):
 
 @app.callback(
     [Output('detector-event-slider', 'value'),
-        Output('detector-event-slider', 'max')],
+     Output('detector-event-slider', 'max')],
     [Input('output-dummy', 'children'),
-        Input('file-type-dropdown', 'value')]
+     Input('file-type-dropdown', 'value')]
 )
 def set_detector_event_slider(load_detector_click, detector_type):
     """
@@ -401,7 +400,7 @@ def set_detector_event_slider(load_detector_click, detector_type):
         return 0, 0
     if detector_type != 'event_file':
         return 0, 0
-    return detector_provider.get_current_event_i(), detector_provider.get_n_events()-1
+    return detector_provider.get_current_event_i(), detector_provider.get_n_events() - 1
 
 
 @app.callback(

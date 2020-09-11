@@ -1,7 +1,6 @@
 from NuRadioReco.detector.ARA import analog_components
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
-from NuRadioReco.utilities import units
 import time
 import logging
 
@@ -30,7 +29,6 @@ class hardwareResponseIncorporator:
         Switch sim_to_data to go from simulation to data or otherwise.
         """
         t = time.time()
-        station_id = station.get_id()
         channels = station.iter_channels()
 
         for channel in channels:
@@ -59,4 +57,3 @@ class hardwareResponseIncorporator:
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt
-

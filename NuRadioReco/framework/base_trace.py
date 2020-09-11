@@ -28,7 +28,6 @@ class BaseTrace:
             the time trace
         """
         if(not self.__time_domain_up_to_date):
-#             logger.debug("time domain is not up to date, calculating FFT on the fly")
             self._time_trace = fft.freq2time(self._frequency_spectrum, self._sampling_rate)
             self.__time_domain_up_to_date = True
             self._frequency_spectrum = None
@@ -36,8 +35,6 @@ class BaseTrace:
 
     def get_frequency_spectrum(self):
         if(self.__time_domain_up_to_date):
-#             logger.debug("frequency domain is not up to date, calculating FFT on the fly")
-#             logger.debug("time trace has shape {}".format(self._time_trace.shape))
             self._frequency_spectrum = fft.time2freq(self._time_trace, self._sampling_rate)
             self._time_trace = None
 #             logger.debug("frequency spectrum has shape {}".format(self._frequency_spectrum.shape))
@@ -117,7 +114,6 @@ class BaseTrace:
         Return: int
             number of samples in time domain
         """
-        length = 0
         if(self.__time_domain_up_to_date):
             length = self._time_trace.shape[-1]  # returns the correct length independent of the dimension of the array (channels are 1dim, efields are 3dim)
         else:
@@ -135,10 +131,10 @@ class BaseTrace:
         delta_t: float
             Time by which the trace should be shifted
         """
-        if delta_t > .1*self.get_number_of_samples()/self.get_sampling_rate():
+        if delta_t > .1 * self.get_number_of_samples() / self.get_sampling_rate():
             logger.warning('Trace is shifted by more than 10% of its length')
         spec = self.get_frequency_spectrum()
-        spec *= np.exp(-2.j*np.pi*delta_t*self.get_frequencies())
+        spec *= np.exp(-2.j * np.pi * delta_t * self.get_frequencies())
         self.set_frequency_spectrum(spec, self._sampling_rate)
 
     def serialize(self):

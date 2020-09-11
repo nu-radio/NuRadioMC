@@ -1,6 +1,5 @@
 import dash
-from flask import Flask, send_from_directory
-import os
+from flask import Flask
 
 server = Flask(__name__, static_folder='static')
 app = dash.Dash(server=server)

@@ -3,7 +3,7 @@ from NuRadioReco.detector.detector_browser.app import app
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 import NuRadioReco.detector.detector_browser.detector_provider
 from NuRadioReco.utilities import units
 import radiotools.helper as hp
@@ -67,8 +67,8 @@ def draw_station_position_map(dummy):
     for station_id in detector.get_station_ids():
         try:
             pos = detector.get_absolute_position(station_id)
-            xx.append(pos[0]/units.km)
-            yy.append(pos[1]/units.km)
+            xx.append(pos[0] / units.km)
+            yy.append(pos[1] / units.km)
             labels.append(station_id)
         except:
             continue
