@@ -1,9 +1,6 @@
 import numpy as np
 import time
 import logging
-import fractions
-from scipy import signal
-from decimal import Decimal
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.base_trace
 from NuRadioReco.modules.base.module import register_run
@@ -14,6 +11,7 @@ from NuRadioReco.utilities import ice
 from NuRadioReco.utilities import trace_utilities
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import stationParameters as stnp
+import copy
 
 
 class efieldToVoltageConverter():
@@ -101,10 +99,9 @@ class efieldToVoltageConverter():
         # for different cable delays
         times_min = []
         times_max = []
-        original_binning = None
         for iCh in det.get_channel_ids(sim_station_id):
             for electric_field in sim_station.get_electric_fields_for_channels([iCh]):
-                original_binning = 1. / electric_field.get_sampling_rate()
+                time_resolution = 1. / electric_field.get_sampling_rate()
                 cab_delay = det.get_cable_delay(sim_station_id, iCh)
                 t0 = electric_field.get_trace_start_time() + cab_delay
                 # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
@@ -125,10 +122,7 @@ class efieldToVoltageConverter():
                 if(not np.isnan(t0)):  # trace start time is None if no ray tracing solution was found and channel contains only zeros
                     times_min.append(t0)
                     times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
-                    self.logger.debug(f"channel {iCh} shower {electric_field.get_shower_id()}, ray {electric_field.get_ray_tracing_solution_id()} trace start time {electric_field.get_trace_start_time()}, cab_delty {cab_delay}, tracelength {electric_field.get_number_of_samples() / electric_field.get_sampling_rate()}")
-        if original_binning is None:
-            return
-        time_resolution = min(self.__time_resolution, original_binning)
+                    self.logger.debug("trace start time {}, cab_delty {}, tracelength {}".format(electric_field.get_trace_start_time(), cab_delay, electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
         times_min = np.array(times_min)
         times_max = np.array(times_max)
         if times_min.min() < 0:
@@ -162,20 +156,8 @@ class efieldToVoltageConverter():
                 # in a measurement, all channels have the same physical start time
                 # so we need to create one long trace that can hold all the different channel times
                 # to achieve a good time resolution, we upsample the trace first.
-                orig_binning = 1. / electric_field.get_sampling_rate()  # assume that all channels have the same sampling rate
-                target_binning = time_resolution
-                resampling_factor = fractions.Fraction(Decimal(orig_binning / target_binning)).limit_denominator(self.__max_upsampling_factor)
-                efield_trace = electric_field.get_trace()
-                new_length = int(efield_trace.shape[1] * resampling_factor)
-                resampled_efield = np.zeros((3, new_length))  # create new data structure with new efield length
-                for iE in range(len(efield_trace)):
-                    trace = efield_trace[iE]
-                    if(resampling_factor.numerator != 1):
-                        trace = signal.resample(trace, resampling_factor.numerator * len(trace))
-                    if(resampling_factor.denominator != 1):
-                        trace = signal.resample(trace, len(trace) / resampling_factor.denominator)
-                    resampled_efield[iE] = trace
-
+                new_efield = NuRadioReco.framework.base_trace.BaseTrace()  # create new data structure with new efield length
+                new_efield.set_trace(copy.copy(electric_field.get_trace()), electric_field.get_sampling_rate())
                 new_trace = np.zeros((3, trace_length_samples))
                 # calculate the start bin
                 if(not np.isnan(electric_field.get_trace_start_time())):
@@ -187,23 +169,31 @@ class efieldToVoltageConverter():
                             index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                         else:  # signal is coming from above, so we take IOR of air
                             index_of_refraction = ice.get_refractive_index(1, site)
+
                         travel_time_shift = geo_utl.get_time_delay_from_direction(
                             sim_station.get_parameter(stnp.zenith),
                             sim_station.get_parameter(stnp.azimuth),
                             antenna_position,
                             index_of_refraction
                         )
-                        start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift) / time_resolution))
+                        start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift
+                        start_bin = int(round(start_time / time_resolution))
+                        time_remainder = start_time - start_bin * time_resolution
                     else:
-                        start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min()) / time_resolution))
-                    self.logger.debug('channel {}, start time {:.4f} = bin {:d}, ray solution {}'.format(channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
-                    new_trace[:, start_bin:(start_bin + len(trace))] = resampled_efield
+                        start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min()
+                        start_bin = int(round(start_time / time_resolution))
+                        time_remainder = start_time - start_bin * time_resolution
+                    self.logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
+                    new_efield.apply_time_shift(time_remainder)
+                    new_trace[:, start_bin:(start_bin + new_efield.get_number_of_samples())] = new_efield.get_trace()
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
                 trace_object.set_trace(new_trace, 1. / time_resolution)
+                trace_object.set_trace_start_time(np.min(times_min) - cab_delay)
                 if(self.__debug):
-                    axes[0].plot(trace_object.get_times(), new_trace[1], label="eTheta {}".format(electric_field[efp.ray_path_type]))
-                    axes[0].plot(trace_object.get_times(), new_trace[2], label="ePhi {}".format(electric_field[efp.ray_path_type]))
-
+                    axes[0].plot(trace_object.get_times(), new_trace[1], label="eTheta {}".format(electric_field[efp.ray_path_type]), c='C0')
+                    axes[0].plot(trace_object.get_times(), new_trace[2], label="ePhi {}".format(electric_field[efp.ray_path_type]), c='C0', linestyle=':')
+                    axes[0].plot(electric_field.get_times(), electric_field.get_trace()[1], c='C1', linestyle='-', alpha=.5)
+                    axes[0].plot(electric_field.get_times(), electric_field.get_trace()[2], c='C1', linestyle=':', alpha=.5)
                 ff = trace_object.get_frequencies()
                 efield_fft = trace_object.get_frequency_spectrum()
 
