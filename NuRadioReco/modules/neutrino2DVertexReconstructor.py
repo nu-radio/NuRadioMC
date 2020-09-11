@@ -21,6 +21,28 @@ class neutrino2DVertexReconstructor:
             times are stored
         """
         self.__lookup_table_location = lookup_table_location
+        self.__detector = None
+        self.__lookup_table = {}
+        self.__header = {}
+        self.__channel_ids = None
+        self.__station_id = None
+        self.__channel_pairs = None
+        self.__rec_x = None
+        self.__rec_z = None
+        self.__sampling_rate = None
+        self.__channel_pair = None
+        self.__channel_positions = None
+        self.__correlation = None
+        self.__max_corr_index = None
+        self.__current_ray_types = None
+        self.__ray_types = [
+            ['direct', 'direct'],
+            ['reflected', 'reflected'],
+            ['refracted', 'refracted'],
+            ['direct', 'reflected'],
+            ['reflected', 'direct'],
+            ['direct', 'refracted'],
+            ['refracted', 'direct']]
 
     def begin(self, station_id, channel_ids, detector):
         """
@@ -51,14 +73,6 @@ class neutrino2DVertexReconstructor:
                 self.__channel_pairs.append([channel_ids[i], channel_ids[j]])
         self.__lookup_table = {}
         self.__header = {}
-        self.__ray_types = [
-            ['direct', 'direct'],
-            ['reflected', 'reflected']
-            ['refracted', 'refracted'],
-            ['direct', 'reflected'],
-            ['reflected', 'direct'],
-            ['direct', 'refracted'],
-            ['refracted', 'direct']]
         for channel_id in channel_ids:
             channel_z = abs(detector.get_relative_position(station_id, channel_id)[2])
             if channel_z not in self.__lookup_table.keys():
@@ -202,13 +216,11 @@ class neutrino2DVertexReconstructor:
         return res
 
     def get_correlation_for_pos(self, d_hor, z):
-        # get_time_func = np.vectorize(self.get_signal_travel_time)
         t1 = self.get_signal_travel_time(d_hor[0], z, self.__current_ray_types[0], self.__channel_pair[0])
         t2 = self.get_signal_travel_time(d_hor[1], z, self.__current_ray_types[1], self.__channel_pair[1])
         delta_t = t1 - t2
         delta_t = delta_t.astype(float)
         corr_index = self.__correlation.shape[0] / 2 + np.round(delta_t * self.__sampling_rate)
-        res = np.zeros_like(d_hor[0])
         mask = (~np.isnan(delta_t)) & (corr_index > 0) & (corr_index < self.__correlation.shape[0]) & (~np.isinf(delta_t))
         corr_index[~mask] = 0
         res = np.take(self.__correlation, corr_index.astype(int))
@@ -254,6 +266,6 @@ class neutrino2DVertexReconstructor:
                     t_2 = self.get_signal_travel_time(np.array([self.__rec_x]), np.array([self.__rec_z]), ray_type, ch2.get_id())[0]
                     delta_t = t_1 - t_2
                     corr_index = int(correlation.shape[0] / 2 + np.round(delta_t * self.__sampling_rate))
-                    if corr_index > 0 and corr_index < len(correlation):
+                    if 0 < corr_index < len(correlation):
                         ray_type_correlations[i_ray_type] += correlation[int(corr_index)]
         return ray_types[np.argmax(ray_type_correlations)]
