@@ -3,6 +3,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import SimplePhasedTrigger
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 import numpy as np
+from scipy import signal
 from scipy import constants
 import logging
 
@@ -218,8 +219,12 @@ def phased_trigger(station,
 
         else:
 
-            trace = np.copy(channel.get_trace())  # get the enveloped trace
+            trace = np.copy(channel.get_trace())  # get the trace
             times = np.copy(channel.get_times())  # get the corresponding time bins
+            if(upsampling_factor >= 2):
+                trace = signal.resample(trace, upsampling_factor * len(trace))
+                dt = times[1] - times[0]
+                times = np.arange(len(trace), dt / upsampling_factor) + times[0]
 
         if cut_times != (None, None):
             left_bin = np.argmin(np.abs(times - cut_times[0]))
