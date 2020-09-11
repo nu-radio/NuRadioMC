@@ -5,7 +5,6 @@ import NuRadioReco.detector.generic_detector
 import NuRadioReco.modules.io.event_parser_factory
 import numpy as np
 import logging
-import pickle
 import time
 
 VERSION = 2
@@ -49,6 +48,21 @@ class NuRadioRecoio(object):
         t = time.time()
         if log_level is not None:
             self.logger.setLevel(log_level)
+        # Initialize attributes
+        self._filenames = None
+        self.__n_events = None
+        self._bytes_start_header = None
+        self._bytes_length_header = None
+        self._bytes_start = None
+        self._bytes_length = None
+        self.__event_ids = None
+        self.__open_files = None
+        self._detector_dicts = None
+        self.__detectors = None
+        self._event_specific_detector_changes = None
+        self.__event_headers = None
+        self._current_event_id = None
+        self._current_run_number = None
         self.__fail_on_version_mismatch = fail_on_version_mismatch
         self.__fail_on_minor_version_mismatch = fail_on_minor_version_mismatch
         self.__parse_header = parse_header
@@ -84,13 +98,25 @@ class NuRadioRecoio(object):
         self.__file_version = int.from_bytes(self._get_file(iF).read(6), 'little')
         self.__file_version_minor = int.from_bytes(self._get_file(iF).read(6), 'little')
         if(self.__file_version != VERSION):
-            self.logger.error("data file not readable. File has version {}.{} but current version is {}.{}".format(self.__file_version, self.__file_version_minor,
-                                                                                                              VERSION, VERSION_MINOR))
+            self.logger.error(
+                "data file not readable. File has version {}.{} but current version is {}.{}".format(
+                    self.__file_version,
+                    self.__file_version_minor,
+                    VERSION,
+                    VERSION_MINOR
+                )
+            )
             if(self.__fail_on_version_mismatch):
                 raise IOError
         if(self.__file_version_minor != VERSION_MINOR):
-            self.logger.error("data file might not readable. File has version {}.{} but current version is {}.{}".format(self.__file_version, self.__file_version_minor,
-                                                                                                                    VERSION, VERSION_MINOR))
+            self.logger.error(
+                "data file might not readable. File has version {}.{} but current version is {}.{}".format(
+                    self.__file_version,
+                    self.__file_version_minor,
+                    VERSION,
+                    VERSION_MINOR
+                )
+            )
             if(self.__fail_on_minor_version_mismatch):
                 raise IOError
         self.__scan_files = NuRadioReco.modules.io.event_parser_factory.scan_files_function(self.__file_version, self.__file_version_minor)
@@ -285,7 +311,7 @@ class NuRadioRecoio(object):
         # (in case there are event-specific changes) and return  it
         if 'generic_detector' in self._detector_dicts[self._current_file_id].keys():
             if self._detector_dicts[self._current_file_id]['generic_detector']:
-                    self.__detectors[self._current_file_id].set_event(self._current_run_number, self._current_event_id)
+                self.__detectors[self._current_file_id].set_event(self._current_run_number, self._current_event_id)
         return self.__detectors[self._current_file_id]
 
     def get_n_events(self):

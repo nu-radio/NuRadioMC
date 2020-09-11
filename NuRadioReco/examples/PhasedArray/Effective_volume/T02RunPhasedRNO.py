@@ -31,6 +31,7 @@ from NuRadioReco.utilities.traceWindows import get_window_around_maximum
 import numpy as np
 import logging
 from NuRadioReco.modules.base import module
+
 logger = module.setup_logger(level=logging.WARNING)
 
 # initialize detector sim modules
@@ -74,8 +75,10 @@ class mySimulation(simulation.simulation):
 
         if self._is_simulate_noise():
             max_freq = 0.5 / self._dt
-            norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms, min_freq=0 * units.MHz,
+            norm = self._get_noise_normalization(
+                self._station.get_id())  # assuming the same noise level for all stations
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms,
+                                         min_freq=0 * units.MHz,
                                          max_freq=max_freq, type='rayleigh', bandwidth=norm)
 
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
@@ -109,9 +112,10 @@ parser.add_argument('--outputfilenameNuRadioReco', type=str, nargs='?', default=
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
 
-sim = mySimulation(inputfilename=args.inputfilename,
-                            outputfilename=args.outputfilename,
-                            detectorfile=args.detectordescription,
-                            outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-                            config_file=args.config)
+sim = mySimulation(
+    inputfilename=args.inputfilename,
+    outputfilename=args.outputfilename,
+    detectorfile=args.detectordescription,
+    outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
+    config_file=args.config)
 sim.run()

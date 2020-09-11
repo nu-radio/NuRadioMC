@@ -8,9 +8,6 @@ logger = logging.getLogger('channelAntennaDedispersion')
 
 
 class channelAntennaDedispersion:
-    """
-    
-    """
 
     def __init__(self):
 
@@ -21,7 +18,6 @@ class channelAntennaDedispersion:
         antenna_name = det.get_antenna_model(station_id, channel_id)
         antenna = self._provider.load_antenna_pattern(antenna_name)
         zen_ori, az_ori, zen_rot, az_rot = det.get_antenna_orientation(station_id, channel_id)
-        zen, az = None, None
         if("LPDA" in antenna_name):
             zen = zen_ori  # the sensitive direction of an LPDA is the boresight direction
             az = az_ori

@@ -37,8 +37,8 @@ class triggerSimulator:
         self.begin()
         self.logger = logging.getLogger('NuRadioReco.simpleThresholdTrigger')
 
-    def begin(self, debug=False):
-        self.__debug = debug
+    def begin(self):
+        return
 
     @register_run()
     def run(self, evt, station, det,
@@ -52,6 +52,12 @@ class triggerSimulator:
 
         Parameters
         ----------
+        evt: Event
+            The event to run the module on
+        station: Station
+            The station to run the module on
+        det: Detector
+            The detector description
         number_concidences: int
             number of channels that are requried in coincidence to trigger a station
         threshold: float or dict of floats

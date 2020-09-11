@@ -3,7 +3,6 @@ import json
 import NuRadioReco.modules.io.eventReader
 import argparse
 import numpy as np
-import sys
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
@@ -74,7 +73,7 @@ def assertDeepAlmostEqual(expected, actual, *args, **kwargs):
     'assert' methods.
     :type test_case: :py:class:`unittest.TestCase` object
     """
-    is_root = not '__trace' in kwargs
+    is_root = '__trace' not in kwargs
     trace = kwargs.pop('__trace', 'ROOT')
     try:
         if isinstance(expected, (int, float, complex)):
@@ -88,12 +87,19 @@ def assertDeepAlmostEqual(expected, actual, *args, **kwargs):
         elif isinstance(expected, dict):
             for key in actual:
                 if key not in expected:
-                    print('Key {} found in reconstruction but not in reference. '\
-                        'This is fine if you just added it, but you should update '\
-                        'the reference file to include it in future tests!'.format(key))
+                    print(
+                        'Key {} found in reconstruction but not in reference. '
+                        'This is fine if you just added it, but you should update '
+                        'the reference file to include it in future tests!'.format(key)
+                    )
                 else:
-                    assertDeepAlmostEqual(expected[key], actual[key],
-                                      __trace=repr(key), *args, **kwargs)
+                    assertDeepAlmostEqual(
+                        expected[key],
+                        actual[key],
+                        __trace=repr(key),
+                        *args,
+                        **kwargs
+                    )
         else:
             np.testing.assert_equal(actual, expected)
     except AssertionError as exc:

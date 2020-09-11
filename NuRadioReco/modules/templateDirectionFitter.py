@@ -1,9 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from scipy import constants
-
 from radiotools import helper as hp
-
 from NuRadioReco.utilities import units, ice
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
@@ -24,7 +22,7 @@ class templateDirectionFitter:
         pass
 
     @register_run()
-    def run(self, evt, station, det, debug=True, channels_to_use=[0, 1, 2, 3], cosmic_ray=False):
+    def run(self, evt, station, det, channels_to_use=None, cosmic_ray=False):
         """
         Fits the direction using templates
 
@@ -36,14 +34,14 @@ class templateDirectionFitter:
 
         det: detector
 
-        debug: bool
-            set debug
-        channels_to_use: list
+        channels_to_use: list (default: [0, 1, 2, 3]
             antenna to use for fit
         cosmic_ray: bool
             type to set correlation template
 
         """
+        if channels_to_use is None:
+            channels_to_use = [0, 1, 2, 3]
         if(cosmic_ray):
             type_str = 'cr'
             xcorrelations = chp.cr_xcorrelations

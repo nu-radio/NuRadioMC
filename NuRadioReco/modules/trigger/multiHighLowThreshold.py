@@ -21,7 +21,7 @@ def get_low_triggers(trace, threshold):
     return np.convolve(m1, c2, mode='full')[:len(m1)] > 0
 
 
-def get_multiple_high_low_trigger(trace, high_threshold, low_threashold, n_high_lows, time_coincidence=10 * units.ns, dt=1 * units.ns):
+def get_multiple_high_low_trigger(trace, high_threshold, low_threshold, n_high_lows, time_coincidence=10 * units.ns, dt=1 * units.ns):
     """
     calculats a multiple high low threshold crossings in a time coincidence window
 
@@ -46,7 +46,7 @@ def get_multiple_high_low_trigger(trace, high_threshold, low_threashold, n_high_
         the bins where the trigger condition is satisfied
     """
     trig_up = get_high_triggers(trace, high_threshold)
-    trig_low = get_low_triggers(trace, low_threashold)
+    trig_low = get_low_triggers(trace, low_threshold)
     nc = int(time_coincidence / dt)
     c1 = np.ones(nc)
 
@@ -80,7 +80,7 @@ class triggerSimulator:
             n_high_lows=5,
             coinc_window=200 * units.ns,
             number_concidences=2,
-            triggered_channels=[0, 1, 2, 3],
+            triggered_channels=None,
             trigger_name="default_high_low",
             set_not_triggered=False):
         """
@@ -88,6 +88,12 @@ class triggerSimulator:
 
         Parameters
         ----------
+        evt: Event
+            Event to run the module on
+        station: Station
+            Station to run the module on
+        det: Detector
+            The detector description
         threshold_high: float or dict of floats
             the threshold voltage that needs to be crossed on a single channel on the high side
             a dict can be used to specify a different threshold per channel where the key is the channel id
@@ -104,9 +110,6 @@ class triggerSimulator:
             number of channels that are requried in coincidence to trigger a station
         triggered_channels: array of ints or None
             channels ids that are triggered on, if None trigger will run on all channels
-        cut_trace: bool
-            if true, trace is cut to the correct length (50ns before the trigger,
-            max trace length is set according to detector description)
         trigger_name: string
             a unique name of this particular trigger
         set_not_triggered: bool (default: False)
@@ -114,14 +117,14 @@ class triggerSimulator:
 
         """
         t = time.time()
+        if triggered_channels is None:
+            triggered_channels = [0, 1, 2, 3]
         if threshold_low >= threshold_high:
             logger.error("Impossible trigger configuration, high {0} low {1}.".format(threshold_high, threshold_low))
             raise NotImplementedError
 
         sampling_rate = station.get_channel(0).get_sampling_rate()
         if not set_not_triggered:
-            max_signal = 0
-
             triggerd_bins_channels = []
             dt = 1. / sampling_rate
             if triggered_channels is None:

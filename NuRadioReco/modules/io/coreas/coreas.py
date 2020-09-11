@@ -73,9 +73,6 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
     """
     # loop over all coreas stations, rotate to ARIANNA CS and save to simulation branch
     zenith, azimuth, magnetic_field_vector = get_angles(corsika)
-
-    position = observer.attrs['position']
-
     data = np.copy(observer)
     data[:, 1], data[:, 2] = -observer[:, 2], observer[:, 1]
 

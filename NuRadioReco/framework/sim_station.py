@@ -2,8 +2,6 @@ from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_station
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_channel
-import numpy as np
-from six import iteritems
 import collections
 try:
     import cPickle as pickle
@@ -42,7 +40,7 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
         adds a NuRadioReco.framework.channel ot the SimStation object
         """
         if not isinstance(channel, NuRadioReco.framework.sim_channel.SimChannel):
-            raise AttributeError(f"channel needs to be of type NuRadioReco.framework.sim_channel")
+            raise AttributeError("channel needs to be of type NuRadioReco.framework.sim_channel")
         if(channel.get_unique_identifier() in self.__channels):
             raise AttributeError(f"channel with the unique identifier {channel.get_unique_identifier()} is already present in SimStation")
         self.__channels[channel.get_unique_identifier()] = channel

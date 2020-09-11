@@ -35,7 +35,7 @@ def update_station_info_table(station_id):
         html.Div(
             'Station {}'.format(station_id),
             className='custom-table-header'
-            )
+        )
     ]
     for key, value in station_info.items():
         table_rows.append(html.Div([

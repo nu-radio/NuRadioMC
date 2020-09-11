@@ -2,7 +2,7 @@ from __future__ import print_function
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from NuRadioReco.utilities import units, fft
-from numpy.random import RandomState
+import numpy.random
 import logging
 
 
@@ -57,7 +57,7 @@ class channelGenericNoiseAdder:
 
         fftprec = max(abs(np.fft.ifft(f) - np.fft.ifft(f).real))
         fftcheck = fftprec - np.finfo(float).resolution
-        self.logger.debug(' fftnoise: fft precision {} < {} (float resolution) is : {} !'.format(fftprec , np.finfo(float).resolution, fftcheck < 0))
+        self.logger.debug(' fftnoise: fft precision {} < {} (float resolution) is : {} !'.format(fftprec, np.finfo(float).resolution, fftcheck < 0))
 
         if fftcheck >= 0:
             self.logger.warning(' fftnoise: Non negligibe imagniary part of inverse FFT: {} '.format(fftcheck))
@@ -110,14 +110,14 @@ class channelGenericNoiseAdder:
 
         n_samples_freq = len(frequencies)
 
-        if min_freq == None or min_freq == 0:
+        if min_freq is None or min_freq == 0:
             # remove DC component; fftfreq returns the DC component as 0-th element and the negative
             # frequencies at the end, so frequencies[1] should be the lowest frequency; it seems safer,
             # to take the difference between two frequencies to determine the minimum frequency, in case
             # future versions of numpy change the order and maybe put the negative frequencies first
             min_freq = 0.5 * (frequencies[2] - frequencies[1])
             self.logger.info(' Set min_freq from None to {} MHz!'.format(min_freq / units.MHz))
-        if max_freq == None:
+        if max_freq is None:
             # sample up to Nyquist frequency
             max_freq = max(frequencies)
             self.logger.info(' Set max_freq from None to {} GHz!'.format(max_freq / units.GHz))
@@ -136,7 +136,7 @@ class channelGenericNoiseAdder:
             amplitude *= 1. / (bandwidth / (sampling_bandwidth)) ** 0.5  # normalize noise level to the bandwidth its generated for
 
         ampl = np.zeros(n_samples_freq)
-        sigscale = (1.*n_samples) / np.sqrt(nbinsactive)
+        sigscale = (1. * n_samples) / np.sqrt(nbinsactive)
         if type == 'perfect_white':
             ampl[selection] = amplitude * sigscale
         elif type == 'rayleigh':
@@ -156,8 +156,10 @@ class channelGenericNoiseAdder:
             return noise
 
     def __init__(self):
-        self.begin()
+        self.__debug = None
+        self.__random_generator = None
         self.logger = logging.getLogger('NuRadioReco.channelGenericNoiseAdder')
+        self.begin()
 
     def begin(self, debug=False, seed=None):
         self.__debug = debug
@@ -167,12 +169,12 @@ class channelGenericNoiseAdder:
 
     @register_run()
     def run(self, event, station, detector,
-                            amplitude=1 * units.mV,
-                            min_freq=50 * units.MHz,
-                            max_freq=2000 * units.MHz,
-                            type='perfect_white',
-                            excluded_channels=[],
-                            bandwidth=None):
+            amplitude=1 * units.mV,
+            min_freq=50 * units.MHz,
+            max_freq=2000 * units.MHz,
+            type='perfect_white',
+            excluded_channels=None,
+            bandwidth=None):
 
         """
         Add noise to given event.
@@ -205,7 +207,8 @@ class channelGenericNoiseAdder:
             If `bandwidth` is larger then (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as `None`
 
         """
-
+        if excluded_channels is None:
+            excluded_channels = []
         channels = station.iter_channels()
         for channel in channels:
             if(channel.get_id() in excluded_channels):
@@ -214,19 +217,18 @@ class channelGenericNoiseAdder:
             trace = channel.get_trace()
             sampling_rate = channel.get_sampling_rate()
 
-            tmp_ampl = None
             if(isinstance(amplitude, dict)):
                 tmp_ampl = amplitude[channel.get_id()]
             else:
                 tmp_ampl = amplitude
 
             noise = self.bandlimited_noise(min_freq=min_freq,
-                                          max_freq=max_freq,
-                                          n_samples=trace.shape[0],
-                                          sampling_rate=sampling_rate,
-                                          amplitude=tmp_ampl,
-                                          type=type,
-                                          bandwidth=bandwidth)
+                                           max_freq=max_freq,
+                                           n_samples=trace.shape[0],
+                                           sampling_rate=sampling_rate,
+                                           amplitude=tmp_ampl,
+                                           type=type,
+                                           bandwidth=bandwidth)
 
             if self.__debug:
                 new_trace = trace + noise
