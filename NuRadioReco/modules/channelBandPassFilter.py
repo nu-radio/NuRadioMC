@@ -136,8 +136,8 @@ class channelBandPassFilter:
             (for chebyshev filter)
 
             a dict can be used to specify a different bandwidth per channel, the key is the channel_id
-            
-        
+
+
 
         Returns
         -----------------
