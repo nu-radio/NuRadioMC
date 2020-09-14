@@ -123,7 +123,6 @@ class IftElectricFieldReconstructor:
         N_iterations = 5
         N_samples = 15
         min_energy = None
-        min_energy = None
         for k in range(N_iterations):
             print('----------->>>   {}   <<<-----------'.format(k))
             KL = ift.MetricGaussianKL(median, H, N_samples, mirror_samples=True)
@@ -355,7 +354,7 @@ class IftElectricFieldReconstructor:
         sampling_rate = station.get_channel(self.__used_channel_ids[0]).get_sampling_rate()
         times = np.arange(self.__data_traces.shape[1])/sampling_rate
         freqs = freq_space.get_k_length_array().val/self.__data_traces.shape[1]*sampling_rate
-        for i in range(10):
+        for i in range(5):
             x = ift.from_random('normal', self.__efield_trace_operators[0].domain)
             efield_spec_sample = self.__efield_spec_operators[0].force(x)
             ax1_1.plot(freqs/units.MHz, np.abs(efield_spec_sample.val))
