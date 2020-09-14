@@ -11,6 +11,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import radiotools.helper as hp
 import NuRadioMC.SignalProp.analyticraytracing
 import NuRadioMC.utilities.medium
+import NuRadioMC.SignalGen.askaryan
 
 class neutrino2DVertexReconstructor:
 
@@ -26,7 +27,7 @@ class neutrino2DVertexReconstructor:
         """
         self.__lookup_table_location = lookup_table_location
 
-    def begin(self, station_id, channel_ids, detector, passband=None):
+    def begin(self, station_id, channel_ids, detector, passband=None, template=None):
         """
         General settings for vertex reconstruction
 
@@ -38,7 +39,7 @@ class neutrino2DVertexReconstructor:
             IDs of the channels to be used for the reconstruction
         detector: Detector or GenericDetector
             Detector description for the detector used in the reconstruction
-        filter_passband: array of float or None
+        passband: array of float or None
             Passband of the filter that should be applied to channel traces before
             calculating the correlation. If None is passed, no filter is applied
         """
@@ -66,6 +67,7 @@ class neutrino2DVertexReconstructor:
                 f = NuRadioReco.utilities.io_utilities.read_pickle('{}/lookup_table_{}.p'.format(self.__lookup_table_location, int(abs(channel_z))))
                 self.__header[int(channel_z)] = f['header']
                 self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
+        self.__template = template
 
 
     def run(self, station, max_distance, z_width, grid_spacing, direction_guess=None, debug=False):
@@ -125,25 +127,34 @@ class neutrino2DVertexReconstructor:
                 w, h = scipy.signal.freqs(b, a, ch1.get_frequencies())
                 spec1 *= h
                 spec2 *= h
-
             trace1 = fft.freq2time(spec1, ch1.get_sampling_rate())
-            t_max1 = ch1.get_times()[np.argmax(np.abs(trace1))]
             trace2 = fft.freq2time(spec2, ch2.get_sampling_rate())
-            t_max2 = ch2.get_times()[np.argmax(np.abs(trace2))]
-            if snr1 > snr2:
-                trace1[np.abs(ch1.get_times()-t_max1)>corr_range] = 0
-                t_max = t_max1
-                max_channel = ch1
+            if self.__template is not None:
+                corr_1 = hp.get_normalized_xcorr(trace1, self.__template)
+                corr_2 = hp.get_normalized_xcorr(trace2, self.__template)
+                self.__correlation = np.zeros_like(corr_1)
+                sample_shifts = np.arange(-len(corr_1) // 2, len(corr_1) // 2, dtype=int)
+                toffset = sample_shifts / ch1.get_sampling_rate()
+                for i_shift, shift_sample in enumerate(sample_shifts):
+                    self.__correlation[i_shift] = np.max(corr_1 * np.roll(corr_2, shift_sample))
+
             else:
-                trace2[np.abs(ch2.get_times()-t_max2)>corr_range] = 0
-                t_max = t_max2
-                max_channel = ch2
-            self.__correlation = np.abs(scipy.signal.correlate(trace1, trace2))
+                t_max1 = ch1.get_times()[np.argmax(np.abs(trace1))]
+                t_max2 = ch2.get_times()[np.argmax(np.abs(trace2))]
+                if snr1 > snr2:
+                    trace1[np.abs(ch1.get_times()-t_max1)>corr_range] = 0
+                    t_max = t_max1
+                    max_channel = ch1
+                else:
+                    trace2[np.abs(ch2.get_times()-t_max2)>corr_range] = 0
+                    t_max = t_max2
+                    max_channel = ch2
+                self.__correlation = np.abs(scipy.signal.correlate(trace1, trace2))
+                toffset = -(np.arange(0, self.__correlation.shape[0]) - self.__correlation.shape[0] / 2.) / ch1.get_sampling_rate()
             if np.sum(np.abs(self.__correlation)) > 0:
                 self.__correlation /= np.sum(np.abs(self.__correlation))
             corr_snr = np.max(self.__correlation)/np.mean(self.__correlation[self.__correlation>0])
             arg_max_corr = np.argmax(self.__correlation)
-            toffset = -(np.arange(0, self.__correlation.shape[0]) - self.__correlation.shape[0] / 2.) / ch1.get_sampling_rate()
             self.__sampling_rate = ch1.get_sampling_rate()
             self.__channel_pair = channel_pair
             self.__channel_positions = [self.__detector.get_relative_position(self.__station_id, channel_pair[0]), self.__detector.get_relative_position(self.__station_id, channel_pair[1])]
