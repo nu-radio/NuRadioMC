@@ -11,13 +11,13 @@ class noiseImporter:
     """
     Imports recorded noise from ARIANNA station. The recorded noise needs to match the station geometry and sampling
     as chosen with channelResampler and channelLengthAdjuster
-    
-    For different stations, new noise files need to be used. 
+
+    For different stations, new noise files need to be used.
     Collect forced triggers from any type of station to use for analysis.
-    A seizable fraction of data is recommended for accuracy. 
-    
+    A seizable fraction of data is recommended for accuracy.
+
     The noise will be random. This module therefore might produce non-reproducible results on a single event basis,
-    if run several times.  
+    if run several times.
     """
 
     def begin(self, noise_files):

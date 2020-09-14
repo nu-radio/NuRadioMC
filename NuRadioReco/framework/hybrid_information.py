@@ -1,6 +1,7 @@
 import pickle
 import NuRadioReco.framework.hybrid_shower
 
+
 class HybridInformation():
     def __init__(self):
         self.__hybrid_showers = []

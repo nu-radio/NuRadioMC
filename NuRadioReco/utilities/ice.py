@@ -1,4 +1,3 @@
-import numpy as np
 
 """
 implementation of ice models

@@ -1,27 +1,19 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from NuRadioReco.modules.base.module import register_run
 import os
-import time
 import numpy as np
 from numpy.polynomial import polynomial as poly
 from scipy import signal
-from scipy.signal import correlate
 from scipy import optimize as opt
 import matplotlib.pyplot as plt
-
-from radiotools import plthelpers as php
 from radiotools import helper as hp
 from radiotools import coordinatesystems
-
-from NuRadioReco.detector import detector
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units, fft, trace_utilities
 from NuRadioReco.utilities import analytic_pulse as pulse
 from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
-
 from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import NuRadioReco.framework.electric_field
 
@@ -114,7 +106,7 @@ def covariance(function, vmin, up, fast=False):
                 #     then grow exponentially until zero+ is crossed,
 
                 if IsNonsense(x(h)):
-                    raise StandardError("profile does not cross fmin + up")
+                    raise Exception("profile does not cross fmin + up")
 
                 t = self(x(h))
 
@@ -125,16 +117,14 @@ def covariance(function, vmin, up, fast=False):
                     b = h
                     while True:
                         if 2 * (b - a) < eps * (b + a):
-                            raise StandardError("profile does not cross fmin + up")
+                            raise Exception("profile does not cross fmin + up")
                     h = (a + b) / 2.0
                     t = self(x(h))
 
                     if IsNonsense(t):
-                        b = h
                         continue
 
                     if t < 0:
-                        a = h
                         continue
 
                     return x(h)
@@ -165,7 +155,7 @@ def covariance(function, vmin, up, fast=False):
 
         func = Func(function, vmin, up)
         d = np.empty((n, n))
-        for i in xrange(n):
+        for i in range(n):
             func.SetDirection(i, i)
 
             xu = func.GetBoundary(+1)
@@ -177,12 +167,12 @@ def covariance(function, vmin, up, fast=False):
             x = 0.5 * (x1 + x2)
 
             if x < 0:
-                raise StandardError("x may not be negative")
+                raise Exception("x may not be negative")
 
             d[i, i] = x
 
-        for i in xrange(n - 1):
-            for j in xrange(i + 1, n):
+        for i in range(n - 1):
+            for j in range(i + 1, n):
                 func.SetDirection(i, j)
 
                 xu = func.GetBoundary(+1)
@@ -194,7 +184,7 @@ def covariance(function, vmin, up, fast=False):
                 x = 0.5 * (x1 + x2)
 
                 if x < 0:
-                    raise StandardError("x may not be negative")
+                    raise Exception("x may not be negative")
 
                 # check whether x is in possible range
                 a = d[i, i]
@@ -213,8 +203,8 @@ def covariance(function, vmin, up, fast=False):
 
         a = 2.0 / d ** 2
 
-        for i in xrange(n - 1):
-            for j in xrange(i + 1, n):
+        for i in range(n - 1):
+            for j in range(i + 1, n):
                 a[i, j] = a[j, i] = 0.5 * (a[i, j] - a[i, i] - a[j, j])
 
     # Beware: in case of a chi^2 we calculated
@@ -224,10 +214,10 @@ def covariance(function, vmin, up, fast=False):
     cov = 2.0 * np.linalg.inv(a)
 
     # first aid, if 1-sigma contour does not look like hyper-ellipsoid
-    for i in xrange(n):
+    for i in range(n):
         if cov[i, i] < 0:
             logger.warning("covariance(...): error, cov[%i,%i] < 0, returning zero" % (i, i))
-            for j in xrange(n):
+            for j in range(n):
                 cov[i, j] = 0
 
     return cov
@@ -266,6 +256,7 @@ class voltageToAnalyticEfieldConverter:
 
     def __init__(self):
         self.__counter = 0
+        self.antenna_provider = None
         self.begin()
 
     def begin(self):
@@ -279,8 +270,8 @@ class voltageToAnalyticEfieldConverter:
 
     @register_run()
     def run(self, evt, station, det, debug=False, debug_plotpath=None,
-            use_channels=[0, 1, 2, 3],
-            bandpass=[100 * units.MHz, 500 * units.MHz],
+            use_channels=None,
+            bandpass=None,
             use_MC_direction=False):
         """
         run method. This function is executed for each event
@@ -295,18 +286,21 @@ class voltageToAnalyticEfieldConverter:
         debug_plotpath: string or None
             if not None plots will be saved to a file rather then shown. Plots will
             be save into the `debug_plotpath` directory
-        use_channels: array of ints
+        use_channels: array of ints (default: [0, 1, 2, 3])
             the channel ids to use for the electric field reconstruction
             default: 0 - 3
-        bandpass: [float, float]
+        bandpass: [float, float] (default: [100 * units.MHz, 500 * units.MHz])
             the lower and upper frequecy for which the analytic pulse is calculated.
             A butterworth filter of 10th order and a rectangular filter is applied.
             default 100 - 500 MHz
         use_MC_direction: bool
             use simulated direction instead of reconstructed direction
         """
+        if use_channels is None:
+            use_channels = [0, 1, 2, 3]
+        if bandpass is None:
+            bandpass = [100 * units.MHz, 500 * units.MHz]
         self.__counter += 1
-        event_time = station.get_station_time()
         station_id = station.get_id()
         logger.info("event {}, station {}".format(evt.get_id(), station_id))
         if use_MC_direction and (station.get_sim_station() is not None):
@@ -325,7 +319,6 @@ class voltageToAnalyticEfieldConverter:
         sampling_rate = station.get_channel(0).get_sampling_rate()
         n_samples_time = V_timedomain.shape[1]
 
-        debug_obj = 0
         noise_RMS = det.get_noise_RMS(station.get_id(), 0)
 
         def obj_xcorr(params):
@@ -443,7 +436,6 @@ class voltageToAnalyticEfieldConverter:
                     ax[iCh][1].axvline(imax, linestyle='--', alpha=.8)
             logger.debug("amp phi = {:.4g}, amp theta = {:.4g}, slope = {:.4g} chi2 = {:.8g}".format(ampPhi, ampTheta, slope, chi2))
             if(debug_obj and self.i_slope_fit_iterations % 25 == 0):
-#                 ax[0][0].set_title("ratio = {:.2f} ({:.2f}), slope = {:.2g}, phase = {:.0f} ({:.2f}), chi2 = {:.2g}".format(ratio, ratio2, slope, phase / units.deg, phase2, chi2))
                 fig.tight_layout()
                 plt.show()
                 self.i_slope_fit_iterations = 0
@@ -485,7 +477,6 @@ class voltageToAnalyticEfieldConverter:
                     ax[iCh][1].plot(np.roll(analytic_traces[iCh], pos) / units.mV, '--', label='fit', color='orange')
                     ax[iCh][1].plot(np.abs(signal.hilbert(trace)) / units.mV, linestyle=':', color='blue')
                     ax[iCh][1].plot(np.abs(signal.hilbert(np.roll(analytic_traces[iCh], pos))) / units.mV, ':', label='fit', color='orange')
-                    # ax[iCh][1].plot(trace - np.roll(analytic_traces[iCh], pos), label='delta')
                     ax[iCh][0].plot(np.abs(fft.time2freq(trace, sampling_rate)) / units.mV, label='measurement')
                     ax[iCh][0].plot(np.abs(fft.time2freq(np.roll(analytic_traces[iCh], pos), sampling_rate)) / units.mV, '--', label='fit')
                     ax[iCh][0].set_xlim([0, 600])
@@ -500,11 +491,8 @@ class voltageToAnalyticEfieldConverter:
                 ax[4][1].plot(sim_channel.get_frequencies() / units.MHz, np.abs(sim_channel.get_frequency_spectrum()[2]), color='blue')
                 ax[4][0].set_xlim([20, 500])
                 ax[4][1].set_xlim([20, 500])
-                # ax[4][0].set_yscale('log')
-                # ax[4][1].set_yscale('log')
             logger.debug("amp phi = {:.4g}, amp theta = {:.4g}, slope = {:.4g} chi2 = {:.8g}".format(ampPhi, ampTheta, slope, chi2))
             if(debug_obj and self.i_slope_fit_iterations % 50 == 0):
-        #                 ax[0][0].set_title("ratio = {:.2f} ({:.2f}), slope = {:.2g}, phase = {:.0f} ({:.2f}), chi2 = {:.2g}".format(ratio, ratio2, slope, phase / units.deg, phase2, chi2))
                 fig.tight_layout()
                 plt.show()
                 self.i_slope_fit_iterations = 0
@@ -512,7 +500,6 @@ class voltageToAnalyticEfieldConverter:
             return chi2
 
         method = "Nelder-Mead"
-        # method = "BFGS"
         options = {'maxiter': 1000,
                    'disp': True}
 
@@ -526,8 +513,6 @@ class voltageToAnalyticEfieldConverter:
             slope = -1.9
         analytic_pulse_theta_freq = pulse.get_analytic_pulse_freq(ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
         analytic_pulse_phi_freq = pulse.get_analytic_pulse_freq(1 - ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
-        analytic_pulse_theta = pulse.get_analytic_pulse(ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
-        analytic_pulse_phi = pulse.get_analytic_pulse(1 - ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
 
         n_channels = len(V_timedomain)
         analytic_traces = np.zeros((n_channels, n_samples_time))
@@ -545,12 +530,8 @@ class voltageToAnalyticEfieldConverter:
 
         res_amp = opt.minimize(obj_amplitude, x0=[1.], args=(slope, phase, pos, 0), method=method, options=options)
         logger.info("amplitude fit, Aphi = {:.3g} with fmin = {:.5e}".format(res_amp.x[0], res_amp.fun))
-        Aphi = res_amp.x[0]
-        Atheta = 0
         res_amp = opt.minimize(obj_amplitude, x0=[res_amp.x[0], 0], args=(slope, phase, pos, 0), method=method, options=options)
         logger.info("amplitude fit, Aphi = {:.3g} Atheta = {:.3g} with fmin = {:.5e}".format(res_amp.x[0], res_amp.x[1], res_amp.fun))
-        Aphi = res_amp.x[0]
-        Atheta = res_amp.x[1]
         # counts number of iterations in the slope fit. Used so we do not need to show the plots every iteration
         self.i_slope_fit_iterations = 0
         res_amp_slope = opt.minimize(obj_amplitude_slope, x0=[res_amp.x[0], res_amp.x[1], slope], args=(phase, pos, 'hilbert', False),
@@ -564,10 +545,13 @@ class voltageToAnalyticEfieldConverter:
             cov = covariance(Wrapper, res_amp_slope.x, 0.5, fast=True)
         except:
             cov = np.zeros((3, 3))
-        logger.info("slope fit, Aphi = {:.3g}+-{:.3g} Atheta = {:.3g}+-{:.3g}, slope = {:.3g}+-{:.3g} with fmin = {:.5e}".format(res_amp_slope.x[0], cov[0, 0] ** 0.5,
-                                                                                                                                     res_amp_slope.x[1], cov[1, 1] ** 0.5,
-                                                                                                             res_amp_slope.x[2], cov[2, 2] ** 0.5, res_amp_slope.fun))
-#         print(res_amp_slope)
+        logger.info("slope fit, Aphi = {:.3g}+-{:.3g} Atheta = {:.3g}+-{:.3g}, slope = {:.3g}+-{:.3g} with fmin = {:.5e}".format(
+            res_amp_slope.x[0],
+            cov[0, 0] ** 0.5,
+            res_amp_slope.x[1], cov[1, 1] ** 0.5,
+            res_amp_slope.x[2], cov[2, 2] ** 0.5,
+            res_amp_slope.fun)
+        )
         logger.info("covariance matrix \n{}".format(cov))
         if(cov[0, 0] > 0 and cov[1, 1] > 0 and cov[2, 2] > 0):
             logger.info("correlation matrix \n{}".format(hp.covariance_to_correlation(cov)))
@@ -576,9 +560,8 @@ class voltageToAnalyticEfieldConverter:
         slope = res_amp_slope.x[2]
         Aphi_error = cov[0, 0] ** 0.5
         Atheta_error = cov[1, 1] ** 0.5
-        slope_error = cov[2, 2] ** 0.5
 
-         # plot objective function
+        # plot objective function
         if 0:
             fo, ao = plt.subplots(1, 1)
             ss = np.linspace(-6, -0, 100)
@@ -633,8 +616,13 @@ class voltageToAnalyticEfieldConverter:
         exp_pol_angle = np.arctan2(exp_efield_onsky[2], exp_efield_onsky[1])
         logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
         electric_field.set_parameter(efp.polarization_angle_expectation, exp_pol_angle)
-        res_amp_second_order = opt.minimize(obj_amplitude_second_order, x0=[res_amp_slope.x[0], res_amp_slope.x[1], 0], args=(slope, phase, pos, 'hilbert', False),
-                                     method=method, options=options)
+        res_amp_second_order = opt.minimize(
+            obj_amplitude_second_order,
+            x0=[res_amp_slope.x[0], res_amp_slope.x[1], 0],
+            args=(slope, phase, pos, 'hilbert', False),
+            method=method,
+            options=options
+        )
         second_order_correction = res_amp_second_order.x[2]
         electric_field.set_parameter(efp.cr_spectrum_quadratic_term, second_order_correction)
         # figure out the timing of the electric field
@@ -677,7 +665,6 @@ class voltageToAnalyticEfieldConverter:
                 sim_station = station.get_sim_station()
                 logger.debug("station start time {:.1f}ns, relativ sim station time = {:.1f}".format(station.get_trace_start_time(), sim_station.get_trace_start_time()))
                 df = (sim_station.get_frequencies()[1] - sim_station.get_frequencies()[0]) / units.MHz
-                c = station.get_trace()[2].max() / sim_station.get_trace()[2].max()
                 c = 1.
                 ffsim = sim_station.get_frequencies()
                 mask = (ffsim > 100 * units.MHz) & (ffsim < 500 * units.MHz)

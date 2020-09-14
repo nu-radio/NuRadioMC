@@ -31,6 +31,7 @@ from NuRadioReco.utilities.traceWindows import get_window_around_maximum
 import numpy as np
 import logging
 from NuRadioReco.modules.base import module
+
 logger = module.setup_logger(level=logging.WARNING)
 
 # initialize detector sim modules
@@ -46,9 +47,16 @@ main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
 phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 30))
 
+
 class mySimulation(simulation.simulation):
 
-    def _detector_simulation(self):
+    def _detector_simulation_filter_amp(self, evt, station, det):
+        channelBandPassFilter.run(evt, station, det, passband=[132 * units.MHz, 1150 * units.MHz],
+                                  filter_type='butter', order=8)
+        channelBandPassFilter.run(evt, station, det, passband=[0, 700 * units.MHz],
+                                  filter_type='butter', order=10)
+
+    def _detector_simulation_part2(self):
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
         # downsample trace to 3 Gs/s
@@ -67,8 +75,10 @@ class mySimulation(simulation.simulation):
 
         if self._is_simulate_noise():
             max_freq = 0.5 / self._dt
-            norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms, min_freq=0 * units.MHz,
+            norm = self._get_noise_normalization(
+                self._station.get_id())  # assuming the same noise level for all stations
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms,
+                                         min_freq=0 * units.MHz,
                                          max_freq=max_freq, type='rayleigh', bandwidth=norm)
 
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
@@ -79,14 +89,15 @@ class mySimulation(simulation.simulation):
 
         # run the phased trigger
         triggerSimulator.run(self._evt, self._station, self._det,
-                             threshold=2.2 * self._Vrms, # see phased trigger module for explanation
+                             threshold=2.2 * self._Vrms,  # see phased trigger module for explanation
                              triggered_channels=None,  # run trigger on all channels
-                             trigger_name='primary_phasing', # the name of the trigger
+                             trigger_name='primary_phasing',  # the name of the trigger
                              phasing_angles=phasing_angles,
                              secondary_phasing_angles=None,
                              coupled=False,
                              ref_index=1.75,
                              cut_times=cut_times)
+
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('--inputfilename', type=str,
@@ -101,9 +112,10 @@ parser.add_argument('--outputfilenameNuRadioReco', type=str, nargs='?', default=
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
 
-sim = mySimulation(inputfilename=args.inputfilename,
-                            outputfilename=args.outputfilename,
-                            detectorfile=args.detectordescription,
-                            outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-                            config_file=args.config)
+sim = mySimulation(
+    inputfilename=args.inputfilename,
+    outputfilename=args.outputfilename,
+    detectorfile=args.detectordescription,
+    outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
+    config_file=args.config)
 sim.run()
