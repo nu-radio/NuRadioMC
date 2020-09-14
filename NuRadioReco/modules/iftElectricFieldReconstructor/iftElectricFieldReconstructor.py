@@ -120,7 +120,7 @@ class IftElectricFieldReconstructor:
                                               convergence_level=3)
         minimizer = ift.NewtonCG(ic_newton)
         median = ift.MultiField.full(H.domain, 0.)
-        N_iterations = 15
+        N_iterations = 5
         N_samples = 15
         min_energy = None
         min_energy = None

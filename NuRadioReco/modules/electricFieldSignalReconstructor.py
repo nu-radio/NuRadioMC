@@ -1,19 +1,12 @@
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import copy
-from numpy import fft
 from scipy import signal
-from numpy.polynomial import polynomial as poly
 import matplotlib.pyplot as plt
-
 from radiotools import helper as hp
 from radiotools import coordinatesystems
-
-from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import trace_utilities
 from NuRadioReco.utilities import units
-
-from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 import logging
@@ -27,6 +20,9 @@ class electricFieldSignalReconstructor:
 
     def __init__(self):
         self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
+        self.__signal_window_pre = None
+        self.__signal_window_post = None
+        self.__noise_window = None
         self.begin()
 
     def begin(self, signal_window_pre=10 * units.ns, signal_window_post=40 * units.ns, noise_window=100 * units.ns,
@@ -44,7 +40,7 @@ class electricFieldSignalReconstructor:
 
         Parameters
         ----------
-        event: event
+        evt: event
 
         station: station
 

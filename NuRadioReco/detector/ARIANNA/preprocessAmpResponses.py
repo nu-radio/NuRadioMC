@@ -1,12 +1,8 @@
 import numpy as np
 import os
-from radiotools import helper as hp
 from NuRadioReco.utilities import units
 import logging
 import pickle
-import scipy.signal as ss
-from numpy import pi, diff, unwrap, angle
-import matplotlib.pyplot  as plt
 
 logger = logging.getLogger('analog_components')
 
@@ -16,6 +12,7 @@ def save_preprocessed_Amps(response, amp_name):
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
         pickle.dump(response, fout, protocol=4)
+
 
 def preprocess_300Amp(amp, channel, path="HardwareResponses/"):
     """
@@ -40,12 +37,11 @@ def preprocess_300Amp(amp, channel, path="HardwareResponses/"):
     amp_gain_db[:, 0] *= units.Hz
     amp_phase_discrete[:, 0] *= units.Hz
     amp_phase_discrete[:, 1] *= units.deg
-    if(not np.allclose(amp_gain_db[:, 0], amp_phase_discrete[:, 0])):
+    if not np.allclose(amp_gain_db[:, 0], amp_phase_discrete[:, 0]):
         raise ValueError("frequencies of gain and phase measurement are not equal for NULL measurement")
     amp_gain_db[:, 1] += 40  # 300 series amps
     gain_lin = 10 ** (amp_gain_db[:, 1] / 20.)
     response_null = gain_lin * np.exp(1j * amp_phase_discrete[:, 1])
-
 
     # read in individual amp measurement
     path = os.path.join(path, 'Box' + amp)
@@ -59,7 +55,7 @@ def preprocess_300Amp(amp, channel, path="HardwareResponses/"):
     amp_phase_discrete[:, 0] *= units.Hz
     amp_phase_discrete[:, 1] *= units.deg
     ff = amp_gain_db[:, 0]
-    if(not np.allclose(amp_gain_db[:, 0], amp_phase_discrete[:, 0])):
+    if not np.allclose(amp_gain_db[:, 0], amp_phase_discrete[:, 0]):
         raise ValueError("frequencies of gain and phase measurement are not equal for {}-{:02d}".format(amp, channel))
 
     amp_gain_db[:, 1] += 40  # 300 series amps

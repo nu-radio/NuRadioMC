@@ -1,16 +1,14 @@
-import dash
 import json
-import plotly
-import numpy as np
-from app import app
+from NuRadioReco.eventbrowser.app import app
 import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output, State
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import NuRadioReco.eventbrowser.apps.common
-import dataprovider
-provider = dataprovider.DataProvider()
+import NuRadioReco.eventbrowser.dataprovider
+
+provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 
 layout = [
     dcc.RadioItems(
@@ -29,39 +27,40 @@ efield_properties_for_overview = [
         'label': 'Ray Path Type',
         'param': efp.ray_path_type,
         'unit': None
-    },{
+    }, {
         'label': 'Zenith [deg]',
         'param': efp.zenith,
         'unit': units.deg
-    },{
+    }, {
         'label': 'Azimuth [deg]',
         'param': efp.azimuth,
         'unit': units.deg
-    },{
+    }, {
         'label': 'spectrum Slope',
         'param': efp.cr_spectrum_slope,
         'unit': None
-    },{
+    }, {
         'label': 'Energy Fluence [eV]',
         'param': efp.signal_energy_fluence,
         'unit': units.eV
-    },{
+    }, {
         'label': 'Polarization Angle [deg]',
         'param': efp.polarization_angle,
         'unit': units.deg
-    },{
+    }, {
         'label': 'Expected Polarization Angle [deg]',
         'param': efp.polarization_angle_expectation,
         'unit': units.deg
     }
 ]
 
+
 @app.callback(Output('efield-overview-properties', 'children'),
-                [Input('filename', 'value'),
-                Input('event-counter-slider', 'value'),
-                Input('station-id-dropdown', 'value'),
-                Input('efield-overview-rec-sim', 'value')],
-                [State('user_id', 'children')])
+              [Input('filename', 'value'),
+               Input('event-counter-slider', 'value'),
+               Input('station-id-dropdown', 'value'),
+               Input('efield-overview-rec-sim', 'value')],
+              [State('user_id', 'children')])
 def efield_overview_properties(filename, evt_counter, station_id, rec_sim, juser_id):
     if filename is None or station_id is None:
         return ''

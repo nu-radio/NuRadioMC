@@ -46,7 +46,7 @@ class Trigger:
             unique name of the trigger
         channels: array of ints
             the channels that are involved in the trigger
-        type: string
+        trigger_type: string
             the trigger type
         """
         self._name = name
@@ -105,7 +105,7 @@ class Trigger:
 
     def get_type(self):
         """ get trigger type """
-        return self._type
+        return self._trigger_type
 
     def get_triggered_channels(self):
         """ get IDs of channels that have triggered """
@@ -145,7 +145,7 @@ class SimpleThresholdTrigger(Trigger):
         -----------
         name: string
             unique name of the trigger
-        threshold: float
+        threshold: float or dict of floats
             the threshold
         channels: array of ints or None
             the channels that are involved in the trigger
@@ -253,9 +253,9 @@ class HighLowTrigger(Trigger):
         -----------
         name: string
             unique name of the trigger
-        threshold_high: float
+        threshold_high: float or dict of floats
             the high threshold
-        threshold_low: float
+        threshold_low: float or dict of floats
             the low threshold
         high_low_window: float
             the coincidence time between a high and low per channel

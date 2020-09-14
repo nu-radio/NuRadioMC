@@ -1,8 +1,6 @@
 import numpy as np
-from NuRadioReco.utilities import units
 from NuRadioReco.utilities.io_utilities import read_pickle
 import logging
-from six import iteritems
 import os
 
 

@@ -7,6 +7,7 @@ from scipy.signal import resample
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities.trace_utilities import upsampling_fir, butterworth_filter_trace, delay_trace
 
+
 def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output='voltage'):
     """
     Simulates a perfect comparator flash ADC that compares the voltage to the
@@ -34,7 +35,7 @@ def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output=
         Digitised voltage trace in volts or ADC counts
     """
 
-    lsb_voltage = adc_ref_voltage/(2 ** (adc_n_bits-1) - 1)
+    lsb_voltage = adc_ref_voltage / (2 ** (adc_n_bits - 1) - 1)
 
     if (mode == 'floor'):
         digital_trace = np.floor(trace / lsb_voltage)
@@ -51,9 +52,10 @@ def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output=
     elif (output == 'counts'):
         pass
     else:
-        raise ValueError("The ADC output format is unknown. Please choose 'voltage' or 'counts'" )
+        raise ValueError("The ADC output format is unknown. Please choose 'voltage' or 'counts'")
 
     return digital_trace
+
 
 def perfect_floor_comparator(trace, adc_n_bits, adc_ref_voltage, output='voltage'):
     """
@@ -63,6 +65,7 @@ def perfect_floor_comparator(trace, adc_n_bits, adc_ref_voltage, output='voltage
 
     return perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output=output)
 
+
 def perfect_ceiling_comparator(trace, adc_n_bits, adc_ref_voltage, output='voltage'):
     """
     Perfect comparator ADC that takes the floor value of the comparison.
@@ -70,6 +73,7 @@ def perfect_ceiling_comparator(trace, adc_n_bits, adc_ref_voltage, output='volta
     """
 
     return perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='ceiling', output=output)
+
 
 def apply_saturation(adc_counts_trace, adc_n_bits, adc_ref_voltage):
     """
@@ -95,15 +99,16 @@ def apply_saturation(adc_counts_trace, adc_n_bits, adc_ref_voltage):
 
     saturated_trace = adc_counts_trace[:]
 
-    highest_count = 2 ** (adc_n_bits-1) - 1
+    highest_count = 2 ** (adc_n_bits - 1) - 1
     high_saturation_mask = adc_counts_trace > highest_count
     saturated_trace[high_saturation_mask] = highest_count
 
-    lowest_count = - 2 ** (adc_n_bits-1)
+    lowest_count = - 2 ** (adc_n_bits - 1)
     low_saturation_mask = adc_counts_trace < lowest_count
     saturated_trace[low_saturation_mask] = lowest_count
 
     return saturated_trace
+
 
 def round_to_int(digital_trace):
 
@@ -112,7 +117,8 @@ def round_to_int(digital_trace):
 
     return int_trace
 
-class analogToDigitalConverter():
+
+class analogToDigitalConverter:
     """
     This class simulates an analog to digital converter. The steps followed
     by this module to achieve the conversion are:
@@ -178,7 +184,7 @@ class analogToDigitalConverter():
                           output='voltage',
                           upsampling_factor=None,
                           nyquist_zone=None,
-                          bandwidth_edge=20*units.MHz):
+                          bandwidth_edge=20 * units.MHz):
         """
         Returns the digital trace for a channel, without setting it. This allows
         the creation of a digital trace that can be used for triggering purposes
@@ -239,8 +245,7 @@ class analogToDigitalConverter():
                 field_check = field
             if field_check not in det_channel:
                 channel_id = channel.get_id()
-                error_msg  = "The field {} is not present in channel {}. ".format(field_check,
-                                                                                  channel_id)
+                error_msg = "The field {} is not present in channel {}. ".format(field_check, channel_id)
                 error_msg += "Please specify it on your detector file"
                 raise ValueError(error_msg)
 
@@ -279,7 +284,7 @@ class analogToDigitalConverter():
             adc_time_delay += clock_offset / adc_sampling_frequency
 
         if (adc_sampling_frequency > channel.get_sampling_rate()):
-            error_msg  = 'The ADC sampling rate is greater than '
+            error_msg = 'The ADC sampling rate is greater than '
             error_msg += 'the channel {} sampling rate. '.format(channel.get_id())
             error_msg += 'Please change the ADC sampling rate.'
             raise ValueError(error_msg)
@@ -297,10 +302,9 @@ class analogToDigitalConverter():
                     error_msg = "Could not convert nyquist_zone to integer. Exiting."
                     raise ValueError(error_msg)
 
-            passband = ( (nyquist_zone-1) * adc_sampling_frequency/2 + bandwidth_edge,
-                         nyquist_zone * adc_sampling_frequency/2 - bandwidth_edge )
+            passband = ((nyquist_zone - 1) * adc_sampling_frequency / 2 + bandwidth_edge, nyquist_zone * adc_sampling_frequency / 2 - bandwidth_edge)
 
-            if passband[1] > input_sampling_frequency/2:
+            if passband[1] > input_sampling_frequency / 2:
                 msg = 'Please use another simulation with a larger sampling frequency'
                 raise ValueError(msg)
 
@@ -310,8 +314,8 @@ class analogToDigitalConverter():
         else:
             filtered_trace = trace[:]
 
-        # Random clock offset
-        delayed_samples = len(trace) - np.int(np.round(input_sampling_frequency/adc_sampling_frequency)) - 1
+        #  Random clock offset
+        delayed_samples = len(trace) - np.int(np.round(input_sampling_frequency / adc_sampling_frequency)) - 1
         delayed_trace = delay_trace(filtered_trace, input_sampling_frequency, adc_time_delay, delayed_samples)
 
         delayed_start_time = 1 / adc_sampling_frequency
@@ -325,10 +329,10 @@ class analogToDigitalConverter():
 
         if upsampling_frequency > input_sampling_frequency:
 
-            upsampling_nsamples = int( upsampling_frequency * len(delayed_trace) / input_sampling_frequency )
+            upsampling_nsamples = int(upsampling_frequency * len(delayed_trace) / input_sampling_frequency)
             perfectly_upsampled_trace = resample(delayed_trace, upsampling_nsamples)
 
-            perfectly_upsampled_times  = np.arange(len(perfectly_upsampled_trace)) / upsampling_frequency
+            perfectly_upsampled_times = np.arange(len(perfectly_upsampled_trace)) / upsampling_frequency
             perfectly_upsampled_times += delayed_times[0]
 
         else:
@@ -339,12 +343,12 @@ class analogToDigitalConverter():
         interpolate_delayed_trace = interp1d(perfectly_upsampled_times,
                                              perfectly_upsampled_trace,
                                              kind='linear',
-                                             fill_value=(perfectly_upsampled_trace[0],perfectly_upsampled_trace[-1]),
+                                             fill_value=(perfectly_upsampled_trace[0], perfectly_upsampled_trace[-1]),
                                              bounds_error=False)
 
         # Downsampling to ADC frequency
-        new_n_samples = int( (adc_sampling_frequency / upsampling_frequency) * len(delayed_trace) )
-        resampled_times = np.linspace(0, new_n_samples/adc_sampling_frequency, new_n_samples)
+        new_n_samples = int((adc_sampling_frequency / upsampling_frequency) * len(delayed_trace))
+        resampled_times = np.linspace(0, new_n_samples / adc_sampling_frequency, new_n_samples)
         resampled_times += channel.get_trace_start_time()
         resampled_trace = interpolate_delayed_trace(resampled_times)
 
@@ -367,13 +371,13 @@ class analogToDigitalConverter():
                 upsampling_factor = int(upsampling_factor)
                 upsampled_trace = upsampling_fir(digital_trace, adc_sampling_frequency,
                                                  int_factor=upsampling_factor, ntaps=ntaps)
-                # If upsampled is performed, the final sampling frequency changes
+                #  If upsampled is performed, the final sampling frequency changes
                 adc_sampling_frequency *= upsampling_factor
 
                 digital_trace = upsampled_trace[:]
 
         # Ensuring trace has an even number of samples
-        if ( len(digital_trace) % 2 == 1 ):
+        if (len(digital_trace) % 2 == 1):
             digital_trace = digital_trace[:-1]
 
         if return_sampling_frequency:
@@ -405,6 +409,10 @@ class analogToDigitalConverter():
         output: string
             - 'voltage' to store the ADC output as discretised voltage trace
             - 'counts' to store the ADC output in ADC counts
+        upsampling_factor: integer
+            Upsampling factor. The digital trace will be a upsampled to a
+            sampling frequency int_factor times higher than the original one
+
         """
 
         t = time.time()
@@ -412,20 +420,19 @@ class analogToDigitalConverter():
         for channel in station.iter_channels():
 
             digital_trace, adc_sampling_frequency = self.get_digital_trace(station, det, channel,
-                                                        random_clock_offset=random_clock_offset,
-                                                        adc_type=adc_type,
-                                                        return_sampling_frequency=True,
-                                                        output=output,
-                                                        upsampling_factor=upsampling_factor)
+                                                                           random_clock_offset=random_clock_offset,
+                                                                           adc_type=adc_type,
+                                                                           return_sampling_frequency=True,
+                                                                           output=output,
+                                                                           upsampling_factor=upsampling_factor)
 
             channel.set_trace(digital_trace, adc_sampling_frequency)
 
         self.__t += time.time() - t
 
-
     def end(self):
         from datetime import timedelta
         self.logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
+        self.logger.info("total time used by this module is {}".format(dt))
         return dt

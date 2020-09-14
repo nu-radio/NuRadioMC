@@ -53,7 +53,7 @@ import NuRadioReco.utilities.diodeSimulator
 from NuRadioReco.utilities.traceWindows import get_window_around_maximum
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
-from NuRadioReco.modules import analogToDigitalConverter
+import NuRadioReco.modules.analogToDigitalConverter
 from NuRadioReco.utilities.trace_utilities import butterworth_filter_trace
 from scipy import constants
 import numpy as np
@@ -99,47 +99,66 @@ ADC = NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter()
 
 main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
-phasing_angles = np.arcsin( np.linspace( np.sin(main_low_angle), np.sin(main_high_angle), 30) )
+phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 30))
 
-diode_passband = (None, 200*units.MHz)
+diode_passband = (None, 200 * units.MHz)
 diodeSimulator = NuRadioReco.utilities.diodeSimulator.diodeSimulator(diode_passband)
 
 # The 2nd and 3rd zone thresholds have been calculated for a 0.25 GHz ADC,
 # with 8 bits and a noise level of 2 bits.
-threshold_2nd_zone = { '1Hz' : 23.5 * units.microvolt,
-                       '2Hz' : 23.0 * units.microvolt,
-                       '5Hz' : 22.5 * units.microvolt,
-                       '10Hz' : 22.0 * units.microvolt }
-threshold_3rd_zone = { '1Hz' : 23.5 * units.microvolt,
-                       '2Hz' : 23.0 * units.microvolt,
-                       '5Hz' : 22.5 * units.microvolt,
-                       '10Hz' : 22.0 * units.microvolt }
+threshold_2nd_zone = {'1Hz': 23.5 * units.microvolt,
+                      '2Hz': 23.0 * units.microvolt,
+                      '5Hz': 22.5 * units.microvolt,
+                      '10Hz': 22.0 * units.microvolt}
+threshold_3rd_zone = {'1Hz': 23.5 * units.microvolt,
+                      '2Hz': 23.0 * units.microvolt,
+                      '5Hz': 22.5 * units.microvolt,
+                      '10Hz': 22.0 * units.microvolt}
 # The 1st zone thresholds have been calculated for a 0.5 GHz ADC,
 # with 8 bits and a noise level of 2 bits.
-threshold_1st_zone = { '1Hz' : 20.0 * units.microvolt,
-                       '2Hz' : 19.75 * units.microvolt,
-                       '5Hz' : 19.5 * units.microvolt,
-                       '10Hz' : 19.25 * units.microvolt }
-thresholds = { 2 : threshold_2nd_zone,
-               3 : threshold_3rd_zone,
-               1 : threshold_1st_zone }
+threshold_1st_zone = {'1Hz': 20.0 * units.microvolt,
+                      '2Hz': 19.75 * units.microvolt,
+                      '5Hz': 19.5 * units.microvolt,
+                      '10Hz': 19.25 * units.microvolt}
+thresholds = {2: threshold_2nd_zone,
+              3: threshold_3rd_zone,
+              1: threshold_1st_zone}
 
 low_freq = 132 * units.MHz
 high_freq = 700 * units.MHz
 
 N = 51
-SNRs = np.linspace(0.5,5,N)
+SNRs = np.linspace(0.5, 5, N)
 SNRtriggered = np.ones(N) * 0
+
+
 def count_events():
     count_events.events += 1
+
+
 count_events.events = 0
 
-bandwidth_Vrms = (300 * 50 * constants.k *
-                  (high_freq-low_freq) / units.Hz) ** 0.5
+bandwidth_Vrms = (300 * 50 * constants.k * (high_freq - low_freq) / units.Hz) ** 0.5
+
 
 class mySimulation(simulation.simulation):
 
-    def _detector_simulation(self):
+    def _detector_simulation_filter_amp(self, evt, station, det):
+        channelBandPassFilter.run(
+            evt,
+            station,
+            det,
+            passband=[low_freq, 1150 * units.MHz],
+            filter_type='butter',
+            order=8)
+        channelBandPassFilter.run(
+            evt,
+            station,
+            det,
+            passband=[0, high_freq],
+            filter_type='butter', order=10)
+
+    def _detector_simulation_part2(self):
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
 
@@ -156,13 +175,13 @@ class mySimulation(simulation.simulation):
             trace = np.array(channel.get_trace())
             trace = butterworth_filter_trace(trace, new_sampling_rate, (low_freq, high_freq))
 
-            left_bin = np.argmin(np.abs(times-cut_times[0]))
-            right_bin = np.argmin(np.abs(times-cut_times[1]))
+            left_bin = np.argmin(np.abs(times - cut_times[0]))
+            right_bin = np.argmin(np.abs(times - cut_times[1]))
 
-            Vpp = np.max( trace[left_bin:right_bin] ) - np.min( trace[left_bin:right_bin] )
+            Vpp = np.max(trace[left_bin:right_bin]) - np.min(trace[left_bin:right_bin])
             Vpps.append(Vpp)
 
-        factor = 1./(np.mean(Vpps)/2/bandwidth_Vrms)
+        factor = 1. / (np.mean(Vpps) / 2 / bandwidth_Vrms)
         mult_factors = factor * SNRs
 
         # Rejecting events if one of the multiplying factors is too large.
@@ -171,7 +190,7 @@ class mySimulation(simulation.simulation):
         reject_event = False
         if True in mult_factors > 1.e10:
             reject_event = True
-        if 1/factor > 3e4:
+        if 1 / factor > 3e4:
             reject_event = True
 
         # Copying original traces
@@ -179,7 +198,7 @@ class mySimulation(simulation.simulation):
 
         for channel in self._station.iter_channels():
 
-            trace = np.array( channel.get_trace() )
+            trace = np.array(channel.get_trace())
             channel_id = channel.get_id()
             original_traces[channel_id] = trace
 
@@ -189,14 +208,13 @@ class mySimulation(simulation.simulation):
             for channel in self._station.iter_channels():
 
                 trace = original_traces[channel.get_id()][:] * factor
-                channel.set_trace( trace, sampling_rate = new_sampling_rate )
+                channel.set_trace(trace, sampling_rate=new_sampling_rate)
 
             noise = True
 
             if noise:
                 max_freq = 0.5 * new_sampling_rate
-                norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
-                Vrms = bandwidth_Vrms / ((high_freq-low_freq)/max_freq) ** 0.5
+                Vrms = bandwidth_Vrms / ((high_freq - low_freq) / max_freq) ** 0.5
                 channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
                                              max_freq=max_freq, type='rayleigh')
 
@@ -207,17 +225,20 @@ class mySimulation(simulation.simulation):
                                       filter_type='butter', order=10)
 
             # Running the phased array trigger with ADC, Nyquist zones and upsampling incorporated
-            trig = triggerSimulator.run(self._evt, self._station, self._det,
-                                 threshold=thresholds[nyquist_zone]['{:.0f}Hz'.format(noise_rate)], # see phased trigger module for explanation
-                                 triggered_channels=None,  # run trigger on all channels
-                                 trigger_name='alias_phasing', # the name of the trigger
-                                 phasing_angles=phasing_angles,
-                                 ref_index=1.75,
-                                 cut_times=cut_times,
-                                 trigger_adc=True,
-                                 upsampling_factor=upsampling_factor,
-                                 nyquist_zone=nyquist_zone,
-                                 bandwidth_edge=20*units.MHz)
+            trig = triggerSimulator.run(
+                self._evt,
+                self._station,
+                self._det,
+                threshold=thresholds[nyquist_zone]['{:.0f}Hz'.format(noise_rate)],  # see phased trigger module for explanation
+                triggered_channels=None,  # run trigger on all channels
+                trigger_name='alias_phasing',  # the name of the trigger
+                phasing_angles=phasing_angles,
+                ref_index=1.75,
+                cut_times=cut_times,
+                trigger_adc=True,
+                upsampling_factor=upsampling_factor,
+                nyquist_zone=nyquist_zone,
+                bandwidth_edge=20 * units.MHz)
 
             if trig:
                 ADC.run(self._evt, self._station, self._det)
@@ -241,10 +262,7 @@ print("Total events", count_events.events)
 print("SNRs: ", SNRs)
 print("Triggered: ", SNRtriggered)
 
-output = {}
-output['total_events'] = count_events.events
-output['SNRs'] = list( SNRs )
-output['triggered'] = list( SNRtriggered )
+output = {'total_events': count_events.events, 'SNRs': list(SNRs), 'triggered': list(SNRtriggered)}
 
 outputfile = args.outputSNR
 with open(outputfile, 'w+') as fout:

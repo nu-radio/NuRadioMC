@@ -1,16 +1,13 @@
-import dash
 import json
 import plotly
-from NuRadioReco.utilities import units
-from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
 from NuRadioReco.framework.parameters import stationParameters as stnp
 import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output, State
-from app import app
-import dataprovider
-provider = dataprovider.DataProvider()
+from NuRadioReco.eventbrowser.app import app
+import NuRadioReco.eventbrowser.dataprovider
+provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 
 layout = [
     html.Div(id='trigger', style={'display': 'none'},
@@ -20,6 +17,7 @@ layout = [
     ], className='row'),
     html.Div(id='output')
 ]
+
 
 @app.callback(Output('skyplot-xcorr', 'figure'),
               [Input('filename', 'value'),
@@ -51,14 +49,14 @@ def plot_rec_directions(filename, trigger, jcurrent_selection, station_id, juser
         return {}
 
     # update with current selection
-    if current_selection != []:
+    if current_selection:
         for trace in traces:
             trace['selectedpoints'] = current_selection
 
     return {
         'data': traces,
         'layout': plotly.graph_objs.Layout(
-            showlegend= True,
+            showlegend=True,
             hovermode='closest',
             height=500
         )

@@ -1,32 +1,21 @@
-import time
 import copy
-from scipy import signal, fftpack
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.optimize as opt
 import logging
-
-from radiotools import helper as hp
-from radiotools import plthelpers as php
-
 import NuRadioReco.framework.base_trace
-from NuRadioReco.utilities import trace_utilities
 from NuRadioReco.utilities import ice
-from NuRadioReco.detector import antennapattern
-
-from NuRadioReco.framework import electric_field as ef
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import NuRadioReco.modules.voltageToEfieldConverterPerChannel
 import NuRadioReco.modules.electricFieldBandPassFilter
-
 
 
 electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
 voltageToEfieldConverterPerChannel = NuRadioReco.modules.voltageToEfieldConverterPerChannel.voltageToEfieldConverterPerChannel()
 voltageToEfieldConverterPerChannel.begin()
+
 
 def get_array_of_channels(station, det, zenith, azimuth, polarization):
     """
@@ -34,6 +23,10 @@ def get_array_of_channels(station, det, zenith, azimuth, polarization):
 
     Parameters
     ----------
+    station: Station
+        Station from which to take the channels
+    det: Detector
+        The detector description
     zenith: float
         Arrival zenith angle at antenna
     azimuth: float
@@ -86,6 +79,7 @@ def get_array_of_channels(station, det, zenith, azimuth, polarization):
 
     return traces
 
+
 class beamFormingDirectionFitter:
     """
     Fits the direction using interferometry between desired channels.
@@ -96,6 +90,7 @@ class beamFormingDirectionFitter:
         self.__azimuth = []
         self.__delta_zenith = []
         self.__delta_azimuth = []
+        self.__debug = None
         self.begin()
         self.logger = logging.getLogger("NuRadioReco.beamFormingDirectionFitter")
 
@@ -104,14 +99,20 @@ class beamFormingDirectionFitter:
             self.logger.setLevel(log_level)
         self.__debug = debug
 
-    def run(self, evt, station, det, polarization, n_index=None,channels=[4,5,6,7], ZenLim=[90 * units.deg, 180 * units.deg],
-            AziLim=[0 * units.deg, 360 * units.deg]):
+    def run(self, evt, station, det, polarization, n_index=None, channels=None, ZenLim=None,
+            AziLim=None):
         """
         reconstruct signal arrival direction for all events through beam forming.
         https://arxiv.org/pdf/1009.0345.pdf
 
         Parameters
         ----------
+        evt: Event
+            The event to run the module on
+        station: Station
+            The station to run the module on
+        det: Detector
+            The detector description
         polarization: int
             0: eTheta
             1: ePhi
@@ -126,6 +127,12 @@ class beamFormingDirectionFitter:
             the azimuth angle limits for the fit
             default is 0-360deg
         """
+        if channels is None:
+            channels = [4, 5, 6, 7]
+        if ZenLim is None:
+            ZenLim = [90 * units.deg, 180 * units.deg]
+        if AziLim is None:
+            AziLim = [0 * units.deg, 360 * units.deg]
 
         def ll_regular_station(angles, evt, station, det, polarization, sampling_rate, positions, channels):
             """
@@ -136,66 +143,66 @@ class beamFormingDirectionFitter:
             zenith = angles[0]
             azimuth = angles[1]
 
-            station.set_parameter(stnp.zenith,zenith)
-            station.set_parameter(stnp.azimuth,azimuth)
-            station.set_electric_fields([]) # resets EFields, necessary
-            voltageToEfieldConverterPerChannel.run(evt, station, det,pol=polarization,debug=False)  # Antenna response
-            electricFieldBandPassFilter.run(evt, station, det,passband=[120 * units.MHz, 300 * units.MHz], filter_type='butterabs')
+            station.set_parameter(stnp.zenith, zenith)
+            station.set_parameter(stnp.azimuth, azimuth)
+            station.set_electric_fields([])     # resets EFields, necessary
+            voltageToEfieldConverterPerChannel.run(evt, station, det, pol=polarization, debug=False)  # Antenna response
+            electricFieldBandPassFilter.run(evt, station, det, passband=[120 * units.MHz, 300 * units.MHz], filter_type='butterabs')
 
-            Efields_object = get_array_of_channels(station, det, zenith, azimuth, polarization+1)
+            Efields_object = get_array_of_channels(station, det, zenith, azimuth, polarization + 1)
             Efields = []
             Efield_Times = []
-            maximum = 0 # location at maximum among all traces
-            for chan in channels:
-                efield = Efields_object[chan]
+            maximum = 0     # location at maximum among all traces
+            for chn in channels:
+                efield = Efields_object[chn]
                 Efield_Times.append(efield.get_times())
                 Efield = efield.get_trace()
                 if max(Efield) > maximum:
                     maximum = max(Efield)
-                Efields.append(Efield)#np.pad(Efield, (200,200), 'constant', constant_values=(0, 0)))
+                Efields.append(Efield)  # np.pad(Efield, (200,200), 'constant', constant_values=(0, 0)))
 
-            Efields[0] = Efields[0]/maximum # normalize all traces to remove small antenna responses, see last line of next for loop
-            for i in range(len(Efields)-1):
-                Efields[i+1] = Efields[i+1]/maximum
+            Efields[0] = Efields[0] / maximum     # normalize all traces to remove small antenna responses, see last line of next for loop
+            for j in range(len(Efields) - 1):
+                Efields[j + 1] = Efields[j + 1] / maximum
 
             N = len(Efields)
-            N_pairs = 0.5*np.math.factorial(N)/np.math.factorial(N-2)
+            N_pairs = 0.5 * np.math.factorial(N) / np.math.factorial(N - 2)
             cc = np.zeros(len(Efields[0]))
-            for i in range(N-1): # finds the cc-beam taken from referenced paper above
-                for j in range(N-1-i):
-                    cc = cc + Efields[i]*Efields[j+1+i]
-            cc = cc/N_pairs
-            cc = np.sign(cc)*np.sqrt(np.abs(cc))
+            for j in range(N - 1):    # finds the cc-beam taken from referenced paper above
+                for k in range(N - 1 - j):
+                    cc = cc + Efields[k] * Efields[k + 1 + k]
+            cc = cc / N_pairs
+            cc = np.sign(cc) * np.sqrt(np.abs(cc))
 
             cc = np.abs(cc)
-            ave_cc = np.zeros_like(cc)
             n_bins = 2000
-            ave_cc = np.convolve(cc, np.ones((n_bins))/float(n_bins),mode='same')
+            ave_cc = np.convolve(cc, np.ones((n_bins)) / float(n_bins), mode='same')
 
-            likelihood = -1*np.max(ave_cc)
+            likelihood = -1 * np.max(ave_cc)
             return likelihood
-
 
         station_id = station.get_id()
         positions = []
         for chan in channels:
-            positions.append(det.get_relative_position(station_id,chan))
+            positions.append(det.get_relative_position(station_id, chan))
         sampling_rate = station.get_channel(0).get_sampling_rate()
 
-        ll = opt.brute(ll_regular_station, ranges=(slice(ZenLim[0], ZenLim[1], 1.0*units.deg),
-                                                   slice(AziLim[0], AziLim[1], 1.0*units.deg)),
-                        args=(evt, station, det, polarization, sampling_rate, positions, channels),
-                        full_output=True, finish=opt.fmin)  # slow but does the trick
+        ll = opt.brute(
+            ll_regular_station,
+            ranges=(slice(ZenLim[0], ZenLim[1], 1.0 * units.deg), slice(AziLim[0], AziLim[1], 1.0 * units.deg)),
+            args=(evt, station, det, polarization, sampling_rate, positions, channels),
+            full_output=True,
+            finish=opt.fmin
+        )  # slow but does the trick
 
         station[stnp.zenith] = max(ZenLim[0], min(ZenLim[1], ll[0][0]))
         station[stnp.azimuth] = ll[0][1]
 
         if self.__debug:
-            import peakutils
 
             # Show fit space
-            zen = np.arange(ZenLim[0], ZenLim[1], 1*units.deg)
-            az = np.arange(AziLim[0], AziLim[1], 1*units.deg)
+            zen = np.arange(ZenLim[0], ZenLim[1], 1 * units.deg)
+            az = np.arange(AziLim[0], AziLim[1], 1 * units.deg)
 
             x_plot = np.zeros(zen.shape[0] * az.shape[0])
             y_plot = np.zeros(zen.shape[0] * az.shape[0])
@@ -210,7 +217,7 @@ class beamFormingDirectionFitter:
                     i += 1
 
             fig, ax = plt.subplots(1, 1)
-            ax.scatter(np.asarray(x_plot)/units.deg, np.asarray(y_plot)/units.deg, c=z_plot, cmap='gnuplot2_r', lw=0)
+            ax.scatter(np.asarray(x_plot) / units.deg, np.asarray(y_plot) / units.deg, c=z_plot, cmap='gnuplot2_r', lw=0)
             ax.scatter(np.rad2deg(ll[0][1]), np.rad2deg(ll[0][0]), marker='o', label='Fit')
             ax.colorbar(label='Fit parameter')
             ax.set_ylabel('Zenith [rad]')
