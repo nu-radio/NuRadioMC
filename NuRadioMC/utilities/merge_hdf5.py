@@ -78,6 +78,14 @@ def merge2(filenames, output_filename):
 
     # check event group ids for uniqueness (this is important because effective volume/area calculation uses the event
     # group id to determine if a multi station coincidence exists
+    # to start, get the 'event_group_ids' for the first file name only
+    # then, loop over all the other files (iF-th file) in the set, and check to see if there
+    # is any overlap (intersection) between the iF-th file and the first file
+    # if so, then identify what the overlap is, and increment the id number in the iF-th file by 1
+    # so that it again becomes unique; then use a np mask to replace the overlapping
+    # number with the new unique number in the iF-th file
+    # then, append the now totally unique list of id's from the iF-th file
+    # to the list from the first file, and so on
     unique_uegids = np.unique(data[filenames[0]]['event_group_ids'])
     for iF, f in enumerate(filenames):
         if(iF == 0):
