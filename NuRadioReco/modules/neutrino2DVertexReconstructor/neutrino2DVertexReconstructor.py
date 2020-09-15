@@ -208,6 +208,20 @@ class neutrino2DVertexReconstructor:
         return
 
     def get_correlation_array_2d(self, x, z):
+        """
+        Returns the correlations corresponding to the different
+        signal travel times between channels for the given positions.
+        This is done by correcting for the distance of the channels
+        from the station center and then calling
+        self.get_correlation_for_pos, which does the actual work.
+
+        Parameters:
+        --------------
+        x, z: array
+            Coordinates of the points for which calculations are
+            to be calculated. Correspond to the (r, z) pair
+            of cylindrical coordinates.
+        """
         channel_pos1 = self.__channel_positions[0]
         channel_pos2 = self.__channel_positions[1]
         d_hor1 = np.sqrt((x - channel_pos1[0])**2 + (channel_pos1[1])**2)
@@ -216,6 +230,17 @@ class neutrino2DVertexReconstructor:
         return res
 
     def get_correlation_for_pos(self, d_hor, z):
+        """
+        Returns the correlations corresponding to the different
+        signal travel times between channels for the given positions.
+
+        Parameters:
+        --------------
+        d_hor, z: array
+            Coordinates of the points for which calculations are
+            to be calculated. Correspond to the (r, z) pair
+            of cylindrical coordinates.
+        """
         t1 = self.get_signal_travel_time(d_hor[0], z, self.__current_ray_types[0], self.__channel_pair[0])
         t2 = self.get_signal_travel_time(d_hor[1], z, self.__current_ray_types[1], self.__channel_pair[1])
         delta_t = t1 - t2
@@ -228,6 +253,22 @@ class neutrino2DVertexReconstructor:
         return res
 
     def get_signal_travel_time(self, d_hor, z, ray_type, channel_id):
+        """
+        Calculate the signal travel time between a position and the
+        channel
+
+        Parameters:
+        ------------
+        d_hor, z: numbers or arrays of numbers
+            Coordinates of the point from which to calculate the
+            signal travel times. Correspond to (r, z) coordinates
+            in cylindrical coordinates.
+        ray_type: string
+            Ray type for which to calculate the travel times. Options
+            are direct, reflected and refracted
+        channel_id: int
+            ID of the channel to which the travel time shall be calculated
+        """
         channel_pos = self.__detector.get_relative_position(self.__station_id, channel_id)
         channel_type = int(abs(channel_pos[2]))
         travel_times = np.zeros_like(d_hor)
@@ -243,6 +284,21 @@ class neutrino2DVertexReconstructor:
         return travel_times
 
     def find_ray_type(self, station, ch1):
+        """
+        Calculate the most likely ray type (direct, reflected
+        or refracted) of the signal that reached the detector.
+        This is done by taking the reconstructed vertex position,
+        calculating the expected time offset between channels and
+        checking for which ray type scenario the correlation
+        between channels is largest.
+
+        Parameters:
+        --------------
+        station: station object
+            The station on which this reconstruction was run
+        ch1: channel object
+            The channel for which the ray type shall be determined
+        """
         corr_range = 50. * units.ns
         ray_types = ['direct', 'refracted', 'reflected']
         ray_type_correlations = np.zeros(3)
