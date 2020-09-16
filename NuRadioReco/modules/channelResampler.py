@@ -52,7 +52,7 @@ class channelResampler:
         """
         is_sim_station = isinstance(station, NuRadioReco.framework.sim_station.SimStation)
         if is_sim_station:  # sim_stations are structured differently
-            orig_binning = 1. / station.get_channel(det.get_channel_ids(det.get_default_station_id())[0]).get_sampling_rate()  # assume that all channels have the same sampling rate
+            orig_binning = 1. / station.get_channel(det.get_channel_ids(det.get_default_station_id())[0])[0].get_sampling_rate()  # assume that all channels have the same sampling rate
         else:
             orig_binning = 1. / station.get_channel(det.get_channel_ids(det.get_default_station_id())[0]).get_sampling_rate()
         target_binning = 1. / sampling_rate
