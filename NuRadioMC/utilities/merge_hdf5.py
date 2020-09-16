@@ -93,13 +93,15 @@ def merge2(filenames, output_filename):
         current_uegids = np.unique(data[f]['event_group_ids'])
         intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
         if(np.sum(intersect)):
+            current_egids = data[f]['event_group_ids']
             new_egid = max(unique_uegids.max(), current_uegids.max()) + 1
             for gid in intersect:
-                mask = gid == current_uegids
-                current_uegids[mask] = new_egid
+                mask = gid == current_egids  # there can be multiple entries per unique event group id, we need to change all of them to the new id
+                current_egids[mask] = new_egid
                 new_egid += 1
             logger.warning(f"event group ids are not unique per file, current file is {f}, new unique ids have been generated.")
             logger.debug(f"non-unique event ids: {intersect}")
+        current_uegids = np.unique(data[f]['event_group_ids'])  # get the updated list of unique event group ids. Now there should be no intersection with the ids of the previous files
         # test again for uniqueness
         intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
         if(np.sum(intersect)):
