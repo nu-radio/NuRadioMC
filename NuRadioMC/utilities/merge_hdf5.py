@@ -101,11 +101,11 @@ def merge2(filenames, output_filename):
                 # also change the event_group_id arrays of the station groups
                 if f in non_empty_filenames:
                     for key in groups[f]:  # loop through all groups
-                        print(f"group {key}, keys = {groups[f][key].keys()}")
-                        g_egids = groups[f][key]['event_group_ids']
-                        mask_g = gid == g_egids
-                        if(np.sum(mask_g)):  # station might not have this event group id, so skip stations where this egid is not present
-                            g_egids[mask_g] = new_egid
+                        if 'event_group_ids' in groups[f][key]:
+                            g_egids = groups[f][key]['event_group_ids']
+                            mask_g = gid == g_egids
+                            if(np.sum(mask_g)):  # station might not have this event group id, so skip stations where this egid is not present
+                                g_egids[mask_g] = new_egid
                 new_egid += 1
 
             logger.warning(f"event group ids are not unique per file, current file is {f}, new unique ids have been generated.")
