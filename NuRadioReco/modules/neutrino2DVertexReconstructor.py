@@ -6,6 +6,7 @@ import NuRadioReco.utilities.io_utilities
 import NuRadioReco.framework.electric_field
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.framework.parameters import showerParameters as shp
 import radiotools.helper as hp
 import NuRadioMC.SignalProp.analyticraytracing
 import NuRadioMC.utilities.medium
@@ -91,7 +92,7 @@ class neutrino2DVertexReconstructor:
                 self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
         self.__template = template
 
-    def run(self, station, max_distance, z_width, grid_spacing, direction_guess=None, debug=False):
+    def run(self, event, station, max_distance, z_width, grid_spacing, direction_guess=None, debug=False):
         """
         Execute the 2D vertex reconstruction
 
@@ -181,7 +182,10 @@ class neutrino2DVertexReconstructor:
                 self.__current_ray_types = self.__ray_types[i_ray]
                 correlation_array = np.maximum(self.get_correlation_array_2d(x_coords, z_coords), correlation_array)
             if np.max(correlation_array) > 0:
-                correlation_sum += correlation_array / np.max(correlation_array) * corr_snr
+                if self.__template is None:
+                    correlation_sum += correlation_array / np.max(correlation_array) * corr_snr
+                else:
+                    correlation_sum += correlation_array
             max_corr_index = np.unravel_index(np.argmax(correlation_sum), correlation_sum.shape)
             max_corr_r = x_coords[max_corr_index[0]][max_corr_index[1]]
             max_corr_z = z_coords[max_corr_index[0]][max_corr_index[1]]
@@ -196,6 +200,7 @@ class neutrino2DVertexReconstructor:
                 ax1_2.plot(ch2.get_times(), ch2.get_trace() / units.mV, c='C1', alpha=.3)
                 ax1_1.plot(ch1.get_times()[np.abs(trace1) > 0], trace1[np.abs(trace1) > 0] / units.mV, c='C0', alpha=1)
                 ax1_2.plot(ch2.get_times()[np.abs(trace2) > 0], trace2[np.abs(trace2) > 0] / units.mV, c='C1', alpha=1)
+                ax1_1.plot(ch1.get_times()[:len(self.__template)], self.__template, c='k')
                 ax1_1.set_xlabel('t [ns]')
                 ax1_1.set_ylabel('U [mV]')
                 ax1_1.set_title('Channel {}'.format(self.__channel_pair[0]))
@@ -215,9 +220,11 @@ class neutrino2DVertexReconstructor:
                 sum_plots = ax2_2.pcolor(x_coords, z_coords, correlation_sum)
                 fig2.colorbar(corr_plots, ax=ax2_1)
                 fig2.colorbar(sum_plots, ax=ax2_2)
-                if station.has_sim_station():
-                    sim_station = station.get_sim_station()
-                    sim_vertex = sim_station.get_parameter(stnp.nu_vertex)
+                sim_vertex = None
+                for shower in event.get_sim_showers():
+                    if shower.has_parameter(shp.vertex):
+                        sim_vertex = shower.get_parameter(shp.vertex)
+                if sim_vertex is not None:
                     ax2_1.axvline(np.sqrt(sim_vertex[0]**2 + sim_vertex[1]**2), c='r', linestyle=':')
                     ax2_1.axhline(sim_vertex[2], c='r', linestyle=':')
                     ax2_2.axvline(np.sqrt(sim_vertex[0]**2 + sim_vertex[1]**2), c='r', linestyle=':')
@@ -280,7 +287,7 @@ class neutrino2DVertexReconstructor:
         mask[i_z > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
         i_x[~mask] = 0
         i_z[~mask] = 0
-        travel_times = self.__lookup_table[channel_type][ray_type][[i_x, i_z]]
+        travel_times = self.__lookup_table[channel_type][ray_type][i_x, i_z]
         travel_times[~mask] = np.nan
         return travel_times
 
