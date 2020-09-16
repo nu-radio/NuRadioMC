@@ -119,7 +119,7 @@ class ray_tracing:
         ## define observer (channel)
         obs = radiopropa.Observer()
         obs.setDeactivateOnDetection(True)
-        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(self._x2[0], self._x2[1], self._x2[2]), 1 * radiopropa.meter))
+        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(self._x2[0], self._x2[1], self._x2[2]), 100 * radiopropa.meter))
         obs.add(channel)
         sim.add(obs) ## add observer to module list
 
@@ -133,7 +133,7 @@ class ray_tracing:
             delta = np.arccos(np.dot(x, y))
 
             cherenkov_angle = 56
-            if (abs(np.rad2deg(delta) - cherenkov_angle) < self._cut_viewing_angle): #only include rays with angle wrt cherenkov angle smaller than 20 degrees
+            if 1:#(abs(np.rad2deg(delta) - cherenkov_angle) < self._cut_viewing_angle): #only include rays with angle wrt cherenkov angle smaller than 20 degrees
                 source = radiopropa.Source()
                 source.add(radiopropa.SourcePosition(radiopropa.Vector3d(self._x1[0], self._x1[1], self._x1[2])))
                 x,y,z = hp.spherical_to_cartesian(phi * radiopropa.deg ,theta * radiopropa.deg)
@@ -147,9 +147,8 @@ class ray_tracing:
                 if detection == 0: #check if the channel is reached
                     candidates.append(candidate)
 
-        
         self._candidates = candidates 
-       
+
     
     
 
@@ -158,11 +157,44 @@ class ray_tracing:
         find all solutions between x1 and x2
         """
         results = []
+        
+        launch_angles = []
+        solution_types = []
+        iSs = []
+   
+        
         self.RadioPropa_raytracer(self._x1, self._x2)
+        #candidates = np.copy(self._candidates)
+        #num = len(self._candidates)
+        num = len(self._candidates)
+        candidates = np.copy(self._candidates)
         for iS, candidate in enumerate(self._candidates):
-            
             solution_type = self.get_solution_type(iS)
-            results.append({'type':solution_type, 'reflection':reflection})
+            launch_vector = [self._candidates[iS].getLaunchVector().x, self._candidates[iS].getLaunchVector().y, self._candidates[iS].getLaunchVector().z] 
+            launch_angles.append(hp.cartesian_to_spherical(launch_vector[0], launch_vector[1], launch_vector[2])[0])
+            solution_types.append(solution_type)
+        mask = (np.array(solution_types) ==1 )
+        index = 1
+        self._candidates = []
+        if mask.any():
+            index = int(np.median(np.array(np.arange(0, num, 1))[mask]))
+       
+            self._candidates.append(candidates[index].get())
+        mask = (np.array(solution_types) ==2 )
+        if mask.any():
+            index = np.median(np.array(np.arange(0, num, 1))[mask])
+            self._candidates.append(candidates[index].get())
+
+            
+        mask = (np.array(solution_types) ==3 )
+        if mask.any():
+            index = np.median(np.array(np.arange(0, num, 1))[mask])
+            self._candidates.append(candidates[index].get())
+
+                    
+        results.append({'type':solution_type, 'reflection':reflection})
+        
+        
         self._results = results
 
     def has_solution(self):
