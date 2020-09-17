@@ -2,7 +2,6 @@ import numpy as np
 import NuRadioMC.SignalProp.analyticraytracing
 import NuRadioMC.utilities.medium
 import pickle
-import sys
 import argparse
 
 parser = argparse.ArgumentParser(description='Create lookup tables for vertex reconstructor')
@@ -62,7 +61,7 @@ ice = NuRadioMC.utilities.medium.greenland_simple()
 ray_tracing = NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D(ice)
 channel_types = [{
     'name': 'antenna_{}'.format(args.antenna_depth),
-    'z': -1.*args.antenna_depth
+    'z': -1. * args.antenna_depth
 }]
 
 lookup_table = {
