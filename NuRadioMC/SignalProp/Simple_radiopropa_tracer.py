@@ -7,13 +7,6 @@ from scipy import interpolate
 import NuRadioReco.utilities.geometryUtilities
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-
-
-
-
-
-
-
 import radiopropa
 logging.basicConfig()
 import radiopropa
@@ -78,7 +71,7 @@ class ray_tracing:
         self._n_reflections = n_reflections
         self._shower_dir = shower_dir ## this is given so we cn limit the rays that are checked around the cherenkov angle 
         self._cut_viewing_angle = 20 #degrees wrt cherenkov angle
-        self._iceModel = radiopropa.GorhamIceModel() ## we need to figure out how to do this properly
+        self._iceModel = radiopropa.GreenlandIceModel() ## we need to figure out how to do this properly
         self._config = config
         self._n_frequencies_integration = n_frequencies_integration
 
@@ -164,8 +157,6 @@ class ray_tracing:
    
         
         self.RadioPropa_raytracer(self._x1, self._x2)
-        #candidates = np.copy(self._candidates)
-        #num = len(self._candidates)
         num = len(self._candidates)
         candidates = np.copy(self._candidates)
         for iS, candidate in enumerate(self._candidates):
@@ -178,21 +169,23 @@ class ray_tracing:
         self._candidates = []
         if mask.any():
             index = int(np.median(np.array(np.arange(0, num, 1))[mask]))
-       
-            self._candidates.append(candidates[index].get())
+            self._candidates.append(candidates[index])
+            results.append({'type':1, 'reflection':reflection})
+
         mask = (np.array(solution_types) ==2 )
         if mask.any():
             index = np.median(np.array(np.arange(0, num, 1))[mask])
-            self._candidates.append(candidates[index].get())
+            self._candidates.append(candidates[index])
+            results.append({'type':2, 'reflection':reflection})
 
-            
+
         mask = (np.array(solution_types) ==3 )
         if mask.any():
-            index = np.median(np.array(np.arange(0, num, 1))[mask])
-            self._candidates.append(candidates[index].get())
+            index = np.array(np.arange(0, num, 1))[mask][int(len(np.array(np.arange(0, num, 1))[mask])/2)]
+            self._candidates.append(candidates[index])
+            results.append({'type':3, 'reflection':reflection})
 
                     
-        results.append({'type':solution_type, 'reflection':reflection})
         
         
         self._results = results
@@ -253,11 +246,7 @@ class ray_tracing:
         elif(pathz[-1] < max(pathz)):
             solution_type = 2
         else:
-            solution_type = 1
-            
-            
-        print("solution type", solution_type)
-        
+            solution_type = 1        
         
         return solution_type
         
