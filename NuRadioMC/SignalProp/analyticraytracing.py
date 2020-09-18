@@ -1516,7 +1516,7 @@ class ray_tracing:
 
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=100,
-                 n_reflections=0, config=None, detector=None):
+                 n_reflections=0, config=None, detector=None, shower_dir = None):
         """
         class initilization
 
