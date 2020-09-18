@@ -466,10 +466,10 @@ def get_Veff_Aeff(folder,
 
         if('trigger_names' in fin.attrs):
             trigger_names = fin.attrs['trigger_names']
-        if(len(trigger_names) > 0):
-            for iT, trigger_name in enumerate(trigger_names):
-                trigger_names_dict[trigger_name] = iT
-            break
+            if(len(trigger_names) > 0):
+                for iT, trigger_name in enumerate(trigger_names):
+                    trigger_names_dict[trigger_name] = iT
+                break
 
     trigger_combinations['all_triggers'] = {'triggers': trigger_names}
     logger.info(f"Trigger names:  {trigger_names}")
