@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import logging
 import fractions
-from NuRadioReco.utilities import fft, trace_utilities
+from NuRadioReco.utilities import fft
 import scipy.signal
 import copy
 try:
@@ -157,6 +157,13 @@ class BaseTrace:
             self.set_trace_start_time(data['trace_start_time'])
 
     def __add__(self, x):
+        """
+        Redefine the "+" operator for BaseTrace objects. The operation will return a
+        new BaseTrace object containing the sum of the two traces. If the two traces
+        have different sampling rates, one of them is upsampled to the higher sampling
+        rate.
+        """
+        # Some sanity checks
         if not isinstance(x, BaseTrace):
             raise TypeError('+ operator is only defined for 2 BaseTrace objects')
         if self.get_trace() is None or x.get_trace() is None:
@@ -166,6 +173,7 @@ class BaseTrace:
         trace_1 = copy.copy(self.get_trace())
         trace_2 = copy.copy(x.get_trace())
         if self.get_sampling_rate() != x.get_sampling_rate():
+            # Upsample trace with lower sampling rate
             if self.get_sampling_rate() > x.get_sampling_rate():
                 sampling_rate = self.get_sampling_rate()
                 resampling_factor = fractions.Fraction(self.get_sampling_rate() / x.get_sampling_rate())
@@ -186,6 +194,8 @@ class BaseTrace:
             trace_start = self.get_trace_start_time()
             time_offset = x.get_trace_start_time() - self.get_trace_start_time()
             i_start = int(round(time_offset * sampling_rate))
+            # We have to distinguish 2 cases: Trace is 1D (channel) or 2D(E-field)
+            # and treat them differently
             if trace_1.ndim == 1:
                 trace_length = max(trace_1.shape[0], i_start + trace_2.shape[0])
                 trace_length += trace_length % 2
@@ -218,9 +228,12 @@ class BaseTrace:
                 early_trace[:, :trace_2.shape[1]] = trace_2
                 late_trace = np.zeros((trace_1.shape[0], trace_length))
                 late_trace[:, :trace_1.shape[1]] = trace_1
+        # Correct for different trace start times by using fourier shift theorem to
+        # shift the later trace backwards.
         late_trace_object = BaseTrace()
         late_trace_object.set_trace(late_trace, sampling_rate)
         late_trace_object.apply_time_shift(time_offset, True)
+        # Create new BaseTrace object holding the summed traces
         new_trace = BaseTrace()
         new_trace.set_trace(early_trace + late_trace_object.get_trace(), sampling_rate)
         new_trace.set_trace_start_time(trace_start)
