@@ -18,7 +18,18 @@ WARNING: this file needs NuRadioMC to be run.
 
 from __future__ import absolute_import, division, print_function
 import argparse
+import numpy as np
+import logging
 # import detector simulation modules
+
+import sys
+sys.path.append('/home/danielsmith/icecube_gen2/NuRadioReco')
+
+import NuRadioReco
+print(NuRadioReco.__file__)
+
+from NuRadioMC.simulation import simulation
+
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.phasedarray.triggerSimulator
@@ -26,17 +37,15 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
-from NuRadioMC.simulation import simulation
-from NuRadioReco.utilities.traceWindows import get_window_around_maximum
-import numpy as np
-import logging
 from NuRadioReco.modules.base import module
+from NuRadioReco.utilities.traceWindows import get_window_around_maximum
 
 logger = module.setup_logger(level=logging.WARNING)
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin(debug=False)
+
 triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
@@ -59,6 +68,7 @@ class mySimulation(simulation.simulation):
     def _detector_simulation_part2(self):
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
+
         # downsample trace to 3 Gs/s
         new_sampling_rate = 3 * units.GHz
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
@@ -75,8 +85,7 @@ class mySimulation(simulation.simulation):
 
         if self._is_simulate_noise():
             max_freq = 0.5 / self._dt
-            norm = self._get_noise_normalization(
-                self._station.get_id())  # assuming the same noise level for all stations
+            norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations                
             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms,
                                          min_freq=0 * units.MHz,
                                          max_freq=max_freq, type='rayleigh', bandwidth=norm)
@@ -89,12 +98,12 @@ class mySimulation(simulation.simulation):
 
         # run the phased trigger
         triggerSimulator.run(self._evt, self._station, self._det,
+                             Vrms = self._Vrms,
                              threshold=2.2 * self._Vrms,  # see phased trigger module for explanation
                              triggered_channels=None,  # run trigger on all channels
                              trigger_name='primary_phasing',  # the name of the trigger
+                             trigger_adc='true',
                              phasing_angles=phasing_angles,
-                             secondary_phasing_angles=None,
-                             coupled=False,
                              ref_index=1.75,
                              cut_times=cut_times)
 
