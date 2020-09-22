@@ -191,6 +191,7 @@ class BaseTrace:
         else:
             sampling_rate = self.get_sampling_rate()
 
+        # Figure out which of the traces has the earlier trace start time
         if self.get_trace_start_time() <= x.get_trace_start_time():
             first_trace = trace_1
             second_trace = trace_2
@@ -199,18 +200,24 @@ class BaseTrace:
             first_trace = trace_2
             second_trace = trace_1
             trace_start = x.get_trace_start_time()
+        # Calculate the difference in the trace start time between the traces and the number of
+        # samples that time difference corresponds to
         time_offset = np.abs(x.get_trace_start_time() - self.get_trace_start_time())
         i_start = int(round(time_offset * sampling_rate))
         # We have to distinguish 2 cases: Trace is 1D (channel) or 2D(E-field)
         # and treat them differently
         if trace_1.ndim == 1:
+            # Calculate length the new trace needs to hold both input traces
             trace_length = max(first_trace.shape[0], i_start + second_trace.shape[0])
+            # Make sure trace has an even number of samples
             trace_length += trace_length % 2
+            # Put both pulses at the start of their own traces for now. We correct for different start times later
             early_trace = np.zeros(trace_length)
             early_trace[:first_trace.shape[0]] = first_trace
             late_trace = np.zeros(trace_length)
             late_trace[:second_trace.shape[0]] = second_trace
         else:
+            # Same as in the if bracket, but for a 2D trace (like an E-field)
             trace_length = max(first_trace.shape[1], i_start + second_trace.shape[1])
             trace_length += trace_length % 2
             early_trace = np.zeros((first_trace.shape[0], trace_length))
