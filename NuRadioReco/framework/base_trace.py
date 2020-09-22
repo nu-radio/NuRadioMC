@@ -190,44 +190,33 @@ class BaseTrace:
                     trace_1 = scipy.signal.resample(trace_1, len(trace_1) // resampling_factor.denominator)
         else:
             sampling_rate = self.get_sampling_rate()
+
         if self.get_trace_start_time() <= x.get_trace_start_time():
+            first_trace = trace_1
+            second_trace = trace_2
             trace_start = self.get_trace_start_time()
-            time_offset = x.get_trace_start_time() - self.get_trace_start_time()
-            i_start = int(round(time_offset * sampling_rate))
-            # We have to distinguish 2 cases: Trace is 1D (channel) or 2D(E-field)
-            # and treat them differently
-            if trace_1.ndim == 1:
-                trace_length = max(trace_1.shape[0], i_start + trace_2.shape[0])
-                trace_length += trace_length % 2
-                early_trace = np.zeros(trace_length)
-                early_trace[:trace_1.shape[0]] = trace_1
-                late_trace = np.zeros(trace_length)
-                late_trace[:trace_2.shape[0]] = trace_2
-            else:
-                trace_length = max(trace_1.shape[1], i_start + trace_2.shape[1])
-                trace_length += trace_length % 2
-                early_trace = np.zeros((trace_1.shape[0], trace_length))
-                early_trace[:, :trace_1.shape[1]] = trace_1
-                late_trace = np.zeros((trace_2.shape[0], trace_length))
-                late_trace[:, :trace_2.shape[1]] = trace_2
         else:
+            first_trace = trace_2
+            second_trace = trace_1
             trace_start = x.get_trace_start_time()
-            time_offset = self.get_trace_start_time() - x.get_trace_start_time()
-            i_start = int(round(time_offset * sampling_rate))
-            if trace_1.ndim == 1:
-                trace_length = max(trace_2.shape[0], i_start + trace_1.shape[0])
-                trace_length += trace_length % 2
-                early_trace = np.zeros(trace_length)
-                early_trace[:trace_2.shape[0]] = trace_2
-                late_trace = np.zeros(trace_length)
-                late_trace[:trace_1.shape[0]] = trace_1
-            else:
-                trace_length = max(trace_2.shape[1], i_start + trace_1.shape[1])
-                trace_length += trace_length % 2
-                early_trace = np.zeros((trace_2.shape[0], trace_length))
-                early_trace[:, :trace_2.shape[1]] = trace_2
-                late_trace = np.zeros((trace_1.shape[0], trace_length))
-                late_trace[:, :trace_1.shape[1]] = trace_1
+        time_offset = np.abs(x.get_trace_start_time() - self.get_trace_start_time())
+        i_start = int(round(time_offset * sampling_rate))
+        # We have to distinguish 2 cases: Trace is 1D (channel) or 2D(E-field)
+        # and treat them differently
+        if trace_1.ndim == 1:
+            trace_length = max(first_trace.shape[0], i_start + second_trace.shape[0])
+            trace_length += trace_length % 2
+            early_trace = np.zeros(trace_length)
+            early_trace[:first_trace.shape[0]] = first_trace
+            late_trace = np.zeros(trace_length)
+            late_trace[:second_trace.shape[0]] = second_trace
+        else:
+            trace_length = max(first_trace.shape[1], i_start + second_trace.shape[1])
+            trace_length += trace_length % 2
+            early_trace = np.zeros((first_trace.shape[0], trace_length))
+            early_trace[:, :first_trace.shape[1]] = first_trace
+            late_trace = np.zeros((second_trace.shape[0], trace_length))
+            late_trace[:, :second_trace.shape[1]] = second_trace
         # Correct for different trace start times by using fourier shift theorem to
         # shift the later trace backwards.
         late_trace_object = BaseTrace()
