@@ -45,9 +45,9 @@ class ray_tracing:
 
         Parameters
         ----------
-        x1: 3dim np.array
+        x1: np.array of shape (1,3)
             start point of the ray
-        x2: 3dim np.array
+        x2: np.array of shape (1,3)
             stop point of the ray
         medium: medium class
             class describing the index-of-refraction profile
@@ -64,6 +64,8 @@ class ray_tracing:
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
+        shower_dir: np.array of shape (1,2)
+                    zenith and azimuth of direction of shower in degrees
 
         """
         self._airBoundary = radiopropa.Discontinuity(radiopropa.Plane(radiopropa.Vector3d(0,0,0), radiopropa.Vector3d(0,0,1)), 1.3, 1)
@@ -308,8 +310,8 @@ class ray_tracing:
         reflection_angle: float or None
             the reflection angle (for reflected rays) or None for direct and refracted rays
         """
-        reflection_angle = getReflectionAnglesCandidate(self._candidates[iS])
-        return reflection_angle
+        reflection_angles = getReflectionAnglesCandidate(self._candidates[iS])
+        return reflection_angles
 
     def get_path_length(self, iS, analytic=True):
         """
