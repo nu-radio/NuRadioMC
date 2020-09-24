@@ -87,7 +87,7 @@ class IftElectricFieldReconstructor:
             return False
         self.__trace_samples = int(station.get_channel(self.__used_channel_ids[0]).get_sampling_rate() * self.__trace_length)
         self.__prepare_traces(event, station, detector)
-        if np.min(self.__noise_levels) < .1:
+        if np.min(self.__noise_levels) < .01:
             return
         ref_channel = station.get_channel(self.__used_channel_ids[0])
         sampling_rate = ref_channel.get_sampling_rate()
@@ -219,6 +219,7 @@ class IftElectricFieldReconstructor:
         self.__classic_efield_recos = []
         self.__used_electric_fields = []
         frequencies = frequency_domain.get_k_length_array().val / self.__trace_samples * sampling_rate
+        hardware_responses = np.zeros((len(self.__used_channel_ids), len(frequencies)), dtype=complex)
         if self.__passband is not None:
             b, a = scipy.signal.butter(10, self.__passband, 'bandpass', analog=True)
             w, h = scipy.signal.freqs(b, a, frequencies)
@@ -239,27 +240,35 @@ class IftElectricFieldReconstructor:
                 receive_azimuth = electric_field.get_parameter(efp.azimuth)
             else:
                 receive_azimuth = 165. * units.deg
-            antenna_type = detector.get_antenna_model(station.get_id(), channel_id)
-            antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(antenna_type)
-            antenna_orientation = detector.get_antenna_orientation(station.get_id(), channel_id)
             antenna_response = NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor(station, frequencies, [channel_id], detector, receiving_zenith, receive_azimuth, self.__antenna_pattern_provider)[0][0]
             amp_response_func = NuRadioReco.detector.RNO_G.analog_components.load_amp_response(detector.get_amplifier_type(station.get_id(), channel_id))
             amp_gain = amp_response_func['gain'](frequencies)
             amp_phase = np.unwrap(np.angle(amp_response_func['phase'](frequencies)))
             total_gain = np.abs(amp_gain) * np.abs(antenna_response)
-            max_gain = np.max(total_gain)
-            self.__gain_scaling.append(max_gain)
-            total_gain /= max_gain
             total_phase = np.unwrap(np.angle(antenna_response)) + amp_phase + filter_phase
             total_phase[len(total_phase) // 2:] *= -1
             total_phase[len(total_phase) // 2 + 1] = 0
             total_phase *= -1
-            amp_field = ift.Field(ift.DomainTuple.make(frequency_domain), total_gain * np.exp(1.j * total_phase))
+            hardware_responses[i_channel] = total_gain * np.exp(1.j * total_phase)
+        max_gain = np.max(np.abs(hardware_responses))
+        self.__gain_scaling = max_gain
+        hardware_responses /= max_gain
+        for i_channel, channel_id in enumerate(self.__used_channel_ids):
+            amp_field = ift.Field(ift.DomainTuple.make(frequency_domain), hardware_responses[i_channel])
             amp_operators.append(ift.DiagonalOperator(amp_field))
 
             # calculate classic E-Field reco
             freqs = np.fft.rfftfreq(self.__data_traces.shape[1], 1. / station.get_channel(channel_id).get_sampling_rate())
 
+            electric_field = list(station.get_electric_fields_for_channels([channel_id]))[0]
+            receiving_zenith = electric_field.get_parameter(efp.zenith)
+            if electric_field.has_parameter(efp.azimuth):
+                receive_azimuth = electric_field.get_parameter(efp.azimuth)
+            else:
+                receive_azimuth = 165. * units.deg
+            antenna_type = detector.get_antenna_model(station.get_id(), channel_id)
+            antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(antenna_type)
+            antenna_orientation = detector.get_antenna_orientation(station.get_id(), channel_id)
             antenna_response = antenna_pattern.get_antenna_response_vectorized(
                 freqs,
                 receiving_zenith,
@@ -269,6 +278,7 @@ class IftElectricFieldReconstructor:
                 antenna_orientation[2],
                 antenna_orientation[3]
             )['theta']
+            amp_response_func = NuRadioReco.detector.RNO_G.analog_components.load_amp_response(detector.get_amplifier_type(station.get_id(), channel_id))
             amp_gain = amp_response_func['gain'](freqs)
             amp_phase = amp_response_func['phase'](freqs)
             self.__classic_efield_recos.append(fft.time2freq(self.__data_traces[i_channel], station.get_channel(channel_id).get_sampling_rate()) / antenna_response / amp_gain / amp_phase)
@@ -342,7 +352,7 @@ class IftElectricFieldReconstructor:
                 efield_sample = self.__efield_trace_operators[i_channel].force(median + sample).val
                 efield_stat_calculator.add(efield_sample)
             sampling_rate = station.get_channel(channel_id).get_sampling_rate()
-            rec_efield = efield_stat_calculator.mean * self.__scaling_factor / self.__gain_scaling[i_channel]
+            rec_efield = efield_stat_calculator.mean * self.__scaling_factor / self.__gain_scaling
             trace = np.zeros((3, len(rec_efield)))
             trace[1] = rec_efield
             for efield in station.get_electric_fields_for_channels([channel_id]):
@@ -412,7 +422,7 @@ class IftElectricFieldReconstructor:
         freqs = np.fft.rfftfreq(self.__data_traces.shape[1], 1. / sampling_rate)
         classic_mean_efield_spec = np.zeros_like(freqs)
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
-            classic_mean_efield_spec += np.abs(self.__classic_efield_recos[i_channel]) * self.__scaling_factor
+            classic_mean_efield_spec += np.abs(self.__classic_efield_recos[i_channel])
         classic_mean_efield_spec /= len(self.__used_channel_ids)
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             times = np.arange(self.__data_traces.shape[1]) / sampling_rate + self.__trace_start_times[i_channel]
@@ -469,8 +479,8 @@ class IftElectricFieldReconstructor:
             ax2_1.plot(times, np.abs(scipy.signal.hilbert(trace_stat_calculator.mean * self.__scaling_factor)) / units.mV, c='C2', linestyle='-', zorder=2, linewidth=4, alpha=.5)
             ax2_1.set_xlim([times[0], times[-1]])
             ax1_2.plot(freqs[(freqs > self.__passband[0]) & (freqs < self.__passband[1])] / units.MHz, np.abs(self.__classic_efield_recos[i_channel])[(freqs > self.__passband[0]) & (freqs < self.__passband[1])] * self.__scaling_factor, c='C0', alpha=.5)
-            ax1_2.plot(freqs[(freqs > self.__passband[0]) & (freqs < self.__passband[1])] / units.MHz, classic_mean_efield_spec[(freqs > self.__passband[0]) & (freqs < self.__passband[1])], c='k', alpha=.5, label='classic reco')
-            ax1_2.plot(freqs / units.MHz, amp_efield_stat_calculator.mean * self.__scaling_factor / self.__gain_scaling[i_channel], c='C2')
+            # ax1_2.plot(freqs[(freqs > self.__passband[0]) & (freqs < self.__passband[1])] / units.MHz, classic_mean_efield_spec[(freqs > self.__passband[0]) & (freqs < self.__passband[1])], c='k', alpha=.5, label='classic reco')
+            ax1_2.plot(freqs / units.MHz, amp_efield_stat_calculator.mean * self.__scaling_factor / self.__gain_scaling, c='C2')
             ax1_1.axvline(self.__passband[0] / units.MHz, c='k', alpha=.5, linestyle=':')
             ax1_1.axvline(self.__passband[1] / units.MHz, c='k', alpha=.5, linestyle=':')
             ax1_2.axvline(self.__passband[0] / units.MHz, c='k', alpha=.5, linestyle=':')
