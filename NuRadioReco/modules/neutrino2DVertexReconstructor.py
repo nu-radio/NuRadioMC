@@ -42,6 +42,7 @@ class neutrino2DVertexReconstructor:
         self.__current_ray_types = None
         self.__passband = None
         self.__template = None
+        self.__output_path = None
         self.__ray_types = [
             ['direct', 'direct'],
             ['reflected', 'reflected'],
@@ -49,9 +50,20 @@ class neutrino2DVertexReconstructor:
             ['direct', 'reflected'],
             ['reflected', 'direct'],
             ['direct', 'refracted'],
-            ['refracted', 'direct']]
+            ['refracted', 'direct'],
+            ['reflected', 'refracted'],
+            ['refracted', 'reflected']
+        ]
+        self.__dnr_ray_types = [
+            ['direct', 'reflected'],
+            ['reflected', 'direct'],
+            ['direct', 'refracted'],
+            ['refracted', 'direct'],
+            ['reflected', 'refracted'],
+            ['refracted', 'reflected']
+        ]
 
-    def begin(self, station_id, channel_ids, detector, passband=None, template=None):
+    def begin(self, station_id, channel_ids, detector, passband=None, template=None, output_path=None):
         """
         General settings for vertex reconstruction
 
@@ -91,8 +103,9 @@ class neutrino2DVertexReconstructor:
                 self.__header[int(channel_z)] = f['header']
                 self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
         self.__template = template
+        self.__output_path = output_path
 
-    def run(self, event, station, max_distance, z_width, grid_spacing, direction_guess=None, debug=False):
+    def run(self, event, station, max_distance, z_width, grid_spacing, direction_guess=None, debug=False, use_dnr=False):
         """
         Execute the 2D vertex reconstruction
 
@@ -170,8 +183,8 @@ class neutrino2DVertexReconstructor:
                     max_channel = ch2
                 self.__correlation = np.abs(scipy.signal.correlate(trace1, trace2))
                 toffset = -(np.arange(0, self.__correlation.shape[0]) - self.__correlation.shape[0] / 2.) / ch1.get_sampling_rate()
-            if np.sum(np.abs(self.__correlation)) > 0:
-                self.__correlation /= np.sum(np.abs(self.__correlation))
+                if np.sum(np.abs(self.__correlation)) > 0:
+                    self.__correlation /= np.sum(np.abs(self.__correlation))
             corr_snr = np.max(self.__correlation)/np.mean(self.__correlation[self.__correlation>0])
             arg_max_corr = np.argmax(self.__correlation)
             self.__sampling_rate = ch1.get_sampling_rate()
@@ -237,14 +250,94 @@ class neutrino2DVertexReconstructor:
 
                 fig2.tight_layout()
                 plt.show()
-
                 plt.close('all')
+        if use_dnr:
+            dnr_correlation_sum = np.zeros(x_coords.shape)
+            for channel_id in self.__channel_ids:
+                channel = station.get_channel(channel_id)
+                spec = channel.get_frequency_spectrum()
+                if self.__passband is not None:
+                    b, a = scipy.signal.butter(10, self.__passband, 'bandpass', analog=True)
+                    w, h = scipy.signal.freqs(b, a, channel.get_frequencies())
+                    spec *= h
+                trace = fft.freq2time(spec, channel.get_sampling_rate())
+                corr = hp.get_normalized_xcorr(trace, self.__template)
+                self.__correlation = np.zeros_like(corr)
+                sample_shifts = np.arange(-len(corr) // 2, len(corr) // 2, dtype=int)
+                toffset = sample_shifts / channel.get_sampling_rate()
+                for i_shift, shift_sample in enumerate(sample_shifts):
+                    self.__correlation[i_shift] = np.max(corr * np.roll(corr, shift_sample))
+                self.__correlation[np.abs(toffset)<=5] = 0
+                self.__sampling_rate = channel.get_sampling_rate()
+                self.__channel_pair = [channel_id, channel_id]
+                self.__channel_positions = [self.__detector.get_relative_position(self.__station_id, channel_id),
+                                            self.__detector.get_relative_position(self.__station_id, channel_id)]
+                correlation_array = np.zeros_like(correlation_sum)
+                for i_ray in range(len(self.__dnr_ray_types)):
+                    self.__current_ray_types = self.__dnr_ray_types[i_ray]
+                    correlation_array = np.maximum(self.get_correlation_array_2d(x_coords, z_coords), correlation_array)
+                if np.max(correlation_array) > 0:
+                    dnr_correlation_sum += correlation_array
+            max_corr_dnr_index = np.unravel_index(np.argmax(correlation_sum + dnr_correlation_sum), correlation_sum.shape)
+            max_corr_dnr_r = x_coords[max_corr_dnr_index[0]][max_corr_dnr_index[1]]
+            max_corr_dnr_z = z_coords[max_corr_dnr_index[0]][max_corr_dnr_index[1]]
+
+        if self.__output_path is not None:
+            plt.close('all')
+            if use_dnr:
+                fig3 = plt.figure(figsize=(12, 12))
+                ax3_1 = fig3.add_subplot(321)
+                ax3_2 = fig3.add_subplot(322)
+                ax3_3 = fig3.add_subplot(3, 2, (3, 6))
+            else:
+                fig3 = plt.figure(figsize=(8, 8))
+                ax3_1 = fig3.add_subplot(111)
+            import skimage.transform
+            downscaled_image = skimage.transform.rescale(correlation_sum, .2)
+            rescaled_xcoords = skimage.transform.rescale(x_coords, .2)
+            rescaled_zcoords = skimage.transform.rescale(z_coords, .2)
+            corr_plot = ax3_1.pcolor(rescaled_xcoords, rescaled_zcoords, downscaled_image)
+            ax3_1.grid()
+            ax3_1.set_aspect('equal')
+            plt.colorbar(corr_plot, ax=ax3_1)
+            sim_vertex = None
+            for shower in event.get_sim_showers():
+                if shower.has_parameter(shp.vertex):
+                    sim_vertex = shower.get_parameter(shp.vertex)
+            if sim_vertex is not None:
+                ax3_1.axvline(np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2), c='r', linestyle=':')
+                ax3_1.axhline(sim_vertex[2], c='r', linestyle=':')
+                ax3_1.axvline(max_corr_r, c='k', linestyle=':')
+                ax3_1.axhline(max_corr_z, c='k', linestyle=':')
+            if use_dnr:
+                downscaled_dnr_image = skimage.transform.rescale(dnr_correlation_sum, .2)
+                dnr_corr_plot = ax3_2.pcolor(rescaled_xcoords, rescaled_zcoords, downscaled_dnr_image)
+                if np.max(downscaled_dnr_image) > .1:
+                    ax3_2.contour(rescaled_xcoords, rescaled_zcoords, downscaled_dnr_image, levels=[.1], colors='k', alpha=.3)
+                ax3_2.grid()
+                ax3_2.set_aspect('equal')
+                plt.colorbar(dnr_corr_plot, ax=ax3_2)
+                combined_corr_plot = ax3_3.pcolor(rescaled_xcoords, rescaled_zcoords, downscaled_dnr_image + downscaled_image)
+                ax3_3.grid()
+                ax3_3.set_aspect('equal')
+                plt.colorbar(combined_corr_plot, ax=ax3_3)
+                if sim_vertex is not None:
+                    ax3_2.axvline(np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2), c='r', linestyle=':')
+                    ax3_2.axhline(sim_vertex[2], c='r', linestyle=':')
+                    ax3_3.axvline(np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2), c='r', linestyle=':')
+                    ax3_3.axhline(sim_vertex[2], c='r', linestyle=':')
+                    ax3_3.axvline(max_corr_dnr_r, c='k', linestyle=':')
+                    ax3_3.axhline(max_corr_dnr_z, c='k', linestyle=':')
+            fig3.tight_layout()
+            fig3.savefig('{}/vertex_reco_{}.png'.format(self.__output_path, event.get_id()))
+
         if max_corr_index is None:
             return
         self.__rec_x = x_coords[max_corr_index[0]][max_corr_index[1]]
         self.__rec_z = z_coords[max_corr_index[0]][max_corr_index[1]]
         station.set_parameter(stnp.vertex_2D_fit, [self.__rec_x, self.__rec_z])
-        for channel_id in self.__channel_ids:
+        for channel in station.iter_channels():
+            channel_id = channel.get_id()
             ray_type = self.find_ray_type(station, station.get_channel(channel_id))
             zenith = self.find_receiving_zenith(station, ray_type, channel_id)
             efield = NuRadioReco.framework.electric_field.ElectricField([channel_id], self.__detector.get_relative_position(station.get_id(), channel_id))
