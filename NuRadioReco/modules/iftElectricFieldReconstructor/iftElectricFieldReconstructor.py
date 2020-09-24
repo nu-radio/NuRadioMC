@@ -30,6 +30,7 @@ class IftElectricFieldReconstructor:
         self.__trace_start_times = None
         self.__n_iterations = None
         self.__n_samples = None
+        self.__polarization = None
         return
 
     def begin(
@@ -42,6 +43,7 @@ class IftElectricFieldReconstructor:
         efield_scaling=True,
         n_iterations=5,
         n_samples=20,
+        polarization='theta',
         debug=False
     ):
         self.__passband = passband
@@ -51,6 +53,7 @@ class IftElectricFieldReconstructor:
         self.__efield_scaling = efield_scaling
         self.__n_iterations = n_iterations
         self.__n_samples = n_samples
+        self.__polarization = polarization
         if amp_dct is None:
             self.__amp_dct = {
                 'n_pix': 64,  # spectral bins
@@ -135,9 +138,9 @@ class IftElectricFieldReconstructor:
                         station,
                         KL
                     )
-        self.__store_reconstructed_efields(
-            event, station, best_reco_KL
-        )
+        # self.__store_reconstructed_efields(
+        #     event, station, best_reco_KL
+        # )
         return True
 
     def __prepare_traces(
@@ -219,7 +222,7 @@ class IftElectricFieldReconstructor:
         self.__classic_efield_recos = []
         self.__used_electric_fields = []
         frequencies = frequency_domain.get_k_length_array().val / self.__trace_samples * sampling_rate
-        hardware_responses = np.zeros((len(self.__used_channel_ids), len(frequencies)), dtype=complex)
+        hardware_responses = np.zeros((len(self.__used_channel_ids), 2, len(frequencies)), dtype=complex)
         if self.__passband is not None:
             b, a = scipy.signal.butter(10, self.__passband, 'bandpass', analog=True)
             w, h = scipy.signal.freqs(b, a, frequencies)
@@ -240,22 +243,24 @@ class IftElectricFieldReconstructor:
                 receive_azimuth = electric_field.get_parameter(efp.azimuth)
             else:
                 receive_azimuth = 165. * units.deg
-            antenna_response = NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor(station, frequencies, [channel_id], detector, receiving_zenith, receive_azimuth, self.__antenna_pattern_provider)[0][0]
+            antenna_response = NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor(station, frequencies, [channel_id], detector, receiving_zenith, receive_azimuth, self.__antenna_pattern_provider)[0]
             amp_response_func = NuRadioReco.detector.RNO_G.analog_components.load_amp_response(detector.get_amplifier_type(station.get_id(), channel_id))
             amp_gain = amp_response_func['gain'](frequencies)
             amp_phase = np.unwrap(np.angle(amp_response_func['phase'](frequencies)))
             total_gain = np.abs(amp_gain) * np.abs(antenna_response)
             total_phase = np.unwrap(np.angle(antenna_response)) + amp_phase + filter_phase
-            total_phase[len(total_phase) // 2:] *= -1
-            total_phase[len(total_phase) // 2 + 1] = 0
+            total_phase[:, total_phase.shape[1] // 2:] *= -1
+            total_phase[:, total_phase.shape[1] // 2 + 1] = 0
             total_phase *= -1
-            hardware_responses[i_channel] = total_gain * np.exp(1.j * total_phase)
+            hardware_responses[i_channel, 0] = (total_gain * np.exp(1.j * total_phase))[0]
+            hardware_responses[i_channel, 1] = (total_gain * np.exp(1.j * total_phase))[1]
         max_gain = np.max(np.abs(hardware_responses))
         self.__gain_scaling = max_gain
         hardware_responses /= max_gain
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
-            amp_field = ift.Field(ift.DomainTuple.make(frequency_domain), hardware_responses[i_channel])
-            amp_operators.append(ift.DiagonalOperator(amp_field))
+            amp_field_theta = ift.Field(ift.DomainTuple.make(frequency_domain), hardware_responses[i_channel][0])
+            amp_field_phi = ift.Field(ift.DomainTuple.make(frequency_domain), hardware_responses[i_channel][1])
+            amp_operators.append([ift.DiagonalOperator(amp_field_theta), ift.DiagonalOperator(amp_field_phi)])
 
             # calculate classic E-Field reco
             freqs = np.fft.rfftfreq(self.__data_traces.shape[1], 1. / station.get_channel(channel_id).get_sampling_rate())
@@ -310,26 +315,56 @@ class IftElectricFieldReconstructor:
         scaling_domain = ift.UnstructuredDomain(1)
         inserter = NuRadioReco.modules.iftElectricFieldReconstructor.operators.Inserter(realizer.target)
         add_one = ift.Adder(ift.Field(inserter.domain, 1))
+
+        polarization_domain = ift.UnstructuredDomain(1)
+
         likelihood = None
         self.__efield_trace_operators = []
         self.__efield_spec_operators = []
         self.__channel_trace_operators = []
         self.__channel_spec_operators = []
+        polarization_inserter = NuRadioReco.modules.iftElectricFieldReconstructor.operators.Inserter(mag_S_h.target)
+        polarization_field = realizer2 @ polarization_inserter @ (2. * ift.FieldAdapter(polarization_domain, 'pol'))
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             phi_S_h = NuRadioReco.modules.iftElectricFieldReconstructor.operators.SlopeSpectrumOperator(frequency_domain.get_default_codomain(), self.__phase_dct['sm'], self.__phase_dct['im'], self.__phase_dct['sv'], self.__phase_dct['iv'])
             phi_S_h = realizer2.adjoint @ phi_S_h
-            scaling_field = (inserter @ add_one @ (.1 * ift.FieldAdapter(scaling_domain, 'pol{}'.format(i_channel))))
-            efield_spec_operator = ((filter_operator @ (mag_S_h * (1.j * phi_S_h).exp())))
-            channel_spec_operator = (hardware_operators[i_channel] @ efield_spec_operator)
+            scaling_field = (inserter @ add_one @ (.1 * ift.FieldAdapter(scaling_domain, 'scale{}'.format(i_channel))))
+            if self.__polarization == 'theta':
+                efield_spec_operator_theta = ((filter_operator @ (mag_S_h * (1.j * phi_S_h).exp())))
+                efield_spec_operator_phi = None
+                channel_spec_operator = (hardware_operators[i_channel][0] @ efield_spec_operator_theta)
+            elif self.__polarization == 'phi':
+                efield_spec_operator_theta = None
+                efield_spec_operator_phi = ((filter_operator @ (mag_S_h * (1.j * phi_S_h).exp())))
+                channel_spec_operator = (hardware_operators[i_channel][1] @ efield_spec_operator_phi)
+            elif self.__polarization == 'pol':
+                efield_spec_operator_theta = ((filter_operator @ ((mag_S_h * polarization_field.cos()) * (1.j * phi_S_h).exp())))
+                efield_spec_operator_phi = ((filter_operator @ ((mag_S_h * polarization_field.sin()) * (1.j * phi_S_h).exp())))
+                channel_spec_operator = (hardware_operators[i_channel][0] @ efield_spec_operator_theta) + (hardware_operators[i_channel][1] @ efield_spec_operator_phi)
+            else:
+                raise ValueError('Unrecognized polarization setting {}. Possible values are theta, phi and pol'.format(self.__polarization))
+            efield_spec_operators = [
+                efield_spec_operator_theta,
+                efield_spec_operator_phi
+            ]
+            efield_trace_operator = []
             if self.__efield_scaling:
-                efield_trace_operator = ((realizer @ fft_operator.inverse @ efield_spec_operator)) * scaling_field
+                for efield_spec_operator in efield_spec_operators:
+                    if efield_spec_operator is not None:
+                        efield_trace_operator.append(((realizer @ fft_operator.inverse @ efield_spec_operator_theta)) * scaling_field)
+                    else:
+                        efield_trace_operator.append(None)
                 channel_trace_operator = ((realizer @ fft_operator.inverse @ (channel_spec_operator))) * scaling_field
             else:
-                efield_trace_operator = ((realizer @ fft_operator.inverse @ efield_spec_operator))
+                for efield_spec_operator in efield_spec_operators:
+                    if efield_spec_operator is not None:
+                        efield_trace_operator.append(((realizer @ fft_operator.inverse @ efield_spec_operator_theta)))
+                    else:
+                        efield_trace_operator.append(None)
                 channel_trace_operator = ((realizer @ fft_operator.inverse @ (channel_spec_operator)))
             noise_operator = ift.ScalingOperator(self.__noise_levels[i_channel]**2, frequency_domain.get_default_codomain())
             data_field = ift.Field(ift.DomainTuple.make(frequency_domain.get_default_codomain()), self.__data_traces[i_channel])
-            self.__efield_spec_operators.append(efield_spec_operator)
+            self.__efield_spec_operators.append(efield_spec_operators)
             self.__efield_trace_operators.append(efield_trace_operator)
             self.__channel_spec_operators.append(channel_spec_operator)
             self.__channel_trace_operators.append(channel_trace_operator)
@@ -375,10 +410,10 @@ class IftElectricFieldReconstructor:
         times = np.arange(self.__data_traces.shape[1]) / sampling_rate
         freqs = freq_space.get_k_length_array().val / self.__data_traces.shape[1] * sampling_rate
         for i in range(5):
-            x = ift.from_random('normal', self.__efield_trace_operators[0].domain)
-            efield_spec_sample = self.__efield_spec_operators[0].force(x)
+            x = ift.from_random('normal', self.__efield_trace_operators[0][0].domain)
+            efield_spec_sample = self.__efield_spec_operators[0][0].force(x)
             ax1_1.plot(freqs / units.MHz, np.abs(efield_spec_sample.val))
-            efield_trace_sample = self.__efield_trace_operators[0].force(x)
+            efield_trace_sample = self.__efield_trace_operators[0][0].force(x)
             ax1_2.plot(times, efield_trace_sample.val)
             channel_spec_sample = self.__channel_spec_operators[0].force(x)
             ax1_3.plot(freqs / units.MHz, np.abs(channel_spec_sample.val))
@@ -427,21 +462,28 @@ class IftElectricFieldReconstructor:
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             times = np.arange(self.__data_traces.shape[1]) / sampling_rate + self.__trace_start_times[i_channel]
             trace_stat_calculator = ift.StatCalculator()
-            efield_stat_calculator = ift.StatCalculator()
             amp_trace_stat_calculator = ift.StatCalculator()
-            amp_efield_stat_calculator = ift.StatCalculator()
+            efield_stat_calculators = [ift.StatCalculator(), ift.StatCalculator()]
+            amp_efield_stat_calculators = [ift.StatCalculator(), ift.StatCalculator()]
             for sample in KL.samples:
-                channel_sample_trace = self.__channel_trace_operators[i_channel].force(median + sample).val
-                trace_stat_calculator.add(channel_sample_trace)
-                amp_trace = np.abs(fft.time2freq(channel_sample_trace, sampling_rate))
-                amp_trace_stat_calculator.add(amp_trace)
-                efield_sample_trace = self.__efield_trace_operators[i_channel].force(median + sample).val
-                efield_stat_calculator.add(efield_sample_trace)
-                amp_efield = np.abs(fft.time2freq(efield_sample_trace, sampling_rate))
-                amp_efield_stat_calculator.add(amp_efield)
+                for i_pol, efield_stat_calculator in enumerate(efield_stat_calculators):
+                    channel_sample_trace = self.__channel_trace_operators[i_channel].force(median + sample).val
+                    trace_stat_calculator.add(channel_sample_trace)
+                    amp_trace = np.abs(fft.time2freq(channel_sample_trace, sampling_rate))
+                    amp_trace_stat_calculator.add(amp_trace)
+                    if self.__efield_trace_operators[i_channel][i_pol] is not None:
+                        efield_sample_trace = self.__efield_trace_operators[i_channel][i_pol].force(median + sample).val
+                        efield_stat_calculator.add(efield_sample_trace)
+                        amp_efield = np.abs(fft.time2freq(efield_sample_trace, sampling_rate))
+                        amp_efield_stat_calculators[i_pol].add(amp_efield)
 
-            ax1_1 = fig1.add_subplot(n_channels, 2, 2 * i_channel + 1)
-            ax1_2 = fig1.add_subplot(n_channels, 2, 2 * i_channel + 2)
+            if self.__polarization == 'pol':
+                ax1_1 = fig1.add_subplot(n_channels, 3, 3 * i_channel + 1)
+                ax1_2 = fig1.add_subplot(n_channels, 3, 3 * i_channel + 2)
+                ax1_3 = fig1.add_subplot(n_channels, 3, 3 * i_channel + 3)
+            else:
+                ax1_1 = fig1.add_subplot(n_channels, 2, 2 * i_channel + 1)
+                ax1_2 = fig1.add_subplot(n_channels, 2, 2 * i_channel + 2)
             ax2_1 = fig2.add_subplot(n_channels, 1, i_channel + 1)
             ax1_1.plot(freqs / units.MHz, np.abs(fft.time2freq(self.__data_traces[i_channel], sampling_rate)) * self.__scaling_factor / units.mV, c='C0', label='data')
             if station.has_sim_station():
@@ -453,13 +495,14 @@ class IftElectricFieldReconstructor:
                         else:
                             sim_channel_sum += sim_channel
                         ax1_1.plot(sim_channel.get_frequencies() / units.MHz, np.abs(sim_channel.get_frequency_spectrum()) / units.mV, c='C1', linestyle='--')
-                        ax2_1.plot(sim_channel.get_times(), sim_channel.get_trace() / units.mV, c='C1', linewidth=6, zorder=1)
+                        ax2_1.plot(sim_channel.get_times(), sim_channel.get_trace() / units.mV, c='C1', linewidth=6, zorder=1, linestyle='--', alpha=.5)
                 if sim_channel_sum is not None:
                     ax1_1.plot(
                         sim_channel_sum.get_frequencies() / units.MHz,
                         np.abs(sim_channel_sum.get_frequency_spectrum()) / units.mV,
                         c='C1',
-                        label='MC truth'
+                        label='MC truth',
+                        alpha=.5
                     )
                     ax2_1.plot(
                         sim_channel_sum.get_times(),
@@ -467,10 +510,17 @@ class IftElectricFieldReconstructor:
                         c='C1',
                         linewidth=6,
                         zorder=1,
-                       label='MC truth'
+                        label='MC truth'
                     )
                 for efield in station.get_sim_station().get_electric_fields_for_channels([channel_id]):
-                    ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[1]), c='C1')
+                    if self.__polarization == 'theta':
+                        ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1')
+                    if self.__polarization == 'phi':
+                        ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1')
+                    if self.__polarization == 'pol':
+                        ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1')
+                        ax1_3.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1')
+
             ax2_1.plot(times, self.__data_traces[i_channel] * self.__scaling_factor / units.mV, c='C0', alpha=1., zorder=5, label='data')
             ax2_1.plot(times, np.abs(scipy.signal.hilbert(self.__data_traces[i_channel] * self.__scaling_factor)) / units.mV, c='C0', alpha=.2, zorder=3)
 
@@ -478,9 +528,20 @@ class IftElectricFieldReconstructor:
             ax2_1.plot(times, trace_stat_calculator.mean * self.__scaling_factor / units.mV, c='C2', linestyle='-', zorder=2, linewidth=4, label='IFT reconstruction')
             ax2_1.plot(times, np.abs(scipy.signal.hilbert(trace_stat_calculator.mean * self.__scaling_factor)) / units.mV, c='C2', linestyle='-', zorder=2, linewidth=4, alpha=.5)
             ax2_1.set_xlim([times[0], times[-1]])
-            ax1_2.plot(freqs[(freqs > self.__passband[0]) & (freqs < self.__passband[1])] / units.MHz, np.abs(self.__classic_efield_recos[i_channel])[(freqs > self.__passband[0]) & (freqs < self.__passband[1])] * self.__scaling_factor, c='C0', alpha=.5)
+            # ax1_2.plot(
+            #     freqs[(freqs > self.__passband[0]) & (freqs < self.__passband[1])] / units.MHz,
+            #     np.abs(self.__classic_efield_recos[i_channel])[(freqs > self.__passband[0]) & (freqs < self.__passband[1])] * self.__scaling_factor / (units.mV / units.m / units.GHz),
+            #     c='C0',
+            #     alpha=.5
+            # )
             # ax1_2.plot(freqs[(freqs > self.__passband[0]) & (freqs < self.__passband[1])] / units.MHz, classic_mean_efield_spec[(freqs > self.__passband[0]) & (freqs < self.__passband[1])], c='k', alpha=.5, label='classic reco')
-            ax1_2.plot(freqs / units.MHz, amp_efield_stat_calculator.mean * self.__scaling_factor / self.__gain_scaling, c='C2')
+            if self.__polarization == 'theta':
+                ax1_2.plot(freqs / units.MHz, amp_efield_stat_calculators[0].mean * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='C2')
+            if self.__polarization == 'phi':
+                ax1_2.plot(freqs / units.MHz, amp_efield_stat_calculators[1].mean * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='C2')
+            if self.__polarization == 'pol':
+                ax1_2.plot(freqs / units.MHz, amp_efield_stat_calculators[0].mean * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='C2')
+                ax1_3.plot(freqs / units.MHz, amp_efield_stat_calculators[1].mean * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='C2')
             ax1_1.axvline(self.__passband[0] / units.MHz, c='k', alpha=.5, linestyle=':')
             ax1_1.axvline(self.__passband[1] / units.MHz, c='k', alpha=.5, linestyle=':')
             ax1_2.axvline(self.__passband[0] / units.MHz, c='k', alpha=.5, linestyle=':')
@@ -488,6 +549,12 @@ class IftElectricFieldReconstructor:
             ax1_1.grid()
             ax1_2.grid()
             ax2_1.grid()
+            if self.__polarization == 'pol':
+                ax1_3.axvline(self.__passband[0] / units.MHz, c='k', alpha=.5, linestyle=':')
+                ax1_3.axvline(self.__passband[1] / units.MHz, c='k', alpha=.5, linestyle=':')
+                ax1_3.grid()
+                ax1_3.set_xlim([0, 750])
+                ax1_3.set_xlabel('f [MHz]')
             if i_channel == 0:
                 ax2_1.legend()
                 ax1_1.legend()
@@ -499,7 +566,7 @@ class IftElectricFieldReconstructor:
             ax1_1.set_xlabel('f [MHz]')
             ax1_2.set_xlabel('f [MHz]')
             ax1_1.set_ylabel('channel voltage [mV/GHz]')
-            ax1_2.set_ylabel('E-Field [V/m/GHz]')
+            ax1_2.set_ylabel('E-Field [mV/m/GHz]')
             ax2_1.set_xlabel('t [ns]')
             ax2_1.set_ylabel('U [mV]')
         fig1.tight_layout()
