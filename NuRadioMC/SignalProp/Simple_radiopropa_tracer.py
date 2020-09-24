@@ -37,7 +37,9 @@ class ray_tracing:
                   2: 'refracted',
                   3: 'reflected'}
 
-    def __init__(self, medium, attenuation_model , log_level, n_frequencies_integration, n_reflections , config, detector = None, shower_dir = None):
+    def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
+                 n_frequencies_integration=100,
+                 n_reflections=0, config=None, detector = None, shower_dir = None):
         """
         class initilization
 
@@ -112,7 +114,7 @@ class ray_tracing:
         ## define observer (channel)
         obs = radiopropa.Observer()
         obs.setDeactivateOnDetection(True)
-        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(self._x2[0], self._x2[1], self._x2[2]), 100 * radiopropa.meter))
+        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(self._x2[0], self._x2[1], self._x2[2]), 1 * radiopropa.meter))
         obs.add(channel)
         sim.add(obs) ## add observer to module list
 
@@ -120,7 +122,7 @@ class ray_tracing:
         phi_direct = np.rad2deg(phi_direct)
         theta = np.rad2deg(theta)
        
-        for phi in np.arange(0,phi_direct, .5):
+        for phi in np.arange(0,phi_direct, .1):
             x = hp.spherical_to_cartesian(np.deg2rad(self._shower_dir[0]), np.deg2rad(self._shower_dir[1]))
             y = hp.spherical_to_cartesian(np.deg2rad(phi), np.rad2deg(theta))
             delta = np.arccos(np.dot(x, y))
