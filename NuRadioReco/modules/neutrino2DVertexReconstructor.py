@@ -344,7 +344,7 @@ class neutrino2DVertexReconstructor:
             efield.set_parameter(efp.ray_path_type, ray_type)
             if zenith is not None:
                 efield.set_parameter(efp.zenith, zenith)
-                efield.set_parameter(efp.signal_time)
+                efield.set_parameter(efp.signal_time, travel_time)
             station.add_electric_field(efield)
 
         return
