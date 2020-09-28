@@ -375,6 +375,13 @@ class neutrino2DVertexReconstructor:
         channel_type = int(abs(channel_pos[2]))
         travel_times = np.zeros_like(d_hor)
         mask = np.ones_like(travel_times).astype(bool)
+        channel_z = abs(self.__detector.get_relative_position(self.__station_id, channel_id)[2])
+        if channel_z not in self.__lookup_table.keys():
+            f = NuRadioReco.utilities.io_utilities.read_pickle(
+                '{}/lookup_table_{}.p'.format(self.__lookup_table_location, int(abs(channel_z))))
+            self.__header[int(channel_z)] = f['header']
+            self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
+
         i_x = np.array(np.round((-d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
         mask[i_x > self.__lookup_table[channel_type][ray_type].shape[0] - 1] = False
         i_z = np.array(np.round((z - self.__header[channel_type]['z_min']) / self.__header[channel_type]['d_z'])).astype(int)
