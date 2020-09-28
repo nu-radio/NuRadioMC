@@ -65,7 +65,7 @@ class ray_tracing:
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
         shower_dir: np.array of shape (1,2)
-                    zenith and azimuth of direction of shower in degrees
+                    zenith and azimuth of direction of shower in radians
 
         """
         self._airBoundary = radiopropa.Discontinuity(radiopropa.Plane(radiopropa.Vector3d(0,0,0), radiopropa.Vector3d(0,0,1)), 1.3, 1)
@@ -97,6 +97,10 @@ class ray_tracing:
         x2 = np.array(x2, dtype = np.float)
         self._x1 = x1
         self._x2 = x2
+
+
+    def set_cut_viewing_angle(self,cut):
+        self._cut_viewing_angle = cut
       
 
     
@@ -116,7 +120,7 @@ class ray_tracing:
         ## define observer (channel)
         obs = radiopropa.Observer()
         obs.setDeactivateOnDetection(True)
-        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(self._x2[0], self._x2[1], self._x2[2]), 1 * radiopropa.meter))
+        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(self._x2[0], self._x2[1], self._x2[2]), 100 * radiopropa.meter))
         obs.add(channel)
         sim.add(obs) ## add observer to module list
 
@@ -125,7 +129,7 @@ class ray_tracing:
         theta = np.rad2deg(theta)
        
         for phi in np.arange(0,phi_direct, .1):
-            x = hp.spherical_to_cartesian(np.deg2rad(self._shower_dir[0]), np.deg2rad(self._shower_dir[1]))
+            x = hp.spherical_to_cartesian(self._shower_dir[0], self._shower_dir[1])
             y = hp.spherical_to_cartesian(np.deg2rad(phi), np.rad2deg(theta))
             delta = np.arccos(np.dot(x, y))
 
