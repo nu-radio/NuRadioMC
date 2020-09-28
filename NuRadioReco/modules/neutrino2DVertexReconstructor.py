@@ -339,11 +339,12 @@ class neutrino2DVertexReconstructor:
         for channel in station.iter_channels():
             channel_id = channel.get_id()
             ray_type = self.find_ray_type(station, station.get_channel(channel_id))
-            zenith = self.find_receiving_zenith(station, ray_type, channel_id)
+            zenith, travel_time = self.find_receiving_zenith(station, ray_type, channel_id)
             efield = NuRadioReco.framework.electric_field.ElectricField([channel_id], self.__detector.get_relative_position(station.get_id(), channel_id))
             efield.set_parameter(efp.ray_path_type, ray_type)
             if zenith is not None:
                 efield.set_parameter(efp.zenith, zenith)
+                efield.set_parameter(efp.signal_time)
             station.add_electric_field(efield)
 
         return
@@ -432,5 +433,7 @@ class neutrino2DVertexReconstructor:
         for i_solution, solution in enumerate(ray_tracer.get_results()):
             if solution_types[ray_tracer.get_solution_type(i_solution)] == ray_type:
                 receive_vector = ray_tracer.get_receive_vector(i_solution)
-                return hp.cartesian_to_spherical(receive_vector[0], receive_vector[1], receive_vector[2])[0]
-        return None
+                receive_zenith = hp.cartesian_to_spherical(receive_vector[0], receive_vector[1], receive_vector[2])[0]
+                travel_time = ray_tracer.get_travel_time(i_solution)
+                return receive_zenith, travel_time
+        return None, None
