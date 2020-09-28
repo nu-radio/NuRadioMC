@@ -197,25 +197,26 @@ class BaseTrace:
             raise ValueError('One of the trace objects has no trace set')
         if self.get_trace().ndim != x.get_trace().ndim:
             raise ValueError('Traces have different dimensions')
-        trace_1 = copy.copy(self.get_trace())
-        trace_2 = copy.copy(x.get_trace())
         if self.get_sampling_rate() != x.get_sampling_rate():
             # Upsample trace with lower sampling rate
+            # Create new baseTrace object for the resampling so we don't change the originals
             if self.get_sampling_rate() > x.get_sampling_rate():
+                upsampled_trace = BaseTrace()
+                upsampled_trace.set_trace(x.get_trace(), x.get_sampling_rate())
+                upsampled_trace.resample(self.get_sampling_rate())
+                trace_1 = copy.copy(self.get_trace())
+                trace_2 = upsampled_trace.get_trace()
                 sampling_rate = self.get_sampling_rate()
-                resampling_factor = fractions.Fraction(self.get_sampling_rate() / x.get_sampling_rate())
-                if (resampling_factor.numerator != 1):
-                    trace_2 = scipy.signal.resample(trace_2, resampling_factor.numerator * len(trace_2))
-                if(resampling_factor.denominator != 1):
-                    trace_2 = scipy.signal.resample(trace_2, len(trace_2) // resampling_factor.denominator)
             else:
+                upsampled_trace = BaseTrace()
+                upsampled_trace.set_trace(self.get_trace(), self.get_sampling_rate())
+                upsampled_trace.resample(x.get_sampling_rate())
+                trace_1 = upsampled_trace.get_trace()
+                trace_2 = copy.copy(x.get_trace())
                 sampling_rate = x.get_sampling_rate()
-                resampling_factor = fractions.Fraction(x.get_sampling_rate() / self.get_sampling_rate())
-                if (resampling_factor.numerator != 1):
-                    trace_1 = scipy.signal.resample(trace_1, resampling_factor.numerator * len(trace_1))
-                if(resampling_factor.denominator != 1):
-                    trace_1 = scipy.signal.resample(trace_1, len(trace_1) // resampling_factor.denominator)
         else:
+            trace_1 = copy.copy(self.get_trace())
+            trace_2 = copy.copy(x.get_trace())
             sampling_rate = self.get_sampling_rate()
 
         # Figure out which of the traces has the earlier trace start time
