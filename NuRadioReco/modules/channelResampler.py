@@ -1,11 +1,4 @@
 from NuRadioReco.modules.base.module import register_run
-import numpy as np
-import fractions
-from scipy import signal
-from decimal import Decimal
-import copy
-from NuRadioReco.utilities import units, fft
-import NuRadioReco.framework.sim_station
 import logging
 
 
@@ -53,5 +46,6 @@ class channelResampler:
         print('running channel resampler')
         for channel in station.iter_channels():
             channel.resample(sampling_rate)
+
     def end(self):
         pass

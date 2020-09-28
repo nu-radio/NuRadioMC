@@ -1,9 +1,4 @@
 from NuRadioReco.modules.base.module import register_run
-import numpy as np
-import fractions
-from scipy import signal
-from decimal import Decimal
-from NuRadioReco.utilities import units
 import logging
 logger = logging.getLogger('stationResampler')
 
