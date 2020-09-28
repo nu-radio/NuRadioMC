@@ -12,10 +12,14 @@ logging.basicConfig()
 import radiopropa
 
 """
-Structure of a ray-tracing module. For documentation and development purposes.
+STILL TO DO: 
+- compare timing, distances, receive and launch angles wtr analytic raytracer
+- compare attenuation wtr analytic raytracer 
+- proper implementatin of the icemodel 
+- Add warnings when the icemodel is not implemented in radiopropa
+- Timing reduction; everything takes too long now
+- compare waveforms wtr analytic raytracer
 """
-
-
 
 def getPathCandidate(Candidate):
     pathx = np.fromstring(Candidate.getPathX()[1:-1],sep=',')
@@ -28,18 +32,18 @@ def getReflectionAnglesCandidate(Candidate):
 
 
 class ray_tracing:
-    """
-    base class of ray tracer. All ray tracing modules need to prodide the following functions
-    """
     
+    """ Numerical raytracing using Radiopropa. Currently this only works for icemodels that have only changing refractive index in z. """    
     
     solution_types = {1: 'direct',
                   2: 'refracted',
                   3: 'reflected'}
-
-    def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
+	
+	
+    def __init__(self, medium, attenuation_model="GL1", log_level=logging.WARNING,
                  n_frequencies_integration=100,
                  n_reflections=0, config=None, detector = None, shower_dir = None):
+        
         """
         class initilization
 
@@ -120,21 +124,21 @@ class ray_tracing:
         ## define observer (channel)
         obs = radiopropa.Observer()
         obs.setDeactivateOnDetection(True)
-        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(self._x2[0], self._x2[1], self._x2[2]), 100 * radiopropa.meter))
+        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(self._x2[0], self._x2[1], self._x2[2]), 2 * radiopropa.meter)) ## when making the radius larger than 2 meters, somethimes three solution times are found
         obs.add(channel)
         sim.add(obs) ## add observer to module list
 
         phi_direct, theta = hp.cartesian_to_spherical(*(np.array(self._x2)-np.array(self._x1))) ## zenith and azimuth for the direct ray solution
-        phi_direct = np.rad2deg(phi_direct)
+        phi_direct = np.rad2deg(phi_direct) + 5 #the median solution is taken, meaning that we need to add some degrees in case the good solution is near phi_direct
         theta = np.rad2deg(theta)
-       
-        for phi in np.arange(0,phi_direct, .1):
+         
+        for phi in np.arange(0,phi_direct, .05): # in degrees
             x = hp.spherical_to_cartesian(self._shower_dir[0], self._shower_dir[1])
             y = hp.spherical_to_cartesian(np.deg2rad(phi), np.rad2deg(theta))
             delta = np.arccos(np.dot(x, y))
 
             cherenkov_angle = 56
-            if 1:#(abs(np.rad2deg(delta) - cherenkov_angle) < self._cut_viewing_angle): #only include rays with angle wrt cherenkov angle smaller than 20 degrees
+            if 1:#(abs(np.rad2deg(delta) - cherenkov_angle) < self._cut_viewing_angle): #only include rays with angle wrt cherenkov angle smaller than 20 degrees ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
                 source = radiopropa.Source()
                 source.add(radiopropa.SourcePosition(radiopropa.Vector3d(self._x1[0], self._x1[1], self._x1[2])))
                 x,y,z = hp.spherical_to_cartesian(phi * radiopropa.deg ,theta * radiopropa.deg)
@@ -171,6 +175,7 @@ class ray_tracing:
             solution_type = self.get_solution_type(iS)
             launch_vector = [self._candidates[iS].getLaunchVector().x, self._candidates[iS].getLaunchVector().y, self._candidates[iS].getLaunchVector().z] 
             launch_angles.append(hp.cartesian_to_spherical(launch_vector[0], launch_vector[1], launch_vector[2])[0])
+        #    print("luanch angles {}, solutiontype {}".format( np.rad2deg(hp.cartesian_to_spherical(launch_vector[0], launch_vector[1], launch_vector[2])[0]), solution_type))
             solution_types.append(solution_type)
         mask = (np.array(solution_types) ==1 )
         index = 1
@@ -182,14 +187,14 @@ class ray_tracing:
 
         mask = (np.array(solution_types) ==2 )
         if mask.any():
-            index = np.median(np.array(np.arange(0, num, 1))[mask])
+            index = int(np.median(np.array(np.arange(0, num, 1))[mask]))
             self._candidates.append(candidates[index])
             results.append({'type':2, 'reflection':reflection})
 
 
         mask = (np.array(solution_types) ==3 )
         if mask.any():
-            index = np.array(np.arange(0, num, 1))[mask][int(len(np.array(np.arange(0, num, 1))[mask])/2)]
+            index = int(np.median(np.array(np.arange(0, num, 1))[mask]))
             self._candidates.append(candidates[index])
             results.append({'type':3, 'reflection':reflection})
 
@@ -248,9 +253,11 @@ class ray_tracing:
             * 2: 'refracted'
             * 3: 'reflected
         """
-        pathz = self._candidates[iS].get().getPathZ()
+        self._path = getPathCandidate(self._candidates[iS].get())
+        pathz = self._path[:, 2]
         if len(getReflectionAnglesCandidate(self._candidates[iS].get())) != 0:
             solution_type = 3
+        
         elif(pathz[-1] < max(pathz)):
             solution_type = 2
         else:
