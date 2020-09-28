@@ -57,6 +57,11 @@ def plot_length_comparison():
 	l = np.linspace(l_min, l_max, num=100)
 	plt.plot(l, l, '--r')
 	plt.savefig('compare_raytracers_multi_plot_length.png')
+	plt.clf()
+	plt.hist(RES['ana']['length'][mask_AandN_stype] -RES['num']['length'][mask_AandN_stype])
+	plt.xlabel('analytical - numerical [m]')
+	plt.ylabel('number of events')
+	plt.savefig('compoare_raytracers_mulit_plot_length_hist.png')
 
 def plot_time_comparison():
 	plt.clf()
@@ -72,11 +77,16 @@ def plot_time_comparison():
 	plt.plot(t, 1.5*t, '--r')
 	plt.plot(t, 2*t, '--r')
 	plt.savefig('compare_raytracers_multi_plot_time.png')
+	plt.clf()
+	plt.hist(RES['ana']['time'][mask_AandN_stype] -RES['num']['time'][mask_AandN_stype])
+	plt.xlabel('analytical - numerical [ns]')
+	plt.ylabel('number of events')
+	plt.savefig('compoare_raytracers_mulit_plot_time_hist.png')
 
 def plot_launch_comparison():
 	plt.clf()
 	d = RES['num']['launch'][mask_AandN_stype] - RES['ana']['launch'][mask_AandN_stype]
-	plt.hist2d(d[:,0] , d[:,1] , bins=(21,21) , range=[[-0.2,0.2],[-0.5e-15,0.5e-15]] , cmap=plt.cm.viridis , cmin=1)
+	plt.hist2d(d[:,0] , d[:,1] , bins=(21,21) , range=[[-0.01,0.01],[-0.01,0.01]] , cmap=plt.cm.viridis , cmin=1)
 	plt.colorbar()
 	plt.title('difference launch vector (num-ana)')
 	plt.xlabel('zenith (rad)')
@@ -88,7 +98,7 @@ def plot_launch_comparison():
 def plot_receive_comparison():
 	plt.clf()
 	d = RES['num']['receive'][mask_AandN_stype] - RES['ana']['receive'][mask_AandN_stype]
-	plt.hist2d(d[:,0] , d[:,1] , bins=(21,21) , range=[[-1.5,1.5],[-0.5e-14,0.5e-14]] , cmap=plt.cm.viridis , cmin=1)
+	plt.hist2d(d[:,0] , d[:,1] , bins=(21,21) , range=[[-.01,.01],[-.01,0.01]] , cmap=plt.cm.viridis , cmin=1)
 	plt.colorbar()
 	plt.title('difference receive vector (num-ana)')
 	plt.xlabel('zenith (rad)')
@@ -181,10 +191,10 @@ def plot_numOfSol_comparison():
 	plt.savefig('compare_raytracers_multi_plot_numOfSol.png')
 
 
-#plot_length_comparison()
-#plot_time_comparison()
-#plot_launch_comparison()
-#plot_receive_comparison()
+plot_length_comparison()
+plot_time_comparison()
+plot_launch_comparison()
+plot_receive_comparison()
 number_of_solutions = input('number of solution you want to plot for stype comparison [all/1/2/21/01]:')
 plot_stype_comparison(number_of_solutions)
 plot_numOfSol_comparison()
