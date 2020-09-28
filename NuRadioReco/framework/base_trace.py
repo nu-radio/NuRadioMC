@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import logging
 import fractions
+import decimal
 from NuRadioReco.utilities import fft
 import scipy.signal
 import copy
@@ -143,6 +144,32 @@ class BaseTrace:
         spec = self.get_frequency_spectrum()
         spec *= np.exp(-2.j * np.pi * delta_t * self.get_frequencies())
         self.set_frequency_spectrum(spec, self._sampling_rate)
+
+    def resample(self, sampling_rate):
+        if sampling_rate == self.get_sampling_rate():
+            return
+        resampling_factor = fractions.Fraction(decimal.Decimal(sampling_rate / self.get_sampling_rate())).limit_denominator(5000)
+        if self.get_trace().ndim == 1:
+            new_length = int(self.get_trace().shape[0] * resampling_factor)
+            trace = self.get_trace()
+            if (resampling_factor.numerator != 1):
+                trace = scipy.signal.resample(trace, resampling_factor.numerator * self.get_number_of_samples())
+            if (resampling_factor.denominator != 1):
+                trace = scipy.signal.resample(trace, len(trace) // resampling_factor.denominator)
+            resampled_trace = trace
+        else:
+            new_length = int(self.get_trace().shape[1] * resampling_factor)
+            resampled_trace = np.zeros((self.get_trace().shape[0], new_length))  # create new data structure with new efield length
+            for i_pol in range(self.get_trace().shape[0]):
+                trace = self.get_trace()[i_pol]
+                if (resampling_factor.numerator != 1):
+                    trace = scipy.signal.resample(trace, resampling_factor.numerator * len(trace))
+                if (resampling_factor.denominator != 1):
+                    trace = scipy.signal.resample(trace, len(trace) // resampling_factor.denominator)
+                resampled_trace[i_pol] = trace
+        if resampled_trace.shape[-1] % 2 != 0:
+            resampled_trace = resampled_trace.T[:-1].T
+        self.set_trace(resampled_trace, sampling_rate)
 
     def serialize(self):
         data = {'sampling_rate': self.get_sampling_rate(),
