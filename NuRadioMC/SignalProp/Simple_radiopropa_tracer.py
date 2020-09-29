@@ -82,7 +82,8 @@ class ray_tracing:
         self._iceModel = radiopropa.GreenlandIceModel() ## we need to figure out how to do this properly
         self._config = config
         self._n_frequencies_integration = n_frequencies_integration
-
+        
+        self._sphere_size = 2 * radiopropa.meter
         self._max_detector_frequency = None
         self._detector = detector
         if self._detector is not None:
@@ -124,7 +125,7 @@ class ray_tracing:
         ## define observer (channel)
         obs = radiopropa.Observer()
         obs.setDeactivateOnDetection(True)
-        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(self._x2[0], self._x2[1], self._x2[2]), 2 * radiopropa.meter)) ## when making the radius larger than 2 meters, somethimes three solution times are found
+        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(self._x2[0], self._x2[1], self._x2[2]), self._sphere_size)) ## when making the radius larger than 2 meters, somethimes three solution times are found
         obs.add(channel)
         sim.add(obs) ## add observer to module list
 
@@ -134,13 +135,12 @@ class ray_tracing:
          
         step = .05
         for phi in reversed(np.arange(0,phi_direct + step, step)): # in degrees
-            if len(candidates) == 2: break
             x = hp.spherical_to_cartesian(self._shower_dir[0], self._shower_dir[1])
             y = hp.spherical_to_cartesian(np.deg2rad(phi), np.rad2deg(theta))
             delta = np.arccos(np.dot(x, y))
 
             cherenkov_angle = 56
-            if 1:#(abs(np.rad2deg(delta) - cherenkov_angle) < self._cut_viewing_angle): #only include rays with angle wrt cherenkov angle smaller than 20 degrees ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
+            if (abs(np.rad2deg(delta) - cherenkov_angle) < self._cut_viewing_angle): #only include rays with angle wrt cherenkov angle smaller than 20 degrees ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
                 source = radiopropa.Source()
                 source.add(radiopropa.SourcePosition(radiopropa.Vector3d(self._x1[0], self._x1[1], self._x1[2])))
                 x,y,z = hp.spherical_to_cartesian(phi * radiopropa.deg ,theta * radiopropa.deg)
@@ -177,7 +177,6 @@ class ray_tracing:
             solution_type = self.get_solution_type(iS)
             launch_vector = [self._candidates[iS].getLaunchVector().x, self._candidates[iS].getLaunchVector().y, self._candidates[iS].getLaunchVector().z] 
             launch_angles.append(hp.cartesian_to_spherical(launch_vector[0], launch_vector[1], launch_vector[2])[0])
-        #    print("luanch angles {}, solutiontype {}".format( np.rad2deg(hp.cartesian_to_spherical(launch_vector[0], launch_vector[1], launch_vector[2])[0]), solution_type))
             solution_types.append(solution_type)
         mask = (np.array(solution_types) ==1 )
         index = 1
@@ -344,7 +343,8 @@ class ray_tracing:
         distance: float
             distance from x1 to x2 along the ray path
         """
-        path_length = self._candidates[iS].getTrajectoryLength()
+        path_length = self._candidates[iS].getTrajectoryLength() 
+        path_length += self._sphere_size
         return path_length
 
     def get_travel_time(self, iS, analytic=True):
@@ -365,7 +365,8 @@ class ray_tracing:
         time: float
             travel time
         """
-        travel_time = self._candidates[iS].getPropagationTime()
+        travel_time = self._candidates[iS].getPropagationTime() 
+        travel_time += self._sphere_size / (3*10**8 / 1.78) * 10**9 #ns
         return travel_time
     
     
