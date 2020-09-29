@@ -37,7 +37,7 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
 
     def add_channel(self, channel):
         """
-        adds a NuRadioReco.framework.channel ot the SimStation object
+        adds a NuRadioReco.framework.sim_channel to the SimStation object
         """
         if not isinstance(channel, NuRadioReco.framework.sim_channel.SimChannel):
             raise AttributeError("channel needs to be of type NuRadioReco.framework.sim_channel")
@@ -50,6 +50,30 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
         returns channel identified by the triple (channel_id, shower_id, ray_tracing_id)
         """
         return self.__channels[unique_identifier]
+
+    def get_channels_by_channel_id(self, channel_id):
+        """
+        returns all simChannels that have the given channel_id
+        """
+        for channel in self.__channels.values():
+            if channel.get_id() == channel_id:
+                yield channel
+
+    def get_channels_by_shower_id(self, shower_id):
+        """
+        returns all simChannels that have the given shower_id
+        """
+        for channel in self.__channels.values():
+            if channel.get_shower_id() == shower_id:
+                yield channel
+
+    def get_channels_by_ray_tracing_id(self, ray_tracing_id):
+        """
+        returns all simChannels that have the given ray_tracing_id
+        """
+        for channel in self.__channels.values():
+            if channel.get_ray_tracing_solution_id() == ray_tracing_id:
+                yield channel
 
     def serialize(self, save_channel_traces, save_efield_traces):
         base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(self, save_efield_traces=save_efield_traces)
