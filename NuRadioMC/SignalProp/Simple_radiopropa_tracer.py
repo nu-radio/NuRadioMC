@@ -429,7 +429,7 @@ class ray_tracing:
             (only ice attenuation, the 1/R signal falloff not considered here)
 
         """
-        self.get_path(iS)
+        path = self.get_path(iS)
 
         mask = frequency > 0
         freqs = self.get_frequencies_for_attenuation(frequency, self._max_detector_frequency)
@@ -437,9 +437,9 @@ class ray_tracing:
 
         integral = np.zeros(len(freqs))
         def dt(depth, freqs):
-            ds = np.sqrt((self._path[:, 0][depth] - self._path[:, 0][depth+1])**2 + (self._path[:, 1][depth] - self._path[:, 1][depth+1])**2 + (self._path[:, 2][depth] - self._path[:, 2][depth+1])**2) # get step size
-            return ds / attenuation_util.get_attenuation_length(self._path[2][depth], freqs, self._attenuation_model)
-        for z_position in range(len(self._path[2]-1)):
+            ds = np.sqrt((path[:, 0][depth] - path[:, 0][depth+1])**2 + (path[:, 1][depth] - path[:, 1][depth+1])**2 + (path[:, 2][depth] - path[:, 2][depth+1])**2) # get step size
+            return ds / attenuation_util.get_attenuation_length(path[2][depth], freqs, self._attenuation_model)
+        for z_position in range(len(path[2]-1)):
             integral += dt(z_position, freqs)
         att_func = interpolate.interp1d(freqs, integral)
         tmp = att_func(frequency[mask])
