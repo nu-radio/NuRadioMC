@@ -365,8 +365,8 @@ class ray_tracing:
         time: float
             travel time
         """
-        travel_time = self._candidates[iS].getPropagationTime() 
-        travel_time += self._sphere_size / (3*10**8 / 1.78) * 10**9 #ns
+        travel_time = self._candidates[iS].getPropagationTime() #s
+        travel_time += self._sphere_size / (3*10**8 / 1.78) #s
         return travel_time
     
     
