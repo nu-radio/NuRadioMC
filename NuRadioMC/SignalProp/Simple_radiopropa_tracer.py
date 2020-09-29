@@ -132,7 +132,9 @@ class ray_tracing:
         phi_direct = np.rad2deg(phi_direct) + 5 #the median solution is taken, meaning that we need to add some degrees in case the good solution is near phi_direct
         theta = np.rad2deg(theta)
          
-        for phi in np.arange(0,phi_direct, .05): # in degrees
+        step = .05
+        for phi in reversed(np.arange(0,phi_direct + step, step)): # in degrees
+            if len(candidates) == 2: break
             x = hp.spherical_to_cartesian(self._shower_dir[0], self._shower_dir[1])
             y = hp.spherical_to_cartesian(np.deg2rad(phi), np.rad2deg(theta))
             delta = np.arccos(np.dot(x, y))
