@@ -144,9 +144,9 @@ class IftElectricFieldReconstructor:
                         station,
                         KL
                     )
-        # self.__store_reconstructed_efields(
-        #     event, station, best_reco_KL
-        # )
+        self.__store_reconstructed_efields(
+            event, station, best_reco_KL
+        )
         return True
 
     def __prepare_traces(
@@ -475,17 +475,19 @@ class IftElectricFieldReconstructor:
     ):
         median = KL.position
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
-            efield_stat_calculator = ift.StatCalculator()
-            for sample in KL.samples:
-                efield_sample = self.__efield_trace_operators[i_channel].force(median + sample).val
-                efield_stat_calculator.add(efield_sample)
-            sampling_rate = station.get_channel(channel_id).get_sampling_rate()
-            rec_efield = efield_stat_calculator.mean * self.__scaling_factor / self.__gain_scaling
-            trace = np.zeros((3, len(rec_efield)))
-            trace[1] = rec_efield
+            efield_stat_calculators = [ift.StatCalculator(), ift.StatCalculator()]
+            rec_efield = np.zeros((3, self.__electric_field_template.get_number_of_samples()))
+            sampling_rate = self.__electric_field_template.get_sampling_rate()
+            for i_pol, efield_stat_calculator in enumerate(efield_stat_calculators):
+                if self.__efield_trace_operators[i_channel][i_pol] is not None:
+                    for sample in KL.samples:
+                        efield_sample = self.__efield_trace_operators[i_channel][i_pol].force(median + sample).val
+                        efield_stat_calculator.add(efield_sample)
+                rec_efield[i_pol + 1] = efield_stat_calculator.mean * self.__scaling_factor / self.__gain_scaling
             for efield in station.get_electric_fields_for_channels([channel_id]):
-                efield.set_trace(trace, sampling_rate)
+                efield.set_trace(rec_efield, sampling_rate)
                 efield.set_trace_start_time(self.__trace_start_times[i_channel])
+                break
 
     def __draw_priors(
         self,
