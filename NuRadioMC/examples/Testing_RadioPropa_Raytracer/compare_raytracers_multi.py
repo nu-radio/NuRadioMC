@@ -7,16 +7,36 @@ from copy import deepcopy
 import h5py
 import radiotools.helper as hp
 import pickle
+import time
+import argparse
 
-ice=medium.greenland_simple()
 
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument("-i", "--input", dest = "FIN", type=str, help="Input file (hdf5)",required=False, default='input1000.hdf5')
+args = parser.parse_args()
+
+
+print(10*'#'+' READING IN INPUT '+10*'#')
 events = h5py.File('input1000.hdf5', 'r')
+events_max = int(args.FIN[5:-5])
+number_of_events = int(input('Number of events you want to trace [expected a multiple of 10 between 1 and '+str(events_max)+']:'))
 
+
+
+
+print(10*'#'+' GETTING READY '+10*'#')
+ice=medium.greenland_simple()
+solution_types = {1: 'direct',2: 'refracted',3: 'reflected'}
 pos_ant = np.array([0,0,-140])
+
 pos_showers = np.transpose(np.append(np.append([events['xx']],[events['yy']],axis=0),[events['zz']],axis=0))
 dir_showers = np.transpose(np.append([events['zeniths']],[events['azimuths']],axis=0))
 
-number_of_showers = len(events['shower_ids'])
+#number_of_showers = len(events['shower_ids'])
+for number_of_showers in events['shower_ids']:
+	if (events['event_group_ids'][number_of_showers] == (number_of_events + 1)): break
+print('Number of showers to trace: '+str(number_of_showers))
+
 
 Para = ['x','y','z','length','time','receive','launch','refl','stype']
 res = {para: np.zeros((number_of_showers,2),dtype=object) for para in Para}
@@ -26,29 +46,29 @@ res['results'] = [None for i in range(number_of_showers)]
 RES={'num':deepcopy(res),'ana':deepcopy(res)}
 
 
-solution_types = {1: 'direct',
-                  2: 'refracted',
-                  3: 'reflected'}
 
 
+print(10*'#'+' RAYTRACING '+10*'#')
+time_tracing = {'ana':0,'num':0}
+number_of_showers_traced = 0
 for i in range(number_of_showers):
-	print(10*'#'+' shower '+ str(i+1)+' of '+str(len(events['shower_ids']))+' '+10*'#')
 	for rt in ('ana','num'):
 		if rt == 'ana': 
 			tracer = rana(ice,shower_dir=dir_showers[i])
 			#print('running analytical raytracer')
-			time_unit = 1
 		else: 
 			tracer = rnum(ice,shower_dir=dir_showers[i])
 			#tracer.set_cut_viewing_angle(180)
 			#print('running numerical raytracer')
-			time_unit = 10**9
 
+		time_tracing[rt] -= time.time_ns()
 		tracer.set_start_and_end_point(pos_showers[i],pos_ant)
 		tracer.find_solutions()
+		time_tracing[rt] += time.time_ns()
+		number_of_showers_traced += 1
 
 		results = tracer.get_results()
-		print(rt+' '+str(len(results)))
+		#print(rt+' '+str(len(results)))
 		RES[rt]['results'][i]=results
 		
 		for j in range(len(results)):
@@ -57,7 +77,7 @@ for i in range(number_of_showers):
 			RES[rt]['y'][i][j] = path[:,1]
 			RES[rt]['z'][i][j] = path[:,2]
 			RES[rt]['length'][i][j]=tracer.get_path_length(j)
-			RES[rt]['time'][i][j]=tracer.get_travel_time(j)*time_unit
+			RES[rt]['time'][i][j]=tracer.get_travel_time(j)
 			launch_cart = tracer.get_launch_vector(j)
 			RES[rt]['launch'][i][j]=np.array(hp.cartesian_to_spherical(launch_cart[0],launch_cart[1],launch_cart[2]))
 			receive_cart = -tracer.get_receive_vector(j)
@@ -66,9 +86,22 @@ for i in range(number_of_showers):
 			RES[rt]['refl'][i][j]=tracer.get_reflection_angle(j)
 			RES[rt]['stype'][i][j]=results[j]['type']
 
+	if ((events['event_group_ids'][i]%(number_of_events/10)) == 0) & ((events['event_group_ids'][i+1]%(number_of_events/10)) == 1):
+		fraction = events['event_group_ids'][i]/(number_of_events)
+		print(10*'-'+' '+ str(fraction*100)+'%% of the '+str(number_of_events)+' events finished '+10*'-')
+		print('Mean time analytical raytracer: '+str(time_tracing['ana']/(number_of_showers_traced)/1e6)+' ms')
+		print('Mean time numerical raytracer: '+str(time_tracing['num']/(number_of_showers_traced)/1e6)+' ms')
+		print("")
 
-pickle.dump(RES,open('output1000.pickle','wb'))
 
+
+
+print(10*'#'+' WRITING OUTPUT '+10*'#')
+fout = 'output'+str(number_of_events)+'.pickle'
+pickle.dump(RES,open(fout,'wb'))
+print('Results saved in file: '+fout)
+
+print(10*'#'+' PROGRAM FINISHED '+10*'#')
 
 """print(RES['ana']['launch'])
 print(20*'-')

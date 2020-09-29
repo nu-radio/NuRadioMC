@@ -29,9 +29,14 @@ We are going to import the function generate_eventlist_cylinder, which creates
 appropriate to study effective volumes, for instance.
 """
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
+import argparse
+
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument("-n", "--number_of_events", dest = "n_events", type=int, help="Number of events to generate",required=False, default=1000)
+args = parser.parse_args()
 
 # Choose the number of events for this file
-n_events = 1000
+n_events = args.n_events
 # Choose the minimum energy for the simulated bin.
 Emin = 10 ** 19.5 * units.eV
 # Choose the maximum energy for the simulated bin.
@@ -93,8 +98,7 @@ flavor = [12, -12, 14, -14, 16, -16]
 """
 We choose a name for the file to be generated.
 """
-filename = 'input1000.hdf5'.format(Emin, Emax)
-
+filename = 'input'+str(n_events)+'.hdf5'.format(Emin, Emax)
 """
 And we call the function to generate the events.
 """
