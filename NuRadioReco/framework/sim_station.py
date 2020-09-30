@@ -51,6 +51,39 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
         """
         return self.__channels[unique_identifier]
 
+    def get_channel_ids(self):
+        """
+        returns a list with the channel IDs of all simChannels of the simStation
+        """
+        channel_ids = []
+        for unique_identifier in self.__channels.keys():
+            if unique_identifier[0] not in channel_ids:
+                channel_ids.append(unique_identifier[0])
+        channel_ids.sort()
+        return channel_ids
+
+    def get_shower_ids(self):
+        """
+        returns a list with the shower IDs of all simChannels of the simStation
+        """
+        shower_ids = []
+        for unique_identifier in self.__channels.keys():
+            if unique_identifier[1] not in shower_ids:
+                shower_ids.append(unique_identifier[1])
+        shower_ids.sort()
+        return shower_ids
+
+    def get_ray_tracing_ids(self):
+        """
+        returns a list with the raytracing IDs of all simChannels of the simStation
+        """
+        ray_tracing_ids = []
+        for unique_identifier in self.__channels.keys():
+            if unique_identifier[2] not in ray_tracing_ids:
+                ray_tracing_ids.append(unique_identifier[2])
+        ray_tracing_ids.sort()
+        return ray_tracing_ids
+
     def get_channels_by_channel_id(self, channel_id):
         """
         returns all simChannels that have the given channel_id
