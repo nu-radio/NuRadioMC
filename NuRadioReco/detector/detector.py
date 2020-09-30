@@ -696,8 +696,6 @@ class Detector(object):
         frequencies: array of floats
             The frequency array for which the amplifier response shall be returned
         """
-        rno_amps = ['iglu', 'rno_surface']
-        arianna_amps = ['100', '200', '300']
         res = self.__get_channel(station_id, channel_id)
         amp_type = None
         if 'amp_type' in res.keys():
@@ -708,11 +706,14 @@ class Detector(object):
                     station_id,
                     channel_id
                 ))
-        if amp_type in rno_amps:
+        amp_response_functions = None
+        if amp_type in NuRadioReco.detector.RNO_G.analog_components.get_available_amplifiers():
             amp_response_functions = NuRadioReco.detector.RNO_G.analog_components.load_amp_response(amp_type)
-        elif amp_type in arianna_amps:
+        if amp_type in NuRadioReco.detector.ARIANNA.analog_components.get_available_amplifiers():
+            if amp_response_functions is not None:
+                raise ValueError('Amplifier name {} is not unique'.format(amp_type))
             amp_response_functions = NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response(amp_type)
-        else:
+        if amp_response_functions is None:
             raise ValueError('Amplifier of type {} not found'.format(amp_type))
         amp_gain = amp_response_functions['gain'](frequencies)
         amp_phase = amp_response_functions['phase'](frequencies)
