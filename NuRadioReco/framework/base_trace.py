@@ -37,6 +37,35 @@ class BaseTrace:
             self._frequency_spectrum = None
         return self._time_trace
 
+    def get_filtered_trace(self, passband, filter_type='butter', order=10):
+        """
+        Returns the trace after applying a filter to it. This does not change the stored trace.
+
+        Parameters:
+        --------------
+        passband: list of floats
+            lower and upper bound of the filter passband
+        filter_type: string
+            type of the applied filter. Options are rectangular, butter and butterabs
+        order: int
+            Order of the Butterworth filter, if the filter types butter or butterabs are chosen
+        """
+        spec = copy.copy(self.get_frequency_spectrum())
+        freq = self.get_frequencies()
+        if filter_type == 'rectangular':
+            spec[(freq < passband[0]) | (freq > passband[1])] = 0
+        elif filter_type == 'butter':
+            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
+            w, h = scipy.signal.freqs(b, a, freq)
+            spec = spec * h
+        elif filter_type == 'butterabs':
+            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
+            w, h = scipy.signal.freqs(b, a, freq)
+            spec = spec * np.abs(h)
+        else:
+            raise ValueError('Filter type {} not supported'.format(filter_type))
+        return fft.freq2time(spec, self.get_sampling_rate())
+
     def get_frequency_spectrum(self):
         if(self.__time_domain_up_to_date):
             self._frequency_spectrum = fft.time2freq(self._time_trace, self._sampling_rate)
