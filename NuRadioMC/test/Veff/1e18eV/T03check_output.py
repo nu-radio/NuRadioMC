@@ -11,7 +11,7 @@ import os
 
 # the event generation has a fixed seed and I switched to Alvarez2000 (also no randomness)
 # thus, the Veff has no statistical scatter
-Veff_mean = 5.87295
+Veff_mean = 5.90706
 Veff_sigma = 0.0001
 
 path = os.path.dirname(os.path.abspath(__file__))
