@@ -277,7 +277,7 @@ class ray_tracing:
         """
 
         pathz = self.get_path(iS)[:, 2]
-        if len(getReflectionAnglesCandidate(self._candidates[iS].get())) != 0:
+        if len(np.fromstring(self._candidates[iS].get().getReflectionAngles()[1:-1],sep=',')) != 0:
             solution_type = 3
 
         elif(pathz[-1] < max(pathz)):
@@ -401,7 +401,7 @@ class ray_tracing:
             freqs = np.linspace(frequency[mask2 & mask].min(), frequency[mask2 & mask].max(), nfreqs2)
             if(np.sum(~mask2)>1):
                 freqs = np.append(freqs, np.linspace(frequency[~mask2].min(), frequency[~mask2].max(), nfreqs // 2))
-            return freqs
+        return freqs
 
 
     def get_attenuation(self, iS, frequency, max_detector_freq=None):
