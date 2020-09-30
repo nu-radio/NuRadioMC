@@ -119,6 +119,25 @@ class ray_tracing:
         """
         self._max_traj_length = max_traj_length * units.meter
 
+    def get_cut_viewing_angle(self):
+        """
+        Returns
+        ----------
+        cut_viewing_angle: float
+                           range around the cherenkov angle
+                           rays with a viewing angle out of this range will be to dim and won't be seen --> limiting computing time
+        """
+        return self._cut_viewing_angle
+
+    def get_maximum_trajectory_length(self,max_traj_length):
+        """
+        Returns
+        ----------
+        max_traj_length: float
+                         maxmimal length to trace a ray, tracing aborted when reached.
+        """
+        return self._max_traj_length
+
     def RadioPropa_raytracer(self ):
         """
         uses RadioPropa to find the numerical ray tracing solutions for x1 x2 and returns the Candidates for all the possible solutions
@@ -277,7 +296,7 @@ class ray_tracing:
         """
 
         pathz = self.get_path(iS)[:, 2]
-        if len(getReflectionAnglesCandidate(self._candidates[iS].get())) != 0:
+        if len(self.get_reflection_angle(iS)) != 0:
             solution_type = 3
 
         elif(pathz[-1] < max(pathz)):
