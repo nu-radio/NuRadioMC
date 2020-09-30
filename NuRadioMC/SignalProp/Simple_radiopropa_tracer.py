@@ -433,32 +433,17 @@ class ray_tracing:
 
         mask = frequency > 0
         freqs = self.get_frequencies_for_attenuation(frequency, self._max_detector_frequency)
-        #freqs = frequency
-
         integral = np.zeros(len(freqs))
         def dt(depth, freqs):
-            print("z position RP:",path[:, 2][depth])
             ds = np.sqrt((path[:, 0][depth] - path[:, 0][depth+1])**2 + (path[:, 1][depth] - path[:, 1][depth+1])**2 + (path[:, 2][depth] - path[:, 2][depth+1])**2) # get step size
             return ds / attenuation_util.get_attenuation_length(path[:, 2][depth], freqs, self._attenuation_model)
-        #import matplotlib.pyplot as plt
-        ##fig = plt.figure()
-        #ax = fig.add_subplot(111)
-        #ax.plot(path[:, 0], path[:, 2])
-        #fig.savefig('/lustre/fs22/group/radio/plaisier/software/NuRadioMC/NuRadioMC/SignalProp/test.pdf')
-        #print("len path", len(path[:, 2]))
         for z_position in range(len(path[:, 2]) - 1):
             integral += dt(z_position, freqs)
-        print(stop)
         att_func = interpolate.interp1d(freqs, integral)
         tmp = att_func(frequency[mask])
         attenuation = np.ones_like(frequency)
         tmp = np.exp(-1 * tmp)
-        attenuation[mask] = tmp#np.interp(frequency[mask], freqs, tmp)
-        #fig = plt.figure()
-        #ax = fig.add_subplot(111)
-        #ax.plot(attenuation)
-        #fig.savefig('/lustre/fs22/group/radio/plaisier/software/NuRadioMC/NuRadioMC/SignalProp/attn.pdf')
-        #print(stop)
+        attenuation[mask] = tmp
         return attenuation
 
     def apply_propagation_effects(self, efield, i_solution):
