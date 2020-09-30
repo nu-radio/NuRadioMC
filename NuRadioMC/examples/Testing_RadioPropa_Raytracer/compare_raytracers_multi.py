@@ -52,16 +52,13 @@ RES={'num':deepcopy(res),'ana':deepcopy(res)}
 print(10*'#'+' RAYTRACING '+10*'#')
 time_tracing = {'ana':0,'num':0}
 number_of_showers_traced = 0
-for i in range(number_of_showers):
-	fig = plt.figure()
-	ax = fig.add_subplot(111)
- 
+for i in range(number_of_showers): 
 	for rt in ('ana','num'):
 		if rt == 'ana': 
-			tracer = rana(ice,shower_dir=dir_showers[i])
+			tracer = rana(ice,shower_dir=dir_showers[i], attenuation_model = 'SP1')
 			#print('running analytical raytracer')
 		else: 
-			tracer = rnum(ice,shower_dir=dir_showers[i])
+			tracer = rnum(ice,shower_dir=dir_showers[i], attenuation_model= 'SP1')
 			#tracer.set_cut_viewing_angle(180)
 			#print('running numerical raytracer')
 
@@ -89,11 +86,6 @@ for i in range(number_of_showers):
 			if rt == 'num': RES[rt]['receive'][i][j]=np.array(hp.cartesian_to_spherical(-receive_cart[0],-receive_cart[1],-receive_cart[2]))
 			RES[rt]['refl'][i][j]=tracer.get_reflection_angle(j)
 			RES[rt]['stype'][i][j]=results[j]['type']
-			ax.plot(tracer.get_attenuation(j, frequency), label = rt)
-			#if rt == 'num': ax.plot(tracer.get_path(j)[:, 0], tracer.get_path(j)[:, 2], label = rt)
-			#if rt == 'num': ax.legend()
-	fig.savefig("/lustre/fs22/group/radio/plaisier/software/NuRadioMC/NuRadioMC/SignalProp/attenuation.pdf")
-	print(stop)
 	if ((events['event_group_ids'][i]%(number_of_events/10)) == 0) & ((events['event_group_ids'][i+1]%(number_of_events/10)) == 1):
 		fraction = events['event_group_ids'][i]/(number_of_events)
 		print(10*'-'+' '+ str(fraction*100)+'%% of the '+str(number_of_events)+' events finished '+10*'-')
