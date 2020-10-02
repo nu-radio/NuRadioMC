@@ -88,8 +88,8 @@ class channelGalacticNoiseAdder:
         """
         self.__sky_observer = pygdsm.GSMObserver()
         site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
-        self.__sky_observer.longitude = site_longitude
-        self.__sky_observer.latitude = site_latitude
+        self.__sky_observer.lon = str(site_longitude)
+        self.__sky_observer.lat = str(site_latitude)
         station_time = station.get_station_time()
         station_time.format = 'iso'
         self.__sky_observer.date = station_time.value
@@ -97,6 +97,9 @@ class channelGalacticNoiseAdder:
         # save noise temperatures for all directions and frequencies
         for i_freq, noise_freq in enumerate(self.__interpolaiton_frequencies):
             radio_sky = self.__sky_observer.generate(noise_freq/units.MHz)
+            if self.__debug:
+                self.__sky_observer.view_observed_gsm(show=True)
+                plt.close()
             for i_zenith, zenith in enumerate(self.__zenith_sample):
                 for i_azimuth, azimuth in enumerate(self.__azimuth_sample):
                     i_pix = healpy.pixelfunc.ang2pix(self.__sky_observer._n_side, zenith, azimuth, lonlat=False, nest=False)
