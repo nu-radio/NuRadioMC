@@ -355,6 +355,7 @@ class simulation():
         """
         logger.status(f"Starting NuRadioMC simulation")
         t_start = time.time()
+        t_last_update = t_start
 
         self._channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
         self._eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
@@ -477,7 +478,9 @@ class simulation():
                 for iSh, self._shower_index in enumerate(event_indices):
                     sg['shower_id'][iSh] = self._shower_ids[self._shower_index]
                     iCounter += 1
-                    if(iCounter % max(1, int(n_shower_station / 1000.)) == 0):
+#                     if(iCounter % max(1, int(n_shower_station / 100.)) == 0):
+                    if((time.time() - t_last_update) > 60):
+                        t_last_update = time.time()
                         eta = pretty_time_delta((time.time() - t_start) * (n_shower_station - iCounter) / iCounter)
                         total_time_sum = input_time + rayTracingTime + detSimTime + outputTime + weightTime + distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
                         total_time = time.time() - t_start
