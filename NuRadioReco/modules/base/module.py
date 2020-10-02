@@ -17,7 +17,6 @@ def setup_logger(name="NuRadioReco", level=logging.WARNING):
     return logger
 
 
-
 def register_run(level=None):
     """
     Decorator for run methods. This decorator registers the run methods. It allows to keep track of
@@ -40,42 +39,41 @@ def register_run(level=None):
             # generator, so not sure how to access the event.
             evt = None
             station = None
-            level = None
             # find out type of module automatically
             if(len(args) == 1):
                 if(isinstance(args[0], NuRadioReco.framework.event.Event)):
-                    level = "event"
+                    module_level = "event"
                     evt = args[0]
                 else:
                     # this is a module that creats events
-                    level = "reader"
+                    module_level = "reader"
             elif(len(args) >= 2):
                 if(isinstance(args[0], NuRadioReco.framework.event.Event) and isinstance(args[1], NuRadioReco.framework.base_station.BaseStation)):
-                    level = "station"
+                    module_level = "station"
                     evt = args[0]
                     station = args[1]
                 elif(isinstance(args[0], NuRadioReco.framework.event.Event)):
-                    level = "event"
+                    module_level = "event"
                     evt = args[0]
                 else:
-                    # this is a module that creats events
-                    level = "reader"
+                    # this is a module that creates events
+                    module_level = "reader"
                     raise AttributeError("first argument of run method is not of type NuRadioReco.framework.event.Event")
             else:
                 # this is a module that creats events
-                level = "reader"
+                module_level = "reader"
 
             start = timer()
             res = run(self, *args, **kwargs)
-            if(level == "event"):
+            if(module_level == "event"):
                 evt.register_module_event(self, self.__class__.__name__, kwargs)
-            elif(level == "station"):
+            elif(module_level == "station"):
                 evt.register_module_station(station.get_id(), self, self.__class__.__name__, kwargs)
-            elif(level == "reader"):
+            elif(module_level == "reader"):
                 # not sure what to do... function returns generator, not sure how to access the event...
                 pass
             end = timer()
-            if not self in register_run_method.time:  # keep track of timing of modules. We use the module instance as key to time different module instances separately.
+            if self not in register_run_method.time:  # keep track of timing of modules. We use the module instance as key to time different module instances separately.
                 register_run_method.time[self] = 0
             register_run_method.time[self] += (end - start)
             return res

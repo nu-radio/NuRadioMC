@@ -8,7 +8,6 @@ import time
 import logging
 
 
-
 def get_threshold_triggers(trace, threshold):
     """
     calculats a simple threshold trigger
@@ -38,8 +37,8 @@ class triggerSimulator:
         self.begin()
         self.logger = logging.getLogger('NuRadioReco.simpleThresholdTrigger')
 
-    def begin(self, debug=False):
-        self.__debug = debug
+    def begin(self):
+        return
 
     @register_run()
     def run(self, evt, station, det,
@@ -53,10 +52,17 @@ class triggerSimulator:
 
         Parameters
         ----------
+        evt: Event
+            The event to run the module on
+        station: Station
+            The station to run the module on
+        det: Detector
+            The detector description
         number_concidences: int
             number of channels that are requried in coincidence to trigger a station
-        threshold: float
+        threshold: float or dict of floats
             threshold above (or below) a trigger is issued, absolute amplitude
+            a dict can be used to specify a different threshold per channel where the key is the channel id
         triggered_channels: array of ints or None
             channels ids that are triggered on, if None trigger will run on all channels
         coinc_window: float
@@ -84,7 +90,11 @@ class triggerSimulator:
             if channel.get_trace_start_time() != channel_trace_start_time:
                 self.logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
             trace = channel.get_trace()
-            triggerd_bins = get_threshold_triggers(trace, threshold)
+            if(isinstance(threshold, dict)):
+                threshold_tmp = threshold[channel_id]
+            else:
+                threshold_tmp = threshold
+            triggerd_bins = get_threshold_triggers(trace, threshold_tmp)
             triggerd_bins_channels.append(triggerd_bins)
             if True in triggerd_bins:
                 channels_that_passed_trigger.append(channel.get_id())
@@ -102,7 +112,7 @@ class triggerSimulator:
         trigger.set_triggered_channels(channels_that_passed_trigger)
         if has_triggered:
             trigger.set_triggered(True)
-            trigger.set_trigger_time(triggered_times.min()+channel_trace_start_time)
+            trigger.set_trigger_time(triggered_times.min() + channel_trace_start_time)
             self.logger.debug("station has triggered")
         else:
             trigger.set_triggered(False)

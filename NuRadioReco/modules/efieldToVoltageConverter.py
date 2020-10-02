@@ -1,27 +1,17 @@
 import numpy as np
-import copy
 import time
 import logging
-import fractions
-from scipy import signal
-from decimal import Decimal
-
-from radiotools import coordinatesystems
-
 import NuRadioReco.framework.channel
-
+import NuRadioReco.framework.base_trace
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.utilities import ice
 from NuRadioReco.utilities import trace_utilities
-
-from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import stationParameters as stnp
-
-
+import copy
 
 
 class efieldToVoltageConverter():
@@ -33,13 +23,20 @@ class efieldToVoltageConverter():
     The station id, defines antenna location and antenna type.
     """
 
-    def __init__(self):
+    def __init__(self, log_level=logging.WARNING):
         self.__t = 0
+        self.__uncertainty = None
+        self.__debug = None
+        self.__time_resolution = None
+        self.__pre_pulse_time = None
+        self.__post_pulse_time = None
+        self.__max_upsampling_factor = None
+        self.antenna_provider = None
         self.begin()
-
         self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
+        self.logger.setLevel(log_level)
 
-    def begin(self, debug=False, uncertainty={},
+    def begin(self, debug=False, uncertainty=None,
               time_resolution=0.1 * units.ns,
               pre_pulse_time=200 * units.ns,
               post_pulse_time=200 * units.ns
@@ -51,7 +48,7 @@ class efieldToVoltageConverter():
         ---------------------
         debug: bool
             enable/disable debug mode (default: False -> no debug output)
-        uncertainty: dictionary
+        uncertainty: dictionary (default: {})
             optional argument to specify systematic uncertainties. currently supported keys
              * 'sys_dx': systematic uncertainty of x position of antenna
              * 'sys_dy': systematic uncertainty of y position of antenna
@@ -72,7 +69,10 @@ class efieldToVoltageConverter():
         self.__pre_pulse_time = pre_pulse_time
         self.__post_pulse_time = post_pulse_time
         self.__max_upsampling_factor = 5000
-        self.__uncertainty = uncertainty
+        if uncertainty is None:
+            self.__uncertainty = {}
+        else:
+            self.__uncertainty = uncertainty
         # some uncertainties are systematic, fix them here
         if('sys_dx' in self.__uncertainty):
             self.__uncertainty['sys_dx'] = np.random.normal(0, self.__uncertainty['sys_dx'])
@@ -80,7 +80,7 @@ class efieldToVoltageConverter():
             self.__uncertainty['sys_dy'] = np.random.normal(0, self.__uncertainty['sys_dy'])
         if('sys_dz' in self.__uncertainty):
             self.__uncertainty['sys_dz'] = np.random.normal(0, self.__uncertainty['sys_dz'])
-        if('sys_amp'in self.__uncertainty):
+        if('sys_amp' in self.__uncertainty):
             for iCh in self.__uncertainty['sys_amp'].keys():
                 self.__uncertainty['sys_amp'][iCh] = np.random.normal(1, self.__uncertainty['sys_amp'][iCh])
         self.antenna_provider = antennapattern.AntennaPatternProvider()
@@ -94,7 +94,6 @@ class efieldToVoltageConverter():
         if(len(sim_station.get_electric_fields()) == 0):
             raise LookupError(f"station {station.get_id()} has no efields")
         sim_station_id = sim_station.get_id()
-        event_time = sim_station.get_station_time()
 
         # first we determine the trace start time of all channels and correct
         # for different cable delays
@@ -102,7 +101,7 @@ class efieldToVoltageConverter():
         times_max = []
         for iCh in det.get_channel_ids(sim_station_id):
             for electric_field in sim_station.get_electric_fields_for_channels([iCh]):
-                original_binning = 1. / electric_field.get_sampling_rate()
+                time_resolution = 1. / electric_field.get_sampling_rate()
                 cab_delay = det.get_cable_delay(sim_station_id, iCh)
                 t0 = electric_field.get_trace_start_time() + cab_delay
                 # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
@@ -113,14 +112,17 @@ class efieldToVoltageConverter():
                         index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                     else:  # signal is coming from above, so we take IOR of air
                         index_of_refraction = ice.get_refractive_index(1, site)
-                    travel_time_shift = geo_utl.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith),
-                        sim_station.get_parameter(stnp.azimuth), antenna_position, index_of_refraction)
+                    travel_time_shift = geo_utl.get_time_delay_from_direction(
+                        sim_station.get_parameter(stnp.zenith),
+                        sim_station.get_parameter(stnp.azimuth),
+                        antenna_position,
+                        index_of_refraction
+                    )
                     t0 += travel_time_shift
                 if(not np.isnan(t0)):  # trace start time is None if no ray tracing solution was found and channel contains only zeros
                     times_min.append(t0)
                     times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
                     self.logger.debug("trace start time {}, cab_delty {}, tracelength {}".format(electric_field.get_trace_start_time(), cab_delay, electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
-        time_resolution = min(self.__time_resolution, original_binning)
         times_min = np.array(times_min)
         times_max = np.array(times_max)
         if times_min.min() < 0:
@@ -154,20 +156,8 @@ class efieldToVoltageConverter():
                 # in a measurement, all channels have the same physical start time
                 # so we need to create one long trace that can hold all the different channel times
                 # to achieve a good time resolution, we upsample the trace first.
-                orig_binning = 1. / electric_field.get_sampling_rate()  # assume that all channels have the same sampling rate
-                target_binning = time_resolution
-                resampling_factor = fractions.Fraction(Decimal(orig_binning / target_binning)).limit_denominator(self.__max_upsampling_factor)
-                efield_trace = electric_field.get_trace()
-                new_length = int(efield_trace.shape[1] * resampling_factor)
-                resampled_efield = np.zeros((3, new_length))  # create new data structure with new efield length
-                for iE in range(len(efield_trace)):
-                    trace = efield_trace[iE]
-                    if(resampling_factor.numerator != 1):
-                        trace = signal.resample(trace, resampling_factor.numerator * len(trace))
-                    if(resampling_factor.denominator != 1):
-                        trace = signal.resample(trace, len(trace) / resampling_factor.denominator)
-                    resampled_efield[iE] = trace
-
+                new_efield = NuRadioReco.framework.base_trace.BaseTrace()  # create new data structure with new efield length
+                new_efield.set_trace(copy.copy(electric_field.get_trace()), electric_field.get_sampling_rate())
                 new_trace = np.zeros((3, trace_length_samples))
                 # calculate the start bin
                 if(not np.isnan(electric_field.get_trace_start_time())):
@@ -179,19 +169,31 @@ class efieldToVoltageConverter():
                             index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                         else:  # signal is coming from above, so we take IOR of air
                             index_of_refraction = ice.get_refractive_index(1, site)
-                        travel_time_shift = geo_utl.get_time_delay_from_direction(sim_station.get_parameter(stnp.zenith),
-                            sim_station.get_parameter(stnp.azimuth), antenna_position, index_of_refraction)
-                        start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift) / time_resolution))
+
+                        travel_time_shift = geo_utl.get_time_delay_from_direction(
+                            sim_station.get_parameter(stnp.zenith),
+                            sim_station.get_parameter(stnp.azimuth),
+                            antenna_position,
+                            index_of_refraction
+                        )
+                        start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift
+                        start_bin = int(round(start_time / time_resolution))
+                        time_remainder = start_time - start_bin * time_resolution
                     else:
-                        start_bin = int(round((electric_field.get_trace_start_time() + cab_delay - times_min.min()) / time_resolution))
+                        start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min()
+                        start_bin = int(round(start_time / time_resolution))
+                        time_remainder = start_time - start_bin * time_resolution
                     self.logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
-                    new_trace[:, start_bin:(start_bin + len(trace))] = resampled_efield
+                    new_efield.apply_time_shift(time_remainder)
+                    new_trace[:, start_bin:(start_bin + new_efield.get_number_of_samples())] = new_efield.get_trace()
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
                 trace_object.set_trace(new_trace, 1. / time_resolution)
+                trace_object.set_trace_start_time(np.min(times_min) - cab_delay)
                 if(self.__debug):
-                    axes[0].plot(trace_object.get_times(), new_trace[1], label="eTheta {}".format(electric_field[efp.ray_path_type]))
-                    axes[0].plot(trace_object.get_times(), new_trace[2], label="ePhi {}".format(electric_field[efp.ray_path_type]))
-
+                    axes[0].plot(trace_object.get_times(), new_trace[1], label="eTheta {}".format(electric_field[efp.ray_path_type]), c='C0')
+                    axes[0].plot(trace_object.get_times(), new_trace[2], label="ePhi {}".format(electric_field[efp.ray_path_type]), c='C0', linestyle=':')
+                    axes[0].plot(electric_field.get_times(), electric_field.get_trace()[1], c='C1', linestyle='-', alpha=.5)
+                    axes[0].plot(electric_field.get_times(), electric_field.get_trace()[2], c='C1', linestyle=':', alpha=.5)
                 ff = trace_object.get_frequencies()
                 efield_fft = trace_object.get_frequency_spectrum()
 
@@ -240,7 +242,7 @@ class efieldToVoltageConverter():
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
+        self.logger.info("total time used by this module is {}".format(dt))
         return dt

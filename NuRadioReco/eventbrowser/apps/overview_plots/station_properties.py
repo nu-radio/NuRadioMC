@@ -1,16 +1,14 @@
-import dash
 import json
-import plotly
-import numpy as np
-from app import app
+from NuRadioReco.eventbrowser.app import app
 import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output, State
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 import NuRadioReco.eventbrowser.apps.common
-import dataprovider
-provider = dataprovider.DataProvider()
+import NuRadioReco.eventbrowser.dataprovider
+
+provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 
 layout = [
     dcc.RadioItems(
@@ -29,26 +27,28 @@ station_properties_for_overview = [
         'label': 'Zenith [deg]',
         'param': stnp.zenith,
         'unit': units.deg
-    },{
+    }, {
         'label': 'Azimuth [deg]',
         'param': stnp.azimuth,
         'unit': units.deg
-    },{
+    }, {
         'label': 'Neutrino Energy [eV]',
         'param': stnp.nu_energy,
         'unit': units.eV
-    },{
+    }, {
         'label': 'Cosmic Ray Energy [eV]',
         'param': stnp.cr_energy,
         'unit': units.eV
     }
 ]
+
+
 @app.callback(Output('station-overview-properties', 'children'),
-                [Input('filename', 'value'),
-                Input('event-counter-slider', 'value'),
-                Input('station-id-dropdown', 'value'),
-                Input('station-overview-rec-sim', 'value')],
-                [State('user_id', 'children')])
+              [Input('filename', 'value'),
+               Input('event-counter-slider', 'value'),
+               Input('station-id-dropdown', 'value'),
+               Input('station-overview-rec-sim', 'value')],
+              [State('user_id', 'children')])
 def station_overview_properties(filename, evt_counter, station_id, rec_or_sim, juser_id):
     if filename is None or station_id is None:
         return ''
@@ -71,13 +71,10 @@ def station_overview_properties(filename, evt_counter, station_id, rec_or_sim, j
         event_type = 'Cosmic Ray'
     else:
         event_type = 'Unknown'
-    reply = []
-    reply.append(
-        html.Div([
-            html.Div('Event Type:', className='custom-table-td'),
-            html.Div(str(event_type), className='custom-table-td custom-table-td-last')
-        ], className='custom-table-row')
-    )
+    reply = [html.Div([
+        html.Div('Event Type:', className='custom-table-td'),
+        html.Div(str(event_type), className='custom-table-td custom-table-td-last')
+    ], className='custom-table-row')]
     props = NuRadioReco.eventbrowser.apps.common.get_properties_divs(prop_station, station_properties_for_overview)
     for prop in props:
         reply.append(prop)

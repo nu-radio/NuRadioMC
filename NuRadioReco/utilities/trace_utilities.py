@@ -1,9 +1,7 @@
 import numpy as np
-import scipy
+import scipy.constants
+import scipy.signal
 from NuRadioReco.utilities import units
-import NuRadioReco.framework.sim_station
-from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.utilities import ice
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import fft
@@ -112,6 +110,7 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
 
     return f_signal * dt * conversion_factor_integrated_signal
 
+
 def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7):
     """
     This function performs an upsampling by inserting a number of zeroes
@@ -136,7 +135,7 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7)
     """
 
     if (np.abs(int(int_factor) - int_factor) > 1e-3):
-        warning_msg  = "The input upsampling factor does not seem to be close to an integer."
+        warning_msg = "The input upsampling factor does not seem to be close to an integer."
         warning_msg += "It has been rounded to {}".format(int(int_factor))
         logger.warning(warning_msg)
 
@@ -146,19 +145,19 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7)
         error_msg = "Upsampling factor is less or equal to 1. Upsampling will not be performed."
         raise ValueError(error_msg)
 
-    n_zeroes = int_factor - 1
-    zeroed_trace = np.zeros( len(trace) * int_factor )
+    zeroed_trace = np.zeros(len(trace) * int_factor)
     for i_point, point in enumerate(trace[:-1]):
         zeroed_trace[i_point * int_factor] = point
 
     upsampled_delta_time = 1 / (int_factor * original_sampling_frequency)
     upsampled_times = np.arange(0, len(zeroed_trace) * upsampled_delta_time, upsampled_delta_time)
 
-    cutoff = 1./int_factor
+    cutoff = 1. / int_factor
     fir_coeffs = scipy.signal.firwin(ntaps, cutoff, window='boxcar')
     upsampled_trace = np.convolve(zeroed_trace, fir_coeffs)[:len(upsampled_times)] * int_factor
 
     return upsampled_trace
+
 
 def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
     """
@@ -184,12 +183,13 @@ def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
     n_samples = len(trace)
 
     spectrum = fft.time2freq(trace, sampling_frequency)
-    frequencies = np.fft.rfftfreq(n_samples, 1/sampling_frequency)
+    frequencies = np.fft.rfftfreq(n_samples, 1 / sampling_frequency)
 
-    filtered_spectrum = apply_butterworth(spectrum, frequencies, passband)
+    filtered_spectrum = apply_butterworth(spectrum, frequencies, passband, order)
     filtered_trace = fft.freq2time(filtered_spectrum, sampling_frequency)
 
     return filtered_trace
+
 
 def apply_butterworth(spectrum, frequencies, passband, order=8):
     """
@@ -223,6 +223,7 @@ def apply_butterworth(spectrum, frequencies, passband, order=8):
 
     return filtered_spectrum
 
+
 def delay_trace(trace, sampling_frequency, time_delay, delayed_samples):
     """
     Delays a trace by transforming it to frequency and multiplying by phases.
@@ -255,7 +256,7 @@ def delay_trace(trace, sampling_frequency, time_delay, delayed_samples):
     n_samples = len(trace)
 
     spectrum = fft.time2freq(trace, sampling_frequency)
-    frequencies = np.fft.rfftfreq(n_samples, 1/sampling_frequency)
+    frequencies = np.fft.rfftfreq(n_samples, 1 / sampling_frequency)
 
     spectrum *= np.exp(-1j * 2 * np.pi * frequencies * time_delay)
 

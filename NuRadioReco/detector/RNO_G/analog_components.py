@@ -1,12 +1,9 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import os
-from radiotools import helper as hp
-from NuRadioReco.utilities import units, io_utilities
+from NuRadioReco.utilities import units
 import logging
 logger = logging.getLogger('analog_components')
-
 
 
 def load_amp_response(amp_type='rno_surface', path=os.path.dirname(os.path.realpath(__file__))):  # use this function to read in log data
@@ -21,13 +18,13 @@ def load_amp_response(amp_type='rno_surface', path=os.path.dirname(os.path.realp
     if amp_type == 'rno_surface':
         ph = os.path.join(path, 'HardwareResponses/surface_chan0_LinA.csv')
         ff = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=0)
-        amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= 5)
-        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= 6)
+        amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=5)
+        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=6)
     elif amp_type == 'iglu':
         ph = os.path.join(path, 'HardwareResponses/iglu_drab_chan0_LinA.csv')
         ff = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=0)
-        amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= 5)
-        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols= 6)
+        amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=5)
+        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=6)
     else:
         logger.error("Amp type not recognized")
         return amp_response
@@ -38,22 +35,23 @@ def load_amp_response(amp_type='rno_surface', path=os.path.dirname(os.path.realp
     amp_gain_f = interp1d(ff, amp_gain_discrete, bounds_error=False, fill_value=1)
     # all requests outside of measurement range are set to 0
 
-    def get_amp_gain(ff):
-        amp_gain = amp_gain_f(ff)
+    def get_amp_gain(freqs):
+        amp_gain = amp_gain_f(freqs)
         return amp_gain
 
     # Convert to MHz and broaden range
     amp_phase_f = interp1d(ff, np.unwrap(amp_phase_discrete * units.degree),
                            bounds_error=False, fill_value=0)  # all requests outside of measurement range are set to 0
 
-    def get_amp_phase(ff):
-        amp_phase = amp_phase_f(ff)
+    def get_amp_phase(freqs):
+        amp_phase = amp_phase_f(freqs)
         return np.exp(1j * amp_phase)
 
     amp_response['gain'] = get_amp_gain
     amp_response['phase'] = get_amp_phase
 
-    # def get_amp_response(ff):
-    #    return amp_response['gain'](ff) * amp_response['phase'](ff)
-
     return amp_response
+
+
+def get_available_amplifiers():
+    return ['iglu', 'rno_surface']

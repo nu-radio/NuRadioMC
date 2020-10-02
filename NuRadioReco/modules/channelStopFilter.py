@@ -1,9 +1,8 @@
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
-import copy
 import logging
 from NuRadioReco.utilities import units
-from scipy import signal
+import scipy.signal.windows
 logger = logging.getLogger('channelStopFilter')
 
 
@@ -21,6 +20,12 @@ class channelStopFilter:
         """
         parameters
         ----------
+        evt: Event
+            The event to run the module on
+        station: Station
+            The station to run the module on
+        det: Detector
+            The detector description
         filter_size: size of tukey window (float)
             specifies the percentage of the trace where the filter is active.
             default is 0.1, i.e. the first 5% and the last 5% of the trace are filtered
@@ -32,7 +37,7 @@ class channelStopFilter:
         for channel in station.iter_channels():
             trace = channel.get_trace()
             sampling_rate = channel.get_sampling_rate()
-            window = signal.tukey(len(trace), filter_size)
+            window = scipy.signal.windows.tukey(len(trace), filter_size)
             trace *= window
             trace = np.append(np.zeros(np.int(np.round(prepend * sampling_rate))), trace)
             trace = np.append(trace, np.zeros(np.int(np.round(append * sampling_rate))))

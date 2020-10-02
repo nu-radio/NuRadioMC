@@ -28,9 +28,9 @@ import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 from NuRadioReco.utilities.traceWindows import get_window_around_maximum
-import numpy as np
 import logging
 from NuRadioReco.modules.base import module
+
 logger = module.setup_logger(level=logging.WARNING)
 
 # initialize detector sim modules
@@ -42,9 +42,16 @@ channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPas
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
+
 class mySimulation(simulation.simulation):
 
-    def _detector_simulation(self):
+    def _detector_simulation_filter_amp(self, evt, station, det):
+        channelBandPassFilter.run(evt, station, det, passband=[130 * units.MHz, 1000 * units.GHz],
+                                  filter_type='butter', order=6)
+        channelBandPassFilter.run(evt, station, det, passband=[0, 750 * units.MHz],
+                                  filter_type='butter', order=10)
+
+    def _detector_simulation_part2(self):
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
         # downsample trace to 1.5 Gs/s
@@ -59,12 +66,14 @@ class mySimulation(simulation.simulation):
         if check_only_noise:
             for channel in self._station.iter_channels():
                 trace = channel.get_trace() * 0
-                channel.set_trace(trace, sampling_rate = new_sampling_rate)
+                channel.set_trace(trace, sampling_rate=new_sampling_rate)
 
         if self._is_simulate_noise():
             max_freq = 0.5 / self._dt
-            norm = self._get_noise_normalization(self._station.get_id())  # assuming the same noise level for all stations
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms, min_freq=0 * units.MHz,
+            norm = self._get_noise_normalization(
+                self._station.get_id())  # assuming the same noise level for all stations
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms,
+                                         min_freq=0 * units.MHz,
                                          max_freq=max_freq, type='rayleigh', bandwidth=norm)
 
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
@@ -75,10 +84,10 @@ class mySimulation(simulation.simulation):
 
         # run the phased trigger
         triggerSimulator.run(self._evt, self._station, self._det,
-                             threshold=2.5 * self._Vrms, # see phased trigger module for explanation
+                             threshold=2.5 * self._Vrms,  # see phased trigger module for explanation
                              triggered_channels=None,  # run trigger on all channels
-                             secondary_channels=[0,1,3,4,6,7], # secondary channels
-                             trigger_name='primary_and_secondary_phasing', # the name of the trigger
+                             secondary_channels=[0, 1, 3, 4, 6, 7],  # secondary channels
+                             trigger_name='primary_and_secondary_phasing',  # the name of the trigger
                              coupled=True,
                              cut_times=cut_times)
 
@@ -96,9 +105,10 @@ parser.add_argument('--outputfilenameNuRadioReco', type=str, nargs='?', default=
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
 
-sim = mySimulation(inputfilename=args.inputfilename,
-                            outputfilename=args.outputfilename,
-                            detectorfile=args.detectordescription,
-                            outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-                            config_file=args.config)
+sim = mySimulation(
+    inputfilename=args.inputfilename,
+    outputfilename=args.outputfilename,
+    detectorfile=args.detectordescription,
+    outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
+    config_file=args.config)
 sim.run()

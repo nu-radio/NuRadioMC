@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.parameters as parameters
+import NuRadioReco.framework.parameter_serialization
 try:
     import cPickle as pickle
 except ImportError:
@@ -46,11 +47,11 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
     def get_id(self):
         return self._id
 
-    def serialize(self, mode):
-        if(mode == 'micro' or mode == 'mini'):
-            base_trace_pkl = None
-        else:
+    def serialize(self, save_trace):
+        if save_trace:
             base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
+        else:
+            base_trace_pkl = None
         data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 'id': self.get_id(),
                 'base_trace': base_trace_pkl}

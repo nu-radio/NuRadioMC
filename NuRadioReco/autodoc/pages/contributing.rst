@@ -1,5 +1,5 @@
 Contributing to NuRadioReco
-=============
+============================
   Thank you for considering to contribute to NuRadioReco.
   NuRadioReco is intended as community based reconstruction software for
   radio (neutrino) detectors. Everyone is invited to contribute and use the
@@ -12,14 +12,14 @@ Contributing to NuRadioReco
 Workflow
 --------------
 Filing Tickets
-____________
+_______________
   If you work with NuRadioReco and you encounter a problem that you CANNOT solve,
   please file an issue. Please provide as much information as you can. Best, if
   you provide us with a minimal working example that reproduces the problem or
   refer to specific lines of code.
 
 Submitting Pull Requests
-____________
+__________________________
   If you work with NuRadioReco and you encounter a problem that you CAN solve,
   please provide your fix in a new branch and make a pull request. We work with
   continous integration, so you will immediately see, whether your code causes
@@ -39,7 +39,7 @@ ____________
     It is not permitted (or possible) to push changes directly to the master branch. Please always use pull requests!
 
 Coding Conventions
-____________
+______________________
   In general we try to follow 'industry' coding workflow conventions. So, if
   something is not explicitly mentioned here, please resort to 'best practices'.
   NuRadioMC tries to follow `PEP-8 coding conventions <https://www.python.org/dev/peps/pep-0008/>`_
@@ -108,12 +108,35 @@ What to do if Unit Tests Fail
     Only change the references if you are absolutely sure that all changes are
     intentional!
 
+Coding Standards and Linting
+______________________________
+  Python code submitted to the NuRadioReco main branch has to follow PEP8 code standards,
+  with some exceptions listed below. To ensure this, the GitHub Super Linter is run on
+  every pull request. The linter checks the code for any potential errors or violations
+  of PEP8 coding conventions. This is done to prevent bugs, ensure a better code quality
+  and avoid changes in code style hiding the actually functional changes in a pull request.
+
+  The code check is done via the `flake8 <https://flake8.pycqa.org/>`_ linter, using mostly
+  the default settings, with the following checks turned off:
+
+    - E501: Line too long
+    - W391: Blank line at end of file
+    - E722: Avoid bare 'except'
+    - W503: Line break before a binary operator
+
+  For anyone contributing to NuRadioReco, it is recommended to install flake8 locally and
+  perform codechecks regularly. It can easily be installed using pip: ``pip install flake8``.
+  To ignore the checks listed above, add the line ``ignore = E501, W391, E722, W503`` to the
+  flake8 config file.
+  After this, flake8 can be run through the console. However, most modern code editors either
+  provide their own flake8 code checks or support its use as an external tool.
+
 
 Documentation
 -------------
 
 Writing Docstrings
-____________
+_____________________
   All parts of the software are documented in the source code using python
   docstrings. Human-Readable documentation can then be generated using Sphinx.
   We use the `numpy docstring syntax <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
@@ -131,7 +154,7 @@ ____________
   be included.
 
 Deploying the Documentation
-____________
+_____________________________
   We update the documentation regularly (about weekly), but if you don't want
   to wait that long, here is how to update it yourself:
   First you need to set up a repository for the gh-pages branch. Just follow
@@ -147,7 +170,7 @@ ____________
   the html files. Push them to GitHub and the documentation is updated.
 
 Technical Implementation
-____________
+___________________________
   To generate the documentation from scratch,
   `sphinx-apidoc <https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html>`_
   is used.
@@ -159,7 +182,7 @@ ____________
   `this tutorial <https://daler.github.io/sphinxdoc-test/includeme.html>`_.
 
 Usage convention
--------------
+---------------------
 
   Please cite C. Glaser, A. Nelles, I. Plaisier, C. Welling et al., "NuRadioReco: A reconstruction framework for radio neutrino detectors", Eur. Phys. J. C (2019) 79: 464, doi:10.1140/epjc/s10052-019-6971-5, arXiv:1903.07023 when using NuRadioReco.
 

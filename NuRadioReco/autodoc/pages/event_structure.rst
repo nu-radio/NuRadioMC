@@ -2,10 +2,10 @@ Data Structure
 ===========================
 
 .nur Files and How to Use Them
-----------------------
+----------------------------------
 
 Philosophy and Basic Structure
-____________
+__________________________________
   NuRadioReco comes with its own input and output format, called *.nur*. With
   the obvious exception of reading in data from other file formats, like
   *CoREAS* or the *SnowShovel* format of the *ARIANNA* experiment, every
@@ -32,7 +32,7 @@ ____________
       trace = channel.get_trace()
 
 Reading and Writing .nur Files
-____________
+________________________________
 
   Reading and writing *.nur* files is done by dedicated IO modules.
   Writing events is done by the eventWriter module. To save disc space it offers
@@ -144,7 +144,7 @@ ____________
   showers and stations as well as the event ID and run number.
 
 Radio Shower
-____________
+______________
   A `Radio Shower <../NuRadioReco.framework.html#module-NuRadioReco.framework.radio_shower>`_ is used to
   hold reconstructed shower parameters via the parameter storage. It should only be
   used for properties reconstructed from the radio signal, for properties from a simulated
@@ -167,6 +167,7 @@ ____________
   reconstructed at the station level, i.e. reconstructed from the data of a single station.
 
   It can be accessed by the ``get_station`` and ``get_stations`` methods of the ``Event`` class
+
 Trigger
 ____________
 
@@ -193,12 +194,18 @@ ____________
   of the parent ``Station`` and can be changes using the ``set_trace_start_time``
   method, which changes the starting time of the trace.
 
+  The add operator (+) is defined for 2 ``BaseTrace`` objects. It will return a new ``BaseTrace``
+  object containing the sum of both traces. The length of the new trace is chosen so that
+  it is long enough to contain both traces. If the traces have different sampling rates,
+  the one with the lower sampling rate will be upsampled to match the other one.
+  Since this property is inherited, + is defined for both channels and electric fields.
+
 
   The ``Trace`` class is not used by itself, but serves as parent class for both
   the ``Channel`` and ``ElectricField`` classes.
 
 Electric Field
-____________
+_______________
   The `ElectricField <../NuRadioReco.framework.html#module-NuRadioReco.framework.electric_field>`_
   is used to store information about electric fields, which can be accessed via the parameter storage
   and methods inherited from the ``BaseTrace`` class.
@@ -224,7 +231,7 @@ ____________
 
 
 Hybrid Information
-____________
+___________________
   As many radio detectors are built as part of a hybrid detector whose data may be used in the
   radio event reconstruction, a way to make this data accessible in NuRadioReco is needed. The
   `HybridInformation <../NuRadioReco.framework.html#module-NuRadioReco.framework.hybrid_information>`_
@@ -238,7 +245,7 @@ ____________
   It can be accessed via the ``get_hybrid_information'' method of the ``Event`` class.
 
 Hybrid Shower
-____________
+______________
   The `HybridShower <../NuRadioReco.framework.html#module-NuRadioReco.framework.hybrid_shower>`_ is
   used to store information about a shower that was reconstructed with a complementary detector,
   mainly via the parameter storage.
@@ -247,7 +254,7 @@ ____________
   ``HybridInformation`` class.
 
 Hybrid Detector
-____________
+_________________
   A ``HybridDetector`` can be used to store more detailed and experiment-specific information
   about a complementary detector. The diversity of hybrid radio detectors makes it
   impractical to provide this functionality inside NuRadioReco itself, but a custom

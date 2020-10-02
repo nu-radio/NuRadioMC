@@ -12,8 +12,8 @@ class electricFieldBandPassFilter:
         pass
 
     @register_run()
-    def run(self, evt, station, det, passband=[55 * units.MHz, 1000 * units.MHz],
-            filter_type='rectangular', order=2, debug=False):
+    def run(self, evt, station, det, passband=None,
+            filter_type='rectangular', order=2):
         """
         Applies bandpass filter to electric field
 
@@ -25,7 +25,7 @@ class electricFieldBandPassFilter:
 
         det: detector
 
-        passband: seq, array
+        passband: seq, array (default: [55 * units.MHz, 1000 * units.MHz])
             passband for filter, in phys units
         filter_type: string
             'rectangular': perfect straight line filter
@@ -33,11 +33,9 @@ class electricFieldBandPassFilter:
             'butterabs': absolute of butterworth filter from scipy
         order: int (optional, default 2)
             for a butterworth filter: specifies the order of the filter
-        debug: bool
-            set debug
-
         """
-
+        if passband is None:
+            passband = [55 * units.MHz, 1000 * units.MHz]
         for efield in station.get_electric_fields():
             frequencies = efield.get_frequencies()
             trace_fft = efield.get_frequency_spectrum()

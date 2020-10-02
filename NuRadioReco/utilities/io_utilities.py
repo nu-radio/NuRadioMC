@@ -1,12 +1,13 @@
 import pickle
 
+
 def read_pickle(filename, encoding='latin1'):
     """
     Read in a pickle file and return the result
     This utility is supposed to provide compatibility for pickles created with
     different python versions. If a simple pickle.load fails, it will try to
     load the file with a specific encoding.
-    
+
     Parameters
     ---------
     filename: string
