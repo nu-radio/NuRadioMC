@@ -2015,15 +2015,18 @@ class ray_tracing:
     def get_number_of_raytracing_solutions(self):
         return 2 + 4 * self.__n_reflections  # number of possible ray-tracing solutions
 
-    def write_raytracing_output(self, dictionary, i_shower, channel_id, i_solution):
-        dictionary['ray_tracing_C0'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['C0']
-        dictionary['ray_tracing_C1'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['C1']
-        dictionary['ray_tracing_reflection'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['reflection']
-        dictionary['ray_tracing_reflection_case'][i_shower, channel_id, i_solution] = self.get_results()[i_solution]['reflection_case']
-        dictionary['ray_tracing_solution_type'][i_shower, channel_id, i_solution] = self.get_solution_type(i_solution)
+    def get_raytracing_output(self, i_solution):
         dZRec = -0.01 * units.m
         focusing = self.get_focusing(i_solution, dZRec, float(self.__config['propagation']['focusing_limit']))
-        dictionary['focusing_factor'][i_shower, channel_id, i_solution] = focusing
+        output_dict = {
+            'ray_tracing_C0': self.get_results()[i_solution]['C0'],
+            'ray_tracing_C1': self.get_results()[i_solution]['C1'],
+            'ray_tracing_reflection': self.get_results()[i_solution]['reflection'],
+            'ray_tracing_reflection_case': self.get_results()[i_solution]['reflection_case'],
+            'ray_tracing_solution_type': self.get_solution_type(i_solution),
+            'focusing_factor': focusing
+        }
+        return output_dict
 
     def apply_propagation_effects(self, efield, i_solution):
         spec = efield.get_frequency_spectrum()

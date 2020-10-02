@@ -587,7 +587,8 @@ class simulation():
                         viewing_angles = []
                         # loop through all ray tracing solution
                         for iS in range(self._raytracer.get_number_of_solutions()):
-                            self._raytracer.write_raytracing_output(sg, iSh, channel_id, iS)
+                            for key, value in self._raytracer.get_raytracing_output(iS).items():
+                                sg[key][iSh, channel_id, iS] = value
                             self._launch_vector = self._raytracer.get_launch_vector(iS)
                             sg['launch_vectors'][iSh, channel_id, iS] = self._launch_vector
                             # calculates angle between shower axis and launch vector
