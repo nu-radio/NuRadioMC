@@ -16,7 +16,6 @@ from scipy import constants
 # import detector simulation modules
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.channelSignalReconstructor
-import NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution
 import NuRadioReco.modules.electricFieldResampler
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.efieldToVoltageConverterPerEfield
@@ -28,10 +27,8 @@ import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.framework.parameters import eventParameters as evp
 from NuRadioReco.framework.parameters import showerParameters as shp
 import datetime
 import logging
