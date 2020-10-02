@@ -1,6 +1,6 @@
-default_layout= {
+default_layout = {
     'margin': {
-    't': 15
+        't': 15
     },
     'showlegend': True
 }

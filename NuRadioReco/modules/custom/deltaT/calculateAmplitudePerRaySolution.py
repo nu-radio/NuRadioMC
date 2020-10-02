@@ -1,20 +1,11 @@
 import numpy as np
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities import ice
-from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-# from detector import antennamodel
 from NuRadioReco.detector import antennapattern
-from radiotools import coordinatesystems
-import copy
 import time
 import logging
-import fractions
 from scipy import signal
-from decimal import Decimal
-import NuRadioReco.framework.channel
 from NuRadioReco.utilities import fft
 logger = logging.getLogger('calculateAmplitudePerRaySolution')
 
@@ -27,6 +18,8 @@ class calculateAmplitudePerRaySolution:
 
     def __init__(self):
         self.__t = 0
+        self.__debug = None
+        self.antenna_provider = None
         self.begin()
 
     def begin(self, debug=False):

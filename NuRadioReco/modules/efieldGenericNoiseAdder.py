@@ -2,12 +2,9 @@ from NuRadioReco.utilities import units
 from NuRadioReco.modules.base.module import register_run
 import logging
 import copy
-import NuRadioReco.framework.channel
 import numpy as np
-logger = logging.getLogger('efieldGenericNoiseAdder')
-import matplotlib.pyplot as plt
-import scipy as sp
 import scipy.constants
+logger = logging.getLogger('efieldGenericNoiseAdder')
 
 
 class efieldGenericNoiseAdder:
@@ -18,6 +15,7 @@ class efieldGenericNoiseAdder:
     """
 
     def __init__(self):
+        self.__debug = None
         self.begin()
 
     def begin(self, debug=False):
@@ -29,12 +27,12 @@ class efieldGenericNoiseAdder:
 
         Parameters
         ----------
-        event
-
-        station
-
-        detector
-
+        evt: Event
+            The event to run the module on
+        station: Station
+            The station to run the module on
+        det: Detector
+            The detector description
         type: string
             narrowband: single frequency background with FM
             galactic: galactic emission calculated from temperature plots
@@ -75,14 +73,16 @@ class efieldGenericNoiseAdder:
                 noise_idx = int(efield_fft.shape[1]) - int(freq_range.shape[0])
 
                 # Power law found by fit to Fig 3.2. "An absolute calibration of the antennas at LOFAR", Tijs Karskens (2015)
-                def GalTemp(x, n=-2.41, k=10 ** 7.88):
-                    return k * x ** n
+                def GalTemp(xx, n=-2.41, k=10 ** 7.88):
+                    return k * xx ** n
 
                 S = np.zeros(efield_fft.shape[1])
-                S[lower_lim&upper_lim] = 4 * np.pi * ((2 * sp.constants.Boltzmann) / (sp.constants.speed_of_light ** 2)) * (freq_range / units.MHz) ** 2 * GalTemp(freq_range / units.MHz) * 50 * units.ohm
+                S[noise_idx:] = 4 * np.pi * ((2 * scipy.constants.Boltzmann) / (scipy.constants.speed_of_light ** 2)) * (freq_range / units.MHz) ** 2 * GalTemp(freq_range / units.MHz) * 50 * units.ohm
+                S = S * sampling_rate
 
                 for i, x in enumerate(S):
-                    if x != 0.: S[i] = np.sqrt(x)
+                    if x != 0.:
+                        S[i] = np.sqrt(x)
 
 
                 for i in range(3):  # The power of the galactic background is assumed to be the same in all polarizations
@@ -95,5 +95,5 @@ class efieldGenericNoiseAdder:
             else:
                 logger.error("Other types of noise not yet implemented.")
 
-    def end():
+    def end(self):
         pass

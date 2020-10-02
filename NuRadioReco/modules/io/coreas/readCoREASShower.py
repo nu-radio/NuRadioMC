@@ -21,6 +21,10 @@ class readCoREASShower:
         self.__t = 0
         self.__t_event_structure = 0
         self.__t_per_event = 0
+        self.__input_files = None
+        self.__current_input_file = None
+        self.__det = None
+        self.__ascending_run_and_event_number = None
 
     def begin(self, input_files, det=None, logger_level=logging.NOTSET, set_ascending_run_and_event_number=False):
         """
@@ -51,7 +55,6 @@ class readCoREASShower:
 
         self.__ascending_run_and_event_number = 1 if set_ascending_run_and_event_number else 0
 
-
     def run(self):
         """
         Reads in a CoREAS file and returns an event containing all simulated stations
@@ -63,8 +66,11 @@ class readCoREASShower:
 
             filesize = os.path.getsize(self.__input_files[self.__current_input_file])
             if(filesize < 18456 * 2):
-                logger.warning("file {} seems to be corrupt, skipping to next file".format(
-                       self.__input_files[self.__current_input_file]))
+                logger.warning(
+                    "file {} seems to be corrupt, skipping to next file".format(
+                        self.__input_files[self.__current_input_file]
+                    )
+                )
                 self.__current_input_file += 1
                 continue
 
@@ -88,7 +94,7 @@ class readCoREASShower:
 
             # create sim shower, no core is set since no external detector description is given
             sim_shower = coreas.make_sim_shower(corsika)
-            sim_shower.set_parameter(shp.core, np.array([0, 0, f_coreas.attrs["CoreCoordinateVertical"] / 100])) # set core
+            sim_shower.set_parameter(shp.core, np.array([0, 0, f_coreas.attrs["CoreCoordinateVertical"] / 100]))    # set core
             evt.add_sim_shower(sim_shower)
 
             # initialize coordinate transformation
@@ -100,8 +106,10 @@ class readCoREASShower:
                 station_id = antenna_id(name, idx)  # returns proper station id if possible
 
                 station = NuRadioReco.framework.station.Station(station_id)
-                sim_station = coreas.make_sim_station(station_id, corsika, observer, channel_ids=[0, 1, 2])
-
+                if self.__det is None:
+                    sim_station = coreas.make_sim_station(station_id, corsika, observer, channel_ids=[0, 1, 2])
+                else:
+                    sim_station = coreas.make_sim_station(station_id, corsika, observer, channel_ids=self.__det.get_channel_ids(self.__det.get_default_station_id()))
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
                 if self.__det is not None:
@@ -139,7 +147,7 @@ class readCoREASShower:
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         logger.info("\tcreate event structure {}".format(timedelta(seconds=self.__t_event_structure)))
-        logger.info("\per event {}".format(timedelta(seconds=self.__t_per_event)))
+        logger.info("per event {}".format(timedelta(seconds=self.__t_per_event)))
         return dt
 
 

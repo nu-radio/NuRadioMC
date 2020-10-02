@@ -1,12 +1,5 @@
 from NuRadioReco.modules.base.module import register_run
-import numpy as np
 import time
-
-from NuRadioReco.utilities import ice
-
-from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import channelParameters as chp
-
 import logging
 logger = logging.getLogger('efieldAirToIcePropagator')
 
@@ -18,6 +11,7 @@ class efieldAirToIcePropagator:
 
     def __init__(self):
         self.__t = 0
+        self.__debug = None
         self.begin()
 
     def begin(self, debug=False):

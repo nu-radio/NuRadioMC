@@ -198,3 +198,16 @@ have to be set to ``True`` for  constructors of the ``NuRadioRecoio`` and
  each time an event from another file is read to get the correct ``Detector`` or ``GenericDetector``.
 
  We recommend calling ``get_detector`` after every new event request.
+
+Detector Viewer
+_________________
+NuRadioReco provides a visualization for detector description. It is stored in the folder
+``NuRadioReco/detector/detector_browser`` and works similar to the event viewer.
+
+To start it, execute the command ``python index.py /path/to/folder``. Then open
+a web browser and go to the URL printed on the terminal (http://127.0.0.1:8080/
+by default).
+
+The browser can read both the standard Detector and the GenericDetector format,
+as well as detector descriptions stored in event files. The input format can
+be selected from the dropdown, after which the detector file can be opened.

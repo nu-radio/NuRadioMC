@@ -2,14 +2,8 @@ import NuRadioReco.modules.io.coreas.readCoREASShower
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.eventTypeIdentifier
-from NuRadioReco.utilities import units
-from NuRadioReco.framework.parameters import showerParameters as shP
-
 from NuRadioReco.detector import generic_detector as detector
-
-import numpy as np
 import argparse
-import datetime
 
 # Parse eventfile as argument
 parser = argparse.ArgumentParser(description='NuRadioSim file')
@@ -25,7 +19,7 @@ parser.add_argument('--detectordescription', type=str, nargs='?',
                     default='../examples/example_data/dummy_detector.json',
                     help='path to detectordescription')
 
-parser.add_argument('--set_run_number', dest='set_run_number',  action='store_true',
+parser.add_argument('--set_run_number', dest='set_run_number', action='store_true',
                     help='If set, the run number and event id will be set to an increasing value.')
 
 

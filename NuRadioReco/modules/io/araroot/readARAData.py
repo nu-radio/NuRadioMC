@@ -10,17 +10,17 @@ import os
 import logging
 import time
 from scipy import interpolate
+import ctypes
 
 
 sys.path.append(os.path.expandvars('${ARA_UTIL_INSTALL_DIR}/lib'))
 
-from ctypes import *
-libc = CDLL("libAraEvent.so")
-libc = CDLL("libAraConfig.so")
-libc = CDLL("libAraCorrelator.so")
-libc = CDLL("libAraDisplay.so")
-libc = CDLL("libAraKvp.so")
-libc = CDLL("libRootFftwWrapper.so")
+libc = ctypes.CDLL("libAraEvent.so")
+libc = ctypes.CDLL("libAraConfig.so")
+libc = ctypes.CDLL("libAraCorrelator.so")
+libc = ctypes.CDLL("libAraDisplay.so")
+libc = ctypes.CDLL("libAraKvp.so")
+libc = ctypes.CDLL("libRootFftwWrapper.so")
 
 
 class readARAData:
@@ -32,7 +32,12 @@ class readARAData:
     """
     def __init__(self):
         self.logger = logging.getLogger("NuRadioReco.readARAData")
-
+        self.__id_current_event = None
+        self.__t = None
+        self.f = None
+        self.raw_ptr = None
+        self.data_tree = None
+        self.n_events = None
 
     def begin(self, input_file):
 
@@ -42,7 +47,7 @@ class readARAData:
         Parameters
         ----------
         input_file: string
-        path to file to read
+            path to file to read
 
         """
 

@@ -19,10 +19,12 @@ def time2freq(trace, sampling_rate):
 
     Parameters
     ----------
+    trace: np.array
+        time trace to be transformed into frequency space
     sampling_rate: float
         sampling rate of the trace
     """
-    return np.fft.rfft(trace, axis=-1) / sampling_rate  * 2 ** 0.5  # an additional sqrt(2) is added because negative frequencies are omitted.
+    return np.fft.rfft(trace, axis=-1) / sampling_rate * 2 ** 0.5  # an additional sqrt(2) is added because negative frequencies are omitted.
 
 
 def freq2time(spectrum, sampling_rate, n=None):
@@ -38,4 +40,4 @@ def freq2time(spectrum, sampling_rate, n=None):
     n: int
         the number of sample in the time domain (relevant if time trace has an odd number of samples)
     """
-    return np.fft.irfft(spectrum, axis=-1, n=n) * sampling_rate  / 2 ** 0.5
+    return np.fft.irfft(spectrum, axis=-1, n=n) * sampling_rate / 2 ** 0.5

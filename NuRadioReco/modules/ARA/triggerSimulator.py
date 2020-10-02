@@ -1,13 +1,9 @@
 from NuRadioReco.utilities import units
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
-import time
 import logging
-import scipy.signal
-from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
 from NuRadioReco.framework.trigger import IntegratedPowerTrigger
 from NuRadioReco.utilities.diodeSimulator import diodeSimulator
-import NuRadioReco.framework.channel
 
 logger = logging.getLogger('ARAtriggerSimulator')
 
@@ -24,6 +20,7 @@ class triggerSimulator:
         self._power_mean = None
         self._power_std = None
         self._diode = diodeSimulator()
+        self.power_threshold = None
         logger.warning("This module does not contain cutting the trace to ARA specific parameters.")
 
     def has_triggered(self, channel):
@@ -45,8 +42,7 @@ class triggerSimulator:
 
         # Send signal through tunnel_diode
         after_tunnel_diode = self._diode.tunnel_diode(channel)
-        low_trigger = (self._power_mean -
-                       self._power_std * np.abs(self.power_threshold))
+        low_trigger = (self._power_mean - self._power_std * np.abs(self.power_threshold))
 
         return np.min(after_tunnel_diode) < low_trigger
 
@@ -55,7 +51,7 @@ class triggerSimulator:
             power_threshold=6.5,
             coinc_window=110 * units.ns,
             number_concidences=3,
-            triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7],
+            triggered_channels=None,
             power_mean=None,
             power_std=None,
             trigger_name='default_integrated_power'):
@@ -64,6 +60,12 @@ class triggerSimulator:
 
         Parameters
         ----------
+        evt: Event
+            The event on which to run the module
+        station: Station
+            The station on which to run the module
+        det: Detector or GenericDetector
+            The detector description
         power_threshold: float
             The factor of sigma that the signal needs to exceed the noise
         coinc_window: float
@@ -84,11 +86,13 @@ class triggerSimulator:
         # if the run method specifies power mean and rms we use these values,
         # if the parameters are None, the power mean and rms gets calculated for
         # some standard assumptions on the noise RMS and it needs to be done only once
+        if triggered_channels is None:
+            triggered_channels = [0, 1, 2, 3, 4, 5, 6, 7]
         if(power_mean is not None and power_std is not None):
             self._power_mean = power_mean
             self._power_std = power_std
         else:
-            error_msg  = 'The power_mean and power_std parameters are not defined. '
+            error_msg = 'The power_mean and power_std parameters are not defined. '
             error_msg += 'Please define them. You can use the calculate_noise_parameters '
             error_msg += 'function in utilities.diodeSimulator to do so.'
             raise ValueError(error_msg)
@@ -124,13 +128,13 @@ class triggerSimulator:
         if (number_triggered_channels >= number_concidences):
 
             trace_times = np.arange(np.min(times_min), np.max(times_max),
-                                    1/np.min(sampling_rates))
+                                    1 / np.min(sampling_rates))
 
             trigger_times = np.array(trigger_times)
-            slice_left = int(coinc_window/2/(trace_times[1]-trace_times[0]))
-            slice_right = len(trace_times)-slice_left
+            slice_left = int(coinc_window / 2 / (trace_times[1] - trace_times[0]))
+            slice_right = len(trace_times) - slice_left
             for trace_time in trace_times[slice_left:slice_right]:
-                if ( np.sum( np.abs(trace_time-trigger_times) <= coinc_window/2 ) >= number_concidences ):
+                if (np.sum(np.abs(trace_time - trigger_times) <= coinc_window / 2) >= number_concidences):
                     has_triggered = True
                     trigger_time = np.min(trigger_times)
                     break

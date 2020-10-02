@@ -9,7 +9,6 @@ import NuRadioReco.framework.sim_station
 import logging
 
 
-
 class channelResampler:
     """
     Resamples the trace to a new sampling rate.
@@ -17,6 +16,8 @@ class channelResampler:
 
     def __init__(self):
         self.logger = logging.getLogger('NuRadioReco.channelResampler')
+        self.__debug = None
+        self.__max_upsampling_factor = None
         self.begin()
 
     def begin(self, debug=False, log_level=logging.WARNING):
@@ -50,17 +51,17 @@ class channelResampler:
 
         """
         is_sim_station = isinstance(station, NuRadioReco.framework.sim_station.SimStation)
-        if is_sim_station: # sim_stations are structured differently
-            orig_binning = 1. / station.get_channel(0)[0].get_sampling_rate()  # assume that all channels have the same sampling rate
+        if is_sim_station:  # sim_stations are structured differently
+            orig_binning = 1. / station.get_channel(det.get_channel_ids(station.get_id())[0])[0].get_sampling_rate()  # assume that all channels have the same sampling rate
         else:
-            orig_binning = 1. / station.get_channel(0).get_sampling_rate()
+            orig_binning = 1. / station.get_channel(det.get_channel_ids(station.get_id())[0]).get_sampling_rate()
         target_binning = 1. / sampling_rate
         resampling_factor = fractions.Fraction(Decimal(orig_binning / target_binning)).limit_denominator(self.__max_upsampling_factor)
         if resampling_factor == self.__max_upsampling_factor:
             self.logger.warning("Safeguard caught, max upsampling {} factor reached.".format(self.__max_upsampling_factor))
         self.logger.debug("resampling channel trace by {}. Original binning is {:.3g} ns, target binning is {:.3g} ns".format(resampling_factor,
-                                                                                                                         orig_binning / units.ns,
-                                                                                                                         target_binning / units.ns))
+                                                                                                                              orig_binning / units.ns,
+                                                                                                                              target_binning / units.ns))
         for channel in station.iter_channels():
             trace = channel.get_trace()
             if(self.__debug):
@@ -80,15 +81,16 @@ class channelResampler:
                 trace = trace[:-1]
 
             if(self.__debug):
-
+                trace2 = None
                 if(resampling_factor.denominator != 1):
                     trace2 = signal.resample(trace, resampling_factor.denominator * len(trace))  # , window='hann')
                 if(resampling_factor.numerator != 1):
                     trace2 = signal.resample(trace, len(trace) // resampling_factor.numerator)  # , window='hann')
-
+                if trace2 is None:
+                    return
                 import matplotlib.pyplot as plt
-                plt.plot(np.fft.rfftfreq(len(trace_old), orig_binning), np.abs(fft.time2freq(trace_old, 1/orig_binning)))
-                plt.plot(np.fft.rfftfreq(len(trace2), orig_binning), np.abs(fft.time2freq(trace2, 1/orig_binning)))
+                plt.plot(np.fft.rfftfreq(len(trace_old), orig_binning), np.abs(fft.time2freq(trace_old, 1 / orig_binning)))
+                plt.plot(np.fft.rfftfreq(len(trace2), orig_binning), np.abs(fft.time2freq(trace2, 1 / orig_binning)))
                 plt.show()
 
                 tt = np.arange(0, len(trace_old) * orig_binning, orig_binning)
