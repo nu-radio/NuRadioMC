@@ -106,9 +106,10 @@ class directRayTracing():
             {'name': 'ray_tracing_solution_type', 'ndim': 1}
         ]
 
-    def write_raytracing_output(self, dictionary, i_shower, channel_id, i_solution):
-      
-        dictionary['ray_tracing_solution_type'][i_shower, channel_id, i_solution] = self.get_solution_type(i_solution)
+    def get_raytracing_output(self, i_solution):
+        return {
+            'ray_tracing_solution_type': self.get_solution_type(i_solution)
+        }
 
     def get_ray_tracing_perfomed(self, station_dictionary, station_id):
         return False    # This raytracer is so simple, we might as well run it every time

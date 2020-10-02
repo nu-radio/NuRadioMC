@@ -261,20 +261,19 @@ class ray_tracing_base:
         """
         pass
 
-    def write_raytracing_output(self, dictionary, i_shower, channel_id, i_solution):
+    def get_raytracing_output(self, i_solution):
         """
         Write parameters that are specific to this raytracer into the output data.
 
         Parameters:
         ---------------
-        dictionary: dict
-            The output dictionary into which the parameters should be written
-        i_shower: int
-            The shower index
-        channel_id: int
-            The ID of the channel
         i_solution: int
             The index of the raytracing solution
+
+        Returns:
+        ---------------
+        dictionary with the keys matching the parameter names specified in get_output_parameters and the values being
+        the results from the raytracing
         """
         pass
 
