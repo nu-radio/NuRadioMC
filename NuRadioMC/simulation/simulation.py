@@ -442,6 +442,21 @@ class simulation():
                 t1 = time.time()
                 triggered_showers[self._station_id] = []
                 logger.debug(f"simulating station {self._station_id}")
+
+                if self._cfg['speedup']['distance_cut']:
+                    # perform a quick cut to reject event group completely if no shower is close enough to the station
+                    t_tmp = time.time()
+                    vertex_positions = np.array([np.array(self._fin['xx'])[event_indices],
+                                                 np.array(self._fin['yy'])[event_indices],
+                                                 np.array(self._fin['zz'])[event_indices]]).T
+                    vertex_distances_to_station = np.linalg.norm(vertex_positions - self._station_barycenter[iSt], axis=1)
+                    distance_cut = self._get_distance_cut(shower_energies.max()) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
+                    if vertex_distances_to_station.min() > distance_cut:
+                        logger.debug(f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min()/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {self._station_barycenter[iSt]}")
+                        distance_cut_time += time.time() - t_tmp
+                        continue
+                    distance_cut_time += time.time() - t_tmp
+
                 candidate_station = False
                 self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
 #                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
