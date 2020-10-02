@@ -43,7 +43,6 @@ class channelResampler:
             In units 1/time provides the desired sampling rate of the data.
 
         """
-        print('running channel resampler')
         for channel in station.iter_channels():
             channel.resample(sampling_rate)
 

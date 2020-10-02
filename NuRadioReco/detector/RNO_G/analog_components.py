@@ -51,3 +51,7 @@ def load_amp_response(amp_type='rno_surface', path=os.path.dirname(os.path.realp
     amp_response['phase'] = get_amp_phase
 
     return amp_response
+
+
+def get_available_amplifiers():
+    return ['iglu', 'rno_surface']
