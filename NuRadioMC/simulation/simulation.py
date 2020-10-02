@@ -50,11 +50,11 @@ class NuRadioMCLogger(logging.Logger):
             self._log(STATUS, msg, args, **kwargs)
 
 
+logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 logging.setLoggerClass(NuRadioMCLogger)
 logging.addLevelName(STATUS, 'STATUS')
 logger = logging.getLogger("NuRadioMC")
 assert isinstance(logger, NuRadioMCLogger)
-logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 
 
 def pretty_time_delta(seconds):
