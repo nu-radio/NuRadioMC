@@ -248,20 +248,16 @@ class ray_tracing_base:
         """
         pass
 
-    def create_output_data_structure(self, dictionary, n_showers, n_antennas):
+    def get_output_parameters(self):
         """
-        Create data structure to store parameters specific to this raytracer.
-        This function can be used to add entries to the output dictionary, which are
-        then used to store parameters that are unique to the specific raytracing module
+        Returns a list with information about parameters to include in the output data structure that are specific
+        to this raytracer
 
-        Parameters:
-        ------------------
-        dictionary: dict
-            The output dictionary to which the entries should be added
-        n_showers: int
-            The number of showers to be simulated
-        n_antennas: int
-            The number of antennas to be simulated for each shower
+        Returns:
+        -----------------
+        list with entries of form [{'name': str, 'ndim': int}]
+            'name': Name of the new parameter to include in the data structure
+            'ndim': Dimension of the data structure for the parameter
         """
         pass
 
