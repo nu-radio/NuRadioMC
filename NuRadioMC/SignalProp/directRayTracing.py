@@ -99,18 +99,13 @@ class directRayTracing():
     
     
     def apply_propagation_effects(self, efield, iS):
-      
         return efield
-    
-    
-    def get_number_of_solutions(self):
-        return len(self._results)
-    
-    
-    def create_output_data_structure(self, dictionary, n_showers, n_antennas):
-        nS = self.get_number_of_raytracing_solutions()
-        dictionary['ray_tracing_solution_type'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
-        
+
+    def get_output_parameters(self):
+        return [
+            {'name': 'ray_tracing_solution_type', 'ndim': 1}
+        ]
+
     def write_raytracing_output(self, dictionary, i_shower, channel_id, i_solution):
       
         dictionary['ray_tracing_solution_type'][i_shower, channel_id, i_solution] = self.get_solution_type(i_solution)

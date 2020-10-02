@@ -1999,14 +1999,15 @@ class ray_tracing:
                                    reflection=self.__results[iS]['reflection'],
                                    reflection_case=self.__results[iS]['reflection_case'])
 
-    def create_output_data_structure(self, dictionary, n_showers, n_antennas):
-        nS = self.get_number_of_raytracing_solutions()
-        dictionary['ray_tracing_C0'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-        dictionary['ray_tracing_C1'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-        dictionary['focusing_factor'] = np.ones((n_showers, n_antennas, nS))
-        dictionary['ray_tracing_reflection'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
-        dictionary['ray_tracing_reflection_case'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
-        dictionary['ray_tracing_solution_type'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
+    def get_output_parameters(self):
+        return [
+            {'name': 'ray_tracing_C0', 'ndim': 1},
+            {'name': 'ray_tracing_C1', 'ndim': 1},
+            {'name': 'focusing_factor', 'ndim': 1},
+            {'name': 'ray_tracing_reflection', 'ndim': 1},
+            {'name': 'ray_tracing_reflection_case', 'ndim': 1},
+            {'name': 'ray_tracing_solution_type', 'ndim': 1}
+        ]
 
     def get_ray_tracing_perfomed(self, station_dictionary, station_id):
         return ('ray_tracing_C0' in station_dictionary[station_id])

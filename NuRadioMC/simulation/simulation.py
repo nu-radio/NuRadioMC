@@ -1177,7 +1177,11 @@ class simulation():
         if(self._cfg['speedup']['amp_per_ray_solution']):
             sg['max_amp_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
             sg['time_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
-        self._raytracer.create_output_data_structure(sg, n_showers, n_antennas)
+        for parameter_entry in self._raytracer.get_output_parameters():
+            if parameter_entry['ndim'] == 1:
+                sg[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS)) * np.nan
+            else:
+                sg[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS, parameter_entry['ndim'])) * np.nan
         return sg
 
     def _read_input_neutrino_properties(self):
