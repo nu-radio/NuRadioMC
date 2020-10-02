@@ -455,6 +455,7 @@ class simulation():
                     if vertex_distances_to_station.min() > distance_cut:
                         logger.debug(f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min()/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {self._station_barycenter[iSt]}")
                         distance_cut_time += time.time() - t_tmp
+                        iCounter += len(shower_energies)
                         continue
                     distance_cut_time += time.time() - t_tmp
 
