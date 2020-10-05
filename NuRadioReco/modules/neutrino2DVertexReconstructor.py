@@ -174,19 +174,14 @@ class neutrino2DVertexReconstructor:
                 t_max1 = ch1.get_times()[np.argmax(np.abs(trace1))]
                 t_max2 = ch2.get_times()[np.argmax(np.abs(trace2))]
                 if snr1 > snr2:
-                    trace1[np.abs(ch1.get_times()-t_max1)>corr_range] = 0
-                    t_max = t_max1
-                    max_channel = ch1
+                    trace1[np.abs(ch1.get_times() - t_max1) > corr_range] = 0
                 else:
-                    trace2[np.abs(ch2.get_times()-t_max2)>corr_range] = 0
-                    t_max = t_max2
-                    max_channel = ch2
+                    trace2[np.abs(ch2.get_times() - t_max2) > corr_range] = 0
                 self.__correlation = np.abs(scipy.signal.correlate(trace1, trace2))
                 toffset = -(np.arange(0, self.__correlation.shape[0]) - self.__correlation.shape[0] / 2.) / ch1.get_sampling_rate()
                 if np.sum(np.abs(self.__correlation)) > 0:
                     self.__correlation /= np.sum(np.abs(self.__correlation))
-            corr_snr = np.max(self.__correlation)/np.mean(self.__correlation[self.__correlation>0])
-            arg_max_corr = np.argmax(self.__correlation)
+            corr_snr = np.max(self.__correlation) / np.mean(self.__correlation[self.__correlation > 0])
             self.__sampling_rate = ch1.get_sampling_rate()
             self.__channel_pair = channel_pair
             self.__channel_positions = [self.__detector.get_relative_position(self.__station_id, channel_pair[0]), self.__detector.get_relative_position(self.__station_id, channel_pair[1])]
@@ -267,7 +262,7 @@ class neutrino2DVertexReconstructor:
                 toffset = sample_shifts / channel.get_sampling_rate()
                 for i_shift, shift_sample in enumerate(sample_shifts):
                     self.__correlation[i_shift] = np.max(corr * np.roll(corr, shift_sample))
-                self.__correlation[np.abs(toffset)<=5] = 0
+                self.__correlation[np.abs(toffset) <= 5] = 0
                 self.__sampling_rate = channel.get_sampling_rate()
                 self.__channel_pair = [channel_id, channel_id]
                 self.__channel_positions = [self.__detector.get_relative_position(self.__station_id, channel_id),
@@ -362,7 +357,7 @@ class neutrino2DVertexReconstructor:
         t2 = self.get_signal_travel_time(d_hor[1], z, self.__current_ray_types[1], self.__channel_pair[1])
         delta_t = t1 - t2
         delta_t = delta_t.astype(float)
-        corr_index = self.__correlation.shape[0]/2 + np.round(delta_t*self.__sampling_rate)
+        corr_index = self.__correlation.shape[0] / 2 + np.round(delta_t * self.__sampling_rate)
         corr_index[np.isnan(corr_index)] = 0
         mask = (~np.isnan(delta_t)) & (corr_index > 0) & (corr_index < self.__correlation.shape[0]) & (~np.isinf(delta_t))
         corr_index[~mask] = 0
@@ -417,7 +412,7 @@ class neutrino2DVertexReconstructor:
                     if np.isnan(t_1) or np.isnan(t_2):
                         return None
                     delta_t = t_1 - t_2
-                    corr_index = correlation.shape[0]/2 + np.round(delta_t*self.__sampling_rate)
+                    corr_index = correlation.shape[0] / 2 + np.round(delta_t * self.__sampling_rate)
                     if np.isnan(corr_index):
                         return None
                     corr_index = int(corr_index)
@@ -433,7 +428,7 @@ class neutrino2DVertexReconstructor:
         nu_vertex = [nu_vertex_2D[0], 0, nu_vertex_2D[1]]
         ray_tracer = NuRadioMC.SignalProp.analyticraytracing.ray_tracing(
             nu_vertex,
-            self.__detector.get_relative_position(station.get_id(), channel_id)+self.__detector.get_absolute_position(station.get_id()),
+            self.__detector.get_relative_position(station.get_id(), channel_id) + self.__detector.get_absolute_position(station.get_id()),
             NuRadioMC.utilities.medium.get_ice_model('greenland_simple')
         )
         ray_tracer.find_solutions()
