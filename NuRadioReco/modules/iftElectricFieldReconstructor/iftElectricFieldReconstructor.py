@@ -337,9 +337,9 @@ class IftElectricFieldReconstructor:
             else:
                 receive_azimuth = 165. * units.deg
             antenna_response = NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor(station, frequencies, [channel_id], detector, receiving_zenith, receive_azimuth, self.__antenna_pattern_provider)[0]
-            amp_response_func = NuRadioReco.detector.RNO_G.analog_components.load_amp_response(detector.get_amplifier_type(station.get_id(), channel_id))
-            amp_gain = amp_response_func['gain'](frequencies)
-            amp_phase = np.unwrap(np.angle(amp_response_func['phase'](frequencies)))
+            amp_response = detector.get_amplifier_response(station.get_id(), channel_id, frequencies)
+            amp_gain = np.abs(amp_response)
+            amp_phase = np.unwrap(np.angle(amp_response))
             total_gain = np.abs(amp_gain) * np.abs(antenna_response)
             total_phase = np.unwrap(np.angle(antenna_response)) + amp_phase + filter_phase
             total_phase[:, total_phase.shape[1] // 2:] *= -1
