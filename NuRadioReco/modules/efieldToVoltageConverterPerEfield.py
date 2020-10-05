@@ -5,7 +5,7 @@ import logging
 import NuRadioReco.framework.sim_channel
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, ice, geometryUtilities
 from NuRadioReco.utilities import trace_utilities
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
@@ -59,9 +59,27 @@ class efieldToVoltageConverterPerEfield():
                 # Remove DC offset
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
 
+                if sim_station.is_cosmic_ray():
+                    site = det.get_site(station.get_id())
+                    antenna_position = det.get_relative_position(station.get_id(),
+                                                                 channel_id) - electric_field.get_position()
+                    if zenith > 90 * units.deg:  # signal is coming from below, so we take IOR of ice
+                        index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
+                    else:  # signal is coming from above, so we take IOR of air
+                        index_of_refraction = ice.get_refractive_index(1, site)
+
+                    travel_time_shift = geometryUtilities.get_time_delay_from_direction(
+                        zenith,
+                        azimuth,
+                        antenna_position,
+                        index_of_refraction
+                    )
+                else:
+                    travel_time_shift = 0
+
                 # set the trace to zeros
                 sim_channel.set_frequency_spectrum(voltage_fft, electric_field.get_sampling_rate())
-                sim_channel.set_trace_start_time(electric_field.get_trace_start_time())
+                sim_channel.set_trace_start_time(electric_field.get_trace_start_time() + travel_time_shift)
                 sim_station.add_channel(sim_channel)
 
         self.__t += time.time() - t
