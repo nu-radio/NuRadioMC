@@ -441,7 +441,9 @@ class simulation():
             if self._cfg['speedup']['distance_cut']:
                 t_tmp = time.time()
                 shower_energies = np.array(self._fin['shower_energies'])[event_indices]
-                vertex_positions = np.array([np.array(self._fin['xx'])[event_indices], np.array(self._fin['yy'])[event_indices], np.array(self._fin['zz'])[event_indices]]).T
+                vertex_positions = np.array([np.array(self._fin['xx'])[event_indices],
+                                             np.array(self._fin['yy'])[event_indices],
+                                             np.array(self._fin['zz'])[event_indices]]).T
                 vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
                 distance_cut_time += time.time() - t_tmp
 
@@ -455,11 +457,8 @@ class simulation():
                 if self._cfg['speedup']['distance_cut']:
                     # perform a quick cut to reject event group completely if no shower is close enough to the station
                     t_tmp = time.time()
-                    vertex_positions = np.array([np.array(self._fin['xx'])[event_indices],
-                                                 np.array(self._fin['yy'])[event_indices],
-                                                 np.array(self._fin['zz'])[event_indices]]).T
                     vertex_distances_to_station = np.linalg.norm(vertex_positions - self._station_barycenter[iSt], axis=1)
-                    distance_cut = self._get_distance_cut(shower_energies.max()) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
+                    distance_cut = self._get_distance_cut(np.sum(shower_energies)) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
                     if vertex_distances_to_station.min() > distance_cut:
                         logger.debug(f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min()/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {self._station_barycenter[iSt]}")
                         distance_cut_time += time.time() - t_tmp
