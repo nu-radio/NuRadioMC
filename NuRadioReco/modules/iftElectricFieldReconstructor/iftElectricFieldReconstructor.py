@@ -159,7 +159,7 @@ class IftElectricFieldReconstructor:
             plt.close('all')
             fig1 = plt.figure(figsize=(18, 12))
             ax1_1 = fig1.add_subplot(len(self.__used_channel_ids), 2, (1, 2 * len(self.__used_channel_ids) - 1))
-            fig2 = plt.figure(figsize=(18,12))
+            fig2 = plt.figure(figsize=(18, 12))
 
         n_padding_samples = int(40 * station.get_channel(self.__used_channel_ids[0]).get_sampling_rate())
 
