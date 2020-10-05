@@ -414,15 +414,6 @@ class simulation():
                 continue
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(self._fin['event_group_ids'] == event_group_id)))
 
-            # these quantities get computed to apply the distance cut as a function of shower energies
-            # the shower energies of closeby showers will be added as they can constructively interfere
-            if self._cfg['speedup']['distance_cut']:
-                t_tmp = time.time()
-                shower_energies = np.array(self._fin['shower_energies'])[event_indices]
-                vertex_positions = np.array([np.array(self._fin['xx'])[event_indices], np.array(self._fin['yy'])[event_indices], np.array(self._fin['zz'])[event_indices]]).T
-                vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
-                distance_cut_time += time.time() - t_tmp
-
             # the weight calculation is independent of the station, so we do this calculation only once
             # the weight also depends just on the "mother" particle, i.e. the incident neutrino which determines
             # the propability of arriving at our simulation volume. All subsequent showers have the same weight. So
@@ -437,7 +428,22 @@ class simulation():
                                                          cross_section_type=self._cfg['weights']['cross_section_type'],
                                                          vertex_position=x_int_mother,
                                                          phi_nu=self._fin['azimuths'][iE_mother])
+
             weightTime += time.time() - t1
+            # skip all events where neutrino weights is zero, i.e., do not
+            # simulate neutrino that propagate through the Earth
+            if(self._mout['weights'][iE_mother] < self._cfg['speedup']['minimum_weight_cut']):
+                logger.debug("neutrino weight is smaller than {}, skipping event".format(self._cfg['speedup']['minimum_weight_cut']))
+                continue
+
+            # these quantities get computed to apply the distance cut as a function of shower energies
+            # the shower energies of closeby showers will be added as they can constructively interfere
+            if self._cfg['speedup']['distance_cut']:
+                t_tmp = time.time()
+                shower_energies = np.array(self._fin['shower_energies'])[event_indices]
+                vertex_positions = np.array([np.array(self._fin['xx'])[event_indices], np.array(self._fin['yy'])[event_indices], np.array(self._fin['zz'])[event_indices]]).T
+                vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
+                distance_cut_time += time.time() - t_tmp
 
             triggered_showers = {}  # this variable tracks which showers triggered a particular station
             # loop over all stations (each station is treated independently)
@@ -534,12 +540,6 @@ class simulation():
                     if(self._cfg['signal']['shower_type'] == "had"):
                         if(self._shower_type != "had"):
                             continue
-
-                    # skip all events where neutrino weights is zero, i.e., do not
-                    # simulate neutrino that propagate through the Earth
-                    if(self._mout['weights'][self._shower_index] < self._cfg['speedup']['minimum_weight_cut']):
-                        logger.debug("neutrino weight is smaller than {}, skipping event".format(self._cfg['speedup']['minimum_weight_cut']))
-                        continue
 
                     self._create_sim_shower()  # create sim shower
                     self._evt_tmp.add_sim_shower(self._sim_shower)
