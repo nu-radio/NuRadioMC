@@ -9,7 +9,8 @@ import radiotools.helper as hp
 import pickle
 import time
 import argparse
-
+from NuRadioReco.utilities import fft
+import matplotlib.pyplot as plt 
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("-i", "--input", dest = "FIN", type=str, help="Input file (hdf5)",required=False, default='input1000.hdf5')
@@ -20,7 +21,7 @@ print(10*'#'+' READING IN INPUT '+10*'#')
 events = h5py.File('input1000.hdf5', 'r')
 events_max = int(args.FIN[5:-5])
 number_of_events = int(input('Number of events you want to trace [expected a multiple of 10 between 1 and '+str(events_max)+']:'))
-
+frequency = np.fft.rfftfreq(256, 1)
 
 
 
@@ -51,13 +52,13 @@ RES={'num':deepcopy(res),'ana':deepcopy(res)}
 print(10*'#'+' RAYTRACING '+10*'#')
 time_tracing = {'ana':0,'num':0}
 number_of_showers_traced = 0
-for i in range(number_of_showers):
+for i in range(number_of_showers): 
 	for rt in ('ana','num'):
 		if rt == 'ana': 
-			tracer = rana(ice,shower_dir=dir_showers[i])
+			tracer = rana(ice,shower_dir=dir_showers[i], attenuation_model = 'SP1')
 			#print('running analytical raytracer')
 		else: 
-			tracer = rnum(ice,shower_dir=dir_showers[i])
+			tracer = rnum(ice,shower_dir=dir_showers[i], attenuation_model= 'SP1')
 			#tracer.set_cut_viewing_angle(180)
 			#print('running numerical raytracer')
 
@@ -85,7 +86,6 @@ for i in range(number_of_showers):
 			if rt == 'num': RES[rt]['receive'][i][j]=np.array(hp.cartesian_to_spherical(-receive_cart[0],-receive_cart[1],-receive_cart[2]))
 			RES[rt]['refl'][i][j]=tracer.get_reflection_angle(j)
 			RES[rt]['stype'][i][j]=results[j]['type']
-
 	if ((events['event_group_ids'][i]%(number_of_events/10)) == 0) & ((events['event_group_ids'][i+1]%(number_of_events/10)) == 1):
 		fraction = events['event_group_ids'][i]/(number_of_events)
 		print(10*'-'+' '+ str(fraction*100)+'%% of the '+str(number_of_events)+' events finished '+10*'-')

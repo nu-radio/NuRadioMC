@@ -413,14 +413,14 @@ class ray_tracing:
     def get_frequencies_for_attenuation(self, frequency, max_detector_freq):
         mask = frequency > 0
         nfreqs = min(self._n_frequencies_integration, np.sum(mask))
-        freq = np.linspace(frequency[mask].min(), frequency[mask].max(), nfreqs)
+        freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), nfreqs)
         if(nfreqs < np.sum(mask) and max_detector_freq is not None):
             mask2 = frequency <= max_detector_freq
             nfreqs2 = min(self._n_frequencies_integration, np.sum(mask2 & mask))
             freqs = np.linspace(frequency[mask2 & mask].min(), frequency[mask2 & mask].max(), nfreqs2)
             if(np.sum(~mask2)>1):
                 freqs = np.append(freqs, np.linspace(frequency[~mask2].min(), frequency[~mask2].max(), nfreqs // 2))
-            return freqs
+        return freqs
 
 
     def get_attenuation(self, iS, frequency, max_detector_freq=None):
@@ -452,18 +452,17 @@ class ray_tracing:
 
         mask = frequency > 0
         freqs = self.get_frequencies_for_attenuation(frequency, self._max_detector_frequency)
-        #freqs = frequency
-
         integral = np.zeros(len(freqs))
         def dt(depth, freqs):
             ds = np.sqrt((path[:, 0][depth] - path[:, 0][depth+1])**2 + (path[:, 1][depth] - path[:, 1][depth+1])**2 + (path[:, 2][depth] - path[:, 2][depth+1])**2) # get step size
-            return ds / attenuation_util.get_attenuation_length(path[2][depth], freqs, self._attenuation_model)
-        for z_position in range(len(path[2]-1)):
+            return ds / attenuation_util.get_attenuation_length(path[:, 2][depth], freqs, self._attenuation_model)
+        for z_position in range(len(path[:, 2]) - 1):
             integral += dt(z_position, freqs)
         att_func = interpolate.interp1d(freqs, integral)
         tmp = att_func(frequency[mask])
         attenuation = np.ones_like(frequency)
-        attenuation[mask] = np.exp(-1 * tmp)
+        tmp = np.exp(-1 * tmp)
+        attenuation[mask] = tmp
         return attenuation
 
     def apply_propagation_effects(self, efield, i_solution):
