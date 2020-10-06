@@ -1,13 +1,16 @@
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.modules.io.NuRadioRecoio
 import numpy as np
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units
 import numpy.random
 import logging
 import matplotlib.pyplot as plt
 
 
 class channelMeasuredNoiseAdder:
+    """
+    Module that adds measured noise to channel traces
+    """
     def __init__(self):
         self.__filenames = None
         self.__io = None
@@ -15,9 +18,27 @@ class channelMeasuredNoiseAdder:
         self.__max_iterations = None
         self.__debug = None
         self.logger = logging.getLogger('NuRadioReco.channelMeasuredNoiseAdder')
-        self.__noise_data = []
+        self.__noise_data = None
 
-    def begin(self, filenames, random_seed=None, max_iterations=100, debug=False):
+    def begin(self, filenames, random_seed=None, max_iterations=100, debug=False, draw_noise_statistics=False):
+        """
+        Set up module parameters
+
+        Parameters:
+        ------------------
+        filenames: list of strings
+            List of .nur files containing the measured noise
+        random_seed: int, default: None
+            Seed for the random number generator. By default, no seed is set.
+        max_iterations: int, default: 100
+            The module will pick a random event from the noise files, until a suitable event is found
+            or until the number of iterations exceeds max_iterations. In that case, an error is thrown.
+        debug: bool, default: False
+            Set True to get debug output
+        draw_noise_statistics: boolean, default: False
+            If true, the values of all samples is stored and a histogram with noise statistics is drawn
+            be the end() method
+        """
         self.__filenames = filenames
         self.__io = NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio(self.__filenames)
         self.__random_state = numpy.random.RandomState(random_seed)
@@ -25,14 +46,28 @@ class channelMeasuredNoiseAdder:
         if debug:
             self.logger.setLevel(logging.DEBUG)
             self.logger.debug('Reading noise from {} files containing {} events'.format(len(filenames), self.__io.get_n_events()))
+        if draw_noise_statistics:
+            self.__noise_data = []
 
     @register_run()
     def run(self, event, station, det):
+        """
+        Add measured noise to station channels
+
+        Parameters:
+        --------------
+        event: event object
+        station: station object
+        det: detector description
+        """
         noise_station = None
         for i in range(self.__max_iterations):
             noise_station = self.get_noise_station(station)
+            # Get random station from noise file. If we got a suitable station, we continue,
+            # otherwise we try again
             if noise_station is not None:
                 break
+        # To avoid infinite loops, if no suitable noise station was found after a number of iterations we raise an error
         if noise_station is None:
             raise ValueError('Could not find suitable noise event in noise files after {} iterations'.format(self.__max_iterations))
         for channel in station.iter_channels():
@@ -49,9 +84,23 @@ class channelMeasuredNoiseAdder:
                 channel_trace[:noise_channel.get_number_of_samples()] += noise_trace
             else:
                 channel_trace += noise_trace[:channel.get_number_of_samples()]
-            self.__noise_data.append(noise_trace)
+            if self.__noise_data is not None:
+                self.__noise_data.append(noise_trace)
 
     def get_noise_station(self, station):
+        """
+        Returns a random station from the noise files that can be used as a noise sample.
+        The function selects a random event from the noise files and checks if it is suitable.
+        If it is, the station is returned, otherwise None is returned. The event is suitable if it
+        fulfills these criteria:
+            - It contains a station with the same station ID as the one to which the noise shall be added
+            - The station does not have a trigger that has triggered.
+            - The every channel in the station to which the noise shall be added is also present in the station
+
+        Parameters:
+        ------------
+        station: The station to which the noise shall be added
+        """
         event_i = self.__random_state.randint(self.__io.get_n_events())
         noise_event = self.__io.get_event_i(event_i)
         if station.get_id() not in noise_event.get_station_ids():
@@ -70,18 +119,22 @@ class channelMeasuredNoiseAdder:
         return noise_station
 
     def end(self):
-        noise_entries = np.array(self.__noise_data)
-        noise_bins = np.arange(-150, 150, 5.) * units.mV
-        noise_entries = noise_entries.flatten()
-        mean = noise_entries.mean()
-        sigma = np.sqrt(np.mean((noise_entries - mean)**2))
-        plt.close('all')
-        fig1 = plt.figure()
-        ax1_1 = fig1.add_subplot(111)
-        n, bins, pathes = ax1_1.hist(noise_entries, bins=noise_bins)
-        ax1_1.plot(noise_bins, np.max(n) * np.exp(-.5 * (noise_bins - mean)**2 / sigma**2))
-        ax1_1.grid()
-        plt.show()
-
-
-
+        """
+        End method. Draws a histogram of the noise statistics and fits a
+        Gaussian distribution to it.
+        """
+        if self.__noise_data is not None:
+            noise_entries = np.array(self.__noise_data)
+            noise_bins = np.arange(-150, 150, 5.) * units.mV
+            noise_entries = noise_entries.flatten()
+            mean = noise_entries.mean()
+            sigma = np.sqrt(np.mean((noise_entries - mean)**2))
+            plt.close('all')
+            fig1 = plt.figure()
+            ax1_1 = fig1.add_subplot(111)
+            n, bins, pathes = ax1_1.hist(noise_entries / units.mV, bins=noise_bins / units.mV)
+            ax1_1.plot(noise_bins / units.mV, np.max(n) * np.exp(-.5 * (noise_bins - mean)**2 / sigma**2))
+            ax1_1.grid()
+            ax1_1.set_xlabel('sample value [mV]')
+            ax1_1.set_ylabel('entries')
+            plt.show()
