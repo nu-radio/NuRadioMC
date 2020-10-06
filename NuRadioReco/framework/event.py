@@ -114,6 +114,9 @@ class Event:
         for station in itervalues(self.__stations):
             yield station
 
+    def get_station_ids(self):
+        return list(self.__stations.keys())
+
     def set_station(self, station):
         self.__stations[station.get_id()] = station
 
