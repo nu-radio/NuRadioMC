@@ -18,6 +18,7 @@ main_low_angle = np.deg2rad(-55.0)
 main_high_angle = -1.0 * main_low_angle
 default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
 
+
 class triggerSimulator:
     """
     Calculates the trigger for a phased array with a primary beam.
@@ -48,9 +49,9 @@ class triggerSimulator:
 
         return np.array(ant_pos)
 
-    def get_beam_rolls(self, station, det, 
+    def get_beam_rolls(self, station, det,
                        triggered_channels,
-                       phasing_angles=default_angles, 
+                       phasing_angles=default_angles,
                        ref_index=1.75,
                        sampling_frequency=None):
 
@@ -88,7 +89,7 @@ class triggerSimulator:
         for angle in phasing_angles:
 
             delay = (ant_z - ref_z) / cspeed * ref_index * np.sin(angle)
-            roll = np.array(np.round(delay / time_step)).astype(int) # so number of entries to shift
+            roll = np.array(np.round(delay / time_step)).astype(int)  # so number of entries to shift
             subbeam_rolls = dict(zip(triggered_channels, roll))
 
             logger.debug("angle:", angle / units.deg)
@@ -129,18 +130,18 @@ class triggerSimulator:
         calculate power summed over a length defined by 'window', overlapping at intervals defined by 'step'
         '''
 
-        num_frames = int(np.floor((len(coh_sum)-window) / step))
-        
+        num_frames = int(np.floor((len(coh_sum) - window) / step))
+
         if(adc_output == 'voltage'):
             coh_sum_squared = (coh_sum * coh_sum).astype(np.float)
         elif(adc_output == 'counts'):
             coh_sum_squared = (coh_sum * coh_sum).astype(np.int)
 
         coh_sum_windowed = np.lib.stride_tricks.as_strided(coh_sum_squared, (num_frames, window),
-                                                           (coh_sum_squared.strides[0]*step, coh_sum_squared.strides[0]))
+                                                           (coh_sum_squared.strides[0] * step, coh_sum_squared.strides[0]))
         power = np.sum(coh_sum_windowed, axis=1)
-        
-        return power.astype(np.float)/window, num_frames
+
+        return power.astype(np.float) / window, num_frames
 
     def phase_signals(self, traces, beam_rolls):
         '''
@@ -165,20 +166,20 @@ class triggerSimulator:
 
     @register_run()
     def run(self, evt, station, det,
-            Vrms = None,
-            threshold = 60 * units.mV,
+            Vrms=None,
+            threshold=60 * units.mV,
             triggered_channels=None,
             trigger_name='simple_phased_threshold',
             phasing_angles=default_angles,
             set_not_triggered=False,
             ref_index=1.75,
-            trigger_adc=False, # by default, assumes the trigger ADC is the same as the channels ADC
+            trigger_adc=False,  # by default, assumes the trigger ADC is the same as the channels ADC
             adc_output='voltage',
             nyquist_zone=None,
             bandwidth_edge=20 * units.MHz,
             upsampling_factor=1,
-            window = 32,
-            step = 16):
+            window=32,
+            step=16):
 
         """
         simulates phased array trigger for each event
@@ -247,7 +248,7 @@ class triggerSimulator:
             triggered_channels = [channel.get_id() for channel in station.iter_channels()]
 
         if(adc_output != 'voltage' and adc_output != 'counts'):
-            error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:'+str(adc_output)
+            error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
             raise ValueError(error_msg)
 
         ADC = analogToDigitalConverter()
@@ -257,7 +258,7 @@ class triggerSimulator:
 
         Nant = len(triggered_channels)
 
-        if not(set_not_triggered): 
+        if not(set_not_triggered):
 
             logger.debug("trigger channels:", triggered_channels)
 
@@ -279,10 +280,10 @@ class triggerSimulator:
                                                                       adc_type='perfect_floor_comparator',
                                                                       adc_output=adc_output,
                                                                       nyquist_zone=1,
-                                                                      bandwidth_edge=20 * units.MHz)                                
+                                                                      bandwidth_edge=20 * units.MHz)
 
                 times = np.arange(len(trace), dtype=np.float) / float(adc_sampling_frequency)
-                times += channel.get_trace_start_time()                
+                times += channel.get_trace_start_time()
 
                 # Upsampling here, linear interpolate to mimic an FPGA internal upsampling
                 if not isinstance(upsampling_factor, int):
@@ -292,7 +293,7 @@ class triggerSimulator:
                         raise ValueError("Could not convert upsampling_factor to integer. Exiting.")
 
                 if(upsampling_factor >= 2):
-                    upsampled_times = np.arange(len(trace)*upsampling_factor, dtype=np.float) / float(adc_sampling_frequency * upsampling_factor) + channel.get_trace_start_time()
+                    upsampled_times = np.arange(len(trace) * upsampling_factor, dtype=np.float) / float(adc_sampling_frequency * upsampling_factor) + channel.get_trace_start_time()
 
                     upsampled_trace = upsampling_fir(trace, adc_sampling_frequency,
                                                      int_factor=upsampling_factor, ntaps=1)
@@ -309,13 +310,13 @@ class triggerSimulator:
 
                 times = np.arange(len(trace), dtype=np.float) * time_step
                 times += channel.get_trace_start_time()
-                                    
+
                 traces[channel_id] = trace[:]
 
-            beam_rolls = self.get_beam_rolls(station, det,                                              
-                                             triggered_channels, 
+            beam_rolls = self.get_beam_rolls(station, det,
+                                             triggered_channels,
                                              phasing_angles,
-                                             ref_index=ref_index, 
+                                             ref_index=ref_index,
                                              sampling_frequency=adc_sampling_frequency)
 
             squared_mean_threshold = Nant * threshold ** 2
@@ -324,8 +325,8 @@ class triggerSimulator:
 
             for iTrace, phased_trace in enumerate(phased_traces):
 
-                # Create a sliding window                
-                squared_mean, num_frames = self.powerSum(coh_sum=phased_trace, window = window, step = step, adc_output=adc_output)
+                # Create a sliding window
+                squared_mean, num_frames = self.powerSum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output)
 
                 if True in (squared_mean > squared_mean_threshold):
                     trigger_delays = {}
@@ -337,8 +338,8 @@ class triggerSimulator:
                     is_triggered = True
 
         # Create a trigger object to be returned to the station
-        trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, phasing_angles, trigger_delays)                                      
-                                      
+        trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, phasing_angles, trigger_delays)
+
         trigger.set_triggered(is_triggered)
 
         if is_triggered:
