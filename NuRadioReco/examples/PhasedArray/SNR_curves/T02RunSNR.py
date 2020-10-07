@@ -30,6 +30,14 @@ WARNING: this file needs NuRadioMC to be run.
 
 from __future__ import absolute_import, division, print_function
 import argparse
+import json
+import numpy as np
+import matplotlib.pyplot as plt
+import logging
+
+import sys
+sys.path.append('/home/danielsmith/icecube_gen2/NuRadioReco')
+
 # import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
@@ -39,10 +47,9 @@ import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
-import json
-import numpy as np
 from NuRadioReco.modules.base import module
-import logging
+
+
 
 logger = module.setup_logger(level=logging.WARNING)
 
@@ -56,16 +63,13 @@ channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelG
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
 N = 51
-SNRs = np.linspace(0.5, 5, N)
+SNRs = (np.linspace(0.5, 5, N))
 SNRtriggered = np.zeros(N)
-
 
 def count_events():
     count_events.events += 1
 
-
 count_events.events = 0
-
 
 class mySimulation(simulation.simulation):
 
@@ -90,28 +94,10 @@ class mySimulation(simulation.simulation):
     def _detector_simulation_part2(self):
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
+
         # downsample trace back to detector sampling rate
         new_sampling_rate = 1.5 * units.GHz
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
-
-        reject_event = False
-        threshold_cut = True
-        # Forcing a threshold cut BEFORE adding noise for limiting the noise-induced triggers
-        if threshold_cut:
-
-            thresholdSimulator.run(
-                self._evt,
-                self._station,
-                self._det,
-                threshold=1 * self._Vrms,
-                triggered_channels=None,  # run trigger on all channels
-                number_concidences=1,
-                trigger_name='simple_threshold'
-            )
-
-            if not self._station.get_trigger('simple_threshold').has_triggered():
-                reject_event = True
-                print("You shall not pass (the threshold)")
 
         # Copying the original traces. Not really needed
         original_traces = {}
@@ -155,10 +141,6 @@ class mySimulation(simulation.simulation):
         factor = 1. / (np.mean(Vpps) / 2 / self._Vrms)
         # factor = 0
         mult_factors = factor * SNRs
-        print(factor)
-
-        if True in mult_factors > 1.e10:
-            reject_event = True
 
         for factor, iSNR in zip(mult_factors, range(len(mult_factors))):
 
@@ -170,8 +152,9 @@ class mySimulation(simulation.simulation):
             min_freq = 100 * units.MHz
             max_freq = 750 * units.MHz
             Vrms_ratio = ((max_freq - min_freq) / self._cfg['trigger']['bandwidth']) ** 2
+
             # Adding noise AFTER the SNR calculation
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms * Vrms_ratio,
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude = self._Vrms * Vrms_ratio,
                                          min_freq=min_freq,
                                          max_freq=max_freq,
                                          type='rayleigh')
@@ -182,26 +165,25 @@ class mySimulation(simulation.simulation):
             channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 750 * units.MHz],
                                       filter_type='butter', order=10)
 
-            # Phased array with ARA-like power trigger
-            has_triggered = triggerSimulator.run(
-                self._evt,
-                self._station,
-                self._det,
-                threshold=2.5 * self._Vrms,
-                triggered_channels=None,  # run trigger on all channels
-                secondary_channels=[0, 1, 3, 4, 6, 7],  # secondary channels
-                trigger_name='primary_and_secondary_phasing',
-                set_not_triggered=(not self._station.has_triggered("simple_threshold")),
-                ref_index=1.78)
+            voltage_to_adc = (2**(5-1) - 1) / self._Vrms
 
-            if (has_triggered and not reject_event):
+            # Phased array with ARA-like power trigger
+            has_triggered = triggerSimulator.run(self._evt,
+                                                 self._station,
+                                                 self._det,
+                                                 Vrms = self._Vrms,
+                                                 threshold = 1.5 * self._Vrms * voltage_to_adc,
+                                                 triggered_channels=None,  # run trigger on all channels
+                                                 trigger_name='primary_phasing',
+                                                 ref_index=1.78)
+
+            if(has_triggered):
                 print('Trigger for SNR', SNRs[iSNR])
                 SNRtriggered[iSNR] += 1
 
-        if not reject_event:
-            count_events()
-            print(count_events.events)
-            print(SNRtriggered)
+        count_events()
+        print(count_events.events)
+        print(SNRtriggered)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')

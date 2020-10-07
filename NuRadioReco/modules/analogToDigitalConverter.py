@@ -7,6 +7,8 @@ from scipy.signal import resample
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities.trace_utilities import upsampling_fir, butterworth_filter_trace, delay_trace
 
+import matplotlib.pyplot as plt
+
 def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output='voltage'):
     """
     Simulates a perfect comparator flash ADC that compares the voltage to the
@@ -180,7 +182,9 @@ class analogToDigitalConverter:
                           clock_offset=0.0,                          
                           adc_type='perfect_floor_comparator',
                           return_sampling_frequency=False,
-                          adc_output='voltage'):
+                          adc_output='voltage',
+                          nyquist_zone=None,
+                          bandwidth_edge=20 * units.MHz):
         """
         Returns the digital trace for a channel, without setting it. This allows
         the creation of a digital trace that can be used for triggering purposes
@@ -234,8 +238,8 @@ class analogToDigitalConverter:
 
         times = channel.get_times()[:]
         trace = channel.get_trace()[:]
-        input_sampling_frequency = channel.get_sampling_rate()
-
+        MC_sampling_frequency = channel.get_sampling_rate()
+                        
         if(trigger_adc): # assumes that the trigger uses 
             adc_time_delay_label = "trigger_adc_time_delay"
             adc_n_bits_label = "trigger_adc_nbits"
@@ -246,6 +250,7 @@ class analogToDigitalConverter:
             adc_time_delay_label = "adc_time_delay"
             adc_n_bits_label = "adc_nbits"
             adc_noise_n_bits = "adc_noise_nbits"
+            adc_noise_n_bits_label = "adc_noise_nbits"
             adc_ref_voltage_label = "adc_reference_voltage"
             adc_sampling_frequency_label = "adc_sampling_frequency"
 
@@ -265,9 +270,9 @@ class analogToDigitalConverter:
                 error_msg += "Please specify it on your detector file"
                 raise ValueError(error_msg)
 
-            adc_ref_voltage = det_channel[adc_ref_voltage_label] * units.V            
+            adc_ref_voltage = det_channel[adc_ref_voltage_label] * units.V
         else:
-            adc_ref_voltage = Vrms * (2**(adc_n_bits -1) - 1) / (2**(adc_noise_n_bits -1) -1) * units.V
+            adc_ref_voltage = Vrms * (2**(adc_n_bits -1) - 1) / (2**(adc_noise_n_bits -1) -1)
                               
         if(adc_sampling_frequency > channel.get_sampling_rate()):
             error_msg = 'The ADC sampling rate is greater than '
@@ -275,28 +280,46 @@ class analogToDigitalConverter:
             error_msg += 'Please change the ADC sampling rate.'
             raise ValueError(error_msg)
 
-        #  Random clock offset
-        delayed_samples = len(trace) - np.int(np.round(input_sampling_frequency / adc_sampling_frequency)) - 1
-        delayed_trace = delay_trace(trace, input_sampling_frequency, adc_time_delay, delayed_samples)
+        # Choosing Nyquist zone
+        if nyquist_zone is not None:
 
-        delayed_start_time = 1.0 / adc_sampling_frequency
-        delayed_times = times + delayed_start_time
-        delayed_times = delayed_times[:delayed_samples]
+            if nyquist_zone < 1:
+                error_msg = "Nyquist zone is less than one. Exiting."
+                raise ValueError(error_msg)
+            if not isinstance(nyquist_zone, int):
+                try:
+                    nyquist_zone = int(nyquist_zone)
+                except:
+                    raise ValueError("Could not convert nyquist_zone to integer. Exiting.")
+
+            passband = ((nyquist_zone - 1) * adc_sampling_frequency / 2 + bandwidth_edge, nyquist_zone * adc_sampling_frequency / 2 - bandwidth_edge)
+
+            if passband[1] > MC_sampling_frequency / 2:
+                raise ValueError('Please use another simulation with a larger sampling frequency')
+
+            trace = butterworth_filter_trace(trace, MC_sampling_frequency, passband)                                             
+
+        # Random clock offset
+        delayed_samples = len(trace) - np.int(np.round(MC_sampling_frequency / adc_sampling_frequency)) - 1
+        trace = delay_trace(trace, MC_sampling_frequency, adc_time_delay, delayed_samples)
+
+        times = times + 1.0 / adc_sampling_frequency
+        times = times[:delayed_samples]
 
         # Upsampling to 5 GHz before downsampling using interpolation.
         # We cannot downsample with a Fourier method because we want to keep
         # the higher Nyquist zones.
         upsampling_frequency = 5.0 * units.GHz 
 
-        if(upsampling_frequency > input_sampling_frequency):
-            upsampling_nsamples = int(upsampling_frequency * len(delayed_trace) / input_sampling_frequency)
-            perfectly_upsampled_trace = resample(delayed_trace, upsampling_nsamples)
+        if(upsampling_frequency > MC_sampling_frequency):
+            upsampling_nsamples = int(upsampling_frequency * len(trace) / MC_sampling_frequency)
+            perfectly_upsampled_trace = resample(trace, upsampling_nsamples)
 
             perfectly_upsampled_times = np.arange(len(perfectly_upsampled_trace)) / upsampling_frequency
-            perfectly_upsampled_times += delayed_times[0]
+            perfectly_upsampled_times += times[0]
         else:
-            perfectly_upsampled_trace = delayed_trace[:]
-            perfectly_upsampled_times = delayed_times[:]
+            perfectly_upsampled_trace = trace[:]
+            perfectly_upsampled_times = times[:]
 
         interpolate_delayed_trace = interp1d(perfectly_upsampled_times, perfectly_upsampled_trace,                                             
                                              kind='linear',
@@ -304,11 +327,11 @@ class analogToDigitalConverter:
                                              bounds_error=False)
 
         # Downsampling to ADC frequency
-        new_n_samples = int((adc_sampling_frequency / upsampling_frequency) * len(delayed_trace))
-        resampled_times = np.linspace(0, new_n_samples / adc_sampling_frequency, new_n_samples)
+        new_n_samples = int((adc_sampling_frequency / MC_sampling_frequency) * len(trace))
+        resampled_times = np.arange(new_n_samples) / adc_sampling_frequency
         resampled_times += channel.get_trace_start_time()
         resampled_trace = interpolate_delayed_trace(resampled_times)
-
+        
         # Digitisation
         digital_trace = self._adc_types[adc_type](resampled_trace, adc_n_bits, adc_ref_voltage, adc_output)                                                  
 
@@ -326,7 +349,8 @@ class analogToDigitalConverter:
             clock_offset=0.0,
             adc_type='perfect_floor_comparator',
             adc_output='voltage',
-            upsampling_factor=1):
+            nyquist_zone=None,
+            bandwidth_edge=None):
         """
         Runs the analogToDigitalConverter and transforms the traces from all
         the channels of an input station to digital voltage values.
@@ -354,13 +378,13 @@ class analogToDigitalConverter:
         t = time.time()
 
         for channel in station.iter_channels():
-
             digital_trace, adc_sampling_frequency = self.get_digital_trace(station, det, channel,
                                                                            clock_offset=clock_offset,
                                                                            adc_type=adc_type,
                                                                            return_sampling_frequency=True,
                                                                            adc_output=adc_output,
-                                                                           upsampling_factor=upsampling_factor)
+                                                                           nyquist_zone=nyquist_zone,
+                                                                           bandwidth_edge=bandwidth_edge)
 
             channel.set_trace(digital_trace, adc_sampling_frequency)
 
