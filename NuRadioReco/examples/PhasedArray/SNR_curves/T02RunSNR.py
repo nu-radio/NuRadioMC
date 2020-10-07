@@ -21,7 +21,7 @@ hdf5 format. The fields in this file are:
     - 'SNRs', a list with the SNR
 
 The antenna positions can be changed in the detector position. The config file
-defines de bandwidth for the noise RMS calculation. The properties of the phased
+defines de bandwidth for the noise RMS calculation. The properties of tnhe phased
 array can be changed in the current file - phasing angles, triggering channels,
 bandpass filter and so on.
 
@@ -32,11 +32,10 @@ from __future__ import absolute_import, division, print_function
 import argparse
 import json
 import numpy as np
+from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import logging
-
-import sys
-sys.path.append('/home/danielsmith/icecube_gen2/NuRadioReco')
+import copy 
 
 # import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverter
@@ -49,8 +48,6 @@ from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 from NuRadioReco.modules.base import module
 
-
-
 logger = module.setup_logger(level=logging.WARNING)
 
 # initialize detector sim modules
@@ -62,8 +59,55 @@ channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPas
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
-N = 51
-SNRs = (np.linspace(0.5, 5, N))
+#import sys
+#sys.path.append('/home/danielsmith/icecube_gen2/NuRadioReco')
+#sys.path.append('/home/danielsmith/icecube_gen2/NuRadioMC')
+            
+# 4 channel, 2x sampling
+#  100 Hz -> 2.91
+#  10 Hz -> 3.06
+#  1 Hz -> 3.20
+
+# Half window integration
+#  100 Hz -> 3.66
+#  10 Hz -> 3.88
+#  1 Hz -> 4.09
+
+# 8 channel, 4x sampling
+# 100 Hz -> 4.25
+# 10 Hz -> 4.56
+# 1 Hz -> 4.88
+
+# Half window integration
+# 100 Hz -> 5.18
+#  10 Hz -> 5.46
+#  1 Hz -> 5.71
+
+n_channels = 4
+phase = True
+
+main_low_angle = np.deg2rad(-59.55)
+main_high_angle = np.deg2rad(59.55)
+channels = []
+
+if(n_channels == 4):
+    upsampling_factor = 2
+    phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
+    channels = np.arange(4, 8)
+    #threshold = 2.91
+    threshold = 3.66
+elif(n_channels == 8):
+    upsampling_factor = 4
+    phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 21))
+    channels = None
+    #threshold = 4.25
+    threshold = 5.18
+else:
+    print("wrong n_channels!")
+    exit()
+
+N = 21
+SNRs = (np.linspace(0.5, 4.0, N))
 SNRtriggered = np.zeros(N)
 
 def count_events():
@@ -74,116 +118,130 @@ count_events.events = 0
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-        channelBandPassFilter.run(
-            evt,
-            station,
-            det,
-            passband=[130 * units.MHz, 1000 * units.GHz],
-            filter_type='butter',
-            order=2
-        )
-        channelBandPassFilter.run(
-            evt,
-            station,
-            det,
-            passband=[0, 750 * units.MHz],
-            filter_type='butter',
-            order=10
-        )
+        channelBandPassFilter.run(evt, station, det, passband=[0, 500 * units.MHz],
+                                  filter_type='butter', order=10)
+        pass
 
     def _detector_simulation_part2(self):
+
         # start detector simulation
         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
 
+        for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
+            trace = np.array(channel.get_trace())
+            channel_id = channel.get_id()
+            # Do some magic here to find direction ... 
+
         # downsample trace back to detector sampling rate
-        new_sampling_rate = 1.5 * units.GHz
+        new_sampling_rate = 500.0 * units.MHz
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
 
         # Copying the original traces. Not really needed
         original_traces = {}
 
         for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
-
             trace = np.array(channel.get_trace())
+
+            # one quality check, problem with some signals being zero from being the the shadow, so
+            if(np.sum(trace) == 0):
+                print("Skipping event due to zero trace in", channel.get_id())
+                return 
+
             channel_id = channel.get_id()
-            original_traces[channel_id] = trace
-
-        # Finding bins for each channel so as to calculate the peak to peak voltage
-        ext_bins = {}
-
-        for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
-
-            trace = np.array(channel.get_trace())
-            channel_id = channel.get_id()
-            max_bin = np.argwhere(trace == np.max(trace))[0, 0]
-            min_bin = np.argwhere(trace == np.min(trace))[0, 0]
-            if (max_bin < min_bin):
-                left_bin = max_bin - 20
-                right_bin = min_bin + 20
-            else:
-                left_bin = min_bin - 20
-                right_bin = max_bin + 20
-            ext_bins[channel_id] = (left_bin, right_bin)
+            original_traces[channel_id] = trace#_
+            channel.set_trace(trace, new_sampling_rate)
 
         # Calculating peak to peak voltage and the necessary factors for the SNR.
+        dt = 1 / new_sampling_rate
+        ff = np.fft.rfftfreq(len(channel.get_trace()), dt)
+        filt1 = channelBandPassFilter.get_filter(ff, 0, 0, None, passband=[0, 240 * units.MHz], filter_type="cheby1", order=9, rp=.1)
+        filt2 = channelBandPassFilter.get_filter(ff, 0, 0, None, passband=[80 * units.MHz, 230 * units.MHz], filter_type="cheby1", order=4, rp=.1)
+
+        # Since there are often two traces within the same thing, gotta be careful
         Vpps = []
-        for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
+        maxes = []
+        for iChan, channel in enumerate(self._station.iter_channels()):  # loop over all channels (i.e. antennas) of the station
+            trace = np.fft.irfft(np.fft.rfft(np.array(channel.get_trace())) * filt2 * filt1)
+            Vpps += [np.max(trace) - np.min(trace)]
 
-            left_bin, right_bin = ext_bins[channel.get_id()]
-            trace = np.array(channel.get_trace())
-            try:
-                Vpp = np.max(trace[left_bin:right_bin]) - np.min(trace[left_bin:right_bin])
-            except:
-                Vpp = 0
-                # reject_event = True
-            Vpps.append(Vpp)
-
-        factor = 1. / (np.mean(Vpps) / 2 / self._Vrms)
-        # factor = 0
+        factor = 1. / (np.mean(Vpps) / (2.0))# * self._Vrms))
         mult_factors = factor * SNRs
 
         for factor, iSNR in zip(mult_factors, range(len(mult_factors))):
 
             for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
-
-                trace = original_traces[channel.get_id()][:] * factor
+                trace = copy.deepcopy(original_traces[channel.get_id()][:]) * factor
                 channel.set_trace(trace, sampling_rate=new_sampling_rate)
 
-            min_freq = 100 * units.MHz
-            max_freq = 750 * units.MHz
-            Vrms_ratio = ((max_freq - min_freq) / self._cfg['trigger']['bandwidth']) ** 2
+            min_freq = 0.0 * units.MHz
+            max_freq = 250.0 * units.MHz
+            bandwidth = 0.1732429316625746 
+            Vrms_ratio = np.sqrt(bandwidth / (max_freq - min_freq))
 
             # Adding noise AFTER the SNR calculation
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude = self._Vrms * Vrms_ratio,
+            # no adding noise, see what that does to the SNR
+            '''
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude = self._Vrms / Vrms_ratio,
                                          min_freq=min_freq,
                                          max_freq=max_freq,
                                          type='rayleigh')
+            '''
 
             # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
-            channelBandPassFilter.run(self._evt, self._station, self._det, passband=[130 * units.MHz, 1000 * units.GHz],
-                                      filter_type='butter', order=2)
-            channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 750 * units.MHz],
-                                      filter_type='butter', order=10)
+            channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0 * units.MHz, 240 * units.MHz],
+                                      filter_type='cheby1', order=9, rp=.1)
+            channelBandPassFilter.run(self._evt, self._station, self._det, passband=[80 * units.MHz, 230 * units.MHz],
+                                      filter_type='cheby1', order=4, rp=.1)
 
-            voltage_to_adc = (2**(5-1) - 1) / self._Vrms
+            if(phase):
+                has_triggered = triggerSimulator.run(self._evt, self._station, self._det,
+                                                     Vrms = 1.0, #self._Vrms,
+                                                     threshold = threshold,
+                                                     triggered_channels=channels,
+                                                     phasing_angles=phasing_angles, 
+                                                     ref_index = 1.75, 
+                                                     trigger_name='primary_phasing',  # the name of the trigger
+                                                     trigger_adc=False, # Don't have a seperate ADC for the trigger
+                                                     adc_output='voltage', # output in volts
+                                                     nyquist_zone=None, # first nyquist zone
+                                                     bandwidth_edge=20 * units.MHz,                             
+                                                     upsampling_factor=upsampling_factor,
+                                                     window=int(32 * dt / 2 / upsampling_factor), 
+                                                     step = int(16 * dt / 2 / upsampling_factor))
+            else:
+                thresholdSimulator.run(self._evt, self._station, self._det,
+                                       threshold = 2.0, # * self._Vrms,
+                                       triggered_channels=[7],  # run trigger on all channels
+                                       number_concidences=1,
+                                       trigger_name='simple_threshold')
 
-            # Phased array with ARA-like power trigger
-            has_triggered = triggerSimulator.run(self._evt,
-                                                 self._station,
-                                                 self._det,
-                                                 Vrms = self._Vrms,
-                                                 threshold = 1.5 * self._Vrms * voltage_to_adc,
-                                                 triggered_channels=None,  # run trigger on all channels
-                                                 trigger_name='primary_phasing',
-                                                 ref_index=1.78)
+                has_triggered = self._station.get_trigger('simple_threshold').has_triggered()
 
             if(has_triggered):
                 print('Trigger for SNR', SNRs[iSNR])
                 SNRtriggered[iSNR] += 1
+        '''
+            for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
+                if(channel.get_id() != 4):
+                    continue
+                trace = copy.deepcopy(original_traces[channel.get_id()][:]) * factor
+                colors = ['red', 'blue', 'green', 'orange', 'grey', 'black', 'pink', 'red', 'blue', 'green']
+                plt.plot(trace, color=colors[count_events.events])
+                print(maximum)
+                plt.scatter(np.arange(len(trace))[maximum], trace[maximum])
+        plt.show()
+        '''
 
         count_events()
         print(count_events.events)
         print(SNRtriggered)
+
+        if(count_events.events % 10 == 0):
+            # Save every ten triggers
+            output = {'total_events': count_events.events, 'SNRs': list(SNRs), 'triggered': list(SNRtriggered)}
+            outputfile = args.outputSNR
+            with open(outputfile, 'w+') as fout:
+                json.dump(output, fout, sort_keys=True, indent=4)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
