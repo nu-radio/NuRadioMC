@@ -4,9 +4,7 @@ from NuRadioReco.framework.trigger import SimplePhasedTrigger
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 from NuRadioReco.utilities.trace_utilities import upsampling_fir, butterworth_filter_trace
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy import constants
-from scipy.interpolate import interp1d
 import logging
 import time
 
@@ -77,7 +75,6 @@ class triggerSimulator:
         beam_rolls: array of dicts of keys=antenna and content=delay
         """
 
-        station_id = station.get_id()
         time_step = 1. / sampling_frequency
 
         ant_z = self.get_antenna_positions(station, det, triggered_channels, 2)
@@ -242,8 +239,6 @@ class triggerSimulator:
             True if the triggering condition is met
         """
 
-        t0 = time.time()
-
         if(triggered_channels is None):
             triggered_channels = [channel.get_id() for channel in station.iter_channels()]
 
@@ -268,7 +263,6 @@ class triggerSimulator:
 
             for channel in station.iter_channels(use_channels=triggered_channels):
                 channel_id = channel.get_id()
-                station_id = station.get_id()
 
                 random_clock_offset = np.random.uniform(0, 1)
 
