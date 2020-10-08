@@ -1309,6 +1309,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     # make the event group ids consecutive, this is useful if secondary interactions are simulated where many of the
     # initially generated neutrinos don't end up in the fiducial volume
     event_group_id_counter = 0
+    data_sets_fiducial['event_group_ids'] = np.asarray(data_sets_fiducial['event_group_ids'])
     egids = data_sets_fiducial['event_group_ids']
     for uegid in np.unique(egids):
         mask = uegid == egids
