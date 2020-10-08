@@ -1306,6 +1306,14 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     # assign every shower a unique id
     data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=np.int)
+    # make the event group ids consecutive, this is useful if secondary interactions are simulated where many of the
+    # initially generated neutrinos don't end up in the fiducial volume
+    event_group_id_counter = 0
+    egids = data_sets_fiducial['event_group_ids']
+    for uegid in np.unique(egids):
+        mask = uegid == egids
+        data_sets_fiducial['event_group_ids'][mask] = event_group_id_counter + start_event_id
+        event_group_id_counter += 1
 
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
     logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
