@@ -81,7 +81,7 @@ class triggerSimulator:
 
         self.check_vertical_string(station, det, triggered_channels)
         beam_rolls = []
-        ref_z = np.min(ant_z)
+        ref_z = np.min(ant_z) #(np.max(ant_z) + np.min(ant_z)) / 2.0
 
         for angle in phasing_angles:
 
@@ -290,7 +290,7 @@ class triggerSimulator:
                     upsampled_times = np.arange(len(trace) * upsampling_factor, dtype=np.float) / float(adc_sampling_frequency * upsampling_factor) + channel.get_trace_start_time()
 
                     upsampled_trace = upsampling_fir(trace, adc_sampling_frequency,
-                                                     int_factor=upsampling_factor, ntaps=1)
+                                                     int_factor=upsampling_factor, ntaps=4 * upsampling_factor)
 
                     #  If upsampled is performed, the final sampling frequency changes
                     trace = upsampled_trace[:]
