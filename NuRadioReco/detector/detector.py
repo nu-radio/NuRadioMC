@@ -14,6 +14,7 @@ from tinydb_serialization import Serializer
 import six  # # used for compatibility between py2 and py3
 import warnings
 from astropy.utils.exceptions import ErfaWarning
+import NuRadioReco.utilities.metaclasses
 
 logger = logging.getLogger('NuRadioReco.detector')
 warnings.filterwarnings('ignore', category=ErfaWarning)
@@ -117,16 +118,7 @@ def buffer_db(in_memory, filename=None):
     return db
 
 
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if Singleton._instances.get(cls, None) is None:
-            Singleton._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return Singleton._instances[cls]
-
-
-@six.add_metaclass(Singleton)
+@six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class Detector(object):
     """
     main detector class which provides access to the detector description
