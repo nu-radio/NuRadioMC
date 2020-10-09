@@ -1,5 +1,5 @@
 import numpy as np
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units, fft, trace_utilities
 import NuRadioReco.utilities.trace_utilities
 import NuRadioReco.detector.antennapattern
 import NuRadioReco.detector.RNO_G.analog_components
@@ -477,17 +477,41 @@ class IftElectricFieldReconstructor:
         median = KL.position
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             efield_stat_calculators = [ift.StatCalculator(), ift.StatCalculator()]
+            polarization_stat_calculator = ift.StatCalculator()
             rec_efield = np.zeros((3, self.__electric_field_template.get_number_of_samples()))
             sampling_rate = self.__electric_field_template.get_sampling_rate()
-            for i_pol, efield_stat_calculator in enumerate(efield_stat_calculators):
-                if self.__efield_trace_operators[i_channel][i_pol] is not None:
-                    for sample in KL.samples:
-                        efield_sample = self.__efield_trace_operators[i_channel][i_pol].force(median + sample).val
-                        efield_stat_calculator.add(efield_sample)
-                rec_efield[i_pol + 1] = efield_stat_calculator.mean * self.__scaling_factor / self.__gain_scaling
+            times = np.arange(self.__data_traces.shape[1]) / sampling_rate
+            for sample in KL.samples:
+                if self.__efield_trace_operators[i_channel][0] is not None:
+                    efield_sample_theta = self.__efield_trace_operators[i_channel][0].force(median + sample).val
+                    efield_stat_calculators[0].add(efield_sample_theta)
+                if self.__efield_trace_operators[i_channel][1] is not None:
+                    efield_sample_phi = self.__efield_trace_operators[i_channel][1].force(median + sample).val
+                    efield_stat_calculators[1].add(efield_sample_phi)
+                if self.__polarization == 'pol':
+                    efield_sample_pol = np.zeros_like(rec_efield)
+                    efield_sample_pol[1] = efield_sample_theta
+                    efield_sample_pol[2] = efield_sample_phi
+                    energy_fluences = trace_utilities.get_electric_field_energy_fluence(
+                        efield_sample_pol,
+                        times
+                    )
+                    polarization_stat_calculator.add(np.arctan(energy_fluences[2] / energy_fluences[1]))
+            if self.__efield_trace_operators[i_channel][0] is not None:
+                rec_efield[1] = efield_stat_calculators[0].mean * self.__scaling_factor / self.__gain_scaling
+            if self.__efield_trace_operators[i_channel][1] is not None:
+                rec_efield[2] = efield_stat_calculators[1].mean * self.__scaling_factor / self.__gain_scaling
             for efield in station.get_electric_fields_for_channels([channel_id]):
                 efield.set_trace(rec_efield, sampling_rate)
                 efield.set_trace_start_time(self.__trace_start_times[i_channel])
+                if self.__polarization == 'pol':
+                    print('polarization={}+/-{}'.format(polarization_stat_calculator.mean / units.deg, polarization_stat_calculator.var / units.deg))
+                    efield.set_parameter(efp.polarization_angle, polarization_stat_calculator.mean)
+                    efield.set_parameter_error(efp.polarization_angle, polarization_stat_calculator.var)
+                for sim_efield in station.get_sim_station().get_electric_fields_for_channels([channel_id]):
+                    sim_energy_fluence = trace_utilities.get_electric_field_energy_fluence(sim_efield.get_trace(), sim_efield.get_times())
+                    sim_polarization = np.arctan(sim_energy_fluence[2] / sim_energy_fluence[1])
+                    print('sim polarization angle:', sim_polarization / units.deg)
                 break
 
     def __draw_priors(
