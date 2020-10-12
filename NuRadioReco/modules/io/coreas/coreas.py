@@ -66,7 +66,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit'):
     fig2, ax2 = plt.subplots()
 
     weights = np.zeros_like(positions[:, 0])
-    for p in range(0, weights.shape[0]): # loop over all 240 station positions
+    for p in range(0, weights.shape[0]):   # loop over all 240 station positions
         vertices_shower_2d = vor.vertices[vor.regions[vor.point_region[p]]]
 
         # x_vertice_ground = x_trafo_from_shower[0] * x_vertice_shower + y_trafo_from_shower[0] * y_vertice_shower + z_trafo_from_shower[0] * z_vertice_shower
