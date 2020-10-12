@@ -58,10 +58,10 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit'):
     shower = cstrafo.transform_to_vxB_vxvxB(station_position=positions)
     vor = spatial.Voronoi(shower[:, :2])  # algorithm will find no solution if flat simulation is given in 3d.
 
-    #fig1, ax1 = plt.subplots()
-    #spatial.voronoi_plot_2d(vor, ax1)
-    #ax1.set_aspect('equal')
-    #ax1.set_title('Positions of stations (blue) and vertices (orange) in shower plane, zenith = {:.2f}'.format(zenith/units.degree))
+    # fig1, ax1 = plt.subplots()
+    # spatial.voronoi_plot_2d(vor, ax1)
+    # ax1.set_aspect('equal')
+    # ax1.set_title('Positions of stations (blue) and vertices (orange) in shower plane, zenith = {:.2f}'.format(zenith/units.degree))
 
     fig2, ax2 = plt.subplots()
 
@@ -79,32 +79,32 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit'):
 
         vertices_shower_3d = []
         for iter in range(len(x_vertice_shower)):
-            vertices_shower_3d.append([x_vertice_shower[iter],y_vertice_shower[iter],z_vertice_shower[iter]])
+            vertices_shower_3d.append([x_vertice_shower[iter], y_vertice_shower[iter], z_vertice_shower[iter]])
         vertices_shower_3d = np.array(vertices_shower_3d)
         vertices_ground = cstrafo.transform_from_vxB_vxvxB(station_position=vertices_shower_3d)
 
-        n_arms = 8  ##mask last stations of each arm
+        n_arms = 8  # mask last stations of each arm
         length_shower = np.sqrt(shower[:, 0] ** 2 + shower[:, 1] ** 2)
         ind = np.argpartition(length_shower, -n_arms)[-n_arms:]
 
         weight = spatial.ConvexHull(vertices_ground[:, :2])
-        weights[p] = weight.volume # volume of a 2d dataset is the area, area of a 2d data set is the perimeter
+        weights[p] = weight.volume   # volume of a 2d dataset is the area, area of a 2d data set is the perimeter
         weights[ind] = 0
 
-        #ax2.scatter(vertices_ground[:, 0], vertices_ground[:, 1])
-    #ax2.scatter(positions[:, 0], positions[:, 1], c='k', alpha=0.1)
-    #ax2.set_aspect('equal')
-    #ax2.set_title('Vertices of voronoi in shower projected to ground')
+        # ax2.scatter(vertices_ground[:, 0], vertices_ground[:, 1])
+    # ax2.scatter(positions[:, 0], positions[:, 1], c='k', alpha=0.1)
+    # ax2.set_aspect('equal')
+    # ax2.set_title('Vertices of voronoi in shower projected to ground')
 
-    #fig3 = plt.figure(figsize=[12,4])
-    #ax4 = fig3.add_subplot(121)
-    #ax5 = fig3.add_subplot(122)
+    # fig3 = plt.figure(figsize=[12,4])
+    # ax4 = fig3.add_subplot(121)
+    # ax5 = fig3.add_subplot(122)
 
-    #ax4.hist(weights)
+    # ax4.hist(weights)
 
-    #ax5.scatter(length_shower**2, weights)
-    #ax5.set_xlabel('length^2')
-    #ax5.set_ylabel('weight')
+    # ax5.scatter(length_shower**2, weights)
+    # ax5.set_xlabel('length^2')
+    # ax5.set_ylabel('weight')
 
     return weights
 
