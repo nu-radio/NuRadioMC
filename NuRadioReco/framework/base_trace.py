@@ -4,6 +4,7 @@ import logging
 import fractions
 import decimal
 from NuRadioReco.utilities import fft
+import NuRadioReco.modules.channelBandPassFilter
 import scipy.signal
 import copy
 try:
@@ -52,18 +53,8 @@ class BaseTrace:
         """
         spec = copy.copy(self.get_frequency_spectrum())
         freq = self.get_frequencies()
-        if filter_type == 'rectangular':
-            spec[(freq < passband[0]) | (freq > passband[1])] = 0
-        elif filter_type == 'butter':
-            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
-            w, h = scipy.signal.freqs(b, a, freq)
-            spec = spec * h
-        elif filter_type == 'butterabs':
-            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
-            w, h = scipy.signal.freqs(b, a, freq)
-            spec = spec * np.abs(h)
-        else:
-            raise ValueError('Filter type {} not supported'.format(filter_type))
+        filter_response = NuRadioReco.modules.channelBandPassFilter.get_filter_response(freq, passband, filter_type, order)
+        spec *= filter_response
         return fft.freq2time(spec, self.get_sampling_rate())
 
     def get_frequency_spectrum(self):
