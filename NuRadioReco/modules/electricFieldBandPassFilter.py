@@ -1,8 +1,6 @@
-import numpy as np
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.modules.channelBandPassFilter
 from NuRadioReco.utilities import units
-import scipy.signal
 
 
 class electricFieldBandPassFilter:
