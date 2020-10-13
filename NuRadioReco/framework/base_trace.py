@@ -3,8 +3,7 @@ import numpy as np
 import logging
 import fractions
 import decimal
-from NuRadioReco.utilities import fft
-import NuRadioReco.modules.channelBandPassFilter
+from NuRadioReco.utilities import fft, filter
 import scipy.signal
 import copy
 try:
@@ -53,7 +52,7 @@ class BaseTrace:
         """
         spec = copy.copy(self.get_frequency_spectrum())
         freq = self.get_frequencies()
-        filter_response = NuRadioReco.modules.channelBandPassFilter.get_filter_response(freq, passband, filter_type, order)
+        filter_response = filter.get_filter_response(freq, passband, filter_type, order)
         spec *= filter_response
         return fft.freq2time(spec, self.get_sampling_rate())
 
