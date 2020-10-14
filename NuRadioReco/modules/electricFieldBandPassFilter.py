@@ -1,5 +1,5 @@
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units, filter
+from NuRadioReco.utilities import units, bandpass_filter
 
 
 class electricFieldBandPassFilter:
@@ -37,7 +37,7 @@ class electricFieldBandPassFilter:
         for efield in station.get_electric_fields():
             frequencies = efield.get_frequencies()
             trace_fft = efield.get_frequency_spectrum()
-            filter_response = filter.get_filter_response(frequencies, passband, filter_type, order)
+            filter_response = bandpass_filter.get_filter_response(frequencies, passband, filter_type, order)
             trace_fft *= filter_response
             efield.set_frequency_spectrum(trace_fft, efield.get_sampling_rate())
 

@@ -2,7 +2,7 @@ import numpy as np
 from scipy import signal
 import logging
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units, filter
+from NuRadioReco.utilities import units, bandpass_filter
 
 
 class channelBandPassFilter:
@@ -128,7 +128,7 @@ class channelBandPassFilter:
             the complex filter amplitudes
         """
         tmp_passband, tmp_order, tmp_filter_type = self.get_filter_arguments(channel_id, passband, filter_type, order)
-        return filter.get_filter_response(frequencies, tmp_passband, tmp_filter_type, tmp_order)
+        return bandpass_filter.get_filter_response(frequencies, tmp_passband, tmp_filter_type, tmp_order)
 
     def _apply_filter(self, channel, passband, filter_type, order, is_efield=False):
 
