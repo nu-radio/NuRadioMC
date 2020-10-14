@@ -2,7 +2,8 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import logging
 import fractions
-from NuRadioReco.utilities import fft
+import decimal
+from NuRadioReco.utilities import fft, bandpass_filter
 import scipy.signal
 import copy
 try:
@@ -35,6 +36,25 @@ class BaseTrace:
             self.__time_domain_up_to_date = True
             self._frequency_spectrum = None
         return self._time_trace
+
+    def get_filtered_trace(self, passband, filter_type='butter', order=10):
+        """
+        Returns the trace after applying a filter to it. This does not change the stored trace.
+
+        Parameters:
+        --------------
+        passband: list of floats
+            lower and upper bound of the filter passband
+        filter_type: string
+            type of the applied filter. Options are rectangular, butter and butterabs
+        order: int
+            Order of the Butterworth filter, if the filter types butter or butterabs are chosen
+        """
+        spec = copy.copy(self.get_frequency_spectrum())
+        freq = self.get_frequencies()
+        filter_response = bandpass_filter.get_filter_response(freq, passband, filter_type, order)
+        spec *= filter_response
+        return fft.freq2time(spec, self.get_sampling_rate())
 
     def get_frequency_spectrum(self):
         if(self.__time_domain_up_to_date):
@@ -144,6 +164,31 @@ class BaseTrace:
         spec *= np.exp(-2.j * np.pi * delta_t * self.get_frequencies())
         self.set_frequency_spectrum(spec, self._sampling_rate)
 
+    def resample(self, sampling_rate):
+        if sampling_rate == self.get_sampling_rate():
+            return
+        resampling_factor = fractions.Fraction(decimal.Decimal(sampling_rate / self.get_sampling_rate())).limit_denominator(5000)
+        if self.get_trace().ndim == 1:
+            trace = self.get_trace()
+            if (resampling_factor.numerator != 1):
+                trace = scipy.signal.resample(trace, resampling_factor.numerator * self.get_number_of_samples())
+            if (resampling_factor.denominator != 1):
+                trace = scipy.signal.resample(trace, len(trace) // resampling_factor.denominator)
+            resampled_trace = trace
+        else:
+            new_length = int(self.get_trace().shape[1] * resampling_factor)
+            resampled_trace = np.zeros((self.get_trace().shape[0], new_length))  # create new data structure with new efield length
+            for i_pol in range(self.get_trace().shape[0]):
+                trace = self.get_trace()[i_pol]
+                if (resampling_factor.numerator != 1):
+                    trace = scipy.signal.resample(trace, resampling_factor.numerator * len(trace))
+                if (resampling_factor.denominator != 1):
+                    trace = scipy.signal.resample(trace, len(trace) // resampling_factor.denominator)
+                resampled_trace[i_pol] = trace
+        if resampled_trace.shape[-1] % 2 != 0:
+            resampled_trace = resampled_trace.T[:-1].T
+        self.set_trace(resampled_trace, sampling_rate)
+
     def serialize(self):
         data = {'sampling_rate': self.get_sampling_rate(),
                 'time_trace': self.get_trace(),
@@ -170,25 +215,26 @@ class BaseTrace:
             raise ValueError('One of the trace objects has no trace set')
         if self.get_trace().ndim != x.get_trace().ndim:
             raise ValueError('Traces have different dimensions')
-        trace_1 = copy.copy(self.get_trace())
-        trace_2 = copy.copy(x.get_trace())
         if self.get_sampling_rate() != x.get_sampling_rate():
             # Upsample trace with lower sampling rate
+            # Create new baseTrace object for the resampling so we don't change the originals
             if self.get_sampling_rate() > x.get_sampling_rate():
+                upsampled_trace = BaseTrace()
+                upsampled_trace.set_trace(x.get_trace(), x.get_sampling_rate())
+                upsampled_trace.resample(self.get_sampling_rate())
+                trace_1 = copy.copy(self.get_trace())
+                trace_2 = upsampled_trace.get_trace()
                 sampling_rate = self.get_sampling_rate()
-                resampling_factor = fractions.Fraction(self.get_sampling_rate() / x.get_sampling_rate())
-                if (resampling_factor.numerator != 1):
-                    trace_2 = scipy.signal.resample(trace_2, resampling_factor.numerator * len(trace_2))
-                if(resampling_factor.denominator != 1):
-                    trace_2 = scipy.signal.resample(trace_2, len(trace_2) // resampling_factor.denominator)
             else:
+                upsampled_trace = BaseTrace()
+                upsampled_trace.set_trace(self.get_trace(), self.get_sampling_rate())
+                upsampled_trace.resample(x.get_sampling_rate())
+                trace_1 = upsampled_trace.get_trace()
+                trace_2 = copy.copy(x.get_trace())
                 sampling_rate = x.get_sampling_rate()
-                resampling_factor = fractions.Fraction(x.get_sampling_rate() / self.get_sampling_rate())
-                if (resampling_factor.numerator != 1):
-                    trace_1 = scipy.signal.resample(trace_1, resampling_factor.numerator * len(trace_1))
-                if(resampling_factor.denominator != 1):
-                    trace_1 = scipy.signal.resample(trace_1, len(trace_1) // resampling_factor.denominator)
         else:
+            trace_1 = copy.copy(self.get_trace())
+            trace_2 = copy.copy(x.get_trace())
             sampling_rate = self.get_sampling_rate()
 
         # Figure out which of the traces has the earlier trace start time
