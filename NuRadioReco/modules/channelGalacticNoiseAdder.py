@@ -11,6 +11,8 @@ import scipy.constants
 import scipy.interpolate
 import pygdsm
 import healpy
+import astropy.coordinates
+import astropy.units
 
 logger = logging.getLogger('channelGalacticNoiseAdder')
 
@@ -86,29 +88,33 @@ class channelGalacticNoiseAdder:
             Lower and upper bound of the frequency range in which noise shall be
             added
         """
-        self.__sky_observer = pygdsm.GSMObserver()
+        self.__gdsm = pygdsm.pygsm.GlobalSkyModel()
         site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
-        self.__sky_observer.lon = str(site_longitude)
-        self.__sky_observer.lat = str(site_latitude)
+        site_location = astropy.coordinates.EarthLocation(lat=site_latitude * astropy.units.deg, lon=site_longitude * astropy.units.deg)
         station_time = station.get_station_time()
         station_time.format = 'iso'
-        self.__sky_observer.date = station_time.value
         noise_temperatures = np.zeros((len(self.__interpolaiton_frequencies), len(self.__zenith_sample), len(self.__azimuth_sample)))
+        galactic_cs = astropy.coordinates.Galactic()
         # save noise temperatures for all directions and frequencies
         for i_freq, noise_freq in enumerate(self.__interpolaiton_frequencies):
-            radio_sky = self.__sky_observer.generate(noise_freq/units.MHz)
-            if self.__debug:
-                self.__sky_observer.view_observed_gsm(show=True)
-                plt.close()
+            radio_sky = self.__gdsm.generate(noise_freq/units.MHz)
             for i_zenith, zenith in enumerate(self.__zenith_sample):
-                for i_azimuth, azimuth in enumerate(self.__azimuth_sample):
-                    i_pix = healpy.pixelfunc.ang2pix(self.__sky_observer._n_side, zenith, azimuth, lonlat=False, nest=False)
-                    noise_temperatures[i_freq,i_zenith, i_azimuth] = radio_sky[i_pix]
-
-
+                direction_altaz = astropy.coordinates.AltAz(alt=(np.pi / 2. - zenith) * astropy.units.rad, az=self.__azimuth_sample * astropy.units.rad, obstime=station_time, location=site_location)
+                direction_gal = direction_altaz.transform_to(galactic_cs)
+                i_pix = healpy.pixelfunc.ang2pix(healpy.pixelfunc.npix2nside(len(radio_sky)), direction_gal.l.deg, direction_gal.b.deg, lonlat=True, nest=False)
+                noise_temperatures[i_freq, i_zenith] = radio_sky[i_pix]
+            if self.__debug:
+                self.__gdsm.view(show=True)
+                xx, yy = np.meshgrid(self.__azimuth_sample, self.__zenith_sample)
+                fig = plt.figure(figsize=(8, 8))
+                ax1 = fig.add_subplot(111, projection='polar')
+                ax1.pcolor(xx / units.rad, yy / units.deg, noise_temperatures[i_freq])
+                ax1.grid()
+                ax1.set_xlabel(r'azimuth $[^\circ]$')
+                ax1.set_ylabel(r'elevation $[^\circ]$')
+                plt.show()
         for channel in station.iter_channels():
             freqs = channel.get_frequencies()
-            times = channel.get_times()
             d_f = freqs[2] - freqs[1]
             sampling_rate = channel.get_sampling_rate()
             channel_spectrum = channel.get_frequency_spectrum()
