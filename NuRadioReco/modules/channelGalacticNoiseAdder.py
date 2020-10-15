@@ -39,12 +39,12 @@ class channelGalacticNoiseAdder:
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
 
     def begin(
-            self,
-            debug=False,
-            n_zenith=18,
-            n_azimuth=36,
-            interpolation_frequencies=np.arange(10, 1100, 100)*units.MHz
-        ):
+        self,
+        debug=False,
+        n_zenith=18,
+        n_azimuth=36,
+        interpolation_frequencies=np.arange(10, 1100, 100) * units.MHz
+    ):
         """
         Set up important parameters for the module
 
@@ -74,12 +74,12 @@ class channelGalacticNoiseAdder:
 
     @register_run()
     def run(
-            self,
-            event,
-            station,
-            detector,
-            passband=None
-        ):
+        self,
+        event,
+        station,
+        detector,
+        passband=None
+    ):
         """
         Adds noise resulting from galactic radio emission to the channel traces
 
@@ -96,7 +96,7 @@ class channelGalacticNoiseAdder:
             added
         """
         if passband is None:
-            passband = [10*units.MHz, 1000*units.MHz]
+            passband = [10 * units.MHz, 1000 * units.MHz]
         self.__gdsm = pygdsm.pygsm.GlobalSkyModel()
         site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
         site_location = astropy.coordinates.EarthLocation(lat=site_latitude * astropy.units.deg, lon=site_longitude * astropy.units.deg)
@@ -106,7 +106,7 @@ class channelGalacticNoiseAdder:
         galactic_cs = astropy.coordinates.Galactic()
         # save noise temperatures for all directions and frequencies
         for i_freq, noise_freq in enumerate(self.__interpolaiton_frequencies):
-            radio_sky = self.__gdsm.generate(noise_freq/units.MHz)
+            radio_sky = self.__gdsm.generate(noise_freq / units.MHz)
             for i_zenith, zenith in enumerate(self.__zenith_sample):
                 direction_altaz = astropy.coordinates.AltAz(alt=(np.pi / 2. - zenith) * astropy.units.rad, az=self.__azimuth_sample * astropy.units.rad, obstime=station_time, location=site_location)
                 direction_gal = direction_altaz.transform_to(galactic_cs)
@@ -164,7 +164,7 @@ class channelGalacticNoiseAdder:
                 ax1.grid()
                 ax2.grid()
             for i_zenith, zenith in enumerate(self.__zenith_sample):
-                solid_angle = (np.cos(zenith) - np.cos(zenith+self.__delta_zenith)) * self.__delta_azimuth
+                solid_angle = (np.cos(zenith) - np.cos(zenith + self.__delta_zenith)) * self.__delta_azimuth
                 for i_azimuth, azimuth in enumerate(self.__azimuth_sample):
                     temperature_interpolator = scipy.interpolate.interp1d(self.__interpolaiton_frequencies, np.log10(noise_temperatures[:, i_zenith, i_azimuth]), kind='quadratic')
                     noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))

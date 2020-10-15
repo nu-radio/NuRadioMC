@@ -272,7 +272,7 @@ lumen = candela * steradian
 lux = lumen / meter2
 
 # Jansky
-jansky = 1.e-26 * watt /m**2 / Hz
+jansky = 1.e-26 * watt / m**2 / Hz
 
 # Miscellaneous
 fraction = 1
