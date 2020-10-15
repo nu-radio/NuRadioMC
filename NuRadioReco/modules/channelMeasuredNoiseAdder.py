@@ -73,6 +73,8 @@ class channelMeasuredNoiseAdder:
         for channel in station.iter_channels():
             noise_channel = noise_station.get_channel(channel.get_id())
             channel_trace = channel.get_trace()
+            if noise_channel.get_sampling_rate() != channel.get_sampling_rate():
+                noise_channel.resample(channel.get_sampling_rate())
             noise_trace = noise_channel.get_trace()
             if channel.get_number_of_samples() > noise_channel.get_number_of_samples():
                 self.logger.warning(
