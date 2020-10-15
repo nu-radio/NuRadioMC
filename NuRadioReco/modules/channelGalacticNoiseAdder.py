@@ -28,7 +28,6 @@ class channelGalacticNoiseAdder:
     of the brightness temperature is interpolated in between.
     """
     def __init__(self):
-        self.begin()
         self.__debug = None
         self.__zenith_sample = None
         self.__azimuth_sample = None
@@ -37,6 +36,7 @@ class channelGalacticNoiseAdder:
         self.__interpolaiton_frequencies = None
         self.__gdsm = None
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
+        self.begin()
 
     def begin(
         self,
@@ -69,6 +69,7 @@ class channelGalacticNoiseAdder:
         self.__zenith_sample = np.linspace(0, 90, n_zenith)[:-1] * units.deg
         self.__azimuth_sample = np.linspace(0, 360, n_azimuth)[:-1] * units.deg
         self.__delta_zenith = self.__zenith_sample[1] - self.__zenith_sample[0]
+        self.__zenith_sample += self.__delta_zenith
         self.__delta_azimuth = self.__azimuth_sample[1] - self.__azimuth_sample[0]
         self.__interpolaiton_frequencies = interpolation_frequencies
 
@@ -108,10 +109,17 @@ class channelGalacticNoiseAdder:
         for i_freq, noise_freq in enumerate(self.__interpolaiton_frequencies):
             radio_sky = self.__gdsm.generate(noise_freq / units.MHz)
             for i_zenith, zenith in enumerate(self.__zenith_sample):
+                # We average the radio temperature over all pixels in a ring around the direction. The radius
+                # of the ring is chosen so that it reaches halfway to the closest other point on the grid
+                ring_size = .5 * np.min([self.__delta_zenith, np.arccos(np.sin(zenith)**2 * np.cos(self.__delta_azimuth) + np.cos(zenith)**2)])
                 direction_altaz = astropy.coordinates.AltAz(alt=(np.pi / 2. - zenith) * astropy.units.rad, az=self.__azimuth_sample * astropy.units.rad, obstime=station_time, location=site_location)
                 direction_gal = direction_altaz.transform_to(galactic_cs)
-                i_pix = healpy.pixelfunc.ang2pix(healpy.pixelfunc.npix2nside(len(radio_sky)), direction_gal.l.deg, direction_gal.b.deg, lonlat=True, nest=False)
-                noise_temperatures[i_freq, i_zenith] = radio_sky[i_pix]
+                nside = healpy.pixelfunc.npix2nside(len(radio_sky))
+                dir_vec = healpy.pixelfunc.ang2vec(direction_gal.l.deg, direction_gal.b.deg, lonlat=True)
+                for i_dir, direction in enumerate(dir_vec):
+                    ring_pixels = healpy.query_disc(nside, direction, ring_size)
+                    if len(ring_pixels) > 0:
+                        noise_temperatures[i_freq, i_zenith, i_dir] = np.mean(radio_sky[ring_pixels])
             if self.__debug:
                 self.__gdsm.view(show=True)
                 xx, yy = np.meshgrid(self.__azimuth_sample, self.__zenith_sample)
