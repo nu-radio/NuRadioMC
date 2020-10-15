@@ -120,7 +120,7 @@ class channelGalacticNoiseAdder:
                 ax1.pcolor(xx / units.rad, yy / units.deg, noise_temperatures[i_freq])
                 ax1.grid()
                 ax1.set_xlabel(r'azimuth $[^\circ]$')
-                ax1.set_ylabel(r'elevation $[^\circ]$')
+                ax1.set_ylabel(r'zenith angle $[^\circ]$')
                 plt.show()
         for channel in station.iter_channels():
             freqs = channel.get_frequencies()
