@@ -2,11 +2,11 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import SimplePhasedTrigger
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
-from NuRadioReco.utilities.trace_utilities import upsampling_fir, butterworth_filter_trace
-import numpy as np
-from scipy import constants
 import logging
-import time
+import scipy
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import constants
 
 logger = logging.getLogger('phasedTriggerSimulator')
 
@@ -15,7 +15,6 @@ cspeed = constants.c * units.m / units.s
 main_low_angle = np.deg2rad(-55.0)
 main_high_angle = -1.0 * main_low_angle
 default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
-
 
 class triggerSimulator:
     """
@@ -142,7 +141,7 @@ class triggerSimulator:
 
     def phase_signals(self, traces, beam_rolls):
         '''
-        phase signals together given the rolls 
+        phase signals together given the rolls
         '''
 
         phased_traces = [[] for i in range(len(beam_rolls))]
@@ -164,16 +163,16 @@ class triggerSimulator:
     @register_run()
     def run(self, evt, station, det,
             Vrms=None,
-            threshold=60 * units.mV,
+            threshold=60*units.mV,
             triggered_channels=None,
             trigger_name='simple_phased_threshold',
             phasing_angles=default_angles,
             set_not_triggered=False,
             ref_index=1.75,
             trigger_adc=False,  # by default, assumes the trigger ADC is the same as the channels ADC
+            clock_offset=0,
             adc_output='voltage',
-            nyquist_zone=None,
-            bandwidth_edge=20 * units.MHz,
+            trigger_filter=None,
             upsampling_factor=1,
             window=32,
             step=16):
@@ -184,7 +183,7 @@ class triggerSimulator:
         Several channels are phased by delaying their signals by an amount given
         by a pointing angle. Several pointing angles are possible in order to cover
         the sky. The array triggered_channels controls the channels that are phased,
-        according to the angles phasing_angles. 
+        according to the angles phasing_angles.
 
         Parameters
         ----------
@@ -214,17 +213,11 @@ class triggerSimulator:
         trigger_adc: bool, default True
             If True, analog to digital conversion is performed. It must be specified in the
             detector file. See analogToDigitalConverter module for information
-        nyquist_zone: integer
-            To be used with the trigger_adc function
-            If None, the trace is not filtered
-            If n, it uses the n-th Nyquist zone by applying an 8th-order
-            Butterworth filter with critical frequencies:
-            (n-1) * adc_sampling_frequency/2 + bandwidth_edge
-            and
-            n * adc_sampling_frequency/2 - bandwidth_edge
-        bandwidth_edge: float
-            Frequency interval used for filtering the chosen Nyquist zone.
-            See above
+        clock_offset: float
+            Overall clock offset, for adc clock jitter reasons
+        trigger_filter: array floats
+            Freq. domain of the response to be applied to post-ADC traces
+            Must be length for "MC freq"
         upsampling_factor: integer
             Upsampling factor. The trace will be a upsampled to a
             sampling frequency int_factor times higher than the original one
@@ -257,27 +250,19 @@ class triggerSimulator:
 
             logger.debug("trigger channels:", triggered_channels)
 
-            channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
-
             traces = {}
-
+            channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
             for channel in station.iter_channels(use_channels=triggered_channels):
                 channel_id = channel.get_id()
-
-                random_clock_offset = np.random.uniform(0, 1)
 
                 trace, adc_sampling_frequency = ADC.get_digital_trace(station, det, channel,
                                                                       Vrms=Vrms,
                                                                       trigger_adc=trigger_adc,
-                                                                      clock_offset=random_clock_offset,
+                                                                      clock_offset=clock_offset,
                                                                       return_sampling_frequency=True,
                                                                       adc_type='perfect_floor_comparator',
                                                                       adc_output=adc_output,
-                                                                      nyquist_zone=1,
-                                                                      bandwidth_edge=20 * units.MHz)
-
-                times = np.arange(len(trace), dtype=np.float) / float(adc_sampling_frequency)
-                times += channel.get_trace_start_time()
+                                                                      trigger_filter=None)
 
                 # Upsampling here, linear interpolate to mimic an FPGA internal upsampling
                 if not isinstance(upsampling_factor, int):
@@ -287,10 +272,11 @@ class triggerSimulator:
                         raise ValueError("Could not convert upsampling_factor to integer. Exiting.")
 
                 if(upsampling_factor >= 2):
-                    upsampled_times = np.arange(len(trace) * upsampling_factor, dtype=np.float) / float(adc_sampling_frequency * upsampling_factor) + channel.get_trace_start_time()
 
-                    upsampled_trace = upsampling_fir(trace, adc_sampling_frequency,
-                                                     int_factor=upsampling_factor, ntaps=4 * upsampling_factor)
+                    #upsampled_trace = upsampling_fir(trace, adc_sampling_frequency,
+                    #                                 int_factor=upsampling_factor, ntaps=4 * upsampling_factor)
+
+                    upsampled_trace = scipy.signal.resample(trace, len(trace) * upsampling_factor)
 
                     #  If upsampled is performed, the final sampling frequency changes
                     trace = upsampled_trace[:]
@@ -301,9 +287,6 @@ class triggerSimulator:
                     adc_sampling_frequency *= upsampling_factor
 
                 time_step = 1.0 / adc_sampling_frequency
-
-                times = np.arange(len(trace), dtype=np.float) * time_step
-                times += channel.get_trace_start_time()
 
                 traces[channel_id] = trace[:]
 

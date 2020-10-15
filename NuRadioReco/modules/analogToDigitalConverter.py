@@ -183,8 +183,7 @@ class analogToDigitalConverter:
                           adc_type='perfect_floor_comparator',
                           return_sampling_frequency=False,
                           adc_output='voltage',
-                          nyquist_zone=None,
-                          bandwidth_edge=20 * units.MHz):
+                          trigger_filter=None):
         """
         Returns the digital trace for a channel, without setting it. This allows
         the creation of a digital trace that can be used for triggering purposes
@@ -212,6 +211,9 @@ class analogToDigitalConverter:
         adc_output: string
             - 'voltage' to store the ADC output as discretised voltage trace
             - 'counts' to store the ADC output in ADC counts
+        trigger_filter: array floats
+            Freq. domain of the response to be applied to post-ADC traces
+            Must be length for "MC freq"
 
         Returns
         -------
@@ -280,24 +282,13 @@ class analogToDigitalConverter:
             error_msg += 'Please change the ADC sampling rate.'
             raise ValueError(error_msg)
 
-        # Choosing Nyquist zone
-        if nyquist_zone is not None:
+        if trigger_filter is not None:
 
-            if nyquist_zone < 1:
-                error_msg = "Nyquist zone is less than one. Exiting."
-                raise ValueError(error_msg)
-            if not isinstance(nyquist_zone, int):
-                try:
-                    nyquist_zone = int(nyquist_zone)
-                except:
-                    raise ValueError("Could not convert nyquist_zone to integer. Exiting.")
+            trace_fft = np.fft.rfft(trace)
+            if(len(trace_fft) != trigger_filter):
+                raise ValueError("Wrong filter length to apply to traces")
 
-            passband = ((nyquist_zone - 1) * adc_sampling_frequency / 2 + bandwidth_edge, nyquist_zone * adc_sampling_frequency / 2 - bandwidth_edge)
-
-            if passband[1] > MC_sampling_frequency / 2:
-                raise ValueError('Please use another simulation with a larger sampling frequency')
-
-            trace = butterworth_filter_trace(trace, MC_sampling_frequency, passband)                                             
+            trace = np.fft.irfft(trace_fft * trigger_filter)
 
         # Random clock offset
         delayed_samples = len(trace) - np.int(np.round(MC_sampling_frequency / adc_sampling_frequency)) - 1
@@ -349,8 +340,7 @@ class analogToDigitalConverter:
             clock_offset=0.0,
             adc_type='perfect_floor_comparator',
             adc_output='voltage',
-            nyquist_zone=None,
-            bandwidth_edge=None):
+            trigger_filter=None):
         """
         Runs the analogToDigitalConverter and transforms the traces from all
         the channels of an input station to digital voltage values.
@@ -383,8 +373,7 @@ class analogToDigitalConverter:
                                                                            adc_type=adc_type,
                                                                            return_sampling_frequency=True,
                                                                            adc_output=adc_output,
-                                                                           nyquist_zone=nyquist_zone,
-                                                                           bandwidth_edge=bandwidth_edge)
+                                                                           trigger_filter=trigger_filter)
 
             channel.set_trace(digital_trace, adc_sampling_frequency)
 
