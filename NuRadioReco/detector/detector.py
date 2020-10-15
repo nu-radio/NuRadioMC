@@ -508,7 +508,7 @@ class Detector(object):
             the station ID
         """
         sites = {
-            'summit' : (72.57, -38.46),
+            'summit': (72.57, -38.46),
             'mooresbay': (-78.74, 165.09),
             'auger': (-35.10, -69.55)
         }
