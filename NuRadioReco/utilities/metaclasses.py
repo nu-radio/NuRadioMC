@@ -1,7 +1,7 @@
 class Singleton(type):
     """
     Can be assigned to classes as a metaclass.
-    By default, one one instance of a Singleton can exist at a time, as the __call__ method is overwritten to
+    By default, only one instance of a Singleton can exist at a time, as the __call__ method is overwritten to
     return the existing instance if one exists.
     """
     _instances = {}
