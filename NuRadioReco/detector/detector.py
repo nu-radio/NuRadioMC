@@ -132,7 +132,8 @@ class Detector(object):
         Initialize the stations detector properties.
         By default, a new detector instance is only created of none exists yet, otherwise the existing instance
         is returned. To force the creation of a new detector instance, pass the additional keyword parameter
-        `create_new=True` to this function. For more details, check the documentation for the Singleton metaclass.
+        `create_new=True` to this function. For more details, check the documentation for the
+        `Singleton metaclass <NuRadioReco.utilities.html#NuRadioReco.utilities.metaclasses.Singleton>`_.
         Parameters
         ----------
         source : str
