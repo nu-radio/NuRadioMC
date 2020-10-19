@@ -130,7 +130,9 @@ class Detector(object):
                  dictionary=None, assume_inf=True, antenna_by_depth=True):
         """
         Initialize the stations detector properties.
-
+        By default, a new detector instance is only created of none exists yet, otherwise the existing instance
+        is returned. To force the creation of a new detector instance, pass the additional keyword parameter
+        `create_new=True` to this function. For more details, check the documentation for the Singleton metaclass.
         Parameters
         ----------
         source : str
