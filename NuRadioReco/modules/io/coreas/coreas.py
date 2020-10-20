@@ -40,7 +40,7 @@ def get_angles(corsika):
     return zenith, azimuth, magnetic_field_vector
 
 
-def calculate_simulation_weights(positions, zenith, azimuth, site='summit'):
+def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debug=False):
     """Calculate weights according to the area that one simulated position represents.
     Weights are therefore given in units of area.
     Note: The volume of a 2d convex hull is the area."""
@@ -58,12 +58,15 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit'):
     shower = cstrafo.transform_to_vxB_vxvxB(station_position=positions)
     vor = spatial.Voronoi(shower[:, :2])  # algorithm will find no solution if flat simulation is given in 3d.
 
-    # fig1, ax1 = plt.subplots()
-    # spatial.voronoi_plot_2d(vor, ax1)
-    # ax1.set_aspect('equal')
-    # ax1.set_title('Positions of stations (blue) and vertices (orange) in shower plane, zenith = {:.2f}'.format(zenith/units.degree))
-
-    fig2, ax2 = plt.subplots()
+    if debug:
+        fig1 = plt.figure(figsize=[12, 4])
+        ax1 = fig1.add_subplot(121)
+        ax2 = fig1.add_subplot(122)
+        spatial.voronoi_plot_2d(vor, ax1)
+        ax1.set_aspect('equal')
+        ax1.set_title('In shower plane, zenith = {:.2f}'.format(zenith / units.degree))
+        ax1.set_xlabel(r'Position in $\vec{v} \times \vec{B}$ - direction [m]')
+        ax1.set_ylabel(r'Position in $\vec{v} \times \vec{v} \times \vec{B}$ - direction [m]')
 
     weights = np.zeros_like(positions[:, 0])
     for p in range(0, weights.shape[0]):   # loop over all 240 station positions
@@ -91,20 +94,34 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit'):
         weights[p] = weight.volume   # volume of a 2d dataset is the area, area of a 2d data set is the perimeter
         weights[ind] = 0
 
-        # ax2.scatter(vertices_ground[:, 0], vertices_ground[:, 1])
-    # ax2.scatter(positions[:, 0], positions[:, 1], c='k', alpha=0.1)
-    # ax2.set_aspect('equal')
-    # ax2.set_title('Vertices of voronoi in shower projected to ground')
+        if debug:
+            ax2.plot(vertices_ground[:, 0], vertices_ground[:, 1], c='grey', zorder=1)
+            ax2.scatter(vertices_ground[:, 0], vertices_ground[:, 1], c='tab:orange', zorder=2)
+    if debug:
+        ax2.scatter(positions[:, 0], positions[:, 1], c='tab:blue', s=10, label='Position of stations')
+        ax2.scatter(vertices_ground[:, 0], vertices_ground[:, 1], c='tab:orange', label='Vertices of cell')
+        ax2.set_aspect('equal')
+        ax2.set_title('On ground, total area {:.2f} $m^2$'.format(sum(weights)))
+        ax2.set_xlabel('East [m]')
+        ax2.set_ylabel('West [m]')
+        ax2.set_xlim(-10000, 10000)
+        ax2.set_ylim(-10000, 10000)
+        plt.legend()
+        plt.show()
 
-    # fig3 = plt.figure(figsize=[12,4])
-    # ax4 = fig3.add_subplot(121)
-    # ax5 = fig3.add_subplot(122)
+        fig3 = plt.figure(figsize=[12,4])
+        ax4 = fig3.add_subplot(121)
+        ax5 = fig3.add_subplot(122)
 
-    # ax4.hist(weights)
+        ax4.hist(weights)
+        ax4.set_title('Weight distribution #')
+        ax4.set_xlabel(r'Weights $[m^2]$')
+        ax4.set_ylabel(r'#')
 
-    # ax5.scatter(length_shower**2, weights)
-    # ax5.set_xlabel('length^2')
-    # ax5.set_ylabel('weight')
+        ax5.scatter(length_shower**2, weights)
+        ax5.set_xlabel(r'$Length^2 [m^2]$')
+        ax5.set_ylabel('Weight $[m^2]$')
+        plt.show()
 
     return weights
 
