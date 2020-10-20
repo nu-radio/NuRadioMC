@@ -140,7 +140,14 @@ def get_Veff_water_equivalent(Veff, density_medium=0.917 * units.g / units.cm **
     return Veff * density_medium / density_water
 
 
-def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_combinations, deposited, station, veff_aeff="veff"):
+def append_arrays(fins, key):
+    temp = []
+    for fin in fins:
+        temp.extend(fin[key])
+    return np.array(temp)
+
+
+def get_Veff_Aeff_single(filenames, trigger_names, trigger_names_dict, trigger_combinations, deposited, station, veff_aeff="veff"):
     """
     calculates the effective volume or effective area from surface muons from a single NuRadioMC hdf5 file
 
@@ -148,8 +155,8 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
 
     Parameters
     ----------
-    filename: string
-        filename of the hdf5 file
+    filename: string or list of strings
+        filename(s) of the hdf5 file
     trigger_names: list of strings
         list of the trigger names contained in the file
     trigger_names_dict: dict
@@ -185,8 +192,15 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     """
     if(veff_aeff not in ["veff", "aeff_surface_muons"]):
         raise AttributeError(f"the paramter `veff_aeff` needs to be one of either `veff` or `aeff_surface_muons`")
-    fin = h5py.File(filename, 'r')
-    logger.warning(f"processing file  {filename}")
+    filenames = np.atleast_1d(filenames)
+    if(len(filenames) == 1):
+        trigger_names = [trigger_names]
+        trigger_names_dict = [trigger_names_dict]
+    fins = []
+    for filename in filenames:
+        logger.warning(f"processing file  {filename}")
+        fins.append(h5py.File(filename, 'r'))
+    fin = fins[0]
     out = {}
     Emin = fin.attrs['Emin']
     Emax = fin.attrs['Emax']
@@ -194,20 +208,23 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     out['energy'] = E
     out['energy_min'] = Emin
     out['energy_max'] = Emax
-
-    weights = np.array(fin['weights'])
-    triggered = np.array(fin['triggered'])
     n_events = fin.attrs['n_events']
 
-    if('trigger_names' in fin.attrs):
-        if(np.any(trigger_names != fin.attrs['trigger_names'])):
-            if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
-                logger.warning("file {} has no triggering events. Using trigger names from another file".format(filename))
-            else:
-                logger.error("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
-                raise
-    else:
-        logger.warning(f"file {filename} has no triggering events. Using trigger names from a different file: {trigger_names}")
+    weights = append_arrays(fins, 'weights')
+    triggered = append_arrays(fins, 'triggered')
+
+    for iF, fin in enumerate(fins):
+        if('trigger_names' in fin.attrs):
+            if(np.any(trigger_names[iF] != fin.attrs['trigger_names'])):
+                if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
+                    logger.warning("file {} has no triggering events. Using trigger names from another file".format(filename))
+                else:
+                    print(iF)
+                    logger.error("file {} has inconsistent trigger names: {} vs {}".format(filenames[iF], fin.attrs['trigger_names'],
+                                                                                           trigger_names[iF]))
+                    raise
+        else:
+            logger.warning(f"file {filename} has no triggering events. Using trigger names from a different file: {trigger_names[iF]}")
 
     # calculate effective
     thetamin = 0
@@ -244,18 +261,30 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     out['n_triggered_weighted'] = {}
     out['SNRs'] = {}
 
+    unique_trigger_names = []
+    for trigger_name in trigger_names:
+        unique_trigger_names.extend(trigger_name)
+    unique_trigger_names = np.unique(unique_trigger_names)
     if(triggered.size == 0):
         FC_low, FC_high = FC_limits(0)
         Veff_low = volume_proj_area * FC_low / n_events
         Veff_high = volume_proj_area * FC_high / n_events
-        for iT, trigger_name in enumerate(trigger_names):
+        for iT, trigger_name in enumerate(unique_trigger_names):
             out[veff_aeff][trigger_name] = [0, 0, 0, Veff_low, Veff_high]
         for trigger_name, values in iteritems(trigger_combinations):
             out[veff_aeff][trigger_name] = [0, 0, 0, Veff_low, Veff_high]
     else:
-        for iT, trigger_name in enumerate(trigger_names):
-            triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
-            triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
+        for trigger_name in unique_trigger_names:
+            triggered = []
+            for iF, fin in enumerate(fins):
+                if('multiple_triggers' in fin and trigger_name in trigger_names[iF]):
+                    iT = trigger_names_dict[iF][trigger_name]
+                    triggered.extend(fin['multiple_triggers'][:, iT])
+                else:
+                    triggered.extend(np.zeros_like(fin['triggered']))
+            triggered = np.array(triggered, dtype=np.bool)
+            event_group_ids = append_arrays(fins, 'event_group_ids')
+            triggered = remove_duplicate_triggers(triggered, event_group_ids)
             Veff = volume_proj_area * np.sum(weights[triggered]) / n_events
             Veff_error = 0
             if(np.sum(weights[triggered]) > 0):
@@ -266,8 +295,10 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
             out[veff_aeff][trigger_name] = [Veff, Veff_error, np.sum(weights[triggered]), Veff_low, Veff_high]
 
         for trigger_name, values in iteritems(trigger_combinations):
+            if(len(filenames) > 1):
+                raise NotImplementedError(f"calculating Veff for trigger comnbinations when multiple files are provided is not supported yet.")
             indiv_triggers = values['triggers']
-            triggered = np.zeros_like(fin['multiple_triggers'][:, 0], dtype=np.bool)
+            triggered = np.zeros_like(triggered, dtype=np.bool)
             if(isinstance(indiv_triggers, str)):
                 triggered = triggered | np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_triggers]], dtype=np.bool)
             else:
@@ -392,7 +423,7 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     return out
 
 
-def tmp(args):
+def wrapper(args):
     return get_Veff_Aeff_single(*args)
 
 
@@ -400,7 +431,8 @@ def get_Veff_Aeff(folder,
              trigger_combinations={},
              station=101,
              veff_aeff="veff",
-             n_cores=1):
+             n_cores=1,
+             additional_folders=None):
     """
     calculates the effective volume or effective area from surface muons from NuRadioMC hdf5 files
 
@@ -443,8 +475,6 @@ def get_Veff_Aeff(folder,
     list of dictionary. Each file is one entry. The dictionary keys store all relevant properties
     """
     trigger_combinations = copy.copy(trigger_combinations)
-    trigger_names = None
-    trigger_names_dict = {}
     prev_deposited = None
     deposited = False
 
@@ -454,41 +484,53 @@ def get_Veff_Aeff(folder,
         if(len(glob.glob(os.path.join(folder, '*.hdf5'))) == 0):
             raise FileNotFoundError(f"couldnt find any hdf5 file in folder {folder}")
         filenames = sorted(glob.glob(os.path.join(folder, '*.hdf5')))
-    for iF, filename in enumerate(filenames):
-        logger.info(f"reading {filename}")
-        fin = h5py.File(filename, 'r')
-        if 'deposited' in fin.attrs:
-            deposited = fin.attrs['deposited']
-            if prev_deposited is None:
-                prev_deposited = deposited
-            elif prev_deposited != deposited:
-                raise AttributeError("The deposited parameter is not consistent among the input files!")
-
-        if('trigger_names' in fin.attrs):
-            trigger_names = fin.attrs['trigger_names']
-            if(len(trigger_names) > 0):
-                for iT, trigger_name in enumerate(trigger_names):
-                    trigger_names_dict[trigger_name] = iT
-                break
-
-    trigger_combinations['all_triggers'] = {'triggers': trigger_names}
-    logger.info(f"Trigger names:  {trigger_names}")
-    for key in trigger_combinations:
-        i = -1
-        for value in trigger_combinations[key]['triggers']:
-            i += 1
-            if value not in trigger_names:
-                logger.warning(f"trigger {value} not available, removing this trigger from the trigger combination {key}")
-                trigger_combinations[key]['triggers'].pop(i)
-                i -= 1
+        if(additional_folders is not None):  # optionally add filenames of other simulation runs for the same input files
+            filenames2 = []
+            for filename in filenames:
+                filenames2.append([filename])
+                for additional_folder in additional_folders:
+                    tmp = os.path.join(additional_folder, os.path.basename(filename))  # the filename is the same but the file is in a different folder
+                    filenames2[-1].append(tmp)
+    trigger_names = []
+    trigger_names_dict = []
+    for iFolder in range(len(filenames2[0])):
+        trigger_names.append([])
+        trigger_names_dict.append({})
+        for iF, filename in enumerate(filenames2):
+            filename = filename[iFolder]
+            logger.info(f"reading {filename}")
+            fin = h5py.File(filename, 'r')
+            if 'deposited' in fin.attrs:
+                deposited = fin.attrs['deposited']
+                if prev_deposited is None:
+                    prev_deposited = deposited
+                elif prev_deposited != deposited:
+                    raise AttributeError("The deposited parameter is not consistent among the input files!")
+            if('trigger_names' in fin.attrs):
+                trigger_names[iFolder] = fin.attrs['trigger_names']
+                if(len(trigger_names[iFolder]) > 0):
+                    for iT, trigger_name in enumerate(trigger_names[iFolder]):
+                        trigger_names_dict[-1][trigger_name] = iT
+                    fin.close()
+                    break
+#     trigger_combinations['all_triggers'] = {'triggers': trigger_names}
+#     logger.info(f"Trigger names:  {trigger_names}")
+#     for key in trigger_combinations:
+#         i = -1
+#         for value in trigger_combinations[key]['triggers']:
+#             i += 1
+#             if value not in trigger_names:
+#                 logger.warning(f"trigger {value} not available, removing this trigger from the trigger combination {key}")
+#                 trigger_combinations[key]['triggers'].pop(i)
+#                 i -= 1
     from multiprocessing import Pool
     logger.warning(f"running {len(filenames)} jobs on {n_cores} cores")
 
     args = []
-    for f in filenames:
+    for f in filenames2:
         args.append([f, trigger_names, trigger_names_dict, trigger_combinations, deposited, station, veff_aeff])
     with Pool(n_cores) as p:
-        output = p.map(tmp, args)
+        output = p.map(wrapper, args)
         print("output")
         print(output)
         return output
