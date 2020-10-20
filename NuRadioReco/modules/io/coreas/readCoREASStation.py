@@ -45,10 +45,10 @@ class readCoREASStation:
         for input_file in self.__input_files:
             self.__current_event = 0
             with h5py.File(input_file, "r") as corsika:
-                if "highlevel" not in corsika.keys() or list(corsika["highlevel"][()]) == []:
+                if "highlevel" not in corsika.keys() or list(corsika["highlevel"].values()) == []:
                     logger.warning(" No highlevel quantities in simulated hdf5 files, weights will be taken from station position")
                     positions = []
-                    for observer in corsika['CoREAS']['observers'][()]:
+                    for observer in corsika['CoREAS']['observers'].values():
                         position = observer.attrs['position']
                         positions.append(np.array([-position[1], position[0], 0]) * units.cm)
                     positions = np.array(positions)
@@ -64,7 +64,7 @@ class readCoREASStation:
                     # plt.show()
 
                 else:
-                    positions = list(corsika["highlevel"][()])[0]["antenna_position"]
+                    positions = list(corsika["highlevel"].values())[0]["antenna_position"]
                     zenith, azimuth, magnetic_field_vector = coreas.get_angles(corsika)
                     weights = coreas.calculate_simulation_weights(positions, zenith, azimuth)
 
