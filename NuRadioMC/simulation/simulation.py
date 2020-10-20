@@ -16,7 +16,6 @@ from scipy import constants
 # import detector simulation modules
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.channelSignalReconstructor
-import NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution
 import NuRadioReco.modules.electricFieldResampler
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.efieldToVoltageConverterPerEfield
@@ -28,10 +27,8 @@ import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.framework.parameters import eventParameters as evp
 from NuRadioReco.framework.parameters import showerParameters as shp
 import datetime
 import logging
@@ -41,6 +38,8 @@ import os
 import collections
 
 STATUS = 31
+
+# logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 
 
 class NuRadioMCLogger(logging.Logger):
@@ -54,7 +53,10 @@ logging.setLoggerClass(NuRadioMCLogger)
 logging.addLevelName(STATUS, 'STATUS')
 logger = logging.getLogger("NuRadioMC")
 assert isinstance(logger, NuRadioMCLogger)
-logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
+# formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
+# ch = logging.StreamHandler()
+# ch.setFormatter(formatter)
+# logger.addHandler(ch)
 
 
 def pretty_time_delta(seconds):
@@ -355,6 +357,7 @@ class simulation():
         """
         logger.status(f"Starting NuRadioMC simulation")
         t_start = time.time()
+        t_last_update = t_start
 
         self._channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
         self._eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
@@ -438,7 +441,9 @@ class simulation():
             if self._cfg['speedup']['distance_cut']:
                 t_tmp = time.time()
                 shower_energies = np.array(self._fin['shower_energies'])[event_indices]
-                vertex_positions = np.array([np.array(self._fin['xx'])[event_indices], np.array(self._fin['yy'])[event_indices], np.array(self._fin['zz'])[event_indices]]).T
+                vertex_positions = np.array([np.array(self._fin['xx'])[event_indices],
+                                             np.array(self._fin['yy'])[event_indices],
+                                             np.array(self._fin['zz'])[event_indices]]).T
                 vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
                 distance_cut_time += time.time() - t_tmp
 
@@ -448,6 +453,19 @@ class simulation():
                 t1 = time.time()
                 triggered_showers[self._station_id] = []
                 logger.debug(f"simulating station {self._station_id}")
+
+                if self._cfg['speedup']['distance_cut']:
+                    # perform a quick cut to reject event group completely if no shower is close enough to the station
+                    t_tmp = time.time()
+                    vertex_distances_to_station = np.linalg.norm(vertex_positions - self._station_barycenter[iSt], axis=1)
+                    distance_cut = self._get_distance_cut(np.sum(shower_energies)) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
+                    if vertex_distances_to_station.min() > distance_cut:
+                        logger.debug(f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min()/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {self._station_barycenter[iSt]}")
+                        distance_cut_time += time.time() - t_tmp
+                        iCounter += len(shower_energies)
+                        continue
+                    distance_cut_time += time.time() - t_tmp
+
                 candidate_station = False
                 self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
 #                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
@@ -468,7 +486,9 @@ class simulation():
                 for iSh, self._shower_index in enumerate(event_indices):
                     sg['shower_id'][iSh] = self._shower_ids[self._shower_index]
                     iCounter += 1
-                    if(iCounter % max(1, int(n_shower_station / 100.)) == 0):
+#                     if(iCounter % max(1, int(n_shower_station / 100.)) == 0):
+                    if((time.time() - t_last_update) > 60):
+                        t_last_update = time.time()
                         eta = pretty_time_delta((time.time() - t_start) * (n_shower_station - iCounter) / iCounter)
                         total_time_sum = input_time + rayTracingTime + detSimTime + outputTime + weightTime + distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
                         total_time = time.time() - t_start
