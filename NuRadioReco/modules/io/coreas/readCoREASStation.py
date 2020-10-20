@@ -59,7 +59,7 @@ class readCoREASStation:
                     if self.__debug:
                         import matplotlib.pyplot as plt
                         fig, ax = plt.subplots()
-                        im = ax.scatter(positions[:,0], positions[:, 1], c=weights)
+                        im = ax.scatter(positions[:, 0], positions[:, 1], c=weights)
                         fig.colorbar(im, ax=ax).set_label(label=r'Area $[m^2]$')
                         plt.xlabel('East [m]')
                         plt.ylabel('West [m]')
