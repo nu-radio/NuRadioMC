@@ -67,7 +67,9 @@ class efieldToVoltageConverterPerEfield():
                         index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                     else:  # signal is coming from above, so we take IOR of air
                         index_of_refraction = ice.get_refractive_index(1, site)
-
+                    # For cosmic ray events, we only have one electric field for all channels, so we have to account
+                    # for the difference in signal travel between channels. IMPORTANT: This is only accurate
+                    # if all channels have the same z coordinate
                     travel_time_shift = geometryUtilities.get_time_delay_from_direction(
                         zenith,
                         azimuth,
