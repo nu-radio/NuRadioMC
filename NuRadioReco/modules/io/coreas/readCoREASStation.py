@@ -12,7 +12,7 @@ logger = logging.getLogger('readCoREASStation')
 
 class readCoREASStation:
 
-    def begin(self, input_files, station_id):
+    def begin(self, input_files, station_id, debug=False):
         """
         begin method
 
@@ -29,6 +29,7 @@ class readCoREASStation:
         self.__station_id = station_id
         self.__current_input_file = 0
         self.__current_event = 0
+        self.__debug = debug
 
     @register_run()
     def run(self, detector):
@@ -53,15 +54,16 @@ class readCoREASStation:
                         positions.append(np.array([-position[1], position[0], 0]) * units.cm)
                     positions = np.array(positions)
                     zenith, azimuth, magnetic_field_vector = coreas.get_angles(corsika)
-                    weights = coreas.calculate_simulation_weights(positions, zenith, azimuth)
+                    weights = coreas.calculate_simulation_weights(positions, zenith, azimuth, debug=self.__debug)
 
-                    # import matplotlib.pyplot as plt
-
-                    # fig, ax = plt.subplots()
-                    # im = ax.scatter(positions[:,0], positions[:,1], c=weights)
-                    # fig.colorbar(im, ax=ax)
-                    # plt.gca().set_aspect('equal')
-                    # plt.show()
+                    if self.__debug:
+                        import matplotlib.pyplot as plt
+                        fig, ax = plt.subplots()
+                        im = ax.scatter(positions[:,0], positions[:,1], c=weights)
+                        fig.colorbar(im, ax=ax)
+                        plt.title('Final weighting')
+                        plt.gca().set_aspect('equal')
+                        plt.show()
 
                 else:
                     positions = list(corsika["highlevel"].values())[0]["antenna_position"]
