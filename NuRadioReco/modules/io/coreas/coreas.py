@@ -101,7 +101,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
         ax2.scatter(positions[:, 0], positions[:, 1], c='tab:blue', s=10, label='Position of stations')
         ax2.scatter(vertices_ground[:, 0], vertices_ground[:, 1], c='tab:orange', label='Vertices of cell')
         ax2.set_aspect('equal')
-        ax2.set_title('On ground, total area {:.2f} $km^2$'.format(sum(weights)/units.km**2))
+        ax2.set_title('On ground, total area {:.2f} $km^2$'.format(sum(weights) / units.km**2))
         ax2.set_xlabel('East [m]')
         ax2.set_ylabel('West [m]')
         ax2.set_xlim(-5000, 5000)
