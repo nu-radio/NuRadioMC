@@ -44,7 +44,6 @@ class IftElectricFieldReconstructor:
         amp_dct=None,
         phase_dct=None,
         trace_length=128,
-        efield_scaling=True,
         n_iterations=5,
         n_samples=20,
         polarization='theta',
@@ -54,7 +53,6 @@ class IftElectricFieldReconstructor:
         self.__filter_type = filter_type
         self.__debug = debug
         self.__trace_length = trace_length
-        self.__efield_scaling = efield_scaling
         self.__n_iterations = n_iterations
         self.__n_samples = n_samples
         self.__trace_samples = len(electric_field_template.get_times())
@@ -85,8 +83,9 @@ class IftElectricFieldReconstructor:
             self.__phase_dct = phase_dct
         return
 
-    def run(self, event, station, detector, channel_ids):
+    def run(self, event, station, detector, channel_ids, efield_scaling):
         self.__used_channel_ids = []    # only use channels with associated E-field and zenith
+        self.__efield_scaling = efield_scaling
         for channel_id in channel_ids:
             if len(list(station.get_electric_fields_for_channels([channel_id]))) > 0:
                 electric_field = list(station.get_electric_fields_for_channels([channel_id]))[0]
@@ -505,13 +504,11 @@ class IftElectricFieldReconstructor:
                 efield.set_trace(rec_efield, sampling_rate)
                 efield.set_trace_start_time(self.__trace_start_times[i_channel])
                 if self.__polarization == 'pol':
-                    print('polarization={}+/-{}'.format(polarization_stat_calculator.mean / units.deg, polarization_stat_calculator.var / units.deg))
                     efield.set_parameter(efp.polarization_angle, polarization_stat_calculator.mean)
                     efield.set_parameter_error(efp.polarization_angle, polarization_stat_calculator.var)
                 for sim_efield in station.get_sim_station().get_electric_fields_for_channels([channel_id]):
                     sim_energy_fluence = trace_utilities.get_electric_field_energy_fluence(sim_efield.get_trace(), sim_efield.get_times())
                     sim_polarization = np.arctan(sim_energy_fluence[2] / sim_energy_fluence[1])
-                    print('sim polarization angle:', sim_polarization / units.deg)
                 break
 
     def __draw_priors(
@@ -618,44 +615,67 @@ class IftElectricFieldReconstructor:
 
             ax1_1.plot(freqs / units.MHz, np.abs(fft.time2freq(self.__data_traces[i_channel], sampling_rate)) * self.__scaling_factor / units.mV, c='C0', label='data')
             if station.has_sim_station():
-                sim_channel_sum = None
-                for sim_channel in station.get_sim_station().iter_channels():
-                    if sim_channel.get_id() == channel_id:
-                        if sim_channel_sum is None:
-                            sim_channel_sum = sim_channel
+                sim_station = station.get_sim_station()
+                n_drawn_sim_channels = 0
+                for ray_tracing_id in sim_station.get_ray_tracing_ids():
+                    sim_channel_sum = None
+                    for sim_channel in sim_station.get_channels_by_ray_tracing_id(ray_tracing_id):
+                        if sim_channel.get_id() == channel_id:
+                            if sim_channel_sum is None:
+                                sim_channel_sum = sim_channel
+                            else:
+                                sim_channel_sum += sim_channel
+                            ax1_1.plot(sim_channel.get_frequencies() / units.MHz, np.abs(sim_channel.get_frequency_spectrum()) / units.mV, c='C1', linestyle='--', alpha=.5)
+                            ax2_1.plot(sim_channel.get_times(), sim_channel.get_trace() / units.mV, c='C1', linewidth=6, zorder=1, linestyle='--', alpha=.5)
+                    if sim_channel_sum is not None:
+                        if n_drawn_sim_channels == 0:
+                            sim_channel_label = 'MC truth'
                         else:
-                            sim_channel_sum += sim_channel
-                        ax1_1.plot(sim_channel.get_frequencies() / units.MHz, np.abs(sim_channel.get_frequency_spectrum()) / units.mV, c='C1', linestyle='--')
-                        ax2_1.plot(sim_channel.get_times(), sim_channel.get_trace() / units.mV, c='C1', linewidth=6, zorder=1, linestyle='--', alpha=.5)
-                if sim_channel_sum is not None:
-                    ax1_1.plot(
-                        sim_channel_sum.get_frequencies() / units.MHz,
-                        np.abs(sim_channel_sum.get_frequency_spectrum()) / units.mV,
-                        c='C1',
-                        label='MC truth',
-                        alpha=.5
-                    )
-                    ax2_1.plot(
-                        sim_channel_sum.get_times(),
-                        sim_channel_sum.get_trace() / units.mV,
-                        c='C1',
-                        linewidth=6,
-                        zorder=1,
-                        label='MC truth'
-                    )
-                for efield in station.get_sim_station().get_electric_fields_for_channels([channel_id]):
-                    if self.__polarization == 'theta':
-                        ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1')
-                    if self.__polarization == 'phi':
-                        ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1')
-                    if self.__polarization == 'pol':
-                        ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1')
-                        ax1_3.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1')
+                            sim_channel_label = None
+                        ax1_1.plot(
+                            sim_channel_sum.get_frequencies() / units.MHz,
+                            np.abs(sim_channel_sum.get_frequency_spectrum()) / units.mV,
+                            c='C1',
+                            label=sim_channel_label,
+                            alpha=.8,
+                            linewidth=2
+                        )
+                        ax2_1.plot(
+                            sim_channel_sum.get_times(),
+                            sim_channel_sum.get_trace() / units.mV,
+                            c='C1',
+                            linewidth=6,
+                            zorder=1,
+                            label=sim_channel_label
+                        )
+                        n_drawn_sim_channels += 1
+                    efield_sum = None
+                    for efield in station.get_sim_station().get_electric_fields_for_channels([channel_id]):
+                        if efield.get_ray_tracing_solution_id() == ray_tracing_id:
+                            if self.__polarization == 'theta':
+                                ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1', alpha=.2, linestyle='--')
+                            if self.__polarization == 'phi':
+                                ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1', alpha=.2, linestyle='--')
+                            if self.__polarization == 'pol':
+                                ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1', alpha=.2, linestyle='--')
+                                ax1_3.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1', alpha=.2, linestyle='--')
+                            if efield_sum is None:
+                                efield_sum = efield
+                            else:
+                                efield_sum += efield
+                    if efield_sum is not None:
+                        if self.__polarization == 'theta':
+                            ax1_2.plot(efield_sum.get_frequencies() / units.MHz, np.abs(efield_sum.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1', alpha=1.)
+                        if self.__polarization == 'phi':
+                            ax1_2.plot(efield_sum.get_frequencies() / units.MHz, np.abs(efield_sum.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1', alpha=1.)
+                        if self.__polarization == 'pol':
+                            ax1_2.plot(efield_sum.get_frequencies() / units.MHz, np.abs(efield_sum.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1', alpha=1.)
+                            ax1_3.plot(efield_sum.get_frequencies() / units.MHz, np.abs(efield_sum.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1', alpha=1.)
 
             ax2_1.plot(times, self.__data_traces[i_channel] * self.__scaling_factor / units.mV, c='C0', alpha=1., zorder=5, label='data')
             ax2_1.plot(times, np.abs(scipy.signal.hilbert(self.__data_traces[i_channel] * self.__scaling_factor)) / units.mV, c='C0', alpha=.2, zorder=3)
 
-            ax1_1.plot(freqs / units.MHz, amp_trace_stat_calculator.mean * self.__scaling_factor / units.mV, c='C2', label='IFT reco')
+            ax1_1.plot(freqs / units.MHz, amp_trace_stat_calculator.mean * self.__scaling_factor / units.mV, c='C2', label='IFT reco', linewidth=3)
             ax2_1.plot(times, trace_stat_calculator.mean * self.__scaling_factor / units.mV, c='C2', linestyle='-', zorder=2, linewidth=4, label='IFT reconstruction')
             ax2_1.plot(times, np.abs(scipy.signal.hilbert(trace_stat_calculator.mean * self.__scaling_factor)) / units.mV, c='C2', linestyle='-', zorder=2, linewidth=4, alpha=.5)
             ax2_1.set_xlim([times[0], times[-1]])
