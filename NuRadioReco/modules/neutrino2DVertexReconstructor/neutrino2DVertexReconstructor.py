@@ -78,7 +78,6 @@ class neutrino2DVertexReconstructor:
             if channel_z not in self.__lookup_table.keys():
                 f = NuRadioReco.utilities.io_utilities.read_pickle('{}/lookup_table_{}.p'.format(self.__lookup_table_location, int(abs(channel_z))))
                 self.__header[int(channel_z)] = f['header']
-                print(f['header'])
                 self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
 
     def run(self, station, max_distance, z_width, grid_spacing, direction_guess=None, debug=False):
@@ -246,7 +245,8 @@ class neutrino2DVertexReconstructor:
         delta_t = t1 - t2
         delta_t = delta_t.astype(float)
         corr_index = self.__correlation.shape[0] / 2 + np.round(delta_t * self.__sampling_rate)
-        mask = (~np.isnan(delta_t)) & (corr_index > 0) & (corr_index < self.__correlation.shape[0]) & (~np.isinf(delta_t))
+        corr_index[np.isnan(delta_t)] = 0
+        mask = (corr_index > 0) & (corr_index < self.__correlation.shape[0]) & (~np.isinf(delta_t))
         corr_index[~mask] = 0
         res = np.take(self.__correlation, corr_index.astype(int))
         res[~mask] = 0
@@ -279,7 +279,7 @@ class neutrino2DVertexReconstructor:
         mask[i_z > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
         i_x[~mask] = 0
         i_z[~mask] = 0
-        travel_times = self.__lookup_table[channel_type][ray_type][[i_x, i_z]]
+        travel_times = self.__lookup_table[channel_type][ray_type][(i_x, i_z)]
         travel_times[~mask] = np.nan
         return travel_times
 
