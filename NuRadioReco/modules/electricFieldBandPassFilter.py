@@ -1,7 +1,5 @@
-import numpy as np
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units
-import scipy.signal
+from NuRadioReco.utilities import units, bandpass_filter
 
 
 class electricFieldBandPassFilter:
@@ -39,17 +37,8 @@ class electricFieldBandPassFilter:
         for efield in station.get_electric_fields():
             frequencies = efield.get_frequencies()
             trace_fft = efield.get_frequency_spectrum()
-            if(filter_type == 'rectangular'):
-                trace_fft[:, np.where(frequencies < passband[0])] = 0.
-                trace_fft[:, np.where(frequencies > passband[1])] = 0.
-            elif(filter_type == 'butter'):
-                b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
-                w, h = scipy.signal.freqs(b, a, frequencies)
-                trace_fft *= h
-            elif(filter_type == 'butterabs'):
-                b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
-                w, h = scipy.signal.freqs(b, a, frequencies)
-                trace_fft *= np.abs(h)
+            filter_response = bandpass_filter.get_filter_response(frequencies, passband, filter_type, order)
+            trace_fft *= filter_response
             efield.set_frequency_spectrum(trace_fft, efield.get_sampling_rate())
 
     def end(self):
