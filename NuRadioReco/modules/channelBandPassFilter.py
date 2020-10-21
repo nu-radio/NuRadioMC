@@ -1,11 +1,8 @@
 import numpy as np
 from scipy import signal
-import scipy.signal
 import logging
-
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units
-from NuRadioReco.detector import filterresponse
+from NuRadioReco.utilities import units, bandpass_filter
 
 
 class channelBandPassFilter:
@@ -131,29 +128,7 @@ class channelBandPassFilter:
             the complex filter amplitudes
         """
         tmp_passband, tmp_order, tmp_filter_type = self.get_filter_arguments(channel_id, passband, filter_type, order)
-        if(tmp_filter_type == 'rectangular'):
-            f = np.ones_like(frequencies)
-            f[np.where(frequencies < tmp_passband[0])] = 0.
-            f[np.where(frequencies > tmp_passband[1])] = 0.
-            return f
-        elif(tmp_filter_type == 'butter'):
-            f = np.zeros_like(frequencies, dtype=np.complex)
-            mask = frequencies > 0
-            b, a = scipy.signal.butter(tmp_order, tmp_passband, 'bandpass', analog=True)
-            w, h = scipy.signal.freqs(b, a, frequencies[mask])
-            f[mask] = h
-            return f
-        elif(tmp_filter_type == 'butterabs'):
-            f = np.zeros_like(frequencies, dtype=np.complex)
-            mask = frequencies > 0
-            b, a = scipy.signal.butter(tmp_order, tmp_passband, 'bandpass', analog=True)
-            w, h = scipy.signal.freqs(b, a, frequencies[mask])
-            f[mask] = h
-            return np.abs(f)
-        elif(tmp_filter_type.find('FIR') >= 0):
-            raise NotImplementedError("FIR filter not yet implemented")
-        else:
-            return filterresponse.get_filter_response(frequencies, tmp_filter_type)
+        return bandpass_filter.get_filter_response(frequencies, tmp_passband, tmp_filter_type, tmp_order)
 
     def _apply_filter(self, channel, passband, filter_type, order, is_efield=False):
 

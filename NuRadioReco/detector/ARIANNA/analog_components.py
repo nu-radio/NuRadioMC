@@ -160,3 +160,7 @@ def get_cable_response(frequencies, path=os.path.dirname(os.path.realpath(__file
     cable_phase = np.exp(1j * cable_phase)
 
     return cable_amp * cable_phase
+
+
+def get_available_amplifiers():
+    return ['100', '200', '300']
