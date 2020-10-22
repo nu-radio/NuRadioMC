@@ -38,6 +38,24 @@ class triggerSimulator:
     def get_antenna_positions(self, station, det, triggered_channels=None, component=2):
         """
         Calculates the vertical coordinates of the antennas of the detector
+
+        Parameters
+        ----------
+        station: Station object
+            Description of the current station
+        det: Detector object
+            Description of the current detector
+        triggered_channels: array of ints
+            channels ids of the channels that form the primary phasing array
+            if None, all channels are taken
+        component: int
+            Which cartesian coordinate to return
+
+        Returns
+        -------
+        ant_pos: array of floats
+            Desired antenna position in requested coordinate        
+
         """
 
         ant_pos = [det.get_relative_position(station.get_id(), channel.get_id())[component]
@@ -46,33 +64,38 @@ class triggerSimulator:
 
         return np.array(ant_pos)
 
-    def get_beam_rolls(self, station, det,
-                       triggered_channels,
-                       phasing_angles=default_angles,
-                       ref_index=1.75,
-                       sampling_frequency=None):
+    def calculate_time_delays(self, station, det,
+                              triggered_channels,
+                              phasing_angles=default_angles,
+                              ref_index=1.75,
+                              sampling_frequency=None):
 
         """
         Calculates the delays needed for phasing the array.
 
         Parameters
         ----------
-        evt: Event object
-            Description of the current event
         station: Station object
             Description of the current station
         det: Detector object
             Description of the current detector
+        triggered_channels: array of ints
+            channels ids of the channels that form the primary phasing array
+            if None, all channels are taken
         phasing_angles: array of float
             pointing angles for the primary beam
         ref_index: float
             refractive index for beam forming
         sampling_frequency: float
             Rate of the ADC used
+
         Returns
         -------
         beam_rolls: array of dicts of keys=antenna and content=delay
         """
+
+        if(triggered_channels is None):
+            triggered_channels = [channel.get_id() for channel in station.iter_channels()]
 
         time_step = 1. / sampling_frequency
 
@@ -96,6 +119,22 @@ class triggerSimulator:
         return beam_rolls
 
     def get_channel_trace_start_time(self, station, triggered_channels):
+        """
+        Finds the start time of the desired traces. 
+        Throws an error if all the channels dont have the same start time.
+
+        Parameters
+        ----------
+        station: Station object
+            Description of the current station
+        triggered_channels: array of ints
+            channels ids of the channels that form the primary phasing array
+            if None, all channels are taken
+        Returns
+        -------
+        channel_trace_start_time: float
+            Channel start time
+        """
 
         channel_trace_start_time = None
         for channel in station.iter_channels(use_channels=triggered_channels):
@@ -111,6 +150,17 @@ class triggerSimulator:
     def check_vertical_string(self, station, det, triggered_channels):
         """
         Checks if the triggering antennas lie in a straight vertical line
+        Throws error if not. 
+
+        Parameters
+        ----------
+        station: Station object
+            Description of the current station
+        det: Detector object
+            Description of the current detector
+        triggered_channels: array of ints
+            channels ids of the channels that form the primary phasing array
+            if None, all channels are taken
         """
 
         cut = 1.e-3 * units.m
@@ -121,17 +171,44 @@ class triggerSimulator:
         if (sum(diff_x) > cut or sum(diff_y) > cut):
             raise NotImplementedError('The phased triggering array should lie on a vertical line')
 
-    def powerSum(self, coh_sum, window, step, adc_output='voltage'):
-        '''
-        calculate power summed over a length defined by 'window', overlapping at intervals defined by 'step'
-        '''
+    def power_sum(self, coh_sum, window, step, adc_output='voltage'):
+        """
+        Calculate power summed over a length defined by 'window', overlapping at intervals defined by 'step'
+
+        Parameters
+        ----------
+        coh_sum: array of floats
+            Phased signal to be integrated over
+        window: int
+            Power integral window
+            Units of ADC time ticks
+        step: int
+            Time step in power integral. If equal to window, there is no time overlap
+            in between neighboring integration windows
+            Units of ADC time ticks. 
+        adc_output: string
+            - 'voltage' to store the ADC output as discretised voltage trace
+            - 'counts' to store the ADC output in ADC counts
+
+        Returns
+        -------
+        power:
+            Integrated power in each integration window
+        num_frames
+            Number of integration windows calculated
+
+        """
+
+        if(adc_output != 'voltage' and adc_output != 'counts'):
+            error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
+            raise ValueError(error_msg)
 
         num_frames = int(np.floor((len(coh_sum) - window) / step))
 
         if(adc_output == 'voltage'):
             coh_sum_squared = (coh_sum * coh_sum).astype(np.float)
         elif(adc_output == 'counts'):
-            coh_sum_squared = (coh_sum * coh_sum).astype(np.int)
+            coh_sum_squared = (coh_sum * coh_sum).astype(np.int)    
 
         coh_sum_windowed = np.lib.stride_tricks.as_strided(coh_sum_squared, (num_frames, window),
                                                            (coh_sum_squared.strides[0] * step, coh_sum_squared.strides[0]))
@@ -140,9 +217,21 @@ class triggerSimulator:
         return power.astype(np.float) / window, num_frames
 
     def phase_signals(self, traces, beam_rolls):
-        '''
-        phase signals together given the rolls
-        '''
+        """
+        Phase signals together given the rolls
+
+        Parameters
+        ----------
+        traces: 2D array of floats
+            Signals from the antennas to be phased together.
+        beam_rolls: 2D array of floats
+            The amount to shift each signal before phasing the
+            traces together
+
+        Returns
+        -------
+        phased_traces: array of arrays
+        """
 
         phased_traces = [[] for i in range(len(beam_rolls))]
 
@@ -159,6 +248,155 @@ class triggerSimulator:
             running_i += 1
 
         return phased_traces
+
+    def phased_trigger(self, station, det,
+                       Vrms=None,
+                       threshold=60*units.mV,
+                       triggered_channels=None,
+                       phasing_angles=default_angles,
+                       ref_index=1.75,
+                       trigger_adc=False,  # by default, assumes the trigger ADC is the same as the channels ADC
+                       clock_offset=0,
+                       adc_output='voltage',
+                       trigger_filter=None,
+                       upsampling_factor=1,
+                       window=32,
+                       step=16):
+
+        """
+        simulates phased array trigger for each event
+
+        Several channels are phased by delaying their signals by an amount given
+        by a pointing angle. Several pointing angles are possible in order to cover
+        the sky. The array triggered_channels controls the channels that are phased,
+        according to the angles phasing_angles.
+
+        Parameters
+        ----------
+        station: Station object
+            Description of the current station
+        det: Detector object
+            Description of the current detector
+        Vrms: float
+            RMS of the noise on a channel, used to automatically create the digitizer
+            reference voltage. If set to None, tries to use reference voltage as defined
+            int the detector description file.
+        threshold: float
+            threshold above (or below) a trigger is issued, absolute amplitude
+        triggered_channels: array of ints
+            channels ids of the channels that form the primary phasing array
+            if None, all channels are taken
+        phasing_angles: array of float
+            pointing angles for the primary beam
+        ref_index: float
+            refractive index for beam forming
+        trigger_adc: bool, default True
+            If True, analog to digital conversion is performed. It must be specified in the
+            detector file. See analogToDigitalConverter module for information
+        clock_offset: float
+            Overall clock offset, for adc clock jitter reasons
+        trigger_filter: array floats
+            Freq. domain of the response to be applied to post-ADC traces
+            Must be length for "MC freq"
+        upsampling_factor: integer
+            Upsampling factor. The trace will be a upsampled to a
+            sampling frequency int_factor times higher than the original one
+            after conversion to digital
+        window: int
+            Power integral window
+            Units of ADC time ticks
+        step: int
+            Time step in power integral. If equal to window, there is no time overlap
+            in between neighboring integration windows. 
+            Units of ADC time ticks
+        Returns
+        -------
+        is_triggered: bool
+            True if the triggering condition is met
+        trigger_delays: dictionary
+            the delays for the primary channels that have caused a trigger.
+            If there is no trigger, it's an empty dictionary
+        """
+
+        if(triggered_channels is None):
+            triggered_channels = [channel.get_id() for channel in station.iter_channels()]
+
+        if(adc_output != 'voltage' and adc_output != 'counts'):
+            error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
+            raise ValueError(error_msg)
+
+        ADC = analogToDigitalConverter()
+
+        is_triggered = False
+        trigger_delays = {}
+
+        Nant = len(triggered_channels)
+
+        logger.debug("trigger channels:", triggered_channels)
+
+        traces = {}
+        for channel in station.iter_channels(use_channels=triggered_channels):
+            channel_id = channel.get_id()
+
+            trace, adc_sampling_frequency = ADC.get_digital_trace(station, det, channel,
+                                                                  Vrms=Vrms,
+                                                                  trigger_adc=trigger_adc,
+                                                                  clock_offset=clock_offset,
+                                                                  return_sampling_frequency=True,
+                                                                  adc_type='perfect_floor_comparator',
+                                                                  adc_output=adc_output,
+                                                                  trigger_filter=None)
+
+            # Upsampling here, linear interpolate to mimic an FPGA internal upsampling
+            if not isinstance(upsampling_factor, int):
+                try:
+                    upsampling_factor = int(upsampling_factor)
+                except:
+                    raise ValueError("Could not convert upsampling_factor to integer. Exiting.")
+
+            if(upsampling_factor >= 2):
+
+                #upsampled_trace = upsampling_fir(trace, adc_sampling_frequency,
+                #                                 int_factor=upsampling_factor, ntaps=4 * upsampling_factor)
+                
+                #upsampled_trace = scipy.signal.resample(trace, len(trace) * upsampling_factor)
+                upsampled_trace = scipy.signal.resample_poly(trace, 4 * upsampling_factor, 4)
+                
+                #  If upsampled is performed, the final sampling frequency changes
+                trace = upsampled_trace[:]
+
+                if(len(trace) % 2 == 1):
+                    trace = trace[:-1]
+
+                adc_sampling_frequency *= upsampling_factor
+
+            time_step = 1.0 / adc_sampling_frequency
+
+            traces[channel_id] = trace[:]
+
+        beam_rolls = self.calculate_time_delays(station, det,
+                                                triggered_channels,
+                                                phasing_angles,
+                                                ref_index=ref_index,
+                                                sampling_frequency=adc_sampling_frequency)
+        
+        phased_traces = self.phase_signals(traces, beam_rolls)
+        
+        for iTrace, phased_trace in enumerate(phased_traces):
+            
+            # Create a sliding window
+            squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output)
+            
+            if True in (squared_mean > threshold):
+                trigger_delays = {}
+                
+                for channel_id in beam_rolls[iTrace]:
+                    trigger_delays[channel_id] = beam_rolls[iTrace][channel_id] * time_step
+
+                logger.debug("Station has triggered")
+                is_triggered = True
+
+        return is_triggered, trigger_delays
 
     @register_run()
     def run(self, evt, station, det,
@@ -215,6 +453,9 @@ class triggerSimulator:
             detector file. See analogToDigitalConverter module for information
         clock_offset: float
             Overall clock offset, for adc clock jitter reasons
+        adc_output: string
+            - 'voltage' to store the ADC output as discretised voltage trace
+            - 'counts' to store the ADC output in ADC counts
         trigger_filter: array floats
             Freq. domain of the response to be applied to post-ADC traces
             Must be length for "MC freq"
@@ -224,8 +465,11 @@ class triggerSimulator:
             after conversion to digital
         window: int
             Power integral window
+            Units of ADC time ticks
         step: int
-            Time step in power integral
+            Time step in power integral. If equal to window, there is no time overlap
+            in between neighboring integration windows. 
+            Units of ADC time ticks
         Returns
         -------
         is_triggered: bool
@@ -239,80 +483,32 @@ class triggerSimulator:
             error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
             raise ValueError(error_msg)
 
-        ADC = analogToDigitalConverter()
-
         is_triggered = False
         trigger_delays = {}
 
-        Nant = len(triggered_channels)
+        channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
 
-        if not(set_not_triggered):
-
-            logger.debug("trigger channels:", triggered_channels)
-
-            traces = {}
-            channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
-            for channel in station.iter_channels(use_channels=triggered_channels):
-                channel_id = channel.get_id()
-
-                trace, adc_sampling_frequency = ADC.get_digital_trace(station, det, channel,
-                                                                      Vrms=Vrms,
-                                                                      trigger_adc=trigger_adc,
-                                                                      clock_offset=clock_offset,
-                                                                      return_sampling_frequency=True,
-                                                                      adc_type='perfect_floor_comparator',
-                                                                      adc_output=adc_output,
-                                                                      trigger_filter=None)
-
-                # Upsampling here, linear interpolate to mimic an FPGA internal upsampling
-                if not isinstance(upsampling_factor, int):
-                    try:
-                        upsampling_factor = int(upsampling_factor)
-                    except:
-                        raise ValueError("Could not convert upsampling_factor to integer. Exiting.")
-
-                if(upsampling_factor >= 2):
-
-                    #upsampled_trace = upsampling_fir(trace, adc_sampling_frequency,
-                    #                                 int_factor=upsampling_factor, ntaps=4 * upsampling_factor)
-
-                    upsampled_trace = scipy.signal.resample(trace, len(trace) * upsampling_factor)
-
-                    #  If upsampled is performed, the final sampling frequency changes
-                    trace = upsampled_trace[:]
-
-                    if(len(trace) % 2 == 1):
-                        trace = trace[:-1]
-
-                    adc_sampling_frequency *= upsampling_factor
-
-                time_step = 1.0 / adc_sampling_frequency
-
-                traces[channel_id] = trace[:]
-
-            beam_rolls = self.get_beam_rolls(station, det,
-                                             triggered_channels,
-                                             phasing_angles,
-                                             ref_index=ref_index,
-                                             sampling_frequency=adc_sampling_frequency)
-
-            squared_mean_threshold = Nant * threshold ** 2
-
-            phased_traces = self.phase_signals(traces, beam_rolls)
-
-            for iTrace, phased_trace in enumerate(phased_traces):
-
-                # Create a sliding window
-                squared_mean, num_frames = self.powerSum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output)
-
-                if True in (squared_mean > squared_mean_threshold):
-                    trigger_delays = {}
-
-                    for channel_id in beam_rolls[iTrace]:
-                        trigger_delays[channel_id] = beam_rolls[iTrace][channel_id] * time_step
-
-                    logger.debug("Station has triggered")
-                    is_triggered = True
+        if(set_not_triggered):
+            is_triggered = False
+            trigger_delays = {}
+            sec_trigger_delays = {}
+        else:
+            is_triggered, trigger_delays = self.phased_trigger(station=station, 
+                                                               det=det,
+                                                               Vrms=Vrms,
+                                                               threshold=threshold,
+                                                               triggered_channels=triggered_channels,
+                                                               phasing_angles=phasing_angles,
+                                                               ref_index=ref_index,
+                                                               trigger_adc=trigger_adc,
+                                                               clock_offset=clock_offset,
+                                                               adc_output=adc_output,
+                                                               trigger_filter=trigger_filter,
+                                                               upsampling_factor=upsampling_factor,
+                                                               window=window,
+                                                               step=step)
+            
+            sec_trigger_delays = {}
 
         # Create a trigger object to be returned to the station
         trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, phasing_angles, trigger_delays)
