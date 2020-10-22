@@ -58,8 +58,8 @@ class channelTimeOffsetCalculator:
                 solution_type = raytracer.get_solution_type(i_solution)
                 found_solutions[i_channel, solution_type - 1] += 1
                 propagation_times[i_channel, solution_type - 1] = raytracer.get_travel_time(i_solution)
-                receive_angles[i_channel, solution_type - 1] = radiotools.helper.get_angle(
-                    raytracer.get_receive_vector(i_solution), np.array([0, 0, 1]))
+                receive_vector = raytracer.get_receive_vector(i_solution)
+                receive_angles[i_channel, solution_type - 1] = radiotools.helper.cartesian_to_spherical(receive_vector[0], receive_vector[1], receive_vector[2])[0]
         for i_solution in range(3):
             if len(propagation_times[:, i_solution][propagation_times[:, i_solution] > 0]) > 0:
                 propagation_times[:, i_solution][propagation_times[:, i_solution] > 0] -= np.mean(propagation_times[:, i_solution][propagation_times[:, i_solution] > 0])
@@ -92,3 +92,4 @@ class channelTimeOffsetCalculator:
         for i_channel, channel_id in enumerate(channel_ids):
             channel = station.get_channel(channel_id)
             channel.set_parameter(chp.signal_time_offset, propagation_times[i_channel, np.argmax(correlation_sum_max)])
+            channel.set_parameter(chp.signal_receiving_zenith, receive_angles[i_channel, np.argmax(correlation_sum_max)])
