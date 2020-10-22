@@ -491,6 +491,8 @@ def get_Veff_Aeff(folder,
                 for additional_folder in additional_folders:
                     tmp = os.path.join(additional_folder, os.path.basename(filename))  # the filename is the same but the file is in a different folder
                     filenames2[-1].append(tmp)
+            else:
+                filenames2 = [filenames]
     trigger_names = []
     trigger_names_dict = []
     for iFolder in range(len(filenames2[0])):
