@@ -193,9 +193,6 @@ def get_Veff_Aeff_single(filenames, trigger_names, trigger_names_dict, trigger_c
     if(veff_aeff not in ["veff", "aeff_surface_muons"]):
         raise AttributeError(f"the paramter `veff_aeff` needs to be one of either `veff` or `aeff_surface_muons`")
     filenames = np.atleast_1d(filenames)
-    if(len(filenames) == 1):
-        trigger_names = [trigger_names]
-        trigger_names_dict = [trigger_names_dict]
     fins = []
     for filename in filenames:
         logger.warning(f"processing file  {filename}")
@@ -277,6 +274,11 @@ def get_Veff_Aeff_single(filenames, trigger_names, trigger_names_dict, trigger_c
         for trigger_name in unique_trigger_names:
             triggered = []
             for iF, fin in enumerate(fins):
+                print(iF, fin)
+                print('multiple_triggers' in fin)
+                print(trigger_name)
+                print(trigger_names[iF])
+                print(trigger_name in trigger_names[iF])
                 if('multiple_triggers' in fin and trigger_name in trigger_names[iF]):
                     iT = trigger_names_dict[iF][trigger_name]
                     triggered.extend(fin['multiple_triggers'][:, iT])
@@ -484,15 +486,14 @@ def get_Veff_Aeff(folder,
         if(len(glob.glob(os.path.join(folder, '*.hdf5'))) == 0):
             raise FileNotFoundError(f"couldnt find any hdf5 file in folder {folder}")
         filenames = sorted(glob.glob(os.path.join(folder, '*.hdf5')))
-        if(additional_folders is not None):  # optionally add filenames of other simulation runs for the same input files
-            filenames2 = []
-            for filename in filenames:
-                filenames2.append([filename])
+        filenames2 = []
+        for filename in filenames:
+            filenames2.append([filename])
+            if(additional_folders is not None):  # optionally add filenames of other simulation runs for the same input files
                 for additional_folder in additional_folders:
                     tmp = os.path.join(additional_folder, os.path.basename(filename))  # the filename is the same but the file is in a different folder
                     filenames2[-1].append(tmp)
-        else:
-            filenames2 = [filenames]
+    print(filenames2)
     trigger_names = []
     trigger_names_dict = []
     for iFolder in range(len(filenames2[0])):
@@ -515,6 +516,7 @@ def get_Veff_Aeff(folder,
                         trigger_names_dict[-1][trigger_name] = iT
                     fin.close()
                     break
+    print(f"trigger names {trigger_names}")
 #     trigger_combinations['all_triggers'] = {'triggers': trigger_names}
 #     logger.info(f"Trigger names:  {trigger_names}")
 #     for key in trigger_combinations:
@@ -531,6 +533,8 @@ def get_Veff_Aeff(folder,
     args = []
     for f in filenames2:
         args.append([f, trigger_names, trigger_names_dict, trigger_combinations, deposited, station, veff_aeff])
+        print("tada")
+        print(args[-1])
     with Pool(n_cores) as p:
         output = p.map(wrapper, args)
         print("output")
