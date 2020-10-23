@@ -216,7 +216,6 @@ def get_Veff_Aeff_single(filenames, trigger_names, trigger_names_dict, trigger_c
                 if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
                     logger.warning("file {} has no triggering events. Using trigger names from another file".format(filename))
                 else:
-                    print(iF)
                     logger.error("file {} has inconsistent trigger names: {} vs {}".format(filenames[iF], fin.attrs['trigger_names'],
                                                                                            trigger_names[iF]))
                     raise
@@ -274,11 +273,6 @@ def get_Veff_Aeff_single(filenames, trigger_names, trigger_names_dict, trigger_c
         for trigger_name in unique_trigger_names:
             triggered = []
             for iF, fin in enumerate(fins):
-                print(iF, fin)
-                print('multiple_triggers' in fin)
-                print(trigger_name)
-                print(trigger_names[iF])
-                print(trigger_name in trigger_names[iF])
                 if('multiple_triggers' in fin and trigger_name in trigger_names[iF]):
                     iT = trigger_names_dict[iF][trigger_name]
                     triggered.extend(fin['multiple_triggers'][:, iT])
@@ -493,7 +487,6 @@ def get_Veff_Aeff(folder,
                 for additional_folder in additional_folders:
                     tmp = os.path.join(additional_folder, os.path.basename(filename))  # the filename is the same but the file is in a different folder
                     filenames2[-1].append(tmp)
-    print(filenames2)
     trigger_names = []
     trigger_names_dict = []
     for iFolder in range(len(filenames2[0])):
@@ -516,7 +509,6 @@ def get_Veff_Aeff(folder,
                         trigger_names_dict[-1][trigger_name] = iT
                     fin.close()
                     break
-    print(f"trigger names {trigger_names}")
 #     trigger_combinations['all_triggers'] = {'triggers': trigger_names}
 #     logger.info(f"Trigger names:  {trigger_names}")
 #     for key in trigger_combinations:
@@ -533,8 +525,6 @@ def get_Veff_Aeff(folder,
     args = []
     for f in filenames2:
         args.append([f, trigger_names, trigger_names_dict, trigger_combinations, deposited, station, veff_aeff])
-        print("tada")
-        print(args[-1])
     with Pool(n_cores) as p:
         output = p.map(wrapper, args)
         print("output")
