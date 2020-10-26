@@ -247,7 +247,7 @@ class IftElectricFieldReconstructor:
         if self.__debug:
             ax1_2.plot(correlation_sum)
             fig2.tight_layout()
-            fig2.savefig('traces_{}_{}.png'.format(event.get_run_number(), event.get_id()))
+            fig2.savefig('{}_{}_traces.png'.format(event.get_run_number(), event.get_id()))
 
     def __get_detector_operators(
         self,
@@ -484,7 +484,7 @@ class IftElectricFieldReconstructor:
         ax1_3.set_title('Channel Spectrum')
         ax1_4.set_title('Channel Trace')
         fig1.tight_layout()
-        fig1.savefig('priors_{}.png'.format(event.get_id()))
+        # fig1.savefig('priors_{}.png'.format(event.get_id()))
 
     def __draw_reconstruction(
         self,
@@ -640,6 +640,6 @@ class IftElectricFieldReconstructor:
             ax2_1.set_xlabel('t [ns]')
             ax2_1.set_ylabel('U [mV]')
         fig1.tight_layout()
-        fig1.savefig('spec_reco_{}_{}.png'.format(event.get_run_number(), event.get_id()))
+        fig1.savefig('{}_{}_spec_reco.png'.format(event.get_run_number(), event.get_id()))
         fig2.tight_layout()
-        fig2.savefig('trace_reco_{}_{}.png'.format(event.get_run_number(), event.get_id()))
+        fig2.savefig('{}_{}_trace_reco.png'.format(event.get_run_number(), event.get_id()))
