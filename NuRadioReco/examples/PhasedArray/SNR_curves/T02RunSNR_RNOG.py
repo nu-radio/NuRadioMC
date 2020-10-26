@@ -22,12 +22,14 @@ bandpass filter and so on.
 WARNING: this file needs NuRadioMC to be run.
 """
 from __future__ import absolute_import, division, print_function
+
 import argparse
 import json
 import logging
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy
 from NuRadioMC.simulation import simulation
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
@@ -49,27 +51,32 @@ channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPas
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
-# 4 channel, 2x sampling, fft upsampling, Half Window
-#  100 Hz -> 2.63
-#  10 Hz -> 2.75
-#  1 Hz -> 2.86
+# 4 channel, 2x sampling, fft upsampling, 16 ns window
+# 100 Hz -> 1.77
+# 10 Hz -> 1.98
+# 1 Hz -> 2.20
 
-# 8 channel, 4x sampling, fft upsampling, Half Window
-#  100 Hz -> 2.67
-#  10 Hz -> 2.78
-#  1 Hz -> 2.89
+# 8 channel, 4x sampling, fft upsampling, 16 ns window
+#  100 Hz -> 1.83
+#  10 Hz -> 2.05
+#  1 Hz -> 2.26
 
-# Single antenna
-#  100 Hz -> 2.02
-#  10 Hz -> 2.12
-#  1 Hz -> 2.21
+# 4 channels, 2x sampling, 16 ns window, linear up
+#  100 Hz -> 1.26
+#  10 Hz -> 1.43
+#  1 Hz -> 1.60
+
+# 8 channels, 4x sampling, 16 ns window, linear up
+#  100 Hz -> 1.19
+#  10 Hz -> 1.34
+#  1 Hz -> 1.50
 
 n_channels = 8
 main_low_angle = np.deg2rad(-59.55)
 main_high_angle = np.deg2rad(59.55)
 
 N = 31
-SNRs = (np.linspace(0.5, 4.0, N))
+SNRs = (np.linspace(0.1, 4.0, N))
 SNRtriggered = np.zeros(N)
 
 channels = []
@@ -83,23 +90,31 @@ filt_highres = filt1_highres * filt2_highres
 bandwidth = np.trapz(np.abs(filt_highres) ** 2, fff)
 Vrms_ratio = np.sqrt(bandwidth / (max_freq - min_freq))
 
+new_sampling_rate = 500.0 * units.MHz
+
 if(n_channels == 4):
     upsampling_factor = 2
+    window = int(16 * units.ns * new_sampling_rate * upsampling_factor)
+    step = int(8 * units.ns * new_sampling_rate * upsampling_factor)
     phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
     channels = np.arange(4, 8)
-    threshold = 2.63
+    threshold = 1.77 * window
     phase = True
 elif(n_channels == 8):
     upsampling_factor = 4
+    window = int(16 * units.ns * new_sampling_rate * upsampling_factor)
+    step = int(8 * units.ns * new_sampling_rate * upsampling_factor)
     phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 21))
     channels = None
-    threshold = 2.67
+    threshold = 1.83 * window
     phase = True
 elif(n_channels == 1):
     upsampling_factor = 1
+    window = int(16 * units.ns * new_sampling_rate * upsampling_factor)
+    step = int(8 * units.ns * new_sampling_rate * upsampling_factor)
     phasing_angles = []
     channels = [4]
-    threshold = 2.02
+    threshold = 2.5
     phase = False
 else:
     print("wrong n_channels!")
@@ -112,8 +127,10 @@ count_events.events = 0
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-        channelBandPassFilter.run(evt, station, det,
-                                  passband=[0, 500.0 * units.MHz], filter_type='butter', order=10)
+        channelBandPassFilter.run(evt, station, det, passband=[0.0 * units.MHz, 240.0 * units.MHz],
+                                  filter_type='cheby1', order=9, rp=.1)
+        channelBandPassFilter.run(evt, station, det, passband=[80.0 * units.MHz, 230.0 * units.MHz],
+                                  filter_type='cheby1', order=4, rp=.1)
 
     def _detector_simulation_part2(self):
         # Start detector simulation
@@ -122,7 +139,6 @@ class mySimulation(simulation.simulation):
         efieldToVoltageConverter.run(self._evt, self._station, self._det)
 
         # Downsample trace back to detector sampling rate
-        new_sampling_rate = 500.0 * units.MHz
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
     
         # Filter signals
@@ -131,7 +147,6 @@ class mySimulation(simulation.simulation):
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[80.0 * units.MHz, 230.0 * units.MHz],
                                   filter_type='cheby1', order=4, rp=.1)
 
-        # Copying the original traces. Not really needed
         filtered_signal_traces = {}
         for channel in self._station.iter_channels():
             trace = np.array(channel.get_trace())
@@ -173,18 +188,19 @@ class mySimulation(simulation.simulation):
                                                      ref_index = 1.75,
                                                      trigger_name='primary_phasing',
                                                      trigger_adc=False, # Don't have a seperate ADC for the trigger
+                                                     clock_offset=np.random.uniform(0.0, 2.0),
                                                      adc_output='voltage', # output in volts
                                                      trigger_filter=None,
                                                      upsampling_factor=upsampling_factor,
-                                                     window=int(32 * new_sampling_rate * upsampling_factor / 2),
-                                                     step = int(16 * new_sampling_rate * upsampling_factor / 2))
+                                                     window=window,
+                                                     step=step)
             else:
                 original_traces_ = self._station.get_channel(4).get_trace()
 
-                squared_mean, num_frames = triggerSimulator.powerSum(coh_sum=original_traces_,
-                                                                     window=int(32 * new_sampling_rate / 2),
-                                                                     step=int(16 * new_sampling_rate / 2),
-                                                                     adc_output=f'voltage')
+                squared_mean, num_frames = triggerSimulator.power_sum(coh_sum=original_traces_,
+                                                                      window=window,
+                                                                      step=step,
+                                                                      adc_output=f'voltage')
 
                 squared_mean_threshold = np.power(threshold, 2.0)
 
@@ -213,18 +229,19 @@ class mySimulation(simulation.simulation):
                                                      ref_index = 1.75,
                                                      trigger_name='primary_phasing',
                                                      trigger_adc=False,
+                                                     clock_offset=np.random.uniform(0.0, 2.0),
                                                      adc_output='voltage',
                                                      trigger_filter=None,
                                                      upsampling_factor=upsampling_factor,
-                                                     window=int(32 * new_sampling_rate * upsampling_factor / 2),
-                                                     step = int(16 * new_sampling_rate * upsampling_factor / 2))
+                                                     window=window,
+                                                     step=step)
             else:
                 original_traces_ = self._station.get_channel(4).get_trace()
 
-                squared_mean, num_frames = triggerSimulator.powerSum(coh_sum=original_traces_,
-                                                                     window=int(32 * new_sampling_rate / 2),
-                                                                     step=int(16 * new_sampling_rate / 2),
-                                                                     adc_output=f'voltage')
+                squared_mean, num_frames = triggerSimulator.power_sum(coh_sum=original_traces_,
+                                                                      window=window,
+                                                                      step=step,
+                                                                      adc_output=f'voltage')
 
                 squared_mean_threshold = np.power(threshold, 2.0)
 
@@ -239,6 +256,7 @@ class mySimulation(simulation.simulation):
         print(SNRtriggered)
 
         if(count_events.events % 10 == 0):
+            #plt.show()
             # Save every ten triggers
             output = {'total_events': count_events.events, 'SNRs': list(SNRs), 'triggered': list(SNRtriggered)}
             outputfile = args.outputSNR

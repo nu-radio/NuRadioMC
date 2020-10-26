@@ -1,5 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
+import NuRadioReco
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.trace_utilities import upsampling_fir
 from NuRadioReco.framework.trigger import SimplePhasedTrigger
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 import logging
@@ -7,6 +9,7 @@ import scipy
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import constants
+from scipy.interpolate import interp1d
 
 logger = logging.getLogger('phasedTriggerSimulator')
 
@@ -262,7 +265,6 @@ class triggerSimulator:
                        upsampling_factor=1,
                        window=32,
                        step=16):
-
         """
         simulates phased array trigger for each event
 
@@ -355,13 +357,29 @@ class triggerSimulator:
                     raise ValueError("Could not convert upsampling_factor to integer. Exiting.")
 
             if(upsampling_factor >= 2):
+                '''
+                # Zero inserting and filtering
+                upsampled_trace = upsampling_fir(trace, adc_sampling_frequency,
+                                                 int_factor=upsampling_factor, ntaps=1)
 
-                #upsampled_trace = upsampling_fir(trace, adc_sampling_frequency,
-                #                                 int_factor=upsampling_factor, ntaps=4 * upsampling_factor)
-                
-                #upsampled_trace = scipy.signal.resample(trace, len(trace) * upsampling_factor)
-                upsampled_trace = scipy.signal.resample_poly(trace, 4 * upsampling_factor, 4)
-                
+                channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
+                ff = np.fft.rfftfreq(len(upsampled_trace), 1.0 / adc_sampling_frequency / upsampling_factor)
+                filt = channelBandPassFilter.get_filter(ff, 0, 0, None, passband=[0, 240 * units.MHz], filter_type="cheby1", order=9, rp=.1)
+
+                upsampled_trace = np.fft.irfft(np.fft.rfft(upsampled_trace) * filt)
+                '''
+
+                # FFT upsampling
+                upsampled_trace = scipy.signal.resample(trace, len(trace) * upsampling_factor)
+
+                '''
+                # Linear interpolation
+                x = np.arange(len(trace))
+                f_trace = interp1d(x, trace, kind='linear', fill_value=(trace[0], trace[-1]), bounds_error=False)
+                x_new = np.arange(len(trace) * upsampling_factor) / upsampling_factor
+                upsampled_trace = f_trace(x_new)
+                '''
+
                 #  If upsampled is performed, the final sampling frequency changes
                 trace = upsampled_trace[:]
 

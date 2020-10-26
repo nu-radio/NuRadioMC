@@ -241,7 +241,7 @@ class analogToDigitalConverter:
         times = channel.get_times()[:]
         trace = channel.get_trace()[:]
         MC_sampling_frequency = channel.get_sampling_rate()
-                        
+
         if(trigger_adc): # assumes that the trigger uses 
             adc_time_delay_label = "trigger_adc_time_delay"
             adc_n_bits_label = "trigger_adc_nbits"
