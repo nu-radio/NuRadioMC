@@ -22,7 +22,7 @@ class channelGalacticNoiseAdder:
     radio background data based on Oliveira-Costa et al. (2008) (https://arxiv.org/abs/0802.1525)
     and Zheng et al. (2016) (https://arxiv.org/abs/1605.04920)
 
-    The radio sky model is evaluated on a grid of azimuths and zenith angles and
+    The radio sky model is evaluated on a number of points above the horizon
     folded with the antenna response. Since evaluating every frequency individually
     would be too slow, the model is evaluated for a few frequencies and the log10
     of the brightness temperature is interpolated in between.
