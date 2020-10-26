@@ -31,8 +31,7 @@ class channelGalacticNoiseAdder:
         self.__debug = None
         self.__zenith_sample = None
         self.__azimuth_sample = None
-        self.__delta_zenith = None
-        self.__delta_azimuth = None
+        self.__n_side = None
         self.__interpolaiton_frequencies = None
         self.__gdsm = None
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
@@ -41,8 +40,7 @@ class channelGalacticNoiseAdder:
     def begin(
         self,
         debug=False,
-        n_zenith=18,
-        n_azimuth=36,
+        n_side=4,
         interpolation_frequencies=np.arange(10, 1100, 100) * units.MHz
     ):
         """
@@ -52,12 +50,12 @@ class channelGalacticNoiseAdder:
         ---------------
         debug: bool, default: False
             It True, debug plots will be shown
-        n_zenith: int, default: 18
-        n_azimuth: int, default: 36
-            The sky brightness temperature will be evaluated on a
-            n_zenith*n_azimuth grid and the radio noise produced in the channel
-            will be evaluated for each direction and added up. More points will
-            result in greater accuracy, but also slower execution
+        n_side: int, default: 4
+            The n_side parameter of the healpix map. Has to be power of 2
+            The radio skymap is downsized to the resolution specified by the n_side
+            parameter and for every pixel above the horizon the radio noise coming
+            from that direction is calculated. Larger values lead to more accuracy,
+            but greatly increase run time.
         interpolation_frequencies: array of float
             The sky brightness temperature will be evaluated for the frequencies
             in this list. Brightness temperature for frequencies in between are
@@ -66,11 +64,7 @@ class channelGalacticNoiseAdder:
             specified in the run method.
         """
         self.__debug = debug
-        self.__zenith_sample = np.linspace(0, 90, n_zenith)[:-1] * units.deg
-        self.__azimuth_sample = np.linspace(0, 360, n_azimuth)[:-1] * units.deg
-        self.__delta_zenith = self.__zenith_sample[1] - self.__zenith_sample[0]
-        self.__zenith_sample += self.__delta_zenith
-        self.__delta_azimuth = self.__azimuth_sample[1] - self.__azimuth_sample[0]
+        self.__n_side = n_side
         self.__interpolaiton_frequencies = interpolation_frequencies
 
     @register_run()
@@ -103,33 +97,20 @@ class channelGalacticNoiseAdder:
         site_location = astropy.coordinates.EarthLocation(lat=site_latitude * astropy.units.deg, lon=site_longitude * astropy.units.deg)
         station_time = station.get_station_time()
         station_time.format = 'iso'
-        noise_temperatures = np.zeros((len(self.__interpolaiton_frequencies), len(self.__zenith_sample), len(self.__azimuth_sample)))
-        galactic_cs = astropy.coordinates.Galactic()
+        noise_temperatures = np.zeros((len(self.__interpolaiton_frequencies), healpy.pixelfunc.nside2npix(self.__n_side)))
+        local_cs = astropy.coordinates.AltAz(location=site_location, obstime=station_time)
+        solid_angle = healpy.pixelfunc.nside2pixarea(self.__n_side, degrees=False)
+        pixel_longitudes, pixel_latitudes = healpy.pixelfunc.pix2ang(self.__n_side, range(healpy.pixelfunc.nside2npix(self.__n_side)), lonlat=True)
+        pixel_longitudes *= units.deg
+        pixel_latitudes *= units.deg
+        galactic_coordinates = astropy.coordinates.Galactic(l=pixel_longitudes * astropy.units.rad, b=pixel_latitudes * astropy.units.rad)
+        local_coordinates = galactic_coordinates.transform_to(local_cs)
         # save noise temperatures for all directions and frequencies
         for i_freq, noise_freq in enumerate(self.__interpolaiton_frequencies):
             radio_sky = self.__gdsm.generate(noise_freq / units.MHz)
-            for i_zenith, zenith in enumerate(self.__zenith_sample):
-                # We average the radio temperature over all pixels in a ring around the direction. The radius
-                # of the ring is chosen so that it reaches halfway to the closest other point on the grid
-                ring_size = .5 * np.min([self.__delta_zenith, np.arccos(np.sin(zenith)**2 * np.cos(self.__delta_azimuth) + np.cos(zenith)**2)])
-                direction_altaz = astropy.coordinates.AltAz(alt=(np.pi / 2. - zenith) * astropy.units.rad, az=self.__azimuth_sample * astropy.units.rad, obstime=station_time, location=site_location)
-                direction_gal = direction_altaz.transform_to(galactic_cs)
-                nside = healpy.pixelfunc.npix2nside(len(radio_sky))
-                dir_vec = healpy.pixelfunc.ang2vec(direction_gal.l.deg, direction_gal.b.deg, lonlat=True)
-                for i_dir, direction in enumerate(dir_vec):
-                    ring_pixels = healpy.query_disc(nside, direction, ring_size)
-                    if len(ring_pixels) > 0:
-                        noise_temperatures[i_freq, i_zenith, i_dir] = np.mean(radio_sky[ring_pixels])
-            if self.__debug:
-                self.__gdsm.view(show=True)
-                xx, yy = np.meshgrid(self.__azimuth_sample, self.__zenith_sample)
-                fig = plt.figure(figsize=(8, 8))
-                ax1 = fig.add_subplot(111, projection='polar')
-                ax1.pcolor(xx / units.rad, yy / units.deg, noise_temperatures[i_freq])
-                ax1.grid()
-                ax1.set_xlabel(r'azimuth $[^\circ]$')
-                ax1.set_ylabel(r'zenith angle $[^\circ]$')
-                plt.show()
+            radio_sky = healpy.pixelfunc.ud_grade(radio_sky, self.__n_side)
+            noise_temperatures[i_freq] = radio_sky
+
         for channel in station.iter_channels():
             freqs = channel.get_frequencies()
             d_f = freqs[2] - freqs[1]
@@ -171,42 +152,44 @@ class channelGalacticNoiseAdder:
                 ax2.plot(channel.get_frequencies() / units.MHz, np.abs(channel.get_frequency_spectrum()), label='original spectrum')
                 ax1.grid()
                 ax2.grid()
-            for i_zenith, zenith in enumerate(self.__zenith_sample):
-                solid_angle = (np.cos(zenith) - np.cos(zenith + self.__delta_zenith)) * self.__delta_azimuth
-                for i_azimuth, azimuth in enumerate(self.__azimuth_sample):
-                    temperature_interpolator = scipy.interpolate.interp1d(self.__interpolaiton_frequencies, np.log10(noise_temperatures[:, i_zenith, i_azimuth]), kind='quadratic')
-                    noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
-                    S = (2. * scipy.constants.Boltzmann * (freqs[passband_filter] / units.Hz)**2 / scipy.constants.c**2 * (noise_temperature / units.kelvin) * solid_angle) * (units.watt / units.m**2 / units.Hz)
-                    S[np.isnan(S)] = 0
-                    S_per_bin = S * d_f
-                    flux_sum += S_per_bin
-                    E = np.sqrt(S_per_bin / (units.watt / units.m**2) / (scipy.constants.c * scipy.constants.epsilon_0)) / (d_f) * units.V / units.m
-                    if self.__debug:
-                        ax_1.scatter(self.__interpolaiton_frequencies / units.MHz, noise_temperatures[:, i_zenith, i_azimuth] / units.kelvin, c='k', alpha=.01)
-                        ax_1.plot(freqs[passband_filter] / units.MHz, noise_temperature, c='k', alpha=.02)
-                        ax_2.plot(freqs[passband_filter] / units.MHz, S_per_bin / d_f / (units.watt / units.m**2 / units.MHz), c='k', alpha=.02)
-                        ax_3.plot(freqs[passband_filter] / units.MHz, E / (units.V / units.m), c='k', alpha=.02)
+            for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
+                azimuth = local_coordinates[i_pixel].az.rad
+                zenith = np.pi / 2. - local_coordinates[i_pixel].alt.rad
+                if zenith > 90. * units.deg:
+                    continue
+                temperature_interpolator = scipy.interpolate.interp1d(self.__interpolaiton_frequencies, np.log10(noise_temperatures[:, i_pixel]), kind='quadratic')
+                noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
+                S = (2. * scipy.constants.Boltzmann * (freqs[passband_filter] / units.Hz)**2 / scipy.constants.c**2 * (noise_temperature / units.kelvin) * solid_angle) * (units.watt / units.m**2 / units.Hz)
+                S[np.isnan(S)] = 0
+                S_per_bin = S * d_f
+                flux_sum += S_per_bin
+                E = np.sqrt(S_per_bin / (units.watt / units.m**2) / (scipy.constants.c * scipy.constants.epsilon_0)) / (d_f) * units.V / units.m
+                if self.__debug:
+                    ax_1.scatter(self.__interpolaiton_frequencies / units.MHz, noise_temperatures[:, i_pixel] / units.kelvin, c='k', alpha=.01)
+                    ax_1.plot(freqs[passband_filter] / units.MHz, noise_temperature, c='k', alpha=.02)
+                    ax_2.plot(freqs[passband_filter] / units.MHz, S_per_bin / d_f / (units.watt / units.m**2 / units.MHz), c='k', alpha=.02)
+                    ax_3.plot(freqs[passband_filter] / units.MHz, E / (units.V / units.m), c='k', alpha=.02)
 
-                    noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=np.complex)
-                    phases = np.random.uniform(0, 2. * np.pi, len(S))
-                    polarizations = np.random.uniform(0, 2. * np.pi, len(S))
-                    noise_spectrum[1][passband_filter] = E * np.exp(1j * phases) * np.cos(polarizations)
-                    noise_spectrum[2][passband_filter] = E * np.exp(1j * phases) * np.sin(polarizations)
-                    efield_sum += noise_spectrum
-                    VEL = trace_utilities.get_efield_antenna_factor(
-                        station,
-                        freqs,
-                        [channel.get_id()],
-                        detector,
-                        zenith,
-                        azimuth,
-                        self.__antenna_pattern_provider
-                    )[0]
-                    channel_noise_spectrum = np.sum(VEL * np.array([noise_spectrum[1], noise_spectrum[2]]), axis=0)
-                    if self.__debug:
-                        ax_4.plot(freqs / units.MHz, np.abs(channel_noise_spectrum) / units.V, c='k', alpha=.01)
-                    channel_spectrum += channel_noise_spectrum
-                    noise_spec_sum += channel_noise_spectrum
+                noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=np.complex)
+                phases = np.random.uniform(0, 2. * np.pi, len(S))
+                polarizations = np.random.uniform(0, 2. * np.pi, len(S))
+                noise_spectrum[1][passband_filter] = E * np.exp(1j * phases) * np.cos(polarizations)
+                noise_spectrum[2][passband_filter] = E * np.exp(1j * phases) * np.sin(polarizations)
+                efield_sum += noise_spectrum
+                VEL = trace_utilities.get_efield_antenna_factor(
+                    station,
+                    freqs,
+                    [channel.get_id()],
+                    detector,
+                    zenith,
+                    azimuth,
+                    self.__antenna_pattern_provider
+                )[0]
+                channel_noise_spectrum = np.sum(VEL * np.array([noise_spectrum[1], noise_spectrum[2]]), axis=0)
+                if self.__debug:
+                    ax_4.plot(freqs / units.MHz, np.abs(channel_noise_spectrum) / units.V, c='k', alpha=.01)
+                channel_spectrum += channel_noise_spectrum
+                noise_spec_sum += channel_noise_spectrum
             channel.set_frequency_spectrum(channel_spectrum, sampling_rate)
             if self.__debug:
                 ax_2.plot(freqs[passband_filter] / units.MHz, flux_sum / d_f / (units.watt / units.m**2 / units.MHz), c='C0', label='total flux')
