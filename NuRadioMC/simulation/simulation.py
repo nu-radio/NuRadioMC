@@ -313,13 +313,17 @@ class simulation():
             else:
                 self._noise_temp = float(noise_temp)
             self._Vrms_per_channel = {}
+            self._noiseless_channels = {}
             for station_id in self._bandwidth_per_channel:
                 self._Vrms_per_channel[station_id] = {}
+                self._noiseless_channels[station_id] = []
                 for channel_id in self._bandwidth_per_channel[station_id]:
                     if(self._noise_temp is None):
                         noise_temp_channel = self._det.get_noise_temperature(station_id, channel_id)
                     else:
                         noise_temp_channel = self._noise_temp
+                    if self._det.is_channel_noiseless(station_id, channel_id):
+                        self._noiseless_channels[station_id].append(channel_id)
 
                     self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k *
                            self._bandwidth_per_channel[station_id][channel_id] / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
@@ -912,7 +916,7 @@ class simulation():
                                 norm = self._get_noise_normalization(self._station.get_id(), channel_id)  # assuming the same noise level for all channels
                                 Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
                             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
-                                                         max_freq=max_freq, type='rayleigh')
+                                                         max_freq=max_freq, type='rayleigh', excluded_channels=self._noiseless_channels[station_id])
 
                         self._detector_simulation_filter_amp(self._evt, self._station, self._det)
 
