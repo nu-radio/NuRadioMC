@@ -800,11 +800,31 @@ class Detector(object):
         station_id: int
             station id
         channel_id: int
-            the channel id, not used at the moment, only station averages are computed
+            the channel id
 
         """
         res = self.__get_channel(station_id, channel_id)
         if 'noise_temperature' not in res:
             raise AttributeError(
                 f"field noise_temperature not present in detector description of station {station_id} and channel {channel_id}")
+        return res['noise_temperature']
+
+    def is_channel_noiseless(self, station_id, channel_id):
+        """
+        returns true if the detector description has the field `noiseless` and if this field is True. 
+        
+        Allows to run a noiseless simulation on specific channels (for example to simulate a single-antenna proxy
+        along with the phased array)
+
+        Parameters
+        ----------
+        station_id: int
+            station id
+        channel_id: int
+            the channel id
+
+        """
+        res = self.__get_channel(station_id, channel_id)
+        if 'noiseless' not in res:
+            return False
         return res['noise_temperature']
