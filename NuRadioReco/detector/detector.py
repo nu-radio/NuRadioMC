@@ -827,4 +827,4 @@ class Detector(object):
         res = self.__get_channel(station_id, channel_id)
         if 'noiseless' not in res:
             return False
-        return res['noise_temperature']
+        return res['noiseless']
