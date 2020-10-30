@@ -437,6 +437,7 @@ def set_event_id_display(i_event):
         return '     '
     return 'Run {}, Event {}'.format(event_ids[i_event][0], event_ids[i_event][1])
 
+
 @app.callback(
     Output('antenna-options-div', 'style'),
     [Input('file-type-dropdown', 'value')]
