@@ -500,9 +500,9 @@ class simulation():
                         if(rayTracingTime - askaryan_time != 0):
                             tmp_att = 100. * time_attenuation_length / (rayTracingTime - askaryan_time)
                         if total_time > 0:
-                            logger.status("processing event group {}/{} and shower {}/{} ({} showers triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
+                            logger.status("processing event group {}/{} and shower {:.0f}/{:.0f} ({} showers triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
                                 i_event_group_id, len(unique_event_group_ids),
-                                iCounter, n_shower_station, np.sum(self._mout['triggered']), 100. * iCounter / n_shower_station,
+                                iCounter / len(self._station_ids), n_shower_station / len(self._station_ids), np.sum(self._mout['triggered']), 100. * iCounter / n_shower_station,
                                 eta, 100. * (rayTracingTime - askaryan_time) / total_time,
                                 tmp_att,
                                 100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*input_time / total_time,
