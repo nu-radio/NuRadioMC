@@ -205,7 +205,8 @@ class IftElectricFieldReconstructor:
             correlation = np.abs(correlation)
             correlation_sum[:len(correlation)] += correlation
             toffset = -(np.arange(0, correlation.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()  # - propagation_times[i_channel, i_solution] - channel.get_trace_start_time()
-            ax1_1.plot(toffset, correlation)
+            if self.__debug:
+                ax1_1.plot(toffset, correlation)
 
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             channel = station.get_channel(channel_id)
