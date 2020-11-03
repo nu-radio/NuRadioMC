@@ -26,6 +26,8 @@ class channelSignalReconstructor:
         self.__signal_window_stop = None
         self.__noise_window_start = None
         self.__noise_window_stop = None
+        self.__signal_window_length = None
+        self.__noise_window_length = None
         self.__debug = None
         self.begin()
 
@@ -151,7 +153,7 @@ class channelSignalReconstructor:
             plt.legend()
             plt.show()
 
-        return SNR
+        return SNR, noise_rms
 
     @register_run()
     def run(self, evt, station, det, stored_noise=False, rms_stage='amp'):
@@ -186,8 +188,9 @@ class channelSignalReconstructor:
             channel[chp.P2P_amplitude] = np.max(trace) - np.min(trace)
 
             # Use noise precalculated from forced triggers
-            channel[chp.SNR] = self.get_SNR(station.get_id(), channel, det,
-                                            stored_noise=stored_noise, rms_stage=rms_stage)
+            signal_to_noise, noise_rms = self.get_SNR(station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
+            channel[chp.SNR] = signal_to_noise
+            channel[chp.noise_rms] = noise_rms
 
         station[stnp.channels_max_amplitude] = max_amplitude_station
 
