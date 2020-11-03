@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import constants
 from scipy.interpolate import interp1d
+import copy
 
 logger = logging.getLogger('phasedTriggerSimulator')
 
@@ -61,11 +62,11 @@ class triggerSimulator:
 
         """
 
-        ant_pos = [det.get_relative_position(station.get_id(), channel.get_id())[component]
-                   for channel in station.iter_channels()
-                   if channel.get_id() in triggered_channels]
+        ant_pos = {}
+        for channel in station.iter_channels(use_channels=triggered_channels):
+            ant_pos[channel.get_id()] = det.get_relative_position(station.get_id(), channel.get_id())[component]
 
-        return np.array(ant_pos)
+        return ant_pos
 
     def calculate_time_delays(self, station, det,
                               triggered_channels,
@@ -105,13 +106,22 @@ class triggerSimulator:
         ant_z = self.get_antenna_positions(station, det, triggered_channels, 2)
 
         self.check_vertical_string(station, det, triggered_channels)
-        beam_rolls = []
-        ref_z = np.min(ant_z) #(np.max(ant_z) + np.min(ant_z)) / 2.0
+        ref_z = np.max(np.fromiter(ant_z.values(), dtype=float))
+        
+        # Need to add in delay for trigger delay
+        cable_delays = {}
+        for channel in station.iter_channels(use_channels=triggered_channels):
+            cable_delays[channel.get_id()] = det.get_cable_delay(station.get_id(), channel.get_id())
 
+        beam_rolls = []
         for angle in phasing_angles:
 
-            delay = (ant_z - ref_z) / cspeed * ref_index * np.sin(angle)
-            roll = np.array(np.round(delay / time_step)).astype(int)  # so number of entries to shift
+            delays = []
+            for key in ant_z:
+                delays += [-(ant_z[key] - ref_z) / cspeed * ref_index * np.sin(angle) - cable_delays[key]]
+            
+            roll = np.array(np.round(np.array(delays) / time_step)).astype(int)
+
             subbeam_rolls = dict(zip(triggered_channels, roll))
 
             logger.debug("angle:", angle / units.deg)
@@ -167,9 +177,9 @@ class triggerSimulator:
         """
 
         cut = 1.e-3 * units.m
-        ant_x = self.get_antenna_positions(station, det, triggered_channels, 0)
+        ant_x = np.fromiter(self.get_antenna_positions(station, det, triggered_channels, 0).values(), dtype=float)
         diff_x = np.abs(ant_x - ant_x[0])
-        ant_y = self.get_antenna_positions(station, det, triggered_channels, 1)
+        ant_y = np.fromiter(self.get_antenna_positions(station, det, triggered_channels, 1).values(), dtype=float)
         diff_y = np.abs(ant_y - ant_y[0])
         if (sum(diff_x) > cut or sum(diff_y) > cut):
             raise NotImplementedError('The phased triggering array should lie on a vertical line')
@@ -340,6 +350,8 @@ class triggerSimulator:
         for channel in station.iter_channels(use_channels=triggered_channels):
             channel_id = channel.get_id()
 
+            trace = np.array(channel.get_trace())
+
             trace, adc_sampling_frequency = ADC.get_digital_trace(station, det, channel,
                                                                   Vrms=Vrms,
                                                                   trigger_adc=trigger_adc,
@@ -348,7 +360,7 @@ class triggerSimulator:
                                                                   adc_type='perfect_floor_comparator',
                                                                   adc_output=adc_output,
                                                                   trigger_filter=None)
-
+            
             # Upsampling here, linear interpolate to mimic an FPGA internal upsampling
             if not isinstance(upsampling_factor, int):
                 try:
@@ -370,7 +382,8 @@ class triggerSimulator:
                 '''
 
                 # FFT upsampling
-                upsampled_trace = scipy.signal.resample(trace, len(trace) * upsampling_factor)
+                new_len = len(trace) * upsampling_factor
+                upsampled_trace = scipy.signal.resample(trace, new_len)
 
                 '''
                 # Linear interpolation
@@ -390,22 +403,24 @@ class triggerSimulator:
 
             time_step = 1.0 / adc_sampling_frequency
 
+
             traces[channel_id] = trace[:]
 
         beam_rolls = self.calculate_time_delays(station, det,
                                                 triggered_channels,
                                                 phasing_angles,
                                                 ref_index=ref_index,
-                                                sampling_frequency=adc_sampling_frequency)
+                                                sampling_frequency=adc_sampling_frequency)                    
         
         phased_traces = self.phase_signals(traces, beam_rolls)
-        
+
         for iTrace, phased_trace in enumerate(phased_traces):
-            
+
             # Create a sliding window
-            squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output)
-            
+            squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output)        
+
             if True in (squared_mean > threshold):
+
                 trigger_delays = {}
                 
                 for channel_id in beam_rolls[iTrace]:
