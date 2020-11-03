@@ -5,7 +5,6 @@ from NuRadioReco.utilities import units, fft
 import NuRadioReco.utilities.io_utilities
 import NuRadioReco.framework.electric_field
 from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
 import radiotools.helper as hp
 import NuRadioMC.SignalProp.analyticraytracing
@@ -134,6 +133,9 @@ class neutrino2DVertexReconstructor:
         else:
             heights = np.arange(-z_width, z_width, grid_spacing)
         x_0, z_0 = np.meshgrid(distances, heights)
+        # Create list of coordinates at which we look for the vertex position
+        # If we have an initial guess for the vertex direction, we only check possible vertex locations around that
+        # direction, otherwise we search the whole space
         if direction_guess is None:
             x_coords = x_0
             z_coords = z_0
@@ -147,7 +149,6 @@ class neutrino2DVertexReconstructor:
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
             ch1 = station.get_channel(channel_pair[0])
             ch2 = station.get_channel(channel_pair[1])
-
             snr1 = np.max(np.abs(ch1.get_trace()))
             snr2 = np.max(np.abs(ch2.get_trace()))
             if snr1 == 0 or snr2 == 0:
@@ -169,7 +170,6 @@ class neutrino2DVertexReconstructor:
                 toffset = sample_shifts / ch1.get_sampling_rate()
                 for i_shift, shift_sample in enumerate(sample_shifts):
                     self.__correlation[i_shift] = np.max(corr_1 * np.roll(corr_2, shift_sample))
-
             else:
                 t_max1 = ch1.get_times()[np.argmax(np.abs(trace1))]
                 t_max2 = ch2.get_times()[np.argmax(np.abs(trace2))]
@@ -186,6 +186,7 @@ class neutrino2DVertexReconstructor:
             self.__channel_pair = channel_pair
             self.__channel_positions = [self.__detector.get_relative_position(self.__station_id, channel_pair[0]), self.__detector.get_relative_position(self.__station_id, channel_pair[1])]
             correlation_array = np.zeros_like(correlation_sum)
+            # Check every hypothesis for which ray types the antennas might have detected
             for i_ray in range(len(self.__ray_types)):
                 self.__current_ray_types = self.__ray_types[i_ray]
                 correlation_array = np.maximum(self.get_correlation_array_2d(x_coords, z_coords), correlation_array)
@@ -331,20 +332,24 @@ class neutrino2DVertexReconstructor:
         self.__rec_x = x_coords[max_corr_index[0]][max_corr_index[1]]
         self.__rec_z = z_coords[max_corr_index[0]][max_corr_index[1]]
         station.set_parameter(stnp.vertex_2D_fit, [self.__rec_x, self.__rec_z])
-        for channel in station.iter_channels():
-            channel_id = channel.get_id()
-            ray_type = self.find_ray_type(station, station.get_channel(channel_id))
-            zenith, travel_time = self.find_receiving_zenith(station, ray_type, channel_id)
-            efield = NuRadioReco.framework.electric_field.ElectricField([channel_id], self.__detector.get_relative_position(station.get_id(), channel_id))
-            efield.set_parameter(efp.ray_path_type, ray_type)
-            if zenith is not None:
-                efield.set_parameter(efp.zenith, zenith)
-                efield.set_parameter(efp.signal_time, travel_time)
-            station.add_electric_field(efield)
 
         return
 
     def get_correlation_array_2d(self, x, z):
+        """
+        Returns the correlations corresponding to the different
+        signal travel times between channels for the given positions.
+        This is done by correcting for the distance of the channels
+        from the station center and then calling
+        self.get_correlation_for_pos, which does the actual work.
+
+        Parameters:
+        --------------
+        x, z: array
+            Coordinates of the points for which calculations are
+            to be calculated. Correspond to the (r, z) pair
+            of cylindrical coordinates.
+        """
         channel_pos1 = self.__channel_positions[0]
         channel_pos2 = self.__channel_positions[1]
         d_hor1 = np.sqrt((x - channel_pos1[0])**2 + (channel_pos1[1])**2)
@@ -353,6 +358,17 @@ class neutrino2DVertexReconstructor:
         return res
 
     def get_correlation_for_pos(self, d_hor, z):
+        """
+        Returns the correlations corresponding to the different
+        signal travel times between channels for the given positions.
+
+        Parameters:
+        --------------
+        d_hor, z: array
+            Coordinates of the points for which calculations are
+            to be calculated. Correspond to the (r, z) pair
+            of cylindrical coordinates.
+        """
         t1 = self.get_signal_travel_time(d_hor[0], z, self.__current_ray_types[0], self.__channel_pair[0])
         t2 = self.get_signal_travel_time(d_hor[1], z, self.__current_ray_types[1], self.__channel_pair[1])
         delta_t = t1 - t2
@@ -366,6 +382,22 @@ class neutrino2DVertexReconstructor:
         return res
 
     def get_signal_travel_time(self, d_hor, z, ray_type, channel_id):
+        """
+        Calculate the signal travel time between a position and the
+        channel
+
+        Parameters:
+        ------------
+        d_hor, z: numbers or arrays of numbers
+            Coordinates of the point from which to calculate the
+            signal travel times. Correspond to (r, z) coordinates
+            in cylindrical coordinates.
+        ray_type: string
+            Ray type for which to calculate the travel times. Options
+            are direct, reflected and refracted
+        channel_id: int
+            ID of the channel to which the travel time shall be calculated
+        """
         channel_pos = self.__detector.get_relative_position(self.__station_id, channel_id)
         channel_type = int(abs(channel_pos[2]))
         travel_times = np.zeros_like(d_hor)
@@ -388,6 +420,21 @@ class neutrino2DVertexReconstructor:
         return travel_times
 
     def find_ray_type(self, station, ch1):
+        """
+        Calculate the most likely ray type (direct, reflected
+        or refracted) of the signal that reached the detector.
+        This is done by taking the reconstructed vertex position,
+        calculating the expected time offset between channels and
+        checking for which ray type scenario the correlation
+        between channels is largest.
+
+        Parameters:
+        --------------
+        station: station object
+            The station on which this reconstruction was run
+        ch1: channel object
+            The channel for which the ray type shall be determined
+        """
         corr_range = 50. * units.ns
         ray_types = ['direct', 'refracted', 'reflected']
         ray_type_correlations = np.zeros(3)
