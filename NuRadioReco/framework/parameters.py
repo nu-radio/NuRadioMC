@@ -42,6 +42,7 @@ class channelParameters(Enum):
     noise_rms = 11  # the root mean square of the noise
     signal_time_offset = 12
     signal_receiving_zenith = 13
+    signal_ray_type = 14
 
 
 class electricFieldParameters(Enum):

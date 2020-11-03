@@ -93,3 +93,4 @@ class channelTimeOffsetCalculator:
             channel = station.get_channel(channel_id)
             channel.set_parameter(chp.signal_time_offset, propagation_times[i_channel, np.argmax(correlation_sum_max)])
             channel.set_parameter(chp.signal_receiving_zenith, receive_angles[i_channel, np.argmax(correlation_sum_max)])
+            channel.set_parameter(chp.signal_ray_type, self.__raytracing_types[np.argmax(correlation_sum_max)])
