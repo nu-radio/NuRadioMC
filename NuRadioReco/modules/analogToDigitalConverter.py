@@ -295,7 +295,7 @@ class analogToDigitalConverter:
         trace = delay_trace(trace, MC_sampling_frequency, adc_time_delay, delayed_samples)
 
         times = times + 1.0 / adc_sampling_frequency
-        times = times[:delayed_samples]
+        times = times[:len(trace)]
 
         # Upsampling to 5 GHz before downsampling using interpolation.
         # We cannot downsample with a Fourier method because we want to keep
@@ -324,7 +324,7 @@ class analogToDigitalConverter:
         resampled_trace = interpolate_delayed_trace(resampled_times)
         
         # Digitisation
-        digital_trace = self._adc_types[adc_type](resampled_trace, adc_n_bits, adc_ref_voltage, adc_output)                                                  
+        digital_trace = self._adc_types[adc_type](resampled_trace, adc_n_bits, adc_ref_voltage, adc_output)
 
         # Ensuring trace has an even number of samples
         if(len(digital_trace) % 2 == 1):
