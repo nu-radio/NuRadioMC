@@ -1269,11 +1269,11 @@ class simulation():
         self._event_group_id = self._fin['event_group_ids'][self._shower_index]
         self._flavor = self._fin['flavors'][self._shower_index]
         self._energy = self._fin['energies'][self._shower_index]
-        self._inttype = self._fin['interaction_type'][self._shower_index]
+        self._inttype = self._fin['interaction_type'].astype(str)[self._shower_index]
         self._x = self._fin['xx'][self._shower_index]
         self._y = self._fin['yy'][self._shower_index]
         self._z = self._fin['zz'][self._shower_index]
-        self._shower_type = self._fin['shower_type'][self._shower_index]
+        self._shower_type = self._fin['shower_type'].astype(str)[self._shower_index]
         self._shower_energy = self._fin['shower_energies'][self._shower_index]
         self._vertex_time = 0
         if 'vertex_times' in self._fin:
