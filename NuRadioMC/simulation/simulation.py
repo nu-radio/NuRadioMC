@@ -1099,7 +1099,10 @@ class simulation():
                 self._fin_stations[key] = {}
                 for key2, value2 in iteritems(value):
                     self._fin_stations[key][key2] = np.array(value2)
-            self._fin[key] = np.array(value)
+            if type(value[0]) == bytes:
+                self._fin[key] = np.array(value).astype('U')
+            else:
+                self._fin[key] = np.array(value)
         for key, value in iteritems(fin.attrs):
             self._fin_attrs[key] = value
         fin.close()
@@ -1269,11 +1272,11 @@ class simulation():
         self._event_group_id = self._fin['event_group_ids'][self._shower_index]
         self._flavor = self._fin['flavors'][self._shower_index]
         self._energy = self._fin['energies'][self._shower_index]
-        self._inttype = self._fin['interaction_type'].astype(str)[self._shower_index]
+        self._inttype = self._fin['interaction_type'][self._shower_index]
         self._x = self._fin['xx'][self._shower_index]
         self._y = self._fin['yy'][self._shower_index]
         self._z = self._fin['zz'][self._shower_index]
-        self._shower_type = self._fin['shower_type'].astype(str)[self._shower_index]
+        self._shower_type = self._fin['shower_type'][self._shower_index]
         self._shower_energy = self._fin['shower_energies'][self._shower_index]
         self._vertex_time = 0
         if 'vertex_times' in self._fin:
@@ -1397,7 +1400,11 @@ class simulation():
             if(key.startswith("station_")):
                 continue
             if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
-                fout[key] = np.array(self._fin[key])[saved]
+                if self._fin[key].dtype.char == 'U':
+                    fout[key] = np.array(self._fin[key].astype('S'))[saved]
+
+                else:
+                    fout[key] = np.array(self._fin[key])[saved]
 
         for key in self._fin_attrs.keys():
             if(not key in fout.attrs.keys()):  # only save atrributes sets that havn't been recomputed and saved already
