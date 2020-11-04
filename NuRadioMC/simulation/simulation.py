@@ -1099,10 +1099,11 @@ class simulation():
                 self._fin_stations[key] = {}
                 for key2, value2 in iteritems(value):
                     self._fin_stations[key][key2] = np.array(value2)
-            if type(value[0]) == bytes:
-                self._fin[key] = np.array(value).astype('U')
             else:
-                self._fin[key] = np.array(value)
+                if type(value[0]) == bytes:
+                    self._fin[key] = np.array(value).astype('U')
+                else:
+                    self._fin[key] = np.array(value)
         for key, value in iteritems(fin.attrs):
             self._fin_attrs[key] = value
         fin.close()
