@@ -1099,7 +1099,11 @@ class simulation():
                 self._fin_stations[key] = {}
                 for key2, value2 in iteritems(value):
                     self._fin_stations[key][key2] = np.array(value2)
-            self._fin[key] = np.array(value)
+            else:
+                if type(value[0]) == bytes:
+                    self._fin[key] = np.array(value).astype('U')
+                else:
+                    self._fin[key] = np.array(value)
         for key, value in iteritems(fin.attrs):
             self._fin_attrs[key] = value
         fin.close()
@@ -1397,7 +1401,11 @@ class simulation():
             if(key.startswith("station_")):
                 continue
             if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
-                fout[key] = np.array(self._fin[key])[saved]
+                if self._fin[key].dtype.char == 'U':
+                    fout[key] = np.array(self._fin[key], dtype=h5py.string_dtype(encoding='utf-8'))[saved]
+
+                else:
+                    fout[key] = np.array(self._fin[key])[saved]
 
         for key in self._fin_attrs.keys():
             if(not key in fout.attrs.keys()):  # only save atrributes sets that havn't been recomputed and saved already
