@@ -1,4 +1,4 @@
-from NuRadioReco.utilities import units, fft, trace_utilities, ice, geometryUtilities
+from NuRadioReco.utilities import units, fft, ice, geometryUtilities
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.channel
 import NuRadioReco.detector.antennapattern
