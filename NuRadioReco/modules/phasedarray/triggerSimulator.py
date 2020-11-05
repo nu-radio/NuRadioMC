@@ -120,6 +120,8 @@ class triggerSimulator:
             for key in ant_z:
                 delays += [-(ant_z[key] - ref_z) / cspeed * ref_index * np.sin(angle) - cable_delays[key]]
             
+            delays -= np.max(delays) 
+
             roll = np.array(np.round(np.array(delays) / time_step)).astype(int)
 
             subbeam_rolls = dict(zip(triggered_channels, roll))
