@@ -180,11 +180,16 @@ class channelGalacticNoiseAdder:
                 noise_spectrum[2][passband_filter] = np.exp(1j * phases) * fft.time2freq(fft.freq2time(E, channel.get_sampling_rate()) * np.sin(polarizations), channel.get_sampling_rate())
                 efield_sum += noise_spectrum
                 antenna_orientation = detector.get_antenna_orientation(station.get_id(), channel.get_id())
-                t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice, 1)
-                t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice, 1)
-                fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, 1., n_ice)
-                if fresnel_zenith is None:
-                    continue
+                if detector.get_relative_position(station.get_id(), channel.get_id())[2] < 0:
+                    t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice, 1)
+                    t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice, 1)
+                    fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, 1., n_ice)
+                    if fresnel_zenith is None:
+                        continue
+                else:
+                    t_theta = 1
+                    t_phi = 1
+                    fresnel_zenith = zenith
                 antenna_response = antenna_pattern.get_antenna_response_vectorized(freqs, fresnel_zenith, azimuth, *antenna_orientation)
                 channel_noise_spectrum = antenna_response['theta'] * noise_spectrum[1] * t_theta + antenna_response['phi'] * noise_spectrum[2] * t_phi
                 if self.__debug:
