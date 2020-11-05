@@ -1,4 +1,4 @@
-from NuRadioReco.utilities import units, fft, trace_utilities
+from NuRadioReco.utilities import units, fft, trace_utilities, ice, geometryUtilities
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.channel
 import NuRadioReco.detector.antennapattern
@@ -106,6 +106,7 @@ class channelGalacticNoiseAdder:
         pixel_latitudes *= units.deg
         galactic_coordinates = astropy.coordinates.Galactic(l=pixel_longitudes * astropy.units.rad, b=pixel_latitudes * astropy.units.rad)
         local_coordinates = galactic_coordinates.transform_to(local_cs)
+        n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
         # save noise temperatures for all directions and frequencies
         for i_freq, noise_freq in enumerate(self.__interpolaiton_frequencies):
             radio_sky = self.__gdsm.generate(noise_freq / units.MHz)
@@ -113,6 +114,7 @@ class channelGalacticNoiseAdder:
             noise_temperatures[i_freq] = radio_sky
 
         for channel in station.iter_channels():
+            antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(detector.get_antenna_model(station.get_id(), channel.get_id()))
             freqs = channel.get_frequencies()
             d_f = freqs[2] - freqs[1]
             sampling_rate = channel.get_sampling_rate()
@@ -177,16 +179,14 @@ class channelGalacticNoiseAdder:
                 noise_spectrum[1][passband_filter] = np.exp(1j * phases) * fft.time2freq(fft.freq2time(E, channel.get_sampling_rate()) * np.cos(polarizations), channel.get_sampling_rate())
                 noise_spectrum[2][passband_filter] = np.exp(1j * phases) * fft.time2freq(fft.freq2time(E, channel.get_sampling_rate()) * np.sin(polarizations), channel.get_sampling_rate())
                 efield_sum += noise_spectrum
-                VEL = trace_utilities.get_efield_antenna_factor(
-                    station,
-                    freqs,
-                    [channel.get_id()],
-                    detector,
-                    zenith,
-                    azimuth,
-                    self.__antenna_pattern_provider
-                )[0]
-                channel_noise_spectrum = np.sum(VEL * np.array([noise_spectrum[1], noise_spectrum[2]]), axis=0)
+                antenna_orientation = detector.get_antenna_orientation(station.get_id(), channel.get_id())
+                t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice, 1)
+                t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice, 1)
+                fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, 1., n_ice)
+                if fresnel_zenith is None:
+                    continue
+                antenna_response = antenna_pattern.get_antenna_response_vectorized(freqs, fresnel_zenith, azimuth, *antenna_orientation)
+                channel_noise_spectrum = antenna_response['theta'] * noise_spectrum[1] * t_theta + antenna_response['phi'] * noise_spectrum[2] * t_phi
                 if self.__debug:
                     ax_4.plot(freqs / units.MHz, np.abs(channel_noise_spectrum) / units.V, c='k', alpha=.01)
                 channel_spectrum += channel_noise_spectrum
