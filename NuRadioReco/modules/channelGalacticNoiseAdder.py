@@ -54,8 +54,9 @@ class channelGalacticNoiseAdder:
             The n_side parameter of the healpix map. Has to be power of 2
             The radio skymap is downsized to the resolution specified by the n_side
             parameter and for every pixel above the horizon the radio noise coming
-            from that direction is calculated. Larger values lead to more accuracy,
-            but greatly increase run time.
+            from that direction is calculated. The number of pixels used is
+            12 * n_side ** 2, so a larger value for n_side will result better accuracy
+            but also greatly increase computing time.
         interpolation_frequencies: array of float
             The sky brightness temperature will be evaluated for the frequencies
             in this list. Brightness temperature for frequencies in between are
