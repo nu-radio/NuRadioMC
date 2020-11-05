@@ -236,7 +236,10 @@ class BaseStation():
                 '_parameter_covariances': self._parameter_covariances,
                 '_ARIANNA_parameters': self._ARIANNA_parameters,
                 '_station_id': self._station_id,
-                '_station_time': self._station_time,
+                '_station_time': {
+                    'value': self._station_time.value,
+                    'format': self._station_time.format
+                },
                 '_particle_type': self._particle_type,
                 'triggers': trigger_pkls,
                 '_triggered': self._triggered,
@@ -265,5 +268,10 @@ class BaseStation():
             self._ARIANNA_parameters = data['_ARIANNA_parameters']
 
         self._station_id = data['_station_id']
-        self.set_station_time(data['_station_time'])
+        if isinstance(data['_station_time'], dict):
+            station_time = astropy.time.Time(data['_station_time']['value'], format=data['_station_time']['format'])
+            self.set_station_time(station_time)
+        # For backward compatibility, we also keep supporting station times stored as astropy.time objects
+        else:
+            self.set_station_time(data['_station_time'])
         self._particle_type = data['_particle_type']
