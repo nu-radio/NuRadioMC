@@ -162,24 +162,30 @@ class channelGalacticNoiseAdder:
                     continue
                 temperature_interpolator = scipy.interpolate.interp1d(self.__interpolaiton_frequencies, np.log10(noise_temperatures[:, i_pixel]), kind='quadratic')
                 noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
-                S = (2. * scipy.constants.Boltzmann * (freqs[passband_filter] / units.Hz)**2 / scipy.constants.c**2 * (noise_temperature / units.kelvin) * solid_angle) * (units.watt / units.m**2 / units.Hz)
+                # calculate spectral radiance of radio signal using rayleigh-jeans law
+                S = (2. * (scipy.constants.Boltzmann * units.joule / units.kelvin) * freqs[passband_filter]**2 / (scipy.constants.c * units.m / units.s)**2 * (noise_temperature) * solid_angle)
                 S[np.isnan(S)] = 0
+                # calculate radiance per energy bin
                 S_per_bin = S * d_f
                 flux_sum += S_per_bin
-                E = np.sqrt(S_per_bin / (units.watt / units.m**2) / (scipy.constants.c * scipy.constants.epsilon_0)) / (d_f) * units.V / units.m
+                # calculate electric field per energy bin from the radiance per bin
+                E = np.sqrt(S_per_bin / (scipy.constants.c * units.m / units.s * scipy.constants.epsilon_0 * (units.coulomb / units.V / units.m))) / (d_f)
                 if self.__debug:
                     ax_1.scatter(self.__interpolaiton_frequencies / units.MHz, noise_temperatures[:, i_pixel] / units.kelvin, c='k', alpha=.01)
                     ax_1.plot(freqs[passband_filter] / units.MHz, noise_temperature, c='k', alpha=.02)
                     ax_2.plot(freqs[passband_filter] / units.MHz, S_per_bin / d_f / (units.watt / units.m**2 / units.MHz), c='k', alpha=.02)
                     ax_3.plot(freqs[passband_filter] / units.MHz, E / (units.V / units.m), c='k', alpha=.02)
 
+                # assign random phases and polarizations to electric field
                 noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=np.complex)
                 phases = np.random.uniform(0, 2. * np.pi, len(S))
                 polarizations = np.random.uniform(0, 2. * np.pi, len(S) * 2 - 2)
+
                 noise_spectrum[1][passband_filter] = np.exp(1j * phases) * fft.time2freq(fft.freq2time(E, channel.get_sampling_rate()) * np.cos(polarizations), channel.get_sampling_rate())
                 noise_spectrum[2][passband_filter] = np.exp(1j * phases) * fft.time2freq(fft.freq2time(E, channel.get_sampling_rate()) * np.sin(polarizations), channel.get_sampling_rate())
                 efield_sum += noise_spectrum
                 antenna_orientation = detector.get_antenna_orientation(station.get_id(), channel.get_id())
+                # consider signal reflection at ice surface
                 if detector.get_relative_position(station.get_id(), channel.get_id())[2] < 0:
                     t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice, 1)
                     t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice, 1)
@@ -190,6 +196,7 @@ class channelGalacticNoiseAdder:
                     t_theta = 1
                     t_phi = 1
                     fresnel_zenith = zenith
+                # fold electric field with antenna response
                 antenna_response = antenna_pattern.get_antenna_response_vectorized(freqs, fresnel_zenith, azimuth, *antenna_orientation)
                 channel_noise_spectrum = antenna_response['theta'] * noise_spectrum[1] * t_theta + antenna_response['phi'] * noise_spectrum[2] * t_phi
                 if self.__debug:
