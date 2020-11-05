@@ -236,9 +236,9 @@ class BaseStation():
             station_time_dict = None
         else:
             station_time_dict = {
-                    'value': self._station_time.value,
-                    'format': self._station_time.format
-                }
+                'value': self._station_time.value,
+                'format': self._station_time.format
+            }
         data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 '_parameter_covariances': self._parameter_covariances,
                 '_ARIANNA_parameters': self._ARIANNA_parameters,
