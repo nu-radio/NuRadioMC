@@ -206,11 +206,16 @@ def get_Veff_Aeff_single(filenames, trigger_names, trigger_names_dict, trigger_c
     out['energy_min'] = Emin
     out['energy_max'] = Emax
     n_events = fin.attrs['n_events']
+    for iF in range(1, len(filenames)):
+        if(n_events != fins[iF].attrs['n_events']):
+            logger.error(f"the number of events are not the same. File {filenames[0]}: {n_events:.4g}, {filenames[iF]}: {fins[iF].attrs['n_events']:.4g}")
+            raise AttributeError(f"the number of events are not the same. File {filenames[0]}: {n_events:.4g}, {filenames[iF]}: {fins[iF].attrs['n_events']:.4g}")
 
     weights = append_arrays(fins, 'weights')
     triggered = append_arrays(fins, 'triggered')
 
     for iF, fin in enumerate(fins):
+
         if('trigger_names' in fin.attrs):
             if(np.any(trigger_names[iF] != fin.attrs['trigger_names'])):
                 if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
@@ -220,7 +225,7 @@ def get_Veff_Aeff_single(filenames, trigger_names, trigger_names_dict, trigger_c
                                                                                            trigger_names[iF]))
                     raise
         else:
-            logger.warning(f"file {filename} has no triggering events. Using trigger names from a different file: {trigger_names[iF]}")
+            logger.warning(f"file {filenames[iF]} has no triggering events. Using trigger names from a different file: {trigger_names[iF]}")
 
     # calculate effective
     thetamin = 0
@@ -289,6 +294,7 @@ def get_Veff_Aeff_single(filenames, trigger_names, trigger_names_dict, trigger_c
             Veff_low = volume_proj_area * FC_low / n_events
             Veff_high = volume_proj_area * FC_high / n_events
             out[veff_aeff][trigger_name] = [Veff, Veff_error, np.sum(weights[triggered]), Veff_low, Veff_high]
+            logger.debug(f"{trigger_name}->Veff = {Veff:.4g} = {volume_proj_area:.2g} * {np.sum(weights[triggered]):.2g} / {n_events:.2g}")
 
         for trigger_name, values in iteritems(trigger_combinations):
             if(len(filenames) > 1):
@@ -527,8 +533,6 @@ def get_Veff_Aeff(folder,
         args.append([f, trigger_names, trigger_names_dict, trigger_combinations, deposited, station, veff_aeff])
     with Pool(n_cores) as p:
         output = p.map(wrapper, args)
-        print("output")
-        print(output)
         return output
 
 

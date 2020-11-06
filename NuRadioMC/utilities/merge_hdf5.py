@@ -234,8 +234,8 @@ if __name__ == "__main__":
     if(len(args.files) < 1):
         print("usage: python merge_hdf5.py /path/to/simulation/output/folder\nor python merge_hdf5.py outputfilename input1 input2 ...")
     elif(len(args.files) == 1):
-        filenames = glob.glob("{}/*/*.hdf5.part????".format(args.files[0]))
-        filenames = np.append(filenames, glob.glob("{}/*/*.hdf5.part??????".format(args.files[0])))
+        filenames = sorted(glob.glob("{}/*/*.hdf5.part????".format(args.files[0])))
+        filenames = sorted(np.append(filenames, glob.glob("{}/*/*.hdf5.part??????".format(args.files[0]))))
         filenames2 = []
         for i, filename in enumerate(filenames):
             filename, ext = os.path.splitext(filename)
