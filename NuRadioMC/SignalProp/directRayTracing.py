@@ -24,6 +24,7 @@ class directRayTracing():
         self._medium = medium
         self._attenuation_model = attenuation_model
         self._results = None
+        self.__config = None    # the raytracer is so simple, there is no need to configure anything
         pass
        
     def set_start_and_end_point(self, x1, x2):
@@ -113,3 +114,12 @@ class directRayTracing():
 
     def get_ray_tracing_perfomed(self, station_dictionary, station_id):
         return False    # This raytracer is so simple, we might as well run it every time
+
+    def get_config(self):
+        return self.__config
+
+    def set_config(self, config):
+        """
+        This function only exists to fit the template, the raytracer is so simple it does not need a config
+        """
+        pass

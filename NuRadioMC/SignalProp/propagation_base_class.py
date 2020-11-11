@@ -302,3 +302,19 @@ class ray_tracing_base:
         True if there is a raytracing solution in the dictionary, otherwise false
         """
         pass
+
+    def get_config(self):
+        """
+        Function that returns the configuration currently used by the raytracer
+        """
+        pass
+
+    def set_config(self, config):
+        """
+        Function to change the configuration file used by the raytracer
+
+        Parameters:
+        ----------------
+        config: dict
+            The new configuration settings
+        """

@@ -2078,3 +2078,20 @@ class ray_tracing:
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
+
+    def set_config(self, config):
+        """
+        Change the configuration file used by the raytracer
+
+        Parameters:
+        ------------------
+        config: dict
+            The new configuration settings
+        """
+        self.__config = config
+
+    def get_config(self):
+        """
+        Returns the current configuration file
+        """
+        return self.__config
