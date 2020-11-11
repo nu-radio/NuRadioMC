@@ -1931,7 +1931,7 @@ class ray_tracing:
                                                      reflection=result['reflection'],
                                                      reflection_case=result['reflection_case'])
 
-    def get_focusing(self, iS, dz=1. * units.cm, limit=2.):
+    def get_focusing(self, iS, dz=-1. * units.cm, limit=2.):
         """
         calculate the focusing effect in the medium
 
