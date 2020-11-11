@@ -1931,7 +1931,7 @@ class ray_tracing:
                                                      reflection=result['reflection'],
                                                      reflection_case=result['reflection_case'])
 
-    def get_focusing(self, iS, dz, limit=2.):
+    def get_focusing(self, iS, dz=1. * units.cm, limit=2.):
         """
         calculate the focusing effect in the medium
 
@@ -1943,7 +1943,8 @@ class ray_tracing:
 
         dz: float
             the infinitesimal change of the depth of the receiver, 1cm by default
-
+        limit: float
+            The maximum signal focusing.
         Returns
         -------
         focusing: a float
@@ -2017,7 +2018,7 @@ class ray_tracing:
 
     def get_raytracing_output(self, i_solution):
         dZRec = -0.01 * units.m
-        focusing = self.get_focusing(i_solution, dZRec, float(self.__config['propagation']['focusing_limit']))
+        focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
         output_dict = {
             'ray_tracing_C0': self.get_results()[i_solution]['C0'],
             'ray_tracing_C1': self.get_results()[i_solution]['C1'],
@@ -2072,8 +2073,7 @@ class ray_tracing:
 
         # apply the focusing effect
         if self.__config['propagation']['focusing']:
-            dZRec = -0.01 * units.m
-            focusing = self.get_focusing(i_solution, dZRec, float(self.__config['propagation']['focusing_limit']))
+            focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
             spec[1:] *= focusing
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
