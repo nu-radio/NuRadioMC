@@ -91,6 +91,31 @@ class IftElectricFieldReconstructor:
             self.__phase_dct = phase_dct
         return
 
+    def make_priors_plot(self, event, station, detector, channel_ids):
+        self.__used_channel_ids = []  # only use channels with associated E-field and zenith
+        self.__efield_scaling = False
+        self.__used_channel_ids = channel_ids
+        self.__prepare_traces(event, station, detector)
+        ref_channel = station.get_channel(self.__used_channel_ids[0])
+        sampling_rate = ref_channel.get_sampling_rate()
+        time_domain = ift.RGSpace(self.__trace_samples)
+        frequency_domain = time_domain.get_default_codomain()
+        large_frequency_domain = ift.RGSpace(self.__trace_samples * 2, harmonic=True)
+        self.__fft_operator = ift.FFTOperator(frequency_domain.get_default_codomain())
+        amp_operators, filter_operator = self.__get_detector_operators(
+            station,
+            detector,
+            frequency_domain,
+            sampling_rate,
+        )
+        likelihood = self.__get_likelihood_operator(
+            frequency_domain,
+            large_frequency_domain,
+            amp_operators,
+            filter_operator
+        )
+        self.__draw_priors(event, station, frequency_domain)
+
     def run(self, event, station, detector, channel_ids, efield_scaling):
         self.__used_channel_ids = []    # only use channels with associated E-field and zenith
         self.__efield_scaling = efield_scaling
@@ -118,7 +143,7 @@ class IftElectricFieldReconstructor:
         H = ift.StandardHamiltonian(likelihood, ic_sampling)
 
         ic_newton = ift.DeltaEnergyController(name='newton',
-                                              iteration_limit=100,
+                                              iteration_limit=200,
                                               tol_rel_deltaE=self.__relative_tolerance,
                                               convergence_level=self.__convergence_level)
         minimizer = ift.NewtonCG(ic_newton)
@@ -310,20 +335,22 @@ class IftElectricFieldReconstructor:
         power_space = ift.PowerSpace(power_domain)
         self.__amp_dct['target'] = power_space
         A = ift.SLAmplitude(**self.__amp_dct)
+        self.__power_spectrum_operator = A
         correlated_field = ift.CorrelatedField(large_frequency_domain.get_default_codomain(), A)
         realizer = ift.Realizer(self.__fft_operator.domain)
         realizer2 = ift.Realizer(self.__fft_operator.target)
+        inserter = NuRadioReco.modules.iftElectricFieldReconstructor.operators.Inserter(realizer.target)
         large_sp = correlated_field.target
         small_sp = ift.RGSpace(large_sp.shape[0] // 2, large_sp[0].distances)
         zero_padder = ift.FieldZeroPadder(small_sp, large_sp.shape, central=False)
         domain_flipper = NuRadioReco.modules.iftElectricFieldReconstructor.operators.DomainFlipper(zero_padder.domain, target=ift.RGSpace(small_sp.shape, harmonic=True))
         mag_S_h = (domain_flipper @ zero_padder.adjoint @ correlated_field)
         mag_S_h = NuRadioReco.modules.iftElectricFieldReconstructor.operators.SymmetrizingOperator(mag_S_h.target) @ mag_S_h
-        mag_S_h = realizer2.adjoint @ mag_S_h.exp()
+        subtract_one = ift.Adder(ift.Field(mag_S_h.target, -1))
+        mag_S_h = realizer2.adjoint @ (subtract_one @ mag_S_h).exp()
         fft_operator = ift.FFTOperator(frequency_domain.get_default_codomain())
 
         scaling_domain = ift.UnstructuredDomain(1)
-        inserter = NuRadioReco.modules.iftElectricFieldReconstructor.operators.Inserter(realizer.target)
         add_one = ift.Adder(ift.Field(inserter.domain, 1))
 
         polarization_domain = ift.UnstructuredDomain(1)
@@ -446,46 +473,54 @@ class IftElectricFieldReconstructor:
         freq_space
     ):
         plt.close('all')
-        fig1 = plt.figure(figsize=(8, 8))
-        ax1_1 = fig1.add_subplot(221)
-        ax1_2 = fig1.add_subplot(222)
+        fig1 = plt.figure(figsize=(12, 8))
+        ax1_0 = fig1.add_subplot(221)
+        ax1_1 = fig1.add_subplot(222)
+        # ax1_2 = fig1.add_subplot(222)
         ax1_3 = fig1.add_subplot(223)
         ax1_4 = fig1.add_subplot(224)
         sampling_rate = station.get_channel(self.__used_channel_ids[0]).get_sampling_rate()
         times = np.arange(self.__data_traces.shape[1]) / sampling_rate
         freqs = freq_space.get_k_length_array().val / self.__data_traces.shape[1] * sampling_rate
-        for i in range(5):
+        alpha = .8
+        for i in range(8):
             x = ift.from_random('normal', self.__efield_trace_operators[0][0].domain)
             efield_spec_sample = self.__efield_spec_operators[0][0].force(x)
-            ax1_1.plot(freqs / units.MHz, np.abs(efield_spec_sample.val))
+            ax1_1.plot(freqs / units.MHz, np.abs(efield_spec_sample.val) / np.max(np.abs(efield_spec_sample.val)), c='C{}'.format(i), alpha=alpha)
             efield_trace_sample = self.__efield_trace_operators[0][0].force(x)
-            ax1_2.plot(times, efield_trace_sample.val)
+            # ax1_2.plot(times, efield_trace_sample.val)
             channel_spec_sample = self.__channel_spec_operators[0].force(x)
-            ax1_3.plot(freqs / units.MHz, np.abs(channel_spec_sample.val))
+            ax1_3.plot(freqs / units.MHz, np.abs(channel_spec_sample.val)) # / np.max(np.abs(channel_spec_sample.val)), c='C{}'.format(i), alpha=alpha)
             channel_trace_sample = self.__channel_trace_operators[0].force(x)
-            ax1_4.plot(times, channel_trace_sample.val / np.max(np.abs(channel_trace_sample.val)))
-        for trace in self.__data_traces:
-            ax1_4.plot(times, trace, c='k', alpha=.1)
+            ax1_4.plot(times, channel_trace_sample.val / np.max(np.abs(channel_trace_sample.val)), c='C{}'.format(i), alpha=alpha)
+            a = self.__power_spectrum_operator.force(x).val
+            power_freqs = self.__power_spectrum_operator.target[0].k_lengths / self.__data_traces.shape[1] * sampling_rate
+            ax1_0.plot(power_freqs, a, c='C{}'.format(i), alpha=alpha)
+        ax1_0.grid()
+        ax1_0.set_xscale('log')
+        ax1_0.set_yscale('log')
         ax1_1.grid()
-        ax1_1.set_xlim([0, 500])
-        ax1_2.grid()
+        ax1_1.set_xlim([50, 550])
+        # ax1_2.grid()
+        # ax1_2.set_xlim([0, 200])
         ax1_3.grid()
-        ax1_3.set_xlim([0, 500])
+        ax1_3.set_xlim([50, 550])
         ax1_4.grid()
+        ax1_4.set_xlim([0, 150])
         ax1_1.set_xlabel('f [MHz]')
-        ax1_2.set_xlabel('t [ns]')
+        # ax1_2.set_xlabel('t [ns]')
         ax1_3.set_xlabel('f [MHz]')
         ax1_4.set_xlabel('t [ns]')
         ax1_1.set_ylabel('E [a.u.]')
-        ax1_2.set_ylabel('E [a.u.]')
+        # ax1_2.set_ylabel('E [a.u.]')
         ax1_3.set_ylabel('U [a.u.]')
         ax1_4.set_ylabel('U [a.u.]')
         ax1_1.set_title('E-Field Spectrum')
-        ax1_2.set_title('E-Field Trace')
+        # ax1_2.set_title('E-Field Trace')
         ax1_3.set_title('Channel Spectrum')
         ax1_4.set_title('Channel Trace')
         fig1.tight_layout()
-        # fig1.savefig('priors_{}.png'.format(event.get_id()))
+        fig1.savefig('priors_{}_{}.png'.format(event.get_id(), event.get_run_number()))
 
     def __draw_reconstruction(
         self,
