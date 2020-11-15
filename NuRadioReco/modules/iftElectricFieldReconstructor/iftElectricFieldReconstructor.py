@@ -258,7 +258,8 @@ class IftElectricFieldReconstructor:
             channel.apply_time_shift(-toffset[np.argmax(correlation_sum)])
             self.__data_traces[i_channel] = channel.get_trace()[:self.__trace_samples]
             self.__noise_levels[i_channel] = np.sqrt(np.mean(channel.get_trace()[self.__trace_samples + 1:]**2))
-            self.__snrs[i_channel] = .5 * (np.max(self.__data_traces[i_channel]) - np.min(self.__data_traces[i_channel])) / self.__noise_levels[i_channel]
+            self.__snrs[i_channel] = channel.get_parameter(chp.noise_rms)
+            # self.__snrs[i_channel] = .5 * (np.max(self.__data_traces[i_channel]) - np.min(self.__data_traces[i_channel])) / self.__noise_levels[i_channel]
             self.__n_shifts[i_channel] = int((toffset[np.argmax(correlation_sum)] + time_offset) * channel.get_sampling_rate())
             self.__trace_start_times[i_channel] = channel.get_trace_start_time() + (toffset[np.argmax(correlation_sum)] + time_offset)
             if self.__debug:
@@ -346,7 +347,7 @@ class IftElectricFieldReconstructor:
         domain_flipper = NuRadioReco.modules.iftElectricFieldReconstructor.operators.DomainFlipper(zero_padder.domain, target=ift.RGSpace(small_sp.shape, harmonic=True))
         mag_S_h = (domain_flipper @ zero_padder.adjoint @ correlated_field)
         mag_S_h = NuRadioReco.modules.iftElectricFieldReconstructor.operators.SymmetrizingOperator(mag_S_h.target) @ mag_S_h
-        subtract_one = ift.Adder(ift.Field(mag_S_h.target, -1))
+        subtract_one = ift.Adder(ift.Field(mag_S_h.target, -2))
         mag_S_h = realizer2.adjoint @ (subtract_one @ mag_S_h).exp()
         fft_operator = ift.FFTOperator(frequency_domain.get_default_codomain())
 
@@ -536,8 +537,6 @@ class IftElectricFieldReconstructor:
         fig2 = plt.figure(figsize=(16, 4 * n_channels))
         freqs = np.fft.rfftfreq(self.__data_traces.shape[1], 1. / sampling_rate)
         classic_mean_efield_spec = np.zeros_like(freqs)
-        # for i_channel, channel_id in enumerate(self.__used_channel_ids):
-        #     classic_mean_efield_spec += np.abs(self.__classic_efield_recos[i_channel])
         classic_mean_efield_spec /= len(self.__used_channel_ids)
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             times = np.arange(self.__data_traces.shape[1]) / sampling_rate + self.__trace_start_times[i_channel]
@@ -577,6 +576,8 @@ class IftElectricFieldReconstructor:
                             ax1_2.plot(freqs / units.MHz, amp_efield * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='k', alpha=.2)
 
             ax1_1.plot(freqs / units.MHz, np.abs(fft.time2freq(self.__data_traces[i_channel], sampling_rate)) * self.__scaling_factor / units.mV, c='C0', label='data')
+            sim_efield_max = None
+            channel_snr = None
             if station.has_sim_station():
                 sim_station = station.get_sim_station()
                 n_drawn_sim_channels = 0
@@ -595,6 +596,9 @@ class IftElectricFieldReconstructor:
                             sim_channel_label = 'MC truth'
                         else:
                             sim_channel_label = None
+                        snr = .5 * (np.max(sim_channel_sum.get_trace()) - np.min(sim_channel_sum.get_trace())) / (self.__noise_levels[i_channel] * self.__scaling_factor)
+                        if channel_snr is None or snr > channel_snr:
+                            channel_snr = snr
                         ax1_1.plot(
                             sim_channel_sum.get_frequencies() / units.MHz,
                             np.abs(sim_channel_sum.get_frequency_spectrum()) / units.mV,
@@ -634,7 +638,10 @@ class IftElectricFieldReconstructor:
                         if self.__polarization == 'pol':
                             ax1_2.plot(efield_sum.get_frequencies() / units.MHz, np.abs(efield_sum.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1', alpha=1.)
                             ax1_3.plot(efield_sum.get_frequencies() / units.MHz, np.abs(efield_sum.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1', alpha=1.)
-
+                        if sim_efield_max is None or np.max(np.abs(efield_sum.get_frequency_spectrum())) > sim_efield_max:
+                            sim_efield_max = np.max(np.abs(efield_sum.get_frequency_spectrum()))
+            else:
+                channel_snr = .5 * (np.max(station.get_channel(channel_id).get_trace()) - np.min(station.get_channel(channel_id).get_trace())) / (self.__noise_levels * self.__scaling_factor)
             ax2_1.plot(times, self.__data_traces[i_channel] * self.__scaling_factor / units.mV, c='C0', alpha=1., zorder=5, label='data')
             ax2_1.plot(times, np.abs(scipy.signal.hilbert(self.__data_traces[i_channel] * self.__scaling_factor)) / units.mV, c='C0', alpha=.2, zorder=3)
 
@@ -642,6 +649,8 @@ class IftElectricFieldReconstructor:
             ax2_1.plot(times, trace_stat_calculator.mean * self.__scaling_factor / units.mV, c='C2', linestyle='-', zorder=2, linewidth=4, label='IFT reconstruction')
             ax2_1.plot(times, np.abs(scipy.signal.hilbert(trace_stat_calculator.mean * self.__scaling_factor)) / units.mV, c='C2', linestyle='-', zorder=2, linewidth=4, alpha=.5)
             ax2_1.set_xlim([times[0], times[-1]])
+            textbox = dict(boxstyle='round', facecolor='white', alpha=.5)
+            ax2_1.text(.9, .05, 'SNR={:.1f}'.format(channel_snr), transform=ax2_1.transAxes, bbox=textbox, fontsize=18)
             if self.__polarization == 'theta':
                 ax1_2.plot(freqs / units.MHz, amp_efield_stat_calculators[0].mean * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='C2', alpha=.6)
             if self.__polarization == 'phi':
@@ -675,6 +684,8 @@ class IftElectricFieldReconstructor:
             ax1_2.set_ylabel('E-Field [mV/m/GHz]')
             ax2_1.set_xlabel('t [ns]')
             ax2_1.set_ylabel('U [mV]')
+            if sim_efield_max is not None:
+                ax1_2.set_ylim([0, 1.2 * sim_efield_max / (units.mV / units.m / units.GHz)])
         fig1.tight_layout()
         fig1.savefig('{}_{}_spec_reco.png'.format(event.get_run_number(), event.get_id()))
         fig2.tight_layout()
