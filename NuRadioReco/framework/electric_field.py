@@ -129,6 +129,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         else:
             base_trace_pkl = None
         data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
+                'parameter_covariances': NuRadioReco.framework.parameter_serialization.serialize_covariances(self._parameter_covariances),
                 'channel_ids': self._channel_ids,
                 '_shower_id': self._shower_id,
                 '_ray_tracing_id': self._ray_tracing_id,
@@ -143,6 +144,8 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         if 'position' in data:  # for backward compatibility
             self._position = data['position']
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.electricFieldParameters)
+        if 'parameter_covariances' in data:
+            self._parameter_covariances = NuRadioReco.framework.parameter_serialization.deserialize_covariances(data['parameter_covariances'], parameters.electricFieldParameters)
         self._channel_ids = data['channel_ids']
         if '_shower_id' in data.keys():
             self._shower_id = data['_shower_id']
