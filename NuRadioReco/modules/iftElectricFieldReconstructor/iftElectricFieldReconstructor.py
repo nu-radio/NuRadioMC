@@ -1,5 +1,5 @@
 import numpy as np
-from NuRadioReco.utilities import units, fft, trace_utilities
+from NuRadioReco.utilities import units, fft, trace_utilities, bandpass_filter
 import NuRadioReco.utilities.trace_utilities
 import NuRadioReco.detector.antennapattern
 import NuRadioReco.detector.RNO_G.analog_components
@@ -437,25 +437,41 @@ class IftElectricFieldReconstructor:
         median = KL.position
         efield_stat_calculators = [ift.StatCalculator(), ift.StatCalculator()]
         polarization_stat_calculator = ift.StatCalculator()
+        passbands = [
+            [130. * units.MHz, 500 * units.MHz],
+            [130. * units.MHz, 200 * units.MHz],
+            [200. * units.MHz, 350. * units.MHz]
+        ]
+        energy_fluence_stat_calculators = []
+        for i_passband, passband in enumerate(passbands):
+            energy_fluence_stat_calculators.append(ift.StatCalculator())
         rec_efield = np.zeros((3, self.__electric_field_template.get_number_of_samples()))
         sampling_rate = self.__electric_field_template.get_sampling_rate()
         times = np.arange(self.__data_traces.shape[1]) / sampling_rate
+        freqs = np.fft.rfftfreq(rec_efield.shape[1], 1. / sampling_rate)
         for sample in KL.samples:
+            efield_sample_pol = np.zeros_like(rec_efield)
             if self.__efield_trace_operators[i_channel][0] is not None:
                 efield_sample_theta = self.__efield_trace_operators[i_channel][0].force(median + sample).val
                 efield_stat_calculators[0].add(efield_sample_theta)
+                efield_sample_pol[1] = efield_sample_theta
             if self.__efield_trace_operators[i_channel][1] is not None:
                 efield_sample_phi = self.__efield_trace_operators[i_channel][1].force(median + sample).val
                 efield_stat_calculators[1].add(efield_sample_phi)
-            if self.__polarization == 'pol':
-                efield_sample_pol = np.zeros_like(rec_efield)
-                efield_sample_pol[1] = efield_sample_theta
                 efield_sample_pol[2] = efield_sample_phi
+            if self.__polarization == 'pol':
                 energy_fluences = trace_utilities.get_electric_field_energy_fluence(
                     efield_sample_pol,
                     times
                 )
                 polarization_stat_calculator.add(np.arctan(energy_fluences[2] / energy_fluences[1]))
+            for i_passband, passband in enumerate(passbands):
+                filter_response = bandpass_filter.get_filter_response(freqs, passband, 'butter', 10)
+                e_fluence = trace_utilities.get_electric_field_energy_fluence(
+                    fft.freq2time(fft.time2freq(efield_sample_pol, sampling_rate) * filter_response, sampling_rate),
+                    times
+                )
+                energy_fluence_stat_calculators[i_passband].add(np.sum(e_fluence))
         if self.__efield_trace_operators[i_channel][0] is not None:
             rec_efield[1] = efield_stat_calculators[0].mean * self.__scaling_factor / self.__gain_scaling
         if self.__efield_trace_operators[i_channel][1] is not None:
@@ -465,6 +481,13 @@ class IftElectricFieldReconstructor:
         if self.__polarization == 'pol':
             efield.set_parameter(efp.polarization_angle, polarization_stat_calculator.mean)
             efield.set_parameter_error(efp.polarization_angle, np.sqrt(polarization_stat_calculator.var))
+        energy_fluence_dict = {}
+        energy_fluence_error_dict = np.zeros(len(passbands))
+        for i_passband, passband in enumerate(passbands):
+            energy_fluence_dict['{:.0f}-{:.0f}'.format(passband[0] / units.MHz, passband[1] / units.MHz)] = energy_fluence_stat_calculators[i_passband].mean
+            energy_fluence_error_dict[i_passband] = np.sqrt(energy_fluence_stat_calculators[i_passband].var)
+        efield.set_parameter(efp.signal_energy_fluence, energy_fluence_dict)
+        efield.set_parameter_error(efp.signal_energy_fluence, energy_fluence_error_dict)
         return efield
 
     def __draw_priors(
