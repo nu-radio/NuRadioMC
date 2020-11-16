@@ -347,7 +347,7 @@ class IftElectricFieldReconstructor:
         domain_flipper = NuRadioReco.modules.iftElectricFieldReconstructor.operators.DomainFlipper(zero_padder.domain, target=ift.RGSpace(small_sp.shape, harmonic=True))
         mag_S_h = (domain_flipper @ zero_padder.adjoint @ correlated_field)
         mag_S_h = NuRadioReco.modules.iftElectricFieldReconstructor.operators.SymmetrizingOperator(mag_S_h.target) @ mag_S_h
-        subtract_one = ift.Adder(ift.Field(mag_S_h.target, -2))
+        subtract_one = ift.Adder(ift.Field(mag_S_h.target, -1))
         mag_S_h = realizer2.adjoint @ (subtract_one @ mag_S_h).exp()
         fft_operator = ift.FFTOperator(frequency_domain.get_default_codomain())
 
@@ -468,7 +468,7 @@ class IftElectricFieldReconstructor:
             for i_passband, passband in enumerate(passbands):
                 filter_response = bandpass_filter.get_filter_response(freqs, passband, 'butter', 10)
                 e_fluence = trace_utilities.get_electric_field_energy_fluence(
-                    fft.freq2time(fft.time2freq(efield_sample_pol, sampling_rate) * filter_response, sampling_rate),
+                    fft.freq2time(fft.time2freq(efield_sample_pol, sampling_rate) * filter_response, sampling_rate) * self.__scaling_factor / self.__gain_scaling,
                     times
                 )
                 energy_fluence_stat_calculators[i_passband].add(np.sum(e_fluence))
