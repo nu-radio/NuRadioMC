@@ -2030,6 +2030,22 @@ class ray_tracing:
         return output_dict
 
     def apply_propagation_effects(self, efield, i_solution):
+        """
+        Apply propagation effects to the electric field
+        Note that the 1/r weakening of the electric field is already accounted for in the signal generation
+
+        Parameters:
+        ----------------
+        efield: ElectricField object
+            The electric field that the effects should be applied to
+        i_solution: int
+            Index of the raytracing solution the propagation effects should be based on
+
+        Returns
+        -------------
+        efield: ElectricField object
+            The modified ElectricField object
+        """
         spec = efield.get_frequency_spectrum()
         if self.__config is None:   # done for easier compatibility, by default we do attenuation
             apply_attenuation = True
