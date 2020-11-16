@@ -179,10 +179,10 @@ class channelGalacticNoiseAdder:
                 # assign random phases and polarizations to electric field
                 noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=np.complex)
                 phases = np.random.uniform(0, 2. * np.pi, len(S))
-                polarizations = np.random.uniform(0, 2. * np.pi, len(S) * 2 - 2)
+                polarizations = np.random.uniform(0, 2. * np.pi, len(S))
 
-                noise_spectrum[1][passband_filter] = np.exp(1j * phases) * fft.time2freq(fft.freq2time(E, channel.get_sampling_rate()) * np.cos(polarizations), channel.get_sampling_rate())
-                noise_spectrum[2][passband_filter] = np.exp(1j * phases) * fft.time2freq(fft.freq2time(E, channel.get_sampling_rate()) * np.sin(polarizations), channel.get_sampling_rate())
+                noise_spectrum[1][passband_filter] = np.exp(1j * phases) * E * np.cos(polarizations)
+                noise_spectrum[2][passband_filter] = np.exp(1j * phases) * E * np.sin(polarizations)
                 efield_sum += noise_spectrum
                 antenna_orientation = detector.get_antenna_orientation(station.get_id(), channel.get_id())
                 # consider signal reflection at ice surface
