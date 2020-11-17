@@ -442,9 +442,7 @@ class IftElectricFieldReconstructor:
             [130. * units.MHz, 200 * units.MHz],
             [200. * units.MHz, 350. * units.MHz]
         ]
-        energy_fluence_stat_calculators = []
-        for i_passband, passband in enumerate(passbands):
-            energy_fluence_stat_calculators.append(ift.StatCalculator())
+        energy_fluence_stat_calculator = ift.StatCalculator()
         rec_efield = np.zeros((3, self.__electric_field_template.get_number_of_samples()))
         sampling_rate = self.__electric_field_template.get_sampling_rate()
         times = np.arange(self.__data_traces.shape[1]) / sampling_rate
@@ -465,13 +463,16 @@ class IftElectricFieldReconstructor:
                     times
                 )
                 polarization_stat_calculator.add(np.arctan(energy_fluences[2] / energy_fluences[1]))
+            fluence_sample = np.zeros((len(passbands), 3))
             for i_passband, passband in enumerate(passbands):
                 filter_response = bandpass_filter.get_filter_response(freqs, passband, 'butter', 10)
                 e_fluence = trace_utilities.get_electric_field_energy_fluence(
                     fft.freq2time(fft.time2freq(efield_sample_pol, sampling_rate) * filter_response, sampling_rate) * self.__scaling_factor / self.__gain_scaling,
                     times
                 )
-                energy_fluence_stat_calculators[i_passband].add(np.sum(e_fluence))
+                e_fluence[0] = np.sum(np.abs(e_fluence))
+                fluence_sample[i_passband] = e_fluence
+            energy_fluence_stat_calculator.add(fluence_sample)
         if self.__efield_trace_operators[i_channel][0] is not None:
             rec_efield[1] = efield_stat_calculators[0].mean * self.__scaling_factor / self.__gain_scaling
         if self.__efield_trace_operators[i_channel][1] is not None:
@@ -482,12 +483,11 @@ class IftElectricFieldReconstructor:
             efield.set_parameter(efp.polarization_angle, polarization_stat_calculator.mean)
             efield.set_parameter_error(efp.polarization_angle, np.sqrt(polarization_stat_calculator.var))
         energy_fluence_dict = {}
-        energy_fluence_error_dict = np.zeros(len(passbands))
         for i_passband, passband in enumerate(passbands):
-            energy_fluence_dict['{:.0f}-{:.0f}'.format(passband[0] / units.MHz, passband[1] / units.MHz)] = energy_fluence_stat_calculators[i_passband].mean
-            energy_fluence_error_dict[i_passband] = np.sqrt(energy_fluence_stat_calculators[i_passband].var)
+            energy_fluence_dict['{:.0f}-{:.0f}'.format(passband[0] / units.MHz, passband[1] / units.MHz)] = energy_fluence_stat_calculator.mean[i_passband]
+        energy_fluence_error = np.sqrt(energy_fluence_stat_calculator.var)
         efield.set_parameter(efp.signal_energy_fluence, energy_fluence_dict)
-        efield.set_parameter_error(efp.signal_energy_fluence, energy_fluence_error_dict)
+        efield.set_parameter_error(efp.signal_energy_fluence, energy_fluence_error)
         return efield
 
     def __draw_priors(
