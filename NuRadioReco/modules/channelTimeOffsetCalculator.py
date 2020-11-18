@@ -98,7 +98,7 @@ class channelTimeOffsetCalculator:
         correlation_sum_max = np.max(correlation_sum, axis=1)
         correlation_sum = np.zeros(self.__electric_field_template.get_number_of_samples() + max_channel_length)
         plt.close('all')
-        fig, ax = plt.subplots(1, 2)
+        fig, ax = plt.subplots(1, 3)
         ax[0].grid()
         ax[1].grid()
         for i_channel, channel_id in enumerate(channel_ids):
@@ -126,4 +126,7 @@ class channelTimeOffsetCalculator:
         ax[0].axvline(global_time_offset, c='r')
         for i_channel, channel_id in enumerate(channel_ids):
             channel = station.get_channel(channel_id)
-            channel.set_parameter(chp.signal_time, toffset[np.argmax(correlation_sum)])
+            channel.set_parameter(chp.signal_time, global_time_offset)
+            ax[2].plot(channel.get_times(), channel.get_trace())
+            ax[2].axvline(channel.get_trace_start_time() + global_time_offset, c='k')
+            # plt.show()
