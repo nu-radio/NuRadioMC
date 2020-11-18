@@ -113,6 +113,8 @@ class channelTimeOffsetCalculator:
                 correlation_sum[:len(corr)] += corr
                 ax[0].plot(channel.get_times() - channel.get_trace_start_time(), channel.get_trace() / np.max(channel.get_trace()))
                 toffset = -(np.arange(0, correlation_sum.shape[0]) - max_channel_length) / channel.get_sampling_rate()
+            channel.apply_time_shift(channel.get_parameter(chp.signal_time_offset))
+
         ax[1].plot(toffset, correlation_sum)
         ax[0].plot(
             np.arange(len(self.__channel_trace_templates[0, i_max])) / channel.get_sampling_rate() + toffset[np.argmax(correlation_sum)],
