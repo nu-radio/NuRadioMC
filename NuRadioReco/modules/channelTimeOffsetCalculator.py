@@ -126,6 +126,6 @@ class channelTimeOffsetCalculator:
         ax[0].axvline(global_time_offset, c='r')
         for i_channel, channel_id in enumerate(channel_ids):
             channel = station.get_channel(channel_id)
-            channel.set_parameter(chp.signal_time, global_time_offset + channel.get_trace_start_time())
+            channel.set_parameter(chp.template_reference_time, global_time_offset + channel.get_trace_start_time())
             ax[2].plot(channel.get_times(), channel.get_trace())
-            ax[2].axvline(channel.get_parameter(chp.signal_time), c='k')
+            ax[2].axvline(channel.get_parameter(chp.template_reference_time), c='k')
