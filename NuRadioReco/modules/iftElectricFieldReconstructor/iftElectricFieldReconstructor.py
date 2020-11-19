@@ -190,13 +190,6 @@ class IftElectricFieldReconstructor:
         self.__n_shifts = np.zeros_like(self.__used_channel_ids)
         self.__trace_start_times = np.zeros(len(self.__used_channel_ids))
         self.__data_traces = np.zeros((len(self.__used_channel_ids), self.__trace_samples))
-        max_channel_length = 0
-        passband = [100. * units.MHz, 300 * units.MHz]
-        for channel_id in self.__used_channel_ids:
-            channel = station.get_channel(channel_id)
-            if channel.get_number_of_samples() > max_channel_length:
-                max_channel_length = channel.get_number_of_samples()
-        correlation_sum = np.zeros(self.__electric_field_template.get_number_of_samples() + max_channel_length)
         if self.__debug:
             plt.close('all')
             fig1 = plt.figure(figsize=(16, 8))
@@ -220,30 +213,24 @@ class IftElectricFieldReconstructor:
                 antenna_orientation[2],
                 antenna_orientation[3]
             )
-            channel_spectrum_template = fft.time2freq(self.__electric_field_template.get_filtered_trace(passband), self.__electric_field_template.get_sampling_rate()) * \
+            channel_spectrum_template = fft.time2freq(self.__electric_field_template.get_trace(), self.__electric_field_template.get_sampling_rate()) * \
                                         amp_response * (antenna_response['theta'] + antenna_response['phi'])
             channel_trace_template = fft.freq2time(channel_spectrum_template, self.__electric_field_template.get_sampling_rate())
             channel_trace_templates[i_channel] = channel_trace_template
-            channel.apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
-            channel_trace = channel.get_filtered_trace(passband)
-            correlation = radiotools.helper.get_normalized_xcorr(channel_trace_template, channel_trace)
-            correlation = np.abs(correlation)
-            correlation_sum[:len(correlation)] += correlation
-            toffset = -(np.arange(0, correlation.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()  # - propagation_times[i_channel, i_solution] - channel.get_trace_start_time()
-            if self.__debug:
-                ax1_1.plot(toffset, correlation)
 
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             channel = station.get_channel(channel_id)
             time_offset = channel.get_parameter(chp.signal_time_offset)
+            global_time_offset = channel.get_parameter(chp.template_reference_time)
+            template_start_time = global_time_offset - self.__electric_field_template.get_times()[np.argmax(channel_trace_templates[i_channel])] - channel.get_trace_start_time()
             if self.__debug:
-                channel_trace = channel.get_filtered_trace(passband)
-                toffset = -(np.arange(0, correlation_sum.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()
+                channel_trace = channel.get_trace()
                 ax2_1 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 1)
                 ax2_1.grid()
                 ax2_1.plot(channel.get_times(), channel_trace / units.mV, c='C0', alpha=1.)
                 ax2_1.set_title('Channel {}'.format(channel_id))
-                ax2_1.plot(self.__electric_field_template.get_times() + channel.get_trace_start_time() + toffset[np.argmax(correlation_sum)], channel_trace_templates[i_channel] / np.max(channel_trace_templates[i_channel]) * np.max(channel_trace) / units.mV, c='C1')
+                ax2_1.plot(self.__electric_field_template.get_times() + template_start_time + time_offset + channel.get_trace_start_time(), channel_trace_templates[i_channel] / np.max(channel_trace_templates[i_channel]) * np.max(channel_trace) / units.mV, c='C1')
+                ax2_1.axvline(global_time_offset, c='r')
                 sim_channel_sum = None
                 for sim_channel in station.get_sim_station().iter_channels():
                     if sim_channel.get_id() == channel_id:
@@ -252,27 +239,24 @@ class IftElectricFieldReconstructor:
                         else:
                             sim_channel_sum += sim_channel
                 if sim_channel_sum is not None:
-                    sim_channel_sum.apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
-                    ax2_1.plot(sim_channel_sum.get_times(), sim_channel_sum.get_filtered_trace(passband) / units.mV, c='k', alpha=.5)
-                    ax2_1.set_xlim([sim_channel_sum.get_trace_start_time() - 50, sim_channel_sum.get_times()[-1] + 50])
-            channel.apply_time_shift(-toffset[np.argmax(correlation_sum)])
+                    ax2_1.plot(sim_channel_sum.get_times(), sim_channel_sum.get_trace() / units.mV, c='k', alpha=.5)
+                    ax2_1.set_xlim([sim_channel_sum.get_trace_start_time() + 50, sim_channel_sum.get_times()[-1] + 50])
+            channel.apply_time_shift(-time_offset - template_start_time, True)
             self.__data_traces[i_channel] = channel.get_trace()[:self.__trace_samples]
             self.__noise_levels[i_channel] = np.sqrt(np.mean(channel.get_trace()[self.__trace_samples + 1:]**2))
             self.__snrs[i_channel] = channel.get_parameter(chp.noise_rms)
-            # self.__snrs[i_channel] = .5 * (np.max(self.__data_traces[i_channel]) - np.min(self.__data_traces[i_channel])) / self.__noise_levels[i_channel]
-            self.__n_shifts[i_channel] = int((toffset[np.argmax(correlation_sum)] + time_offset) * channel.get_sampling_rate())
-            self.__trace_start_times[i_channel] = channel.get_trace_start_time() + (toffset[np.argmax(correlation_sum)] + time_offset)
+            self.__n_shifts[i_channel] = int((global_time_offset + time_offset) * channel.get_sampling_rate())
+            self.__trace_start_times[i_channel] = channel.get_trace_start_time() + (global_time_offset + time_offset)
             if self.__debug:
                 ax2_2 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 2)
                 ax2_2.grid()
                 ax2_2.plot(np.arange(len(self.__data_traces[i_channel])) / channel.get_sampling_rate(), self.__data_traces[i_channel])
-            channel.apply_time_shift(channel.get_parameter(chp.signal_time_offset) + toffset[np.argmax(correlation_sum)], True)
+            channel.apply_time_shift(time_offset + template_start_time, True)
         self.__scaling_factor = np.max(self.__data_traces)
         self.__data_traces /= self.__scaling_factor
         self.__noise_levels /= self.__scaling_factor
 
         if self.__debug:
-            ax1_2.plot(correlation_sum)
             fig2.tight_layout()
             fig2.savefig('{}_{}_traces.png'.format(event.get_run_number(), event.get_id()))
 

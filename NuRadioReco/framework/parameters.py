@@ -43,6 +43,7 @@ class channelParameters(Enum):
     signal_time_offset = 12
     signal_receiving_zenith = 13
     signal_ray_type = 14
+    template_reference_time = 15
 
 
 class electricFieldParameters(Enum):
