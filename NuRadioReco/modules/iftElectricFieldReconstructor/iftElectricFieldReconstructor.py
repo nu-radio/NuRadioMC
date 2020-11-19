@@ -121,6 +121,7 @@ class IftElectricFieldReconstructor:
         self.__efield_scaling = efield_scaling
         self.__used_channel_ids = channel_ids
         self.__prepare_traces(event, station, detector)
+
         ref_channel = station.get_channel(self.__used_channel_ids[0])
         sampling_rate = ref_channel.get_sampling_rate()
         time_domain = ift.RGSpace(self.__trace_samples)
@@ -246,7 +247,7 @@ class IftElectricFieldReconstructor:
             self.__noise_levels[i_channel] = np.sqrt(np.mean(channel.get_trace()[self.__trace_samples + 1:]**2))
             self.__snrs[i_channel] = channel.get_parameter(chp.noise_rms)
             self.__n_shifts[i_channel] = int((global_time_offset + time_offset) * channel.get_sampling_rate())
-            self.__trace_start_times[i_channel] = channel.get_trace_start_time() + (global_time_offset + time_offset)
+            self.__trace_start_times[i_channel] = template_start_time + time_offset + channel.get_trace_start_time()
             if self.__debug:
                 ax2_2 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 2)
                 ax2_2.grid()
