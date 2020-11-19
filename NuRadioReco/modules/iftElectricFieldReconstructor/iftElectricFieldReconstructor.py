@@ -447,7 +447,7 @@ class IftElectricFieldReconstructor:
                     efield_sample_pol,
                     times
                 )
-                polarization_stat_calculator.add(np.arctan(energy_fluences[2] / energy_fluences[1]))
+                polarization_stat_calculator.add(np.arctan(np.sqrt(energy_fluences[2]) / np.sqrt(energy_fluences[1])))
             fluence_sample = np.zeros((len(passbands), 3))
             for i_passband, passband in enumerate(passbands):
                 filter_response = bandpass_filter.get_filter_response(freqs, passband, 'butter', 10)
