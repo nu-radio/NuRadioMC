@@ -619,7 +619,7 @@ class IftElectricFieldReconstructor:
                             sim_channel_sum.get_times(),
                             sim_channel_sum.get_trace() / units.mV,
                             c='C1',
-                            linewidth=6,
+                            linewidth=8,
                             zorder=1,
                             label=sim_channel_label
                         )
@@ -654,7 +654,7 @@ class IftElectricFieldReconstructor:
             ax2_1.plot(times, np.abs(scipy.signal.hilbert(self.__data_traces[i_channel] * self.__scaling_factor)) / units.mV, c='C0', alpha=.2, zorder=3)
 
             ax1_1.plot(freqs / units.MHz, amp_trace_stat_calculator.mean * self.__scaling_factor / units.mV, c='C2', label='IFT reco', linewidth=3, alpha=.6)
-            ax2_1.plot(times, trace_stat_calculator.mean * self.__scaling_factor / units.mV, c='C2', linestyle='-', zorder=2, linewidth=4, label='IFT reconstruction')
+            ax2_1.plot(times, trace_stat_calculator.mean * self.__scaling_factor / units.mV, c='C2', linestyle='-', zorder=2, linewidth=3, label='IFT reconstruction')
             ax2_1.plot(times, np.abs(scipy.signal.hilbert(trace_stat_calculator.mean * self.__scaling_factor)) / units.mV, c='C2', linestyle='-', zorder=2, linewidth=4, alpha=.5)
             ax2_1.set_xlim([times[0], times[-1]])
             textbox = dict(boxstyle='round', facecolor='white', alpha=.5)
