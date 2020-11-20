@@ -7,7 +7,6 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.detector.antennapattern
 import NuRadioMC.SignalProp.analyticraytracing
-import matplotlib.pyplot as plt
 
 
 class channelTimeOffsetCalculator:
@@ -18,7 +17,6 @@ class channelTimeOffsetCalculator:
         self.__electric_field_template = None
         self.__medium = None
         self.__antenna_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
-        self.__channel_trace_templates = None
         self.__debug = False
 
     def begin(self, electric_field_template, medium, use_sim=False, debug=False):
@@ -32,7 +30,6 @@ class channelTimeOffsetCalculator:
         propagation_times = np.zeros((len(channel_ids), 3))
         receive_angles = np.zeros((len(channel_ids), 3))
         found_solutions = np.zeros((len(channel_ids), 3))
-        self.__channel_trace_templates = np.zeros((len(channel_ids), 3, len(self.__electric_field_template.get_trace())))
         vertex_position = None
         if self.__use_sim:
             for sim_shower in event.get_sim_showers():
@@ -67,13 +64,10 @@ class channelTimeOffsetCalculator:
             if len(propagation_times[:, i_solution][propagation_times[:, i_solution] > 0]) > 0:
                 propagation_times[:, i_solution][propagation_times[:, i_solution] > 0] -= np.mean(propagation_times[:, i_solution][propagation_times[:, i_solution] > 0])
         correlation_sum = np.zeros((3, correlation_size))
-        max_channel_length = 0
         for i_channel, channel_id in enumerate(channel_ids):
             channel = station.get_channel(channel_id)
             antenna_pattern = self.__antenna_provider.load_antenna_pattern(det.get_antenna_model(101, channel_id))
             antenna_orientation = det.get_antenna_orientation(101, channel_id)
-            if channel.get_number_of_samples() > max_channel_length:
-                max_channel_length = channel.get_number_of_samples()
             for i_solution in range(3):
                 if found_solutions[i_channel, i_solution] > 0:
                     antenna_response = antenna_pattern.get_antenna_response_vectorized(
@@ -88,7 +82,6 @@ class channelTimeOffsetCalculator:
                     channel_template_spec = fft.time2freq(self.__electric_field_template.get_filtered_trace(passband), self.__electric_field_template.get_sampling_rate()) * \
                         det.get_amplifier_response(101, channel_id, self.__electric_field_template.get_frequencies()) * (antenna_response['theta'] + antenna_response['phi'])
                     channel_template_trace = fft.freq2time(channel_template_spec, self.__electric_field_template.get_sampling_rate())
-                    self.__channel_trace_templates[i_channel, i_solution] = channel_template_trace
                     channel.apply_time_shift(-propagation_times[i_channel, i_solution], True)
                     correlation = radiotools.helper.get_normalized_xcorr(channel_template_trace, channel.get_filtered_trace(passband))
                     correlation = np.abs(correlation)
@@ -96,36 +89,8 @@ class channelTimeOffsetCalculator:
                     channel.apply_time_shift(propagation_times[i_channel, i_solution], True)
 
         correlation_sum_max = np.max(correlation_sum, axis=1)
-        correlation_sum = np.zeros(self.__electric_field_template.get_number_of_samples() + max_channel_length)
-        plt.close('all')
-        fig, ax = plt.subplots(1, 3)
-        ax[0].grid()
-        ax[1].grid()
         for i_channel, channel_id in enumerate(channel_ids):
             channel = station.get_channel(channel_id)
-            i_max = np.argmax(correlation_sum_max)
-            channel.set_parameter(chp.signal_time_offset, propagation_times[i_channel, i_max])
-            channel.set_parameter(chp.signal_receiving_zenith, receive_angles[i_channel, i_max])
-            channel.set_parameter(chp.signal_ray_type, self.__raytracing_types[i_max])
-            channel.apply_time_shift(-channel.get_parameter(chp.signal_time_offset))
-            if np.max(self.__channel_trace_templates[i_channel, i_max]) > 0:
-                corr = radiotools.helper.get_normalized_xcorr(self.__channel_trace_templates[i_channel, i_max], channel.get_trace())
-                corr[np.isnan(corr)] = 0
-                correlation_sum[:len(corr)] += corr
-                ax[0].plot(channel.get_times() - channel.get_trace_start_time(), channel.get_trace() / np.max(channel.get_trace()))
-                toffset = -(np.arange(0, correlation_sum.shape[0]) - max_channel_length) / channel.get_sampling_rate()
-            channel.apply_time_shift(channel.get_parameter(chp.signal_time_offset))
-
-        ax[1].plot(toffset, correlation_sum)
-        global_time_offset = toffset[np.argmax(correlation_sum)] + np.argmax(self.__channel_trace_templates[0, i_max]) / channel.get_sampling_rate()
-        ax[0].plot(
-            np.arange(len(self.__channel_trace_templates[0, i_max])) / channel.get_sampling_rate() + toffset[np.argmax(correlation_sum)],
-            self.__channel_trace_templates[0, i_max] / np.max(self.__channel_trace_templates[0, i_max]),
-            c='k'
-        )
-        ax[0].axvline(global_time_offset, c='r')
-        for i_channel, channel_id in enumerate(channel_ids):
-            channel = station.get_channel(channel_id)
-            channel.set_parameter(chp.template_reference_time, global_time_offset + channel.get_trace_start_time())
-            ax[2].plot(channel.get_times(), channel.get_trace())
-            ax[2].axvline(channel.get_parameter(chp.template_reference_time), c='k')
+            channel.set_parameter(chp.signal_time_offset, propagation_times[i_channel, np.argmax(correlation_sum_max)])
+            channel.set_parameter(chp.signal_receiving_zenith, receive_angles[i_channel, np.argmax(correlation_sum_max)])
+            channel.set_parameter(chp.signal_ray_type, self.__raytracing_types[np.argmax(correlation_sum_max)])
