@@ -38,6 +38,7 @@ class IftElectricFieldReconstructor:
         self.__electric_field_template = None
         self.__convergence_level = None
         self.__relative_tolerance = None
+        self.__use_sim = False
         return
 
     def begin(
@@ -116,10 +117,11 @@ class IftElectricFieldReconstructor:
         )
         self.__draw_priors(event, station, frequency_domain)
 
-    def run(self, event, station, detector, channel_ids, efield_scaling):
+    def run(self, event, station, detector, channel_ids, efield_scaling, use_sim=False):
         self.__used_channel_ids = []    # only use channels with associated E-field and zenith
         self.__efield_scaling = efield_scaling
         self.__used_channel_ids = channel_ids
+        self.__use_sim = use_sim
         self.__prepare_traces(event, station, detector)
         ref_channel = station.get_channel(self.__used_channel_ids[0])
         sampling_rate = ref_channel.get_sampling_rate()
@@ -192,10 +194,21 @@ class IftElectricFieldReconstructor:
         self.__data_traces = np.zeros((len(self.__used_channel_ids), self.__trace_samples))
         max_channel_length = 0
         passband = [100. * units.MHz, 300 * units.MHz]
+        sim_channel_traces = []
         for channel_id in self.__used_channel_ids:
             channel = station.get_channel(channel_id)
-            if channel.get_number_of_samples() > max_channel_length:
-                max_channel_length = channel.get_number_of_samples()
+            if self.__use_sim:
+                sim_channel_sum = NuRadioReco.framework.base_trace.BaseTrace()
+                sim_channel_sum.set_trace(np.zeros_like(channel.get_trace()), channel.get_sampling_rate())
+                sim_channel_sum.set_trace_start_time(channel.get_trace_start_time())
+                for sim_channel in station.get_sim_station().get_channels_by_channel_id(channel_id):
+                    sim_channel_sum += sim_channel
+                if sim_channel_sum.get_number_of_samples() > max_channel_length:
+                    max_channel_length = sim_channel_sum.get_number_of_samples()
+                sim_channel_traces.append(sim_channel_sum)
+            else:
+                if channel.get_number_of_samples() > max_channel_length:
+                    max_channel_length = channel.get_number_of_samples()
         correlation_sum = np.zeros(self.__electric_field_template.get_number_of_samples() + max_channel_length)
         if self.__debug:
             plt.close('all')
@@ -225,11 +238,19 @@ class IftElectricFieldReconstructor:
             channel_trace_template = fft.freq2time(channel_spectrum_template, self.__electric_field_template.get_sampling_rate())
             channel_trace_templates[i_channel] = channel_trace_template
             channel.apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
-            channel_trace = channel.get_filtered_trace(passband)
+            if self.__use_sim:
+                sim_channel_traces[i_channel].apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
+                channel_trace = sim_channel_traces[i_channel].get_filtered_trace(passband)
+            else:
+                channel_trace = channel.get_filtered_trace(passband)
             correlation = radiotools.helper.get_normalized_xcorr(channel_trace_template, channel_trace)
             correlation = np.abs(correlation)
             correlation_sum[:len(correlation)] += correlation
             toffset = -(np.arange(0, correlation.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()  # - propagation_times[i_channel, i_solution] - channel.get_trace_start_time()
+            if self.__use_sim:
+                sim_channel_traces[i_channel].apply_time_shift(channel.get_parameter(chp.signal_time_offset), True)
+            # else:
+            #     channel.apply_time_shift(channel.get_parameter(chp.signal_time_offset), True)
             if self.__debug:
                 ax1_1.plot(toffset, correlation)
 
