@@ -464,6 +464,7 @@ class IftElectricFieldReconstructor:
             [200. * units.MHz, 350. * units.MHz]
         ]
         energy_fluence_stat_calculator = ift.StatCalculator()
+        slope_parameter_stat_calculator = ift.StatCalculator()
         rec_efield = np.zeros((3, self.__electric_field_template.get_number_of_samples()))
         sampling_rate = self.__electric_field_template.get_sampling_rate()
         times = np.arange(self.__data_traces.shape[1]) / sampling_rate
@@ -485,6 +486,7 @@ class IftElectricFieldReconstructor:
                 )
                 polarization_stat_calculator.add(np.arctan(np.sqrt(energy_fluences[2]) / np.sqrt(energy_fluences[1])))
             fluence_sample = np.zeros((len(passbands), 3))
+
             for i_passband, passband in enumerate(passbands):
                 filter_response = bandpass_filter.get_filter_response(freqs, passband, 'butter', 10)
                 e_fluence = trace_utilities.get_electric_field_energy_fluence(
@@ -494,6 +496,10 @@ class IftElectricFieldReconstructor:
                 e_fluence[0] = np.sum(np.abs(e_fluence))
                 fluence_sample[i_passband] = e_fluence
             energy_fluence_stat_calculator.add(fluence_sample)
+            if self.__polarization == 'pol' or self.__polarization == 'theta':
+                slope_parameter_stat_calculator.add(fluence_sample[1, 1] / fluence_sample[2, 1])
+            else:
+                slope_parameter_stat_calculator.add(fluence_sample[1, 2] / fluence_sample[2, 2])
         if self.__efield_trace_operators[i_channel][0] is not None:
             rec_efield[1] = efield_stat_calculators[0].mean * self.__scaling_factor / self.__gain_scaling
         if self.__efield_trace_operators[i_channel][1] is not None:
@@ -509,6 +515,8 @@ class IftElectricFieldReconstructor:
         energy_fluence_error = np.sqrt(energy_fluence_stat_calculator.var)
         efield.set_parameter(efp.signal_energy_fluence, energy_fluence_dict)
         efield.set_parameter_error(efp.signal_energy_fluence, energy_fluence_error)
+        efield.set_parameter(efp.cr_spectrum_slope, slope_parameter_stat_calculator.mean)
+        efield.set_parameter_error(efp.cr_spectrum_slope, np.sqrt(slope_parameter_stat_calculator.var))
         return efield
 
     def __draw_priors(
