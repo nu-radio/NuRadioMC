@@ -1,5 +1,7 @@
 import numpy as np
 from NuRadioReco.utilities import units
+import NuRadioReco.detector.RNO_G.analog_components
+import NuRadioReco.detector.ARIANNA.analog_components
 from radiotools import helper as hp
 import os
 import logging
@@ -494,6 +496,27 @@ class Detector(object):
         res = self._get_station(station_id)
         return res['pos_site']
 
+    def get_site_coordinates(self, station_id):
+        """
+        get the (latitude, longitude) coordinates (in degrees) for a given
+        detector site.
+
+        Parameters
+        -------------
+        station_id: int
+            the station ID
+        """
+        sites = {
+            'auger': (-35.10, -69.55),
+            'mooresbay': (-78.74, 165.09),
+            'southpole': (-90., 0.),
+            'summit': (72.57, -38.46)
+        }
+        site = self.get_site(station_id)
+        if site in sites.keys():
+            return sites[site]
+        return (None, None)
+
     def get_number_of_channels(self, station_id):
         """
         Get the number of channels per station
@@ -679,6 +702,42 @@ class Detector(object):
         """
         res = self.__get_channel(station_id, channel_id)
         return res['amp_reference_measurement']
+
+    def get_amplifier_response(self, station_id, channel_id, frequencies):
+        """
+        Returns the amplifier response for the amplifier of a given channel
+
+        Parameters:
+        ---------------
+        station_id: int
+            The ID of the station
+        channel_id: int
+            The ID of the channel
+        frequencies: array of floats
+            The frequency array for which the amplifier response shall be returned
+        """
+        res = self.__get_channel(station_id, channel_id)
+        amp_type = None
+        if 'amp_type' in res.keys():
+            amp_type = res['amp_type']
+        if amp_type is None:
+            raise ValueError(
+                'Amplifier type for station {}, channel {} not in detector description'.format(
+                    station_id,
+                    channel_id
+                ))
+        amp_response_functions = None
+        if amp_type in NuRadioReco.detector.RNO_G.analog_components.get_available_amplifiers():
+            amp_response_functions = NuRadioReco.detector.RNO_G.analog_components.load_amp_response(amp_type)
+        if amp_type in NuRadioReco.detector.ARIANNA.analog_components.get_available_amplifiers():
+            if amp_response_functions is not None:
+                raise ValueError('Amplifier name {} is not unique'.format(amp_type))
+            amp_response_functions = NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response(amp_type)
+        if amp_response_functions is None:
+            raise ValueError('Amplifier of type {} not found'.format(amp_type))
+        amp_gain = amp_response_functions['gain'](frequencies)
+        amp_phase = amp_response_functions['phase'](frequencies)
+        return amp_gain * amp_phase
 
     def get_sampling_frequency(self, station_id, channel_id):
         """

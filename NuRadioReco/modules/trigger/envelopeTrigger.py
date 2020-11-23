@@ -76,7 +76,7 @@ class triggerSimulator:
 
         t = time.time()  # absolute time of system
 
-        sampling_rate = station.get_channel(0).get_sampling_rate()
+        sampling_rate = station.get_channel(det.get_channel_ids(station.get_id())[0]).get_sampling_rate()
         dt = 1. / sampling_rate
 
         triggered_bins_channels = []
