@@ -104,32 +104,32 @@ class mySimulation(simulation.simulation):
                             threshold=3.5 * Vrms,
                             triggered_channels=[4],  # run trigger on all channels
                             number_concidences=1,
-                            trigger_name=f'dipole_1.0sigma')
+                            trigger_name='dipole_1.0sigma')
         simpleThreshold.run(self._evt, self._station, self._det,
                             threshold=3.0 * Vrms,
                             triggered_channels=[4],  # run trigger on all channels
                             number_concidences=1,
-                            trigger_name=f'dipole_1.5sigma')
+                            trigger_name='dipole_1.5sigma')
         simpleThreshold.run(self._evt, self._station, self._det,
                             threshold=2.5 * Vrms,
                             triggered_channels=[4],  # run trigger on all channels
                             number_concidences=1,
-                            trigger_name=f'dipole_2.0sigma')
+                            trigger_name='dipole_2.0sigma')
         simpleThreshold.run(self._evt, self._station, self._det,
                             threshold=2.0 * Vrms,
                             triggered_channels=[4],  # run trigger on all channels
                             number_concidences=1,
-                            trigger_name=f'dipole_2.5sigma')
+                            trigger_name='dipole_2.5sigma')
         simpleThreshold.run(self._evt, self._station, self._det,
                             threshold=1.5 * Vrms,
                             triggered_channels=[4],  # run trigger on all channels
                             number_concidences=1,
-                            trigger_name=f'dipole_3.0sigma')
+                            trigger_name='dipole_3.0sigma')
         simpleThreshold.run(self._evt, self._station, self._det,
                             threshold=1.0 * Vrms,
                             triggered_channels=[4],  # run trigger on all channels
                             number_concidences=1,
-                            trigger_name=f'dipole_3.5sigma')
+                            trigger_name='dipole_3.5sigma')
 
         # After all of those have fired away, now we need to introduce noise to the signal since noise will change the overall power in an integration window
         original_traces = {}
@@ -168,7 +168,7 @@ class mySimulation(simulation.simulation):
                                                  triggered_channels=range(4, 8),
                                                  phasing_angles=phasing_angles_4ant,
                                                  ref_index=1.75,
-                                                 trigger_name=f'4ant_testing_phasing',  # the name of the trigger
+                                                 trigger_name='4ant_testing_phasing',  # the name of the trigger
                                                  trigger_adc=False,  # Don't have a seperate ADC for the trigger
                                                  adc_output='voltage',  # output in volts
                                                  trigger_filter=None,
@@ -191,9 +191,9 @@ class mySimulation(simulation.simulation):
                              triggered_channels=range(4, 8),  # run trigger on all channels
                              phasing_angles=phasing_angles_4ant,
                              ref_index=1.75,
-                             trigger_name=f'4ant_phasing',  # the name of the trigger
+                             trigger_name='4ant_phasing',  # the name of the trigger
                              trigger_adc=False,  # Don't have a seperate ADC for the trigger
-                             adc_output=f'voltage',  # output in volts
+                             adc_output='voltage',  # output in volts
                              trigger_filter=None,
                              upsampling_factor=2,
                              window=window_4ant,
@@ -225,9 +225,9 @@ class mySimulation(simulation.simulation):
                                                  triggered_channels=None,  # run trigger on all channels
                                                  phasing_angles=phasing_angles_8ant,
                                                  ref_index=1.75,
-                                                 trigger_name=f'8ant_testing_phasing',  # the name of the trigger
+                                                 trigger_name='8ant_testing_phasing',  # the name of the trigger
                                                  trigger_adc=False,  # Don't have a seperate ADC for the trigger
-                                                 adc_output=f'voltage',  # output in volts
+                                                 adc_output='voltage',  # output in volts
                                                  trigger_filter=None,
                                                  upsampling_factor=4,
                                                  window=window_8ant,
@@ -249,9 +249,9 @@ class mySimulation(simulation.simulation):
                              triggered_channels=None,  # run trigger on all channels
                              phasing_angles=phasing_angles_8ant,
                              ref_index=1.75,
-                             trigger_name=f'8ant_phasing',  # the name of the trigger
+                             trigger_name='8ant_phasing',  # the name of the trigger
                              trigger_adc=False,  # Don't have a seperate ADC for the trigger
-                             adc_output=f'voltage',  # output in volts
+                             adc_output='voltage',  # output in volts
                              trigger_filter=None,
                              upsampling_factor=4,
                              window=window_8ant,
