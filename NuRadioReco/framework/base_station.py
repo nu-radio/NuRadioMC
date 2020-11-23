@@ -232,11 +232,18 @@ class BaseStation():
         efield_pkls = []
         for efield in self.get_electric_fields():
             efield_pkls.append(efield.serialize(save_trace=save_efield_traces))
+        if self._station_time is None:
+            station_time_dict = None
+        else:
+            station_time_dict = {
+                'value': self._station_time.value,
+                'format': self._station_time.format
+            }
         data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
-                '_parameter_covariances': self._parameter_covariances,
+                '_parameter_covariances': NuRadioReco.framework.parameter_serialization.serialize_covariances(self._parameter_covariances),
                 '_ARIANNA_parameters': self._ARIANNA_parameters,
                 '_station_id': self._station_id,
-                '_station_time': self._station_time,
+                '_station_time': station_time_dict,
                 '_particle_type': self._particle_type,
                 'triggers': trigger_pkls,
                 '_triggered': self._triggered,
@@ -260,10 +267,16 @@ class BaseStation():
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'],
                                                                                      parameters.stationParameters)
 
-        self._parameter_covariances = data['_parameter_covariances']
+        self._parameter_covariances = NuRadioReco.framework.parameter_serialization.deserialize_covariances(data['_parameter_covariances'], parameters.stationParameters)
         if ('_ARIANNA_parameters') in data:
             self._ARIANNA_parameters = data['_ARIANNA_parameters']
 
         self._station_id = data['_station_id']
-        self.set_station_time(data['_station_time'])
+        if data['_station_time'] is not None:
+            if isinstance(data['_station_time'], dict):
+                station_time = astropy.time.Time(data['_station_time']['value'], format=data['_station_time']['format'])
+                self.set_station_time(station_time)
+            # For backward compatibility, we also keep supporting station times stored as astropy.time objects
+            else:
+                self.set_station_time(data['_station_time'])
         self._particle_type = data['_particle_type']
