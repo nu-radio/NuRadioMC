@@ -4,6 +4,7 @@ import numpy as np
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 from NuRadioReco.modules.io.coreas import coreas
+from NuRadioReco.utilities import units
 
 import logging
 logger = logging.getLogger('readCoREASStation')
@@ -11,7 +12,7 @@ logger = logging.getLogger('readCoREASStation')
 
 class readCoREASStation:
 
-    def begin(self, input_files, station_id):
+    def begin(self, input_files, station_id, debug=False):
         """
         begin method
 
@@ -28,6 +29,7 @@ class readCoREASStation:
         self.__station_id = station_id
         self.__current_input_file = 0
         self.__current_event = 0
+        self.__debug = debug
 
     @register_run()
     def run(self, detector):
@@ -45,10 +47,30 @@ class readCoREASStation:
             self.__current_event = 0
             with h5py.File(input_file, "r") as corsika:
                 if "highlevel" not in corsika.keys() or list(corsika["highlevel"].values()) == []:
-                    logger.warning(" No highlevel quantities in simulated hdf5 files, weights will be one")
-                    weights = np.ones(len(corsika['CoREAS']['observers']))
+                    logger.warning(" No highlevel quantities in simulated hdf5 files, weights will be taken from station position")
+                    positions = []
+                    for observer in corsika['CoREAS']['observers'].values():
+                        position = observer.attrs['position']
+                        positions.append(np.array([-position[1], position[0], 0]) * units.cm)
+                    positions = np.array(positions)
+                    zenith, azimuth, magnetic_field_vector = coreas.get_angles(corsika)
+                    weights = coreas.calculate_simulation_weights(positions, zenith, azimuth, debug=self.__debug)
+
+                    if self.__debug:
+                        import matplotlib.pyplot as plt
+                        fig, ax = plt.subplots()
+                        im = ax.scatter(positions[:, 0], positions[:, 1], c=weights)
+                        fig.colorbar(im, ax=ax).set_label(label=r'Area $[m^2]$')
+                        plt.xlabel('East [m]')
+                        plt.ylabel('West [m]')
+                        plt.title('Final weighting')
+                        plt.gca().set_aspect('equal')
+                        plt.show()
+
                 else:
-                    weights = coreas.calculate_simulation_weights(list(corsika["highlevel"].values())[0]["antenna_position"])
+                    positions = list(corsika["highlevel"].values())[0]["antenna_position"]
+                    zenith, azimuth, magnetic_field_vector = coreas.get_angles(corsika)
+                    weights = coreas.calculate_simulation_weights(positions, zenith, azimuth)
 
                 for i, (name, observer) in enumerate(corsika['CoREAS']['observers'].items()):
                     evt = NuRadioReco.framework.event.Event(self.__current_input_file, self.__current_event)  # create empty event

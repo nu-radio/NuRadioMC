@@ -23,6 +23,15 @@ NuRadioReco\.modules\.channelBandPassFilter module
     :undoc-members:
     :show-inheritance:
 
+NuRadioReco\.modules\.channelGalacticNoiseAdder module
+-----------------------------------------------------
+
+.. automodule:: NuRadioReco.modules.channelGalaxticNoiseAdder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
 NuRadioReco\.modules\.channelGenericNoiseAdder module
 -----------------------------------------------------
 
