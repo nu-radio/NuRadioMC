@@ -1,7 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities.trace_utilities import upsampling_fir
 from NuRadioReco.framework.trigger import SimplePhasedTrigger
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 import logging

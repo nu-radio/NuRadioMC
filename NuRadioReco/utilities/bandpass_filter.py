@@ -52,6 +52,7 @@ def get_filter_response(frequencies, passband, filter_type, order, rp=None):
         b, a = scipy.signal.cheby1(order, rp, passband, 'bandpass', analog=True)
         w, h = scipy.signal.freqs(b, a, frequencies[mask])
         f[mask] = h
+        return f
     elif (filter_type.find('FIR') >= 0):
         raise NotImplementedError("FIR filter not yet implemented")
     else:
