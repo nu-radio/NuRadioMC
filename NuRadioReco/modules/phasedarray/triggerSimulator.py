@@ -58,8 +58,8 @@ class triggerSimulator:
 
         Returns
         -------
-        ant_pos: array of floats
-            Desired antenna position in requested coordinate        
+        ant_pos: array of floatss
+            Desired antenna position in requested coordinate
 
         """
 
@@ -136,7 +136,7 @@ class triggerSimulator:
 
     def get_channel_trace_start_time(self, station, triggered_channels):
         """
-        Finds the start time of the desired traces. 
+        Finds the start time of the desired traces.
         Throws an error if all the channels dont have the same start time.
 
         Parameters
@@ -166,7 +166,7 @@ class triggerSimulator:
     def check_vertical_string(self, station, det, triggered_channels):
         """
         Checks if the triggering antennas lie in a straight vertical line
-        Throws error if not. 
+        Throws error if not.
 
         Parameters
         ----------
