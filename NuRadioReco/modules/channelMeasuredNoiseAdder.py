@@ -118,6 +118,10 @@ class channelMeasuredNoiseAdder:
             if channel_id not in noise_station.get_channel_ids():
                 self.logger.debug('Channel {} found in station but not in noise file'.format(channel_id))
                 return None
+            noise_channel = noise_station.get_channel(channel_id)
+            channel = station.get_channel(channel_id)
+            if noise_channel.get_number_of_samples() / noise_channel.get_sampling_rate() < channel.get_number_of_samples() / channel.get_sampling_rate():
+                return None
         return noise_station
 
     def end(self):
