@@ -32,10 +32,8 @@ from __future__ import absolute_import, division, print_function
 import argparse
 import json
 import numpy as np
-from scipy.interpolate import interp1d
-import matplotlib.pyplot as plt
 import logging
-import copy 
+import copy
 
 # import detector simulation modules
 import NuRadioReco.modules.efieldToVoltageConverter
@@ -59,10 +57,10 @@ channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPas
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
-#import sys
-#sys.path.append('/home/danielsmith/icecube_gen2/NuRadioReco')
-#sys.path.append('/home/danielsmith/icecube_gen2/NuRadioMC')
-            
+# import sys
+# sys.path.append('/home/danielsmith/icecube_gen2/NuRadioReco')
+# sys.path.append('/home/danielsmith/icecube_gen2/NuRadioMC')
+
 # 4 channel, 2x sampling
 #  100 Hz -> 2.91
 #  10 Hz -> 3.06
@@ -94,13 +92,13 @@ if(n_channels == 4):
     upsampling_factor = 2
     phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
     channels = np.arange(4, 8)
-    #threshold = 2.91
+    # threshold = 2.91
     threshold = 3.66
 elif(n_channels == 8):
     upsampling_factor = 4
     phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 21))
     channels = None
-    #threshold = 4.25
+    # threshold = 4.25
     threshold = 5.18
 else:
     print("wrong n_channels!")
@@ -110,10 +108,13 @@ N = 21
 SNRs = (np.linspace(0.5, 4.0, N))
 SNRtriggered = np.zeros(N)
 
+
 def count_events():
     count_events.events += 1
 
+
 count_events.events = 0
+
 
 class mySimulation(simulation.simulation):
 
@@ -130,7 +131,7 @@ class mySimulation(simulation.simulation):
         for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
             trace = np.array(channel.get_trace())
             channel_id = channel.get_id()
-            # Do some magic here to find direction ... 
+            # Do some magic here to find direction ...
 
         # downsample trace back to detector sampling rate
         new_sampling_rate = 500.0 * units.MHz
@@ -145,10 +146,10 @@ class mySimulation(simulation.simulation):
             # one quality check, problem with some signals being zero from being the the shadow, so
             if(np.sum(trace) == 0):
                 print("Skipping event due to zero trace in", channel.get_id())
-                return 
+                return
 
             channel_id = channel.get_id()
-            original_traces[channel_id] = trace#_
+            original_traces[channel_id] = trace  # _
             channel.set_trace(trace, new_sampling_rate)
 
         # Calculating peak to peak voltage and the necessary factors for the SNR.
@@ -164,7 +165,7 @@ class mySimulation(simulation.simulation):
             trace = np.fft.irfft(np.fft.rfft(np.array(channel.get_trace())) * filt2 * filt1)
             Vpps += [np.max(trace) - np.min(trace)]
 
-        factor = 1. / (np.mean(Vpps) / (2.0))# * self._Vrms))
+        factor = 1. / (np.mean(Vpps) / (2.0))  # * self._Vrms))
         mult_factors = factor * SNRs
 
         for factor, iSNR in zip(mult_factors, range(len(mult_factors))):
@@ -175,7 +176,7 @@ class mySimulation(simulation.simulation):
 
             min_freq = 0.0 * units.MHz
             max_freq = 250.0 * units.MHz
-            bandwidth = 0.1732429316625746 
+            bandwidth = 0.1732429316625746
             Vrms_ratio = np.sqrt(bandwidth / (max_freq - min_freq))
 
             # Adding noise AFTER the SNR calculation
@@ -195,22 +196,22 @@ class mySimulation(simulation.simulation):
 
             if(phase):
                 has_triggered = triggerSimulator.run(self._evt, self._station, self._det,
-                                                     Vrms = 1.0, #self._Vrms,
-                                                     threshold = threshold,
+                                                     Vrms=1.0,  # self._Vrms,
+                                                     threshold=threshold,
                                                      triggered_channels=channels,
-                                                     phasing_angles=phasing_angles, 
-                                                     ref_index = 1.75, 
+                                                     phasing_angles=phasing_angles,
+                                                     ref_index=1.75,
                                                      trigger_name='primary_phasing',  # the name of the trigger
-                                                     trigger_adc=False, # Don't have a seperate ADC for the trigger
-                                                     adc_output='voltage', # output in volts
-                                                     nyquist_zone=None, # first nyquist zone
-                                                     bandwidth_edge=20 * units.MHz,                             
+                                                     trigger_adc=False,  # Don't have a seperate ADC for the trigger
+                                                     adc_output='voltage',  # output in volts
+                                                     nyquist_zone=None,  # first nyquist zone
+                                                     bandwidth_edge=20 * units.MHz,
                                                      upsampling_factor=upsampling_factor,
-                                                     window=int(32 * dt / 2 / upsampling_factor), 
-                                                     step = int(16 * dt / 2 / upsampling_factor))
+                                                     window=int(32 * dt / 2 / upsampling_factor),
+                                                     step=int(16 * dt / 2 / upsampling_factor))
             else:
                 thresholdSimulator.run(self._evt, self._station, self._det,
-                                       threshold = 2.0, # * self._Vrms,
+                                       threshold=2.0,  # * self._Vrms,
                                        triggered_channels=[7],  # run trigger on all channels
                                        number_concidences=1,
                                        trigger_name='simple_threshold')

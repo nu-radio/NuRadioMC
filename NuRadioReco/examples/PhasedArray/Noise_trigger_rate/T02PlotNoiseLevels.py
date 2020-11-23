@@ -22,7 +22,7 @@ rate_avg_err = []
 rate_avg = []
 for iThres, thres in enumerate(thresholds):
     mask = thresholds == thres
-    t = np.sum(ts[mask])    
+    t = np.sum(ts[mask])
     n_trig = np.sum(n_triggers[mask])
     rate = n_trig / (t)
     rate_error = n_trig ** 0.5 / (t)
@@ -55,10 +55,14 @@ f_intp = interp1d(t_avg, rate_avg, fill_value='extrapolate')
 f3 = np.poly1d(np.polyfit(t_avg, np.log10(rate_avg), deg=1, w=1.0 / np.log10(rate_avg_err) ** 2))
 f4 = np.poly1d(np.polyfit(t_avg, np.log10(rate_avg), deg=2, w=1.0 / np.log10(rate_avg_err) ** 2))
 
+
 def f1(x):
     return 10 ** f3(x)
+
+
 def f2(x):
     return 10 ** f4(x)
+
 
 xxx = np.linspace(0.0, 20.0, 1000)
 yyy = f1(xxx)
@@ -68,9 +72,12 @@ ax.errorbar(t_avg_og, rate_avg_og / units.Hz, fmt='o', yerr=rate_avg_err_og / un
 ax.plot(xxx, yyy / units.Hz, php.get_color_linestyle(0))
 ax.plot(xxx, yyy2 / units.Hz, php.get_color_linestyle(1))
 
+
 def obj(x, t):
-    #return f1(x) - t
+    # return f1(x) - t
     return f2(x) - t
+
+
 try:
     for rate in single_rates:
         t = scipy.optimize.brentq(obj, 0.0, 20.0, args=rate)

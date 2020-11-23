@@ -89,6 +89,7 @@ pattern = f"pa_trigger_rate_{n_channels:d}channels_{upsampling_factor}xupsampili
 triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
+
 def loop(zipped):
 
     threshold = float(zipped[0])
@@ -98,7 +99,7 @@ def loop(zipped):
     evt = NuRadioReco.framework.event.Event(0, 0)
 
     channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-    channelGenericNoiseAdder.begin(seed = seed)
+    channelGenericNoiseAdder.begin(seed=seed)
 
     dt = 1.0 / sampling_rate
 
@@ -136,10 +137,11 @@ def loop(zipped):
                                triggered_channels=[4],  # run trigger on all channels
                                number_concidences=1,
                                trigger_name=f'dipole')
-        
+
         triggered = station.get_triggers()['dipole'].has_triggered()
 
     return triggered
+
 
 pool = ThreadPool(10)
 

@@ -69,6 +69,7 @@ main_high_angle = np.deg2rad(59.54968597864437)
 phasing_angles_4ant = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
 phasing_angles_8ant = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 21))
 
+
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
@@ -152,7 +153,7 @@ class mySimulation(simulation.simulation):
                 trace = np.zeros(len(original_traces[channel.get_id()][:]))
                 channel.set_trace(trace, sampling_rate=new_sampling_rate)
 
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude = Vrms / Vrms_ratio,
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms / Vrms_ratio,
                                          min_freq=min_freq, max_freq=max_freq, type='rayleigh')
 
             # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
@@ -162,18 +163,18 @@ class mySimulation(simulation.simulation):
                                       filter_type='cheby1', order=4, rp=.1)
 
             has_triggered = triggerSimulator.run(self._evt, self._station, self._det,
-                                                 Vrms = Vrms,
-                                                 threshold = 1.77 * np.power(Vrms, 2.0) * window_4ant,
-                                                 triggered_channels = range(4, 8),
+                                                 Vrms=Vrms,
+                                                 threshold=1.77 * np.power(Vrms, 2.0) * window_4ant,
+                                                 triggered_channels=range(4, 8),
                                                  phasing_angles=phasing_angles_4ant,
-                                                 ref_index = 1.75,
-                                                 trigger_name=f'4ant_testing_phasing', # the name of the trigger
-                                                 trigger_adc=False, # Don't have a seperate ADC for the trigger
-                                                 adc_output='voltage', # output in volts
+                                                 ref_index=1.75,
+                                                 trigger_name=f'4ant_testing_phasing',  # the name of the trigger
+                                                 trigger_adc=False,  # Don't have a seperate ADC for the trigger
+                                                 adc_output='voltage',  # output in volts
                                                  trigger_filter=None,
                                                  upsampling_factor=2,
                                                  window=window_4ant,
-                                                 step = step_4ant)
+                                                 step=step_4ant)
 
             if(has_triggered):
                 print('Trigger on noise... for the 4 antenna setup')
@@ -185,19 +186,18 @@ class mySimulation(simulation.simulation):
 
         # run the 4 phased trigger
         triggerSimulator.run(self._evt, self._station, self._det,
-                             Vrms = Vrms,
-                             threshold = 1.77 * np.power(Vrms, 2.0) * window_4ant,
-                             triggered_channels=range(4, 8), # run trigger on all channels
+                             Vrms=Vrms,
+                             threshold=1.77 * np.power(Vrms, 2.0) * window_4ant,
+                             triggered_channels=range(4, 8),  # run trigger on all channels
                              phasing_angles=phasing_angles_4ant,
-                             ref_index = 1.75,
-                             trigger_name=f'4ant_phasing', # the name of the trigger
-                             trigger_adc=False, # Don't have a seperate ADC for the trigger
-                             adc_output=f'voltage', # output in volts
+                             ref_index=1.75,
+                             trigger_name=f'4ant_phasing',  # the name of the trigger
+                             trigger_adc=False,  # Don't have a seperate ADC for the trigger
+                             adc_output=f'voltage',  # output in volts
                              trigger_filter=None,
                              upsampling_factor=2,
                              window=window_4ant,
-                             step = step_4ant)
-
+                             step=step_4ant)
 
         has_triggered = True
 
@@ -210,7 +210,7 @@ class mySimulation(simulation.simulation):
 
             # Adding noise AFTER the SNR calculation
             # no adding noise, see what that does to the SNR
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude = Vrms / Vrms_ratio,
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms / Vrms_ratio,
                                          min_freq=min_freq, max_freq=max_freq, type='rayleigh')
 
             # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
@@ -220,14 +220,14 @@ class mySimulation(simulation.simulation):
                                       filter_type='cheby1', order=4, rp=.1)
 
             has_triggered = triggerSimulator.run(self._evt, self._station, self._det,
-                                                 Vrms = Vrms,
-                                                 threshold = 1.83 * np.power(Vrms, 2.0) * window_8ant, # see phased trigger module for explanation
-                                                 triggered_channels=None, # run trigger on all channels
+                                                 Vrms=Vrms,
+                                                 threshold=1.83 * np.power(Vrms, 2.0) * window_8ant,  # see phased trigger module for explanation
+                                                 triggered_channels=None,  # run trigger on all channels
                                                  phasing_angles=phasing_angles_8ant,
-                                                 ref_index = 1.75,
-                                                 trigger_name=f'8ant_testing_phasing', # the name of the trigger
-                                                 trigger_adc=False, # Don't have a seperate ADC for the trigger
-                                                 adc_output=f'voltage', # output in volts
+                                                 ref_index=1.75,
+                                                 trigger_name=f'8ant_testing_phasing',  # the name of the trigger
+                                                 trigger_adc=False,  # Don't have a seperate ADC for the trigger
+                                                 adc_output=f'voltage',  # output in volts
                                                  trigger_filter=None,
                                                  upsampling_factor=4,
                                                  window=window_8ant,
@@ -244,18 +244,19 @@ class mySimulation(simulation.simulation):
 
         # run the 8 channel phased trigger
         triggerSimulator.run(self._evt, self._station, self._det,
-                             Vrms = Vrms,
-                             threshold = 1.83 * np.power(Vrms, 2.0) * window_8ant, # see phased trigger module for explanation
-                             triggered_channels=None, # run trigger on all channels
+                             Vrms=Vrms,
+                             threshold=1.83 * np.power(Vrms, 2.0) * window_8ant,  # see phased trigger module for explanation
+                             triggered_channels=None,  # run trigger on all channels
                              phasing_angles=phasing_angles_8ant,
-                             ref_index = 1.75,
-                             trigger_name=f'8ant_phasing', # the name of the trigger
-                             trigger_adc=False, # Don't have a seperate ADC for the trigger
-                             adc_output=f'voltage', # output in volts
+                             ref_index=1.75,
+                             trigger_name=f'8ant_phasing',  # the name of the trigger
+                             trigger_adc=False,  # Don't have a seperate ADC for the trigger
+                             adc_output=f'voltage',  # output in volts
                              trigger_filter=None,
                              upsampling_factor=4,
                              window=window_8ant,
                              step=step_8ant)
+
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('--inputfilename', type=str,
