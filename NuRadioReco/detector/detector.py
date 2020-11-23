@@ -497,6 +497,27 @@ class Detector(object):
         res = self._get_station(station_id)
         return res['pos_site']
 
+    def get_site_coordinates(self, station_id):
+        """
+        get the (latitude, longitude) coordinates (in degrees) for a given
+        detector site.
+
+        Parameters
+        -------------
+        station_id: int
+            the station ID
+        """
+        sites = {
+            'auger': (-35.10, -69.55),
+            'mooresbay': (-78.74, 165.09),
+            'southpole': (-90., 0.),
+            'summit': (72.57, -38.46)
+        }
+        site = self.get_site(station_id)
+        if site in sites.keys():
+            return sites[site]
+        return (None, None)
+
     def get_number_of_channels(self, station_id):
         """
         Get the number of channels per station
