@@ -12,7 +12,7 @@ Installation using Pip
 
   This will also install the required dependencies.
 
-  .. Important:: If you want the current version or you want to contribute to NuRadioReco, you need to install if manually.
+  .. Important:: If you want the current version or you want to contribute to NuRadioReco, you need to install it manually.
 
 Manual Installation
 ---------------------------
@@ -129,3 +129,9 @@ These packages are recommended to be able to use all of NuRadioReco's features:
         pip install peakutils
 
     - To read ARIANNA files, `Snowshovel <https://arianna.ps.uci.edu/mediawiki/index.php/Local_DAQ_Instructions>`_ need to be installed.
+
+    - To use the channelGalacticNoiseAdder, you need the `PyGDSM <https://github.com/telegraphic/pygdsm>`_ package.
+
+      .. code-block:: Bash
+
+        pip install git+https://github.com/telegraphic/pygdsm
