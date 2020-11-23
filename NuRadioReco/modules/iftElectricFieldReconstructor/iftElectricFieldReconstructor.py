@@ -276,6 +276,8 @@ class IftElectricFieldReconstructor:
                     sim_channel_sum.apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
                     ax2_1.plot(sim_channel_sum.get_times(), sim_channel_sum.get_filtered_trace(passband) / units.mV, c='k', alpha=.5)
                     ax2_1.set_xlim([sim_channel_sum.get_trace_start_time() - 50, sim_channel_sum.get_times()[-1] + 50])
+                    sim_channel_sum.apply_time_shift(channel.get_parameter(chp.signal_time_offset), True)
+
             channel.apply_time_shift(-toffset[np.argmax(correlation_sum)])
             self.__data_traces[i_channel] = channel.get_trace()[:self.__trace_samples]
             self.__noise_levels[i_channel] = np.sqrt(np.mean(channel.get_trace()[self.__trace_samples + 1:]**2))
@@ -324,7 +326,10 @@ class IftElectricFieldReconstructor:
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             channel = station.get_channel(channel_id)
             receiving_zenith = channel.get_parameter(chp.signal_receiving_zenith)
-            receive_azimuth = 0.
+            if channel.has_parameter(chp.signal_receiving_azimuth):
+                receive_azimuth = channel.get_parameter(chp.signal_receiving_azimuth)
+            else:
+                receive_azimuth = 0.
             antenna_response = NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor(station, frequencies, [channel_id], detector, receiving_zenith, receive_azimuth, self.__antenna_pattern_provider)[0]
             amp_response = detector.get_amplifier_response(station.get_id(), channel_id, frequencies)
             amp_gain = np.abs(amp_response)
@@ -630,11 +635,15 @@ class IftElectricFieldReconstructor:
             ax1_1.plot(freqs / units.MHz, np.abs(fft.time2freq(self.__data_traces[i_channel], sampling_rate)) * self.__scaling_factor / units.mV, c='C0', label='data')
             sim_efield_max = None
             channel_snr = None
+            channel = station.get_channel(channel_id)
             if station.has_sim_station():
                 sim_station = station.get_sim_station()
                 n_drawn_sim_channels = 0
                 for ray_tracing_id in sim_station.get_ray_tracing_ids():
                     sim_channel_sum = None
+                    # sim_channel_sum = NuRadioReco.framework.base_trace.BaseTrace()
+                    # sim_channel_sum.set_trace(np.zeros_like(channel.get_trace()), channel.get_sampling_rate())
+                    # sim_channel_sum.set_trace_start_time(channel.get_trace_start_time())
                     for sim_channel in sim_station.get_channels_by_ray_tracing_id(ray_tracing_id):
                         if sim_channel.get_id() == channel_id:
                             if sim_channel_sum is None:
