@@ -9,6 +9,7 @@ from NuRadioReco.utilities.trace_utilities import upsampling_fir, butterworth_fi
 
 import matplotlib.pyplot as plt
 
+
 def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output='voltage'):
     """
     Simulates a perfect comparator flash ADC that compares the voltage to the
@@ -55,7 +56,7 @@ def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output=
     else:
         raise ValueError("The ADC output format is unknown. Please choose 'voltage' or 'counts'")
 
-    return digital_trace#, lsb_voltage
+    return digital_trace  # , lsb_voltage
 
 
 def perfect_floor_comparator(trace, adc_n_bits, adc_ref_voltage, output='voltage'):
@@ -104,7 +105,7 @@ def apply_saturation(adc_counts_trace, adc_n_bits, adc_ref_voltage):
     high_saturation_mask = adc_counts_trace > highest_count
     saturated_trace[high_saturation_mask] = highest_count
 
-    lowest_count = - 2 ** (adc_n_bits - 1)
+    lowest_count = -2 ** (adc_n_bits - 1)
     low_saturation_mask = adc_counts_trace < lowest_count
     saturated_trace[low_saturation_mask] = lowest_count
 
@@ -177,9 +178,9 @@ class analogToDigitalConverter:
         self.logger = logging.getLogger('NuRadioReco.analogToDigitalConverter')
 
     def get_digital_trace(self, station, det, channel,
-                          Vrms = None,
+                          Vrms=None,
                           trigger_adc=False,
-                          clock_offset=0.0,                          
+                          clock_offset=0.0,
                           adc_type='perfect_floor_comparator',
                           return_sampling_frequency=False,
                           adc_output='voltage',
@@ -242,7 +243,7 @@ class analogToDigitalConverter:
         trace = channel.get_trace()[:]
         MC_sampling_frequency = channel.get_sampling_rate()
 
-        if(trigger_adc): # assumes that the trigger uses 
+        if(trigger_adc):  # assumes that the trigger uses
             adc_time_delay_label = "trigger_adc_time_delay"
             adc_n_bits_label = "trigger_adc_nbits"
             adc_noise_n_bits_label = "trigger_adc_noise_nbits"
@@ -260,7 +261,7 @@ class analogToDigitalConverter:
         if(adc_time_delay_label in det_channel):
             if(det_channel[adc_time_delay_label] is not None):
                 adc_time_delay = det_channel[adc_time_delay_label] * units.ns
-           
+
         adc_n_bits = det_channel[adc_n_bits_label]
         adc_noise_n_bits = det_channel[adc_noise_n_bits_label]
         adc_sampling_frequency = det_channel[adc_sampling_frequency_label] * units.GHz
@@ -274,8 +275,8 @@ class analogToDigitalConverter:
 
             adc_ref_voltage = det_channel[adc_ref_voltage_label] * units.V
         else:
-            adc_ref_voltage = Vrms * (2**(adc_n_bits -1) - 1) / (2**(adc_noise_n_bits -1) -1)
-                              
+            adc_ref_voltage = Vrms * (2 ** (adc_n_bits - 1) - 1) / (2 ** (adc_noise_n_bits - 1) - 1)
+
         if(adc_sampling_frequency > channel.get_sampling_rate()):
             error_msg = 'The ADC sampling rate is greater than '
             error_msg += 'the channel {} sampling rate. '.format(channel.get_id())
@@ -300,7 +301,7 @@ class analogToDigitalConverter:
         # Upsampling to 5 GHz before downsampling using interpolation.
         # We cannot downsample with a Fourier method because we want to keep
         # the higher Nyquist zones.
-        upsampling_frequency = 5.0 * units.GHz 
+        upsampling_frequency = 5.0 * units.GHz
 
         if(upsampling_frequency > MC_sampling_frequency):
             upsampling_nsamples = int(upsampling_frequency * len(trace) / MC_sampling_frequency)
@@ -312,7 +313,7 @@ class analogToDigitalConverter:
             perfectly_upsampled_trace = trace[:]
             perfectly_upsampled_times = times[:]
 
-        interpolate_delayed_trace = interp1d(perfectly_upsampled_times, perfectly_upsampled_trace,                                             
+        interpolate_delayed_trace = interp1d(perfectly_upsampled_times, perfectly_upsampled_trace,
                                              kind='linear',
                                              fill_value=(perfectly_upsampled_trace[0], perfectly_upsampled_trace[-1]),
                                              bounds_error=False)
@@ -322,7 +323,7 @@ class analogToDigitalConverter:
         resampled_times = np.arange(new_n_samples) / adc_sampling_frequency
         resampled_times += channel.get_trace_start_time()
         resampled_trace = interpolate_delayed_trace(resampled_times)
-        
+
         # Digitisation
         digital_trace = self._adc_types[adc_type](resampled_trace, adc_n_bits, adc_ref_voltage, adc_output)
 

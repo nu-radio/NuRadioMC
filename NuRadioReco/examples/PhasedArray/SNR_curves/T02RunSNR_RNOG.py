@@ -28,7 +28,6 @@ import json
 import logging
 import copy
 import numpy as np
-import matplotlib.pyplot as plt
 import scipy
 from NuRadioMC.simulation import simulation
 import NuRadioReco.modules.efieldToVoltageConverter
@@ -120,9 +119,13 @@ else:
     print("wrong n_channels!")
     exit()
 
+
 def count_events():
     count_events.events += 1
+
+
 count_events.events = 0
+
 
 class mySimulation(simulation.simulation):
 
@@ -140,7 +143,7 @@ class mySimulation(simulation.simulation):
 
         # Downsample trace back to detector sampling rate
         channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
-    
+
         # Filter signals
         channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0.0 * units.MHz, 240.0 * units.MHz],
                                   filter_type='cheby1', order=9, rp=.1)
@@ -162,7 +165,7 @@ class mySimulation(simulation.simulation):
         mult_factors = factor * SNRs
 
         has_triggered = True
-        while(has_triggered): # search for noise traces that don't set off a trigger
+        while(has_triggered):  # search for noise traces that don't set off a trigger
 
             # loop over all channels (i.e. antennas) of the station
             for channel in self._station.iter_channels():
@@ -170,7 +173,7 @@ class mySimulation(simulation.simulation):
                 channel.set_trace(trace, sampling_rate=new_sampling_rate)
 
             # Adding noise AFTER the SNR calculation
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude = 1.0 / Vrms_ratio,
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=1.0 / Vrms_ratio,
                                          min_freq=min_freq, max_freq=max_freq, type='rayleigh')
 
             # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
@@ -181,15 +184,15 @@ class mySimulation(simulation.simulation):
 
             if(phase):
                 has_triggered = triggerSimulator.run(self._evt, self._station, self._det,
-                                                     Vrms = 1.0,
-                                                     threshold = threshold,
+                                                     Vrms=1.0,
+                                                     threshold=threshold,
                                                      triggered_channels=channels,
                                                      phasing_angles=phasing_angles,
-                                                     ref_index = 1.75,
+                                                     ref_index=1.75,
                                                      trigger_name='primary_phasing',
-                                                     trigger_adc=False, # Don't have a seperate ADC for the trigger
+                                                     trigger_adc=False,  # Don't have a seperate ADC for the trigger
                                                      clock_offset=np.random.uniform(0.0, 2.0),
-                                                     adc_output='voltage', # output in volts
+                                                     adc_output='voltage',  # output in volts
                                                      trigger_filter=None,
                                                      upsampling_factor=upsampling_factor,
                                                      window=window,
@@ -209,9 +212,9 @@ class mySimulation(simulation.simulation):
             if(has_triggered):
                 print('Trigger on noise... ')
 
-        filtered_noise_traces = {}        
+        filtered_noise_traces = {}
         for channel in self._station.iter_channels():
-            filtered_noise_traces[channel.get_id()] = channel.get_trace()            
+            filtered_noise_traces[channel.get_id()] = channel.get_trace()
 
         for factor, iSNR in zip(mult_factors, range(len(mult_factors))):
 
@@ -222,11 +225,11 @@ class mySimulation(simulation.simulation):
 
             if(phase):
                 has_triggered = triggerSimulator.run(self._evt, self._station, self._det,
-                                                     Vrms = 1.0,
-                                                     threshold = threshold,
+                                                     Vrms=1.0,
+                                                     threshold=threshold,
                                                      triggered_channels=channels,
                                                      phasing_angles=phasing_angles,
-                                                     ref_index = 1.75,
+                                                     ref_index=1.75,
                                                      trigger_name='primary_phasing',
                                                      trigger_adc=False,
                                                      clock_offset=np.random.uniform(0.0, 2.0),
@@ -256,12 +259,13 @@ class mySimulation(simulation.simulation):
         print(SNRtriggered)
 
         if(count_events.events % 10 == 0):
-            #plt.show()
+            # plt.show()
             # Save every ten triggers
             output = {'total_events': count_events.events, 'SNRs': list(SNRs), 'triggered': list(SNRtriggered)}
             outputfile = args.outputSNR
             with open(outputfile, 'w+') as fout:
                 json.dump(output, fout, sort_keys=True, indent=4)
+
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('inputfilename', type=str,

@@ -20,6 +20,7 @@ main_low_angle = np.deg2rad(-55.0)
 main_high_angle = -1.0 * main_low_angle
 default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
 
+
 class triggerSimulator:
     """
     Calculates the trigger for a phased array with a primary beam.
@@ -107,7 +108,7 @@ class triggerSimulator:
 
         self.check_vertical_string(station, det, triggered_channels)
         ref_z = np.max(np.fromiter(ant_z.values(), dtype=float))
-        
+
         # Need to add in delay for trigger delay
         cable_delays = {}
         for channel in station.iter_channels(use_channels=triggered_channels):
@@ -119,8 +120,8 @@ class triggerSimulator:
             delays = []
             for key in ant_z:
                 delays += [-(ant_z[key] - ref_z) / cspeed * ref_index * np.sin(angle) - cable_delays[key]]
-            
-            delays -= np.max(delays) 
+
+            delays -= np.max(delays)
 
             roll = np.array(np.round(np.array(delays) / time_step)).astype(int)
 
@@ -223,7 +224,7 @@ class triggerSimulator:
         if(adc_output == 'voltage'):
             coh_sum_squared = (coh_sum * coh_sum).astype(np.float)
         elif(adc_output == 'counts'):
-            coh_sum_squared = (coh_sum * coh_sum).astype(np.int)    
+            coh_sum_squared = (coh_sum * coh_sum).astype(np.int)
 
         coh_sum_windowed = np.lib.stride_tricks.as_strided(coh_sum_squared, (num_frames, window),
                                                            (coh_sum_squared.strides[0] * step, coh_sum_squared.strides[0]))
@@ -266,7 +267,7 @@ class triggerSimulator:
 
     def phased_trigger(self, station, det,
                        Vrms=None,
-                       threshold=60*units.mV,
+                       threshold=60 * units.mV,
                        triggered_channels=None,
                        phasing_angles=default_angles,
                        ref_index=1.75,
@@ -362,7 +363,7 @@ class triggerSimulator:
                                                                   adc_type='perfect_floor_comparator',
                                                                   adc_output=adc_output,
                                                                   trigger_filter=None)
-            
+
             # Upsampling here, linear interpolate to mimic an FPGA internal upsampling
             if not isinstance(upsampling_factor, int):
                 try:
@@ -405,26 +406,25 @@ class triggerSimulator:
 
             time_step = 1.0 / adc_sampling_frequency
 
-
             traces[channel_id] = trace[:]
 
         beam_rolls = self.calculate_time_delays(station, det,
                                                 triggered_channels,
                                                 phasing_angles,
                                                 ref_index=ref_index,
-                                                sampling_frequency=adc_sampling_frequency)                    
-        
+                                                sampling_frequency=adc_sampling_frequency)
+
         phased_traces = self.phase_signals(traces, beam_rolls)
 
         for iTrace, phased_trace in enumerate(phased_traces):
 
             # Create a sliding window
-            squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output)        
+            squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output)
 
             if True in (squared_mean > threshold):
 
                 trigger_delays = {}
-                
+
                 for channel_id in beam_rolls[iTrace]:
                     trigger_delays[channel_id] = beam_rolls[iTrace][channel_id] * time_step
 
@@ -436,7 +436,7 @@ class triggerSimulator:
     @register_run()
     def run(self, evt, station, det,
             Vrms=None,
-            threshold=60*units.mV,
+            threshold=60 * units.mV,
             triggered_channels=None,
             trigger_name='simple_phased_threshold',
             phasing_angles=default_angles,
@@ -528,7 +528,7 @@ class triggerSimulator:
             trigger_delays = {}
             sec_trigger_delays = {}
         else:
-            is_triggered, trigger_delays = self.phased_trigger(station=station, 
+            is_triggered, trigger_delays = self.phased_trigger(station=station,
                                                                det=det,
                                                                Vrms=Vrms,
                                                                threshold=threshold,
@@ -542,7 +542,7 @@ class triggerSimulator:
                                                                upsampling_factor=upsampling_factor,
                                                                window=window,
                                                                step=step)
-            
+
             sec_trigger_delays = {}
 
         # Create a trigger object to be returned to the station
