@@ -56,6 +56,7 @@ class IftElectricFieldReconstructor:
         convergence_level=3,
         relative_tolerance=1.e-7,
         dominant_polarization=1,
+        slope_passbands = None,
         debug=False
     ):
         self.__passband = passband
@@ -70,6 +71,14 @@ class IftElectricFieldReconstructor:
         self.__convergence_level = convergence_level
         self.__relative_tolerance = relative_tolerance
         self.__dominant_polarization = dominant_polarization
+        if slope_passbands is None:
+            self.__slope_passbands = [
+                [130. * units.MHz, 500 * units.MHz],
+                [130. * units.MHz, 200 * units.MHz],
+                [200. * units.MHz, 350. * units.MHz]
+            ]
+        else:
+            self.__slope_passbands = slope_passbands
         if amp_dct is None:
             self.__amp_dct = {
                 'n_pix': 64,  # spectral bins
@@ -466,11 +475,6 @@ class IftElectricFieldReconstructor:
         median = KL.position
         efield_stat_calculators = [ift.StatCalculator(), ift.StatCalculator()]
         polarization_stat_calculator = ift.StatCalculator()
-        passbands = [
-            [130. * units.MHz, 500 * units.MHz],
-            [130. * units.MHz, 200 * units.MHz],
-            [200. * units.MHz, 350. * units.MHz]
-        ]
         energy_fluence_stat_calculator = ift.StatCalculator()
         slope_parameter_stat_calculator = ift.StatCalculator()
         rec_efield = np.zeros((3, self.__electric_field_template.get_number_of_samples()))
@@ -493,9 +497,9 @@ class IftElectricFieldReconstructor:
                     times
                 )
                 polarization_stat_calculator.add(np.arctan(np.sqrt(energy_fluences[2]) / np.sqrt(energy_fluences[1])))
-            fluence_sample = np.zeros((len(passbands), 3))
+            fluence_sample = np.zeros((len(self.__slope_passbands), 3))
 
-            for i_passband, passband in enumerate(passbands):
+            for i_passband, passband in enumerate(self.__slope_passbands):
                 filter_response = bandpass_filter.get_filter_response(freqs, passband, 'butter', 10)
                 e_fluence = trace_utilities.get_electric_field_energy_fluence(
                     fft.freq2time(fft.time2freq(efield_sample_pol, sampling_rate) * filter_response, sampling_rate) * self.__scaling_factor / self.__gain_scaling,
@@ -520,7 +524,7 @@ class IftElectricFieldReconstructor:
             efield.set_parameter(efp.polarization_angle, polarization_stat_calculator.mean)
             efield.set_parameter_error(efp.polarization_angle, np.sqrt(polarization_stat_calculator.var))
         energy_fluence_dict = {}
-        for i_passband, passband in enumerate(passbands):
+        for i_passband, passband in enumerate(self.__slope_passbands):
             energy_fluence_dict['{:.0f}-{:.0f}'.format(passband[0] / units.MHz, passband[1] / units.MHz)] = energy_fluence_stat_calculator.mean[i_passband]
         energy_fluence_error = np.sqrt(energy_fluence_stat_calculator.var)
         efield.set_parameter(efp.signal_energy_fluence, energy_fluence_dict)
