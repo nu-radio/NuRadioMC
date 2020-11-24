@@ -163,10 +163,28 @@ ice_cube_hese[:, 3] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.
 ice_cube_hese[:, 3] *= 3
 
 # Ice cube
+# ice cube nu_mu data points 9.5 years analysis
+nu_mu_data = np.array([[4.64588, -7.69107, -7.87555, -7.5549, ],
+                       [5.44266, -7.95022, -8.06881, -7.85359, ],
+                       [6.25755, -8.51245, -8.8287, -8.29283],
+                       [7.29276, -8.40264, 0, 0]])
+# nu_mu_data[:, 2] = 10 ** nu_mu_data[:, 1] - 10 ** (nu_mu_data[:, 1] - nu_mu_data[:, 2])
+# nu_mu_data[:, 3] = 10 ** (nu_mu_data[:, 1] + nu_mu_data[:, 3]) - 10 ** nu_mu_data[:, 1]
+# convert energy to correct units
+nu_mu_data[:, 1:] = (10 ** nu_mu_data[:, 1:]) * 3 * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)  # convert from single flavor to all flavor limit
+nu_mu_data[:, 2] = np.abs(nu_mu_data[:, 1] - nu_mu_data[:, 2])
+nu_mu_data[:, 3] = np.abs(nu_mu_data[:, 1] - nu_mu_data[:, 3])
+
+nu_mu_data[-1, 3] = 0
+nu_mu_data[-1, 2] = 2e-9 * 3 * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+print(nu_mu_data[:, 1:] / plotUnitsFlux)
+nu_mu_data[:, 0] = 10 ** nu_mu_data[:, 0] * units.GeV
 
 
-def ice_cube_nu_fit(energy, slope=-2.19, offset=1.01):
+def ice_cube_nu_fit(energy, slope=-2.37, offset=1.36):
     # ApJ slope=-2.13, offset=0.9
+    # ICR2019 slope=-2.19, offset=1.01
+    # 9.5 years analysis 2.37+0.08-0.09, offset 1.36 + 0.24 - 0.25, Astrophysical normalization @ 100TeV: 1.36 × 10−8GeV−1cm−2s−1sr−1
     flux = 3 * offset * (energy / (100 * units.TeV)) ** slope * 1e-18 * \
         (units.GeV ** -1 * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
     return flux
@@ -175,13 +193,25 @@ def ice_cube_nu_fit(energy, slope=-2.19, offset=1.01):
 def get_ice_cube_mu_range():
     energy = np.arange(1e5, 5e6, 1e5) * units.GeV
 #     upper = np.maximum(ice_cube_nu_fit(energy, offset=0.9, slope=-2.), ice_cube_nu_fit(energy, offset=1.2, slope=-2.13)) # APJ
-    upper = np.maximum(ice_cube_nu_fit(energy, offset=1.01, slope=-2.09),
-                    ice_cube_nu_fit(energy, offset=1.27, slope=-2.19), ice_cube_nu_fit(energy, offset=1.27, slope=-2.09))  # ICRC
+#     upper = np.maximum(ice_cube_nu_fit(energy, offset=1.01, slope=-2.09),
+#                     ice_cube_nu_fit(energy, offset=1.27, slope=-2.19), ice_cube_nu_fit(energy, offset=1.27, slope=-2.09))  # ICRC
+    slope = 2.37
+    slope_up = slope + 0.08
+    slope_down = slope - 0.09
+    offset = 1.36
+    offset_up = offset + 0.24
+    offset_down = offset - 0.25
+    upper = np.maximum(ice_cube_nu_fit(energy, offset=offset_up, slope=-slope_up),
+                    ice_cube_nu_fit(energy, offset=offset_up, slope=-slope),
+                    ice_cube_nu_fit(energy, offset=offset_up, slope=-slope_down))  # 9.5 years
     upper *= energy ** 2
 #     lower = np.minimum(ice_cube_nu_fit(energy, offset=0.9, slope=-2.26),
 #                        ice_cube_nu_fit(energy, offset=0.63, slope=-2.13)) #ApJ
-    lower = np.minimum(ice_cube_nu_fit(energy, offset=1.01, slope=-2.29),
-                       ice_cube_nu_fit(energy, offset=0.78, slope=-2.19))  # ICRC
+#     lower = np.minimum(ice_cube_nu_fit(energy, offset=1.01, slope=-2.29),
+#                        ice_cube_nu_fit(energy, offset=0.78, slope=-2.19))  # ICRC
+    lower = np.minimum(ice_cube_nu_fit(energy, offset=offset_down, slope=-slope_up),
+                       ice_cube_nu_fit(energy, offset=offset_down, slope=-slope),
+                       ice_cube_nu_fit(energy, offset=offset_down, slope=-slope_down))  # 9.5 years
     lower *= energy ** 2
     return energy, upper, lower
 
@@ -434,7 +464,7 @@ def get_E2_limit_figure(diffuse=True,
                     horizontalalignment='left', color='0.7', rotation=45, fontsize=legendfontsize)
 
     if show_ice_cube_EHE_limit:
-        ax.plot(ice_cube_limit[:, 0] / plotUnitsEnergy, ice_cube_limit[:, 1] / plotUnitsFlux, color='dodgerblue')
+        ax.plot(ice_cube_limit[2:, 0] / plotUnitsEnergy, ice_cube_limit[2:, 1] / plotUnitsFlux, color='dodgerblue')
         if energyBinsPerDecade == 2:
             ax.annotate('IceCube',
                     xy=(0.7e7 * units.GeV / plotUnitsEnergy, 4e-8), xycoords='data',
@@ -465,7 +495,7 @@ def get_E2_limit_figure(diffuse=True,
         ax.fill_between(ice_cube_mu_range[0] / plotUnitsEnergy, ice_cube_mu_range[1] / plotUnitsFlux,
                         ice_cube_mu_range[2] / plotUnitsFlux, hatch='\\', edgecolor='dodgerblue', facecolor='azure', zorder=2)
         plt.plot(ice_cube_mu_range[0] / plotUnitsEnergy,
-                 ice_cube_nu_fit(ice_cube_mu_range[0], offset=1.01, slope=-2.19) * ice_cube_mu_range[0] ** 2 / plotUnitsFlux,
+                 ice_cube_nu_fit(ice_cube_mu_range[0], slope=-2.37, offset=1.36) * ice_cube_mu_range[0] ** 2 / plotUnitsFlux,
                  color='dodgerblue')
 
         ax.annotate('IceCube',
@@ -475,8 +505,17 @@ def get_E2_limit_figure(diffuse=True,
         # Extrapolation
         energy_placeholder = np.array(([1e14, 1e19])) * units.eV
         plt.plot(energy_placeholder / plotUnitsEnergy,
-                 ice_cube_nu_fit(energy_placeholder, offset=1.01, slope=-2.19) * energy_placeholder ** 2 / plotUnitsFlux,
+                 ice_cube_nu_fit(energy_placeholder, slope=-2.37, offset=1.36) * energy_placeholder ** 2 / plotUnitsFlux,
                  color='dodgerblue', linestyle=':')
+
+        uplimit = np.copy(nu_mu_data[:, 3])
+        uplimit[np.where(nu_mu_data[:, 3] == 0)] = 1
+        uplimit[np.where(nu_mu_data[:, 3] != 0.)] = 0
+
+        ax.errorbar(nu_mu_data[:, 0] / plotUnitsEnergy, nu_mu_data[:, 1] / plotUnitsFlux,
+                    yerr=nu_mu_data[:, 2:].T / plotUnitsFlux, uplims=uplimit, color='dodgerblue',
+                    marker='o', ecolor='dodgerblue', linestyle='None', zorder=3,
+                    markersize=7)
 
     if show_anita_I_III_limit:
         ax.plot(anita_limit[:, 0] / plotUnitsEnergy, anita_limit[:, 1] / plotUnitsFlux, color='darkorange')
