@@ -92,6 +92,7 @@ pattern = f"pa_trigger_rate_{n_channels:d}channels_{upsampling_factor}xupsamplin
 triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
+
 def loop(zipped):
 
     threshold = float(zipped[0])

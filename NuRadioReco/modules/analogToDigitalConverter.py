@@ -5,10 +5,7 @@ from NuRadioReco.utilities import units
 from scipy.interpolate import interp1d
 from scipy.signal import resample
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities.trace_utilities import upsampling_fir, butterworth_filter_trace, delay_trace
-
-import matplotlib.pyplot as plt
-
+from NuRadioReco.utilities.trace_utilities import butterworth_filter_trace, delay_trace
 
 def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output='voltage'):
     """
@@ -194,9 +191,9 @@ class analogToDigitalConverter:
         ----------
         station: framework.station.Station object
         det: detector.detector.Detector object
-        channel: framework.channel.Channel object                
+        channel: framework.channel.Channel object
         Vrms: float
-            If supplied, overrides adc_reference_voltage as supplied in the detector description file 
+            If supplied, overrides adc_reference_voltage as supplied in the detector description file
         trigger_adc: bool
             If True, the relevant ADC parameters in the config file are the ones
             that start with 'trigger_'

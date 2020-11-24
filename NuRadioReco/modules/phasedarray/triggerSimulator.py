@@ -1,6 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
-import NuRadioReco
 from NuRadioReco.utilities import units
+
 from NuRadioReco.framework.trigger import SimplePhasedTrigger
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 import logging
@@ -15,6 +15,7 @@ cspeed = constants.c * units.m / units.s
 main_low_angle = np.deg2rad(-55.0)
 main_high_angle = -1.0 * main_low_angle
 default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
+
 
 class triggerSimulator:
     """
@@ -534,7 +535,6 @@ class triggerSimulator:
                                                                upsampling_factor=upsampling_factor,
                                                                window=window,
                                                                step=step)
-
 
         # Create a trigger object to be returned to the station
         trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, phasing_angles, trigger_delays)

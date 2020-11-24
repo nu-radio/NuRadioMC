@@ -28,7 +28,6 @@ import json
 import logging
 import copy
 import numpy as np
-import scipy
 from NuRadioMC.simulation import simulation
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
@@ -203,7 +202,7 @@ class mySimulation(simulation.simulation):
                 squared_mean, num_frames = triggerSimulator.power_sum(coh_sum=original_traces_,
                                                                       window=window,
                                                                       step=step,
-                                                                      adc_output=f'voltage')
+                                                                      adc_output='voltage')
 
                 squared_mean_threshold = np.power(threshold, 2.0)
 
@@ -244,7 +243,7 @@ class mySimulation(simulation.simulation):
                 squared_mean, num_frames = triggerSimulator.power_sum(coh_sum=original_traces_,
                                                                       window=window,
                                                                       step=step,
-                                                                      adc_output=f'voltage')
+                                                                      adc_output='voltage')
 
                 squared_mean_threshold = np.power(threshold, 2.0)
 

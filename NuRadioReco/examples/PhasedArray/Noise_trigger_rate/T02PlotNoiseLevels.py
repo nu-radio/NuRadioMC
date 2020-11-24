@@ -10,7 +10,7 @@ single_rates = [100.0 * units.Hz, 10.0 * units.Hz, 1.0 * units.Hz]
 
 max_entry = 20
 
-pattern = f"pa_trigger_rate_8channels_4xupsampiling_half_bigrun"
+pattern = "pa_trigger_rate_8channels_4xupsampiling_half_bigrun"
 
 title = pattern
 thresholds, n_triggers, ts, rates = np.loadtxt(str(pattern) + ".txt", unpack=True)

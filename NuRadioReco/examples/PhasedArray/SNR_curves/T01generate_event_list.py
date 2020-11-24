@@ -16,8 +16,8 @@ from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 import numpy as np
 import os
 
-z12 = -100 * units.m #?
-rho = 200 * units.m #?
+z12 = -100 * units.m
+rho = 200 * units.m
 
 obs_angles = np.linspace(-10., 10., 41) * units.deg
 # Elevation of the vertex point seen from the middle point of the array
