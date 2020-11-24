@@ -121,6 +121,8 @@ else:
 
 def count_events():
     count_events.events += 1
+
+
 count_events.events = 0
 
 

@@ -56,10 +56,7 @@ Es = 10 ** logEs * units.eV
 Emins = Es[0:-1]
 Emaxs = Es[1:]
 
-#flavours = [12, -12]  # +/-12: electronic neutrino. +/-14: muonic neutrino. +/-16: tau neutrino
-flavours = [12]
-
-#flavours = [16]  # +/-12: electronic neutrino. +/-14: muonic neutrino. +/-16: tau neutrino
+flavours = [12]  # +/-12: electronic neutrino. +/-14: muonic neutrino. +/-16: tau neutrino
 
 if (mode == 'full'):
     nevt = 4e4
