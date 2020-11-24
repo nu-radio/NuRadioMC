@@ -11,11 +11,6 @@ WARNING: This file needs NuRadioMC installed. https://github.com/nu-radio/NuRadi
 """
 
 from __future__ import absolute_import, division, print_function
-
-import sys
-sys.path.append('/home/danielsmith/icecube_gen2/NuRadioReco')
-
-
 from NuRadioReco.utilities import units
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 import numpy as np
