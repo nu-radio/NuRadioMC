@@ -48,9 +48,7 @@ phimin = 0. * units.deg
 phimax = 360. * units.deg
 
 if (mode == 'full'):
-    #logEs = np.array([16.5, 17.5, 18.5, 19.5]) #np.linspace(15., 20., 50)  # Usually 50
-    logEs = np.array([14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5]) #np.linspace(15., 20., 50)  # Usually 50
-    #logEs = np.array([14.5, 15.5, 20.5, 21.5]) #np.linspace(15., 20., 50)  # Usually 50
+    logEs = np.array([14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5])
 else:
     logEs = np.linspace(16., 20., 10)
 

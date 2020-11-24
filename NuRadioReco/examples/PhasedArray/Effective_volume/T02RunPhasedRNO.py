@@ -59,6 +59,7 @@ step_4ant = int(8 * units.ns * 0.5 * 2.0)
 window_8ant = int(16 * units.ns * 0.5 * 4.0)
 step_8ant = int(8 * units.ns * 0.5 * 4.0)
 
+
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
