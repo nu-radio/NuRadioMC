@@ -76,46 +76,46 @@ class mySimulation(simulation.simulation):
                             threshold=1.0 * Vrms,
                             triggered_channels=[4],  # run trigger on all channels
                             number_concidences=1,
-                            trigger_name=f'dipole_1.0sigma')
+                            trigger_name='dipole_1.0sigma')
         simpleThreshold.run(evt, station, det,
                             threshold=1.5 * Vrms,
                             triggered_channels=[4],  # run trigger on all channels
                             number_concidences=1,
-                            trigger_name=f'dipole_1.5sigma')
+                            trigger_name='dipole_1.5sigma')
         simpleThreshold.run(evt, station, det,
                             threshold=2.0 * Vrms,
                             triggered_channels=[4],  # run trigger on all channels
                             number_concidences=1,
-                            trigger_name=f'dipole_2.0sigma')
+                            trigger_name='dipole_2.0sigma')
         simpleThreshold.run(evt, station, det,
                             threshold=2.5 * Vrms,
                             triggered_channels=[4],  # run trigger on all channels
                             number_concidences=1,
-                            trigger_name=f'dipole_2.5sigma')
+                            trigger_name='dipole_2.5sigma')
         simpleThreshold.run(evt, station, det,
                             threshold=3.0 * Vrms,
                             triggered_channels=[4],  # run trigger on all channels
                             number_concidences=1,
-                            trigger_name=f'dipole_3.0sigma')
+                            trigger_name='dipole_3.0sigma')
         simpleThreshold.run(evt, station, det,
                             threshold=3.5 * Vrms,
                             triggered_channels=[4],  # run trigger on all channels
                             number_concidences=1,
-                            trigger_name=f'dipole_3.5sigma')
+                            trigger_name='dipole_3.5sigma')
 
         triggerSimulator.run(evt, station, det,
-                             Vrms = Vrms,
-                             threshold = 30.85 * np.power(Vrms, 2.0),
-                             triggered_channels=range(4), # run trigger on all channels
+                             Vrms=Vrms,
+                             threshold=30.85 * np.power(Vrms, 2.0),
+                             triggered_channels=range(4),  # run trigger on all channels
                              phasing_angles=phasing_angles_4ant,
-                             ref_index = 1.75,
-                             trigger_name=f'4ant_phasing_100Hz', # the name of the trigger
-                             trigger_adc=False, # Don't have a seperate ADC for the trigger
-                             adc_output=f'voltage', # output in volts
+                             ref_index=1.75,
+                             trigger_name='4ant_phasing_100Hz',  # the name of the trigger
+                             trigger_adc=False,  # Don't have a seperate ADC for the trigger
+                             adc_output='voltage',  # output in volts
                              trigger_filter=None,
                              upsampling_factor=2,
                              window=window_4ant,
-                             step = step_4ant)
+                             step=step_4ant)
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('--inputfilename', type=str,

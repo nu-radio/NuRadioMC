@@ -6,10 +6,7 @@ from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverte
 import logging
 import scipy
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy import constants
-from scipy.interpolate import interp1d
-import copy
 
 logger = logging.getLogger('phasedTriggerSimulator')
 
@@ -18,7 +15,6 @@ cspeed = constants.c * units.m / units.s
 main_low_angle = np.deg2rad(-55.0)
 main_high_angle = -1.0 * main_low_angle
 default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
-
 
 class triggerSimulator:
     """
@@ -200,7 +196,7 @@ class triggerSimulator:
         step: int
             Time step in power integral. If equal to window, there is no time overlap
             in between neighboring integration windows
-            Units of ADC time ticks. 
+            Units of ADC time ticks.
         adc_output: string
             - 'voltage' to store the ADC output as discretised voltage trace
             - 'counts' to store the ADC output in ADC counts
@@ -321,7 +317,7 @@ class triggerSimulator:
             Units of ADC time ticks
         step: int
             Time step in power integral. If equal to window, there is no time overlap
-            in between neighboring integration windows. 
+            in between neighboring integration windows.
             Units of ADC time ticks
         Returns
         -------
@@ -343,8 +339,6 @@ class triggerSimulator:
 
         is_triggered = False
         trigger_delays = {}
-
-        Nant = len(triggered_channels)
 
         logger.debug("trigger channels:", triggered_channels)
 
@@ -502,7 +496,7 @@ class triggerSimulator:
             Units of ADC time ticks
         step: int
             Time step in power integral. If equal to window, there is no time overlap
-            in between neighboring integration windows. 
+            in between neighboring integration windows.
             Units of ADC time ticks
         Returns
         -------
@@ -525,7 +519,6 @@ class triggerSimulator:
         if(set_not_triggered):
             is_triggered = False
             trigger_delays = {}
-            sec_trigger_delays = {}
         else:
             is_triggered, trigger_delays = self.phased_trigger(station=station,
                                                                det=det,
@@ -542,7 +535,6 @@ class triggerSimulator:
                                                                window=window,
                                                                step=step)
 
-            sec_trigger_delays = {}
 
         # Create a trigger object to be returned to the station
         trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, phasing_angles, trigger_delays)

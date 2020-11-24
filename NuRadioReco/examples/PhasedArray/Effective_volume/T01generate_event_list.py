@@ -1,16 +1,14 @@
-"""
-This file generates the input files for the electron neutrino effective
-volume simulation  using a phased array. For creating a test file, run:
-
-python T01generate_event_list.py
-
-For generating a set of energies organised in folders for later running
-on a cluster with the appropriate scripts, run:
-
-python T01generate_event_list.py full
-
-WARNING: This file needs NuRadioMC installed. https://github.com/nu-radio/NuRadioMC
-"""
+# This file generates the input files for the electron neutrino effective
+# volume simulation  using a phased array. For creating a test file, run:
+#
+# python T01generate_event_list.py
+#
+# For generating a set of energies organised in folders for later running
+# on a cluster with the appropriate scripts, run:
+#
+# python T01generate_event_list.py full
+#
+# WARNING: This file needs NuRadioMC installed. https://github.com/nu-radio/NuRadioMC
 
 from __future__ import absolute_import, division, print_function
 
