@@ -5,7 +5,7 @@ from NuRadioReco.utilities import units
 from scipy.interpolate import interp1d
 from scipy.signal import resample
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities.trace_utilities import butterworth_filter_trace, delay_trace
+from NuRadioReco.utilities.trace_utilities import delay_trace
 
 def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output='voltage'):
     """

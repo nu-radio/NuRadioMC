@@ -871,7 +871,7 @@ class Detector(object):
     def is_channel_noiseless(self, station_id, channel_id):
         """
         returns true if the detector description has the field `noiseless` and if this field is True.
-        
+
         Allows to run a noiseless simulation on specific channels (for example to simulate a single-antenna proxy
         along with the phased array)
 

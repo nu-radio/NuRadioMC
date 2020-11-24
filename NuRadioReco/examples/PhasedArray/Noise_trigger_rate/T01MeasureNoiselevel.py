@@ -104,8 +104,6 @@ def loop(zipped):
     channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
     channelGenericNoiseAdder.begin(seed=seed)
 
-    dt = 1.0 / sampling_rate
-
     for channel_id in channel_ids:
         # Noise rms is amplified to greater than Vrms so that, after filtering, its the Vrms we expect
         spectrum = channelGenericNoiseAdder.bandlimited_noise(min_freq, max_freq, n_samples, sampling_rate, amplitude,

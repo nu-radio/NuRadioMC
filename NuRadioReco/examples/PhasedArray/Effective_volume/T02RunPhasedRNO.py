@@ -118,6 +118,7 @@ class mySimulation(simulation.simulation):
                              window=window_4ant,
                              step=step_4ant)
 
+
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('--inputfilename', type=str,
                     help='path to NuRadioMC input event list', default='0.00_12_00_1.00e+16_1.00e+19.hdf5')
