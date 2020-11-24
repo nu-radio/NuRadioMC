@@ -3,14 +3,14 @@ set -e
 cd NuRadioReco/examples/PhasedArray/Effective_volume
 python3 T01generate_event_list.py minimal
 python3 T02RunPhasedRNO.py --inputfilename minimal_eventlist.hdf5
-python3 T02RunPhasedARA.py --inputfilename minimal_eventlist.hdf5
+# python3 T02RunPhasedARA.py --inputfilename minimal_eventlist.hdf5 # Deprecated, for the time being
 rm minimal_eventlist.hdf5
 rm output_PA*hdf5
 cd ../Noise_trigger_rate
-python3 noise_trigger_rate.py --ntries 10
+python3 T01MeasureNoiselevel.py --ntries 10
 cd ../SNR_curves
 python3 T01generate_event_list.py
-python3 T02RunSNR.py 25.0deg_12/25.00_12_00_1.00e+18_1.26e+18/input/25.00_12_00_1.00e+18_1.26e+18.hdf5.part0001 proposalcompact_50m_1.5GHz.json config.yaml output_file.hdf5 output_snr.json
+python3 T02RunSNR.py --inputfilename 25.0deg_12/25.00_12_00_1.00e+18_1.26e+18/input/25.00_12_00_1.00e+18_1.26e+18.hdf5 --detectordescription ../Effective_volume/8antennas_100m_0.5GHz.json --config config.yaml --outputfilename output_file.hdf5 --outputSNR output_snr.json
 rm -rf *deg_12/
 rm output_file.hdf5
 rm output_snr.json

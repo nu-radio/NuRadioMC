@@ -13,6 +13,7 @@ WARNING: This file needs NuRadioMC installed. https://github.com/nu-radio/NuRadi
 """
 
 from __future__ import absolute_import, division, print_function
+
 from NuRadioReco.utilities import units
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 import numpy as np
@@ -23,19 +24,25 @@ if (len(sys.argv) < 2):
     mode = 'simple'
 else:
     mode = sys.argv[1]
+
+print(mode)
+
 # define simulation volume
 volume = {
-    'fiducial_rmin': 0 * units.km,
-    'fiducial_rmax': 4 * units.km,
+    'fiducial_rmin': 0.0 * units.km,
+    'fiducial_rmax': 10.0 * units.km,
     'fiducial_zmin': -2.7 * units.km,  # the ice sheet at South Pole is 2.7km deep
-    'fiducial_zmax': 0 * units.km
+    'fiducial_zmax': 0.0 * units.km
 }
 
-costhetas = np.linspace(1, -1, 2)  # Usually 20
+costhetas = np.linspace(1, -1, 20)  # Usually 20
 thetas = np.arccos(costhetas)
-# thetas = np.linspace(0.*units.deg, 180.*units.deg, 3)
 thetamins = thetas[0:-1]
 thetamaxs = thetas[1:]
+
+thetamins = [0.0]
+thetamaxs = [np.pi]
+
 print(thetamins)
 print(thetamaxs)
 
@@ -43,22 +50,29 @@ phimin = 0. * units.deg
 phimax = 360. * units.deg
 
 if (mode == 'full'):
-    logEs = np.linspace(15., 20., 50)  # Usually 50
+    #logEs = np.array([16.5, 17.5, 18.5, 19.5]) #np.linspace(15., 20., 50)  # Usually 50
+    logEs = np.array([14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5]) #np.linspace(15., 20., 50)  # Usually 50
+    #logEs = np.array([14.5, 15.5, 20.5, 21.5]) #np.linspace(15., 20., 50)  # Usually 50
 else:
-    logEs = np.linspace(16., 19, 2)
+    logEs = np.linspace(16., 20., 10)
+
 Es = 10 ** logEs * units.eV
 Emins = Es[0:-1]
 Emaxs = Es[1:]
 
-flavours = [12]  # +/-12: electronic neutrino. +/-14: muonic neutrino. +/-16: tau neutrino
+#flavours = [12, -12]  # +/-12: electronic neutrino. +/-14: muonic neutrino. +/-16: tau neutrino
+flavours = [12]
+
+#flavours = [16]  # +/-12: electronic neutrino. +/-14: muonic neutrino. +/-16: tau neutrino
+
 if (mode == 'full'):
-    nevt = 1e6
-    nevt_perfile = 1e5
+    nevt = 4e4
+    nevt_perfile = 4e4
 elif mode == 'minimal':
     nevt = 1e2
     nevt_perfile = 1e3
 else:
-    nevt = 1e4
+    nevt = 1e3
     nevt_perfile = 1e4
 
 for thetamin, thetamax in zip(thetamins, thetamaxs):
@@ -93,8 +107,10 @@ for thetamin, thetamax in zip(thetamins, thetamaxs):
                 outname = 'minimal_eventlist.hdf5'
             else:
                 outname = folder_angle + '/' + folder + '/input/' + folder + '.hdf5'
+
             print(Emin / units.PeV, Emax / units.PeV)
             print(outname)
+
             generate_eventlist_cylinder(
                 outname,
                 nevt,

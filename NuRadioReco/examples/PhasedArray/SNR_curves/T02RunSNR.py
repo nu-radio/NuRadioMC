@@ -6,12 +6,6 @@ that the array sees the neutrino at the Cherenkov angle, so that the signals
 are clearer. The signals are then rescaled to have the appropriate SNR and
 the phased trigger is run to decide whether the event is selected.
 
-The phased array configuration
-in this file is inspired by the deployed ARA phased array: 1.5 GS/s, 8 antennas
-at a depth of ~50 m, 15 phasing directions with primary and secondary beams.
-In order to run, we need a detector file and a configuration file, included in
-this folder. To run the code, type:
-
 python T02RunSNR.py input_neutrino_file.hdf5 proposalcompact_50m_1.5GHz.json
 config.yaml output_NuRadioMC_file.hdf5 output_SNR_file.hdf5 output_NuRadioReco_file.nur(optional)
 
@@ -27,15 +21,14 @@ bandpass filter and so on.
 
 WARNING: this file needs NuRadioMC to be run.
 """
-
 from __future__ import absolute_import, division, print_function
+
 import argparse
 import json
-import numpy as np
 import logging
 import copy
-
-# import detector simulation modules
+import numpy as np
+from NuRadioMC.simulation import simulation
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.phasedarray.triggerSimulator
@@ -43,8 +36,26 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
-from NuRadioMC.simulation import simulation
 from NuRadioReco.modules.base import module
+
+parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
+parser.add_argument('--inputfilename', type=str,
+                    help='path to NuRadioMC input event list')
+parser.add_argument('--detectordescription', type=str,
+                    help='path to file containing the detector description')
+parser.add_argument('--config', type=str,
+                    help='NuRadioMC yaml config file')
+parser.add_argument('--outputfilename', type=str,
+                    help='hdf5 output filename')
+parser.add_argument('--outputSNR', type=str,
+                    help='outputfilename for the snr files')
+parser.add_argument('--outputfilenameNuRadioReco', type=str, nargs='?', default=None,
+                    help='outputfilename of NuRadioReco detector sim file')
+parser.add_argument('--nchannels', type=int,
+                    help='number of channels to phase', default=4)
+args = parser.parse_args()
+
+n_channels = args.nchannels
 
 logger = module.setup_logger(level=logging.WARNING)
 
@@ -57,215 +68,160 @@ channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPas
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
-# import sys
-# sys.path.append('/home/danielsmith/icecube_gen2/NuRadioReco')
-# sys.path.append('/home/danielsmith/icecube_gen2/NuRadioMC')
+# 4 channel, 2x sampling, fft upsampling, 16 ns window
+# 100 Hz -> 30.85
+# 10 Hz -> 35.67
+# 1 Hz -> 41.35
 
-# 4 channel, 2x sampling
-#  100 Hz -> 2.91
-#  10 Hz -> 3.06
-#  1 Hz -> 3.20
-
-# Half window integration
-#  100 Hz -> 3.66
-#  10 Hz -> 3.88
-#  1 Hz -> 4.09
-
-# 8 channel, 4x sampling
-# 100 Hz -> 4.25
-# 10 Hz -> 4.56
-# 1 Hz -> 4.88
-
-# Half window integration
-# 100 Hz -> 5.18
-#  10 Hz -> 5.46
-#  1 Hz -> 5.71
-
-n_channels = 4
-phase = True
+# 8 channel, 4x sampling, fft upsampling, 16 ns window
+# 100 Hz -> 62.15
+# 10 Hz -> 69.06
+# 1 Hz -> 75.75
 
 main_low_angle = np.deg2rad(-59.55)
 main_high_angle = np.deg2rad(59.55)
+
+N = 11
+SNRs = (np.linspace(0.1, 4.0, N))
+SNRtriggered = np.zeros(N)
+
 channels = []
+
+min_freq = 0.0 * units.MHz
+max_freq = 250.0 * units.MHz
+fff = np.linspace(min_freq, max_freq, 10000)
+filt1_highres = channelBandPassFilter.get_filter(fff, 0, 0, None, passband=[0, 220 * units.MHz], filter_type="cheby1", order=7, rp=.1)
+filt2_highres = channelBandPassFilter.get_filter(fff, 0, 0, None, passband=[96 * units.MHz, 100 * units.GHz], filter_type="cheby1", order=4, rp=.1)
+filt_highres = filt1_highres * filt2_highres
+bandwidth = np.trapz(np.abs(filt_highres) ** 2, fff)
+Vrms_ratio = np.sqrt(bandwidth / (max_freq - min_freq))
+
+Vrms = 1
+
+new_sampling_rate = 500.0 * units.MHz
 
 if(n_channels == 4):
     upsampling_factor = 2
+    window = int(16 * units.ns * new_sampling_rate * upsampling_factor)
+    step = int(8 * units.ns * new_sampling_rate * upsampling_factor)
     phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
     channels = np.arange(4, 8)
-    # threshold = 2.91
-    threshold = 3.66
+    threshold = 30.85 * np.power(Vrms, 2.0)
 elif(n_channels == 8):
     upsampling_factor = 4
+    window = int(16 * units.ns * new_sampling_rate * upsampling_factor)
+    step = int(8 * units.ns * new_sampling_rate * upsampling_factor)
     phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 21))
-    channels = None
-    # threshold = 4.25
-    threshold = 5.18
+    channels = np.arange(8)
+    threshold = 62.15 * np.power(Vrms, 2.0)
 else:
     print("wrong n_channels!")
     exit()
 
-N = 21
-SNRs = (np.linspace(0.5, 4.0, N))
-SNRtriggered = np.zeros(N)
-
-
 def count_events():
     count_events.events += 1
-
-
 count_events.events = 0
-
 
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-        channelBandPassFilter.run(evt, station, det, passband=[0, 500 * units.MHz],
-                                  filter_type='butter', order=10)
-        pass
 
-    def _detector_simulation_part2(self):
+        channelBandPassFilter.run(evt, station, det, passband=[0.0 * units.MHz, 220.0 * units.MHz],
+                                  filter_type='cheby1', order=9, rp=.1)
+        channelBandPassFilter.run(evt, station, det, passband=[96.0 * units.MHz, 100.0 * units.GHz],
+                                  filter_type='cheby1', order=4, rp=.1)
 
-        # start detector simulation
-        efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
+    def _detector_simulation_trigger(self, evt, station, det):
+        # Start detector simulation
 
-        for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
-            trace = np.array(channel.get_trace())
-            channel_id = channel.get_id()
-            # Do some magic here to find direction ...
+        orig_traces = {}
+        for channel in station.iter_channels():
+            orig_traces[channel.get_id()] = channel.get_trace()
 
-        # downsample trace back to detector sampling rate
-        new_sampling_rate = 500.0 * units.MHz
-        channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
-
-        # Copying the original traces. Not really needed
-        original_traces = {}
-
-        for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
-            trace = np.array(channel.get_trace())
-
-            # one quality check, problem with some signals being zero from being the the shadow, so
-            if(np.sum(trace) == 0):
-                print("Skipping event due to zero trace in", channel.get_id())
+            # If there is an empty trace, leave
+            if(np.sum(channel.get_trace()) == 0):
                 return
 
-            channel_id = channel.get_id()
-            original_traces[channel_id] = trace  # _
+        filtered_signal_traces = {}
+        for channel in station.iter_channels(use_channels=channels):
+            trace = np.array(channel.get_trace())
             channel.set_trace(trace, new_sampling_rate)
-
-        # Calculating peak to peak voltage and the necessary factors for the SNR.
-        dt = 1 / new_sampling_rate
-        ff = np.fft.rfftfreq(len(channel.get_trace()), dt)
-        filt1 = channelBandPassFilter.get_filter(ff, 0, 0, None, passband=[0, 240 * units.MHz], filter_type="cheby1", order=9, rp=.1)
-        filt2 = channelBandPassFilter.get_filter(ff, 0, 0, None, passband=[80 * units.MHz, 230 * units.MHz], filter_type="cheby1", order=4, rp=.1)
+            filtered_signal_traces[channel.get_id()] = trace
 
         # Since there are often two traces within the same thing, gotta be careful
         Vpps = []
-        maxes = []
-        for iChan, channel in enumerate(self._station.iter_channels()):  # loop over all channels (i.e. antennas) of the station
-            trace = np.fft.irfft(np.fft.rfft(np.array(channel.get_trace())) * filt2 * filt1)
+        for channel in station.iter_channels(use_channels=channels):
+            trace = np.array(channel.get_trace())
             Vpps += [np.max(trace) - np.min(trace)]
+        Vpps = np.array(Vpps)
 
-        factor = 1. / (np.mean(Vpps) / (2.0))  # * self._Vrms))
+        # loop over all channels (i.e. antennas) of the station
+        for channel in station.iter_channels(use_channels=channels):
+            trace = np.zeros(len(filtered_signal_traces[channel.get_id()][:]))
+            channel.set_trace(trace, sampling_rate=new_sampling_rate)
+
+        # Adding noise AFTER the SNR calculation
+        channelGenericNoiseAdder.run(evt, station, det, amplitude = Vrms / Vrms_ratio,
+                                     min_freq=min_freq, max_freq=max_freq, type='rayleigh')
+
+        # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
+        channelBandPassFilter.run(evt, station, det, passband=[0 * units.MHz, 220.0 * units.MHz],
+                                  filter_type='cheby1', order=7, rp=.1)
+        channelBandPassFilter.run(evt, station, det, passband=[96.0 * units.MHz, 100.0 * units.GHz],
+                                  filter_type='cheby1', order=4, rp=.1)
+
+        filtered_noise_traces = {}
+        for channel in station.iter_channels(use_channels=channels):
+            filtered_noise_traces[channel.get_id()] = channel.get_trace()
+
+        factor = 1.0 / (np.mean(Vpps) / (2.0 * Vrms))
         mult_factors = factor * SNRs
+
+        if(np.mean(Vpps) == 0.0):
+            return
 
         for factor, iSNR in zip(mult_factors, range(len(mult_factors))):
 
-            for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
-                trace = copy.deepcopy(original_traces[channel.get_id()][:]) * factor
-                channel.set_trace(trace, sampling_rate=new_sampling_rate)
+            for channel in station.iter_channels(use_channels=channels):
+                trace = copy.deepcopy(filtered_signal_traces[channel.get_id()][:]) * factor
+                noise = copy.deepcopy(filtered_noise_traces[channel.get_id()])
+                channel.set_trace(trace + noise, sampling_rate=new_sampling_rate)
 
-            min_freq = 0.0 * units.MHz
-            max_freq = 250.0 * units.MHz
-            bandwidth = 0.1732429316625746
-            Vrms_ratio = np.sqrt(bandwidth / (max_freq - min_freq))
-
-            # Adding noise AFTER the SNR calculation
-            # no adding noise, see what that does to the SNR
-            '''
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude = self._Vrms / Vrms_ratio,
-                                         min_freq=min_freq,
-                                         max_freq=max_freq,
-                                         type='rayleigh')
-            '''
-
-            # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
-            channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0 * units.MHz, 240 * units.MHz],
-                                      filter_type='cheby1', order=9, rp=.1)
-            channelBandPassFilter.run(self._evt, self._station, self._det, passband=[80 * units.MHz, 230 * units.MHz],
-                                      filter_type='cheby1', order=4, rp=.1)
-
-            if(phase):
-                has_triggered = triggerSimulator.run(self._evt, self._station, self._det,
-                                                     Vrms=1.0,  # self._Vrms,
-                                                     threshold=threshold,
-                                                     triggered_channels=channels,
-                                                     phasing_angles=phasing_angles,
-                                                     ref_index=1.75,
-                                                     trigger_name='primary_phasing',  # the name of the trigger
-                                                     trigger_adc=False,  # Don't have a seperate ADC for the trigger
-                                                     adc_output='voltage',  # output in volts
-                                                     nyquist_zone=None,  # first nyquist zone
-                                                     bandwidth_edge=20 * units.MHz,
-                                                     upsampling_factor=upsampling_factor,
-                                                     window=int(32 * dt / 2 / upsampling_factor),
-                                                     step=int(16 * dt / 2 / upsampling_factor))
-            else:
-                thresholdSimulator.run(self._evt, self._station, self._det,
-                                       threshold=2.0,  # * self._Vrms,
-                                       triggered_channels=[7],  # run trigger on all channels
-                                       number_concidences=1,
-                                       trigger_name='simple_threshold')
-
-                has_triggered = self._station.get_trigger('simple_threshold').has_triggered()
+            has_triggered = triggerSimulator.run(evt, station, det,
+                                                 Vrms = Vrms,
+                                                 threshold = threshold,
+                                                 triggered_channels=channels,
+                                                 phasing_angles=phasing_angles,
+                                                 ref_index = 1.75,
+                                                 trigger_name='primary_phasing',
+                                                 trigger_adc=False,
+                                                 adc_output='voltage',
+                                                 trigger_filter=None,
+                                                 upsampling_factor=upsampling_factor,
+                                                 window=window,
+                                                 step=step)
 
             if(has_triggered):
                 print('Trigger for SNR', SNRs[iSNR])
                 SNRtriggered[iSNR] += 1
-        '''
-            for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
-                if(channel.get_id() != 4):
-                    continue
-                trace = copy.deepcopy(original_traces[channel.get_id()][:]) * factor
-                colors = ['red', 'blue', 'green', 'orange', 'grey', 'black', 'pink', 'red', 'blue', 'green']
-                plt.plot(trace, color=colors[count_events.events])
-                print(maximum)
-                plt.scatter(np.arange(len(trace))[maximum], trace[maximum])
-        plt.show()
-        '''
 
         count_events()
         print(count_events.events)
         print(SNRtriggered)
 
         if(count_events.events % 10 == 0):
-            # Save every ten triggers
             output = {'total_events': count_events.events, 'SNRs': list(SNRs), 'triggered': list(SNRtriggered)}
             outputfile = args.outputSNR
             with open(outputfile, 'w+') as fout:
                 json.dump(output, fout, sort_keys=True, indent=4)
-
-
-parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
-parser.add_argument('inputfilename', type=str,
-                    help='path to NuRadioMC input event list')
-parser.add_argument('detectordescription', type=str,
-                    help='path to file containing the detector description')
-parser.add_argument('config', type=str,
-                    help='NuRadioMC yaml config file')
-parser.add_argument('outputfilename', type=str,
-                    help='hdf5 output filename')
-parser.add_argument('outputSNR', type=str,
-                    help='outputfilename for the snr files')
-parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
-                    help='outputfilename of NuRadioReco detector sim file')
-args = parser.parse_args()
 
 sim = mySimulation(
     inputfilename=args.inputfilename,
     outputfilename=args.outputfilename,
     detectorfile=args.detectordescription,
     outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-    config_file=args.config
+    config_file=args.config,
+    default_detector_station=1
 )
 sim.run()
 
