@@ -1,11 +1,7 @@
 import argparse
 import time
-import copy
-from astropy.time import Time
-from scipy import constants
-from itertools import product
-from matplotlib import pyplot as plt
 import numpy as np
+from astropy.time import Time
 from multiprocessing import Pool as ThreadPool
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.channelBandPassFilter
@@ -17,12 +13,34 @@ from NuRadioReco.utilities import units
 from NuRadioReco.utilities import fft
 from NuRadioReco.detector import detector
 
-det = detector.Detector(json_filename="../Effective_volume/8antennas_100m_0.5GHz.json")
+parser = argparse.ArgumentParser(description='calculates noise trigger rate for phased array')
+parser.add_argument('--ntries', type=int, help='number noise traces to which a trigger is applied for each threshold',
+                    default=1000)
+parser.add_argument('--ncpus', type=int, help='number of parallel jobs that can be run',
+                    default=1)
+parser.add_argument('--detectordescription', type=str,
+                    help='path to file containing the detector description', default='../Effective_volume/8antennas_100m_0.5GHz.json')
+parser.add_argument('--threshold', type=float,
+                    help='threshold to test. If -1, runs a default sweep', default=-1.0)
+parser.add_argument('--nchannels', type=int,
+                    help='number of channels to phase', default=4)
+
+args = parser.parse_args()
+
+if(args.threshold == -1.0):
+    thresholds = np.arange(0.5, 2.0, 0.05)
+else:
+    thresholds = np.array([float(args.thresholds)])
+
+det_file = args.detectordescription
+n_channels = args.nchannels
+ntrials = args.ntries
+ncpus = args.ncpus
+
+det = detector.Detector(json_filename=det_file)
 det.update(Time.now())
 
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
-
-n_channels = 8
 
 main_low_angle = np.deg2rad(-59.55)
 main_high_angle = np.deg2rad(59.55)
@@ -36,18 +54,11 @@ print(f"sampling rate = {sampling_rate/units.MHz}MHz, {n_samples} samples")
 if(n_channels == 4):
     upsampling_factor = 2
     default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
-    channels = np.arange(4, 8)
-    phase = True
+    channels = np.arange(4)
 elif(n_channels == 8):
     upsampling_factor = 4
     default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 21))
     channels = None
-    phase = True
-elif(n_channels == 1):
-    upsampling_factor = 1
-    default_angles = []
-    channels = [4]
-    phase = False
 else:
     print("wrong n_channels!")
     exit()
@@ -55,40 +66,31 @@ else:
 window_length = int(16 * units.ns * sampling_rate * upsampling_factor)
 step_length = int(8 * units.ns * sampling_rate * upsampling_factor)
 
-if(len(sys.argv) == 1):
-    print("No argument given, going to use default sweep values")
-    np.arange(0.5, 2.0, 0.05)
-else:
-    print("Argument from command line: sys.argv[1]:", sys.argv[1])
-    # Note, I divide by 1000 so I dont have to deal with non-integers in shell
-    thresholds = np.array([float(sys.argv[1]) / 1000.0])
-
 channel_ids = np.arange(8)
 Vrms = 1
 
 dt = 1 / sampling_rate
 ff = np.fft.rfftfreq(n_samples, dt)
-filt1 = channelBandPassFilter.get_filter(ff, 0, 0, None, passband=[0, 240 * units.MHz], filter_type="cheby1", order=9, rp=.1)
-filt2 = channelBandPassFilter.get_filter(ff, 0, 0, None, passband=[80 * units.MHz, 230 * units.MHz], filter_type="cheby1", order=4, rp=.1)
+filt1 = channelBandPassFilter.get_filter(ff, 0, 0, None, passband=[0, 220 * units.MHz], filter_type="cheby1", order=9, rp=.1)
+filt2 = channelBandPassFilter.get_filter(ff, 0, 0, None, passband=[96 * units.MHz, 100 * units.GHz], filter_type="cheby1", order=4, rp=.1)
 filt = filt1 * filt2
 
 # calculate bandwith
 max_freq = ff[-1]
 min_freq = 0
 fff = np.linspace(min_freq, max_freq, 10000)
-filt1_highres = channelBandPassFilter.get_filter(fff, 0, 0, None, passband=[0, 240 * units.MHz], filter_type="cheby1", order=9, rp=.1)
-filt2_highres = channelBandPassFilter.get_filter(fff, 0, 0, None, passband=[80 * units.MHz, 230 * units.MHz], filter_type="cheby1", order=4, rp=.1)
+filt1_highres = channelBandPassFilter.get_filter(fff, 0, 0, None, passband=[0, 220 * units.MHz], filter_type="cheby1", order=7, rp=.1)
+filt2_highres = channelBandPassFilter.get_filter(fff, 0, 0, None, passband=[96 * units.MHz, 100 * units.GHz], filter_type="cheby1", order=4, rp=.1)
 filt_highres = filt1_highres * filt2_highres
 bandwidth = np.trapz(np.abs(filt_highres) ** 2, fff)
 
 Vrms_ratio = np.sqrt(bandwidth / (max_freq - min_freq))
 amplitude = Vrms / Vrms_ratio
 
-pattern = f"pa_trigger_rate_{n_channels:d}channels_{upsampling_factor}xupsampiling"
+pattern = f"pa_trigger_rate_{n_channels:d}channels_{upsampling_factor}xupsampling"
 
 triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
-
 
 def loop(zipped):
 
@@ -114,36 +116,26 @@ def loop(zipped):
         channel.set_trace(trace, sampling_rate)
         station.add_channel(channel)
 
-    if(phase):
-        threshold_ = threshold * np.power(Vrms, 2.0) * window_length
+    threshold_ = threshold * np.power(Vrms, 2.0)
 
-        triggered = triggerSimulator.run(evt, station, det,
-                                         Vrms,
-                                         threshold_,
-                                         triggered_channels=channels,
-                                         phasing_angles=default_angles,
-                                         ref_index=1.75,
-                                         trigger_name='primary_phasing',
-                                         trigger_adc=False,
-                                         clock_offset=np.random.uniform(0.0, 2.0),
-                                         adc_output='voltage',
-                                         trigger_filter=None,
-                                         upsampling_factor=upsampling_factor,
-                                         window=window_length,
-                                         step=step_length)
-    else:
-        thresholdSimulator.run(evt, station, det,
-                               threshold_,
-                               triggered_channels=[4],  # run trigger on all channels
-                               number_concidences=1,
-                               trigger_name=f'dipole')
-
-        triggered = station.get_triggers()['dipole'].has_triggered()
+    triggered = triggerSimulator.run(evt, station, det,
+                                     Vrms,
+                                     threshold_,
+                                     triggered_channels=channels,
+                                     phasing_angles=default_angles,
+                                     ref_index=1.75,
+                                     trigger_name='primary_phasing',
+                                     trigger_adc=False,
+                                     adc_output='voltage',
+                                     trigger_filter=None,
+                                     upsampling_factor=upsampling_factor,
+                                     window=window_length,
+                                     step=step_length)
 
     return triggered
 
 
-pool = ThreadPool(10)
+pool = ThreadPool(ncpus)
 
 for threshold in thresholds:
     n_triggers = 0
@@ -151,8 +143,8 @@ for threshold in thresholds:
     t00 = time.time()
     t0 = time.time()
 
-    while i < 1000000:
-        n_pool = 10000
+    while i < ntrials:
+        n_pool = int(float(ntrials) / 10.0)
 
         print("Events:", i, " Delta t=", time.time() - t00, " N_triggers =", n_triggers)
         i += n_pool
