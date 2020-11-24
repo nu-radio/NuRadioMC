@@ -39,6 +39,7 @@ class IftElectricFieldReconstructor:
         self.__convergence_level = None
         self.__relative_tolerance = None
         self.__use_sim = False
+        self.__dominant_polarization = None
         return
 
     def begin(
@@ -54,6 +55,7 @@ class IftElectricFieldReconstructor:
         polarization='theta',
         convergence_level=3,
         relative_tolerance=1.e-7,
+        dominant_polarization=1,
         debug=False
     ):
         self.__passband = passband
@@ -67,6 +69,7 @@ class IftElectricFieldReconstructor:
         self.__electric_field_template = electric_field_template
         self.__convergence_level = convergence_level
         self.__relative_tolerance = relative_tolerance
+        self.__dominant_polarization = dominant_polarization
         if amp_dct is None:
             self.__amp_dct = {
                 'n_pix': 64,  # spectral bins
@@ -501,7 +504,9 @@ class IftElectricFieldReconstructor:
                 e_fluence[0] = np.sum(np.abs(e_fluence))
                 fluence_sample[i_passband] = e_fluence
             energy_fluence_stat_calculator.add(fluence_sample)
-            if self.__polarization == 'pol' or self.__polarization == 'theta':
+            if self.__polarization == 'pol':
+                slope_parameter_stat_calculator.add(fluence_sample[1, self.__dominant_polarization] / fluence_sample[2, self.__dominant_polarization])
+            elif self.__polarization == 'theta':
                 slope_parameter_stat_calculator.add(fluence_sample[1, 1] / fluence_sample[2, 1])
             else:
                 slope_parameter_stat_calculator.add(fluence_sample[1, 2] / fluence_sample[2, 2])
