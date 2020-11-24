@@ -165,7 +165,7 @@ class mySimulation(simulation.simulation):
             channel.set_trace(trace, sampling_rate=new_sampling_rate)
 
         # Adding noise AFTER the SNR calculation
-        channelGenericNoiseAdder.run(evt, station, det, amplitude=Vrms/Vrms_ratio,
+        channelGenericNoiseAdder.run(evt, station, det, amplitude=Vrms / Vrms_ratio,
                                      min_freq=min_freq, max_freq=max_freq, type='rayleigh')
 
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
