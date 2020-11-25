@@ -224,7 +224,7 @@ class simulation():
 
         # check if the input file contains events, if not save empty output file (for book keeping) and terminate simulation
         if(len(self._fin['xx']) == 0):
-            logger.status(f"input file {self._inputfilenam} is empty")
+            logger.status(f"input file {self._inputfilename} is empty")
             return -1
 
         ################################
