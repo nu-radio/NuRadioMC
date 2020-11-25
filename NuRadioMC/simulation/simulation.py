@@ -1397,7 +1397,7 @@ class simulation():
             fout.attrs.create("Vrms", self._Vrms, dtype=np.float)
             fout.attrs.create("dt", self._dt, dtype=np.float)
             fout.attrs.create("bandwidth", self._bandwidth, dtype=np.float)
-        fout.attrs['n_samples'] = self._n_samples
+            fout.attrs['n_samples'] = self._n_samples
         fout.attrs['config'] = yaml.dump(self._cfg)
 
         # save NuRadioMC and NuRadioReco versions
