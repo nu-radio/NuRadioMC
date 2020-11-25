@@ -205,7 +205,7 @@ class IftElectricFieldReconstructor:
         self.__trace_start_times = np.zeros(len(self.__used_channel_ids))
         self.__data_traces = np.zeros((len(self.__used_channel_ids), self.__trace_samples))
         max_channel_length = 0
-        passband = [100. * units.MHz, 300 * units.MHz]
+        passband = [100. * units.MHz, 200 * units.MHz]
         sim_channel_traces = []
         for channel_id in self.__used_channel_ids:
             channel = station.get_channel(channel_id)
@@ -245,17 +245,20 @@ class IftElectricFieldReconstructor:
                 antenna_orientation[2],
                 antenna_orientation[3]
             )
-            channel_spectrum_template = fft.time2freq(self.__electric_field_template.get_filtered_trace(passband), self.__electric_field_template.get_sampling_rate()) * \
+            channel_spectrum_template = fft.time2freq(self.__electric_field_template.get_filtered_trace(passband, filter_type='butterabs'), self.__electric_field_template.get_sampling_rate()) * \
                                         amp_response * (antenna_response['theta'] + antenna_response['phi'])
             channel_trace_template = fft.freq2time(channel_spectrum_template, self.__electric_field_template.get_sampling_rate())
             channel_trace_templates[i_channel] = channel_trace_template
             channel.apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
             if self.__use_sim:
                 sim_channel_traces[i_channel].apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
-                channel_trace = sim_channel_traces[i_channel].get_filtered_trace(passband)
+                channel_trace = sim_channel_traces[i_channel].get_filtered_trace(passband, filter_type='butterabs')
             else:
-                channel_trace = channel.get_filtered_trace(passband)
-            correlation = radiotools.helper.get_normalized_xcorr(channel_trace_template, channel_trace)
+                channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
+            if self.__use_sim:
+                correlation = radiotools.helper.get_normalized_xcorr(np.abs(scipy.signal.hilbert(channel_trace_template)), np.abs(scipy.signal.hilbert(channel_trace)))
+            else:
+                correlation = radiotools.helper.get_normalized_xcorr(channel_trace_template, channel_trace)
             correlation = np.abs(correlation)
             correlation_sum[:len(correlation)] += correlation
             toffset = -(np.arange(0, correlation.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()  # - propagation_times[i_channel, i_solution] - channel.get_trace_start_time()
@@ -270,7 +273,7 @@ class IftElectricFieldReconstructor:
             channel = station.get_channel(channel_id)
             time_offset = channel.get_parameter(chp.signal_time_offset)
             if self.__debug:
-                channel_trace = channel.get_filtered_trace(passband)
+                channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
                 toffset = -(np.arange(0, correlation_sum.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()
                 ax2_1 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 1)
                 ax2_1.grid()
@@ -286,7 +289,7 @@ class IftElectricFieldReconstructor:
                             sim_channel_sum += sim_channel
                 if sim_channel_sum is not None:
                     sim_channel_sum.apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
-                    ax2_1.plot(sim_channel_sum.get_times(), sim_channel_sum.get_filtered_trace(passband) / units.mV, c='k', alpha=.5)
+                    ax2_1.plot(sim_channel_sum.get_times(), sim_channel_sum.get_filtered_trace(passband, filter_type='butterabs') / units.mV, c='k', alpha=.5)
                     ax2_1.set_xlim([sim_channel_sum.get_trace_start_time() - 50, sim_channel_sum.get_times()[-1] + 50])
                     sim_channel_sum.apply_time_shift(channel.get_parameter(chp.signal_time_offset), True)
 
