@@ -222,6 +222,11 @@ class simulation():
 
         self._read_input_hdf5()  # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
 
+        # check if the input file contains events, if not save empty output file (for book keeping) and terminate simulation
+        if(len(self._fin['xx']) == 0):
+            logger.status(f"input file {self._inputfilenam} is empty")
+            return -1
+
         ################################
         # perfom a dummy detector simulation to determine how the signals are filtered
         self._bandwidth_per_channel = {}
@@ -359,6 +364,10 @@ class simulation():
         """
         run the NuRadioMC simulation
         """
+        if(len(self._fin['xx']) == 0):
+            logger.status(f"writing empty hdf5 output file")
+            self._write_ouput_file(empty=True)
+            logger.status(f"terminating simulation")
         logger.status(f"Starting NuRadioMC simulation")
         t_start = time.time()
         t_last_update = t_start
@@ -1311,58 +1320,59 @@ class simulation():
         self._sim_shower[shp.vertex_time] = self._vertex_time
         self._sim_shower[shp.type] = self._shower_type
 
-    def _write_ouput_file(self):
+    def _write_ouput_file(self, empty=False):
         folder = os.path.dirname(self._outputfilename)
         if(not os.path.exists(folder) and folder != ''):
             logger.warning(f"output folder {folder} does not exist, creating folder...")
             os.makedirs(folder)
         fout = h5py.File(self._outputfilename, 'w')
 
-        # here we add the first interaction to the saved events
-        # if any of its children triggered
+        if not empty:
+            # here we add the first interaction to the saved events
+            # if any of its children triggered
 
-        # Careful! saved should be a copy of the triggered array, and not
-        # a reference! saved indicates the interactions to be saved, while
-        # triggered should indicate if an interaction has produced a trigger
-        saved = np.copy(self._mout['triggered'])
-        parent_mask = self._fin['n_interaction'] == 1
-        for event_id in np.unique(self._fin['event_group_ids']):
-            event_mask = self._fin['event_group_ids'] == event_id
-            if (True in self._mout['triggered'][event_mask]):
-                saved[parent_mask & event_mask] = True
+            # Careful! saved should be a copy of the triggered array, and not
+            # a reference! saved indicates the interactions to be saved, while
+            # triggered should indicate if an interaction has produced a trigger
+            saved = np.copy(self._mout['triggered'])
+            parent_mask = self._fin['n_interaction'] == 1
+            for event_id in np.unique(self._fin['event_group_ids']):
+                event_mask = self._fin['event_group_ids'] == event_id
+                if (True in self._mout['triggered'][event_mask]):
+                    saved[parent_mask & event_mask] = True
 
-        logger.status("start saving events")
-        # save data sets
-        for (key, value) in iteritems(self._mout):
-            fout[key] = value[saved]
+            logger.status("start saving events")
+            # save data sets
+            for (key, value) in iteritems(self._mout):
+                fout[key] = value[saved]
 
-        # save all data sets of the station groups
-        for (key, value) in iteritems(self._mout_groups):
-            sg = fout.create_group("station_{:d}".format(key))
-            for (key2, value2) in iteritems(value):
-                sg[key2] = np.array(value2)[np.array(value['triggered'])]
+            # save all data sets of the station groups
+            for (key, value) in iteritems(self._mout_groups):
+                sg = fout.create_group("station_{:d}".format(key))
+                for (key2, value2) in iteritems(value):
+                    sg[key2] = np.array(value2)[np.array(value['triggered'])]
 
-        # save "per event" quantities
-        if('trigger_names' in self._mout_attrs):
-            n_triggers = len(self._mout_attrs['trigger_names'])
-            for station_id in self._mout_groups:
-                n_events_for_station = len(self._output_triggered_station[station_id])
-                if(n_events_for_station > 0):
-                    n_channels = self._det.get_number_of_channels(station_id)
-                    sg = fout["station_{:d}".format(station_id)]
-                    sg['event_group_ids'] = np.array(self._output_event_group_ids[station_id])
-                    sg['event_ids'] = np.array(self._output_sub_event_ids[station_id])
-                    sg['maximum_amplitudes'] = np.array(self._output_maximum_amplitudes[station_id])
-                    sg['maximum_amplitudes_envelope'] = np.array(self._output_maximum_amplitudes_envelope[station_id])
-                    sg['triggered_per_event'] = np.array(self._output_triggered_station[station_id])
+            # save "per event" quantities
+            if('trigger_names' in self._mout_attrs):
+                n_triggers = len(self._mout_attrs['trigger_names'])
+                for station_id in self._mout_groups:
+                    n_events_for_station = len(self._output_triggered_station[station_id])
+                    if(n_events_for_station > 0):
+                        n_channels = self._det.get_number_of_channels(station_id)
+                        sg = fout["station_{:d}".format(station_id)]
+                        sg['event_group_ids'] = np.array(self._output_event_group_ids[station_id])
+                        sg['event_ids'] = np.array(self._output_sub_event_ids[station_id])
+                        sg['maximum_amplitudes'] = np.array(self._output_maximum_amplitudes[station_id])
+                        sg['maximum_amplitudes_envelope'] = np.array(self._output_maximum_amplitudes_envelope[station_id])
+                        sg['triggered_per_event'] = np.array(self._output_triggered_station[station_id])
 
-                    # the multiple triggeres 2d array might have different number of entries per event
-                    # because the number of different triggers can increase dynamically
-                    # therefore we first create an array with the right size and then fill it
-                    tmp = np.zeros((n_events_for_station, n_triggers), dtype=np.bool)
-                    for iE, values in enumerate(self._output_multiple_triggers_station[station_id]):
-                        tmp[iE] = values
-                    sg['multiple_triggers_per_event'] = tmp
+                        # the multiple triggeres 2d array might have different number of entries per event
+                        # because the number of different triggers can increase dynamically
+                        # therefore we first create an array with the right size and then fill it
+                        tmp = np.zeros((n_events_for_station, n_triggers), dtype=np.bool)
+                        for iE, values in enumerate(self._output_multiple_triggers_station[station_id]):
+                            tmp[iE] = values
+                        sg['multiple_triggers_per_event'] = tmp
 
         # save meta arguments
         for (key, value) in iteritems(self._mout_attrs):
@@ -1371,20 +1381,21 @@ class simulation():
         with open(self._detectorfile, 'r') as fdet:
             fout.attrs['detector'] = fdet.read()
 
-        # save antenna position separately to hdf5 output
-        for station_id in self._mout_groups:
-            n_channels = self._det.get_number_of_channels(station_id)
-            positions = np.zeros((n_channels, 3))
-            for channel_id in range(n_channels):
-                positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
-            fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
-            fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
-            fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())
+        if not empty:
+            # save antenna position separately to hdf5 output
+            for station_id in self._mout_groups:
+                n_channels = self._det.get_number_of_channels(station_id)
+                positions = np.zeros((n_channels, 3))
+                for channel_id in range(n_channels):
+                    positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
+                fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
+                fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
+                fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())
 
-        fout.attrs.create("Tnoise", self._noise_temp, dtype=np.float)
-        fout.attrs.create("Vrms", self._Vrms, dtype=np.float)
-        fout.attrs.create("dt", self._dt, dtype=np.float)
-        fout.attrs.create("bandwidth", self._bandwidth, dtype=np.float)
+            fout.attrs.create("Tnoise", self._noise_temp, dtype=np.float)
+            fout.attrs.create("Vrms", self._Vrms, dtype=np.float)
+            fout.attrs.create("dt", self._dt, dtype=np.float)
+            fout.attrs.create("bandwidth", self._bandwidth, dtype=np.float)
         fout.attrs['n_samples'] = self._n_samples
         fout.attrs['config'] = yaml.dump(self._cfg)
 
@@ -1396,12 +1407,13 @@ class simulation():
         fout.attrs['NuRadioMC_version_hash'] = version.get_NuRadioMC_commit_hash()
         fout.attrs['NuRadioReco_version_hash'] = version.get_NuRadioReco_commit_hash()
 
-        # now we also save all input parameters back into the out file
-        for key in self._fin.keys():
-            if(key.startswith("station_")):
-                continue
-            if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
-                fout[key] = np.array(self._fin[key])[saved]
+        if not empty:
+            # now we also save all input parameters back into the out file
+            for key in self._fin.keys():
+                if(key.startswith("station_")):
+                    continue
+                if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
+                    fout[key] = np.array(self._fin[key])[saved]
 
         for key in self._fin_attrs.keys():
             if(not key in fout.attrs.keys()):  # only save atrributes sets that havn't been recomputed and saved already
