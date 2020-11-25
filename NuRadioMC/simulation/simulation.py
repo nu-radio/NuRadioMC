@@ -225,7 +225,7 @@ class simulation():
         # check if the input file contains events, if not save empty output file (for book keeping) and terminate simulation
         if(len(self._fin['xx']) == 0):
             logger.status(f"input file {self._inputfilename} is empty")
-            return -1
+            return
 
         ################################
         # perfom a dummy detector simulation to determine how the signals are filtered
@@ -368,6 +368,7 @@ class simulation():
             logger.status(f"writing empty hdf5 output file")
             self._write_ouput_file(empty=True)
             logger.status(f"terminating simulation")
+            return -1
         logger.status(f"Starting NuRadioMC simulation")
         t_start = time.time()
         t_last_update = t_start
