@@ -27,7 +27,8 @@ def merge2(filenames, output_filename):
         n_events_total += fin.attrs['n_events']
         logger.debug(f"increasing total number of events by {fin.attrs['n_events']:d} to {n_events_total:d} ")
 
-        if('triggered' in fin.keys() and np.sum(np.array(fin['triggered'])) == 0):
+        # empty files might not have the triggered object at all
+        if('triggered' not in fin.keys() or  ('triggered' in fin.keys() and np.sum(np.array(fin['triggered'])) == 0)):
             logger.info(f"file {f} contains no events")
         else:
             non_empty_filenames.append(f)
