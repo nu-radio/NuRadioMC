@@ -195,20 +195,6 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     out['energy_min'] = Emin
     out['energy_max'] = Emax
 
-    weights = np.array(fin['weights'])
-    triggered = np.array(fin['triggered'])
-    n_events = fin.attrs['n_events']
-
-    if('trigger_names' in fin.attrs):
-        if(np.any(trigger_names != fin.attrs['trigger_names'])):
-            if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
-                logger.warning("file {} has no triggering events. Using trigger names from another file".format(filename))
-            else:
-                logger.error("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
-                raise
-    else:
-        logger.warning(f"file {filename} has no triggering events. Using trigger names from a different file: {trigger_names}")
-
     # calculate effective
     thetamin = 0
     thetamax = np.pi
@@ -243,6 +229,23 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     out[veff_aeff] = {}
     out['n_triggered_weighted'] = {}
     out['SNRs'] = {}
+
+    if('weights' not in fin.keys()):
+        logger.warning(f"file {filename} is empty")
+        return out
+    weights = np.array(fin['weights'])
+    triggered = np.array(fin['triggered'])
+    n_events = fin.attrs['n_events']
+
+    if('trigger_names' in fin.attrs):
+        if(np.any(trigger_names != fin.attrs['trigger_names'])):
+            if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
+                logger.warning("file {} has no triggering events. Using trigger names from another file".format(filename))
+            else:
+                logger.error("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
+                raise
+    else:
+        logger.warning(f"file {filename} has no triggering events. Using trigger names from a different file: {trigger_names}")
 
     if(triggered.size == 0):
         FC_low, FC_high = FC_limits(0)
