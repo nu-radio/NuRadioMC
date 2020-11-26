@@ -229,14 +229,20 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     out[veff_aeff] = {}
     out['n_triggered_weighted'] = {}
     out['SNRs'] = {}
+    n_events = fin.attrs['n_events']
 
     if('weights' not in fin.keys()):
         logger.warning(f"file {filename} is empty")
+        FC_low, FC_high = FC_limits(0)
+        Veff_low = volume_proj_area * FC_low / n_events
+        Veff_high = volume_proj_area * FC_high / n_events
+        for iT, trigger_name in enumerate(trigger_names):
+            out[veff_aeff][trigger_name] = [0, 0, 0, Veff_low, Veff_high]
+        for trigger_name, values in iteritems(trigger_combinations):
+            out[veff_aeff][trigger_name] = [0, 0, 0, Veff_low, Veff_high]
         return out
-    weights = np.array(fin['weights'])
-    triggered = np.array(fin['triggered'])
-    n_events = fin.attrs['n_events']
 
+    triggered = np.array(fin['triggered'])
     if('trigger_names' in fin.attrs):
         if(np.any(trigger_names != fin.attrs['trigger_names'])):
             if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
@@ -247,6 +253,7 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     else:
         logger.warning(f"file {filename} has no triggering events. Using trigger names from a different file: {trigger_names}")
 
+    weights = np.array(fin['weights'])
     if(triggered.size == 0):
         FC_low, FC_high = FC_limits(0)
         Veff_low = volume_proj_area * FC_low / n_events
