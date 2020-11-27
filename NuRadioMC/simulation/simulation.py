@@ -36,6 +36,7 @@ from six import iteritems
 import yaml
 import os
 import collections
+from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 
 STATUS = 31
 
@@ -1036,6 +1037,9 @@ class simulation():
                                                                                          100 * detSimTime / t_total,
                                                                                          100 * outputTime / t_total,
                                                                                          100 * weightTime / t_total))
+        triggered = remove_duplicate_triggers(self._mout['triggered'], self._fin['event_group_ids'])
+        n_triggered = np.sum(triggered)
+        return n_triggered
 
     def _get_shower_index(self, shower_id):
         if(hasattr(shower_id, "__len__")):
@@ -1423,7 +1427,6 @@ class simulation():
 
     def calculate_Veff(self):
         # calculate effective
-        from NuRadioMC.utilities.Veff import remove_duplicate_triggers
         triggered = remove_duplicate_triggers(self._mout['triggered'], self._fin['event_group_ids'])
         n_triggered = np.sum(triggered)
         n_triggered_weighted = np.sum(self._mout['weights'][triggered])
