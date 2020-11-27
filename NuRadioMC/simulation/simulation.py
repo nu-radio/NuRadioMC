@@ -169,7 +169,6 @@ class simulation():
             # the same random sequence.
             self._cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
 
-        self._inputfilename = inputfilename
         self._outputfilename = outputfilename
         if(os.path.exists(self._outputfilename)):
             msg = f"hdf5 output file {self._outputfilename} already exists"
@@ -221,7 +220,16 @@ class simulation():
         # read sampling rate from config (this sampling rate will be used internally)
         self._dt = 1. / (self._cfg['sampling_rate'] * units.GHz)
 
-        self._read_input_hdf5()  # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
+        if isinstance(inputfilename, str):
+            logger.status(f"reading input from {inputfilename}")
+            self._inputfilename = inputfilename
+            self._read_input_hdf5()  # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
+        else:
+            logger.status("getting input on-the-fly")
+            self._inputfilename = "on-the-fly"
+            self._fin = inputfilename[0]
+            self._fin_attrs = inputfilename[1]
+            self._fin_stations = {}
 
         # check if the input file contains events, if not save empty output file (for book keeping) and terminate simulation
         if(len(self._fin['xx']) == 0):
