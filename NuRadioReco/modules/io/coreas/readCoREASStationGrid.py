@@ -16,8 +16,8 @@ import os
 class readCoREAS:
     """
     coreas input module for fixed grid of stations. 
-    This module distributes core posisions randomly within a user defined area and calculates the electric field
-    at the detector positions as specified in the detector description by chosing the closest antenna 
+    This module distributes core positions randomly within a user defined area and calculates the electric field
+    at the detector positions as specified in the detector description by choosing the closest antenna 
     of the star shape pattern simulation
     """
 
