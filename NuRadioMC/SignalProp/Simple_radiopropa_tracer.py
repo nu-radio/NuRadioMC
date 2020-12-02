@@ -232,24 +232,46 @@ class ray_tracing:
         index = 1
         self._candidates = []
         if mask.any():
+            '''
             index = int(np.median(np.array(np.arange(0, num, 1))[mask]))
             self._candidates.append(candidates[index])
             results.append({'type':1, 'reflection':reflection})
-
+            '''
+            delta_min = self._sphere_size
+            for candidate in candidates[mask]:
+                ray_endpoint = candidate.getEndPosition()-(candidate.getReceiveVector().getUnitVector()*(units.meter/radiopropa.meter)*self._sphere_size)
+                if (ray_endpoint-self._x2).getR() < delta_min: final_candidate = candidate
+            self._candidates.append(candidate)
+            results.append({'type':1, 'reflection':reflection})
+            
         mask = (np.array(solution_types) ==2 )
         if mask.any():
+            '''
             index = int(np.median(np.array(np.arange(0, num, 1))[mask]))
             self._candidates.append(candidates[index])
             results.append({'type':2, 'reflection':reflection})
-
-
+            '''
+            delta_min = self._sphere_size
+            for candidate in candidates[mask]:
+                ray_endpoint = candidate.getEndPosition()-(candidate.getReceiveVector().getUnitVector()*(units.meter/radiopropa.meter)*self._sphere_size)
+                if (ray_endpoint-self._x2).getR() < delta_min: final_candidate = candidate
+            self._candidates.append(candidate)
+            results.append({'type':1, 'reflection':reflection})
+            
         mask = (np.array(solution_types) ==3 )
         if mask.any():
+            '''
             index = int(np.median(np.array(np.arange(0, num, 1))[mask]))
             self._candidates.append(candidates[index])
             results.append({'type':3, 'reflection':reflection})
-
-
+            '''
+            delta_min = self._sphere_size
+            for candidate in candidates[mask]:
+                ray_endpoint = candidate.getEndPosition()-(candidate.getReceiveVector().getUnitVector()*(units.meter/radiopropa.meter)*self._sphere_size)
+                if (ray_endpoint-self._x2).getR() < delta_min: final_candidate = candidate
+            self._candidates.append(candidate)
+            results.append({'type':1, 'reflection':reflection})
+            
 
 
         self._results = results
