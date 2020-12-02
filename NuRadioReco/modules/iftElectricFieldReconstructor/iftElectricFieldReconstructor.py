@@ -388,7 +388,7 @@ class IftElectricFieldReconstructor:
         domain_flipper = NuRadioReco.modules.iftElectricFieldReconstructor.operators.DomainFlipper(zero_padder.domain, target=ift.RGSpace(small_sp.shape, harmonic=True))
         mag_S_h = (domain_flipper @ zero_padder.adjoint @ correlated_field)
         mag_S_h = NuRadioReco.modules.iftElectricFieldReconstructor.operators.SymmetrizingOperator(mag_S_h.target) @ mag_S_h
-        subtract_one = ift.Adder(ift.Field(mag_S_h.target, -1))
+        subtract_one = ift.Adder(ift.Field(mag_S_h.target, -5))
         mag_S_h = realizer2.adjoint @ (subtract_one @ mag_S_h).exp()
         fft_operator = ift.FFTOperator(frequency_domain.get_default_codomain())
 
@@ -599,10 +599,11 @@ class IftElectricFieldReconstructor:
         KL
     ):
         plt.close('all')
+        fontsize = 16
         n_channels = len(self.__used_channel_ids)
         median = KL.position
         sampling_rate = station.get_channel(self.__used_channel_ids[0]).get_sampling_rate()
-        fig1 = plt.figure(figsize=(12, 4 * n_channels))
+        fig1 = plt.figure(figsize=(16, 4 * n_channels))
         fig2 = plt.figure(figsize=(16, 4 * n_channels))
         freqs = np.fft.rfftfreq(self.__data_traces.shape[1], 1. / sampling_rate)
         classic_mean_efield_spec = np.zeros_like(freqs)
@@ -617,8 +618,8 @@ class IftElectricFieldReconstructor:
                 ax1_1 = fig1.add_subplot(n_channels, 3, 3 * i_channel + 1)
                 ax1_2 = fig1.add_subplot(n_channels, 3, 3 * i_channel + 2)
                 ax1_3 = fig1.add_subplot(n_channels, 3, 3 * i_channel + 3, sharey=ax1_2)
-                ax1_2.set_title(r'$\theta$ component')
-                ax1_3.set_title(r'$\varphi$ component')
+                ax1_2.set_title(r'$\theta$ component', fontsize=fontsize)
+                ax1_3.set_title(r'$\varphi$ component', fontsize=fontsize)
             else:
                 ax1_1 = fig1.add_subplot(n_channels, 2, 2 * i_channel + 1)
                 ax1_2 = fig1.add_subplot(n_channels, 2, 2 * i_channel + 2)
@@ -716,14 +717,13 @@ class IftElectricFieldReconstructor:
             else:
                 channel_snr = .5 * (np.max(station.get_channel(channel_id).get_trace()) - np.min(station.get_channel(channel_id).get_trace())) / (self.__noise_levels * self.__scaling_factor)
             ax2_1.plot(times, self.__data_traces[i_channel] * self.__scaling_factor / units.mV, c='C0', alpha=1., zorder=5, label='data')
-            ax2_1.plot(times, np.abs(scipy.signal.hilbert(self.__data_traces[i_channel] * self.__scaling_factor)) / units.mV, c='C0', alpha=.2, zorder=3)
 
             ax1_1.plot(freqs / units.MHz, amp_trace_stat_calculator.mean * self.__scaling_factor / units.mV, c='C2', label='IFT reco', linewidth=3, alpha=.6)
             ax2_1.plot(times, trace_stat_calculator.mean * self.__scaling_factor / units.mV, c='C2', linestyle='-', zorder=2, linewidth=4, label='IFT reconstruction')
-            ax2_1.plot(times, np.abs(scipy.signal.hilbert(trace_stat_calculator.mean * self.__scaling_factor)) / units.mV, c='C2', linestyle='-', zorder=2, linewidth=4, alpha=.5)
             ax2_1.set_xlim([times[0], times[-1]])
-            textbox = dict(boxstyle='round', facecolor='white', alpha=.5)
-            ax2_1.text(.9, .05, 'SNR={:.1f}'.format(channel_snr), transform=ax2_1.transAxes, bbox=textbox, fontsize=18)
+            if channel_snr is not None:
+                textbox = dict(boxstyle='round', facecolor='white', alpha=.5)
+                ax2_1.text(.9, .05, 'SNR={:.1f}'.format(channel_snr), transform=ax2_1.transAxes, bbox=textbox, fontsize=18)
             if self.__polarization == 'theta':
                 ax1_2.plot(freqs / units.MHz, amp_efield_stat_calculators[0].mean * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='C2', alpha=.6)
             if self.__polarization == 'phi':
@@ -745,18 +745,23 @@ class IftElectricFieldReconstructor:
                 ax1_3.set_xlim([0, 750])
                 ax1_3.set_xlabel('f [MHz]')
             if i_channel == 0:
-                ax2_1.legend()
-                ax1_1.legend()
+                ax2_1.legend(fontsize=fontsize)
+                ax1_1.legend(fontsize=fontsize)
             ax1_1.set_xlim([0, 750])
             ax1_2.set_xlim([0, 750])
-            ax1_1.set_title('Channel {}'.format(channel_id))
-            ax2_1.set_title('Channel {}'.format(channel_id))
-            ax1_1.set_xlabel('f [MHz]')
-            ax1_2.set_xlabel('f [MHz]')
-            ax1_1.set_ylabel('channel voltage [mV/GHz]')
-            ax1_2.set_ylabel('E-Field [mV/m/GHz]')
-            ax2_1.set_xlabel('t [ns]')
-            ax2_1.set_ylabel('U [mV]')
+            ax1_1.set_title('Channel {}'.format(channel_id), fontsize=fontsize)
+            ax2_1.set_title('Channel {}'.format(channel_id), fontsize=fontsize)
+            ax1_1.set_xlabel('f [MHz]', fontsize=fontsize)
+            ax1_2.set_xlabel('f [MHz]', fontsize=fontsize)
+            ax1_1.set_ylabel('channel voltage [mV/GHz]', fontsize=fontsize)
+            ax1_2.set_ylabel('E-Field [mV/m/GHz]', fontsize=fontsize)
+            ax2_1.set_xlabel('t [ns]', fontsize=fontsize)
+            ax2_1.set_ylabel('U [mV]', fontsize=fontsize)
+            ax1_1.tick_params(axis='both', labelsize=fontsize)
+            ax1_2.tick_params(axis='both', labelsize=fontsize)
+            ax2_1.tick_params(axis='both', labelsize=fontsize)
+            if self.__polarization == 'pol':
+                ax1_3.tick_params(axis='both', labelsize=fontsize)
             if sim_efield_max is not None:
                 ax1_2.set_ylim([0, 1.2 * sim_efield_max / (units.mV / units.m / units.GHz)])
         fig1.tight_layout()
