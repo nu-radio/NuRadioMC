@@ -72,6 +72,8 @@ class ray_tracing:
         self._n_frequencies_integration = n_frequencies_integration
 
         self._sphere_size = 2 * units.meter
+        self._x1 = None
+        self._x2 = None
         self._max_detector_frequency = None
         self._detector = detector
         if self._detector is not None:
@@ -84,8 +86,10 @@ class ray_tracing:
 
 
 
+    def get_start_and_end_point(self ):
+        return self._x1, self._x2
 
-    def set_start_and_end_point(self, x1, x2):
+    def set_start_and_end_point(self, x1=None, x2=None):
         """
         Parameters
         ----------
@@ -93,10 +97,10 @@ class ray_tracing:
             start point of the ray
         x2: np.array of shape (1,3), unit is meter
             stop point of the ray
-        """
+        """ 
         x1 = np.array(x1, dtype =np.float)
-        x2 = np.array(x2, dtype = np.float)
         self._x1 = x1 * units.meter
+        x2 = np.array(x2, dtype = np.float)
         self._x2 = x2 * units.meter
 
 
@@ -151,6 +155,12 @@ class ray_tracing:
         sim.add(radiopropa.MaximumTrajectoryLength(self._max_traj_length*(radiopropa.meter/units.meter)))
 
         ## define observer (channel)
+        try:
+            self._x1[0]
+            self._x2[0]
+        except TypeError: 
+            print('NoneType: start or endpoint not initialized')
+            
         obs = radiopropa.Observer()
         obs.setDeactivateOnDetection(True)
         x2 = self._x2 / units.meter *radiopropa.meter
@@ -158,11 +168,11 @@ class ray_tracing:
         obs.add(channel)
         sim.add(obs) ## add observer to module list
 
-        phi_direct, theta = hp.cartesian_to_spherical(*(np.array(self._x2)-np.array(self._x1))) *units.radian ## zenith and azimuth for the direct ray solution (radians)
+        phi_direct, theta = hp.cartesian_to_spherical(*(np.array(self._x2)-np.array(self._x1))) *units.radian ## zenith and azimuth for the direct linear ray solution (radians)
         phi_direct += 5*units.degree #the median solution is taken, meaning that we need to add some degrees in case the good solution is near phi_direct
 
         step = .05 * units.degree
-        for phi in reversed(np.arange(0,phi_direct + step, step)):
+        for phi in reversed(np.arange(0,phi_direct + step, step)): #below phi_direct no solutions are possible without upward reflections
             x = hp.spherical_to_cartesian(self._shower_dir[0], self._shower_dir[1])
             y = hp.spherical_to_cartesian(phi,theta)
             delta = np.arccos(np.dot(x, y)) * units.radian
@@ -203,7 +213,7 @@ class ray_tracing:
         candidates = np.copy(self._candidates)
         for iS, candidate in enumerate(self._candidates):
             solution_type = self.get_solution_type(iS)
-            launch_vector = [self._candidates[iS].getLaunchVector().x, self._candidates[iS].getLaunchVector().y, self._candidates[iS].getLaunchVector().z]
+            launch_vector = self.get_launch_vector(iS)
             launch_angles.append(hp.cartesian_to_spherical(launch_vector[0], launch_vector[1], launch_vector[2])[0])
             solution_types.append(solution_type)
         mask = (np.array(solution_types) ==1 )
