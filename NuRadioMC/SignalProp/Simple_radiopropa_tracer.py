@@ -94,9 +94,9 @@ class ray_tracing:
         """
         Parameters
         ----------
-        x1: np.array of shape (1,3), unit is meter
+        x1: np.array of shape (3,), unit is meter
             start point of the ray
-        x2: np.array of shape (1,3), unit is meter
+        x2: np.array of shape (3,), unit is meter
             stop point of the ray
         """ 
         x1 = np.array(x1, dtype =np.float)
@@ -228,9 +228,11 @@ class ray_tracing:
             launch_vector = self.get_launch_vector(iS)
             launch_angles.append(hp.cartesian_to_spherical(launch_vector[0], launch_vector[1], launch_vector[2])[0])
             solution_types.append(solution_type)
-        mask = (np.array(solution_types) ==1 )
+        
         index = 1
         self._candidates = []
+        channel_pos = self._x2
+        mask = (np.array(solution_types) ==1 )       
         if mask.any():
             '''
             index = int(np.median(np.array(np.arange(0, num, 1))[mask]))
@@ -239,12 +241,17 @@ class ray_tracing:
             '''
             delta_min = self._sphere_size
             for candidate in candidates[mask]:
-                ray_endpoint = candidate.getEndPosition()-(candidate.getReceiveVector().getUnitVector()*(units.meter/radiopropa.meter)*self._sphere_size)
-                if (ray_endpoint-self._x2).getR() < delta_min: final_candidate = candidate
+                ray_endpoint = candidate.get().getEndPosition()*(units.meter/radiopropa.meter) #endpoint on sphere
+                ray_endpoint -=(candidate.get().getReceiveVector().getUnitVector()*(units.meter/radiopropa.meter) *self._sphere_size) #endpoint in sphere after extrapolation
+                ray_endpoint = np.array([ray_endpoint.getX(),ray_endpoint.getY(),ray_endpoint.getZ()]) #transform in numpy array
+                delta = np.linalg.norm(ray_endpoint-channel_pos)
+                if delta < delta_min: 
+                    final_candidate = candidate
+                    delta_min = min(delta_min,delta)
             self._candidates.append(candidate)
             results.append({'type':1, 'reflection':reflection})
             
-        mask = (np.array(solution_types) ==2 )
+        mask = (np.array(solution_types) ==2 )     
         if mask.any():
             '''
             index = int(np.median(np.array(np.arange(0, num, 1))[mask]))
@@ -253,8 +260,13 @@ class ray_tracing:
             '''
             delta_min = self._sphere_size
             for candidate in candidates[mask]:
-                ray_endpoint = candidate.getEndPosition()-(candidate.getReceiveVector().getUnitVector()*(units.meter/radiopropa.meter)*self._sphere_size)
-                if (ray_endpoint-self._x2).getR() < delta_min: final_candidate = candidate
+                ray_endpoint = candidate.get().getEndPosition()*(units.meter/radiopropa.meter) #endpoint on sphere
+                ray_endpoint -=(candidate.get().getReceiveVector().getUnitVector()*(units.meter/radiopropa.meter) *self._sphere_size) #endpoint in sphere after extrapolation
+                ray_endpoint = np.array([ray_endpoint.getX(),ray_endpoint.getY(),ray_endpoint.getZ()]) #transform in numpy array
+                delta = np.linalg.norm(ray_endpoint-channel_pos)
+                if delta < delta_min: 
+                    final_candidate = candidate
+                    delta_min = min(delta_min,delta)
             self._candidates.append(candidate)
             results.append({'type':1, 'reflection':reflection})
             
@@ -267,8 +279,13 @@ class ray_tracing:
             '''
             delta_min = self._sphere_size
             for candidate in candidates[mask]:
-                ray_endpoint = candidate.getEndPosition()-(candidate.getReceiveVector().getUnitVector()*(units.meter/radiopropa.meter)*self._sphere_size)
-                if (ray_endpoint-self._x2).getR() < delta_min: final_candidate = candidate
+                ray_endpoint = candidate.get().getEndPosition()*(units.meter/radiopropa.meter) #endpoint on sphere
+                ray_endpoint -=(candidate.get().getReceiveVector().getUnitVector()*(units.meter/radiopropa.meter) *self._sphere_size) #endpoint in sphere after extrapolation
+                ray_endpoint = np.array([ray_endpoint.getX(),ray_endpoint.getY(),ray_endpoint.getZ()]) #transform in numpy array
+                delta = np.linalg.norm(ray_endpoint-channel_pos)
+                if delta < delta_min: 
+                    final_candidate = candidate
+                    delta_min = min(delta_min,delta)
             self._candidates.append(candidate)
             results.append({'type':1, 'reflection':reflection})
             
