@@ -155,8 +155,13 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
         trace_start_time_offset = np.floor(np.min(trace_start_times) / 1000.) * 1000.
     else:
         trace_start_time_offset = 0
+    channel_ids = []
+    for i, channel in enumerate(station.iter_channels()):
+        channel_ids.append(channel.get_id())
+    channel_ids = sorted(channel_ids)
     if 'trace' in dropdown_traces:
-        for i, channel in enumerate(station.iter_channels()):
+        for i, channel_id in enumerate(channel_ids):
+            channel = station.get_channel(channel_id)
             tt = channel.get_times() - trace_start_time_offset / units.ns
             if channel.get_trace() is None:
                 continue
@@ -171,7 +176,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                     'color': colors[i % len(colors)],
                     'line': {'color': colors[i % len(colors)]}
                 },
-                name=i
+                name=channel_id
             ), i + 1, 1)
             if 'RMS' in dropdown_info:
                 fig.append_trace(
@@ -183,7 +188,8 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                         textposition='bottom left'
                     ), i + 1, 1)
     if 'envelope' in dropdown_traces:
-        for i, channel in enumerate(station.iter_channels()):
+        for i, channel_id in enumerate(channel_ids):
+            channel = station.get_channel(channel_id)
             if channel.get_trace() is None:
                 continue
             trace = channel.get_trace() / units.mV
@@ -212,7 +218,8 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
             ref_templates = template_provider.get_set_of_cr_templates(station_id,
                                                                       n=station.get_parameter(stnp.cr_xcorrelations)[
                                                                           'number_of_templates'])
-        for i, channel in enumerate(station.iter_channels()):
+        for i, channel_id in enumerate(channel_ids):
+            channel = station.get_channel(channel_id)
             if (channel.has_parameter(chp.cr_xcorrelations)):
                 key = channel.get_parameter(chp.cr_xcorrelations)['cr_ref_xcorr_template']
                 ref_template = ref_templates[key][channel.get_id()]
@@ -276,7 +283,8 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
         if 'NURADIORECOTEMPLATES' not in os.environ:  # if the environment variable is not set, we have to ask the user to specify the template location
             template_provider.set_template_directory(template_directory)
         ref_template = template_provider.get_nu_ref_template(station_id)
-        for i, channel in enumerate(station.iter_channels()):
+        for i, channel_id in enumerate(channel_ids):
+            channel = station.get_channel(channel_id)
             times = channel.get_times()
             trace = channel.get_trace()
             if trace is None:
@@ -406,7 +414,8 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                     opacity=.5
                 ), i_channel + 1, 2)
     """
-    for i, channel in enumerate(station.iter_channels()):
+    for i, channel_id in enumerate(channel_ids):
+        channel = station.get_channel(channel_id)
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(range=[-ymax, ymax])
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(title='voltage [mV]')
 
