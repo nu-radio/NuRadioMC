@@ -1177,6 +1177,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         data_sets['shower_energies'] = data_sets['energies'] * data_sets['inelasticity']
         data_sets['shower_type'] = ['had'] * n_events_batch
 
+        logger.debug("adding EM showers")
         # now add EM showers if appropriate
         em_shower_mask = (data_sets["interaction_type"] == "cc") & (np.abs(data_sets['flavors']) == 12)
 
@@ -1190,6 +1191,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             data_sets['shower_type'][i + 1 + n_inserted] = 'em'
             n_inserted += 1
 
+        logger.debug("converting to numpy arrays")
         # make all arrays numpy arrays
         for key in data_sets:
             data_sets[key] = np.array(data_sets[key])
@@ -1308,13 +1310,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=np.int)
     # make the event group ids consecutive, this is useful if secondary interactions are simulated where many of the
     # initially generated neutrinos don't end up in the fiducial volume
-    event_group_id_counter = 0
     data_sets_fiducial['event_group_ids'] = np.asarray(data_sets_fiducial['event_group_ids'])
     egids = data_sets_fiducial['event_group_ids']
-    for uegid in np.unique(egids):
-        mask = uegid == egids
-        data_sets_fiducial['event_group_ids'][mask] = event_group_id_counter + start_event_id
-        event_group_id_counter += 1
+    uegids, uegids_inverse = np.unique(egids, return_inverse=True)
+    data_sets_fiducial['event_group_ids'] = uegids_inverse + start_event_id
 
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
     logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
