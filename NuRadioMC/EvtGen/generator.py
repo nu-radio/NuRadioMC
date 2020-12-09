@@ -286,6 +286,8 @@ def get_energy_from_flux(Emin, Emax, n_events, flux, rnd=None):
         number of events to generate
     flux: function
         must return flux as function of energy in units of events per energy, time, solid angle and area
+    rnd: random generator object
+        if None is provided, a new default random generator object is initialized
 
     Returns: array of energies
     """
@@ -353,6 +355,8 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for
                    10% proton fraction (see get_GZK_1 function for details)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
+    rnd: random generator object
+        if None is provided, a new default random generator object is initialized
     """
     if(rnd is None):
         rnd = np.random.default_rng()
@@ -536,6 +540,8 @@ def generate_vertex_positions(attributes, n_events, rnd=None):
     Parameters
     attributes: dicitionary
         dict storing hdf5 attributes
+    rnd: random generator object
+        if None is provided, a new default random generator object is initialized
     """
     if(rnd is None):
         rnd = np.random.default_rng()
@@ -1178,11 +1184,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         data_sets["energies"] = get_energies(n_events_batch, Emin, Emax, spectrum, rnd)
         # generate charged/neutral current randomly
         logger.debug("interaction type")
-        data_sets["interaction_type"] = inelasticities.get_ccnc(n_events_batch)
+        data_sets["interaction_type"] = inelasticities.get_ccnc(n_events_batch, rnd=rnd)
 
         # generate inelasticity
         logger.debug("generating inelasticities")
-        data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(n_events_batch)
+        data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(n_events_batch, rnd=rnd)
 
         if deposited:
             data_sets["energies"] = [primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity) \

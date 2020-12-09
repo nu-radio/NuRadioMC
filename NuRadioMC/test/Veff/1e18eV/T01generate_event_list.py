@@ -4,7 +4,6 @@ import os
 from NuRadioReco.utilities import units
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 import numpy as np
-np.random.seed(0)
 
 # define simulation volume
 volume = {
@@ -18,4 +17,4 @@ path = os.path.dirname(os.path.abspath(__file__))
 # generate one event list at 1e18 eV with 10000 neutrinos
 generate_eventlist_cylinder(os.path.join(path, '1e18_full.hdf5'),
                             5e4, 1e18 * units.eV, 1e18 * units.eV,
-                            volume)
+                            volume, seed=10)
