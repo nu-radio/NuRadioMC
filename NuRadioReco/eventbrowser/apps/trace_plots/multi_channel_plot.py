@@ -184,7 +184,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                         x=[0.99 * tt.max()],
                         y=[0.98 * trace.max()],
                         mode='text',
-                        text=[r'mu = {:.2f}, STD={:.2f}'.format(np.mean(trace), np.std(trace))],
+                        text=[r'mu = {:.2g}, STD={:.2g}'.format(np.mean(trace), np.std(trace))],
                         textposition='bottom left'
                     ), i + 1, 1)
     if 'envelope' in dropdown_traces:
