@@ -149,25 +149,36 @@ class ray_tracing:
         """
         candidates = []
 
+        try:
+            x1 = self._x1  * (radiopropa.meter/units.meter)
+            x2 = self._x2  * (radiopropa.meter/units.meter)
+        except TypeError: 
+            print('NoneType: start or endpoint not initialized')
+
         ##define module list for simulation
         sim = radiopropa.ModuleList()
         sim.add(radiopropa.PropagationCK(self._iceModel, 1E-8, .001, 1.)) ## add propagation to module list
         sim.add(self._airBoundary)
         sim.add(radiopropa.MaximumTrajectoryLength(self._max_traj_length*(radiopropa.meter/units.meter)))
 
-        ## define observer (channel)
-        try:
-            self._x1[0]
-            self._x2[0]
-        except TypeError: 
-            print('NoneType: start or endpoint not initialized')
-            
+        ## define observer for detection (channel)            
         obs = radiopropa.Observer()
         obs.setDeactivateOnDetection(True)
-        x2 = self._x2 / units.meter *radiopropa.meter
         channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(x2[0], x2[1], x2[2]), self._sphere_size*(radiopropa.meter/units.meter))) ## when making the radius larger than 2 meters, somethimes three solution times are found
         obs.add(channel)
-        sim.add(obs) ## add observer to module list
+        sim.add(obs)
+
+        ## define observer for stopping simulation (boundaries)
+        obs2 = radiopropa.Observer()
+        obs2.setDeactivateOnDetection(True)
+        v = (x2-x1)
+        v[2]=0
+        v = (v/np.linalg.norm(v)) * self._sphere_size*(radiopropa.meter/units.meter)
+        boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(x2[0]+v[0],x2[1]+v[1],x2[2]+v[2]), radiopropa.Vector3d(v[0],v[1],v[2])))
+        obs2.add(boundary_behind_channel)
+        boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0,0,1*radiopropa.meter), radiopropa.Vector3d(0,0,1)))
+        obs2.add(boundary_above_surface)
+        sim.add(obs2)
 
         phi_direct, theta = hp.cartesian_to_spherical(*(np.array(self._x2)-np.array(self._x1))) *units.radian ## zenith and azimuth for the direct linear ray solution (radians)
         phi_direct += 5*units.degree #the median solution is taken, meaning that we need to add some degrees in case the good solution is near phi_direct
@@ -181,7 +192,7 @@ class ray_tracing:
             cherenkov_angle = 56 *units.degree
             if (abs(delta - cherenkov_angle) < self._cut_viewing_angle): #only include rays with angle wrt cherenkov angle smaller than 20 degrees ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
                 source = radiopropa.Source()
-                x1 = self._x1 / units.meter *radiopropa.meter
+                
                 source.add(radiopropa.SourcePosition(radiopropa.Vector3d(x1[0], x1[1], x1[2])))
                 x,y,z = hp.spherical_to_cartesian(phi *(radiopropa.deg/units.degree) ,theta *(radiopropa.deg/units.degree))
                 source.add(radiopropa.SourceDirection(radiopropa.Vector3d(x, y , z)))
@@ -189,7 +200,7 @@ class ray_tracing:
                 candidate = source.getCandidate()
                 sim.run(candidate, True)
                 Candidate = candidate.get() #candidate is a pointer to the object Candidate
-                detection = channel.checkDetection(Candidate) # check if the detection status of the channel
+                detection = channel.checkDetection(Candidate) #the detection status of the channel
                 if detection == 0: #check if the channel is reached
                     candidates.append(candidate)
 
