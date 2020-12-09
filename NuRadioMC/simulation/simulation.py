@@ -36,6 +36,7 @@ from six import iteritems
 import yaml
 import os
 import collections
+from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 
 STATUS = 31
 
@@ -168,7 +169,6 @@ class simulation():
             # the same random sequence.
             self._cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
 
-        self._inputfilename = inputfilename
         self._outputfilename = outputfilename
         if(os.path.exists(self._outputfilename)):
             msg = f"hdf5 output file {self._outputfilename} already exists"
@@ -220,7 +220,16 @@ class simulation():
         # read sampling rate from config (this sampling rate will be used internally)
         self._dt = 1. / (self._cfg['sampling_rate'] * units.GHz)
 
-        self._read_input_hdf5()  # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
+        if isinstance(inputfilename, str):
+            logger.status(f"reading input from {inputfilename}")
+            self._inputfilename = inputfilename
+            self._read_input_hdf5()  # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
+        else:
+            logger.status("getting input on-the-fly")
+            self._inputfilename = "on-the-fly"
+            self._fin = inputfilename[0]
+            self._fin_attrs = inputfilename[1]
+            self._fin_stations = {}
 
         # check if the input file contains events, if not save empty output file (for book keeping) and terminate simulation
         if(len(self._fin['xx']) == 0):
@@ -1036,6 +1045,9 @@ class simulation():
                                                                                          100 * detSimTime / t_total,
                                                                                          100 * outputTime / t_total,
                                                                                          100 * weightTime / t_total))
+        triggered = remove_duplicate_triggers(self._mout['triggered'], self._fin['event_group_ids'])
+        n_triggered = np.sum(triggered)
+        return n_triggered
 
     def _get_shower_index(self, shower_id):
         if(hasattr(shower_id, "__len__")):
@@ -1423,7 +1435,6 @@ class simulation():
 
     def calculate_Veff(self):
         # calculate effective
-        from NuRadioMC.utilities.Veff import remove_duplicate_triggers
         triggered = remove_duplicate_triggers(self._mout['triggered'], self._fin['event_group_ids'])
         n_triggered = np.sum(triggered)
         n_triggered_weighted = np.sum(self._mout['weights'][triggered])
