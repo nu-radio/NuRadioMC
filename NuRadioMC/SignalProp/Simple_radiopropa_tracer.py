@@ -10,6 +10,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import radiopropa
 logging.basicConfig()
 import radiopropa
+import scipy.constants 
 
 """
 STILL TO DO:
@@ -294,8 +295,8 @@ class ray_tracing:
         Parameters
         ----------
         iS: int
-            choose for which solution to compute the launch vector, counting
-            starts at zero
+            choose for which solution to compute the solution type, 
+            counting starts at zero
 
         Returns
         -------
@@ -326,8 +327,8 @@ class ray_tracing:
         Parameters
         ----------
         iS: int
-            choose for which solution to compute the launch vector, counting
-            starts at zero
+            choose for which solution to compute the launch vector, 
+            counting starts at zero
 
         Returns
         -------
@@ -345,8 +346,8 @@ class ray_tracing:
         Parameters
         ----------
         iS: int
-            choose for which solution to compute the launch vector, counting
-            starts at zero
+            choose for which solution to compute the receive vector, 
+            counting starts at zero
 
         Returns
         -------
@@ -364,8 +365,8 @@ class ray_tracing:
         Parameters
         ----------
         iS: int
-            choose for which solution to compute the launch vector, counting
-            starts at zero
+            choose for which solution to compute the reflection angle, 
+            counting starts at zero
 
         Returns
         -------
@@ -375,15 +376,67 @@ class ray_tracing:
         Candidate = self._candidates[iS].get()
         return np.fromstring(Candidate.getReflectionAngles()[1:-1],sep=',') *(units.degree/radiopropa.deg)
 
-    def get_path_length(self, iS, analytic=True):
+    def get_correction_path_length(self, iS):
+        """
+        calculates the correction of the path length of solution iS 
+        due to the sphere around the channel
+
+        Parameters
+        ----------
+        iS: int
+            choose for which solution to compute the path length correction, 
+            counting starts at zero
+
+        Returns
+        -------
+        distance: float
+            distance that should be added to the path length
+        """
+        end_of_path = self.get_path(iS)[-1] #position of the receive vector on the sphere around the channel in detector coordinates
+        receive_vector = self.get_receive_vector(iS)
+        
+        vector = end_of_path - self._x2 #position of the receive vector on the sphere around the channel
+        vector_zen,vector_az = hp.cartesian_to_spherical(vector[0],vector[1],vector[2])
+        receive_zen,receive_az = hp.cartesian_to_spherical(receive_vector[0],receive_vector[1],receive_vector[2])
+
+        path_correction_arrival_direction = abs(np.cos(receive_zen-vector_zen))*self._sphere_size
+        
+        if abs(receive_az-vector_az) > 90*units.degree: 
+            path_correction_overshoot = np.linalg.norm(vector[0:2])*abs(np.sin(receive_az-vector_az-90*units.degree))
+        else: 
+            path_correction_overshoot = 0
+        
+        return path_correction_arrival_direction - path_correction_overshoot
+
+    def get_correction_travel_time(self, iS):
+        """
+        calculates the correction of the travel time of solution iS 
+        due to the sphere around the channel
+
+        Parameters
+        ----------
+        iS: int
+            choose for which solution to compute the travel time correction, 
+            counting starts at zero
+
+        Returns
+        -------
+        distance: float
+            distance that should be added to the path length
+        """
+        refrac_index = self._medium.get_index_of_refraction(self._x2)
+        return self.get_correction_path_length(iS) / ((scipy.constants.c*units.meter/units.second)/refrac_index)
+
+
+    def get_path_length(self, iS):
         """
         calculates the path length of solution iS
 
         Parameters
         ----------
         iS: int
-            choose for which solution to compute the launch vector, counting
-            starts at zero
+            choose for which solution to compute the path length, 
+            counting starts at zero
 
         analytic: bool
             If True the analytic solution is used. If False, a numerical integration is used. (default: True)
@@ -394,18 +447,17 @@ class ray_tracing:
             distance from x1 to x2 along the ray path
         """
         path_length = self._candidates[iS].getTrajectoryLength() *(units.meter/radiopropa.meter)
-        path_length += self._sphere_size
-        return path_length
+        return path_length + self.get_correction_path_length(iS)
 
-    def get_travel_time(self, iS, analytic=True):
+    def get_travel_time(self, iS):
         """
         calculates the travel time of solution iS
 
         Parameters
         ----------
         iS: int
-            choose for which solution to compute the launch vector, counting
-            starts at zero
+            choose for which solution to compute the travel time, 
+            counting starts at zero
 
         analytic: bool
             If True the analytic solution is used. If False, a numerical integration is used. (default: True)
@@ -415,9 +467,9 @@ class ray_tracing:
         time: float
             travel time
         """
+
         travel_time = self._candidates[iS].getPropagationTime() *(units.second/radiopropa.second)
-        travel_time += self._sphere_size / (3*10**8 / 1.78) *units.second
-        return travel_time
+        return travel_time + self.get_correction_travel_time(iS)
 
 
     def get_frequencies_for_attenuation(self, frequency, max_detector_freq):
@@ -440,8 +492,8 @@ class ray_tracing:
         Parameters
         ----------
         iS: int
-            choose for which solution to compute the launch vector, counting
-            starts at zero
+            choose for which solution to compute the attenuation, 
+            counting starts at zero
 
         frequency: array of floats
             the frequencies for which the attenuation is calculated
