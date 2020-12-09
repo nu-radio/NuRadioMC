@@ -324,6 +324,8 @@ class simulation():
             self.__distance_cut_polynomial = np.polynomial.polynomial.Polynomial(coef)
 
             def get_distance_cut(shower_energy):
+                if(shower_energy <= 0):
+                    return 100 * units.m
                 return max(100 * units.m, 10 ** self.__distance_cut_polynomial(np.log10(shower_energy)))
 
             self._get_distance_cut = get_distance_cut
