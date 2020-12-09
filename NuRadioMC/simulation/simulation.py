@@ -1094,7 +1094,7 @@ class simulation():
                 for key2, value2 in iteritems(value):
                     self._fin_stations[key][key2] = np.array(value2)
             else:
-                if type(value[0]) == bytes:
+                if len(value) and type(value[0]) == bytes:
                     self._fin[key] = np.array(value).astype('U')
                 else:
                     self._fin[key] = np.array(value)
