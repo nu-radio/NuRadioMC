@@ -69,7 +69,7 @@ def merge2(filenames, output_filename):
                 attrs[key] = fin.attrs[key]
             else:
                 if(key != 'trigger_names'):
-                    if(not np.all(np.nan_to_num(attrs[key] == fin.attrs[key]))):
+                    if(not np.all(np.nan_to_num(attrs[key]) == np.nan_to_num(fin.attrs[key]))):
                         if(key == "n_events"):
                             logger.warning(f"number of events in file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. We keep track of the total number of events, but in case the simulation was performed with different settings per file (e.g. different zenith angle bins), the averaging might be effected.")
                         elif(key == "start_event_id"):
