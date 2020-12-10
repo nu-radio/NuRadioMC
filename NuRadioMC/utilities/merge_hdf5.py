@@ -5,6 +5,7 @@ import numpy as np
 from collections import OrderedDict
 import h5py
 import argparse
+import os
 import logging
 logger = logging.getLogger("HDF5-merger")
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
@@ -12,6 +13,7 @@ logger.setLevel(logging.WARNING)
 
 
 def merge2(filenames, output_filename):
+    logger.warning(f"merging {len(filenames)} into {os.path.basename(output_filename)}")
     data = OrderedDict()
     attrs = OrderedDict()
     groups = OrderedDict()
@@ -72,7 +74,7 @@ def merge2(filenames, output_filename):
                         elif(key == "start_event_id"):
                             continue
                         else:
-                            if(not (np.isnan(attrs[key]) and np.isnan(fin.attrs[key]))):
+                            if(not (attrs[key] == np.nan and fin.attrs[key] == np.nan)):
                                 logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. Using attribute value of first file, but you have been warned!")
             if((('trigger_names' not in attrs) or (len(attrs['trigger_names']) == 0)) and 'trigger_names' in fin.attrs):
                 attrs['trigger_names'] = fin.attrs['trigger_names']
