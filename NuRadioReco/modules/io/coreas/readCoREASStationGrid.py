@@ -146,10 +146,11 @@ class readCoREAS:
                     if(dcore > ddmax):
                         # station is outside of the star shape pattern, create empty station
                         station = NuRadioReco.framework.station.Station(station_id)
-                        sim_station = coreas.make_sim_station(station_id, corsika, None, detector.get_channel_ids(station_id))
+                        channel_ids = detector.get_channel_ids(station_id)
+                        sim_station = coreas.make_sim_station(station_id, corsika, None, channel_ids)
                         station.set_sim_station(sim_station)
                         evt.set_station(station)
-#                         self.logger.info(f"station {station_id} is outside of star shape")
+                        self.logger.debug(f"station {station_id} is outside of star shape, channel_ids {channel_ids}")
                     else:
                         distances = np.linalg.norm(core_rel_to_station_vBvvB[:2] - positions_vBvvB[:, :2], axis=1)
                         index = np.argmin(distances)
@@ -184,7 +185,7 @@ class readCoREAS:
                 elif(output_mode == 1):
                     self.__t += time.time() - t
                     self.__t_event_structure += time.time() - t_event_structure
-                    yield evt, self.__current_input_file, distance
+                    yield evt, self.__current_input_file
                 else:
                     self.logger.debug("output mode > 1 not implemented")
                     raise NotImplementedError
