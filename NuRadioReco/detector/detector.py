@@ -545,7 +545,7 @@ class Detector(object):
         channel_ids = []
         for channel in self.__get_channels(station_id).values():
             channel_ids.append(channel['channel_id'])
-        return channel_ids
+        return sorted(channel_ids)
 
     def get_parallel_channels(self, station_id):
         """
