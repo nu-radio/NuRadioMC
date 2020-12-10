@@ -14,7 +14,7 @@ logger.setLevel(logging.WARNING)
 
 
 def merge2(filenames, output_filename):
-    logger.warning(f"merging {len(filenames)} into {os.path.basename(output_filename)}")
+    logger.warning(f"merging {len(filenames)} files into {os.path.basename(output_filename)}")
     data = OrderedDict()
     attrs = OrderedDict()
     groups = OrderedDict()
@@ -240,6 +240,7 @@ if __name__ == "__main__":
     elif(len(args.files) == 1):
         filenames = glob.glob("{}/*/*.hdf5.part????".format(args.files[0]))
         filenames = np.append(filenames, glob.glob("{}/*/*.hdf5.part??????".format(args.files[0])))
+        filenames = sorted(filenames)
         filenames2 = []
         for i, filename in enumerate(filenames):
             filename, ext = os.path.splitext(filename)
@@ -250,7 +251,7 @@ if __name__ == "__main__":
                     filenames2.append(filename)
 
         input_args = []
-        for filename in filenames2:
+        for filename in sorted(filenames2):
             if(os.path.splitext(filename)[1] == '.hdf5'):
                 d = os.path.split(filename)
                 a, b = os.path.split(d[0])

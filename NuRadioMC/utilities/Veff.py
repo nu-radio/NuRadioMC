@@ -185,8 +185,8 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     """
     if(veff_aeff not in ["veff", "aeff_surface_muons"]):
         raise AttributeError(f"the paramter `veff_aeff` needs to be one of either `veff` or `aeff_surface_muons`")
-    fin = h5py.File(filename, 'r')
     logger.warning(f"processing file  {filename}")
+    fin = h5py.File(filename, 'r')
     out = {}
     Emin = fin.attrs['Emin']
     Emax = fin.attrs['Emax']
