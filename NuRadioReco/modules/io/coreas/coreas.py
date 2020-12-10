@@ -18,7 +18,7 @@ from NuRadioReco.framework.parameters import showerParameters as shp
 import logging
 logger = logging.getLogger('coreas')
 
-warning_printed = False
+warning_printed_coreas_py = False
 
 conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
 
@@ -190,10 +190,10 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
     try:
         sim_station.set_parameter(stnp.cr_energy_em, corsika["highlevel"].attrs["Eem"])
     except:
-        global warning_printed
-        if(not warning_printed):
+        global warning_printed_coreas_py
+        if(not warning_printed_coreas_py):
             logger.warning("No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
-            warning_printed = True
+            warning_printed_coreas_py = True
     sim_station.set_is_cosmic_ray()
     sim_station.set_simulation_weight(weight)
     return sim_station
@@ -236,9 +236,9 @@ def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
     try:
         sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"] * units.eV)
     except:
-        global warning_printed
-        if(not warning_printed):
+        global warning_printed_coreas_py
+        if(not warning_printed_coreas_py):
             logger.warning("No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
-            warning_printed = True
+            warning_printed_coreas_py = True
 
     return sim_shower
