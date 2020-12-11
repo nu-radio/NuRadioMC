@@ -10,8 +10,8 @@ class triggerTimeAdjuster:
     """
     Modifies channel traces to simulate the effects of the trigger
     
-    The trace is cut to the length defined in the detector description relative to the trigger time. 
-    If no trigger exists, nothing is done. 
+    The trace is cut to the length defined in the detector description relative to the trigger time.
+    If no trigger exists, nothing is done.
     """
 
     def __init__(self, log_level=logging.WARNING):
