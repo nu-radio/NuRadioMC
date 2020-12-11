@@ -4,24 +4,51 @@ from scipy.interpolate import interp1d
 from scipy import constants
 
 
-def param(energy, inttype='cc'):
+def param(energy, inttype='cc', parameterization='ctw'):
     """
     Parameterization and constants as used in
     get_nu_cross_section()
     See documentation there for details
-
     """
+    if parameterization == 'ctw':
+        """
+        Phys.Rev.D83:113009,2011 Amy Connolly, Robert S. Thorne, David Waters
+        """
 
-    if inttype == 'cc':
-        c = (-1.826, -17.31, -6.406, 1.431, -17.91)  # nu, CC
-    elif inttype == 'nc':
-        c = (-1.826, -17.31, -6.448, 1.431, -18.61)  # nu, NC
-    elif inttype == 'cc_bar':
-        c = (-1.033, -15.95, -7.247, 1.569, -17.72)  # nu_bar, CC
-    elif inttype == 'nc_bar':
-        c = (-1.033, -15.95, -7.296, 1.569, -18.30)  # nu_bar, NC
+        if inttype == 'cc':
+            c = (-1.826, -17.31, -6.406, 1.431, -17.91)  # nu, CC
+        elif inttype == 'nc':
+            c = (-1.826, -17.31, -6.448, 1.431, -18.61)  # nu, NC
+        elif inttype == 'cc_bar':
+            c = (-1.033, -15.95, -7.247, 1.569, -17.72)  # nu_bar, CC
+        elif inttype == 'nc_bar':
+            c = (-1.033, -15.95, -7.296, 1.569, -18.30)  # nu_bar, NC
+        else:
+            logger.error("Type {0} of interaction not defined".format(inttype))
+            raise NotImplementedError
+
+    elif parameterization == 'hedis_bgr18':
+        """
+        Parameterization as above fitted to GENIE HEDIS module (with BGR18) cross sections
+        as in arXiv:2004.04756v2 (prepared for JCAP)
+        Precalculated xsec tables for 'nu_mu(_bar)_O16/tot_cc(nc)'/16 for isoscalar target
+        obtained from GHE19_00a_00_000.root in https://github.com/pochoarus/GENIE-HEDIS/tree/nupropearth/genie_xsec
+        Fitted in the energy range above 1 TeV; do not use below
+        """
+        if inttype == 'cc':
+            c = (-1.6049779136562436, -17.7480299104706, -6.748861524562085, 1.5569481852252935, -16.545379184836094)  # nu, CC
+        elif inttype == 'nc':
+            c = (-1.9625311094497564, -17.576550328008224, -6.444583672267122, 1.4702739736023922, -18.6167800243672)  # nu, NC
+        elif inttype == 'cc_bar':
+            c = (-2.28879962998228, -15.725804320703244, -5.273935123272873, 1.0314821502761589, -23.15773837113476)  # nu_bar, CC
+        elif inttype == 'nc_bar':
+            c = (-2.582585867636026, -15.742658435090945, -5.075692336968196, 0.9963850387362603, -24.870843546539973)  # nu_bar, NC
+        else:
+            logger.error("Type {0} of interaction not defined".format(inttype))
+            raise NotImplementedError
+
     else:
-        logger.error("Type {0} of interaction not defined".format(inttype))
+        logger.error("Parameterization {0} of interaction cross section not defined".format(parameterization))
         raise NotImplementedError
 
     epsilon = np.log10(energy / units.GeV)
@@ -169,27 +196,28 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
         ctw    : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
                  cross-sections for all interaction types and flavors
         csms   : A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
+        hedis_bgr_18 : xsections calculated with HEDIS module of GENIE (cf. arXiv:2004.04756v2 (prepared for JCAP))
     """
 
     if cross_section_type == 'ghandi':
         crscn = 7.84e-36 * units.cm ** 2 * np.power(energy / units.GeV, 0.363)
 
-    elif cross_section_type == 'ctw':
+    elif cross_section_type == 'ctw' or cross_section_type == 'hedis_bgr18':
         crscn = np.zeros_like(energy)
         if type(inttype) == str:
             if inttype == 'total':
 
                 if (type(flavors) == int or type(flavors) == np.int64):
                     if flavors >= 0:
-                        crscn = param(energy, 'nc') + param(energy, 'cc')
+                        crscn = param(energy, 'nc', parameterization=cross_section_type) + param(energy, 'cc', parameterization=cross_section_type)
                     else:
-                        crscn = param(energy, 'nc_bar') + param(energy, 'cc_bar')
+                        crscn = param(energy, 'nc_bar', parameterization=cross_section_type) + param(energy, 'cc_bar', parameterization=cross_section_type)
                 else:
                     antiparticles = np.where(flavors < 0)
                     particles = np.where(flavors >= 0)
 
-                    crscn[particles] = param(energy[particles], 'nc') + param(energy[particles], 'cc')
-                    crscn[antiparticles] = param(energy[antiparticles], 'nc_bar') + param(energy[antiparticles], 'cc_bar')
+                    crscn[particles] = param(energy[particles], 'nc', parameterization=cross_section_type) + param(energy[particles], 'cc', parameterization=cross_section_type)
+                    crscn[antiparticles] = param(energy[antiparticles], 'nc_bar', parameterization=cross_section_type) + param(energy[antiparticles], 'cc_bar', parameterization=cross_section_type)
 
             if (inttype == 'cc') or (inttype == 'nc'):
                 if (type(flavors) == int or type(flavors) == np.int64):
@@ -197,8 +225,8 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
                 else:
                     antiparticles = np.where(flavors < 0)
                     particles = np.where(flavors >= 0)
-                    crscn[particles] = param(energy[particles], inttype)
-                    crscn[antiparticles] = param(energy[antiparticles], inttype)
+                    crscn[particles] = param(energy[particles], inttype, parameterization=cross_section_type)
+                    crscn[antiparticles] = param(energy[antiparticles], inttype, parameterization=cross_section_type)
         else:
 
                 if (type(flavors) == int or type(flavors) == np.int64):
@@ -206,11 +234,11 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
                     particles_cc = np.where(inttype == 'cc')
                     particles_nc = np.where(inttype == 'nc')
                     if flavors >= 0:
-                        crscn[particles_cc] = param(energy[particles_cc], 'cc')
-                        crscn[particles_nc] = param(energy[particles_nc], 'nc')
+                        crscn[particles_cc] = param(energy[particles_cc], 'cc', parameterization=cross_section_type)
+                        crscn[particles_nc] = param(energy[particles_nc], 'nc', parameterization=cross_section_type)
                     else:
-                        crscn[particles_cc] = param(energy[particles_cc], 'cc_bar')
-                        crscn[particles_nc] = param(energy[particles_nc], 'nc_bar')
+                        crscn[particles_cc] = param(energy[particles_cc], 'cc_bar', parameterization=cross_section_type)
+                        crscn[particles_nc] = param(energy[particles_nc], 'nc_bar', parameterization=cross_section_type)
 
                 else:
                     particles_cc = np.where((flavors >= 0) & (inttype == 'cc'))
@@ -218,10 +246,11 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
                     antiparticles_cc = np.where((flavors < 0) & (inttype == 'cc'))
                     antiparticles_nc = np.where((flavors < 0) & (inttype == 'nc'))
 
-                    crscn[particles_cc] = param(energy[particles_cc], 'cc')
-                    crscn[particles_nc] = param(energy[particles_nc], 'nc')
-                    crscn[antiparticles_cc] = param(energy[antiparticles_cc], 'cc_bar')
-                    crscn[antiparticles_nc] = param(energy[antiparticles_nc], 'nc_bar')
+                    crscn[particles_cc] = param(energy[particles_cc], 'cc', parameterization=cross_section_type)
+                    crscn[particles_nc] = param(energy[particles_nc], 'nc', parameterization=cross_section_type)
+                    crscn[antiparticles_cc] = param(energy[antiparticles_cc], 'cc_bar', parameterization=cross_section_type)
+                    crscn[antiparticles_nc] = param(energy[antiparticles_nc], 'nc_bar', parameterization=cross_section_type)
+
 
     elif cross_section_type == 'csms':
         crscn = csms(energy, inttype, flavors)
@@ -275,25 +304,30 @@ def get_interaction_length(Enu, density=.917 * units.g / units.cm ** 3, flavor=1
 
 if __name__ == "__main__":  # this part of the code gets only executed it the script is directly called
 
-    inttype = np.array(['cc'] * 10)
+    energy = np.logspace(12,20,100) * units.eV
 
-#     inttype = 'cc'
 
-    flavors = np.array([14] * 10)
+    inttype = np.array(['cc'] * 100)
 
-#     flavors = 14
+    #     inttype = 'cc'
 
-    energy = np.array([1e12, 1e14, 1e16, 2e17, 6e17, 1e18, 5e18, 9e18, 1e19, 1e20]) * units.eV
+    flavors = np.array([14] * 100)
+
+    #     flavors = 14
+
 
     cc = get_nu_cross_section(energy, flavors, inttype=inttype) / units.picobarn
 
     cc_new = get_nu_cross_section(energy, flavors, inttype=inttype, cross_section_type='csms') / units.picobarn
+
+    cc_hedis_bgr18 = get_nu_cross_section(energy, flavors, inttype=inttype, cross_section_type='hedis_bgr18') / units.picobarn
 
     import matplotlib.pyplot as plt
 
     plt.figure()
     plt.loglog(energy / units.GeV, cc, label='CTW')
     plt.loglog(energy / units.GeV, cc_new, label='CSMS')
+    plt.loglog(energy / units.GeV, cc_hedis_bgr18, label='HEDIS-BGR')
     plt.xlabel("Energy [GeV]")
     plt.ylabel("CC [pb]")
     plt.legend()
