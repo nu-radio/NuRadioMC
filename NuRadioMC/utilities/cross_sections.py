@@ -14,9 +14,12 @@ def param(energy, inttype='cc'):
     See documentation there for details
 
     """
-    if(energy < 1e4 * units.GeV):
-        logger.warning(f"CTW neutrino nucleon cross sections not valid for energies below 1e4 GeV, ({energy/units.GeV:.2g}GeV was requested)")
-        return np.nan
+    if(np.any(energy < 1e4 * units.GeV)):
+        logger.warning(f"CTW neutrino nucleon cross sections not valid for energies below 1e4 GeV, ({energy/units.GeV}GeV was requested)")
+        if(hasattr(energy, "__len__")):
+            return np.nan * np.ones_like(energy)
+        else:
+            return np.nan
 
     if inttype == 'cc':
         c = (-1.826, -17.31, -6.406, 1.431, -17.91)  # nu, CC
