@@ -78,7 +78,7 @@ class readCoREAS:
             t = time.time()
             t_per_event = time.time()
             filesize = os.path.getsize(self.__input_files[self.__current_input_file])
-            if(filesize < 18456 * 2):
+            if(filesize < 18456 * 2):  # based on the observation that a file with such a small filesize is corrupt
                 self.logger.warning("file {} seems to be corrupt, skipping to next file".format(self.__input_files[self.__current_input_file]))
                 self.__current_input_file += 1
                 continue
