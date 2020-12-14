@@ -1,0 +1,55 @@
+name: Python package
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        # This path is specific to Ubuntu
+        path: ~/.cache/pip
+        # Look to see if there is a cache hit for the corresponding requirements file
+        key: ${{ runner.os }}-pip-${{ hashFiles('NuRadioMC/test/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          ${{ runner.os }}-
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f NuRadioMC/test/requirements.txt ]; then pip install -r NuRadioMC/test/requirements.txt; fi
+        wget https://github.com/nu-radio/radiotools/archive/master.zip -O /tmp/radiotools.zip
+        unzip /tmp/radiotools.zip
+        mv radiotools-master radiotools
+        export PYTHONPATH=$PWD/radiotools
+        wget https://github.com/nu-radio/NuRadioReco/archive/master.zip -O /tmp/NuRadioReco.zip
+        unzip /tmp/NuRadioReco.zip
+        mv NuRadioReco-master/NuRadioReco $PWD/NuRadioReco
+        export PYTHONPATH=$PYTHONPATH:$PWD
+        wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
+        mkdir -p $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn
+        mv createLPDA_100MHz_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
+        wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/bicone_v8_InfFirn/bicone_v8_InfFirn.pkl
+        mkdir -p $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
+        mv bicone_v8_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
+        
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+    - name: "Single event test (South Pole)"
+      run: NuRadioMC/test/SingleEvents/test_build.sh
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
