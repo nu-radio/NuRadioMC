@@ -52,6 +52,7 @@ jobs:
         echo $PWD
         echo $(ls)
         export PYTHONPATH=$PWD:$PYTHONPATH
+        echo $(ls radiotools)
         echo $PYTHONPATH
         NuRadioMC/test/SingleEvents/test_build.sh
     - name: Lint with flake8
