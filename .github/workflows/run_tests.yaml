@@ -43,6 +43,7 @@ jobs:
         wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/bicone_v8_InfFirn/bicone_v8_InfFirn.pkl
         mkdir -p $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
         mv bicone_v8_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
+        export PYTHONPAT=$PWD:$PYTHONPATH
         
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
@@ -50,6 +51,7 @@ jobs:
       run: |
         echo $PWD
         echo $(ls)
+        echo $PYTHONPATH
         NuRadioMC/test/SingleEvents/test_build.sh
     - name: Lint with flake8
       run: |
