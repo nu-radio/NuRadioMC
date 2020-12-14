@@ -1406,7 +1406,8 @@ class simulation():
 
         for key in self._fin_attrs.keys():
             if(not key in fout.attrs.keys()):  # only save atrributes sets that havn't been recomputed and saved already
-                fout.attrs[key] = self._fin_attrs[key]
+                if(key not in ["trigger_names", "Tnoise", "Vrms", "bandwidth", "n_samples", "dt", "detector", "config"]):  # don't write trigger names from input to output file, this will lead to problems with incompatible trigger names when merging output files
+                    fout.attrs[key] = self._fin_attrs[key]
         fout.close()
 
     def calculate_Veff(self):
