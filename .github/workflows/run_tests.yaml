@@ -37,12 +37,12 @@ jobs:
         unzip /tmp/NuRadioReco.zip
         mv NuRadioReco-master/NuRadioReco $PWD/NuRadioReco
         export PYTHONPATH=$PYTHONPATH:$PWD
-        wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
-        mkdir -p $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn
-        mv createLPDA_100MHz_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
-        wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/bicone_v8_InfFirn/bicone_v8_InfFirn.pkl
-        mkdir -p $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
-        mv bicone_v8_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
+        #wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
+        #mkdir -p $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn
+        #mv createLPDA_100MHz_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
+        #wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/bicone_v8_InfFirn/bicone_v8_InfFirn.pkl
+        #mkdir -p $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
+        #mv bicone_v8_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
         export PYTHONPATH=$PWD:$PYTHONPATH
         
     - name: Display Python version
@@ -54,6 +54,7 @@ jobs:
         export PYTHONPATH=$PWD:$PWD/radiotools:$PYTHONPATH
         echo $(ls radiotools)
         echo $PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SingleEvents/test_build.sh
     - name: Lint with flake8
       run: |
