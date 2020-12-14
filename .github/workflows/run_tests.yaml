@@ -25,7 +25,7 @@ jobs:
           ${{ runner.os }}-
     - name: Install dependencies
       run: |
-        sudo apt-get install libgsl2 libgsl-dev
+        sudo apt-get install libgsl-dev
         python -m pip install --upgrade pip
         pip install flake8 pytest
         export GSLDIR=$(gsl-config --prefix)
