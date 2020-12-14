@@ -51,7 +51,7 @@ jobs:
       run: |
         echo $PWD
         echo $(ls)
-        export PYTHONPATH=$PWD:$PYTHONPATH
+        export PYTHONPATH=$PWD:$PWD/radiotools:$PYTHONPATH
         echo $(ls radiotools)
         echo $PYTHONPATH
         NuRadioMC/test/SingleEvents/test_build.sh
