@@ -2,6 +2,7 @@
 ###### Requirements without Version Specifiers ######
 pyyaml
 numpy
+radiotools
 astropy
 tinydb
 tinydb-serialization
