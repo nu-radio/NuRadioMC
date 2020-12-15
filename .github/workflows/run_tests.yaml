@@ -59,17 +59,17 @@ jobs:
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SingleEvents/test_build.sh
-    - name: "Single event test (Moore's Bay)"
+    - name: Single event test (Moore's Bay)
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SingleEvents/validate_MB.sh
-    - name: "Single event test (ARZ)"
+    - name: Single event test (ARZ)
        run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SingleEvents/validate_ARZ.sh
-    - name: "Signal generation test"
+    - name: Signal generation test
          run : |
           export PYTHONPATH=$PWD:$PYTHONPATH
           export GSLDIR=$(gsl-config --prefix)
