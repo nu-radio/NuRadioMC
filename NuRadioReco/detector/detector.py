@@ -152,6 +152,9 @@ class Detector(object):
             if True the antenna model is determined automatically depending on the depth of the antenna. This is done by
             appending e.g. '_InfFirn' to the antenna model name.
             if False, the antenna model as specified in the database is used.
+        create_new: bool (default:False)
+            Can be used to force the creation of a new detector object. By default, the __init__ will anly create a new
+            object of none already exists.
         """
         if source == 'sql':
             self._db = buffer_db(in_memory=True)
