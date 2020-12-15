@@ -65,32 +65,32 @@ jobs:
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SingleEvents/validate_MB.sh
     - name: Single event test (ARZ)
-       run: |
+      run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SingleEvents/validate_ARZ.sh
     - name: Signal generation test
-         run : |
+      run : |
           export PYTHONPATH=$PWD:$PYTHONPATH
           export GSLDIR=$(gsl-config --prefix)
           NuRadioMC/test/SignalGen/test_build.sh
     - name: "Signal propagation tests"
-       run: |
+      run: |
          export PYTHONPATH=$PWD:$PYTHONPATH
          export GSLDIR=$(gsl-config --prefix)
          NuRadioMC/test/SignalProp/run_signal_test.sh
     - name: "Test Examples"
-       run: |
+      run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/examples/test_examples.sh
     - name: "Veff test"
-       run: |
+      run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/Veff/1e18eV/test_build.sh
     - name: "Atmospheric Aeff test" 
-       run: |
+      run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/atmospheric_Aeff/1e18eV/test_build.sh
@@ -100,12 +100,12 @@ jobs:
         export GSLDIR=$(gsl-config --prefix)
         NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
     - name: "Trigger tests"
-       run: |
+      run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioReco/test/trigger_tests/run_trigger_test.sh
     - name: "Test all examples"
-       run: |
+      run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioReco/test/test_examples.sh
