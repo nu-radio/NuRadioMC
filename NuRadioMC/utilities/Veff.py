@@ -500,8 +500,10 @@ def get_Veff_Aeff(folder,
     for f in filenames:
         args.append([f, trigger_names, trigger_names_dict, trigger_combinations, deposited, station, veff_aeff])
     if n_cores == 1:
+        output = []
         for arg in args:
-            tmp(arg)
+            output.append(tmp(arg))
+        return output
     else:
         with Pool(n_cores) as p:
             output = p.map(tmp, args)
