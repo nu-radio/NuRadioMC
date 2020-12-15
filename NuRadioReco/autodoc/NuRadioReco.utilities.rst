@@ -44,6 +44,14 @@ NuRadioReco\.utilities\.io\_utilities module
     :undoc-members:
     :show-inheritance:
 
+NuRadioReco\.utilities\.metaclasses module
+--------------------------------------------
+
+.. automodule:: NuRadioReco.utilities.metaclasses
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 NuRadioReco\.utilities\.noise module
 ------------------------------------
 
