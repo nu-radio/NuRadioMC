@@ -31,4 +31,19 @@ domain. The functions are wrappers around the the numpy real Fourier transform
 frequencies).
 The spectrum is defined in volt/GHz instead of volt/bin, so that the values are
 independent of the sampling rate.
-  .. Important:: Always use these helper functions when doing Fourier transformations.
+
+.. Important:: Always use these helper functions when doing Fourier transformations.
+
+Metaclasses
+------------------------
+
+Singleton
+^^^^^^^^^^^^
+For some classes (for example, the Detector class), it is usually a good idea to only have
+one instance of it active at a time. This can be accomplished by assigning the Singleton
+metaclass to it. The metaclass supercedes the __call__ method
+(e.g. :code:`NuRadioReco.detector.detector.Detector()`) to check if an instance of the class
+already exists and return that instance instead of creating a new one.
+
+If you want to enforce the creation of a new class instance, you can overwrite this behavior
+by passing create_new=True as a parameter to the __call__ method.
