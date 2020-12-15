@@ -83,6 +83,7 @@ jobs:
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
+        pip install proposal
         NuRadioMC/test/examples/test_examples.sh
     - name: "Veff test"
       run: |
@@ -91,6 +92,7 @@ jobs:
         NuRadioMC/test/Veff/1e18eV/test_build.sh
     - name: "Atmospheric Aeff test" 
       run: |
+        pip install proposal
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/atmospheric_Aeff/1e18eV/test_build.sh
