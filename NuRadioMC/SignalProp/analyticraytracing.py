@@ -2059,7 +2059,6 @@ class ray_tracing:
             attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
             spec *= attenuation
 
-        i_reflections = self.get_results()[i_solution]['reflection']
         zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
         for zenith_reflection in zenith_reflections:  # loop through all possible reflections
             if (zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
@@ -2077,6 +2076,7 @@ class ray_tracing:
                 "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
                     zenith_reflection / units.deg,
                     r_theta, r_phi))
+        i_reflections = self.get_results()[i_solution]['reflection']
         if (i_reflections > 0):  # take into account possible bottom reflections
             # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
             reflection_coefficient = self.__medium.reflection_coefficient ** i_reflections
