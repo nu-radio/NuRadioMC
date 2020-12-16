@@ -485,7 +485,7 @@ class simulation():
 
                 ray_tracing_performed = False
                 if(self._station_id in self._fin_stations):
-                    ray_tracing_performed = self._raytracer.get_raytracing_perfomed() and (self._was_pre_simulated)
+                    ray_tracing_performed = (self._raytracer.get_output_parameters()[0]['name'] in self._fin_stations[self._station_id]) and (self._was_pre_simulated)
 
                 self._evt_tmp = NuRadioReco.framework.event.Event(0, 0)
                 self._create_sim_station()

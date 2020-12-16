@@ -284,25 +284,6 @@ class ray_tracing_base:
         """
         pass
 
-    def get_ray_tracing_perfomed(self, station_dictionary, station_id):
-        """
-        Function that can tell from the input dictionary if a raytracing with this raytracer has already
-        been performed and written into the dictionary.
-
-
-        Parameters:
-        -------------
-        station_dictionary: dict
-            The input dictionary in which to search for raytracing results
-        station_id: int
-            ID of the station for which to check for a raytracing solution
-
-        Returns
-        -------------------
-        True if there is a raytracing solution in the dictionary, otherwise false
-        """
-        pass
-
     def get_config(self):
         """
         Function that returns the configuration currently used by the raytracer
