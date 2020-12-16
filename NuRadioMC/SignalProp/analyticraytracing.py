@@ -1629,33 +1629,28 @@ class ray_tracing:
         self.__x2 = np.array([X2r[0], X2r[2]])
         self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
 
-    def set_solution(self, raytracing_results, i_shower, channel_id):
+    def set_solution(self, raytracing_results):
         """
         Read an already calculated raytracing solution from the input array
 
         Parameters:
         -------------
         raytracing_results: dict
-            The dictionary containing the input parameters.
-        i_shower: int
-            The shower index
-        channel_id: int
-            The ID of the channel
-
+            The dictionary containing the raytracing solution.
         """
         results = []
-        C0s = raytracing_results['ray_tracing_C0'][i_shower][channel_id]
+        C0s = raytracing_results['ray_tracing_C0']
         for i in range(len(C0s)):
             if(not np.isnan(C0s[i])):
                 if 'ray_tracing_reflection' in raytracing_results.keys():   # for backward compatibility: Check if reflection layer information exists in data file
-                    reflection = raytracing_results['ray_tracing_reflection'][i_shower][channel_id][i]
-                    reflection_case = raytracing_results['ray_tracing_reflection_case'][i_shower][channel_id][i]
+                    reflection = raytracing_results['ray_tracing_reflection'][i]
+                    reflection_case = raytracing_results['ray_tracing_reflection_case'][i]
                 else:
                     reflection = 0
                     reflection_case = 0
-                results.append({'type': raytracing_results['ray_tracing_solution_type'][i_shower][channel_id][i],
+                results.append({'type': raytracing_results['ray_tracing_solution_type'][i],
                                 'C0': C0s[i],
-                                'C1': raytracing_results['ray_tracing_C1'][i_shower][channel_id][i],
+                                'C1': raytracing_results['ray_tracing_C1'][i],
                                 'reflection': reflection,
                                 'reflection_case': reflection_case})
         self.__results = results

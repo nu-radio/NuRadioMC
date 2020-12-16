@@ -594,7 +594,10 @@ class simulation():
                         self._raytracer.set_start_and_end_point(x1, x2)
                         if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                             sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
-                            self._raytracer.set_solution(sg_pre, self._shower_index, channel_id)
+                            ray_tracing_solution = {}
+                            for output_parameter in self._raytracer.get_output_parameters():
+                                ray_tracing_solution[output_parameter['name']] = sg_pre[output_parameter['name']][self._shower_index, channel_id]
+                            self._raytracer.set_solution(ray_tracing_solution)
                         else:
                             self._raytracer.find_solutions()
 
