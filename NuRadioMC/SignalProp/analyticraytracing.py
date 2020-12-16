@@ -559,7 +559,7 @@ class ray_tracing_2D():
 
     def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq, reflection=0, reflection_case=1):
         tmp_attenuation = None
-        output = f"calculating attenuation for n_ref = {reflection:d}: "
+        output = f"calculating attenuation for n_ref = {int(reflection):d}: "
         for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
             if(iS == 0 and reflection_case == 2):  # we can only integrate upward going rays, so if the ray starts downwardgoing, we need to mirror
                 x11, x1, x22, x2, C_0, C_1 = segment
