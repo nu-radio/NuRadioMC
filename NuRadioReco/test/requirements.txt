@@ -13,5 +13,5 @@ cython
 requests
 future
 radiotools
-proposal
+# proposal
 ###### Requirements with Version Specifiers ######
