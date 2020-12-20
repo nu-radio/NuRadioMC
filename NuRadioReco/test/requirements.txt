@@ -12,5 +12,6 @@ aenum
 cython
 requests
 future
+radiotools
 proposal
 ###### Requirements with Version Specifiers ######
