@@ -663,12 +663,6 @@ class ARZ(object):
         # res = integrate.quad(xnep, length.min(), length.max())
         # print("{:.5g} {:.5g}".format(*res))
 
-        if 0:  # debug plot
-            ll = np.linspace(length.min(), length.max(), 10000)
-            plt.plot(ll, xnep(ll))
-            plt.plot(length, N_e - N_p, 'o')
-            plt.show()
-
         factor = -xmu / (4. * np.pi)
 
         def xintegrand(z, index, tobs):
