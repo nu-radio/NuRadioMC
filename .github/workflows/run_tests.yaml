@@ -42,7 +42,12 @@ jobs:
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
-    - name: Trigger tests
+    - name: "Trigger tests"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioReco/test/trigger_tests/run_trigger_test.sh
+    - name: Test NuRadioReco examples
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
