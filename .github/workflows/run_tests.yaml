@@ -79,12 +79,24 @@ jobs:
          export PYTHONPATH=$PWD:$PYTHONPATH
          export GSLDIR=$(gsl-config --prefix)
          NuRadioMC/test/SignalProp/run_signal_test.sh
-    - name: "Test Examples"
+    - name: "Test Veff example"
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         pip install proposal
-        NuRadioMC/test/examples/test_examples.sh
+        NuRadioMC/test/examples/test_veff_example.sh
+    - name: "Test calibration pulser example"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        pip install proposal
+        NuRadioMC/test/examples/test_cal_pulser_example.sh
+    - name: "Test webinar examples"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        pip install proposal
+        NuRadioMC/test/examples/test_webinar.sh
     - name: "Veff test"
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
