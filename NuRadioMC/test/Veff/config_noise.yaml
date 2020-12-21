@@ -1,0 +1,46 @@
+weights:
+  weight_mode: core_mantle_crust # core_mantle_crust: use the three layer earth model, which considers the different densities of the core, mantle and crust. simple: use the simple earth model, which apply a constant earth density
+  cross_section_type: ctw # neutrino cross section: ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998, ctw    : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011)., csms: A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
+
+noise: True  # specify if simulation should be run with or without noise
+sampling_rate: 5.  # sampling rate in GHz used internally in the simulation. At the end the waveforms will be downsampled to the sampling rate specified in the detector description
+
+split_event_time_diff: 100  # the minimal time difference (in ns) between two voltage trace start times at the digitizer to split an event into two
+
+seed: 1235
+
+speedup:
+  minimum_weight_cut: 1.e-5
+  delta_C_cut: 0.349  # 20 degree
+  redo_raytracing: False  # redo ray tracing even if previous calculated ray tracing solutions are present
+  min_efield_amplitude: 2  # the minimum signal amplitude of the efield as a factor of the noise RMS. If the value is smaller, no detector simulation is performed. As the vector effecive length of antennas is typically less than 1, this cut does not introduce any bias as long as the value is smaller than the trigger threshold.
+  amp_per_ray_solution: True  # if False, the maximum aplitude for each ray tracing solution is not calculated
+  time_res_efieldconverter: 0.1  # the time resolution (in ns) used in the efieldtovoltage converter to combine multiple efield traces into one voltage trace
+  distance_cut: True # if True, a cut for the vertex-observer distance as a function of shower energy is applied (log10(max_dist / m) = intercept + slope * log10(shower_energy / eV))
+
+propagation:
+  module: analytic
+  ice_model: southpole_2015
+  attenuation_model: SP1
+  attenuate_ice: True # if True apply the frequency dependent attenuation due to propagating through ice. (Note: The 1/R amplitude scaling will be applied in either case.)
+  n_freq: 25  # the number of frequencies where the attenuation length is calculated for. The remaining frequencies will be determined from a linear interpolation between the reference frequencies. The reference frequencies are equally spaced over the complet frequency range.
+  focusing: True  # if True apply the focusing effect.
+  focusing_limit: 2  # the maximum amplification factor of the focusing correction
+  n_reflections: 0  # the maximum number of reflections off a reflective layer at the bottom of the ice layer
+
+signal:
+  model: Alvarez2009
+  zerosignal: False  # if True, the signal is set to zero. This is useful to study 'noise' only simulations
+  polarization: auto # can be either 'auto' or 'custom'
+  ePhi: 0.  # only used if 'polarization = custom', fraction of ePhi component, the eTheta component is eTheta = (1 - ePhi**2)**0.5
+  shower_type: null # optional argument to only simulate certain shower types. Arguments can be "had" or "em".
+
+trigger:
+  noise_temperature: detector  # in Kelvin
+  Vrms: null  # the RMS noise value in volts. Not compatible with 'noise_temperature', if Vrms is set, 'noise_temperature' must be None
+
+output:
+  channel_traces: False
+  electric_field_traces: False
+  sim_channel_traces: False
+  sim_electric_field_traces: False
