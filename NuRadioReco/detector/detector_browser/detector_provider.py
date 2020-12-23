@@ -2,9 +2,10 @@ import six
 import NuRadioReco.detector.detector
 import NuRadioReco.detector.generic_detector
 import NuRadioReco.modules.io.NuRadioRecoio
+import NuRadioReco.utilities.metaclasses
 
 
-@six.add_metaclass(NuRadioReco.detector.detector.Singleton)
+@six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class DetectorProvider(object):
     """
     Class to provide the detector object to the other functions.

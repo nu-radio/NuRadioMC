@@ -28,6 +28,8 @@ def update_station_info_table(station_id):
     """
     detector_provider = NuRadioReco.detector.detector_browser.detector_provider.DetectorProvider()
     detector = detector_provider.get_detector()
+    if station_id is None:
+        return ''
     if detector is None:
         return ''
     station_info = detector.get_station(station_id)
