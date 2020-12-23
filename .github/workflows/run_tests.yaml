@@ -1,4 +1,4 @@
-name: Python package
+name: unit tests
 
 on: [push]
 
@@ -30,9 +30,9 @@ jobs:
         pip install flake8 pytest
         export GSLDIR=$(gsl-config --prefix)
         if [ -f NuRadioReco/test/requirements.txt ]; then pip install -r NuRadioReco/test/requirements.txt; fi
-        wget https://github.com/nu-radio/NuRadioMC/archive/master.zip -O /tmp/NuRadioMC.zip
+        wget https://github.com/nu-radio/NuRadioMC/archive/noiseless-channels.zip -O /tmp/NuRadioMC.zip
         unzip /tmp/NuRadioMC.zip
-        mv NuRadioMC-master/NuRadioMC $PWD/NuRadioMC
+        mv NuRadioMC-noiseless-channels/NuRadioMC $PWD/NuRadioMC
         export PYTHONPATH=$PWD:$PYTHONPATH
         
     - name: Display Python version
@@ -42,7 +42,12 @@ jobs:
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
-    - name: Trigger tests
+    - name: "Trigger tests"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioReco/test/trigger_tests/run_trigger_test.sh
+    - name: Test NuRadioReco examples
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)

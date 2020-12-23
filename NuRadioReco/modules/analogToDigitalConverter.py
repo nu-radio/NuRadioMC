@@ -5,7 +5,7 @@ from NuRadioReco.utilities import units
 from scipy.interpolate import interp1d
 from scipy.signal import resample
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities.trace_utilities import upsampling_fir, butterworth_filter_trace, delay_trace
+from NuRadioReco.utilities.trace_utilities import delay_trace
 
 
 def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output='voltage'):
@@ -54,7 +54,7 @@ def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output=
     else:
         raise ValueError("The ADC output format is unknown. Please choose 'voltage' or 'counts'")
 
-    return digital_trace
+    return digital_trace  # , lsb_voltage
 
 
 def perfect_floor_comparator(trace, adc_n_bits, adc_ref_voltage, output='voltage'):
@@ -103,7 +103,7 @@ def apply_saturation(adc_counts_trace, adc_n_bits, adc_ref_voltage):
     high_saturation_mask = adc_counts_trace > highest_count
     saturated_trace[high_saturation_mask] = highest_count
 
-    lowest_count = - 2 ** (adc_n_bits - 1)
+    lowest_count = -2 ** (adc_n_bits - 1)
     low_saturation_mask = adc_counts_trace < lowest_count
     saturated_trace[low_saturation_mask] = lowest_count
 
@@ -170,21 +170,19 @@ class analogToDigitalConverter:
         self._adc_types = {'perfect_floor_comparator': perfect_floor_comparator,
                            'perfect_ceiling_comparator': perfect_ceiling_comparator}
         self._mandatory_fields = ['adc_nbits',
-                                  'adc_reference_voltage',
+                                  'adc_noise_nbits',
                                   'adc_sampling_frequency']
 
         self.logger = logging.getLogger('NuRadioReco.analogToDigitalConverter')
 
     def get_digital_trace(self, station, det, channel,
+                          Vrms=None,
                           trigger_adc=False,
-                          random_clock_offset=True,
+                          clock_offset=0.0,
                           adc_type='perfect_floor_comparator',
-                          diode=None,
                           return_sampling_frequency=False,
-                          output='voltage',
-                          upsampling_factor=None,
-                          nyquist_zone=None,
-                          bandwidth_edge=20 * units.MHz):
+                          adc_output='voltage',
+                          trigger_filter=None):
         """
         Returns the digital trace for a channel, without setting it. This allows
         the creation of a digital trace that can be used for triggering purposes
@@ -195,6 +193,8 @@ class analogToDigitalConverter:
         station: framework.station.Station object
         det: detector.detector.Detector object
         channel: framework.channel.Channel object
+        Vrms: float
+            If supplied, overrides adc_reference_voltage as supplied in the detector description file
         trigger_adc: bool
             If True, the relevant ADC parameters in the config file are the ones
             that start with 'trigger_'
@@ -205,26 +205,14 @@ class analogToDigitalConverter:
             - perfect_floor_comparator
             - perfect_ceiling_comparator
             See functions with the same name on this module for documentation
-        diode: utilities.diodeSimulator.diodeSimulator object
-            Diode used to envelope filter the signal
         return_sampling_frequency: bool
             If True, returns the trace and the ADC sampling frequency
-        output: string
+        adc_output: string
             - 'voltage' to store the ADC output as discretised voltage trace
             - 'counts' to store the ADC output in ADC counts
-        upsampling_factor: integer
-            Upsampling factor. The digital trace will be a upsampled to a
-            sampling frequency int_factor times higher than the original one
-        nyquist_zone: integer
-            If None, the trace is not filtered
-            If n, it uses the n-th Nyquist zone by applying an 8th-order
-            Butterworth filter with critical frequencies:
-            (n-1) * adc_sampling_frequency/2 + bandwidth_edge
-            and
-            n * adc_sampling_frequency/2 - bandwidth_edge
-        bandwidth_edge: float
-            Frequency interval used for filtering the chosen Nyquist zone.
-            See above
+        trigger_filter: array floats
+            Freq. domain of the response to be applied to post-ADC traces
+            Must be length for "MC freq"
 
         Returns
         -------
@@ -239,11 +227,11 @@ class analogToDigitalConverter:
         det_channel = det.get_channel(station_id, channel_id)
 
         for field in self._mandatory_fields:
-            if trigger_adc:
+            if(trigger_adc):
                 field_check = 'trigger_' + field
             else:
                 field_check = field
-            if field_check not in det_channel:
+            if(field_check) not in det_channel:
                 channel_id = channel.get_id()
                 error_msg = "The field {} is not present in channel {}. ".format(field_check, channel_id)
                 error_msg += "Please specify it on your detector file"
@@ -251,133 +239,94 @@ class analogToDigitalConverter:
 
         times = channel.get_times()[:]
         trace = channel.get_trace()[:]
-        input_sampling_frequency = channel.get_sampling_rate()
+        MC_sampling_frequency = channel.get_sampling_rate()
 
-        if diode is not None:
-            trace = diode.tunnel_diode(channel)
-
-        if trigger_adc:
+        if(trigger_adc):  # assumes that the trigger uses
             adc_time_delay_label = "trigger_adc_time_delay"
             adc_n_bits_label = "trigger_adc_nbits"
+            adc_noise_n_bits_label = "trigger_adc_noise_nbits"
             adc_ref_voltage_label = "trigger_adc_reference_voltage"
             adc_sampling_frequency_label = "trigger_adc_sampling_frequency"
-            adc_ntaps_label = "trigger_adc_ntaps"
         else:
             adc_time_delay_label = "adc_time_delay"
             adc_n_bits_label = "adc_nbits"
+            adc_noise_n_bits = "adc_noise_nbits"
+            adc_noise_n_bits_label = "adc_noise_nbits"
             adc_ref_voltage_label = "adc_reference_voltage"
             adc_sampling_frequency_label = "adc_sampling_frequency"
-            adc_ntaps_label = "adc_ntaps"
 
         adc_time_delay = 0
-
-        if adc_time_delay_label in det_channel:
-            if det_channel[adc_time_delay_label] is not None:
+        if(adc_time_delay_label in det_channel):
+            if(det_channel[adc_time_delay_label] is not None):
                 adc_time_delay = det_channel[adc_time_delay_label] * units.ns
 
         adc_n_bits = det_channel[adc_n_bits_label]
-        adc_ref_voltage = det_channel[adc_ref_voltage_label] * units.V
+        adc_noise_n_bits = det_channel[adc_noise_n_bits_label]
         adc_sampling_frequency = det_channel[adc_sampling_frequency_label] * units.GHz
+        adc_time_delay += clock_offset / adc_sampling_frequency
 
-        if random_clock_offset:
-            clock_offset = np.random.uniform(0, 1)
-            adc_time_delay += clock_offset / adc_sampling_frequency
+        if(Vrms is None):
+            if(adc_ref_voltage_label not in det_channel):
+                error_msg = "The field {} is not present in channel {}. ".format(adc_ref_voltage_label, channel_id)
+                error_msg += "Please specify it on your detector file"
+                raise ValueError(error_msg)
 
-        if (adc_sampling_frequency > channel.get_sampling_rate()):
+            adc_ref_voltage = det_channel[adc_ref_voltage_label] * units.V
+        else:
+            adc_ref_voltage = Vrms * (2 ** (adc_n_bits - 1) - 1) / (2 ** (adc_noise_n_bits - 1) - 1)
+
+        if(adc_sampling_frequency > channel.get_sampling_rate()):
             error_msg = 'The ADC sampling rate is greater than '
             error_msg += 'the channel {} sampling rate. '.format(channel.get_id())
             error_msg += 'Please change the ADC sampling rate.'
             raise ValueError(error_msg)
 
-        # Choosing Nyquist zone
-        if nyquist_zone is not None:
+        if trigger_filter is not None:
 
-            if nyquist_zone < 1:
-                error_msg = "Nyquist zone is less than one. Exiting."
-                raise ValueError(error_msg)
-            if not isinstance(nyquist_zone, int):
-                try:
-                    nyquist_zone = int(nyquist_zone)
-                except:
-                    error_msg = "Could not convert nyquist_zone to integer. Exiting."
-                    raise ValueError(error_msg)
+            trace_fft = np.fft.rfft(trace)
+            if(len(trace_fft) != trigger_filter):
+                raise ValueError("Wrong filter length to apply to traces")
 
-            passband = ((nyquist_zone - 1) * adc_sampling_frequency / 2 + bandwidth_edge, nyquist_zone * adc_sampling_frequency / 2 - bandwidth_edge)
+            trace = np.fft.irfft(trace_fft * trigger_filter)
 
-            if passband[1] > input_sampling_frequency / 2:
-                msg = 'Please use another simulation with a larger sampling frequency'
-                raise ValueError(msg)
+        # Random clock offset
+        delayed_samples = len(trace) - np.int(np.round(MC_sampling_frequency / adc_sampling_frequency)) - 1
+        trace = delay_trace(trace, MC_sampling_frequency, adc_time_delay, delayed_samples)
 
-            filtered_trace = butterworth_filter_trace(trace, input_sampling_frequency,
-                                                      passband)
-
-        else:
-            filtered_trace = trace[:]
-
-        #  Random clock offset
-        delayed_samples = len(trace) - np.int(np.round(input_sampling_frequency / adc_sampling_frequency)) - 1
-        delayed_trace = delay_trace(filtered_trace, input_sampling_frequency, adc_time_delay, delayed_samples)
-
-        delayed_start_time = 1 / adc_sampling_frequency
-        delayed_times = times + delayed_start_time
-        delayed_times = delayed_times[:delayed_samples]
+        times = times + 1.0 / adc_sampling_frequency
+        times = times[:len(trace)]
 
         # Upsampling to 5 GHz before downsampling using interpolation.
         # We cannot downsample with a Fourier method because we want to keep
         # the higher Nyquist zones.
-        upsampling_frequency = 5 * units.GHz
+        upsampling_frequency = 5.0 * units.GHz
 
-        if upsampling_frequency > input_sampling_frequency:
-
-            upsampling_nsamples = int(upsampling_frequency * len(delayed_trace) / input_sampling_frequency)
-            perfectly_upsampled_trace = resample(delayed_trace, upsampling_nsamples)
+        if(upsampling_frequency > MC_sampling_frequency):
+            upsampling_nsamples = int(upsampling_frequency * len(trace) / MC_sampling_frequency)
+            perfectly_upsampled_trace = resample(trace, upsampling_nsamples)
 
             perfectly_upsampled_times = np.arange(len(perfectly_upsampled_trace)) / upsampling_frequency
-            perfectly_upsampled_times += delayed_times[0]
-
+            perfectly_upsampled_times += times[0]
         else:
+            perfectly_upsampled_trace = trace[:]
+            perfectly_upsampled_times = times[:]
 
-            perfectly_upsampled_trace = delayed_trace[:]
-            perfectly_upsampled_times = delayed_times[:]
-
-        interpolate_delayed_trace = interp1d(perfectly_upsampled_times,
-                                             perfectly_upsampled_trace,
+        interpolate_delayed_trace = interp1d(perfectly_upsampled_times, perfectly_upsampled_trace,
                                              kind='linear',
                                              fill_value=(perfectly_upsampled_trace[0], perfectly_upsampled_trace[-1]),
                                              bounds_error=False)
 
         # Downsampling to ADC frequency
-        new_n_samples = int((adc_sampling_frequency / upsampling_frequency) * len(delayed_trace))
-        resampled_times = np.linspace(0, new_n_samples / adc_sampling_frequency, new_n_samples)
+        new_n_samples = int((adc_sampling_frequency / MC_sampling_frequency) * len(trace))
+        resampled_times = np.arange(new_n_samples) / adc_sampling_frequency
         resampled_times += channel.get_trace_start_time()
         resampled_trace = interpolate_delayed_trace(resampled_times)
 
         # Digitisation
-        digital_trace = self._adc_types[adc_type](resampled_trace, adc_n_bits,
-                                                  adc_ref_voltage, output)
-
-        # Upsampling with an FIR filter (if desired)
-        if upsampling_factor is not None:
-
-            ntaps = None
-            if adc_ntaps_label in det_channel:
-                if det_channel[adc_ntaps_label] is not None:
-                    ntaps = det_channel[adc_ntaps_label]
-
-            if ntaps is None:
-                ntaps = upsampling_factor * 4
-
-            if (upsampling_factor >= 2):
-                upsampling_factor = int(upsampling_factor)
-                upsampled_trace = upsampling_fir(digital_trace, adc_sampling_frequency,
-                                                 int_factor=upsampling_factor, ntaps=ntaps)
-                #  If upsampled is performed, the final sampling frequency changes
-                adc_sampling_frequency *= upsampling_factor
-
-                digital_trace = upsampled_trace[:]
+        digital_trace = self._adc_types[adc_type](resampled_trace, adc_n_bits, adc_ref_voltage, adc_output)
 
         # Ensuring trace has an even number of samples
-        if (len(digital_trace) % 2 == 1):
+        if(len(digital_trace) % 2 == 1):
             digital_trace = digital_trace[:-1]
 
         if return_sampling_frequency:
@@ -387,10 +336,10 @@ class analogToDigitalConverter:
 
     @register_run()
     def run(self, evt, station, det,
-            random_clock_offset=True,
+            clock_offset=0.0,
             adc_type='perfect_floor_comparator',
-            output='voltage',
-            upsampling_factor=1):
+            adc_output='voltage',
+            trigger_filter=None):
         """
         Runs the analogToDigitalConverter and transforms the traces from all
         the channels of an input station to digital voltage values.
@@ -400,13 +349,13 @@ class analogToDigitalConverter:
         evt: framework.event.Event object
         station: framework.station.Station object
         det: detector.detector.Detector object
-        random_clock_offset: bool
-            If True, a random clock offset between -1 and 1 clock cycles is added
+        clock_offset: float
+
         adc_type: string
             The type of ADC used. The following are available:
             - perfect_floor_comparator
             See functions with the same name on this module for documentation
-        output: string
+        adc_output: string
             - 'voltage' to store the ADC output as discretised voltage trace
             - 'counts' to store the ADC output in ADC counts
         upsampling_factor: integer
@@ -418,13 +367,12 @@ class analogToDigitalConverter:
         t = time.time()
 
         for channel in station.iter_channels():
-
             digital_trace, adc_sampling_frequency = self.get_digital_trace(station, det, channel,
-                                                                           random_clock_offset=random_clock_offset,
+                                                                           clock_offset=clock_offset,
                                                                            adc_type=adc_type,
                                                                            return_sampling_frequency=True,
-                                                                           output=output,
-                                                                           upsampling_factor=upsampling_factor)
+                                                                           adc_output=adc_output,
+                                                                           trigger_filter=trigger_filter)
 
             channel.set_trace(digital_trace, adc_sampling_frequency)
 
