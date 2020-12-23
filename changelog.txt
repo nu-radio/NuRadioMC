@@ -2,10 +2,6 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
-version 1.2.1
-bugfixes:
-- Fixed issue with merge hdf5 utility so that "event_group_ids" are properly unique
-
 version 1.2.0
 new features:
 - major change in internal looping. Now, the radio signal from each shower is calculated and signal arrival times 
@@ -18,6 +14,13 @@ new features:
 - specifying the detector simulation became easier (check out the updated examples)
 - memory consumption was optimized to stay <4GB per core
 - random realization of showers are saved so that triggered events can be resimulated using the same random realization
+- added option for noiseless channels in a "with noise" simulation
+- add option to generate events on the fly and pass them directly to the simulation part (no need to save input hdf5 files anymore)
+- added uncertainties to CTW cross sections
+- 
+
+bugfixes:
+- Fixed issue with merge hdf5 utility so that "event_group_ids" are properly unique
 
 
 
