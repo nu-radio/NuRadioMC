@@ -35,6 +35,7 @@ import time
 from NuRadioMC.simulation.simulation import pretty_time_delta
 import os
 import math
+from numpy.random import Generator, Philox
 import copy
 
 VERSION_MAJOR = 2
@@ -271,7 +272,7 @@ def get_GZK_1(energy):
     return get_flux(energy)
 
 
-def get_energy_from_flux(Emin, Emax, n_events, flux):
+def get_energy_from_flux(Emin, Emax, n_events, flux, rnd=None):
     """
     returns randomly distribution of energy according to a flux
 
@@ -285,17 +286,20 @@ def get_energy_from_flux(Emin, Emax, n_events, flux):
         number of events to generate
     flux: function
         must return flux as function of energy in units of events per energy, time, solid angle and area
+    rnd: random generator object
+        if None is provided, a new default random generator object is initialized
 
     Returns: array of energies
     """
-
+    if(rnd is None):
+        rnd = np.random.default_rng()
     xx_edges = np.linspace(Emin, Emax, 10000000)
     xx = 0.5 * (xx_edges[1:] + xx_edges[:-1])
     yy = flux(xx)
     cum_values = np.zeros(xx_edges.shape)
     cum_values[1:] = np.cumsum(yy * np.diff(xx_edges))
     inv_cdf = interpolate.interp1d(cum_values, xx_edges)
-    r = np.random.uniform(0, cum_values.max(), n_events)
+    r = rnd.uniform(0, cum_values.max(), n_events)
     return inv_cdf(r)
 
 
@@ -331,7 +335,7 @@ def get_product_position_time(data_sets, product, iE):
     return x, y, z, prop_time
 
 
-def get_energies(n_events, Emin, Emax, spectrum_type):
+def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
     """
     generates a random distribution of enrgies following a certain spectrum
     
@@ -351,10 +355,14 @@ def get_energies(n_events, Emin, Emax, spectrum_type):
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for
                    10% proton fraction (see get_GZK_1 function for details)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
+    rnd: random generator object
+        if None is provided, a new default random generator object is initialized
     """
+    if(rnd is None):
+        rnd = np.random.default_rng()
     logger.debug("generating energies")
     if(spectrum_type == 'log_uniform'):
-        energies = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_events)
+        energies = 10 ** rnd.uniform(np.log10(Emin), np.log10(Emax), n_events)
     elif(spectrum_type.startswith("E-")):  # enerate an E^gamma spectrum.
         gamma = float(spectrum_type[1:])
         gamma += 1
@@ -364,7 +372,7 @@ def get_energies(n_events, Emin, Emax, spectrum_type):
         def get_inverse_spectrum(N, gamma):
             return np.exp(np.log(N) / gamma)
 
-        energies = get_inverse_spectrum(np.random.uniform(Nmax, Nmin, size=n_events), gamma)
+        energies = get_inverse_spectrum(rnd.uniform(Nmax, Nmin, size=n_events), gamma)
     elif(spectrum_type == "GZK-1"):
         """
         model of (van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1) of the cosmogenic neutrino ﬂux
@@ -372,15 +380,15 @@ def get_energies(n_events, Emin, Emax, spectrum_type):
         a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
         and a proton fraction of 10% at E = 10^19.6 eV
         """
-        energies = get_energy_from_flux(Emin, Emax, n_events, get_GZK_1)
+        energies = get_energy_from_flux(Emin, Emax, n_events, get_GZK_1, rnd)
     elif(spectrum_type == "IceCube-nu-2017"):
-        energies = get_energy_from_flux(Emin, Emax, n_events, ice_cube_nu_fit)
+        energies = get_energy_from_flux(Emin, Emax, n_events, ice_cube_nu_fit, rnd)
     elif(spectrum_type == "GZK-1+IceCube-nu-2017"):
 
         def J(E):
             return ice_cube_nu_fit(E) + get_GZK_1(E)
 
-        energies = get_energy_from_flux(Emin, Emax, n_events, J)
+        energies = get_energy_from_flux(Emin, Emax, n_events, J, rnd)
     else:
         logger.error("spectrum {} not implemented".format(spectrum_type))
         raise NotImplementedError("spectrum {} not implemented".format(spectrum_type))
@@ -524,7 +532,7 @@ def set_volume_attributes(volume, proposal, attributes):
         raise AttributeError(f"'fiducial_rmin' or 'fiducial_rmax' is not part of 'volume'")
 
 
-def generate_vertex_positions(attributes, n_events):
+def generate_vertex_positions(attributes, n_events, rnd=None):
     """
     helper function that generates the vertex position randomly distributed in simulation volume. 
     The relevant quantities are also saved into the hdf5 attributes
@@ -532,18 +540,22 @@ def generate_vertex_positions(attributes, n_events):
     Parameters
     attributes: dicitionary
         dict storing hdf5 attributes
+    rnd: random generator object
+        if None is provided, a new default random generator object is initialized
     """
+    if(rnd is None):
+        rnd = np.random.default_rng()
     if("fiducial_rmax" in attributes):  # user specifies a cylinder
-        rr_full = np.random.uniform(attributes['rmin'] ** 2, attributes['rmax'] ** 2, n_events) ** 0.5
-        phiphi = np.random.uniform(0, 2 * np.pi, n_events)
+        rr_full = rnd.uniform(attributes['rmin'] ** 2, attributes['rmax'] ** 2, n_events) ** 0.5
+        phiphi = rnd.uniform(0, 2 * np.pi, n_events)
         xx = rr_full * np.cos(phiphi)
         yy = rr_full * np.sin(phiphi)
-        zz = np.random.uniform(attributes['zmin'], attributes['zmax'], n_events)
+        zz = rnd.uniform(attributes['zmin'], attributes['zmax'], n_events)
         return xx, yy, zz
     elif("fiducial_xmax" in attributes):  # user specifies a cube
-        xx = np.random.uniform(attributes['xmin'], attributes['xmax'], n_events)
-        yy = np.random.uniform(attributes['ymin'], attributes['ymax'], n_events)
-        zz = np.random.uniform(attributes['zmin'], attributes['zmax'], n_events)
+        xx = rnd.uniform(attributes['xmin'], attributes['xmax'], n_events)
+        yy = rnd.uniform(attributes['ymin'], attributes['ymax'], n_events)
+        zz = rnd.uniform(attributes['zmin'], attributes['zmax'], n_events)
         return xx, yy, zz
     else:
         raise AttributeError(f"'fiducial_rmin' or 'fiducial_rmax' is not part of 'attributes'")
@@ -670,7 +682,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                            config_file='SouthPole',
                            proposal_kwargs={},
                            log_level=None,
-                           max_n_events_batch=1e5):
+                           max_n_events_batch=1e5,
+                           seed=None):
     """
     Event generator for surface muons
 
@@ -788,7 +801,10 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         sets the log level in the event generation. None means system default.
     max_n_events_batch: int (default 1e6)
         the maximum numbe of events that get generated per batch. Relevant if a fiducial volume cut is applied)
+    seed: None of int
+        seed of the random state
     """
+    rnd = Generator(Philox(seed))
     if(log_level is not None):
         logger.setLevel(log_level)
     t_start = time.time()
@@ -834,13 +850,13 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         n_events_batch = max_n_events_batch
         if(i_batch + 1 == n_batches):  # last batch?
             n_events_batch = n_events - (i_batch * max_n_events_batch)
-        data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(attributes=attributes, n_events=n_events_batch)
+        data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(attributes=attributes, n_events=n_events_batch, rnd=rnd)
         data_sets["zz"] = np.zeros_like(data_sets["yy"])  # muons interact at the surface
 
         # generate neutrino vertices randomly
-        data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events_batch)
+        data_sets["azimuths"] = rnd.uniform(phimin, phimax, n_events_batch)
         # zenith directions are distruted as sin(theta) (to make the distribution istotropic) * cos(theta) (to account for the projection onto the surface)
-        data_sets["zeniths"] = np.arcsin(np.random.uniform(np.sin(thetamin) ** 2, np.sin(thetamax) ** 2, n_events_batch) ** 0.5)
+        data_sets["zeniths"] = np.arcsin(rnd.uniform(np.sin(thetamin) ** 2, np.sin(thetamax) ** 2, n_events_batch) ** 0.5)
 
         data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch, dtype=np.int) + start_event_id
         data_sets["n_interaction"] = np.ones(n_events_batch, dtype=np.int)
@@ -848,9 +864,9 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
         # generate neutrino flavors randomly
 
-        data_sets["flavors"] = np.array([flavor[i] for i in np.random.randint(0, high=len(flavor), size=n_events_batch)])
+        data_sets["flavors"] = np.array([flavor[i] for i in rnd.integers(0, high=len(flavor), size=n_events_batch)])
 
-        data_sets["energies"] = get_energies(n_events_batch, Emin, Emax, spectrum)
+        data_sets["energies"] = get_energies(n_events_batch, Emin, Emax, spectrum, rnd)
 
         # generate charged/neutral current randomly
         data_sets["interaction_type"] = [ '' ] * n_events_batch
@@ -974,7 +990,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 start_file_id=0,
                                 log_level=None,
                                 proposal_kwargs={},
-                                max_n_events_batch=1e5):
+                                max_n_events_batch=1e5,
+                                write_events=True,
+                                seed=None):
     """
     Event generator
 
@@ -1100,7 +1118,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
     max_n_events_batch: int (default 1e6)
         the maximum numbe of events that get generated per batch. Relevant if a fiducial volume cut is applied)
+    write_events: bool
+        if True (default) the event list is written to an output file
+        if False the event datasets + atrributes are returned
+    seed: None of int
+        seed of the random state
     """
+    rnd = Generator(Philox(seed))
     t_start = time.time()
     if(log_level is not None):
         logger.setLevel(log_level)
@@ -1139,10 +1163,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         if(i_batch + 1 == n_batches):  # last batch?
             n_events_batch = n_events - (i_batch * max_n_events_batch)
         logger.info(f"processing batch {i_batch+1:.2g}/{n_batches:.2g} with {n_events_batch:.2g} events")
-        data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(attributes=attributes, n_events=n_events_batch)
+        data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(attributes=attributes, n_events=n_events_batch, rnd=rnd)
 
-        data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events_batch)
-        data_sets["zeniths"] = np.arccos(np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events_batch))
+        data_sets["azimuths"] = rnd.uniform(phimin, phimax, n_events_batch)
+        data_sets["zeniths"] = np.arccos(rnd.uniform(np.cos(thetamax), np.cos(thetamin), n_events_batch))
 
     #     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
@@ -1154,17 +1178,17 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
         # generate neutrino flavors randomly
         logger.debug("generating flavors")
-        data_sets["flavors"] = np.array([flavor[i] for i in np.random.randint(0, high=len(flavor), size=n_events_batch)])
+        data_sets["flavors"] = np.array([flavor[i] for i in rnd.integers(0, high=len(flavor), size=n_events_batch)])
 
         # generate energies randomly
-        data_sets["energies"] = get_energies(n_events_batch, Emin, Emax, spectrum)
+        data_sets["energies"] = get_energies(n_events_batch, Emin, Emax, spectrum, rnd)
         # generate charged/neutral current randomly
         logger.debug("interaction type")
-        data_sets["interaction_type"] = inelasticities.get_ccnc(n_events_batch)
+        data_sets["interaction_type"] = inelasticities.get_ccnc(n_events_batch, rnd=rnd)
 
         # generate inelasticity
         logger.debug("generating inelasticities")
-        data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(n_events_batch)
+        data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(n_events_batch, rnd=rnd)
 
         if deposited:
             data_sets["energies"] = [primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity) \
@@ -1315,5 +1339,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     uegids, uegids_inverse = np.unique(egids, return_inverse=True)
     data_sets_fiducial['event_group_ids'] = uegids_inverse + start_event_id
 
-    write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
-    logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
+    if(write_events):
+        write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
+        logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
+    else:
+        for key, value in data_sets_fiducial.items():
+            if value.dtype.kind == 'U':
+                data_sets_fiducial[key] = np.array(value, dtype=h5py.string_dtype(encoding='utf-8'))
+
+        logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
+        return data_sets_fiducial, attributes
