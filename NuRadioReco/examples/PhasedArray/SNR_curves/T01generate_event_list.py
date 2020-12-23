@@ -16,8 +16,8 @@ from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 import numpy as np
 import os
 
-z12 = -200 * units.m
-rho = 500 * units.m
+z12 = -100 * units.m
+rho = 200 * units.m
 
 obs_angles = np.linspace(-10., 10., 41) * units.deg
 # Elevation of the vertex point seen from the middle point of the array
@@ -52,8 +52,9 @@ for obs_angle in obs_angles:
     thetas = np.array([theta_nu, theta_nu + 0.01 * units.deg])
     thetamins = thetas[0:-1]
     thetamaxs = thetas[1:]
-    print(thetamins)
-    print(thetamaxs)
+    print("obs_angle", np.rad2deg(obs_angle))
+    print("thetamins", np.rad2deg(thetamins))
+    print("thetasmaxs", np.rad2deg(thetamaxs))
 
     Es = np.array([18, 18.1])
     Es = 10 ** Es
@@ -62,8 +63,8 @@ for obs_angle in obs_angles:
 
     flavours = [12]  # no difference between neutrinos and antineutrinos for us
 
-    nevt = 2e3
-    nevt_perfile = 1e3
+    nevt = 2e2
+    nevt_perfile = 2e2
 
     for thetamin, thetamax in zip(thetamins, thetamaxs):
 
@@ -96,6 +97,7 @@ for obs_angle in obs_angles:
                 outname = folder_angle + '/' + folder + '/input/' + folder + '.hdf5'
                 print(Emin / units.PeV, Emax / units.PeV)
                 print(outname)
+
                 generate_eventlist_cylinder(
                     outname,
                     nevt,
