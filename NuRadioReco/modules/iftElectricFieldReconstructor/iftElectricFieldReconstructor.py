@@ -48,7 +48,8 @@ class IftElectricFieldReconstructor:
         passband=None,
         filter_type='butter',
         amp_dct=None,
-        phase_dct=None,
+        pulse_time_prior=20. * units.ns,
+        pulse_time_uncertainty=5. * units.ns,
         trace_length=128,
         n_iterations=5,
         n_samples=20,
@@ -93,15 +94,14 @@ class IftElectricFieldReconstructor:
             }
         else:
             self.__amp_dct = amp_dct
-        if phase_dct is None:
-            self.__phase_dct = {
-                'sm': -2.2,
-                'sv': .5,
-                'im': 0.,
-                'iv': 3.5
-            }
-        else:
-            self.__phase_dct = phase_dct
+        phase_slope = 2. * np.pi * pulse_time_prior * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
+        phase_uncertainty = 2. * np.pi * pulse_time_uncertainty * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
+        self.__phase_dct = {
+            'sm': phase_slope,
+            'sv': phase_uncertainty,
+            'im': 0.,
+            'iv': 3.5
+        }
         return
 
     def make_priors_plot(self, event, station, detector, channel_ids):
@@ -153,6 +153,7 @@ class IftElectricFieldReconstructor:
             amp_operators,
             filter_operator
         )
+        self.__draw_priors(event, station, frequency_domain)
         ic_sampling = ift.GradientNormController(1E-8, iteration_limit=min(1000, likelihood.domain.size))
         H = ift.StandardHamiltonian(likelihood, ic_sampling)
 
@@ -543,12 +544,12 @@ class IftElectricFieldReconstructor:
         freq_space
     ):
         plt.close('all')
-        fig1 = plt.figure(figsize=(12, 6))
-        ax1_0 = fig1.add_subplot(221)
-        ax1_1 = fig1.add_subplot(222)
-        # ax1_2 = fig1.add_subplot(222)
-        ax1_3 = fig1.add_subplot(223)
-        ax1_4 = fig1.add_subplot(224)
+        fig1 = plt.figure(figsize=(12, 8))
+        ax1_0 = fig1.add_subplot(3, 2, (1, 2))
+        ax1_1 = fig1.add_subplot(323)
+        ax1_2 = fig1.add_subplot(324)
+        ax1_3 = fig1.add_subplot(325)
+        ax1_4 = fig1.add_subplot(326)
         sampling_rate = station.get_channel(self.__used_channel_ids[0]).get_sampling_rate()
         times = np.arange(self.__data_traces.shape[1]) / sampling_rate
         freqs = freq_space.get_k_length_array().val / self.__data_traces.shape[1] * sampling_rate
@@ -558,7 +559,7 @@ class IftElectricFieldReconstructor:
             efield_spec_sample = self.__efield_spec_operators[0][0].force(x)
             ax1_1.plot(freqs / units.MHz, np.abs(efield_spec_sample.val) / np.max(np.abs(efield_spec_sample.val)), c='C{}'.format(i), alpha=alpha)
             efield_trace_sample = self.__efield_trace_operators[0][0].force(x)
-            # ax1_2.plot(times, efield_trace_sample.val)
+            ax1_2.plot(times, efield_trace_sample.val / np.max(np.abs(efield_trace_sample.val)))
             channel_spec_sample = self.__channel_spec_operators[0].force(x)
             ax1_3.plot(freqs / units.MHz, np.abs(channel_spec_sample.val)) # / np.max(np.abs(channel_spec_sample.val)), c='C{}'.format(i), alpha=alpha)
             channel_trace_sample = self.__channel_trace_operators[0].force(x)
@@ -574,8 +575,10 @@ class IftElectricFieldReconstructor:
         ax1_0.set_ylabel('A')
         ax1_1.grid()
         ax1_1.set_xlim([50, 750])
-        # ax1_2.grid()
-        # ax1_2.set_xlim([0, 200])
+        ax1_2.grid()
+        ax1_2.set_xlabel('t [ns]')
+        ax1_2.set_ylabel('E [a.u.]')
+        ax1_2.set_title('E-Field Trace')
         ax1_3.grid()
         ax1_3.set_xlim([50, 750])
         ax1_4.grid()
