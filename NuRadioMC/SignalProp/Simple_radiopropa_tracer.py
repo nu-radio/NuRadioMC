@@ -164,7 +164,7 @@ class ray_tracing:
         ## define observer for detection (channel)            
         obs = radiopropa.Observer()
         obs.setDeactivateOnDetection(True)
-        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(x2[0], x2[1], x2[2]), self._sphere_size*(radiopropa.meter/units.meter))) ## when making the radius larger than 2 meters, somethimes three solution times are found
+        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(*x2), self._sphere_size*(radiopropa.meter/units.meter))) ## when making the radius larger than 2 meters, somethimes three solution times are found
         obs.add(channel)
         sim.add(obs)
 
@@ -173,29 +173,29 @@ class ray_tracing:
         obs2.setDeactivateOnDetection(True)
         v = (x2-x1)
         v[2]=0
-        v = (v/np.linalg.norm(v)) * self._sphere_size*(radiopropa.meter/units.meter)
-        boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(x2[0]+v[0],x2[1]+v[1],x2[2]+v[2]), radiopropa.Vector3d(v[0],v[1],v[2])))
+        v = (v/np.linalg.norm(v)) * 2*self._sphere_size*(radiopropa.meter/units.meter)
+        boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*(x2+v)), radiopropa.Vector3d(*v)))
         obs2.add(boundary_behind_channel)
         boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0,0,1*radiopropa.meter), radiopropa.Vector3d(0,0,1)))
         obs2.add(boundary_above_surface)
         sim.add(obs2)
 
-        phi_direct, theta = hp.cartesian_to_spherical(*(np.array(self._x2)-np.array(self._x1))) *units.radian ## zenith and azimuth for the direct linear ray solution (radians)
-        phi_direct += 5*units.degree #the median solution is taken, meaning that we need to add some degrees in case the good solution is near phi_direct
+        theta_direct, phi = hp.cartesian_to_spherical(*(np.array(self._x2)-np.array(self._x1))) *units.radian ## zenith and azimuth for the direct linear ray solution (radians)
+        theta_direct += 5*units.degree #the median solution is taken, meaning that we need to add some degrees in case the good solution is near theta_direct
 
         step = .05 * units.degree
-        for phi in reversed(np.arange(0,phi_direct + step, step)): #below phi_direct no solutions are possible without upward reflections
-            x = hp.spherical_to_cartesian(self._shower_dir[0], self._shower_dir[1])
-            y = hp.spherical_to_cartesian(phi,theta)
-            delta = np.arccos(np.dot(x, y)) * units.radian
+        for theta in reversed(np.arange(0,theta_direct + step, step)): #below theta_direct no solutions are possible without upward reflections
+            shower = hp.spherical_to_cartesian(*self._shower_dir)
+            ray = hp.spherical_to_cartesian(theta/units.radian,phi/units.radian)
+            viewing = np.arccos(np.dot(shower, ray)) * units.radian
 
             cherenkov_angle = 56 *units.degree
-            if (abs(delta - cherenkov_angle) < self._cut_viewing_angle): #only include rays with angle wrt cherenkov angle smaller than 20 degrees ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
+            delta = viewing - cherenkov_angle
+            if (abs(delta) < self._cut_viewing_angle): #only include rays with angle wrt cherenkov angle smaller than 20 degrees ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
                 source = radiopropa.Source()
                 
-                source.add(radiopropa.SourcePosition(radiopropa.Vector3d(x1[0], x1[1], x1[2])))
-                x,y,z = hp.spherical_to_cartesian(phi *(radiopropa.deg/units.degree) ,theta *(radiopropa.deg/units.degree))
-                source.add(radiopropa.SourceDirection(radiopropa.Vector3d(x, y , z)))
+                source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*x1)))
+                source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*ray)))
                 sim.setShowProgress(True)
                 candidate = source.getCandidate()
                 sim.run(candidate, True)
