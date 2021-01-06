@@ -77,10 +77,9 @@ elif('rmin' in fin.attrs):
     rmin = fin.attrs['rmin']
     rmax = fin.attrs['rmax']
     dZ = fin.attrs['zmax'] - fin.attrs['zmin']
-    V = np.pi * (rmax**2 - rmin**2) * dZ
+    V = np.pi * (rmax ** 2 - rmin ** 2) * dZ
 Veff = V * density_ice / density_water * 4 * np.pi * np.sum(weights) / n_events
 print("Veff = {:.6g} km^3 sr".format(Veff / units.km ** 3))
-
 
 ###########################
 # plot neutrino direction
@@ -107,18 +106,21 @@ fig.savefig(os.path.join(plot_folder, 'neutrino_direction_cos.png'))
 # calculate sky coverage of 90% quantile
 ###########################
 from radiotools import stats
-q2 =stats.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.95)
-q1 =stats.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.05)
+q2 = stats.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.95)
+q1 = stats.quantile_1d(np.array(fin['zeniths'])[triggered], weights, 0.05)
 from scipy import integrate
+
+
 def a(theta):
     return np.sin(theta)
+
+
 b = integrate.quad(a, q1, q2)
-print("90% quantile sky coverage {:.2f} sr ({:.0f} - {:.0f})".format(b[0] * 2 * np.pi, q1/units.deg, q2/units.deg))
+print("90% quantile sky coverage {:.2f} sr ({:.0f} - {:.0f})".format(b[0] * 2 * np.pi, q1 / units.deg, q2 / units.deg))
 
 ###########################
 # plot vertex distribution
 ###########################
-
 
 xx = np.array(fin['xx'])[triggered]
 yy = np.array(fin['yy'])[triggered]
@@ -126,7 +128,6 @@ zz = np.array(fin['zz'])[triggered]
 fig, ax = plotting.plot_vertex_distribution(xx, yy, zz, weights=weights, rmax=rmax, zmin=fin.attrs['zmin'],
                                            trigger_name=trigger_name)
 fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'), bbox='tight')
-
 
 ###########################
 # loop over all stations and produce station specific plots
@@ -155,7 +156,6 @@ for key, station in iteritems(fin):
                 iTrigger = np.argwhere(fin.attrs['trigger_names'] == trigger_name)
                 triggered = np.array(station['multiple_triggers'][:, iTrigger], dtype=np.bool)
                 print("\tyou selected '{}'".format(trigger_name))
-
 
         ###########################
         # plot incoming direction
@@ -188,17 +188,17 @@ for key, station in iteritems(fin):
         # plot polarization
         ###########################
         p = np.array(station['polarization'])[triggered]
-        p_H = (p[:,:,:,0]**2 + p[:,:,:,1]**2)**0.5
-        p_V = np.abs(p[:,:,:,2])
+        p_H = (p[:, :, :, 0] ** 2 + p[:, :, :, 1] ** 2) ** 0.5
+        p_V = np.abs(p[:, :, :, 2])
         weights_matrix = np.outer(weights, np.ones(np.prod(p_V.shape[1:]))).flatten()
-        p_ratio = (p_V/p_H).flatten()
+        p_ratio = p_V.flatten()  # the polarization vector is already normalized to one. So vertical polarization fraction is just the z component
         bins = np.linspace(0, 1, 50)
 
 #         for all events, antennas and ray tracing solutions
         mask = zeniths > 90 * units.deg  # select rays coming from below
         fig, ax = php.get_histogram(p_ratio,
                                     bins=bins,
-                                    xlabel='vertical/horizonal polarization ratio',
+                                    xlabel='vertical polarization fraction',
                                     weights=weights_matrix, stats=False,
                                     kwargs={'facecolor':'0.7', 'alpha':1, 'edgecolor':"k", 'label': 'all'},
                                     figsize=(6, 6))
@@ -206,7 +206,7 @@ for key, station in iteritems(fin):
         php.get_histogram(p_ratio[mask],
                           bins=bins,
                           weights=weights_matrix[mask], stats=False,
-                          xlabel='vertical/horizonal polarization ratio',
+                          xlabel='vertical polarization fraction',
                           ax=ax, kwargs={'facecolor': 'C0', 'alpha': 1, 'edgecolor': "k", 'label': 'direct rays'})
         # ax.set_xticks(bins)
         ax.legend()
@@ -218,13 +218,13 @@ for key, station in iteritems(fin):
         fig, ax = php.get_histogram(p_ratio,
                                     bins=bins,
                                     stats=False,
-                                    xlabel='vertical/horizonal polarization ratio',
+                                    xlabel='vertical polarization fraction',
                                     kwargs={'facecolor':'0.7', 'alpha':1, 'edgecolor':"k", 'label': 'all'},
                                     figsize=(6, 6))
         maxy = ax.get_ylim()
         php.get_histogram(p_ratio[mask],
                           bins=bins,
-                          xlabel='vertical/horizonal polarization ratio',
+                          xlabel='vertical polarization fraction',
                           stats=False,
                           ax=ax, kwargs={'facecolor': 'C0', 'alpha': 1, 'edgecolor': "k", 'label': 'direct rays'})
         # ax.set_xticks(bins)

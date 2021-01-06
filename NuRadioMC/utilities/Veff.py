@@ -185,8 +185,8 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     """
     if(veff_aeff not in ["veff", "aeff_surface_muons"]):
         raise AttributeError(f"the paramter `veff_aeff` needs to be one of either `veff` or `aeff_surface_muons`")
-    fin = h5py.File(filename, 'r')
     logger.warning(f"processing file  {filename}")
+    fin = h5py.File(filename, 'r')
     out = {}
     Emin = fin.attrs['Emin']
     Emax = fin.attrs['Emax']
@@ -194,20 +194,6 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     out['energy'] = E
     out['energy_min'] = Emin
     out['energy_max'] = Emax
-
-    weights = np.array(fin['weights'])
-    triggered = np.array(fin['triggered'])
-    n_events = fin.attrs['n_events']
-
-    if('trigger_names' in fin.attrs):
-        if(np.any(trigger_names != fin.attrs['trigger_names'])):
-            if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
-                logger.warning("file {} has no triggering events. Using trigger names from another file".format(filename))
-            else:
-                logger.error("file {} has inconsistent trigger names: {}".format(filename, fin.attrs['trigger_names']))
-                raise
-    else:
-        logger.warning(f"file {filename} has no triggering events. Using trigger names from a different file: {trigger_names}")
 
     # calculate effective
     thetamin = 0
@@ -233,7 +219,9 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     else:
         raise AttributeError(f"attributes do neither contain volume nor area")
 
-    Vrms = fin.attrs['Vrms']
+    Vrms = np.nan
+    if 'Vrms' in fin.attrs:
+        Vrms = fin.attrs['Vrms']
 
     # Solid angle needed for the effective volume calculations
     out['domega'] = np.abs(phimax - phimin) * np.abs(np.cos(thetamin) - np.cos(thetamax))
@@ -243,7 +231,31 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     out[veff_aeff] = {}
     out['n_triggered_weighted'] = {}
     out['SNRs'] = {}
+    n_events = fin.attrs['n_events']
 
+    if('weights' not in fin.keys()):
+        logger.warning(f"file {filename} is empty")
+        FC_low, FC_high = FC_limits(0)
+        Veff_low = volume_proj_area * FC_low / n_events
+        Veff_high = volume_proj_area * FC_high / n_events
+        for iT, trigger_name in enumerate(trigger_names):
+            out[veff_aeff][trigger_name] = [0, 0, 0, Veff_low, Veff_high]
+        for trigger_name, values in iteritems(trigger_combinations):
+            out[veff_aeff][trigger_name] = [0, 0, 0, Veff_low, Veff_high]
+        return out
+
+    triggered = np.array(fin['triggered'])
+    if('trigger_names' in fin.attrs):
+        if(np.any(trigger_names != fin.attrs['trigger_names'])):
+            if(triggered.size == 0 and fin.attrs['trigger_names'].size == 0):
+                logger.warning("file {} has no triggering events. Using trigger names from another file".format(filename))
+            else:
+                logger.error("file {} has inconsistent trigger names: {}\ncurrent trigger names {}".format(filename, fin.attrs['trigger_names'], trigger_names))
+                raise AttributeError("file {} has inconsistent trigger names: {}\ncurrent trigger names {}".format(filename, fin.attrs['trigger_names'], trigger_names))
+    else:
+        logger.warning(f"file {filename} has no triggering events. Using trigger names from a different file: {trigger_names}")
+
+    weights = np.array(fin['weights'])
     if(triggered.size == 0):
         FC_low, FC_high = FC_limits(0)
         Veff_low = volume_proj_area * FC_low / n_events
@@ -455,7 +467,6 @@ def get_Veff_Aeff(folder,
             raise FileNotFoundError(f"couldnt find any hdf5 file in folder {folder}")
         filenames = sorted(glob.glob(os.path.join(folder, '*.hdf5')))
     for iF, filename in enumerate(filenames):
-        logger.info(f"reading {filename}")
         fin = h5py.File(filename, 'r')
         if 'deposited' in fin.attrs:
             deposited = fin.attrs['deposited']
@@ -469,6 +480,7 @@ def get_Veff_Aeff(folder,
             if(len(trigger_names) > 0):
                 for iT, trigger_name in enumerate(trigger_names):
                     trigger_names_dict[trigger_name] = iT
+                logger.info(f"first file with triggernames {filename}: {trigger_names}")
                 break
 
     trigger_combinations['all_triggers'] = {'triggers': trigger_names}
@@ -487,11 +499,17 @@ def get_Veff_Aeff(folder,
     args = []
     for f in filenames:
         args.append([f, trigger_names, trigger_names_dict, trigger_combinations, deposited, station, veff_aeff])
-    with Pool(n_cores) as p:
-        output = p.map(tmp, args)
-        print("output")
-        print(output)
+    if n_cores == 1:
+        output = []
+        for arg in args:
+            output.append(tmp(arg))
         return output
+    else:
+        with Pool(n_cores) as p:
+            output = p.map(tmp, args)
+            print("output")
+            print(output)
+            return output
 
 
 def get_Veff_Aeff_array(data):
