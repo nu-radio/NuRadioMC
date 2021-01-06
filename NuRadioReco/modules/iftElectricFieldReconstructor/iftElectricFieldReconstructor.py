@@ -40,6 +40,8 @@ class IftElectricFieldReconstructor:
         self.__relative_tolerance = None
         self.__use_sim = False
         self.__dominant_polarization = None
+        self.__pulse_time_prior = None
+        self.__pulse_time_uncertainty = None
         return
 
     def begin(
@@ -72,6 +74,8 @@ class IftElectricFieldReconstructor:
         self.__convergence_level = convergence_level
         self.__relative_tolerance = relative_tolerance
         self.__dominant_polarization = dominant_polarization
+        self.__pulse_time_prior = pulse_time_prior
+        self.__pulse_time_uncertainty = pulse_time_uncertainty
         if slope_passbands is None:
             self.__slope_passbands = [
                 [130. * units.MHz, 500 * units.MHz],
@@ -94,14 +98,6 @@ class IftElectricFieldReconstructor:
             }
         else:
             self.__amp_dct = amp_dct
-        phase_slope = 2. * np.pi * pulse_time_prior * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
-        phase_uncertainty = 2. * np.pi * pulse_time_uncertainty * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
-        self.__phase_dct = {
-            'sm': phase_slope,
-            'sv': phase_uncertainty,
-            'im': 0.,
-            'iv': 3.5
-        }
         return
 
     def make_priors_plot(self, event, station, detector, channel_ids):
@@ -147,6 +143,15 @@ class IftElectricFieldReconstructor:
             frequency_domain,
             sampling_rate,
         )
+        ### Run Positive Phase Slope ###
+        phase_slope = 2. * np.pi * self.__pulse_time_prior * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
+        phase_uncertainty = 2. * np.pi * self.__pulse_time_uncertainty * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
+        self.__phase_dct = {
+            'sm': phase_slope,
+            'sv': phase_uncertainty,
+            'im': 0.,
+            'iv': 10.
+        }
         likelihood = self.__get_likelihood_operator(
             frequency_domain,
             large_frequency_domain,
@@ -178,10 +183,67 @@ class IftElectricFieldReconstructor:
                     self.__draw_reconstruction(
                         event,
                         station,
-                        KL
+                        KL,
+                        '_positive_phase'
                     )
+        positive_reco_LK = best_reco_KL
+        ### Run Negative Phase Slope ###
+        phase_slope = 2. * np.pi * (self.__pulse_time_prior * self.__electric_field_template.get_sampling_rate() - self.__trace_samples) / self.__trace_samples
+        phase_uncertainty = 2. * np.pi * self.__pulse_time_uncertainty * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
+        self.__phase_dct = {
+            'sm': phase_slope,
+            'sv': phase_uncertainty,
+            'im': 0.,
+            'iv': 10.
+        }
+        likelihood = self.__get_likelihood_operator(
+            frequency_domain,
+            large_frequency_domain,
+            amp_operators,
+            filter_operator
+        )
+        # self.__draw_priors(event, station, frequency_domain)
+        ic_sampling = ift.GradientNormController(1E-8, iteration_limit=min(1000, likelihood.domain.size))
+        H = ift.StandardHamiltonian(likelihood, ic_sampling)
+
+        ic_newton = ift.DeltaEnergyController(name='newton',
+                                              iteration_limit=200,
+                                              tol_rel_deltaE=self.__relative_tolerance,
+                                              convergence_level=self.__convergence_level)
+        minimizer = ift.NewtonCG(ic_newton)
+        median = ift.MultiField.full(H.domain, 0.)
+        min_energy = None
+        best_reco_KL = None
+        for k in range(self.__n_iterations):
+            print('----------->>>   {}   <<<-----------'.format(k))
+            KL = ift.MetricGaussianKL(median, H, self.__n_samples, mirror_samples=True)
+            KL, convergence = minimizer(KL)
+            median = KL.position
+            if min_energy is None or KL.value < min_energy:
+                min_energy = KL.value
+                print('New min Energy', KL.value)
+                best_reco_KL = KL
+                if self.__debug:
+                    self.__draw_reconstruction(
+                        event,
+                        station,
+                        KL,
+                        '_negative_phase'
+                    )
+        negative_reco_KL = best_reco_KL
+        final_KL = None
+        if negative_reco_KL.value < positive_reco_LK.value:
+            final_KL = negative_reco_KL
+        else:
+            final_KL = positive_reco_LK
         self.__store_reconstructed_efields(
-            event, station, best_reco_KL
+            event, station, final_KL
+        )
+        self.__draw_reconstruction(
+            event,
+            station,
+            final_KL,
+            '_best_reco'
         )
         return True
 
@@ -389,7 +451,7 @@ class IftElectricFieldReconstructor:
         domain_flipper = NuRadioReco.modules.iftElectricFieldReconstructor.operators.DomainFlipper(zero_padder.domain, target=ift.RGSpace(small_sp.shape, harmonic=True))
         mag_S_h = (domain_flipper @ zero_padder.adjoint @ correlated_field)
         mag_S_h = NuRadioReco.modules.iftElectricFieldReconstructor.operators.SymmetrizingOperator(mag_S_h.target) @ mag_S_h
-        subtract_one = ift.Adder(ift.Field(mag_S_h.target, -5))
+        subtract_one = ift.Adder(ift.Field(mag_S_h.target, -6))
         mag_S_h = realizer2.adjoint @ (subtract_one @ mag_S_h).exp()
         fft_operator = ift.FFTOperator(frequency_domain.get_default_codomain())
 
@@ -397,7 +459,8 @@ class IftElectricFieldReconstructor:
         add_one = ift.Adder(ift.Field(inserter.domain, 1))
 
         polarization_domain = ift.UnstructuredDomain(1)
-
+        print('######### Phase Prior #############')
+        print(self.__phase_dct)
         likelihood = None
         self.__efield_trace_operators = []
         self.__efield_spec_operators = []
@@ -602,7 +665,8 @@ class IftElectricFieldReconstructor:
         self,
         event,
         station,
-        KL
+        KL,
+        suffix=''
     ):
         plt.close('all')
         fontsize = 16
@@ -763,6 +827,13 @@ class IftElectricFieldReconstructor:
             ax1_2.set_ylabel('E-Field [mV/m/GHz]', fontsize=fontsize)
             ax2_1.set_xlabel('t [ns]', fontsize=fontsize)
             ax2_1.set_ylabel('U [mV]', fontsize=fontsize)
+            ax2_1_dummy = ax2_1.twiny()
+            ax2_1_dummy.set_xlim(ax2_1.get_xlim())
+            ax2_1_dummy.set_xticks(np.arange(times[0], times[-1], 10))
+
+            def get_ticklabels(ticks):
+                return ['{:.0f}'.format(tick) for tick in np.arange(times[0], times[-1], 10) - times[0]]
+            ax2_1_dummy.set_xticklabels(get_ticklabels(np.arange(times[0], times[-1], 10)), fontsize=fontsize)
             ax1_1.tick_params(axis='both', labelsize=fontsize)
             ax1_2.tick_params(axis='both', labelsize=fontsize)
             ax2_1.tick_params(axis='both', labelsize=fontsize)
@@ -771,6 +842,6 @@ class IftElectricFieldReconstructor:
             if sim_efield_max is not None:
                 ax1_2.set_ylim([0, 1.2 * sim_efield_max / (units.mV / units.m / units.GHz)])
         fig1.tight_layout()
-        fig1.savefig('{}_{}_spec_reco.png'.format(event.get_run_number(), event.get_id()))
+        fig1.savefig('{}_{}_spec_reco{}.png'.format(event.get_run_number(), event.get_id(), suffix))
         fig2.tight_layout()
-        fig2.savefig('{}_{}_trace_reco.png'.format(event.get_run_number(), event.get_id()))
+        fig2.savefig('{}_{}_trace_reco{}.png'.format(event.get_run_number(), event.get_id(), suffix))
