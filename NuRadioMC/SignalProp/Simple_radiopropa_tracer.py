@@ -432,7 +432,7 @@ class ray_tracing:
         path_correction_arrival_direction = abs(np.cos(receive_zen-vector_zen))*self._sphere_size
         
         if abs(receive_az-vector_az) > np.deg2rad(90): 
-            path_correction_overshoot = np.linalg.norm(vector[0:2])*abs(np.cos(receive_az-vector_az-90*units.degree))
+            path_correction_overshoot = np.linalg.norm(vector[0:2])*abs(np.cos(receive_az-vector_az))
         else: 
             path_correction_overshoot = 0
         
