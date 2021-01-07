@@ -158,7 +158,7 @@ class ray_tracing:
 
         launch_lower = [0]
         launch_upper = [theta_direct] ##below theta_direct no solutions are possible without upward reflections
-        current_candidates[]
+        current_candidates = []
         for sphere_size in self._sphere_sizes:
             previous_candidates = current_candidates
             current_candidates = []
@@ -193,15 +193,15 @@ class ray_tracing:
                 launch_upper.clear()
                 for iPC,PC in enumerate(previous_candidates):
                     launch_theta = PC.getLaunchVector().getTheta()
-                    if iPC == 0:
-                        launch_lower.append(launch_theta-step)
                     if iPC == (len(previous_candidates)-1):
                         launch_upper.append(launch_theta+step)
-                    elif: abs(launch_theta - launch_theta_prev)>1.1*step: ##take 1.1 times the step to be sure the next ray is not in the bundle of the previous one
+                    if iPC == 0:
+                        launch_lower.append(launch_theta-step)
+                    elif abs(launch_theta - launch_theta_prev)>1.1*step: ##take 1.1 times the step to be sure the next ray is not in the bundle of the previous one
                         launch_upper.append(launch_theta_prev+step)
                         launch_lower.append(launch_theta-step)
-                else:
-                    pass
+                    else:
+                        pass
                     launch_theta_prev = launch_theta
 
             elif len(previous_candidates)==1:
@@ -216,7 +216,7 @@ class ray_tracing:
             theta_scanning_range = np.array([])
             for iL in range(len(launch_lower)):
                 new_scanning_range = np.arange(launch_lower[iL],launch_upper[iL]+step,step)
-                theta_scanning_range = np.concatenate(theta_scanning_range,new_scanning_range)
+                theta_scanning_range = np.concatenate((theta_scanning_range,new_scanning_range))
 
 
             for theta in theta_scanning_range: 
@@ -237,7 +237,7 @@ class ray_tracing:
                     Candidate = candidate.get() #candidate is a pointer to the object Candidate
                     detection = channel.checkDetection(Candidate) #the detection status of the channel
                     if detection == 0: #check if the channel is reached
-                        candidates.append(candidate)
+                        current_candidates.append(candidate)
 
         self._candidates = current_candidates
 
@@ -464,7 +464,7 @@ class ray_tracing:
         vector_zen,vector_az = hp.cartesian_to_spherical(vector[0],vector[1],vector[2])
         receive_zen,receive_az = hp.cartesian_to_spherical(receive_vector[0],receive_vector[1],receive_vector[2])
 
-        path_correction_arrival_direction = abs(np.cos(receive_zen-vector_zen))*self._sphere_size[-1]
+        path_correction_arrival_direction = abs(np.cos(receive_zen-vector_zen))*self._sphere_sizes[-1]
         
         if abs(receive_az-vector_az) > np.deg2rad(90): 
             path_correction_overshoot = np.linalg.norm(vector[0:2])*abs(np.cos(receive_az-vector_az))
