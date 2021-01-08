@@ -72,7 +72,8 @@ class ray_tracing:
         self._config = config
         self._n_frequencies_integration = n_frequencies_integration
 
-        self._sphere_sizes = np.array([10.,2.,.5]) * units.meter
+        self._sphere_sizes = np.array([25.,2.,.5]) * units.meter ## iteration from big to small observer around channel
+        self._step_sizes = np.array([.5,.05,.0125]) * units.degree ## step for theta corresponding to the sphere size, should have same lenght as _sphere_sizes
         self._x1 = None
         self._x2 = None
         self._max_detector_frequency = None
@@ -156,11 +157,12 @@ class ray_tracing:
         theta_direct, phi = hp.cartesian_to_spherical(*(np.array(self._x2)-np.array(self._x1))) *units.radian ## zenith and azimuth for the direct linear ray solution (radians)
         theta_direct += 5*units.degree ##the median solution is taken, meaning that we need to add some degrees in case the good solution is near theta_direct
 
+        shower = hp.spherical_to_cartesian(*self._shower_dir)
+
         launch_lower = [0]
         launch_upper = [theta_direct] ##below theta_direct no solutions are possible without upward reflections
-        current_candidates = []
-        for sphere_size in self._sphere_sizes:
-            previous_candidates = current_candidates
+        previous_candidates = None
+        for s,sphere_size in enumerate(self._sphere_sizes):
             current_candidates = []
 
             ##define module list for simulation
@@ -188,7 +190,11 @@ class ray_tracing:
             obs2.add(boundary_above_surface)
             sim.add(obs2)
 
-            if len(previous_candidates)>1:
+            #loop over previous candidates to find the upper and lower theta of each bundle of rays
+            #uses step, but because step is initialized after this loop this ios the previous step size as intented
+            if previous_candidates == None:
+                pass
+            elif len(previous_candidates)>1:
                 launch_lower.clear()
                 launch_upper.clear()
                 for iPC,PC in enumerate(previous_candidates):
@@ -209,22 +215,24 @@ class ray_tracing:
                 launch_lower.append(launch_theta-step)
                 launch_upper.append(launch_theta+step)
             else:
-                pass
+                #if previous_candidates is empthy, no solutions where found and the tracer is terminated
+                break
 
             
-            step = .05 * units.degree * (sphere_size/(2*units.meter))
+            #create total scanning range from the upper and lower thetas of the bundles
+            step = self._step_sizes[s]
             theta_scanning_range = np.array([])
             for iL in range(len(launch_lower)):
                 new_scanning_range = np.arange(launch_lower[iL],launch_upper[iL]+step,step)
                 theta_scanning_range = np.concatenate((theta_scanning_range,new_scanning_range))
 
+            
+            cherenkov_angle = 56 *units.degree
 
             for theta in theta_scanning_range: 
-                shower = hp.spherical_to_cartesian(*self._shower_dir)
                 ray = hp.spherical_to_cartesian(theta/units.radian,phi/units.radian)
                 viewing = np.arccos(np.dot(shower, ray)) * units.radian
 
-                cherenkov_angle = 56 *units.degree
                 delta = viewing - cherenkov_angle
                 #only include rays with angle wrt cherenkov angle smaller than 20 degrees 
                 if True: #(abs(delta) < self._cut_viewing_angle): ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
@@ -238,6 +246,8 @@ class ray_tracing:
                     detection = channel.checkDetection(Candidate) #the detection status of the channel
                     if detection == 0: #check if the channel is reached
                         current_candidates.append(candidate)
+
+            previous_candidates = current_candidates
 
         self._candidates = current_candidates
 
