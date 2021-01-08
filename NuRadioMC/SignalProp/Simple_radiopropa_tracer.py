@@ -14,12 +14,16 @@ import scipy.constants
 
 """
 STILL TO DO:
-- compare timing, distances, receive and launch angles wtr analytic raytracer
-- compare attenuation wtr analytic raytracer
+- DONE compare timing, distances, receive and launch angles wtr analytic raytracer
+- DONE compare attenuation wtr analytic raytracer
 - proper implementatin of the icemodel
 - Add warnings when the icemodel is not implemented in radiopropa
-- Timing reduction; everything takes too long now
-- compare waveforms wtr analytic raytracer
+- DONE Timing reduction; everything takes too long now
+- DONE compare waveforms wtr analytic raytracer
+- implement cut on viewing and distance in simulation.py --> other raytracer also adapt
+- reflection angles --> np.array of single value ?? --> posibly adapt also sim and other tracers
+- clean up and add docstrings
+- n_points in get_path still need to be fixed
 """
 
 
@@ -95,9 +99,9 @@ class ray_tracing:
         """
         Parameters
         ----------
-        x1: np.array of shape (3,), unit is meter
+        x1: np.array of shape (3,), default unit
             start point of the ray
-        x2: np.array of shape (3,), unit is meter
+        x2: np.array of shape (3,), default unit 
             stop point of the ray
         """ 
         x1 = np.array(x1, dtype =np.float)
@@ -114,7 +118,7 @@ class ray_tracing:
 
         Parameters
         ----------
-        shower_axis: np.array of shape (3,), unit not relevant (preferably meter)
+        shower_axis: np.array of shape (3,), default unit
             the direction of where the shower is moving towards to in cartesian coordinates
         """ 
         self._shower_axis = shower_axis
@@ -124,11 +128,11 @@ class ray_tracing:
         """
         Parameters
         ----------
-        cut: float, unit is degree
+        cut: float, default unit
              range around the cherenkov angle
              rays with a viewing angle out of this range will be to dim and won't be seen --> limiting computing time
         """
-        self._cut_viewing_angle = cut * units.degree
+        self._cut_viewing_angle = cut
 
     def set_maximum_trajectory_length(self,max_traj_length):
         """
@@ -603,11 +607,14 @@ class ray_tracing:
         mask = frequency > 0
         freqs = self.get_frequencies_for_attenuation(frequency, self._max_detector_frequency)
         integral = np.zeros(len(freqs))
+        
         def dt(depth, freqs):
             ds = np.sqrt((path[:, 0][depth] - path[:, 0][depth+1])**2 + (path[:, 1][depth] - path[:, 1][depth+1])**2 + (path[:, 2][depth] - path[:, 2][depth+1])**2) # get step size
             return ds / attenuation_util.get_attenuation_length(path[:, 2][depth], freqs, self._attenuation_model)
+        
         for z_position in range(len(path[:, 2]) - 1):
             integral += dt(z_position, freqs)
+        
         att_func = interpolate.interp1d(freqs, integral)
         tmp = att_func(frequency[mask])
         attenuation = np.ones_like(frequency)
