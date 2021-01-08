@@ -1516,7 +1516,7 @@ class ray_tracing:
 
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=100,
-                 n_reflections=0, config=None, detector=None, shower_dir = None):
+                 n_reflections=0, config=None, detector=None):
         """
         class initilization
 
@@ -1570,6 +1570,7 @@ class ray_tracing:
         self.__R = None
         self.__x1 = None
         self.__x2 = None
+        self.__shower_dir = None
         self.__results = None
 
     def reset_solutions(self):
@@ -1629,6 +1630,17 @@ class ray_tracing:
         self.__x2 = np.array([X2r[0], X2r[2]])
         self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
 
+     def set_shower_axis(self,shower_axis=None):
+        """
+        Set the the shower axis. This is oposite to the neutrino arrival direction
+
+        Parameters
+        ----------
+        shower_axis: np.array of shape (3,), unit not relevant (preferably meter)
+            the direction of where the shower is moving towards to in cartesian coordinates
+        """ 
+        self._shower_axis = shower_axis
+        
     def set_solution(self, raytracing_results, i_shower, channel_id):
         """
         Read an already calculated raytracing solution from the input array
