@@ -94,9 +94,9 @@ class ray_tracing:
         """
         Parameters
         ----------
-        x1: np.array of shape (1,3), unit is meter
+        x1: np.array of shape (3,), unit is meter
             start point of the ray
-        x2: np.array of shape (1,3), unit is meter
+        x2: np.array of shape (3,), unit is meter
             stop point of the ray
         """ 
         x1 = np.array(x1, dtype =np.float)
@@ -164,7 +164,7 @@ class ray_tracing:
         ## define observer for detection (channel)            
         obs = radiopropa.Observer()
         obs.setDeactivateOnDetection(True)
-        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(x2[0], x2[1], x2[2]), self._sphere_size*(radiopropa.meter/units.meter))) ## when making the radius larger than 2 meters, somethimes three solution times are found
+        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(*x2), self._sphere_size*(radiopropa.meter/units.meter))) ## when making the radius larger than 2 meters, somethimes three solution times are found
         obs.add(channel)
         sim.add(obs)
 
@@ -173,29 +173,29 @@ class ray_tracing:
         obs2.setDeactivateOnDetection(True)
         v = (x2-x1)
         v[2]=0
-        v = (v/np.linalg.norm(v)) * self._sphere_size*(radiopropa.meter/units.meter)
-        boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(x2[0]+v[0],x2[1]+v[1],x2[2]+v[2]), radiopropa.Vector3d(v[0],v[1],v[2])))
+        v = (v/np.linalg.norm(v)) * 2*self._sphere_size*(radiopropa.meter/units.meter)
+        boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*(x2+v)), radiopropa.Vector3d(*v)))
         obs2.add(boundary_behind_channel)
         boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0,0,1*radiopropa.meter), radiopropa.Vector3d(0,0,1)))
         obs2.add(boundary_above_surface)
         sim.add(obs2)
 
-        phi_direct, theta = hp.cartesian_to_spherical(*(np.array(self._x2)-np.array(self._x1))) *units.radian ## zenith and azimuth for the direct linear ray solution (radians)
-        phi_direct += 5*units.degree #the median solution is taken, meaning that we need to add some degrees in case the good solution is near phi_direct
+        theta_direct, phi = hp.cartesian_to_spherical(*(np.array(self._x2)-np.array(self._x1))) *units.radian ## zenith and azimuth for the direct linear ray solution (radians)
+        theta_direct += 5*units.degree #the median solution is taken, meaning that we need to add some degrees in case the good solution is near theta_direct
 
         step = .05 * units.degree
-        for phi in reversed(np.arange(0,phi_direct + step, step)): #below phi_direct no solutions are possible without upward reflections
-            x = hp.spherical_to_cartesian(self._shower_dir[0], self._shower_dir[1])
-            y = hp.spherical_to_cartesian(phi,theta)
-            delta = np.arccos(np.dot(x, y)) * units.radian
+        for theta in reversed(np.arange(0,theta_direct + step, step)): #below theta_direct no solutions are possible without upward reflections
+            shower = hp.spherical_to_cartesian(*self._shower_dir)
+            ray = hp.spherical_to_cartesian(theta/units.radian,phi/units.radian)
+            viewing = np.arccos(np.dot(shower, ray)) * units.radian
 
             cherenkov_angle = 56 *units.degree
-            if (abs(delta - cherenkov_angle) < self._cut_viewing_angle): #only include rays with angle wrt cherenkov angle smaller than 20 degrees ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
+            delta = viewing - cherenkov_angle
+            if (abs(delta) < self._cut_viewing_angle): #only include rays with angle wrt cherenkov angle smaller than 20 degrees ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
                 source = radiopropa.Source()
                 
-                source.add(radiopropa.SourcePosition(radiopropa.Vector3d(x1[0], x1[1], x1[2])))
-                x,y,z = hp.spherical_to_cartesian(phi *(radiopropa.deg/units.degree) ,theta *(radiopropa.deg/units.degree))
-                source.add(radiopropa.SourceDirection(radiopropa.Vector3d(x, y , z)))
+                source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*x1)))
+                source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*ray)))
                 sim.setShowProgress(True)
                 candidate = source.getCandidate()
                 sim.run(candidate, True)
@@ -215,42 +215,61 @@ class ray_tracing:
         """
         results = []
 
-        launch_angles = []
-        solution_types = []
-        iSs = []
-
-
         self.RadioPropa_raytracer()
         num = len(self._candidates)
-        candidates = np.copy(self._candidates)
+
+        launch_zeniths = []
+        receive_zeniths = []
+        solution_types = []
+        ray_endpoints = []
+        iSs = np.array(np.arange(0, num, 1))
+
         for iS, candidate in enumerate(self._candidates):
             solution_type = self.get_solution_type(iS)
             launch_vector = self.get_launch_vector(iS)
-            launch_angles.append(hp.cartesian_to_spherical(launch_vector[0], launch_vector[1], launch_vector[2])[0])
+            receive_vector = self.get_receive_vector(iS)
+            ray_endpoint = self.get_path(iS)[-1]
+            launch_zeniths.append(hp.cartesian_to_spherical(launch_vector[0], launch_vector[1], launch_vector[2])[0])
+            receive_zeniths.append(hp.cartesian_to_spherical(receive_vector[0], receive_vector[1], receive_vector[2])[0])
             solution_types.append(solution_type)
-        mask = (np.array(solution_types) ==1 )
-        index = 1
+            ray_endpoints.append(ray_endpoint)
+        
+        candidates = np.copy(self._candidates)
         self._candidates = []
-        if mask.any():
-            index = int(np.median(np.array(np.arange(0, num, 1))[mask]))
-            self._candidates.append(candidates[index])
-            results.append({'type':1, 'reflection':reflection})
+        channel_pos = self._x2
 
-        mask = (np.array(solution_types) ==2 )
-        if mask.any():
-            index = int(np.median(np.array(np.arange(0, num, 1))[mask]))
-            self._candidates.append(candidates[index])
-            results.append({'type':2, 'reflection':reflection})
-
-
-        mask = (np.array(solution_types) ==3 )
-        if mask.any():
-            index = int(np.median(np.array(np.arange(0, num, 1))[mask]))
-            self._candidates.append(candidates[index])
-            results.append({'type':3, 'reflection':reflection})
-
-
-
+        mask = {i:(np.array(solution_types) == i ) for i in range(1,4)}       
+        for i in range(1,4):
+            if mask[i].any():
+                '''
+                index = int(np.median(np.array(np.arange(0, num, 1))[mask]))
+                self._candidates.append(candidates[index])
+                results.append({'type':1, 'reflection':reflection})
+                '''
+                final_candidate = None
+                delta_min = np.deg2rad(90)
+                for iS in iSs[mask[i]]: #index o candidates with solution type i
+                    vector = ray_endpoints[iS] - self._x2 #position of the receive vector on the sphere around the channel
+                    vector_zenith = hp.cartesian_to_spherical(vector[0],vector[1],vector[2])[0]
+                    delta = abs(vector_zenith-receive_zeniths[iS])
+                    if delta < delta_min:
+                        final_candidate = candidates[iS]
+                        delta_min = delta
+                self._candidates.append(final_candidate)
+                results.append({'type':int(i), 'reflection':reflection})
+                '''
+                delta_min = self._sphere_size
+                for candidate in candidates[mask[i]]:
+                    ray_endpoint = candidate.get().getEndPosition()*(units.meter/radiopropa.meter) #endpoint on sphere
+                    ray_endpoint -=(candidate.get().getReceiveVector().getUnitVector()*(units.meter/radiopropa.meter) *self._sphere_size) #endpoint in sphere after extrapolation
+                    ray_endpoint = np.array([ray_endpoint.getX(),ray_endpoint.getY(),ray_endpoint.getZ()]) #transform in numpy array
+                    delta = np.linalg.norm(ray_endpoint-channel_pos)
+                    if delta < delta_min: 
+                        final_candidate = candidate
+                        delta_min = min(delta_min,delta)
+                self._candidates.append(candidate)
+                results.append({'type':i, 'reflection':reflection})
+                '''
 
         self._results = results
 
@@ -412,8 +431,8 @@ class ray_tracing:
 
         path_correction_arrival_direction = abs(np.cos(receive_zen-vector_zen))*self._sphere_size
         
-        if abs(receive_az-vector_az) > 90*units.degree: 
-            path_correction_overshoot = np.linalg.norm(vector[0:2])*abs(np.sin(receive_az-vector_az-90*units.degree))
+        if abs(receive_az-vector_az) > np.deg2rad(90): 
+            path_correction_overshoot = np.linalg.norm(vector[0:2])*abs(np.cos(receive_az-vector_az))
         else: 
             path_correction_overshoot = 0
         
