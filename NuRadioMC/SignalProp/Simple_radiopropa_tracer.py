@@ -391,7 +391,7 @@ class ray_tracing:
         """
 
         pathz = self.get_path(iS)[:, 2]
-        if len(self.get_reflection_angle(iS)) != 0:
+        if self.get_reflection_angle(iS) != None:
             solution_type = 3
 
         elif(pathz[-1] < max(pathz)):
@@ -458,7 +458,11 @@ class ray_tracing:
             the reflection angle (for reflected rays) or None for direct and refracted rays
         """
         Candidate = self._candidates[iS].get()
-        return np.fromstring(Candidate.getReflectionAngles()[1:-1],sep=',') *(units.degree/radiopropa.deg)
+        reflection_angles = np.fromstring(Candidate.getReflectionAngles()[1:-1],sep=',') *(units.degree/radiopropa.deg)
+        if len(reflection_angles)==0:
+            return None
+        else:
+            return reflection_angles[0]
 
     def get_correction_path_length(self, iS):
         """
