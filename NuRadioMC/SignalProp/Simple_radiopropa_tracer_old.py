@@ -72,8 +72,7 @@ class ray_tracing:
         self._config = config
         self._n_frequencies_integration = n_frequencies_integration
 
-        self._sphere_sizes = np.array([25.,2.,.5]) * units.meter ## iteration from big to small observer around channel
-        self._step_sizes = np.array([.5,.05,.0125]) * units.degree ## step for theta corresponding to the sphere size, should have same lenght as _sphere_sizes
+        self._sphere_size = 2 * units.meter
         self._x1 = None
         self._x2 = None
         self._max_detector_frequency = None
@@ -148,108 +147,65 @@ class ray_tracing:
         """
         uses RadioPropa to find the numerical ray tracing solutions for x1 x2 and returns the Candidates for all the possible solutions
         """
+        candidates = []
+
         try:
             x1 = self._x1  * (radiopropa.meter/units.meter)
             x2 = self._x2  * (radiopropa.meter/units.meter)
         except TypeError: 
             print('NoneType: start or endpoint not initialized')
 
+        ##define module list for simulation
+        sim = radiopropa.ModuleList()
+        sim.add(radiopropa.PropagationCK(self._iceModel, 1E-8, .001, 1.)) ## add propagation to module list
+        sim.add(self._airBoundary)
+        sim.add(radiopropa.MaximumTrajectoryLength(self._max_traj_length*(radiopropa.meter/units.meter)))
+
+        ## define observer for detection (channel)            
+        obs = radiopropa.Observer()
+        obs.setDeactivateOnDetection(True)
+        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(*x2), self._sphere_size*(radiopropa.meter/units.meter))) ## when making the radius larger than 2 meters, somethimes three solution times are found
+        obs.add(channel)
+        sim.add(obs)
+
+        ## define observer for stopping simulation (boundaries)
+        obs2 = radiopropa.Observer()
+        obs2.setDeactivateOnDetection(True)
+        v = (x2-x1)
+        v[2]=0
+        v = (v/np.linalg.norm(v)) * 2*self._sphere_size*(radiopropa.meter/units.meter)
+        boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*(x2+v)), radiopropa.Vector3d(*v)))
+        obs2.add(boundary_behind_channel)
+        boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0,0,1*radiopropa.meter), radiopropa.Vector3d(0,0,1)))
+        obs2.add(boundary_above_surface)
+        sim.add(obs2)
+
         theta_direct, phi = hp.cartesian_to_spherical(*(np.array(self._x2)-np.array(self._x1))) *units.radian ## zenith and azimuth for the direct linear ray solution (radians)
-        theta_direct += 5*units.degree ##the median solution is taken, meaning that we need to add some degrees in case the good solution is near theta_direct
+        theta_direct += 5*units.degree #the median solution is taken, meaning that we need to add some degrees in case the good solution is near theta_direct
 
-        shower = hp.spherical_to_cartesian(*self._shower_dir)
+        step = .05 * units.degree
+        for theta in reversed(np.arange(0,theta_direct + step, step)): #below theta_direct no solutions are possible without upward reflections
+            shower = hp.spherical_to_cartesian(*self._shower_dir)
+            ray = hp.spherical_to_cartesian(theta/units.radian,phi/units.radian)
+            viewing = np.arccos(np.dot(shower, ray)) * units.radian
 
-        launch_lower = [0]
-        launch_upper = [theta_direct] ##below theta_direct no solutions are possible without upward reflections
-        previous_candidates = None
-        for s,sphere_size in enumerate(self._sphere_sizes):
-            current_candidates = []
-
-            ##define module list for simulation
-            sim = radiopropa.ModuleList()
-            sim.add(radiopropa.PropagationCK(self._iceModel, 1E-8, .001, 1.)) ## add propagation to module list
-            sim.add(self._airBoundary)
-            sim.add(radiopropa.MaximumTrajectoryLength(self._max_traj_length*(radiopropa.meter/units.meter)))
-
-            ## define observer for detection (channel)            
-            obs = radiopropa.Observer()
-            obs.setDeactivateOnDetection(True)
-            channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(*x2), sphere_size*(radiopropa.meter/units.meter))) ## when making the radius larger than 2 meters, somethimes three solution times are found
-            obs.add(channel)
-            sim.add(obs)
-
-            ## define observer for stopping simulation (boundaries)
-            obs2 = radiopropa.Observer()
-            obs2.setDeactivateOnDetection(True)
-            v = (x2-x1)
-            v[2]=0
-            v = (v/np.linalg.norm(v)) * 2*sphere_size*(radiopropa.meter/units.meter)
-            boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*(x2+v)), radiopropa.Vector3d(*v)))
-            obs2.add(boundary_behind_channel)
-            boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0,0,1*radiopropa.meter), radiopropa.Vector3d(0,0,1)))
-            obs2.add(boundary_above_surface)
-            sim.add(obs2)
-
-            #loop over previous candidates to find the upper and lower theta of each bundle of rays
-            #uses step, but because step is initialized after this loop this ios the previous step size as intented
-            if previous_candidates == None:
-                pass
-            elif len(previous_candidates)>1:
-                launch_lower.clear()
-                launch_upper.clear()
-                for iPC,PC in enumerate(previous_candidates):
-                    launch_theta = PC.getLaunchVector().getTheta()
-                    if iPC == (len(previous_candidates)-1):
-                        launch_upper.append(launch_theta+step)
-                    if iPC == 0:
-                        launch_lower.append(launch_theta-step)
-                    elif abs(launch_theta - launch_theta_prev)>1.1*step: ##take 1.1 times the step to be sure the next ray is not in the bundle of the previous one
-                        launch_upper.append(launch_theta_prev+step)
-                        launch_lower.append(launch_theta-step)
-                    else:
-                        pass
-                    launch_theta_prev = launch_theta
-
-            elif len(previous_candidates)==1:
-                launch_theta= previous_candidates[0].getLaunchVector().getTheta()
-                launch_lower.append(launch_theta-step)
-                launch_upper.append(launch_theta+step)
-            else:
-                #if previous_candidates is empthy, no solutions where found and the tracer is terminated
-                break
-
-            
-            #create total scanning range from the upper and lower thetas of the bundles
-            step = self._step_sizes[s]
-            theta_scanning_range = np.array([])
-            for iL in range(len(launch_lower)):
-                new_scanning_range = np.arange(launch_lower[iL],launch_upper[iL]+step,step)
-                theta_scanning_range = np.concatenate((theta_scanning_range,new_scanning_range))
-
-            
             cherenkov_angle = 56 *units.degree
+            delta = viewing - cherenkov_angle
+            #print(ray,viewing,delta)
+            if True:#(abs(delta) < self._cut_viewing_angle): #only include rays with angle wrt cherenkov angle smaller than 20 degrees ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
+                source = radiopropa.Source()
+                
+                source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*x1)))
+                source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*ray)))
+                sim.setShowProgress(True)
+                candidate = source.getCandidate()
+                sim.run(candidate, True)
+                Candidate = candidate.get() #candidate is a pointer to the object Candidate
+                detection = channel.checkDetection(Candidate) #the detection status of the channel
+                if detection == 0: #check if the channel is reached
+                    candidates.append(candidate)
 
-            for theta in theta_scanning_range: 
-                ray = hp.spherical_to_cartesian(theta/units.radian,phi/units.radian)
-                viewing = np.arccos(np.dot(shower, ray)) * units.radian
-
-                delta = viewing - cherenkov_angle
-                #only include rays with angle wrt cherenkov angle smaller than 20 degrees 
-                if True: #(abs(delta) < self._cut_viewing_angle): ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
-                    source = radiopropa.Source()
-                    source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*x1)))
-                    source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*ray)))
-                    sim.setShowProgress(True)
-                    candidate = source.getCandidate()
-                    sim.run(candidate, True)
-                    Candidate = candidate.get() #candidate is a pointer to the object Candidate
-                    detection = channel.checkDetection(Candidate) #the detection status of the channel
-                    if detection == 0: #check if the channel is reached
-                        current_candidates.append(candidate)
-
-            previous_candidates = current_candidates
-
-        self._candidates = current_candidates
+        self._candidates = candidates
 
 
 
@@ -474,7 +430,7 @@ class ray_tracing:
         vector_zen,vector_az = hp.cartesian_to_spherical(vector[0],vector[1],vector[2])
         receive_zen,receive_az = hp.cartesian_to_spherical(receive_vector[0],receive_vector[1],receive_vector[2])
 
-        path_correction_arrival_direction = abs(np.cos(receive_zen-vector_zen))*self._sphere_sizes[-1]
+        path_correction_arrival_direction = abs(np.cos(receive_zen-vector_zen))*self._sphere_size
         
         if abs(receive_az-vector_az) > np.deg2rad(90): 
             path_correction_overshoot = np.linalg.norm(vector[0:2])*abs(np.cos(receive_az-vector_az))
