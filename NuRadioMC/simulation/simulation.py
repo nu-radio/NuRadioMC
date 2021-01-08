@@ -379,8 +379,7 @@ class simulation():
             n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
             n_reflections=self._n_reflections,
             config=self._cfg,
-            detector = self._det, 
-            shower_dir = [self._zenith_shower, self._azimuth_shower]
+            detector = self._det
         )
         r = self._raytracer
         for shower_index, shower_id in enumerate(self._shower_ids):
@@ -537,6 +536,7 @@ class simulation():
                     # i.e., opposite to the direction of propagation. We need the propagation direction here,
                     # so we multiply the shower axis with '-1'
                     self._shower_axis = -1 * hp.spherical_to_cartesian(self._zenith_shower, self._azimuth_shower)
+                    self._raytracer.set_shower_axis(self._shower_axis)
 
                     # calculate correct chereknov angle for ice density at vertex position
                     n_index = self._ice.get_index_of_refraction(x1)

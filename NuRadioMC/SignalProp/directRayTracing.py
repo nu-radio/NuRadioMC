@@ -32,6 +32,9 @@ class directRayTracing():
         self._x1 = x1
         self._x2 = x2
 
+    def set_shower_axis(self,shower_axis=None):
+        self._shower_axis = shower_axis
+
         
     def find_solutions(self):
         results = []

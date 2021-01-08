@@ -57,6 +57,17 @@ class ray_tracing_base:
         """
         pass
 
+    def set_shower_axis(self,shower_axis=None):
+        """
+        Set the the shower axis. This is oposite to the neutrino arrival direction
+
+        Parameters
+        ----------
+        shower_axis: np.array of shape (3,), unit not relevant (preferably meter)
+            the direction of where the shower is moving towards to in cartesian coordinates
+        """
+        pass
+
     def find_solutions(self):
         """
         find all solutions between x1 and x2

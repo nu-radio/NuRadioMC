@@ -34,7 +34,7 @@ class ray_tracing:
 
     def __init__(self, medium, attenuation_model="GL1", log_level=logging.WARNING,
                  n_frequencies_integration=100,
-                 n_reflections=0, config=None, detector = None, shower_dir = None):
+                 n_reflections=0, config=None, detector = None):
 
         """
         class initilization
@@ -56,8 +56,8 @@ class ray_tracing:
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
-        shower_dir: np.array of shape (1,2)
-                    zenith and azimuth of direction of shower in radians
+        shower_axis: np.array of shape (3,)
+                    x, y and z of direction of shower in radians
 
         """
         self._airBoundary = radiopropa.Discontinuity(radiopropa.Plane(radiopropa.Vector3d(0,0,0), radiopropa.Vector3d(0,0,1)), 1.3, 1)
@@ -65,8 +65,7 @@ class ray_tracing:
         self._attenuation_model = attenuation_model
         self._results = None
         self._n_reflections = n_reflections
-        self._shower_dir = shower_dir ## this is given so we cn limit the rays that are checked around the cherenkov angle
-        self._cut_viewing_angle = 20 * units.degree #degrees wrt cherenkov angle
+        self._cut_viewing_angle = 40 * units.degree #degrees wrt cherenkov angle
         self._max_traj_length = 5000 * units.meter
         self._iceModel = radiopropa.GreenlandIceModel() ## we need to figure out how to do this properly
         self._config = config
@@ -76,6 +75,7 @@ class ray_tracing:
         self._step_sizes = np.array([.5,.05,.0125]) * units.degree ## step for theta corresponding to the sphere size, should have same lenght as _sphere_sizes
         self._x1 = None
         self._x2 = None
+        self._shower_axis = None ## this is given so we cn limit the rays that are checked around the cherenkov angle
         self._max_detector_frequency = None
         self._detector = detector
         if self._detector is not None:
@@ -104,6 +104,20 @@ class ray_tracing:
         self._x1 = x1 * units.meter
         x2 = np.array(x2, dtype = np.float)
         self._x2 = x2 * units.meter
+
+    def get_shower_axis(self):
+        return self._shower_axis
+
+    def set_shower_axis(self,shower_axis=None):
+        """
+        Set the the shower axis. This is oposite to the neutrino arrival direction
+
+        Parameters
+        ----------
+        shower_axis: np.array of shape (3,), unit not relevant (preferably meter)
+            the direction of where the shower is moving towards to in cartesian coordinates
+        """ 
+        self._shower_axis = shower_axis
 
 
     def set_cut_viewing_angle(self,cut):
@@ -153,11 +167,10 @@ class ray_tracing:
             x2 = self._x2  * (radiopropa.meter/units.meter)
         except TypeError: 
             print('NoneType: start or endpoint not initialized')
+            TypeError
 
         theta_direct, phi = hp.cartesian_to_spherical(*(np.array(self._x2)-np.array(self._x1))) *units.radian ## zenith and azimuth for the direct linear ray solution (radians)
         theta_direct += 5*units.degree ##the median solution is taken, meaning that we need to add some degrees in case the good solution is near theta_direct
-
-        shower = hp.spherical_to_cartesian(*self._shower_dir)
 
         launch_lower = [0]
         launch_upper = [theta_direct] ##below theta_direct no solutions are possible without upward reflections
@@ -226,16 +239,16 @@ class ray_tracing:
                 new_scanning_range = np.arange(launch_lower[iL],launch_upper[iL]+step,step)
                 theta_scanning_range = np.concatenate((theta_scanning_range,new_scanning_range))
 
-            
             cherenkov_angle = 56 *units.degree
 
             for theta in theta_scanning_range: 
                 ray = hp.spherical_to_cartesian(theta/units.radian,phi/units.radian)
-                viewing = np.arccos(np.dot(shower, ray)) * units.radian
+                viewing = np.arccos(np.dot(self._shower_axis, ray)) * units.radian
+
 
                 delta = viewing - cherenkov_angle
                 #only include rays with angle wrt cherenkov angle smaller than 20 degrees 
-                if True: #(abs(delta) < self._cut_viewing_angle): ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
+                if (abs(delta) < self._cut_viewing_angle): ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
                     source = radiopropa.Source()
                     source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*x1)))
                     source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*ray)))
