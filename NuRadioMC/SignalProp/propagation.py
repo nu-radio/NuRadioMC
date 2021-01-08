@@ -14,7 +14,6 @@ def get_propagation_module(name='analytic'):
     """
     if(name=='analytic'):
         from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
-
         return ray_tracing
     elif(name=='direct_ray'):
         from NuRadioMC.SignalProp.directRayTracing import directRayTracing
