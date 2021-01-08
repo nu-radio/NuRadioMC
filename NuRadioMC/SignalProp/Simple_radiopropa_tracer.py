@@ -207,26 +207,22 @@ class ray_tracing:
             #uses step, but because step is initialized after this loop this ios the previous step size as intented
             if previous_candidates == None:
                 pass
-            elif len(previous_candidates)>1:
+            elif len(previous_candidates)>0:
                 launch_lower.clear()
                 launch_upper.clear()
                 for iPC,PC in enumerate(previous_candidates):
                     launch_theta = PC.getLaunchVector().getTheta()
-                    if iPC == (len(previous_candidates)-1):
-                        launch_upper.append(launch_theta+step)
-                    if iPC == 0:
-                        launch_lower.append(launch_theta-step)
+                    if iPC == (len(previous_candidates)-1) or iPC == 0:
+                        if iPC == 0: 
+                            launch_lower.append(launch_theta-step)
+                        if iPC == (len(previous_candidates)-1): 
+                            launch_upper.append(launch_theta+step)
                     elif abs(launch_theta - launch_theta_prev)>1.1*step: ##take 1.1 times the step to be sure the next ray is not in the bundle of the previous one
                         launch_upper.append(launch_theta_prev+step)
                         launch_lower.append(launch_theta-step)
                     else:
                         pass
                     launch_theta_prev = launch_theta
-
-            elif len(previous_candidates)==1:
-                launch_theta= previous_candidates[0].getLaunchVector().getTheta()
-                launch_lower.append(launch_theta-step)
-                launch_upper.append(launch_theta+step)
             else:
                 #if previous_candidates is empthy, no solutions where found and the tracer is terminated
                 break
