@@ -11,6 +11,7 @@ import radiopropa
 logging.basicConfig()
 import radiopropa
 import scipy.constants 
+from NuRadioMC.utilities import medium_radiopropa
 
 """
 STILL TO DO:
@@ -64,14 +65,13 @@ class ray_tracing:
                     x, y and z of direction of shower in radians
 
         """
-        self._airBoundary = radiopropa.Discontinuity(radiopropa.Plane(radiopropa.Vector3d(0,0,0), radiopropa.Vector3d(0,0,1)), 1.3, 1)
         self._medium = medium
+        self._ice_model = medium_radiopropa.get_ice_model(config['propagation']['ice_model'])
         self._attenuation_model = attenuation_model
         self._results = None
         self._n_reflections = n_reflections
         self._cut_viewing_angle = 40 * units.degree #degrees wrt cherenkov angle
         self._max_traj_length = 5000 * units.meter
-        self._iceModel = radiopropa.GreenlandIceModel() ## we need to figure out how to do this properly
         self._config = config
         self._n_frequencies_integration = n_frequencies_integration
 
@@ -184,8 +184,11 @@ class ray_tracing:
 
             ##define module list for simulation
             sim = radiopropa.ModuleList()
-            sim.add(radiopropa.PropagationCK(self._iceModel, 1E-8, .001, 1.)) ## add propagation to module list
-            sim.add(self._airBoundary)
+            sim.add(radiopropa.PropagationCK(self._ice_model["ice_model"], 1E-8, .001, 1.)) ## add propagation to module list
+            for discontinuity in self._ice_model["discontinuities"]:
+                sim.add(discontinuity)
+            for observer in self._ice_model["observers"]:
+                sim.add(observer)
             sim.add(radiopropa.MaximumTrajectoryLength(self._max_traj_length*(radiopropa.meter/units.meter)))
 
             ## define observer for detection (channel)            
