@@ -17,14 +17,16 @@ from NuRadioMC.utilities import medium_radiopropa
 STILL TO DO:
 - DONE compare timing, distances, receive and launch angles wtr analytic raytracer
 - DONE compare attenuation wtr analytic raytracer
-- proper implementatin of the icemodel
-- Add warnings when the icemodel is not implemented in radiopropa
+- DONE proper implementatin of the icemodel
+- DONE Add warnings when the icemodel is not implemented in radiopropa
 - DONE Timing reduction; everything takes too long now
 - DONE compare waveforms wtr analytic raytracer
 - implement cut on viewing and distance in simulation.py --> other raytracer also adapt
+- implement reflecting on bottom
 - reflection angles --> np.array of single value ?? --> posibly adapt also sim and other tracers
 - clean up and add docstrings
 - n_points in get_path still need to be fixed
+- redefine ice_models in coherent way throughout whole software
 """
 
 
@@ -357,7 +359,8 @@ class ray_tracing:
         return self._results
 
 
-    def get_path(self, iS, n_points=1000):#n_points still need to be fixed
+    def get_path(self, iS, n_points=1000):
+#       n_points still need to be fixed
         """
         helper function that returns the 3D ray tracing path of solution iS
 
@@ -465,11 +468,11 @@ class ray_tracing:
             the reflection angle (for reflected rays) or None for direct and refracted rays
         """
         Candidate = self._candidates[iS].get()
-        reflection_angles = np.fromstring(Candidate.getReflectionAngles()[1:-1],sep=',') *(units.degree/radiopropa.deg)
+        reflection_angles = np.fromstring(Candidate.getReflectionAngles_string()[1:-1],sep=',') *(units.degree/radiopropa.deg)
         if len(reflection_angles)==0:
             return None
         else:
-            return reflection_angles[0]
+            return reflection_angles[-1]
 
     def get_correction_path_length(self, iS):
         """
