@@ -71,7 +71,7 @@ class ray_tracing:
         self.__logger = logging.getLogger('ray_tracing')
         self.__logger.setLevel(log_level)
         self._medium = medium
-        self._ice_model = medium_radiopropa.get_ice_model(config['propagation']['ice_model'])
+        self._ice_model = medium.get_ice_model_radiopropa()
         self._attenuation_model = attenuation_model
         self._results = None
         if(n_reflections):
@@ -218,11 +218,8 @@ class ray_tracing:
 
             ##define module list for simulation
             sim = radiopropa.ModuleList()
-            sim.add(radiopropa.PropagationCK(self._ice_model["ice_model"], 1E-8, .001, 1.)) ## add propagation to module list
-            for discontinuity in self._ice_model["discontinuities"].values():
-                sim.add(discontinuity)
-            for observer in self._ice_model["observers"].values():
-                sim.add(observer)
+            sim.add(radiopropa.PropagationCK(self._ice_model.get_scalar_field(), 1E-8, .001, 1.)) ## add propagation to module list
+            for module in self._ice_model.get_modules().values(): sim.add(module)
             sim.add(radiopropa.MaximumTrajectoryLength(self._max_traj_length*(radiopropa.meter/units.meter)))
 
             ## define observer for detection (channel)            
@@ -293,8 +290,8 @@ class ray_tracing:
                         current_candidates.append(candidate)
                         if reflections == 0:
                             results.append({'reflection':0})
-                        elif self._ice_model["discontinuities"]["bottom_reflection"].get_times_reflectedoff(candidate.get()) <= reflections: 
-                            results.append({'reflection':self._ice_model["discontinuities"]["bottom_reflection"].get_times_reflectedoff(candidate.get())})
+                        elif self._ice_model.get_modules()["bottom_reflection"].get_times_reflectedoff(candidate.get()) <= reflections: 
+                            results.append({'reflection':self._ice_model.get_modules()["bottom_reflection"].get_times_reflectedoff(candidate.get())})
 
             previous_candidates = current_candidates
 
