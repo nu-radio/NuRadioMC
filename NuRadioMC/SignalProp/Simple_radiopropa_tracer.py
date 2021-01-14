@@ -79,16 +79,8 @@ class ray_tracing:
                 self._logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
                 n_reflections = 0
         self._n_reflections = n_reflections
-        self._cut_viewing_angle = 40 * units.degree #degrees wrt cherenkov angle
-        self._max_traj_length = 5000 * units.meter
         self._config = config
         self._n_frequencies_integration = n_frequencies_integration
-
-        self._sphere_sizes = np.array([25.,2.,.5]) * units.meter ## iteration from big to small observer around channel
-        self._step_sizes = np.array([.5,.05,.0125]) * units.degree ## step for theta corresponding to the sphere size, should have same lenght as _sphere_sizes
-        self._x1 = None
-        self._x2 = None
-        self._shower_axis = None ## this is given so we cn limit the rays that are checked around the cherenkov angle
         self._max_detector_frequency = None
         self._detector = detector
         if self._detector is not None:
@@ -97,9 +89,23 @@ class ray_tracing:
                 if self._max_detector_frequency is None or sampling_frequency * .5 > self._max_detector_frequency:
                     self._max_detector_frequency = sampling_frequency * .5
 
+        self._cut_viewing_angle = 40 * units.degree #degrees wrt cherenkov angle
+        self._max_traj_length = 5000 * units.meter
+        self._sphere_sizes = np.array([25.,2.,.5]) * units.meter ## iteration from big to small observer around channel
+        self._step_sizes = np.array([.5,.05,.0125]) * units.degree ## step for theta corresponding to the sphere size, should have same lenght as _sphere_sizes
+        
+        self._x1 = None
+        self._x2 = None
+        self._shower_axis = None ## this is given so we cn limit the rays that are checked around the cherenkov angle
+        self._results = None
+        self._candidates = None
 
 
-
+    def reset_results():
+        self._x1 = None
+        self._x2 = None
+        self._results = None
+        self._candidates = None
 
     def get_start_and_end_point(self ):
         return self._x1, self._x2
@@ -113,6 +119,7 @@ class ray_tracing:
         x2: np.array of shape (3,), default unit 
             stop point of the ray
         """ 
+        self.reset_results()
         x1 = np.array(x1, dtype =np.float)
         self._x1 = x1 * units.meter
         x2 = np.array(x2, dtype = np.float)
@@ -319,22 +326,27 @@ class ray_tracing:
             solution_types.append(self.get_solution_type(iS))
             ray_endpoints.append(self.get_path(iS)[-1])
 
-        mask = {i: ((launch_zeniths>self._launch_bundles[i,0]) & (launch_zeniths<self._launch_bundles[i,1])) for i in range(len(self._launch_bundles))}       
+        mask_lower = {i: (launch_zeniths>self._launch_bundles[i,0]) for i in range(len(self._launch_bundles))} 
+        mask_upper = {i: (launch_zeniths<self._launch_bundles[i,1]) for i in range(len(self._launch_bundles))}
+        mask_solution = {j: (np.array(solution_types) == j) for j in range(1,4)}   
+        
         for i in range(len(self._launch_bundles)):
-            if mask[i].any():
-                delta_min = np.deg2rad(90)
-                for iS in iSs[mask[i]]: #index o candidates with solution type i
-                    vector = ray_endpoints[iS] - self._x2 #position of the receive vector on the sphere around the channel
-                    vector_zenith = hp.cartesian_to_spherical(vector[0],vector[1],vector[2])[0]
-                    delta = abs(vector_zenith-receive_zeniths[iS])
-                    if delta < delta_min:
-                        final_candidate = self._candidates[iS]
-                        final_candidate_bottom_reflection = self._results[iS]['reflection']
-                        final_candidate_solution_type = solution_types[iS]
-                        delta_min = delta
-                candidates_results.append(final_candidate)
-                results.append({'type':final_candidate_solution_type, 
-                                'reflection':final_candidate_bottom_reflection})
+            for j in range(1,4):
+                mask = (mask_lower[i]&mask_upper[i]&mask_solution[j])
+                if mask.any():
+                    delta_min = np.deg2rad(90)
+                    for iS in iSs[mask]: #index o candidates with solution type i
+                        vector = ray_endpoints[iS] - self._x2 #position of the receive vector on the sphere around the channel
+                        vector_zenith = hp.cartesian_to_spherical(vector[0],vector[1],vector[2])[0]
+                        delta = abs(vector_zenith-receive_zeniths[iS])
+                        if delta < delta_min:
+                            final_candidate = self._candidates[iS]
+                            final_candidate_bottom_reflection = self._results[iS]['reflection']
+                            final_candidate_solution_type = solution_types[iS]
+                            delta_min = delta
+                    candidates_results.append(final_candidate)
+                    results.append({'type':final_candidate_solution_type, 
+                                    'reflection':final_candidate_bottom_reflection})
 
         self._candidates = candidates_results
         self._results = results

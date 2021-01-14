@@ -1570,7 +1570,7 @@ class ray_tracing:
         self.__R = None
         self.__x1 = None
         self.__x2 = None
-        self.__shower_dir = None
+        self.__shower_axis = None
         self.__results = None
 
     def reset_solutions(self):
@@ -1639,7 +1639,7 @@ class ray_tracing:
         shower_axis: np.array of shape (3,), unit not relevant (preferably meter)
             the direction of where the shower is moving towards to in cartesian coordinates
         """ 
-        self._shower_axis = shower_axis
+        self.__shower_axis = shower_axis
         
     def set_solution(self, raytracing_results, i_shower, channel_id):
         """
