@@ -290,8 +290,8 @@ class ray_tracing:
                         current_candidates.append(candidate)
                         if reflections == 0:
                             results.append({'reflection':0})
-                        elif self._ice_model.get_modules()["bottom_reflection"].get_times_reflectedoff(candidate.get()) <= reflections: 
-                            results.append({'reflection':self._ice_model.get_modules()["bottom_reflection"].get_times_reflectedoff(candidate.get())})
+                        elif self._ice_model.get_modules()["bottom reflection"].get_times_reflectedoff(candidate.get()) <= reflections: 
+                            results.append({'reflection':self._ice_model.get_modules()["bottom reflection"].get_times_reflectedoff(candidate.get())})
 
             previous_candidates = current_candidates
 
