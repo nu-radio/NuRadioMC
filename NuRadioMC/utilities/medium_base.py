@@ -13,13 +13,17 @@ except ImportError:
 logger = logging.getLogger('ice_model')
 
 class IceModel():
+    """
+    Base class from which all ice models should inheret
+    """
     def __init__(self,z_airBoundary=0*units.meter,z_bottom=None):
         self.z_airBoundary = z_airBoundary
         self.z_bottom = z_bottom
 
     def get_index_of_refraction(self,x):
         """
-        returns the index of refraction at position x
+        returns the index of refraction at position x.
+        Reimplement everytime in the specific model
 
         Parameters
         ---------
@@ -36,6 +40,7 @@ class IceModel():
     def get_average_index_of_refraction(self,x1,x2):
         """
         returns the average index of refraction between two points
+        Reimplement everytime in the specific model
 
         Parameters
         ----------
@@ -54,6 +59,7 @@ class IceModel():
     def get_gradient_of_index_of_refraction(self, x):
         """
         returns the gradient of index of refraction at position x
+        Reimplement everytime in the specific model
 
         Parameters
         ----------
@@ -72,7 +78,7 @@ class IceModel():
     else:
         def get_ice_model_radiopropa(self):
             """
-            returns the ice model to insert in radiopropa
+            if radiopropa is installed this will return the ice model to insert in radiopropa
             """
             # check if the scalar field of the model is also implemented in radiopropa
             # if not, one is build through the python wrapper is stead but this is very
@@ -93,8 +99,15 @@ class IceModel():
 
 
         class IceModel_RadioPropa():
+            """
+            This class holds all the necessary variables for the radiopropa rayytracer to work.
+            When radiopropa is installed, this object will automatically be generated for a
+            smooth handeling of the radiopropa ice model.
+            """
             def __init__(self, ice_model_nuradio, scalar_field):
+                # the ice model of NuRadioMC on which this object is based
                 self.__ice_model_nuradio = ice_model_nuradio
+                # this hold a radiopropa.scalarfield of the refractive index
                 self.__scalar_field = scalar_field
                 # these are predined modules that are inherent to the ice model like
                 # discontinuities in the refractive index, reflective or transmissive
@@ -137,7 +150,8 @@ class IceModel():
 
                 Returns
                 -------
-                modules:    dictionary {name:module object}
+                modules: dictionary {name:module object}
+                         dictionary of modules to run in radiopropa
                 """
                 return self.__modules
 
@@ -157,18 +171,55 @@ class IceModel():
                 self.__modules[name]=module
 
             def remove_module(self,name):
+                """
+                removes predefined modules (like reflective or transmissive layers, 
+                a discontinuity in refractive index, observers ...) of the ice 
+                to the dictionary
+
+                Parameter
+                -------
+                name:   string
+                        name to identify the module to be removed
+                """
                 if name in self.__modules.keys():
                     self.__modules.pop(name)
 
             def replace_module(self,name,new_module):
+                """
+                replaces predefined modules (like reflective or transmissive layers, 
+                a discontinuity in refractive index, observers ...) of the ice 
+                to the dictionary
+
+                Parameter
+                -------
+                name:   string
+                        name to identify the module to be replaced
+                module: radiopropa.Module (and all the daugther classes)
+                        new module to run in radiopropa
+                """
                 self.__modules[name] = new_module
                 if name not in self.__modules.keys():
                     logger.info('Module with name {} does not exist yet and thus cannot be replaced, module just added'.format(name))
 
             def get_scalar_field(self):
+                """
+                add predefined modules (like reflective or transmissive layers, 
+                a discontinuity in refractive index, observers ...) of the ice 
+                to the dictionary
+
+                Parameter
+                -------
+                scalar_field: radiopropa.ScalarField
+                              scalar field that holds the refractive index to use in radiopropa
+                """
                 return self.__scalar_field
 
         class ScalarField(radiopropa.ScalarField):
+            """
+            If the requested ice model does not exist in radiopropa, this class will build
+            be used in stead. It is a radiopropa object but constructed through the python
+            wrapper which is much slower. 
+            """
             def __init__(self, ice_model_nuradio):
                 radiopropa.ScalarField.__init__(self)
                 self.__ice_model_nuradio = ice_model_nuradio
@@ -210,6 +261,9 @@ class IceModel():
 
 
 class IceModel_Exponential(IceModel):
+    """
+    predefined ice model (to inherit from) with exponential shape
+    """
     def __init__(self,z_airBoundary=0*units.meter,z_bottom=None,n_ice=None,z_0=None,delta_n=None):
         IceModel.__init__(self,z_airBoundary,z_bottom)
         self.n_ice = n_ice
@@ -243,8 +297,11 @@ class IceModel_Exponential(IceModel):
             gradient[2] = - self.delta_n / self.z_0 * np.exp((x[2]-self.z_airBoundary) / self.z_0)
         return gradient
 
-class IceModel_ReflectiveBottom(IceModel):
+class ReflectiveBottom():
+    """
+    class which adds a reflective bottom to your ice model through inheritance
+    """
     def __init__(self,refl_z,refl_coef,refl_phase_shift):
-        self.reflection = z_reflection  # from https://doi.org/10.3189/2015JoG14J214
-        self.reflection_coefficient = reflection_coef  # from https://doi.org/10.3189/2015JoG14J214
+        self.reflection = z_reflection
+        self.reflection_coefficient = reflection_coef
         self.reflection_phase_shift = reflection_phase_shift
