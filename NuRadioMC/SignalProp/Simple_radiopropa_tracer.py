@@ -9,10 +9,16 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import radiopropa
 logging.basicConfig()
-import radiopropa
 import scipy.constants 
 from NuRadioMC.utilities import medium_radiopropa
 import copy
+from scipy.interpolate import interp1d
+
+try:
+    import radiopropa
+except ImportError:
+    print('ImportError: This raytracer depends on radiopropa which could not be imported. Check wether all dependancies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
+    raise ImportError
 
 """
 STILL TO DO:
@@ -89,8 +95,8 @@ class ray_tracing:
                 if self._max_detector_frequency is None or sampling_frequency * .5 > self._max_detector_frequency:
                     self._max_detector_frequency = sampling_frequency * .5
 
-        self._cut_viewing_angle = 40 * units.degree #degrees wrt cherenkov angle
-        self._max_traj_length = 5000 * units.meter
+        ## discard events if delta_C (angle off cherenkov cone) is too large
+        self._cut_viewing_angle = config['speedup']['delta_C_cut'] * units.radian
         self._sphere_sizes = np.array([25.,2.,.5]) * units.meter ## iteration from big to small observer around channel
         self._step_sizes = np.array([.5,.05,.0125]) * units.degree ## step for theta corresponding to the sphere size, should have same lenght as _sphere_sizes
         
@@ -101,11 +107,12 @@ class ray_tracing:
         self._candidates = None
 
 
-    def reset_results():
+    def reset_results(self):
         self._x1 = None
         self._x2 = None
         self._results = None
         self._candidates = None
+        self._max_traj_length = 10000*units.meter
 
     def get_start_and_end_point(self ):
         return self._x1, self._x2
@@ -154,10 +161,10 @@ class ray_tracing:
         """
         Parameters
         ----------
-        max_traj_length: float, unit is meter
+        max_traj_length: float, default units
                          maxmimal length to trace a ray. tracing aborted when reached
         """
-        self._max_traj_length = max_traj_length * units.meter
+        self._max_traj_length = max_traj_length
 
     def get_cut_viewing_angle(self):
         """
@@ -321,7 +328,7 @@ class ray_tracing:
             launch_zeniths.append(hp.cartesian_to_spherical(*(self.get_launch_vector(iS)))[0])
             receive_zeniths.append(hp.cartesian_to_spherical(*(self.get_receive_vector(iS)))[0])
             solution_types.append(self.get_solution_type(iS))
-            ray_endpoints.append(self.get_path(iS)[-1])
+            ray_endpoints.append(self.get_original_path(iS)[-1])
 
         mask_lower = {i: (launch_zeniths>self._launch_bundles[i,0]) for i in range(len(self._launch_bundles))} 
         mask_upper = {i: (launch_zeniths<self._launch_bundles[i,1]) for i in range(len(self._launch_bundles))}
@@ -370,9 +377,27 @@ class ray_tracing:
         """
         return self._results
 
+    def get_original_path(self, iS):
+        """
+        helper function that returns the 3D ray tracing path (as found by radiopropa) of solution iS
 
+        Parameters
+        ----------
+        iS: int
+            ray tracing solution
+
+        Returns
+        -------
+        path: 2dim np.array of shape (n_points,3)
+              x, y, z coordinates along second axis
+        """
+        Candidate = self._candidates[iS].get()
+        path_x = np.fromstring(Candidate.getPathX()[1:-1],sep=',')*(units.meter/radiopropa.meter)
+        path_y = np.fromstring(Candidate.getPathY()[1:-1],sep=',')*(units.meter/radiopropa.meter)
+        path_z = np.fromstring(Candidate.getPathZ()[1:-1],sep=',')*(units.meter/radiopropa.meter)
+        return np.stack([path_x,path_y,path_z], axis=1)
+    
     def get_path(self, iS, n_points=1000):
-#       n_points still need to be fixed
         """
         helper function that returns the 3D ray tracing path of solution iS
 
@@ -381,19 +406,31 @@ class ray_tracing:
         iS: int
             ray tracing solution
         n_points: int
-            number of points of path
+                  number of points of path
+                  if none, the original calculated path is returned
 
         Returns
         -------
         path: 2dim np.array of shape (n_points,3)
               x, y, z coordinates along second axis
         """
-        Candidate = self._candidates[iS].get()
-        pathx = np.fromstring(Candidate.getPathX()[1:-1],sep=',')*(units.meter/radiopropa.meter)
-        pathy = np.fromstring(Candidate.getPathY()[1:-1],sep=',')*(units.meter/radiopropa.meter)
-        pathz = np.fromstring(Candidate.getPathZ()[1:-1],sep=',')*(units.meter/radiopropa.meter)
+        path = self.get_original_path(iS)
+        path_x = path[0]
+        path_y = path[1]
+        path_z = path[2]
 
-        return np.stack([pathx,pathy,pathz], axis=1)
+        if n_points != None:
+            phi = hp.cartesian_to_spherical(*(self._x2-self._x1))[1]
+            path_r = path_x / np.cos(phi)
+
+            interpol = interp1d(path_r,path_z)
+            new_path_r = np.linspace(path_r[0],path_r[-1],num=n_points)
+            
+            path_x = new_path_r * np.cos(phi)
+            path_y = new_path_r * np.sin(phi)
+            path_z = interpol(new_path_r)
+
+        return np.stack([path_x,path_y,path_z], axis=1)
 
     def get_solution_type(self, iS):
         """ returns the type of the solution
@@ -412,7 +449,7 @@ class ray_tracing:
             * 3: 'reflected
         """
 
-        pathz = self.get_path(iS)[:, 2]
+        pathz = self.get_original_path(iS)[:, 2]
         if (self._results[iS]['reflection'] != 0) or (self.get_reflection_angle(iS) != None):
             solution_type = 3
         elif(pathz[-1] < max(pathz)):
@@ -502,7 +539,7 @@ class ray_tracing:
         distance: float
             distance that should be added to the path length
         """
-        end_of_path = self.get_path(iS)[-1] #position of the receive vector on the sphere around the channel in detector coordinates
+        end_of_path = self.get_original_path(iS)[-1] #position of the receive vector on the sphere around the channel in detector coordinates
         receive_vector = self.get_receive_vector(iS)
         
         vector = end_of_path - self._x2 #position of the receive vector on the sphere around the channel
@@ -620,7 +657,7 @@ class ray_tracing:
             (only ice attenuation, the 1/R signal falloff not considered here)
 
         """
-        path = self.get_path(iS)
+        path = self.get_original_path(iS)
 
         mask = frequency > 0
         freqs = self.get_frequencies_for_attenuation(frequency, self._max_detector_frequency)
