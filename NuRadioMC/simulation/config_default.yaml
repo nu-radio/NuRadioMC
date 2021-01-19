@@ -42,3 +42,8 @@ trigger:
   noise_temperature: 300  # in Kelvin, can also be set to "detector" to use the station/channel specific noise temperature from the detector description
   Vrms: null  # the RMS noise value in volts. Not compatible with 'noise_temperature', if Vrms is set, 'noise_temperature' must be None
 
+output:
+  channel_traces: True
+  electric_field_traces: True
+  sim_channel_traces: True
+  sim_electric_field_traces: True

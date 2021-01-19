@@ -259,41 +259,33 @@ class ray_tracing_base:
         """
         pass
 
-    def create_output_data_structure(self, dictionary, n_showers, n_antennas):
+    def get_output_parameters(self):
         """
-        Create data structure to store parameters specific to this raytracer.
-        This function can be used to add entries to the output dictionary, which are
-        then used to store parameters that are unique to the specific raytracing module
+        Returns a list with information about parameters to include in the output data structure that are specific
+        to this raytracer
 
-        Parameters:
-        ------------------
-        dictionary: dict
-            The output dictionary to which the entries should be added
-        n_showers: int
-            The number of showers to be simulated
-        n_antennas: int
-            The number of antennas to be simulated for each shower
+        Returns:
+        -----------------
+        list with entries of form [{'name': str, 'ndim': int}]
+            'name': Name of the new parameter to include in the data structure
+            'ndim': Dimension of the data structure for the parameter
         """
         pass
 
-    def write_raytracing_output(self, dictionary, i_shower, channel_id, i_solution):
+    def get_raytracing_output(self, i_solution):
         """
         Write parameters that are specific to this raytracer into the output data.
 
         Parameters:
         ---------------
-        dictionary: dict
-            The output dictionary into which the parameters should be written
-        i_shower: int
-            The shower index
-        channel_id: int
-            The ID of the channel
         i_solution: int
             The index of the raytracing solution
-        """
-        pass
 
-    def check_if_presimulated(self):
+        Returns:
+        ---------------
+        dictionary with the keys matching the parameter names specified in get_output_parameters and the values being
+        the results from the raytracing
+        """
         pass
 
     def get_number_of_raytracing_solutions(self):
@@ -303,21 +295,18 @@ class ray_tracing_base:
         """
         pass
 
-    def get_ray_tracing_perfomed(self, station_dictionary, station_id):
+    def get_config(self):
         """
-        Function that can tell from the input dictionary if a raytracing with this raytracer has already
-        been performed and written into the dictionary.
-
-
-        Parameters:
-        -------------
-        station_dictionary: dict
-            The input dictionary in which to search for raytracing results
-        station_id: int
-            ID of the station for which to check for a raytracing solution
-
-        Returns
-        -------------------
-        True if there is a raytracing solution in the dictionary, otherwise false
+        Function that returns the configuration currently used by the raytracer
         """
         pass
+
+    def set_config(self, config):
+        """
+        Function to change the configuration file used by the raytracer
+
+        Parameters:
+        ----------------
+        config: dict
+            The new configuration settings
+        """

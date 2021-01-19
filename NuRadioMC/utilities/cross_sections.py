@@ -2,6 +2,9 @@ import numpy as np
 from NuRadioReco.utilities import units
 from scipy.interpolate import interp1d
 from scipy import constants
+import logging
+
+logger = logging.getLogger("cross sections")
 
 
 def param(energy, inttype='cc'):
@@ -11,6 +14,12 @@ def param(energy, inttype='cc'):
     See documentation there for details
 
     """
+    if(np.any(energy < 1e4 * units.GeV)):
+        logger.warning(f"CTW neutrino nucleon cross sections not valid for energies below 1e4 GeV, ({energy/units.GeV}GeV was requested)")
+        if(hasattr(energy, "__len__")):
+            return np.nan * np.ones_like(energy)
+        else:
+            return np.nan
 
     if inttype == 'cc':
         c = (-1.826, -17.31, -6.406, 1.431, -17.91)  # nu, CC
@@ -20,6 +29,23 @@ def param(energy, inttype='cc'):
         c = (-1.033, -15.95, -7.247, 1.569, -17.72)  # nu_bar, CC
     elif inttype == 'nc_bar':
         c = (-1.033, -15.95, -7.296, 1.569, -18.30)  # nu_bar, NC
+
+    elif inttype == 'nc_up':
+        c = (-1.456, 32.23, -32.32, 5.881, -49.41)  # nu, NC
+    elif inttype == 'cc_up':
+        c = (-1.456, 33.47, -33.02, 6.026, -49.41)  # nu, CC
+    elif inttype == 'nc_bar_up':
+        c = (-2.945, 143.2, -76.70, 11.75, -142.8)  # nu_bar, NC
+    elif inttype == 'cc_bar_up':
+        c = (-2.945, 144.5, -77.44, 11.9, -142.8)  # nu_bar, CC
+    elif inttype == 'nc_down':
+        c = (-15.35, 16.16, 37.71, -8.801, -253.1)  # nu, NC
+    elif inttype == 'cc_down':
+        c = (-15.35, 13.86, 39.84, -9.205, -253.1)  # nu, CC
+    elif inttype == 'nc_bar_down':
+        c = (-13.08, 15.17, 31.19, -7.757, -216.1)  # nu_bar, NC
+    elif inttype == 'cc_bar_down':
+        c = (-13.08, 12.48, 33.52, -8.191, -216.1)  # nu_bar, CC
     else:
         logger.error("Type {0} of interaction not defined".format(inttype))
         raise NotImplementedError
@@ -190,8 +216,34 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
 
                     crscn[particles] = param(energy[particles], 'nc') + param(energy[particles], 'cc')
                     crscn[antiparticles] = param(energy[antiparticles], 'nc_bar') + param(energy[antiparticles], 'cc_bar')
+            elif inttype == 'total_up':
 
-            if (inttype == 'cc') or (inttype == 'nc'):
+                if (type(flavors) == int or type(flavors) == np.int64):
+                    if flavors >= 0:
+                        crscn = param(energy, 'nc_up') + param(energy, 'cc_up')
+                    else:
+                        crscn = param(energy, 'nc_bar_up') + param(energy, 'cc_bar_up')
+                else:
+                    antiparticles = np.where(flavors < 0)
+                    particles = np.where(flavors >= 0)
+
+                    crscn[particles] = param(energy[particles], 'nc_up') + param(energy[particles], 'cc_up')
+                    crscn[antiparticles] = param(energy[antiparticles], 'nc_bar_up') + param(energy[antiparticles], 'cc_bar_up')
+            elif inttype == 'total_down':
+
+                if (type(flavors) == int or type(flavors) == np.int64):
+                    if flavors >= 0:
+                        crscn = param(energy, 'nc_down') + param(energy, 'cc_down')
+                    else:
+                        crscn = param(energy, 'nc_bar_down') + param(energy, 'cc_bar_down')
+                else:
+                    antiparticles = np.where(flavors < 0)
+                    particles = np.where(flavors >= 0)
+
+                    crscn[particles] = param(energy[particles], 'nc_down') + param(energy[particles], 'cc_down')
+                    crscn[antiparticles] = param(energy[antiparticles], 'nc_bar_down') + param(energy[antiparticles], 'cc_bar_down')
+
+            else:
                 if (type(flavors) == int or type(flavors) == np.int64):
                     crscn = param(energy, inttype)
                 else:

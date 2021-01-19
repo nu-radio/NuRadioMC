@@ -43,6 +43,7 @@ station_keys_event = [
 
 
 def dump(filename):
+    print(f"!!!!!!!!!!!! dumping relevant file content of {filename}:!!!!!!!!!!!!!!!")
     fin = h5py.File(filename, 'r')
     stations = []
     for key in fin.keys():
@@ -66,6 +67,10 @@ def dump(filename):
         t += f" zen, az"
         print(t)
         for station in stations:
+            if not 'ray_tracing_C0' in station:
+                print(f'{station} has not entries')
+                continue
+
             nCh, nR = np.array(fin[station]['ray_tracing_C0'][iE]).shape
             for iCh in range(nCh):
                 for iR in range(nR):
