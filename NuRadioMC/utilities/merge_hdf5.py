@@ -5,13 +5,16 @@ import numpy as np
 from collections import OrderedDict
 import h5py
 import argparse
+import os
 import logging
+import math
 logger = logging.getLogger("HDF5-merger")
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 logger.setLevel(logging.WARNING)
 
 
 def merge2(filenames, output_filename):
+    logger.warning(f"merging {len(filenames)} files into {os.path.basename(output_filename)}")
     data = OrderedDict()
     attrs = OrderedDict()
     groups = OrderedDict()
@@ -27,7 +30,8 @@ def merge2(filenames, output_filename):
         n_events_total += fin.attrs['n_events']
         logger.debug(f"increasing total number of events by {fin.attrs['n_events']:d} to {n_events_total:d} ")
 
-        if(np.sum(np.array(fin['triggered'])) == 0):
+        # empty files might not have the triggered object at all
+        if('triggered' not in fin.keys() or  ('triggered' in fin.keys() and np.sum(np.array(fin['triggered'])) == 0)):
             logger.info(f"file {f} contains no events")
         else:
             non_empty_filenames.append(f)
@@ -65,45 +69,66 @@ def merge2(filenames, output_filename):
                 attrs[key] = fin.attrs[key]
             else:
                 if(key != 'trigger_names'):
-                    if(not np.all(attrs[key] == fin.attrs[key])):
+                    if(not np.all(np.nan_to_num(attrs[key]) == np.nan_to_num(fin.attrs[key]))):
                         if(key == "n_events"):
                             logger.warning(f"number of events in file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. We keep track of the total number of events, but in case the simulation was performed with different settings per file (e.g. different zenith angle bins), the averaging might be effected.")
                         elif(key == "start_event_id"):
                             continue
                         else:
                             logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. Using attribute value of first file, but you have been warned!")
+                else:
+                    if(len(attrs[key]) != len(fin.attrs[key]) or np.all(attrs[key] != fin.attrs[key])):
+                        logger.error(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. ")
+                        raise AttributeError(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. ")
             if((('trigger_names' not in attrs) or (len(attrs['trigger_names']) == 0)) and 'trigger_names' in fin.attrs):
                 attrs['trigger_names'] = fin.attrs['trigger_names']
         fin.close()
-
-    # check event group ids for uniqueness (this is important because effective volume/area calculation uses the event
-    # group id to determine if a multi station coincidence exists
-    unique_uegids = np.unique(data[filenames[0]]['event_group_ids'])
-    for iF, f in enumerate(filenames):
-        if(iF == 0):
-            continue
-        current_uegids = np.unique(data[f]['event_group_ids'])
-        intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
-        if(np.sum(intersect)):
-            current_egids = data[f]['event_group_ids']
-            new_egid = max(unique_uegids.max(), current_uegids.max()) + 1
-            for gid in intersect:
-                mask = gid == current_egids
-                current_egids[mask] = new_egid
-                new_egid += 1
-            logger.warning(f"event group ids are not unique per file, current file is {f}, new unique ids have been generated.")
-            logger.debug(f"non-unique event ids: {intersect}")
-#         # test again for uniqueness
-#         current_uegids = np.unique(data[f]['event_group_ids'])
-#         intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
-#         if(np.sum(intersect)):
-#             raise IndexError(f"event group ids are not unique per file, current file is {f}")
-        unique_uegids = np.append(unique_uegids, current_uegids)
 
     # create data sets
     logger.info("creating data sets")
     fout = h5py.File(output_filename, 'w')
     if(len(non_empty_filenames)):
+        # check event group ids for uniqueness (this is important because effective volume/area calculation uses the event
+        # group id to determine if a multi station coincidence exists
+        # to start, get the 'event_group_ids' for the first file name only
+        # then, loop over all the other files (iF-th file) in the set, and check to see if there
+        # is any overlap (intersection) between the iF-th file and the first file
+        # if so, then identify what the overlap is, and increment the id number in the iF-th file by 1
+        # so that it again becomes unique; then use a np mask to replace the overlapping
+        # number with the new unique number in the iF-th file
+        # then, append the now totally unique list of id's from the iF-th file
+        # to the list from the first file, and so on
+        unique_uegids = np.unique(data[non_empty_filenames[0]]['event_group_ids'])
+        for iF, f in enumerate(non_empty_filenames):
+            if(iF == 0):
+                continue
+            current_uegids = np.unique(data[f]['event_group_ids'])
+            intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
+            if(np.sum(intersect)):
+                current_egids = data[f]['event_group_ids']
+                new_egid = max(unique_uegids.max(), current_uegids.max()) + 1
+                for gid in intersect:
+                    mask = gid == current_egids  # there can be multiple entries per unique event group id, we need to change all of them to the new id
+                    current_egids[mask] = new_egid
+                    # also change the event_group_id arrays of the station groups
+                    if f in non_empty_filenames:
+                        for key in groups[f]:  # loop through all groups
+                            if 'event_group_ids' in groups[f][key]:
+                                g_egids = groups[f][key]['event_group_ids']
+                                mask_g = gid == g_egids
+                                if(np.sum(mask_g)):  # station might not have this event group id, so skip stations where this egid is not present
+                                    g_egids[mask_g] = new_egid
+                    new_egid += 1
+
+                logger.warning(f"event group ids are not unique per file, current file is {f}, new unique ids have been generated.")
+                logger.debug(f"non-unique event ids: {intersect}")
+            current_uegids = np.unique(data[f]['event_group_ids'])  # get the updated list of unique event group ids. Now there should be no intersection with the ids of the previous files
+            # test again for uniqueness
+            intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
+            if(np.sum(intersect)):
+                raise IndexError(f"event group ids are not unique per file, current file is {f}")
+            unique_uegids = np.append(unique_uegids, current_uegids)
+
         keys = data[non_empty_filenames[0]]
         for key in keys:
             logger.info(f"merging key {key}")
@@ -219,6 +244,7 @@ if __name__ == "__main__":
     elif(len(args.files) == 1):
         filenames = glob.glob("{}/*/*.hdf5.part????".format(args.files[0]))
         filenames = np.append(filenames, glob.glob("{}/*/*.hdf5.part??????".format(args.files[0])))
+        filenames = sorted(filenames)
         filenames2 = []
         for i, filename in enumerate(filenames):
             filename, ext = os.path.splitext(filename)
@@ -229,7 +255,7 @@ if __name__ == "__main__":
                     filenames2.append(filename)
 
         input_args = []
-        for filename in filenames2:
+        for filename in sorted(filenames2):
             if(os.path.splitext(filename)[1] == '.hdf5'):
                 d = os.path.split(filename)
                 a, b = os.path.split(d[0])

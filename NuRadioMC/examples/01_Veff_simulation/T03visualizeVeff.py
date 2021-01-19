@@ -11,7 +11,7 @@ import sys
 from NuRadioReco.utilities import units
 from NuRadioReco.detector import detector
 from NuRadioMC.utilities import fluxes
-from NuRadioMC.utilities.Veff import get_Veff, get_Veff_array, get_index, get_Veff_water_equivalent
+from NuRadioMC.utilities.Veff import get_Veff_Aeff, get_Veff_Aeff_array, get_index, get_Veff_water_equivalent
 from NuRadioMC.examples.Sensitivities import E2_fluxes3 as limits
 plt.switch_backend('agg')
 
@@ -23,10 +23,10 @@ if __name__ == "__main__":
     else:
         path = sys.argv[1]
 
-    data = get_Veff(path)
-    Veffs, energies, zenith_bins, utrigger_names, zenith_weights = get_Veff_array(data)
+    data = get_Veff_Aeff(path)
+    Veffs, energies, energies_low, energies_up, zenith_bins, utrigger_names = get_Veff_Aeff_array(data)
     # calculate the average over all zenith angle bins (in this case only one bin that contains the full sky)
-    Veff = np.average(Veffs[:, :, get_index("all_triggers", utrigger_names), 0], axis=1, weights=zenith_weights)
+    Veff = np.average(Veffs[:, :, get_index("all_triggers", utrigger_names), 0], axis=1)
     # we also want the water equivalent effective volume times 4pi
     Veff = get_Veff_water_equivalent(Veff) * 4 * np.pi
     # calculate the uncertainty for the average over all zenith angle bins. The error relative error is just 1./sqrt(N)

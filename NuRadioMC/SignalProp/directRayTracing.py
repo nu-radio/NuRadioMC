@@ -24,6 +24,7 @@ class directRayTracing():
         self._medium = medium
         self._attenuation_model = attenuation_model
         self._results = None
+        self.__config = None    # the raytracer is so simple, there is no need to configure anything
         pass
        
     def set_start_and_end_point(self, x1, x2):
@@ -102,21 +103,23 @@ class directRayTracing():
     
     
     def apply_propagation_effects(self, efield, iS):
-      
         return efield
-    
-    
-    def get_number_of_solutions(self):
-        return len(self._results)
-    
-    
-    def create_output_data_structure(self, dictionary, n_showers, n_antennas):
-        nS = self.get_number_of_raytracing_solutions()
-        dictionary['ray_tracing_solution_type'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
-        
-    def write_raytracing_output(self, dictionary, i_shower, channel_id, i_solution):
-      
-        dictionary['ray_tracing_solution_type'][i_shower, channel_id, i_solution] = self.get_solution_type(i_solution)
 
-    def get_ray_tracing_perfomed(self, station_dictionary, station_id):
-        return False    # This raytracer is so simple, we might as well run it every time
+    def get_output_parameters(self):
+        return [
+            {'name': 'ray_tracing_solution_type', 'ndim': 1}
+        ]
+
+    def get_raytracing_output(self, i_solution):
+        return {
+            'ray_tracing_solution_type': self.get_solution_type(i_solution)
+        }
+
+    def get_config(self):
+        return self.__config
+
+    def set_config(self, config):
+        """
+        This function only exists to fit the template, the raytracer is so simple it does not need a config
+        """
+        pass
