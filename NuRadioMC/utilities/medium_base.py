@@ -24,7 +24,7 @@ class IceModel():
         """
         function which adds a reflective bottom to your ice model
         """
-        self.reflection = z_refl
+        self.reflection = refl_z
         self.reflection_coefficient = refl_coef
         self.reflection_phase_shift = refl_phase_shift
         
