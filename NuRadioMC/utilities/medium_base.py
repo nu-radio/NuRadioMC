@@ -136,6 +136,9 @@ class IceModel_Exponential(IceModel):
         return gradient
 
     def get_ice_model_radiopropa(self):
+        """
+        overwrite inherited function
+        """
         if radiopropa_is_imported:
             scalar_field = radiopropa.IceModel_Exponential(z_surface=self.z_airBoundary*radiopropa.meter/units.meter, 
                                                             n_ice=self.n_ice, delta_n=self.delta_n, 
@@ -150,7 +153,7 @@ class IceModel_Exponential(IceModel):
 if radiopropa_is_imported:
     class IceModel_RadioPropa():
         """
-        This class holds all the necessary variables for the radiopropa rayytracer to work.
+        This class holds all the necessary variables for the radiopropa raytracer to work.
         When radiopropa is installed, this object will automatically be generated for a
         smooth handeling of the radiopropa ice model.
         """
