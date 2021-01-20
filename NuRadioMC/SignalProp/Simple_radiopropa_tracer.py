@@ -187,8 +187,8 @@ class ray_tracing:
 
         if n_reflections > 0:
             if self.medium.reflection is None:
-                self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(reflections))
-                raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(reflections))
+                self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(n_reflections))
+                raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(n_reflections))
             else:
                 z_bottom = self.__medium.reflection
                 rho_channel = np.linalg.norm(u)
