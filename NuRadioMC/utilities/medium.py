@@ -70,7 +70,7 @@ class mooresbay_simple(IceModel_Exponential):
 
         # from https://doi.org/10.3189/2015JoG14J214
         self.add_reflective_bottom( 
-            z_refl = -576*units.m, 
+            refl_z = -576*units.m, 
             refl_coef = 0.82, 
             refl_phase_shift = 180*units.deg)
 
@@ -85,7 +85,7 @@ class mooresbay_simple_2(IceModel_Exponential):
 
         # from https://doi.org/10.3189/2015JoG14J214
         self.add_reflective_bottom( 
-            z_refl = -576*units.m, 
+            refl_z = -576*units.m, 
             refl_coef = 0.82, 
             refl_phase_shift = 180*units.deg)
 

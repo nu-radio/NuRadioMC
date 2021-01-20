@@ -62,7 +62,7 @@ class ray_tracing:
         try:
             import radiopropa
         except ImportError:
-            logger.error('ImportError: This raytracer depends on radiopropa which could not be imported. Check wether all dependancies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
+            self.__logger.error('ImportError: This raytracer depends on radiopropa which could not be imported. Check wether all dependancies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
             raise ImportError
 
         self.__medium = medium
@@ -70,7 +70,7 @@ class ray_tracing:
         self.__attenuation_model = attenuation_model
         if(n_reflections):
             if(not hasattr(self.__medium, "reflection") or self.__medium.reflection is None):
-                self._logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
+                self.__logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
                 n_reflections = 0
         self.__n_reflections = n_reflections
         self.__config = config
@@ -174,7 +174,7 @@ class ray_tracing:
             x1 = self.__x1  * (radiopropa.meter/units.meter)
             x2 = self.__x2  * (radiopropa.meter/units.meter)
         except TypeError: 
-            logger.error('NoneType: start or endpoint not initialized')
+            self.__logger.error('NoneType: start or endpoint not initialized')
             raise TypeError('NoneType: start or endpoint not initialized')
 
         v = (self.__x2-self.__x1)
@@ -187,8 +187,8 @@ class ray_tracing:
 
         if n_reflections > 0:
             if self.medium.reflection is None:
-                self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(reflection))
-                raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(reflection))
+                self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(reflections))
+                raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(reflections))
             else:
                 z_bottom = self.__medium.reflection
                 rho_channel = np.linalg.norm(u)
@@ -199,6 +199,7 @@ class ray_tracing:
                 launch_upper.append(np.pi)
         
         previous_candidates = None
+        step = None
         for s,sphere_size in enumerate(self.__sphere_sizes):
             sphere_size = sphere_size*(radiopropa.meter/units.meter)
             current_candidates = []
@@ -234,6 +235,7 @@ class ray_tracing:
             elif len(previous_candidates)>0:
                 launch_lower.clear()
                 launch_upper.clear()
+                launch_theta_prev = None
                 for iPC,PC in enumerate(previous_candidates):
                     launch_theta = PC.getLaunchVector().getTheta()/radiopropa.rad
                     if iPC == (len(previous_candidates)-1) or iPC == 0:
