@@ -99,7 +99,7 @@ class ray_tracing:
         self.__candidates = None
 
 
-    def reset_results(self):
+    def reset_solutions(self):
         """
         Resets the raytracing solutions back to None. This is useful to do 
         in the loop before a new raytracing is prepared.
