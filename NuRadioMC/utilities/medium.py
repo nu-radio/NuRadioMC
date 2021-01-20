@@ -4,20 +4,26 @@ from NuRadioMC.utilities.medium_base import*
 1) When implementing a new model it should at least inherit from
 'IceModel' from the module 'medium_base'. Overwrite all the function. 
 Inheritance from daughter classes like 'IceModel_Exponential' is also 
-possible and overwriting function may not be needed in this case.
+possible and overwriting functions may not be needed in this case.
 
 2) When implementing a new model and using the radiopropa numerical
-tracer, do not forget to implement the ice model also in the c++
-code of radiopropa for a fast simulation. Implement the model in
-IceModel.cpp and IceModel.h using exactly the same name for the 
-class as in this file and rebuild radiopropa. 
+tracer, do not forget to implement scalar field of the refractive index
+also in the c++ code of radiopropa for a fast simulation. Implement the 
+model in IceModel.cpp and IceModel.h. Then edit the function to get the
+radiopropa ice model, so it can be used in NuRadioMC. For example
+
+        def get_ice_model_radiopropa(self):
+            scalar field = radiopropa.New_IceModel(*args)
+            retur IceModel_RadioPropa(self,scalar_field)
+        
 
 3)If you want to add adjust (add, replace, remove) predefined modules 
 in the a IceModel_RadioPropa object, you can do this by redefining the 
 'get_ice_model_radiopropa()' in your IceModel object. For exemple
 
         def get_ice_model_radiopropa(self):
-            ice = radiopropa.greenland_simple()
+            scalar field = radiopropa.IceModel_Exponential(*args)
+            ice = IceModel_RadioPropa(self,scalar_field)
             extra_dicontinuity = radiopropa.Discontinuity(*args)
             ice.add_module(extra_discontinuity)
             return ice
