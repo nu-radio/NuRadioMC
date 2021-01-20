@@ -276,10 +276,14 @@ class ray_tracing:
                     #check if the channel is reached, detection == 0 (candidate is a pointer to the object Candidate but need real object)
                     if channel.checkDetection(candidate.get()) == 0:
                         current_candidates.append(candidate)
+                        result = {}
                         if n_reflections == 0:
-                            results.append({'reflection':0})
+                            result['reflection']=0
+                            result['reflection_case']=1
                         elif self.__ice_model.get_modules()["bottom reflection"].get_times_reflectedoff(candidate.get()) <= n_reflections: 
-                            results.append({'reflection':self.__ice_model.get_modules()["bottom reflection"].get_times_reflectedoff(candidate.get())})
+                            result['reflection']=self.__ice_model.get_modules()["bottom reflection"].get_times_reflectedoff(candidate.get())
+                            result['reflection_case']=int(np.ceil(theta/np.deg2rad(90)))
+                        results.append(result)
 
             previous_candidates = current_candidates
 
@@ -288,6 +292,18 @@ class ray_tracing:
         self.__launch_bundles = np.transpose([launch_lower,launch_upper])
 
 
+    def set_solutions(self,raytracing_results):
+        results = []
+        candidates = []
+        for iS in range(len(raytracing_results['ray_tracing_solution_type'])):
+            results.append({'type':raytracing_results['ray_tracing_solution_type'][iS],
+                            'reflection':raytracing_results['ray_tracing_reflection'][iS],
+                            'reflection_case':raytracing_results['ray_tracing_reflection_case'][iS]
+                            })
+#            candidates.append(raytracing_results['candidate'][iS])
+
+        self.__results = results
+#        self.__candidates = candidates
 
 
     def find_solutions(self):
@@ -326,12 +342,14 @@ class ray_tracing:
                         delta = abs(vector_zenith-receive_zeniths[iS])
                         if delta < delta_min:
                             final_candidate = self.__candidates[iS]
-                            final_candidate_bottom_reflection = self.__results[iS]['reflection']
+                            final_candidate_reflection = self.__results[iS]['reflection']
+                            final_candidate_reflection_case = self.__results[iS]['reflection_case']
                             final_candidate_solution_type = solution_types[iS]
                             delta_min = delta
                     candidates_results.append(final_candidate)
                     results.append({'type':final_candidate_solution_type, 
-                                    'reflection':final_candidate_bottom_reflection})
+                                    'reflection':final_candidate_reflection,
+                                    'reflection_case':final_candidate_reflection_case})
 
         self.__candidates = candidates_results
         self.__results = results
@@ -711,21 +729,25 @@ class ray_tracing:
         attenuation[mask] = tmp
         return attenuation
 
+    def get_focusing(self, iS, dz=-1. * units.cm, limit=2.):
+        return 1.
+
     def apply_propagation_effects(self, efield, i_solution):
         """
-        Apply all the propagation effect due to the medium
+        Apply propagation effects to the electric field
+        Note that the 1/r weakening of the electric field is already accounted for in the signal generation
 
-        Parameters
-        ----------
-        efield: electric field object
-            the electric field at the shower
+        Parameters:
+        ----------------
+        efield: ElectricField object
+            The electric field that the effects should be applied to
         i_solution: int
-            the id of the raytracing solution for which the effects to apply
+            Index of the raytracing solution the propagation effects should be based on
 
         Returns
-        -------
-        efield: electric field object
-            electric field after application of the propagation effects
+        -------------
+        efield: ElectricField object
+            The modified ElectricField object
         """
         spec = efield.get_frequency_spectrum()
         ## aply attenuation
@@ -740,8 +762,8 @@ class ray_tracing:
                 max_freq = self.__max_detector_frequency
             attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
             spec *= attenuation
+        
         ## apply reflections
-        i_reflections = self.get_results()[i_solution]['reflection']
         zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))
         for zenith_reflection in zenith_reflections:
             if (zenith_reflection is None):
@@ -755,11 +777,11 @@ class ray_tracing:
 
             spec[1] *= r_theta
             spec[2] *= r_phi
-             self.__logger.debug(
+            self.__logger.debug(
                 "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
                     zenith_reflection / units.deg, r_theta, r_phi))
 
-
+        i_reflections = self.get_results()[i_solution]['reflection']
         if (i_reflections > 0):  # take into account possible bottom reflections
             # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
             reflection_coefficient = self.__medium.reflection_coefficient ** i_reflections
@@ -773,22 +795,54 @@ class ray_tracing:
 
         ## apply focussing effect
         if self.__config['propagation']['focusing']:
-            dZRec = -0.01 * units.m
-            focusing = self.get_focusing(i_solution, dZRec, float(self.__config['propagation']['focusing_limit']))
+            focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
             spec[1:] *= focusing
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
 
 
-    def create_output_data_structure(self, dictionary, n_showers, n_antennas):
-        nS = self.get_number_of_raytracing_solutions()
-        dictionary['ray_tracing_solution_type'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
+    def get_output_parameters(self):
+        return [
+            {'name': 'sphere_sizes','ndim':len(self.__sphere_sizes)},
+            {'name': 'zenith_step_sizes','ndim':len(self.__step_sizes)},
+#            {'name': 'candidate', 'ndim': 1},
+            {'name': 'focusing_factor', 'ndim': 1},
+            {'name': 'ray_tracing_reflection', 'ndim': 1},
+            {'name': 'ray_tracing_reflection_case', 'ndim': 1},
+            {'name': 'ray_tracing_solution_type', 'ndim': 1}
+        ]
 
-
-    def write_raytracing_output(self, dictionary, i_shower, channel_id, i_solution):
-        dictionary['ray_tracing_solution_type'][i_shower, channel_id, i_solution] = self.get_solution_type(i_solution)
+    def get_raytracing_output(self,i_solution):
+        focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
+        output_dict = {
+            'sphere_sizes': self.__sphere_sizes,
+            'zenith_step_sizes': self.__step_sizes,
+#            'candidate': self.__candidates[i_solution],
+            'focusing_factor': focusing,
+            'ray_tracing_reflection': self.get_results()[i_solution]['reflection'],
+            'ray_tracing_reflection_case': self.get_results()[i_solution]['reflection_case'],
+            'ray_tracing_solution_type': self.get_solution_type(i_solution)            
+        }
+        return output_dict
 
 
     def get_number_of_raytracing_solutions(self):
         return 2 + 4 * self.__n_reflections # number of possible ray-tracing solutions
+
+    def get_config(self):
+        """
+        Function that returns the configuration currently used by the raytracer
+        """
+        return self.__config
+
+    def set_config(self, config):
+        """
+        Function to change the configuration file used by the raytracer
+
+        Parameters:
+        ----------------
+        config: dict
+            The new configuration settings
+        """
+        self.__config = config

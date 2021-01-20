@@ -10,6 +10,9 @@ solution_types = {1: 'direct',
                   2: 'refracted',
                   3: 'reflected'}
 
+reflection_case = {1: 'upwards launch vector',
+                  2: 'downward launch vector'}
+
 
 class ray_tracing_base:
     """
@@ -264,9 +267,12 @@ class ray_tracing_base:
         Returns a list with information about parameters to include in the output data structure that are specific
         to this raytracer
 
+        ! be sure that the first entry is specific to your raytracer !
+
         Returns:
         -----------------
         list with entries of form [{'name': str, 'ndim': int}]
+            ! be sure that the first entry is specific to your raytracer !
             'name': Name of the new parameter to include in the data structure
             'ndim': Dimension of the data structure for the parameter
         """
