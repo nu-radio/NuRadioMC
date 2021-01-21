@@ -198,6 +198,17 @@ class neutrino3DVertexReconstructor:
                     ax2_1.axvline(hp.get_normalized_angle(hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]) / units.deg, color='r', linestyle='--', alpha=.5)
                     ax2_1.axhline(sim_vertex[2], color='r', linestyle='--', alpha=.5)
                 ax2_1.set_title('d={:.0f}m'.format(distance))
+        corr_fit_threshold = .8 * np.max(full_correlations)
+        flattened_corr = np.max(full_correlations, axis=2).T
+        i_max = np.argmax(flattened_corr, axis=0)
+        z_corr_mask = np.max(flattened_corr, axis=0) > corr_fit_threshold
+        line_fit = np.polyfit(
+            self.__distances[z_corr_mask],
+            z_range[i_max][z_corr_mask],
+            1
+        )
+        max_z_offset = np.max([50, np.min([200, np.max(z_range[i_max][z_corr_mask] - self.__distances[z_corr_mask] * line_fit[0] - line_fit[1])])])
+        min_z_offset = np.max([50, np.min([200, np.max(-z_range[i_max][z_corr_mask] + self.__distances[z_corr_mask] * line_fit[0] + line_fit[1])])])
         if debug:
             fig2.tight_layout()
             fig2.savefig('plots/direction_recos/direction_reco_{}_{}.png'.format(event.get_run_number(), event.get_id()))
@@ -255,10 +266,6 @@ class neutrino3DVertexReconstructor:
             ax4_1 = fig4.add_subplot(311)
             ax5_1 = fig5.add_subplot(211)
             ax5_1.grid()
-            corr_fit_threshold = .8 * np.max(full_correlations)
-            flattened_corr = np.max(full_correlations, axis=2).T
-            i_max = np.argmax(flattened_corr, axis=0)
-            z_corr_mask = np.max(flattened_corr, axis=0) > corr_fit_threshold
             d_0, z_0 = np.meshgrid(self.__distances, z_range)
             ax4_1.pcolor(
                 d_0,
@@ -266,15 +273,10 @@ class neutrino3DVertexReconstructor:
                 flattened_corr
             )
             ax4_1.grid()
-            line_fit = np.polyfit(
-                self.__distances[z_corr_mask],
-                z_range[i_max][z_corr_mask],
-                1
-            )
             ax5_1.fill_between(
                 self.__distances,
-                self.__distances * line_fit[0] + line_fit[1] + 100,
-                self.__distances * line_fit[0] + line_fit[1] - 100,
+                self.__distances * line_fit[0] + line_fit[1] + 1.1 * max_z_offset,
+                self.__distances * line_fit[0] + line_fit[1] - 1.1 * min_z_offset,
                 color='k',
                 alpha=.2
             )
@@ -368,8 +370,8 @@ class neutrino3DVertexReconstructor:
         hor_distances = np.arange(200, 3500, 2.)
         z_coords = line_fit[0] * hor_distances + line_fit[1]
         hor_distances = hor_distances[(z_coords < 0) & (z_coords > -2700)]
-        search_widths = np.arange(-100, 100, 2)
-        search_heights = np.arange(-75, 75, 2)
+        search_widths = np.arange(-100, 100, 4.)
+        search_heights = np.arange(-1.2 * min_z_offset, 1.1 * max_z_offset, 2.5)
         x_0, y_0, z_0 = np.meshgrid(hor_distances, search_widths, search_heights)
 
         z_coords = z_0 + line_fit[0] * x_0 + line_fit[1]
