@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.signal
+from matplotlib import cm
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units
 import NuRadioReco.utilities.io_utilities
@@ -85,7 +86,9 @@ class neutrino3DVertexReconstructor:
         self.__channel_pairs = []
         for i in range(len(channel_ids) - 1):
             for j in range(i + 1, len(channel_ids)):
-                if detector.get_antenna_type(station_id, channel_ids[i]) == detector.get_antenna_type(station_id, channel_ids[j]):
+                relative_positions = detector.get_relative_position(station_id, channel_ids[i]) - detector.get_relative_position(station_id, channel_ids[j])
+                if detector.get_antenna_type(station_id, channel_ids[i]) == detector.get_antenna_type(station_id, channel_ids[j])\
+                        and np.sqrt(np.sum(relative_positions**2)) > 5.:
                     self.__channel_pairs.append([channel_ids[i], channel_ids[j]])
         self.__lookup_table = {}
         self.__header = {}
@@ -111,7 +114,7 @@ class neutrino3DVertexReconstructor:
             debug=False
     ):
         theta_range = np.arange(0, 360.1, 2.5) * units.deg
-        z_range = np.arange(-2700, -100, 20)
+        z_range = np.arange(-2700, -100, 25)
 
         theta_coords, z_coords = np.meshgrid(theta_range, z_range)
         distance_correlations = np.zeros(self.__distances.shape)
@@ -152,7 +155,7 @@ class neutrino3DVertexReconstructor:
             sample_shifts = np.arange(-len(corr_1) // 2, len(corr_1) // 2, dtype=int)
             toffset = sample_shifts / channel_1.get_sampling_rate()
             for i_shift, shift_sample in enumerate(sample_shifts):
-                correlation_product[i_shift] = np.max(corr_1 * np.roll(corr_2, shift_sample))
+                correlation_product[i_shift] = np.max((corr_1 * np.roll(corr_2, shift_sample)))
             self.__pair_correlations[i_pair] = correlation_product
             if debug:
                 ax1_1 = fig1.add_subplot(len(self.__channel_pairs) // 2 + len(self.__channel_pairs) % 2, 2,
@@ -361,6 +364,145 @@ class neutrino3DVertexReconstructor:
             fig5.tight_layout()
             fig5.savefig('plots/maxima_paths/maxima_paths_{}_{}.png'.format(event.get_run_number(), event.get_id()))
 
+        # <--- 3D Fit ---> #
+        hor_distances = np.arange(200, 3500, 2.)
+        z_coords = line_fit[0] * hor_distances + line_fit[1]
+        hor_distances = hor_distances[(z_coords < 0) & (z_coords > -2700)]
+        search_widths = np.arange(-100, 100, 2)
+        search_heights = np.arange(-75, 75, 2)
+        x_0, y_0, z_0 = np.meshgrid(hor_distances, search_widths, search_heights)
+
+        z_coords = z_0 + line_fit[0] * x_0 + line_fit[1]
+        x_coords = np.cos(median_theta) * x_0 - y_0 * np.sin(median_theta)
+        y_coords = np.sin(median_theta) * x_0 + y_0 * np.cos(median_theta)
+
+        correlation_sum = np.zeros_like(z_coords)
+
+        for i_pair, channel_pair in enumerate(self.__channel_pairs):
+            self.__correlation = self.__pair_correlations[i_pair]
+            self.__channel_pair = channel_pair
+            print('Channel Pair {}/{}'.format(channel_pair[0], channel_pair[1]))
+            self.__channel_positions = [self.__detector.get_relative_position(self.__station_id, channel_pair[0]),
+                                        self.__detector.get_relative_position(self.__station_id, channel_pair[1])]
+            correlation_map = np.zeros_like(correlation_sum)
+            for i_ray in range(len(self.__ray_types)):
+                self.__current_ray_types = self.__ray_types[i_ray]
+                correlation_map = np.maximum(self.get_correlation_array_3d(x_coords, y_coords, z_coords), correlation_map)
+            correlation_sum += correlation_map
+        i_max = np.unravel_index(np.argmax(correlation_sum), correlation_sum.shape)
+        correlation_sum /= np.max(correlation_sum)
+        colormap = cm.get_cmap('viridis', 16)
+        vmin = .6
+        vmax = 1.
+        if debug:
+            fig6 = plt.figure(figsize=(8, 16))
+            ax6_1 = fig6.add_subplot(411)
+            cplot1 = ax6_1.pcolor(
+                x_0[0],
+                z_0[0],
+                np.max(correlation_sum, axis=0),
+                cmap=colormap,
+                vmin=vmin,
+                vmax=vmax
+            )
+            plt.colorbar(cplot1, ax=ax6_1)
+            ax6_2 = fig6.add_subplot(412)
+            cplot2 = ax6_2.pcolor(
+                x_0[:, :, 0],
+                y_0[:, :, 0],
+                np.max(correlation_sum, axis=2),
+                cmap=colormap,
+                vmin=vmin,
+                vmax=vmax
+            )
+            plt.colorbar(cplot2, ax=ax6_2)
+
+            ax6_3 = fig6.add_subplot(413)
+            cplot3 = ax6_3.pcolor(
+                x_0[0],
+                z_coords[0],
+                np.max(correlation_sum, axis=0),
+                cmap=colormap,
+                vmin=vmin,
+                vmax=vmax
+            )
+            plt.colorbar(cplot3, ax=ax6_3)
+            ax6_3.set_aspect('equal')
+            ax6_4 = fig6.add_subplot(414)
+            cplot4 = ax6_4.pcolor(
+                x_coords[:, :, 0],
+                y_coords[:, :, 0],
+                np.max(correlation_sum, axis=2),
+                cmap=colormap,
+                vmin=vmin,
+                vmax=vmax
+            )
+            plt.colorbar(cplot4, ax=ax6_4)
+            ax6_4.set_aspect('equal')
+            sim_vertex = None
+            for sim_shower in event.get_sim_showers():
+                sim_vertex = sim_shower.get_parameter(shp.vertex)
+                break
+            if sim_vertex is not None:
+                sim_vertex_dhor = np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)
+                ax6_1.scatter(
+                    [sim_vertex_dhor],
+                    [sim_vertex[2] - sim_vertex_dhor * line_fit[0] - line_fit[1]],
+                    c='r',
+                    marker='+'
+                )
+                ax6_2.scatter(
+                    [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
+                    [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
+                    c='r',
+                    marker='+'
+                )
+                ax6_3.scatter(
+                    [sim_vertex_dhor],
+                    [sim_vertex[2]],
+                    c='r',
+                    marker='+'
+                )
+                ax6_4.scatter(
+                    [sim_vertex[0]],
+                    [sim_vertex[1]],
+                    c='r',
+                    marker='+'
+                )
+            ax6_1.scatter(
+                [x_0[i_max]],
+                [z_0[i_max]],
+                c='k',
+                marker='+'
+            )
+            ax6_2.scatter(
+                [x_0[i_max]],
+                [y_0[i_max]],
+                c='k',
+                marker='+'
+            )
+            ax6_3.scatter(
+                [x_0[i_max]],
+                [z_coords[i_max]],
+                c='k',
+                marker='+'
+            )
+            ax6_4.scatter(
+                [x_coords[i_max]],
+                [y_coords[i_max]],
+                c='k',
+                marker='+'
+            )
+            ax6_1.set_xlabel('r [m]')
+            ax6_1.set_ylabel(r'$\Delta z$ [m]')
+            ax6_2.set_xlabel(r'$\Delta x$ [m]')
+            ax6_2.set_ylabel(r'$\Delta y$ [m]')
+            ax6_3.set_xlabel('r [m]')
+            ax6_3.set_ylabel('z [m]')
+            ax6_4.set_xlabel('x [m]')
+            ax6_4.set_ylabel('y [m]')
+            fig6.tight_layout()
+            fig6.savefig('plots/3d_slices/slices{}_{}.png'.format(event.get_run_number(), event.get_id()))
 
     def get_correlation_array_2d(self, phi, z):
         """
@@ -384,6 +526,15 @@ class neutrino3DVertexReconstructor:
         d_hor1 = np.sqrt((x - channel_pos1[0])**2 + (y - channel_pos1[1])**2)
         d_hor2 = np.sqrt((x - channel_pos2[0])**2 + (y - channel_pos2[1])**2)
         res = self.get_correlation_for_pos(np.array([d_hor1, d_hor2]), z)
+        return res
+
+    def get_correlation_array_3d(self, x, y, z):
+        channel_pos1 = self.__channel_positions[0]
+        channel_pos2 = self.__channel_positions[1]
+        d_hor1 = np.sqrt((x - channel_pos1[0])**2 + (y - channel_pos1[1])**2)
+        d_hor2 = np.sqrt((x - channel_pos2[0])**2 + (y - channel_pos2[1])**2)
+        res = self.get_correlation_for_pos(np.array([d_hor1, d_hor2]), z)
+
         return res
 
     def get_correlation_for_pos(self, d_hor, z):
