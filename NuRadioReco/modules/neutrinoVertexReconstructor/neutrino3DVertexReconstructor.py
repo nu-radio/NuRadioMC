@@ -210,6 +210,11 @@ class neutrino3DVertexReconstructor:
         )
         max_z_offset = np.max([50, np.min([200, np.max(z_range[i_max][z_corr_mask] - self.__distances[z_corr_mask] * line_fit[0] - line_fit[1])])])
         min_z_offset = np.max([50, np.min([200, np.max(-z_range[i_max][z_corr_mask] + self.__distances[z_corr_mask] * line_fit[0] + line_fit[1])])])
+        flattened_corr_theta = np.max(full_correlations, axis=1)
+        theta_corr_mask = np.max(flattened_corr_theta, axis=1) >= corr_fit_threshold
+        i_max_theta = np.argmax(flattened_corr_theta, axis=1)
+        median_theta = np.median(theta_range[i_max_theta][theta_corr_mask])
+
         if debug:
             fig2.tight_layout()
             fig2.savefig('plots/direction_recos/direction_reco_{}_{}.png'.format(event.get_run_number(), event.get_id()))
@@ -301,21 +306,17 @@ class neutrino3DVertexReconstructor:
             ax4_2 = fig4.add_subplot(312, projection='polar')
             ax5_2 = fig5.add_subplot(212, projection='polar')
             theta_0, d_0 = np.meshgrid(theta_range, self.__distances)
-            flattened_corr = np.max(full_correlations, axis=1)
-            i_max = np.argmax(flattened_corr, axis=1)
             ax4_2.pcolor(
                 theta_0,
                 d_0,
-                flattened_corr
+                flattened_corr_theta
             )
-            theta_corr_mask = np.max(flattened_corr, axis=1) >= corr_fit_threshold
-            median_theta = np.median(theta_range[i_max][theta_corr_mask])
             ax5_2.scatter(
-                theta_range[i_max][theta_corr_mask],
+                theta_range[i_max_theta][theta_corr_mask],
                 self.__distances[theta_corr_mask]
             )
             ax5_2.scatter(
-                theta_range[i_max][~theta_corr_mask],
+                theta_range[i_max_theta][~theta_corr_mask],
                 self.__distances[~theta_corr_mask],
                 c='k',
                 alpha=.5
@@ -384,7 +385,6 @@ class neutrino3DVertexReconstructor:
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
             self.__correlation = self.__pair_correlations[i_pair]
             self.__channel_pair = channel_pair
-            print('Channel Pair {}/{}'.format(channel_pair[0], channel_pair[1]))
             self.__channel_positions = [self.__detector.get_relative_position(self.__station_id, channel_pair[0]),
                                         self.__detector.get_relative_position(self.__station_id, channel_pair[1])]
             correlation_map = np.zeros_like(correlation_sum)
@@ -398,6 +398,10 @@ class neutrino3DVertexReconstructor:
         colormap = cm.get_cmap('viridis', 16)
         vmin = .6
         vmax = 1.
+        sim_vertex = None
+        for sim_shower in event.get_sim_showers():
+            sim_vertex = sim_shower.get_parameter(shp.vertex)
+            break
         if debug:
             fig6 = plt.figure(figsize=(8, 16))
             ax6_1 = fig6.add_subplot(411)
@@ -443,10 +447,6 @@ class neutrino3DVertexReconstructor:
             )
             plt.colorbar(cplot4, ax=ax6_4)
             ax6_4.set_aspect('equal')
-            sim_vertex = None
-            for sim_shower in event.get_sim_showers():
-                sim_vertex = sim_shower.get_parameter(shp.vertex)
-                break
             if sim_vertex is not None:
                 sim_vertex_dhor = np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)
                 ax6_1.scatter(
@@ -548,7 +548,6 @@ class neutrino3DVertexReconstructor:
 
             self.__correlation = correlation_product
             self.__channel_pair = [channel_id, channel_id]
-            print('Channel {}'.format(channel_id))
             self.__channel_positions = [self.__detector.get_relative_position(self.__station_id, channel_id),
                                         self.__detector.get_relative_position(self.__station_id, channel_id)]
             correlation_map = np.zeros_like(correlation_sum)
@@ -567,7 +566,10 @@ class neutrino3DVertexReconstructor:
         combined_correlations = correlation_sum * max_corr_sum / len(self.__channel_pairs) + self_correlation_sum * max_self_corr_sum / len(self.__channel_ids)
         combined_correlations /= np.max(combined_correlations)
         i_max_dnr = np.unravel_index(np.argmax(combined_correlations), combined_correlations.shape)
-
+        vertex_x = x_coords[i_max_dnr]
+        vertex_y = y_coords[i_max_dnr]
+        vertex_z = z_coords[i_max_dnr]
+        station.set_parameter(stnp.nu_vertex, np.array([vertex_x, vertex_y, vertex_z]))
         if debug:
             fig7.tight_layout()
             fig7.savefig('plots/self_correlations/self_correlations_{}_{}.png'.format(event.get_run_number(), event.get_id()))
