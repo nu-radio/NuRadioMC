@@ -45,6 +45,7 @@ class neutrino3DVertexReconstructor:
         self.__distances = None
         self.__current_distance = None
         self.__pair_correlations = None
+        self.__self_correlations = None
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
         self.__ray_types = [
             ['direct', 'direct'],
@@ -138,19 +139,19 @@ class neutrino3DVertexReconstructor:
                 antenna_pattern_provider=self.__antenna_pattern_provider
             )[0]
             voltage_spec = (
-                antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() +
-                antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()
-                        ) * det.get_amplifier_response(station.get_id(), channel_pair[0], self.__electric_field_template.get_frequencies())
+                                   antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() +
+                                   antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()
+                           ) * det.get_amplifier_response(station.get_id(), channel_pair[0], self.__electric_field_template.get_frequencies())
             if self.__passband is not None:
-                voltage_spec *= bandpass_filter.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butter', 10)
+                voltage_spec *= bandpass_filter.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butterabs', 10)
             voltage_template = fft.freq2time(voltage_spec, self.__sampling_rate)
             voltage_template /= np.max(np.abs(voltage_template))
             if self.__passband is None:
                 corr_1 = hp.get_normalized_xcorr(channel_1.get_trace(), voltage_template)
                 corr_2 = hp.get_normalized_xcorr(channel_2.get_trace(), voltage_template)
             else:
-                corr_1 = hp.get_normalized_xcorr(channel_1.get_filtered_trace(self.__passband, 'butter', 10), voltage_template)
-                corr_2 = hp.get_normalized_xcorr(channel_2.get_filtered_trace(self.__passband, 'butter', 10), voltage_template)
+                corr_1 = hp.get_normalized_xcorr(channel_1.get_filtered_trace(self.__passband, 'butterabs', 10), voltage_template)
+                corr_2 = hp.get_normalized_xcorr(channel_2.get_filtered_trace(self.__passband, 'butterabs', 10), voltage_template)
             correlation_product = np.zeros_like(corr_1)
             sample_shifts = np.arange(-len(corr_1) // 2, len(corr_1) // 2, dtype=int)
             toffset = sample_shifts / channel_1.get_sampling_rate()
@@ -367,11 +368,11 @@ class neutrino3DVertexReconstructor:
             fig5.savefig('plots/maxima_paths/maxima_paths_{}_{}.png'.format(event.get_run_number(), event.get_id()))
 
         # <--- 3D Fit ---> #
-        hor_distances = np.arange(200, 3500, 2.)
+        hor_distances = np.arange(100, 3500, 2.)
         z_coords = line_fit[0] * hor_distances + line_fit[1]
         hor_distances = hor_distances[(z_coords < 0) & (z_coords > -2700)]
         search_widths = np.arange(-100, 100, 4.)
-        search_heights = np.arange(-1.2 * min_z_offset, 1.1 * max_z_offset, 2.5)
+        search_heights = np.arange(-1.1 * min_z_offset, 1.1 * max_z_offset, 2.)
         x_0, y_0, z_0 = np.meshgrid(hor_distances, search_widths, search_heights)
 
         z_coords = z_0 + line_fit[0] * x_0 + line_fit[1]
@@ -392,7 +393,8 @@ class neutrino3DVertexReconstructor:
                 correlation_map = np.maximum(self.get_correlation_array_3d(x_coords, y_coords, z_coords), correlation_map)
             correlation_sum += correlation_map
         i_max = np.unravel_index(np.argmax(correlation_sum), correlation_sum.shape)
-        correlation_sum /= np.max(correlation_sum)
+        max_corr_sum = np.max(correlation_sum)
+        correlation_sum /= max_corr_sum
         colormap = cm.get_cmap('viridis', 16)
         vmin = .6
         vmax = 1.
@@ -505,6 +507,192 @@ class neutrino3DVertexReconstructor:
             ax6_4.set_ylabel('y [m]')
             fig6.tight_layout()
             fig6.savefig('plots/3d_slices/slices{}_{}.png'.format(event.get_run_number(), event.get_id()))
+
+        # <<--- DnR Reco --->> #
+        self.__self_correlations = np.zeros((len(self.__channel_ids), station.get_channel(self.__channel_ids[0]).get_number_of_samples() + self.__electric_field_template.get_number_of_samples() - 1))
+        if debug:
+            fig7 = plt.figure(figsize=(8, 2 * len(self.__channel_ids)))
+        self_correlation_sum = np.zeros_like(z_coords)
+        for i_channel, channel_id in enumerate(self.__channel_ids):
+            channel = station.get_channel(channel_id)
+            antenna_response = trace_utilities.get_efield_antenna_factor(
+                station=station,
+                frequencies=self.__electric_field_template.get_frequencies(),
+                channels=[channel_id],
+                detector=det,
+                zenith=90. * units.deg,
+                azimuth=0,
+                antenna_pattern_provider=self.__antenna_pattern_provider
+            )[0]
+            voltage_spec = (
+                                   antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() +
+                                   antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()
+                           ) * det.get_amplifier_response(station.get_id(), channel_id, self.__electric_field_template.get_frequencies())
+            if self.__passband is not None:
+                voltage_spec *= bandpass_filter.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butter', 10)
+            voltage_template = fft.freq2time(voltage_spec, self.__sampling_rate)
+            voltage_template /= np.max(np.abs(voltage_template))
+            if self.__passband is None:
+                corr_1 = hp.get_normalized_xcorr(channel.get_trace(), voltage_template)
+                corr_2 = hp.get_normalized_xcorr(channel.get_trace(), voltage_template)
+            else:
+                corr_1 = hp.get_normalized_xcorr(channel.get_filtered_trace(self.__passband, 'butter', 10), voltage_template)
+                corr_2 = hp.get_normalized_xcorr(channel.get_filtered_trace(self.__passband, 'butter', 10), voltage_template)
+            correlation_product = np.zeros_like(corr_1)
+            sample_shifts = np.arange(-len(corr_1) // 2, len(corr_1) // 2, dtype=int)
+            toffset = sample_shifts / channel.get_sampling_rate()
+            for i_shift, shift_sample in enumerate(sample_shifts):
+                correlation_product[i_shift] = np.max((corr_1 * np.roll(corr_2, shift_sample)))
+            correlation_product = np.abs(correlation_product)
+            correlation_product[np.abs(toffset) < 20] = 0
+
+            self.__correlation = correlation_product
+            self.__channel_pair = [channel_id, channel_id]
+            print('Channel {}'.format(channel_id))
+            self.__channel_positions = [self.__detector.get_relative_position(self.__station_id, channel_id),
+                                        self.__detector.get_relative_position(self.__station_id, channel_id)]
+            correlation_map = np.zeros_like(correlation_sum)
+            for i_ray in range(len(self.__ray_types)):
+                if self.__ray_types[i_ray][0] != self.__ray_types[i_ray][1]:
+                    self.__current_ray_types = self.__ray_types[i_ray]
+                    correlation_map = np.maximum(self.get_correlation_array_3d(x_coords, y_coords, z_coords), correlation_map)
+            self_correlation_sum += correlation_map
+            if debug:
+                ax7_1 = fig7.add_subplot(len(self.__channel_ids) // 2 + len(self.__channel_ids) % 2, 2, i_channel + 1)
+                ax7_1.grid()
+                ax7_1.plot(toffset, correlation_product)
+                ax7_1.set_title('Channel {}'.format(channel_id))
+        max_self_corr_sum = np.max(self_correlation_sum)
+        self_correlation_sum /= max_self_corr_sum
+        combined_correlations = correlation_sum * max_corr_sum / len(self.__channel_pairs) + self_correlation_sum * max_self_corr_sum / len(self.__channel_ids)
+        combined_correlations /= np.max(combined_correlations)
+        i_max_dnr = np.unravel_index(np.argmax(combined_correlations), combined_correlations.shape)
+
+        if debug:
+            fig7.tight_layout()
+            fig7.savefig('plots/self_correlations/self_correlations_{}_{}.png'.format(event.get_run_number(), event.get_id()))
+            fig8 = plt.figure(figsize=(12, 8))
+            ax8_1 = fig8.add_subplot(232)
+            ax8_2 = fig8.add_subplot(235)
+            ax8_3 = fig8.add_subplot(233)
+            ax8_4 = fig8.add_subplot(236)
+            ax8_5 = fig8.add_subplot(231)
+            ax8_6 = fig8.add_subplot(234)
+
+            cplot1 = ax8_1.pcolor(
+                x_0[0],
+                z_0[0],
+                np.max(self_correlation_sum, axis=0),
+                cmap=colormap,
+                vmin=vmin,
+                vmax=vmax
+            )
+            plt.colorbar(cplot1, ax=ax8_1)
+            cplot2 = ax8_2.pcolor(
+                x_0[:, :, 0],
+                y_0[:, :, 0],
+                np.max(self_correlation_sum, axis=2),
+                cmap=colormap,
+                vmin=vmin,
+                vmax=vmax
+            )
+            plt.colorbar(cplot2, ax=ax8_2)
+
+            cplot3 = ax8_3.pcolor(
+                x_0[0],
+                z_0[0],
+                np.max(combined_correlations, axis=0),
+                cmap=colormap,
+                vmin=vmin,
+                vmax=vmax
+            )
+            plt.colorbar(cplot3, ax=ax8_3)
+            cplot4 = ax8_4.pcolor(
+                x_0[:, :, 0],
+                y_0[:, :, 0],
+                np.max(combined_correlations, axis=2),
+                cmap=colormap,
+                vmin=vmin,
+                vmax=vmax
+            )
+            plt.colorbar(cplot4, ax=ax8_4)
+            cplot5 = ax8_5.pcolor(
+                x_0[0],
+                z_0[0],
+                np.max(correlation_sum, axis=0),
+                cmap=colormap,
+                vmin=vmin,
+                vmax=vmax
+            )
+            plt.colorbar(cplot5, ax=ax8_5)
+            cplot6 = ax8_6.pcolor(
+                x_0[:, :, 0],
+                y_0[:, :, 0],
+                np.max(correlation_sum, axis=2),
+                cmap=colormap,
+                vmin=vmin,
+                vmax=vmax
+            )
+            ax8_5.scatter(
+                [x_0[i_max]],
+                [z_0[i_max]],
+                c='k',
+                marker='+'
+            )
+            ax8_3.scatter(
+                [x_0[i_max_dnr]],
+                [z_0[i_max_dnr]],
+                c='k',
+                marker='+'
+            )
+            plt.colorbar(cplot6, ax=ax8_6)
+            sim_vertex = None
+            for sim_shower in event.get_sim_showers():
+                sim_vertex = sim_shower.get_parameter(shp.vertex)
+                break
+            if sim_vertex is not None:
+                sim_vertex_dhor = np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)
+                ax8_1.scatter(
+                    [sim_vertex_dhor],
+                    [sim_vertex[2] - sim_vertex_dhor * line_fit[0] - line_fit[1]],
+                    c='r',
+                    marker='+'
+                )
+                ax8_2.scatter(
+                    [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
+                    [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
+                    c='r',
+                    marker='+'
+                )
+                ax8_3.scatter(
+                    [sim_vertex_dhor],
+                    [sim_vertex[2] - sim_vertex_dhor * line_fit[0] - line_fit[1]],
+                    c='r',
+                    marker='+'
+                )
+                ax8_4.scatter(
+                    [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
+                    [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
+                    c='r',
+                    marker='+'
+                )
+                ax8_5.scatter(
+                    [sim_vertex_dhor],
+                    [sim_vertex[2] - sim_vertex_dhor * line_fit[0] - line_fit[1]],
+                    c='r',
+                    marker='+'
+                )
+                ax8_6.scatter(
+                    [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
+                    [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
+                    c='r',
+                    marker='+'
+                )
+            ax8_1.grid()
+            ax8_2.grid()
+            fig8.tight_layout()
+            fig8.savefig('plots/dnr_recos/dnr_reco_{}_{}.png'.format(event.get_run_number(), event.get_id()))
+
 
     def get_correlation_array_2d(self, phi, z):
         """
