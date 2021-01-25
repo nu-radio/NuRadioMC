@@ -97,6 +97,82 @@ def get_group_delay(vector_effective_length, df):
     return -np.diff(np.unwrap(np.angle(vector_effective_length))) / df / units.ns / 2 / np.pi
 
 
+def parse_XFDTD_file(path_gain, path_phases):
+
+    with open(path_gain, 'r', encoding='mac_roman') as fin:
+        ff = []
+        phis = []
+        thetas = []
+        gain_theta = []
+        gain_phi = []
+        f = None
+        tmp_phi0_lines = []
+        csv_reader = csv.reader(fin, delimiter=',')
+        line_count = 0
+        for row in csv_reader:
+            if 1:#(line_count % 2) == 0:
+                if line_count != 0:
+                    ff.append(float(row[0]))
+                    thetas.append(float(row[1]))
+                    phis.append(float(row[2]))
+                    gain_phi.append(float(row[3]))
+                    gain_theta.append(float(row[4]))
+                
+            line_count += 1
+
+    with open(path_phases, 'r', encoding = 'mac_roman') as fin:
+        phase_phi = []
+        phase_theta = []
+        csv_reader = csv.reader(fin, delimiter=',')    
+        line_count = 0
+        for row in csv_reader:
+            if 1:#(line_count % 2) == 0:
+                if line_count != 0:
+                    phase_phi.append(float(row[6]) )
+                    phase_theta.append(float(row[4]))
+            line_count += 1
+       
+    return np.array(ff), np.array(phis), np.array(thetas), np.array(gain_phi), np.array(gain_theta), np.array(phase_phi), np.array(phase_theta)
+
+
+def preprocess_XFDTD(path_gain, path_phases):
+
+    
+    ff, phi, theta, gain_phi, gain_theta, phase_phi, phase_theta = parse_XFDTD_file(path_gain, path_phases)
+    c = constants.c * units.m / units.s
+    Z_0 = 119.9169 * np.pi
+    ff = ff
+
+    theta = np.deg2rad(theta)
+    phi = np.deg2rad(phi)
+
+    wavelength = c / np.array(ff)
+    icemodel = medium.greenland_simple()
+    n_index = 1.74
+    H_theta = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
+    H_phi = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
+    H_theta =wavelength /n_index**0.5 *(50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5* np.exp(1j * phase_theta)
+    H_phi = wavelength/n_index**0.5 *(50 / (4 * np.pi * Z_0)) ** 0.5 *gain_phi ** 0.5* np.exp(1j * phase_phi)
+  
+    zen_boresight = 0
+    azi_boresight = 0
+    zen_ori = 0.5*np.pi 
+    azi_ori = 0
+    
+    output_filename = '{}.pkl'.format("quadslot")
+    
+    index = np.lexsort((theta, phi, ff))
+    ff = np.array(ff)[index]
+    phi = phi[index]
+    theta = theta[index]
+    H_phi = np.array(H_phi)[index]
+    H_theta = np.array(H_theta)[index]
+
+    with open(output_filename, 'wb') as fout:
+        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff/n_index, theta, phi, H_phi, H_theta], fout, protocol = 2)
+                                                     
+
+
 def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_parameters=None):
     """
     reads in WIPLD data
