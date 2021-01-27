@@ -7,6 +7,7 @@ from radiotools import coordinatesystems as cs
 from scipy import constants
 import logging
 import pickle
+import csv
 
 logger = logging.getLogger('NuRadioReco.antennapattern')
 
@@ -97,7 +98,21 @@ def get_group_delay(vector_effective_length, df):
     return -np.diff(np.unwrap(np.angle(vector_effective_length))) / df / units.ns / 2 / np.pi
 
 
-def parse_XFDTD_file(path_gain, path_phases):
+def parse_RNOG_XFDTD_file(path_gain, path_phases):
+    """"
+    reads in XFDTD data
+
+    Paramters:
+    ----------
+    path_gain: string
+        path to gain file
+    path_phases:
+        path to phases file
+        
+    Returns:
+    ----------
+    all paramters of the file
+    """""
 
     with open(path_gain, 'r', encoding='mac_roman') as fin:
         ff = []
@@ -135,10 +150,22 @@ def parse_XFDTD_file(path_gain, path_phases):
     return np.array(ff), np.array(phis), np.array(thetas), np.array(gain_phi), np.array(gain_theta), np.array(phase_phi), np.array(phase_theta)
 
 
-def preprocess_XFDTD(path_gain, path_phases):
-
+def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename):
+    """"
+    Preprocess an antenna pattern in XFDTD file format. The vector effective length is calculated and the output is saved to the NuRadioReco pickle format. 
+    The simulations are done in air. The vector effective length is stored for a refractive index of 1.74. 
+  
+    Parameters:
+    ----------
+    path_gain: string
+        path to gain file
+    path_phases: string
+        path to phases file
+    outputfilename: string
+        path to outputfilename
+    """
     
-    ff, phi, theta, gain_phi, gain_theta, phase_phi, phase_theta = parse_XFDTD_file(path_gain, path_phases)
+    ff, phi, theta, gain_phi, gain_theta, phase_phi, phase_theta = parse_RNOG_XFDTD_file(path_gain, path_phases)
     c = constants.c * units.m / units.s
     Z_0 = 119.9169 * np.pi
     ff = ff
@@ -147,7 +174,7 @@ def preprocess_XFDTD(path_gain, path_phases):
     phi = np.deg2rad(phi)
 
     wavelength = c / np.array(ff)
-    icemodel = medium.greenland_simple()
+    #icemodel = medium.greenland_simple()
     n_index = 1.74
     H_theta = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
     H_phi = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
@@ -159,8 +186,6 @@ def preprocess_XFDTD(path_gain, path_phases):
     zen_ori = 0.5*np.pi 
     azi_ori = 0
     
-    output_filename = '{}.pkl'.format("quadslot")
-    
     index = np.lexsort((theta, phi, ff))
     ff = np.array(ff)[index]
     phi = phi[index]
@@ -168,7 +193,7 @@ def preprocess_XFDTD(path_gain, path_phases):
     H_phi = np.array(H_phi)[index]
     H_theta = np.array(H_theta)[index]
 
-    with open(output_filename, 'wb') as fout:
+    with open(outputfilename, 'wb') as fout:
         pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff/n_index, theta, phi, H_phi, H_theta], fout, protocol = 2)
                                                      
 
