@@ -147,11 +147,11 @@ class neutrino3DVertexReconstructor:
             voltage_template = fft.freq2time(voltage_spec, self.__sampling_rate)
             voltage_template /= np.max(np.abs(voltage_template))
             if self.__passband is None:
-                corr_1 = hp.get_normalized_xcorr(channel_1.get_trace(), voltage_template)
-                corr_2 = hp.get_normalized_xcorr(channel_2.get_trace(), voltage_template)
+                corr_1 = np.abs(hp.get_normalized_xcorr(channel_1.get_trace(), voltage_template))
+                corr_2 = np.abs(hp.get_normalized_xcorr(channel_2.get_trace(), voltage_template))
             else:
-                corr_1 = hp.get_normalized_xcorr(channel_1.get_filtered_trace(self.__passband, 'butterabs', 10), voltage_template)
-                corr_2 = hp.get_normalized_xcorr(channel_2.get_filtered_trace(self.__passband, 'butterabs', 10), voltage_template)
+                corr_1 = np.abs(hp.get_normalized_xcorr(channel_1.get_filtered_trace(self.__passband, 'butterabs', 10), voltage_template))
+                corr_2 = np.abs(hp.get_normalized_xcorr(channel_2.get_filtered_trace(self.__passband, 'butterabs', 10), voltage_template))
             correlation_product = np.zeros_like(corr_1)
             sample_shifts = np.arange(-len(corr_1) // 2, len(corr_1) // 2, dtype=int)
             toffset = sample_shifts / channel_1.get_sampling_rate()
@@ -372,7 +372,7 @@ class neutrino3DVertexReconstructor:
         hor_distances = np.arange(100, 3500, 2.)
         z_coords = line_fit[0] * hor_distances + line_fit[1]
         hor_distances = hor_distances[(z_coords < 0) & (z_coords > -2700)]
-        search_widths = np.arange(-100, 100, 4.)
+        search_widths = np.arange(-50, 50, 4.)
         search_heights = np.arange(-1.1 * min_z_offset, 1.1 * max_z_offset, 2.)
         x_0, y_0, z_0 = np.meshgrid(hor_distances, search_widths, search_heights)
 
@@ -536,8 +536,8 @@ class neutrino3DVertexReconstructor:
                 corr_1 = hp.get_normalized_xcorr(channel.get_trace(), voltage_template)
                 corr_2 = hp.get_normalized_xcorr(channel.get_trace(), voltage_template)
             else:
-                corr_1 = hp.get_normalized_xcorr(channel.get_filtered_trace(self.__passband, 'butter', 10), voltage_template)
-                corr_2 = hp.get_normalized_xcorr(channel.get_filtered_trace(self.__passband, 'butter', 10), voltage_template)
+                corr_1 = np.abs(hp.get_normalized_xcorr(channel.get_filtered_trace(self.__passband, 'butter', 10), voltage_template))
+                corr_2 = np.abs(hp.get_normalized_xcorr(channel.get_filtered_trace(self.__passband, 'butter', 10), voltage_template))
             correlation_product = np.zeros_like(corr_1)
             sample_shifts = np.arange(-len(corr_1) // 2, len(corr_1) // 2, dtype=int)
             toffset = sample_shifts / channel.get_sampling_rate()
