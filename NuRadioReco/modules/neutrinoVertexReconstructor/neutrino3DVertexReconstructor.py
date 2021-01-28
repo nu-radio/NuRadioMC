@@ -272,6 +272,10 @@ class neutrino3DVertexReconstructor:
                 np.max(full_correlations, axis=0)
             )
             ax4_3.grid()
+            sim_vertex = None
+            for sim_shower in event.get_sim_showers():
+                sim_vertex = sim_shower.get_parameter(shp.vertex)
+                break
             if sim_vertex is not None:
                 ax4_1.axhline(sim_vertex[2], color='r', linestyle='--', alpha=.5)
                 ax4_1.axvline(np.sqrt(sim_vertex[0]**2 + sim_vertex[1]**2), color='r', linestyle='--', alpha=.5)
