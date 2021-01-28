@@ -43,6 +43,7 @@ class neutrino3DVertexReconstructor:
         self.__current_ray_types = None
         self.__electric_field_template = None
         self.__distances = None
+        self.__debug_folder = None
         self.__current_distance = None
         self.__pair_correlations = None
         self.__self_correlations = None
@@ -66,7 +67,8 @@ class neutrino3DVertexReconstructor:
             detector,
             template,
             distances=None,
-            passband=None
+            passband=None,
+            debug_folder='.'
     ):
         """
         General settings for vertex reconstruction
@@ -84,6 +86,7 @@ class neutrino3DVertexReconstructor:
         self.__detector = detector
         self.__channel_ids = channel_ids
         self.__station_id = station_id
+        self.__debug_folder = debug_folder
         self.__channel_pairs = []
         for i in range(len(channel_ids) - 1):
             for j in range(i + 1, len(channel_ids)):
@@ -124,7 +127,6 @@ class neutrino3DVertexReconstructor:
         if debug:
             plt.close('all')
             fig1 = plt.figure(figsize=(12, (len(self.__channel_pairs) // 2 + len(self.__channel_pairs) % 2)))
-            fig2 = plt.figure(figsize=(12, 4 * (len(self.__distances) // 3 + len(self.__distances) % 2)))
         self.__pair_correlations = np.zeros((len(self.__channel_pairs), station.get_channel(self.__channel_ids[0]).get_number_of_samples() + self.__electric_field_template.get_number_of_samples() - 1))
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
             channel_1 = station.get_channel(channel_pair[0])
@@ -165,7 +167,7 @@ class neutrino3DVertexReconstructor:
                 ax1_1.plot(toffset, correlation_product)
         if debug:
             fig1.tight_layout()
-            fig1.savefig('plots/correlations/correlation_{}_{}.png'.format(event.get_run_number(), event.get_id()))
+            fig1.savefig('{}/{}_{}_correlation.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
         for i_dist, distance in enumerate(self.__distances):
             self.__current_distance = distance
             correlation_sum = np.zeros_like(theta_coords)
@@ -183,22 +185,6 @@ class neutrino3DVertexReconstructor:
             distance_correlations[i_dist] = np.max(correlation_sum)
             full_correlations[i_dist] = correlation_sum
 
-            if debug:
-                ax2_1 = fig2.add_subplot(len(self.__distances) // 3 + len(self.__distances) % 3, 3, i_dist + 1)
-                # cplot = ax2_1.pcolor(
-                #     theta_coords / units.deg,
-                #     z_coords,
-                #     (correlation_sum)
-                # )
-                # plt.colorbar(cplot, ax=ax2_1)
-                sim_vertex = None
-                for sim_shower in event.get_sim_showers():
-                    sim_vertex = sim_shower.get_parameter(shp.vertex)
-                    break
-                if sim_vertex is not None:
-                    ax2_1.axvline(hp.get_normalized_angle(hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]) / units.deg, color='r', linestyle='--', alpha=.5)
-                    ax2_1.axhline(sim_vertex[2], color='r', linestyle='--', alpha=.5)
-                ax2_1.set_title('d={:.0f}m'.format(distance))
         corr_fit_threshold = .8 * np.max(full_correlations)
         flattened_corr = np.max(full_correlations, axis=2).T
         i_max = np.argmax(flattened_corr, axis=0)
@@ -216,57 +202,6 @@ class neutrino3DVertexReconstructor:
         median_theta = np.median(theta_range[i_max_theta][theta_corr_mask])
 
         if debug:
-            fig2.tight_layout()
-            fig2.savefig('plots/direction_recos/direction_reco_{}_{}.png'.format(event.get_run_number(), event.get_id()))
-            fig3 = plt.figure(figsize=(8, 16))
-            ax3_1 = fig3.add_subplot(311)
-            ax3_1.grid()
-            sim_vertex = None
-            for sim_shower in event.get_sim_showers():
-                sim_vertex = sim_shower.get_parameter(shp.vertex)
-
-                break
-            corr_max = np.max(np.max(full_correlations, axis=1), axis=1)
-            ax3_1.scatter(
-                self.__distances,
-                corr_max / np.max(corr_max)
-            )
-            corr_mean = np.mean(np.mean(full_correlations, axis=1), axis=1)
-            ax3_1.scatter(
-                self.__distances,
-                corr_mean / np.max(corr_mean)
-            )
-            ax3_2 = fig3.add_subplot(312)
-            ax3_2.grid()
-            corr_max = np.max(np.max(full_correlations, axis=0), axis=0)
-            ax3_2.scatter(
-                theta_range / units.deg,
-                corr_max / np.max(corr_max)
-            )
-            corr_mean = np.mean(np.mean(full_correlations, axis=0), axis=0)
-            ax3_2.scatter(
-                theta_range / units.deg,
-                corr_mean / np.max(corr_mean)
-            )
-            ax3_3 = fig3.add_subplot(313)
-            ax3_3.grid()
-            corr_max = np.max(np.max(full_correlations, axis=0), axis=1)
-            ax3_3.scatter(
-                z_range,
-                corr_max / np.max(corr_max)
-            )
-            corr_mean = np.mean(np.mean(full_correlations, axis=0), axis=1)
-            ax3_3.scatter(
-                z_range,
-                corr_mean / np.max(corr_mean)
-            )
-            if sim_vertex is not None:
-                ax3_1.axvline(np.sqrt(sim_vertex[0]**2 + sim_vertex[1]**2), color='k', linestyle=':')
-                ax3_2.axvline(hp.get_normalized_angle(hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]) / units.deg, color='k', linestyle=':')
-                ax3_3.axvline(sim_vertex[2], color='k', linestyle=':')
-            fig3.tight_layout()
-            fig3.savefig('plots/distance_correlations/distance_correlation_{}_{}.png'.format(event.get_run_number(), event.get_id()))
-
             fig4 = plt.figure(figsize=(4, 12))
             fig5 = plt.figure(figsize=(4, 8))
             ax4_1 = fig4.add_subplot(311)
@@ -364,9 +299,9 @@ class neutrino3DVertexReconstructor:
                     marker='+'
                 )
             fig4.tight_layout()
-            fig4.savefig('plots/correlation_slices/correlation_slice_{}_{}.png'.format(event.get_run_number(), event.get_id()))
+            fig4.savefig('{}/{}_{}_correlation_slice.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
             fig5.tight_layout()
-            fig5.savefig('plots/maxima_paths/maxima_paths_{}_{}.png'.format(event.get_run_number(), event.get_id()))
+            fig5.savefig('{}/{}_{}_maxima_paths.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
 
         # <--- 3D Fit ---> #
         hor_distances = np.arange(100, 3500, 2.)
@@ -506,7 +441,7 @@ class neutrino3DVertexReconstructor:
             ax6_4.set_xlabel('x [m]')
             ax6_4.set_ylabel('y [m]')
             fig6.tight_layout()
-            fig6.savefig('plots/3d_slices/slices{}_{}.png'.format(event.get_run_number(), event.get_id()))
+            fig6.savefig('{}/{}_{}_slices.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
 
         # <<--- DnR Reco --->> #
         self.__self_correlations = np.zeros((len(self.__channel_ids), station.get_channel(self.__channel_ids[0]).get_number_of_samples() + self.__electric_field_template.get_number_of_samples() - 1))
@@ -572,7 +507,7 @@ class neutrino3DVertexReconstructor:
         station.set_parameter(stnp.nu_vertex, np.array([vertex_x, vertex_y, vertex_z]))
         if debug:
             fig7.tight_layout()
-            fig7.savefig('plots/self_correlations/self_correlations_{}_{}.png'.format(event.get_run_number(), event.get_id()))
+            fig7.savefig('{}/{}_{}_self_correlations.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
             fig8 = plt.figure(figsize=(12, 8))
             ax8_1 = fig8.add_subplot(232)
             ax8_2 = fig8.add_subplot(235)
@@ -693,7 +628,7 @@ class neutrino3DVertexReconstructor:
             ax8_1.grid()
             ax8_2.grid()
             fig8.tight_layout()
-            fig8.savefig('plots/dnr_recos/dnr_reco_{}_{}.png'.format(event.get_run_number(), event.get_id()))
+            fig8.savefig('{}/{}_{}_dnr_reco.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
 
 
     def get_correlation_array_2d(self, phi, z):
