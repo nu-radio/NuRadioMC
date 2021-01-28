@@ -311,10 +311,10 @@ ARIANNA_HRA[:, 1] *= energyBinsPerDecade
 # get 10% proton flux
 def get_proton_10(energy):
     vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), "ReasonableNeutrinos1.txt"))
-    E = vanVliet_reas[0, :] * plotUnitsEnergy
+    E = vanVliet_reas[0, :] * units.GeV
     f = vanVliet_reas[1, :] * plotUnitsFlux / E ** 2
     from scipy.interpolate import interp1d
-    getE = interp1d(E, f)
+    getE = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
     return getE(energy)
 
 
