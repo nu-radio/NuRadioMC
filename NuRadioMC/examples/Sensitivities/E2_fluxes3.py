@@ -307,13 +307,23 @@ ARIANNA_HRA[:, 1] /= 1
 ARIANNA_HRA[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 ARIANNA_HRA[:, 1] *= energyBinsPerDecade
 
+from scipy.interpolate import interp1d
+
+
+def get_TAGZK_flux(energy):
+# GZK neutrino flux from TA best fit
+    TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), "TA_combined_fit_m3.txt"))
+    E = TA_data[:, 0] * units.GeV
+    f = TA_data[:, 1] * plotUnitsFlux / E ** 2
+    get_TAGZK_flux = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
+    return get_TAGZK_flux(energy)
+
 
 # get 10% proton flux
 def get_proton_10(energy):
     vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), "ReasonableNeutrinos1.txt"))
     E = vanVliet_reas[0, :] * units.GeV
     f = vanVliet_reas[1, :] * plotUnitsFlux / E ** 2
-    from scipy.interpolate import interp1d
     getE = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
     return getE(energy)
 
