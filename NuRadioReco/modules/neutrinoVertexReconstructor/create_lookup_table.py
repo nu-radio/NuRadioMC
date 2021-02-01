@@ -53,7 +53,7 @@ parser.add_argument(
     help='Path to output folder'
 )
 args = parser.parse_args()
-x_pos = np.arange(-args.r_max, -args.r_min, args.d_r)
+x_pos = np.arange(args.r_min, args.r_max, args.d_r)
 z_pos = np.arange(-args.z_min, -args.z_max, args.d_z)
 
 
@@ -66,8 +66,8 @@ channel_types = [{
 
 lookup_table = {
     'header': {
-        'x_min': -args.r_min,
-        'x_max': -args.r_max,
+        'x_min': args.r_min,
+        'x_max': args.r_max,
         'd_x': args.d_r,
         'z_min': -args.z_min,
         'z_max': -args.z_max,
