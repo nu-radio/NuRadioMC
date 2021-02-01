@@ -10,7 +10,6 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import radiopropa
 logging.basicConfig()
 import scipy.constants 
-from NuRadioMC.utilities import medium_radiopropa
 import copy
 from scipy.interpolate import interp1d
 import logging
@@ -28,7 +27,7 @@ class ray_tracing:
 
     def __init__(self, medium, attenuation_model="GL1", log_level=logging.WARNING,
                  n_frequencies_integration=100,
-                 n_reflections=0, config=None, detector = None):
+                 n_reflections=0, config=None, detector = None, shower_axis = None):
 
         """
         class initilization
@@ -91,10 +90,9 @@ class ray_tracing:
         self.__sphere_sizes = np.array([25.,2.,.5]) * units.meter 
         ## step for theta corresponding to the sphere size, should have same lenght as _sphere_sizes
         self.__step_sizes = np.array([.5,.05,.0125]) * units.degree
-        
-        self.__x1 = None
+        self.__x1 = None 
         self.__x2 = None
-        self.__shower_axis = None ## this is given so we can limit the rays that are checked around the cherenkov angle
+        self.__shower_axis = shower_axis ## this is given so we can limit the rays that are checked around the cherenkov angle
         self.__results = None
         self.__candidates = None
 
@@ -104,6 +102,7 @@ class ray_tracing:
         Resets the raytracing solutions back to None. This is useful to do 
         in the loop before a new raytracing is prepared.
         """
+      
         self.__x1 = None
         self.__x2 = None
         self.__results = None
@@ -118,17 +117,20 @@ class ray_tracing:
             start point of the ray
         x2: np.array of shape (3,), default unit 
             stop point of the ray
-        """ 
+        """
+        #self.reset_solutions()
+        x1 = np.array(x1, dtype =np.float)
+        self.__x1 = x1 * units.meter
+        x2 = np.array(x2, dtype = np.float)
+        self.__x2 = x2 * units.meter
         if (self.__n_reflections):
             if (x1[2] < self.__medium.reflection or x2[2] < self.__medium.reflection):
                 self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(
                     self.__medium.reflection / units.m))
                 raise AttributeError("start or stop point is below the reflective layer at {:.1f}m".format(
                     self.__medium.reflection / units.m))
-        x1 = np.array(x1, dtype =np.float)
-        self.__x1 = x1 * units.meter
-        x2 = np.array(x2, dtype = np.float)
-        self.__x2 = x2 * units.meter
+        
+        
 
     def set_shower_axis(self,shower_axis=None):
         """
@@ -177,6 +179,7 @@ class ray_tracing:
             self.__logger.error('NoneType: start or endpoint not initialized')
             raise TypeError('NoneType: start or endpoint not initialized')
 
+      
         v = (self.__x2-self.__x1)
         u = copy.deepcopy(v)
         u[2] = 0
@@ -344,6 +347,7 @@ class ray_tracing:
                         delta = abs(vector_zenith-receive_zeniths[iS])
                         if delta < delta_min:
                             final_candidate = self.__candidates[iS]
+                            final_candidate_reflection = self.__results[iS]['reflection']
                             final_candidate_reflection = self.__results[iS]['reflection']
                             final_candidate_reflection_case = self.__results[iS]['reflection_case']
                             final_candidate_solution_type = solution_types[iS]
@@ -732,7 +736,55 @@ class ray_tracing:
         return attenuation
 
     def get_focusing(self, iS, dz=-1. * units.cm, limit=2.):
-        return 1.
+        """
+        calculate the focusing effect in the medium
+        Parameters
+        ----------
+        iS: int
+            choose for which solution to compute the launch vector, counting
+            starts at zero
+        dz: float
+            the infinitesimal change of the depth of the receiver, 1cm by default
+        Returns
+        -------
+        focusing: a float
+            gain of the signal at the receiver due to the focusing effect:
+        """
+        recVec = self.get_receive_vector(iS)
+        recVec = -1.0 * recVec
+        recAng = np.arccos(recVec[2] / np.sqrt(recVec[0]**2 +recVec[1]**2 + recVec[2] **2))
+        lauVec = self.get_launch_vector(iS)
+        lauAng = np.arccos(lauVec[2] / np.sqrt(lauVec[0] ** 2 + lauVec[1] ** 2 + lauVec[2] ** 2))        
+        distance = self.get_path_length(iS)
+       
+        vetPos = copy.copy(self.__x1)
+        recPos = copy.copy(self.__x2)
+        recPos1 = np.array([self.__x2[0], self.__x2[1], self.__x2[2] + dz])
+        if not hasattr(self, "_r1"):
+            self._r1 = ray_tracing(self.__medium, self.__attenuation_model, logging.WARNING, self.__n_frequencies_integration, self.__n_reflections, config = self.__config, shower_axis = self.__shower_axis)
+        self._r1.set_start_and_end_point(vetPos, recPos1)
+        self._r1.find_solutions()
+        if iS < self._r1.get_number_of_solutions():
+            lauVec1 = self._r1.get_launch_vector(iS)
+            lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
+            focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
+            if(self.get_solution_type(iS) != self._r1.get_solution_type(iS)):
+                self.__logger.error("solution types are not the same")
+        else:
+            focusing = 1.0
+            self.__logger.info("too few ray tracing solutions, setting focusing factor to 1")
+        self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
+        if(focusing > limit):
+            self.__logger.info(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
+            focusing = limit
+
+        # now also correct for differences in refractive index between emitter and receiver position
+
+        n1 = self.__medium.get_index_of_refraction(self.__x1)  # emitter
+        n2 = self.__medium.get_index_of_refraction(self.__x2)  # receiver
+        return focusing * (n1 / n2) ** 0.5
+        
+        
 
     def apply_propagation_effects(self, efield, i_solution):
         """
