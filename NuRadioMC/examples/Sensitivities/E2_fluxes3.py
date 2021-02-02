@@ -347,7 +347,8 @@ def get_E2_limit_figure(diffuse=True,
                         show_TA=False,
                         show_RNOG=False,
                         show_IceCubeGen2=False,
-                        shower_Auger=True):
+                        shower_Auger=True,
+                        show_prediction_arianna_200=False):
 
     # Limit E2 Plot
     # ---------------------------------------------------------------------------
@@ -605,11 +606,25 @@ def get_E2_limit_figure(diffuse=True,
                            1.77827941e+09, 5.62341325e+09, 1.77827941e+10, 5.62341325e+10]) * units.GeV
         RNOG_flux = np.array([4.51342568e-08, 1.57748718e-08, 1.03345333e-08, 7.98437261e-09,
                               7.22245212e-09, 7.62588582e-09, 9.28033358e-09, 1.28698605e-08]) * plotUnitsFlux
-        ax.plot(RNOG_E / plotUnitsEnergy, RNOG_flux / 2 / plotUnitsFlux, color='red', linestyle="-.")
+        ax.plot(RNOG_E / plotUnitsEnergy, RNOG_flux / 0.7 / 2 / plotUnitsFlux, color='red', linestyle="-.")  # uses 70% uptime from RNO-G whitepaper and resacling to 10years
 #         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
         ax.annotate('RNO-G',
-                    xy=(3e8 * units.GeV / plotUnitsEnergy, 3e-9), xycoords='data',
-                    horizontalalignment='right', color='red', rotation=0, fontsize=legendfontsize)
+                    xy=(1e18 * units.eV / plotUnitsEnergy, 0.7e-8), xycoords='data',
+                    horizontalalignment='left', color='red', rotation=0, fontsize=legendfontsize)
+
+    if show_prediction_arianna_200:
+        # 10 year sensitivity
+        arianna_200 = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), "expected_sensivity_ARIANNAA-200.txt"))
+        arianna_200[:, 0] *= units.GeV
+        arianna_200[:, 1] *= units.GeV * units.cm ** -2 * units.s ** -1
+        print(arianna_200)
+
+        _plt4, = ax.plot(arianna_200[:, 0] / plotUnitsEnergy, arianna_200[:, 1] / plotUnitsFlux, label='ARIANNA-200 (5 years)', color='blue', linestyle="--")
+        ax.annotate('ARIANNA-200',
+                    xy=(.7e19 * units.eV / plotUnitsEnergy, 3e-9), xycoords='data',
+                    horizontalalignment='left', color='blue', rotation=0, fontsize=legendfontsize)
+
+#         labels.append(_plt4)
 
     ax.set_yscale('log')
     ax.set_xscale('log')
