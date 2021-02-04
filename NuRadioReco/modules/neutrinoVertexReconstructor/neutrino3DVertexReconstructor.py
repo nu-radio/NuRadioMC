@@ -106,7 +106,7 @@ class neutrino3DVertexReconstructor:
         for channel_id in channel_ids:
             channel_z = abs(detector.get_relative_position(station_id, channel_id)[2])
             if channel_z not in self.__lookup_table.keys():
-                f = NuRadioReco.utilities.io_utilities.read_pickle('{}/lookup_table_{}.p'.format(self.__lookup_table_location, int(abs(channel_z))))
+                f = NuRadioReco.utilities.io_utilities.read_pickle('{}/lookup_table_greenland_{}.p'.format(self.__lookup_table_location, int(abs(channel_z))))
                 self.__header[int(channel_z)] = f['header']
                 self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
 
@@ -308,7 +308,7 @@ class neutrino3DVertexReconstructor:
             fig5.savefig('{}/{}_{}_maxima_paths.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
 
         # <--- 3D Fit ---> #
-        hor_distances = np.arange(100, 3500, 2.)
+        hor_distances = np.arange(100, 3500, 4.)
         z_coords = line_fit[0] * hor_distances + line_fit[1]
         hor_distances = hor_distances[(z_coords < 0) & (z_coords > -2700)]
         search_widths = np.arange(-50, 50, 4.)
@@ -713,12 +713,13 @@ class neutrino3DVertexReconstructor:
         channel_type = int(abs(channel_pos[2]))
         travel_times = np.zeros_like(d_hor)
         mask = np.ones_like(travel_times).astype(bool)
-        i_x = np.array(np.round((-d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
+        i_x = np.array(np.round((d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
+        cell_dist = i_x * self.__header[channel_type]['d_x'] + self.__header[channel_type]['x_min']
         mask[i_x > self.__lookup_table[channel_type][ray_type].shape[0] - 1] = False
         i_z = np.array(np.round((z - self.__header[channel_type]['z_min']) / self.__header[channel_type]['d_z'])).astype(int)
         mask[i_z > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
         i_x[~mask] = 0
         i_z[~mask] = 0
-        travel_times = self.__lookup_table[channel_type][ray_type][(i_x, i_z)]
+        travel_times = self.__lookup_table[channel_type][ray_type][(i_x, i_z)] * np.abs(d_hor / cell_dist)
         travel_times[~mask] = np.nan
         return travel_times
