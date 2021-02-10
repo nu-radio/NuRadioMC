@@ -417,11 +417,11 @@ class neutrino3DVertexReconstructor:
             fig5.savefig('{}/{}_{}_maxima_paths.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
 
         # <--- 3D Fit ---> #
-        hor_distances = np.arange(100, 3500, 4.)
+        hor_distances = np.arange(100, 3500, 2.)
         z_coords = slope * hor_distances + offset
         hor_distances = hor_distances[(z_coords < 0) & (z_coords > -2700)]
         search_widths = np.arange(-50, 50, 4.)
-        search_heights = np.arange(-1.1 * min_z_offset, 1.1 * max_z_offset, 4.)
+        search_heights = np.arange(-1.1 * min_z_offset, 1.1 * max_z_offset, 2.)
         x_0, y_0, z_0 = np.meshgrid(hor_distances, search_widths, search_heights)
 
         z_coords = z_0 + slope * x_0 + offset
@@ -822,13 +822,20 @@ class neutrino3DVertexReconstructor:
         channel_type = int(abs(channel_pos[2]))
         travel_times = np.zeros_like(d_hor)
         mask = np.ones_like(travel_times).astype(bool)
-        i_x = np.array(np.round((d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
-        cell_dist = i_x * self.__header[channel_type]['d_x'] + self.__header[channel_type]['x_min']
-        mask[i_x > self.__lookup_table[channel_type][ray_type].shape[0] - 1] = False
         i_z = np.array(np.round((z - self.__header[channel_type]['z_min']) / self.__header[channel_type]['d_z'])).astype(int)
+        i_x_1 = np.array(np.floor((d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
+        cell_dist_1 = i_x_1 * self.__header[channel_type]['d_x'] + self.__header[channel_type]['x_min']
+        mask[i_x_1 > self.__lookup_table[channel_type][ray_type].shape[0] - 1] = False
         mask[i_z > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
-        i_x[~mask] = 0
+        i_x_1[~mask] = 0
         i_z[~mask] = 0
-        travel_times = self.__lookup_table[channel_type][ray_type][(i_x, i_z)] * np.abs(d_hor / cell_dist)
+        travel_times_1 = self.__lookup_table[channel_type][ray_type][(i_x_1, i_z)]
+        i_x_2 = np.array(np.ceil((d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
+        cell_dist_2 = i_x_2 * self.__header[channel_type]['d_x'] + self.__header[channel_type]['x_min']
+        i_x_2[~mask] = 0
+        travel_times_2 = self.__lookup_table[channel_type][ray_type][(i_x_2, i_z)]
+        slopes = np.zeros_like(travel_times_1)
+        slopes[i_x_2 > i_x_1] = (travel_times_1 - travel_times_2)[i_x_2 > i_x_1] / (cell_dist_1 - cell_dist_2)[i_x_2 > i_x_1]
+        travel_times = (d_hor - cell_dist_1) * slopes + travel_times_1
         travel_times[~mask] = np.nan
         return travel_times
