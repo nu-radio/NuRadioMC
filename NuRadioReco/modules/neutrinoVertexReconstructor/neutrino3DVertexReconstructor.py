@@ -42,7 +42,13 @@ class neutrino3DVertexReconstructor:
         self.__max_corr_index = None
         self.__current_ray_types = None
         self.__electric_field_template = None
-        self.__distances = None
+        self.__azimuths_2d = None
+        self.__distances_2d = None
+        self.__z_coordinates_2d = None
+        self.__distance_step_3d = None
+        self.__z_step_3d = None
+        self.__widths_3d = None
+        self.__heights_3d = None
         self.__debug_folder = None
         self.__current_distance = None
         self.__pair_correlations = None
@@ -66,7 +72,12 @@ class neutrino3DVertexReconstructor:
             channel_ids,
             detector,
             template,
-            distances=None,
+            distances_2d=None,
+            azimuths_2d=None,
+            z_coordinates_2d=None,
+            distance_step_3d=2,
+            widths_3d=None,
+            z_step_3d=2,
             passband=None,
             debug_folder='.'
     ):
@@ -99,10 +110,24 @@ class neutrino3DVertexReconstructor:
         self.__electric_field_template = template
         self.__sampling_rate = template.get_sampling_rate()
         self.__passband = passband
-        if distances is None:
-            self.__distances = np.arange(100, 3000, 200)
+        if distances_2d is None:
+            self.__distances_2d = np.arange(100, 3000, 200)
         else:
-            self.__distances = distances
+            self.__distances_2d = distances_2d
+        if azimuths_2d is None:
+            self.__azimuths_2d = np.arange(0, 360.1, 2.5) * units.deg
+        else:
+            self.__azimuths_2d = azimuths_2d
+        if z_coordinates_2d is None:
+            self.__z_coordinates_2d = np.arange(-2700, -100, 25)
+        else:
+            self.__z_coordinates_2d = z_coordinates_2d
+        self.__distance_step_3d = distance_step_3d
+        if widths_3d is None:
+            self.__widths_3d = np.arange(-50, 50, 2.)
+        else:
+            self.__widths_3d = widths_3d
+        self.__z_step_3d = z_step_3d
         for channel_id in channel_ids:
             channel_z = abs(detector.get_relative_position(station_id, channel_id)[2])
             if channel_z not in self.__lookup_table.keys():
@@ -117,11 +142,9 @@ class neutrino3DVertexReconstructor:
             det,
             debug=False
     ):
-        theta_range = np.arange(0, 360.1, 2.5) * units.deg
-        z_range = np.arange(-2700, -100, 25)
-        theta_coords, z_coords = np.meshgrid(theta_range, z_range)
-        distance_correlations = np.zeros(self.__distances.shape)
-        full_correlations = np.zeros((len(self.__distances), len(z_range), len(theta_range)))
+        azimuth_grid_2d, z_grid_2d = np.meshgrid(self.__azimuths_2d, self.__z_coordinates_2d)
+        distance_correlations = np.zeros(self.__distances_2d.shape)
+        full_correlations = np.zeros((len(self.__distances_2d), len(self.__z_coordinates_2d), len(self.__azimuths_2d)))
 
         if debug:
             plt.close('all')
@@ -167,9 +190,9 @@ class neutrino3DVertexReconstructor:
         if debug:
             fig1.tight_layout()
             fig1.savefig('{}/{}_{}_correlation.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
-        for i_dist, distance in enumerate(self.__distances):
+        for i_dist, distance in enumerate(self.__distances_2d):
             self.__current_distance = distance
-            correlation_sum = np.zeros_like(theta_coords)
+            correlation_sum = np.zeros_like(azimuth_grid_2d)
 
             for i_pair, channel_pair in enumerate(self.__channel_pairs):
                 self.__correlation = self.__pair_correlations[i_pair]
@@ -179,52 +202,48 @@ class neutrino3DVertexReconstructor:
                 correlation_map = np.zeros_like(correlation_sum)
                 for i_ray in range(len(self.__ray_types)):
                     self.__current_ray_types = self.__ray_types[i_ray]
-                    correlation_map = np.maximum(self.get_correlation_array_2d(theta_coords, z_coords), correlation_map)
+                    correlation_map = np.maximum(self.get_correlation_array_2d(azimuth_grid_2d, z_grid_2d), correlation_map)
                 correlation_sum += correlation_map
             distance_correlations[i_dist] = np.max(correlation_sum)
             full_correlations[i_dist] = correlation_sum
 
         corr_fit_threshold = .7 * np.max(full_correlations)
         flattened_corr = np.max(full_correlations, axis=2).T
-        # z(d) fit
-        # d(z) fit
         i_max_d = np.argmax(flattened_corr, axis=0)
         corr_mask_d = np.max(flattened_corr, axis=0) > corr_fit_threshold
         line_fit_d = np.polyfit(
-            self.__distances[corr_mask_d],
-            z_range[i_max_d][corr_mask_d],
+            self.__distances_2d[corr_mask_d],
+            self.__z_coordinates_2d[i_max_d][corr_mask_d],
             1
         )
-        residuals_d = np.sum((z_range[i_max_d][corr_mask_d] - self.__distances[corr_mask_d] * line_fit_d[0] - line_fit_d[1])**2) / np.sum(corr_mask_d.astype(int))
-        # d(z) fit
+        residuals_d = np.sum((self.__z_coordinates_2d[i_max_d][corr_mask_d] - self.__distances_2d[corr_mask_d] * line_fit_d[0] - line_fit_d[1])**2) / np.sum(corr_mask_d.astype(int))
         i_max_z = np.argmax(flattened_corr, axis=1)
         z_corr_mask_z = np.max(flattened_corr, axis=1) > corr_fit_threshold
         line_fit_z = np.polyfit(
-            self.__distances[i_max_z][z_corr_mask_z],
-            z_range[z_corr_mask_z],
+            self.__distances_2d[i_max_z][z_corr_mask_z],
+            self.__z_coordinates_2d[z_corr_mask_z],
             1
         )
-        residuals_z = np.sum((z_range[z_corr_mask_z] - self.__distances[i_max_z][z_corr_mask_z] * line_fit_z[0] - line_fit_z[1])**2) / np.sum(z_corr_mask_z.astype(int))
+        residuals_z = np.sum((self.__z_coordinates_2d[z_corr_mask_z] - self.__distances_2d[i_max_z][z_corr_mask_z] * line_fit_z[0] - line_fit_z[1])**2) / np.sum(z_corr_mask_z.astype(int))
         if residuals_d <= residuals_z:
             slope = line_fit_d[0]
             offset = line_fit_d[1]
-            max_z_offset = np.max([50, np.min([200, np.max(z_range[i_max_d][corr_mask_d] - self.__distances[corr_mask_d] * slope - offset)])])
-            min_z_offset = np.max([50, np.min([200, np.max(-z_range[i_max_d][corr_mask_d] + self.__distances[corr_mask_d] * slope + offset)])])
+            max_z_offset = np.max([50, np.min([200, np.max(self.__z_coordinates_2d[i_max_d][corr_mask_d] - self.__distances_2d[corr_mask_d] * slope - offset)])])
+            min_z_offset = np.max([50, np.min([200, np.max(-self.__z_coordinates_2d[i_max_d][corr_mask_d] + self.__distances_2d[corr_mask_d] * slope + offset)])])
             flattened_corr_theta = np.max(full_correlations, axis=1)
             theta_corr_mask = np.max(flattened_corr_theta, axis=1) >= corr_fit_threshold
             i_max_theta = np.argmax(flattened_corr_theta, axis=1)
-            median_theta = np.median(theta_range[i_max_theta][theta_corr_mask])
+            median_theta = np.median(self.__azimuths_2d[i_max_theta][theta_corr_mask])
             z_fit = False
-
         else:
             slope = line_fit_z[0]
             offset = line_fit_z[1]
-            max_z_offset = np.max([50, np.min([200, np.max(z_range[z_corr_mask_z] - self.__distances[i_max_z][z_corr_mask_z] * slope - offset)])])
-            min_z_offset = np.max([50, np.min([200, np.max(-z_range[z_corr_mask_z] + self.__distances[i_max_z][z_corr_mask_z] * slope + offset)])])
+            max_z_offset = np.max([50, np.min([200, np.max(self.__z_coordinates_2d[z_corr_mask_z] - self.__distances_2d[i_max_z][z_corr_mask_z] * slope - offset)])])
+            min_z_offset = np.max([50, np.min([200, np.max(-self.__z_coordinates_2d[z_corr_mask_z] + self.__distances_2d[i_max_z][z_corr_mask_z] * slope + offset)])])
             flattened_corr_theta = np.max(full_correlations, axis=0)
             theta_corr_mask = np.max(flattened_corr_theta, axis=1) >= corr_fit_threshold
             i_max_theta = np.argmax(flattened_corr_theta, axis=1)
-            median_theta = np.median(theta_range[i_max_theta][theta_corr_mask])
+            median_theta = np.median(self.__azimuths_2d[i_max_theta][theta_corr_mask])
             z_fit = True
         if debug:
             fig4 = plt.figure(figsize=(4, 12))
@@ -234,7 +253,7 @@ class neutrino3DVertexReconstructor:
             ax5_1_1.grid()
             ax5_1_2 = fig5.add_subplot(222)
             ax5_1_2.grid()
-            d_0, z_0 = np.meshgrid(self.__distances, z_range)
+            d_0, z_0 = np.meshgrid(self.__distances_2d, self.__z_coordinates_2d)
             ax4_1.pcolor(
                 d_0,
                 z_0,
@@ -242,94 +261,94 @@ class neutrino3DVertexReconstructor:
             )
             ax4_1.grid()
             ax5_1_1.fill_between(
-                self.__distances,
-                self.__distances * slope + offset + 1.1 * max_z_offset,
-                self.__distances * slope + offset - 1.1 * min_z_offset,
+                self.__distances_2d,
+                self.__distances_2d * slope + offset + 1.1 * max_z_offset,
+                self.__distances_2d * slope + offset - 1.1 * min_z_offset,
                 color='k',
                 alpha=.2
             )
             ax5_1_1.scatter(
-                self.__distances[corr_mask_d],
-                z_range[i_max_d][corr_mask_d]
+                self.__distances_2d[corr_mask_d],
+                self.__z_coordinates_2d[i_max_d][corr_mask_d]
             )
             ax5_1_1.scatter(
-                self.__distances[~corr_mask_d],
-                z_range[i_max_d][~corr_mask_d],
+                self.__distances_2d[~corr_mask_d],
+                self.__z_coordinates_2d[i_max_d][~corr_mask_d],
                 c='k',
                 alpha=.5
             )
             ax5_1_1.plot(
-                self.__distances,
-                self.__distances * slope + offset,
+                self.__distances_2d,
+                self.__distances_2d * slope + offset,
                 color='k',
                 linestyle=':'
             )
             ax5_1_1.fill_between(
-                self.__distances,
-                self.__distances * slope + offset + 1.1 * max_z_offset,
-                self.__distances * slope + offset - 1.1 * min_z_offset,
+                self.__distances_2d,
+                self.__distances_2d * slope + offset + 1.1 * max_z_offset,
+                self.__distances_2d * slope + offset - 1.1 * min_z_offset,
                 color='k',
                 alpha=.2
             )
             ax5_1_1.plot(
-                self.__distances,
-                self.__distances * line_fit_d[0] + line_fit_d[1],
+                self.__distances_2d,
+                self.__distances_2d * line_fit_d[0] + line_fit_d[1],
                 color='r',
                 linestyle=':'
             )
             ax5_1_1.fill_between(
-                self.__distances,
-                self.__distances * line_fit_d[0] + line_fit_d[1] + 1.1 * max_z_offset,
-                self.__distances * line_fit_d[0] + line_fit_d[1] - 1.1 * min_z_offset,
+                self.__distances_2d,
+                self.__distances_2d * line_fit_d[0] + line_fit_d[1] + 1.1 * max_z_offset,
+                self.__distances_2d * line_fit_d[0] + line_fit_d[1] - 1.1 * min_z_offset,
                 color='r',
                 alpha=.2
             )
             ax5_1_2.scatter(
-                self.__distances[i_max_z][z_corr_mask_z],
-                z_range[z_corr_mask_z]
+                self.__distances_2d[i_max_z][z_corr_mask_z],
+                self.__z_coordinates_2d[z_corr_mask_z]
             )
             ax5_1_2.scatter(
-                self.__distances[i_max_z][~z_corr_mask_z],
-                z_range[~z_corr_mask_z],
+                self.__distances_2d[i_max_z][~z_corr_mask_z],
+                self.__z_coordinates_2d[~z_corr_mask_z],
                 c='k',
                 alpha=.5
             )
             ax5_1_2.plot(
-                self.__distances,
-                self.__distances * slope + offset,
+                self.__distances_2d,
+                self.__distances_2d * slope + offset,
                 color='k',
                 linestyle=':'
             )
             ax5_1_2.plot(
-                self.__distances,
-                self.__distances * line_fit_z[0] + line_fit_z[1],
+                self.__distances_2d,
+                self.__distances_2d * line_fit_z[0] + line_fit_z[1],
                 color='r',
                 linestyle=':'
             )
             ax5_1_2.fill_between(
-                self.__distances,
-                self.__distances * line_fit_z[0] + line_fit_z[1] + 1.1 * max_z_offset,
-                self.__distances * line_fit_z[0] + line_fit_z[1] - 1.1 * min_z_offset,
+                self.__distances_2d,
+                self.__distances_2d * line_fit_z[0] + line_fit_z[1] + 1.1 * max_z_offset,
+                self.__distances_2d * line_fit_z[0] + line_fit_z[1] - 1.1 * min_z_offset,
                 color='r',
                 alpha=.2
             )
             ax5_1_2.plot(
-                self.__distances,
-                self.__distances * slope + offset,
+                self.__distances_2d,
+                self.__distances_2d * slope + offset,
                 color='k',
                 linestyle=':'
             )
             ax5_1_2.fill_between(
-                self.__distances,
-                self.__distances * slope + offset + 1.1 * max_z_offset,
-                self.__distances * slope + offset - 1.1 * min_z_offset,
+                self.__distances_2d,
+                self.__distances_2d * slope + offset + 1.1 * max_z_offset,
+                self.__distances_2d * slope + offset - 1.1 * min_z_offset,
                 color='k',
                 alpha=.2
             )
 
             ax4_2 = fig4.add_subplot(312, projection='polar')
             ax5_2 = fig5.add_subplot(212, projection='polar')
-            theta_0, d_0 = np.meshgrid(theta_range, self.__distances)
+            theta_0, d_0 = np.meshgrid(self.__azimuths_2d, self.__distances_2d)
             ax4_2.pcolor(
                 theta_0,
                 d_0,
@@ -337,41 +356,41 @@ class neutrino3DVertexReconstructor:
             )
             if z_fit:
                 ax5_2.scatter(
-                    theta_range[i_max_theta][theta_corr_mask],
-                    np.abs(z_range)[theta_corr_mask]
+                    self.__azimuths_2d[i_max_theta][theta_corr_mask],
+                    np.abs(self.__z_coordinates_2d)[theta_corr_mask]
                 )
                 ax5_2.scatter(
-                    theta_range[i_max_theta][~theta_corr_mask],
-                    np.abs(z_range)[~theta_corr_mask],
+                    self.__azimuths_2d[i_max_theta][~theta_corr_mask],
+                    np.abs(self.__z_coordinates_2d)[~theta_corr_mask],
                     c='k',
                     alpha=.5
                 )
                 ax5_2.plot(
                     [median_theta, median_theta],
-                    [np.abs(z_range[0]), np.abs(z_range[-1])],
+                    [np.abs(self.__z_coordinates_2d[0]), np.abs(self.__z_coordinates_2d[-1])],
                     color='k',
                     linestyle=':'
                 )
             else:
                 ax5_2.scatter(
-                    theta_range[i_max_theta][theta_corr_mask],
-                    self.__distances[theta_corr_mask]
+                    self.__azimuths_2d[i_max_theta][theta_corr_mask],
+                    self.__distances_2d[theta_corr_mask]
                 )
                 ax5_2.scatter(
-                    theta_range[i_max_theta][~theta_corr_mask],
-                    self.__distances[~theta_corr_mask],
+                    self.__azimuths_2d[i_max_theta][~theta_corr_mask],
+                    self.__distances_2d[~theta_corr_mask],
                     c='k',
                     alpha=.5
                 )
                 ax5_2.plot(
                     [median_theta, median_theta],
-                    [self.__distances[0], self.__distances[-1]],
+                    [self.__distances_2d[0], self.__distances_2d[-1]],
                     color='k',
                     linestyle=':'
                 )
             ax5_2.grid()
             ax4_2.grid()
-            theta_0, z_0 = np.meshgrid(theta_range, z_range)
+            theta_0, z_0 = np.meshgrid(self.__azimuths_2d, self.__z_coordinates_2d)
             ax4_3 = fig4.add_subplot(313)
             ax4_3.pcolor(
                 theta_0 / units.deg,
@@ -417,12 +436,11 @@ class neutrino3DVertexReconstructor:
             fig5.savefig('{}/{}_{}_maxima_paths.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
 
         # <--- 3D Fit ---> #
-        hor_distances = np.arange(100, 3500, 2.)
-        z_coords = slope * hor_distances + offset
-        hor_distances = hor_distances[(z_coords < 0) & (z_coords > -2700)]
-        search_widths = np.arange(-50, 50, 4.)
-        search_heights = np.arange(-1.1 * min_z_offset, 1.1 * max_z_offset, 2.)
-        x_0, y_0, z_0 = np.meshgrid(hor_distances, search_widths, search_heights)
+        distances_3d = np.arange(self.__distances_2d[0], self.__distances_2d[-1], self.__distance_step_3d)
+        z_coords = slope * distances_3d + offset
+        distances_3d = distances_3d[(z_coords < 0) & (z_coords > -2700)]
+        search_heights = np.arange(-1.1 * min_z_offset, 1.1 * max_z_offset, self.__z_step_3d)
+        x_0, y_0, z_0 = np.meshgrid(distances_3d, self.__widths_3d, search_heights)
 
         z_coords = z_0 + slope * x_0 + offset
         x_coords = np.cos(median_theta) * x_0 - y_0 * np.sin(median_theta)
