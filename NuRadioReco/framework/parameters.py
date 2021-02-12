@@ -39,11 +39,13 @@ class channelParameters(Enum):
     cr_xcorrelations = 8  # dict of result of crosscorrelations with cr templates
     nu_xcorrelations = 9  # dict of result of crosscorrelations with nu templates
     signal_time = 10  # the time of the maximum amplitude of the envelope
-    noise_rms = 11  # the root mean square of the noise
-    signal_time_offset = 12
-    signal_receiving_zenith = 13
-    signal_ray_type = 14
-    signal_receiving_azimuth = 15
+    signalregions = 11
+    noise_regions = 12
+    noise_rms = 13  # the root mean square of the noise
+    signal_time_offset = 14
+    signal_receiving_zenith = 15
+    signal_ray_type = 16
+    signal_receiving_azimuth = 17
 
 
 class electricFieldParameters(Enum):
