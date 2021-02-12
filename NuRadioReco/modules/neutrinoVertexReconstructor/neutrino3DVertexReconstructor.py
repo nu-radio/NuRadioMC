@@ -102,7 +102,7 @@ class neutrino3DVertexReconstructor:
         for i in range(len(channel_ids) - 1):
             for j in range(i + 1, len(channel_ids)):
                 relative_positions = detector.get_relative_position(station_id, channel_ids[i]) - detector.get_relative_position(station_id, channel_ids[j])
-                if detector.get_antenna_type(station_id, channel_ids[i]) == detector.get_antenna_type(station_id, channel_ids[j])\
+                if detector.get_antenna_type(station_id, channel_ids[i]) == detector.get_antenna_type(station_id, channel_ids[j]) \
                         and np.sqrt(np.sum(relative_positions**2)) > 5.:
                     self.__channel_pairs.append([channel_ids[i], channel_ids[j]])
         self.__lookup_table = {}
@@ -218,13 +218,13 @@ class neutrino3DVertexReconstructor:
         )
         residuals_d = np.sum((self.__z_coordinates_2d[i_max_d][corr_mask_d] - self.__distances_2d[corr_mask_d] * line_fit_d[0] - line_fit_d[1])**2) / np.sum(corr_mask_d.astype(int))
         i_max_z = np.argmax(flattened_corr, axis=1)
-        z_corr_mask_z = np.max(flattened_corr, axis=1) > corr_fit_threshold
+        corr_mask_z = np.max(flattened_corr, axis=1) > corr_fit_threshold
         line_fit_z = np.polyfit(
-            self.__distances_2d[i_max_z][z_corr_mask_z],
-            self.__z_coordinates_2d[z_corr_mask_z],
+            self.__distances_2d[i_max_z][corr_mask_z],
+            self.__z_coordinates_2d[corr_mask_z],
             1
         )
-        residuals_z = np.sum((self.__z_coordinates_2d[z_corr_mask_z] - self.__distances_2d[i_max_z][z_corr_mask_z] * line_fit_z[0] - line_fit_z[1])**2) / np.sum(z_corr_mask_z.astype(int))
+        residuals_z = np.sum((self.__z_coordinates_2d[corr_mask_z] - self.__distances_2d[i_max_z][corr_mask_z] * line_fit_z[0] - line_fit_z[1])**2) / np.sum(corr_mask_z.astype(int))
         if residuals_d <= residuals_z:
             slope = line_fit_d[0]
             offset = line_fit_d[1]
@@ -238,202 +238,32 @@ class neutrino3DVertexReconstructor:
         else:
             slope = line_fit_z[0]
             offset = line_fit_z[1]
-            max_z_offset = np.max([50, np.min([200, np.max(self.__z_coordinates_2d[z_corr_mask_z] - self.__distances_2d[i_max_z][z_corr_mask_z] * slope - offset)])])
-            min_z_offset = np.max([50, np.min([200, np.max(-self.__z_coordinates_2d[z_corr_mask_z] + self.__distances_2d[i_max_z][z_corr_mask_z] * slope + offset)])])
+            max_z_offset = np.max([50, np.min([200, np.max(self.__z_coordinates_2d[corr_mask_z] - self.__distances_2d[i_max_z][corr_mask_z] * slope - offset)])])
+            min_z_offset = np.max([50, np.min([200, np.max(-self.__z_coordinates_2d[corr_mask_z] + self.__distances_2d[i_max_z][corr_mask_z] * slope + offset)])])
             flattened_corr_theta = np.max(full_correlations, axis=0)
             theta_corr_mask = np.max(flattened_corr_theta, axis=1) >= corr_fit_threshold
             i_max_theta = np.argmax(flattened_corr_theta, axis=1)
             median_theta = np.median(self.__azimuths_2d[i_max_theta][theta_corr_mask])
             z_fit = True
         if debug:
-            fig4 = plt.figure(figsize=(4, 12))
-            fig5 = plt.figure(figsize=(8, 8))
-            ax4_1 = fig4.add_subplot(311)
-            ax5_1_1 = fig5.add_subplot(221)
-            ax5_1_1.grid()
-            ax5_1_2 = fig5.add_subplot(222)
-            ax5_1_2.grid()
-            d_0, z_0 = np.meshgrid(self.__distances_2d, self.__z_coordinates_2d)
-            ax4_1.pcolor(
-                d_0,
-                z_0,
-                flattened_corr
+            self.draw_2d_correlation_map(event, full_correlations)
+            self.draw_search_zones(
+                event,
+                slope,
+                offset,
+                line_fit_d,
+                line_fit_z,
+                min_z_offset,
+                max_z_offset,
+                i_max_d,
+                i_max_z,
+                corr_mask_d,
+                corr_mask_z,
+                z_fit,
+                i_max_theta,
+                theta_corr_mask,
+                median_theta
             )
-            ax4_1.grid()
-            ax5_1_1.fill_between(
-                self.__distances_2d,
-                self.__distances_2d * slope + offset + 1.1 * max_z_offset,
-                self.__distances_2d * slope + offset - 1.1 * min_z_offset,
-                color='k',
-                alpha=.2
-            )
-            ax5_1_1.scatter(
-                self.__distances_2d[corr_mask_d],
-                self.__z_coordinates_2d[i_max_d][corr_mask_d]
-            )
-            ax5_1_1.scatter(
-                self.__distances_2d[~corr_mask_d],
-                self.__z_coordinates_2d[i_max_d][~corr_mask_d],
-                c='k',
-                alpha=.5
-            )
-            ax5_1_1.plot(
-                self.__distances_2d,
-                self.__distances_2d * slope + offset,
-                color='k',
-                linestyle=':'
-            )
-            ax5_1_1.fill_between(
-                self.__distances_2d,
-                self.__distances_2d * slope + offset + 1.1 * max_z_offset,
-                self.__distances_2d * slope + offset - 1.1 * min_z_offset,
-                color='k',
-                alpha=.2
-            )
-            ax5_1_1.plot(
-                self.__distances_2d,
-                self.__distances_2d * line_fit_d[0] + line_fit_d[1],
-                color='r',
-                linestyle=':'
-            )
-            ax5_1_1.fill_between(
-                self.__distances_2d,
-                self.__distances_2d * line_fit_d[0] + line_fit_d[1] + 1.1 * max_z_offset,
-                self.__distances_2d * line_fit_d[0] + line_fit_d[1] - 1.1 * min_z_offset,
-                color='r',
-                alpha=.2
-            )
-            ax5_1_2.scatter(
-                self.__distances_2d[i_max_z][z_corr_mask_z],
-                self.__z_coordinates_2d[z_corr_mask_z]
-            )
-            ax5_1_2.scatter(
-                self.__distances_2d[i_max_z][~z_corr_mask_z],
-                self.__z_coordinates_2d[~z_corr_mask_z],
-                c='k',
-                alpha=.5
-            )
-            ax5_1_2.plot(
-                self.__distances_2d,
-                self.__distances_2d * slope + offset,
-                color='k',
-                linestyle=':'
-            )
-            ax5_1_2.plot(
-                self.__distances_2d,
-                self.__distances_2d * line_fit_z[0] + line_fit_z[1],
-                color='r',
-                linestyle=':'
-            )
-            ax5_1_2.fill_between(
-                self.__distances_2d,
-                self.__distances_2d * line_fit_z[0] + line_fit_z[1] + 1.1 * max_z_offset,
-                self.__distances_2d * line_fit_z[0] + line_fit_z[1] - 1.1 * min_z_offset,
-                color='r',
-                alpha=.2
-            )
-            ax5_1_2.plot(
-                self.__distances_2d,
-                self.__distances_2d * slope + offset,
-                color='k',
-                linestyle=':'
-            )
-            ax5_1_2.fill_between(
-                self.__distances_2d,
-                self.__distances_2d * slope + offset + 1.1 * max_z_offset,
-                self.__distances_2d * slope + offset - 1.1 * min_z_offset,
-                color='k',
-                alpha=.2
-            )
-
-            ax4_2 = fig4.add_subplot(312, projection='polar')
-            ax5_2 = fig5.add_subplot(212, projection='polar')
-            theta_0, d_0 = np.meshgrid(self.__azimuths_2d, self.__distances_2d)
-            ax4_2.pcolor(
-                theta_0,
-                d_0,
-                np.max(full_correlations, axis=1)
-            )
-            if z_fit:
-                ax5_2.scatter(
-                    self.__azimuths_2d[i_max_theta][theta_corr_mask],
-                    np.abs(self.__z_coordinates_2d)[theta_corr_mask]
-                )
-                ax5_2.scatter(
-                    self.__azimuths_2d[i_max_theta][~theta_corr_mask],
-                    np.abs(self.__z_coordinates_2d)[~theta_corr_mask],
-                    c='k',
-                    alpha=.5
-                )
-                ax5_2.plot(
-                    [median_theta, median_theta],
-                    [np.abs(self.__z_coordinates_2d[0]), np.abs(self.__z_coordinates_2d[-1])],
-                    color='k',
-                    linestyle=':'
-                )
-            else:
-                ax5_2.scatter(
-                    self.__azimuths_2d[i_max_theta][theta_corr_mask],
-                    self.__distances_2d[theta_corr_mask]
-                )
-                ax5_2.scatter(
-                    self.__azimuths_2d[i_max_theta][~theta_corr_mask],
-                    self.__distances_2d[~theta_corr_mask],
-                    c='k',
-                    alpha=.5
-                )
-                ax5_2.plot(
-                    [median_theta, median_theta],
-                    [self.__distances_2d[0], self.__distances_2d[-1]],
-                    color='k',
-                    linestyle=':'
-                )
-            ax5_2.grid()
-            ax4_2.grid()
-            theta_0, z_0 = np.meshgrid(self.__azimuths_2d, self.__z_coordinates_2d)
-            ax4_3 = fig4.add_subplot(313)
-            ax4_3.pcolor(
-                theta_0 / units.deg,
-                z_0,
-                np.max(full_correlations, axis=0)
-            )
-            ax4_3.grid()
-            sim_vertex = None
-            for sim_shower in event.get_sim_showers():
-                sim_vertex = sim_shower.get_parameter(shp.vertex)
-                break
-            if sim_vertex is not None:
-                ax4_1.axhline(sim_vertex[2], color='r', linestyle='--', alpha=.5)
-                ax4_1.axvline(np.sqrt(sim_vertex[0]**2 + sim_vertex[1]**2), color='r', linestyle='--', alpha=.5)
-                ax5_1_1.axhline(sim_vertex[2], color='r', linestyle='--', alpha=.5)
-                ax5_1_1.axvline(np.sqrt(sim_vertex[0]**2 + sim_vertex[1]**2), color='r', linestyle='--', alpha=.5)
-                ax5_1_2.axhline(sim_vertex[2], color='r', linestyle='--', alpha=.5)
-                ax5_1_2.axvline(np.sqrt(sim_vertex[0]**2 + sim_vertex[1]**2), color='r', linestyle='--', alpha=.5)
-                ax4_2.scatter(
-                    [hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]],
-                    [np.sqrt(sim_vertex[0]**2 + sim_vertex[1]**2)],
-                    c='r',
-                    alpha=.5,
-                    marker='+'
-                )
-                ax5_2.scatter(
-                    [hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]],
-                    [np.sqrt(sim_vertex[0]**2 + sim_vertex[1]**2)],
-                    c='r',
-                    alpha=.5,
-                    marker='+'
-                )
-                ax4_3.scatter(
-                    [hp.get_normalized_angle(hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]) / units.deg],
-                    [(sim_vertex[2])],
-                    c='r',
-                    alpha=.5,
-                    marker='+'
-                )
-            fig4.tight_layout()
-            fig4.savefig('{}/{}_{}_correlation_slice.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
-            fig5.tight_layout()
-            fig5.savefig('{}/{}_{}_maxima_paths.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
 
         # <--- 3D Fit ---> #
         distances_3d = np.arange(self.__distances_2d[0], self.__distances_2d[-1], self.__distance_step_3d)
@@ -761,7 +591,6 @@ class neutrino3DVertexReconstructor:
             fig8.tight_layout()
             fig8.savefig('{}/{}_{}_dnr_reco.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
 
-
     def get_correlation_array_2d(self, phi, z):
         """
         Returns the correlations corresponding to the different
@@ -857,3 +686,237 @@ class neutrino3DVertexReconstructor:
         travel_times = (d_hor - cell_dist_1) * slopes + travel_times_1
         travel_times[~mask] = np.nan
         return travel_times
+
+    def draw_2d_correlation_map(self, event, correlation_map):
+        fig4 = plt.figure(figsize=(4, 12))
+        ax4_1 = fig4.add_subplot(311)
+        d_0, z_0 = np.meshgrid(self.__distances_2d, self.__z_coordinates_2d)
+        ax4_1.pcolor(
+            d_0,
+            z_0,
+            np.max(correlation_map, axis=2).T
+        )
+        ax4_1.grid()
+        theta_0, d_0 = np.meshgrid(self.__azimuths_2d, self.__distances_2d)
+        ax4_2 = fig4.add_subplot(312, projection='polar')
+        ax4_2.pcolor(
+            theta_0,
+            d_0,
+            np.max(correlation_map, axis=1)
+        )
+        ax4_2.grid()
+        ax4_3 = fig4.add_subplot(313)
+        theta_0, z_0 = np.meshgrid(self.__azimuths_2d, self.__z_coordinates_2d)
+        ax4_3.pcolor(
+            theta_0 / units.deg,
+            z_0,
+            np.max(correlation_map, axis=0)
+        )
+        ax4_3.grid()
+        sim_vertex = None
+        for sim_shower in event.get_sim_showers():
+            sim_vertex = sim_shower.get_parameter(shp.vertex)
+            break
+        if sim_vertex is not None:
+            ax4_1.scatter(
+                [np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)],
+                [sim_vertex[2]],
+                c='r',
+                alpha=.5,
+                marker='+'
+            )
+            ax4_2.scatter(
+                [hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]],
+                [np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)],
+                c='r',
+                alpha=.5,
+                marker='+'
+            )
+            ax4_3.scatter(
+                [hp.get_normalized_angle(
+                    hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]) / units.deg],
+                [(sim_vertex[2])],
+                c='r',
+                alpha=.5,
+                marker='+'
+            )
+        ax4_1.set_xlabel('d [m]')
+        ax4_1.set_ylabel('z [m]')
+        ax4_3.set_xlabel(r'$\phi [^\circ]$')
+        ax4_3.set_ylabel('z [m]')
+        fig4.tight_layout()
+        fig4.savefig('{}/{}_{}_2D_correlation_maps.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
+
+    def draw_search_zones(
+            self,
+            event,
+            slope,
+            offset,
+            line_fit_d,
+            line_fit_z,
+            min_z_offset,
+            max_z_offset,
+            i_max_d,
+            i_max_z,
+            corr_mask_d,
+            corr_mask_z,
+            z_fit,
+            i_max_theta,
+            theta_corr_mask,
+            median_theta
+    ):
+        fig5 = plt.figure(figsize=(8, 8))
+        ax5_1_1 = fig5.add_subplot(221)
+        ax5_1_1.grid()
+        ax5_1_2 = fig5.add_subplot(222)
+        ax5_1_2.grid()
+        ax5_1_1.fill_between(
+            self.__distances_2d,
+            self.__distances_2d * slope + offset + 1.1 * max_z_offset,
+            self.__distances_2d * slope + offset - 1.1 * min_z_offset,
+            color='k',
+            alpha=.2
+        )
+        ax5_1_1.scatter(
+            self.__distances_2d[corr_mask_d],
+            self.__z_coordinates_2d[i_max_d][corr_mask_d]
+        )
+        ax5_1_1.scatter(
+            self.__distances_2d[~corr_mask_d],
+            self.__z_coordinates_2d[i_max_d][~corr_mask_d],
+            c='k',
+            alpha=.5
+        )
+        ax5_1_1.plot(
+            self.__distances_2d,
+            self.__distances_2d * slope + offset,
+            color='k',
+            linestyle=':'
+        )
+        ax5_1_1.fill_between(
+            self.__distances_2d,
+            self.__distances_2d * slope + offset + 1.1 * max_z_offset,
+            self.__distances_2d * slope + offset - 1.1 * min_z_offset,
+            color='k',
+            alpha=.2
+        )
+        ax5_1_1.plot(
+            self.__distances_2d,
+            self.__distances_2d * line_fit_d[0] + line_fit_d[1],
+            color='r',
+            linestyle=':'
+        )
+        ax5_1_1.fill_between(
+            self.__distances_2d,
+            self.__distances_2d * line_fit_d[0] + line_fit_d[1] + 1.1 * max_z_offset,
+            self.__distances_2d * line_fit_d[0] + line_fit_d[1] - 1.1 * min_z_offset,
+            color='r',
+            alpha=.2
+        )
+        ax5_1_2.scatter(
+            self.__distances_2d[i_max_z][corr_mask_z],
+            self.__z_coordinates_2d[corr_mask_z]
+        )
+        ax5_1_2.scatter(
+            self.__distances_2d[i_max_z][~corr_mask_z],
+            self.__z_coordinates_2d[~corr_mask_z],
+            c='k',
+            alpha=.5
+        )
+        ax5_1_2.plot(
+            self.__distances_2d,
+            self.__distances_2d * slope + offset,
+            color='k',
+            linestyle=':'
+        )
+        ax5_1_2.plot(
+            self.__distances_2d,
+            self.__distances_2d * line_fit_z[0] + line_fit_z[1],
+            color='r',
+            linestyle=':'
+        )
+        ax5_1_2.fill_between(
+            self.__distances_2d,
+            self.__distances_2d * line_fit_z[0] + line_fit_z[1] + 1.1 * max_z_offset,
+            self.__distances_2d * line_fit_z[0] + line_fit_z[1] - 1.1 * min_z_offset,
+            color='r',
+            alpha=.2
+        )
+        ax5_1_2.plot(
+            self.__distances_2d,
+            self.__distances_2d * slope + offset,
+            color='k',
+            linestyle=':'
+        )
+        ax5_1_2.fill_between(
+            self.__distances_2d,
+            self.__distances_2d * slope + offset + 1.1 * max_z_offset,
+            self.__distances_2d * slope + offset - 1.1 * min_z_offset,
+            color='k',
+            alpha=.2
+        )
+
+        if z_fit:
+            ax5_2 = fig5.add_subplot(2, 2, (3, 4))
+            ax5_2.grid()
+        else:
+            ax5_2 = fig5.add_subplot(2, 2, (3, 4), projection='polar')
+        if z_fit:
+            ax5_2.scatter(
+                self.__azimuths_2d[i_max_theta][theta_corr_mask],
+                np.abs(self.__z_coordinates_2d)[theta_corr_mask]
+            )
+            ax5_2.scatter(
+                self.__azimuths_2d[i_max_theta][~theta_corr_mask],
+                np.abs(self.__z_coordinates_2d)[~theta_corr_mask],
+                c='k',
+                alpha=.5
+            )
+            ax5_2.plot(
+                [median_theta, median_theta],
+                [np.abs(self.__z_coordinates_2d[0]), np.abs(self.__z_coordinates_2d[-1])],
+                color='k',
+                linestyle=':'
+            )
+        else:
+            ax5_2.scatter(
+                self.__azimuths_2d[i_max_theta][theta_corr_mask],
+                self.__distances_2d[theta_corr_mask]
+            )
+            ax5_2.scatter(
+                self.__azimuths_2d[i_max_theta][~theta_corr_mask],
+                self.__distances_2d[~theta_corr_mask],
+                c='k',
+                alpha=.5
+            )
+            ax5_2.plot(
+                [median_theta, median_theta],
+                [self.__distances_2d[0], self.__distances_2d[-1]],
+                color='k',
+                linestyle=':'
+            )
+        sim_vertex = None
+        for sim_shower in event.get_sim_showers():
+            sim_vertex = sim_shower.get_parameter(shp.vertex)
+            break
+        if sim_vertex is not None:
+            ax5_1_1.axhline(sim_vertex[2], color='r', linestyle='--', alpha=.5)
+            ax5_1_1.axvline(np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2), color='r', linestyle='--', alpha=.5)
+            ax5_1_2.axhline(sim_vertex[2], color='r', linestyle='--', alpha=.5)
+            ax5_1_2.axvline(np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2), color='r', linestyle='--', alpha=.5)
+            ax5_2.scatter(
+                [hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]],
+                [np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)],
+                c='r',
+                alpha=.5,
+                marker='+'
+            )
+        ax5_1_1.set_xlabel('d [m]')
+        ax5_1_2.set_xlabel('d [m]')
+        ax5_1_1.set_ylabel('z [m]')
+        ax5_1_2.set_ylabel('z [m]')
+        if z_fit:
+            ax5_2.set_xlabel(r'$\phi [^\circ]$')
+            ax5_2.set_ylabel('|z| [m]')
+        fig5.tight_layout()
+        fig5.savefig('{}/{}_{}_search_zones.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
