@@ -37,7 +37,9 @@ class channelTimeOffsetCalculator:
                     vertex_position = sim_shower.get_parameter(shp.vertex)
                     break
         else:
-            if station.has_parameter(stnp.vertex_2D_fit):
+            if station.has_parameter(stnp.nu_vertex):
+                vertex_position = station.get_parameter(stnp.nu_vertex)
+            elif station.has_parameter(stnp.vertex_2D_fit):
                 vertex_2d = station.get_parameter(stnp.vertex_2D_fit)
                 vertex_position = np.array([vertex_2d[0], 0, vertex_2d[1]])
         if vertex_position is None:
