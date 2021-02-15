@@ -240,7 +240,7 @@ class BaseStation():
                 'format': self._station_time.format
             }
         data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
-                '_parameter_covariances': self._parameter_covariances,
+                '_parameter_covariances': NuRadioReco.framework.parameter_serialization.serialize_covariances(self._parameter_covariances),
                 '_ARIANNA_parameters': self._ARIANNA_parameters,
                 '_station_id': self._station_id,
                 '_station_time': station_time_dict,
@@ -267,7 +267,7 @@ class BaseStation():
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'],
                                                                                      parameters.stationParameters)
 
-        self._parameter_covariances = data['_parameter_covariances']
+        self._parameter_covariances = NuRadioReco.framework.parameter_serialization.deserialize_covariances(data['_parameter_covariances'], parameters.stationParameters)
         if ('_ARIANNA_parameters') in data:
             self._ARIANNA_parameters = data['_ARIANNA_parameters']
 
