@@ -18,6 +18,7 @@ from NuRadioReco.framework.parameters import showerParameters as shp
 import logging
 logger = logging.getLogger('coreas')
 
+warning_printed_coreas_py = False
 
 conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
 
@@ -69,7 +70,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
         ax1.set_ylabel(r'Position in $\vec{v} \times \vec{v} \times \vec{B}$ - direction [m]')
 
     weights = np.zeros_like(positions[:, 0])
-    for p in range(0, weights.shape[0]):   # loop over all 240 station positions
+    for p in range(0, weights.shape[0]):  # loop over all 240 station positions
         vertices_shower_2d = vor.vertices[vor.regions[vor.point_region[p]]]
 
         # x_vertice_ground = x_trafo_from_shower[0] * x_vertice_shower + y_trafo_from_shower[0] * y_vertice_shower + z_trafo_from_shower[0] * z_vertice_shower
@@ -91,7 +92,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
         ind = np.argpartition(length_shower, -n_arms)[-n_arms:]
 
         weight = spatial.ConvexHull(vertices_ground[:, :2])
-        weights[p] = weight.volume   # volume of a 2d dataset is the area, area of a 2d data set is the perimeter
+        weights[p] = weight.volume  # volume of a 2d dataset is the area, area of a 2d data set is the perimeter
         weights[ind] = 0
 
         if debug:
@@ -101,7 +102,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
         ax2.scatter(positions[:, 0], positions[:, 1], c='tab:blue', s=10, label='Position of stations')
         ax2.scatter(vertices_ground[:, 0], vertices_ground[:, 1], c='tab:orange', label='Vertices of cell')
         ax2.set_aspect('equal')
-        ax2.set_title('On ground, total area {:.2f} $km^2$'.format(sum(weights) / units.km**2))
+        ax2.set_title('On ground, total area {:.2f} $km^2$'.format(sum(weights) / units.km ** 2))
         ax2.set_xlabel('East [m]')
         ax2.set_ylabel('West [m]')
         ax2.set_xlim(-5000, 5000)
@@ -118,7 +119,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
         ax4.set_xlabel(r'Weights (here area) $[m^2]$')
         ax4.set_ylabel(r'Number of stations')
 
-        ax5.scatter(length_shower**2, weights)
+        ax5.scatter(length_shower ** 2, weights)
         ax5.set_xlabel(r'$Length^2 [m^2]$')
         ax5.set_ylabel('Weight $[m^2]$')
         plt.show()
@@ -148,8 +149,12 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
     """
     # loop over all coreas stations, rotate to ARIANNA CS and save to simulation branch
     zenith, azimuth, magnetic_field_vector = get_angles(corsika)
-    data = np.copy(observer)
-    data[:, 1], data[:, 2] = -observer[:, 2], observer[:, 1]
+    if(observer is None):
+        data = np.zeros((512, 4))
+        data[:, 0] = np.arange(0, 512) * units.ns / units.second
+    else:
+        data = np.copy(observer)
+        data[:, 1], data[:, 2] = -observer[:, 2], observer[:, 1]
 
     # convert to SI units
     data[:, 0] *= units.second
@@ -185,7 +190,10 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
     try:
         sim_station.set_parameter(stnp.cr_energy_em, corsika["highlevel"].attrs["Eem"])
     except:
-        logger.warning("No high-level quantities in HDF5 file, not setting EM energy")
+        global warning_printed_coreas_py
+        if(not warning_printed_coreas_py):
+            logger.warning("No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
+            warning_printed_coreas_py = True
     sim_station.set_is_cosmic_ray()
     sim_station.set_simulation_weight(weight)
     return sim_station
@@ -228,6 +236,9 @@ def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
     try:
         sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"] * units.eV)
     except:
-        logger.warning("No high-level quantities in HDF5 file, not setting EM energy")
+        global warning_printed_coreas_py
+        if(not warning_printed_coreas_py):
+            logger.warning("No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
+            warning_printed_coreas_py = True
 
     return sim_shower

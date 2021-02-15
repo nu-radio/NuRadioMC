@@ -1,5 +1,5 @@
 """
-This file runs a phased array trigger simulation. The phased array configuration
+his file runs a phased array trigger simulation. The phased array configuration
 in this file is similar to one of the proposed ideas for RNO: 3 GS/s, 8 antennas
 at a depth of ~50 m, 30 primary phasing directions. In order to run, we need
 a detector file and a configuration file, included in this folder. To run
@@ -17,8 +17,12 @@ WARNING: this file needs NuRadioMC to be run.
 """
 
 from __future__ import absolute_import, division, print_function
+
 import argparse
-# import detector simulation modules
+import logging
+import numpy as np
+from NuRadioMC.simulation import simulation
+import NuRadioReco
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.phasedarray.triggerSimulator
@@ -26,84 +30,100 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
-from NuRadioMC.simulation import simulation
-from NuRadioReco.utilities.traceWindows import get_window_around_maximum
-import numpy as np
-import logging
 from NuRadioReco.modules.base import module
+
+# 4 channel, 2x sampling, fft upsampling, 16 ns window
+# 100 Hz -> 30.85
+# 10 Hz -> 35.67
+# 1 Hz -> 41.35
+
+# 8 channel, 4x sampling, fft upsampling, 16 ns window
+# 100 Hz -> 62.15
+# 10 Hz -> 69.06
+# 1 Hz -> 75.75
 
 logger = module.setup_logger(level=logging.WARNING)
 
-# initialize detector sim modules
-efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
-efieldToVoltageConverter.begin(debug=False)
 triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
-channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
+simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
-channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
-main_low_angle = -50 * units.deg
-main_high_angle = 50 * units.deg
-phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 30))
+main_low_angle = np.deg2rad(-59.55)
+main_high_angle = np.deg2rad(59.55)
+phasing_angles_4ant = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
+phasing_angles_8ant = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 21))
+
+window_4ant = int(16 * units.ns * 0.5 * 2.0)
+step_4ant = int(8 * units.ns * 0.5 * 2.0)
+
+window_8ant = int(16 * units.ns * 0.5 * 4.0)
+step_8ant = int(8 * units.ns * 0.5 * 4.0)
 
 
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-        channelBandPassFilter.run(evt, station, det, passband=[132 * units.MHz, 1150 * units.MHz],
-                                  filter_type='butter', order=8)
-        channelBandPassFilter.run(evt, station, det, passband=[0, 700 * units.MHz],
-                                  filter_type='butter', order=10)
 
-    def _detector_simulation_part2(self):
-        # start detector simulation
-        efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
-        # downsample trace to 3 Gs/s
-        new_sampling_rate = 3 * units.GHz
-        channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
+        channelBandPassFilter.run(evt, station, det, passband=[0.0 * units.MHz, 220.0 * units.MHz],
+                                  filter_type='cheby1', order=7, rp=.1)
+        channelBandPassFilter.run(evt, station, det, passband=[96.0 * units.MHz, 100.0 * units.GHz],
+                                  filter_type='cheby1', order=4, rp=.1)
 
-        cut_times = get_window_around_maximum(self._station)
+    def _detector_simulation_trigger(self, evt, station, det):
 
-        # Bool for checking the noise triggering rate
-        check_only_noise = False
+        Vrms = self._Vrms
 
-        if check_only_noise:
-            for channel in self._station.iter_channels():
-                trace = channel.get_trace() * 0
-                channel.set_trace(trace, sampling_rate=new_sampling_rate)
+        simpleThreshold.run(evt, station, det,
+                            threshold=1.0 * Vrms,
+                            triggered_channels=[4],  # run trigger on all channels
+                            number_concidences=1,
+                            trigger_name='dipole_1.0sigma')
+        simpleThreshold.run(evt, station, det,
+                            threshold=1.5 * Vrms,
+                            triggered_channels=[4],  # run trigger on all channels
+                            number_concidences=1,
+                            trigger_name='dipole_1.5sigma')
+        simpleThreshold.run(evt, station, det,
+                            threshold=2.0 * Vrms,
+                            triggered_channels=[4],  # run trigger on all channels
+                            number_concidences=1,
+                            trigger_name='dipole_2.0sigma')
+        simpleThreshold.run(evt, station, det,
+                            threshold=2.5 * Vrms,
+                            triggered_channels=[4],  # run trigger on all channels
+                            number_concidences=1,
+                            trigger_name='dipole_2.5sigma')
+        simpleThreshold.run(evt, station, det,
+                            threshold=3.0 * Vrms,
+                            triggered_channels=[4],  # run trigger on all channels
+                            number_concidences=1,
+                            trigger_name='dipole_3.0sigma')
+        simpleThreshold.run(evt, station, det,
+                            threshold=3.5 * Vrms,
+                            triggered_channels=[4],  # run trigger on all channels
+                            number_concidences=1,
+                            trigger_name='dipole_3.5sigma')
 
-        if self._is_simulate_noise():
-            max_freq = 0.5 / self._dt
-            norm = self._get_noise_normalization(
-                self._station.get_id())  # assuming the same noise level for all stations
-            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms,
-                                         min_freq=0 * units.MHz,
-                                         max_freq=max_freq, type='rayleigh', bandwidth=norm)
-
-        # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
-        channelBandPassFilter.run(self._evt, self._station, self._det, passband=[132 * units.MHz, 1150 * units.MHz],
-                                  filter_type='butter', order=8)
-        channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 700 * units.MHz],
-                                  filter_type='butter', order=10)
-
-        # run the phased trigger
-        triggerSimulator.run(self._evt, self._station, self._det,
-                             threshold=2.2 * self._Vrms,  # see phased trigger module for explanation
-                             triggered_channels=None,  # run trigger on all channels
-                             trigger_name='primary_phasing',  # the name of the trigger
-                             phasing_angles=phasing_angles,
-                             secondary_phasing_angles=None,
-                             coupled=False,
+        triggerSimulator.run(evt, station, det,
+                             Vrms=Vrms,
+                             threshold=30.85 * np.power(Vrms, 2.0),
+                             triggered_channels=range(4),  # run trigger on all channels
+                             phasing_angles=phasing_angles_4ant,
                              ref_index=1.75,
-                             cut_times=cut_times)
+                             trigger_name='4ant_phasing_100Hz',  # the name of the trigger
+                             trigger_adc=False,  # Don't have a seperate ADC for the trigger
+                             adc_output='voltage',  # output in volts
+                             trigger_filter=None,
+                             upsampling_factor=2,
+                             window=window_4ant,
+                             step=step_4ant)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('--inputfilename', type=str,
                     help='path to NuRadioMC input event list', default='0.00_12_00_1.00e+16_1.00e+19.hdf5')
 parser.add_argument('--detectordescription', type=str,
-                    help='path to file containing the detector description', default='4antennas_100m_1.5GHz.json')
+                    help='path to file containing the detector description', default='4antennas_100m_0.5GHz.json')
 parser.add_argument('--config', type=str,
                     help='NuRadioMC yaml config file', default='config_RNO.yaml')
 parser.add_argument('--outputfilename', type=str,

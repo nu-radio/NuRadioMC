@@ -12,7 +12,7 @@ requires = [
     "tinydb>=4.1.1",
     "tinydb-serialization",
     "aenum",
-    "astropy<=2.0.14",
+    "astropy",
     "radiotools >=0.2.0",
     "h5py",
     "peakutils",

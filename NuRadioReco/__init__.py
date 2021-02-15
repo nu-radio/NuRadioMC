@@ -1,3 +1,3 @@
 """ NuRadioReco: A reconstruction framework for radio neutrino detectors"""
 
-__version__ = "1.1.2-beta"
+__version__ = "1.2"
