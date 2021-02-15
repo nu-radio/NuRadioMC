@@ -13,7 +13,7 @@ class channelTimeOffsetCalculator:
 
     def __init__(self):
         self.__use_sim = False
-        self.__raytracing_types = ['direc', 'refracted', 'reflected']
+        self.__raytracing_types = ['direct', 'refracted', 'reflected']
         self.__electric_field_template = None
         self.__medium = None
         self.__antenna_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
