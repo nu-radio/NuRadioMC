@@ -22,6 +22,8 @@ class channelTimeOffsetCalculator:
     raytracing solution: If the solution is correctd, the correlations will have their maxima at the same
     position, resulting in a larger maximum of their sum. Thus, we can determine the correct raytracing
     solutions and store the corresponding properties in the channel parameters.
+    This module assumes that the ray path type for all channels is the same, e.g. each channel sees a direct
+    ray. Therefore it should only be used for channels that are relatively close to each other.
     """
     def __init__(self):
         self.__use_sim = False
