@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.signal
 from matplotlib import cm
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units
@@ -7,7 +6,6 @@ import NuRadioReco.utilities.io_utilities
 import NuRadioReco.framework.electric_field
 import NuRadioReco.detector.antennapattern
 from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.utilities import trace_utilities, fft, bandpass_filter
 import radiotools.helper as hp
@@ -75,10 +73,11 @@ class neutrino3DVertexReconstructor:
             distances_2d=None,
             azimuths_2d=None,
             z_coordinates_2d=None,
-            distance_step_3d=2,
+            distance_step_3d=2 * units.m,
             widths_3d=None,
-            z_step_3d=2,
+            z_step_3d=2 * units.m,
             passband=None,
+            min_antenna_distance=5. * units.m,
             debug_folder='.'
     ):
         """
@@ -92,6 +91,37 @@ class neutrino3DVertexReconstructor:
             IDs of the channels to be used for the reconstruction
         detector: Detector or GenericDetector
             Detector description for the detector used in the reconstruction
+        template: BaseTrace object or object of child class
+            An electric field to be used to calculate the template which are correlated
+            with the channel traces in order to determine the timing difference between
+            channels
+        distances_2d: array of float
+            A list of horizontal distances from the center of the station at which the first
+            rough scan to determine the search volume is done. The minimum and maximum of this
+            list is later also used as the minimum and maximum distance for the finer search
+        azimuths_2d: array of float
+            Array of azimuths to be used in the first scan to determine the search volume
+        z_coordinates_2d: array of float
+            Array of the z coordinates relative to the surface to be used in the first scan
+            to determine the search volume. The maximum depth is also used as the maximum
+            depth for the finer search
+        distance_step_3d: float
+            Step size for the horizontal distances used in the finer scan
+        widths_3d: array of float
+            List of distances to the left and right of the line determined in the first rough
+            scan on which the finer scan should be performed
+        z_step_3d: float
+            Step size for the depts used in the finer scan
+        passband: array of float
+            Lower and upper bounds off the bandpass filter that is applied to the channel
+            waveform and the template before the correlations are determined. This filter
+            does not affect the voltages stored in the channels.
+        min_antenna_distance: float
+            Minimum distance two antennas need to have to be used as a pair in the reconstruction
+        debug_folder: string
+            Path to the folder in which debug plots should be saved if the debug=True option
+            is picked in the run() method.
+
         """
 
         self.__detector = detector
@@ -103,7 +133,7 @@ class neutrino3DVertexReconstructor:
             for j in range(i + 1, len(channel_ids)):
                 relative_positions = detector.get_relative_position(station_id, channel_ids[i]) - detector.get_relative_position(station_id, channel_ids[j])
                 if detector.get_antenna_type(station_id, channel_ids[i]) == detector.get_antenna_type(station_id, channel_ids[j]) \
-                        and np.sqrt(np.sum(relative_positions**2)) > 5.:
+                        and np.sqrt(np.sum(relative_positions**2)) > min_antenna_distance:
                     self.__channel_pairs.append([channel_ids[i], channel_ids[j]])
         self.__lookup_table = {}
         self.__header = {}
