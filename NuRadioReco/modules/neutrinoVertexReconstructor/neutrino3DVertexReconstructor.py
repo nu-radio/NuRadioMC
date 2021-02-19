@@ -276,8 +276,8 @@ class neutrino3DVertexReconstructor:
             median_theta = np.median(self.__azimuths_2d[i_max_theta][theta_corr_mask])
             z_fit = True
         if debug:
-            self.draw_2d_correlation_map(event, full_correlations)
-            self.draw_search_zones(
+            self.__draw_2d_correlation_map(event, full_correlations)
+            self.__draw_search_zones(
                 event,
                 slope,
                 offset,
@@ -319,125 +319,23 @@ class neutrino3DVertexReconstructor:
                 correlation_map = np.maximum(self.get_correlation_array_3d(x_coords, y_coords, z_coords), correlation_map)
             correlation_sum += correlation_map
         i_max = np.unravel_index(np.argmax(correlation_sum), correlation_sum.shape)
-        max_corr_sum = np.max(correlation_sum)
-        correlation_sum /= max_corr_sum
-        colormap = cm.get_cmap('viridis', 16)
-        vmin = .6
-        vmax = 1.
-        sim_vertex = None
-        for sim_shower in event.get_sim_showers():
-            sim_vertex = sim_shower.get_parameter(shp.vertex)
-            break
         if debug:
-            fig6 = plt.figure(figsize=(8, 16))
-            ax6_1 = fig6.add_subplot(411)
-            cplot1 = ax6_1.pcolor(
-                x_0[0],
-                z_0[0],
-                np.max(correlation_sum, axis=0),
-                cmap=colormap,
-                vmin=vmin,
-                vmax=vmax
+            self.__draw_vertex_reco(
+                event,
+                correlation_sum / np.max(correlation_sum),
+                x_0,
+                y_0,
+                z_0,
+                x_coords,
+                y_coords,
+                z_coords,
+                slope,
+                offset,
+                median_theta,
+                i_max
             )
-            plt.colorbar(cplot1, ax=ax6_1)
-            ax6_2 = fig6.add_subplot(412)
-            cplot2 = ax6_2.pcolor(
-                x_0[:, :, 0],
-                y_0[:, :, 0],
-                np.max(correlation_sum, axis=2),
-                cmap=colormap,
-                vmin=vmin,
-                vmax=vmax
-            )
-            plt.colorbar(cplot2, ax=ax6_2)
-
-            ax6_3 = fig6.add_subplot(413)
-            cplot3 = ax6_3.pcolor(
-                x_0[0],
-                z_coords[0],
-                np.max(correlation_sum, axis=0),
-                cmap=colormap,
-                vmin=vmin,
-                vmax=vmax
-            )
-            plt.colorbar(cplot3, ax=ax6_3)
-            ax6_3.set_aspect('equal')
-            ax6_4 = fig6.add_subplot(414)
-            cplot4 = ax6_4.pcolor(
-                x_coords[:, :, 0],
-                y_coords[:, :, 0],
-                np.max(correlation_sum, axis=2),
-                cmap=colormap,
-                vmin=vmin,
-                vmax=vmax
-            )
-            plt.colorbar(cplot4, ax=ax6_4)
-            ax6_4.set_aspect('equal')
-            if sim_vertex is not None:
-                sim_vertex_dhor = np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)
-                ax6_1.scatter(
-                    [sim_vertex_dhor],
-                    [sim_vertex[2] - sim_vertex_dhor * slope - offset],
-                    c='r',
-                    marker='+'
-                )
-                ax6_2.scatter(
-                    [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
-                    [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
-                    c='r',
-                    marker='+'
-                )
-                ax6_3.scatter(
-                    [sim_vertex_dhor],
-                    [sim_vertex[2]],
-                    c='r',
-                    marker='+'
-                )
-                ax6_4.scatter(
-                    [sim_vertex[0]],
-                    [sim_vertex[1]],
-                    c='r',
-                    marker='+'
-                )
-            ax6_1.scatter(
-                [x_0[i_max]],
-                [z_0[i_max]],
-                c='k',
-                marker='+'
-            )
-            ax6_2.scatter(
-                [x_0[i_max]],
-                [y_0[i_max]],
-                c='k',
-                marker='+'
-            )
-            ax6_3.scatter(
-                [x_0[i_max]],
-                [z_coords[i_max]],
-                c='k',
-                marker='+'
-            )
-            ax6_4.scatter(
-                [x_coords[i_max]],
-                [y_coords[i_max]],
-                c='k',
-                marker='+'
-            )
-            ax6_1.set_xlabel('r [m]')
-            ax6_1.set_ylabel(r'$\Delta z$ [m]')
-            ax6_2.set_xlabel(r'$\Delta x$ [m]')
-            ax6_2.set_ylabel(r'$\Delta y$ [m]')
-            ax6_3.set_xlabel('r [m]')
-            ax6_3.set_ylabel('z [m]')
-            ax6_4.set_xlabel('x [m]')
-            ax6_4.set_ylabel('y [m]')
-            fig6.tight_layout()
-            fig6.savefig('{}/{}_{}_slices.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
-
         # <<--- DnR Reco --->> #
         self.__self_correlations = np.zeros((len(self.__channel_ids), station.get_channel(self.__channel_ids[0]).get_number_of_samples() + self.__electric_field_template.get_number_of_samples() - 1))
-        if debug:
-            fig7 = plt.figure(figsize=(8, 2 * len(self.__channel_ids)))
         self_correlation_sum = np.zeros_like(z_coords)
         for i_channel, channel_id in enumerate(self.__channel_ids):
             channel = station.get_channel(channel_id)
@@ -482,144 +380,27 @@ class neutrino3DVertexReconstructor:
                     self.__current_ray_types = self.__ray_types[i_ray]
                     correlation_map = np.maximum(self.get_correlation_array_3d(x_coords, y_coords, z_coords), correlation_map)
             self_correlation_sum += correlation_map
-            if debug:
-                ax7_1 = fig7.add_subplot(len(self.__channel_ids) // 2 + len(self.__channel_ids) % 2, 2, i_channel + 1)
-                ax7_1.grid()
-                ax7_1.plot(toffset, correlation_product)
-                ax7_1.set_title('Channel {}'.format(channel_id))
-        max_self_corr_sum = np.max(self_correlation_sum)
-        self_correlation_sum /= max_self_corr_sum
-        combined_correlations = correlation_sum * max_corr_sum / len(self.__channel_pairs) + self_correlation_sum * max_self_corr_sum / len(self.__channel_ids)
-        combined_correlations /= np.max(combined_correlations)
+        combined_correlations = correlation_sum / len(self.__channel_pairs) + self_correlation_sum  / len(self.__channel_ids)
         i_max_dnr = np.unravel_index(np.argmax(combined_correlations), combined_correlations.shape)
         vertex_x = x_coords[i_max_dnr]
         vertex_y = y_coords[i_max_dnr]
         vertex_z = z_coords[i_max_dnr]
         station.set_parameter(stnp.nu_vertex, np.array([vertex_x, vertex_y, vertex_z]))
         if debug:
-            fig7.tight_layout()
-            fig7.savefig('{}/{}_{}_self_correlations.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
-            fig8 = plt.figure(figsize=(12, 8))
-            ax8_1 = fig8.add_subplot(232)
-            ax8_2 = fig8.add_subplot(235)
-            ax8_3 = fig8.add_subplot(233)
-            ax8_4 = fig8.add_subplot(236)
-            ax8_5 = fig8.add_subplot(231)
-            ax8_6 = fig8.add_subplot(234)
-
-            cplot1 = ax8_1.pcolor(
-                x_0[0],
-                z_0[0],
-                np.max(self_correlation_sum, axis=0),
-                cmap=colormap,
-                vmin=vmin,
-                vmax=vmax
+            self.__draw_dnr_reco(
+                event,
+                correlation_sum / np.max(correlation_sum),
+                self_correlation_sum / np.max(self_correlation_sum),
+                combined_correlations / np.max(combined_correlations),
+                x_0,
+                y_0,
+                z_0,
+                slope,
+                offset,
+                median_theta,
+                i_max,
+                i_max_dnr
             )
-            plt.colorbar(cplot1, ax=ax8_1)
-            cplot2 = ax8_2.pcolor(
-                x_0[:, :, 0],
-                y_0[:, :, 0],
-                np.max(self_correlation_sum, axis=2),
-                cmap=colormap,
-                vmin=vmin,
-                vmax=vmax
-            )
-            plt.colorbar(cplot2, ax=ax8_2)
-
-            cplot3 = ax8_3.pcolor(
-                x_0[0],
-                z_0[0],
-                np.max(combined_correlations, axis=0),
-                cmap=colormap,
-                vmin=vmin,
-                vmax=vmax
-            )
-            plt.colorbar(cplot3, ax=ax8_3)
-            cplot4 = ax8_4.pcolor(
-                x_0[:, :, 0],
-                y_0[:, :, 0],
-                np.max(combined_correlations, axis=2),
-                cmap=colormap,
-                vmin=vmin,
-                vmax=vmax
-            )
-            plt.colorbar(cplot4, ax=ax8_4)
-            cplot5 = ax8_5.pcolor(
-                x_0[0],
-                z_0[0],
-                np.max(correlation_sum, axis=0),
-                cmap=colormap,
-                vmin=vmin,
-                vmax=vmax
-            )
-            plt.colorbar(cplot5, ax=ax8_5)
-            cplot6 = ax8_6.pcolor(
-                x_0[:, :, 0],
-                y_0[:, :, 0],
-                np.max(correlation_sum, axis=2),
-                cmap=colormap,
-                vmin=vmin,
-                vmax=vmax
-            )
-            ax8_5.scatter(
-                [x_0[i_max]],
-                [z_0[i_max]],
-                c='k',
-                marker='+'
-            )
-            ax8_3.scatter(
-                [x_0[i_max_dnr]],
-                [z_0[i_max_dnr]],
-                c='k',
-                marker='+'
-            )
-            plt.colorbar(cplot6, ax=ax8_6)
-            sim_vertex = None
-            for sim_shower in event.get_sim_showers():
-                sim_vertex = sim_shower.get_parameter(shp.vertex)
-                break
-            if sim_vertex is not None:
-                sim_vertex_dhor = np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)
-                ax8_1.scatter(
-                    [sim_vertex_dhor],
-                    [sim_vertex[2] - sim_vertex_dhor * slope - offset],
-                    c='r',
-                    marker='+'
-                )
-                ax8_2.scatter(
-                    [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
-                    [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
-                    c='r',
-                    marker='+'
-                )
-                ax8_3.scatter(
-                    [sim_vertex_dhor],
-                    [sim_vertex[2] - sim_vertex_dhor * slope - offset],
-                    c='r',
-                    marker='+'
-                )
-                ax8_4.scatter(
-                    [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
-                    [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
-                    c='r',
-                    marker='+'
-                )
-                ax8_5.scatter(
-                    [sim_vertex_dhor],
-                    [sim_vertex[2] - sim_vertex_dhor * slope - offset],
-                    c='r',
-                    marker='+'
-                )
-                ax8_6.scatter(
-                    [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
-                    [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
-                    c='r',
-                    marker='+'
-                )
-            ax8_1.grid()
-            ax8_2.grid()
-            fig8.tight_layout()
-            fig8.savefig('{}/{}_{}_dnr_reco.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
 
     def get_correlation_array_2d(self, phi, z):
         """
@@ -717,7 +498,7 @@ class neutrino3DVertexReconstructor:
         travel_times[~mask] = np.nan
         return travel_times
 
-    def draw_2d_correlation_map(self, event, correlation_map):
+    def __draw_2d_correlation_map(self, event, correlation_map):
         fig4 = plt.figure(figsize=(4, 12))
         ax4_1 = fig4.add_subplot(311)
         d_0, z_0 = np.meshgrid(self.__distances_2d, self.__z_coordinates_2d)
@@ -777,7 +558,7 @@ class neutrino3DVertexReconstructor:
         fig4.tight_layout()
         fig4.savefig('{}/{}_{}_2D_correlation_maps.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
 
-    def draw_search_zones(
+    def __draw_search_zones(
             self,
             event,
             slope,
@@ -950,3 +731,269 @@ class neutrino3DVertexReconstructor:
             ax5_2.set_ylabel('|z| [m]')
         fig5.tight_layout()
         fig5.savefig('{}/{}_{}_search_zones.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
+
+    def __draw_vertex_reco(
+            self,
+            event,
+            correlation_sum,
+            x_0,
+            y_0,
+            z_0,
+            x_coords,
+            y_coords,
+            z_coords,
+            slope,
+            offset,
+            median_theta,
+            i_max
+    ):
+        fig6 = plt.figure(figsize=(8, 16))
+        ax6_1 = fig6.add_subplot(411)
+        vmin = .6
+        vmax = 1.
+        colormap = cm.get_cmap('viridis', 16)
+        sim_vertex = None
+        for sim_shower in event.get_sim_showers():
+            sim_vertex = sim_shower.get_parameter(shp.vertex)
+            break
+        cplot1 = ax6_1.pcolor(
+            x_0[0],
+            z_0[0],
+            np.max(correlation_sum, axis=0),
+            cmap=colormap,
+            vmin=vmin,
+            vmax=vmax
+        )
+        plt.colorbar(cplot1, ax=ax6_1)
+        ax6_2 = fig6.add_subplot(412)
+        cplot2 = ax6_2.pcolor(
+            x_0[:, :, 0],
+            y_0[:, :, 0],
+            np.max(correlation_sum, axis=2),
+            cmap=colormap,
+            vmin=vmin,
+            vmax=vmax
+        )
+        plt.colorbar(cplot2, ax=ax6_2)
+
+        ax6_3 = fig6.add_subplot(413)
+        cplot3 = ax6_3.pcolor(
+            x_0[0],
+            z_coords[0],
+            np.max(correlation_sum, axis=0),
+            cmap=colormap,
+            vmin=vmin,
+            vmax=vmax
+        )
+        plt.colorbar(cplot3, ax=ax6_3)
+        ax6_3.set_aspect('equal')
+        ax6_4 = fig6.add_subplot(414)
+        cplot4 = ax6_4.pcolor(
+            x_coords[:, :, 0],
+            y_coords[:, :, 0],
+            np.max(correlation_sum, axis=2),
+            cmap=colormap,
+            vmin=vmin,
+            vmax=vmax
+        )
+        plt.colorbar(cplot4, ax=ax6_4)
+        ax6_4.set_aspect('equal')
+        if sim_vertex is not None:
+            sim_vertex_dhor = np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)
+            ax6_1.scatter(
+                [sim_vertex_dhor],
+                [sim_vertex[2] - sim_vertex_dhor * slope - offset],
+                c='r',
+                marker='+'
+            )
+            ax6_2.scatter(
+                [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
+                [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
+                c='r',
+                marker='+'
+            )
+            ax6_3.scatter(
+                [sim_vertex_dhor],
+                [sim_vertex[2]],
+                c='r',
+                marker='+'
+            )
+            ax6_4.scatter(
+                [sim_vertex[0]],
+                [sim_vertex[1]],
+                c='r',
+                marker='+'
+            )
+        ax6_1.scatter(
+            [x_0[i_max]],
+            [z_0[i_max]],
+            c='k',
+            marker='+'
+        )
+        ax6_2.scatter(
+            [x_0[i_max]],
+            [y_0[i_max]],
+            c='k',
+            marker='+'
+        )
+        ax6_3.scatter(
+            [x_0[i_max]],
+            [z_coords[i_max]],
+            c='k',
+            marker='+'
+        )
+        ax6_4.scatter(
+            [x_coords[i_max]],
+            [y_coords[i_max]],
+            c='k',
+            marker='+'
+        )
+        ax6_1.set_xlabel('r [m]')
+        ax6_1.set_ylabel(r'$\Delta z$ [m]')
+        ax6_2.set_xlabel(r'$\Delta x$ [m]')
+        ax6_2.set_ylabel(r'$\Delta y$ [m]')
+        ax6_3.set_xlabel('r [m]')
+        ax6_3.set_ylabel('z [m]')
+        ax6_4.set_xlabel('x [m]')
+        ax6_4.set_ylabel('y [m]')
+        fig6.tight_layout()
+        fig6.savefig('{}/{}_{}_slices.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
+
+    def __draw_dnr_reco(
+            self,
+            event,
+            correlation_sum,
+            self_correlation_sum,
+            combined_correlations,
+            x_0,
+            y_0,
+            z_0,
+            slope,
+            offset,
+            median_theta,
+            i_max,
+            i_max_dnr
+    ):
+        fig8 = plt.figure(figsize=(12, 8))
+        ax8_1 = fig8.add_subplot(232)
+        ax8_2 = fig8.add_subplot(235)
+        ax8_3 = fig8.add_subplot(233)
+        ax8_4 = fig8.add_subplot(236)
+        ax8_5 = fig8.add_subplot(231)
+        ax8_6 = fig8.add_subplot(234)
+        colormap = cm.get_cmap('viridis', 16)
+        vmin = .6
+        vmax = 1.
+        cplot1 = ax8_1.pcolor(
+            x_0[0],
+            z_0[0],
+            np.max(self_correlation_sum, axis=0),
+            cmap=colormap,
+            vmin=vmin,
+            vmax=vmax
+        )
+        plt.colorbar(cplot1, ax=ax8_1)
+        cplot2 = ax8_2.pcolor(
+            x_0[:, :, 0],
+            y_0[:, :, 0],
+            np.max(self_correlation_sum, axis=2),
+            cmap=colormap,
+            vmin=vmin,
+            vmax=vmax
+        )
+        plt.colorbar(cplot2, ax=ax8_2)
+
+        cplot3 = ax8_3.pcolor(
+            x_0[0],
+            z_0[0],
+            np.max(combined_correlations, axis=0),
+            cmap=colormap,
+            vmin=vmin,
+            vmax=vmax
+        )
+        plt.colorbar(cplot3, ax=ax8_3)
+        cplot4 = ax8_4.pcolor(
+            x_0[:, :, 0],
+            y_0[:, :, 0],
+            np.max(combined_correlations, axis=2),
+            cmap=colormap,
+            vmin=vmin,
+            vmax=vmax
+        )
+        plt.colorbar(cplot4, ax=ax8_4)
+        cplot5 = ax8_5.pcolor(
+            x_0[0],
+            z_0[0],
+            np.max(correlation_sum, axis=0),
+            cmap=colormap,
+            vmin=vmin,
+            vmax=vmax
+        )
+        plt.colorbar(cplot5, ax=ax8_5)
+        cplot6 = ax8_6.pcolor(
+            x_0[:, :, 0],
+            y_0[:, :, 0],
+            np.max(correlation_sum, axis=2),
+            cmap=colormap,
+            vmin=vmin,
+            vmax=vmax
+        )
+        ax8_5.scatter(
+            [x_0[i_max]],
+            [z_0[i_max]],
+            c='k',
+            marker='+'
+        )
+        ax8_3.scatter(
+            [x_0[i_max_dnr]],
+            [z_0[i_max_dnr]],
+            c='k',
+            marker='+'
+        )
+        plt.colorbar(cplot6, ax=ax8_6)
+        sim_vertex = None
+        for sim_shower in event.get_sim_showers():
+            sim_vertex = sim_shower.get_parameter(shp.vertex)
+            break
+        if sim_vertex is not None:
+            sim_vertex_dhor = np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)
+            ax8_1.scatter(
+                [sim_vertex_dhor],
+                [sim_vertex[2] - sim_vertex_dhor * slope - offset],
+                c='r',
+                marker='+'
+            )
+            ax8_2.scatter(
+                [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
+                [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
+                c='r',
+                marker='+'
+            )
+            ax8_3.scatter(
+                [sim_vertex_dhor],
+                [sim_vertex[2] - sim_vertex_dhor * slope - offset],
+                c='r',
+                marker='+'
+            )
+            ax8_4.scatter(
+                [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
+                [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
+                c='r',
+                marker='+'
+            )
+            ax8_5.scatter(
+                [sim_vertex_dhor],
+                [sim_vertex[2] - sim_vertex_dhor * slope - offset],
+                c='r',
+                marker='+'
+            )
+            ax8_6.scatter(
+                [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
+                [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
+                c='r',
+                marker='+'
+            )
+        ax8_1.grid()
+        ax8_2.grid()
+        fig8.tight_layout()
+        fig8.savefig('{}/{}_{}_dnr_reco.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
