@@ -161,7 +161,7 @@ class neutrino3DVertexReconstructor:
         for channel_id in channel_ids:
             channel_z = abs(detector.get_relative_position(station_id, channel_id)[2])
             if channel_z not in self.__lookup_table.keys():
-                f = NuRadioReco.utilities.io_utilities.read_pickle('{}/lookup_table_greenland_{}.p'.format(self.__lookup_table_location, int(abs(channel_z))))
+                f = NuRadioReco.utilities.io_utilities.read_pickle('{}/lookup_table_{}.p'.format(self.__lookup_table_location, int(abs(channel_z))))
                 self.__header[int(channel_z)] = f['header']
                 self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
 
