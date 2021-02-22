@@ -8,6 +8,7 @@ new features:
 - new coreas read in function to generate signals for a grid of stations
 - added simulation of galactic noise
 - new phased array trigger module
+- eventWriter: Add option to specify number of events per file
 
 bug fixes:
 - Added if check in voltageToEfieldConverter.py under method get_array_of_channels() to see if sim station is initialized
