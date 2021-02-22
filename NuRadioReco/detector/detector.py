@@ -33,11 +33,7 @@ class DateTimeSerializer(Serializer):
         return datetime.strptime(s, '%Y-%m-%dT%H:%M:%S')
 
 
-serialization = SerializationMiddleware()
-serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
-
-
-def buffer_db(in_memory, filename=None):
+def buffer_db(in_memory, filename=None, serialization=None):
     """
     buffers the complete SQL database into a TinyDB object (either in memory or into a local JSON file)
     """
@@ -156,6 +152,8 @@ class Detector(object):
             Can be used to force the creation of a new detector object. By default, the __init__ will anly create a new
             object of none already exists.
         """
+        self._serialization = SerializationMiddleware()
+        self._serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
         if source == 'sql':
             self._db = buffer_db(in_memory=True)
         elif source == 'dictionary':
@@ -178,8 +176,13 @@ class Detector(object):
                     raise NameError
                 filename = filename2
             logger.warning("loading detector description from {}".format(os.path.abspath(filename)))
-            self._db = TinyDB(filename, storage=serialization,
-                              sort_keys=True, indent=4, separators=(',', ': '))
+            self._db = TinyDB(
+                filename,
+                storage=self._serialization,
+                sort_keys=True,
+                indent=4,
+                separators=(',', ': ')
+            )
 
         self._stations = self._db.table('stations', cache_size=1000)
         self._channels = self._db.table('channels', cache_size=1000)
