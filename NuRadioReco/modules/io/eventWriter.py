@@ -36,6 +36,8 @@ class eventWriter:
         self.__stored_channels = None
         self.__header_written = None
         self.__event_ids_and_runs = None
+        self.__events_per_file = None
+        self.__events_in_current_file = 0
 
     def __write_fout_header(self):
         if self.__number_of_files > 1:
@@ -48,7 +50,7 @@ class eventWriter:
         self.__fout.write(b)
         self.__header_written = True
 
-    def begin(self, filename, max_file_size=1024, check_for_duplicates=False):
+    def begin(self, filename, max_file_size=1024, check_for_duplicates=False, events_per_file=None):
         """
         begin method
 
@@ -61,6 +63,10 @@ class eventWriter:
         check_for_duplicates: bool (default False)
             if True, the event writer raises an exception when an event with a (run,eventid) pair is written that is already
             present in the data file
+        events_per_file: int
+            Maximum number of events to be written into the same file. After more than events_per_file have been written
+            into the same file, the output will be split into another file. If max_file_size and events_per_file are
+            both set, the file will be split whenever any of the two conditions is fullfilled.
         """
         if filename[-4:] == '.nur':
             self.__filename = filename[:-4]
@@ -77,6 +83,7 @@ class eventWriter:
         self.__stored_channels = []
         self.__event_ids_and_runs = []  # Remember which event IDs are already in file to catch duplicates
         self.__header_written = False  # Remember if we still have to write the current file header
+        self.__events_per_file = events_per_file
 
     @register_run()
     def run(self, evt, det=None, mode=None):
@@ -113,6 +120,7 @@ class eventWriter:
         self.__current_file_size += event_bytearray.__sizeof__()
         self.__number_of_events += 1
         self.__event_ids_and_runs.append([evt.get_run_number(), evt.get_id()])
+        self.__events_in_current_file += 1
 
         if det is not None:
             detector_dict = self.__get_detector_dict(evt, det)  # returns None if detector is already saved
@@ -129,7 +137,7 @@ class eventWriter:
         logger.debug("current file size is {} bytes, event number {}".format(self.__current_file_size,
                      self.__number_of_events))
 
-        if(self.__current_file_size > self.__max_file_size):
+        if(self.__current_file_size > self.__max_file_size or self.__events_in_current_file == self.__events_per_file):
             logger.info("current output file exceeds max file size -> closing current output file and opening new one")
             self.__current_file_size = 0
             self.__fout.close()
@@ -139,6 +147,7 @@ class eventWriter:
             self.__stored_channels = []
             self.__event_ids_and_runs = []
             self.__header_written = False
+            self.__events_in_current_file = 0
 
     def __get_event_bytearray(self, event, mode):
         evt_header_str = pickle.dumps(get_header(event), protocol=4)
