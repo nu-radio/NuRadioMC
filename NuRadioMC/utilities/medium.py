@@ -144,17 +144,18 @@ class greenland_firn(IceModel):
         return self._scalarfield.getGradient(position)
 
     
-    def get_ice_model_radiopropa(self):
+    def get_ice_model_radiopropa(self,discontinuity=False):
         """
         overwrite inherited function
         """
         ice = IceModel_RadioPropa(self,self._scalarfield)
-        firn_boundary_pos = RP.Vector3d(0,0,self.z_firn*(RP.meter/units.meter))
-        step = RP.Vector3d(0,0,1e-9*RP.meter)
-        firn_boundary = RP.Discontinuity(RP.Plane(firn_boundary_pos), RP.Vector3d(0,0,1), 
-                        self._scalarfield.getValue(firn_boundary_pos-step),
-                        self._scalarfield.getValue(firn_boundary_pos+step))
-        ice.add_module('firn boudary',firn_boundary)
+        if discontinuity == True:
+            firn_boundary_pos = RP.Vector3d(0,0,self.z_firn*(RP.meter/units.meter))
+            step = RP.Vector3d(0,0,1e-9*RP.meter)
+            firn_boundary = RP.Discontinuity(RP.Plane(firn_boundary_pos, RP.Vector3d(0,0,1)), 
+                            self._scalarfield.getValue(firn_boundary_pos-step),
+                            self._scalarfield.getValue(firn_boundary_pos+step))
+            ice.add_module('firn boudary',firn_boundary)
         return ice
 
 

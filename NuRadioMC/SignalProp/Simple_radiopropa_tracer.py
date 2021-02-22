@@ -8,7 +8,6 @@ import NuRadioReco.utilities.geometryUtilities
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import radiopropa
-logging.basicConfig()
 import scipy.constants 
 import copy
 from scipy.interpolate import interp1d
@@ -27,7 +26,7 @@ class ray_tracing:
 
     def __init__(self, medium, attenuation_model="GL1", log_level=logging.WARNING,
                  n_frequencies_integration=100,
-                 n_reflections=0, config=None, detector = None, shower_axis = None):
+                 n_reflections=0, config=None, detector = None):
 
         """
         class initilization
@@ -92,7 +91,7 @@ class ray_tracing:
         self.__step_sizes = np.array([.5,.05,.0125]) * units.degree
         self.__x1 = None 
         self.__x2 = None
-        self.__shower_axis = shower_axis ## this is given so we can limit the rays that are checked around the cherenkov angle
+        self.__shower_axis = None ## this is given so we can limit the rays that are checked around the cherenkov angle
         self.__results = None
         self.__candidates = None
 
@@ -347,7 +346,6 @@ class ray_tracing:
                         delta = abs(vector_zenith-receive_zeniths[iS])
                         if delta < delta_min:
                             final_candidate = self.__candidates[iS]
-                            final_candidate_reflection = self.__results[iS]['reflection']
                             final_candidate_reflection = self.__results[iS]['reflection']
                             final_candidate_reflection_case = self.__results[iS]['reflection_case']
                             final_candidate_solution_type = solution_types[iS]
@@ -761,7 +759,8 @@ class ray_tracing:
         recPos = copy.copy(self.__x2)
         recPos1 = np.array([self.__x2[0], self.__x2[1], self.__x2[2] + dz])
         if not hasattr(self, "_r1"):
-            self._r1 = ray_tracing(self.__medium, self.__attenuation_model, logging.WARNING, self.__n_frequencies_integration, self.__n_reflections, config = self.__config, shower_axis = self.__shower_axis)
+            self._r1 = ray_tracing(self.__medium, self.__attenuation_model, logging.WARNING, self.__n_frequencies_integration, self.__n_reflections, config = self.__config)
+        self._r1.set_shower_axis(self.__shower_axis)
         self._r1.set_start_and_end_point(vetPos, recPos1)
         self._r1.find_solutions()
         if iS < self._r1.get_number_of_solutions():
@@ -822,10 +821,12 @@ class ray_tracing:
         for zenith_reflection in zenith_reflections:
             if (zenith_reflection is None):
                 continue
-            r_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
-                zenith_reflection, n_2=1., n_1=self.__medium.get_index_of_refraction([self.__x2[0], self.__x2[1], -1 * units.cm]))
-            r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
-                zenith_reflection, n_2=1., n_1=self.__medium.get_index_of_refraction([self.__x2[0], self.__x2[1], -1 * units.cm]))
+            r_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(zenith_reflection, 
+                n_2=self.__medium.get_index_of_refraction(np.array([self.__x2[0], self.__x2[1], +1 * units.cm])), 
+                n_1=self.__medium.get_index_of_refraction(np.array([self.__x2[0], self.__x2[1], -1 * units.cm])))
+            r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(zenith_reflection, 
+                n_2=self.__medium.get_index_of_refraction(np.array([self.__x2[0], self.__x2[1], +1 * units.cm])),
+                n_1=self.__medium.get_index_of_refraction(np.array([self.__x2[0], self.__x2[1], -1 * units.cm])))
             efield[efp.reflection_coefficient_theta] = r_theta
             efield[efp.reflection_coefficient_phi] = r_phi
 
@@ -868,7 +869,10 @@ class ray_tracing:
         ]
 
     def get_raytracing_output(self,i_solution):
-        focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
+        if self.__config['propagation']['focusing']:    
+            focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
+        else: 
+            focusing = 1
         output_dict = {
             'sphere_sizes': self.__sphere_sizes,
             'zenith_step_sizes': self.__step_sizes,

@@ -2022,7 +2022,10 @@ class ray_tracing:
 
     def get_raytracing_output(self, i_solution):
         dZRec = -0.01 * units.m
-        focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
+        if self.__config['propagation']['focusing']:    
+            focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
+        else: 
+            focusing = 1
         output_dict = {
             'ray_tracing_C0': self.get_results()[i_solution]['C0'],
             'ray_tracing_C1': self.get_results()[i_solution]['C1'],
