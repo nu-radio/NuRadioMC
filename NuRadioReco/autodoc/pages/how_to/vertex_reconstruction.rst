@@ -80,3 +80,11 @@ be created, for example, with this code snippet:
     The electric field template needs to have the same sampling rate as the voltage wave forms.
     It should also be long enough so the pulse does not wrap around when the antenna response
     is applied.
+
+The 2D Vertex Reconstructor
+----------------------------------
+
+The neutrino2DVertexReconstructor uses antennas that are on the same string and takes advantage of
+resulting symmetry to speed up the reconstruction. Thanks to the rotational symmetry around the
+z-axis, the problem can be reduced to two dimensions and the vertex position is described by the
+horizontal distance from the center and the depth.
