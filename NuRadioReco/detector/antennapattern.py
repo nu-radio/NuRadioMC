@@ -8,6 +8,7 @@ from scipy import constants
 import logging
 import pickle
 import csv
+import cmath 
 
 logger = logging.getLogger('NuRadioReco.antennapattern')
 
@@ -114,7 +115,7 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
     all paramters of the file
     """""
 
-    with open(path_gain, 'r', encoding='mac_roman') as fin:
+    with open(path_gain, 'r') as fin:
         ff = []
         phis = []
         thetas = []
@@ -143,14 +144,17 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
         for row in csv_reader:
             if 1:#(line_count % 2) == 0:
                 if line_count != 0:
-                    phase_phi.append(float(row[6]) )
-                    phase_theta.append(float(row[4]))
+                    complex_phi = float(row[3]) + 1j*float(row[4])
+                    phase_phi.append(cmath.phase(complex_phi) )
+                    complex_theta = float(row[5] + 1j*float(row[6]))
+                    phase_theta.append(cmath.phase(complex_theta))
+      
             line_count += 1
        
     return np.array(ff), np.array(phis), np.array(thetas), np.array(gain_phi), np.array(gain_theta), np.array(phase_phi), np.array(phase_theta)
 
 
-def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename):
+def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index = 1.74):
     """"
     Preprocess an antenna pattern in XFDTD file format. The vector effective length is calculated and the output is saved to the NuRadioReco pickle format. 
     The simulations are done in air. The vector effective length is stored for a refractive index of 1.74. 
@@ -163,6 +167,8 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename):
         path to phases file
     outputfilename: string
         path to outputfilename
+    n_index: float
+        refractive index for requested antenna file. The simulations are done in air (n = 1) 
     """
     
     ff, phi, theta, gain_phi, gain_theta, phase_phi, phase_theta = parse_RNOG_XFDTD_file(path_gain, path_phases)
@@ -175,11 +181,11 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename):
 
     wavelength = c / np.array(ff)
     #icemodel = medium.greenland_simple()
-    n_index = 1.74
-    H_theta = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
-    H_phi = wavelength / n_index**0.5 * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
-    H_theta =wavelength /n_index**0.5 *(50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5* np.exp(1j * phase_theta)
-    H_phi = wavelength/n_index**0.5 *(50 / (4 * np.pi * Z_0)) ** 0.5 *gain_phi ** 0.5* np.exp(1j * phase_phi)
+    
+    H_theta = wavelength  * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
+    H_phi = wavelength  * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
+    H_theta =wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5* np.exp(1j * phase_theta)
+    H_phi = wavelength  *(50 / (4 * np.pi * Z_0)) ** 0.5 *gain_phi ** 0.5* np.exp(1j * phase_phi)
   
     zen_boresight = 0
     azi_boresight = 0
