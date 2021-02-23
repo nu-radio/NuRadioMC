@@ -36,6 +36,7 @@ from six import iteritems
 import yaml
 import os
 import collections
+from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 
 STATUS = 31
 
@@ -168,7 +169,6 @@ class simulation():
             # the same random sequence.
             self._cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
 
-        self._inputfilename = inputfilename
         self._outputfilename = outputfilename
         if(os.path.exists(self._outputfilename)):
             msg = f"hdf5 output file {self._outputfilename} already exists"
@@ -220,7 +220,21 @@ class simulation():
         # read sampling rate from config (this sampling rate will be used internally)
         self._dt = 1. / (self._cfg['sampling_rate'] * units.GHz)
 
-        self._read_input_hdf5()  # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
+        if isinstance(inputfilename, str):
+            logger.status(f"reading input from {inputfilename}")
+            self._inputfilename = inputfilename
+            self._read_input_hdf5()  # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
+        else:
+            logger.status("getting input on-the-fly")
+            self._inputfilename = "on-the-fly"
+            self._fin = inputfilename[0]
+            self._fin_attrs = inputfilename[1]
+            self._fin_stations = {}
+
+        # check if the input file contains events, if not save empty output file (for book keeping) and terminate simulation
+        if(len(self._fin['xx']) == 0):
+            logger.status(f"input file {self._inputfilename} is empty")
+            return
 
         ################################
         # perfom a dummy detector simulation to determine how the signals are filtered
@@ -264,15 +278,10 @@ class simulation():
             self._detector_simulation_filter_amp(self._evt, self._station, self._det)
             self._bandwidth_per_channel[self._station_id] = {}
             self._amplification_per_channel[self._station_id] = {}
-            self.__noise_adder_normalization[self._station_id] = {}
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                 ff = np.linspace(0, 0.5 / self._dt, 10000)
                 filt = np.ones_like(ff, dtype=np.complex)
-                noise_module_index = []
                 for i, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station_id)):
-
-                    if(name in ['channelGenericNoiseAdder']):
-                        noise_module_index.append(i)
                     if hasattr(instance, "get_filter"):
                         filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
 
@@ -281,26 +290,8 @@ class simulation():
                 self._bandwidth_per_channel[self._station_id][channel_id] = bandwidth
                 logger.status(f"bandwidth of station {self._station_id} channel {channel_id} is {bandwidth/units.MHz:.1f}MHz")
 
-                # in case noise is added, we need to determine what filters are applied after noise is added to
-                # rescale the noise level accordingly
-                if((not bool(self._cfg['noise'])) or len(noise_module_index) == 0):
-                    logger.debug("no noise is added")
-                else:
-                    if(len(noise_module_index) > 1):
-                        raise NotImplementedError("more than 1 noise importer module -> not supported")
-                    else:
-                        filt_noise = np.ones_like(ff, dtype=np.complex)
-                        for i, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station_id)):
-                            if(i < noise_module_index[0]):  # skip all modules that come before the noise adder module
-                                continue
-                            if(hasattr(instance, "get_filter")):
-                                filt_noise *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
-                        norm = np.trapz(np.abs(filt_noise) ** 2, ff)
-                        self.__noise_adder_normalization[self._station_id][channel_id] = norm
-                        logger.status(f"noise normalization of station {self._station_id} channel {channel_id} is {norm/units.MHz:.1g}MHz")
         ################################
 
-        # for now just assume that bandwidth is the same for all stations and channels
         self._bandwidth = next(iter(next(iter(self._bandwidth_per_channel.values())).values()))
         amplification = next(iter(next(iter(self._amplification_per_channel.values())).values()))
         noise_temp = self._cfg['trigger']['noise_temperature']
@@ -313,13 +304,17 @@ class simulation():
             else:
                 self._noise_temp = float(noise_temp)
             self._Vrms_per_channel = {}
+            self._noiseless_channels = {}
             for station_id in self._bandwidth_per_channel:
                 self._Vrms_per_channel[station_id] = {}
+                self._noiseless_channels[station_id] = []
                 for channel_id in self._bandwidth_per_channel[station_id]:
                     if(self._noise_temp is None):
                         noise_temp_channel = self._det.get_noise_temperature(station_id, channel_id)
                     else:
                         noise_temp_channel = self._noise_temp
+                    if self._det.is_channel_noiseless(station_id, channel_id):
+                        self._noiseless_channels[station_id].append(channel_id)
 
                     self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k *
                            self._bandwidth_per_channel[station_id][channel_id] / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
@@ -347,6 +342,8 @@ class simulation():
             self.__distance_cut_polynomial = np.polynomial.polynomial.Polynomial(coef)
 
             def get_distance_cut(shower_energy):
+                if(shower_energy <= 0):
+                    return 100 * units.m
                 return max(100 * units.m, 10 ** self.__distance_cut_polynomial(np.log10(shower_energy)))
 
             self._get_distance_cut = get_distance_cut
@@ -355,6 +352,11 @@ class simulation():
         """
         run the NuRadioMC simulation
         """
+        if(len(self._fin['xx']) == 0):
+            logger.status(f"writing empty hdf5 output file")
+            self._write_ouput_file(empty=True)
+            logger.status(f"terminating simulation")
+            return -1
         logger.status(f"Starting NuRadioMC simulation")
         t_start = time.time()
         t_last_update = t_start
@@ -496,9 +498,9 @@ class simulation():
                         if(rayTracingTime - askaryan_time != 0):
                             tmp_att = 100. * time_attenuation_length / (rayTracingTime - askaryan_time)
                         if total_time > 0:
-                            logger.status("processing event group {}/{} and shower {}/{} ({} showers triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
+                            logger.status("processing event group {}/{} and shower {:.0f}/{:.0f} ({} showers triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
                                 i_event_group_id, len(unique_event_group_ids),
-                                iCounter, n_shower_station, np.sum(self._mout['triggered']), 100. * iCounter / n_shower_station,
+                                iCounter / len(self._station_ids), n_shower_station / len(self._station_ids), np.sum(self._mout['triggered']), 100. * iCounter / n_shower_station,
                                 eta, 100. * (rayTracingTime - askaryan_time) / total_time,
                                 tmp_att,
                                 100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*input_time / total_time,
@@ -909,10 +911,10 @@ class simulation():
                             channel_ids = self._det.get_channel_ids(self._station.get_id())
                             Vrms = {}
                             for channel_id in channel_ids:
-                                norm = self._get_noise_normalization(self._station.get_id(), channel_id)  # assuming the same noise level for all channels
+                                norm = self._bandwidth_per_channel[self._station.get_id()][channel_id]
                                 Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (norm / (max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
                             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
-                                                         max_freq=max_freq, type='rayleigh')
+                                                         max_freq=max_freq, type='rayleigh', excluded_channels=self._noiseless_channels[station_id])
 
                         self._detector_simulation_filter_amp(self._evt, self._station, self._det)
 
@@ -1022,6 +1024,9 @@ class simulation():
                                                                                          100 * detSimTime / t_total,
                                                                                          100 * outputTime / t_total,
                                                                                          100 * weightTime / t_total))
+        triggered = remove_duplicate_triggers(self._mout['triggered'], self._fin['event_group_ids'])
+        n_triggered = np.sum(triggered)
+        return n_triggered
 
     def _get_shower_index(self, shower_id):
         if(hasattr(shower_id, "__len__")):
@@ -1034,17 +1039,6 @@ class simulation():
         returns True if noise should be added
         """
         return bool(self._cfg['noise'])
-
-    def _get_noise_normalization(self, station_id, channel_id=0):
-        """
-        returns the normalization of the Vrms of the noise generator module.
-        The normalization is
-        Vrms = self._Vrms / (norm / (max_freq - min_freq))**0.5
-        """
-        if(station_id in self.__noise_adder_normalization and channel_id in self.__noise_adder_normalization[station_id]):
-            return self.__noise_adder_normalization[station_id][channel_id]
-        else:
-            return 1.
 
     def _is_in_fiducial_volume(self):
         """
@@ -1100,7 +1094,7 @@ class simulation():
                 for key2, value2 in iteritems(value):
                     self._fin_stations[key][key2] = np.array(value2)
             else:
-                if type(value[0]) == bytes:
+                if len(value) and type(value[0]) == bytes:
                     self._fin[key] = np.array(value).astype('U')
                 else:
                     self._fin[key] = np.array(value)
@@ -1311,58 +1305,59 @@ class simulation():
         self._sim_shower[shp.vertex_time] = self._vertex_time
         self._sim_shower[shp.type] = self._shower_type
 
-    def _write_ouput_file(self):
+    def _write_ouput_file(self, empty=False):
         folder = os.path.dirname(self._outputfilename)
         if(not os.path.exists(folder) and folder != ''):
             logger.warning(f"output folder {folder} does not exist, creating folder...")
             os.makedirs(folder)
         fout = h5py.File(self._outputfilename, 'w')
 
-        # here we add the first interaction to the saved events
-        # if any of its children triggered
+        if not empty:
+            # here we add the first interaction to the saved events
+            # if any of its children triggered
 
-        # Careful! saved should be a copy of the triggered array, and not
-        # a reference! saved indicates the interactions to be saved, while
-        # triggered should indicate if an interaction has produced a trigger
-        saved = np.copy(self._mout['triggered'])
-        parent_mask = self._fin['n_interaction'] == 1
-        for event_id in np.unique(self._fin['event_group_ids']):
-            event_mask = self._fin['event_group_ids'] == event_id
-            if (True in self._mout['triggered'][event_mask]):
-                saved[parent_mask & event_mask] = True
+            # Careful! saved should be a copy of the triggered array, and not
+            # a reference! saved indicates the interactions to be saved, while
+            # triggered should indicate if an interaction has produced a trigger
+            saved = np.copy(self._mout['triggered'])
+            parent_mask = self._fin['n_interaction'] == 1
+            for event_id in np.unique(self._fin['event_group_ids']):
+                event_mask = self._fin['event_group_ids'] == event_id
+                if (True in self._mout['triggered'][event_mask]):
+                    saved[parent_mask & event_mask] = True
 
-        logger.status("start saving events")
-        # save data sets
-        for (key, value) in iteritems(self._mout):
-            fout[key] = value[saved]
+            logger.status("start saving events")
+            # save data sets
+            for (key, value) in iteritems(self._mout):
+                fout[key] = value[saved]
 
-        # save all data sets of the station groups
-        for (key, value) in iteritems(self._mout_groups):
-            sg = fout.create_group("station_{:d}".format(key))
-            for (key2, value2) in iteritems(value):
-                sg[key2] = np.array(value2)[np.array(value['triggered'])]
+            # save all data sets of the station groups
+            for (key, value) in iteritems(self._mout_groups):
+                sg = fout.create_group("station_{:d}".format(key))
+                for (key2, value2) in iteritems(value):
+                    sg[key2] = np.array(value2)[np.array(value['triggered'])]
 
-        # save "per event" quantities
-        if('trigger_names' in self._mout_attrs):
-            n_triggers = len(self._mout_attrs['trigger_names'])
-            for station_id in self._mout_groups:
-                n_events_for_station = len(self._output_triggered_station[station_id])
-                if(n_events_for_station > 0):
-                    n_channels = self._det.get_number_of_channels(station_id)
-                    sg = fout["station_{:d}".format(station_id)]
-                    sg['event_group_ids'] = np.array(self._output_event_group_ids[station_id])
-                    sg['event_ids'] = np.array(self._output_sub_event_ids[station_id])
-                    sg['maximum_amplitudes'] = np.array(self._output_maximum_amplitudes[station_id])
-                    sg['maximum_amplitudes_envelope'] = np.array(self._output_maximum_amplitudes_envelope[station_id])
-                    sg['triggered_per_event'] = np.array(self._output_triggered_station[station_id])
+            # save "per event" quantities
+            if('trigger_names' in self._mout_attrs):
+                n_triggers = len(self._mout_attrs['trigger_names'])
+                for station_id in self._mout_groups:
+                    n_events_for_station = len(self._output_triggered_station[station_id])
+                    if(n_events_for_station > 0):
+                        n_channels = self._det.get_number_of_channels(station_id)
+                        sg = fout["station_{:d}".format(station_id)]
+                        sg['event_group_ids'] = np.array(self._output_event_group_ids[station_id])
+                        sg['event_ids'] = np.array(self._output_sub_event_ids[station_id])
+                        sg['maximum_amplitudes'] = np.array(self._output_maximum_amplitudes[station_id])
+                        sg['maximum_amplitudes_envelope'] = np.array(self._output_maximum_amplitudes_envelope[station_id])
+                        sg['triggered_per_event'] = np.array(self._output_triggered_station[station_id])
 
-                    # the multiple triggeres 2d array might have different number of entries per event
-                    # because the number of different triggers can increase dynamically
-                    # therefore we first create an array with the right size and then fill it
-                    tmp = np.zeros((n_events_for_station, n_triggers), dtype=np.bool)
-                    for iE, values in enumerate(self._output_multiple_triggers_station[station_id]):
-                        tmp[iE] = values
-                    sg['multiple_triggers_per_event'] = tmp
+                        # the multiple triggeres 2d array might have different number of entries per event
+                        # because the number of different triggers can increase dynamically
+                        # therefore we first create an array with the right size and then fill it
+                        tmp = np.zeros((n_events_for_station, n_triggers), dtype=np.bool)
+                        for iE, values in enumerate(self._output_multiple_triggers_station[station_id]):
+                            tmp[iE] = values
+                        sg['multiple_triggers_per_event'] = tmp
 
         # save meta arguments
         for (key, value) in iteritems(self._mout_attrs):
@@ -1371,21 +1366,22 @@ class simulation():
         with open(self._detectorfile, 'r') as fdet:
             fout.attrs['detector'] = fdet.read()
 
-        # save antenna position separately to hdf5 output
-        for station_id in self._mout_groups:
-            n_channels = self._det.get_number_of_channels(station_id)
-            positions = np.zeros((n_channels, 3))
-            for channel_id in range(n_channels):
-                positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
-            fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
-            fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
-            fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())
+        if not empty:
+            # save antenna position separately to hdf5 output
+            for station_id in self._mout_groups:
+                n_channels = self._det.get_number_of_channels(station_id)
+                positions = np.zeros((n_channels, 3))
+                for channel_id in range(n_channels):
+                    positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
+                fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
+                fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
+                fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())
 
-        fout.attrs.create("Tnoise", self._noise_temp, dtype=np.float)
-        fout.attrs.create("Vrms", self._Vrms, dtype=np.float)
-        fout.attrs.create("dt", self._dt, dtype=np.float)
-        fout.attrs.create("bandwidth", self._bandwidth, dtype=np.float)
-        fout.attrs['n_samples'] = self._n_samples
+            fout.attrs.create("Tnoise", self._noise_temp, dtype=np.float)
+            fout.attrs.create("Vrms", self._Vrms, dtype=np.float)
+            fout.attrs.create("dt", self._dt, dtype=np.float)
+            fout.attrs.create("bandwidth", self._bandwidth, dtype=np.float)
+            fout.attrs['n_samples'] = self._n_samples
         fout.attrs['config'] = yaml.dump(self._cfg)
 
         # save NuRadioMC and NuRadioReco versions
@@ -1396,25 +1392,26 @@ class simulation():
         fout.attrs['NuRadioMC_version_hash'] = version.get_NuRadioMC_commit_hash()
         fout.attrs['NuRadioReco_version_hash'] = version.get_NuRadioReco_commit_hash()
 
-        # now we also save all input parameters back into the out file
-        for key in self._fin.keys():
-            if(key.startswith("station_")):
-                continue
-            if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
-                if self._fin[key].dtype.char == 'U':
-                    fout[key] = np.array(self._fin[key], dtype=h5py.string_dtype(encoding='utf-8'))[saved]
+        if not empty:
+            # now we also save all input parameters back into the out file
+            for key in self._fin.keys():
+                if(key.startswith("station_")):
+                    continue
+                if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
+                    if self._fin[key].dtype.char == 'U':
+                        fout[key] = np.array(self._fin[key], dtype=h5py.string_dtype(encoding='utf-8'))[saved]
 
-                else:
-                    fout[key] = np.array(self._fin[key])[saved]
+                    else:
+                        fout[key] = np.array(self._fin[key])[saved]
 
         for key in self._fin_attrs.keys():
             if(not key in fout.attrs.keys()):  # only save atrributes sets that havn't been recomputed and saved already
-                fout.attrs[key] = self._fin_attrs[key]
+                if(key not in ["trigger_names", "Tnoise", "Vrms", "bandwidth", "n_samples", "dt", "detector", "config"]):  # don't write trigger names from input to output file, this will lead to problems with incompatible trigger names when merging output files
+                    fout.attrs[key] = self._fin_attrs[key]
         fout.close()
 
     def calculate_Veff(self):
         # calculate effective
-        from NuRadioMC.utilities.Veff import remove_duplicate_triggers
         triggered = remove_duplicate_triggers(self._mout['triggered'], self._fin['event_group_ids'])
         n_triggered = np.sum(triggered)
         n_triggered_weighted = np.sum(self._mout['weights'][triggered])

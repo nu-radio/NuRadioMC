@@ -1,0 +1,130 @@
+name: Unit tests
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        # This path is specific to Ubuntu
+        path: ~/.cache/pip
+        # Look to see if there is a cache hit for the corresponding requirements file
+        key: ${{ runner.os }}-pip-${{ hashFiles('NuRadioMC/test/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          ${{ runner.os }}-
+    - name: Install dependencies
+      run: |
+        sudo apt-get install libgsl-dev
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        export GSLDIR=$(gsl-config --prefix)
+        if [ -f NuRadioMC/test/requirements.txt ]; then pip install -r NuRadioMC/test/requirements.txt; fi
+        #wget https://github.com/nu-radio/radiotools/archive/master.zip -O /tmp/radiotools.zip
+        #unzip /tmp/radiotools.zip
+        #mv radiotools-master radiotools
+        #export PYTHONPATH=$PWD/radiotools
+        wget https://github.com/nu-radio/NuRadioReco/archive/refactor-pa.zip -O /tmp/NuRadioReco.zip
+        unzip /tmp/NuRadioReco.zip
+        mv NuRadioReco-refactor-pa/NuRadioReco $PWD/NuRadioReco
+        export PYTHONPATH=$PYTHONPATH:$PWD
+        #wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
+        #mkdir -p $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn
+        #mv createLPDA_100MHz_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
+        #wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/bicone_v8_InfFirn/bicone_v8_InfFirn.pkl
+        #mkdir -p $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
+        #mv bicone_v8_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: "Single event test (South Pole)"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/SingleEvents/test_build.sh
+    - name: Single event test (Moore's Bay)
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/SingleEvents/validate_MB.sh
+    - name: Single event test (ARZ)
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/SingleEvents/validate_ARZ.sh
+    - name: Signal generation test
+      run : |
+          export PYTHONPATH=$PWD:$PYTHONPATH
+          export GSLDIR=$(gsl-config --prefix)
+          NuRadioMC/test/SignalGen/test_build.sh
+    - name: "Signal propagation tests"
+      run: |
+         export PYTHONPATH=$PWD:$PYTHONPATH
+         export GSLDIR=$(gsl-config --prefix)
+         NuRadioMC/test/SignalProp/run_signal_test.sh
+    - name: "Test Veff example"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        pip install proposal
+        NuRadioMC/test/examples/test_veff_example.sh
+    - name: "Test calibration pulser example"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        pip install proposal
+        NuRadioMC/test/examples/test_cal_pulser_example.sh
+    - name: "Test webinar examples"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        pip install proposal
+        NuRadioMC/test/examples/test_webinar.sh
+    - name: "Veff test"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/Veff/1e18eV/test_build.sh
+    - name: "Veff test with noise and phased array"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/Veff/1e18eV/test_build_noise.sh
+    - name: "Atmospheric Aeff test" 
+      run: |
+        pip install proposal
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/atmospheric_Aeff/1e18eV/test_build.sh
+    - name: "Tiny reconstrucution"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
+    - name: "Trigger tests"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioReco/test/trigger_tests/run_trigger_test.sh
+    - name: "Test all examples"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioReco/test/test_examples.sh

@@ -11,11 +11,11 @@ import os
 
 # the event generation has a fixed seed and I switched to Alvarez2000 (also no randomness)
 # thus, the Veff has no statistical scatter
-Veff_mean = 5.15935
+Veff_mean = 7.576678226341043
 Veff_sigma = 0.0001
 
 path = os.path.dirname(os.path.abspath(__file__))
-fin = h5py.File(os.path.join(path, "output.hdf5"), 'r')
+fin = h5py.File(os.path.join(path, "output_noise.hdf5"), 'r')
 
 
 def calculate_veff(fin):
@@ -48,11 +48,11 @@ if(np.abs(Veff / units.km ** 3 - Veff_mean) > 3 * Veff_sigma):
 
 # calculate Veff using veff utility
 import NuRadioMC.utilities.Veff
-data = NuRadioMC.utilities.Veff.get_Veff_Aeff(os.path.join(path, "output.hdf5"))[0]
+data = NuRadioMC.utilities.Veff.get_Veff_Aeff(os.path.join(path, "output_noise.hdf5"))[0]
 Veff_utl, Veff_utl_error, utl_weighed_sum, t1, t2 = data['veff']['all_triggers']
 Veff_utl = Veff_utl * 4 * np.pi
 np.testing.assert_almost_equal(Veff_utl, Veff, decimal=3)
-Veff_utl, Veff_utl_error, utl_weighed_sum, t1, t2 = data['veff']['highlow_2sigma']
+Veff_utl, Veff_utl_error, utl_weighed_sum, t1, t2 = data['veff']['PA_4channel_100Hz']
 Veff_utl = Veff_utl * 4 * np.pi
 np.testing.assert_almost_equal(Veff_utl, Veff, decimal=3)
 
