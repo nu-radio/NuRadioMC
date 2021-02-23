@@ -328,6 +328,14 @@ def get_proton_10(energy):
     return getE(energy)
 
 
+def get_GZK_Auger_best_fit(energy):
+    Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_bands.out"))
+    E = Heinze_band[:, 0] * units.GeV
+    f = Heinze_band[:, 1] / units.GeV / units.cm ** 2 / units.s / units.sr
+    getE = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
+    return getE(energy)
+
+
 def get_E2_limit_figure(diffuse=True,
                         show_ice_cube_EHE_limit=True,
                         show_ice_cube_HESE_data=True,
@@ -376,8 +384,8 @@ def get_E2_limit_figure(diffuse=True,
 
         if(show_Heinze):
             Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_bands.out"))
-#             best_fit, = ax.plot(Heinze_band[:, 0], Heinze_band[:, 1] * Heinze_band[:, 0] ** 2, c='k',
-#                                 label=r'UHECR (Auger) combined fit, Heinze et al.', linestyle='-.')
+            best_fit, = ax.plot(Heinze_band[:, 0] * units.GeV / plotUnitsEnergy, Heinze_band[:, 1] * Heinze_band[:, 0] ** 2, c='k',
+                                label=r'UHECR (Auger) combined fit, Heinze et al.', linestyle='-.')
 
 #             Auger_bestfit = ax.fill_between(Heinze_band[:, 0],
 #                                      Heinze_band[:, 2] * Heinze_band[:, 0] ** 2, Heinze_band[:, 3] * Heinze_band[:, 0] ** 2,
