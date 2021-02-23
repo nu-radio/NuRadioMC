@@ -2,6 +2,7 @@
 ###### Requirements without Version Specifiers ######
 pyyaml
 numpy
+radiotools
 astropy
 tinydb
 tinydb-serialization
@@ -12,5 +13,5 @@ aenum
 cython
 requests
 future
-proposal
+# proposal
 ###### Requirements with Version Specifiers ######
