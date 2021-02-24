@@ -114,7 +114,7 @@ class IceModel_Simple(IceModel):
         overwrite inherited function
         """
         if (x[2] - self.z_airBoundary) <=0:
-            return self.n_ice  - self.delta_n  * np.exp((x[2]-self.z_airBoundary) / self.z_0)
+            return self.n_ice  - self.delta_n  * np.exp((x[2]-self.z_shift) / self.z_0)
         else:
             return 1
 
@@ -123,7 +123,7 @@ class IceModel_Simple(IceModel):
         overwrite inherited function
         """
         if ((x1[2] - self.z_airBoundary) <=0) and ((x2[2] - self.z_airBoundary) <=0):
-            return self.n_ice - self.delta_n * self.z_0 / (x2[2] - x1[2]) * (np.exp((x2[2]-self.z_airBoundary) / self.z_0) - np.exp((x1[2]-self.z_airBoundary) / self.z_0))
+            return self.n_ice - self.delta_n * self.z_0 / (x2[2] - x1[2]) * (np.exp((x2[2]-self.z_shift) / self.z_0) - np.exp((x1[2]-self.z_shift) / self.z_0))
         else:
             return None
 
@@ -133,7 +133,7 @@ class IceModel_Simple(IceModel):
         """
         gradient = np.array([0.,0.,0.])
         if (x[2] - self.z_airBoundary) <=0:
-            gradient[2] = - self.delta_n / self.z_0 * np.exp((x[2]-self.z_airBoundary) / self.z_0)
+            gradient[2] = - self.delta_n / self.z_0 * np.exp((x[2]-self.z_shift) / self.z_0)
         return gradient
 
     def get_ice_model_radiopropa(self):

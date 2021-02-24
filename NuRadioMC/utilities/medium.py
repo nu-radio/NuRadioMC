@@ -132,8 +132,9 @@ class greenland_firn(IceModel):
         """
         overwrite inherited function
         """
-        position1 = RP.Vector3d(*x1)
-        position2 = RP.Vector3d(*x2)
+        position1 = RP.Vector3d(*(x1*RP.meter/units.meter))
+        position2 = RP.Vector3d(*(x2*RP.meter/units.meter))
+        return self._scalarfield.getAverageValue(position1,position2)
 
 
     def get_gradient_of_index_of_refraction(self, x):
