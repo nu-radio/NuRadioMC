@@ -333,10 +333,10 @@ class ray_tracing:
 
         mask_lower = {i: (launch_zeniths>self.__launch_bundles[i,0]) for i in range(len(self.__launch_bundles))} 
         mask_upper = {i: (launch_zeniths<self.__launch_bundles[i,1]) for i in range(len(self.__launch_bundles))}
-        mask_solution = {j: (np.array(solution_types) == j) for j in range(1,4)}   
+        mask_solution = {j: (np.array(solution_types) == j) for j in solution_types.keys()}   
         
         for i in range(len(self.__launch_bundles)):
-            for j in range(1,4):
+            for j in solution_types.keys():
                 mask = (mask_lower[i]&mask_upper[i]&mask_solution[j])
                 if mask.any():
                     delta_min = np.deg2rad(90)
@@ -430,9 +430,9 @@ class ray_tracing:
             raise IndexError
 
         path = self.get_original_path(iS)
-        path_x = path[0]
-        path_y = path[1]
-        path_z = path[2]
+        path_x = path[:,0]
+        path_y = path[:,1]
+        path_z = path[:,2]
 
         if n_points != None:
             phi = hp.cartesian_to_spherical(*(self.__x2-self.__x1))[1]
