@@ -81,10 +81,34 @@ be created, for example, with this code snippet:
     It should also be long enough so the pulse does not wrap around when the antenna response
     is applied.
 
-The 2D Vertex Reconstructor
+2D vs. 3D Vertex Reconstructor
 ----------------------------------
 
 The neutrino2DVertexReconstructor uses antennas that are on the same string and takes advantage of
 resulting symmetry to speed up the reconstruction. Thanks to the rotational symmetry around the
 z-axis, the problem can be reduced to two dimensions and the vertex position is described by the
-horizontal distance from the center and the depth.
+horizontal distance from the center and the depth. The disadvantage is that only channels on the same
+detector string can be used and that deviations from the cylindrical symmetry by a real detector due
+to some uncertainty in the exactl antenna positions may influence the resulting accuracy.
+It can also not reconstruct the azimuth coordinate of the vertex position.
+
+The neutrino3DVertexReconstructor can utilize all all detector channels of the same antenna type and
+searches for the vertex position in the full 3D space. As doing a scan over the full detector volume
+would take too long and use up too much memory, so first a rougher scan is performed that is used to
+limit the finer scan to the most likely region.
+
+For both detectors, the step size of the grid they search on is important. A smaller grid will give
+better results, but the reconstruction will take longer. A step size of around 2m has worked well
+so far. For the y-coordinates in 3D scan, a larger spacing can be used to speed up the process.
+
+.. Important::
+    Matplotlib can struggle with drawing colormaps from large data sets. Drawing the debug plots
+    when using a fine grid spacing or a large search volume can seriously slow down the reconstruction
+    or even freeze the computer, so it is advisable to use a larger spacing when drawing debug plots.
+
+
+
+
+
+
+
