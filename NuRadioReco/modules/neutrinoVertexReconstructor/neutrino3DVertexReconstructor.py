@@ -386,6 +386,11 @@ class neutrino3DVertexReconstructor:
         vertex_y = y_coords[i_max_dnr]
         vertex_z = z_coords[i_max_dnr]
         station.set_parameter(stnp.nu_vertex, np.array([vertex_x, vertex_y, vertex_z]))
+        for sim_shower in event.get_sim_showers():
+            sim_vertex = sim_shower.get_parameter(shp.vertex)
+            break
+        distances = np.sqrt((sim_vertex[0] - x_coords) ** 2 + (sim_vertex[1] - y_coords) ** 2)
+        station.set_parameter(stnp.correlation_sum_at_vertex, np.max(combined_correlations[distances < 10]) / np.max(combined_correlations))
         if debug:
             self.__draw_dnr_reco(
                 event,
