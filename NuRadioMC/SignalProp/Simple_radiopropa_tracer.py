@@ -21,7 +21,8 @@ class ray_tracing:
 
     solution_types = {1: 'direct',
                   2: 'refracted',
-                  3: 'reflected'}
+                  3: 'reflected',
+                  4: 'horizontal'}
 
 
     def __init__(self, medium, attenuation_model="GL1", log_level=logging.WARNING,
@@ -210,7 +211,14 @@ class ray_tracing:
             ##define module list for simulation
             sim = radiopropa.ModuleList()
             sim.add(radiopropa.PropagationCK(self.__ice_model.get_scalar_field(), 1E-8, .001, 1.)) ## add propagation to module list
-            for module in self.__ice_model.get_modules().values(): sim.add(module)
+            for module_key in self.__ice_model.get_modules().keys(): 
+                if self.__config['propagation']['horizontal']: 
+                    if module_key == 'horizontal perturbations': 
+                        for perturbation in self.__ice_model.get_module(module_key).values(): sim.add(perturbation)
+                    else:
+                        self.__logger.warning('No horizontal perturabtion layers are defined in the ice model. Horizontal propagation will not be simulated.')
+                else: 
+                    sim.add(self.__ice_model.get_module(module_key))
             sim.add(radiopropa.MaximumTrajectoryLength(self.__max_traj_length*(radiopropa.meter/units.meter)))
 
             ## define observer for detection (channel)            
