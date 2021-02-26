@@ -210,6 +210,23 @@ if radiopropa_is_imported:
             """
             return self.__modules
 
+        def get_module(self,name):
+            """
+            returns the predefined module with that name (like reflective or 
+            transmissive layers, a discontinuity in refractive index, observers 
+            ...) of the ice for to use in the radiopropa tracer
+
+            Returns
+            -------
+            module: module with this name
+                    radiopropa.module object
+            """
+            if name not in self.__modules.keys():
+                logger.error('Module with name {} does not exist.'.format(name))
+                raise AttributeError('Module with name {} does not already exist.'.format(name))
+            else:
+                return self.__modules[name]
+
         def add_module(self,name,module):
             """
             add predefined modules (like reflective or transmissive layers, 
@@ -223,7 +240,11 @@ if radiopropa_is_imported:
             module: radiopropa.Module (and all the daugther classes)
                     module to run in radiopropa
             """
-            self.__modules[name]=module
+            if name in self.__modules.keys():
+                logger.error('Module with name {} does already exist, use the replace_module function if you want to replace this module'.format(name))
+                raise AttributeError('Module with name {} does already exist, use the replace_module function if you want to replace this module'.format(name))
+            else:
+                self.__modules[name]=module
 
         def remove_module(self,name):
             """
