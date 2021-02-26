@@ -27,7 +27,7 @@ class stationParameters(Enum):
     ndf_efield_time_direction_fit = 27  # the number of degrees of freedom of the direction fitter that used the maximum pulse times of the efields
     cr_xmax = 28  # Depth of shower maximum of the air shower
     vertex_2D_fit = 29  # horizontal distance and z coordinate of the reconstructed vertex of the neutrino
-    correlation_sum_at_vertex = 30
+    distance_correlations = 30
 
 
 class channelParameters(Enum):
