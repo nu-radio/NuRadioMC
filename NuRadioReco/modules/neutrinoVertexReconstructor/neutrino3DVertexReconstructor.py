@@ -492,6 +492,7 @@ class neutrino3DVertexReconstructor:
         i_x_1 = np.array(np.floor((d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
         cell_dist_1 = i_x_1 * self.__header[channel_type]['d_x'] + self.__header[channel_type]['x_min']
         mask[i_x_1 > self.__lookup_table[channel_type][ray_type].shape[0] - 1] = False
+        mask[i_z_1 > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
         mask[i_z_2 > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
         i_x_1[~mask] = 0
         i_z_1[~mask] = 0
