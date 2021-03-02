@@ -28,7 +28,6 @@ class ray_tracing:
     def __init__(self, medium, attenuation_model="GL1", log_level=logging.WARNING,
                  n_frequencies_integration=100,
                  n_reflections=0, config=None, detector = None):
-
         """
         class initilization
 
@@ -73,6 +72,8 @@ class ray_tracing:
                 n_reflections = 0
         self.__n_reflections = n_reflections
         self.__config = config
+        if self.__config['propagation']['horizontal'] and ('horizontal perturbations' not in self.__ice_model.get_modules().keys()):
+            self.__logger.info('No horizontal perturbations implemented')
         self.__n_frequencies_integration = n_frequencies_integration
         self.__max_detector_frequency = None
         self.__detector = detector
@@ -212,11 +213,13 @@ class ray_tracing:
             sim = radiopropa.ModuleList()
             sim.add(radiopropa.PropagationCK(self.__ice_model.get_scalar_field(), 1E-8, .001, 1.)) ## add propagation to module list
             for module_key in self.__ice_model.get_modules().keys(): 
-                if self.__config['propagation']['horizontal']: 
-                    if module_key == 'horizontal perturbations': 
-                        for perturbation in self.__ice_model.get_module(module_key).values(): sim.add(perturbation)
-                    else:
-                        self.__logger.warning('No horizontal perturabtion layers are defined in the ice model. Horizontal propagation will not be simulated.')
+                if (module_key == 'horizontal perturbations'): 
+                    if self.__config['propagation']['horizontal']:
+                        for perturbation in self.__ice_model.get_module(module_key).values(): 
+                            new_thickness = max(sphere_size, perturbation.getThickness())
+                            new_perturbation = perturbation.clone()
+                            new_perturbation.setThickness(new_thickness)
+                            sim.add(new_perturbation)
                 else: 
                     sim.add(self.__ice_model.get_module(module_key))
             sim.add(radiopropa.MaximumTrajectoryLength(self.__max_traj_length*(radiopropa.meter/units.meter)))
@@ -259,9 +262,6 @@ class ray_tracing:
                     else:
                         pass
                     launch_theta_prev = launch_theta
-            else:
-                #if previous_rays is empthy, no solutions where found and the tracer is terminated
-                break
 
             
             #create total scanning range from the upper and lower thetas of the bundles
@@ -272,7 +272,6 @@ class ray_tracing:
                 theta_scanning_range = np.concatenate((theta_scanning_range,new_scanning_range))
 
             cherenkov_angle = 56 * units.degree
-
             for theta in theta_scanning_range:
                 ray_dir = hp.spherical_to_cartesian(theta,phi)
                 viewing = np.arccos(np.dot(self.__shower_axis, ray_dir)) * units.radian
@@ -286,26 +285,30 @@ class ray_tracing:
                     ray = source.getCandidate()
                     sim.run(ray, True)
                     #check if the channel is reached, detection == 0 (ray is a pointer to the object Candidate but need real object)
-                    
+
                     current_rays = [ray]
                     while len(current_rays) > 0:
                         next_rays = []
                         for ray in current_rays:
                             if channel.checkDetection(ray.get()) == radiopropa.DETECTED:
                                 detected_rays.append(ray)
-                        result = {}
-                        if n_reflections == 0:
-                            result['reflection']=0
-                            result['reflection_case']=1
+                                result = {}
+                                if n_reflections == 0:
+                                    result['reflection']=0
+                                    result['reflection_case']=1
                                 elif self.__ice_model.get_modules()["bottom reflection"].get_times_reflectedoff(ray.get()) <= n_reflections: 
                                     result['reflection']=self.__ice_model.get_modules()["bottom reflection"].get_times_reflectedoff(ray.get())
-                            result['reflection_case']=int(np.ceil(theta/np.deg2rad(90)))
-                        results.append(result)
+                                    result['reflection_case']=int(np.ceil(theta/np.deg2rad(90)))
+                                results.append(result)
                             for secondary in ray.secondaries:
                                 next_rays.append(secondary)
                         current_rays = next_rays
 
-            previous_rays = detected_rays
+            if len(detected_rays)==0:
+                #if detected_rays is empthy, no solutions where found and the tracer is terminated
+                break
+            else:
+                previous_rays = detected_rays
 
         self.__rays = detected_rays
         self.__results = results
@@ -349,10 +352,10 @@ class ray_tracing:
 
         mask_lower = {i: (launch_zeniths>self.__launch_bundles[i,0]) for i in range(len(self.__launch_bundles))} 
         mask_upper = {i: (launch_zeniths<self.__launch_bundles[i,1]) for i in range(len(self.__launch_bundles))}
-        mask_solution = {j: (np.array(solution_types) == j) for j in solution_types.keys()}   
+        mask_solution = {j: (np.array(solution_types) == j) for j in ray_tracing.solution_types.keys()}   
         
         for i in range(len(self.__launch_bundles)):
-            for j in solution_types.keys():
+            for j in ray_tracing.solution_types.keys():
                 mask = (mask_lower[i]&mask_upper[i]&mask_solution[j])
                 if mask.any():
                     delta_min = np.deg2rad(90)
@@ -365,6 +368,7 @@ class ray_tracing:
                             final_ray_reflection = self.__results[iS]['reflection']
                             final_ray_reflection_case = self.__results[iS]['reflection_case']
                             final_ray_solution_type = solution_types[iS]
+                            if final_ray_solution_type == 4: print('horizontal solution')
                             delta_min = delta
                     rays_results.append(final_ray)
                     results.append({'type':final_ray_solution_type, 
@@ -422,7 +426,27 @@ class ray_tracing:
         path_y = np.fromstring(Candidate.getPathY()[1:-1],sep=',')*(units.meter/radiopropa.meter)
         path_z = np.fromstring(Candidate.getPathZ()[1:-1],sep=',')*(units.meter/radiopropa.meter)
         return np.stack([path_x,path_y,path_z], axis=1)
-    
+
+    def get_path_mask_horizontal(self, iS):
+        path = self.get_path_original(iS)*radiopropa.meter/units.meter
+        n_points = path.shape[0]
+        mask_horizontal = (np.arange(0,n_points) < 0)
+        if self.get_solution_type(iS) == 4:
+            for layer in self.__ice_model.get_module('horizontal perturbations').values():
+                mask_in_layer = (np.arange(0,n_points) < 0)
+                mask_parallel = (np.arange(0,n_points) < 0)
+                for i in range(n_points):
+                    position = radiopropa.Vector3d(*path[i])
+                    if i !=n_points-1: direction = radiopropa.Vector3d(*(path[i+1]-path[i]))
+                    else: direction = radiopropa.Vector3d(*(-self.get_receive_vector(iS)))
+
+                    mask_in_layer[i] = layer.inLayer(position)
+                    mask_parallel[i] = layer.parallelToLayer(position,direction)
+
+                mask_horizontal = (mask_horizontal | (mask_in_layer & mask_parallel))
+        
+        return mask_horizontal
+
     def get_path(self, iS, n_points=1000):
         """
         helper function that returns the 3D ray tracing path of solution iS
@@ -485,13 +509,21 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        pathz = self.get_path_original(iS)[:, 2]
-        if (self.__results[iS]['reflection'] != 0) or (self.get_reflection_angle(iS) != None):
-            solution_type = 3
-        elif(pathz[-1] < max(pathz)):
-            solution_type = 2
+        horizontal_ray = False
+        if self.__config['propagation']['horizontal'] and ('horizontal perturbations' in self.__ice_model.get_modules().keys()):
+            for perturbation in self.__ice_model.get_module('horizontal perturbations').values():
+                horizontal_ray = (perturbation.createdInLayer(self.__rays[iS].get()) or horizontal_ray)
+
+        if horizontal_ray:
+            solution_type = 4
         else:
-            solution_type = 1
+            pathz = self.get_path_original(iS)[:, 2]
+            if (self.__results[iS]['reflection'] != 0) or (self.get_reflection_angle(iS) != None):
+                solution_type = 3
+            elif(pathz[-1] < max(pathz)):
+                solution_type = 2
+            else:
+                solution_type = 1
 
         return solution_type
 
@@ -643,9 +675,6 @@ class ray_tracing:
             choose for which solution to compute the path length, 
             counting starts at zero
 
-        analytic: bool
-            If True the analytic solution is used. If False, a numerical integration is used. (default: True)
-
         Returns
         -------
         distance: float
@@ -726,21 +755,24 @@ class ray_tracing:
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:get_path_d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         path = self.get_path_original(iS)
 
         mask = frequency > 0
+        mask_horizontal = self.get_path_mask_horizontal(iS)
         freqs = self.get_frequencies_for_attenuation(frequency, self.__max_detector_frequency)
         integral = np.zeros(len(freqs))
+
+        def dt(index, freqs):
+            ds = np.sqrt((path[index, 0] - path[index+1, 0])**2 + (path[index, 1] - path[index+1, 1])**2 + (path[index, 2] - path[index+1, 2])**2) # get step size
+            attenuation_length = attenuation_util.get_attenuation_length(path[index, 2], freqs, self.__attenuation_model)
+            if index in np.arange(0,path.shape[0])[mask_horizontal]: attenuation_length /= 2
+            return ds / attenuation_length
         
-        def dt(depth, freqs):
-            ds = np.sqrt((path[:, 0][depth] - path[:, 0][depth+1])**2 + (path[:, 1][depth] - path[:, 1][depth+1])**2 + (path[:, 2][depth] - path[:, 2][depth+1])**2) # get step size
-            return ds / attenuation_util.get_attenuation_length(path[:, 2][depth], freqs, self.__attenuation_model)
-        
-        for z_position in range(len(path[:, 2]) - 1):
-            integral += dt(z_position, freqs)
+        for i in range(len(path) - 1):
+            integral += dt(i, freqs)
         
         att_func = interpolate.interp1d(freqs, integral)
         tmp = att_func(frequency[mask])
@@ -863,11 +895,16 @@ class ray_tracing:
             self.__logger.debug(
                 f"ray is reflecting {i_reflections:d} times at the bottom -> reducing the signal by a factor of {reflection_coefficient:.2f}")
 
-
         ## apply focussing effect
         if self.__config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
             spec[1:] *= focusing
+
+        ## apply coupling horizontal propagation
+        if self.get_solution_type(i_solution)==4:
+            for perturbation in self.__ice_model.get_module('horizontal perturbations').values():
+                if perturbation.createdInLayer(self.__rays[i_solution].get()): 
+                    spec *= perturbation.getFraction()
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield

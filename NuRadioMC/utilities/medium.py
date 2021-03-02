@@ -159,12 +159,14 @@ class greenland_firn(IceModel):
             ice.add_module('firn boudary',firn_boundary)
         return ice
 
-class greenland_pertubation(greenland_firn):
+class greenland_perturbation(greenland_firn):
     def __init__(self):
         greenland_firn.__init__(self)
 
     def get_ice_model_radiopropa(self,discontinuity=False):
         ice = greenland_firn.get_ice_model_radiopropa(self,discontinuity=discontinuity)
+        #plane = RP.Plane(RP.Vector3d(0,0,-100*RP.meter), RP.Vector3d(0,0,1))
+        #perturbation_horz = RP.PerturbationLayer(plane,2*RP.meter)
         perturbation_horz = RP.PerturbationHorizontal(-100*RP.meter,2*RP.meter)
         ice.add_module('horizontal perturbations',{1:perturbation_horz})
         return ice
