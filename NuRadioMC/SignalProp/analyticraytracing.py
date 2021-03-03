@@ -1556,8 +1556,9 @@ class ray_tracing:
         self.__r2d = ray_tracing_2D(self.__medium, self.__attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self.__n_frequencies_integration)
         self.__config = config
-        if self.__config['propagation']['horizontal'] or self.__config['propagation']['surface']:
-            self.__logger.warning("Horizontal or surface rays are not implemented in the analytical raytracer. Therefore, they will not be performed.")
+        if self.__config != None:
+            if self.__config['propagation']['horizontal'] or self.__config['propagation']['surface']:
+                self.__logger.warning("Horizontal or surface rays are not implemented in the analytical raytracer. Therefore, they will not be performed.")
         self.__detector = detector
         self.__max_detector_frequency = None
         if self.__detector is not None:
@@ -2024,7 +2025,7 @@ class ray_tracing:
 
     def get_raytracing_output(self, i_solution):
         dZRec = -0.01 * units.m
-        if self.__config['propagation']['focusing']:    
+        if self.__config == None or not self.__config['propagation']['focusing']:    
             focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
         else: 
             focusing = 1
@@ -2097,7 +2098,7 @@ class ray_tracing:
                 f"ray is reflecting {i_reflections:d} times at the bottom -> reducing the signal by a factor of {reflection_coefficient:.2f}")
 
         # apply the focusing effect
-        if self.__config['propagation']['focusing']:
+        if self.__config != None and self.__config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
             spec[1:] *= focusing
 

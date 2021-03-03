@@ -71,6 +71,10 @@ class ray_tracing:
                 self.__logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
                 n_reflections = 0
         self.__n_reflections = n_reflections
+        if config == None:
+            self.__config = {'propagation':{'horizontal':False,'surface':False,'attenuate_ice':True,'focusing':False}
+                            'speed up':{'delta_C_cut':40*units.degree}}
+        else:
         self.__config = config
         if self.__config['propagation']['horizontal'] and ('horizontal perturbations' not in self.__ice_model.get_modules().keys()):
             self.__logger.info('No horizontal perturbations implemented')
@@ -368,7 +372,6 @@ class ray_tracing:
                             final_ray_reflection = self.__results[iS]['reflection']
                             final_ray_reflection_case = self.__results[iS]['reflection_case']
                             final_ray_solution_type = solution_types[iS]
-                            if final_ray_solution_type == 4: print('horizontal solution')
                             delta_min = delta
                     rays_results.append(final_ray)
                     results.append({'type':final_ray_solution_type, 
