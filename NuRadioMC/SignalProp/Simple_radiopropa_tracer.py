@@ -72,7 +72,7 @@ class ray_tracing:
                 n_reflections = 0
         self.__n_reflections = n_reflections
         if config == None:
-            self.__config = {'propagation':{'horizontal':False,'surface':False,'attenuate_ice':True,'focusing':False}
+            self.__config = {'propagation':{'horizontal':False,'surface':False,'attenuate_ice':True,'focusing':False},
                             'speed up':{'delta_C_cut':40*units.degree}}
         else:
         self.__config = config
