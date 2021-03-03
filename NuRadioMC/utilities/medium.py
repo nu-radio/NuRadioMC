@@ -165,10 +165,9 @@ class greenland_perturbation(greenland_firn):
 
     def get_ice_model_radiopropa(self,discontinuity=False):
         ice = greenland_firn.get_ice_model_radiopropa(self,discontinuity=discontinuity)
-        #plane = RP.Plane(RP.Vector3d(0,0,-100*RP.meter), RP.Vector3d(0,0,1))
-        #perturbation_horz = RP.PerturbationLayer(plane,2*RP.meter)
-        perturbation_horz = RP.PerturbationHorizontal(-100*RP.meter,2*RP.meter)
-        ice.add_module('horizontal perturbations',{1:perturbation_horz})
+        #fraction from ArXiv 1805.12576 table IV last row
+        perturbation_horz = RP.PerturbationHorizontal(-100*RP.meter,2*RP.meter, fraction=0.023)
+        ice.add_module('horizontal perturbation',perturbation_horz)
         return ice
 
 

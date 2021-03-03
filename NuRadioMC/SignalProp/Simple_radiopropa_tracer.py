@@ -433,6 +433,20 @@ class ray_tracing:
         return np.stack([path_x,path_y,path_z], axis=1)
 
     def get_path_mask_horizontal(self, iS):
+        """
+        helper function that returns a mask for the original path to obtain only the
+        segment of the path which resides in a horizontal perturbation.
+
+        Parameters
+        ----------
+        iS: int
+            ray tracing solution
+
+        Returns
+        -------
+        path: 1D np.array of shape (n_points,)
+              mask of the original path for the horizontal perturbed segment
+        """
         path = self.get_path_original(iS)*radiopropa.meter/units.meter
         n_points = path.shape[0]
         mask_horizontal = (np.arange(0,n_points) < 0)
@@ -454,6 +468,20 @@ class ray_tracing:
         return mask_horizontal
 
     def get_path_mask_surface(self, iS):
+        """
+        helper function that returns a mask for the original path to obtain only the
+        segment of the path which follows the surface of a discontinuity.
+
+        Parameters
+        ----------
+        iS: int
+            ray tracing solution
+
+        Returns
+        -------
+        path: 1D np.array of shape (n_points,)
+              mask of the original path for the surface segment
+        """
         path = self.get_path_original(iS)*radiopropa.meter/units.meter
         n_points = path.shape[0]
         mask_surface = (np.arange(0,n_points) < 0)
@@ -530,6 +558,8 @@ class ray_tracing:
             * 1: 'direct'
             * 2: 'refracted'
             * 3: 'reflected
+            * 4: 'horizontal'
+            * 5: 'surface'
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
