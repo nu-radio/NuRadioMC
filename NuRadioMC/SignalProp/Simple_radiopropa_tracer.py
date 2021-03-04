@@ -285,14 +285,14 @@ class ray_tracing:
                         for ray in current_rays:
                             if channel.checkDetection(ray.get()) == radiopropa.DETECTED:
                                 detected_rays.append(ray)
-                        result = {}
-                        if n_reflections == 0:
-                            result['reflection']=0
-                            result['reflection_case']=1
+                                result = {}
+                                if n_reflections == 0:
+                                    result['reflection']=0
+                                    result['reflection_case']=1
                                 elif self.__ice_model.get_modules()["bottom reflection"].get_times_reflectedoff(ray.get()) <= n_reflections: 
                                     result['reflection']=self.__ice_model.get_modules()["bottom reflection"].get_times_reflectedoff(ray.get())
-                            result['reflection_case']=int(np.ceil(theta/np.deg2rad(90)))
-                        results.append(result)
+                                    result['reflection_case']=int(np.ceil(theta/np.deg2rad(90)))
+                                results.append(result)
                             for secondary in ray.secondaries:
                                 next_rays.append(secondary)
                         current_rays = next_rays
@@ -341,10 +341,10 @@ class ray_tracing:
 
         mask_lower = {i: (launch_zeniths>self.__launch_bundles[i,0]) for i in range(len(self.__launch_bundles))} 
         mask_upper = {i: (launch_zeniths<self.__launch_bundles[i,1]) for i in range(len(self.__launch_bundles))}
-        mask_solution = {j: (np.array(solution_types) == j) for j in solution_types.keys()}   
+        mask_solution = {j: (np.array(solution_types) == j) for j in ray_tracing.solution_types.keys()}   
         
         for i in range(len(self.__launch_bundles)):
-            for j in solution_types.keys():
+            for j in ray_tracing.solution_types.keys():
                 mask = (mask_lower[i]&mask_upper[i]&mask_solution[j])
                 if mask.any():
                     delta_min = np.deg2rad(90)
@@ -409,10 +409,9 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        Candidate = self.__rays[iS].get()
-        path_x = np.fromstring(Candidate.getPathX()[1:-1],sep=',')*(units.meter/radiopropa.meter)
-        path_y = np.fromstring(Candidate.getPathY()[1:-1],sep=',')*(units.meter/radiopropa.meter)
-        path_z = np.fromstring(Candidate.getPathZ()[1:-1],sep=',')*(units.meter/radiopropa.meter)
+        path_x = np.array([x*(units.meter/radiopropa.meter) for x in self.__rays[iS].getPathX()])
+        path_y = np.array([y*(units.meter/radiopropa.meter) for y in self.__rays[iS].getPathY()])
+        path_z = np.array([z*(units.meter/radiopropa.meter) for z in self.__rays[iS].getPathZ()])
         return np.stack([path_x,path_y,path_z], axis=1)
     
     def get_path(self, iS, n_points=1000):
@@ -559,7 +558,7 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        reflection_angles = np.fromstring(self.__rays[iS].getReflectionAngles_string()[1:-1],sep=',') *(units.degree/radiopropa.deg)
+        reflection_angles = np.array([ra*(units.degree/radiopropa.deg) for ra in self.__rays[iS].getReflectionAngles()])
         if len(reflection_angles)==0: return None
         else: return np.squeeze(reflection_angles)
 
