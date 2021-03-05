@@ -426,10 +426,9 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        Candidate = self.__rays[iS].get()
-        path_x = np.fromstring(Candidate.getPathX()[1:-1],sep=',')*(units.meter/radiopropa.meter)
-        path_y = np.fromstring(Candidate.getPathY()[1:-1],sep=',')*(units.meter/radiopropa.meter)
-        path_z = np.fromstring(Candidate.getPathZ()[1:-1],sep=',')*(units.meter/radiopropa.meter)
+        path_x = np.array([x*(units.meter/radiopropa.meter) for x in self.__rays[iS].getPathX()])
+        path_y = np.array([y*(units.meter/radiopropa.meter) for y in self.__rays[iS].getPathY()])
+        path_z = np.array([z*(units.meter/radiopropa.meter) for z in self.__rays[iS].getPathZ()])
         return np.stack([path_x,path_y,path_z], axis=1)
 
     def get_path_mask_horizontal(self, iS):
@@ -661,7 +660,7 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        reflection_angles = np.fromstring(self.__rays[iS].getReflectionAngles_string()[1:-1],sep=',') *(units.degree/radiopropa.deg)
+        reflection_angles = np.array([ra*(units.degree/radiopropa.deg) for ra in self.__rays[iS].getReflectionAngles()])
         if len(reflection_angles)==0: return None
         else: return np.squeeze(reflection_angles)
 
