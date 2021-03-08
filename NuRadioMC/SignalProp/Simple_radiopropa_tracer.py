@@ -1011,7 +1011,7 @@ class ray_tracing:
                     r = self.get_path_length(i_solution)
                     r_surface = self.get_path_length_segment(i_solution,self.get_path_mask_surface(i_solution))
                     r_bulk = r - r_surface
-                    spec *= r_bulk/(np.sqrt(r_bulk)*np.sqrt(r_bulk+r_surface))
+                    spec *= r/(np.sqrt(r_bulk)*np.sqrt(r_bulk+r_surface))
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
