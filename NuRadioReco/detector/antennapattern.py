@@ -8,7 +8,7 @@ from scipy import constants
 import logging
 import pickle
 import csv
-import cmath 
+import cmath
 
 logger = logging.getLogger('NuRadioReco.antennapattern')
 
@@ -109,7 +109,7 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
         path to gain file
     path_phases:
         path to phases file
-        
+
     Returns:
     ----------
     all paramters of the file
@@ -121,8 +121,6 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
         thetas = []
         gain_theta = []
         gain_phi = []
-        f = None
-        tmp_phi0_lines = []
         csv_reader = csv.reader(fin, delimiter=',')
         line_count = 0
         for row in csv_reader:
@@ -145,7 +143,7 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
             if 1:#(line_count % 2) == 0:
                 if line_count != 0:
                     complex_phi = float(row[3]) + 1j*float(row[4])
-                    phase_phi.append(cmath.phase(complex_phi) )
+                    phase_phi.append(cmath.phase(complex_phi))
                     complex_theta = float(row[5] + 1j*float(row[6]))
                     phase_theta.append(cmath.phase(complex_theta))
       
@@ -156,9 +154,9 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
 
 def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index = 1.74):
     """"
-    Preprocess an antenna pattern in XFDTD file format. The vector effective length is calculated and the output is saved to the NuRadioReco pickle format. 
-    The simulations are done in air. The vector effective length is stored for a refractive index of 1.74. 
-  
+    Preprocess an antenna pattern in XFDTD file format. The vector effective length is calculated and the output is saved to the NuRadioReco pickle format.
+    The simulations are done in air. The vector effective length is stored for a refractive index of 1.74 (default).
+
     Parameters:
     ----------
     path_gain: string
@@ -168,7 +166,7 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index = 1.74
     outputfilename: string
         path to outputfilename
     n_index: float
-        refractive index for requested antenna file. The simulations are done in air (n = 1) 
+        refractive index for requested antenna file. The simulations are done in air (n = 1)
     """
     
     ff, phi, theta, gain_phi, gain_theta, phase_phi, phase_theta = parse_RNOG_XFDTD_file(path_gain, path_phases)
@@ -180,16 +178,15 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index = 1.74
     phi = np.deg2rad(phi)
 
     wavelength = c / np.array(ff)
-    #icemodel = medium.greenland_simple()
-    
-    H_theta = wavelength  * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
-    H_phi = wavelength  * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
-    H_theta =wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5* np.exp(1j * phase_theta)
-    H_phi = wavelength  *(50 / (4 * np.pi * Z_0)) ** 0.5 *gain_phi ** 0.5* np.exp(1j * phase_phi)
+
+    H_theta = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
+    H_phi = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
+    H_theta =wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
+    H_phi = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
   
     zen_boresight = 0
     azi_boresight = 0
-    zen_ori = 0.5*np.pi 
+    zen_ori = 0.5 * np.pi
     azi_ori = 0
     
     index = np.lexsort((theta, phi, ff))
@@ -200,10 +197,8 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index = 1.74
     H_theta = np.array(H_theta)[index]
 
     with open(outputfilename, 'wb') as fout:
-        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff/n_index, theta, phi, H_phi, H_theta], fout, protocol = 2)
+        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff/n_index, theta, phi, H_phi, H_theta], fout, protocol=2)
                                                      
-
-
 def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_parameters=None):
     """
     reads in WIPLD data
