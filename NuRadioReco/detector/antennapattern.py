@@ -131,7 +131,7 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
                     phis.append(float(row[2]))
                     gain_phi.append(float(row[3]))
                     gain_theta.append(float(row[4]))
-   
+
             line_count += 1
 
     with open(path_phases, 'r') as fin:
@@ -148,7 +148,7 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
                     phase_theta.append(cmath.phase(complex_theta))
 
             line_count += 1
-       
+
     return np.array(ff), np.array(phis), np.array(thetas), np.array(gain_phi), np.array(gain_theta), np.array(phase_phi), np.array(phase_theta)
 
 
@@ -188,7 +188,7 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74):
     azi_boresight = 0
     zen_ori = 0.5 * np.pi
     azi_ori = 0
-    
+
     index = np.lexsort((theta, phi, ff))
     ff = np.array(ff)[index]
     phi = phi[index]
