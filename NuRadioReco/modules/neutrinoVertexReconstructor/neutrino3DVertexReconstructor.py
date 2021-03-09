@@ -193,9 +193,8 @@ class neutrino3DVertexReconstructor:
                 antenna_pattern_provider=self.__antenna_pattern_provider
             )[0]
             voltage_spec = (
-                                   antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() +
-                                   antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()
-                           ) * det.get_amplifier_response(station.get_id(), channel_pair[0], self.__electric_field_template.get_frequencies())
+                antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() + antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()
+            ) * det.get_amplifier_response(station.get_id(), channel_pair[0], self.__electric_field_template.get_frequencies())
             if self.__passband is not None:
                 voltage_spec *= bandpass_filter.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butterabs', 10)
             voltage_template = fft.freq2time(voltage_spec, self.__sampling_rate)
@@ -349,9 +348,8 @@ class neutrino3DVertexReconstructor:
                 antenna_pattern_provider=self.__antenna_pattern_provider
             )[0]
             voltage_spec = (
-                                   antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() +
-                                   antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()
-                           ) * det.get_amplifier_response(station.get_id(), channel_id, self.__electric_field_template.get_frequencies())
+                antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() + antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()
+            ) * det.get_amplifier_response(station.get_id(), channel_id, self.__electric_field_template.get_frequencies())
             if self.__passband is not None:
                 voltage_spec *= bandpass_filter.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butter', 10)
             voltage_template = fft.freq2time(voltage_spec, self.__sampling_rate)
@@ -380,7 +378,7 @@ class neutrino3DVertexReconstructor:
                     self.__current_ray_types = self.__ray_types[i_ray]
                     correlation_map = np.maximum(self.get_correlation_array_3d(x_coords, y_coords, z_coords), correlation_map)
             self_correlation_sum += correlation_map
-        combined_correlations = correlation_sum / len(self.__channel_pairs) + self_correlation_sum  / len(self.__channel_ids)
+        combined_correlations = correlation_sum / len(self.__channel_pairs) + self_correlation_sum / len(self.__channel_ids)
         i_max_dnr = np.unravel_index(np.argmax(combined_correlations), combined_correlations.shape)
         vertex_x = x_coords[i_max_dnr]
         vertex_y = y_coords[i_max_dnr]
