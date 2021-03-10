@@ -2,6 +2,7 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import EnvelopePhasedTrigger
 from NuRadioReco.modules.phasedarray.triggerSimulator import triggerSimulator as phasedTrigger
+from NuRadioReco.modules.phasedarray.triggerSimulator import get_beam_rolls, get_channel_trace_start_time
 from NuRadioReco.utilities.diodeSimulator import diodeSimulator
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 import numpy as np
@@ -230,14 +231,15 @@ class triggerSimulator(phasedTrigger):
 
         else:
 
-            channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
+            channel_trace_start_time = get_channel_trace_start_time(station, triggered_channels)
 
             logger.debug("primary channels:", triggered_channels)
-            beam_rolls = self.get_beam_rolls(station, det, triggered_channels,
-                                             phasing_angles, ref_index=ref_index)
+            beam_rolls = get_beam_rolls(station, det, triggered_channels,
+                                        phasing_angles, ref_index=ref_index)
 
             is_triggered, trigger_delays = self.envelope_trigger(station, det, beam_rolls,
-                                                                 triggered_channels, threshold_factor, power_mean, power_std, output_passband, cut_times,
+                                                                 triggered_channels, threshold_factor,
+                                                                 power_mean, power_std, output_passband, cut_times,
                                                                  trigger_adc)
 
         trigger = EnvelopePhasedTrigger(trigger_name, threshold_factor, power_mean, power_std,

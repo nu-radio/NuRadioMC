@@ -9,9 +9,13 @@ logger = logging.getLogger('triggerTimeAdjuster')
 class triggerTimeAdjuster:
     """
     Modifies channel traces to simulate the effects of the trigger
+
+    The trace is cut to the length defined in the detector description relative to the trigger time.
+    If no trigger exists, nothing is done.
     """
 
-    def __init__(self):
+    def __init__(self, log_level=logging.WARNING):
+        logger.setLevel(log_level)
         self.__trigger_name = None
         self.__pre_trigger_time = None
         self.begin()
@@ -28,8 +32,6 @@ class triggerTimeAdjuster:
         pre_trigger_time: float
             Amount of time that should be stored in the channel trace before the trigger. If the channel trace is long
             enough, it will be cut accordingly. Otherwise, it will be rolled.
-        cut_trace: bool
-            If true, the trace will be cut to the length specified in the detector description
         """
         self.__trigger_name = trigger_name
         self.__pre_trigger_time = pre_trigger_time
@@ -42,11 +44,14 @@ class triggerTimeAdjuster:
         else:
             min_trigger_time = None
             for trig in station.get_triggers().values():
-                if min_trigger_time is None or trig.get_trigger_time() < min_trigger_time:
-                    min_trigger_time = trig.get_trigger_time()
-                    trigger = trig
+                if(trig.has_triggered()):
+                    if min_trigger_time is None or trig.get_trigger_time() < min_trigger_time:
+                        min_trigger_time = trig.get_trigger_time()
+                        trigger = trig
+            if(min_trigger_time is not None):
+                logger.info(f"minimum trigger time is {min_trigger_time/units.ns:.2f}ns")
         if trigger is None:
-            logger.warning('No trigger found! Channel timings will not be changed.')
+            logger.info('No trigger found! Channel timings will not be changed.')
             return
         if trigger.has_triggered():
             trigger_time = trigger.get_trigger_time()
@@ -85,6 +90,7 @@ class triggerTimeAdjuster:
                         rel_station_time_samples = -roll_by
 
                     # shift trace to be in the correct location for cutting
+                    logger.debug(f"cutting trace to {cut_samples_beginning}-{number_of_samples + cut_samples_beginning} samples")
                     trace = trace[cut_samples_beginning:(number_of_samples + cut_samples_beginning)]
                     channel.set_trace(trace, channel.get_sampling_rate())
                     channel.set_trace_start_time(channel.get_trace_start_time() + rel_station_time_samples / channel.get_sampling_rate())

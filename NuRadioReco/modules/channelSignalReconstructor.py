@@ -99,8 +99,7 @@ class channelSignalReconstructor:
 
         # Various definitions
         noise_int = np.sum(np.square(trace[noise_window_mask]))
-        noise_int *= (self.__signal_window_length) / \
-            float(noise_window_length)
+        noise_int *= (self.__signal_window_length) / float(noise_window_length)
 
         if stored_noise:
             # we use the RMS from forced triggers
@@ -126,13 +125,12 @@ class channelSignalReconstructor:
             SNR['integrated_power'] = np.infty
         else:
 
-            SNR['integrated_power'] = (np.sum(np.square(trace[signal_window_mask])) - noise_int)
-            if SNR['integrated_power'] < noise_int:
+            SNR['integrated_power'] = np.sum(np.square(trace[signal_window_mask])) - noise_int
+            if SNR['integrated_power'] <= 0:
                 logger.debug("Integrated signal {0} smaller than noise {1}, power SNR 0".format(SNR['integrated_power'], noise_int))
                 SNR['integrated_power'] = 0.
             else:
-
-                SNR['integrated_power'] /= (noise_int / signal_window_start)
+                SNR['integrated_power'] /= (noise_int)
                 SNR['integrated_power'] = np.sqrt(SNR['integrated_power'])
 
             # calculate amplitude values

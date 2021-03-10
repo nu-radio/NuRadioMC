@@ -14,6 +14,7 @@ from tinydb_serialization import Serializer
 import six  # # used for compatibility between py2 and py3
 import warnings
 from astropy.utils.exceptions import ErfaWarning
+import NuRadioReco.utilities.metaclasses
 
 logger = logging.getLogger('NuRadioReco.detector')
 warnings.filterwarnings('ignore', category=ErfaWarning)
@@ -117,16 +118,7 @@ def buffer_db(in_memory, filename=None):
     return db
 
 
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if Singleton._instances.get(cls, None) is None:
-            Singleton._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return Singleton._instances[cls]
-
-
-@six.add_metaclass(Singleton)
+@six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class Detector(object):
     """
     main detector class which provides access to the detector description
@@ -138,7 +130,10 @@ class Detector(object):
                  dictionary=None, assume_inf=True, antenna_by_depth=True):
         """
         Initialize the stations detector properties.
-
+        By default, a new detector instance is only created of none exists yet, otherwise the existing instance
+        is returned. To force the creation of a new detector instance, pass the additional keyword parameter
+        `create_new=True` to this function. For more details, check the documentation for the
+        `Singleton metaclass <NuRadioReco.utilities.html#NuRadioReco.utilities.metaclasses.Singleton>`_.
         Parameters
         ----------
         source : str
@@ -157,6 +152,9 @@ class Detector(object):
             if True the antenna model is determined automatically depending on the depth of the antenna. This is done by
             appending e.g. '_InfFirn' to the antenna model name.
             if False, the antenna model as specified in the database is used.
+        create_new: bool (default:False)
+            Can be used to force the creation of a new detector object. By default, the __init__ will anly create a new
+            object of none already exists.
         """
         if source == 'sql':
             self._db = buffer_db(in_memory=True)
@@ -497,6 +495,27 @@ class Detector(object):
         res = self._get_station(station_id)
         return res['pos_site']
 
+    def get_site_coordinates(self, station_id):
+        """
+        get the (latitude, longitude) coordinates (in degrees) for a given
+        detector site.
+
+        Parameters
+        -------------
+        station_id: int
+            the station ID
+        """
+        sites = {
+            'auger': (-35.10, -69.55),
+            'mooresbay': (-78.74, 165.09),
+            'southpole': (-90., 0.),
+            'summit': (72.57, -38.46)
+        }
+        site = self.get_site(station_id)
+        if site in sites.keys():
+            return sites[site]
+        return (None, None)
+
     def get_number_of_channels(self, station_id):
         """
         Get the number of channels per station
@@ -525,7 +544,7 @@ class Detector(object):
         channel_ids = []
         for channel in self.__get_channels(station_id).values():
             channel_ids.append(channel['channel_id'])
-        return channel_ids
+        return sorted(channel_ids)
 
     def get_parallel_channels(self, station_id):
         """
@@ -839,7 +858,7 @@ class Detector(object):
         station_id: int
             station id
         channel_id: int
-            the channel id, not used at the moment, only station averages are computed
+            the channel id
 
         """
         res = self.__get_channel(station_id, channel_id)
@@ -847,3 +866,23 @@ class Detector(object):
             raise AttributeError(
                 f"field noise_temperature not present in detector description of station {station_id} and channel {channel_id}")
         return res['noise_temperature']
+
+    def is_channel_noiseless(self, station_id, channel_id):
+        """
+        returns true if the detector description has the field `noiseless` and if this field is True.
+
+        Allows to run a noiseless simulation on specific channels (for example to simulate a single-antenna proxy
+        along with the phased array)
+
+        Parameters
+        ----------
+        station_id: int
+            station id
+        channel_id: int
+            the channel id
+
+        """
+        res = self.__get_channel(station_id, channel_id)
+        if 'noiseless' not in res:
+            return False
+        return res['noiseless']
