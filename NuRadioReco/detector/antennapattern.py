@@ -155,7 +155,9 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
 def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74):
     """"
     Preprocess an antenna pattern in XFDTD file format. The vector effective length is calculated and the output is saved to the NuRadioReco pickle format.
-    The simulations are done in air. The vector effective length is stored for a refractive index of 1.74 (default).
+    
+    This conversion function ASSUMES THAT THE XFDTD SIMULATION IS DONE IN AIR! HERE WE DO A FIRST ORDER RESCALING
+    TO A DIFFERENT INDEX OF REFRACTION by just rescaling the frequencies by f -> f/n.
 
     Parameters:
     ----------
@@ -166,13 +168,12 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74):
     outputfilename: string
         path to outputfilename
     n_index: float
-        refractive index for requested antenna file. The simulations are done in air (n = 1)
+        refractive index for requested antenna file. The method assumes that simulations are done in air (n = 1)
     """
 
     ff, phi, theta, gain_phi, gain_theta, phase_phi, phase_theta = parse_RNOG_XFDTD_file(path_gain, path_phases)
     c = constants.c * units.m / units.s
     Z_0 = 119.9169 * np.pi
-    ff = ff
 
     theta = np.deg2rad(theta)
     phi = np.deg2rad(phi)
@@ -195,9 +196,12 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74):
     theta = theta[index]
     H_phi = np.array(H_phi)[index]
     H_theta = np.array(H_theta)[index]
+    
+    # rescale frequencies from air to medium with `n_index`
+    ff = ff / n_index
 
     with open(outputfilename, 'wb') as fout:
-        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff / n_index, theta, phi, H_phi, H_theta], fout, protocol=2)
+        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
 
 
 def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_parameters=None):
