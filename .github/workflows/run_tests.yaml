@@ -1,0 +1,84 @@
+name: unit tests
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        # This path is specific to Ubuntu
+        path: ~/.cache/pip
+        # Look to see if there is a cache hit for the corresponding requirements file
+        key: ${{ runner.os }}-pip-${{ hashFiles('NuRadioREco/test/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          ${{ runner.os }}-
+    - name: Install dependencies
+      run: |
+        sudo apt-get install libgsl-dev
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        export GSLDIR=$(gsl-config --prefix)
+        if [ -f NuRadioReco/test/requirements.txt ]; then pip install -r NuRadioReco/test/requirements.txt; fi
+        wget https://github.com/nu-radio/NuRadioMC/archive/noiseless-channels.zip -O /tmp/NuRadioMC.zip
+        unzip /tmp/NuRadioMC.zip
+        mv NuRadioMC-noiseless-channels/NuRadioMC $PWD/NuRadioMC
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+    - name: "Tiny reconstrucution"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
+    - name: "Trigger tests"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioReco/test/trigger_tests/run_trigger_test.sh
+    - name: Test NuRadioReco examples
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioReco/test/test_examples.sh
+    - name: "Single event test (South Pole)"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/SingleEvents/test_build.sh
+    - name: Single event test (Moore's Bay)
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/SingleEvents/validate_MB.sh
+    - name: Single event test (ARZ)
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/SingleEvents/validate_ARZ.sh
+    - name: Signal generation test
+      run : |
+          export PYTHONPATH=$PWD:$PYTHONPATH
+          export GSLDIR=$(gsl-config --prefix)
+          NuRadioMC/test/SignalGen/test_build.sh
+    - name: "Signal propagation tests"
+      run: |
+         export PYTHONPATH=$PWD:$PYTHONPATH
+         export GSLDIR=$(gsl-config --prefix)
+         NuRadioMC/test/SignalProp/run_signal_test.sh
+    - name: "Veff test"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/Veff/1e18eV/test_build.sh
