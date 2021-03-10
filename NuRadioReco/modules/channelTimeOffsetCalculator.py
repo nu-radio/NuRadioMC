@@ -99,9 +99,9 @@ class channelTimeOffsetCalculator:
                     'The channels and the electric field remplate need to have the same sampling rate.'
                 )
             # Calculate size of largest autocorrelation
-            if channel.get_number_of_samples() + self.__electric_field_template.get_number_of_samples() + 1 > correlation_size:
-                correlation_size = channel.get_number_of_samples() + self.__electric_field_template.get_number_of_samples() + 1
-            channel_position = det.get_relative_position(101, channel_id)
+            if channel.get_number_of_samples() + self.__electric_field_template.get_number_of_samples() - 1 > correlation_size:
+                correlation_size = channel.get_number_of_samples() + self.__electric_field_template.get_number_of_samples() - 1
+            channel_position = det.get_relative_position(station.get_id(), channel_id)
             raytracer = NuRadioMC.SignalProp.analyticraytracing.ray_tracing(
                 x1=vertex_position,
                 x2=channel_position,
@@ -123,8 +123,8 @@ class channelTimeOffsetCalculator:
         # Now we check which ray path results in the best correlation between channels
         for i_channel, channel_id in enumerate(channel_ids):
             channel = station.get_channel(channel_id)
-            antenna_pattern = self.__antenna_provider.load_antenna_pattern(det.get_antenna_model(101, channel_id))
-            antenna_orientation = det.get_antenna_orientation(101, channel_id)
+            antenna_pattern = self.__antenna_provider.load_antenna_pattern(det.get_antenna_model(station.get_id(), channel_id))
+            antenna_orientation = det.get_antenna_orientation(station.get_id(), channel_id)
             for i_solution in range(3):
                 if found_solutions[i_channel, i_solution] > 0:
                     # We calculate the voltage template from the electric field template using the receiving angles
@@ -138,8 +138,9 @@ class channelTimeOffsetCalculator:
                         antenna_orientation[2],
                         antenna_orientation[3]
                     )
+                    # For simplicity, we assume equal contribution on the E_theta and E_phi component
                     channel_template_spec = fft.time2freq(self.__electric_field_template.get_filtered_trace(passband), self.__electric_field_template.get_sampling_rate()) * \
-                        det.get_amplifier_response(101, channel_id, self.__electric_field_template.get_frequencies()) * (antenna_response['theta'] + antenna_response['phi'])
+                        det.get_amplifier_response(station.get_id(), channel_id, self.__electric_field_template.get_frequencies()) * (antenna_response['theta'] + antenna_response['phi'])
                     channel_template_trace = fft.freq2time(channel_template_spec, self.__electric_field_template.get_sampling_rate())
                     # We apply the expected time shift for the raytracing solution and calculate the correlation with the template
                     channel.apply_time_shift(-propagation_times[i_channel, i_solution], True)
