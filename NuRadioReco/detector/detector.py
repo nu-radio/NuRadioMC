@@ -36,7 +36,7 @@ class DateTimeSerializer(Serializer):
 def buffer_db(in_memory, filename=None):
     """
     buffers the complete SQL database into a TinyDB object (either in memory or into a local JSON file)
-    
+
     Parameters
     ----------
     in_memory: bool
@@ -44,7 +44,6 @@ def buffer_db(in_memory, filename=None):
         if False: the mysql database will be buffered as a tiny tb object and saved in a local json file
     filename: string
         only relevant if `in_memory = True`: the filename of the json file of the tiny db object
-    
     """
     serialization = SerializationMiddleware()
     serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
