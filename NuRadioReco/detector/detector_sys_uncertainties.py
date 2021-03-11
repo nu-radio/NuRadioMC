@@ -9,7 +9,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
     """
 
     def __init__(self, source='json', json_filename='ARIANNA/arianna_detector_db.json',
-                 dictionary=None, assume_inf=True):
+                 dictionary=None, assume_inf=True, antenna_by_depth=True):
         """
         Initialize the stations detector properties.
 
@@ -27,8 +27,12 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
             default value is 'ARIANNA/arianna_detector_db.json'
         assume_inf : Bool
             Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
+        antenna_by_depth: bool (default True)
+            if True the antenna model is determined automatically depending on the depth of the antenna. This is done by
+            appending e.g. '_InfFirn' to the antenna model name.
+            if False, the antenna model as specified in the database is used.
         """
-        NuRadioReco.detector.detector.Detector.__init__(self, source, json_filename, dictionary, assume_inf)
+        NuRadioReco.detector.detector.Detector.__init__(self, source, json_filename, dictionary, assume_inf, antenna_by_depth)
         self._antenna_orientation_override = {}
         self._antenna_position_override = {}
 
@@ -82,7 +86,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
             * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
             * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         """
-        ori = self.det.get_antenna_orientation(station_id, channel_id)
+        ori = super().get_antenna_orientation(station_id, channel_id)
         if "any" in self._antenna_orientation_override:
             tmp = self._antenna_orientation_override["any"]
             ori += tmp
@@ -144,7 +148,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
             * y-position of antenna
             * z-position of antenna
         """
-        pos = self.det.get_relative_position(station_id, channel_id)
+        pos = super().get_relative_position(station_id, channel_id)
         if "any" in self._antenna_position_override:
             tmp = self._antenna_position_override["any"]
             pos += tmp

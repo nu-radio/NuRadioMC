@@ -13,7 +13,9 @@ new features:
 bug fixes:
 - Added if check in voltageToEfieldConverter.py under method get_array_of_channels() to see if sim station is initialized
 - trigger modules set the trigger time to 0 in case not trigger was recorded. This lead to problems, and wrong total trigger times, if multiple triggers were recorded. Now, no trigger time is set if not trigger was found.
+- made detector_sys_uncertainties compatible with python3 and detector updates
 - Typo in antennapattern.py; processing antenna responses fails. replaces s_parameteres with s_parameters
+
 
 version 1.1.2 -
 
