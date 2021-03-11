@@ -214,7 +214,7 @@ def preprocess_WIPLD_old(path, gen_num=1, s_parameters=None):
         os.path.join(path, name, '{}.ad1'.format(name)),
         os.path.join(path, name, '{}.ra1'.format(name)),
         os.path.join(path, name, '{}.orientation'.format(name)),
-        gen_num=gen_num, s_paramateres=s_parameters)
+        gen_num=gen_num, s_parameters=s_parameters)
 
     theta = 0.5 * np.pi - theta  # 90deg - theta because in WIPL D the theta angle is defined differently
 
@@ -299,7 +299,7 @@ def preprocess_WIPLD(path, gen_num=1, s_parameters=None):
         os.path.join(path, name, '{}.ad1'.format(name)),
         os.path.join(path, name, '{}.ra1'.format(name)),
         os.path.join(path, name, '{}.orientation'.format(name)),
-        gen_num=gen_num, s_paramateres=s_parameters)
+        gen_num=gen_num, s_parameters=s_parameters)
 
     theta = 0.5 * np.pi - theta  # 90deg - theta because in WIPL D the theta angle is defined differently
 
