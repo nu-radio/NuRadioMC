@@ -12,7 +12,7 @@
             "ant_position_z": -96.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "RNOG_vpol_v1_n1.73",
+            "ant_type": "RNOG_vpol_4inch_center_1.73",
             "channel_id": 0,
             "station_id": 101
         },
@@ -26,7 +26,7 @@
             "ant_position_z": -95.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "RNOG_vpol_v1_n1.73",
+            "ant_type": "RNOG_vpol_4inch_center_1.73",
             "channel_id": 1,
             "station_id": 101
         },
@@ -41,7 +41,7 @@
             "ant_position_z": -94.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "trislot_RNOG",
+            "ant_type": "RNOG_quadslot_v2_1.74",
             "channel_id": 2,
             "station_id": 101
          },
@@ -55,7 +55,7 @@
             "ant_position_z": -97.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "RNOG_vpol_v1_n1.73",
+            "ant_type": "RNOG_vpol_4inch_center_1.73",
             "channel_id": 3,
             "station_id": 101
          },
@@ -69,7 +69,7 @@
             "ant_position_z": -96.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "RNOG_vpol_v1_n1.73",
+            "ant_type": "RNOG_vpol_4inch_center_1.73",
             "channel_id": 4,
             "station_id": 101
 
@@ -84,7 +84,7 @@
             "ant_position_z": -95.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "trislot_RNOG",
+            "ant_type": "RNOG_quadslot_v2_1.74",
             "channel_id": 5,
             "station_id": 101
          },
@@ -99,7 +99,7 @@
             "ant_position_z": -97.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "RNOG_vpol_v1_n1.73",
+            "ant_type": "RNOG_vpol_4inch_center_1.73",
             "channel_id": 6,
             "station_id": 101
 
@@ -113,7 +113,7 @@
             "ant_position_z": -96.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "RNOG_vpol_v1_n1.73",
+            "ant_type": "RNOG_vpol_4inch_center_1.73",
             "channel_id": 7,
             "station_id": 101
 
@@ -127,7 +127,7 @@
             "ant_position_z": -95.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "RNOG_vpol_v1_n1.73",
+            "ant_type": "RNOG_vpol_4inch_center_1.733",
             "channel_id": 8,
             "station_id": 101
 
@@ -141,7 +141,7 @@
             "ant_position_z": -94.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "RNOG_vpol_v1_n1.73",
+            "ant_type": "RNOG_vpol_4inch_center_1.73",
             "channel_id": 9,
             "station_id": 101
         },
@@ -155,7 +155,7 @@
             "ant_position_z": -80.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "RNOG_vpol_v1_n1.73",
+            "ant_type": "RNOG_vpol_4inch_center_1.73",
             "channel_id": 10,
             "station_id": 101
         },
@@ -169,7 +169,7 @@
             "ant_position_z": -60.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "RNOG_vpol_v1_n1.73",
+            "ant_type": "RNOG_vpol_4inch_center_1.73",
             "channel_id": 11,
             "station_id": 101
         },
@@ -183,7 +183,7 @@
             "ant_position_z": -40.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "RNOG_vpol_v1_n1.73",
+            "ant_type": "RNOG_vpol_4inch_center_1.73",
             "channel_id": 12,
             "station_id": 101
         },
@@ -197,7 +197,7 @@
             "ant_position_z": -92.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "trislot_RNOG",
+            "ant_type": "RNOG_quadslot_v2_1.74",
             "channel_id": 13,
             "station_id": 101
         },
@@ -211,7 +211,7 @@
             "ant_position_z": -93.0,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
-            "ant_type": "trislot_RNOG",
+            "ant_type": "RNOG_quadslot_v2_1.74",
             "channel_id": 14,
             "station_id": 101
         },
