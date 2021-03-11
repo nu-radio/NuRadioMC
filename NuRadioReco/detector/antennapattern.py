@@ -155,7 +155,7 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
 def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74):
     """"
     Preprocess an antenna pattern in XFDTD file format. The vector effective length is calculated and the output is saved to the NuRadioReco pickle format.
-    
+
     This conversion function ASSUMES THAT THE XFDTD SIMULATION IS DONE IN AIR! HERE WE DO A FIRST ORDER RESCALING
     TO A DIFFERENT INDEX OF REFRACTION by just rescaling the frequencies by f -> f/n.
 
@@ -196,7 +196,7 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74):
     theta = theta[index]
     H_phi = np.array(H_phi)[index]
     H_theta = np.array(H_theta)[index]
-    
+
     # rescale frequencies from air to medium with `n_index`
     ff = ff / n_index
 
