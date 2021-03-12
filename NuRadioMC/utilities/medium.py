@@ -14,16 +14,16 @@ radiopropa ice model, so it can be used in NuRadioMC. For example
 
         def get_ice_model_radiopropa(self):
             scalar field = radiopropa.New_IceModel(*args)
-            retur IceModel_RadioPropa(self,scalar_field)
+            retur RadioPropaIceWrapper(self,scalar_field)
         
 
 3)If you want to add adjust (add, replace, remove) predefined modules 
-in the a IceModel_RadioPropa object, you can do this by redefining the 
+in the a RadioPropaIceWrapper object, you can do this by redefining the 
 'get_ice_model_radiopropa()' in your IceModel object. For exemple
 
         def get_ice_model_radiopropa(self):
             scalar field = radiopropa.IceModel_Simple(*args)
-            ice = IceModel_RadioPropa(self,scalar_field)
+            ice = RadioPropaIceWrapper(self,scalar_field)
             extra_dicontinuity = radiopropa.Discontinuity(*args)
             ice.add_module(extra_discontinuity)
             return ice
@@ -149,7 +149,7 @@ class greenland_firn(IceModel):
         """
         overwrite inherited function
         """
-        ice = IceModel_RadioPropa(self,self._scalarfield)
+        ice = RadioPropaIceWrapper(self,self._scalarfield)
         if discontinuity == True:
             firn_boundary_pos = RP.Vector3d(0,0,self.z_firn*(RP.meter/units.meter))
             step = RP.Vector3d(0,0,1e-9*RP.meter)
