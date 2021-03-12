@@ -145,7 +145,7 @@ class IceModel_Simple(IceModel):
                                             n_ice=self.n_ice, delta_n=self.delta_n, 
                                             z_0=self.z_0*RP.meter/units.meter,
                                             z_shift=self.z_shift*RP.meter/units.meter)
-            return IceModel_RadioPropa(self,scalar_field)
+            return RadioPropaIceWrapper(self,scalar_field)
         else:
             logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
@@ -153,7 +153,7 @@ class IceModel_Simple(IceModel):
 
 
 if radiopropa_is_imported:
-    class IceModel_RadioPropa():
+    class RadioPropaIceWrapper():
         """
         This class holds all the necessary variables for the radiopropa raytracer to work.
         When radiopropa is installed, this object will automatically be generated for a

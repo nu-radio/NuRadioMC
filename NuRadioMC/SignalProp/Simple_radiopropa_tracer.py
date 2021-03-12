@@ -344,24 +344,21 @@ class ray_tracing:
         mask_solution = {j: (np.array(solution_types) == j) for j in ray_tracing.solution_types.keys()}   
         
         for i in range(len(self.__launch_bundles)):
-            for j in ray_tracing.solution_types.keys():
-                mask = (mask_lower[i]&mask_upper[i]&mask_solution[j])
+            for j in [0]:#ray_tracing.solution_types.keys():
+                mask = (mask_lower[i]&mask_upper[i])#&mask_solution[j])
                 if mask.any():
                     delta_min = np.deg2rad(90)
+                    final_iS = None
                     for iS in iSs[mask]: #index o rays with solution type i
                         vector = ray_endpoints[iS] - self.__x2 #position of the receive vector on the sphere around the channel
                         vector_zenith = hp.cartesian_to_spherical(vector[0],vector[1],vector[2])[0]
                         delta = abs(vector_zenith-receive_zeniths[iS])
                         if delta < delta_min:
-                            final_ray = self.__rays[iS]
-                            final_ray_reflection = self.__results[iS]['reflection']
-                            final_ray_reflection_case = self.__results[iS]['reflection_case']
-                            final_ray_solution_type = solution_types[iS]
-                            delta_min = delta
-                    rays_results.append(final_ray)
-                    results.append({'type':final_ray_solution_type, 
-                                    'reflection':final_ray_reflection,
-                                    'reflection_case':final_ray_reflection_case})
+                            final_iS = iS
+                    rays_results.append(self.__rays[final_iS])
+                    results.append({'type':solution_types[final_iS], 
+                                    'reflection':self.__results[final_iS]['reflection'],
+                                    'reflection_case':self.__results[final_iS]['reflection_case']})
 
         self.__rays = rays_results
         self.__results = results
