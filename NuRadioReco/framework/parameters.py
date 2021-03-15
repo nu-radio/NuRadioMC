@@ -40,6 +40,12 @@ class channelParameters(Enum):
     nu_xcorrelations = 9  # dict of result of crosscorrelations with nu templates
     signal_time = 10  # the time of the maximum amplitude of the envelope
     noise_rms = 11  # the root mean square of the noise
+    signal_regions = 12     # list of start and end times of regions that likely contain a signal
+    noise_regions = 13      # list of start and end times of regions that likel do not contain any signals
+    signal_time_offset = 14     # the relative timing differences of the signal arrival times between channels
+    signal_receiving_zenith = 15    # the zenith angle of direction at which the radio signal arrived at the antenna
+    signal_ray_type = 16        # type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
+    signal_receiving_azimuth = 17   # the azimuth angle of direction at which the radio signal arrived at the antenna
 
 
 class electricFieldParameters(Enum):
