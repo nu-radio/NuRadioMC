@@ -1,11 +1,10 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-import time
 import copy
-from scipy.optimize import fsolve, minimize, basinhopping, root
 from scipy import optimize, integrate, interpolate
 import scipy.constants
 from operator import itemgetter
+import NuRadioReco.utilities.geometryUtilities
 try:
     from functools import lru_cache
 except ImportError:
@@ -13,6 +12,7 @@ except ImportError:
 
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 import logging
 logging.basicConfig()
@@ -559,7 +559,7 @@ class ray_tracing_2D():
 
     def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq, reflection=0, reflection_case=1):
         tmp_attenuation = None
-        output = f"calculating attenuation for n_ref = {reflection:d}: "
+        output = f"calculating attenuation for n_ref = {int(reflection):d}: "
         for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
             if(iS == 0 and reflection_case == 2):  # we can only integrate upward going rays, so if the ray starts downwardgoing, we need to mirror
                 x11, x1, x22, x2, C_0, C_1 = segment
@@ -1514,18 +1514,14 @@ class ray_tracing:
                       2: 'refracted',
                       3: 'reflected'}
 
-    def __init__(self, x1, x2, medium, attenuation_model="SP1", log_level=logging.WARNING,
+    def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=100,
-                 n_reflections=0):
+                 n_reflections=0, config=None, detector=None):
         """
         class initilization
 
         Parameters
         ----------
-        x1: 3dim np.array
-            start point of the ray
-        x2: 3dim np.array
-            stop point of the ray
         medium: medium class
             class describing the index-of-refraction profile
         attenuation_model: string
@@ -1547,8 +1543,6 @@ class ray_tracing:
 
         """
         # make sure that arrays are floats
-        x1 = np.array(x1, dtype=np.float)
-        x2 = np.array(x2, dtype=np.float)
         self.__logger = logging.getLogger('ray_tracing')
         self.__logger.setLevel(log_level)
         self.__medium = medium
@@ -1559,11 +1553,55 @@ class ray_tracing:
                 self.__logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
                 n_reflections = 0
         self.__n_reflections = n_reflections
-        if(n_reflections):
-            if(x1[2] < self.__medium.reflection  or x2[2] < self.__medium.reflection):
-                self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(self.__medium.reflection / units.m))
-                raise AttributeError("start or stop point is below the reflective layer at {:.1f}m".format(self.__medium.reflection / units.m))
+        self.__r2d = ray_tracing_2D(self.__medium, self.__attenuation_model, log_level=log_level,
+                                    n_frequencies_integration=self.__n_frequencies_integration)
+        self.__config = config
+        self.__detector = detector
+        self.__max_detector_frequency = None
+        if self.__detector is not None:
+            for station_id in self.__detector.get_station_ids():
+                sampling_frequency = self.__detector.get_sampling_frequency(station_id, 0)
+                if self.__max_detector_frequency is None or sampling_frequency * .5 > self.__max_detector_frequency:
+                    self.__max_detector_frequency = sampling_frequency * .5
+        self.__X1 = None
+        self.__X2 = None
+        self.__swap = None
+        self.__dPhi = None
+        self.__R = None
+        self.__x1 = None
+        self.__x2 = None
+        self.__results = None
 
+    def reset_solutions(self):
+        """
+        Resets the raytracing solutions back to None. This is useful to do when changing the start and end
+        points in order to not accidentally use results from previous raytracings.
+
+        """
+        self.__X1 = None
+        self.__X2 = None
+        self.__swap = None
+        self.__dPhi = None
+        self.__R = None
+        self.__x1 = None
+        self.__x2 = None
+        self.__results = None
+
+    def set_start_and_end_point(self, x1, x2):
+        """
+        Set the start and end points of the raytracing
+
+        Parameters:
+        ----------------------
+        x1: 3dim np.array
+            start point of the ray
+        x2: 3dim np.array
+            stop point of the ray
+        """
+
+        self.reset_solutions()
+        x1 = np.array(x1, dtype=np.float)
+        x2 = np.array(x2, dtype=np.float)
         self.__swap = False
         self.__X1 = x1
         self.__X2 = x2
@@ -1572,7 +1610,12 @@ class ray_tracing:
             self.__logger.debug('swap = True')
             self.__X2 = x1
             self.__X1 = x2
-
+        if (self.__n_reflections):
+            if (x1[2] < self.__medium.reflection or x2[2] < self.__medium.reflection):
+                self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(
+                    self.__medium.reflection / units.m))
+                raise AttributeError("start or stop point is below the reflective layer at {:.1f}m".format(
+                    self.__medium.reflection / units.m))
         dX = self.__X2 - self.__X1
         self.__dPhi = -np.arctan2(dX[1], dX[0])
         c, s = np.cos(self.__dPhi), np.sin(self.__dPhi)
@@ -1584,23 +1627,32 @@ class ray_tracing:
         self.__logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self.__X2 - self.__X1, X1r, X2r))
         self.__x1 = np.array([X1r[0], X1r[2]])
         self.__x2 = np.array([X2r[0], X2r[2]])
-
         self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
-        self.__r2d = ray_tracing_2D(self.__medium, self.__attenuation_model, log_level=log_level,
-                                    n_frequencies_integration=self.__n_frequencies_integration)
 
-    def set_solution(self, C0s, C1s, solution_types, reflection=None, reflection_case=None):
+    def set_solution(self, raytracing_results):
+        """
+        Read an already calculated raytracing solution from the input array
+
+        Parameters:
+        -------------
+        raytracing_results: dict
+            The dictionary containing the raytracing solution.
+        """
         results = []
-        if(reflection is None):
-            reflection = np.zeros_like(C0s, dtype=np.int)
-            reflection_case = np.ones_like(C0s, dtype=np.int)
+        C0s = raytracing_results['ray_tracing_C0']
         for i in range(len(C0s)):
             if(not np.isnan(C0s[i])):
-                results.append({'type': solution_types[i],
+                if 'ray_tracing_reflection' in raytracing_results.keys():   # for backward compatibility: Check if reflection layer information exists in data file
+                    reflection = raytracing_results['ray_tracing_reflection'][i]
+                    reflection_case = raytracing_results['ray_tracing_reflection_case'][i]
+                else:
+                    reflection = 0
+                    reflection_case = 0
+                results.append({'type': raytracing_results['ray_tracing_solution_type'][i],
                                 'C0': C0s[i],
-                                'C1': C1s[i],
-                                'reflection': reflection[i],
-                                'reflection_case': reflection_case[i]})
+                                'C1': raytracing_results['ray_tracing_C1'][i],
+                                'reflection': reflection,
+                                'reflection_case': reflection_case})
         self.__results = results
 
     def find_solutions(self):
@@ -1874,7 +1926,7 @@ class ray_tracing:
                                                      reflection=result['reflection'],
                                                      reflection_case=result['reflection_case'])
 
-    def get_focusing(self, iS, dz, limit=2.):
+    def get_focusing(self, iS, dz=-1. * units.cm, limit=2.):
         """
         calculate the focusing effect in the medium
 
@@ -1886,7 +1938,8 @@ class ray_tracing:
 
         dz: float
             the infinitesimal change of the depth of the receiver, 1cm by default
-
+        limit: float
+            The maximum signal focusing.
         Returns
         -------
         focusing: a float
@@ -1909,10 +1962,11 @@ class ray_tracing:
             vetPos = copy.copy(self.__X1)
             recPos = copy.copy(self.__X2)
             recPos1 = np.array([self.__X2[0], self.__X2[1], self.__X2[2] + dz])
-        if(not hasattr(self, "_r1")):
-            self._r1 = ray_tracing(vetPos, recPos1, self.__medium, self.__attenuation_model, logging.WARNING,
+        if not hasattr(self, "_r1"):
+            self._r1 = ray_tracing(self.__medium, self.__attenuation_model, logging.WARNING,
                              self.__n_frequencies_integration, self.__n_reflections)
-            self._r1.find_solutions()
+        self._r1.set_start_and_end_point(vetPos, recPos1)
+        self._r1.find_solutions()
         if iS < self._r1.get_number_of_solutions():
             lauVec1 = self._r1.get_launch_vector(iS)
             lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
@@ -1940,3 +1994,112 @@ class ray_tracing:
         return self.__r2d.get_path_reflections(self.__x1, self.__x2, self.__results[iS]['C0'], 10000,
                                    reflection=self.__results[iS]['reflection'],
                                    reflection_case=self.__results[iS]['reflection_case'])
+
+    def get_output_parameters(self):
+        return [
+            {'name': 'ray_tracing_C0', 'ndim': 1},
+            {'name': 'ray_tracing_C1', 'ndim': 1},
+            {'name': 'focusing_factor', 'ndim': 1},
+            {'name': 'ray_tracing_reflection', 'ndim': 1},
+            {'name': 'ray_tracing_reflection_case', 'ndim': 1},
+            {'name': 'ray_tracing_solution_type', 'ndim': 1}
+        ]
+
+    def get_number_of_raytracing_solutions(self):
+        return 2 + 4 * self.__n_reflections  # number of possible ray-tracing solutions
+
+    def get_raytracing_output(self, i_solution):
+        dZRec = -0.01 * units.m
+        focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
+        output_dict = {
+            'ray_tracing_C0': self.get_results()[i_solution]['C0'],
+            'ray_tracing_C1': self.get_results()[i_solution]['C1'],
+            'ray_tracing_reflection': self.get_results()[i_solution]['reflection'],
+            'ray_tracing_reflection_case': self.get_results()[i_solution]['reflection_case'],
+            'ray_tracing_solution_type': self.get_solution_type(i_solution),
+            'focusing_factor': focusing
+        }
+        return output_dict
+
+    def apply_propagation_effects(self, efield, i_solution):
+        """
+        Apply propagation effects to the electric field
+        Note that the 1/r weakening of the electric field is already accounted for in the signal generation
+
+        Parameters:
+        ----------------
+        efield: ElectricField object
+            The electric field that the effects should be applied to
+        i_solution: int
+            Index of the raytracing solution the propagation effects should be based on
+
+        Returns
+        -------------
+        efield: ElectricField object
+            The modified ElectricField object
+        """
+        spec = efield.get_frequency_spectrum()
+        if self.__config is None:   # done for easier compatibility, by default we do attenuation
+            apply_attenuation = True
+        else:
+            apply_attenuation = self.__config['propagation']['attenuate_ice']
+        if apply_attenuation:
+            if self.__max_detector_frequency is None:
+                max_freq = np.max(efield.get_frequencies())
+            else:
+                max_freq = self.__max_detector_frequency
+            attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
+            spec *= attenuation
+
+        zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
+        for zenith_reflection in zenith_reflections:  # loop through all possible reflections
+            if (zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
+                continue
+            r_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
+                zenith_reflection, n_2=1., n_1=self.__medium.get_index_of_refraction([self.__X2[0], self.__X2[1], -1 * units.cm]))
+            r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
+                zenith_reflection, n_2=1., n_1=self.__medium.get_index_of_refraction([self.__X2[0], self.__X2[1], -1 * units.cm]))
+            efield[efp.reflection_coefficient_theta] = r_theta
+            efield[efp.reflection_coefficient_phi] = r_phi
+
+            spec[1] *= r_theta
+            spec[2] *= r_phi
+            self.__logger.debug(
+                "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
+                    zenith_reflection / units.deg,
+                    r_theta, r_phi))
+        i_reflections = self.get_results()[i_solution]['reflection']
+        if (i_reflections > 0):  # take into account possible bottom reflections
+            # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
+            reflection_coefficient = self.__medium.reflection_coefficient ** i_reflections
+            phase_shift = (i_reflections * self.__medium.reflection_phase_shift) % (2 * np.pi)
+            # we assume that both efield components are equally affected
+            spec[1] *= reflection_coefficient * np.exp(1j * phase_shift)
+            spec[2] *= reflection_coefficient * np.exp(1j * phase_shift)
+            self.__logger.debug(
+                f"ray is reflecting {i_reflections:d} times at the bottom -> reducing the signal by a factor of {reflection_coefficient:.2f}")
+
+        # apply the focusing effect
+        if self.__config['propagation']['focusing']:
+            focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
+            spec[1:] *= focusing
+
+        efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
+        return efield
+
+    def set_config(self, config):
+        """
+        Change the configuration file used by the raytracer
+
+        Parameters:
+        ------------------
+        config: dict
+            The new configuration settings
+        """
+        self.__config = config
+
+    def get_config(self):
+        """
+        Returns the current configuration file
+        """
+        return self.__config

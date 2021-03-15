@@ -26,6 +26,7 @@ import NuRadioReco.detector.detector as detector
 import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
+import NuRadioReco.framework.event
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
@@ -87,7 +88,6 @@ def merge_config(user, default):
 
 class simulation():
 
-#
     def __init__(self, inputfilename,
                  outputfilename,
                  detectorfile,
@@ -377,6 +377,16 @@ class simulation():
         self._n_showers = len(self._fin['event_group_ids'])
         self._shower_ids = np.array(self._fin['shower_ids'])
         self._shower_index_array = {}  # this array allows to convert the shower id to an index that starts from 0 to be used to access the arrays in the hdf5 file.
+
+        self._raytracer= self._prop(
+            self._ice, self._cfg['propagation']['attenuation_model'],
+            log_level=self._log_level_ray_propagation,
+            n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
+            n_reflections=self._n_reflections,
+            config=self._cfg,
+            detector = self._det
+        )
+        r = self._raytracer
         for shower_index, shower_id in enumerate(self._shower_ids):
             self._shower_index_array[shower_id] = shower_index
 
@@ -395,7 +405,6 @@ class simulation():
         outputTime = 0.0
         weightTime = 0.0
         distance_cut_time = 0.
-        time_attenuation_length = 0.
 
         n_shower_station = len(self._station_ids) * self._n_showers
         iCounter = 0
@@ -477,9 +486,8 @@ class simulation():
                 self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
 
                 ray_tracing_performed = False
-                if(self._station_id in self._fin_stations):
-                    ray_tracing_performed = ('ray_tracing_C0' in self._fin_stations[self._station_id]) and (self._was_pre_simulated)
-
+                if('station_{:d}'.format(self._station_id) in self._fin_stations):
+                    ray_tracing_performed = (self._raytracer.get_output_parameters()[0]['name'] in self._fin_stations['station_{:d}'.format(self._station_id)]) and (self._was_pre_simulated)
                 self._evt_tmp = NuRadioReco.framework.event.Event(0, 0)
                 self._create_sim_station()
                 # loop over all showers in event group
@@ -495,18 +503,23 @@ class simulation():
                         total_time_sum = input_time + rayTracingTime + detSimTime + outputTime + weightTime + distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
                         total_time = time.time() - t_start
                         tmp_att = 0
-                        if(rayTracingTime - askaryan_time != 0):
-                            tmp_att = 100. * time_attenuation_length / (rayTracingTime - askaryan_time)
                         if total_time > 0:
-                            logger.status("processing event group {}/{} and shower {:.0f}/{:.0f} ({} showers triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}% (att. length {:.0f}%), askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
-                                i_event_group_id, len(unique_event_group_ids),
-                                iCounter / len(self._station_ids), n_shower_station / len(self._station_ids), np.sum(self._mout['triggered']), 100. * iCounter / n_shower_station,
-                                eta, 100. * (rayTracingTime - askaryan_time) / total_time,
-                                tmp_att,
-                                100.* askaryan_time / total_time, 100. * detSimTime / total_time, 100.*input_time / total_time,
-                                100. * weightTime / total_time,
-                                100 * distance_cut_time / total_time,
-                                100 * (total_time - total_time_sum) / total_time))
+                            logger.status(
+                                "processing event group {}/{} and shower {}/{} ({} showers triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}%, askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
+                                    i_event_group_id,
+                                    len(unique_event_group_ids),
+                                    iCounter,
+                                    n_shower_station,
+                                    np.sum(self._mout['triggered']),
+                                    100. * iCounter / n_shower_station,
+                                    eta,
+                                    100. * (rayTracingTime - askaryan_time) / total_time,
+                                    100. * askaryan_time / total_time,
+                                    100. * detSimTime / total_time,
+                                    100.*input_time / total_time,
+                                    100. * weightTime / total_time,
+                                    100 * distance_cut_time / total_time,
+                                    100 * (total_time - total_time_sum) / total_time))
 
                     # read all quantities from hdf5 file and store them in local variables
                     self._read_input_neutrino_properties()
@@ -580,45 +593,34 @@ class simulation():
                                 continue
                             distance_cut_time += time.time() - t_tmp
 
-                        r = self._prop(x1, x2, self._ice, self._cfg['propagation']['attenuation_model'], log_level=self._log_level_ray_propagation,
-                                       n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
-                                       n_reflections=self._n_reflections)
-
+                        self._raytracer.set_start_and_end_point(x1, x2)
                         if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                             sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
-                            temp_reflection = None
-                            temp_reflection_case = None
-                            if('ray_tracing_reflection' in sg_pre):  # for backward compatibility: Check if reflection layer information exists in data file
-                                temp_reflection = sg_pre['ray_tracing_reflection'][self._shower_index][channel_id]
-                                temp_reflection_case = sg_pre['ray_tracing_reflection_case'][self._shower_index][channel_id]
-                            r.set_solution(sg_pre['ray_tracing_C0'][self._shower_index][channel_id],
-                                           sg_pre['ray_tracing_C1'][self._shower_index][channel_id],
-                                           sg_pre['ray_tracing_solution_type'][self._shower_index][channel_id],
-                                           temp_reflection, temp_reflection_case)
+                            ray_tracing_solution = {}
+                            for output_parameter in self._raytracer.get_output_parameters():
+                                ray_tracing_solution[output_parameter['name']] = sg_pre[output_parameter['name']][self._shower_index, channel_id]
+                            self._raytracer.set_solution(ray_tracing_solution)
                         else:
-                            r.find_solutions()
+                            self._raytracer.find_solutions()
 
-                        if(not r.has_solution()):
+                        if(not self._raytracer.has_solution()):
                             logger.debug("event {} and station {}, channel {} does not have any ray tracing solution ({} to {})".format(
                                 self._event_group_id, self._station_id, channel_id, x1, x2))
                             continue
                         delta_Cs = []
                         viewing_angles = []
                         # loop through all ray tracing solution
-                        for iS in range(r.get_number_of_solutions()):
-                            sg['ray_tracing_C0'][iSh, channel_id, iS] = r.get_results()[iS]['C0']
-                            sg['ray_tracing_C1'][iSh, channel_id, iS] = r.get_results()[iS]['C1']
-                            sg['ray_tracing_reflection'][iSh, channel_id, iS] = r.get_results()[iS]['reflection']
-                            sg['ray_tracing_reflection_case'][iSh, channel_id, iS] = r.get_results()[iS]['reflection_case']
-                            sg['ray_tracing_solution_type'][iSh, channel_id, iS] = r.get_solution_type(iS)
-                            self._launch_vector = r.get_launch_vector(iS)
+                        for iS in range(self._raytracer.get_number_of_solutions()):
+                            for key, value in self._raytracer.get_raytracing_output(iS).items():
+                                sg[key][iSh, channel_id, iS] = value
+                            self._launch_vector = self._raytracer.get_launch_vector(iS)
                             sg['launch_vectors'][iSh, channel_id, iS] = self._launch_vector
                             # calculates angle between shower axis and launch vector
                             viewing_angle = hp.get_angle(self._shower_axis, self._launch_vector)
                             viewing_angles.append(viewing_angle)
                             delta_C = (viewing_angle - cherenkov_angle)
                             logger.debug('solution {} {}: viewing angle {:.1f} = delta_C = {:.1f}'.format(
-                                iS, self._prop.solution_types[r.get_solution_type(iS)], viewing_angle / units.deg, (viewing_angle - cherenkov_angle) / units.deg))
+                                iS, self._prop.solution_types[self._raytracer.get_solution_type(iS)], viewing_angle / units.deg, (viewing_angle - cherenkov_angle) / units.deg))
                             delta_Cs.append(delta_C)
 
                         # discard event if delta_C (angle off cherenkov cone) is too large
@@ -626,7 +628,7 @@ class simulation():
                             logger.debug('delta_C too large, event unlikely to be observed, skipping event')
                             continue
 
-                        n = r.get_number_of_solutions()
+                        n = self._raytracer.get_number_of_solutions()
                         for iS in range(n):  # loop through all ray tracing solution
                             # skip individual channels where the viewing angle difference is too large
                             # discard event if delta_C (angle off cherenkov cone) is too large
@@ -638,14 +640,14 @@ class simulation():
                                 R = sg_pre['travel_distances'][self._shower_index, channel_id, iS]
                                 T = sg_pre['travel_times'][self._shower_index, channel_id, iS]
                             else:
-                                R = r.get_path_length(iS)  # calculate path length
-                                T = r.get_travel_time(iS)  # calculate travel time
-                                if (R == None or T == None):
+                                R = self._raytracer.get_path_length(iS)  # calculate path length
+                                T = self._raytracer.get_travel_time(iS)  # calculate travel time
+                                if (R is None or T is None):
                                     continue
                             sg['travel_distances'][iSh, channel_id, iS] = R
                             sg['travel_times'][iSh, channel_id, iS] = T
-                            self._launch_vector = r.get_launch_vector(iS)
-                            receive_vector = r.get_receive_vector(iS)
+                            self._launch_vector = self._raytracer.get_launch_vector(iS)
+                            receive_vector = self._raytracer.get_receive_vector(iS)
                             # save receive vector
                             sg['receive_vectors'][iSh, channel_id, iS] = receive_vector
                             zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
@@ -690,22 +692,6 @@ class simulation():
                                     logger.debug(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
                             askaryan_time += (time.time() - t_ask)
 
-                            # apply frequency dependent attenuation
-                            t_att = time.time()
-                            if self._cfg['propagation']['attenuate_ice']:
-                                attn = r.get_attenuation(iS, self._ff, 0.5 * self._sampling_rate_detector)
-                                spectrum *= attn
-                            time_attenuation_length += (time.time() - t_att)
-
-                            # apply the focusing effect
-                            if self._cfg['propagation']['focusing']:
-                                dZRec = -0.01 * units.m
-                                focusing = r.get_focusing(iS, dZRec, float(self._cfg['propagation']['focusing_limit']))
-                                sg['focusing_factor'][iSh, channel_id, iS] = focusing
-                                logger.info(f"focusing: channel {channel_id:d}, solution {iS:d} -> {focusing:.1f}x")
-                                # spectrum = fft.time2freq(fft.freq2time(spectrum) * focusing)
-                                spectrum[1:] *= focusing
-
                             polarization_direction_onsky = self._calculate_polarization_vector()
                             cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
                             polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
@@ -715,48 +701,6 @@ class simulation():
                                 *polarization_direction_at_antenna))
                             sg['polarization'][iSh, channel_id, iS] = polarization_direction_at_antenna
                             eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
-
-                            # in case of a reflected ray we need to account for fresnel
-                            # reflection at the surface
-                            r_theta = None
-                            r_phi = None
-                            i_reflections = r.get_results()[iS]['reflection']
-                            zenith_reflections = np.atleast_1d(r.get_reflection_angle(iS))  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
-                            n_surface_reflections = np.sum(zenith_reflections != None)
-                            logger.debug(f"st {self._station_id}, ch {channel_id}, solutino {iS}: n_ref bottom = {i_reflections:d}," + \
-                                         f" n_ref surface = {n_surface_reflections:d},  R = {R / units.m:.1f} m, T = {T / units.ns:.1f}ns," + \
-                                         f" receive angles zen={zenith / units.deg:.0f}deg, az={azimuth / units.deg:.0f}deg")
-
-                            if self._cfg['propagation']['attenuate_ice']:
-                                tmp_output = "attenuation factor"
-                                iF = len(self._ff) // 4
-                                tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
-                                iF = len(self._ff) // 3
-                                tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
-                                iF = len(self._ff) // 2
-                                tmp_output += f" {self._ff[iF]/units.MHz:.0f} MHz: {attn[iF]:.2g}"
-                                logger.debug(tmp_output)
-                            for zenith_reflection in zenith_reflections:  # loop through all possible reflections
-                                if(zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
-                                    continue
-                                r_theta = geo_utl.get_fresnel_r_p(
-                                    zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
-                                r_phi = geo_utl.get_fresnel_r_s(
-                                    zenith_reflection, n_2=1., n_1=self._ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
-
-                                eTheta *= r_theta
-                                ePhi *= r_phi
-                                logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection / units.deg,
-                                    r_theta, r_phi))
-
-                            if(i_reflections > 0):  # take into account possible bottom reflections
-                                # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
-                                reflection_coefficient = self._ice.reflection_coefficient ** i_reflections
-                                phase_shift = (i_reflections * self._ice.reflection_phase_shift) % (2 * np.pi)
-                                # we assume that both efield components are equally affected
-                                eTheta *= reflection_coefficient * np.exp(1j * phase_shift)
-                                ePhi *= reflection_coefficient * np.exp(1j * phase_shift)
-                                logger.debug(f"ray is reflecting {i_reflections:d} times at the bottom -> reducing the signal by a factor of {reflection_coefficient:.2f}")
 
                             if(self._debug):
                                 from matplotlib import pyplot as plt
@@ -776,6 +720,7 @@ class simulation():
                             if(iS is None):
                                 a = 1 / 0
                             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / self._dt)
+                            electric_field = self._raytracer.apply_propagation_effects(electric_field, iS)
                             # Trace start time is equal to the interaction time relative to the first
                             # interaction plus the wave travel time.
                             if hasattr(self, '_vertex_time'):
@@ -792,11 +737,9 @@ class simulation():
                             electric_field.set_trace_start_time(trace_start_time)
                             electric_field[efp.azimuth] = azimuth
                             electric_field[efp.zenith] = zenith
-                            electric_field[efp.ray_path_type] = self._prop.solution_types[r.get_solution_type(iS)]
+                            electric_field[efp.ray_path_type] = self._prop.solution_types[self._raytracer.get_solution_type(iS)]
                             electric_field[efp.nu_vertex_distance] = sg['travel_distances'][iSh, channel_id, iS]
                             electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
-                            electric_field[efp.reflection_coefficient_theta] = r_theta
-                            electric_field[efp.reflection_coefficient_phi] = r_phi
                             self._sim_station.add_electric_field(electric_field)
 
                             # apply a simple threshold cut to speed up the simulation,
@@ -929,19 +872,19 @@ class simulation():
                     def find_indices(x, y):
                         """
                         finds the indices for the values `x` in array `y`
-                        
+
                         modified from https://stackoverflow.com/questions/8251541/numpy-for-every-element-in-one-array-find-the-index-in-another-array
                         the original solution returned a masked array which also indicated the elements in y that were
-                        not available in x. We don't need that. x will be always a subset of y, and we want only the 
-                        indices in y for the subset x. 
-                        
+                        not available in x. We don't need that. x will be always a subset of y, and we want only the
+                        indices in y for the subset x.
+
                         Parameters
                         ----------
                         x: array
                             the values for which the indices should be found
                         y: array
                             the larger array with many values
-                            
+
                         Returns: array of integers
                         """
 
@@ -1244,24 +1187,23 @@ class simulation():
             self._output_maximum_amplitudes_envelope[station_id] = []
 
     def _create_station_output_structure(self, n_showers, n_antennas):
-        nS = 2 + 4 * self._n_reflections  # number of possible ray-tracing solutions
+        nS = self._raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
         sg = {}
         sg['triggered'] = np.zeros(n_showers, dtype=np.bool)
         sg['shower_id'] = np.zeros(n_showers, dtype=np.int) * -1  # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
         sg['launch_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['receive_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
-        sg['ray_tracing_C0'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-        sg['ray_tracing_C1'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-        sg['ray_tracing_reflection'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
-        sg['ray_tracing_reflection_case'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
-        sg['ray_tracing_solution_type'] = np.ones((n_showers, n_antennas, nS), dtype=np.int) * -1
         sg['polarization'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['travel_times'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
         sg['travel_distances'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-        sg['focusing_factor'] = np.ones((n_showers, n_antennas, nS))
         if(self._cfg['speedup']['amp_per_ray_solution']):
             sg['max_amp_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
             sg['time_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
+        for parameter_entry in self._raytracer.get_output_parameters():
+            if parameter_entry['ndim'] == 1:
+                sg[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS)) * np.nan
+            else:
+                sg[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS, parameter_entry['ndim'])) * np.nan
         return sg
 
     def _read_input_neutrino_properties(self):
