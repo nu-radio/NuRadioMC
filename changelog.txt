@@ -5,9 +5,17 @@ please update the categories "new features" and "bugfixes" before a pull request
 version 1.2
 new features:
 - users can specify a different bandwidth for each channel in the channelBandPassFilter and channelGenericNoiseAdder module
+- new coreas read in function to generate signals for a grid of stations
+- added simulation of galactic noise
+- new phased array trigger module
+- eventWriter: Add option to specify number of events per file
 
 bug fixes:
 - Added if check in voltageToEfieldConverter.py under method get_array_of_channels() to see if sim station is initialized
+- trigger modules set the trigger time to 0 in case not trigger was recorded. This lead to problems, and wrong total trigger times, if multiple triggers were recorded. Now, no trigger time is set if not trigger was found.
+- made detector_sys_uncertainties compatible with python3 and detector updates
+- Typo in antennapattern.py; processing antenna responses fails. replaces s_parameteres with s_parameters
+
 
 version 1.1.2 -
 
