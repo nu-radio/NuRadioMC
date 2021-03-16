@@ -10,6 +10,11 @@ import matplotlib.pyplot as plt
 class channelMeasuredNoiseAdder:
     """
     Module that adds measured noise to channel traces
+    It does so by reading in a set of .nur files, randomly selecting a forced trigger event
+    and adding the noise from it to the channel waveforms.
+    The waveforms from the channels in the noise files need to be at least as long as the
+    waveforms to which the noise is added, so it is recommended to cut them to the right size
+    first, for example using the channelLengthAdjuster.
     """
     def __init__(self):
         self.__filenames = None
@@ -41,7 +46,7 @@ class channelMeasuredNoiseAdder:
         """
         self.__filenames = filenames
         self.__io = NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio(self.__filenames)
-        self.__random_state = numpy.random.RandomState(random_seed)
+        self.__random_state = numpy.random.Generator(numpy.random.Philox(random_seed))
         self.__max_iterations = max_iterations
         if debug:
             self.logger.setLevel(logging.DEBUG)
