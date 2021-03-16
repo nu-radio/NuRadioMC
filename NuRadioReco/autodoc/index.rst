@@ -19,6 +19,7 @@ Welcome to NuRadioReco's documentation!
    pages/contributing
    pages/code_documentation
    pages/detector_database_fields.rst
+   pages/howto_documentation.rst
 
 Indices and tables
 ==================

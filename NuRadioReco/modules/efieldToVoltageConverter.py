@@ -172,7 +172,6 @@ class efieldToVoltageConverter():
                             index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                         else:  # signal is coming from above, so we take IOR of air
                             index_of_refraction = ice.get_refractive_index(1, site)
-
                         travel_time_shift = geo_utl.get_time_delay_from_direction(
                             sim_station.get_parameter(stnp.zenith),
                             sim_station.get_parameter(stnp.azimuth),

@@ -32,6 +32,8 @@ def update_channel_info_table(station_id, channel_id):
     """
     detector_provider = NuRadioReco.detector.detector_browser.detector_provider.DetectorProvider()
     detector = detector_provider.get_detector()
+    if station_id is None or channel_id is None:
+        return ''
     if detector is None:
         return ''
     if channel_id not in detector.get_channel_ids(station_id):

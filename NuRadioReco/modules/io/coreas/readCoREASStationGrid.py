@@ -14,6 +14,12 @@ import os
 
 
 class readCoREAS:
+    """
+    coreas input module for fixed grid of stations.
+    This module distributes core positions randomly within a user defined area and calculates the electric field
+    at the detector positions as specified in the detector description by choosing the closest antenna
+    of the star shape pattern simulation
+    """
 
     def __init__(self):
         self.__t = 0
@@ -27,7 +33,7 @@ class readCoREAS:
         self.__random_generator = None
         self.logger = logging.getLogger('NuRadioReco.readCoREAS')
 
-    def begin(self, input_files, station_id, n_cores=10, max_distance=2 * units.km, seed=None):
+    def begin(self, input_files, xmin, xmax, ymin, ymax, n_cores=10, seed=None, log_level=logging.INFO):
         """
         begin method
 
@@ -37,29 +43,31 @@ class readCoREAS:
         ----------
         input_files: input files
             list of coreas hdf5 files
-        station_id: station id
-            id number of the station
+        xmin: float
+            minimum x coordinate of the area in which core positions are distributed
+        xmax: float
+            maximum x coordinate of the area in which core positions are distributed
+        ymin: float
+            minimum y coordinate of the area in which core positions are distributed
+        ynax: float
+            maximum y coordinate of the area in which core positions are distributed
         n_cores: number of cores (integer)
             the number of random core positions to generate for each input file
-        max_distance: radius of random cores (double or None)
-            if None: max distance is set to the maximum ground distance of the
-            star pattern simulation
         seed: int (default: None)
             Seed for the random number generation. If None is passed, no seed is set
         """
         self.__input_files = input_files
-        self.__station_id = station_id
         self.__n_cores = n_cores
-        self.__max_distace = max_distance
         self.__current_input_file = 0
+        self.__area = [xmin, xmax, ymin, ymax]
 
         self.__random_generator = numpy.random.RandomState(seed)
+        self.logger.setLevel(log_level)
 
     @register_run()
     def run(self, detector, output_mode=0):
         """
         Read in a random sample of stations from a CoREAS file.
-        A number of random positions is selected within a certain radius.
         For each position the closest observer is selected and a simulated
         event is created for that observer.
 
@@ -94,100 +102,90 @@ class readCoREAS:
             for i, observer in enumerate(corsika['CoREAS']['observers'].values()):
                 position = observer.attrs['position']
                 positions.append(np.array([-position[1], position[0], 0]) * units.cm)
-                self.logger.debug("({:.0f}, {:.0f})".format(position[0], position[1]))
+#                 self.logger.debug("({:.0f}, {:.0f})".format(positions[i][0], positions[i][1]))
             positions = np.array(positions)
-
-            max_distance = self.__max_distace
-            if(max_distance is None):
-                max_distance = np.max(np.abs(positions[:, 0:2]))
-            area = np.pi * max_distance ** 2
-
-            if(output_mode == 0):
-                n_cores = self.__n_cores * 100  # for output mode 1 we want always n_cores in star pattern. Therefore we generate more core positions to be able to select n_cores in the star pattern afterwards
-            elif(output_mode == 1):
-                n_cores = self.__n_cores
-            else:
-                raise ValueError('output mode {} not defined.'.format(output_mode))
-            theta = self.__random_generator.rand(n_cores) * 2 * np.pi
-            r = (self.__random_generator.rand(n_cores)) ** 0.5 * max_distance
-            cores = np.array([r * np.cos(theta), r * np.sin(theta), np.zeros(n_cores)]).T
 
             zenith, azimuth, magnetic_field_vector = coreas.get_angles(corsika)
             cs = cstrafo.cstrafo(zenith, azimuth, magnetic_field_vector)
             positions_vBvvB = cs.transform_from_magnetic_to_geographic(positions.T)
             positions_vBvvB = cs.transform_to_vxB_vxvxB(positions_vBvvB).T
+#             for i, pos in enumerate(positions_vBvvB):
+#                 self.logger.debug("star shape")
+#                 self.logger.debug("({:.0f}, {:.0f}); ({:.0f}, {:.0f})".format(positions[i, 0], positions[i, 1], pos[0], pos[1]))
+
             dd = (positions_vBvvB[:, 0] ** 2 + positions_vBvvB[:, 1] ** 2) ** 0.5
             ddmax = dd.max()
             self.logger.info("star shape from: {} - {}".format(-dd.max(), dd.max()))
 
-            cores_vBvvB = cs.transform_from_magnetic_to_geographic(cores.T)
-            cores_vBvvB = cs.transform_to_vxB_vxvxB(cores_vBvvB).T
-            dcores = (cores_vBvvB[:, 0] ** 2 + cores_vBvvB[:, 1] ** 2) ** 0.5
-            mask_cores_in_starpattern = dcores <= ddmax
-
-            if((not np.sum(mask_cores_in_starpattern)) and (output_mode == 1)):  # handle special case of no core position being generated within star pattern
-                observer = corsika['CoREAS']['observers'].values()[0]
-
-                evt = NuRadioReco.framework.event.Event(corsika['inputs'].attrs['RUNNR'], corsika['inputs'].attrs['EVTNR'])  # create empty event
-                station = NuRadioReco.framework.station.Station(self.__station_id)
-                sim_station = coreas.make_sim_station(self.__station_id, corsika, observer, detector.get_channel_ids(self.__station_id))
-
-                station.set_sim_station(sim_station)
-                evt.set_station(station)
-                yield evt, self.__current_input_file, None, area
-
-            cores_to_iterate = cores_vBvvB[mask_cores_in_starpattern]
-            if(output_mode == 0):  # select first n_cores that are in star pattern
-                if(np.sum(mask_cores_in_starpattern) < self.__n_cores):
-                    self.logger.warning("only {0} cores contained in star pattern, returning {0} cores instead of {1} cores that were requested".format(np.sum(mask_cores_in_starpattern), self.__n_cores))
-                else:
-                    cores_to_iterate = cores_vBvvB[mask_cores_in_starpattern][:self.__n_cores]
+            # generate core positions randomly within a rectangle
+            cores = np.array([self.__random_generator.uniform(self.__area[0], self.__area[1], self.__n_cores),
+                              self.__random_generator.uniform(self.__area[2], self.__area[3], self.__n_cores),
+                              np.zeros(self.__n_cores)]).T
 
             self.__t_per_event += time.time() - t_per_event
             self.__t += time.time() - t
 
-            for iCore, core in enumerate(cores_to_iterate):
+            station_ids = detector.get_station_ids()
+            for iCore, core in enumerate(cores):
                 t = time.time()
-                # check if out of bounds
-
-                distances = np.linalg.norm(core[:2] - positions_vBvvB[:, :2], axis=1)
-                index = np.argmin(distances)
-                distance = distances[index]
-                key = list(corsika['CoREAS']['observers'].keys())[index]
-                self.logger.info(
-                    "generating core at ground ({:.0f}, {:.0f}), vBvvB({:.0f}, {:.0f}), nearest simulated station is {:.0f}m away at ground ({:.0f}, {:.0f}), vBvvB({:.0f}, {:.0f})".format(
-                        cores[iCore][0],
-                        cores[iCore][1],
-                        core[0],
-                        core[1],
-                        distance / units.m,
-                        positions[index][0],
-                        positions[index][1],
-                        positions_vBvvB[index][0],
-                        positions_vBvvB[index][1]
-                    )
-                )
-                t_event_structure = time.time()
-                observer = corsika['CoREAS']['observers'].get(key)
-
                 evt = NuRadioReco.framework.event.Event(self.__current_input_file, iCore)  # create empty event
-                station = NuRadioReco.framework.station.Station(self.__station_id)
-                channel_ids = detector.get_channel_ids(self.__station_id)
-                sim_station = coreas.make_sim_station(self.__station_id, corsika, observer, channel_ids)
-                station.set_sim_station(sim_station)
-                evt.set_station(station)
-                sim_shower = coreas.make_sim_shower(corsika, observer, detector, self.__station_id)
+                sim_shower = coreas.make_sim_shower(corsika)
                 evt.add_sim_shower(sim_shower)
-                rd_shower = NuRadioReco.framework.radio_shower.RadioShower(station_ids=[station.get_id()])
+                rd_shower = NuRadioReco.framework.radio_shower.RadioShower(station_ids=station_ids)
                 evt.add_shower(rd_shower)
+
+                for station_id in station_ids:
+                    # convert into vxvxB frame to calculate closests simulated station to detecor station
+                    det_station_position = detector.get_absolute_position(station_id)
+                    det_station_position[2] = 0
+                    core_rel_to_station = core - det_station_position
+        #             core_rel_to_station_vBvvB = cs.transform_from_magnetic_to_geographic(core_rel_to_station)
+                    core_rel_to_station_vBvvB = cs.transform_to_vxB_vxvxB(core_rel_to_station)
+                    dcore = (core_rel_to_station_vBvvB[0] ** 2 + core_rel_to_station_vBvvB[1] ** 2) ** 0.5
+#                     print(f"{core_rel_to_station}, {core_rel_to_station_vBvvB} -> {dcore}")
+                    if(dcore > ddmax):
+                        # station is outside of the star shape pattern, create empty station
+                        station = NuRadioReco.framework.station.Station(station_id)
+                        channel_ids = detector.get_channel_ids(station_id)
+                        sim_station = coreas.make_sim_station(station_id, corsika, None, channel_ids)
+                        station.set_sim_station(sim_station)
+                        evt.set_station(station)
+                        self.logger.debug(f"station {station_id} is outside of star shape, channel_ids {channel_ids}")
+                    else:
+                        distances = np.linalg.norm(core_rel_to_station_vBvvB[:2] - positions_vBvvB[:, :2], axis=1)
+                        index = np.argmin(distances)
+                        distance = distances[index]
+                        key = list(corsika['CoREAS']['observers'].keys())[index]
+                        self.logger.debug(
+                            "generating core at ground ({:.0f}, {:.0f}), rel to station ({:.0f}, {:.0f}) vBvvB({:.0f}, {:.0f}), nearest simulated station is {:.0f}m away at ground ({:.0f}, {:.0f}), vBvvB({:.0f}, {:.0f})".format(
+                                cores[iCore][0],
+                                cores[iCore][1],
+                                core_rel_to_station[0],
+                                core_rel_to_station[1],
+                                core_rel_to_station_vBvvB[0],
+                                core_rel_to_station_vBvvB[1],
+                                distance / units.m,
+                                positions[index][0],
+                                positions[index][1],
+                                positions_vBvvB[index][0],
+                                positions_vBvvB[index][1]
+                            )
+                        )
+                        t_event_structure = time.time()
+                        observer = corsika['CoREAS']['observers'].get(key)
+
+                        station = NuRadioReco.framework.station.Station(station_id)
+                        channel_ids = detector.get_channel_ids(station_id)
+                        sim_station = coreas.make_sim_station(station_id, corsika, observer, channel_ids)
+                        station.set_sim_station(sim_station)
+                        evt.set_station(station)
                 if(output_mode == 0):
                     self.__t += time.time() - t
-                    self.__t_event_structure += time.time() - t_event_structure
                     yield evt
                 elif(output_mode == 1):
                     self.__t += time.time() - t
                     self.__t_event_structure += time.time() - t_event_structure
-                    yield evt, self.__current_input_file, distance, area
+                    yield evt, self.__current_input_file
                 else:
                     self.logger.debug("output mode > 1 not implemented")
                     raise NotImplementedError

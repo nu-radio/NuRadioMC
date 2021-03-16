@@ -65,7 +65,7 @@ class readCoREASShower:
             t_per_event = time.time()
 
             filesize = os.path.getsize(self.__input_files[self.__current_input_file])
-            if(filesize < 18456 * 2):
+            if(filesize < 18456 * 2):  # based on the observation that a file with such a small filesize is corrupt
                 logger.warning(
                     "file {} seems to be corrupt, skipping to next file".format(
                         self.__input_files[self.__current_input_file]
@@ -94,7 +94,7 @@ class readCoREASShower:
 
             # create sim shower, no core is set since no external detector description is given
             sim_shower = coreas.make_sim_shower(corsika)
-            sim_shower.set_parameter(shp.core, np.array([0, 0, f_coreas.attrs["CoreCoordinateVertical"] / 100]))    # set core
+            sim_shower.set_parameter(shp.core, np.array([0, 0, f_coreas.attrs["CoreCoordinateVertical"] / 100]))  # set core
             evt.add_sim_shower(sim_shower)
 
             # initialize coordinate transformation

@@ -44,5 +44,14 @@
 	"XFDTD_Vpol_CrossFeed_150mmHole_n1.78.pkl": "5d87513779cf2cb5d3309a9bb89dbb163d656114",
         "trislot_RNOG.pkl": "29ef63bc9f25da743dd85d33e5645fc6330f6675",
         "RNOG_vpol_v1_n1.73.pkl": "4bd0b5941b31c6c39fd6b438f005075b025fee8d",
-        "RNOG_vpol_v1_n1.4.pkl": "1b8be66b64f241d26e34567167318aa85c396f2a"
+        "RNOG_vpol_v1_n1.4.pkl": "1b8be66b64f241d26e34567167318aa85c396f2a", 
+        "RNOG_vpol_4inch_half_1.73.pkl":
+        "f08d263233503f79e5be10c18bc7587b8b421c1d", 
+        "RNOG_vpol_4inch_center_1.73.pkl":
+        "5f429ed9ed08175a7f75fd44422367d2278bf2e1", 
+        "RNOG_vpol_4inch_wall_1.73.pkl":
+        "da24017eb80f7a68348a674be2c527457fe19992", 
+        "RNOG_quadslot_v1_1.74.pkl":
+        "e9c4946dd2176489249c862f32ef272ab627dc28", 
+        "RNOG_quadslot_v2_1.74.pkl": "b99d69578f8e7c006dcce3de51e26c4f463872b8"
 }

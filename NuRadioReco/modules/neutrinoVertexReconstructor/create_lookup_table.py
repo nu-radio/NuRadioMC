@@ -49,15 +49,21 @@ parser.add_argument(
 parser.add_argument(
     '--output_path',
     type=str,
-    default=('.'),
+    default='.',
     help='Path to output folder'
 )
+parser.add_argument(
+    '--ice_model',
+    type=str,
+    default='greenland_simple',
+    help='Name of the ice model to be used'
+)
 args = parser.parse_args()
-x_pos = np.arange(-args.r_max, -args.r_min, args.d_r)
+x_pos = np.arange(args.r_min, args.r_max, args.d_r)
 z_pos = np.arange(-args.z_min, -args.z_max, args.d_z)
 
 
-ice = NuRadioMC.utilities.medium.greenland_simple()
+ice = NuRadioMC.utilities.medium.get_ice_model(args.ice_model)
 ray_tracing = NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D(ice)
 channel_types = [{
     'name': 'antenna_{}'.format(args.antenna_depth),
@@ -66,8 +72,8 @@ channel_types = [{
 
 lookup_table = {
     'header': {
-        'x_min': -args.r_min,
-        'x_max': -args.r_max,
+        'x_min': args.r_min,
+        'x_max': args.r_max,
         'd_x': args.d_r,
         'z_min': -args.z_min,
         'z_max': -args.z_max,
