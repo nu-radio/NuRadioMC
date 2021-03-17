@@ -430,9 +430,9 @@ class ray_tracing:
         path = self.get_path_candidate(self.__rays[iS])
 
         if n_points != None:
-        path_x = path[:,0]
-        path_y = path[:,1]
-        path_z = path[:,2]
+            path_x = path[:,0]
+            path_y = path[:,1]
+            path_z = path[:,2]
 
             phi = hp.cartesian_to_spherical(*(self.__x2-self.__x1))[1]
             path_r = path_x / np.cos(phi)
