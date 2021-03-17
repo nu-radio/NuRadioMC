@@ -106,6 +106,10 @@ class greenland_firn(IceModel):
     Therefor, the model is implemented through radiopropa.
     """
     def __init__(self):
+        if not radiopropa_is_imported:
+            logger.error('This ice model depends fully on RadioPropa, which was not import, and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
+            raise ImportError('This ice model depends fully on RadioPropa, which could not be imported')
+
         super().__init__(z_bottom = -3000*units.meter)
         self.z_firn = -14.9*units.meter
         
