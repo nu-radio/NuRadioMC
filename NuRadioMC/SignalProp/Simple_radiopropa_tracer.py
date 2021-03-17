@@ -192,10 +192,10 @@ class ray_tracing:
                 self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(n_reflections))
                 raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(n_reflections))
             else:
-                z_bottom = self.__medium.reflection
+                z_refl = self.__medium.reflection
                 rho_channel = np.linalg.norm(u)
-                rho_bottom = (rho_channel*(z_bottom-self.__x2[2]))/(2*z_bottom-self.__x2[2]-self.__x1[2])
-                alpha = np.arctan((self.__x1[2]-z_bottom)/rho_bottom)
+                rho_bottom = (rho_channel*(z_refl-self.__x2[2]))/(2*z_refl-self.__x2[2]-self.__x1[2])
+                alpha = np.arctan((self.__x1[2]-z_refl)/rho_bottom)
                 ## when reflection on the bottom are allowed, a initial region for theta from 180-alpha to 180 degrees is added
                 launch_lower.append((np.pi - (alpha - np.deg2rad(5))))
                 launch_upper.append(np.pi)
@@ -890,7 +890,7 @@ class ray_tracing:
 
 
     def get_number_of_raytracing_solutions(self):
-        return 2 + 4 * self.__n_reflections # number of possible ray-tracing solutions
+        return 3#2 + 4 * self.__n_reflections # number of possible ray-tracing solutions
 
     def get_config(self):
         """

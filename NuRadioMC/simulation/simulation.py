@@ -593,7 +593,6 @@ class simulation():
                                 logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
                                 distance_cut_time += time.time() - t_tmp
                                 continue
-                            #if self._cfg['propagation']['module'] == 'radiopropa': self._raytracer.set_maximum_trajectory_length(distance_cut)*2
                             distance_cut_time += time.time() - t_tmp
 
                         self._raytracer.set_start_and_end_point(x1, x2)
