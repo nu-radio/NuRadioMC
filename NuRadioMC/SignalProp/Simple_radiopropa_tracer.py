@@ -337,7 +337,7 @@ class ray_tracing:
             launch_zeniths.append(hp.cartesian_to_spherical(*(self.get_launch_vector(iS)))[0])
             receive_zeniths.append(hp.cartesian_to_spherical(*(self.get_receive_vector(iS)))[0])
             solution_types.append(self.get_solution_type(iS))
-            ray_endpoints.append(self.get_path_original(iS)[-1])
+            ray_endpoints.append(self.get_path(iS)[-1])
 
         mask_lower = {i: (launch_zeniths>self.__launch_bundles[i,0]) for i in range(len(self.__launch_bundles))} 
         mask_upper = {i: (launch_zeniths<self.__launch_bundles[i,1]) for i in range(len(self.__launch_bundles))}
@@ -387,33 +387,27 @@ class ray_tracing:
         """
         return self.__results
 
-    def get_path_original(self, iS):
+    def get_path_candidate(self, candidate):
         """
-        helper function that returns the 3D ray tracing path (as found by radiopropa) of solution iS
+        helper function that returns the 3D ray tracing path of a candidate
 
         Parameters
         ----------
-        iS: int
-            ray tracing solution
+        candidate: radiopropa.candidate
 
         Returns
         -------
-        path: 2dim np.array of shape (n_points,3)
+        path: 2dim np.array of shape (n,3)
               x, y, z coordinates along second axis
         """
-        n = self.get_number_of_solutions()
-        if(iS >= n):
-            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
-            raise IndexError
-
-        path_x = np.array([x*(units.meter/radiopropa.meter) for x in self.__rays[iS].getPathX()])
-        path_y = np.array([y*(units.meter/radiopropa.meter) for y in self.__rays[iS].getPathY()])
-        path_z = np.array([z*(units.meter/radiopropa.meter) for z in self.__rays[iS].getPathZ()])
+        path_x = np.array([x*(units.meter/radiopropa.meter) for x in candidate.getPathX()])
+        path_y = np.array([y*(units.meter/radiopropa.meter) for y in candidate.getPathY()])
+        path_z = np.array([z*(units.meter/radiopropa.meter) for z in candidate.getPathZ()])
         return np.stack([path_x,path_y,path_z], axis=1)
     
-    def get_path(self, iS, n_points=1000):
+    def get_path(self, iS, n_points=None):
         """
-        helper function that returns the 3D ray tracing path of solution iS
+        function that returns the 3D ray tracing path of solution iS
 
         Parameters
         ----------
@@ -433,12 +427,13 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        path = self.get_path_original(iS)
+        path = self.get_path_candidate(self.__rays[iS])
+
+        if n_points != None:
         path_x = path[:,0]
         path_y = path[:,1]
         path_z = path[:,2]
 
-        if n_points != None:
             phi = hp.cartesian_to_spherical(*(self.__x2-self.__x1))[1]
             path_r = path_x / np.cos(phi)
 
@@ -448,8 +443,9 @@ class ray_tracing:
             path_x = new_path_r * np.cos(phi)
             path_y = new_path_r * np.sin(phi)
             path_z = interpol(new_path_r)
+            path = np.stack([path_x,path_y,path_z], axis=1)
 
-        return np.stack([path_x,path_y,path_z], axis=1)
+        return path
 
     def get_solution_type(self, iS):
         """ 
@@ -473,7 +469,7 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        pathz = self.get_path_original(iS)[:, 2]
+        pathz = self.get_path(iS)[:, 2]
         if (self.__results[iS]['reflection'] != 0) or (self.get_reflection_angle(iS) != None):
             solution_type = 3
         elif(pathz[-1] < max(pathz)):
@@ -580,7 +576,7 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        end_of_path = self.get_path_original(iS)[-1] #position of the receive vector on the sphere around the channel in detector coordinates
+        end_of_path = self.get_path(iS)[-1] #position of the receive vector on the sphere around the channel in detector coordinates
         receive_vector = self.get_receive_vector(iS)
         
         vector = end_of_path - self.__x2 #position of the receive vector on the sphere around the channel
@@ -717,7 +713,7 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        path = self.get_path_original(iS)
+        path = self.get_path(iS)
 
         mask = frequency > 0
         freqs = self.get_frequencies_for_attenuation(frequency, self.__max_detector_frequency)
@@ -890,7 +886,7 @@ class ray_tracing:
 
 
     def get_number_of_raytracing_solutions(self):
-        return 3#2 + 4 * self.__n_reflections # number of possible ray-tracing solutions
+        return 2 + 4 * self.__n_reflections # number of possible ray-tracing solutions
 
     def get_config(self):
         """
