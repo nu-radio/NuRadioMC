@@ -183,6 +183,7 @@ class ray_tracing:
         u = copy.deepcopy(v)
         u[2] = 0
         theta_direct, phi = hp.cartesian_to_spherical(*v) ## zenith and azimuth for the direct linear ray solution (radians)
+        cherenkov_angle = np.arccos(1. / self.__medium.get_index_of_refraction(self.__x1))
         ## regions of theta with posible solutions (radians)
         launch_lower = [0]
         launch_upper = [theta_direct + np.deg2rad(5)] ## below theta_direct no solutions are possible without upward reflections
@@ -262,8 +263,6 @@ class ray_tracing:
             for iL in range(len(launch_lower)):
                 new_scanning_range = np.arange(launch_lower[iL],launch_upper[iL]+step,step)
                 theta_scanning_range = np.concatenate((theta_scanning_range,new_scanning_range))
-
-            cherenkov_angle = 56 * units.degree
 
             for theta in theta_scanning_range:
                 ray_dir = hp.spherical_to_cartesian(theta,phi)
