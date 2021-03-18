@@ -42,6 +42,8 @@ class IftElectricFieldReconstructor:
         self.__dominant_polarization = None
         self.__pulse_time_prior = None
         self.__pulse_time_uncertainty = None
+        self.__phase_slope = None
+        self.__slope_passbands = None
         return
 
     def begin(
@@ -55,11 +57,12 @@ class IftElectricFieldReconstructor:
         trace_length=128,
         n_iterations=5,
         n_samples=20,
-        polarization='theta',
+        polarization='pol',
         convergence_level=3,
         relative_tolerance=1.e-7,
         dominant_polarization=1,
-        slope_passbands = None,
+        slope_passbands=None,
+        phase_slope='both',
         debug=False
     ):
         self.__passband = passband
@@ -76,6 +79,9 @@ class IftElectricFieldReconstructor:
         self.__dominant_polarization = dominant_polarization
         self.__pulse_time_prior = pulse_time_prior
         self.__pulse_time_uncertainty = pulse_time_uncertainty
+        if phase_slope not in ['both', 'negative', 'positive']:
+            raise ValueError('Phase slope has to be either both, negative of positive.')
+        self.__phase_slope = phase_slope
         if slope_passbands is None:
             self.__slope_passbands = [
                 [130. * units.MHz, 500 * units.MHz],
@@ -143,99 +149,104 @@ class IftElectricFieldReconstructor:
             frequency_domain,
             sampling_rate,
         )
-        ### Run Positive Phase Slope ###
-        phase_slope = 2. * np.pi * self.__pulse_time_prior * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
-        phase_uncertainty = 2. * np.pi * self.__pulse_time_uncertainty * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
-        self.__phase_dct = {
-            'sm': phase_slope,
-            'sv': phase_uncertainty,
-            'im': 0.,
-            'iv': 10.
-        }
-        likelihood = self.__get_likelihood_operator(
-            frequency_domain,
-            large_frequency_domain,
-            amp_operators,
-            filter_operator
-        )
-        self.__draw_priors(event, station, frequency_domain)
-        ic_sampling = ift.GradientNormController(1E-8, iteration_limit=min(1000, likelihood.domain.size))
-        H = ift.StandardHamiltonian(likelihood, ic_sampling)
-
-        ic_newton = ift.DeltaEnergyController(name='newton',
-                                              iteration_limit=200,
-                                              tol_rel_deltaE=self.__relative_tolerance,
-                                              convergence_level=self.__convergence_level)
-        minimizer = ift.NewtonCG(ic_newton)
-        median = ift.MultiField.full(H.domain, 0.)
-        min_energy = None
-        best_reco_KL = None
-        for k in range(self.__n_iterations):
-            print('----------->>>   {}   <<<-----------'.format(k))
-            KL = ift.MetricGaussianKL(median, H, self.__n_samples, mirror_samples=True)
-            KL, convergence = minimizer(KL)
-            median = KL.position
-            if min_energy is None or KL.value < min_energy:
-                min_energy = KL.value
-                print('New min Energy', KL.value)
-                best_reco_KL = KL
-                if self.__debug:
-                    self.__draw_reconstruction(
-                        event,
-                        station,
-                        KL,
-                        '_positive_phase'
-                    )
-        positive_reco_LK = best_reco_KL
-        ### Run Negative Phase Slope ###
-        phase_slope = 2. * np.pi * (self.__pulse_time_prior * self.__electric_field_template.get_sampling_rate() - self.__trace_samples) / self.__trace_samples
-        phase_uncertainty = 2. * np.pi * self.__pulse_time_uncertainty * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
-        self.__phase_dct = {
-            'sm': phase_slope,
-            'sv': phase_uncertainty,
-            'im': 0.,
-            'iv': 10.
-        }
-        likelihood = self.__get_likelihood_operator(
-            frequency_domain,
-            large_frequency_domain,
-            amp_operators,
-            filter_operator
-        )
-        # self.__draw_priors(event, station, frequency_domain)
-        ic_sampling = ift.GradientNormController(1E-8, iteration_limit=min(1000, likelihood.domain.size))
-        H = ift.StandardHamiltonian(likelihood, ic_sampling)
-
-        ic_newton = ift.DeltaEnergyController(name='newton',
-                                              iteration_limit=200,
-                                              tol_rel_deltaE=self.__relative_tolerance,
-                                              convergence_level=self.__convergence_level)
-        minimizer = ift.NewtonCG(ic_newton)
-        median = ift.MultiField.full(H.domain, 0.)
-        min_energy = None
-        best_reco_KL = None
-        for k in range(self.__n_iterations):
-            print('----------->>>   {}   <<<-----------'.format(k))
-            KL = ift.MetricGaussianKL(median, H, self.__n_samples, mirror_samples=True)
-            KL, convergence = minimizer(KL)
-            median = KL.position
-            if min_energy is None or KL.value < min_energy:
-                min_energy = KL.value
-                print('New min Energy', KL.value)
-                best_reco_KL = KL
-                if self.__debug:
-                    self.__draw_reconstruction(
-                        event,
-                        station,
-                        KL,
-                        '_negative_phase'
-                    )
-        negative_reco_KL = best_reco_KL
         final_KL = None
-        if negative_reco_KL.value < positive_reco_LK.value:
-            final_KL = negative_reco_KL
-        else:
-            final_KL = positive_reco_LK
+        ### Run Positive Phase Slope ###
+        if self.__phase_slope == 'both' or self.__phase_slope == 'positive':
+            phase_slope = 2. * np.pi * self.__pulse_time_prior * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
+            phase_uncertainty = 2. * np.pi * self.__pulse_time_uncertainty * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
+            self.__phase_dct = {
+                'sm': phase_slope,
+                'sv': phase_uncertainty,
+                'im': 0.,
+                'iv': 10.
+            }
+            likelihood = self.__get_likelihood_operator(
+                frequency_domain,
+                large_frequency_domain,
+                amp_operators,
+                filter_operator
+            )
+            self.__draw_priors(event, station, frequency_domain)
+            ic_sampling = ift.GradientNormController(1E-8, iteration_limit=min(1000, likelihood.domain.size))
+            H = ift.StandardHamiltonian(likelihood, ic_sampling)
+
+            ic_newton = ift.DeltaEnergyController(name='newton',
+                                                  iteration_limit=200,
+                                                  tol_rel_deltaE=self.__relative_tolerance,
+                                                  convergence_level=self.__convergence_level)
+            minimizer = ift.NewtonCG(ic_newton)
+            median = ift.MultiField.full(H.domain, 0.)
+            min_energy = None
+            best_reco_KL = None
+            for k in range(self.__n_iterations):
+                print('----------->>>   {}   <<<-----------'.format(k))
+                KL = ift.MetricGaussianKL(median, H, self.__n_samples, mirror_samples=True)
+                KL, convergence = minimizer(KL)
+                median = KL.position
+                if min_energy is None or KL.value < min_energy:
+                    min_energy = KL.value
+                    print('New min Energy', KL.value)
+                    best_reco_KL = KL
+                    if self.__debug:
+                        self.__draw_reconstruction(
+                            event,
+                            station,
+                            KL,
+                            '_positive_phase'
+                        )
+            positive_reco_LK = best_reco_KL
+            final_KL = best_reco_KL
+        ### Run Negative Phase Slope ###
+        if self.__phase_slope == 'both' or self.__phase_slope == 'negative':
+            phase_slope = 2. * np.pi * (self.__pulse_time_prior * self.__electric_field_template.get_sampling_rate() - self.__trace_samples) / self.__trace_samples
+            phase_uncertainty = 2. * np.pi * self.__pulse_time_uncertainty * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
+            self.__phase_dct = {
+                'sm': phase_slope,
+                'sv': phase_uncertainty,
+                'im': 0.,
+                'iv': 10.
+            }
+            likelihood = self.__get_likelihood_operator(
+                frequency_domain,
+                large_frequency_domain,
+                amp_operators,
+                filter_operator
+            )
+            # self.__draw_priors(event, station, frequency_domain)
+            ic_sampling = ift.GradientNormController(1E-8, iteration_limit=min(1000, likelihood.domain.size))
+            H = ift.StandardHamiltonian(likelihood, ic_sampling)
+
+            ic_newton = ift.DeltaEnergyController(name='newton',
+                                                  iteration_limit=200,
+                                                  tol_rel_deltaE=self.__relative_tolerance,
+                                                  convergence_level=self.__convergence_level)
+            minimizer = ift.NewtonCG(ic_newton)
+            median = ift.MultiField.full(H.domain, 0.)
+            min_energy = None
+            best_reco_KL = None
+            for k in range(self.__n_iterations):
+                print('----------->>>   {}   <<<-----------'.format(k))
+                KL = ift.MetricGaussianKL(median, H, self.__n_samples, mirror_samples=True)
+                KL, convergence = minimizer(KL)
+                median = KL.position
+                if min_energy is None or KL.value < min_energy:
+                    min_energy = KL.value
+                    print('New min Energy', KL.value)
+                    best_reco_KL = KL
+                    if self.__debug:
+                        self.__draw_reconstruction(
+                            event,
+                            station,
+                            KL,
+                            '_negative_phase'
+                        )
+            negative_reco_KL = best_reco_KL
+            final_KL = best_reco_KL
+        if final_KL is None:
+            if negative_reco_KL.value < positive_reco_LK.value:
+                final_KL = negative_reco_KL
+            else:
+                final_KL = positive_reco_LK
         self.__store_reconstructed_efields(
             event, station, final_KL
         )
