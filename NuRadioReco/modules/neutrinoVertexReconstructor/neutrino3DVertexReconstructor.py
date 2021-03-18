@@ -391,6 +391,7 @@ class neutrino3DVertexReconstructor:
             break
         dist_corrs = np.max(np.max(combined_correlations, axis=0), axis=1)
         station.set_parameter(stnp.distance_correlations, dist_corrs)
+        station.set_parameter(stnp.vertex_search_path, [slope, offset, median_theta])
         if debug:
             self.__draw_dnr_reco(
                 event,

@@ -28,6 +28,7 @@ class stationParameters(Enum):
     cr_xmax = 28  # Depth of shower maximum of the air shower
     vertex_2D_fit = 29  # horizontal distance and z coordinate of the reconstructed vertex of the neutrino
     distance_correlations = 30
+    vertex_search_path = 31
 
 
 class channelParameters(Enum):
