@@ -18,12 +18,15 @@ import radiotools.helper
 
 
 class IftElectricFieldReconstructor:
+    """
+    Module that uses Information Field Theory to reconstruct the electric field.
+    A description how this method works can be found at https://arxiv.org/abs/2102.00258
+    """
     def __init__(self):
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
         self.__passband = None
         self.__filter_type = None
         self.__debug = False
-        self.__trace_length = None
         self.__efield_scaling = None
         self.__amp_dct = None
         self.__phase_dct = None
@@ -39,11 +42,11 @@ class IftElectricFieldReconstructor:
         self.__convergence_level = None
         self.__relative_tolerance = None
         self.__use_sim = False
-        self.__dominant_polarization = None
         self.__pulse_time_prior = None
         self.__pulse_time_uncertainty = None
         self.__phase_slope = None
         self.__slope_passbands = None
+        self.__energy_fluence_passbands = None
         return
 
     def begin(
@@ -54,21 +57,68 @@ class IftElectricFieldReconstructor:
         amp_dct=None,
         pulse_time_prior=20. * units.ns,
         pulse_time_uncertainty=5. * units.ns,
-        trace_length=128,
         n_iterations=5,
         n_samples=20,
         polarization='pol',
-        convergence_level=3,
         relative_tolerance=1.e-7,
-        dominant_polarization=1,
+        convergence_level=3,
+        energy_fluence_passbands=None,
         slope_passbands=None,
         phase_slope='both',
         debug=False
     ):
+        """
+        Define settings for the reconstruction.
+
+        Parameters
+        -------------
+        electric_field_template: NuRadioReco.framework.base_trace.BaseTrace object
+            BaseTrace (or child class) object containing an electric field template
+            that is used to determine the position of the radio pulse in the channel
+            waveforms.
+        passband: list of floats or None
+            Lower and upper bound of the filter that should be applied to the channel
+            waveforms and the IFT model. If None is passed, no filter is applied
+        filter_type: string
+            Name of the filter type to be used. Has to be implemented in the NuRadioReco.utilities.
+            bandpass_filter.get_filter_response function. Only used if passband is not None
+        amp_dct: dictionary
+            Dictionary containing the prior settings for the electric field spectrum
+        pulse_time_prior: float
+            Expected pulse time relative to the trace start time. Note that this is the time of the
+            electric field pulse, not the voltage pulse
+        pulse_time_uncertainty: float
+            Uncertainty on the pulse time
+        n_iterations: integer
+            Number of times the IFT minimizer iterates. More iterations lead to better results, but
+            increase run time.
+        n_samples: integer
+            Number of prior samples the IFT minimizer uses to find the maximum prior. Also the number of
+            samples used to estimate uncertainties
+        polarization: string
+            Polarization of the reconstructed radio signal. If set to "theta" or "phi", only that
+            component of the electric field is reconstructed. If set to "pol", both components
+            are reconstructed.
+        relative_tolerance: float
+            Relative improvement for the minimizer in a cycle for the optimization to finish.
+        convergence_level: integer
+            Number of cycles the relative improvement of the minimizer has to be below relative_tolerance
+            for the optimization to finish.
+        energy_fluence_passbands: list of floats
+            List of passbands for which the energy fluence is calculated
+        slope_passbands: list of floats
+            List of passbands to calculate the ratio of the energy fluences in different passbands.
+        phase_slope: string
+            Specifies the sign of the slope of the linear function describing the phase of the electric field.
+            Options are "negative", "positive" and "both". If "both" is selected, positive and negative slopes
+            are used and the best fit is selected.
+        debug: bool
+            If true, debug plots are drawn.
+
+        """
         self.__passband = passband
         self.__filter_type = filter_type
         self.__debug = debug
-        self.__trace_length = trace_length
         self.__n_iterations = n_iterations
         self.__n_samples = n_samples
         self.__trace_samples = len(electric_field_template.get_times())
@@ -76,7 +126,6 @@ class IftElectricFieldReconstructor:
         self.__electric_field_template = electric_field_template
         self.__convergence_level = convergence_level
         self.__relative_tolerance = relative_tolerance
-        self.__dominant_polarization = dominant_polarization
         self.__pulse_time_prior = pulse_time_prior
         self.__pulse_time_uncertainty = pulse_time_uncertainty
         if phase_slope not in ['both', 'negative', 'positive']:
@@ -84,9 +133,14 @@ class IftElectricFieldReconstructor:
         self.__phase_slope = phase_slope
         if slope_passbands is None:
             self.__slope_passbands = [
-                [130. * units.MHz, 500 * units.MHz],
-                [130. * units.MHz, 200 * units.MHz],
-                [200. * units.MHz, 350. * units.MHz]
+                [
+                    (130. * units.MHz, 200 * units.MHz),
+                    (200. * units.MHz, 350. * units.MHz)
+                ]
+            ]
+        if energy_fluence_passbands is None:
+            self.__energy_fluence_passbands = [
+                (130. * units.MHz, 500. * units.MHz)
             ]
         else:
             self.__slope_passbands = slope_passbands
@@ -107,7 +161,18 @@ class IftElectricFieldReconstructor:
         return
 
     def make_priors_plot(self, event, station, detector, channel_ids):
-        self.__used_channel_ids = []  # only use channels with associated E-field and zenith
+        """
+        Plots samples from the prior distribution of the electric field.
+
+        Parameters
+        --------------
+        event: NuRadioReco.framework.event.Event object
+        station: NuRadioReco.framework.station.Station object
+        detector: NuRadioReco.detector.detector.Detector object or child object
+        channel_ids: list of floats
+            IDs of the channels to use for the electric field reconstruction
+        """
+        self.__used_channel_ids = []
         self.__efield_scaling = False
         self.__used_channel_ids = channel_ids
         self.__prepare_traces(event, station, detector)
@@ -132,6 +197,23 @@ class IftElectricFieldReconstructor:
         self.__draw_priors(event, station, frequency_domain)
 
     def run(self, event, station, detector, channel_ids, efield_scaling, use_sim=False):
+        """
+        Run the electric field reconstruction
+
+        Parameters
+        ----------------
+        event: NuRadioReco.framework.event.Event object
+        station: NuRadioReco.framework.station.Station object
+        detector: NuRadioReco.detector.detector.Detector object or child object
+        channel_ids: list of integers
+            IDs of the channels to be used for the electric field reconstruction
+        efield_scaling: boolean
+            If true, a small variation in the amplitude between channels is included
+            in the IFT model.
+        use_sim: boolean
+            If true, the simChannels are used to identify the position of the radio pulse.
+
+        """
         self.__used_channel_ids = []    # only use channels with associated E-field and zenith
         self.__efield_scaling = efield_scaling
         self.__used_channel_ids = channel_ids
@@ -150,6 +232,8 @@ class IftElectricFieldReconstructor:
             sampling_rate,
         )
         final_KL = None
+        positive_reco_KL = None
+        negative_reco_KL = None
         ### Run Positive Phase Slope ###
         if self.__phase_slope == 'both' or self.__phase_slope == 'positive':
             phase_slope = 2. * np.pi * self.__pulse_time_prior * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
@@ -265,6 +349,11 @@ class IftElectricFieldReconstructor:
         station,
         det
     ):
+        """
+        Prepares the channel waveforms for the reconstruction by correcting
+        for time differences between channels, cutting them to the
+        right size and locating the radio pulse.
+        """
         if self.__debug:
             plt.close('all')
             fig1 = plt.figure(figsize=(18, 12))
@@ -390,6 +479,9 @@ class IftElectricFieldReconstructor:
         frequency_domain,
         sampling_rate
     ):
+        """
+        Creates the operators to simulate the detector response.
+        """
         amp_operators = []
         self.__gain_scaling = []
         self.__classic_efield_recos = []
@@ -442,6 +534,9 @@ class IftElectricFieldReconstructor:
         hardware_operators,
         filter_operator
     ):
+        """
+        Creates the IFT model from which the maximum posterior is calculated
+        """
         power_domain = ift.RGSpace(large_frequency_domain.get_default_codomain().shape[0], harmonic=True)
         power_space = ift.PowerSpace(power_domain)
         self.__amp_dct['target'] = power_space
@@ -465,8 +560,6 @@ class IftElectricFieldReconstructor:
         add_one = ift.Adder(ift.Field(inserter.domain, 1))
 
         polarization_domain = ift.UnstructuredDomain(1)
-        print('######### Phase Prior #############')
-        print(self.__phase_dct)
         likelihood = None
         self.__efield_trace_operators = []
         self.__efield_spec_operators = []
@@ -529,6 +622,9 @@ class IftElectricFieldReconstructor:
         station,
         KL
     ):
+        """
+        Ads electric fields containing the reconstruction results to the station
+        """
         if self.__efield_scaling:
             for i_channel, channel_id in enumerate(self.__used_channel_ids):
                 efield = self.__get_reconstructed_efield(KL, i_channel)
@@ -545,6 +641,9 @@ class IftElectricFieldReconstructor:
         KL,
         i_channel
     ):
+        """
+        Creates an electric field object containing the reconstruction results.
+        """
         median = KL.position
         efield_stat_calculators = [ift.StatCalculator(), ift.StatCalculator()]
         polarization_stat_calculator = ift.StatCalculator()
@@ -570,23 +669,37 @@ class IftElectricFieldReconstructor:
                     times
                 )
                 polarization_stat_calculator.add(np.arctan(np.sqrt(energy_fluences[2]) / np.sqrt(energy_fluences[1])))
-            fluence_sample = np.zeros((len(self.__slope_passbands), 3))
-
-            for i_passband, passband in enumerate(self.__slope_passbands):
+            e_fluences = np.zeros((len(self.__energy_fluence_passbands), 3))
+            for i_passband, passband in enumerate(self.__energy_fluence_passbands):
                 filter_response = bandpass_filter.get_filter_response(freqs, passband, 'butter', 10)
                 e_fluence = trace_utilities.get_electric_field_energy_fluence(
                     fft.freq2time(fft.time2freq(efield_sample_pol, sampling_rate) * filter_response, sampling_rate) * self.__scaling_factor / self.__gain_scaling,
                     times
                 )
                 e_fluence[0] = np.sum(np.abs(e_fluence))
-                fluence_sample[i_passband] = e_fluence
-            energy_fluence_stat_calculator.add(fluence_sample)
-            if self.__polarization == 'pol':
-                slope_parameter_stat_calculator.add(fluence_sample[1, self.__dominant_polarization] / fluence_sample[2, self.__dominant_polarization])
-            elif self.__polarization == 'theta':
-                slope_parameter_stat_calculator.add(fluence_sample[1, 1] / fluence_sample[2, 1])
-            else:
-                slope_parameter_stat_calculator.add(fluence_sample[1, 2] / fluence_sample[2, 2])
+                e_fluences[i_passband] = e_fluence
+            energy_fluence_stat_calculator.add(e_fluences)
+            slopes = np.zeros((len(self.__slope_passbands), 3))
+            for i_passband, passbands in enumerate(self.__slope_passbands):
+                filter_response_1 = bandpass_filter.get_filter_response(freqs, passbands[0], 'butter', 10)
+                e_fluence_1 = trace_utilities.get_electric_field_energy_fluence(
+                    fft.freq2time(fft.time2freq(efield_sample_pol, sampling_rate) * filter_response_1, sampling_rate) * self.__scaling_factor / self.__gain_scaling,
+                    times
+                )
+                e_fluence_1[0] = np.sum(np.abs(e_fluence_1))
+                filter_response_2 = bandpass_filter.get_filter_response(freqs, passbands[1], 'butter', 10)
+                e_fluence_2 = trace_utilities.get_electric_field_energy_fluence(
+                    fft.freq2time(fft.time2freq(efield_sample_pol, sampling_rate) * filter_response_2, sampling_rate) * self.__scaling_factor / self.__gain_scaling,
+                    times
+                )
+                e_fluence_2[0] = np.sum(np.abs(e_fluence_2))
+                if self.__polarization == 'pol':
+                    slopes[i_passband] = e_fluence_1[0] / e_fluence_2[0]
+                elif self.__polarization == 'theta':
+                    slopes[i_passband] = e_fluence_1[1] / e_fluence_2[1]
+                else:
+                    slopes[i_passband] = e_fluence_1[2] / e_fluence_2[2]
+            slope_parameter_stat_calculator.add(slopes)
         if self.__efield_trace_operators[i_channel][0] is not None:
             rec_efield[1] = efield_stat_calculators[0].mean * self.__scaling_factor / self.__gain_scaling
         if self.__efield_trace_operators[i_channel][1] is not None:
@@ -597,13 +710,16 @@ class IftElectricFieldReconstructor:
             efield.set_parameter(efp.polarization_angle, polarization_stat_calculator.mean)
             efield.set_parameter_error(efp.polarization_angle, np.sqrt(polarization_stat_calculator.var))
         energy_fluence_dict = {}
-        for i_passband, passband in enumerate(self.__slope_passbands):
+        slope_dict = {}
+        for i_passband, passband in enumerate(self.__energy_fluence_passbands):
             energy_fluence_dict['{:.0f}-{:.0f}'.format(passband[0] / units.MHz, passband[1] / units.MHz)] = energy_fluence_stat_calculator.mean[i_passband]
+        for i_passband, passbands in enumerate(self.__slope_passbands):
+            slope_dict['{:.0f}-{:.0f}, {:.0f}-{:.0f}'.format(passbands[0][0], passbands[0][1], passbands[1][0], passbands[1][1])] = slope_parameter_stat_calculator.mean[i_passband]
         energy_fluence_error = np.sqrt(energy_fluence_stat_calculator.var)
         efield.set_parameter(efp.signal_energy_fluence, energy_fluence_dict)
         efield.set_parameter_error(efp.signal_energy_fluence, energy_fluence_error)
-        efield.set_parameter(efp.cr_spectrum_slope, slope_parameter_stat_calculator.mean)
-        efield.set_parameter_error(efp.cr_spectrum_slope, np.sqrt(slope_parameter_stat_calculator.var))
+        efield.set_parameter(efp.energy_fluence_ratios, slope_dict)
+        efield.set_parameter_error(efp.energy_fluence_ratios, np.sqrt(slope_parameter_stat_calculator.var))
         return efield
 
     def __draw_priors(
@@ -612,6 +728,9 @@ class IftElectricFieldReconstructor:
         station,
         freq_space
     ):
+        """
+        Draws samples from the prior distribution of the electric field spectrum.
+        """
         plt.close('all')
         fig1 = plt.figure(figsize=(12, 8))
         ax1_0 = fig1.add_subplot(3, 2, (1, 2))
@@ -674,6 +793,9 @@ class IftElectricFieldReconstructor:
         KL,
         suffix=''
     ):
+        """
+        Draw plots showing the results of the reconstruction.
+        """
         plt.close('all')
         fontsize = 16
         n_channels = len(self.__used_channel_ids)
