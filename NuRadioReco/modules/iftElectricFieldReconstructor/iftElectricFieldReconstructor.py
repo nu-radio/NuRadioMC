@@ -250,12 +250,13 @@ class IftElectricFieldReconstructor:
         self.__store_reconstructed_efields(
             event, station, final_KL
         )
-        self.__draw_reconstruction(
-            event,
-            station,
-            final_KL,
-            '_best_reco'
-        )
+        if self.__debug:
+            self.__draw_reconstruction(
+                event,
+                station,
+                final_KL,
+                '_best_reco'
+            )
         return True
 
     def __prepare_traces(
@@ -270,11 +271,7 @@ class IftElectricFieldReconstructor:
             ax1_1 = fig1.add_subplot(len(self.__used_channel_ids), 2, (1, 2 * len(self.__used_channel_ids) - 1))
             fig2 = plt.figure(figsize=(18, 12))
 
-        n_padding_samples = int(40 * station.get_channel(self.__used_channel_ids[0]).get_sampling_rate())
-
         self.__noise_levels = np.zeros(len(self.__used_channel_ids))
-        self.__snrs = np.zeros((len(self.__used_channel_ids)))
-
         self.__n_shifts = np.zeros_like(self.__used_channel_ids)
         self.__trace_start_times = np.zeros(len(self.__used_channel_ids))
         self.__data_traces = np.zeros((len(self.__used_channel_ids), self.__trace_samples))
@@ -346,9 +343,9 @@ class IftElectricFieldReconstructor:
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             channel = station.get_channel(channel_id)
             time_offset = channel.get_parameter(chp.signal_time_offset)
+            channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
+            toffset = -(np.arange(0, correlation_sum.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()
             if self.__debug:
-                channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
-                toffset = -(np.arange(0, correlation_sum.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()
                 ax2_1 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 1)
                 ax2_1.grid()
                 ax2_1.plot(channel.get_times(), channel_trace / units.mV, c='C0', alpha=1.)
@@ -370,8 +367,6 @@ class IftElectricFieldReconstructor:
             channel.apply_time_shift(-toffset[np.argmax(correlation_sum)])
             self.__data_traces[i_channel] = channel.get_trace()[:self.__trace_samples]
             self.__noise_levels[i_channel] = np.sqrt(np.mean(channel.get_trace()[self.__trace_samples + 1:]**2))
-            self.__snrs[i_channel] = channel.get_parameter(chp.noise_rms)
-            # self.__snrs[i_channel] = .5 * (np.max(self.__data_traces[i_channel]) - np.min(self.__data_traces[i_channel])) / self.__noise_levels[i_channel]
             self.__n_shifts[i_channel] = int((toffset[np.argmax(correlation_sum)] + time_offset) * channel.get_sampling_rate())
             self.__trace_start_times[i_channel] = channel.get_trace_start_time() + (toffset[np.argmax(correlation_sum)] + time_offset)
             if self.__debug:
