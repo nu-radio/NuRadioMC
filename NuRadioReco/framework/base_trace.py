@@ -35,7 +35,7 @@ class BaseTrace:
             self._time_trace = fft.freq2time(self._frequency_spectrum, self._sampling_rate)
             self.__time_domain_up_to_date = True
             self._frequency_spectrum = None
-        return self._time_trace
+        return np.copy(self._time_trace)
 
     def get_filtered_trace(self, passband, filter_type='butter', order=10):
         """
@@ -62,7 +62,7 @@ class BaseTrace:
             self._time_trace = None
 #             logger.debug("frequency spectrum has shape {}".format(self._frequency_spectrum.shape))
             self.__time_domain_up_to_date = False
-        return self._frequency_spectrum
+        return np.copy(self._frequency_spectrum)
 
     def set_trace(self, trace, sampling_rate):
         """

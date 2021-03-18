@@ -7,6 +7,8 @@ from radiotools import coordinatesystems as cs
 from scipy import constants
 import logging
 import pickle
+import csv
+import cmath
 
 logger = logging.getLogger('NuRadioReco.antennapattern')
 
@@ -95,6 +97,111 @@ def get_group_delay(vector_effective_length, df):
 
     """
     return -np.diff(np.unwrap(np.angle(vector_effective_length))) / df / units.ns / 2 / np.pi
+
+
+def parse_RNOG_XFDTD_file(path_gain, path_phases):
+    """"
+    reads in XFDTD data
+
+    Paramters:
+    ----------
+    path_gain: string
+        path to gain file
+    path_phases:
+        path to phases file
+
+    Returns:
+    ----------
+    all paramters of the file
+    """""
+
+    with open(path_gain, 'r') as fin:
+        ff = []
+        phis = []
+        thetas = []
+        gain_theta = []
+        gain_phi = []
+        csv_reader = csv.reader(fin, delimiter=',')
+        line_count = 0
+        for row in csv_reader:
+            if 1:  # (line_count % 2) == 0:
+                if line_count != 0:
+                    ff.append(float(row[0]))
+                    thetas.append(float(row[1]))
+                    phis.append(float(row[2]))
+                    gain_phi.append(float(row[3]))
+                    gain_theta.append(float(row[4]))
+
+            line_count += 1
+
+    with open(path_phases, 'r') as fin:
+        phase_phi = []
+        phase_theta = []
+        csv_reader = csv.reader(fin, delimiter=',')
+        line_count = 0
+        for row in csv_reader:
+            if 1:  # (line_count % 2) == 0:
+                if line_count != 0:
+                    complex_phi = float(row[3]) + 1j * float(row[4])
+                    phase_phi.append(cmath.phase(complex_phi))
+                    complex_theta = float(row[5] + 1j * float(row[6]))
+                    phase_theta.append(cmath.phase(complex_theta))
+
+            line_count += 1
+
+    return np.array(ff), np.array(phis), np.array(thetas), np.array(gain_phi), np.array(gain_theta), np.array(phase_phi), np.array(phase_theta)
+
+
+def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74):
+    """"
+    Preprocess an antenna pattern in XFDTD file format. The vector effective length is calculated and the output is saved to the NuRadioReco pickle format.
+
+    This conversion function ASSUMES THAT THE XFDTD SIMULATION IS DONE IN AIR! HERE WE DO A FIRST ORDER RESCALING
+    TO A DIFFERENT INDEX OF REFRACTION by just rescaling the frequencies by f -> f/n.
+
+    Parameters:
+    ----------
+    path_gain: string
+        path to gain file
+    path_phases: string
+        path to phases file
+    outputfilename: string
+        path to outputfilename
+    n_index: float
+        refractive index for requested antenna file. The method assumes that simulations are done in air (n = 1)
+    """
+
+    ff, phi, theta, gain_phi, gain_theta, phase_phi, phase_theta = parse_RNOG_XFDTD_file(path_gain, path_phases)
+    c = constants.c * units.m / units.s
+    Z_0 = 119.9169 * np.pi
+
+    theta = np.deg2rad(theta)
+    phi = np.deg2rad(phi)
+
+    wavelength = c / np.array(ff)
+
+    H_theta = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
+    H_phi = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
+    H_theta = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
+    H_phi = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
+
+    zen_boresight = 0
+    azi_boresight = 0
+    zen_ori = 0.5 * np.pi
+    azi_ori = 0
+
+    index = np.lexsort((theta, phi, ff))
+    ff = np.array(ff)[index]
+    phi = phi[index]
+    theta = theta[index]
+    H_phi = np.array(H_phi)[index]
+    H_theta = np.array(H_theta)[index]
+
+    # rescale frequencies from air to medium with `n_index`
+    ff = ff / n_index
+
+    with open(outputfilename, 'wb') as fout:
+        pickle.dump([zen_boresight, azi_boresight, zen_ori, azi_ori, ff, theta, phi, H_phi, H_theta], fout, protocol=2)
 
 
 def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_parameters=None):
@@ -214,7 +321,7 @@ def preprocess_WIPLD_old(path, gen_num=1, s_parameters=None):
         os.path.join(path, name, '{}.ad1'.format(name)),
         os.path.join(path, name, '{}.ra1'.format(name)),
         os.path.join(path, name, '{}.orientation'.format(name)),
-        gen_num=gen_num, s_paramateres=s_parameters)
+        gen_num=gen_num, s_parameters=s_parameters)
 
     theta = 0.5 * np.pi - theta  # 90deg - theta because in WIPL D the theta angle is defined differently
 
@@ -299,7 +406,7 @@ def preprocess_WIPLD(path, gen_num=1, s_parameters=None):
         os.path.join(path, name, '{}.ad1'.format(name)),
         os.path.join(path, name, '{}.ra1'.format(name)),
         os.path.join(path, name, '{}.orientation'.format(name)),
-        gen_num=gen_num, s_paramateres=s_parameters)
+        gen_num=gen_num, s_parameters=s_parameters)
 
     theta = 0.5 * np.pi - theta  # 90deg - theta because in WIPL D the theta angle is defined differently
 
