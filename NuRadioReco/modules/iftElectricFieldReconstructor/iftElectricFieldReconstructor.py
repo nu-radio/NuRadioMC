@@ -11,7 +11,6 @@ import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
 import scipy
 import nifty5 as ift
-import copy
 import matplotlib.pyplot as plt
 import scipy.signal
 import radiotools.helper
@@ -180,19 +179,12 @@ class IftElectricFieldReconstructor:
         sampling_rate = ref_channel.get_sampling_rate()
         time_domain = ift.RGSpace(self.__trace_samples)
         frequency_domain = time_domain.get_default_codomain()
-        large_frequency_domain = ift.RGSpace(self.__trace_samples * 2, harmonic=True)
         self.__fft_operator = ift.FFTOperator(frequency_domain.get_default_codomain())
         amp_operators, filter_operator = self.__get_detector_operators(
             station,
             detector,
             frequency_domain,
             sampling_rate,
-        )
-        likelihood = self.__get_likelihood_operator(
-            frequency_domain,
-            large_frequency_domain,
-            amp_operators,
-            filter_operator
         )
         self.__draw_priors(event, station, frequency_domain)
 
@@ -234,7 +226,7 @@ class IftElectricFieldReconstructor:
         final_KL = None
         positive_reco_KL = None
         negative_reco_KL = None
-        ### Run Positive Phase Slope ###
+        # Run Positive Phase Slope #
         if self.__phase_slope == 'both' or self.__phase_slope == 'positive':
             phase_slope = 2. * np.pi * self.__pulse_time_prior * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
             phase_uncertainty = 2. * np.pi * self.__pulse_time_uncertainty * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
@@ -280,7 +272,7 @@ class IftElectricFieldReconstructor:
                         )
             positive_reco_KL = best_reco_KL
             final_KL = best_reco_KL
-        ### Run Negative Phase Slope ###
+        # Run Negative Phase Slope ###
         if self.__phase_slope == 'both' or self.__phase_slope == 'negative':
             phase_slope = 2. * np.pi * (self.__pulse_time_prior * self.__electric_field_template.get_sampling_rate() - self.__trace_samples) / self.__trace_samples
             phase_uncertainty = 2. * np.pi * self.__pulse_time_uncertainty * self.__electric_field_template.get_sampling_rate() / self.__trace_samples
@@ -405,8 +397,10 @@ class IftElectricFieldReconstructor:
                 antenna_orientation[2],
                 antenna_orientation[3]
             )
-            channel_spectrum_template = fft.time2freq(self.__electric_field_template.get_filtered_trace(passband, filter_type='butterabs'), self.__electric_field_template.get_sampling_rate()) * \
-                                        amp_response * (antenna_response['theta'] + antenna_response['phi'])
+            channel_spectrum_template = fft.time2freq(
+                self.__electric_field_template.get_filtered_trace(passband, filter_type='butterabs'),
+                self.__electric_field_template.get_sampling_rate()
+            ) * amp_response * (antenna_response['theta'] + antenna_response['phi'])
             channel_trace_template = fft.freq2time(channel_spectrum_template, self.__electric_field_template.get_sampling_rate())
             channel_trace_templates[i_channel] = channel_trace_template
             channel.apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
@@ -749,7 +743,7 @@ class IftElectricFieldReconstructor:
             efield_trace_sample = self.__efield_trace_operators[0][0].force(x)
             ax1_2.plot(times, efield_trace_sample.val / np.max(np.abs(efield_trace_sample.val)))
             channel_spec_sample = self.__channel_spec_operators[0].force(x)
-            ax1_3.plot(freqs / units.MHz, np.abs(channel_spec_sample.val)) # / np.max(np.abs(channel_spec_sample.val)), c='C{}'.format(i), alpha=alpha)
+            ax1_3.plot(freqs / units.MHz, np.abs(channel_spec_sample.val))  # / np.max(np.abs(channel_spec_sample.val)), c='C{}'.format(i), alpha=alpha)
             channel_trace_sample = self.__channel_trace_operators[0].force(x)
             ax1_4.plot(times, channel_trace_sample.val / np.max(np.abs(channel_trace_sample.val)), c='C{}'.format(i), alpha=alpha)
             a = self.__power_spectrum_operator.force(x).val
@@ -846,15 +840,11 @@ class IftElectricFieldReconstructor:
             ax1_1.plot(freqs / units.MHz, np.abs(fft.time2freq(self.__data_traces[i_channel], sampling_rate)) * self.__scaling_factor / units.mV, c='C0', label='data')
             sim_efield_max = None
             channel_snr = None
-            channel = station.get_channel(channel_id)
             if station.has_sim_station():
                 sim_station = station.get_sim_station()
                 n_drawn_sim_channels = 0
                 for ray_tracing_id in sim_station.get_ray_tracing_ids():
                     sim_channel_sum = None
-                    # sim_channel_sum = NuRadioReco.framework.base_trace.BaseTrace()
-                    # sim_channel_sum.set_trace(np.zeros_like(channel.get_trace()), channel.get_sampling_rate())
-                    # sim_channel_sum.set_trace_start_time(channel.get_trace_start_time())
                     for sim_channel in sim_station.get_channels_by_ray_tracing_id(ray_tracing_id):
                         if sim_channel.get_id() == channel_id:
                             if sim_channel_sum is None:
