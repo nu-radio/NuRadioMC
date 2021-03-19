@@ -278,7 +278,7 @@ class IftElectricFieldReconstructor:
                             KL,
                             '_positive_phase'
                         )
-            positive_reco_LK = best_reco_KL
+            positive_reco_KL = best_reco_KL
             final_KL = best_reco_KL
         ### Run Negative Phase Slope ###
         if self.__phase_slope == 'both' or self.__phase_slope == 'negative':
@@ -326,11 +326,11 @@ class IftElectricFieldReconstructor:
                         )
             negative_reco_KL = best_reco_KL
             final_KL = best_reco_KL
-        if final_KL is None:
-            if negative_reco_KL.value < positive_reco_LK.value:
+        if self.__phase_slope == 'both':
+            if negative_reco_KL.value < positive_reco_KL.value:
                 final_KL = negative_reco_KL
             else:
-                final_KL = positive_reco_LK
+                final_KL = positive_reco_KL
         self.__store_reconstructed_efields(
             event, station, final_KL
         )
