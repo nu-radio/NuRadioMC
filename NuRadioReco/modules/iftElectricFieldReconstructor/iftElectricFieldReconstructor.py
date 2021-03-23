@@ -263,12 +263,16 @@ class IftElectricFieldReconstructor:
                     min_energy = KL.value
                     print('New min Energy', KL.value)
                     best_reco_KL = KL
+                    if self.__phase_slope == 'both':
+                        suffix = '_positive_phase'
+                    else:
+                        suffix = ''
                     if self.__debug:
                         self.__draw_reconstruction(
                             event,
                             station,
                             KL,
-                            '_positive_phase'
+                            suffix
                         )
             positive_reco_KL = best_reco_KL
             final_KL = best_reco_KL
@@ -309,12 +313,16 @@ class IftElectricFieldReconstructor:
                     min_energy = KL.value
                     print('New min Energy', KL.value)
                     best_reco_KL = KL
+                    if self.__phase_slope == 'both':
+                        suffix = '_negative_phase'
+                    else:
+                        suffix = ''
                     if self.__debug:
                         self.__draw_reconstruction(
                             event,
                             station,
                             KL,
-                            '_negative_phase'
+                            suffix
                         )
             negative_reco_KL = best_reco_KL
             final_KL = best_reco_KL
@@ -331,7 +339,7 @@ class IftElectricFieldReconstructor:
                 event,
                 station,
                 final_KL,
-                '_best_reco'
+                ''
             )
         return True
 
