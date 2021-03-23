@@ -77,6 +77,13 @@ class neutrino2DVertexReconstructor:
         passband: array of float or None
             Passband of the filter that should be applied to channel traces before
             calculating the correlation. If None is passed, no filter is applied
+        template: array of float or none
+            Waveform template with which the channel waveforms are correlated to determine
+            the timing differences. If None is passed, the channels are correlated directly
+            with each other
+        output_path: string or None
+            Location where plots of the reconstruction are saved. If None is passed, no plots are
+            created.
         """
         first_channel_position = detector.get_relative_position(station_id, channel_ids[0])
         for channel_id in channel_ids:
@@ -126,6 +133,9 @@ class neutrino2DVertexReconstructor:
             a strip if width 2*z_width around the guessed direction will be searched
         debug: boolean
             If True, debug plots will be produced
+        use_dnr: boolean
+            If True, DnR pulses are included in the reconstruction by correlating
+            the channel waveforms with themselves.
         """
         distances = np.arange(50. * units.m, max_distance, grid_spacing)
         if direction_guess is None:
