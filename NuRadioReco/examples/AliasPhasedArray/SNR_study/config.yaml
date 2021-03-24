@@ -1,0 +1,8 @@
+signal:
+  model: Alvarez2009
+propagation:
+  ice_model: greenland_simple
+  attenuation_model: GL1
+
+weights:
+  weight_mode: None

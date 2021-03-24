@@ -1,0 +1,8 @@
+Measurements of an IGLU and a Surface board to use as stand-in for the RNO-G
+hardware.
+
+Measurements specify the frequency (first column) and the S-parameters in
+linear amplitude and phase. S21 is the gain.
+
+
+IGLU = In-ice Gain with Low-power Unit (https://radio.uchicago.edu/wiki/index.php/RF_Boards#IGLU:_In-ice_Gain_with_Low-power_Unit)
