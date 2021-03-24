@@ -82,5 +82,77 @@ bugfixes:
 	- fixed that the multiple_triggers key was not created for multiple stations
 	- Angular distribution now accounts for projected area
 	- 
+	
+	
+version 1.0.0 - 2019/08/30 - first python 3 release
+
+
+
+=======
+NuRadioReco changlog from previous setup where NuRadioReco was in its own repository
+
+
+version 1.2
+new features:
+- users can specify a different bandwidth for each channel in the channelBandPassFilter and channelGenericNoiseAdder module
+- new coreas read in function to generate signals for a grid of stations
+- added simulation of galactic noise
+- new phased array trigger module
+- eventWriter: Add option to specify number of events per file
+
+bug fixes:
+- Added if check in voltageToEfieldConverter.py under method get_array_of_channels() to see if sim station is initialized
+- trigger modules set the trigger time to 0 in case not trigger was recorded. This lead to problems, and wrong total trigger times, if multiple triggers were recorded. Now, no trigger time is set if not trigger was found.
+- made detector_sys_uncertainties compatible with python3 and detector updates
+- Typo in antennapattern.py; processing antenna responses fails. replaces s_parameteres with s_parameters
+
+
+version 1.1.2 -
+
+new features:
+- Added the ability to force polarization to be only eTheta or ePhi in the reconstruction of the electric field using voltageToEfieldConverter.py
+- new detector which allows to change certain parameters of the detector description to study systematic uncertainties.
+- Simulations with alias (higher Nyquist zones) for the phased array now supported
+- NuRadioRecoIO has a 100MB read buffer by default
+- Changed detector description to optionally take antenna model name directly from detector description (without automatically selecting antenna model dependent on depth of the antenna)
+- NuRadioReco now fails if no antenna pattern was found
+
+bug fixes:
+-Removed function "get_relative_positions(self, station_id)" from detector.py because the ordering of channels is different from a sql initiated detector compared to a json initiated detector. Must use "get_relative_position(self, station_id, channel_id)", which specifies which channel to get the position for.
+
+
+version 1.1.1 - 2020/03/23
+
+new features:
+- changed the way logging is handled.
+- RNO-G hardware response added
+
+
+version 1.1.0 - 2020/01/15
+
+new features:
+- added module registry. By adding a decorator to the run methods of every module, we keep track of the modules applied to an event
+-Added new module called "beamFormingDirectionFitter" that fits direction through an interferometry method (dubbed beamForming)
+-Added the internal clock parameter (time since last trigger with ms precision) to ARIANNA paremeters (key number 8)
+-Changed import "detector_sql" to "from NuRadioReco.detector import detector_sql" and .GetSec() to datetime.datetime.fromtimestamp(self.config_tree.TrigStartClock.GetCurrTime()) in the detector.py and readARIANNAdataCalin.py files respectively in order to make it python3 compatible.
+-Updated documentation and made it deployable on github
+-Changed normalization of the frequency spectrum. The amplitude is now given as V/GHz (or V/m/GHz for E-fields) instead of
+   V/GHz/bin. This way, the values of trace.get_frequency_spectrum() are independent of the sampling rate. The fft utilities
+   now also need the sampling rate as an argument.
+-Envelope phased array available
+-Trigger times now include the time with respect to the first interaction (vertex times)
+-Analog to digital converter module added
+-Improved calculation of the diode noise parameters
+-channelSignalReconstructor no longer requires static signal window but can set it automatically
+-Save the git hashes of the NuRadioReco, NuRadioMC and radiotools version a .nur file was created with
+
+Detector description can be stored in .nur files
+Large overhaul of the event structure. Adds shower classes and hybrid detector information.
+
+bugfixes:
+-Fixes increase in filesize caused by switch to python3
+-Fixed bug when using no secondary channels on the phased array
+-Fixed bug when using ARA trigger
+
 
 version 1.0.0 - 2019/08/30 - first python 3 release
