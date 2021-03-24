@@ -1,0 +1,142 @@
+{
+    "_default": {},
+    "channels": {
+      "16": {
+          "amp_type": "rno_surface",
+          "ant_comment": "first arm, close to center, pointing downwards",
+          "ant_orientation_phi": 180.0,
+          "ant_orientation_theta": 135.0,
+          "ant_position_x": 6,
+          "ant_position_y": 0,
+          "ant_position_z": -2,
+          "ant_rotation_phi": 90.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz",
+          "channel_id": 15,
+          "station_id": 101
+      },
+      "17": {
+          "amp_type": "rno_surface",
+          "ant_comment": "first arm, middle position, pointing upwards",
+          "ant_orientation_phi": 0.0,
+          "ant_orientation_theta": 0.0,
+          "ant_position_x": 7.5,
+          "ant_position_y": 0.0,
+          "ant_position_z": -2.0,
+          "ant_rotation_phi": 90.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz",
+          "channel_id": 16,
+          "station_id": 101
+      },
+      "18": {
+          "amp_type": "rno_surface",
+          "ant_comment": "first arm, far from center, pointing side-downwards",
+          "ant_orientation_phi": 0.0,
+          "ant_orientation_theta": 135.0,
+          "ant_position_x": 9,
+          "ant_position_y": 0,
+          "ant_position_z": -2,
+          "ant_rotation_phi": 90.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz",
+          "channel_id": 17,
+          "station_id": 101
+      },
+      "19": {
+          "amp_type": "rno_surface",
+          "ant_comment": "second arm, close to center, pointing downwards",
+          "ant_orientation_phi": 300.0,
+          "ant_orientation_theta": 135.0,
+          "ant_position_x": -3.0,
+          "ant_position_y": 5.2,
+          "ant_position_z": -2,
+          "ant_rotation_phi": 30.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz",
+          "channel_id": 18,
+          "station_id": 101
+      },
+      "20": {
+          "amp_type": "rno_surface",
+          "ant_comment": "second arm, middle position, pointing upwards",
+          "ant_orientation_phi": 0.0,
+          "ant_orientation_theta": 0.0,
+          "ant_position_x": -3.75,
+          "ant_position_y": 6.5,
+          "ant_position_z": -2.0,
+          "ant_rotation_phi": 30.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz",
+          "channel_id": 19,
+          "station_id": 101
+      },
+      "21": {
+          "amp_type": "rno_surface",
+          "ant_comment": "second arm, far from center, pointing side-downwards",
+          "ant_orientation_phi": 120.0,
+          "ant_orientation_theta": 135.0,
+          "ant_position_x": -4.5,
+          "ant_position_y": 7.79,
+          "ant_position_z": -2.0,
+          "ant_rotation_phi": 30.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz",
+          "channel_id": 20,
+          "station_id": 101
+      },
+      "22": {
+          "amp_type": "rno_surface",
+          "ant_comment": "third arm, close to center, pointing downwards",
+          "ant_orientation_phi": 60.0,
+          "ant_orientation_theta": 135.0,
+          "ant_position_x": -3,
+          "ant_position_y": -5.2,
+          "ant_position_z": -2.0,
+          "ant_rotation_phi": 150.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz",
+          "channel_id": 21,
+          "station_id": 101
+      },
+      "23": {
+          "amp_type": "rno_surface",
+          "ant_comment": "third arm, middle position, pointing upwards",
+          "ant_orientation_phi": 0.0,
+          "ant_orientation_theta": 0.0,
+          "ant_position_x": -3.75,
+          "ant_position_y": -6.5,
+          "ant_position_z": -2.0,
+          "ant_rotation_phi": 150.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz",
+          "channel_id": 22,
+          "station_id": 101
+      },
+      "24": {
+          "amp_type": "rno_surface",
+          "ant_comment": "third arm, far from center, pointing side-downwards",
+          "ant_orientation_phi": 240.0,
+          "ant_orientation_theta": 135.0,
+          "ant_position_x": -4.5,
+          "ant_position_y": -7.79,
+          "ant_position_z": -2.0,
+          "ant_rotation_phi": 150.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz",
+          "channel_id": 23,
+          "station_id": 101
+      }
+    },
+    "positions": {},
+    "stations": {
+      "1": {
+        "pos_altitude": 0.0,
+        "pos_easting": 0.0,
+        "pos_northing": 0,
+        "pos_site": "summit",
+        "station_id": 101,
+        "station_type": null
+      }
+    }
+}
