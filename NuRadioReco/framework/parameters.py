@@ -44,10 +44,11 @@ class channelParameters(Enum):
     noise_rms = 11  # the root mean square of the noise
     signal_regions = 12     # list of start and end times of regions that likely contain a signal
     noise_regions = 13      # list of start and end times of regions that likel do not contain any signals
-    signal_time_offset = 14     # the relative timing differences of the signal arrival times between channels
-    signal_receiving_zenith = 15    # the zenith angle of direction at which the radio signal arrived at the antenna
-    signal_ray_type = 16        # type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
-    signal_receiving_azimuth = 17   # the azimuth angle of direction at which the radio signal arrived at the antenna
+    signal_time_offsets = 14     # the relative timing differences of the signal arrival times between channels
+    signal_receiving_zeniths = 15    # the zenith angle of direction at which the radio signal arrived at the antenna
+    signal_ray_types = 16        # type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
+    signal_receiving_azimuths = 17   # the azimuth angle of direction at which the radio signal arrived at the antenna
+    pulse_times = 18            # list of times where the waveform contains radio pulses
 
 
 class electricFieldParameters(Enum):
@@ -67,6 +68,7 @@ class electricFieldParameters(Enum):
     reflection_coefficient_phi = 15  # for reflected rays: the complex Fresnel reflection coefficient of the ePhi component
     cr_spectrum_quadratic_term = 16  # result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
     energy_fluence_ratios = 17   # Ratios of the energy fluences in different passbands
+
 
 class ARIANNAParameters(Enum):  # this class stores parameters specific to the ARIANNA data taking
     seq_start_time = 1  # the start time of a sequence
