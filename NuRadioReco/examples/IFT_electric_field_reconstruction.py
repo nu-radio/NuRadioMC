@@ -92,7 +92,8 @@ passband = [80. * units.MHz, 500. * units.MHz]
 sampling_rate = 5. * units.GHz
 
 # Create template for the IFT reconstructor
-# We can keep it simple and just use a
+# It is only used to determine the pulse timing, so
+# we can keep it simple and just use a
 # bandpass-filtered delta pulse
 spec = np.ones(int(128 * sampling_rate + 1)) * bandpass_filter.get_filter_response(np.fft.rfftfreq(int(256 * sampling_rate), 1. / sampling_rate), passband, 'butter', 10)
 efield_template = NuRadioReco.framework.base_trace.BaseTrace()
