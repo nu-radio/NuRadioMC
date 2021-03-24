@@ -1677,8 +1677,8 @@ class ray_tracing:
                 self.__results.extend(self.__r2d.find_solutions(self.__x1, self.__x2, reflection=i + 1, reflection_case=j + 1))
 
         # check if not too many solutions were found (the same solution can potentially found twice because of numerical imprecision)
-        if(self.get_number_of_solutions() > (2 + 4 * self.__n_reflections)):
-            self.__logger.error(f"{self.get_number_of_solutions()} were found but only {(2 + 4 * self.__n_reflections)} are allowed! Returning zero solutions")
+        if(self.get_number_of_solutions() > self.get_number_of_raytracing_solutions()):
+            self.__logger.error(f"{self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed! Returning zero solutions")
             self.__results = []
 
     def has_solution(self):
