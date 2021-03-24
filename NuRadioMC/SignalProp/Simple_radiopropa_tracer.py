@@ -201,7 +201,6 @@ class ray_tracing:
                 launch_lower.append((np.pi - (alpha - np.deg2rad(5))))
                 launch_upper.append(np.pi)
         
-        previous_rays = None
         step = None
         for s,sphere_size in enumerate(self.__sphere_sizes):
             sphere_size = sphere_size*(radiopropa.meter/units.meter)
@@ -230,32 +229,6 @@ class ray_tracing:
             boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0,0,1*radiopropa.meter), radiopropa.Vector3d(0,0,1)))
             obs2.add(boundary_above_surface)
             sim.add(obs2)
-
-            #loop over previous rays to find the upper and lower theta of each bundle of rays
-            #uses step, but because step is initialized after this loop this ios the previous step size as intented
-            if previous_rays == None:
-                pass
-            elif len(previous_rays)>0:
-                launch_lower.clear()
-                launch_upper.clear()
-                launch_theta_prev = None
-                for iPC,PC in enumerate(previous_rays):
-                    launch_theta = PC.getLaunchVector().getTheta()/radiopropa.rad
-                    if iPC == (len(previous_rays)-1) or iPC == 0:
-                        if iPC == 0: 
-                            launch_lower.append(launch_theta-step)
-                        if iPC == (len(previous_rays)-1): 
-                            launch_upper.append(launch_theta+step)
-                    elif abs(launch_theta - launch_theta_prev)>1.1*step: ##take 1.1 times the step to be sure the next ray is not in the bundle of the previous one
-                        launch_upper.append(launch_theta_prev+step)
-                        launch_lower.append(launch_theta-step)
-                    else:
-                        pass
-                    launch_theta_prev = launch_theta
-            else:
-                #if previous_rays is empthy, no solutions where found and the tracer is terminated
-                break
-
             
             #create total scanning range from the upper and lower thetas of the bundles
             step = self.__step_sizes[s]/units.radian
@@ -296,7 +269,28 @@ class ray_tracing:
                                 next_rays.append(secondary)
                         current_rays = next_rays
 
-            previous_rays = detected_rays
+            #loop over previous rays to find the upper and lower theta of each bundle of rays
+            #uses step, but because step is initialized after this loop this ios the previous step size as intented
+            if len(detected_rays)>0:
+                launch_lower.clear()
+                launch_upper.clear()
+                launch_theta_prev = None
+                for iDC,DC in enumerate(detected_rays):
+                    launch_theta = DC.getLaunchVector().getTheta()/radiopropa.rad
+                    if iDC == (len(detected_rays)-1) or iDC == 0:
+                        if iDC == 0: 
+                            launch_lower.append(launch_theta-step)
+                        if iDC == (len(detected_rays)-1): 
+                            launch_upper.append(launch_theta+step)
+                    elif abs(launch_theta - launch_theta_prev)>1.1*step: ##take 1.1 times the step to be sure the next ray is not in the bundle of the previous one
+                        launch_upper.append(launch_theta_prev+step)
+                        launch_lower.append(launch_theta-step)
+                    else:
+                        pass
+                    launch_theta_prev = launch_theta
+            else:
+                #if detected_rays is empthy, no solutions where found and the tracer is terminated
+                break
 
         self.__rays = detected_rays
         self.__results = results
