@@ -384,6 +384,12 @@ class neutrino3DVertexReconstructor:
         vertex_y = y_coords[i_max_dnr]
         vertex_z = z_coords[i_max_dnr]
         station.set_parameter(stnp.nu_vertex, np.array([vertex_x, vertex_y, vertex_z]))
+        for sim_shower in event.get_sim_showers():
+            sim_vertex = sim_shower.get_parameter(shp.vertex)
+            break
+        dist_corrs = np.max(np.max(combined_correlations, axis=0), axis=1)
+        station.set_parameter(stnp.distance_correlations, dist_corrs)
+        station.set_parameter(stnp.vertex_search_path, [slope, offset, median_theta])
         if debug:
             self.__draw_dnr_reco(
                 event,
@@ -478,21 +484,34 @@ class neutrino3DVertexReconstructor:
         channel_type = int(abs(channel_pos[2]))
         travel_times = np.zeros_like(d_hor)
         mask = np.ones_like(travel_times).astype(bool)
-        i_z = np.array(np.round((z - self.__header[channel_type]['z_min']) / self.__header[channel_type]['d_z'])).astype(int)
+        i_z_1 = np.array(np.floor((z - self.__header[channel_type]['z_min']) / self.__header[channel_type]['d_z'])).astype(int)
+        z_dist_1 = i_z_1 * self.__header[channel_type]['d_z'] + self.__header[channel_type]['z_min']
+        i_z_2 = np.array(np.ceil((z - self.__header[channel_type]['z_min']) / self.__header[channel_type]['d_z'])).astype(int)
+        z_dist_2 = i_z_2 * self.__header[channel_type]['d_z'] + self.__header[channel_type]['z_min']
         i_x_1 = np.array(np.floor((d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
         cell_dist_1 = i_x_1 * self.__header[channel_type]['d_x'] + self.__header[channel_type]['x_min']
         mask[i_x_1 > self.__lookup_table[channel_type][ray_type].shape[0] - 1] = False
-        mask[i_z > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
+        mask[i_z_1 > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
+        mask[i_z_2 > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
         i_x_1[~mask] = 0
-        i_z[~mask] = 0
-        travel_times_1 = self.__lookup_table[channel_type][ray_type][(i_x_1, i_z)]
+        i_z_1[~mask] = 0
+        i_z_2[~mask] = 0
+        travel_times_1_1 = self.__lookup_table[channel_type][ray_type][(i_x_1, i_z_1)]
+        travel_times_1_2 = self.__lookup_table[channel_type][ray_type][(i_x_1, i_z_2)]
         i_x_2 = np.array(np.ceil((d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
         cell_dist_2 = i_x_2 * self.__header[channel_type]['d_x'] + self.__header[channel_type]['x_min']
         i_x_2[~mask] = 0
-        travel_times_2 = self.__lookup_table[channel_type][ray_type][(i_x_2, i_z)]
-        slopes = np.zeros_like(travel_times_1)
-        slopes[i_x_2 > i_x_1] = (travel_times_1 - travel_times_2)[i_x_2 > i_x_1] / (cell_dist_1 - cell_dist_2)[i_x_2 > i_x_1]
-        travel_times = (d_hor - cell_dist_1) * slopes + travel_times_1
+        travel_times_2_1 = self.__lookup_table[channel_type][ray_type][(i_x_2, i_z_1)]
+        travel_times_2_2 = self.__lookup_table[channel_type][ray_type][(i_x_2, i_z_2)]
+        z_slopes_1 = np.zeros_like(travel_times_1_1)
+        z_slopes_2 = np.zeros_like(travel_times_1_1)
+        z_slopes_1[i_z_1 < i_z_2] = (travel_times_1_1 - travel_times_1_2)[i_z_1 < i_z_2] / (z_dist_1 - z_dist_2)[i_z_1 < i_z_2]
+        z_slopes_2[i_z_1 < i_z_2] = (travel_times_2_1 - travel_times_2_2)[i_z_1 < i_z_2] / (z_dist_1 - z_dist_2)[i_z_1 < i_z_2]
+        travel_times_1 = (z - z_dist_1) * z_slopes_1 + travel_times_1_1
+        travel_times_2 = (z - z_dist_1) * z_slopes_2 + travel_times_2_1
+        d_slope = np.zeros_like(z)
+        d_slope[i_x_2 > i_x_1] = (travel_times_1 - travel_times_2)[i_x_2 > i_x_1] / (cell_dist_1 - cell_dist_2)[i_x_2 > i_x_1]
+        travel_times = (d_hor - cell_dist_1) * d_slope + travel_times_1
         travel_times[~mask] = np.nan
         return travel_times
 

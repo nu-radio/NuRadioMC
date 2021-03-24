@@ -28,6 +28,7 @@ class stationParameters(Enum):
     cr_xmax = 28  # Depth of shower maximum of the air shower
     vertex_2D_fit = 29  # horizontal distance and z coordinate of the reconstructed vertex of the neutrino
     distance_correlations = 30
+    vertex_search_path = 31
 
 
 class channelParameters(Enum):
@@ -66,7 +67,6 @@ class electricFieldParameters(Enum):
     reflection_coefficient_phi = 15  # for reflected rays: the complex Fresnel reflection coefficient of the ePhi component
     cr_spectrum_quadratic_term = 16  # result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
     energy_fluence_ratios = 17   # Ratios of the energy fluences in different passbands
-
 
 class ARIANNAParameters(Enum):  # this class stores parameters specific to the ARIANNA data taking
     seq_start_time = 1  # the start time of a sequence
