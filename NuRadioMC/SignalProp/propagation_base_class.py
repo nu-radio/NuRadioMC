@@ -16,17 +16,13 @@ class ray_tracing_base:
     base class of ray tracer. All ray tracing modules need to prodide the following functions
     """
 
-    def __init__(self, x1, x2, medium, attenuation_model="SP1", log_level=logging.WARNING,
+    def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=6):
         """
         class initilization
 
         Parameters
         ----------
-        x1: 3dim np.array
-            start point of the ray
-        x2: 3dim np.array
-            stop point of the ray
         medium: medium class
             class describing the index-of-refraction profile
         attenuation_model: string
@@ -46,6 +42,20 @@ class ray_tracing_base:
         """
         pass
 
+    def set_start_and_end_point(self, x1, x2):
+        """
+        Set the start and end points between which raytracing solutions shall be found
+        It is recommended to also reset the solutions from any previous raytracing to avoid
+        confusing them with the current solution
+
+        Parameters:
+        --------------
+        x1: 3D array
+            Start point of the ray
+        x2: 3D array
+            End point of the ray
+        """
+        pass
 
     def find_solutions(self):
         """
@@ -101,7 +111,6 @@ class ray_tracing_base:
             number of points of path
         """
         pass
-
 
     def get_launch_vector(self, iS):
         """
@@ -220,3 +229,73 @@ class ray_tracing_base:
         """
         pass
 
+    def apply_propagation_effects(self, efield, i_solution):
+        """
+        Apply propagation effects to the electric field
+        Note that the 1/r weakening of the electric field is already accounted for in the signal generation
+
+        Parameters:
+        ----------------
+        efield: ElectricField object
+            The electric field that the effects should be applied to
+        i_solution: int
+            Index of the raytracing solution the propagation effects should be based on
+
+        Returns
+        -------------
+        efield: ElectricField object
+            The modified ElectricField object
+        """
+        pass
+
+    def get_output_parameters(self):
+        """
+        Returns a list with information about parameters to include in the output data structure that are specific
+        to this raytracer
+
+        Returns:
+        -----------------
+        list with entries of form [{'name': str, 'ndim': int}]
+            'name': Name of the new parameter to include in the data structure
+            'ndim': Dimension of the data structure for the parameter
+        """
+        pass
+
+    def get_raytracing_output(self, i_solution):
+        """
+        Write parameters that are specific to this raytracer into the output data.
+
+        Parameters:
+        ---------------
+        i_solution: int
+            The index of the raytracing solution
+
+        Returns:
+        ---------------
+        dictionary with the keys matching the parameter names specified in get_output_parameters and the values being
+        the results from the raytracing
+        """
+        pass
+
+    def get_number_of_raytracing_solutions(self):
+        """
+        Function that returns the maximum number of raytracing solutions that can exist between each given
+        pair of start and end points
+        """
+        pass
+
+    def get_config(self):
+        """
+        Function that returns the configuration currently used by the raytracer
+        """
+        pass
+
+    def set_config(self, config):
+        """
+        Function to change the configuration file used by the raytracer
+
+        Parameters:
+        ----------------
+        config: dict
+            The new configuration settings
+        """

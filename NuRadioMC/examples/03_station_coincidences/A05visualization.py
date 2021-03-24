@@ -96,7 +96,7 @@ for iE in np.arange(n_events, dtype=np.int)[np.any(triggered_deep[:, mask], axis
 
         if(plot):
             r2 = ray.ray_tracing(vertex, x2, med, log_level=logging.INFO)
-            r2.set_solution(fin['station_101']['ray_tracing_C0'][iE][iC], fin['station_101']['ray_tracing_C1'][iE][iC], fin['station_101']['ray_tracing_solution_type'][iE][iC])
+            r2.set_solution(fin, iE, iC)
             path2 = r2.get_path(0)
     #         ax.plot3D(path1.T[0], path1.T[1], path1.T[2], label='path 1')
             ax.plot3D(path2.T[0], path2.T[1], path2.T[2], label='path {}'.format(j))
@@ -105,7 +105,6 @@ for iE in np.arange(n_events, dtype=np.int)[np.any(triggered_deep[:, mask], axis
 
         dT = []
         for l in l2:
-#             print("{:.1f}".format((theta - hp.get_angle(-v, l))/units.deg))
             dT.append((theta - hp.get_angle(-v, l))/units.deg)
         dTs.append(np.min(np.abs(np.array(dT))))
         if(plot):
