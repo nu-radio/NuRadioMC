@@ -905,6 +905,7 @@ class simulation():
                     if(self._outputfilenameNuRadioReco is not None and self._station.has_triggered()):
                         # downsample traces to detector sampling rate to save file size
                         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
+                        channelResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
                         electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
 
                         output_mode = {'Channels': self._cfg['output']['channel_traces'],
