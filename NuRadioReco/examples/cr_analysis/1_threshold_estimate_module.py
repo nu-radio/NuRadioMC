@@ -206,7 +206,7 @@ for n_thres in count():
                                      coinc_window = coinc_window, number_concidences = number_coincidences, triggered_channels = triggered_channels, trigger_name = trigger_name)
 
             if trigger_name == 'envelope':
-                triggerSimulator.run(event, station, det, passband_trigger, order, n_thres, coinc_window,
+                triggerSimulator.run(event, station, det, passband_trigger, order_trigger, n_thres, coinc_window,
                 number_coincidences=number_coincidences, triggered_channels=triggered_channels, trigger_name=trigger_name)
 
             trigger_status_one_it = station.get_trigger(trigger_name).has_triggered()
@@ -259,7 +259,6 @@ for n_thres in count():
             dic['detector_file'] = detector_file
             dic['default_station'] = default_station
             dic['sampling_rate'] = sampling_rate
-            dic['order_trigger'] = order_trigger
             dic['T_noise_min_freq'] = T_noise_min_freq
             dic['T_noise_max_freq '] = T_noise_max_freq
             dic['galactic_noise_n_side'] = galactic_noise_n_side
