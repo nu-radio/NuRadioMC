@@ -398,7 +398,7 @@ class IftElectricFieldReconstructor:
             antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(det.get_antenna_model(station.get_id(), channel_id))
             antenna_response = antenna_pattern.get_antenna_response_vectorized(
                 self.__electric_field_template.get_frequencies(),
-                channel.get_parameter(chp.signal_receiving_zenith),
+                channel.get_parameter(chp.signal_receiving_zeniths),
                 0.,
                 antenna_orientation[0],
                 antenna_orientation[1],
@@ -411,7 +411,7 @@ class IftElectricFieldReconstructor:
             ) * amp_response * (antenna_response['theta'] + antenna_response['phi'])
             channel_trace_template = fft.freq2time(channel_spectrum_template, self.__electric_field_template.get_sampling_rate())
             channel_trace_templates[i_channel] = channel_trace_template
-            channel.apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
+            channel.apply_time_shift(-channel.get_parameter(chp.signal_time_offsets), True)
             if self.__use_sim:
                 sim_channel_traces[i_channel].apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
                 channel_trace = sim_channel_traces[i_channel].get_filtered_trace(passband, filter_type='butterabs')
@@ -433,7 +433,7 @@ class IftElectricFieldReconstructor:
 
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             channel = station.get_channel(channel_id)
-            time_offset = channel.get_parameter(chp.signal_time_offset)
+            time_offset = channel.get_parameter(chp.signal_time_offsets)
             channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
             toffset = -(np.arange(0, correlation_sum.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()
             if self.__debug:
@@ -443,12 +443,13 @@ class IftElectricFieldReconstructor:
                 ax2_1.set_title('Channel {}'.format(channel_id))
                 ax2_1.plot(self.__electric_field_template.get_times() + channel.get_trace_start_time() + toffset[np.argmax(correlation_sum)], channel_trace_templates[i_channel] / np.max(channel_trace_templates[i_channel]) * np.max(channel_trace) / units.mV, c='C1')
                 sim_channel_sum = None
-                for sim_channel in station.get_sim_station().iter_channels():
-                    if sim_channel.get_id() == channel_id:
-                        if sim_channel_sum is None:
-                            sim_channel_sum = sim_channel
-                        else:
-                            sim_channel_sum += sim_channel
+                if station.get_sim_station() is not None:
+                    for sim_channel in station.get_sim_station().iter_channels():
+                        if sim_channel.get_id() == channel_id:
+                            if sim_channel_sum is None:
+                                sim_channel_sum = sim_channel
+                            else:
+                                sim_channel_sum += sim_channel
                 if sim_channel_sum is not None:
                     sim_channel_sum.apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
                     ax2_1.plot(sim_channel_sum.get_times(), sim_channel_sum.get_filtered_trace(passband, filter_type='butterabs') / units.mV, c='k', alpha=.5)
@@ -464,7 +465,7 @@ class IftElectricFieldReconstructor:
                 ax2_2 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 2)
                 ax2_2.grid()
                 ax2_2.plot(np.arange(len(self.__data_traces[i_channel])) / channel.get_sampling_rate(), self.__data_traces[i_channel])
-            channel.apply_time_shift(channel.get_parameter(chp.signal_time_offset) + toffset[np.argmax(correlation_sum)], True)
+            channel.apply_time_shift(channel.get_parameter(chp.signal_time_offsets) + toffset[np.argmax(correlation_sum)], True)
         self.__scaling_factor = np.max(self.__data_traces)
         self.__data_traces /= self.__scaling_factor
         self.__noise_levels /= self.__scaling_factor
@@ -503,9 +504,9 @@ class IftElectricFieldReconstructor:
             filter_phase = 0
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             channel = station.get_channel(channel_id)
-            receiving_zenith = channel.get_parameter(chp.signal_receiving_zenith)
-            if channel.has_parameter(chp.signal_receiving_azimuth):
-                receive_azimuth = channel.get_parameter(chp.signal_receiving_azimuth)
+            receiving_zenith = channel.get_parameter(chp.signal_receiving_zeniths)
+            if channel.has_parameter(chp.signal_receiving_azimuths):
+                receive_azimuth = channel.get_parameter(chp.signal_receiving_azimuths)
             else:
                 receive_azimuth = 0.
             antenna_response = NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor(station, frequencies, [channel_id], detector, receiving_zenith, receive_azimuth, self.__antenna_pattern_provider)[0]
@@ -911,13 +912,14 @@ class IftElectricFieldReconstructor:
                         if sim_efield_max is None or np.max(np.abs(efield_sum.get_frequency_spectrum())) > sim_efield_max:
                             sim_efield_max = np.max(np.abs(efield_sum.get_frequency_spectrum()))
             else:
-                channel_snr = .5 * (np.max(station.get_channel(channel_id).get_trace()) - np.min(station.get_channel(channel_id).get_trace())) / (self.__noise_levels * self.__scaling_factor)
+                channel_snr = .5 * (np.max(station.get_channel(channel_id).get_trace()) - np.min(station.get_channel(channel_id).get_trace())) / (self.__noise_levels[i_channel] * self.__scaling_factor)
             ax2_1.plot(times, self.__data_traces[i_channel] * self.__scaling_factor / units.mV, c='C0', alpha=1., zorder=5, label='data')
 
             ax1_1.plot(freqs / units.MHz, amp_trace_stat_calculator.mean * self.__scaling_factor / units.mV, c='C2', label='IFT reco', linewidth=3, alpha=.6)
             ax2_1.plot(times, trace_stat_calculator.mean * self.__scaling_factor / units.mV, c='C2', linestyle='-', zorder=2, linewidth=4, label='IFT reconstruction')
             ax2_1.set_xlim([times[0], times[-1]])
             if channel_snr is not None:
+                print(channel_snr)
                 textbox = dict(boxstyle='round', facecolor='white', alpha=.5)
                 ax2_1.text(.9, .05, 'SNR={:.1f}'.format(channel_snr), transform=ax2_1.transAxes, bbox=textbox, fontsize=18)
             if self.__polarization == 'theta':
@@ -938,13 +940,13 @@ class IftElectricFieldReconstructor:
                 ax1_3.axvline(self.__passband[0] / units.MHz, c='k', alpha=.5, linestyle=':')
                 ax1_3.axvline(self.__passband[1] / units.MHz, c='k', alpha=.5, linestyle=':')
                 ax1_3.grid()
-                ax1_3.set_xlim([0, 750])
+                ax1_3.set_xlim([self.__passband[0] / units.MHz - 10, self.__passband[1] / units.MHz + 10])
                 ax1_3.set_xlabel('f [MHz]')
             if i_channel == 0:
                 ax2_1.legend(fontsize=fontsize)
                 ax1_1.legend(fontsize=fontsize)
-            ax1_1.set_xlim([0, 750])
-            ax1_2.set_xlim([0, 750])
+            ax1_1.set_xlim([self.__passband[0] / units.MHz - 10, self.__passband[1] / units.MHz + 10])
+            ax1_2.set_xlim([self.__passband[0] / units.MHz - 10, self.__passband[1] / units.MHz + 10])
             ax1_1.set_title('Channel {}'.format(channel_id), fontsize=fontsize)
             ax2_1.set_title('Channel {}'.format(channel_id), fontsize=fontsize)
             ax1_1.set_xlabel('f [MHz]', fontsize=fontsize)
