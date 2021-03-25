@@ -1,0 +1,7 @@
+eventlist: ['air_shower_sim/SIM000472.hdf5',
+            'air_shower_sim/SIM000479.hdf5',
+            'air_shower_sim/SIM000485.hdf5',
+            'air_shower_sim/SIM000495.hdf5']
+
+output_filename: 'output_air_shower_reco/air_shower_reco_'
+
