@@ -210,7 +210,7 @@ for n_it in range(iterations):
                                      triggered_channels=triggered_channels, trigger_name=trigger_name)
             if trigger_name == 'envelope':
                 print('choose envelope trigger')
-                triggerSimulator.run(event, station, det, passband_trigger, order, threshold, coinc_window,
+                triggerSimulator.run(event, station, det, passband_trigger, order_trigger, threshold, coinc_window,
                                      number_coincidences=number_coincidences, triggered_channels=triggered_channels,
                                      trigger_name=trigger_name)
 

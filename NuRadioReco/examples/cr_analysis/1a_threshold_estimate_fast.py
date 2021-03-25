@@ -284,7 +284,6 @@ for n_thres in count():
             dic['detector_file'] = detector_file
             dic['default_station'] = default_station
             dic['sampling_rate'] = sampling_rate
-            dic['order_trigger'] = order_trigger
             dic['T_noise_min_freq'] = T_noise_min_freq
             dic['T_noise_max_freq '] = T_noise_max_freq
             dic['galactic_noise_n_side'] = galactic_noise_n_side
