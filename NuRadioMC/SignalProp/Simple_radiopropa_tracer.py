@@ -355,7 +355,7 @@ class ray_tracing:
                     vector = self.get_path_candidate(iS)[-1] - self.__x2 #position of the receive vector on the sphere around the channel
                     vector_zenith = hp.cartesian_to_spherical(vector[0],vector[1],vector[2])[0]
                     receive_zenith = hp.cartesian_to_spherical(*(self.get_receive_vector(iS)))[0]
-                    delta = abs(vector_zenith-receive_zeniths[iS])
+                    delta = abs(vector_zenith-receive_zenith)
                     if delta < delta_min: #select the most normal ray on the sphere in the bundle
                         final_iS = iS 
                 rays_results.append(self.__rays[final_iS])
