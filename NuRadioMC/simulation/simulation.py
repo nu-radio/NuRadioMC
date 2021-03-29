@@ -905,6 +905,7 @@ class simulation():
                     if(self._outputfilenameNuRadioReco is not None and self._station.has_triggered()):
                         # downsample traces to detector sampling rate to save file size
                         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
+                        channelResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
                         electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
 
                         output_mode = {'Channels': self._cfg['output']['channel_traces'],
@@ -1332,9 +1333,7 @@ class simulation():
         from NuRadioReco.utilities import version
         import NuRadioMC
         fout.attrs['NuRadioMC_version'] = NuRadioMC.__version__
-        fout.attrs['NuRadioReco_version'] = NuRadioReco.__version__
         fout.attrs['NuRadioMC_version_hash'] = version.get_NuRadioMC_commit_hash()
-        fout.attrs['NuRadioReco_version_hash'] = version.get_NuRadioReco_commit_hash()
 
         if not empty:
             # now we also save all input parameters back into the out file
