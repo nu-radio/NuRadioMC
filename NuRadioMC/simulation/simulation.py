@@ -1333,9 +1333,7 @@ class simulation():
         from NuRadioReco.utilities import version
         import NuRadioMC
         fout.attrs['NuRadioMC_version'] = NuRadioMC.__version__
-        fout.attrs['NuRadioReco_version'] = NuRadioReco.__version__
         fout.attrs['NuRadioMC_version_hash'] = version.get_NuRadioMC_commit_hash()
-        fout.attrs['NuRadioReco_version_hash'] = version.get_NuRadioReco_commit_hash()
 
         if not empty:
             # now we also save all input parameters back into the out file
