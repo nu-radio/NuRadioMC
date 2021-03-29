@@ -125,7 +125,7 @@ class channelPulseFinderSimulator:
     ):
         threshold_mask = (maxima - minima > 2. * self.__min_snr * self.__noise_level)
         for signal_window in signal_windows:
-            threshold_mask[(times >= signal_window[0]) & (times <= signal_window[1])] = 0
+            threshold_mask[(times >= signal_window[0] - self.__pulse_width) & (times <= signal_window[1] + self.__pulse_width)] = 0
         if np.max(threshold_mask) == 0:
             return None, None
         signal_window_center = times[threshold_mask][np.argmax(np.abs(trace[threshold_mask]))]

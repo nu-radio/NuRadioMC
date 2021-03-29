@@ -9,6 +9,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.utilities import trace_utilities, fft, bandpass_filter
 import radiotools.helper as hp
+import scipy.optimize
 
 
 class neutrino3DVertexReconstructor:
@@ -240,19 +241,17 @@ class neutrino3DVertexReconstructor:
         flattened_corr = np.max(full_correlations, axis=2).T
         i_max_d = np.argmax(flattened_corr, axis=0)
         corr_mask_d = np.max(flattened_corr, axis=0) > corr_fit_threshold
-        line_fit_d = np.polyfit(
-            self.__distances_2d[corr_mask_d],
-            self.__z_coordinates_2d[i_max_d][corr_mask_d],
-            1
-        )
+        def lin_func(par, x, y):
+            return (par[0] * x + par[1] - y)**2
+
+        least_squares_d = scipy.optimize.least_squares(lin_func, np.zeros(2), args=(self.__distances_2d[corr_mask_d], self.__z_coordinates_2d[i_max_d][corr_mask_d]), loss='huber')
+        line_fit_d = least_squares_d.x
         residuals_d = np.sum((self.__z_coordinates_2d[i_max_d][corr_mask_d] - self.__distances_2d[corr_mask_d] * line_fit_d[0] - line_fit_d[1])**2) / np.sum(corr_mask_d.astype(int))
         i_max_z = np.argmax(flattened_corr, axis=1)
         corr_mask_z = np.max(flattened_corr, axis=1) > corr_fit_threshold
-        line_fit_z = np.polyfit(
-            self.__distances_2d[i_max_z][corr_mask_z],
-            self.__z_coordinates_2d[corr_mask_z],
-            1
-        )
+        least_squares_z = scipy.optimize.least_squares(lin_func, np.zeros(2), args=(self.__distances_2d[i_max_z][corr_mask_z], self.__z_coordinates_2d[corr_mask_z],), loss='huber')
+        line_fit_z = least_squares_z.x
+
         residuals_z = np.sum((self.__z_coordinates_2d[corr_mask_z] - self.__distances_2d[i_max_z][corr_mask_z] * line_fit_z[0] - line_fit_z[1])**2) / np.sum(corr_mask_z.astype(int))
         if residuals_d <= residuals_z:
             slope = line_fit_d[0]
