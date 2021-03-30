@@ -21,7 +21,11 @@ requires = [
     "pyyaml",
     "cython",
     "peakutils",
-    "requests"
+    "requests",
+    "pymongo",
+    "dash",
+    "plotly",
+    "sphinx"
 ]
 requires-python=">=3.6"
 
