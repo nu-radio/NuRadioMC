@@ -319,10 +319,12 @@ class ray_tracing:
                             'reflection':raytracing_results['ray_tracing_reflection'][iS],
                             'reflection_case':raytracing_results['ray_tracing_reflection_case'][iS]
                             })
-#            rays.append(raytracing_results['ray'][iS])
+            launch_vector.raytracing_results['launch'][iS]
+            ##use launch vector to contruct the candidate again
+            rays.append(None)
 
         self.__results = results
-#        self.__rays = rays
+        self.__rays = rays
 
 
     def find_solutions(self):
@@ -342,17 +344,17 @@ class ray_tracing:
             launch_zeniths.append(hp.cartesian_to_spherical(*(self.get_launch_vector(iS)))[0])
             solution_types.append(self.get_solution_type(iS))
 
-        mask_lower = {i: (launch_zeniths>self.__launch_bundles[i,0]) for i in range(len(self.__launch_bundles))} 
-        mask_upper = {i: (launch_zeniths<self.__launch_bundles[i,1]) for i in range(len(self.__launch_bundles))}
+        mask_lower = {i: (launch_zeniths>launch_bundles[i,0]) for i in range(len(launch_bundles))} 
+        mask_upper = {i: (launch_zeniths<launch_bundles[i,1]) for i in range(len(launch_bundles))}
         mask_solution = {j: (np.array(solution_types) == j) for j in ray_tracing.solution_types.keys()}   
         
-        for i in range(len(self.__launch_bundles)):
+        for i in range(len(launch_bundles)):
             mask = (mask_lower[i]&mask_upper[i])
             if mask.any():
                 delta_min = np.deg2rad(90)
                 final_iS = None
                 for iS in iSs[mask]: #index of rays in the bundle
-                    vector = self.get_path_candidate(iS)[-1] - self.__x2 #position of the receive vector on the sphere around the channel
+                    vector = self.get_path_candidate(self.__rays[iS])[-1] - self.__x2 #position of the receive vector on the sphere around the channel
                     vector_zenith = hp.cartesian_to_spherical(vector[0],vector[1],vector[2])[0]
                     receive_zenith = hp.cartesian_to_spherical(*(self.get_receive_vector(iS)))[0]
                     delta = abs(vector_zenith-receive_zenith)
@@ -894,7 +896,7 @@ class ray_tracing:
         return [
             {'name': 'sphere_sizes','ndim':len(self.__sphere_sizes)},
             {'name': 'zenith_step_sizes','ndim':len(self.__step_sizes)},
-#            {'name': 'ray', 'ndim': 1},
+            {'name': 'launch_vector', 'ndim': 1},
             {'name': 'focusing_factor', 'ndim': 1},
             {'name': 'ray_tracing_reflection', 'ndim': 1},
             {'name': 'ray_tracing_reflection_case', 'ndim': 1},
@@ -922,7 +924,7 @@ class ray_tracing:
         output_dict = {
             'sphere_sizes': self.__sphere_sizes,
             'zenith_step_sizes': self.__step_sizes,
-#            'ray': self.__rays[i_solution],
+            'launch_vector': self.get_launch_vector(i_solution),
             'focusing_factor': focusing,
             'ray_tracing_reflection': self.get_results()[i_solution]['reflection'],
             'ray_tracing_reflection_case': self.get_results()[i_solution]['reflection_case'],
