@@ -27,11 +27,12 @@ import pygdsm
 import astropy
 
 '''
-The difference to 1_ is, that the envelope module is speed up.
+The difference to 1_threshold_estimate.py is, that the trigger module of the envelope trigger is directly implemented and speeded up. 
+If you used the 1_.._fast.py, please use 2_..._fast.py
 
 This script calculates a first estimate from which the calculations of the threshold will continue. This is done by 
 increasing the threshold after a number of iteration if more than one trigger triggered true. From the resulting 
-threshold, the next script starts. So first run 1_threshold.py estimate and then use 2a_threshold_final_fast.py. 
+threshold, the next script starts. So first run 1_threshold_estimate_fast.py estimate and then use 2a_threshold_final_fast.py. 
 Afterwards you have to use 3_threshold_average_and_plot.py to get a dictionary and plot with the results.
 
 the sampling rate has a huge influence on the threshold, because the trace has more time to exceed the threshold
