@@ -16,7 +16,7 @@ logging.basicConfig()
 
 '''
 TO DO
-- include ray in output so it can be read in when presimulated (see # at beginning of some lines)
+- set_solution --> use launch vectors to recalculate the path
 '''
 
 
@@ -337,16 +337,13 @@ class ray_tracing:
         launch_bundles = self.RadioPropa_raytracer(self.__n_reflections)
 
         launch_zeniths = []
-        solution_types = []
         iSs = np.array(np.arange(0, len(self.__rays), 1))
 
         for iS in iSs:
             launch_zeniths.append(hp.cartesian_to_spherical(*(self.get_launch_vector(iS)))[0])
-            solution_types.append(self.get_solution_type(iS))
 
         mask_lower = {i: (launch_zeniths>launch_bundles[i,0]) for i in range(len(launch_bundles))} 
-        mask_upper = {i: (launch_zeniths<launch_bundles[i,1]) for i in range(len(launch_bundles))}
-        mask_solution = {j: (np.array(solution_types) == j) for j in ray_tracing.solution_types.keys()}   
+        mask_upper = {i: (launch_zeniths<launch_bundles[i,1]) for i in range(len(launch_bundles))}   
         
         for i in range(len(launch_bundles)):
             mask = (mask_lower[i]&mask_upper[i])
@@ -361,7 +358,7 @@ class ray_tracing:
                     if delta < delta_min: #select the most normal ray on the sphere in the bundle
                         final_iS = iS 
                 rays_results.append(self.__rays[final_iS])
-                results.append({'type':solution_types[final_iS], 
+                results.append({'type':self.get_solution_type(final_iS), 
                                 'reflection':self.__results[final_iS]['reflection'],
                                 'reflection_case':self.__results[final_iS]['reflection_case']})
 
