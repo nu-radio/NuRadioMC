@@ -319,7 +319,7 @@ class ray_tracing:
                             'reflection':raytracing_results['ray_tracing_reflection'][iS],
                             'reflection_case':raytracing_results['ray_tracing_reflection_case'][iS]
                             })
-            launch_vector.raytracing_results['launch'][iS]
+            launch_vector = raytracing_results['launch_vector'][iS]
             ##use launch vector to contruct the candidate again
             rays.append(None)
 
