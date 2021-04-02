@@ -894,7 +894,7 @@ class ray_tracing:
         return [
             {'name': 'sphere_sizes','ndim':len(self.__sphere_sizes)},
             {'name': 'zenith_step_sizes','ndim':len(self.__step_sizes)},
-            {'name': 'launch_vector', 'ndim': 1},
+            {'name': 'launch_vector', 'ndim': 3},
             {'name': 'focusing_factor', 'ndim': 1},
             {'name': 'ray_tracing_reflection', 'ndim': 1},
             {'name': 'ray_tracing_reflection_case', 'ndim': 1},
