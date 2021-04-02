@@ -357,6 +357,7 @@ class ray_tracing:
                     delta = abs(vector_zenith-receive_zenith)
                     if delta < delta_min: #select the most normal ray on the sphere in the bundle
                         final_iS = iS 
+                        delta_min = delta
                 rays_results.append(self.__rays[final_iS])
                 results.append({'type':self.get_solution_type(final_iS), 
                                 'reflection':self.__results[final_iS]['reflection'],
