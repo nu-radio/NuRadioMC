@@ -446,7 +446,7 @@ class IftElectricFieldReconstructor:
             else:
                 channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
                 for i_region, signal_region in enumerate(channel.get_parameter(chp.signal_regions)):
-                    if channel.get_parameter(chp.signal_ray_types) == self.__ray_type:
+                    if channel.get_parameter(chp.signal_ray_types)[i_region] == self.__ray_type:
                         channel_trace[channel.get_times() + self.__time_offsets[i_channel] < signal_region[0]] = 0
                         channel_trace[channel.get_times() + self.__time_offsets[i_channel] > signal_region[1]] = 0
             if self.__use_sim:
