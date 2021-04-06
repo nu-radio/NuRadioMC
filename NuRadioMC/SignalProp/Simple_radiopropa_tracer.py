@@ -426,40 +426,34 @@ class ray_tracing:
             self.__results = results
 
         else:
-            self.raytracer_iterative(self.__n_reflections)
+            launch_bundles = self.raytracer_iterative(self.__n_reflections)
 
             launch_zeniths = []
-            receive_zeniths = []
-            solution_types = []
-            ray_endpoints = []
             iSs = np.array(np.arange(0, len(self.__rays), 1))
 
-            for iS, ray in enumerate(self.__rays):
+            for iS in iSs:
                 launch_zeniths.append(hp.cartesian_to_spherical(*(self.get_launch_vector(iS)))[0])
-                receive_zeniths.append(hp.cartesian_to_spherical(*(self.get_receive_vector(iS)))[0])
-                solution_types.append(self.get_solution_type(iS))
-                ray_endpoints.append(self.get_path(iS)[-1])
 
-            mask_lower = {i: (launch_zeniths>self.__launch_bundles[i,0]) for i in range(len(self.__launch_bundles))} 
-            mask_upper = {i: (launch_zeniths<self.__launch_bundles[i,1]) for i in range(len(self.__launch_bundles))}
-            mask_solution = {j: (np.array(solution_types) == j) for j in ray_tracing.solution_types.keys()}   
+            mask_lower = {i: (launch_zeniths>launch_bundles[i,0]) for i in range(len(launch_bundles))} 
+            mask_upper = {i: (launch_zeniths<launch_bundles[i,1]) for i in range(len(launch_bundles))}   
             
-            for i in range(len(self.__launch_bundles)):
-                for j in [0]:#ray_tracing.solution_types.keys():
-                    mask = (mask_lower[i]&mask_upper[i])#&mask_solution[j])
-                    if mask.any():
-                        delta_min = np.deg2rad(90)
-                        final_iS = None
-                        for iS in iSs[mask]: #index o rays with solution type i
-                            vector = ray_endpoints[iS] - self.__x2 #position of the receive vector on the sphere around the channel
-                            vector_zenith = hp.cartesian_to_spherical(vector[0],vector[1],vector[2])[0]
-                            delta = abs(vector_zenith-receive_zeniths[iS])
-                            if delta < delta_min:
-                                final_iS = iS
-                        rays_results.append(self.__rays[final_iS])
-                        results.append({'type':solution_types[final_iS], 
-                                        'reflection':self.__results[final_iS]['reflection'],
-                                        'reflection_case':self.__results[final_iS]['reflection_case']})
+            for i in range(len(launch_bundles)):
+                mask = (mask_lower[i]&mask_upper[i])
+                if mask.any():
+                    delta_min = np.deg2rad(90)
+                    final_iS = None
+                    for iS in iSs[mask]: #index of rays in the bundle
+                        vector = self.get_path_candidate(self.__rays[iS])[-1] - self.__x2 #position of the receive vector on the sphere around the channel
+                        vector_zenith = hp.cartesian_to_spherical(vector[0],vector[1],vector[2])[0]
+                        receive_zenith = hp.cartesian_to_spherical(*(self.get_receive_vector(iS)))[0]
+                        delta = abs(vector_zenith-receive_zenith)
+                        if delta < delta_min: #select the most normal ray on the sphere in the bundle
+                            final_iS = iS 
+                            delta_min = delta
+                    rays_results.append(self.__rays[final_iS])
+                    results.append({'type':self.get_solution_type(final_iS), 
+                                    'reflection':self.__results[final_iS]['reflection'],
+                                    'reflection_case':self.__results[final_iS]['reflection_case']})
 
             self.__rays = rays_results
             self.__results = results
