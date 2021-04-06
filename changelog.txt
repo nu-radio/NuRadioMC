@@ -2,6 +2,11 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 2.1.0
+new features:
+- add a numerical raytracer depending on the radiopropa code
+- major change in the declaration of mediums at the back end, at the front end nothing changed.
+
 version 1.2.0
 new features:
 - major change in internal looping. Now, the radio signal from each shower is calculated and signal arrival times 
