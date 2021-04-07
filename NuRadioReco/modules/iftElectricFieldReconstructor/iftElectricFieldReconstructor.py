@@ -137,12 +137,14 @@ class IftElectricFieldReconstructor:
                     (200. * units.MHz, 350. * units.MHz)
                 ]
             ]
+        else:
+            self.__slope_passbands = slope_passbands
         if energy_fluence_passbands is None:
             self.__energy_fluence_passbands = [
                 (130. * units.MHz, 500. * units.MHz)
             ]
         else:
-            self.__slope_passbands = slope_passbands
+            self.__energy_fluence_passbands = energy_fluence_passbands
         if amp_dct is None:
             self.__amp_dct = {
                 'n_pix': 64,  # spectral bins
