@@ -7,13 +7,11 @@ import pickle
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.channelGalacticNoiseAdder
 import NuRadioReco.modules.trigger.envelopeTrigger
-import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.eventTypeIdentifier
 import NuRadioReco.utilities.fft
 from NuRadioReco.detector.generic_detector import GenericDetector
-from NuRadioReco.framework.base_trace import BaseTrace
 from NuRadioReco.framework.event import Event
 from NuRadioReco.framework.station import Station
 from NuRadioReco.framework.channel import Channel
@@ -44,14 +42,14 @@ do
 echo "Processing $file"
   for number in $(seq 0 1 110)
   do echo $number
-  qsub /afs/ifh.de/group/radio/scratch/lpyras/Cluster_jobs/Cluster_ntr_2.sh $file 20000 $number
+  qsub /afs/ifh.de/group/radio/scratch/lpyras/Cluster_jobs/Cluster_ntr_threshold_second.sh $file 20000 $number
   sleep 0.2
   done
 done
 '''
 
 parser = argparse.ArgumentParser(description='Noise Trigger Rate')
-parser.add_argument('input_filename', type=str, nargs='?', default = 'output_threshold_estimate/estimate_threshold_pb_80_180_i10.pickle', help = 'input filename from which the calculation starts.')
+parser.add_argument('input_filename', type=str, nargs='?', default = 'output_threshold_estimate/estimate_threshold_envelope_fast_pb_80_180_i20.pickle', help = 'input filename from which the calculation starts.')
 parser.add_argument('iterations', type=int, nargs='?', default = 20, help = 'number of iterations within the script. Has to be a multiple of 10')
 parser.add_argument('number', type=int, nargs='?', default = 1, help = 'specify how often you would like to run the hole script. Important for cluster use')
 parser.add_argument('output_path', type=os.path.abspath, nargs='?', default = '', help = 'Path to save output, most likely the path to the cr_analysis directory')
@@ -73,9 +71,8 @@ data = io_utilities.read_pickle(input_filename, encoding='latin1')
 # print('#', number)
 # print(data)
 
-triggered_channels = [16, 19, 22]
-
 detector_file = data['detector_file']
+triggered_channels = data['triggered_channels']
 default_station = data['default_station']
 sampling_rate = data['sampling_rate']
 station_time = data['station_time']
@@ -99,9 +96,8 @@ trigger_efficiency = data['efficiency']
 trigger_rate = data['trigger_rate']
 
 hardware_response = data['hardware_response']
-trigger_name = data['trigger_name']
 
-trigger_thresholds = (np.arange(check_trigger_thresholds[-1] + (15*threshold_steps), check_trigger_thresholds[-1] + (30*threshold_steps), threshold_steps)) *units.volt
+trigger_thresholds = (np.arange(check_trigger_thresholds[-4], check_trigger_thresholds[-4] + 0.00003, threshold_steps)) *units.volt
 
 # print('passband', passband_trigger / units.megahertz)
 # print('checked threshold', check_trigger_thresholds)
@@ -135,19 +131,8 @@ channelGalacticNoiseAdder = NuRadioReco.modules.channelGalacticNoiseAdder.channe
 channelGalacticNoiseAdder.begin(n_side=4, interpolation_frequencies=np.arange(10, 1100, galactic_noise_interpolation_frequencies_step) * units.MHz)
 hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
 
-if trigger_name == 'high_low':
-    print('choose high low trigger')
-    triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
-    triggerSimulator.begin()
-
-if trigger_name == 'envelope':
-    print('choose envelope')
-    triggerSimulator = NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator()
-    triggerSimulator.begin()
-
-channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
-channelBandPassFilter.begin()
-
+triggerSimulator = NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator()
+triggerSimulator.begin()
 
 t = time.time()  # absolute time of system
 sampling_rate = station.get_channel(channel_ids[0]).get_sampling_rate()
@@ -195,33 +180,56 @@ for n_it in range(iterations):
             rand_phase = np.random.uniform(low=0, high= 2*np.pi, size=len(freq_specs))
             freq_specs = np.abs(freq_specs) * np.exp(1j * rand_phase)
             channel.set_frequency_spectrum(frequency_spectrum=freq_specs, sampling_rate=sampling_rate)
-            if trigger_name == 'high_low':
-                print('choose high low trigger, passband on')
-                channelBandPassFilter.run(event, station, det, passband=passband_trigger,
-                                          filter_type='butter', order=order_trigger)
 
         trigger_status_all_thresholds = []
         for threshold in trigger_thresholds:
             print('current threshold', threshold)
-            if trigger_name == 'high_low':
-                print('choose high low trigger')
-                triggerSimulator.run(event, station, det, threshold_high=threshold, threshold_low=-threshold,
-                                     coinc_window=coinc_window, number_concidences=number_coincidences,
-                                     triggered_channels=triggered_channels, trigger_name=trigger_name)
-            if trigger_name == 'envelope':
-                print('choose envelope trigger')
-                triggerSimulator.run(event, station, det, passband_trigger, order_trigger, threshold, coinc_window,
-                                     number_coincidences=number_coincidences, triggered_channels=triggered_channels,
-                                     trigger_name=trigger_name)
+            triggered_bins_channels = []
+            channels_that_passed_trigger = []
+            for channel in station.iter_channels():
+                print('channel', channel.get_id())
+                trace = channel.get_trace()
+                frequencies = channel.get_frequencies()
+                f = np.zeros_like(frequencies, dtype=np.complex)
+                mask = frequencies > 0
+                b, a = scipy.signal.butter(order_trigger, passband_trigger, 'bandpass', analog=True,
+                                           output='ba')  # Numerator (b) and denominator (a) polynomials of the IIR filter
+                w, h = scipy.signal.freqs(b, a, frequencies[mask])  # w :The angular frequencies at which h was computed. h :The frequency response.
+                f[mask] = h
 
-            has_triggered = station.get_trigger(trigger_name).has_triggered()
+                sampling_rate = channel.get_sampling_rate()
+                freq_spectrum_fft_copy = np.array(channel.get_frequency_spectrum())
+                freq_spectrum_fft_copy *= f
+                trace_filtered = NuRadioReco.utilities.fft.freq2time(freq_spectrum_fft_copy, sampling_rate)
+
+                # apply envelope trigger to each channel
+                triggered_bins = np.abs(scipy.signal.hilbert(trace_filtered)) > threshold
+                print('trace > threshold', max(np.abs(scipy.signal.hilbert(trace_filtered))), threshold)
+
+                triggered_bins_channels.append(triggered_bins)
+
+                if True in triggered_bins:
+                    channels_that_passed_trigger.append(channel.get_id())
+                print('channel that passed trigger', channels_that_passed_trigger)
+
+                # check for coincidences with get_majority_logic(tts, number_of_coincidences=2,
+                # time_coincidence=32 * units.ns, dt=1 * units.ns)
+                # returns:
+                # triggered: bool; returns True if majority logic is fulfilled --> has_triggered
+                # triggered_bins: array of ints; the bins that fulfilled the trigger --> triggered_bins
+                # triggered_times = triggered_bins * dt: array of floats;
+                # the trigger times relative to the trace --> triggered_times
+
+            has_triggered, triggered_bins, triggered_times = get_majority_logic(triggered_bins_channels,
+                                                                                    number_coincidences, coinc_window, dt)
+
             trigger_status_all_thresholds.append(has_triggered)
 
-            #print('current threshold', threshold)
-            #print('has_triggered', has_triggered)
-        print('trigger_status_all_thresholds', trigger_status_all_thresholds)
+            print('current threshold', threshold)
+            print('has_triggered', has_triggered)
+            print('trigger_status_all_thresholds', trigger_status_all_thresholds)
         trigger_status.append(trigger_status_all_thresholds)
-        #print('trigger_status', trigger_status)
+        print('trigger_status', trigger_status)
 
 trigger_status = np.array(trigger_status)
 triggered_trigger = np.sum(trigger_status, axis=0)
@@ -237,6 +245,7 @@ trigger_rate = (1 / channel_trace_time_interval) * trigger_efficiency
 
 dic = {}
 dic['detector_file'] = detector_file
+dic['triggered_channels'] = triggered_channels
 dic['default_station'] = default_station
 dic['sampling_rate'] = sampling_rate
 dic['T_noise'] = T_noise
@@ -259,12 +268,13 @@ dic['triggered_all'] = len(trigger_status)
 dic['efficiency'] = trigger_efficiency
 dic['trigger_rate'] = trigger_rate
 dic['hardware_response'] = hardware_response
-dic['trigger_name'] = trigger_name
 
-print(dic)
+# print(dic)
 
-output_file = 'output_threshold_final/final_threshold_{}_pb_{:.0f}_{:.0f}_i{}_{}.pickle'.format(trigger_name,
+output_file = 'output_threshold_final/final_threshold_envelope_fast_pb_{:.0f}_{:.0f}_i{}_{}.pickle'.format(
         passband_trigger[0] / units.MHz, passband_trigger[1] / units.MHz,len(trigger_status), number)
 abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
 with open(abs_path_output_file, 'wb') as pickle_out:
     pickle.dump(dic, pickle_out)
+
+

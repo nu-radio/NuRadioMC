@@ -4,6 +4,10 @@ import os
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units, io_utilities
 
+''' This script is only necessary if you want to compare the thresholds of different passbands. 
+First you have to run 3_... to have the final results in one dict. Make sure that the dicts for all the passbands 
+you want to compare are in the directory ntr.'''
+
 trigger_rate = []
 trigger_thresholds = []
 final_thresholds = []
@@ -17,7 +21,7 @@ for file in os.listdir('results/ntr/'):
     data = []
     data = io_utilities.read_pickle(filename, encoding='latin1')
 
-    trigger_thresholds = data['thresholds']
+    trigger_thresholds = data['threshold']
     print('trigger thresholds', trigger_thresholds)
 
     passband_trigger = data['passband_trigger']
@@ -31,20 +35,14 @@ for file in os.listdir('results/ntr/'):
 
     trigger_rate = data['trigger_rate']
     print('trigger rate', trigger_rate)
-    ######for dict
+
     zeros = np.where(trigger_rate == 0)[0]
     print(zeros)
     first_zero = zeros[0]
-    print(first_zero)
+    print('first zero', first_zero)
     final_threshold = trigger_thresholds[first_zero]
     print('final threshold', final_threshold/units.mV)
     final_thresholds.append(final_threshold)
-
-    ###for check ntr
-    #final_threshold = trigger_thresholds[-1]
-    #print('final threshold', final_threshold/units.mV)
-    #final_thresholds.append(final_threshold)
-
 
 passband_low = np.array(passband_low)
 passband_high = np.array(passband_high)
@@ -63,19 +61,19 @@ x = passband_low/units.megahertz
 y = passband_high/units.megahertz
 z = final_thresholds/units.mV
 
-binWidth = 10
-binLength = 10
-x_edges = np.arange(x_min-5, x_max+15, binWidth)
+binWidth = 10  # steps between lower limit of the passbands
+binLength = 10  # steps between higher limit of the passbands
+x_edges = np.arange(x_min-5, x_max+15, binWidth)  # shift marker to the center of a bin
 y_edges = np.arange(y_min-5, y_max+15, binLength)
 
-
 counts,xbins,ybins,image = plt.hist2d(x, y, bins=[x_edges, y_edges], weights=z, vmin=min(z), vmax= max(z), cmap=plt.cm.jet, cmin = 1e-9)
-plt.colorbar(label='Threshold for NTR < 0.5 Hz [mV]')
+plt.colorbar(label='Threshold for NTR < 0.5 Hz [mV]')  # the 0.5 Hz depends on the resolution/number of iterations
 
-CS = plt.contour(counts.transpose(),extent=[xbins[0],xbins[-1],ybins[0],ybins[-1]],
-    linewidths=2, colors= 'black', vmin=min(z), vmax= max(z), levels = [20, 25, 30, 35, 40, 45, 50, 55])
+# use the following lines to plot iso voltage lines
+#CS = plt.contour(counts.transpose(),extent=[xbins[0],xbins[-1],ybins[0],ybins[-1]],
+ #   linewidths=2, colors= 'black', vmin=min(z), vmax= max(z), levels = [20, 25, 30, 35, 40, 45, 50, 55])
 
-plt.clabel(CS, CS.levels, inline=True, fmt='%1.0f', fontsize=10)
+#plt.clabel(CS, CS.levels, inline=True, fmt='%1.0f', fontsize=10)
 plt.xlim(x_min - 5, x_max + 5)
 plt.ylim(y_min - 5, y_max + 5)
 plt.xlabel('Lower cutoff frequency [MHz]')

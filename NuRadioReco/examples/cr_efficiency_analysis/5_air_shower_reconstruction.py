@@ -34,12 +34,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('FullExample')
 
 '''
-This script reconstructs the air shower with the parameters calculated in step 1-3.
-'''
+This script reconstructs the air shower with 
+the trigger parameters calculated in step 1-3. Please set triggered channels manually in l.96'''
 
 parser = argparse.ArgumentParser(description='Run FullReconstruction')
 parser.add_argument('config_file', type=str, nargs='?', default = 'config_file_air_shower_reco.yml', help = 'config file with eventlist')
-parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/dict_ntr_pb_80_180.pickle', help = 'settings from the results from threshold analysis')
+parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/dict_ntr_high_low_pb_80_180.pickle', help = 'settings from the results from threshold analysis')
 parser.add_argument('number', type=int, nargs='?', default = 0, help = 'number of element in eventlist')
 
 args = parser.parse_args()
@@ -71,6 +71,7 @@ T_noise_max_freq = data['T_noise_max_freq '] * units.megahertz
 galactic_noise_n_side = data['galactic_noise_n_side']
 galactic_noise_interpolation_frequencies_step = data['galactic_noise_interpolation_frequencies_step']
 
+trigger_name = data['trigger_name']
 passband_trigger = data['passband_trigger']
 number_coincidences = data['number_coincidences']
 coinc_window = data['coinc_window'] * units.ns
@@ -117,15 +118,23 @@ readCoREASStation = NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASSt
 readCoREASStation.begin([input_files], default_station, debug=False)
 simulationSelector = NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector()
 simulationSelector.begin()
-efieldToVoltageConverter =  NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
+efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin(debug=False)
 hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 channelGenericNoiseAdder.begin()
 channelGalacticNoiseAdder = NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder()
 channelGalacticNoiseAdder.begin(n_side=4, interpolation_frequencies=np.arange(10, 1100, galactic_noise_interpolation_frequencies_step) * units.MHz)
-triggerSimulator = NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator()
-triggerSimulator.begin()
+if trigger_name == 'high_low':
+    triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
+    triggerSimulator.begin()
+
+if trigger_name == 'envelope':
+    triggerSimulator = NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator()
+    triggerSimulator.begin()
+
+print("Using {} as trigger".format(trigger_name))
+
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelBandPassFilter.begin()
 eventTypeIdentifier = NuRadioReco.modules.eventTypeIdentifier.eventTypeIdentifier()
@@ -169,12 +178,19 @@ for evt in readCoREASStation.run(det):
 
         if hardware_response == True:
             hardwareResponseIncorporator.run(evt, sta, det, sim_to_data=True)
+        if trigger_name == 'high_low':
+            channelBandPassFilter.run(evt, sta, det, passband=passband_trigger,
+                                      filter_type='butter', order=order_trigger)
 
-        triggerSimulator.run(evt, sta, det, passband=passband_trigger, order=order_trigger,
+            triggerSimulator.run(evt, sta, det, threshold_high=trigger_threshold, threshold_low=-trigger_threshold,
+                                 coinc_window=coinc_window, number_concidences=number_coincidences,
+                                 triggered_channels=triggered_channels, trigger_name='{}_pb_{:.0f}_{:.0f}_tt_{:.2f}'.format(trigger_name ,passband_trigger[0]/units.MHz, passband_trigger[1]/units.MHz, trigger_threshold/units.mV))
+
+        if trigger_name == 'envelope':
+            triggerSimulator.run(evt, sta, det, passband=passband_trigger, order=order_trigger,
                              number_coincidences=number_coincidences, threshold=trigger_threshold,
-                             coinc_window=coinc_window,
-                             trigger_name='envelope_trigger_pb_{:.0f}_{:.0f}_tt_{:.2f}'.format(passband_trigger[0]/units.MHz, passband_trigger[1]/units.MHz, trigger_threshold/units.mV))
-
+                             coinc_window=coinc_window, triggered_channels=triggered_channels,
+                trigger_name='{}_pb_{:.0f}_{:.0f}_tt_{:.2f}'.format(trigger_name ,passband_trigger[0]/units.MHz, passband_trigger[1]/units.MHz, trigger_threshold/units.mV))
 
         ##channelSignalReconstructor.run(evt, sta, det)
 
@@ -190,7 +206,7 @@ for evt in readCoREASStation.run(det):
 
         electricFieldResampler.run(evt, sta, det, sampling_rate=1 * units.GHz)
         i += 1
-        print('end of loop')
+        print('finish with event {}'.format(i))
 
     #eventWriter.run(evt, det, mode='micro')
 

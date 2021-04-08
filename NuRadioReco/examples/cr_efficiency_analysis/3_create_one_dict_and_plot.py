@@ -6,6 +6,9 @@ from NuRadioReco.utilities import units, io_utilities
 import pickle
 import argparse
 
+'''This script reads all dicts for one passbands and writes one new dict which contains then the information for 2e6 interations.
+The last part creates a plot of the final dict. If you just want to plot the dict, comment the first part. 
+It can be used for results from 2_.. and 2a_...'''
 
 parser = argparse.ArgumentParser(description='Noise Trigger Rate')
 parser.add_argument('passband_low', type=int, nargs='?', default = 80, help = 'passband low to check')
@@ -106,12 +109,12 @@ dic['trigger_name'] = trigger_name
 
 #print(dic)
 
-with open('/lustre/fs22/group/radio/lpyras/results/dict_ntr_{}_pb_{:.0f}_{:.0f}.pickle'.format(trigger_name, passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz),
+with open('results/ntr/dict_ntr_{}_pb_{:.0f}_{:.0f}.pickle'.format(trigger_name, passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz),
           'wb') as pickle_out:
     pickle.dump(dic, pickle_out)
 
 
-filename = '/lustre/fs22/group/radio/lpyras/results/dict_ntr_{}_pb_{:.0f}_{:.0f}.pickle'.format(trigger_name, passband_low, passband_high)
+filename = 'results/ntr/dict_ntr_{}_pb_{:.0f}_{:.0f}.pickle'.format(trigger_name, passband_low, passband_high)
 
 data = io_utilities.read_pickle(filename, encoding='latin1')
 
@@ -147,7 +150,7 @@ print(xnew)
 
 plt.plot(trigger_thresholds/units.microvolt, trigger_rate/units.Hz, marker='x', label= 'Noise trigger rate', linestyle='none')
 plt.plot(xnew, f1(xnew), '--', label='interp1d f({:.4f}) = {:.4f} Hz'.format(thresh, f1(thresh)))
-plt.title('Envelope trigger, passband = {} MHz, iterations = {:.1e}'.format( passband_trigger/units.megahertz, iterations))
+plt.title('{}, passband = {} MHz, iterations = {:.1e}'.format(trigger_name ,passband_trigger/units.megahertz, iterations))
 plt.xlabel(r'Threshold [$\mu$V]', fontsize=18)
 #plt.hlines(0, trigger_thresholds[0]/units.microvolt, trigger_thresholds[5]/units.microvolt, label='0 Hz')
 plt.ylabel('Trigger rate [Hz]', fontsize=18)

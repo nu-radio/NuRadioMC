@@ -33,7 +33,7 @@ If you used the 1_.._fast.py, please use 2_..._fast.py
 This script calculates a first estimate from which the calculations of the threshold will continue. This is done by 
 increasing the threshold after a number of iteration if more than one trigger triggered true. From the resulting 
 threshold, the next script starts. So first run 1_threshold_estimate_fast.py estimate and then use 2a_threshold_final_fast.py. 
-Afterwards you have to use 3_threshold_average_and_plot.py to get a dictionary and plot with the results.
+Afterwards you have to use 3_create_one_dict_and_plot.py to get a dictionary and plot with the results.
 
 the sampling rate has a huge influence on the threshold, because the trace has more time to exceed the threshold
 for a sampling rate of 1GHz, 1955034 iterations yields a resolution of 0.5 Hz
@@ -58,7 +58,8 @@ parser.add_argument('output_path', type=os.path.abspath, nargs='?', default = ''
 parser.add_argument('n_iterations', type=int, nargs='?', default = 20, help = 'number of iterations each threshold should be iterated over. Has to be a multiple of 10')
 parser.add_argument('passband_low', type=int, nargs='?', default = 80, help = 'lower bound of the passband used for the trigger in MHz')
 parser.add_argument('passband_high', type=int, nargs='?', default = 180, help = 'higher bound of the passband used for the trigger in MHz')
-parser.add_argument('detector_file', type=str, nargs='?', default = 'LPDA_detector_southpole.json', help = 'detector file')
+parser.add_argument('detector_file', type=str, nargs='?', default = 'LPDA_up_down.json', help = 'detector file, change triggered channels accordingly')
+parser.add_argument('triggered_channels', type=np.ndarray, nargs='?', default = np.array([0, 1]), help = 'channel on which the trigger is applied')
 parser.add_argument('default_station', type=int, nargs='?', default = 101 , help = 'default station id')
 parser.add_argument('sampling_rate', type=int, nargs='?', default = 1, help = 'sampling rate in GHz')
 parser.add_argument('coinc_window', type=int, nargs='?', default = 60, help = 'coincidence window within the number coincidence has to occur. In ns')
@@ -84,6 +85,7 @@ passband_low = args.passband_low
 passband_high = args.passband_high
 passband_trigger = np.array([passband_low, passband_high]) * units.megahertz
 detector_file = args.detector_file
+triggered_channels = args.triggered_channels
 default_station = args.default_station
 sampling_rate = args.sampling_rate * units.gigahertz
 coinc_window = args.coinc_window * units.ns
@@ -92,7 +94,7 @@ order_trigger = args.order_trigger
 Tnoise = args.Tnoise * units.kelvin
 T_noise_min_freq = args.T_noise_min_freq * units.megahertz
 T_noise_max_freq = args.T_noise_max_freq * units.megahertz
-galactic_noise_n_side= args.galactic_noise_n_side
+galactic_noise_n_side = args.galactic_noise_n_side
 galactic_noise_interpolation_frequencies_step = args.galactic_noise_interpolation_frequencies_step
 threshold_start = args.threshold_start * units.volt
 threshold_step = args.threshold_step *units.volt
@@ -283,6 +285,7 @@ for n_thres in count():
             dic['order_trigger'] = order_trigger
             dic['number_coincidences'] = number_coincidences
             dic['detector_file'] = detector_file
+            dic['triggered_channels'] = triggered_channels
             dic['default_station'] = default_station
             dic['sampling_rate'] = sampling_rate
             dic['T_noise_min_freq'] = T_noise_min_freq
@@ -294,7 +297,7 @@ for n_thres in count():
             dic['hardware_response'] = hardware_response
 
             print(dic)
-            output_file = 'output_threshold_estimate/estimate_threshold_pb_{:.0f}_{:.0f}_i{}.pickle'.format(passband_trigger[0]/units.MHz,passband_trigger[1]/units.MHz, len(trigger_status_per_all_it))
+            output_file = 'output_threshold_estimate/estimate_threshold_envelope_fast_pb_{:.0f}_{:.0f}_i{}.pickle'.format(passband_trigger[0]/units.MHz,passband_trigger[1]/units.MHz, len(trigger_status_per_all_it))
             abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
             with open(abs_path_output_file,'wb') as pickle_out:
                 pickle.dump(dic, pickle_out)
