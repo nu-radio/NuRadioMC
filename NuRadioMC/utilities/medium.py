@@ -127,14 +127,38 @@ class greenland_firn(IceModel):
 
     def get_index_of_refraction(self,x):
         """
-        overwrite inherited function
+        returns the index of refraction at position x.
+        Overwrites function of the mother class
+
+        Parameters
+        ---------
+        x:  3dim np.array
+            point
+
+        Returns:
+        --------
+        n:  float
+            index of refraction
         """
         position = RP.Vector3d(*(x*RP.meter/units.meter))
         return self._scalarfield.getValue(position)
 
     def get_average_index_of_refraction(self,x1,x2):
         """
-        overwrite inherited function
+        returns the average index of refraction between two points
+        Overwrites function of the mother class
+
+        Parameters
+        ----------
+        x1: 3dim np.array
+            point
+        x2: 3dim np.array
+            point
+
+        Returns
+        -------
+        n_average:  float
+                    averaged index of refraction between the two points
         """
         position1 = RP.Vector3d(*(x1*RP.meter/units.meter))
         position2 = RP.Vector3d(*(x2*RP.meter/units.meter))
@@ -143,7 +167,18 @@ class greenland_firn(IceModel):
 
     def get_gradient_of_index_of_refraction(self, x):
         """
-        overwrite inherited function
+        returns the gradient of index of refraction at position x
+        Overwrites function of the mother class
+
+        Parameters
+        ----------
+        x: 3dim np.array
+            point
+
+        Returns
+        -------
+        n_nabla:    (3,) np.array
+                    gradient of index of refraction at the point
         """
         position = RP.Vector3d(*(x*RP.meter/units.meter))
         return self._scalarfield.getGradient(position)
@@ -151,7 +186,17 @@ class greenland_firn(IceModel):
     
     def get_ice_model_radiopropa(self,discontinuity=False):
         """
-        overwrite inherited function
+        Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+        that define the medium in radiopropa. It uses the parameters of the medium object to 
+        contruct some modules, like a discontinuity object for the air boundary. Additional modules
+        can be added in this function
+        
+        Overwrites function of the mother class
+
+        Returns
+        -------
+        ice:    RadioPropaIceWrapper
+                object holding the radiopropa scalarfield and modules
         """
         ice = RadioPropaIceWrapper(self,self._scalarfield)
         if discontinuity == True:

@@ -3,7 +3,6 @@ import numpy as np
 from radiotools import helper as hp
 import logging
 from NuRadioMC.utilities import attenuation as attenuation_util
-from scipy import interpolate
 import NuRadioReco.utilities.geometryUtilities
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
@@ -41,7 +40,7 @@ class ray_tracing:
         medium: medium class
             class describing the index-of-refraction profile
         attenuation_model: string
-            signal attenuation model (so far only "SP1" is implemented)
+            signal attenuation model
         log_level: logging object
             specify the log level of the ray tracing class
             * logging.ERROR
@@ -136,7 +135,7 @@ class ray_tracing:
         
         
 
-    def set_shower_axis(self,shower_axis=None):
+    def set_shower_axis(self,shower_axis):
         """
         Set the the shower axis. This is oposite to the neutrino arrival direction
 
@@ -145,7 +144,7 @@ class ray_tracing:
         shower_axis: np.array of shape (3,), default unit
                      the direction of the shower in cartesian coordinates
         """ 
-        self.__shower_axis = shower_axis
+        self.__shower_axis = shower_axis/np.linalg.norm(shower_axis)
 
     def set_cut_viewing_angle(self,cut):
         """
@@ -201,13 +200,18 @@ class ray_tracing:
             else:
                 z_refl = self.__medium.reflection
                 rho_channel = np.linalg.norm(u)
-                rho_bottom = (rho_channel*(z_refl-self.__x2[2]))/(2*z_refl-self.__x2[2]-self.__x1[2])
-                alpha = np.arctan((self.__x1[2]-z_refl)/rho_bottom)
+                if self.__x2[2] > self.__x1[2]: 
+                    z_up = self.__x2[2]
+                    z_down = self.__x1[2]
+                else:
+                    z_up = self.__x1[2]
+                    z_down = self.__x2[2]
+                rho_bottom = (rho_channel*(z_refl-z_down))/(2*z_refl-z_up-z_down)
+                alpha = np.arctan((z_down-z_refl)/rho_bottom)
                 ## when reflection on the bottom are allowed, a initial region for theta from 180-alpha to 180 degrees is added
                 launch_lower.append((np.pi - (alpha - np.deg2rad(5))))
                 launch_upper.append(np.pi)
         
-        step = None
         for s,sphere_size in enumerate(self.__sphere_sizes):
             sphere_size = sphere_size*(radiopropa.meter/units.meter)
             detected_rays = []
@@ -247,7 +251,7 @@ class ray_tracing:
                 ray_dir = hp.spherical_to_cartesian(theta,phi)
                 viewing = np.arccos(np.dot(self.__shower_axis, ray_dir)) * units.radian
                 delta = viewing - cherenkov_angle
-                #only include rays with angle wrt cherenkov angle smaller than 20 degrees 
+                #only include rays with angle wrt cherenkov angle smaller than the cut in the config file
                 if (abs(delta) < self.__cut_viewing_angle):
                     source = radiopropa.Source()
                     source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*x1)))
@@ -630,9 +634,6 @@ class ray_tracing:
             choose for which solution to compute the path length, 
             counting starts at zero
 
-        analytic: bool
-            If True the analytic solution is used. If False, a numerical integration is used. (default: True)
-
         Returns
         -------
         distance: float
@@ -655,9 +656,6 @@ class ray_tracing:
         iS: int
             choose for which solution to compute the travel time, 
             counting starts at zero
-
-        analytic: bool
-            If True the analytic solution is used. If False, a numerical integration is used. (default: True)
 
         Returns
         -------
@@ -746,7 +744,7 @@ class ray_tracing:
         for z_position in range(len(path[:, 2]) - 1):
             integral += dt(z_position, freqs)
         
-        att_func = interpolate.interp1d(freqs, integral)
+        att_func = interp1d(freqs, integral)
         tmp = att_func(frequency[mask])
         attenuation = np.ones_like(frequency)
         tmp = np.exp(-1 * tmp)
@@ -893,7 +891,6 @@ class ray_tracing:
         """
         return [
             {'name': 'sphere_sizes','ndim':len(self.__sphere_sizes)},
-            {'name': 'zenith_step_sizes','ndim':len(self.__step_sizes)},
             {'name': 'launch_vector', 'ndim': 3},
             {'name': 'focusing_factor', 'ndim': 1},
             {'name': 'ray_tracing_reflection', 'ndim': 1},
@@ -921,7 +918,6 @@ class ray_tracing:
             focusing = 1
         output_dict = {
             'sphere_sizes': self.__sphere_sizes,
-            'zenith_step_sizes': self.__step_sizes,
             'launch_vector': self.get_launch_vector(i_solution),
             'focusing_factor': focusing,
             'ray_tracing_reflection': self.get_results()[i_solution]['reflection'],
