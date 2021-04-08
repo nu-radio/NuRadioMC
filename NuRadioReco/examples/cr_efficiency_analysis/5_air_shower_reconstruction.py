@@ -1,5 +1,7 @@
 import numpy as np
 import os, scipy, sys
+import bz2
+import _pickle as cPickle
 import yaml
 import scipy.constants
 import datetime
@@ -34,12 +36,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('FullExample')
 
 '''
-This script reconstructs the air shower with 
+This script reconstructs the air shower (stored in air_shower_sim as hdf5 files) with 
 the trigger parameters calculated in step 1-3. Please set triggered channels manually in l.96'''
 
 parser = argparse.ArgumentParser(description='Run FullReconstruction')
 parser.add_argument('config_file', type=str, nargs='?', default = 'config_file_air_shower_reco.yml', help = 'config file with eventlist')
-parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/dict_ntr_high_low_pb_80_180.pickle', help = 'settings from the results from threshold analysis')
+parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/dict_ntr_high_low_pb_80_180.pbz2', help = 'settings from the ntr results')
 parser.add_argument('number', type=int, nargs='?', default = 0, help = 'number of element in eventlist')
 
 args = parser.parse_args()
@@ -54,7 +56,8 @@ with open(config_file, 'r') as ymlfile:
 eventlist = cfg['eventlist']
 output_filename = cfg['output_filename']
 
-data = io_utilities.read_pickle(result_dict, encoding='latin1')
+bz2 = bz2.BZ2File(result_dict, 'rb')
+data = cPickle.load(bz2)
 # print('data', data)
 
 detector_file = data['detector_file']
@@ -152,12 +155,16 @@ electricFieldResampler.begin()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelResampler.begin()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-eventWriter.begin(output_filename + 'pb_' + str(passband_trigger[0]) + str(passband_trigger[1]) + '_tt_' + str(trigger_threshold.round(4)) + '.nur')
+print('trigger threshold', trigger_threshold)
+eventWriter.begin(output_filename + 'pb_' + str(int(passband_trigger[0]/units.MHz)) + '_' + str(int(passband_trigger[1]/units.MHz)) + '_tt_' + str(trigger_threshold.round(6)) + '.nur')
 
-i = 0
+
 # Loop over all events in file as initialized in readCoRREAS and perform analysis
+i = 0
 for evt in readCoREASStation.run(det):
     for sta in evt.get_stations():
+        if i == 30:
+            break
         logger.info("processing event {:d} with id {:d}".format(i, evt.get_id()))
 
         station = evt.get_station(default_station)
@@ -190,7 +197,7 @@ for evt in readCoREASStation.run(det):
             triggerSimulator.run(evt, sta, det, passband=passband_trigger, order=order_trigger,
                              number_coincidences=number_coincidences, threshold=trigger_threshold,
                              coinc_window=coinc_window, triggered_channels=triggered_channels,
-                trigger_name='{}_pb_{:.0f}_{:.0f}_tt_{:.2f}'.format(trigger_name ,passband_trigger[0]/units.MHz, passband_trigger[1]/units.MHz, trigger_threshold/units.mV))
+                trigger_name='{}_pb_{:.0f}_{:.0f}_tt_{:.2f}'.format(trigger_name, passband_trigger[0]/units.MHz, passband_trigger[1]/units.MHz, trigger_threshold/units.mV))
 
         ##channelSignalReconstructor.run(evt, sta, det)
 
@@ -206,9 +213,10 @@ for evt in readCoREASStation.run(det):
 
         electricFieldResampler.run(evt, sta, det, sampling_rate=1 * units.GHz)
         i += 1
-        print('finish with event {}'.format(i))
+        print('finish with station {}'.format(i))
 
-    #eventWriter.run(evt, det, mode='micro')
+    eventWriter.run(evt, det)
+    #eventWriter.run(evt, det, mode='micro')  # here you can change what should be stored in the nur files
 
 nevents = eventWriter.end()
 print("Finished processing, {} events".format(nevents))

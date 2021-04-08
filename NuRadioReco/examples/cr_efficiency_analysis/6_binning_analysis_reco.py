@@ -1,5 +1,7 @@
 import numpy as np
 import os, scipy, sys
+import bz2
+import _pickle as cPickle
 import yaml
 import pickle
 import matplotlib.pyplot as plt
@@ -15,7 +17,7 @@ import argparse
 import sys
 
 parser = argparse.ArgumentParser(description='Nurfile analyser')
-parser.add_argument('result_dict', type=str, nargs='?', default = 'results/dict_ntr_pb_80_180.pickle', help = 'settings from the results from threshold analysis')
+parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/dict_ntr_high_low_pb_80_180.pbz2', help = 'settings from the results from threshold analysis')
 parser.add_argument('input_filepath', type=str, nargs='?', default = 'output_air_shower_reco/', help = 'input path were results from air shower analysis are stored')
 parser.add_argument('energy_bins', type=list, nargs='?', default = [16.5, 20, 6], help = 'energy bins as log()')
 parser.add_argument('zenith_bins', type=list, nargs='?', default = [0, 100, 10], help = 'zenith bins in deg')
@@ -39,7 +41,8 @@ zenith_bins_high = zenith_bins[1:-1]
 distance_bins_low = np.array(distance_bins[0:-2])
 distance_bins_high = np.array(distance_bins[1:-1])
 
-data = io_utilities.read_pickle(result_dict, encoding='latin1')
+bz2 = bz2.BZ2File(result_dict, 'rb')
+data = cPickle.load(bz2)
 # print('data', data)
 
 detector_file = data['detector_file']
@@ -79,7 +82,7 @@ print('number coinc', number_coincidences)
 nur_file_list = []  # get input files
 i = 0
 for nur_file in os.listdir(input_filepath):
-    if os.path.isfile(os.path.join(input_filepath, nur_file)) and str(passband_trigger) in nur_file:
+    if os.path.isfile(os.path.join(input_filepath, nur_file)) and str(int(passband_trigger[0]/units.MHz)) + '_' + str(int(passband_trigger[1]/units.MHz)) in nur_file:
         i = i+1
         filename = os.path.join(input_filepath, nur_file)
         print('filename', filename)
@@ -99,7 +102,9 @@ trigger_status = []  # trigger status per event station and threshold
 trigger_status_weight = []  # trigger status per event station and threshold with weighting
 trigger_in_station = []  # name of trigger
 
-evtReader.begin(filename= nur_file_list, read_detector=True)
+print('nur file list', nur_file_list)
+
+evtReader.begin(filename=filename, read_detector=True)
 weight = []
 num = 0
 for evt in evtReader.run(): # loop over all events, one event is one station

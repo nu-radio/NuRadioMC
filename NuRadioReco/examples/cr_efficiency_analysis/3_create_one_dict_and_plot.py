@@ -117,8 +117,6 @@ with bz2.BZ2File(filename, 'w') as f:
 bz2 = bz2.BZ2File(filename, 'rb')
 data = cPickle.load(bz2)
 
-#data = io_utilities.read_pickle(filename, encoding='latin1')
-
 efficiency= data['efficiency']
 trigger_rate = data['trigger_rate']
 trigger_thresholds = np.array(data['threshold'])
