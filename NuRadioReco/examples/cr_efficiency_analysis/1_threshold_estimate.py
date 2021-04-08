@@ -58,7 +58,7 @@ done
 '''
 
 parser = argparse.ArgumentParser()
-parser.add_argument('output_path', type=os.path.abspath, nargs='?', default = '', help = 'Path to save output, most likely the path to the cr_analysis directory')
+parser.add_argument('output_path', type=os.path.abspath, nargs='?', default = '', help = 'Path to save output, most likely the path to the cr_efficiency_analysis directory')
 parser.add_argument('n_iterations', type=int, nargs='?', default = 10, help = 'number of iterations each threshold should be iterated over. Has to be a multiple of 10')
 parser.add_argument('trigger_name', type=str, nargs='?', default = 'high_low', help = 'name of the trigger, high_low or envelope')
 parser.add_argument('passband_low', type=int, nargs='?', default = 80, help = 'lower bound of the passband used for the trigger in MHz')

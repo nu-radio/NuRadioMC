@@ -3,7 +3,9 @@ import matplotlib.pyplot as plt
 import os, sys
 from radiotools import helper as hp
 from NuRadioReco.utilities import units, io_utilities
+import bz2
 import pickle
+import _pickle as cPickle
 import argparse
 
 '''This script reads all dicts for one passbands and writes one new dict which contains then the information for 2e6 interations.
@@ -108,15 +110,14 @@ dic['hardware_response'] = hardware_response
 dic['trigger_name'] = trigger_name
 
 #print(dic)
+filename = 'results/ntr/dict_ntr_{}_pb_{:.0f}_{:.0f}.pbz2'.format(trigger_name, passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz)
+with bz2.BZ2File(filename, 'w') as f:
+    cPickle.dump(dic, f)
 
-with open('results/ntr/dict_ntr_{}_pb_{:.0f}_{:.0f}.pickle'.format(trigger_name, passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz),
-          'wb') as pickle_out:
-    pickle.dump(dic, pickle_out)
+bz2 = bz2.BZ2File(filename, 'rb')
+data = cPickle.load(bz2)
 
-
-filename = 'results/ntr/dict_ntr_{}_pb_{:.0f}_{:.0f}.pickle'.format(trigger_name, passband_low, passband_high)
-
-data = io_utilities.read_pickle(filename, encoding='latin1')
+#data = io_utilities.read_pickle(filename, encoding='latin1')
 
 efficiency= data['efficiency']
 trigger_rate = data['trigger_rate']

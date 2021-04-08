@@ -54,7 +54,7 @@ parser = argparse.ArgumentParser(description='Noise Trigger Rate')
 parser.add_argument('input_filename', type=str, nargs='?', default = 'output_threshold_estimate/estimate_threshold_high_low_pb_80_180_i10.pickle', help = 'input filename from which the calculation starts.')
 parser.add_argument('iterations', type=int, nargs='?', default = 20, help = 'number of iterations within the script. Has to be a multiple of 10')
 parser.add_argument('number', type=int, nargs='?', default = 1, help = 'specify how often you would like to run the hole script. Important for cluster use')
-parser.add_argument('output_path', type=os.path.abspath, nargs='?', default = '', help = 'Path to save output, most likely the path to the cr_analysis directory')
+parser.add_argument('output_path', type=os.path.abspath, nargs='?', default = '', help = 'Path to save output, most likely the path to the cr_efficiency_analysis directory')
 parser.add_argument('threshold_steps', type=int, nargs='?', default = 0.000001, help = 'steps in which threshold increases [V], use 1e-3 with amp, 1e-6 without amp')
 
 args = parser.parse_args()
