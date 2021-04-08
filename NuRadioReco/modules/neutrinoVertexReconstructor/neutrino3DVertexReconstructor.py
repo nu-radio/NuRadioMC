@@ -263,7 +263,8 @@ class neutrino3DVertexReconstructor:
             flattened_corr_theta = np.max(full_correlations, axis=1)
             theta_corr_mask = np.max(flattened_corr_theta, axis=1) >= corr_fit_threshold
             i_max_theta = np.argmax(flattened_corr_theta, axis=1)
-            median_theta = np.median(self.__azimuths_2d[i_max_theta][theta_corr_mask])
+            median_theta = self.__azimuths_2d[np.argmax(np.max(np.sum(full_correlations, axis=0), axis=0))]
+            # median_theta = np.median(self.__azimuths_2d[i_max_theta][theta_corr_mask])
             z_fit = False
         else:
             slope = line_fit_z[0]
@@ -273,7 +274,8 @@ class neutrino3DVertexReconstructor:
             flattened_corr_theta = np.max(full_correlations, axis=0)
             theta_corr_mask = np.max(flattened_corr_theta, axis=1) >= corr_fit_threshold
             i_max_theta = np.argmax(flattened_corr_theta, axis=1)
-            median_theta = np.median(self.__azimuths_2d[i_max_theta][theta_corr_mask])
+            median_theta = self.__azimuths_2d[np.argmax(np.sum(np.max(full_correlations, axis=0), axis=0))]
+            # median_theta = np.median(self.__azimuths_2d[i_max_theta][theta_corr_mask])
             z_fit = True
         if debug:
             self.__draw_2d_correlation_map(event, full_correlations, slope, offset, max_z_offset, min_z_offset)
@@ -292,7 +294,8 @@ class neutrino3DVertexReconstructor:
                 z_fit,
                 i_max_theta,
                 theta_corr_mask,
-                median_theta
+                median_theta,
+                full_correlations
             )
 
         # <--- 3D Fit ---> #
@@ -309,7 +312,6 @@ class neutrino3DVertexReconstructor:
         correlation_sum = np.zeros_like(z_coords)
 
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
-            print('Pair {}, {} / {}'.format(channel_pair, i_pair + 1, len(self.__channel_pairs)))
             self.__correlation = self.__pair_correlations[i_pair]
             self.__channel_pair = channel_pair
             self.__channel_positions = [self.__detector.get_relative_position(self.__station_id, channel_pair[0]),
@@ -454,45 +456,63 @@ class neutrino3DVertexReconstructor:
             of cylindrical coordinates.
         """
 
-        t0_1 = self.get_signal_travel_time(d_hor[0], z, self.__current_ray_types[0], self.__channel_pair[0])
-        t0_2 = self.get_signal_travel_time(d_hor[1], z, self.__current_ray_types[1], self.__channel_pair[1])
-        delta_t = t0_1 - t0_2
+        t_1 = self.get_signal_travel_time(d_hor[0], z, self.__current_ray_types[0], self.__channel_pair[0])
+        t_2 = self.get_signal_travel_time(d_hor[1], z, self.__current_ray_types[1], self.__channel_pair[1])
+        delta_t = t_1 - t_2
         delta_t = delta_t.astype(float)
 
-        t1_1 = self.get_signal_travel_time(d_hor[0] - self.__distance_step_3d, z, self.__current_ray_types[0], self.__channel_pair[0])
-        t1_2 = self.get_signal_travel_time(d_hor[1] - self.__distance_step_3d, z, self.__current_ray_types[1], self.__channel_pair[1])
-        delta_t_1 = t1_1 - t1_2
-        delta_t_1 = delta_t_1.astype(float)
-        t2_1 = self.get_signal_travel_time(d_hor[0] + self.__distance_step_3d, z, self.__current_ray_types[0], self.__channel_pair[0])
-        t2_2 = self.get_signal_travel_time(d_hor[1] + self.__distance_step_3d, z, self.__current_ray_types[1], self.__channel_pair[1])
-        delta_t_2 = t2_1 - t2_2
-        delta_t_2 = delta_t_2.astype(float)
+        t_offset_1 = self.get_signal_travel_time(d_hor[0] - self.__distance_step_3d / 2., z, self.__current_ray_types[0], self.__channel_pair[0])
+        t_offset_2 = self.get_signal_travel_time(d_hor[1] - self.__distance_step_3d / 2., z, self.__current_ray_types[1], self.__channel_pair[1])
+        delta_t_offset = t_offset_1 - t_offset_2
+        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+        delta_t_offset = delta_t_offset.astype(float)
+        time_deviations = np.abs(delta_t - delta_t_offset)
+
+        t_offset_1 = self.get_signal_travel_time(d_hor[0] + self.__distance_step_3d / 2., z, self.__current_ray_types[0], self.__channel_pair[0])
+        t_offset_2 = self.get_signal_travel_time(d_hor[1] + self.__distance_step_3d / 2., z, self.__current_ray_types[1], self.__channel_pair[1])
+        delta_t_offset = t_offset_1 - t_offset_2
+        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+        delta_t_offset = delta_t_offset.astype(float)
+        time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
+
+        t_offset_1 = self.get_signal_travel_time(d_hor[0] + self.__distance_step_3d / 2., z, self.__current_ray_types[0], self.__channel_pair[0])
+        t_offset_2 = self.get_signal_travel_time(d_hor[1] + self.__distance_step_3d / 2., z, self.__current_ray_types[1], self.__channel_pair[1])
+        delta_t_offset = t_offset_1 - t_offset_2
+        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+        delta_t_offset = delta_t_offset.astype(float)
+        time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
+
+        t_offset_1 = self.get_signal_travel_time(d_hor[0], z + self.__z_step_3d / 2., self.__current_ray_types[0], self.__channel_pair[0])
+        t_offset_2 = self.get_signal_travel_time(d_hor[1], z + self.__z_step_3d / 2., self.__current_ray_types[1], self.__channel_pair[1])
+        delta_t_offset = t_offset_1 - t_offset_2
+        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+        delta_t_offset = delta_t_offset.astype(float)
+        time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
+
+        t_offset_1 = self.get_signal_travel_time(d_hor[0], z - self.__z_step_3d / 2., self.__current_ray_types[0], self.__channel_pair[0])
+        t_offset_2 = self.get_signal_travel_time(d_hor[1], z - self.__z_step_3d / 2., self.__current_ray_types[1], self.__channel_pair[1])
+        delta_t_offset = t_offset_1 - t_offset_2
+        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+        delta_t_offset = delta_t_offset.astype(float)
+        time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
+
         corr_index = self.__correlation.shape[0] / 2 + np.round(delta_t * self.__sampling_rate)
         corr_index[np.isnan(delta_t)] = 0
-        corr_index_1 = self.__correlation.shape[0] / 2 + np.round(delta_t_1 * self.__sampling_rate)
-        corr_index_1[np.isnan(delta_t_1)] = 0
-        corr_index_2 = self.__correlation.shape[0] / 2 + np.round(delta_t_2 * self.__sampling_rate)
-        corr_index_2[np.isnan(delta_t_2)] = 0
-        mask = (corr_index > 0) & (corr_index < self.__correlation.shape[0]) & (~np.isinf(delta_t)) & \
-               (corr_index_1 > 0) & (corr_index_1 < self.__correlation.shape[0]) & (~np.isinf(delta_t_1)) & \
-               (corr_index_2 > 0) & (corr_index_2 < self.__correlation.shape[0]) & (~np.isinf(delta_t_2))
+        mask = (corr_index > 0) & (corr_index < self.__correlation.shape[0]) & (~np.isinf(delta_t))
         corr_index[~mask] = 0
-        corr_index_1[~mask] = 0
-        corr_index_2[~mask] = 0
-        # if (np.max(np.abs(corr_index_2 - corr_index_1))) > 2000:
-        #     print('####################', self.__correlation.shape)
-        #     print(corr_index_1[np.unravel_index(np.argmax(np.abs(corr_index_2 - corr_index_1)), corr_index_1.shape)])
-        #     print('---------------------')
-        #     print(corr_index_2[np.unravel_index(np.argmax(np.abs(corr_index_2 - corr_index_1)), corr_index_2.shape)])
 
         res = np.zeros_like(corr_index)
-        print(res.shape)
-        
-        maximized_correlation = scipy.ndimage.maximum_filter(
-                    np.abs(self.__correlation),
-                    size=np.median(np.abs(corr_index - corr_index_1))
-                )
-        res = np.take(maximized_correlation, corr_index.astype(int))
+        for i_x in range(10):
+            for i_y in range(10):
+                i_x_0 = i_x * (res.shape[0] // 10)
+                i_x_1 = min(i_x_0 + res.shape[0] // 10, res.shape[0])
+                i_y_0 = i_y * (res.shape[1] // 10)
+                i_y_1 = min(i_y_0 + res.shape[1] // 10, res.shape[1])
+                maximized_correlation = scipy.ndimage.maximum_filter(
+                            np.abs(self.__correlation),
+                            size=np.median(np.abs(time_deviations[i_x_0:i_x_1, i_y_0:i_y_1])) * self.__sampling_rate / 2.
+                        )
+                res[i_x_0:i_x_1, i_y_0:i_y_1] = np.take(maximized_correlation, corr_index[i_x_0:i_x_1, i_y_0:i_y_1].astype(int))
         res[~mask] = 0
         """
         corr_index = self.__correlation.shape[0] / 2 + np.round(delta_t * self.__sampling_rate)
@@ -661,7 +681,8 @@ class neutrino3DVertexReconstructor:
             z_fit,
             i_max_theta,
             theta_corr_mask,
-            median_theta
+            median_theta,
+            full_correlations
     ):
         fig5 = plt.figure(figsize=(8, 8))
         ax5_1_1 = fig5.add_subplot(221)
@@ -753,46 +774,20 @@ class neutrino3DVertexReconstructor:
             color='k',
             alpha=.2
         )
+        
+        ax5_2 = fig5.add_subplot(2, 2, 3)
+        ax5_2.grid()
+        ax5_2.plot(
+            self.__azimuths_2d / units.deg,
+            np.sum(np.max(full_correlations, axis=0), axis=0)
+        )
+        ax5_3 = fig5.add_subplot(2, 2, 4)
+        ax5_3.grid()
+        ax5_3.plot(
+            self.__azimuths_2d / units.deg,
+            np.max(np.sum(full_correlations, axis=0), axis=0)
+        )
 
-        if z_fit:
-            ax5_2 = fig5.add_subplot(2, 2, (3, 4))
-            ax5_2.grid()
-        else:
-            ax5_2 = fig5.add_subplot(2, 2, (3, 4), projection='polar')
-        if z_fit:
-            ax5_2.scatter(
-                self.__azimuths_2d[i_max_theta][theta_corr_mask],
-                np.abs(self.__z_coordinates_2d)[theta_corr_mask]
-            )
-            ax5_2.scatter(
-                self.__azimuths_2d[i_max_theta][~theta_corr_mask],
-                np.abs(self.__z_coordinates_2d)[~theta_corr_mask],
-                c='k',
-                alpha=.5
-            )
-            ax5_2.plot(
-                [median_theta, median_theta],
-                [np.abs(self.__z_coordinates_2d[0]), np.abs(self.__z_coordinates_2d[-1])],
-                color='k',
-                linestyle=':'
-            )
-        else:
-            ax5_2.scatter(
-                self.__azimuths_2d[i_max_theta][theta_corr_mask],
-                self.__distances_2d[theta_corr_mask]
-            )
-            ax5_2.scatter(
-                self.__azimuths_2d[i_max_theta][~theta_corr_mask],
-                self.__distances_2d[~theta_corr_mask],
-                c='k',
-                alpha=.5
-            )
-            ax5_2.plot(
-                [median_theta, median_theta],
-                [self.__distances_2d[0], self.__distances_2d[-1]],
-                color='k',
-                linestyle=':'
-            )
         sim_vertex = None
         for sim_shower in event.get_sim_showers():
             sim_vertex = sim_shower.get_parameter(shp.vertex)
@@ -802,13 +797,26 @@ class neutrino3DVertexReconstructor:
             ax5_1_1.axvline(np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2), color='r', linestyle='--', alpha=.5)
             ax5_1_2.axhline(sim_vertex[2], color='r', linestyle='--', alpha=.5)
             ax5_1_2.axvline(np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2), color='r', linestyle='--', alpha=.5)
-            ax5_2.scatter(
-                [hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]],
-                [np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)],
-                c='r',
+            ax5_2.axvline(
+                hp.get_normalized_angle(hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]) / units.deg,
+                color='r',
                 alpha=.5,
-                marker='+'
+                linestyle='--'
             )
+            ax5_3.axvline(
+                hp.get_normalized_angle(hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]) / units.deg,
+                color='r',
+                alpha=.5,
+                linestyle='--'
+            )
+        ax5_2.axvline(
+            median_theta / units.deg,
+            color='k'
+        )
+        ax5_3.axvline(
+            median_theta / units.deg,
+            color='k'
+        )
         ax5_1_1.set_xlabel('d [m]')
         ax5_1_2.set_xlabel('d [m]')
         ax5_1_1.set_ylabel('z [m]')
