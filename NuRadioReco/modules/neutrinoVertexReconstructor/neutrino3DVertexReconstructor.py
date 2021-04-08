@@ -382,7 +382,7 @@ class neutrino3DVertexReconstructor:
                     self.__current_ray_types = self.__ray_types[i_ray]
                     correlation_map = np.maximum(self.get_correlation_array_3d(x_coords, y_coords, z_coords), correlation_map)
             self_correlation_sum += correlation_map
-        combined_correlations = correlation_sum / len(self.__channel_pairs) + self_correlation_sum / len(self.__channel_ids)
+        combined_correlations = correlation_sum + self_correlation_sum
         i_max_dnr = np.unravel_index(np.argmax(combined_correlations), combined_correlations.shape)
         vertex_x = x_coords[i_max_dnr]
         vertex_y = y_coords[i_max_dnr]
@@ -774,7 +774,7 @@ class neutrino3DVertexReconstructor:
             color='k',
             alpha=.2
         )
-        
+
         ax5_2 = fig5.add_subplot(2, 2, 3)
         ax5_2.grid()
         ax5_2.plot(
