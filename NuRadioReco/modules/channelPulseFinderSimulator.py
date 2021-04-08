@@ -82,6 +82,7 @@ class channelPulseFinderSimulator:
         for channel in station.iter_channels():
             signal_windows = []
             pulse_times = []
+            snrs = []
             sim_channel_sum = None
             for sim_channel in station.get_sim_station().get_channels_by_channel_id(channel.get_id()):
                 if sim_channel_sum is None:
@@ -99,7 +100,7 @@ class channelPulseFinderSimulator:
                 )
 
                 for i in range(100):
-                    signal_window, pulse_time = self.__get_signal_window(
+                    signal_window, pulse_time, snr = self.__get_signal_window(
                         sim_channel_sum.get_times(),
                         channel_maxima,
                         channel_minima,
@@ -112,8 +113,10 @@ class channelPulseFinderSimulator:
                     else:
                         signal_windows.append(signal_window)
                         pulse_times.append(pulse_time)
+                        snrs.append(snr)
             channel.set_parameter(chp.signal_regions, np.array(signal_windows))
             channel.set_parameter(chp.pulse_times, np.array(pulse_times))
+            channel.set_parameter(chp.signal_region_snrs, np.array(snrs))
 
     def __get_signal_window(
             self,
@@ -127,9 +130,14 @@ class channelPulseFinderSimulator:
         for signal_window in signal_windows:
             threshold_mask[(times >= signal_window[0] - self.__pulse_width) & (times <= signal_window[1] + self.__pulse_width)] = 0
         if np.max(threshold_mask) == 0:
-            return None, None
+            return None, None, None
         signal_window_center = times[threshold_mask][np.argmax(np.abs(trace[threshold_mask]))]
         if self.__signal_window_uncertainty > 0:
             signal_window_center += self.__random.normal(0, self.__signal_window_uncertainty)
-        return (signal_window_center + self.__signal_window_limits[0], signal_window_center + self.__signal_window_limits[1]), signal_window_center
+        snr = (np.max(
+            maxima[(times > signal_window_center + self.__signal_window_limits[0]) & (times < signal_window_center + self.__signal_window_limits[1])]
+        ) - np.min(
+            minima[(times > signal_window_center + self.__signal_window_limits[0]) & (times < signal_window_center + self.__signal_window_limits[1])]
+        )) / 2. / self.__noise_level
+        return (signal_window_center + self.__signal_window_limits[0], signal_window_center + self.__signal_window_limits[1]), signal_window_center, snr
 

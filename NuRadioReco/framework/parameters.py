@@ -49,7 +49,7 @@ class channelParameters(Enum):
     signal_ray_types = 16        # type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
     signal_receiving_azimuths = 17   # the azimuth angle of direction at which the radio signal arrived at the antenna
     pulse_times = 18            # list of times where the waveform contains radio pulses
-
+    signal_region_snrs = 19
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  # the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
