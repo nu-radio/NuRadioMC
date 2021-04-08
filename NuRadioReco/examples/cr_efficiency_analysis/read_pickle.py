@@ -1,5 +1,7 @@
 import numpy as np
 import pickle
+import bz2
+import _pickle as cPickle
 import os
 from NuRadioReco.utilities import units, io_utilities
 
