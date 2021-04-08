@@ -745,7 +745,12 @@ class IftElectricFieldReconstructor:
         for i_passband, passband in enumerate(self.__energy_fluence_passbands):
             energy_fluence_dict['{:.0f}-{:.0f}'.format(passband[0] / units.MHz, passband[1] / units.MHz)] = energy_fluence_stat_calculator.mean[i_passband]
         for i_passband, passbands in enumerate(self.__slope_passbands):
-            slope_dict['{:.0f}-{:.0f}, {:.0f}-{:.0f}'.format(passbands[0][0], passbands[0][1], passbands[1][0], passbands[1][1])] = slope_parameter_stat_calculator.mean[i_passband]
+            slope_dict['{:.0f}-{:.0f}, {:.0f}-{:.0f}'.format(
+                passbands[0][0] / units.MHz,
+                passbands[0][1] / units.MHz,
+                passbands[1][0] / units.MHz,
+                passbands[1][1] / units.MHz
+            )] = slope_parameter_stat_calculator.mean[i_passband]
         energy_fluence_error = np.sqrt(energy_fluence_stat_calculator.var)
         efield.set_parameter(efp.signal_energy_fluence, energy_fluence_dict)
         efield.set_parameter_error(efp.signal_energy_fluence, energy_fluence_error)
