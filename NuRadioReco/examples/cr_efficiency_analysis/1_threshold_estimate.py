@@ -35,9 +35,12 @@ If you used the 1_.._fast.py, please use 2_..._fast.py
 This script calculates a first estimate from which the calculations of the threshold will continue. This is done by 
 increasing the threshold after a number of iteration if more than one trigger triggered true. From the resulting 
 threshold, the next script starts. So first run 1_threshold_estimate.py estimate and then use 2_threshold_final.py. 
-Afterwards you have to use 3_threshold_average_and_plot.py to get a dictionary and plot with the results.
+Afterwards you have to use 3_create_one_dict_and_plot.py to get a dictionary and plot with the results.
 
-the sampling rate has a huge influence on the threshold, because the trace has more time to exceed the threshold
+For the galactic noise, the sky maps from PyGDSM are used. You can install it with 
+pip install git+https://github.com/telegraphic/pygdsm .
+
+The sampling rate has a huge influence on the threshold, because the trace has more time to exceed the threshold
 for a sampling rate of 1GHz, 1955034 iterations yields a resolution of 0.5 Hz
 if galactic noise is used it adds a factor of 10 to the number of iterations because it dices the phase 10 times. this is done due to computation efficiency
 
@@ -54,14 +57,14 @@ echo $low
 done
 '''
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('output_path', type=os.path.abspath, nargs='?', default = '', help = 'Path to save output, most likely the path to the cr_analysis directory')
 parser.add_argument('n_iterations', type=int, nargs='?', default = 10, help = 'number of iterations each threshold should be iterated over. Has to be a multiple of 10')
 parser.add_argument('trigger_name', type=str, nargs='?', default = 'high_low', help = 'name of the trigger, high_low or envelope')
 parser.add_argument('passband_low', type=int, nargs='?', default = 80, help = 'lower bound of the passband used for the trigger in MHz')
 parser.add_argument('passband_high', type=int, nargs='?', default = 180, help = 'higher bound of the passband used for the trigger in MHz')
-parser.add_argument('detector_file', type=str, nargs='?', default = 'LPDA_detector_southpole.json', help = 'detector file')
+parser.add_argument('detector_file', type=str, nargs='?', default = 'LPDA_up_down.json', help = 'detector file, change triggered channels accordingly')
+parser.add_argument('triggered_channels', type=np.ndarray, nargs='?', default = np.array([0, 1]), help = 'channel on which the trigger is applied')
 parser.add_argument('default_station', type=int, nargs='?', default = 101 , help = 'default station id')
 parser.add_argument('sampling_rate', type=int, nargs='?', default = 1, help = 'sampling rate in GHz')
 parser.add_argument('coinc_window', type=int, nargs='?', default = 80, help = 'coincidence window within the number coincidence has to occur. In ns')
@@ -88,6 +91,7 @@ passband_low = args.passband_low
 passband_high = args.passband_high
 passband_trigger = np.array([passband_low, passband_high]) * units.megahertz
 detector_file = args.detector_file
+triggered_channels = args.triggered_channels
 default_station = args.default_station
 sampling_rate = args.sampling_rate * units.gigahertz
 coinc_window = args.coinc_window * units.ns
@@ -105,8 +109,6 @@ station_time_random = args.station_time_random
 hardware_response = args.hardware_response
 
 det = GenericDetector(json_filename=detector_file, default_station=default_station)
-
-triggered_channels = [16, 19, 22]
 
 Vrms_thermal_noise = (((scipy.constants.Boltzmann * units.joule / units.kelvin) * Tnoise *
          (T_noise_max_freq - T_noise_min_freq ) * 50 * units.ohm)**0.5)
@@ -260,6 +262,7 @@ for n_thres in count():
             dic['order_trigger'] = order_trigger
             dic['number_coincidences'] = number_coincidences
             dic['detector_file'] = detector_file
+            dic['triggered_channels'] = triggered_channels
             dic['default_station'] = default_station
             dic['sampling_rate'] = sampling_rate
             dic['T_noise_min_freq'] = T_noise_min_freq
