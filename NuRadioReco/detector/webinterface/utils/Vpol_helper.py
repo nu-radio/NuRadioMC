@@ -49,24 +49,15 @@ sparameters_layout = html.Div([
     dcc.Dropdown(
             id='dropdown-magnitude',
             options=[
+                {'label': 'VSWR', 'value': "VSWR"},
                 {'label': 'V', 'value': "V"},
                 {'label': 'mV', 'value': "mV"}
             ],
-            value="V",
+            value="VSWR",
             style={'width': '20%',
 #                    'float': 'left'}
                    }
-        ),
-    dcc.Dropdown(
-            id='dropdown-phase',
-            options=[
-                {'label': 'degree', 'value': "deg"},
-                {'label': 'rad', 'value': "rad"}
-            ],
-            value="deg",
-            style={'width': '20%',
-#                    'float': 'left'}
-            }
+
         ),
     html.Br(),
     html.Br(),
@@ -96,9 +87,9 @@ sparameters_layout = html.Div([
 
 
 @app.callback(
-    Output('new-board-input', 'disabled'),
-    [Input('amp-board-list', 'value')])
-def enable_board_name_input(value):
+    Output('new-VPol-input', 'disabled'),
+    [Input('VPol-list', 'value')])
+def enable_VPol_name_input(value):
     if(value == "new"):
         return False
     else:
@@ -106,34 +97,33 @@ def enable_board_name_input(value):
 
 
 @app.callback(
-    Output("amp-board-list", "options"),
+    Output("VPol-list", "options"),
     [Input("trigger", "children")],
-    [State("amp-board-list", "options"),
+    [State("VPol-list", "options"),
      State("table-name", "children")]
 )
-def update_dropdown_amp_names(n_intervals, options, table_name):
+def update_dropdown_VPol_names(n_intervals, options, table_name):
     """
-    updates the dropdown menu with existing board names from the database
+    updates the dropdown menu with existing antenna names from the database
     """
-    for amp_name in get_table(table_name).distinct("name"):
+    for VPol_name in get_table(table_name).distinct("name"):
         options.append(
-            {"label": amp_name, "value": amp_name}
+            {"label": VPol_name, "value": VPol_name}
         )
-    print(f"update_dropdown_amp_names = {options}")
+    print(f"update_dropdown_VPol_names = {options}")
     return options
 
 
 @app.callback(
-    [Output("validation-Sdata-output", "children"),
-     Output("validation-Sdata-output", "style"),
-    Output("validation-Sdata-output", "data-validated")],
+    [Output("validation-S11data-output", "children"),
+     Output("validation-S11data-output", "style"),
+    Output("validation-S11data-output", "data-validated")],
     [Input('Sdata', 'contents'),
      Input('dropdown-frequencies', 'value'),
      Input('dropdown-magnitude', 'value'),
-     Input('dropdown-phase', 'value'),
      Input('separator', 'value')
      ])
-def validate_Sdata(contents, unit_ff, unit_A, unit_phase, sep):
+def validate_Sdata(contents, unit_ff, unit_mag, sep):
     """
     validates frequency array
 
@@ -144,21 +134,16 @@ def validate_Sdata(contents, unit_ff, unit_A, unit_phase, sep):
     if(contents != ""):
         try:
             content_type, content_string = contents.split(',')
-            S_datas = base64.b64decode(content_string)
-            S_data_io = StringIO(S_datas.decode('utf-8'))
-            S_data = np.genfromtxt(S_data_io, skip_header=7, skip_footer=1, delimiter=sep).T
+            S_data = base64.b64decode(content_string)
+            S_data_io = StringIO(S_data.decode('utf-8'))
+            S_data = np.genfromtxt(S_data_io, skip_header=17, skip_footer=1, delimiter=sep).T
             S_data[0] *= str_to_unit[unit_ff]
-            for i in range(4):
-                S_data[1 + 2 * i] *= str_to_unit[unit_A]
-                S_data[2 + 2 * i] *= str_to_unit[unit_phase]
+            S_data[1] *= str_to_unit[unit_mag]
             tmp = [f"you entered {len(S_data[0])} frequencies from {S_data[0].min()/units.MHz:.4g}MHz to {S_data[0].max()/units.MHz:.4g}MHz"]
             tmp.append(html.Br())
-            S_names = ["S11", "S12", "S21", "S22"]
-            for i in range(4):
-                tmp.append(f"{S_names[i]} mag {len(S_data[1+i*2])} values within the range of {S_data[1+2*i].min()/units.V:.4g}V to {S_data[1+2*i].max()/units.V:.4g}V")
-                tmp.append(html.Br())
-                tmp.append(f"{S_names[i]} phase {len(S_data[2+i*2])} values within the range of {S_data[2+2*i].min()/units.degree:.1f}deg to {S_data[2+2*i].max()/units.degree:.1f}deg")
-                tmp.append(html.Br())
+            S_names = ["S11"]
+            tmp.append(f"{S11} mag {len(S_data[1])} values within the range of {S_data[1].min()/units.V:.4g}V to {S_data[1].max()/units.V:.4g}V")
+
             return tmp, {"color": "Green"}, True
         except:
     #         print(sys.exc_info())
@@ -168,50 +153,36 @@ def validate_Sdata(contents, unit_ff, unit_A, unit_phase, sep):
 
 
 @app.callback(
-    Output('figure-amp', 'figure'),
+    Output('figure-VPol', 'figure'),
     [Input("validation-Sdata-output", "data-validated")],
     [State('Sdata', 'contents'),
              State('dropdown-frequencies', 'value'),
              State('dropdown-magnitude', 'value'),
              State('dropdown-phase', 'value'),
              State('separator', 'value')])
-def plot_Sparameters(val_Sdata, contents, unit_ff, unit_mag, unit_phase, sep):
+def plot_Sparameters(val_Sdata, contents, unit_ff, unit_mag, sep):
     print("display_value")
     if(val_Sdata):
         content_type, content_string = contents.split(',')
         S_data = base64.b64decode(content_string)
         S_data_io = StringIO(S_data.decode('utf-8'))
-        S_data = np.genfromtxt(S_data_io, skip_header=7, skip_footer=1, delimiter=sep).T
+        S_data = np.genfromtxt(S_data_io, skip_header=17, skip_footer=1, delimiter=sep).T
         S_data[0] *= str_to_unit[unit_ff]
-        for i in range(4):
-            S_data[1 + 2 * i] *= str_to_unit[unit_mag]
-            S_data[2 + 2 * i] *= str_to_unit[unit_phase]
-        fig = subplots.make_subplots(rows=4, cols=2)
-        for i in range(4):
-            fig.append_trace(go.Scatter(
+        S_data[1] *= str_to_unit[unit_mag]
+
+        fig = subplots.make_subplots(rows=1, cols=1)
+        fig.append_trace(go.Scatter(
                         x=S_data[0] / units.MHz,
-                        y=S_data[i * 2 + 1] / units.V,
+                        y=S_data[1] / units.V,
                         opacity=0.7,
                         marker={
                             'color': "blue",
                             'line': {'color': "blue"}
                         },
                         name='magnitude'
-                    ), i + 1, 1)
-            fig.append_trace(go.Scatter(
-                        x=S_data[0] / units.MHz,
-                        y=S_data[i * 2 + 2] / units.deg,
-                        opacity=0.7,
-                        marker={
-                            'color': "blue",
-                            'line': {'color': "blue"}
-                        },
-                        name='phase'
-                    ), i + 1, 2)
+                    ), 1, 1)
         fig['layout']['xaxis1'].update(title='frequency [MHz]')
-        fig['layout']['yaxis1'].update(title='magnitude [V]')
-        fig['layout']['yaxis2'].update(title='phase [deg]')
-        fig['layout']['xaxis2'].update(title='frequency [MHz]')
+        fig['layout']['yaxis1'].update(title='magnitude [VSWR]')
         return fig
     else:
         return {"data": []}

@@ -6,7 +6,6 @@ from plotly import subplots
 import numpy as np
 import plotly.graph_objs as go
 import json
-import base64
 import sys
 from io import StringIO
 import csv
@@ -47,32 +46,21 @@ sparameters_layout = html.Div([
         }
     ),
     dcc.Dropdown(
-            id='dropdown-magnitude',
+            id='dropdown-S21',
             options=[
-                {'label': 'V', 'value': "V"},
-                {'label': 'mV', 'value': "mV"}
+                {'label': 'dB', 'value': "dB"},
+                {'label': 'deg', 'value': "deg"}
             ],
-            value="V",
+            value="dB",
             style={'width': '20%',
 #                    'float': 'left'}
                    }
-        ),
-    dcc.Dropdown(
-            id='dropdown-phase',
-            options=[
-                {'label': 'degree', 'value': "deg"},
-                {'label': 'rad', 'value': "rad"}
-            ],
-            value="deg",
-            style={'width': '20%',
-#                    'float': 'left'}
-            }
         ),
     html.Br(),
     html.Br(),
     html.Div([
         dcc.Upload(
-        id='Sdata',
+        id='S_data',
         children=html.Div([
             'Drag and Drop or ',
             html.A('Select File')
@@ -96,9 +84,9 @@ sparameters_layout = html.Div([
 
 
 @app.callback(
-    Output('new-board-input', 'disabled'),
-    [Input('amp-board-list', 'value')])
-def enable_board_name_input(value):
+    Output('new-amp-cable-input', 'disabled'),
+    [Input('amp-cable-list', 'value')])
+def enable_cable_name_input(value):
     if(value == "new"):
         return False
     else:
@@ -106,14 +94,14 @@ def enable_board_name_input(value):
 
 
 @app.callback(
-    Output("amp-board-list", "options"),
+    Output("amp-cable-list", "options"),
     [Input("trigger", "children")],
-    [State("amp-board-list", "options"),
+    [State("amp-cable-list", "options"),
      State("table-name", "children")]
 )
-def update_dropdown_amp_names(n_intervals, options, table_name):
+def update_dropdown_cable_names(n_intervals, options, table_name):
     """
-    updates the dropdown menu with existing board names from the database
+    updates the dropdown menu with existing cable names from the database
     """
     for amp_name in get_table(table_name).distinct("name"):
         options.append(
@@ -124,16 +112,16 @@ def update_dropdown_amp_names(n_intervals, options, table_name):
 
 
 @app.callback(
-    [Output("validation-Sdata-output", "children"),
-     Output("validation-Sdata-output", "style"),
-    Output("validation-Sdata-output", "data-validated")],
-    [Input('Sdata', 'contents'),
+    [Output("validation-S21data-output", "children"),
+     Output("validation-S21data-output", "style"),
+    Output("validation-S21data-output", "data-validated")],
+    [Input('Sdata', 'value'),
      Input('dropdown-frequencies', 'value'),
-     Input('dropdown-magnitude', 'value'),
+     Input('dropdown-S21', 'value'),
      Input('dropdown-phase', 'value'),
      Input('separator', 'value')
      ])
-def validate_Sdata(contents, unit_ff, unit_A, unit_phase, sep):
+def validate_Sdata(Sdata, unit_ff, unit_A, unit_phase, sep):
     """
     validates frequency array
 
@@ -141,12 +129,10 @@ def validate_Sdata(contents, unit_ff, unit_A, unit_phase, sep):
 
     The outcome of the validataion (True/False) is saved in the 'data-validated' attribute to trigger other actions.
     """
-    if(contents != ""):
+    if(Sdata != ""):
         try:
-            content_type, content_string = contents.split(',')
-            S_datas = base64.b64decode(content_string)
-            S_data_io = StringIO(S_datas.decode('utf-8'))
-            S_data = np.genfromtxt(S_data_io, skip_header=7, skip_footer=1, delimiter=sep).T
+            S_data_io = StringIO(Sdata)
+            S_data = np.genfromtxt(S_data_io, delimiter=sep).T
             S_data[0] *= str_to_unit[unit_ff]
             for i in range(4):
                 S_data[1 + 2 * i] *= str_to_unit[unit_A]
@@ -168,20 +154,18 @@ def validate_Sdata(contents, unit_ff, unit_A, unit_phase, sep):
 
 
 @app.callback(
-    Output('figure-amp', 'figure'),
-    [Input("validation-Sdata-output", "data-validated")],
-    [State('Sdata', 'contents'),
+    Output('figure-cable', 'figure'),
+    [Input("validation-S21data-output", "data-validated")],
+    [State('Sdata', 'value'),
              State('dropdown-frequencies', 'value'),
-             State('dropdown-magnitude', 'value'),
+             State('dropdown-S21', 'value'),
              State('dropdown-phase', 'value'),
              State('separator', 'value')])
-def plot_Sparameters(val_Sdata, contents, unit_ff, unit_mag, unit_phase, sep):
+def plot_Sparameters(val_Sdata, Sdata, unit_ff, unit_mag, unit_phase, sep):
     print("display_value")
     if(val_Sdata):
-        content_type, content_string = contents.split(',')
-        S_data = base64.b64decode(content_string)
-        S_data_io = StringIO(S_data.decode('utf-8'))
-        S_data = np.genfromtxt(S_data_io, skip_header=7, skip_footer=1, delimiter=sep).T
+        S_data_io = StringIO(Sdata)
+        S_data = np.genfromtxt(S_data_io, delimiter=sep).T
         S_data[0] *= str_to_unit[unit_ff]
         for i in range(4):
             S_data[1 + 2 * i] *= str_to_unit[unit_mag]
