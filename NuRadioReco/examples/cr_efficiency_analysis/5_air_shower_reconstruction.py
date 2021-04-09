@@ -163,8 +163,8 @@ eventWriter.begin(output_filename + 'pb_' + str(int(passband_trigger[0]/units.MH
 i = 0
 for evt in readCoREASStation.run(det):
     for sta in evt.get_stations():
-        if i == 30:
-            break
+        #if i == 30: # use this if you want to test something or if you want only 30 position of 240
+         #   break
         logger.info("processing event {:d} with id {:d}".format(i, evt.get_id()))
 
         station = evt.get_station(default_station)

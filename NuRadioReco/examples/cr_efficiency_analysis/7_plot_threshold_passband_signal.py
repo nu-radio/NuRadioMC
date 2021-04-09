@@ -3,17 +3,34 @@ import pickle
 import os
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units, io_utilities
+import argparse
+import sys
+
+'''This script plots the results from the analysis in step 5-6. It makes only sense if you want to compare 
+different trigger settings such as passband which are stored in different dict. You can adjust the binning accordingly.'''
+
+parser = argparse.ArgumentParser(description='plot')
+parser.add_argument('n_energy_bins', type=int, nargs='?', default = 4, help = 'number of energy bins in the dict')
+parser.add_argument('n_zenith_bins', type=int, nargs='?', default = 8, help = 'number of zenith bins in the dict')
+parser.add_argument('n_distance_bins', type=int, nargs='?', default = 1, help = 'number of zenith bins in the dict')
+parser.add_argument('n_passbands', type=int, nargs='?', default = 1, help = 'number of different passbands or dict files')
+
+args = parser.parse_args()
+n_energy_bins = args.n_energy_bins
+n_zenith_bins = args.n_zenith_bins
+n_distance_bins = args.n_distance_bins
+n_passbands = args.n_passbands
 
 number_coincidences_list = []
 coinc_windows = []
-passband_trigger = np.zeros((201,2))
-trigger_threshold = np.zeros((201))
-triggered_trigger = np.zeros((201, 3, 9)) # number of passbands, energy bins, zenith angle bins
-trigger_weight = np.zeros((201, 3, 9))
-masked_events = np.zeros((201, 3, 9))
-trigger_efficiency = np.zeros((201, 3, 9))
-trigger_effective_area = np.zeros((201, 3, 9))
-trigger_effective_area_err = np.zeros((201, 3, 9))
+passband_trigger = np.zeros((n_passbands, 2))
+trigger_threshold = np.zeros((n_passbands))
+triggered_trigger = np.zeros((n_passbands, n_energy_bins, n_zenith_bins, n_distance_bins)) # number of passbands, energy bins, zenith angle bins, distance bins
+trigger_weight = np.zeros((n_passbands, n_energy_bins, n_zenith_bins, n_distance_bins))
+masked_events = np.zeros((n_passbands, n_energy_bins, n_zenith_bins, n_distance_bins))
+trigger_efficiency = np.zeros((n_passbands, n_energy_bins, n_zenith_bins, n_distance_bins))
+trigger_effective_area = np.zeros((n_passbands, n_energy_bins, n_zenith_bins))
+trigger_effective_area_err = np.zeros((n_passbands, n_energy_bins, n_zenith_bins))
 
 for pos, file in enumerate(os.listdir('results/air_shower/')):
     filename = os.path.join('results/air_shower/', file)
@@ -22,7 +39,7 @@ for pos, file in enumerate(os.listdir('results/air_shower/')):
         data = []
         data = io_utilities.read_pickle(filename, encoding='latin1')
         #print(data)
-
+        print(pos, file)
         T_noise = data['T_noise']
         T_noise_min_freq = data['T_noise_min_freq']
         T_noise_max_freq = data['T_noise_max_freq']
@@ -32,7 +49,6 @@ for pos, file in enumerate(os.listdir('results/air_shower/')):
 
         trigger_threshold[pos] = data['threshold']
         passband_trigger[pos] = data['passband_trigger']
-
         trigger_efficiency[pos] = data['trigger_efficiency']
         triggered_trigger[pos] = data['triggered_trigger']
         masked_events[pos] = data['trigger_masked_events']
