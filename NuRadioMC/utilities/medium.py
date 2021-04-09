@@ -14,10 +14,14 @@ radiopropa ice model, so it can be used in NuRadioMC. For example
 
         def get_ice_model_radiopropa(self):
             scalar field = radiopropa.New_IceModel(*args)
-            retur RadioPropaIceWrapper(self,scalar_field)
+            return RadioPropaIceWrapper(self,scalar_field)
+
+3) You can also choose to only implement the new ice model in radiopropa if
+radiopropa is always necessary and make the new model in this script access
+the c++ implemented model (e.g. green_firn model)
         
 
-3)If you want to add adjust (add, replace, remove) predefined modules 
+4) If you want to adjust (add, replace, remove) predefined modules 
 in the a RadioPropaIceWrapper object, you can do this by redefining the 
 'get_ice_model_radiopropa()' in your IceModel object. For exemple
 
@@ -125,63 +129,63 @@ class greenland_firn(IceModel):
             z_0_firn = 30.8*RP.meter,
             z_shift_firn = 0.*RP.meter)
 
-    def get_index_of_refraction(self,x):
+    def get_index_of_refraction(self,position):
         """
-        returns the index of refraction at position x.
+        returns the index of refraction at position.
         Overwrites function of the mother class
 
         Parameters
         ---------
-        x:  3dim np.array
-            point
+        position:  3dim np.array
+                    point
 
         Returns:
         --------
         n:  float
             index of refraction
         """
-        position = RP.Vector3d(*(x*RP.meter/units.meter))
+        position = RP.Vector3d(*(position*RP.meter/units.meter))
         return self._scalarfield.getValue(position)
 
-    def get_average_index_of_refraction(self,x1,x2):
+    def get_average_index_of_refraction(self,position1,position2):
         """
         returns the average index of refraction between two points
         Overwrites function of the mother class
 
         Parameters
         ----------
-        x1: 3dim np.array
-            point
-        x2: 3dim np.array
-            point
+        position1: 3dim np.array
+                    point
+        position2: 3dim np.array
+                    point
 
         Returns
         -------
         n_average:  float
                     averaged index of refraction between the two points
         """
-        position1 = RP.Vector3d(*(x1*RP.meter/units.meter))
-        position2 = RP.Vector3d(*(x2*RP.meter/units.meter))
+        position1 = RP.Vector3d(*(position1*RP.meter/units.meter))
+        position2 = RP.Vector3d(*(position2*RP.meter/units.meter))
         return self._scalarfield.getAverageValue(position1,position2)
 
 
-    def get_gradient_of_index_of_refraction(self, x):
+    def get_gradient_of_index_of_refraction(self, position):
         """
-        returns the gradient of index of refraction at position x
+        returns the gradient of index of refraction at position
         Overwrites function of the mother class
 
         Parameters
         ----------
-        x: 3dim np.array
-            point
+        position: 3dim np.array
+                    point
 
         Returns
         -------
         n_nabla:    (3,) np.array
                     gradient of index of refraction at the point
         """
-        position = RP.Vector3d(*(x*RP.meter/units.meter))
-        return self._scalarfield.getGradient(position)
+        pos = RP.Vector3d(*(position*RP.meter/units.meter))
+        return self._scalarfield.getGradient(pos)
 
     
     def get_ice_model_radiopropa(self,discontinuity=False):

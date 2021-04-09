@@ -13,15 +13,12 @@ from scipy.interpolate import interp1d
 import logging
 logging.basicConfig()
 
-'''
-TO DO
-- set_solution --> use launch vectors to recalculate the path
-'''
-
 
 class ray_tracing:
 
-    """ Numerical raytracing using Radiopropa. Currently this only works for icemodels that have only changing refractive index in z. """
+    """ Numerical raytracing using Radiopropa. Currently this only works for icemodels 
+    that have only changing refractive index in z. More information on RadioPropa and
+    how to install it can be found at https://github.com/nu-radio/RadioPropa"""
 
     solution_types = {1: 'direct',
                   2: 'refracted',
@@ -64,7 +61,7 @@ class ray_tracing:
         try:
             import radiopropa
         except ImportError:
-            self.__logger.error('ImportError: This raytracer depends on radiopropa which could not be imported. Check wether all dependancies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
+            self.__logger.error('ImportError: This raytracer depends on radiopropa which could not be imported. Check wether all dependencies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
             raise ImportError
 
         self.__medium = medium
@@ -191,7 +188,7 @@ class ray_tracing:
         
         ## regions of theta with posible solutions (radians)
         launch_lower = [0]
-        launch_upper = [theta_direct + np.deg2rad(5)] ## below theta_direct no solutions are possible without upward reflections
+        launch_upper = [theta_direct + 2*abs(self.delta_theta_direct(dz=self.__sphere_sizes[0]))]#np.deg2rad(5)] ## below theta_direct no solutions are possible without upward reflections
 
         if n_reflections > 0:
             if self.medium.reflection is None:
@@ -209,7 +206,7 @@ class ray_tracing:
                 rho_bottom = (rho_channel*(z_refl-z_down))/(2*z_refl-z_up-z_down)
                 alpha = np.arctan((z_down-z_refl)/rho_bottom)
                 ## when reflection on the bottom are allowed, a initial region for theta from 180-alpha to 180 degrees is added
-                launch_lower.append((np.pi - (alpha - np.deg2rad(5))))
+                launch_lower.append(((np.pi/2 + alpha) - 2*abs(self.delta_theta_bottom(dz=self.__sphere_sizes[0],z_refl=z_refl))))
                 launch_upper.append(np.pi)
         
         for s,sphere_size in enumerate(self.__sphere_sizes):
@@ -241,7 +238,7 @@ class ray_tracing:
             sim.add(obs2)
             
             #create total scanning range from the upper and lower thetas of the bundles
-            step = self.__step_sizes[s]/units.radian
+            step = min(abs(self.delta_theta_reflective(dz=sphere_size,n_bottom_reflections=n_reflections)), self.__step_sizes[s])/units.radian#self.__step_sizes[s]/units.radian
             theta_scanning_range = np.array([])
             for iL in range(len(launch_lower)):
                 new_scanning_range = np.arange(launch_lower[iL],launch_upper[iL]+step,step)
@@ -950,3 +947,32 @@ class ray_tracing:
             The new configuration settings
         """
         self.__config = config
+
+    ## helper functions
+    def delta_theta_direct(self,dz):
+        v = (self.__x2-self.__x1)
+        u = copy.deepcopy(v)
+        u[2] = 0
+        rho = np.linalg.norm(u)
+        return dz * rho / ((self.__x1[2]-self.__x2[2])**2 + rho**2) * units.radian
+
+    def delta_theta_bottom(self,dz,z_refl):
+        v = (self.__x2-self.__x1)
+        u = copy.deepcopy(v)
+        u[2] = 0
+        rho = np.linalg.norm(u)
+        return dz * rho / ((self.__x1[2]+self.__x2[2]-2*z_refl)**2 + rho**2) * units.radian
+
+    def delta_theta_reflective(self,dz,n_bottom_reflections):
+        v = (self.__x2-self.__x1)
+        u = copy.deepcopy(v)
+        u[2] = 0
+        rho = np.linalg.norm(u)
+        ice_thickness = self.__medium.z_airBoundary - self.__medium.z_bottom
+        if n_bottom_reflections > 0:
+            if self.medium.reflection is None:
+                self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(n_reflections))
+                raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(n_reflections))
+            else:
+                ice_thickness = self.__medium.z_airBoundary - self.__medium.reflection
+        return -dz * rho / ((self.__x1[2]+self.__x2[2]+2*n_bottom_reflections*ice_thickness)**2 + rho**2) * units.radian

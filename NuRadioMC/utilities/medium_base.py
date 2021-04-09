@@ -31,15 +31,15 @@ class IceModel():
         if not((self.z_bottom != None) and (self.z_bottom < self.reflection)):
             self.z_bottom = self.reflection-1*units.m
 
-    def get_index_of_refraction(self,x):
+    def get_index_of_refraction(self,position):
         """
-        returns the index of refraction at position x.
+        returns the index of refraction at position.
         Reimplement everytime in the specific model
 
         Parameters
         ---------
-        x:  3dim np.array
-            point
+        position:  3dim np.array
+                    point
 
         Returns:
         --------
@@ -48,17 +48,17 @@ class IceModel():
         """
         pass
 
-    def get_average_index_of_refraction(self,x1,x2):
+    def get_average_index_of_refraction(self,position1,position2):
         """
         returns the average index of refraction between two points
         Reimplement everytime in the specific model
 
         Parameters
         ----------
-        x1: 3dim np.array
-            point
-        x2: 3dim np.array
-            point
+        position1: 3dim np.array
+                    point
+        position2: 3dim np.array
+                    point
 
         Returns
         -------
@@ -67,15 +67,15 @@ class IceModel():
         """
         pass
 
-    def get_gradient_of_index_of_refraction(self, x):
+    def get_gradient_of_index_of_refraction(self, position):
         """
-        returns the gradient of index of refraction at position x
+        returns the gradient of index of refraction at position
         Reimplement everytime in the specific model
 
         Parameters
         ----------
-        x: 3dim np.array
-            point
+        position: 3dim np.array
+                    point
 
         Returns
         -------
@@ -109,57 +109,57 @@ class IceModel_Simple(IceModel):
         self.z_0 = z_0
         self.z_shift = z_shift
 
-    def get_index_of_refraction(self, x):
+    def get_index_of_refraction(self, position):
         """
-        returns the index of refraction at position x.
+        returns the index of refraction at position.
         Overwrites function of the mother class
 
         Parameters
         ---------
-        x:  3dim np.array
-            point
+        position:  3dim np.array
+                    point
 
         Returns:
         --------
         n:  float
             index of refraction
         """
-        if (x[2] - self.z_airBoundary) <=0:
-            return self.n_ice  - self.delta_n  * np.exp((x[2]-self.z_shift) / self.z_0)
+        if (position[2] - self.z_airBoundary) <=0:
+            return self.n_ice  - self.delta_n  * np.exp((position[2]-self.z_shift) / self.z_0)
         else:
             return 1
 
-    def get_average_index_of_refraction(self, x1, x2):
+    def get_average_index_of_refraction(self, position1, position2):
         """
         returns the average index of refraction between two points
         Overwrites function of the mother class
 
         Parameters
         ----------
-        x1: 3dim np.array
-            point
-        x2: 3dim np.array
-            point
+        position1: 3dim np.array
+                    point
+        position2: 3dim np.array
+                    point
 
         Returns
         -------
         n_average:  float
                     averaged index of refraction between the two points
         """
-        if ((x1[2] - self.z_airBoundary) <=0) and ((x2[2] - self.z_airBoundary) <=0):
-            return self.n_ice - self.delta_n * self.z_0 / (x2[2] - x1[2]) * (np.exp((x2[2]-self.z_shift) / self.z_0) - np.exp((x1[2]-self.z_shift) / self.z_0))
+        if ((position1[2] - self.z_airBoundary) <=0) and ((position2[2] - self.z_airBoundary) <=0):
+            return self.n_ice - self.delta_n * self.z_0 / (position2[2] - position1[2]) * (np.exp((position2[2]-self.z_shift) / self.z_0) - np.exp((position1[2]-self.z_shift) / self.z_0))
         else:
             return None
 
-    def get_gradient_of_index_of_refraction(self, x):
+    def get_gradient_of_index_of_refraction(self, position):
         """
-        returns the gradient of index of refraction at position x
+        returns the gradient of index of refraction at position
         Overwrites function of the mother class
 
         Parameters
         ----------
-        x: 3dim np.array
-            point
+        position: 3dim np.array
+                    point
 
         Returns
         -------
@@ -167,8 +167,8 @@ class IceModel_Simple(IceModel):
                     gradient of index of refraction at the point
         """
         gradient = np.array([0.,0.,0.])
-        if (x[2] - self.z_airBoundary) <=0:
-            gradient[2] = - self.delta_n / self.z_0 * np.exp((x[2]-self.z_shift) / self.z_0)
+        if (position[2] - self.z_airBoundary) <=0:
+            gradient[2] = - self.delta_n / self.z_0 * np.exp((position[2]-self.z_shift) / self.z_0)
         return gradient
 
     def get_ice_model_radiopropa(self):
