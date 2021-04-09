@@ -16,6 +16,11 @@ from NuRadioReco.utilities import units, io_utilities
 import argparse
 import sys
 
+'''This script sorts the triggered events into different energy, zenith, and distance bins. Energy means shower energy, 
+ zenith bin means inclination of the shower arrival direction and distance means distance between shower core and station.
+  These are important parameters to determine the trigger efficiency.'''
+
+
 parser = argparse.ArgumentParser(description='Nurfile analyser')
 parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/dict_ntr_high_low_pb_80_180.pbz2', help = 'settings from the results from threshold analysis')
 parser.add_argument('input_filepath', type=str, nargs='?', default = 'output_air_shower_reco/', help = 'input path were results from air shower analysis are stored')
@@ -91,8 +96,6 @@ for nur_file in os.listdir(input_filepath):
 
 n_files = len(nur_file_list)
 
-evtReader = eventReader.eventReader()
-
 energy = []
 zenith = []
 azimuth = []
@@ -103,7 +106,7 @@ trigger_status_weight = []  # trigger status per event station and threshold wit
 trigger_in_station = []  # name of trigger
 
 print('nur file list', nur_file_list)
-
+evtReader = eventReader.eventReader()
 evtReader.begin(filename=filename, read_detector=True)
 weight = []
 num = 0
@@ -179,7 +182,7 @@ for dim_0, energy_bin_low, energy_bin_high in zip(range(len(energy_bins_low)), e
         n_events_masked_ez = np.sum(mask_ez)
         # print('trigger_status', trigger_status.shape)
         print('n_events_masked_ez', n_events_masked_ez)
-        # print('mask ez', mask_ez.shape)
+        print('mask ez', mask_ez.shape)
 
         # mask ez
         triggered_trigger_ez = np.sum(masked_trigger_status_ez, axis=0)
@@ -265,5 +268,5 @@ dic['energy_bins_high'] = energy_bins_high
 dic['zenith_bins_high'] = zenith_bins_high
 print(dic)
 
-with open('results/dict_air_shower_pb_{:.0f}_{:.0f}_e{}_z{}_d{}_{}.pickle'.format(passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz, len(energy_bins_low), len(zenith_bins_low), len(distance_bins_low), max(distance_bins)), 'wb') as pickle_out:
+with open('results/air_shower/dict_air_shower_pb_{:.0f}_{:.0f}_e{}_z{}_d{}_{}.pickle'.format(passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz, len(energy_bins_low), len(zenith_bins_low), len(distance_bins_low), max(distance_bins)), 'wb') as pickle_out:
     pickle.dump(dic, pickle_out)
