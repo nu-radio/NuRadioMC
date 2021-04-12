@@ -14,6 +14,7 @@ requires = [
 	"scipy",
     "tinydb>=4.1.1",
     "tinydb-serialization",
+	"pickle",
     "aenum",
     "astropy",
     "radiotools >=0.2.0",
