@@ -22,7 +22,7 @@ import sys
 
 
 parser = argparse.ArgumentParser(description='Nurfile analyser')
-parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/dict_ntr_high_low_pb_80_180.pbz2', help = 'settings from the results from threshold analysis')
+parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/example_dict_ntr_high_low_pb_80_180.pbz2', help = 'settings from the results from threshold analysis')
 parser.add_argument('input_filepath', type=str, nargs='?', default = 'output_air_shower_reco/', help = 'input path were results from air shower analysis are stored')
 parser.add_argument('energy_bins', type=list, nargs='?', default = [16.5, 20, 6], help = 'energy bins as log()')
 parser.add_argument('zenith_bins', type=list, nargs='?', default = [0, 100, 10], help = 'zenith bins in deg')
