@@ -5,7 +5,7 @@ import _pickle as cPickle
 import os
 from NuRadioReco.utilities import units, io_utilities
 
-filename = 'results/ntr/dict_ntr_high_low_pb_80_180.pbz2'
+filename = 'results/ntr/example_dict_ntr_high_low_pb_80_180.pbz2'
 print('filename', filename)
 data = []
 bz2 = bz2.BZ2File(filename, 'rb')

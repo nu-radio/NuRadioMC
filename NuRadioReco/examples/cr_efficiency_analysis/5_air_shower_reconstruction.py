@@ -41,7 +41,7 @@ the trigger parameters calculated in step 1-3. Please set triggered channels man
 
 parser = argparse.ArgumentParser(description='Run FullReconstruction')
 parser.add_argument('config_file', type=str, nargs='?', default = 'config_file_air_shower_reco.yml', help = 'config file with eventlist')
-parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/dict_ntr_high_low_pb_80_180.pbz2', help = 'settings from the ntr results')
+parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/example_dict_ntr_high_low_pb_80_180.pbz2', help = 'settings from the ntr results')
 parser.add_argument('number', type=int, nargs='?', default = 0, help = 'number of element in eventlist')
 
 args = parser.parse_args()
