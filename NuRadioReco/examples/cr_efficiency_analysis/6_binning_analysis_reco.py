@@ -28,6 +28,8 @@ parser.add_argument('energy_bins', type=list, nargs='?', default = [16.5, 20, 6]
 parser.add_argument('zenith_bins', type=list, nargs='?', default = [0, 100, 10], help = 'zenith bins in deg')
 parser.add_argument('distance_bins', type=int, nargs='?', default = [0, 700, 4000], help = 'distance bins')
 
+number_of_sta_in_evt = 72
+
 args = parser.parse_args()
 result_dict = args.result_dict
 input_filepath = args.input_filepath
@@ -149,8 +151,6 @@ print('zenith', zenith.shape)
 print('n events', n_events)
 print('trigger_status', trigger_status.shape)
 print('trigger_status_weight', trigger_status_weight.shape)
-
-number_of_sta_in_evt = 240
 
 energy_shower = np.array(energy).reshape(int(len(energy)/number_of_sta_in_evt), number_of_sta_in_evt)[:,0]
 zenith_shower = np.array(zenith).reshape(int(len(zenith)/number_of_sta_in_evt), number_of_sta_in_evt)[:,0]
