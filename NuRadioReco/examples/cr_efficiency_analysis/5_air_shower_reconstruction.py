@@ -215,8 +215,8 @@ for evt in readCoREASStation.run(det):
         i += 1
         print('finish with station {}'.format(i))
 
-    eventWriter.run(evt, det)
-    #eventWriter.run(evt, det, mode='micro')  # here you can change what should be stored in the nur files
+    #eventWriter.run(evt, det)
+    eventWriter.run(evt, det, mode='micro')  # here you can change what should be stored in the nur files
 
 nevents = eventWriter.end()
 print("Finished processing, {} events".format(nevents))
