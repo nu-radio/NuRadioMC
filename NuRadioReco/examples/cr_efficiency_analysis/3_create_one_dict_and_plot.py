@@ -15,7 +15,7 @@ It can be used for results from 2_.. and 2a_...'''
 parser = argparse.ArgumentParser(description='Noise Trigger Rate')
 parser.add_argument('passband_low', type=int, nargs='?', default = 80, help = 'passband low to check')
 parser.add_argument('passband_high', type=int, nargs='?', default = 180, help = 'passband high to check')
-parser.add_argument('number_of_files', type=int, nargs='?', default = 100, help = 'number of n_files to loop over')
+parser.add_argument('number_of_files', type=int, nargs='?', default = 1, help = 'number of n_files to loop over')
 
 args = parser.parse_args()
 passband_low = args.passband_low
@@ -24,11 +24,11 @@ number_of_files = args.number_of_files
 
 n_files = number_of_files
 
-input_filename = 'output_threshold_final/final_threshold_high_low_pb_{:.0f}_{:.0f}_i20000_1.pickle'.format(passband_low,
+input_filename = 'output_threshold_final/final_threshold_high_low_pb_{:.0f}_{:.0f}_i20_1.pickle'.format(passband_low,
                                                                                                       passband_high)
 
 data = []
-data = io_utilities.read_pickle(input_filename, encoding='latin1')
+data = io_utilities.read_pickle(input_filename)
 
 detector_file = data['detector_file']
 default_station = data['default_station']
@@ -53,7 +53,7 @@ order_trigger = data['order_trigger']
 trigger_thresholds = data['threshold']
 n_iterations = data['iteration']
 
-trigger_status = np.zeros((n_files, 20000, len(trigger_thresholds)))
+trigger_status = np.zeros((n_files, 20, len(trigger_thresholds)))
 triggered_true = np.zeros((n_files, len(trigger_thresholds)))
 triggered_all = np.zeros_like(triggered_true)
 trigger_efficiency = np.zeros_like(triggered_true)
@@ -61,9 +61,9 @@ trigger_rate = np.zeros_like(triggered_true)
 
 
 for i_file in range(number_of_files):
-    input_filename = 'output_threshold_final/final_threshold_{}_pb_{:.0f}_{:.0f}_i20000_{}.pickle'.format(trigger_name, passband_low,
+    input_filename = 'output_threshold_final/final_threshold_{}_pb_{:.0f}_{:.0f}_i20_{}.pickle'.format(trigger_name, passband_low,
                                                                                                       passband_high,
-                                                                                            i_file)
+                                                                                            i_file+1)
     data = []
     data = io_utilities.read_pickle(input_filename, encoding='latin1')
     #print(data)
