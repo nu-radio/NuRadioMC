@@ -102,8 +102,7 @@ dic['order_trigger'] = order_trigger
 dic['number_coincidences'] = number_coincidences
 dic['iteration'] = iterations
 dic['threshold'] = trigger_thresholds
-dic['trigger_status'] = trigger_status
-dic['triggered_true'] = triggered_true_all
+#dic['triggered_true'] = triggered_true_all   # needs a lot of storage
 dic['efficiency'] = trigger_efficiency_all
 dic['trigger_rate'] = trigger_rate_all
 dic['hardware_response'] = hardware_response
@@ -114,8 +113,8 @@ filename = 'results/ntr/dict_ntr_{}_pb_{:.0f}_{:.0f}.pbz2'.format(trigger_name, 
 with bz2.BZ2File(filename, 'w') as f:
     cPickle.dump(dic, f)
 
-bz2 = bz2.BZ2File(filename, 'rb')
-data = cPickle.load(bz2)
+bz2_file = bz2.BZ2File(filename, 'rb')
+data = cPickle.load(bz2_file)
 
 efficiency= data['efficiency']
 trigger_rate = data['trigger_rate']

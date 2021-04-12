@@ -1,5 +1,7 @@
 import numpy as np
 import pickle
+import bz2
+import _pickle as cPickle
 import os
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units, io_utilities
@@ -18,8 +20,10 @@ passbands = []
 for file in os.listdir('results/ntr/'):
     filename = os.path.join('results/ntr/', file)
     print('file used', filename)
+    print('filename', filename)
     data = []
-    data = io_utilities.read_pickle(filename, encoding='latin1')
+    bz2_file = bz2.BZ2File(filename, 'rb')
+    data = cPickle.load(bz2_file)
 
     trigger_thresholds = data['threshold']
     print('trigger thresholds', trigger_thresholds)
@@ -81,5 +85,5 @@ plt.ylabel('Upper cutoff frequency [MHz]')
 #plt.legend()
 plt.tight_layout()
 #plt.show()
-plt.savefig('results/ntr/fig_passband_threshold_ntr_2e6.png')
+plt.savefig('results/fig_passband_threshold_ntr_2e6.png')
 
