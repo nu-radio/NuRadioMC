@@ -13,7 +13,7 @@ VERSION_MINOR = 2
 
 class NuRadioRecoio(object):
 
-    def __init__(self, filenames, parse_header=True, parse_detector=True, fail_on_version_mismatch=True,
+    def __init__(self, filenames, parse_header=True, parse_detector=True, fail_on_version_mismatch=False,
                  fail_on_minor_version_mismatch=False,
                  max_open_files=10, log_level=None, buffer_size=104857600):
         """
