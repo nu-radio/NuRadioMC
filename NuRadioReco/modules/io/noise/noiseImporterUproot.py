@@ -56,10 +56,22 @@ class noiseImporter:
         for noise_file in noise_files:
             with uproot.open(noise_file) as nf:
                 nt = nf["CalibTree"]
-                data.append(np.array(nt["AmpOutData."]["AmpOutData.fData"].array()))
+                logger.debug("reading data")
+                if nt.num_entries < 1000:
+                    data.append(np.array(nt["AmpOutData."]["AmpOutData.fData"].array()))
+                else:
+                    bunches = list(np.arange(0, nt.num_entries, 1000))
+                    bunches.append(nt.num_entries)
+                    first = bunches[:-1]
+                    last = bunches[1:]
+                    for i in range(len(first)):
+                        logger.info("reading data bunch {} of {}".format(i, len(first)))
+                        data.append(np.array(nt["AmpOutData."]["AmpOutData.fData"].array(entry_start=first[i], entry_stop=last[i])))
                 # trigger jagged array only consists of single number, so drop the array [:,0]
+                logger.debug("reading trigger info")
                 trigger.append(np.array(nt['EventHeader.']['EventHeader.fTrgInfo'].array(interpretation = ARIANNA_uproot_interpretation['trigger'])[:,0]))
                 # consists of posix time [s] and [ns]
+                logger.debug("reading times")
                 posix_times.append(np.array(nt['EventHeader.']['EventHeader.fTime'].array(interpretation = ARIANNA_uproot_interpretation['time'])))
 
         self.data = np.concatenate(data)
@@ -67,6 +79,7 @@ class noiseImporter:
         self.datetime = np.array([np.datetime64(int(t[0]), 's') for t in self.posix_time])
         self.trigger = np.concatenate(trigger)
         self.nevts = len(self.data)
+        
 
     @register_run()
     def run(self, evt, station, det):
@@ -96,7 +109,6 @@ class noiseImporter:
 
                 channel.set_trace(noise_trace, channel.get_sampling_rate())
 
-            # we may also want to read out time and trigger information
             
 
 
