@@ -108,6 +108,26 @@ class showerParameters(Enum):
     k_L = 110  # the k_L parameter of the Alvarez2009 parameter that controls the longitudional width of the charge excess profile
     flavor = 111  # the flavor of the particle initiating the shower
 
+class simParticleParameters(Enum):
+    zenith = 1  # the zenith angle of the incoming neutrino direction
+    azimuth = 2  # the azimuth angle of the incoming neutrino direction
+    energy = 3  # the energy of the neutrino
+    flavor = 4  # the flavor of the neutrino
+    #vertex = 5  # the neutrino vertex position
+    x = 5
+    y = 6
+    z = 7
+    weight = 8
+    vertex_time = 9
+    inelasticity = 10  # inelasticity ot neutrino interaction
+    interaction_type = 11  # interaction type, e.g., cc, nc, tau_em, tau_had
+    #cr_energy = 9  # the cosmic-ray energy
+    #cr_zenith = 10  # zenith angle of the cosmic-ray incoming direction
+    #cr_azimuth = 11  # azimuth angle of the cosmic-ray incoming direction
+    #cr_energy_em = 12  # the electromagnetic shower energy (the cosmic ray energy that ends up in electrons, positrons and gammas)
+    ##event_group_id
+    ##shower_ids
+    ##shower_realization_Alvarez2009
 
 class eventParameters(Enum):
     sim_config = 1  # contents of the config file that the NuRadioMC simulation was run with

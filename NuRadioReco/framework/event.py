@@ -3,6 +3,7 @@ import pickle
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.framework.hybrid_information
+import NuRadioReco.framework.sim_particle
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.utilities.version
 from six import itervalues
@@ -21,6 +22,7 @@ class Event:
         self.__radio_showers = collections.OrderedDict()
         self.__sim_showers = collections.OrderedDict()
         self.__event_time = 0
+        self.__sim_particle = NuRadioReco.framework.sim_particle.SimParticle()
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
         self.__modules_station = {}  # saves which modules were executed with what parameters on station level
@@ -119,6 +121,17 @@ class Event:
 
     def set_station(self, station):
         self.__stations[station.get_id()] = station
+
+    def set_sim_params(self, params):
+        for p in params:
+            print("setting param {} to {}".format(p, params[p]))
+            self.__sim_particle.set_parameter(p, params[p])
+            
+    def set_sim_particle(self, sim_particle):
+        self.__sim_particle = sim_particle
+
+    def get_sim_particle(self):
+        return self.__sim_particle
 
     def add_shower(self, shower):
         """
@@ -294,6 +307,7 @@ class Event:
                 'stations': stations_pkl,
                 'showers': showers_pkl,
                 'sim_showers': sim_showers_pkl,
+                'sim_particle': self.__sim_particle,
                 'hybrid_info': hybrid_info,
                 '__modules_event': modules_out_event,
                 '__modules_station': modules_out_station
@@ -324,6 +338,9 @@ class Event:
         self.__run_number = data['__run_number']
         self._id = data['_id']
         self.__event_time = data['__event_time']
+
+        self.__sim_particle = data['sim_particle']
+
         if("__modules_event" in data):
             self.__modules_event = data['__modules_event']
         if("__modules_station" in data):
