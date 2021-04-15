@@ -26,11 +26,13 @@ import NuRadioReco.detector.detector as detector
 import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
+import NuRadioReco.framework.sim_particle
 import NuRadioReco.framework.event
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
+from NuRadioReco.framework.parameters import simParticleParameters as simp
 import datetime
 import logging
 from six import iteritems
@@ -354,7 +356,7 @@ class simulation():
         """
         if(len(self._fin['xx']) == 0):
             logger.status(f"writing empty hdf5 output file")
-            self._write_ouput_file(empty=True)
+            self._write_output_file(empty=True)
             logger.status(f"terminating simulation")
             return -1
         logger.status(f"Starting NuRadioMC simulation")
@@ -458,7 +460,9 @@ class simulation():
                 vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
                 distance_cut_time += time.time() - t_tmp
 
+
             triggered_showers = {}  # this variable tracks which showers triggered a particular station
+
             # loop over all stations (each station is treated independently)
             for iSt, self._station_id in enumerate(self._station_ids):
                 t1 = time.time()
@@ -813,6 +817,21 @@ class simulation():
                         tmp = tmp[:-2] + " ns"
                         logger.info(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
                     self._evt = NuRadioReco.framework.event.Event(self._event_group_id, iEvent)  # create new event
+
+                    self._evt.set_sim_params({
+                        simp.zenith: self._zenith_shower,
+                        simp.azimuth: self._azimuth_shower,
+                        simp.energy: self._energy,
+                        simp.flavor: self._flavor,
+                        simp.x: self._x, 
+                        simp.y: self._y,
+                        simp.z: self._z,
+                        simp.weight: self._mout['weights'][self._event_group_id],
+                        simp.vertex_time: self._vertex_time,
+                        simp.inelasticity: self._inelasticity,
+                        #TODO simp.interaction_type: self._interaction_type,
+                        })
+
                     self._station = NuRadioReco.framework.station.Station(self._station_id)
                     sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
                     sim_station.set_is_neutrino()
@@ -939,7 +958,7 @@ class simulation():
 
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
-        self._write_ouput_file()
+        self._write_output_file()
 
         try:
             self.calculate_Veff()
@@ -1248,7 +1267,7 @@ class simulation():
         self._sim_shower[shp.vertex_time] = self._vertex_time
         self._sim_shower[shp.type] = self._shower_type
 
-    def _write_ouput_file(self, empty=False):
+    def _write_output_file(self, empty=False):
         folder = os.path.dirname(self._outputfilename)
         if(not os.path.exists(folder) and folder != ''):
             logger.warning(f"output folder {folder} does not exist, creating folder...")
