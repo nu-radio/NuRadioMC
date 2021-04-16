@@ -62,7 +62,7 @@ class ray_tracing:
             import radiopropa
         except ImportError:
             self.__logger.error('ImportError: This raytracer depends on radiopropa which could not be imported. Check wether all dependencies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
-            raise ImportError
+            raise ImportError('This raytracer depends on radiopropa which could not be imported. Check wether all dependencies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
 
         self.__medium = medium
         self.__ice_model = medium.get_ice_model_radiopropa()
@@ -83,7 +83,8 @@ class ray_tracing:
                     self.__max_detector_frequency = sampling_frequency * .5
 
         ## discard events if delta_C (angle off cherenkov cone) is too large
-        self.__cut_viewing_angle = config['speedup']['delta_C_cut'] * units.radian
+        if config != None: self.__cut_viewing_angle = config['speedup']['delta_C_cut'] * units.radian
+        else: self.__cut_viewing_angle = 40 * units.degree
         ## maximal length to what the trajectory will be calculated
         self.__max_traj_length = 10000 * units.meter
         ## iteration from big to small observer around channel
@@ -120,9 +121,7 @@ class ray_tracing:
         """
         #self.reset_solutions()
         x1 = np.array(x1, dtype =np.float)
-        self.__x1 = x1 * units.meter
         x2 = np.array(x2, dtype = np.float)
-        self.__x2 = x2 * units.meter
         if (self.__n_reflections):
             if (x1[2] < self.__medium.reflection or x2[2] < self.__medium.reflection):
                 self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(
@@ -183,7 +182,7 @@ class ray_tracing:
         v = (self.__x2-self.__x1)
         u = copy.deepcopy(v)
         u[2] = 0
-        theta_direct, phi = hp.cartesian_to_spherical(*v) # zenith and azimuth for the direct linear ray solution (radians)
+        theta_direct, phi_direct = hp.cartesian_to_spherical(*v) # zenith and azimuth for the direct linear ray solution (radians)
         cherenkov_angle = np.arccos(1. / self.__medium.get_index_of_refraction(self.__x1))
         
         ## regions of theta with posible solutions (radians)
@@ -206,7 +205,7 @@ class ray_tracing:
                 rho_bottom = (rho_channel*(z_refl-z_down))/(2*z_refl-z_up-z_down)
                 alpha = np.arctan((z_down-z_refl)/rho_bottom)
                 ## when reflection on the bottom are allowed, a initial region for theta from 180-alpha to 180 degrees is added
-                launch_lower.append(((np.pi/2 + alpha) - 2*abs(self.delta_theta_bottom(dz=self.__sphere_sizes[0],z_refl=z_refl))))
+                launch_lower.append(((np.pi/2 + alpha) - 2*abs(self.delta_theta_bottom(dz=self.__sphere_sizes[0],z_refl=z_refl)/units.radian)))
                 launch_upper.append(np.pi)
         
         for s,sphere_size in enumerate(self.__sphere_sizes):
@@ -245,7 +244,7 @@ class ray_tracing:
                 theta_scanning_range = np.concatenate((theta_scanning_range,new_scanning_range))
 
             for theta in theta_scanning_range:
-                ray_dir = hp.spherical_to_cartesian(theta,phi)
+                ray_dir = hp.spherical_to_cartesian(theta,phi_direct)
                 viewing = np.arccos(np.dot(self.__shower_axis, ray_dir)) * units.radian
                 delta = viewing - cherenkov_angle
                 #only include rays with angle wrt cherenkov angle smaller than the cut in the config file
@@ -504,10 +503,10 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        launch_vector = [self.__rays[iS].getLaunchVector().x, 
+        launch_vector = np.array([self.__rays[iS].getLaunchVector().x, 
                             self.__rays[iS].getLaunchVector().y, 
-                            self.__rays[iS].getLaunchVector().z]
-        return np.array(launch_vector)
+                            self.__rays[iS].getLaunchVector().z])
+        return launch_vector/np.linalg.norm(launch_vector)
 
     def get_receive_vector(self, iS):
         """
@@ -530,10 +529,10 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        receive_vector = [self.__rays[iS].getReceiveVector().x, 
+        receive_vector = np.array([self.__rays[iS].getReceiveVector().x, 
                             self.__rays[iS].getReceiveVector().y, 
-                            self.__rays[iS].getReceiveVector().z]
-        return np.array(receive_vector)
+                            self.__rays[iS].getReceiveVector().z])
+        return receive_vector/np.linalg.norm(receive_vector)
 
     def get_reflection_angle(self, iS):
         """
@@ -580,7 +579,7 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        end_of_path = self.get_path(iS)[-1] #position of the receive vector on the sphere around the channel in detector coordinates
+        end_of_path = self.get_path_candidate(iS)[-1] #position of the receive vector on the sphere around the channel in detector coordinates
         receive_vector = self.get_receive_vector(iS)
         
         vector = end_of_path - self.__x2 #position of the receive vector on the sphere around the channel
@@ -864,7 +863,7 @@ class ray_tracing:
 
 
         ## apply focussing effect
-        if self.__config['propagation']['focusing']:
+        if self.__config != None and self.__config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
             spec[1:] *= focusing
 
