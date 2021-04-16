@@ -120,8 +120,8 @@ class ray_tracing:
             stop point of the ray
         """
         #self.reset_solutions()
-        x1 = np.array(x1, dtype =np.float)
-        x2 = np.array(x2, dtype = np.float)
+        self.__x1 = np.array(x1, dtype =np.float)
+        self.__x2 = np.array(x2, dtype = np.float)
         if (self.__n_reflections):
             if (x1[2] < self.__medium.reflection or x2[2] < self.__medium.reflection):
                 self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(
