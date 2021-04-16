@@ -62,6 +62,7 @@ class noiseImporter:
         dtms = []
         # loop over input files to extract needed data
         for noise_file in noise_files:
+            logger.info("reading data for file{}".format(noise_file))
             with uproot.open(noise_file) as nf:
                 nt = nf["CalibTree"]
                 logger.debug("reading data")
@@ -73,17 +74,18 @@ class noiseImporter:
                     first = bunches[:-1]
                     last = bunches[1:]
                     for i in range(len(first)):
-                        logger.info("reading data bunch {} of {}".format(i, len(first)))
+                        logger.info("reading data bunch {} of {}".format(i+1, len(first)))
                         data.append(np.array(nt["AmpOutData."]["AmpOutData.fData"].array(entry_start=first[i], entry_stop=last[i])) * units.mV)
                 # trigger jagged array only consists of single number, so drop the array [:,0]
                 logger.debug("reading trigger info")
-                trigger.append(np.array(nt['EventHeader.']['EventHeader.fTrgInfo'].array(interpretation = ARIANNA_uproot_interpretation['trigger'])[:,0]))
+                trigger.append(np.array(nt['EventHeader.']['EventHeader.fTrgInfo'].array(interpretation = ARIANNA_uproot_interpretation['trigger']))[:,0])
                 # consists of posix time [s] and [ns]
                 logger.debug("reading times")
-                event_times_file = np.array(nt['EventHeader.']['EventHeader.fTime'].array(interpretation = ARIANNA_uproot_interpretation['time']))
+                event_times_file = np.array(nt['EventHeader.']['EventHeader.fTime'].array(interpretation = ARIANNA_uproot_interpretation['time']))[:,0]
                 posix_times.append(event_times_file)
                 # read the temperature
-                (temp_times, interpolated_temperatures) = _read_temperature_curve(nf, event_times_file)
+                logger.debug("reading temperature")                
+                (temp_times, interpolated_temperatures) = self._read_temperature_curve(nf, event_times_file)
                 temperature.append(interpolated_temperatures)
                 # read the run number
                 run.append(np.array(nt['EventMetadata./EventMetadata.fRun'].array()))
@@ -92,21 +94,21 @@ class noiseImporter:
                 # read DTms value
                 dtms.append(np.array(nt['EventHeader./EventHeader.fDTms'].array()))
                 # read station voltages
-                (temp_times, interpolated_voltages) = _read_power_curve(nf, event_times_file)
+                (temp_times, interpolated_voltages) = self._read_power_curve(nf, event_times_file)
                 power_voltage.append(interpolated_voltages)
 
         self.data = np.concatenate(data)
         self.posix_time = np.concatenate(posix_times)
-        self.datetime = np.array([np.datetime64(int(t[0]), 's') for t in self.posix_time])
+        self.datetime = np.array([np.datetime64(int(t), 's') for t in self.posix_time])
         self.trigger = np.concatenate(trigger)
-        self.temperature = np.concatenate(temperatures)
+        self.temperature = np.concatenate(temperature)
         self.power = np.concatenate(power_voltage)
         self.station_id = np.concatenate(station_id)
         self.dtms = np.concatenate(dtms)
         self.run = np.concatenate(run)
         self.nevts = len(self.data)
 
-    def _read_temperature_curve(nf, interpolation_times=None):
+    def _read_temperature_curve(self, nf, interpolation_times=None):
         """
         Imports the temperature vs. posix time from a noise file (nf)
 
@@ -115,18 +117,18 @@ class noiseImporter:
         """        
         # get the correct tree
         nt = nf["TemperatureTree"]
-        time = nt['Temperature./Temperature.fTime'].array(interpretation = noiseImporterUproot.ARIANNA_uproot_interpretation['time'])[:,0]
+        time = nt['Temperature./Temperature.fTime'].array(interpretation = ARIANNA_uproot_interpretation['time'])[:,0]
         data = nt['Temperature./Temperature.fTemp'].array()
 
-        if interpolation_times == None:
+        if interpolation_times is None:
             # return just the plain data
             return (time, data)
         else:
             # generate an interpolator for the requested times
-            interpolator = interp1d(time, data, bounds_error=False, fill_value=(data[0],data[-1]))
+            interpolator = interpolate.interp1d(time, data, bounds_error=False, fill_value=(data[0],data[-1]))
             return (interpolation_times, interpolator(interpolation_times))     
 
-    def _read_power_curve(nf, which="V1", interpolation_times = None):
+    def _read_power_curve(self, nf, val="V1", interpolation_times = None):
         """
         Imports the voltage vs. posix time from a noise file (nf)
 
@@ -136,15 +138,15 @@ class noiseImporter:
         """
         # get the correct tree
         nt = nf["VoltageTree"]
-        time = nt['PowerReading./PowerReading.fTime'].array(interpretation = noiseImporterUproot.ARIANNA_uproot_interpretation['time'])[:,0]
-        data = nt['Temperature./Temperature.fTemp']['PowerReading./PowerReading.fave'+which].array() * units.mV
+        time = nt['PowerReading./PowerReading.fTime'].array(interpretation = ARIANNA_uproot_interpretation['time'])[:,0]
+        data = np.array(nt['PowerReading./PowerReading.faveV1'].array()) * units.mV
 
-        if interpolation_times == None:
+        if interpolation_times is None:
             # return just the plain data
             return (time, data)
         else:
             # generate an interpolator for the requested times
-            interpolator = interp1d(time, data, bounds_error=False, fill_value=(data[0],data[-1]))
+            interpolator = interpolate.interp1d(time, data, bounds_error=False, fill_value=(data[0],data[-1]))
             return (interpolation_times, interpolator(interpolation_times))
 
     @register_run()
