@@ -47,7 +47,7 @@ class IceModel():
             index of refraction
         """
         logger.error('function not defined')
-        raise NotImplentedError('function not defined')
+        raise NotImplementedError('function not defined')
 
     def get_average_index_of_refraction(self,position1,position2):
         """
@@ -67,7 +67,7 @@ class IceModel():
                     averaged index of refraction between the two points
         """
         logger.error('function not defined')
-        raise NotImplentedError('function not defined')
+        raise NotImplementedError('function not defined')
 
     def get_gradient_of_index_of_refraction(self, position):
         """
@@ -85,7 +85,7 @@ class IceModel():
                     gradient of index of refraction at the point
         """
         logger.error('function not defined')
-        raise NotImplentedError('function not defined')
+        raise NotImplementedError('function not defined')
 
     
     def get_ice_model_radiopropa(self):
@@ -97,7 +97,7 @@ class IceModel():
         if radiopropa_is_imported:
             # when implementing a new ice_model this part of the function should be ice model specific
             logger.error('function not defined')
-            raise NotImplentedError('function not defined')
+            raise NotImplementedError('function not defined')
         else:
             logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
