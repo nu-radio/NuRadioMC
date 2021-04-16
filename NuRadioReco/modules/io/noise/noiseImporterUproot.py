@@ -4,8 +4,10 @@ import random
 from NuRadioReco.utilities import units
 import numpy as np
 import logging
+from scipy import interpolate
 logger = logging.getLogger('noiseImporter')
 
+# layout to read the ARIANNA data for unknown formatting uproot does not guess right
 ARIANNA_uproot_interpretation = {
         # TTimeStamp objects in root are 2 ints, first is time in sec since 01/01/1970, second one is nanoseconds
         # will return a jagged array of shape n_events x [t_s, t_ns]
@@ -24,6 +26,7 @@ ARIANNA_uproot_interpretation = {
         "trigger": uproot.interpretation.jagged.AsJagged(uproot.interpretation.numerical.AsDtype("uint8"), header_bytes=7)
         }
 
+# arianna tigger map
 ARIANNA_TRIGGER = {
         "thermal" : 2**0,
         "forced"  : 2**1,
@@ -52,6 +55,11 @@ class noiseImporter:
         data = []
         trigger = []
         posix_times = []
+        run = []
+        station_id = []
+        temperature = []
+        power_voltage = []
+        dtms = []
         # loop over input files to extract needed data
         for noise_file in noise_files:
             with uproot.open(noise_file) as nf:
@@ -66,20 +74,78 @@ class noiseImporter:
                     last = bunches[1:]
                     for i in range(len(first)):
                         logger.info("reading data bunch {} of {}".format(i, len(first)))
-                        data.append(np.array(nt["AmpOutData."]["AmpOutData.fData"].array(entry_start=first[i], entry_stop=last[i])))
+                        data.append(np.array(nt["AmpOutData."]["AmpOutData.fData"].array(entry_start=first[i], entry_stop=last[i])) * units.mV)
                 # trigger jagged array only consists of single number, so drop the array [:,0]
                 logger.debug("reading trigger info")
                 trigger.append(np.array(nt['EventHeader.']['EventHeader.fTrgInfo'].array(interpretation = ARIANNA_uproot_interpretation['trigger'])[:,0]))
                 # consists of posix time [s] and [ns]
                 logger.debug("reading times")
-                posix_times.append(np.array(nt['EventHeader.']['EventHeader.fTime'].array(interpretation = ARIANNA_uproot_interpretation['time'])))
+                event_times_file = np.array(nt['EventHeader.']['EventHeader.fTime'].array(interpretation = ARIANNA_uproot_interpretation['time']))
+                posix_times.append(event_times_file)
+                # read the temperature
+                (temp_times, interpolated_temperatures) = _read_temperature_curve(nf, event_times_file)
+                temperature.append(interpolated_temperatures)
+                # read the run number
+                run.append(np.array(nt['EventMetadata./EventMetadata.fRun'].array()))
+                # read the station id
+                station_id.append(np.array(nt['EventMetadata./EventMetadata.fStnId'].array()))
+                # read DTms value
+                dtms.append(np.array(nt['EventHeader./EventHeader.fDTms'].array()))
+                # read station voltages
+                (temp_times, interpolated_voltages) = _read_power_curve(nf, event_times_file)
+                power_voltage.append(interpolated_voltages)
 
         self.data = np.concatenate(data)
         self.posix_time = np.concatenate(posix_times)
         self.datetime = np.array([np.datetime64(int(t[0]), 's') for t in self.posix_time])
         self.trigger = np.concatenate(trigger)
+        self.temperature = np.concatenate(temperatures)
+        self.power = np.concatenate(power_voltage)
+        self.station_id = np.concatenate(station_id)
+        self.dtms = np.concatenate(dtms)
+        self.run = np.concatenate(run)
         self.nevts = len(self.data)
-        
+
+    def _read_temperature_curve(nf, interpolation_times=None):
+        """
+        Imports the temperature vs. posix time from a noise file (nf)
+
+        The temperature is not taken per event, so the posix_time and temperature value is returned
+        if interpolation_times is specified, interpolate to these posix time stamps
+        """        
+        # get the correct tree
+        nt = nf["TemperatureTree"]
+        time = nt['Temperature./Temperature.fTime'].array(interpretation = noiseImporterUproot.ARIANNA_uproot_interpretation['time'])[:,0]
+        data = nt['Temperature./Temperature.fTemp'].array()
+
+        if interpolation_times == None:
+            # return just the plain data
+            return (time, data)
+        else:
+            # generate an interpolator for the requested times
+            interpolator = interp1d(time, data, bounds_error=False, fill_value=(data[0],data[-1]))
+            return (interpolation_times, interpolator(interpolation_times))     
+
+    def _read_power_curve(nf, which="V1", interpolation_times = None):
+        """
+        Imports the voltage vs. posix time from a noise file (nf)
+
+        # Todo: not sure if V1 and V2 refer to two batteries...
+        The voltage is not taken per event, so the posix_time and voltage value is returned
+        if interpolation_times is specified, interpolate to these posix time stamps
+        """
+        # get the correct tree
+        nt = nf["VoltageTree"]
+        time = nt['PowerReading./PowerReading.fTime'].array(interpretation = noiseImporterUproot.ARIANNA_uproot_interpretation['time'])[:,0]
+        data = nt['Temperature./Temperature.fTemp']['PowerReading./PowerReading.fave'+which].array() * units.mV
+
+        if interpolation_times == None:
+            # return just the plain data
+            return (time, data)
+        else:
+            # generate an interpolator for the requested times
+            interpolator = interp1d(time, data, bounds_error=False, fill_value=(data[0],data[-1]))
+            return (interpolation_times, interpolator(interpolation_times))
 
     @register_run()
     def run(self, evt, station, det):
