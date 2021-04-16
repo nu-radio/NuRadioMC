@@ -10,7 +10,6 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import radiopropa
 import scipy.constants 
 import copy
-from scipy.interpolate import interp1d
 import logging
 logging.basicConfig()
 
@@ -551,7 +550,7 @@ class ray_tracing:
             phi = hp.cartesian_to_spherical(*(self.__x2-self.__x1))[1]
             path_r = path_x / np.cos(phi)
 
-            interpol = interp1d(path_r,path_z)
+            interpol = interpolate.interp1d(path_r,path_z)
             new_path_r = np.linspace(path_r[0],path_r[-1],num=n_points)
             
             path_x = new_path_r * np.cos(phi)
@@ -851,7 +850,7 @@ class ray_tracing:
         for z_position in range(len(path[:, 2]) - 1):
             integral += dt(z_position, freqs)
         
-        att_func = interp1d(freqs, integral)
+        att_func = interpolate.interp1d(freqs, integral)
         tmp = att_func(frequency[mask])
         attenuation = np.ones_like(frequency)
         tmp = np.exp(-1 * tmp)
