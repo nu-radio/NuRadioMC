@@ -46,7 +46,8 @@ class IceModel():
         n:  float
             index of refraction
         """
-        pass
+        logger.error('function not defined')
+        raise NotImplentedError('function not defined')
 
     def get_average_index_of_refraction(self,position1,position2):
         """
@@ -65,7 +66,8 @@ class IceModel():
         n_average:  float
                     averaged index of refraction between the two points
         """
-        pass
+        logger.error('function not defined')
+        raise NotImplentedError('function not defined')
 
     def get_gradient_of_index_of_refraction(self, position):
         """
@@ -82,17 +84,20 @@ class IceModel():
         n_nabla:    (3,) np.array
                     gradient of index of refraction at the point
         """
-        pass
+        logger.error('function not defined')
+        raise NotImplentedError('function not defined')
 
     
     def get_ice_model_radiopropa(self):
         """
-        if radiopropa is installed this will return the ice model to insert in radiopropa
+        if radiopropa is installed this will a RadioPropaIceWrapper object
+        which can then be used to insert in the radiopropa tracer
 
         """
         if radiopropa_is_imported:
             # when implementing a new ice_model this part of the function should be ice model specific
-            pass
+            logger.error('function not defined')
+            raise NotImplentedError('function not defined')
         else:
             logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
@@ -360,7 +365,7 @@ if radiopropa_is_imported:
             n:  float
                 index of refraction
             """
-            pos = np.array([position.x,position.y,position.z]) *(RP.meter/units.meter)
+            pos = np.array([position.x,position.y,position.z]) *(units.meter/RP.meter)
             return self.__ice_model_nuradio.get_index_of_refraction(pos)
 
         def getGradient(self,position): #name may not be changed because linked to c++ radiopropa module
@@ -377,6 +382,6 @@ if radiopropa_is_imported:
             n_nabla:    radiopropa.Vector3d
                         gradient of index of refraction at the point
             """
-            pos = np.array([position.x,position.y,position.z]) *(RP.meter/units.meter)
-            gradient = self.__ice_model_nuradio.get_gradient_of_index_of_refraction(pos)
+            pos = np.array([position.x,position.y,position.z]) *(units.meter/RP.meter)
+            gradient = self.__ice_model_nuradio.get_gradient_of_index_of_refraction(pos) *(1/(RP.meter/units.meter))
             return RP.Vector3d(*gradient)

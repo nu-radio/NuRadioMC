@@ -185,7 +185,7 @@ class greenland_firn(IceModel):
                     gradient of index of refraction at the point
         """
         pos = RP.Vector3d(*(position*RP.meter/units.meter))
-        return self._scalarfield.getGradient(pos)
+        return self._scalarfield.getGradient(pos)  * (1/(units.meter/RP.meter))
 
     
     def get_ice_model_radiopropa(self,discontinuity=False):
