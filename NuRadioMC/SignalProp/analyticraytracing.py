@@ -1525,7 +1525,7 @@ class ray_tracing:
         medium: medium class
             class describing the index-of-refraction profile
         attenuation_model: string
-            signal attenuation model (so far only "SP1" is implemented)
+            signal attenuation model
         log_level: logging object
             specify the log level of the ray tracing class
             * logging.ERROR
@@ -1630,7 +1630,7 @@ class ray_tracing:
         self.__x2 = np.array([X2r[0], X2r[2]])
         self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
 
-    def set_shower_axis(self,shower_axis=None):
+    def set_shower_axis(self,shower_axis):
         """
         Set the the shower axis. This is oposite to the neutrino arrival direction
 
@@ -1639,7 +1639,7 @@ class ray_tracing:
         shower_axis: np.array of shape (3,), unit not relevant (preferably meter)
             the direction of where the shower is moving towards to in cartesian coordinates
         """ 
-        self.__shower_axis = shower_axis
+        self.__shower_axis = shower_axis/np.linalg.norm(shower_axis)
         
     def set_solution(self, raytracing_results):
         """
@@ -2021,7 +2021,6 @@ class ray_tracing:
         return 2 + 4 * self.__n_reflections  # number of possible ray-tracing solutions
 
     def get_raytracing_output(self, i_solution):
-        dZRec = -0.01 * units.m
         if self.__config['propagation']['focusing']:    
             focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
         else: 
