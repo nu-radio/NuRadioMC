@@ -164,7 +164,7 @@ class radiopropa_ray_tracing:
             self.__sphere_sizes = sphere_sizes        
             self.__step_sizes = step_sizes
         else:
-            logger.error('sphere_sizes array and step_sizes array should be 14 dimensional and should have the same length')
+            self.__logger.error('sphere_sizes array and step_sizes array should be 14 dimensional and should have the same length')
             raise ValueError('sphere_sizes array and step_sizes array should be 14 dimensional and should have the same length')
         
         self.__auto_step = auto_step
