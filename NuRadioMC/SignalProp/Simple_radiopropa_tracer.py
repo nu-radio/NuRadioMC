@@ -129,7 +129,7 @@ class radiopropa_ray_tracing:
                 raise AttributeError("start or stop point is below the reflective layer at {:.1f}m".format(
                     self.__medium.reflection / units.m))
         
-        if self.__auto_step and self.__x1!=None and self.__x2!=None: set_auto_step_sizes()
+        if self.__auto_step and self.__x1!=None and self.__x2!=None: self.set_auto_step_sizes()
         
 
     def set_shower_axis(self,shower_axis):
@@ -169,7 +169,7 @@ class radiopropa_ray_tracing:
         
         self.__auto_step = auto_step
 
-        if self.__auto_step and self.__x1!=None and self.__x2!=None: set_auto_step_size()
+        if self.__auto_step and self.__x1!=None and self.__x2!=None: self.set_auto_step_size()
 
     def set_auto_step_size(self):
         for s,sphere_size in enumerate(self.__sphere_sizes):
