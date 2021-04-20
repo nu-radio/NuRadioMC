@@ -2,6 +2,12 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+
+version 2.0.1
+new features:
+- Added neutrino direction reconstruction module and example on how to use it.
+
+
 version 2.0.0
 - NuRadioReco is merged into the NuRadioMC repository. No new features were added and everything works (e.g. the imports)
 as before but the NuRadioReco code is now part of the NuRadioMC github repository to simplify code development where NuRadioMC 
