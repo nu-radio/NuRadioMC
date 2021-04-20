@@ -807,7 +807,7 @@ class radiopropa_ray_tracing:
         recPos = copy.copy(self.__x2)
         recPos1 = np.array([self.__x2[0], self.__x2[1], self.__x2[2] + dz])
         if not hasattr(self, "_r1"):
-            self._r1 = ray_tracing(self.__medium, self.__attenuation_model, logging.WARNING, self.__n_frequencies_integration, self.__n_reflections, config = self.__config)
+            self._r1 = radiopropa_ray_tracing(self.__medium, self.__attenuation_model, logging.WARNING, self.__n_frequencies_integration, self.__n_reflections, config = self.__config)
         self._r1.set_shower_axis(self.__shower_axis)
         self._r1.set_start_and_end_point(vetPos, recPos1)
         self._r1.find_solutions()
