@@ -105,7 +105,7 @@ class radiopropa_ray_tracing:
         self.__x2 = None
         self.__results = None
         self.__rays = None
-        if config != None: self.__cut_viewing_angle = config['speedup']['delta_C_cut'] * units.radian
+        if self.__config != None: self.__cut_viewing_angle = self.__config['speedup']['delta_C_cut'] * units.radian
         else: self.__cut_viewing_angle = 40 * units.degree
         self.__max_traj_length = 10000*units.meter
         self.set_iterative_steps()
