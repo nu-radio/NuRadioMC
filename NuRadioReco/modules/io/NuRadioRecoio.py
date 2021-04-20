@@ -161,11 +161,14 @@ class NuRadioRecoio(object):
                         self.__event_headers[station_id][key] = []
                     if(key == stnp.station_time):
                         import astropy.time
-                        if value.format == 'datetime':
-                            time_strings = str(value).split(' ')
-                            station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
+                        if value is not None:
+                            if value.format == 'datetime':
+                                time_strings = str(value).split(' ')
+                                station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
+                            else:
+                                station_time = time
                         else:
-                            station_time = time
+                            station_time = None
                         self.__event_headers[station_id][key].append(station_time)
                     else:
                         self.__event_headers[station_id][key].append(value)
