@@ -31,68 +31,73 @@ class IceModel():
         if not((self.z_bottom != None) and (self.z_bottom < self.reflection)):
             self.z_bottom = self.reflection-1*units.m
 
-    def get_index_of_refraction(self,x):
+    def get_index_of_refraction(self,position):
         """
-        returns the index of refraction at position x.
+        returns the index of refraction at position.
         Reimplement everytime in the specific model
 
         Parameters
         ---------
-        x:  3dim np.array
-            point
+        position:  3dim np.array
+                    point
 
         Returns:
         --------
         n:  float
             index of refraction
         """
-        pass
+        logger.error('function not defined')
+        raise NotImplementedError('function not defined')
 
-    def get_average_index_of_refraction(self,x1,x2):
+    def get_average_index_of_refraction(self,position1,position2):
         """
         returns the average index of refraction between two points
         Reimplement everytime in the specific model
 
         Parameters
         ----------
-        x1: 3dim np.array
-            point
-        x2: 3dim np.array
-            point
+        position1: 3dim np.array
+                    point
+        position2: 3dim np.array
+                    point
 
         Returns
         -------
         n_average:  float
                     averaged index of refraction between the two points
         """
-        pass
+        logger.error('function not defined')
+        raise NotImplementedError('function not defined')
 
-    def get_gradient_of_index_of_refraction(self, x):
+    def get_gradient_of_index_of_refraction(self, position):
         """
-        returns the gradient of index of refraction at position x
+        returns the gradient of index of refraction at position
         Reimplement everytime in the specific model
 
         Parameters
         ----------
-        x: 3dim np.array
-            point
+        position: 3dim np.array
+                    point
 
         Returns
         -------
         n_nabla:    (3,) np.array
                     gradient of index of refraction at the point
         """
-        pass
+        logger.error('function not defined')
+        raise NotImplementedError('function not defined')
 
     
     def get_ice_model_radiopropa(self):
         """
-        if radiopropa is installed this will return the ice model to insert in radiopropa
+        if radiopropa is installed this will a RadioPropaIceWrapper object
+        which can then be used to insert in the radiopropa tracer
 
         """
         if radiopropa_is_imported:
             # when implementing a new ice_model this part of the function should be ice model specific
-            pass
+            logger.error('function not defined')
+            raise NotImplementedError('function not defined')
         else:
             logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
@@ -109,51 +114,97 @@ class IceModel_Simple(IceModel):
         self.z_0 = z_0
         self.z_shift = z_shift
 
-    def get_index_of_refraction(self, x):
+    def get_index_of_refraction(self, position):
         """
-        overwrite inherited function
+        returns the index of refraction at position.
+        Overwrites function of the mother class
+
+        Parameters
+        ---------
+        position:  3dim np.array
+                    point
+
+        Returns:
+        --------
+        n:  float
+            index of refraction
         """
-        if (x[2] - self.z_airBoundary) <=0:
-            return self.n_ice  - self.delta_n  * np.exp((x[2]-self.z_shift) / self.z_0)
+        if (position[2] - self.z_airBoundary) <=0:
+            return self.n_ice  - self.delta_n  * np.exp((position[2]-self.z_shift) / self.z_0)
         else:
             return 1
 
-    def get_average_index_of_refraction(self, x1, x2):
+    def get_average_index_of_refraction(self, position1, position2):
         """
-        overwrite inherited function
+        returns the average index of refraction between two points
+        Overwrites function of the mother class
+
+        Parameters
+        ----------
+        position1: 3dim np.array
+                    point
+        position2: 3dim np.array
+                    point
+
+        Returns
+        -------
+        n_average:  float
+                    averaged index of refraction between the two points
         """
-        if ((x1[2] - self.z_airBoundary) <=0) and ((x2[2] - self.z_airBoundary) <=0):
-            return self.n_ice - self.delta_n * self.z_0 / (x2[2] - x1[2]) * (np.exp((x2[2]-self.z_shift) / self.z_0) - np.exp((x1[2]-self.z_shift) / self.z_0))
+        if ((position1[2] - self.z_airBoundary) <=0) and ((position2[2] - self.z_airBoundary) <=0):
+            return self.n_ice - self.delta_n * self.z_0 / (position2[2] - position1[2]) * (np.exp((position2[2]-self.z_shift) / self.z_0) - np.exp((position1[2]-self.z_shift) / self.z_0))
         else:
             return None
 
-    def get_gradient_of_index_of_refraction(self, x):
+    def get_gradient_of_index_of_refraction(self, position):
         """
-        overwrite inherited function
+        returns the gradient of index of refraction at position
+        Overwrites function of the mother class
+
+        Parameters
+        ----------
+        position: 3dim np.array
+                    point
+
+        Returns
+        -------
+        n_nabla:    (3,) np.array
+                    gradient of index of refraction at the point
         """
         gradient = np.array([0.,0.,0.])
-        if (x[2] - self.z_airBoundary) <=0:
-            gradient[2] = - self.delta_n / self.z_0 * np.exp((x[2]-self.z_shift) / self.z_0)
+        if (position[2] - self.z_airBoundary) <=0:
+            gradient[2] = - self.delta_n / self.z_0 * np.exp((position[2]-self.z_shift) / self.z_0)
         return gradient
 
     def get_ice_model_radiopropa(self):
         """
-        overwrite inherited function
+        If radiopropa is installed this will return an object holding the radiopropa
+        scalarfield and necessary radiopropa moduldes that define the medium in radiopropa. 
+        It uses the parameters of the medium object to contruct the scalar field using the 
+        simple ice model implementation in radiopropa and some modules, like a discontinuity 
+        object for the air boundary
+        
+        Overwrites function of the mother class
+
+        Returns
+        -------
+        ice:    RadioPropaIceWrapper
+                object holding the radiopropa scalarfield and modules
         """
         if radiopropa_is_imported:
             scalar_field = RP.IceModel_Simple(z_surface=self.z_airBoundary*RP.meter/units.meter, 
                                             n_ice=self.n_ice, delta_n=self.delta_n, 
                                             z_0=self.z_0*RP.meter/units.meter,
                                             z_shift=self.z_shift*RP.meter/units.meter)
-            return IceModel_RadioPropa(self,scalar_field)
+            return RadioPropaIceWrapper(self,scalar_field)
         else:
-            logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
+            logger.error('The radiopropa dependency was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
 
 
 
 if radiopropa_is_imported:
-    class IceModel_RadioPropa():
+    class RadioPropaIceWrapper():
         """
         This class holds all the necessary variables for the radiopropa raytracer to work.
         When radiopropa is installed, this object will automatically be generated for a
@@ -314,8 +365,8 @@ if radiopropa_is_imported:
             n:  float
                 index of refraction
             """
-            x = np.array([position.x,position.y,position.z]) *(RP.meter/units.meter)
-            return self.__ice_model_nuradio.get_index_of_refraction(x)
+            pos = np.array([position.x,position.y,position.z]) *(units.meter/RP.meter)
+            return self.__ice_model_nuradio.get_index_of_refraction(pos)
 
         def getGradient(self,position): #name may not be changed because linked to c++ radiopropa module
             """
@@ -331,6 +382,6 @@ if radiopropa_is_imported:
             n_nabla:    radiopropa.Vector3d
                         gradient of index of refraction at the point
             """
-            x = np.array([position.x,position.y,position.z]) *(RP.meter/units.meter)
-            gradient = self.__ice_model_nuradio.get_gradient_of_index_of_refraction(x)
+            pos = np.array([position.x,position.y,position.z]) *(units.meter/RP.meter)
+            gradient = self.__ice_model_nuradio.get_gradient_of_index_of_refraction(pos) *(1/(RP.meter/units.meter))
             return RP.Vector3d(*gradient)

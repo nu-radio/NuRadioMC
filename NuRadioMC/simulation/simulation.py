@@ -593,11 +593,13 @@ class simulation():
                                 logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
                                 distance_cut_time += time.time() - t_tmp
                                 continue
-                            #if self._cfg['propagation']['module'] == 'radiopropa': self._raytracer.set_maximum_trajectory_length(distance_cut)*2
                             distance_cut_time += time.time() - t_tmp
 
                         self._raytracer.set_start_and_end_point(x1, x2)
                         if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
+                            if self._cfg['propagation']['module'] == 'radiopropa':
+                                logger.error('Presimulation can not be used with the radiopropa ray tracer module')
+                                raise Exception('Presimulation can not be used with the radiopropa ray tracer module')
                             sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
                             ray_tracing_solution = {}
                             for output_parameter in self._raytracer.get_output_parameters():

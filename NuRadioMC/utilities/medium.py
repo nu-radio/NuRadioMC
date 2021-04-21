@@ -14,16 +14,20 @@ radiopropa ice model, so it can be used in NuRadioMC. For example
 
         def get_ice_model_radiopropa(self):
             scalar field = radiopropa.New_IceModel(*args)
-            retur IceModel_RadioPropa(self,scalar_field)
+            return RadioPropaIceWrapper(self,scalar_field)
+
+3) You can also choose to only implement the new ice model in radiopropa if
+radiopropa is always necessary and make the new model in this script access
+the c++ implemented model (e.g. green_firn model)
         
 
-3)If you want to add adjust (add, replace, remove) predefined modules 
-in the a IceModel_RadioPropa object, you can do this by redefining the 
+4) If you want to adjust (add, replace, remove) predefined modules 
+in the a RadioPropaIceWrapper object, you can do this by redefining the 
 'get_ice_model_radiopropa()' in your IceModel object. For exemple
 
         def get_ice_model_radiopropa(self):
             scalar field = radiopropa.IceModel_Simple(*args)
-            ice = IceModel_RadioPropa(self,scalar_field)
+            ice = RadioPropaIceWrapper(self,scalar_field)
             extra_dicontinuity = radiopropa.Discontinuity(*args)
             ice.add_module(extra_discontinuity)
             return ice
@@ -106,6 +110,10 @@ class greenland_firn(IceModel):
     Therefor, the model is implemented through radiopropa.
     """
     def __init__(self):
+        if not radiopropa_is_imported:
+            logger.error('This ice model depends fully on RadioPropa, which was not import, and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
+            raise ImportError('This ice model depends fully on RadioPropa, which could not be imported')
+
         super().__init__(z_bottom = -3000*units.meter)
         self.z_firn = -14.9*units.meter
         
@@ -121,35 +129,80 @@ class greenland_firn(IceModel):
             z_0_firn = 30.8*RP.meter,
             z_shift_firn = 0.*RP.meter)
 
-    def get_index_of_refraction(self,x):
+    def get_index_of_refraction(self,position):
         """
-        overwrite inherited function
+        returns the index of refraction at position.
+        Overwrites function of the mother class
+
+        Parameters
+        ---------
+        position:  3dim np.array
+                    point
+
+        Returns:
+        --------
+        n:  float
+            index of refraction
         """
-        position = RP.Vector3d(*(x*RP.meter/units.meter))
+        position = RP.Vector3d(*(position*RP.meter/units.meter))
         return self._scalarfield.getValue(position)
 
-    def get_average_index_of_refraction(self,x1,x2):
+    def get_average_index_of_refraction(self,position1,position2):
         """
-        overwrite inherited function
+        returns the average index of refraction between two points
+        Overwrites function of the mother class
+
+        Parameters
+        ----------
+        position1: 3dim np.array
+                    point
+        position2: 3dim np.array
+                    point
+
+        Returns
+        -------
+        n_average:  float
+                    averaged index of refraction between the two points
         """
-        position1 = RP.Vector3d(*(x1*RP.meter/units.meter))
-        position2 = RP.Vector3d(*(x2*RP.meter/units.meter))
+        position1 = RP.Vector3d(*(position1*RP.meter/units.meter))
+        position2 = RP.Vector3d(*(position2*RP.meter/units.meter))
         return self._scalarfield.getAverageValue(position1,position2)
 
 
-    def get_gradient_of_index_of_refraction(self, x):
+    def get_gradient_of_index_of_refraction(self, position):
         """
-        overwrite inherited function
+        returns the gradient of index of refraction at position
+        Overwrites function of the mother class
+
+        Parameters
+        ----------
+        position: 3dim np.array
+                    point
+
+        Returns
+        -------
+        n_nabla:    (3,) np.array
+                    gradient of index of refraction at the point
         """
-        position = RP.Vector3d(*(x*RP.meter/units.meter))
-        return self._scalarfield.getGradient(position)
+        pos = RP.Vector3d(*(position*RP.meter/units.meter))
+        return self._scalarfield.getGradient(pos)  * (1/(units.meter/RP.meter))
 
     
     def get_ice_model_radiopropa(self,discontinuity=False):
         """
-        overwrite inherited function
+        Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+        that define the medium in radiopropa. It uses the parameters of the medium object to 
+        contruct some modules, like a discontinuity object for the air boundary. Additional modules
+        can be added in this function
+        
+        Overwrites function of the mother class
+
+        Returns
+        -------
+        ice:    RadioPropaIceWrapper
+                object holding the radiopropa scalarfield and modules
         """
-        ice = IceModel_RadioPropa(self,self._scalarfield)
+        ice = RadioPropaIceWrapper(self,self._scalarfield)
         if discontinuity == True:
             firn_boundary_pos = RP.Vector3d(0,0,self.z_firn*(RP.meter/units.meter))
             step = RP.Vector3d(0,0,1e-9*RP.meter)

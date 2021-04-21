@@ -3,7 +3,6 @@ import numpy as np
 from radiotools import helper as hp
 import logging
 from NuRadioMC.utilities import attenuation as attenuation_util
-from scipy import interpolate
 import NuRadioReco.utilities.geometryUtilities
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
@@ -15,9 +14,11 @@ import logging
 logging.basicConfig()
 
 
-class ray_tracing:
+class radiopropa_ray_tracing:
 
-    """ Numerical raytracing using Radiopropa. Currently this only works for icemodels that have only changing refractive index in z. """
+    """ Numerical raytracing using Radiopropa. Currently this only works for icemodels 
+    that have only changing refractive index in z. More information on RadioPropa and
+    how to install it can be found at https://github.com/nu-radio/RadioPropa"""
 
     solution_types = {1: 'direct',
                   2: 'refracted',
@@ -37,7 +38,7 @@ class ray_tracing:
         medium: medium class
             class describing the index-of-refraction profile
         attenuation_model: string
-            signal attenuation model (so far only "SP1" is implemented)
+            signal attenuation model
         log_level: logging object
             specify the log level of the ray tracing class
             * logging.ERROR
@@ -61,8 +62,8 @@ class ray_tracing:
         try:
             import radiopropa
         except ImportError:
-            self.__logger.error('ImportError: This raytracer depends on radiopropa which could not be imported. Check wether all dependancies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
-            raise ImportError
+            self.__logger.error('ImportError: This raytracer depends on radiopropa which could not be imported. Check wether all dependencies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
+            raise ImportError('This raytracer depends on radiopropa which could not be imported. Check wether all dependencies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
 
         self.__medium = medium
         self.__ice_model = medium.get_ice_model_radiopropa()
@@ -88,13 +89,11 @@ class ray_tracing:
                     self.__max_detector_frequency = sampling_frequency * .5
 
         ## discard events if delta_C (angle off cherenkov cone) is too large
-        self.__cut_viewing_angle = config['speedup']['delta_C_cut'] * units.radian
+        if config != None: self.__cut_viewing_angle = config['speedup']['delta_C_cut'] * units.radian
+        else: self.__cut_viewing_angle = 40 * units.degree
         ## maximal length to what the trajectory will be calculated
         self.__max_traj_length = 10000 * units.meter
-        ## iteration from big to small observer around channel
-        self.__sphere_sizes = np.array([25.,2.,.5]) * units.meter 
-        ## step for theta corresponding to the sphere size, should have same lenght as _sphere_sizes
-        self.__step_sizes = np.array([.5,.05,.0125]) * units.degree
+        self.set_iterative_steps()
         self.__x1 = None 
         self.__x2 = None
         self.__shower_axis = None ## this is given so we can limit the rays that are checked around the cherenkov angle
@@ -112,7 +111,10 @@ class ray_tracing:
         self.__x2 = None
         self.__results = None
         self.__rays = None
+        if self.__config != None: self.__cut_viewing_angle = self.__config['speedup']['delta_C_cut'] * units.radian
+        else: self.__cut_viewing_angle = 40 * units.degree
         self.__max_traj_length = 10000*units.meter
+        self.set_iterative_steps()
 
     def set_start_and_end_point(self, x1=None, x2=None):
         """
@@ -124,10 +126,8 @@ class ray_tracing:
             stop point of the ray
         """
         #self.reset_solutions()
-        x1 = np.array(x1, dtype =np.float)
-        self.__x1 = x1 * units.meter
-        x2 = np.array(x2, dtype = np.float)
-        self.__x2 = x2 * units.meter
+        self.__x1 = np.array(x1, dtype =np.float)
+        self.__x2 = np.array(x2, dtype = np.float)
         if (self.__n_reflections):
             if (x1[2] < self.__medium.reflection or x2[2] < self.__medium.reflection):
                 self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(
@@ -135,9 +135,10 @@ class ray_tracing:
                 raise AttributeError("start or stop point is below the reflective layer at {:.1f}m".format(
                     self.__medium.reflection / units.m))
         
+        if self.__auto_step and self.__x1!=None and self.__x2!=None: self.set_auto_step_sizes()
         
 
-    def set_shower_axis(self,shower_axis=None):
+    def set_shower_axis(self,shower_axis):
         """
         Set the the shower axis. This is oposite to the neutrino arrival direction
 
@@ -146,7 +147,40 @@ class ray_tracing:
         shower_axis: np.array of shape (3,), default unit
                      the direction of the shower in cartesian coordinates
         """ 
-        self.__shower_axis = shower_axis
+        self.__shower_axis = shower_axis/np.linalg.norm(shower_axis)
+
+    def set_iterative_steps(self,sphere_sizes=np.array([25.,2.,.5]) * units.meter,
+                            step_sizes=np.array([.5,.05,.01]) * units.degree, auto_step=False):
+        """
+        Set the sphere_sizes and steps_sizes for the iterative ray tracer
+
+        Parameters
+        ----------
+        sphere_sizes: np.array of size (n,), default unit
+                      the sphere size used by the iterative ray tracer
+                      iteration from big to small observer around channel
+        step_sizes: np.array size (n,), default unit
+                    the step size for theta used by the iterative ray tracer
+                    corresponding to the sphere size, should have same lenght as _sphere_sizes
+        auto_step:  boolean
+                    defines whether or not an automatic step_size should be calculated for each
+                    sphere_size depending on the horizontal distance of the event
+        """ 
+        if (sphere_sizes.ndim == 1) and (sphere_sizes.shape == step_sizes.shape):
+            self.__sphere_sizes = sphere_sizes        
+            self.__step_sizes = step_sizes
+        else:
+            self.__logger.error('sphere_sizes array and step_sizes array should be 14 dimensional and should have the same length')
+            raise ValueError('sphere_sizes array and step_sizes array should be 14 dimensional and should have the same length')
+        
+        self.__auto_step = auto_step
+
+        if self.__auto_step and self.__x1!=None and self.__x2!=None: self.set_auto_step_size()
+
+    def set_auto_step_size(self):
+        for s,sphere_size in enumerate(self.__sphere_sizes):
+                self.__step_sizes[s] = min(abs(self.delta_theta_reflective(dz=sphere_size,n_bottom_reflections=self.__n_reflections)), self.__step_sizes[s])
+
 
     def set_cut_viewing_angle(self,cut):
         """
@@ -171,7 +205,7 @@ class ray_tracing:
         """
         self.__max_traj_length = max_traj_length
 
-    def RadioPropa_raytracer(self,n_reflections=0):
+    def raytracer_iterative(self,n_reflections=0):
         """
         Uses RadioPropa to find all the numerical ray tracing solutions between sphere x1 and x2.
         If reflections is bigger than 0, also bottom reflected rays are searched for with a max
@@ -188,26 +222,32 @@ class ray_tracing:
         v = (self.__x2-self.__x1)
         u = copy.deepcopy(v)
         u[2] = 0
-        theta_direct, phi = hp.cartesian_to_spherical(*v) ## zenith and azimuth for the direct linear ray solution (radians)
+        theta_direct, phi_direct = hp.cartesian_to_spherical(*v) # zenith and azimuth for the direct linear ray solution (radians)
+        cherenkov_angle = np.arccos(1. / self.__medium.get_index_of_refraction(self.__x1))
+        
         ## regions of theta with posible solutions (radians)
         launch_lower = [0]
-        launch_upper = [theta_direct + np.deg2rad(5)] ## below theta_direct no solutions are possible without upward reflections
+        launch_upper = [theta_direct + 2*abs(self.delta_theta_direct(dz=self.__sphere_sizes[0]))]#np.deg2rad(5)] ## below theta_direct no solutions are possible without upward reflections
 
         if n_reflections > 0:
             if self.medium.reflection is None:
                 self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(n_reflections))
                 raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(n_reflections))
             else:
-                z_bottom = self.__medium.reflection
+                z_refl = self.__medium.reflection
                 rho_channel = np.linalg.norm(u)
-                rho_bottom = (rho_channel*(z_bottom-self.__x2[2]))/(2*z_bottom-self.__x2[2]-self.__x1[2])
-                alpha = np.arctan((self.__x1[2]-z_bottom)/rho_bottom)
+                if self.__x2[2] > self.__x1[2]: 
+                    z_up = self.__x2[2]
+                    z_down = self.__x1[2]
+                else:
+                    z_up = self.__x1[2]
+                    z_down = self.__x2[2]
+                rho_bottom = (rho_channel*(z_refl-z_down))/(2*z_refl-z_up-z_down)
+                alpha = np.arctan((z_down-z_refl)/rho_bottom)
                 ## when reflection on the bottom are allowed, a initial region for theta from 180-alpha to 180 degrees is added
-                launch_lower.append((np.pi - (alpha - np.deg2rad(5))))
+                launch_lower.append(((np.pi/2 + alpha) - 2*abs(self.delta_theta_bottom(dz=self.__sphere_sizes[0],z_refl=z_refl)/units.radian)))
                 launch_upper.append(np.pi)
         
-        previous_rays = None
-        step = None
         for s,sphere_size in enumerate(self.__sphere_sizes):
             sphere_size = sphere_size*(radiopropa.meter/units.meter)
             detected_rays = []
@@ -246,29 +286,6 @@ class ray_tracing:
             boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0,0,1*radiopropa.meter), radiopropa.Vector3d(0,0,1)))
             obs2.add(boundary_above_surface)
             sim.add(obs2)
-
-            #loop over previous rays to find the upper and lower theta of each bundle of rays
-            #uses step, but because step is initialized after this loop this ios the previous step size as intented
-            if previous_rays == None:
-                pass
-            elif len(previous_rays)>0:
-                launch_lower.clear()
-                launch_upper.clear()
-                launch_theta_prev = None
-                for iPC,PC in enumerate(previous_rays):
-                    launch_theta = PC.getLaunchVector().getTheta()/radiopropa.rad
-                    if iPC == (len(previous_rays)-1) or iPC == 0:
-                        if iPC == 0: 
-                            launch_lower.append(launch_theta-step)
-                        if iPC == (len(previous_rays)-1): 
-                            launch_upper.append(launch_theta+step)
-                    elif abs(launch_theta - launch_theta_prev)>1.1*step: ##take 1.1 times the step to be sure the next ray is not in the bundle of the previous one
-                        launch_upper.append(launch_theta_prev+step)
-                        launch_lower.append(launch_theta-step)
-                    else:
-                        pass
-                    launch_theta_prev = launch_theta
-
             
             #create total scanning range from the upper and lower thetas of the bundles
             step = self.__step_sizes[s]/units.radian
@@ -277,21 +294,19 @@ class ray_tracing:
                 new_scanning_range = np.arange(launch_lower[iL],launch_upper[iL]+step,step)
                 theta_scanning_range = np.concatenate((theta_scanning_range,new_scanning_range))
 
-            cherenkov_angle = 56 * units.degree
             for theta in theta_scanning_range:
-                ray_dir = hp.spherical_to_cartesian(theta,phi)
+                ray_dir = hp.spherical_to_cartesian(theta,phi_direct)
                 viewing = np.arccos(np.dot(self.__shower_axis, ray_dir)) * units.radian
                 delta = viewing - cherenkov_angle
-                #only include rays with angle wrt cherenkov angle smaller than 20 degrees 
-                if (abs(delta) < self.__cut_viewing_angle): ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
+                #only include rays with angle wrt cherenkov angle smaller than the cut in the config file
+                if (abs(delta) < self.__cut_viewing_angle):
                     source = radiopropa.Source()
                     source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*x1)))
                     source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*ray_dir)))
                     sim.setShowProgress(True)
                     ray = source.getCandidate()
                     sim.run(ray, True)
-                    #check if the channel is reached, detection == 0 (ray is a pointer to the object Candidate but need real object)
-
+                    
                     current_rays = [ray]
                     while len(current_rays) > 0:
                         next_rays = []
@@ -310,18 +325,44 @@ class ray_tracing:
                                 next_rays.append(secondary)
                         current_rays = next_rays
 
-            if len(detected_rays)==0:
+            #loop over previous rays to find the upper and lower theta of each bundle of rays
+            #uses step, but because step is initialized after this loop this ios the previous step size as intented
+            if len(detected_rays)>0:
+                launch_lower.clear()
+                launch_upper.clear()
+                launch_theta_prev = None
+                for iDC,DC in enumerate(detected_rays):
+                    launch_theta = DC.getLaunchVector().getTheta()/radiopropa.rad
+                    if iDC == (len(detected_rays)-1) or iDC == 0:
+                        if iDC == 0: 
+                            launch_lower.append(launch_theta-step)
+                        if iDC == (len(detected_rays)-1): 
+                            launch_upper.append(launch_theta+step)
+                    elif abs(launch_theta - launch_theta_prev)>1.1*step: ##take 1.1 times the step to be sure the next ray is not in the bundle of the previous one
+                        launch_upper.append(launch_theta_prev+step)
+                        launch_lower.append(launch_theta-step)
+                    else:
+                        pass
+                    launch_theta_prev = launch_theta
+            else:
                 #if detected_rays is empthy, no solutions where found and the tracer is terminated
                 break
-            else:
-                previous_rays = detected_rays
 
         self.__rays = detected_rays
         self.__results = results
-        self.__launch_bundles = np.transpose([launch_lower,launch_upper])
+        launch_bundles = np.transpose([launch_lower,launch_upper])
+        return launch_bundles
 
 
     def set_solutions(self,raytracing_results):
+        """
+        Read an already calculated raytracing solution from the input array
+
+        Parameters:
+        -------------
+        raytracing_results: dict
+            The dictionary containing the raytracing solution.
+        """
         results = []
         rays = []
         for iS in range(len(raytracing_results['ray_tracing_solution_type'])):
@@ -329,56 +370,49 @@ class ray_tracing:
                             'reflection':raytracing_results['ray_tracing_reflection'][iS],
                             'reflection_case':raytracing_results['ray_tracing_reflection_case'][iS]
                             })
-#            rays.append(raytracing_results['ray'][iS])
+            launch_vector = raytracing_results['launch_vector'][iS]
+            ##use launch vector to contruct the candidate again
+            rays.append(None)
 
         self.__results = results
-#        self.__rays = rays
+        self.__rays = rays
 
 
     def find_solutions(self):
         """
-        find all solutions
+        find all solutions between x1 and x2
         """
         results = []
         rays_results = []
 
-        self.RadioPropa_raytracer(self.__n_reflections)
+        launch_bundles = self.raytracer_iterative(self.__n_reflections)
 
         launch_zeniths = []
-        receive_zeniths = []
-        solution_types = []
-        ray_endpoints = []
         iSs = np.array(np.arange(0, len(self.__rays), 1))
 
-        for iS, ray in enumerate(self.__rays):
+        for iS in iSs:
             launch_zeniths.append(hp.cartesian_to_spherical(*(self.get_launch_vector(iS)))[0])
-            receive_zeniths.append(hp.cartesian_to_spherical(*(self.get_receive_vector(iS)))[0])
-            solution_types.append(self.get_solution_type(iS))
-            ray_endpoints.append(self.get_path_original(iS)[-1])
 
-        mask_lower = {i: (launch_zeniths>self.__launch_bundles[i,0]) for i in range(len(self.__launch_bundles))} 
-        mask_upper = {i: (launch_zeniths<self.__launch_bundles[i,1]) for i in range(len(self.__launch_bundles))}
-        mask_solution = {j: (np.array(solution_types) == j) for j in ray_tracing.solution_types.keys()}   
+        mask_lower = {i: (launch_zeniths>launch_bundles[i,0]) for i in range(len(launch_bundles))} 
+        mask_upper = {i: (launch_zeniths<launch_bundles[i,1]) for i in range(len(launch_bundles))}   
         
-        for i in range(len(self.__launch_bundles)):
-            for j in ray_tracing.solution_types.keys():
-                mask = (mask_lower[i]&mask_upper[i]&mask_solution[j])
-                if mask.any():
-                    delta_min = np.deg2rad(90)
-                    for iS in iSs[mask]: #index o rays with solution type i
-                        vector = ray_endpoints[iS] - self.__x2 #position of the receive vector on the sphere around the channel
-                        vector_zenith = hp.cartesian_to_spherical(vector[0],vector[1],vector[2])[0]
-                        delta = abs(vector_zenith-receive_zeniths[iS])
-                        if delta < delta_min:
-                            final_ray = self.__rays[iS]
-                            final_ray_reflection = self.__results[iS]['reflection']
-                            final_ray_reflection_case = self.__results[iS]['reflection_case']
-                            final_ray_solution_type = solution_types[iS]
-                            delta_min = delta
-                    rays_results.append(final_ray)
-                    results.append({'type':final_ray_solution_type, 
-                                    'reflection':final_ray_reflection,
-                                    'reflection_case':final_ray_reflection_case})
+        for i in range(len(launch_bundles)):
+            mask = (mask_lower[i]&mask_upper[i])
+            if mask.any():
+                delta_min = np.deg2rad(90)
+                final_iS = None
+                for iS in iSs[mask]: #index of rays in the bundle
+                    vector = self.get_path_candidate(self.__rays[iS])[-1] - self.__x2 #position of the receive vector on the sphere around the channel
+                    vector_zenith = hp.cartesian_to_spherical(vector[0],vector[1],vector[2])[0]
+                    receive_zenith = hp.cartesian_to_spherical(*(self.get_receive_vector(iS)))[0]
+                    delta = abs(vector_zenith-receive_zenith)
+                    if delta < delta_min: #select the most normal ray on the sphere in the bundle
+                        final_iS = iS 
+                        delta_min = delta
+                rays_results.append(self.__rays[final_iS])
+                results.append({'type':self.get_solution_type(final_iS), 
+                                'reflection':self.__results[final_iS]['reflection'],
+                                'reflection_case':self.__results[final_iS]['reflection_case']})
 
         self.__rays = rays_results
         self.__results = results
@@ -407,28 +441,22 @@ class ray_tracing:
         """
         return self.__results
 
-    def get_path_original(self, iS):
+    def get_path_candidate(self, candidate):
         """
-        helper function that returns the 3D ray tracing path (as found by radiopropa) of solution iS
+        helper function that returns the 3D ray tracing path of a candidate
 
         Parameters
         ----------
-        iS: int
-            ray tracing solution
+        candidate: radiopropa.candidate
 
         Returns
         -------
-        path: 2dim np.array of shape (n_points,3)
+        path: 2dim np.array of shape (n,3)
               x, y, z coordinates along second axis
         """
-        n = self.get_number_of_solutions()
-        if(iS >= n):
-            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
-            raise IndexError
-
-        path_x = np.array([x*(units.meter/radiopropa.meter) for x in self.__rays[iS].getPathX()])
-        path_y = np.array([y*(units.meter/radiopropa.meter) for y in self.__rays[iS].getPathY()])
-        path_z = np.array([z*(units.meter/radiopropa.meter) for z in self.__rays[iS].getPathZ()])
+        path_x = np.array([x*(units.meter/radiopropa.meter) for x in candidate.getPathX()])
+        path_y = np.array([y*(units.meter/radiopropa.meter) for y in candidate.getPathY()])
+        path_z = np.array([z*(units.meter/radiopropa.meter) for z in candidate.getPathZ()])
         return np.stack([path_x,path_y,path_z], axis=1)
 
     def get_path_mask_horizontal(self, iS):
@@ -501,9 +529,9 @@ class ray_tracing:
         
         return mask_surface
 
-    def get_path(self, iS, n_points=1000):
+    def get_path(self, iS, n_points=None):
         """
-        helper function that returns the 3D ray tracing path of solution iS
+        function that returns the 3D ray tracing path of solution iS
 
         Parameters
         ----------
@@ -523,12 +551,13 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        path = self.get_path_original(iS)
-        path_x = path[:,0]
-        path_y = path[:,1]
-        path_z = path[:,2]
+        path = self.get_path_candidate(self.__rays[iS])
 
         if n_points != None:
+            path_x = path[:,0]
+            path_y = path[:,1]
+            path_z = path[:,2]
+
             phi = hp.cartesian_to_spherical(*(self.__x2-self.__x1))[1]
             path_r = path_x / np.cos(phi)
 
@@ -538,8 +567,9 @@ class ray_tracing:
             path_x = new_path_r * np.cos(phi)
             path_y = new_path_r * np.sin(phi)
             path_z = interpol(new_path_r)
+            path = np.stack([path_x,path_y,path_z], axis=1)
 
-        return np.stack([path_x,path_y,path_z], axis=1)
+        return path
 
     def get_solution_type(self, iS):
         """ 
@@ -609,10 +639,10 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        launch_vector = [self.__rays[iS].getLaunchVector().x, 
+        launch_vector = np.array([self.__rays[iS].getLaunchVector().x, 
                             self.__rays[iS].getLaunchVector().y, 
-                            self.__rays[iS].getLaunchVector().z]
-        return np.array(launch_vector)
+                            self.__rays[iS].getLaunchVector().z])
+        return launch_vector/np.linalg.norm(launch_vector)
 
     def get_receive_vector(self, iS):
         """
@@ -635,10 +665,10 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        receive_vector = [self.__rays[iS].getReceiveVector().x, 
+        receive_vector = np.array([self.__rays[iS].getReceiveVector().x, 
                             self.__rays[iS].getReceiveVector().y, 
-                            self.__rays[iS].getReceiveVector().z]
-        return np.array(receive_vector)
+                            self.__rays[iS].getReceiveVector().z])
+        return receive_vector/np.linalg.norm(receive_vector)
 
     def get_reflection_angle(self, iS):
         """
@@ -685,7 +715,7 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        end_of_path = self.get_path_original(iS)[-1] #position of the receive vector on the sphere around the channel in detector coordinates
+        end_of_path = self.get_path_candidate(self.__rays[iS])[-1] #position of the receive vector on the sphere around the channel in detector coordinates
         receive_vector = self.get_receive_vector(iS)
         
         vector = end_of_path - self.__x2 #position of the receive vector on the sphere around the channel
@@ -789,9 +819,6 @@ class ray_tracing:
             choose for which solution to compute the travel time, 
             counting starts at zero
 
-        analytic: bool
-            If True the analytic solution is used. If False, a numerical integration is used. (default: True)
-
         Returns
         -------
         time: float
@@ -807,6 +834,23 @@ class ray_tracing:
 
 
     def get_frequencies_for_attenuation(self, frequency, max_detector_freq):
+        """
+        helper function to get the frequencies for applying attenuation
+
+        Parameters
+        ----------
+        frequency: array of float of dim (n,)
+            frequencies of the signal
+        max_detector_freq: float or None
+            the maximum frequency of the final detector sampling
+            (the simulation is internally run with a higher sampling rate, but the relevant part of the attenuation length
+            calculation is the frequency interval visible by the detector, hence a finer calculation is more important)
+
+        Returns
+        -------
+        freqs: array of float of dim (m,)
+             the frequencies for which the attenuation is calculated
+        """
         mask = frequency > 0
         nfreqs = min(self.__n_frequencies_integration, np.sum(mask))
         freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), nfreqs)
@@ -849,7 +893,7 @@ class ray_tracing:
             self.__logger.error("solution number {:get_path_d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        path = self.get_path_original(iS)
+        path = self.get_path(iS)
 
         mask = frequency > 0
         mask_horizontal = self.get_path_mask_horizontal(iS)
@@ -868,7 +912,10 @@ class ray_tracing:
         for i in range(len(path) - 1):
             integral += dt(i, freqs)
         
-        att_func = interpolate.interp1d(freqs, integral)
+        for z_position in range(len(path[:, 2]) - 1):
+            integral += dt(z_position, freqs)
+        
+        att_func = interp1d(freqs, integral)
         tmp = att_func(frequency[mask])
         attenuation = np.ones_like(frequency)
         tmp = np.exp(-1 * tmp)
@@ -901,7 +948,7 @@ class ray_tracing:
         recPos = copy.copy(self.__x2)
         recPos1 = np.array([self.__x2[0], self.__x2[1], self.__x2[2] + dz])
         if not hasattr(self, "_r1"):
-            self._r1 = ray_tracing(self.__medium, self.__attenuation_model, logging.WARNING, self.__n_frequencies_integration, self.__n_reflections, config = self.__config)
+            self._r1 = radiopropa_ray_tracing(self.__medium, self.__attenuation_model, logging.WARNING, self.__n_frequencies_integration, self.__n_reflections, config = self.__config)
         self._r1.set_shower_axis(self.__shower_axis)
         self._r1.set_start_and_end_point(vetPos, recPos1)
         self._r1.find_solutions()
@@ -990,7 +1037,7 @@ class ray_tracing:
                 f"ray is reflecting {i_reflections:d} times at the bottom -> reducing the signal by a factor of {reflection_coefficient:.2f}")
 
         ## apply focussing effect
-        if self.__config['propagation']['focusing']:
+        if self.__config != None and self.__config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
             spec[1:] *= focusing
 
@@ -1018,10 +1065,22 @@ class ray_tracing:
 
 
     def get_output_parameters(self):
+        """
+        Returns a list with information about parameters to include in the output data structure that are specific
+        to this raytracer
+
+        ! be sure that the first entry is specific to your raytracer !
+
+        Returns:
+        -----------------
+        list with entries of form [{'name': str, 'ndim': int}]
+            ! be sure that the first entry is specific to your raytracer !
+            'name': Name of the new parameter to include in the data structure
+            'ndim': Dimension of the data structure for the parameter
+        """
         return [
             {'name': 'sphere_sizes','ndim':len(self.__sphere_sizes)},
-            {'name': 'zenith_step_sizes','ndim':len(self.__step_sizes)},
-#            {'name': 'ray', 'ndim': 1},
+            {'name': 'launch_vector', 'ndim': 3},
             {'name': 'focusing_factor', 'ndim': 1},
             {'name': 'ray_tracing_reflection', 'ndim': 1},
             {'name': 'ray_tracing_reflection_case', 'ndim': 1},
@@ -1029,14 +1088,26 @@ class ray_tracing:
         ]
 
     def get_raytracing_output(self,i_solution):
+        """
+        Write parameters that are specific to this raytracer into the output data.
+
+        Parameters:
+        ---------------
+        i_solution: int
+            The index of the raytracing solution
+
+        Returns:
+        ---------------
+        dictionary with the keys matching the parameter names specified in get_output_parameters and the values being
+        the results from the raytracing
+        """
         if self.__config['propagation']['focusing']:    
             focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
         else: 
             focusing = 1
         output_dict = {
             'sphere_sizes': self.__sphere_sizes,
-            'zenith_step_sizes': self.__step_sizes,
-#            'ray': self.__rays[i_solution],
+            'launch_vector': self.get_launch_vector(i_solution),
             'focusing_factor': focusing,
             'ray_tracing_reflection': self.get_results()[i_solution]['reflection'],
             'ray_tracing_reflection_case': self.get_results()[i_solution]['reflection_case'],
@@ -1046,6 +1117,10 @@ class ray_tracing:
 
 
     def get_number_of_raytracing_solutions(self):
+        """
+        Function that returns the maximum number of raytracing solutions that can exist between each given
+        pair of start and end points
+        """
         return 2 + 4 * self.__n_reflections # number of possible ray-tracing solutions
 
     def get_config(self):
@@ -1064,3 +1139,33 @@ class ray_tracing:
             The new configuration settings
         """
         self.__config = config
+        self.__cut_viewing_angle = config['speedup']['delta_C_cut'] * units.radian
+
+    ## helper functions
+    def delta_theta_direct(self,dz):
+        v = (self.__x2-self.__x1)
+        u = copy.deepcopy(v)
+        u[2] = 0
+        rho = np.linalg.norm(u)
+        return dz * rho / ((self.__x1[2]-self.__x2[2])**2 + rho**2) * units.radian
+
+    def delta_theta_bottom(self,dz,z_refl):
+        v = (self.__x2-self.__x1)
+        u = copy.deepcopy(v)
+        u[2] = 0
+        rho = np.linalg.norm(u)
+        return dz * rho / ((self.__x1[2]+self.__x2[2]-2*z_refl)**2 + rho**2) * units.radian
+
+    def delta_theta_reflective(self,dz,n_bottom_reflections):
+        v = (self.__x2-self.__x1)
+        u = copy.deepcopy(v)
+        u[2] = 0
+        rho = np.linalg.norm(u)
+        ice_thickness = self.__medium.z_airBoundary - self.__medium.z_bottom
+        if n_bottom_reflections > 0:
+            if self.medium.reflection is None:
+                self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(n_bottom_reflections))
+                raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(n_bottom_reflections))
+            else:
+                ice_thickness = self.__medium.z_airBoundary - self.__medium.reflection
+        return -dz * rho / ((self.__x1[2]+self.__x2[2]+2*n_bottom_reflections*ice_thickness)**2 + rho**2) * units.radian
