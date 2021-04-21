@@ -14,7 +14,7 @@ import logging
 logging.basicConfig()
 
 
-class ray_tracing:
+class radiopropa_ray_tracing:
 
     """ Numerical raytracing using Radiopropa. Currently this only works for icemodels 
     that have only changing refractive index in z. More information on RadioPropa and
@@ -87,10 +87,7 @@ class ray_tracing:
         else: self.__cut_viewing_angle = 40 * units.degree
         ## maximal length to what the trajectory will be calculated
         self.__max_traj_length = 10000 * units.meter
-        ## iteration from big to small observer around channel
-        self.__sphere_sizes = np.array([25.,2.,.5]) * units.meter 
-        ## step for theta corresponding to the sphere size, should have same lenght as _sphere_sizes
-        self.__step_sizes = np.array([.5,.05,.0125]) * units.degree
+        self.set_iterative_steps()
         self.__x1 = None 
         self.__x2 = None
         self.__shower_axis = None ## this is given so we can limit the rays that are checked around the cherenkov angle
@@ -108,7 +105,10 @@ class ray_tracing:
         self.__x2 = None
         self.__results = None
         self.__rays = None
+        if self.__config != None: self.__cut_viewing_angle = self.__config['speedup']['delta_C_cut'] * units.radian
+        else: self.__cut_viewing_angle = 40 * units.degree
         self.__max_traj_length = 10000*units.meter
+        self.set_iterative_steps()
 
     def set_start_and_end_point(self, x1=None, x2=None):
         """
@@ -120,8 +120,8 @@ class ray_tracing:
             stop point of the ray
         """
         #self.reset_solutions()
-        x1 = np.array(x1, dtype =np.float)
-        x2 = np.array(x2, dtype = np.float)
+        self.__x1 = np.array(x1, dtype =np.float)
+        self.__x2 = np.array(x2, dtype = np.float)
         if (self.__n_reflections):
             if (x1[2] < self.__medium.reflection or x2[2] < self.__medium.reflection):
                 self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(
@@ -129,6 +129,7 @@ class ray_tracing:
                 raise AttributeError("start or stop point is below the reflective layer at {:.1f}m".format(
                     self.__medium.reflection / units.m))
         
+        if self.__auto_step and self.__x1!=None and self.__x2!=None: self.set_auto_step_sizes()
         
 
     def set_shower_axis(self,shower_axis):
@@ -141,6 +142,39 @@ class ray_tracing:
                      the direction of the shower in cartesian coordinates
         """ 
         self.__shower_axis = shower_axis/np.linalg.norm(shower_axis)
+
+    def set_iterative_steps(self,sphere_sizes=np.array([25.,2.,.5]) * units.meter,
+                            step_sizes=np.array([.5,.05,.01]) * units.degree, auto_step=False):
+        """
+        Set the sphere_sizes and steps_sizes for the iterative ray tracer
+
+        Parameters
+        ----------
+        sphere_sizes: np.array of size (n,), default unit
+                      the sphere size used by the iterative ray tracer
+                      iteration from big to small observer around channel
+        step_sizes: np.array size (n,), default unit
+                    the step size for theta used by the iterative ray tracer
+                    corresponding to the sphere size, should have same lenght as _sphere_sizes
+        auto_step:  boolean
+                    defines whether or not an automatic step_size should be calculated for each
+                    sphere_size depending on the horizontal distance of the event
+        """ 
+        if (sphere_sizes.ndim == 1) and (sphere_sizes.shape == step_sizes.shape):
+            self.__sphere_sizes = sphere_sizes        
+            self.__step_sizes = step_sizes
+        else:
+            self.__logger.error('sphere_sizes array and step_sizes array should be 14 dimensional and should have the same length')
+            raise ValueError('sphere_sizes array and step_sizes array should be 14 dimensional and should have the same length')
+        
+        self.__auto_step = auto_step
+
+        if self.__auto_step and self.__x1!=None and self.__x2!=None: self.set_auto_step_size()
+
+    def set_auto_step_size(self):
+        for s,sphere_size in enumerate(self.__sphere_sizes):
+                self.__step_sizes[s] = min(abs(self.delta_theta_reflective(dz=sphere_size,n_bottom_reflections=self.__n_reflections)), self.__step_sizes[s])
+
 
     def set_cut_viewing_angle(self,cut):
         """
@@ -237,7 +271,7 @@ class ray_tracing:
             sim.add(obs2)
             
             #create total scanning range from the upper and lower thetas of the bundles
-            step = min(abs(self.delta_theta_reflective(dz=sphere_size,n_bottom_reflections=n_reflections)), self.__step_sizes[s])/units.radian#self.__step_sizes[s]/units.radian
+            step = self.__step_sizes[s]/units.radian
             theta_scanning_range = np.array([])
             for iL in range(len(launch_lower)):
                 new_scanning_range = np.arange(launch_lower[iL],launch_upper[iL]+step,step)
@@ -689,7 +723,7 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        end_of_path = self.get_path_candidate(iS)[-1] #position of the receive vector on the sphere around the channel in detector coordinates
+        end_of_path = self.get_path_candidate(self.__rays[iS])[-1] #position of the receive vector on the sphere around the channel in detector coordinates
         receive_vector = self.get_receive_vector(iS)
         
         vector = end_of_path - self.__x2 #position of the receive vector on the sphere around the channel
@@ -883,7 +917,7 @@ class ray_tracing:
         recPos = copy.copy(self.__x2)
         recPos1 = np.array([self.__x2[0], self.__x2[1], self.__x2[2] + dz])
         if not hasattr(self, "_r1"):
-            self._r1 = ray_tracing(self.__medium, self.__attenuation_model, logging.WARNING, self.__n_frequencies_integration, self.__n_reflections, config = self.__config)
+            self._r1 = radiopropa_ray_tracing(self.__medium, self.__attenuation_model, logging.WARNING, self.__n_frequencies_integration, self.__n_reflections, config = self.__config)
         self._r1.set_shower_axis(self.__shower_axis)
         self._r1.set_start_and_end_point(vetPos, recPos1)
         self._r1.find_solutions()
@@ -1056,6 +1090,7 @@ class ray_tracing:
             The new configuration settings
         """
         self.__config = config
+        self.__cut_viewing_angle = config['speedup']['delta_C_cut'] * units.radian
 
     ## helper functions
     def delta_theta_direct(self,dz):
