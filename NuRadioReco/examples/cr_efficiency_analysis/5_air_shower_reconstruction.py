@@ -93,6 +93,13 @@ if(default_station == 101):
     used_channels_efield = [16, 19, 22]
     used_channels_fit = [16, 19, 22]
     channel_pairs = ((16, 19), (16, 22), (19, 22))
+
+elif(default_station == 32):
+    triggered_channels = [0, 1, 2, 3]
+    used_channels_efield = [0, 1, 2, 3]
+    used_channels_fit = [0, 1, 2, 3]
+    channel_pairs = ((0, 1), (1, 2), (3, 1))
+
 else:
     logger.info("Default channels not defined for station_id != 101")
 

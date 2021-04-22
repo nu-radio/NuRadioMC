@@ -115,7 +115,7 @@ det = GenericDetector(json_filename=detector_file, default_station=default_stati
 
 logger.info("Apply {} trigger".format(trigger_name))
 
-# The thermal noise for the ChannelGenericNoiseAdder is calculated here with a given Temperature
+# The thermal noise for the ChannelGenericNoiseAdder is calculated here with a given temperature
 Vrms_thermal_noise = (((scipy.constants.Boltzmann * units.joule / units.kelvin) * Tnoise *
          (T_noise_max_freq - T_noise_min_freq ) * 50 * units.ohm)**0.5)
 
