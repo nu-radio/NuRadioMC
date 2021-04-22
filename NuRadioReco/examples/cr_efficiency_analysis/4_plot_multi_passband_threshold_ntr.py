@@ -19,42 +19,27 @@ passbands = []
 
 for file in os.listdir('results/ntr/'):
     filename = os.path.join('results/ntr/', file)
-    print('file used', filename)
-    print('filename', filename)
     data = []
     bz2_file = bz2.BZ2File(filename, 'rb')
     data = cPickle.load(bz2_file)
 
     trigger_thresholds = data['threshold']
-    print('trigger thresholds', trigger_thresholds)
-
     passband_trigger = data['passband_trigger']
-
-    print('passband', passband_trigger/units.megahertz)
     passband_low.append(passband_trigger[0])
-    print(passband_low)
     passband_high.append(passband_trigger[1])
-    print(passband_high)
     passbands.append(passband_trigger)
 
     trigger_rate = data['trigger_rate']
-    print('trigger rate', trigger_rate)
 
     zeros = np.where(trigger_rate == 0)[0]
-    print(zeros)
     first_zero = zeros[0]
-    print('first zero', first_zero)
     final_threshold = trigger_thresholds[first_zero]
-    print('final threshold', final_threshold/units.mV)
     final_thresholds.append(final_threshold)
 
 passband_low = np.array(passband_low)
 passband_high = np.array(passband_high)
 final_thresholds = np.array(final_thresholds)
 passbands = np.array(passbands)
-
-print(passbands/units.megahertz)
-print(final_thresholds/units.mV)
 
 x_min = min(passband_low)/units.megahertz
 x_max = max(passband_low)/units.megahertz

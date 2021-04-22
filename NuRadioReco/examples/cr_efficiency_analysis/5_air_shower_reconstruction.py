@@ -51,14 +51,12 @@ number = args.number
 
 with open(config_file, 'r') as ymlfile:
     cfg = yaml.safe_load(ymlfile)
-# print('config file', cfg)
 
 eventlist = cfg['eventlist']
 output_filename = cfg['output_filename']
 
 bz2 = bz2.BZ2File(result_dict, 'rb')
 data = cPickle.load(bz2)
-# print('data', data)
 
 detector_file = data['detector_file']
 default_station = data['default_station']
@@ -85,26 +83,18 @@ hardware_response = data['hardware_response']
 
 trigger_rate = data['trigger_rate']
 threshold_tested = data['threshold']
-print(trigger_rate)
 zeros = np.where(trigger_rate == 0)[0]
-#print(zeros)
-first_zero = zeros[0]
-#print(first_zero)
+first_zero = zeros[0]  # gives the index of the element where the trigger rate is zero for the first time
 trigger_threshold = threshold_tested[first_zero] * units.volt
-print('threshold', trigger_threshold/units.mV)
 
 input_files = eventlist[number]
-print('Input file', input_files)
-
 if(default_station == 101):
     triggered_channels = [16, 19, 22]
     used_channels_efield = [16, 19, 22]
     used_channels_fit = [16, 19, 22]
     channel_pairs = ((16, 19), (16, 22), (19, 22))
 else:
-    print("Default channels not defined for station_id != 101")
-
-print("Using {0} as detector".format(detector_file))
+    logger.info("Default channels not defined for station_id != 101")
 
 det = GenericDetector(json_filename=detector_file, default_station=default_station) # detector file
 det.update(datetime.datetime(2019, 10, 1))
@@ -136,8 +126,6 @@ if trigger_name == 'envelope':
     triggerSimulator = NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator()
     triggerSimulator.begin()
 
-print("Using {} as trigger".format(trigger_name))
-
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelBandPassFilter.begin()
 eventTypeIdentifier = NuRadioReco.modules.eventTypeIdentifier.eventTypeIdentifier()
@@ -155,7 +143,6 @@ electricFieldResampler.begin()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelResampler.begin()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-print('trigger threshold', trigger_threshold)
 eventWriter.begin(output_filename + 'pb_' + str(int(passband_trigger[0]/units.MHz)) + '_' + str(int(passband_trigger[1]/units.MHz)) + '_tt_' + str(trigger_threshold.round(6)) + '.nur')
 
 
@@ -213,10 +200,8 @@ for evt in readCoREASStation.run(det):
 
         electricFieldResampler.run(evt, sta, det, sampling_rate=1 * units.GHz)
         i += 1
-        print('finish with station {}'.format(i))
 
     #eventWriter.run(evt, det)
     eventWriter.run(evt, det, mode='micro')  # here you can change what should be stored in the nur files
 
 nevents = eventWriter.end()
-print("Finished processing, {} events".format(nevents))

@@ -110,9 +110,9 @@ hardware_response = args.hardware_response
 
 det = GenericDetector(json_filename=detector_file, default_station=default_station)
 
+# The thermal noise for the ChannelGenericNoiseAdder is calculated here with a given Temperature
 Vrms_thermal_noise = (((scipy.constants.Boltzmann * units.joule / units.kelvin) * Tnoise *
          (T_noise_max_freq - T_noise_min_freq ) * 50 * units.ohm)**0.5)
-print('Vrms thermal Noise', Vrms_thermal_noise)
 
 station_ids = det.get_station_ids()
 station_id = station_ids[0]
@@ -159,8 +159,6 @@ if trigger_name == 'envelope':
 t = time.time()  # absolute time of system
 sampling_rate = station.get_channel(channel_ids[0]).get_sampling_rate()
 dt = 1. / sampling_rate
-# print('samling rate', sampling_rate)
-# print('1/dt', dt)
 
 time = channel.get_times()
 channel_trace_start_time = time[0]
@@ -193,11 +191,11 @@ for n_thres in count():
         if hardware_response == True:
             hardwareResponseIncorporator.run(event, station, det, sim_to_data=True)
 
+        # This loop changes the phase of a frequency spectrum, this is because the GalacticNoiseAdder needs some time.
+        # The current number of iteration can be calculated with i_phase + n_it*10
         for i_phase in range(10):
-            print('test iteration', (i_phase) + (n_it*10))
             trigger_status_one_it = []
             for channel in station.iter_channels():
-                # print('change phase in channel', channel.get_id())
                 freq_specs = channel.get_frequency_spectrum()
                 rand_phase = np.random.uniform(low=0, high= 2*np.pi, size=len(freq_specs))
                 freq_specs = np.abs(freq_specs) * np.exp(1j * rand_phase)
@@ -214,21 +212,17 @@ for n_thres in count():
                 triggerSimulator.run(event, station, det, passband_trigger, order_trigger, n_thres, coinc_window,
                 number_coincidences=number_coincidences, triggered_channels=triggered_channels, trigger_name=trigger_name)
 
+            # trigger status for one iteration in the loop
             trigger_status_one_it = station.get_trigger(trigger_name).has_triggered()
-            print(trigger_status_one_it)
+            # trigger status for all iteration
             trigger_status_per_all_it.append(trigger_status_one_it)
 
-        print(trigger_status_per_all_it)
         if np.sum(trigger_status_per_all_it) > 1:
             trigger_efficiency_per_tt = np.sum(trigger_status_per_all_it) / len(trigger_status_per_all_it)
             trigger_rate_per_tt = (1 / channel_trace_time_interval) * trigger_efficiency_per_tt
 
             trigger_rate.append(trigger_rate_per_tt)
             trigger_efficiency.append(trigger_efficiency_per_tt)
-
-            # print('true triggered', np.sum(trigger_status_per_all_it))
-            # print('trigger efficiency of this threshold', trigger_efficiency_per_tt)
-            # print('trigger rate of this threshold [Hz]', trigger_rate_per_tt / units.Hz)
             break;
 
         elif n_it == (n_iterations-1):
@@ -238,17 +232,9 @@ for n_thres in count():
             trigger_rate.append(trigger_rate_per_tt)
             trigger_efficiency.append(trigger_efficiency_per_tt)
 
-            # print('true triggered', np.sum(trigger_status_per_all_it))
-            # print('trigger efficiency of this threshold', trigger_efficiency_per_tt)
-            # print('trigger rate of this threshold [Hz]', trigger_rate_per_tt / units.Hz)
-
             thresholds = np.array(thresholds)
             trigger_rate = np.array(trigger_rate)
             trigger_efficiency = np.array(trigger_efficiency)
-
-            # print('thresholds tested', thresholds)
-            # print('efficiency', trigger_efficiency)
-            # print('trigger rate', trigger_rate)
 
             dic = {}
             dic['T_noise'] = Tnoise
@@ -274,7 +260,6 @@ for n_thres in count():
             dic['hardware_response'] = hardware_response
             dic['trigger_name'] = trigger_name
 
-            print(dic)
             output_file = 'output_threshold_estimate/estimate_threshold_{}_pb_{:.0f}_{:.0f}_i{}.pickle'.format(trigger_name, passband_trigger[0]/units.MHz,passband_trigger[1]/units.MHz, len(trigger_status_per_all_it))
             abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
             with open(abs_path_output_file,'wb') as pickle_out:

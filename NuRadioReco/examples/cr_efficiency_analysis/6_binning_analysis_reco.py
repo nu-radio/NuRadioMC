@@ -28,6 +28,7 @@ parser.add_argument('energy_bins', type=list, nargs='?', default = [16.5, 20, 6]
 parser.add_argument('zenith_bins', type=list, nargs='?', default = [0, 100, 10], help = 'zenith bins in deg')
 parser.add_argument('distance_bins', type=int, nargs='?', default = [0, 700, 4000], help = 'distance bins')
 
+#please set number of stations within one event here
 number_of_sta_in_evt = 72
 
 args = parser.parse_args()
@@ -50,7 +51,6 @@ distance_bins_high = np.array(distance_bins[1:-1])
 
 bz2 = bz2.BZ2File(result_dict, 'rb')
 data = cPickle.load(bz2)
-# print('data', data)
 
 detector_file = data['detector_file']
 default_station = data['default_station']
@@ -81,18 +81,12 @@ zeros = np.where(trigger_rate == 0)[0]
 first_zero = zeros[0]
 trigger_threshold = threshold_tested[first_zero] * units.volt
 
-print('trigger threshold in mV', trigger_threshold/units.mV)
-print('passband_trigger', passband_trigger)
-print('coinc window', coinc_window)
-print('number coinc', number_coincidences)
-
 nur_file_list = []  # get input files
 i = 0
 for nur_file in os.listdir(input_filepath):
     if os.path.isfile(os.path.join(input_filepath, nur_file)) and str(int(passband_trigger[0]/units.MHz)) + '_' + str(int(passband_trigger[1]/units.MHz)) in nur_file:
         i = i+1
         filename = os.path.join(input_filepath, nur_file)
-        print('filename', filename)
         if os.path.getsize(filename) > 0:
             nur_file_list.append(filename)
 
@@ -107,7 +101,6 @@ trigger_status = []  # trigger status per event station and threshold
 trigger_status_weight = []  # trigger status per event station and threshold with weighting
 trigger_in_station = []  # name of trigger
 
-print('nur file list', nur_file_list)
 evtReader = eventReader.eventReader()
 evtReader.begin(filename=filename, read_detector=True)
 weight = []
@@ -115,7 +108,6 @@ num = 0
 for evt in evtReader.run(): # loop over all events, one event is one station
     num += 1
     event_id = evt.get_id()
-    #print('event id', event_id)
     events.append(evt)
     det = evtReader.get_detector()  # get one detector with several stations
     det_position = GenericDetector.get_absolute_position(det, station_id=default_station)
@@ -127,7 +119,6 @@ for evt in evtReader.run(): # loop over all events, one event is one station
     azimuth.append(sim_station.get_parameter(stnp.azimuth))
     current_weight = sim_station.get_simulation_weight() /(units.m**2)
     weight.append(current_weight)
-    #print('current weight', current_weight)
     trigger_in_station.append(sta.get_triggers())  # get trigger for each station
     trigger_status.append(sta.has_triggered())
     trigger_status_weight.append(sta.has_triggered() * current_weight)
@@ -145,13 +136,6 @@ distance = np.array(distance)
 energy = np.array(energy)
 n_events = len(events)
 
-print('num', num)
-print('energy', energy.shape)
-print('zenith', zenith.shape)
-print('n events', n_events)
-print('trigger_status', trigger_status.shape)
-print('trigger_status_weight', trigger_status_weight.shape)
-
 energy_shower = np.array(energy).reshape(int(len(energy)/number_of_sta_in_evt), number_of_sta_in_evt)[:,0]
 zenith_shower = np.array(zenith).reshape(int(len(zenith)/number_of_sta_in_evt), number_of_sta_in_evt)[:,0]
 footprint_shower = np.sum(np.array(weight).reshape(int(len(weight)/number_of_sta_in_evt), number_of_sta_in_evt), axis=1)
@@ -166,82 +150,47 @@ trigger_effective_area_e = np.zeros((len(energy_bins_low), len(zenith_bins_low))
 trigger_effective_area_err_e = np.zeros((len(energy_bins_low), len(zenith_bins_low)))
 
 for dim_0, energy_bin_low, energy_bin_high in zip(range(len(energy_bins_low)), energy_bins_low, energy_bins_high):
-    print('for energy {} - {}'.format(energy_bin_low, energy_bin_high))
-    mask_e = (energy >= energy_bin_low) & (energy < energy_bin_high)
-    n_events_masked_e = np.sum(mask_e)
-    print('n_events_masked_e', n_events_masked_e)
-    #print('energy', energy)
-    #print('mask e', mask_e)
+    mask_e = (energy >= energy_bin_low) & (energy < energy_bin_high)  # choose one energy bin
+    n_events_masked_e = np.sum(mask_e)  # number of events in that energy bin
 
     for dim_1, zenith_bin_low, zenith_bin_high in zip(range(len(zenith_bins_low)), zenith_bins_low, zenith_bins_high):
-        print('for zenith {} - {}'.format(zenith_bin_low, zenith_bin_high))
-        mask_z = (zenith_deg >= zenith_bin_low/units.deg) & (zenith_deg < zenith_bin_high/units.deg)
+        mask_z = (zenith_deg >= zenith_bin_low/units.deg) & (zenith_deg < zenith_bin_high/units.deg) # choose zenith bin
         mask_ez = mask_e & mask_z
         masked_trigger_status_ez = trigger_status[mask_ez]
         masked_trigger_status_weight_ez = trigger_status_weight[mask_ez]
-        n_events_masked_ez = np.sum(mask_ez)
-        # print('trigger_status', trigger_status.shape)
-        print('n_events_masked_ez', n_events_masked_ez)
-        print('mask ez', mask_ez.shape)
+        n_events_masked_ez = np.sum(mask_ez)  # number of events in that energy and zenith bin
 
         # mask ez
-        triggered_trigger_ez = np.sum(masked_trigger_status_ez, axis=0)
+        triggered_trigger_ez = np.sum(masked_trigger_status_ez, axis=0) # number of triggered true trigger in energy and zentih bin
         triggered_trigger_weight = np.sum(masked_trigger_status_weight_ez, axis=0)
         trigger_efficiency_ez = triggered_trigger_ez / n_events_masked_ez
-        print('triggered_trigger_ez', triggered_trigger_ez)
-        # print('masked_trigger_status_weight_ez', masked_trigger_status_weight_ez.shape)
+
         # reshape the array. zenith and energy are the same for all stations in the shower
         triggered_trigger_weight_shower = masked_trigger_status_weight_ez.reshape(
             int(len(masked_trigger_status_weight_ez) / number_of_sta_in_evt), number_of_sta_in_evt)
         triggered_trigger_weight_shower_sum = np.sum(triggered_trigger_weight_shower, axis=1)
         trigger_effective_area = np.mean(triggered_trigger_weight_shower_sum)
         trigger_effective_area_err = np.std(triggered_trigger_weight_shower_sum)
-        # print('n shower mask', n_events_masked/number_of_sta_in_evt)
 
-        # print('triggered_trigger_weight_shower', triggered_trigger_weight_shower.shape)
-        # print('triggered_trigger_weight_shower_sum', triggered_trigger_weight_shower_sum)
-        # print('trigger_effective_area', trigger_effective_area)
-        # print('trigger_effective_area_err', trigger_effective_area_err)
 
         triggered_trigger_weight_e[dim_0, dim_1] = triggered_trigger_weight
         trigger_effective_area_e[dim_0, dim_1] = trigger_effective_area
         trigger_effective_area_err_e[dim_0, dim_1] = trigger_effective_area_err
 
         for dim_2, distance_bin_low, distance_bin_high in zip(range(len(distance_bins_low)), distance_bins_low, distance_bins_high):
-            print('for distance {} - {}'.format(distance_bin_low, distance_bin_high))
-
             mask_d = (distance < distance_bin_high)
-            #mask_d = (distance >= distance_bin_low) & (distance < distance_bin_high)
-
             mask_ezd = mask_ez & mask_d
             masked_trigger_status_ezd = trigger_status[mask_ezd]
             masked_trigger_status_weight_ezd = trigger_status_weight[mask_ezd]
             n_events_masked_ezd = np.sum(mask_ezd)
-            print('n_events_masked_ezd', n_events_masked_ezd)
-            #print('trigger_status', trigger_status.shape)
-            #print('trigger_status[mask_ezd]', trigger_status[mask_ezd].shape)
-            #print('mask ezd', mask_ezd)
-            #print('mask ezd', mask_ezd.shape)
 
             # mask ezd, no a eff
             triggered_trigger_ezd = np.sum(masked_trigger_status_ezd, axis=0)
             trigger_efficiency_ezd = triggered_trigger_ezd / n_events_masked_ezd
-            # print('masked_trigger_status_weight_ezd', masked_trigger_status_weight_ezd)
-            # print('masked_trigger_status_weight_ezd', masked_trigger_status_weight_ezd.shape)
-            # print('n events mask', n_events_masked)
-            print('triggered_trigger_ezd', triggered_trigger_ezd)
 
             masked_events_e[dim_0, dim_1, dim_2] = n_events_masked_ezd
             triggered_trigger_e[dim_0, dim_1, dim_2] = triggered_trigger_ezd
             trigger_efficiency_e[dim_0, dim_1, dim_2] = trigger_efficiency_ezd
-
-
-print('trigger_efficiency_e', trigger_efficiency_e)
-#print('trigger_effective_area_e', trigger_effective_area_e.shape)
-#print('triggered_trigger_weight_e', triggered_trigger_weight_e.shape)
-
-# print('used shower', masked_events_e/number_of_sta_in_evt)
-
 
 dic = {}
 dic['T_noise'] = T_noise
@@ -266,7 +215,6 @@ dic['zenith_bins_low'] = zenith_bins_low
 dic['distance_bins_high'] = distance_bins_high
 dic['energy_bins_high'] = energy_bins_high
 dic['zenith_bins_high'] = zenith_bins_high
-print(dic)
 
 with open('results/air_shower/dict_air_shower_pb_{:.0f}_{:.0f}_e{}_z{}_d{}_{}.pickle'.format(passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz, len(energy_bins_low), len(zenith_bins_low), len(distance_bins_low), max(distance_bins)), 'wb') as pickle_out:
     pickle.dump(dic, pickle_out)
