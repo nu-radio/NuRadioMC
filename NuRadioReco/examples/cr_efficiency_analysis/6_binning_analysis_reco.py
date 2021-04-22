@@ -216,5 +216,6 @@ dic['distance_bins_high'] = distance_bins_high
 dic['energy_bins_high'] = energy_bins_high
 dic['zenith_bins_high'] = zenith_bins_high
 
+os.mkdir('results/air_shower/')
 with open('results/air_shower/dict_air_shower_pb_{:.0f}_{:.0f}_e{}_z{}_d{}_{}.pickle'.format(passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz, len(energy_bins_low), len(zenith_bins_low), len(distance_bins_low), max(distance_bins)), 'wb') as pickle_out:
     pickle.dump(dic, pickle_out)

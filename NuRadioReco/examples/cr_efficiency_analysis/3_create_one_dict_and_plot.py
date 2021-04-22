@@ -102,6 +102,7 @@ dic['trigger_rate'] = trigger_rate_all
 dic['hardware_response'] = hardware_response
 dic['trigger_name'] = trigger_name
 
+os.mkdir('results/ntr/')
 filename = 'results/ntr/dict_ntr_{}_pb_{:.0f}_{:.0f}.pbz2'.format(trigger_name, passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz)
 with bz2.BZ2File(filename, 'w') as f:
     cPickle.dump(dic, f)

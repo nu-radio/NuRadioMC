@@ -260,6 +260,7 @@ for n_thres in count():
             dic['hardware_response'] = hardware_response
             dic['trigger_name'] = trigger_name
 
+            os.mkdir('output_threshold_estimate')
             output_file = 'output_threshold_estimate/estimate_threshold_{}_pb_{:.0f}_{:.0f}_i{}.pickle'.format(trigger_name, passband_trigger[0]/units.MHz,passband_trigger[1]/units.MHz, len(trigger_status_per_all_it))
             abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
             with open(abs_path_output_file,'wb') as pickle_out:
