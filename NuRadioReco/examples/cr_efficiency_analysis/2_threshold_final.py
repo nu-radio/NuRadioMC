@@ -232,6 +232,7 @@ dic['trigger_rate'] = trigger_rate
 dic['hardware_response'] = hardware_response
 dic['trigger_name'] = trigger_name
 
+os.mkdir('output_threshold_final')
 output_file = 'output_threshold_final/final_threshold_{}_pb_{:.0f}_{:.0f}_i{}_{}.pickle'.format(trigger_name,
         passband_trigger[0] / units.MHz, passband_trigger[1] / units.MHz,len(trigger_status), number)
 abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
