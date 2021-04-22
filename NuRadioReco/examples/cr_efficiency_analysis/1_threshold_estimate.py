@@ -27,6 +27,9 @@ from NuRadioReco.framework.trigger import EnvelopeTrigger
 import argparse
 import pygdsm
 import astropy
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('Threshold estimate')
 
 '''
 The difference to 1_threshold_estimate.py is, that the trigger module of the envelope trigger is directly implemented and speeded up.
@@ -110,6 +113,8 @@ hardware_response = args.hardware_response
 
 det = GenericDetector(json_filename=detector_file, default_station=default_station)
 
+logger.info("Apply {} trigger".format(trigger_name))
+
 # The thermal noise for the ChannelGenericNoiseAdder is calculated here with a given Temperature
 Vrms_thermal_noise = (((scipy.constants.Boltzmann * units.joule / units.kelvin) * Tnoise *
          (T_noise_max_freq - T_noise_min_freq ) * 50 * units.ohm)**0.5)
@@ -174,24 +179,35 @@ iterations = []
 channel_rms = []
 channel_sigma = []
 
+# with each iteration the threshold increases one step
 for n_thres in count():
     threshold = threshold_start + (n_thres * threshold_step)
+    logger.info("Procession threshold {}".format(threshold))
     thresholds.append(threshold)
     trigger_status_per_all_it = []
 
+    # here is number of iteration you want to check on (iteration is just a proxy for the timeinterval
+    # on which you allow a certain number of trigger. In this case is every iteration 1024 ns (tracelength)
+    # long and one trigger is allowed)
     for n_it in range(n_iterations):
         station = event.get_station(default_station)
         eventTypeIdentifier.run(event, station, "forced", 'cosmic_ray')
+
+        #here an empty channel trace is created
         for channel in station.iter_channels():
             default_trace = np.zeros(1024)
             channel.set_trace(trace=default_trace, sampling_rate=sampling_rate)
 
+        # thermal and galactic noise is added
         channelGenericNoiseAdder.run(event, station, det, amplitude=Vrms_thermal_noise, min_freq=T_noise_min_freq, max_freq=T_noise_max_freq, type='rayleigh')
         channelGalacticNoiseAdder.run(event, station, det)
+
+        # includes the amplifier response, if set true at the beginning
         if hardware_response == True:
             hardwareResponseIncorporator.run(event, station, det, sim_to_data=True)
 
-        # This loop changes the phase of a frequency spectrum, this is because the GalacticNoiseAdder needs some time.
+        # This loop changes the phase of a trace with rand_phase, this is because the GalacticNoiseAdder
+        # needs some time and one amplitude is good enough for several traces.
         # The current number of iteration can be calculated with i_phase + n_it*10
         for i_phase in range(10):
             trigger_status_one_it = []
@@ -200,6 +216,8 @@ for n_thres in count():
                 rand_phase = np.random.uniform(low=0, high= 2*np.pi, size=len(freq_specs))
                 freq_specs = np.abs(freq_specs) * np.exp(1j * rand_phase)
                 channel.set_frequency_spectrum(frequency_spectrum=freq_specs, sampling_rate=sampling_rate)
+
+                #The bandpass for the envelope trigger is included in the trigger module
                 if trigger_name == 'high_low':
                     channelBandPassFilter.run(event, station, det, passband=passband_trigger,
                                           filter_type='butter', order=order_trigger)
@@ -212,11 +230,15 @@ for n_thres in count():
                 triggerSimulator.run(event, station, det, passband_trigger, order_trigger, n_thres, coinc_window,
                 number_coincidences=number_coincidences, triggered_channels=triggered_channels, trigger_name=trigger_name)
 
+
             # trigger status for one iteration in the loop
             trigger_status_one_it = station.get_trigger(trigger_name).has_triggered()
             # trigger status for all iteration
             trigger_status_per_all_it.append(trigger_status_one_it)
 
+
+        # here it is checked, how many of the triggers in n_iteration are triggered true.
+        # If it is more than 1, the threshold is increased with n_thres.
         if np.sum(trigger_status_per_all_it) > 1:
             trigger_efficiency_per_tt = np.sum(trigger_status_per_all_it) / len(trigger_status_per_all_it)
             trigger_rate_per_tt = (1 / channel_trace_time_interval) * trigger_efficiency_per_tt
