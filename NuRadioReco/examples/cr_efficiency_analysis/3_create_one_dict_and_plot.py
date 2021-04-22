@@ -66,7 +66,6 @@ for i_file in range(number_of_files):
                                                                                             i_file+1)
     data = []
     data = io_utilities.read_pickle(input_filename, encoding='latin1')
-    #print(data)
     trigger_efficiency[i_file] = data['efficiency']
     trigger_rate[i_file] = data['trigger_rate']
     triggered_true[i_file]= data['triggered_true']
@@ -78,11 +77,6 @@ triggered_true_all = np.sum(triggered_true, axis=0)
 trigger_efficiency_all = np.sum(trigger_efficiency, axis=0) / n_files
 trigger_rate_all = np.sum(trigger_rate, axis=0) / n_files
 iterations = n_iterations * n_files
-
-print('triggered_trigger', triggered_true_all)
-print('trigger efficiency all', trigger_efficiency_all)
-print('trigger rate all [Hz]', trigger_rate_all/units.Hz)
-print(trigger_status.shape)
 
 dic = {}
 dic['detector_file'] = detector_file
@@ -108,7 +102,6 @@ dic['trigger_rate'] = trigger_rate_all
 dic['hardware_response'] = hardware_response
 dic['trigger_name'] = trigger_name
 
-#print(dic)
 filename = 'results/ntr/dict_ntr_{}_pb_{:.0f}_{:.0f}.pbz2'.format(trigger_name, passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz)
 with bz2.BZ2File(filename, 'w') as f:
     cPickle.dump(dic, f)
@@ -127,24 +120,13 @@ order_trigger = data['order_trigger']
 iterations = data['iteration']
 trigger_name = data['trigger_name']
 
-
-print('threshold', trigger_thresholds)
-print('efficiency', efficiency)
-print('trigger rate', trigger_rate/units.Hz)
-print('passband', passband_trigger/units.megahertz)
-
 from scipy.interpolate import interp1d
-
-
 x = trigger_thresholds/units.microvolt
 y = trigger_rate/units.Hz
 f1 = interp1d(x, y, 'cubic')
 
-print(x)
 thresh = 25.273
-print('f1',f1(thresh))
 xnew = np.linspace(trigger_thresholds[0]/units.microvolt, trigger_thresholds[12]/units.microvolt)
-print(xnew)
 
 plt.plot(trigger_thresholds/units.microvolt, trigger_rate/units.Hz, marker='x', label= 'Noise trigger rate', linestyle='none')
 plt.plot(xnew, f1(xnew), '--', label='interp1d f({:.4f}) = {:.4f} Hz'.format(thresh, f1(thresh)))

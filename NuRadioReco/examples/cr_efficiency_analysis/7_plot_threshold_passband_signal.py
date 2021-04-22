@@ -34,12 +34,9 @@ trigger_effective_area_err = np.zeros((n_passbands, n_energy_bins, n_zenith_bins
 
 for pos, file in enumerate(os.listdir('results/air_shower/')):
     filename = os.path.join('results/air_shower/', file)
-    print('file used', filename)
     if os.path.getsize(filename) > 0:
         data = []
         data = io_utilities.read_pickle(filename, encoding='latin1')
-        #print(data)
-        print(pos, file)
         T_noise = data['T_noise']
         T_noise_min_freq = data['T_noise_min_freq']
         T_noise_max_freq = data['T_noise_max_freq']
@@ -56,11 +53,6 @@ for pos, file in enumerate(os.listdir('results/air_shower/')):
         trigger_effective_area_err[pos] = data['trigger_effective_area_err']
         trigger_weight = data['triggered_trigger_weight']
 
-#print('passband', passbands)
-#print('threshold', trigger_threshold)
-print('trigger_effective_area', trigger_effective_area)
-print('trigger_effective_area', trigger_effective_area.shape)
-
 #choose zenith bins etc here
 zenith_start = int(0 /10)
 zenith_stop = int(90 /10)
@@ -72,10 +64,9 @@ trigger_effective_area = trigger_effective_area[:,:,zenith_start:zenith_stop]
 trigger_effective_area_err = trigger_effective_area_err[:,:,zenith_start:zenith_stop]
 zenith_bin = np.arange(zenith_start,zenith_stop,10)
 
-weight_area = (-(np.cos((zenith_bin+10)*units.deg)**2)/2) - (-(np.cos(zenith_bin*units.deg)**2)/2) #integral of sin*cos
+weight_area = (-(np.cos((zenith_bin+10)*units.deg)**2)/2) - (-(np.cos(zenith_bin*units.deg)**2)/2) #integral of sin*cos is the weight
 aeff_zenith = trigger_effective_area * weight_area
 total_aeff = np.sum(aeff_zenith, axis=2)  # sum over all zenith bins to get number of cr for each energy bin
-
 
 x_min = np.min(passband_trigger[:,0])/units.megahertz
 x_max = np.max(passband_trigger[:,0])/units.megahertz
@@ -93,9 +84,6 @@ for count_energy, energy_bin in enumerate([1e16, 1e17, 1e18]):
     #for count_zenith, zenith_b in enumerate(zenith_bin):
     #z = aeff_zenith
     z = total_aeff[:,count_energy]/units.km**2
-    #print('x, y', x,y)
-    print('z', z)
-    print('z', z.shape)
 
     counts, xbins, ybins, image = plt.hist2d(x, y, bins=[x_edges, y_edges], weights=z, vmin=min(z), vmax=max(z), cmap=plt.cm.jet, cmin = 1e-9)
     plt.colorbar(label=r'Effective area [$km^2$]')

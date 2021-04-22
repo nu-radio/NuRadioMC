@@ -67,10 +67,6 @@ threshold_steps = args.threshold_steps
 data = []
 data = io_utilities.read_pickle(input_filename, encoding='latin1')
 
-# print('file', filename)
-# print('#', number)
-# print(data)
-
 detector_file = data['detector_file']
 triggered_channels = data['triggered_channels']
 default_station = data['default_station']
@@ -98,11 +94,6 @@ trigger_rate = data['trigger_rate']
 hardware_response = data['hardware_response']
 
 trigger_thresholds = (np.arange(check_trigger_thresholds[-4], check_trigger_thresholds[-4] + 0.00003, threshold_steps)) *units.volt
-
-# print('passband', passband_trigger / units.megahertz)
-# print('checked threshold', check_trigger_thresholds)
-# print('Vrms_thermal_noise',Vrms_thermal_noise)
-# print('trigger thresholds', trigger_thresholds)
 
 det = GenericDetector(json_filename=detector_file, default_station=default_station) # detector file
 
@@ -148,7 +139,6 @@ trigger_rate = []
 trigger_efficiency = []
 
 for n_it in range(iterations):
-    # print('iteration', n_it)
     station = event.get_station(default_station)
     if station_time_random == True:
         random_generator_hour = np.random.RandomState()
@@ -173,9 +163,7 @@ for n_it in range(iterations):
         hardwareResponseIncorporator.run(event, station, det, sim_to_data=True)
 
     for i_phase in range(10):
-        print('test iteration', (i_phase) + (n_it*10))
         for channel in station.iter_channels():
-            #print('channel', channel.get_id())
             freq_specs = channel.get_frequency_spectrum()
             rand_phase = np.random.uniform(low=0, high= 2*np.pi, size=len(freq_specs))
             freq_specs = np.abs(freq_specs) * np.exp(1j * rand_phase)
@@ -183,11 +171,9 @@ for n_it in range(iterations):
 
         trigger_status_all_thresholds = []
         for threshold in trigger_thresholds:
-            print('current threshold', threshold)
             triggered_bins_channels = []
             channels_that_passed_trigger = []
             for channel in station.iter_channels():
-                print('channel', channel.get_id())
                 trace = channel.get_trace()
                 frequencies = channel.get_frequencies()
                 f = np.zeros_like(frequencies, dtype=np.complex)
@@ -204,13 +190,11 @@ for n_it in range(iterations):
 
                 # apply envelope trigger to each channel
                 triggered_bins = np.abs(scipy.signal.hilbert(trace_filtered)) > threshold
-                print('trace > threshold', max(np.abs(scipy.signal.hilbert(trace_filtered))), threshold)
 
                 triggered_bins_channels.append(triggered_bins)
 
                 if True in triggered_bins:
                     channels_that_passed_trigger.append(channel.get_id())
-                print('channel that passed trigger', channels_that_passed_trigger)
 
                 # check for coincidences with get_majority_logic(tts, number_of_coincidences=2,
                 # time_coincidence=32 * units.ns, dt=1 * units.ns)
@@ -224,24 +208,13 @@ for n_it in range(iterations):
                                                                                     number_coincidences, coinc_window, dt)
 
             trigger_status_all_thresholds.append(has_triggered)
-
-            print('current threshold', threshold)
-            print('has_triggered', has_triggered)
-            print('trigger_status_all_thresholds', trigger_status_all_thresholds)
         trigger_status.append(trigger_status_all_thresholds)
-        print('trigger_status', trigger_status)
+
 
 trigger_status = np.array(trigger_status)
 triggered_trigger = np.sum(trigger_status, axis=0)
 trigger_efficiency = triggered_trigger / len(trigger_status)
 trigger_rate = (1 / channel_trace_time_interval) * trigger_efficiency
-
-# print('trigger status', trigger_status.shape)
-# print('triggered trigger', triggered_trigger)
-# print('triggered all', len(trigger_status))
-# print('trigger efficiency of this threshold', trigger_efficiency)
-# print('trigger rate of this threshold [Hz]', trigger_rate / units.Hz)
-# print('thresholds', trigger_thresholds)
 
 dic = {}
 dic['detector_file'] = detector_file
@@ -269,7 +242,6 @@ dic['efficiency'] = trigger_efficiency
 dic['trigger_rate'] = trigger_rate
 dic['hardware_response'] = hardware_response
 
-# print(dic)
 
 output_file = 'output_threshold_final/final_threshold_envelope_fast_pb_{:.0f}_{:.0f}_i{}_{}.pickle'.format(
         passband_trigger[0] / units.MHz, passband_trigger[1] / units.MHz,len(trigger_status), number)
