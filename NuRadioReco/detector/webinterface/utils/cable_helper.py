@@ -7,6 +7,7 @@ import numpy as np
 import plotly.graph_objs as go
 import json
 import sys
+import base64
 from io import StringIO
 import csv
 from NuRadioReco.detector.webinterface.app import app
@@ -17,7 +18,7 @@ from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 sparameters_layout = html.Div([
     dcc.Checklist(id="function-test",
         options=[
-            {'label': 'channel is working', 'value': 'working'}
+            {'label': 'cable is working', 'value': 'working'}
             ],
         value=['working']
     ), html.Br(),
@@ -46,10 +47,10 @@ sparameters_layout = html.Div([
         }
     ),
     dcc.Dropdown(
-            id='dropdown-S21',
+            id='dropdown-magnitude',
             options=[
                 {'label': 'dB', 'value': "dB"},
-                {'label': 'deg', 'value': "deg"}
+                {'label': 'MAG', 'value': "MAG"}
             ],
             value="dB",
             style={'width': '20%',
@@ -57,12 +58,24 @@ sparameters_layout = html.Div([
                    }
         ),
     html.Br(),
+        dcc.Dropdown(
+            id='dropdown-phase',
+            options=[
+                {'label': 'degree', 'value': "deg"},
+                {'label': 'rad', 'value': "rad"}
+            ],
+            value="deg",
+            style={'width': '20%',
+#                    'float': 'left'}
+            }
+        ),
+    html.Br(),
     html.Br(),
     html.Div([
         dcc.Upload(
-        id='S_data',
+        id='S21_mag_data',
         children=html.Div([
-            'Drag and Drop or ',
+            'Drag and Drop your Mag CSV or ',
             html.A('Select File')
         ]),
         style={
@@ -80,48 +93,71 @@ sparameters_layout = html.Div([
     ),
     ], style={'width':'100%', 'float': 'hidden'}),
     html.Br(),
-    html.Div('', id='validation-Sdata-output', style={'whiteSpace': 'pre-wrap'})])
+    html.Div([
+        dcc.Upload(
+        id='S21_phase_data',
+        children=html.Div([
+            'Drag and Drop your Phase CSV ',
+            html.A('Select File')
+        ]),
+        style={
+            'width': '100%',
+            'height': '60px',
+            'lineHeight': '60px',
+            'borderWidth': '1px',
+            'borderStyle': 'dashed',
+            'borderRadius': '5px',
+            'textAlign': 'center',
+            'margin': '10px'
+        },
+        # Allow multiple files to be uploaded
+        multiple=False
+    ),
+    ], style={'width':'100%', 'float': 'hidden'}),
+    html.Br(),
+    html.Div('', id='validation-S21data-output', style={'whiteSpace': 'pre-wrap'})])
 
 
-@app.callback(
-    Output('new-amp-cable-input', 'disabled'),
-    [Input('amp-cable-list', 'value')])
-def enable_cable_name_input(value):
-    if(value == "new"):
-        return False
-    else:
-        return True
-
-
-@app.callback(
-    Output("amp-cable-list", "options"),
-    [Input("trigger", "children")],
-    [State("amp-cable-list", "options"),
-     State("table-name", "children")]
-)
-def update_dropdown_cable_names(n_intervals, options, table_name):
-    """
-    updates the dropdown menu with existing cable names from the database
-    """
-    for amp_name in get_table(table_name).distinct("name"):
-        options.append(
-            {"label": amp_name, "value": amp_name}
-        )
-    print(f"update_dropdown_amp_names = {options}")
-    return options
+# @app.callback(
+#     Output('new-amp-cable-input', 'disabled'),
+#     [Input('amp-cable-list', 'value')])
+# def enable_cable_name_input(value):
+#     if(value == "new"):
+#         return False
+#     else:
+#         return True
+#
+#
+# @app.callback(
+#     Output("amp-cable-list", "options"),
+#     [Input("trigger", "children")],
+#     [State("amp-cable-list", "options"),
+#      State("table-name", "children")]
+# )
+# def update_dropdown_cable_names(n_intervals, options, table_name):
+#     """
+#     updates the dropdown menu with existing cable names from the database
+#     """
+#     for amp_name in get_table(table_name).distinct("name"):
+#         options.append(
+#             {"label": amp_name, "value": amp_name}
+#         )
+#     print(f"update_dropdown_amp_names = {options}")
+#     return options
 
 
 @app.callback(
     [Output("validation-S21data-output", "children"),
      Output("validation-S21data-output", "style"),
     Output("validation-S21data-output", "data-validated")],
-    [Input('Sdata', 'value'),
+    [Input('S21_mag_data', 'contents'),
+     Input('S21_phase_data', 'contents'),
      Input('dropdown-frequencies', 'value'),
-     Input('dropdown-S21', 'value'),
+     Input('dropdown-magnitude', 'value'),
      Input('dropdown-phase', 'value'),
      Input('separator', 'value')
      ])
-def validate_Sdata(Sdata, unit_ff, unit_A, unit_phase, sep):
+def validate_Sdata(S21_mag_data, S21_phase_data, unit_ff, unit_mag, unit_phase, sep):
     """
     validates frequency array
 
@@ -129,22 +165,26 @@ def validate_Sdata(Sdata, unit_ff, unit_A, unit_phase, sep):
 
     The outcome of the validataion (True/False) is saved in the 'data-validated' attribute to trigger other actions.
     """
-    if(Sdata != ""):
+    if((S21_mag_data != "") and (S21_phase_data != "")):
         try:
-            S_data_io = StringIO(Sdata)
-            S_data = np.genfromtxt(S_data_io, delimiter=sep).T
-            S_data[0] *= str_to_unit[unit_ff]
-            for i in range(4):
-                S_data[1 + 2 * i] *= str_to_unit[unit_A]
-                S_data[2 + 2 * i] *= str_to_unit[unit_phase]
-            tmp = [f"you entered {len(S_data[0])} frequencies from {S_data[0].min()/units.MHz:.4g}MHz to {S_data[0].max()/units.MHz:.4g}MHz"]
+            mag_type, mag_string = S21_mag_data.split(',')
+            Sm_datas = base64.b64decode(mag_string)
+            Sm_data_io = StringIO(Sm_datas.decode('utf-8'))
+            Sm_data = np.genfromtxt(Sm_data_io, skip_header=17, skip_footer=1, delimiter=sep).T
+            phase_type, phase_string = S21_phase_data.split(',')
+            Sp_datas = base64.b64decode(phase_string)
+            Sp_data_io = StringIO(Sp_datas.decode('utf-8'))
+            Sp_data = np.genfromtxt(Sp_data_io, skip_header=17, skip_footer=1, delimiter=sep).T
+            Sm_data[0] *= str_to_unit[unit_ff]
+            Sm_data[1] *= str_to_unit[unit_mag]
+            Sp_data[1] *= str_to_unit[unit_phase]
+            tmp = [f"you entered {len(Sm_data[0])} frequencies from {Sm_data[0].min()/units.MHz:.4g}MHz to {Sm_data[0].max()/units.MHz:.4g}MHz"]
             tmp.append(html.Br())
-            S_names = ["S11", "S12", "S21", "S22"]
-            for i in range(4):
-                tmp.append(f"{S_names[i]} mag {len(S_data[1+i*2])} values within the range of {S_data[1+2*i].min()/units.V:.4g}V to {S_data[1+2*i].max()/units.V:.4g}V")
-                tmp.append(html.Br())
-                tmp.append(f"{S_names[i]} phase {len(S_data[2+i*2])} values within the range of {S_data[2+2*i].min()/units.degree:.1f}deg to {S_data[2+2*i].max()/units.degree:.1f}deg")
-                tmp.append(html.Br())
+            tmp.append(f"{len(Sm_data[1])} S21 magnitudes from {Sm_data[1].min():.4g}dB to {Sm_data[1].max():.4g}dB")
+            tmp.append(html.Br())
+            tmp.append(f"{len(Sp_data[1])} S21 phase measurements from {Sp_data[1].min():.4g}deg to {Sp_data[1].max():.4g}deg")
+
+
             return tmp, {"color": "Green"}, True
         except:
     #         print(sys.exc_info())
@@ -156,46 +196,52 @@ def validate_Sdata(Sdata, unit_ff, unit_A, unit_phase, sep):
 @app.callback(
     Output('figure-cable', 'figure'),
     [Input("validation-S21data-output", "data-validated")],
-    [State('Sdata', 'value'),
+    [State('S21_mag_data', 'contents'),
+             State('S21_phase_data', 'contents'),
              State('dropdown-frequencies', 'value'),
-             State('dropdown-S21', 'value'),
+             State('dropdown-magnitude', 'value'),
              State('dropdown-phase', 'value'),
              State('separator', 'value')])
-def plot_Sparameters(val_Sdata, Sdata, unit_ff, unit_mag, unit_phase, sep):
+def plot_Sparameters(val_Sdata, S21_mag_data, S21_phase_data, unit_ff, unit_mag, unit_phase, sep):
     print("display_value")
     if(val_Sdata):
-        S_data_io = StringIO(Sdata)
-        S_data = np.genfromtxt(S_data_io, delimiter=sep).T
-        S_data[0] *= str_to_unit[unit_ff]
-        for i in range(4):
-            S_data[1 + 2 * i] *= str_to_unit[unit_mag]
-            S_data[2 + 2 * i] *= str_to_unit[unit_phase]
-        fig = subplots.make_subplots(rows=4, cols=2)
-        for i in range(4):
+            mag_type, mag_string = S21_mag_data.split(',')
+            Sm_datas = base64.b64decode(mag_string)
+            Sm_data_io = StringIO(Sm_datas.decode('utf-8'))
+            Sm_data = np.genfromtxt(Sm_data_io, skip_header=17, skip_footer=1, delimiter=sep).T
+            phase_type, phase_string = S21_phase_data.split(',')
+            Sp_datas = base64.b64decode(phase_string)
+            Sp_data_io = StringIO(Sp_datas.decode('utf-8'))
+            Sp_data = np.genfromtxt(Sp_data_io, skip_header=17, skip_footer=1, delimiter=sep).T
+            Sm_data[0] *= str_to_unit[unit_ff]
+            Sm_data[1] *= str_to_unit[unit_mag]
+            Sp_data[1] *= str_to_unit[unit_phase]
+
+            fig = subplots.make_subplots(rows=1, cols=2)
             fig.append_trace(go.Scatter(
-                        x=S_data[0] / units.MHz,
-                        y=S_data[i * 2 + 1] / units.V,
-                        opacity=0.7,
-                        marker={
-                            'color': "blue",
-                            'line': {'color': "blue"}
-                        },
-                        name='magnitude'
-                    ), i + 1, 1)
+                            x=Sm_data[0] /units.MHz,
+                            y=Sm_data[1],
+                            opacity=0.7,
+                            marker={
+                                'color': "blue",
+                                'line': {'color': "blue"}
+                            },
+                            name='magnitude'
+                        ), 1, 1)
             fig.append_trace(go.Scatter(
-                        x=S_data[0] / units.MHz,
-                        y=S_data[i * 2 + 2] / units.deg,
-                        opacity=0.7,
-                        marker={
-                            'color': "blue",
-                            'line': {'color': "blue"}
-                        },
-                        name='phase'
-                    ), i + 1, 2)
-        fig['layout']['xaxis1'].update(title='frequency [MHz]')
-        fig['layout']['yaxis1'].update(title='magnitude [V]')
-        fig['layout']['yaxis2'].update(title='phase [deg]')
-        fig['layout']['xaxis2'].update(title='frequency [MHz]')
-        return fig
+                            x=Sm_data[0] /units.MHz,
+                            y=Sp_data[1],
+                            opacity=0.7,
+                            marker={
+                                'color': "blue",
+                                'line': {'color': "blue"}
+                            },
+                            name='magnitude'
+                        ), 1, 2)
+            fig['layout']['xaxis1'].update(title='frequency [MHz]')
+            fig['layout']['yaxis1'].update(title='MAG')
+            fig['layout']['xaxis2'].update(title='frequency [MHz]')
+            fig['layout']['yaxis2'].update(title='dB')
+            return fig
     else:
-        return {"data": []}
+            return {"data": []}

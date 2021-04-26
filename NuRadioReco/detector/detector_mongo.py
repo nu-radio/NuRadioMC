@@ -202,7 +202,7 @@ def VPol_add_Sparameters(VPol_name, S_data):
 
 # Cables
 
-def Cable_set_not_working(VPol_name):
+def Cable_set_not_working(cable_name):
     """
     inserts that the cable is broken.
     If the cable dosn't exist yet, it will be created.
@@ -218,7 +218,7 @@ def Cable_set_not_working(VPol_name):
                               })
 
 
-def CABLE_add_Sparameters(cable_name, S_data):
+def CABLE_add_Sparameters(cable_name, Sm_data, Sp_data):
     """
     inserts a new S21 measurement of a cable.
     If the cable dosn't exist yet, it will be created.
@@ -238,10 +238,10 @@ def CABLE_add_Sparameters(cable_name, S_data):
     db.CABLE.insert_one({'name': VPol_name,
                                 'last_updated': datetime.datetime.utcnow(),
                                  'function_test': True,
-                                 'S_parameter': 'S11',
-                                 'frequencies': list(S_data[0]),
-                                 'mag': list(S_data[1]),
-                                 'phase': list(S_data[2]),
+                                 'S_parameter': 'S21',
+                                 'frequencies': list(Sm_data[0]),
+                                 'mag': list(Sm_data[1]),
+                                 'phase': list(Sp_data[1]),
                               })
 
 

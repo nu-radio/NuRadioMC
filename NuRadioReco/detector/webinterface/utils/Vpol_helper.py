@@ -83,35 +83,35 @@ sparameters_layout = html.Div([
     ),
     ], style={'width':'100%', 'float': 'hidden'}),
     html.Br(),
-    html.Div('', id='validation-Sdata-output', style={'whiteSpace': 'pre-wrap'})])
+    html.Div('', id='validation-S11data-output', style={'whiteSpace': 'pre-wrap'})])
 
 
-@app.callback(
-    Output('new-VPol-input', 'disabled'),
-    [Input('VPol-list', 'value')])
-def enable_VPol_name_input(value):
-    if(value == "new"):
-        return False
-    else:
-        return True
+# @app.callback(
+#     Output('new-VPol-input', 'disabled'),
+#     [Input('VPol-list', 'value')])
+# def enable_VPol_name_input(value):
+#     if(value == "new"):
+#         return False
+#     else:
+#         return True
 
 
-@app.callback(
-    Output("VPol-list", "options"),
-    [Input("trigger", "children")],
-    [State("VPol-list", "options"),
-     State("table-name", "children")]
-)
-def update_dropdown_VPol_names(n_intervals, options, table_name):
-    """
-    updates the dropdown menu with existing antenna names from the database
-    """
-    for VPol_name in get_table(table_name).distinct("name"):
-        options.append(
-            {"label": VPol_name, "value": VPol_name}
-        )
-    print(f"update_dropdown_VPol_names = {options}")
-    return options
+# @app.callback(
+#     Output("VPol-list", "options"),
+#     [Input("trigger", "children")],
+#     [State("VPol-list", "options"),
+#      State("table-name", "children")]
+# )
+# def update_dropdown_VPol_names(n_intervals, options, table_name):
+#     """
+#     updates the dropdown menu with existing antenna names from the database
+#     """
+#     for VPol_name in get_table(table_name).distinct("name"):
+#         options.append(
+#             {"label": VPol_name, "value": VPol_name}
+#         )
+#     print(f"update_dropdown_VPol_names = {options}")
+#     return options
 
 
 @app.callback(
@@ -134,19 +134,19 @@ def validate_Sdata(contents, unit_ff, unit_mag, sep):
     if(contents != ""):
         try:
             content_type, content_string = contents.split(',')
-            S_data = base64.b64decode(content_string)
-            S_data_io = StringIO(S_data.decode('utf-8'))
+            S_datas = base64.b64decode(content_string)
+            S_data_io = StringIO(S_datas.decode('utf-8'))
             S_data = np.genfromtxt(S_data_io, skip_header=17, skip_footer=1, delimiter=sep).T
             S_data[0] *= str_to_unit[unit_ff]
             S_data[1] *= str_to_unit[unit_mag]
             tmp = [f"you entered {len(S_data[0])} frequencies from {S_data[0].min()/units.MHz:.4g}MHz to {S_data[0].max()/units.MHz:.4g}MHz"]
             tmp.append(html.Br())
-            S_names = ["S11"]
-            tmp.append(f"{S11} mag {len(S_data[1])} values within the range of {S_data[1].min()/units.V:.4g}V to {S_data[1].max()/units.V:.4g}V")
+            S_names = "S11"
+            tmp.append(f"{S_names} mag {len(S_data[1])} values within the range of {S_data[1].min():.4g}VSWR to {S_data[1].max():.4g}VSWR")
 
             return tmp, {"color": "Green"}, True
         except:
-    #         print(sys.exc_info())
+        #    print(sys.exc_info())
             return f"{sys.exc_info()[0].__name__}:{sys.exc_info()[1]}", {"color": "Red"}, False
     else:
         return f"no data inserted", {"color": "Red"}, False
@@ -154,16 +154,15 @@ def validate_Sdata(contents, unit_ff, unit_mag, sep):
 
 @app.callback(
     Output('figure-VPol', 'figure'),
-    [Input("validation-Sdata-output", "data-validated")],
+    [Input("validation-S11data-output", "data-validated")],
     [State('Sdata', 'contents'),
              State('dropdown-frequencies', 'value'),
              State('dropdown-magnitude', 'value'),
-             State('dropdown-phase', 'value'),
              State('separator', 'value')])
-def plot_Sparameters(val_Sdata, contents, unit_ff, unit_mag, sep):
+def plot_Sparameters(val_Sdata, Sdata, unit_ff, unit_mag, sep):
     print("display_value")
     if(val_Sdata):
-        content_type, content_string = contents.split(',')
+        content_type, content_string = Sdata.split(',')
         S_data = base64.b64decode(content_string)
         S_data_io = StringIO(S_data.decode('utf-8'))
         S_data = np.genfromtxt(S_data_io, skip_header=17, skip_footer=1, delimiter=sep).T
@@ -173,7 +172,7 @@ def plot_Sparameters(val_Sdata, contents, unit_ff, unit_mag, sep):
         fig = subplots.make_subplots(rows=1, cols=1)
         fig.append_trace(go.Scatter(
                         x=S_data[0] / units.MHz,
-                        y=S_data[1] / units.V,
+                        y=S_data[1],
                         opacity=0.7,
                         marker={
                             'color': "blue",
@@ -182,7 +181,7 @@ def plot_Sparameters(val_Sdata, contents, unit_ff, unit_mag, sep):
                         name='magnitude'
                     ), 1, 1)
         fig['layout']['xaxis1'].update(title='frequency [MHz]')
-        fig['layout']['yaxis1'].update(title='magnitude [VSWR]')
+        fig['layout']['yaxis1'].update(title='VSWR')
         return fig
     else:
         return {"data": []}
