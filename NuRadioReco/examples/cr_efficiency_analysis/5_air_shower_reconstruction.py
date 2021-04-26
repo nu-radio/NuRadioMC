@@ -33,13 +33,13 @@ import NuRadioReco.modules.io.eventWriter
 import logging
 import argparse
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('FullExample')
+logger = logging.getLogger('air_shower_reco')
 
 '''
 This script reconstructs the air shower (stored in air_shower_sim as hdf5 files) with 
 the trigger parameters calculated in step 1-3. Please set triggered channels manually in l.96'''
 
-parser = argparse.ArgumentParser(description='Run FullReconstruction')
+parser = argparse.ArgumentParser(description='Run air shower Reconstruction')
 parser.add_argument('config_file', type=str, nargs='?', default = 'config_file_air_shower_reco.yml', help = 'config file with eventlist')
 parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/example_dict_ntr_high_low_pb_80_180.pbz2', help = 'settings from the ntr results')
 parser.add_argument('number', type=int, nargs='?', default = 0, help = 'number of element in eventlist')
@@ -208,7 +208,7 @@ for evt in readCoREASStation.run(det):
         electricFieldResampler.run(evt, sta, det, sampling_rate=1 * units.GHz)
         i += 1
 
-    #eventWriter.run(evt, det)
-    eventWriter.run(evt, det, mode='micro')  # here you can change what should be stored in the nur files
+    #eventWriter.run(evt)
+    eventWriter.run(evt, mode='micro')  # here you can change what should be stored in the nur files
 
 nevents = eventWriter.end()

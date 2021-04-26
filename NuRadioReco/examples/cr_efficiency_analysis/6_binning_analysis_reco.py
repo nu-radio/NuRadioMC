@@ -1,4 +1,5 @@
 import numpy as np
+import datetime
 import os, scipy, sys
 import glob
 import bz2
@@ -103,15 +104,17 @@ trigger_in_station = []  # name of trigger
 
 weight = []
 num = 0
+
+det = GenericDetector(json_filename=detector_file, default_station=default_station) # detector file
+det.update(datetime.datetime(2019, 10, 1))
+
 evtReader = eventReader.eventReader()
-evtReader.begin(filename=nur_file, read_detector=True)
+evtReader.begin(filename=nur_file, read_detector=False)
 for evt in evtReader.run(): # loop over all events, one event is one station
     num += 1
     event_id = evt.get_id()
     events.append(evt)
-    det = evtReader.get_detector()  # get one detector with several stations
-    det_position = GenericDetector.get_absolute_position(det, station_id=default_station)
-
+    det_position = det.get_absolute_position(det, station_id=default_station)
     sta = evt.get_station(station_id=default_station)
     sim_station = sta.get_sim_station()
     energy.append(sim_station.get_parameter(stnp.cr_energy))
@@ -126,7 +129,8 @@ for evt in evtReader.run(): # loop over all events, one event is one station
     for sho in evt.get_sim_showers():
         core = sho.get_parameter(shp.core)
         distance.append(np.sqrt(
-            ((core[0]) ** 2 - (det_position[0]) ** 2) + ((core[1]) ** 2 - (det_position[1]) ** 2)))
+            ((core[0] - det_position[0])**2)
+            + (core[1] - det_position[1])**2))
 
 trigger_status = np.array(trigger_status)
 trigger_status_weight = np.array(trigger_status_weight)
