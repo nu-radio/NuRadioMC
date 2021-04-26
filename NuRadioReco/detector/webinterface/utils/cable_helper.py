@@ -178,11 +178,11 @@ def validate_Sdata(S21_mag_data, S21_phase_data, unit_ff, unit_mag, unit_phase, 
             Sm_data[0] *= str_to_unit[unit_ff]
             Sm_data[1] *= str_to_unit[unit_mag]
             Sp_data[1] *= str_to_unit[unit_phase]
-            tmp = [f"you entered {len(Sm_data[0])} frequencies from {Sm_data[0].min()/units.MHz:.4g}MHz to {Sm_data[0].max()/units.MHz:.4g}MHz"]
+            tmp = [f"you entered {len(Sm_data[0])} frequencies from {Sm_data[0].min()/units.MHz:.4g} MHz to {Sm_data[0].max()/units.MHz:.4g} MHz"]
             tmp.append(html.Br())
-            tmp.append(f"{len(Sm_data[1])} S21 magnitudes from {Sm_data[1].min():.4g}dB to {Sm_data[1].max():.4g}dB")
+            tmp.append(f"{len(Sm_data[1])} S21 magnitudes from {Sm_data[1].min():.4g} dB to {Sm_data[1].max():.4g} dB")
             tmp.append(html.Br())
-            tmp.append(f"{len(Sp_data[1])} S21 phase measurements from {Sp_data[1].min():.4g}deg to {Sp_data[1].max():.4g}deg")
+            tmp.append(f"{len(Sp_data[1])} S21 phase measurements from {Sp_data[1].min():.4g} rad to {Sp_data[1].max():.4g} rad")
 
 
             return tmp, {"color": "Green"}, True
@@ -233,15 +233,15 @@ def plot_Sparameters(val_Sdata, S21_mag_data, S21_phase_data, unit_ff, unit_mag,
                             y=Sp_data[1],
                             opacity=0.7,
                             marker={
-                                'color': "blue",
-                                'line': {'color': "blue"}
+                                'color': "red",
+                                'line': {'color': "red"}
                             },
-                            name='magnitude'
+                            name='phase'
                         ), 1, 2)
             fig['layout']['xaxis1'].update(title='frequency [MHz]')
-            fig['layout']['yaxis1'].update(title='MAG')
+            fig['layout']['yaxis1'].update(title='mag[dB]')
             fig['layout']['xaxis2'].update(title='frequency [MHz]')
-            fig['layout']['yaxis2'].update(title='dB')
+            fig['layout']['yaxis2'].update(title='phase [rad]')
             return fig
     else:
             return {"data": []}
