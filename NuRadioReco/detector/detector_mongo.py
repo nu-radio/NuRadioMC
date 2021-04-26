@@ -235,7 +235,7 @@ def CABLE_add_Sparameters(cable_name, Sm_data, Sp_data):
 
     """
 
-    db.CABLE.insert_one({'name': VPol_name,
+    db.CABLE.insert_one({'name': cable_name,
                                 'last_updated': datetime.datetime.utcnow(),
                                  'function_test': True,
                                  'S_parameter': 'S21',
