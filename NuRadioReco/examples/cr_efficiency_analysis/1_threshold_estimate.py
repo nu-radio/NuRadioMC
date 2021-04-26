@@ -63,11 +63,12 @@ done
 parser = argparse.ArgumentParser()
 parser.add_argument('output_path', type=os.path.abspath, nargs='?', default = '', help = 'Path to save output, most likely the path to the cr_efficiency_analysis directory')
 parser.add_argument('n_iterations', type=int, nargs='?', default = 10, help = 'number of iterations each threshold should be iterated over. Has to be a multiple of 10')
+parser.add_argument('number_of_allowed_trigger', type=int, nargs='?', default = 1, help = 'number of allowed_trigger out of the iteration number')
 parser.add_argument('trigger_name', type=str, nargs='?', default = 'high_low', help = 'name of the trigger, high_low or envelope')
 parser.add_argument('passband_low', type=int, nargs='?', default = 80, help = 'lower bound of the passband used for the trigger in MHz')
 parser.add_argument('passband_high', type=int, nargs='?', default = 180, help = 'higher bound of the passband used for the trigger in MHz')
 parser.add_argument('detector_file', type=str, nargs='?', default = '../example_data/arianna_station_32.json', help = 'detector file, change triggered channels accordingly')
-parser.add_argument('triggered_channels', type=np.ndarray, nargs='?', default = np.array([0, 1]), help = 'channel on which the trigger is applied')
+parser.add_argument('triggered_channels', type=np.ndarray, nargs='?', default = np.array([0, 1, 2, 3]), help = 'channel on which the trigger is applied')
 parser.add_argument('default_station', type=int, nargs='?', default = 32, help = 'default station id')
 parser.add_argument('sampling_rate', type=int, nargs='?', default = 1, help = 'sampling rate in GHz')
 parser.add_argument('coinc_window', type=int, nargs='?', default = 80, help = 'coincidence window within the number coincidence has to occur. In ns')
@@ -79,7 +80,7 @@ parser.add_argument('T_noise_max_freq', type=int, nargs='?', default = 800, help
 parser.add_argument('galactic_noise_n_side', type=int, nargs='?', default = 4, help = 'The n_side parameter of the healpix map. Has to be power of 2, basicly the resolution')
 parser.add_argument('galactic_noise_interpolation_frequencies_step', type=int, nargs='?', default = 100, help = 'frequency steps the galactic noise is interpolated over in MHz')
 parser.add_argument('threshold_start', type=int, nargs='?', default = 0, help = 'value of the first tested threshold')
-parser.add_argument('threshold_step', type=int, nargs='?', default = 0.0000001, help = 'value of the threshold step')
+parser.add_argument('threshold_step', type=int, nargs='?', default = 1e-6, help = 'value of the threshold step')
 parser.add_argument('station_time', type=str, nargs='?', default = '2019-01-01T00:00:00', help = 'station time for calculation of galactic noise')
 parser.add_argument('station_time_random', type=bool, nargs='?', default = True, help = 'choose if the station time should be random or not')
 parser.add_argument('hardware_response', type=bool, nargs='?', default = False, help = 'choose if the hardware response (amp) should be True or False')
@@ -89,6 +90,7 @@ output_path = args.output_path
 abs_output_path = os.path.abspath(args.output_path)
 n_iterations = args.n_iterations / 10
 n_iterations = int(n_iterations)
+number_of_allowed_trigger = args.number_of_allowed_trigger
 trigger_name = args.trigger_name
 passband_low = args.passband_low
 passband_high = args.passband_high
@@ -180,9 +182,12 @@ channel_rms = []
 channel_sigma = []
 
 # with each iteration the threshold increases one step
-for n_thres in count():
+n_thres = 0
+number_of_trigger = number_of_allowed_trigger + 10
+while number_of_trigger > number_of_allowed_trigger:
+    n_thres += 1
     threshold = threshold_start + (n_thres * threshold_step)
-    logger.info("Procession threshold {}".format(threshold))
+    logger.info("Processing threshold {}".format(threshold))
     thresholds.append(threshold)
     trigger_status_per_all_it = []
 
@@ -223,31 +228,32 @@ for n_thres in count():
                                           filter_type='butter', order=order_trigger)
 
             if trigger_name == 'high_low':
-                triggerSimulator.run(event, station, det, threshold_high=n_thres, threshold_low=-n_thres,
-                                     coinc_window = coinc_window, number_concidences = number_coincidences, triggered_channels = triggered_channels, trigger_name = trigger_name)
+                triggerSimulator.run(event, station, det, threshold_high=threshold, threshold_low=-threshold,
+                                     coinc_window = coinc_window, number_concidences = number_coincidences,
+                                     triggered_channels = triggered_channels, trigger_name = trigger_name)
 
             if trigger_name == 'envelope':
-                triggerSimulator.run(event, station, det, passband_trigger, order_trigger, n_thres, coinc_window,
+                triggerSimulator.run(event, station, det, passband_trigger, order_trigger, threshold, coinc_window,
                 number_coincidences=number_coincidences, triggered_channels=triggered_channels, trigger_name=trigger_name)
-
 
             # trigger status for one iteration in the loop
             trigger_status_one_it = station.get_trigger(trigger_name).has_triggered()
             # trigger status for all iteration
             trigger_status_per_all_it.append(trigger_status_one_it)
 
-
         # here it is checked, how many of the triggers in n_iteration are triggered true.
         # If it is more than 1, the threshold is increased with n_thres.
-        if np.sum(trigger_status_per_all_it) > 1:
+        if np.sum(trigger_status_per_all_it) > number_of_allowed_trigger:
+            number_of_trigger = np.sum(trigger_status_per_all_it)
             trigger_efficiency_per_tt = np.sum(trigger_status_per_all_it) / len(trigger_status_per_all_it)
             trigger_rate_per_tt = (1 / channel_trace_time_interval) * trigger_efficiency_per_tt
 
             trigger_rate.append(trigger_rate_per_tt)
             trigger_efficiency.append(trigger_efficiency_per_tt)
-            break;
+            continue;
 
         elif n_it == (n_iterations-1):
+            number_of_trigger = np.sum(trigger_status_per_all_it)
             trigger_efficiency_per_tt = np.sum(trigger_status_per_all_it) / len(trigger_status_per_all_it)
             trigger_rate_per_tt = (1 / channel_trace_time_interval) * trigger_efficiency_per_tt
 
@@ -282,11 +288,12 @@ for n_thres in count():
             dic['hardware_response'] = hardware_response
             dic['trigger_name'] = trigger_name
 
-            os.mkdir('output_threshold_estimate')
+            if os.path.isdir('output_threshold_estimate') == False:
+                os.mkdir('output_threshold_estimate')
+
             output_file = 'output_threshold_estimate/estimate_threshold_{}_pb_{:.0f}_{:.0f}_i{}.pickle'.format(trigger_name, passband_trigger[0]/units.MHz,passband_trigger[1]/units.MHz, len(trigger_status_per_all_it))
             abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
             with open(abs_path_output_file,'wb') as pickle_out:
                 pickle.dump(dic, pickle_out)
 
-            sys.exit(0)
 
