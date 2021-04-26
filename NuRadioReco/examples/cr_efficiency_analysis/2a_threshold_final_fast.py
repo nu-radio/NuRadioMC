@@ -245,7 +245,7 @@ dic['hardware_response'] = hardware_response
 
 if os.path.isdir('output_threshold_final') == False:
     os.mkdir('output_threshold_final')
-    
+
 output_file = 'output_threshold_final/final_threshold_envelope_fast_pb_{:.0f}_{:.0f}_i{}_{}.pickle'.format(
         passband_trigger[0] / units.MHz, passband_trigger[1] / units.MHz,len(trigger_status), number)
 abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
