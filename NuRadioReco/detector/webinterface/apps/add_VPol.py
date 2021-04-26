@@ -9,11 +9,10 @@ import json
 import sys
 import base64
 from io import StringIO
-import csv
 
 from NuRadioReco.detector import detector_mongo as det
-from NuRadioReco.detector.webinterface.utils.sparameter_helper import validate_Sdata, update_dropdown_amp_names, enable_board_name_input, plot_Sparameters, sparameters_layout
-#from NuRadioReco.detector.webinterface.utils.Vpol_helper import validate_Sdata, update_dropdown_VPol_names, enable_VPol_name_input, plot_Sparameters, sparameters_layout
+#from NuRadioReco.detector.webinterface.utils.sparameter_helper import validate_Sdata,  enable_board_name_input, plot_Sparameters, sparameters_layout
+from NuRadioReco.detector.webinterface.utils.Vpol_helper import validate_Sdata, plot_Sparameters, sparameters_layout
 from NuRadioReco.detector.webinterface.utils.table import get_table
 from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 from NuRadioReco.detector.webinterface.app import app
@@ -144,6 +143,7 @@ def insert_to_db(n_clicks, VPol_dropdown, new_VPol_name, contents, unit_ff, unit
         if(VPol_dropdown == "new"):
             VPol_name = new_VPol_name
         if('working' not in function_test):
+            print(VPol_name)
             det.VPol_set_not_working(VPol_name)
         else:
             content_type, content_string = contents.split(',')
