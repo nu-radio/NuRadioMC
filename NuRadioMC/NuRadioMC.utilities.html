@@ -1,0 +1,1469 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>NuRadioMC.utilities package &mdash; NuRadio 2.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="/home/christoph/Software/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="NuRadioMC.studies package" href="NuRadioMC.studies.html" />
+    <link rel="prev" title="NuRadioMC.simulation package" href="NuRadioMC.simulation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../main.html" class="icon icon-home"> NuRadio
+          
+
+          
+            
+            <img src="../_static/logo_small.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../NuRadioReco/pages/welcome_page.html">NuRadioReco Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/installation.html">Installing NuRadioReco</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/installation.html#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/installation.html#manual-installation">Manual Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/installation.html#dependencies">Dependencies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/installation.html#core-dependencies">Core Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/installation.html#optional-dependencies">Optional Dependencies</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html">Data Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#nur-files-and-how-to-use-them">.nur Files and How to Use Them</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#philosophy-and-basic-structure">Philosophy and Basic Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#reading-and-writing-nur-files">Reading and Writing .nur Files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#parameter-storage">Parameter Storage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#list-of-data-classes">List of Data Classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#event">Event</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#station">Station</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#basetrace">BaseTrace</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#electric-field">Electric Field</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#channel">Channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#hybrid-information">Hybrid Information</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#hybrid-shower">Hybrid Shower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#hybrid-detector">Hybrid Detector</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/detector.html">Detector Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/detector.html#the-detector-class">The Detector Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/detector.html#detector-description-formats">Detector Description Formats</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#database">DataBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#json">JSON</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#dictionary">Dictionary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#signal-chain-responses">Signal Chain Responses</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/detector.html#id1">GenericDetector</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#event-specific-changes">Event-Specific Changes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/detector.html#detector-description-in-event-files">Detector Description in Event Files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#writing-the-detector">Writing the Detector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#reading-the-detector">Reading the Detector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#detector-viewer">Detector Viewer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/event_display.html">Event Display</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/utilities.html">Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/utilities.html#unit-system">Unit System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/utilities.html#fourier-transformation">Fourier Transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/utilities.html#metaclasses">Metaclasses</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/utilities.html#singleton">Singleton</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/contributing.html">Contributing to NuRadioReco</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#workflow">Workflow</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#filing-tickets">Filing Tickets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#submitting-pull-requests">Submitting Pull Requests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#coding-conventions">Coding Conventions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#versioning">Versioning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#unit-tests">Unit Tests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#coding-standards-and-linting">Coding Standards and Linting</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#documentation">Documentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#writing-docstrings">Writing Docstrings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#deploying-the-documentation">Deploying the Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#technical-implementation">Technical Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#usage-convention">Usage convention</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/code_documentation.html">Code Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html">NuRadioReco.framework package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.base_shower">NuRadioReco.framework.base_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.base_station">NuRadioReco.framework.base_station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.base_trace">NuRadioReco.framework.base_trace module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.channel">NuRadioReco.framework.channel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.electric_field">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.event">NuRadioReco.framework.event module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.hybrid_information">NuRadioReco.framework.hybrid_information module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.hybrid_shower">NuRadioReco.framework.hybrid_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.parameter_serialization">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.parameters">NuRadioReco.framework.parameters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.radio_shower">NuRadioReco.framework.radio_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.sim_channel">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.sim_station">NuRadioReco.framework.sim_station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.station">NuRadioReco.framework.station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.trigger">NuRadioReco.framework.trigger module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html">NuRadioReco.modules package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.analogToDigitalConverter">NuRadioReco.modules.analogToDigitalConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.beamFormingDirectionFitter">NuRadioReco.modules.beamFormingDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelAddCableDelay">NuRadioReco.modules.channelAddCableDelay module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelAntennaDedispersion">NuRadioReco.modules.channelAntennaDedispersion module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelBandPassFilter">NuRadioReco.modules.channelBandPassFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelgalacticnoiseadder-module">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelGenericNoiseAdder">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelLengthAdjuster">NuRadioReco.modules.channelLengthAdjuster module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelMeasuredNoiseAdder">NuRadioReco.modules.channelMeasuredNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelResampler">NuRadioReco.modules.channelResampler module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelSignalReconstructor">NuRadioReco.modules.channelSignalReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelStopFilter">NuRadioReco.modules.channelStopFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelTemplateCorrelation">NuRadioReco.modules.channelTemplateCorrelation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelTimeOffsetCalculator">NuRadioReco.modules.channelTimeOffsetCalculator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelTimeWindow">NuRadioReco.modules.channelTimeWindow module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.correlationDirectionFitter">NuRadioReco.modules.correlationDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.cosmicRayEnergyReconstructor">NuRadioReco.modules.cosmicRayEnergyReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.efieldAirToIcePropagator">NuRadioReco.modules.efieldAirToIcePropagator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.efieldTimeDirectionFitter">NuRadioReco.modules.efieldTimeDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.efieldToVoltageConverter">NuRadioReco.modules.efieldToVoltageConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.efieldToVoltageConverterPerEfield">NuRadioReco.modules.efieldToVoltageConverterPerEfield module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.electricFieldBandPassFilter">NuRadioReco.modules.electricFieldBandPassFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.electricFieldResampler">NuRadioReco.modules.electricFieldResampler module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.electricFieldSignalReconstructor">NuRadioReco.modules.electricFieldSignalReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.eventTypeIdentifier">NuRadioReco.modules.eventTypeIdentifier module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.templateDirectionFitter">NuRadioReco.modules.templateDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.triggerTimeAdjuster">NuRadioReco.modules.triggerTimeAdjuster module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.voltageToAnalyticEfieldConverter">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.voltageToEfieldConverter">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.voltageToEfieldConverterPerChannel">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html">NuRadioReco.detector package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.amp">NuRadioReco.detector.amp module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.antennapattern">NuRadioReco.detector.antennapattern module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.detector">NuRadioReco.detector.detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-detector-sql-module">NuRadioReco.detector.detector_sql module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.detector_sys_uncertainties">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.filterresponse">NuRadioReco.detector.filterresponse module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.generic_detector">NuRadioReco.detector.generic_detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-sql-to-json-module">NuRadioReco.detector.sql_to_json module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-test-detector-db-module">NuRadioReco.detector.test_detector_db module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-visualize-detector-module">NuRadioReco.detector.visualize_detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html">NuRadioReco.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.analytic_pulse">NuRadioReco.utilities.analytic_pulse module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.bandpass_filter">NuRadioReco.utilities.bandpass_filter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.diodeSimulator">NuRadioReco.utilities.diodeSimulator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.fft">NuRadioReco.utilities.fft module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.geometryUtilities">NuRadioReco.utilities.geometryUtilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.ice">NuRadioReco.utilities.ice module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.io_utilities">NuRadioReco.utilities.io_utilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.metaclasses">NuRadioReco.utilities.metaclasses module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.noise">NuRadioReco.utilities.noise module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.templates">NuRadioReco.utilities.templates module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.timing">NuRadioReco.utilities.timing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.traceWindows">NuRadioReco.utilities.traceWindows module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.trace_utilities">NuRadioReco.utilities.trace_utilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.units">NuRadioReco.utilities.units module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.version">NuRadioReco.utilities.version module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/detector_database_fields.html">Properties of Detector Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/detector_database_fields.html#antenna-table">Antenna Table</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector_database_fields.html#further-discussion-on-antenna-coordinates">Further Discussion on Antenna Coordinates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/detector_database_fields.html#adc-table">ADC Table</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/howto_documentation.html">How To</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/how_to/vertex_reconstruction.html">Use the Vertex Reconstruction Modules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/how_to/vertex_reconstruction.html#d-vs-3d-vertex-reconstructor">2D vs. 3D Vertex Reconstructor</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="pages/welcome_page.html">NuRadioMC Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pages/code_documentation.html">Code Documentation</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#nuradiomc-evtgen-nuradiomctoarasim-module">NuRadioMC.EvtGen.NuRadioMCtoAraSim module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#nuradiomc-evtgen-nuradioproposal-module">NuRadioMC.EvtGen.NuRadioProposal module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#nuradiomc-evtgen-create-tau-tab-module">NuRadioMC.EvtGen.create_tau_tab module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.generate_cylinder">NuRadioMC.EvtGen.generate_cylinder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.generate_unforced">NuRadioMC.EvtGen.generate_unforced module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.generator">NuRadioMC.EvtGen.generator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.generator_ASCII">NuRadioMC.EvtGen.generator_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#nuradiomc-evtgen-generator-skeleton-module">NuRadioMC.EvtGen.generator_skeleton module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#nuradiomc-evtgen-hdf5-to-ascii-module">NuRadioMC.EvtGen.hdf5_to_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.readARAEventList">NuRadioMC.EvtGen.readARAEventList module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.readEventList_ASCII">NuRadioMC.EvtGen.readEventList_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.SignalGen.html">NuRadioMC.SignalGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalGen.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalGen.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalGen.html#module-NuRadioMC.SignalGen.HCRB2017">NuRadioMC.SignalGen.HCRB2017 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalGen.html#module-NuRadioMC.SignalGen.askaryan">NuRadioMC.SignalGen.askaryan module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalGen.html#module-NuRadioMC.SignalGen.parametrizations">NuRadioMC.SignalGen.parametrizations module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalGen.html#module-NuRadioMC.SignalGen">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalProp.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalProp.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalProp.html#module-NuRadioMC.SignalProp.analyticraytracing">NuRadioMC.SignalProp.analyticraytracing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalProp.html#module-NuRadioMC.SignalProp.directRayTracing">NuRadioMC.SignalProp.directRayTracing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalProp.html#module-NuRadioMC.SignalProp.propagation">NuRadioMC.SignalProp.propagation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalProp.html#module-NuRadioMC.SignalProp.propagation_base_class">NuRadioMC.SignalProp.propagation_base_class module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalProp.html#module-NuRadioMC.SignalProp">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#nuradiomc-simulation-e04runstrawmensim2-module">NuRadioMC.simulation.E04RunStrawmenSim2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#nuradiomc-simulation-t04visualize-sim-input-module">NuRadioMC.simulation.T04visualize_sim_input module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#nuradiomc-simulation-t04visualize-sim-inputextend-module">NuRadioMC.simulation.T04visualize_sim_inputExtend module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#nuradiomc-simulation-t05visualize-sim-output-module">NuRadioMC.simulation.T05visualize_sim_output module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#nuradiomc-simulation-t05visualize-sim-outputextend-module">NuRadioMC.simulation.T05visualize_sim_outputExtend module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#nuradiomc-simulation-t06read-sim-output-module">NuRadioMC.simulation.T06read_sim_output module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#nuradiomc-simulation-t07plot-ray-tracing-solutions-module">NuRadioMC.simulation.T07plot_ray_tracing_solutions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#module-NuRadioMC.simulation.simulation">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#module-NuRadioMC.simulation">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">NuRadioMC.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.utilities.Veff">NuRadioMC.utilities.Veff module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.utilities.attenuation">NuRadioMC.utilities.attenuation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.utilities.cross_sections">NuRadioMC.utilities.cross_sections module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.utilities.dump_hdf5">NuRadioMC.utilities.dump_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.utilities.earth_attenuation">NuRadioMC.utilities.earth_attenuation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.utilities.fluxes">NuRadioMC.utilities.fluxes module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.utilities.inelasticities">NuRadioMC.utilities.inelasticities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.utilities.medium">NuRadioMC.utilities.medium module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.utilities.merge_hdf5">NuRadioMC.utilities.merge_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.utilities.plotting">NuRadioMC.utilities.plotting module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.utilities.split_hdf5">NuRadioMC.utilities.split_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.utilities">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.studies.html">NuRadioMC.studies package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.studies.html#module-NuRadioMC.studies">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.examples.html">NuRadioMC.examples package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.examples.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.examples.html#module-NuRadioMC.examples">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../main.html">NuRadio</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../main.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="pages/welcome_page.html">NuRadioMC Documentation</a> &raquo;</li>
+        
+          <li><a href="pages/code_documentation.html">Code Documentation</a> &raquo;</li>
+        
+      <li>NuRadioMC.utilities package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/NuRadioMC/NuRadioMC.utilities.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="nuradiomc-utilities-package">
+<h1>NuRadioMC.utilities package<a class="headerlink" href="#nuradiomc-utilities-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-NuRadioMC.utilities.Veff">
+<span id="nuradiomc-utilities-veff-module"></span><h2>NuRadioMC.utilities.Veff module<a class="headerlink" href="#module-NuRadioMC.utilities.Veff" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="NuRadioMC.utilities.Veff.FC_limits">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></code><code class="sig-name descname"><span class="pre">FC_limits</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">counts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/Veff.html#FC_limits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.FC_limits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the 68% confidence belt for a number of counts, using the
+Feldman-Cousins method.</p>
+<dl class="simple">
+<dt>counts: integer or float</dt><dd><p>Number of counts. Can be non-integer (weighted counts)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>(low_limit, upper_limit): float tuple</dt><dd><p>Lower and upper limits for the confidence belt.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.Veff.export">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></code><code class="sig-name descname"><span class="pre">export</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'yaml'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/Veff.html#export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.export" title="Permalink to this definition">¶</a></dt>
+<dd><p>export effective volumes (or effective areas) into a human readable JSON or YAML file</p>
+<dl class="simple">
+<dt>filename: string</dt><dd><p>the output filename of the JSON file</p>
+</dd>
+<dt>data: array</dt><dd><p>the output of the <cite>getVeff</cite> function</p>
+</dd>
+<dt>trigger_names: list of strings (optional, default None)</dt><dd><p>save only specific trigger names, if None all triggers are exported</p>
+</dd>
+<dt>export_format: string (default “yaml”)</dt><dd><p>specify output format, choose
+* “yaml”
+* “json”</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.Veff.get_Veff_Aeff">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></code><code class="sig-name descname"><span class="pre">get_Veff_Aeff</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_combinations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">101</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_aeff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'veff'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/Veff.html#get_Veff_Aeff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.get_Veff_Aeff" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the effective volume or effective area from surface muons from NuRadioMC hdf5 files</p>
+<p>the effective volume is NOT normalized to a water equivalent. It is also NOT multiplied with the solid angle (typically 4pi).</p>
+<dl>
+<dt>folder: string</dt><dd><p>folder conaining the hdf5 files, one per energy OR filename</p>
+</dd>
+<dt>trigger_combinations: dict, optional</dt><dd><dl>
+<dt>keys are the names of triggers to calculate. Values are dicts again:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>‘triggers’: list of strings</dt><dd><p>name of individual triggers that are combined with an OR</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>the following additional options are optional
+* ‘efficiency’: dict</p>
+<blockquote>
+<div><p>allows to apply an (analysis) efficiency cut for calculating effective volumes
+* ‘func’: function</p>
+<blockquote>
+<div><p>a function that paramaterized the efficiency as a function of SNR (=Vmax/Vrms)</p>
+</div></blockquote>
+<ul class="simple">
+<li><dl class="simple">
+<dt>‘channel_ids’: array on ints</dt><dd><p>the channels for which the maximum signal amplitude should be determined</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>‘scale’: float</dt><dd><p>rescaling of the efficiency curve by SNR’ = SNR * scale</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><dl class="simple">
+<dt>‘n_reflections’: int</dt><dd><p>the number of bottom reflections of the ray tracing solution that likely triggered
+assuming that the solution with the shortest travel time caused the trigger, only considering channel 0</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>station: int</dt><dd><p>the station that should be considered</p>
+</dd>
+<dt>veff_aeff: string</dt><dd><p>specifiy if the effective volume or the effective area for surface muons is calculated
+can be 
+* “veff” (default)
+* “aeff_surface_muons”</p>
+</dd>
+<dt>n_cores: int</dt><dd><p>the number of cores to use</p>
+</dd>
+</dl>
+<p>list of dictionary. Each file is one entry. The dictionary keys store all relevant properties</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.Veff.get_Veff_Aeff_array">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></code><code class="sig-name descname"><span class="pre">get_Veff_Aeff_array</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/Veff.html#get_Veff_Aeff_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.get_Veff_Aeff_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates a multi dimensional array of effective volume or effective area from surface muons calculations for fast slicing</p>
+<p>the array dimensions are (energy, zenith bin, triggername, 5) where the
+last tuple is the effective volume, its uncertainty, the weighted sum of triggered events, lower 68% uncertainty, upper 68% uncertainty</p>
+<dl class="simple">
+<dt>data: dict</dt><dd><p>the result of the <cite>get_Veff</cite> function</p>
+</dd>
+</dl>
+<blockquote>
+<div><ul class="simple">
+<li><p>(n_energy, n_zenith_bins, n_triggernames, 5) dimensional array of floats</p></li>
+<li><p>array of unique mean energies (the mean is calculated in the logarithm of the energy)</p></li>
+<li><p>array of unique lower bin edges of energies</p></li>
+<li><p>array of unique upper bin edges of energies</p></li>
+<li><p>array of unique zenith bins</p></li>
+<li><p>array of unique trigger names</p></li>
+</ul>
+</div></blockquote>
+<p>To plot the full sky effective volume for ‘all_triggers’ do</p>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
+output, uenergies, uzenith_bins, utrigger_names, zenith_weights = get_Veff_array(data)</p>
+<p>fig, ax = plt.subplots(1, 1)
+tname = “all_triggers”
+Veff = np.average(output[:,:,get_index(tname, utrigger_names),0], axis=1, weights=zenith_weights)
+Vefferror = Veff / np.sum(output[:,:,get_index(tname, utrigger_names),2], axis=1)**0.5
+ax.errorbar(uenergies/units.eV, Veff/units.km**3 * 4 * np.pi, yerr=Vefferror/units.km**3 * 4 * np.pi, fmt=’-o’, label=tname)</p>
+<p>ax.legend()
+ax.semilogy(True)
+ax.semilogx(True)
+fig.tight_layout()
+plt.show()
+<a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
+<p>To plot the effective volume for different declination bands do</p>
+<p><a href="#id7"><span class="problematic" id="id8">``</span></a>`
+fig, ax = plt.subplots(1, 1)
+tname = “LPDA_2of4_100Hz”
+iZ = 9
+Veff = output[:,iZ,get_index(tname, utrigger_names)]
+ax.errorbar(uenergies/units.eV, Veff[:,0]/units.km**3, yerr=Veff[:,1]/units.km**3,</p>
+<blockquote>
+<div><p>label=f”zenith bin {uzenith_bins[iZ][0]/units.deg:.0f} - {uzenith_bins[iZ][1]/units.deg:.0f}”)</p>
+</div></blockquote>
+<p>iZ = 8
+Veff = output[:,iZ,get_index(tname, utrigger_names)]
+ax.errorbar(uenergies/units.eV, Veff[:,0]/units.km**3, yerr=Veff[:,1]/units.km**3,</p>
+<blockquote>
+<div><p>label=f”zenith bin {uzenith_bins[iZ][0]/units.deg:.0f} - {uzenith_bins[iZ][1]/units.deg:.0f}”)</p>
+</div></blockquote>
+<p>iZ = 7
+Veff = output[:,iZ,get_index(tname, utrigger_names)]
+ax.errorbar(uenergies/units.eV, Veff[:,0]/units.km**3, yerr=Veff[:,1]/units.km**3,</p>
+<blockquote>
+<div><p>label=f”zenith bin {uzenith_bins[iZ][0]/units.deg:.0f} - {uzenith_bins[iZ][1]/units.deg:.0f}”)</p>
+</div></blockquote>
+<p>iZ = 10
+Veff = output[:,iZ,get_index(tname, utrigger_names)]
+ax.errorbar(uenergies/units.eV, Veff[:,0]/units.km**3, yerr=Veff[:,1]/units.km**3,</p>
+<blockquote>
+<div><p>label=f”zenith bin {uzenith_bins[iZ][0]/units.deg:.0f} - {uzenith_bins[iZ][1]/units.deg:.0f}”)</p>
+</div></blockquote>
+<p>ax.legend()
+ax.semilogy(True)
+ax.semilogx(True)
+fig.tight_layout()
+plt.show()
+<a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.Veff.get_Veff_Aeff_single">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></code><code class="sig-name descname"><span class="pre">get_Veff_Aeff_single</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_names_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_combinations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deposited</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_aeff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'veff'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/Veff.html#get_Veff_Aeff_single"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.get_Veff_Aeff_single" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the effective volume or effective area from surface muons from a single NuRadioMC hdf5 file</p>
+<p>the effective volume is NOT normalized to a water equivalent. It is also NOT multiplied with the solid angle (typically 4pi).</p>
+<dl>
+<dt>filename: string</dt><dd><p>filename of the hdf5 file</p>
+</dd>
+<dt>trigger_names: list of strings</dt><dd><p>list of the trigger names contained in the file</p>
+</dd>
+<dt>trigger_names_dict: dict</dt><dd><p>map from trigger name to index</p>
+</dd>
+<dt>trigger_combinations: dict, optional</dt><dd><dl>
+<dt>keys are the names of triggers to calculate. Values are dicts again:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>‘triggers’: list of strings</dt><dd><p>name of individual triggers that are combined with an OR</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>the following additional options are optional
+* ‘efficiency’: dict</p>
+<blockquote>
+<div><p>allows to apply an (analysis) efficiency cut for calculating effective volumes
+* ‘func’: function</p>
+<blockquote>
+<div><p>a function that paramaterized the efficiency as a function of SNR (=Vmax/Vrms)</p>
+</div></blockquote>
+<ul class="simple">
+<li><dl class="simple">
+<dt>‘channel_ids’: array on ints</dt><dd><p>the channels for which the maximum signal amplitude should be determined</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>‘scale’: float</dt><dd><p>rescaling of the efficiency curve by SNR’ = SNR * scale</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><dl class="simple">
+<dt>‘n_reflections’: int</dt><dd><p>the number of bottom reflections of the ray tracing solution that likely triggered
+assuming that the solution with the shortest travel time caused the trigger, only considering channel 0</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>station: int</dt><dd><p>the station that should be considered</p>
+</dd>
+<dt>veff_aeff: string</dt><dd><p>specifiy if the effective volume or the effective area for surface muons is calculated
+can be 
+* “veff” (default)
+* “aeff_surface_muons”</p>
+</dd>
+</dl>
+<p>list of dictionary. Each file is one entry. The dictionary keys store all relevant properties</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.Veff.get_Veff_water_equivalent">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></code><code class="sig-name descname"><span class="pre">get_Veff_water_equivalent</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Veff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density_medium</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.723464435717068e+39</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.241509744511524e+39</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/Veff.html#get_Veff_water_equivalent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.get_Veff_water_equivalent" title="Permalink to this definition">¶</a></dt>
+<dd><p>convenience function to converte the effective volume of a medium with density <cite>density_medium</cite> to the
+water equivalent effective volume</p>
+<dl class="simple">
+<dt>Veff: float or array</dt><dd><p>the effective volume</p>
+</dd>
+<dt>dentity_medium: float (optional)</dt><dd><p>the density of the medium of the Veff simulation (default deep ice)</p>
+</dd>
+<dt>density water: float (optional)</dt><dd><p>the density of water</p>
+</dd>
+</dl>
+<p>Returns: water equivalen effective volume</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.Veff.get_index">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></code><code class="sig-name descname"><span class="pre">get_index</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/Veff.html#get_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.get_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.Veff.remove_duplicate_triggers">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></code><code class="sig-name descname"><span class="pre">remove_duplicate_triggers</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggered</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/Veff.html#remove_duplicate_triggers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.remove_duplicate_triggers" title="Permalink to this definition">¶</a></dt>
+<dd><p>remove duplicate entried from triggered array</p>
+<p>The hdf5 file contains a line per shower. One event can contain many showers, i.e. if we count all triggeres
+from all showers we overestimate the effective volume. This function modifies the triggered array such
+that it contains not more than one True value for each event group.</p>
+<p>triggered: array of bools</p>
+<dl class="simple">
+<dt>gids: array of ints</dt><dd><p>the event group ids</p>
+</dd>
+<dt>Returns: array of floats</dt><dd><p>the corrected triggered array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.Veff.tmp">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></code><code class="sig-name descname"><span class="pre">tmp</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/Veff.html#tmp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.tmp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.utilities.attenuation">
+<span id="nuradiomc-utilities-attenuation-module"></span><h2>NuRadioMC.utilities.attenuation module<a class="headerlink" href="#module-NuRadioMC.utilities.attenuation" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="NuRadioMC.utilities.attenuation.fit_GL1">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></code><code class="sig-name descname"><span class="pre">fit_GL1</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/attenuation.html#fit_GL1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.attenuation.fit_GL1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the attenuation length at 75 MHz as a function of depth for Greenland
+# Model for Greenland. Taken from DOI: <a class="reference external" href="https://doi.org/10.3189/2015JoG15J057">https://doi.org/10.3189/2015JoG15J057</a></p>
+<dl class="simple">
+<dt>z: float</dt><dd><p>depth in default units</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.attenuation.get_attenuation_length">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></code><code class="sig-name descname"><span class="pre">get_attenuation_length</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/attenuation.html#get_attenuation_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.attenuation.get_attenuation_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get attenuation length in ice for different ice models</p>
+<dl>
+<dt>z: float</dt><dd><p>depth in default units</p>
+</dd>
+<dt>frequency: float</dt><dd><p>frequency of signal in default units</p>
+</dd>
+<dt>model: string</dt><dd><p>Ice model for attenuation length
+SP1: South Pole model, see various compilation
+GL1: Greenland model, see <a class="reference external" href="https://arxiv.org/abs/1409.5413">https://arxiv.org/abs/1409.5413</a>
+MB1: Moore’s Bay Model, from 10.3189/2015JoG14J214 and</p>
+<blockquote>
+<div><p>Phd Thesis C. Persichilli (depth dependence)</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.attenuation.get_temperature">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></code><code class="sig-name descname"><span class="pre">get_temperature</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/attenuation.html#get_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.attenuation.get_temperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the temperature in Celsius as a function of depth for South Pole</p>
+<dl class="simple">
+<dt>z: float</dt><dd><p>depth in default units</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.utilities.cross_sections">
+<span id="nuradiomc-utilities-cross-sections-module"></span><h2>NuRadioMC.utilities.cross_sections module<a class="headerlink" href="#module-NuRadioMC.utilities.cross_sections" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="NuRadioMC.utilities.cross_sections.csms">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.cross_sections.</span></code><code class="sig-name descname"><span class="pre">csms</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavors</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/cross_sections.html#csms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.cross_sections.csms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Neutrino cross sections according to
+Amanda Cooper-Sarkar, Philipp Mertsch, Subir Sarkar
+JHEP 08 (2011) 042</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.cross_sections.get_interaction_length">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.cross_sections.</span></code><code class="sig-name descname"><span class="pre">get_interaction_length</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Enu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.723464435717068e+39</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/cross_sections.html#get_interaction_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.cross_sections.get_interaction_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates interaction length from cross section</p>
+<dl>
+<dt>Enu: float</dt><dd><p>neutrino energy</p>
+</dd>
+<dt>density: float (optional)</dt><dd><p>density of the medium, default density of ice = 0.917 g/cm**3</p>
+</dd>
+<dt>flavors: float / array of floats</dt><dd><p>neutrino flavor (integer) encoded as using PDG numbering scheme,
+particles have positive sign, anti-particles have negative sign, relevant are:
+12: electron neutrino
+14: muon neutrino
+16: tau neutrino</p>
+</dd>
+<dt>inttype: str, array of str</dt><dd><p>interaction type
+nc : neutral current
+cc : charged current
+total: total (for non-array type)</p>
+</dd>
+<dt>cross_section_type: str</dt><dd><p>defines model of cross-section
+ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998</p>
+<blockquote>
+<div><p>only one cross-section for all interactions and flavors</p>
+</div></blockquote>
+<dl class="simple">
+<dt>ctw<span class="classifier">A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).</span></dt><dd><p>cross-sections for all interaction types and flavors</p>
+</dd>
+</dl>
+<p>csms   : A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042</p>
+</dd>
+</dl>
+<p>Returns float: interaction length</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.cross_sections.get_nu_cross_section">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.cross_sections.</span></code><code class="sig-name descname"><span class="pre">get_nu_cross_section</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/cross_sections.html#get_nu_cross_section"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.cross_sections.get_nu_cross_section" title="Permalink to this definition">¶</a></dt>
+<dd><p>return neutrino cross-section</p>
+<dl>
+<dt>Parameters</dt><dd></dd>
+<dt>energy: float/ array of floats</dt><dd><p>neutrino energies/momenta in standard units</p>
+</dd>
+<dt>flavors: float / array of floats</dt><dd><p>neutrino flavor (integer) encoded as using PDG numbering scheme,
+particles have positive sign, anti-particles have negative sign, relevant are:
+12: electron neutrino
+14: muon neutrino
+16: tau neutrino</p>
+</dd>
+<dt>inttype: str, array of str</dt><dd><p>interaction type
+nc : neutral current
+cc : charged current
+total: total (for non-array type)</p>
+</dd>
+<dt>cross_section_type: str</dt><dd><p>defines model of cross-section
+ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998</p>
+<blockquote>
+<div><p>only one cross-section for all interactions and flavors</p>
+</div></blockquote>
+<dl class="simple">
+<dt>ctw<span class="classifier">A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).</span></dt><dd><p>cross-sections for all interaction types and flavors</p>
+</dd>
+</dl>
+<p>csms   : A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.cross_sections.param">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.cross_sections.</span></code><code class="sig-name descname"><span class="pre">param</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cc'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/cross_sections.html#param"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.cross_sections.param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameterization and constants as used in
+get_nu_cross_section()
+See documentation there for details</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.utilities.dump_hdf5">
+<span id="nuradiomc-utilities-dump-hdf5-module"></span><h2>NuRadioMC.utilities.dump_hdf5 module<a class="headerlink" href="#module-NuRadioMC.utilities.dump_hdf5" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="NuRadioMC.utilities.dump_hdf5.dump">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.dump_hdf5.</span></code><code class="sig-name descname"><span class="pre">dump</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/dump_hdf5.html#dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.dump_hdf5.dump" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.utilities.earth_attenuation">
+<span id="nuradiomc-utilities-earth-attenuation-module"></span><h2>NuRadioMC.utilities.earth_attenuation module<a class="headerlink" href="#module-NuRadioMC.utilities.earth_attenuation" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.earth_attenuation.</span></code><code class="sig-name descname"><span class="pre">CoreMantleCrustModel</span></code><a class="reference internal" href="../_modules/NuRadioMC/utilities/earth_attenuation.html#CoreMantleCrustModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.PREM" title="NuRadioMC.utilities.earth_attenuation.PREM"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.earth_attenuation.PREM</span></code></a></p>
+<p>Class describing the Earth’s density.</p>
+<p>Uses densities from the Core-Mantle-Crust model. Parameters from ARASim</p>
+<dl class="simple">
+<dt>earth_radius<span class="classifier">float</span></dt><dd><p>Mean radius of the Earth (m).</p>
+</dd>
+<dt>radii<span class="classifier">tuple</span></dt><dd><p>Boundary radii (m) at which the functional form of the density of the
+Earth changes. The density function in <cite>densities</cite> at index <cite>i</cite>
+corresponds to the radius range from radius at index <cite>i-1</cite> to radius
+at index <cite>i</cite>.</p>
+</dd>
+<dt>densities<span class="classifier">tuple</span></dt><dd><p>Functions which calculate the density of the Earth (g/cm^3) in a
+specific radius range as described by <cite>radii</cite>. The parameter of each
+function is the fractional radius, e.g. radius divided by
+<cite>earth_radius</cite>. Scalar values denote constant density over the range of
+radii.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.densities">
+<code class="sig-name descname"><span class="pre">densities</span></code><em class="property"> <span class="pre">=</span> <span class="pre">(8.738113642316134e+40,</span> <span class="pre">2.122113313133918e+40,</span> <span class="pre">1.810037825908342e+40)</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.densities" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.earth_radius">
+<code class="sig-name descname"><span class="pre">earth_radius</span></code><em class="property"> <span class="pre">=</span> <span class="pre">6378140.0</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.earth_radius" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.radii">
+<code class="sig-name descname"><span class="pre">radii</span></code><em class="property"> <span class="pre">=</span> <span class="pre">(3464101.6151377545,</span> <span class="pre">6338140.0,</span> <span class="pre">6378140.0)</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.radii" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="NuRadioMC.utilities.earth_attenuation.PREM">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.earth_attenuation.</span></code><code class="sig-name descname"><span class="pre">PREM</span></code><a class="reference internal" href="../_modules/NuRadioMC/utilities/earth_attenuation.html#PREM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class describing the Earth’s density.</p>
+<p>Uses densities from the Preliminary reference Earth Model (PREM).</p>
+<dl class="simple">
+<dt>earth_radius<span class="classifier">float</span></dt><dd><p>Mean radius of the Earth (m).</p>
+</dd>
+<dt>radii<span class="classifier">tuple</span></dt><dd><p>Boundary radii at which the functional form of the density of the
+Earth changes. The density function in <cite>densities</cite> at index <cite>i</cite>
+corresponds to the radius range from radius at index <cite>i-1</cite> to radius
+at index <cite>i</cite>.</p>
+</dd>
+<dt>densities<span class="classifier">tuple</span></dt><dd><p>Functions which calculate the density of the Earth in a
+specific radius range as described by <cite>radii</cite>. The parameter of each
+function is the fractional radius, e.g. radius divided by
+<cite>earth_radius</cite>. Scalar values denote constant density over the range of
+radii.</p>
+</dd>
+</dl>
+<p>The density calculation is based on the Preliminary reference Earth Model
+<a class="footnote-reference brackets" href="#id14" id="id13">1</a>.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id14"><span class="brackets"><a class="fn-backref" href="#id13">1</a></span></dt>
+<dd><p>A. Dziewonski &amp; D. Anderson, “Preliminary reference Earth model.”
+Physics of the Earth and Planetary Interiors <strong>25</strong>, 297–356 (1981). <a href="#id15"><span class="problematic" id="id16">:doi:`10.1016/0031-9201(81)90046-7`</span></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="NuRadioMC.utilities.earth_attenuation.PREM.densities">
+<code class="sig-name descname"><span class="pre">densities</span></code><em class="property"> <span class="pre">=</span> <span class="pre">(&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">1.810037825908342e+40,</span> <span class="pre">1.6227925335729963e+40,</span> <span class="pre">6.366339939401755e+39)</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.densities" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.utilities.earth_attenuation.PREM.density">
+<code class="sig-name descname"><span class="pre">density</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/earth_attenuation.html#PREM.density"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.density" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the Earth’s density at a given radius.</p>
+<p>Supports passing an array of radii or a single radius.</p>
+<dl class="simple">
+<dt>r<span class="classifier">array_like</span></dt><dd><p>Radius (m) at which to calculate density.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>array_like</dt><dd><p>Density (g/cm^3) of the Earth at the given radii.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="NuRadioMC.utilities.earth_attenuation.PREM.earth_radius">
+<code class="sig-name descname"><span class="pre">earth_radius</span></code><em class="property"> <span class="pre">=</span> <span class="pre">6371000.0</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.earth_radius" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="NuRadioMC.utilities.earth_attenuation.PREM.radii">
+<code class="sig-name descname"><span class="pre">radii</span></code><em class="property"> <span class="pre">=</span> <span class="pre">(1221500.0,</span> <span class="pre">3480000.0,</span> <span class="pre">5701000.0,</span> <span class="pre">5771000.0,</span> <span class="pre">5971000.0,</span> <span class="pre">6151000.0,</span> <span class="pre">6346600.0,</span> <span class="pre">6356000.0,</span> <span class="pre">6368000.0,</span> <span class="pre">6371000.0)</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.radii" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.utilities.earth_attenuation.PREM.slant_depth">
+<code class="sig-name descname"><span class="pre">slant_depth</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endpoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/earth_attenuation.html#PREM.slant_depth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.slant_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the column density of a chord cutting through Earth.</p>
+<p>Integrates the Earth’s density along the chord, resulting in a column
+density (or material thickness) with units of mass per area.</p>
+<dl class="simple">
+<dt>endpoint<span class="classifier">array_like</span></dt><dd><p>Vector position of the chord endpoint, in a coordinate system
+centered on the surface of the Earth (e.g. a negative third
+coordinate represents the depth below the surface).</p>
+</dd>
+<dt>direction<span class="classifier">array_like</span></dt><dd><p>Vector direction of the chord, in a coordinate system
+centered on the surface of the Earth (e.g. a negative third
+coordinate represents the chord pointing into the Earth).</p>
+</dd>
+<dt>step<span class="classifier">float, optional</span></dt><dd><p>Step size for the integration.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>float</dt><dd><p>Column density along the chord starting from <cite>depth</cite> and
+passing through the Earth at <cite>angle</cite>.</p>
+</dd>
+</dl>
+<p>PREM.density : Calculates the Earth’s density at a given radius.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.earth_attenuation.get_core_mantle_crust_weight">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.earth_attenuation.</span></code><code class="sig-name descname"><span class="pre">get_core_mantle_crust_weight</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta_nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pnu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/earth_attenuation.html#get_core_mantle_crust_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.get_core_mantle_crust_weight" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates neutrino weight due to Earth absorption with a three layers earth model, i.e. probability of the
+neutrino to reach the detector</p>
+<p>simple parametrization using momentum, zenith angle, flavor and current type information
+of the neutrino</p>
+<p>parameters from ARAsim (2018)</p>
+<dl class="simple">
+<dt>theta_nu: float or array of floats</dt><dd><p>the zenith angle of the neutrino direction (where it came from, i.e., opposite to the direction of propagation)</p>
+</dd>
+<dt>pnu: float or array of floats</dt><dd><p>the momentum of the neutrino</p>
+</dd>
+<dt>flavors: float or array of floats</dt><dd><p>the flavor of the neutrino</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.earth_attenuation.get_simple_weight">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.earth_attenuation.</span></code><code class="sig-name descname"><span class="pre">get_simple_weight</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta_nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pnu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/earth_attenuation.html#get_simple_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.get_simple_weight" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates neutrino weight due to Earth absorption, i.e. probability of the
+neutrino to reach the detector</p>
+<p>simple parametrization using only momentum and zenith angle information
+of the neutrino, adapted from ShelfMC</p>
+<dl class="simple">
+<dt>theta_nu: float or array of floats</dt><dd><p>the zenith angle of the neutrino direction (where it came from, i.e., opposite to the direction of propagation)</p>
+</dd>
+<dt>pnu: float or array of floats</dt><dd><p>the momentum of the neutrino</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.earth_attenuation.get_weight">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.earth_attenuation.</span></code><code class="sig-name descname"><span class="pre">get_weight</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta_nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pnu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'simple'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertex_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/earth_attenuation.html#get_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.get_weight" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates neutrino weight due to Earth absorption for different models</p>
+<dl class="simple">
+<dt>theta_nu: float or array of floats</dt><dd><p>the zenith angle of the neutrino direction (where it came from, i.e., opposite to the direction of propagation)</p>
+</dd>
+<dt>pnu: float or array of floats</dt><dd><p>the momentum of the neutrino</p>
+</dd>
+<dt>mode: string</dt><dd><ul class="simple">
+<li><p>‘simple’: assuming interaction happens at the surface and approximating the Earth with constant density</p></li>
+<li><p>‘core_mantle_crust_simple’: assuming interaction happens at the surface and approximating the Earth with 3 layers of constant density</p></li>
+<li><p>‘core_mantle_crust’: approximating the Earth with 3 layers of constant density, path through Earth to interaction vertex is considered</p></li>
+<li><p>‘PREM’: density of Earth is parameterized as a fuction of radius, path through Earth to interaction vertex is considered</p></li>
+</ul>
+</dd>
+<dt>cross_section_type: string</dt><dd><p>‘ghandi’, ‘ctw’ or ‘csms’ (see description in <cite>cross_sections.py</cite>)</p>
+</dd>
+<dt>vertex_position: 3-dim array or None (default)</dt><dd><p>the position of the neutrino interaction</p>
+</dd>
+<dt>phi_nu: float</dt><dd><p>the azimuth angle of the neutrino direction</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.utilities.fluxes">
+<span id="nuradiomc-utilities-fluxes-module"></span><h2>NuRadioMC.utilities.fluxes module<a class="headerlink" href="#module-NuRadioMC.utilities.fluxes" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="NuRadioMC.utilities.fluxes.get_exposure">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></code><code class="sig-name descname"><span class="pre">get_exposure</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Veff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_of_view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.283185307179586</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/fluxes.html#get_exposure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_exposure" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate exposure from effective volume</p>
+<dl class="simple">
+<dt>energy: float</dt><dd><p>neutrino energy (needed to calculate interaction length)</p>
+</dd>
+<dt>Veff: float</dt><dd><p>effective volume</p>
+</dd>
+<dt>field_of_view: float</dt><dd><p>the field of view of the detector</p>
+</dd>
+</dl>
+<p>Returns
+float: exposure</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.fluxes.get_fluence_limit">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></code><code class="sig-name descname"><span class="pre">get_fluence_limit</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">int_exp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/fluxes.html#get_fluence_limit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_fluence_limit" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the fluence limit for a integrated exposure</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.fluxes.get_integrated_exposure">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></code><code class="sig-name descname"><span class="pre">get_integrated_exposure</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exp_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E_low</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E_high</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/fluxes.html#get_integrated_exposure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_integrated_exposure" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the integral int(E^-2 * exposure(E) dE)</p>
+<p>integration is performed in log space</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.fluxes.get_limit_e1_flux">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></code><code class="sig-name descname"><span class="pre">get_limit_e1_flux</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_sr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalEff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energyBinsPerDecade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimOnEvents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.44</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuCrsScn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/fluxes.html#get_limit_e1_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_limit_e1_flux" title="Permalink to this definition">¶</a></dt>
+<dd><p>Limit from effective volume on E^1 flux plot</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd></dd>
+<dt>energy: array of floats</dt><dd><p>neutrino energy</p>
+</dd>
+<dt>veff_sr: array of floats</dt><dd><p>effective volume x solid angle</p>
+</dd>
+<dt>livetime: float</dt><dd><p>time used</p>
+</dd>
+<dt>signalEff: float</dt><dd><p>efficiency of signal reconstruction</p>
+</dd>
+<dt>energyBinsPerDecade: float</dt><dd><p>1 for decade bins, 2 for half-decade bins, etc.</p>
+</dd>
+<dt>upperLimOnEvents: float</dt><dd><p>2.3 for Neyman UL w/ 0 background,
+2.44 for F-C UL w/ 0 background, etc</p>
+</dd>
+<dt>nuCrsScn: str</dt><dd><p>type of neutrino cross-section</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.fluxes.get_limit_e2_flux">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></code><code class="sig-name descname"><span class="pre">get_limit_e2_flux</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_sr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalEff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energyBinsPerDecade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimOnEvents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.44</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuCrsScn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/fluxes.html#get_limit_e2_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_limit_e2_flux" title="Permalink to this definition">¶</a></dt>
+<dd><p>Limit from effective volume on E^2 flux plot</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd></dd>
+<dt>energy: array of floats</dt><dd><p>neutrino energy</p>
+</dd>
+<dt>veff_sr: array of floats</dt><dd><p>effective volumes x solid angle</p>
+</dd>
+<dt>livetime: float</dt><dd><p>time used</p>
+</dd>
+<dt>signalEff: float</dt><dd><p>efficiency of signal reconstruction</p>
+</dd>
+<dt>energyBinsPerDecade: float</dt><dd><p>1 for decade bins, 2 for half-decade bins, etc.</p>
+</dd>
+<dt>upperLimOnEvents: float</dt><dd><p>2.3 for Neyman UL w/ 0 background,
+2.44 for F-C UL w/ 0 background, etc</p>
+</dd>
+<dt>nuCrsScn: str</dt><dd><p>type of neutrino cross-section</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.fluxes.get_limit_flux">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></code><code class="sig-name descname"><span class="pre">get_limit_flux</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_sr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalEff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energyBinsPerDecade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimOnEvents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.44</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuCrsScn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/fluxes.html#get_limit_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_limit_flux" title="Permalink to this definition">¶</a></dt>
+<dd><p>Limit from effective volume</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd></dd>
+<dt>energy: array of floats</dt><dd><p>neutrino energy</p>
+</dd>
+<dt>veff_sr: array of floats</dt><dd><p>effective volume x solid angle</p>
+</dd>
+<dt>livetime: float</dt><dd><p>time used</p>
+</dd>
+<dt>signalEff: float</dt><dd><p>efficiency of signal reconstruction</p>
+</dd>
+<dt>energyBinsPerDecade: float</dt><dd><p>1 for decade bins, 2 for half-decade bins, etc.</p>
+</dd>
+<dt>upperLimOnEvents: float</dt><dd><p>2.3 for Neyman UL w/ 0 background,
+2.44 for F-C UL w/ 0 background, etc</p>
+</dd>
+<dt>nuCrsScn: str</dt><dd><p>type of neutrino cross-section</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.fluxes.get_limit_from_aeff">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></code><code class="sig-name descname"><span class="pre">get_limit_from_aeff</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aeff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalEff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energyBinsPerDecade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimOnEvents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.44</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/fluxes.html#get_limit_from_aeff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_limit_from_aeff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Limit from effective volume</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd></dd>
+<dt>energy: array of floats</dt><dd><p>neutrino energy</p>
+</dd>
+<dt>veff: array of floats</dt><dd><p>effective volumes</p>
+</dd>
+<dt>livetime: float</dt><dd><p>time used</p>
+</dd>
+<dt>signalEff: float</dt><dd><p>efficiency of signal reconstruction</p>
+</dd>
+<dt>energyBinsPerDecade: float</dt><dd><p>1 for decade bins, 2 for half-decade bins, etc.</p>
+</dd>
+<dt>upperLimOnEvents: float</dt><dd><p>2.3 for Neyman UL w/ 0 background,
+2.44 for F-C UL w/ 0 background, etc</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.fluxes.get_number_of_events_for_flux">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></code><code class="sig-name descname"><span class="pre">get_number_of_events_for_flux</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Veff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuCrsScn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/fluxes.html#get_number_of_events_for_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_number_of_events_for_flux" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the number of expected neutrinos for a certain flux assumption</p>
+<dl class="simple">
+<dt>energies: array of floats</dt><dd><p>energies (the bin centers), the binning in log10(E) must be equidistant!</p>
+</dd>
+<dt>flux: array of floats</dt><dd><p>the flux at energy logE</p>
+</dd>
+<dt>Veff: array of floats</dt><dd><p>the effective volume per energy logE</p>
+</dd>
+<dt>livetime: float</dt><dd><p>the livetime of the detector (including signal efficiency)</p>
+</dd>
+</dl>
+<p>array of floats: number of events per energy bin</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.utilities.inelasticities">
+<span id="nuradiomc-utilities-inelasticities-module"></span><h2>NuRadioMC.utilities.inelasticities module<a class="headerlink" href="#module-NuRadioMC.utilities.inelasticities" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="NuRadioMC.utilities.inelasticities.get_ccnc">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.inelasticities.</span></code><code class="sig-name descname"><span class="pre">get_ccnc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/inelasticities.html#get_ccnc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.inelasticities.get_ccnc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the nature of the interaction current: cc or nc
+Ported from Shelf MC</p>
+<dl class="simple">
+<dt>n_events: int</dt><dd><p>Number of events to be returned</p>
+</dd>
+<dt>rnd: random generator object</dt><dd><p>if None is provided, a new default random generator object is initialized</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>ccnc: array</dt><dd><p>Array with ‘cc’ or ‘nc’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.inelasticities.get_neutrino_inelasticity">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.inelasticities.</span></code><code class="sig-name descname"><span class="pre">get_neutrino_inelasticity</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/inelasticities.html#get_neutrino_inelasticity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.inelasticities.get_neutrino_inelasticity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard inelasticity for deep inelastic scattering used so far.
+Ported from ShelfMC</p>
+<dl class="simple">
+<dt>n_events: int</dt><dd><p>Number of events to be returned</p>
+</dd>
+<dt>rnd: random generator object</dt><dd><p>if None is provided, a new default random generator object is initialized</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>inelasticies: array</dt><dd><p>Array with the inelasticities</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.inelasticities.inelasticity_tau_decay">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.inelasticities.</span></code><code class="sig-name descname"><span class="pre">inelasticity_tau_decay</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tau_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/inelasticities.html#inelasticity_tau_decay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.inelasticities.inelasticity_tau_decay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the hadronic or electromagnetic inelasticity for the tau decay
+See <a class="reference external" href="http://dx.doi.org/10.1016/j.cpc.2013.04.001">http://dx.doi.org/10.1016/j.cpc.2013.04.001</a>
+and <a class="reference external" href="https://arxiv.org/pdf/1607.00193.pdf">https://arxiv.org/pdf/1607.00193.pdf</a></p>
+<dl class="simple">
+<dt>tau_energy: float</dt><dd><p>Tau energy at the moment of decay</p>
+</dd>
+<dt>branch: string</dt><dd><p>Type of tau decay: ‘tau_mu’, ‘tau_e’, ‘tau_had’</p>
+</dd>
+<dt>rnd: random generator object</dt><dd><p>if None is provided, a new default random generator object is initialized</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>inelasticity: float</dt><dd><p>The fraction of energy carried by the leptonic or hadronic products</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.inelasticities.random_tau_branch">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.inelasticities.</span></code><code class="sig-name descname"><span class="pre">random_tau_branch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/inelasticities.html#random_tau_branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.inelasticities.random_tau_branch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates a random tau branch decay
+See <a class="reference external" href="http://dx.doi.org/10.1016/j.cpc.2013.04.001">http://dx.doi.org/10.1016/j.cpc.2013.04.001</a></p>
+<dl class="simple">
+<dt>rnd: random generator object</dt><dd><p>if None is provided, a new default random generator object is initialized</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>branch: string</dt><dd><p>The corresponding decay branch</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.inelasticities.rejection_sampling">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.inelasticities.</span></code><code class="sig-name descname"><span class="pre">rejection_sampling</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/inelasticities.html#rejection_sampling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.inelasticities.rejection_sampling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draws a random number following a given distribution using
+a rejection sampling algorithm.</p>
+<dl class="simple">
+<dt>f: function</dt><dd><p>Random distribution</p>
+</dd>
+<dt>xmin: float</dt><dd><p>Minimum value of the argument</p>
+</dd>
+<dt>xmax: float</dt><dd><p>Maximum value of the argument</p>
+</dd>
+<dt>ymax: float</dt><dd><p>Maximum function value to use for the rejection sample
+(e.g., the maximum of the function)</p>
+</dd>
+<dt>rnd: random generator object</dt><dd><p>if None is provided, a new default random generator object is initialized</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>x: float</dt><dd><p>Random value from the distribution</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.utilities.medium">
+<span id="nuradiomc-utilities-medium-module"></span><h2>NuRadioMC.utilities.medium module<a class="headerlink" href="#module-NuRadioMC.utilities.medium" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="NuRadioMC.utilities.medium.ARAsim_southpole">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></code><code class="sig-name descname"><span class="pre">ARAsim_southpole</span></code><a class="reference internal" href="../_modules/NuRadioMC/utilities/medium.html#ARAsim_southpole"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.ARAsim_southpole" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.medium.medium" title="NuRadioMC.utilities.medium.medium"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium.medium</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="NuRadioMC.utilities.medium.get_ice_model">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></code><code class="sig-name descname"><span class="pre">get_ice_model</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/medium.html#get_ice_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.get_ice_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt id="NuRadioMC.utilities.medium.greenland_simple">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></code><code class="sig-name descname"><span class="pre">greenland_simple</span></code><a class="reference internal" href="../_modules/NuRadioMC/utilities/medium.html#greenland_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_simple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.medium.medium" title="NuRadioMC.utilities.medium.medium"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium.medium</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="NuRadioMC.utilities.medium.medium">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></code><code class="sig-name descname"><span class="pre">medium</span></code><a class="reference internal" href="../_modules/NuRadioMC/utilities/medium.html#medium"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.medium" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt id="NuRadioMC.utilities.medium.medium.get_average_index_of_refraction">
+<code class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/medium.html#medium.get_average_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.medium.get_average_index_of_refraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the average index of refraction between two depths</p>
+<dl class="simple">
+<dt>z1: float</dt><dd><p>depth 1</p>
+</dd>
+<dt>z2: float</dt><dd><p>depth 2</p>
+</dd>
+</dl>
+<p>Returns: depth averaged index of refraction</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.utilities.medium.medium.get_index_of_refraction">
+<code class="sig-name descname"><span class="pre">get_index_of_refraction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/medium.html#medium.get_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.medium.get_index_of_refraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the index of refraction at position x</p>
+<dl class="simple">
+<dt>x: 3dim np.array</dt><dd><p>point</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>n: float</dt><dd><p>index of refraction</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="NuRadioMC.utilities.medium.mooresbay_simple">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></code><code class="sig-name descname"><span class="pre">mooresbay_simple</span></code><a class="reference internal" href="../_modules/NuRadioMC/utilities/medium.html#mooresbay_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.medium.medium" title="NuRadioMC.utilities.medium.medium"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium.medium</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="NuRadioMC.utilities.medium.mooresbay_simple_2">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></code><code class="sig-name descname"><span class="pre">mooresbay_simple_2</span></code><a class="reference internal" href="../_modules/NuRadioMC/utilities/medium.html#mooresbay_simple_2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple_2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.medium.medium" title="NuRadioMC.utilities.medium.medium"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium.medium</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="NuRadioMC.utilities.medium.southpole_2015">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></code><code class="sig-name descname"><span class="pre">southpole_2015</span></code><a class="reference internal" href="../_modules/NuRadioMC/utilities/medium.html#southpole_2015"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_2015" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.medium.medium" title="NuRadioMC.utilities.medium.medium"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium.medium</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="NuRadioMC.utilities.medium.southpole_simple">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></code><code class="sig-name descname"><span class="pre">southpole_simple</span></code><a class="reference internal" href="../_modules/NuRadioMC/utilities/medium.html#southpole_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_simple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.medium.medium" title="NuRadioMC.utilities.medium.medium"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium.medium</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.utilities.merge_hdf5">
+<span id="nuradiomc-utilities-merge-hdf5-module"></span><h2>NuRadioMC.utilities.merge_hdf5 module<a class="headerlink" href="#module-NuRadioMC.utilities.merge_hdf5" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="NuRadioMC.utilities.merge_hdf5.merge2">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.merge_hdf5.</span></code><code class="sig-name descname"><span class="pre">merge2</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/merge_hdf5.html#merge2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.merge_hdf5.merge2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.utilities.plotting">
+<span id="nuradiomc-utilities-plotting-module"></span><h2>NuRadioMC.utilities.plotting module<a class="headerlink" href="#module-NuRadioMC.utilities.plotting" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="NuRadioMC.utilities.plotting.plot_vertex_distribution">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.plotting.</span></code><code class="sig-name descname"><span class="pre">plot_vertex_distribution</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/plotting.html#plot_vertex_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.plotting.plot_vertex_distribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>produces beautiful plot of the vertex distribution</p>
+<p>Parameters:
+xx: array</p>
+<blockquote>
+<div><p>the x positions of the vertices</p>
+</div></blockquote>
+<dl class="simple">
+<dt>yy: array</dt><dd><p>the y positions of the vertices</p>
+</dd>
+<dt>zz: array</dt><dd><p>the z positions of the vertices</p>
+</dd>
+</dl>
+<p>fig, ax</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.utilities.split_hdf5">
+<span id="nuradiomc-utilities-split-hdf5-module"></span><h2>NuRadioMC.utilities.split_hdf5 module<a class="headerlink" href="#module-NuRadioMC.utilities.split_hdf5" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="NuRadioMC.utilities.split_hdf5.split_hdf5_input_file">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.split_hdf5.</span></code><code class="sig-name descname"><span class="pre">split_hdf5_input_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_events_per_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/utilities/split_hdf5.html#split_hdf5_input_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.split_hdf5.split_hdf5_input_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>splits up an existing hdf5 file into multiple subfiles</p>
+<dl class="simple">
+<dt>input_filename: string</dt><dd><p>the input filename</p>
+</dd>
+<dt>output_filename: string</dt><dd><p>the desired output filename (if multiple files are generated, a ‘part000x’ is appended to the filename</p>
+</dd>
+<dt>n_events_per_file: int (optional, default None)</dt><dd><p>the number of events per file</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.utilities">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-NuRadioMC.utilities" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="NuRadioMC.studies.html" class="btn btn-neutral float-right" title="NuRadioMC.studies package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioMC.simulation.html" class="btn btn-neutral float-left" title="NuRadioMC.simulation package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, The NuRadio Group.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

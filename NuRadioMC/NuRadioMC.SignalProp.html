@@ -1,0 +1,1646 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>NuRadioMC.SignalProp package &mdash; NuRadio 2.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="/home/christoph/Software/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="NuRadioMC.SignalProp.CPPAnalyticRayTracing package" href="NuRadioMC.SignalProp.CPPAnalyticRayTracing.html" />
+    <link rel="prev" title="NuRadioMC.SignalGen.ARZ package" href="NuRadioMC.SignalGen.ARZ.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../main.html" class="icon icon-home"> NuRadio
+          
+
+          
+            
+            <img src="../_static/logo_small.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../NuRadioReco/pages/welcome_page.html">NuRadioReco Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/installation.html">Installing NuRadioReco</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/installation.html#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/installation.html#manual-installation">Manual Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/installation.html#dependencies">Dependencies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/installation.html#core-dependencies">Core Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/installation.html#optional-dependencies">Optional Dependencies</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html">Data Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#nur-files-and-how-to-use-them">.nur Files and How to Use Them</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#philosophy-and-basic-structure">Philosophy and Basic Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#reading-and-writing-nur-files">Reading and Writing .nur Files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#parameter-storage">Parameter Storage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#list-of-data-classes">List of Data Classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#event">Event</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#station">Station</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#basetrace">BaseTrace</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#electric-field">Electric Field</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#channel">Channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#hybrid-information">Hybrid Information</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#hybrid-shower">Hybrid Shower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/event_structure.html#hybrid-detector">Hybrid Detector</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/detector.html">Detector Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/detector.html#the-detector-class">The Detector Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/detector.html#detector-description-formats">Detector Description Formats</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#database">DataBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#json">JSON</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#dictionary">Dictionary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#signal-chain-responses">Signal Chain Responses</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/detector.html#id1">GenericDetector</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#event-specific-changes">Event-Specific Changes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/detector.html#detector-description-in-event-files">Detector Description in Event Files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#writing-the-detector">Writing the Detector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#reading-the-detector">Reading the Detector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector.html#detector-viewer">Detector Viewer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/event_display.html">Event Display</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/utilities.html">Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/utilities.html#unit-system">Unit System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/utilities.html#fourier-transformation">Fourier Transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/utilities.html#metaclasses">Metaclasses</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/utilities.html#singleton">Singleton</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/contributing.html">Contributing to NuRadioReco</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#workflow">Workflow</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#filing-tickets">Filing Tickets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#submitting-pull-requests">Submitting Pull Requests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#coding-conventions">Coding Conventions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#versioning">Versioning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#unit-tests">Unit Tests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#coding-standards-and-linting">Coding Standards and Linting</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#documentation">Documentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#writing-docstrings">Writing Docstrings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#deploying-the-documentation">Deploying the Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#technical-implementation">Technical Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/contributing.html#usage-convention">Usage convention</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/code_documentation.html">Code Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html">NuRadioReco.framework package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.base_shower">NuRadioReco.framework.base_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.base_station">NuRadioReco.framework.base_station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.base_trace">NuRadioReco.framework.base_trace module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.channel">NuRadioReco.framework.channel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.electric_field">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.event">NuRadioReco.framework.event module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.hybrid_information">NuRadioReco.framework.hybrid_information module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.hybrid_shower">NuRadioReco.framework.hybrid_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.parameter_serialization">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.parameters">NuRadioReco.framework.parameters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.radio_shower">NuRadioReco.framework.radio_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.sim_channel">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.sim_station">NuRadioReco.framework.sim_station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.station">NuRadioReco.framework.station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.trigger">NuRadioReco.framework.trigger module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html">NuRadioReco.modules package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.analogToDigitalConverter">NuRadioReco.modules.analogToDigitalConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.beamFormingDirectionFitter">NuRadioReco.modules.beamFormingDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelAddCableDelay">NuRadioReco.modules.channelAddCableDelay module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelAntennaDedispersion">NuRadioReco.modules.channelAntennaDedispersion module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelBandPassFilter">NuRadioReco.modules.channelBandPassFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelgalacticnoiseadder-module">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelGenericNoiseAdder">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelLengthAdjuster">NuRadioReco.modules.channelLengthAdjuster module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelMeasuredNoiseAdder">NuRadioReco.modules.channelMeasuredNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelResampler">NuRadioReco.modules.channelResampler module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelSignalReconstructor">NuRadioReco.modules.channelSignalReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelStopFilter">NuRadioReco.modules.channelStopFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelTemplateCorrelation">NuRadioReco.modules.channelTemplateCorrelation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelTimeOffsetCalculator">NuRadioReco.modules.channelTimeOffsetCalculator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelTimeWindow">NuRadioReco.modules.channelTimeWindow module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.correlationDirectionFitter">NuRadioReco.modules.correlationDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.cosmicRayEnergyReconstructor">NuRadioReco.modules.cosmicRayEnergyReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.efieldAirToIcePropagator">NuRadioReco.modules.efieldAirToIcePropagator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.efieldTimeDirectionFitter">NuRadioReco.modules.efieldTimeDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.efieldToVoltageConverter">NuRadioReco.modules.efieldToVoltageConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.efieldToVoltageConverterPerEfield">NuRadioReco.modules.efieldToVoltageConverterPerEfield module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.electricFieldBandPassFilter">NuRadioReco.modules.electricFieldBandPassFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.electricFieldResampler">NuRadioReco.modules.electricFieldResampler module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.electricFieldSignalReconstructor">NuRadioReco.modules.electricFieldSignalReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.eventTypeIdentifier">NuRadioReco.modules.eventTypeIdentifier module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.templateDirectionFitter">NuRadioReco.modules.templateDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.triggerTimeAdjuster">NuRadioReco.modules.triggerTimeAdjuster module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.voltageToAnalyticEfieldConverter">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.voltageToEfieldConverter">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.voltageToEfieldConverterPerChannel">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html">NuRadioReco.detector package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.amp">NuRadioReco.detector.amp module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.antennapattern">NuRadioReco.detector.antennapattern module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.detector">NuRadioReco.detector.detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-detector-sql-module">NuRadioReco.detector.detector_sql module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.detector_sys_uncertainties">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.filterresponse">NuRadioReco.detector.filterresponse module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.generic_detector">NuRadioReco.detector.generic_detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-sql-to-json-module">NuRadioReco.detector.sql_to_json module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-test-detector-db-module">NuRadioReco.detector.test_detector_db module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-visualize-detector-module">NuRadioReco.detector.visualize_detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html">NuRadioReco.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.analytic_pulse">NuRadioReco.utilities.analytic_pulse module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.bandpass_filter">NuRadioReco.utilities.bandpass_filter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.diodeSimulator">NuRadioReco.utilities.diodeSimulator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.fft">NuRadioReco.utilities.fft module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.geometryUtilities">NuRadioReco.utilities.geometryUtilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.ice">NuRadioReco.utilities.ice module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.io_utilities">NuRadioReco.utilities.io_utilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.metaclasses">NuRadioReco.utilities.metaclasses module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.noise">NuRadioReco.utilities.noise module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.templates">NuRadioReco.utilities.templates module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.timing">NuRadioReco.utilities.timing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.traceWindows">NuRadioReco.utilities.traceWindows module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.trace_utilities">NuRadioReco.utilities.trace_utilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.units">NuRadioReco.utilities.units module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.version">NuRadioReco.utilities.version module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/detector_database_fields.html">Properties of Detector Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/detector_database_fields.html#antenna-table">Antenna Table</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/detector_database_fields.html#further-discussion-on-antenna-coordinates">Further Discussion on Antenna Coordinates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/detector_database_fields.html#adc-table">ADC Table</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../NuRadioReco/pages/howto_documentation.html">How To</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../NuRadioReco/pages/how_to/vertex_reconstruction.html">Use the Vertex Reconstruction Modules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../NuRadioReco/pages/how_to/vertex_reconstruction.html#d-vs-3d-vertex-reconstructor">2D vs. 3D Vertex Reconstructor</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="pages/welcome_page.html">NuRadioMC Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pages/code_documentation.html">Code Documentation</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#nuradiomc-evtgen-nuradiomctoarasim-module">NuRadioMC.EvtGen.NuRadioMCtoAraSim module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#nuradiomc-evtgen-nuradioproposal-module">NuRadioMC.EvtGen.NuRadioProposal module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#nuradiomc-evtgen-create-tau-tab-module">NuRadioMC.EvtGen.create_tau_tab module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.generate_cylinder">NuRadioMC.EvtGen.generate_cylinder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.generate_unforced">NuRadioMC.EvtGen.generate_unforced module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.generator">NuRadioMC.EvtGen.generator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.generator_ASCII">NuRadioMC.EvtGen.generator_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#nuradiomc-evtgen-generator-skeleton-module">NuRadioMC.EvtGen.generator_skeleton module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#nuradiomc-evtgen-hdf5-to-ascii-module">NuRadioMC.EvtGen.hdf5_to_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.readARAEventList">NuRadioMC.EvtGen.readARAEventList module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.readEventList_ASCII">NuRadioMC.EvtGen.readEventList_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.SignalGen.html">NuRadioMC.SignalGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalGen.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalGen.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalGen.html#module-NuRadioMC.SignalGen.HCRB2017">NuRadioMC.SignalGen.HCRB2017 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalGen.html#module-NuRadioMC.SignalGen.askaryan">NuRadioMC.SignalGen.askaryan module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalGen.html#module-NuRadioMC.SignalGen.parametrizations">NuRadioMC.SignalGen.parametrizations module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalGen.html#module-NuRadioMC.SignalGen">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">NuRadioMC.SignalProp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.SignalProp.analyticraytracing">NuRadioMC.SignalProp.analyticraytracing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.SignalProp.directRayTracing">NuRadioMC.SignalProp.directRayTracing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.SignalProp.propagation">NuRadioMC.SignalProp.propagation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.SignalProp.propagation_base_class">NuRadioMC.SignalProp.propagation_base_class module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-NuRadioMC.SignalProp">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#nuradiomc-simulation-e04runstrawmensim2-module">NuRadioMC.simulation.E04RunStrawmenSim2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#nuradiomc-simulation-t04visualize-sim-input-module">NuRadioMC.simulation.T04visualize_sim_input module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#nuradiomc-simulation-t04visualize-sim-inputextend-module">NuRadioMC.simulation.T04visualize_sim_inputExtend module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#nuradiomc-simulation-t05visualize-sim-output-module">NuRadioMC.simulation.T05visualize_sim_output module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#nuradiomc-simulation-t05visualize-sim-outputextend-module">NuRadioMC.simulation.T05visualize_sim_outputExtend module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#nuradiomc-simulation-t06read-sim-output-module">NuRadioMC.simulation.T06read_sim_output module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#nuradiomc-simulation-t07plot-ray-tracing-solutions-module">NuRadioMC.simulation.T07plot_ray_tracing_solutions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#module-NuRadioMC.simulation.simulation">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#module-NuRadioMC.simulation">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.utilities.html">NuRadioMC.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#module-NuRadioMC.utilities.Veff">NuRadioMC.utilities.Veff module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#module-NuRadioMC.utilities.attenuation">NuRadioMC.utilities.attenuation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#module-NuRadioMC.utilities.cross_sections">NuRadioMC.utilities.cross_sections module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#module-NuRadioMC.utilities.dump_hdf5">NuRadioMC.utilities.dump_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#module-NuRadioMC.utilities.earth_attenuation">NuRadioMC.utilities.earth_attenuation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#module-NuRadioMC.utilities.fluxes">NuRadioMC.utilities.fluxes module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#module-NuRadioMC.utilities.inelasticities">NuRadioMC.utilities.inelasticities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#module-NuRadioMC.utilities.medium">NuRadioMC.utilities.medium module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#module-NuRadioMC.utilities.merge_hdf5">NuRadioMC.utilities.merge_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#module-NuRadioMC.utilities.plotting">NuRadioMC.utilities.plotting module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#module-NuRadioMC.utilities.split_hdf5">NuRadioMC.utilities.split_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#module-NuRadioMC.utilities">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.studies.html">NuRadioMC.studies package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.studies.html#module-NuRadioMC.studies">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.examples.html">NuRadioMC.examples package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.examples.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.examples.html#module-NuRadioMC.examples">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../main.html">NuRadio</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../main.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="pages/welcome_page.html">NuRadioMC Documentation</a> &raquo;</li>
+        
+          <li><a href="pages/code_documentation.html">Code Documentation</a> &raquo;</li>
+        
+      <li>NuRadioMC.SignalProp package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/NuRadioMC/NuRadioMC.SignalProp.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="nuradiomc-signalprop-package">
+<h1>NuRadioMC.SignalProp package<a class="headerlink" href="#nuradiomc-signalprop-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioMC.SignalProp.CPPAnalyticRayTracing.html">NuRadioMC.SignalProp.CPPAnalyticRayTracing package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.SignalProp.CPPAnalyticRayTracing.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.SignalProp.CPPAnalyticRayTracing.html#nuradiomc-signalprop-cppanalyticraytracing-setup-module">NuRadioMC.SignalProp.CPPAnalyticRayTracing.setup module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.SignalProp.CPPAnalyticRayTracing.html#module-NuRadioMC.SignalProp.CPPAnalyticRayTracing.wrapper">NuRadioMC.SignalProp.CPPAnalyticRayTracing.wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.SignalProp.CPPAnalyticRayTracing.html#id1">NuRadioMC.SignalProp.CPPAnalyticRayTracing.wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.SignalProp.CPPAnalyticRayTracing.html#module-NuRadioMC.SignalProp.CPPAnalyticRayTracing">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-NuRadioMC.SignalProp.analyticraytracing">
+<span id="nuradiomc-signalprop-analyticraytracing-module"></span><h2>NuRadioMC.SignalProp.analyticraytracing module<a class="headerlink" href="#module-NuRadioMC.SignalProp.analyticraytracing" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.get_z_deep">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></code><code class="sig-name descname"><span class="pre">get_z_deep</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#get_z_deep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.get_z_deep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the z_deep needed for integral along the homogeneous ice
+to know the path length or the times. We obtain the depth for which
+the index of refraction is 0.035% away of that of deep ice. This
+calculation assumes a monotonically increasing index of refraction
+with negative depth.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></code><code class="sig-name descname"><span class="pre">ray_tracing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SP1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reflections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>utility class (wrapper around the 2D analytic ray tracing code) to get
+ray tracing solutions in 3D for two arbitrary points x1 and x2</p>
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.apply_propagation_effects">
+<code class="sig-name descname"><span class="pre">apply_propagation_effects</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">efield</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i_solution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.apply_propagation_effects"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.apply_propagation_effects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply propagation effects to the electric field
+Note that the 1/r weakening of the electric field is already accounted for in the signal generation</p>
+<dl class="simple">
+<dt>efield: ElectricField object</dt><dd><p>The electric field that the effects should be applied to</p>
+</dd>
+<dt>i_solution: int</dt><dd><p>Index of the raytracing solution the propagation effects should be based on</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>efield: ElectricField object</dt><dd><p>The modified ElectricField object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.find_solutions">
+<code class="sig-name descname"><span class="pre">find_solutions</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.find_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.find_solutions" title="Permalink to this definition">¶</a></dt>
+<dd><p>find all solutions between x1 and x2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_attenuation">
+<code class="sig-name descname"><span class="pre">get_attenuation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_detector_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_attenuation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_attenuation" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the signal attenuation due to attenuation in the medium (ice)</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+<dt>frequency: array of floats</dt><dd><p>the frequencies for which the attenuation is calculated</p>
+</dd>
+<dt>max_detector_freq: float or None</dt><dd><p>the maximum frequency of the final detector sampling
+(the simulation is internally run with a higher sampling rate, but the relevant part of the attenuation length
+calculation is the frequency interval visible by the detector, hence a finer calculation is more important)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>attenuation: array of floats</dt><dd><p>the fraction of the signal that reaches the observer
+(only ice attenuation, the 1/R signal falloff not considered here)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config">
+<code class="sig-name descname"><span class="pre">get_config</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current configuration file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing">
+<code class="sig-name descname"><span class="pre">get_focusing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_focusing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the focusing effect in the medium</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+<dt>dz: float</dt><dd><p>the infinitesimal change of the depth of the receiver, 1cm by default</p>
+</dd>
+<dt>limit: float</dt><dd><p>The maximum signal focusing.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>focusing: a float</dt><dd><p>gain of the signal at the receiver due to the focusing effect:</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector">
+<code class="sig-name descname"><span class="pre">get_launch_vector</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_launch_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the launch vector (in 3D) of solution iS</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>launch_vector: 3dim np.array</dt><dd><p>the launch vector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions">
+<code class="sig-name descname"><span class="pre">get_number_of_raytracing_solutions</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_number_of_raytracing_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions">
+<code class="sig-name descname"><span class="pre">get_number_of_solutions</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_number_of_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the number of solutions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters">
+<code class="sig-name descname"><span class="pre">get_output_parameters</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_output_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path">
+<code class="sig-name descname"><span class="pre">get_path</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length">
+<code class="sig-name descname"><span class="pre">get_path_length</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analytic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_path_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the path length of solution iS</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+<dt>analytic: bool</dt><dd><p>If True the analytic solution is used. If False, a numerical integration is used. (default: True)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>distance: float</dt><dd><p>distance from x1 to x2 along the ray path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_ray_path">
+<code class="sig-name descname"><span class="pre">get_ray_path</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_ray_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_ray_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output">
+<code class="sig-name descname"><span class="pre">get_raytracing_output</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i_solution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_raytracing_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector">
+<code class="sig-name descname"><span class="pre">get_receive_vector</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_receive_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the receive vector (in 3D) of solution iS</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>receive_vector: 3dim np.array</dt><dd><p>the receive vector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle">
+<code class="sig-name descname"><span class="pre">get_reflection_angle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_reflection_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the angle of reflection at the surface (in case of a reflected ray)</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>reflection_angle: float or None</dt><dd><p>the reflection angle (for reflected rays) or None for direct and refracted rays</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_results">
+<code class="sig-name descname"><span class="pre">get_results</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns dictionary of results (the parameters of the analytic ray path function)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type">
+<code class="sig-name descname"><span class="pre">get_solution_type</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_solution_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the type of the solution</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>solution_type: int</dt><dd><ul class="simple">
+<li><p>1: ‘direct’</p></li>
+<li><p>2: ‘refracted’</p></li>
+<li><p>3: ‘reflected</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time">
+<code class="sig-name descname"><span class="pre">get_travel_time</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analytic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_travel_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the travel time of solution iS</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+<dt>analytic: bool</dt><dd><p>If True the analytic solution is used. If False, a numerical integration is used. (default: True)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>time: float</dt><dd><p>travel time</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution">
+<code class="sig-name descname"><span class="pre">has_solution</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.has_solution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="Permalink to this definition">¶</a></dt>
+<dd><p>checks if ray tracing solution exists</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions">
+<code class="sig-name descname"><span class="pre">reset_solutions</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.reset_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the raytracing solutions back to None. This is useful to do when changing the start and end
+points in order to not accidentally use results from previous raytracings.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config">
+<code class="sig-name descname"><span class="pre">set_config</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.set_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the configuration file used by the raytracer</p>
+<dl class="simple">
+<dt>config: dict</dt><dd><p>The new configuration settings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution">
+<code class="sig-name descname"><span class="pre">set_solution</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raytracing_results</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.set_solution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read an already calculated raytracing solution from the input array</p>
+<dl class="simple">
+<dt>raytracing_results: dict</dt><dd><p>The dictionary containing the raytracing solution.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point">
+<code class="sig-name descname"><span class="pre">set_start_and_end_point</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.set_start_and_end_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the start and end points of the raytracing</p>
+<dl class="simple">
+<dt>x1: 3dim np.array</dt><dd><p>start point of the ray</p>
+</dd>
+<dt>x2: 3dim np.array</dt><dd><p>stop point of the ray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.solution_types">
+<code class="sig-name descname"><span class="pre">solution_types</span></code><em class="property"> <span class="pre">=</span> <span class="pre">{1:</span> <span class="pre">'direct',</span> <span class="pre">2:</span> <span class="pre">'refracted',</span> <span class="pre">3:</span> <span class="pre">'reflected'}</span></em><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.solution_types" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></code><code class="sig-name descname"><span class="pre">ray_tracing_2D</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SP1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_optimized_start_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.angular_diff">
+<code class="sig-name descname"><span class="pre">angular_diff</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_refl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_refl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pulser_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receiver_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ipulssol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">irxsol</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.angular_diff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.angular_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a helper function to find a ray that is subject to specular reflection (no transmission) at the
+ice-water interface, e.g. for Moore’s Bay. For a (virtual) emitter positioned at [x_refl,z_refl], it finds the
+emission angles such that the rays hit positions pulser_pos and receiver_pos. ipulssol = 0 or 1, respectively
+means that pulser_pos is hit directly or by means of reflection at the surface, respectively.
+irxsol is the equivalent parameter for receiver_pos.</p>
+<p>angular_diff can be used as the function to find a root of in the following fashion:</p>
+<p>result = optimize.root(raytr.angular_diff, x0=x_refl_start, args=(z_refl,pulser_pos,receiver_pos,ipulssol,irxsol))</p>
+<p>Then get the final value by x_refl = result.x[0] (z_refl is fixed)</p>
+<p>The idea is to treat the reflection point as a virtual emitter and then find the x-position at the predefined
+depth z_refl, for which the emisssion angles to pulser_pos and receiver_pos are the same (i.e. the output
+of angular_diff is zero). The x-position would be output “result” ofoptimize.root() above.</p>
+<dl class="simple">
+<dt>output:</dt><dd><p>float, is zero if the angles (w.r.t. the vertical) of rays emitted from [x_refl,z_refl] to
+positions pulser_pos and receiver_pos are the same or greater than zero, if this is not the case.
+For exact defintion, see “result” in code below</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.determine_solution_type">
+<code class="sig-name descname"><span class="pre">determine_solution_type</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.determine_solution_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.determine_solution_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the type of the solution</p>
+<dl class="simple">
+<dt>x1: 2dim np.array</dt><dd><p>start position</p>
+</dd>
+<dt>x2: 2dim np.array</dt><dd><p>stop position</p>
+</dd>
+<dt>C_0: float</dt><dd><p>C_0 value of ray tracing solution</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>solution_type: int</dt><dd><ul class="simple">
+<li><p>1: ‘direct’</p></li>
+<li><p>2: ‘refracted’</p></li>
+<li><p>3: ‘reflected</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.ds">
+<code class="sig-name descname"><span class="pre">ds</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.ds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.ds" title="Permalink to this definition">¶</a></dt>
+<dd><p>helper to calculate line integral</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.find_solutions">
+<code class="sig-name descname"><span class="pre">find_solutions</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.find_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.find_solutions" title="Permalink to this definition">¶</a></dt>
+<dd><p>this function finds all ray tracing solutions</p>
+<p>prerequesite is that x2 is above and to the right of x1, this is not a violation of universality
+because this requirement can be achieved with a simple coordinate transformation</p>
+<dl class="simple">
+<dt>x1: tuple</dt><dd><p>(y,z) coordinate of start point</p>
+</dd>
+<dt>x2: tuple</dt><dd><p>(y,z) coordinate of stop point</p>
+</dd>
+<dt>reflection: int (default 0)</dt><dd><p>how many reflections off the reflective layer (bottom of ice shelf) should be simulated</p>
+</dd>
+</dl>
+<p>returns an array of the C_0 paramters of the solutions (the array might be empty)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C0_from_log">
+<code class="sig-name descname"><span class="pre">get_C0_from_log</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logC0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_C0_from_log"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C0_from_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>transforms the fit parameter C_0 so that the likelihood looks better</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C_0_from_angle">
+<code class="sig-name descname"><span class="pre">get_C_0_from_angle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">anglaunch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_pos</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_C_0_from_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C_0_from_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find parameter C0 corresponding to a given launch angle and z-position of a ray.
+The parameter is found by means of a root finding procedure</p>
+<dl class="simple">
+<dt>output:</dt><dd><p>Complete output of optimisation procedure
+(result.x[0] is the C0 value found by optimisation procedure)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C_1">
+<code class="sig-name descname"><span class="pre">get_C_1</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_C_1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C_1" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates constant C_1 for a given C_0 and start point x1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle">
+<code class="sig-name descname"><span class="pre">get_angle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the angle with respect to the positive z-axis of the ray path at position x</p>
+<dl class="simple">
+<dt>x: tuple</dt><dd><p>(y, z) coordinate to calculate the angle</p>
+</dd>
+<dt>x_start: tuple</dt><dd><p>(y, z) start position of the ray</p>
+</dd>
+<dt>C_0: float</dt><dd><p>C_0 parameter of analytic ray path function</p>
+</dd>
+<dt>reflection: int (default 0)</dt><dd><p>the number of bottom reflections to consider</p>
+</dd>
+<dt>reflection_case: int (default 1)</dt><dd><p>only relevant if <cite>reflection</cite> is larger than 0
+* 1: rays start upwards
+* 2: rays start downwards</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle_from_C_0">
+<code class="sig-name descname"><span class="pre">get_angle_from_C_0</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_angle_from_C_0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle_from_C_0" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle_from_logC_0">
+<code class="sig-name descname"><span class="pre">get_angle_from_logC_0</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logC_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_angle_from_logC_0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle_from_logC_0" title="Permalink to this definition">¶</a></dt>
+<dd><p>argument angoff is provided so that the function can be used for minimization in get_C_0_from_angle(),
+in which case angoff is the angle for which the C_0 is sought and zero is returned when it is found.</p>
+<p>C_0 has a smallest possible value at 1./self.medium.n_ice . When it approaches this value, very
+small changes in C_0 correspond to a given change in the angle. In order to prevent the root finding
+algorithm from crossing into the invalid range of C_0 at values smaller than 1./self.medium.n_ice,
+the root finding is done with the parameter logC_0 = np.log(C_0 - 1. / self.medium.n_ice), so it is
+not exactly the log of C_0 as the nome of this method implies.
+This is the same parameter transformation that is done for find_solutions()</p>
+<dl class="simple">
+<dt>input:</dt><dd><p>logC_0 = np.log(C_0 - 1. / self.medium.n_ice)
+angoff = angular offset
+z_pos  = z-position from where ray is emitted</p>
+</dd>
+<dt>output:</dt><dd><p>angle corresponding to C_0, minus offset angoff</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_attenuation_along_path">
+<code class="sig-name descname"><span class="pre">get_attenuation_along_path</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_detector_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_attenuation_along_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_attenuation_along_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_c">
+<code class="sig-name descname"><span class="pre">get_c</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_c"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_c" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_delta_y">
+<code class="sig-name descname"><span class="pre">get_delta_y</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C0range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_delta_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_delta_y" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the difference in the y position between the analytic ray tracing path
+specified by C_0 at the position x2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_gamma">
+<code class="sig-name descname"><span class="pre">get_gamma</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_gamma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_gamma" title="Permalink to this definition">¶</a></dt>
+<dd><p>transforms z coordinate into gamma</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_launch_angle">
+<code class="sig-name descname"><span class="pre">get_launch_angle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_launch_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_launch_angle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path">
+<code class="sig-name descname"><span class="pre">get_path</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>for plotting purposes only, returns the ray tracing path between x1 and x2</p>
+<p>the result is only valid if C_0 is a solution to the ray tracing problem</p>
+<dl class="simple">
+<dt>x1: array</dt><dd><p>start position (y, z)</p>
+</dd>
+<dt>x2: array</dt><dd><p>stop position (y, z)</p>
+</dd>
+<dt>C_0: (float)</dt><dd><p>first parameter</p>
+</dd>
+<dt>n_points: integer (optional)</dt><dd><p>the number of coordinates to calculate</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>yy: array</dt><dd><p>the y coordinates of the ray tracing path</p>
+</dd>
+<dt>zz: array</dt><dd><p>the z coordinates of the ray tracing path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length">
+<code class="sig-name descname"><span class="pre">get_path_length</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_path_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length_analytic">
+<code class="sig-name descname"><span class="pre">get_path_length_analytic</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_path_length_analytic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length_analytic" title="Permalink to this definition">¶</a></dt>
+<dd><p>analytic solution to calculate the distance along the path. This code is based on the analytic solution found
+by Ben Hokanson-Fasing and the pyrex implementation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_reflections">
+<code class="sig-name descname"><span class="pre">get_path_reflections</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_path_reflections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_reflections" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the ray path in the presence of reflections at the bottom
+The full path is constructed by multiple calls to the <cite>get_path()</cite> function to put together the full path</p>
+<dl class="simple">
+<dt>x1: tuple</dt><dd><p>(y, z) coordinate of start value</p>
+</dd>
+<dt>x2: tuple</dt><dd><p>(y, z) coordinate of stop value</p>
+</dd>
+<dt>C_0: float</dt><dd><p>C_0 parameter of analytic ray path function</p>
+</dd>
+<dt>n_points: int (default 1000)</dt><dd><p>the number of points of the numeric path</p>
+</dd>
+<dt>reflection: int (default 0)</dt><dd><p>the number of bottom reflections to consider</p>
+</dd>
+<dt>reflection_case: int (default 1)</dt><dd><p>only relevant if <cite>reflection</cite> is larger than 0
+* 1: rays start upwards
+* 2: rays start downwards</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>yy: array</dt><dd><p>the y coordinates of the ray tracing path</p>
+</dd>
+<dt>zz: array</dt><dd><p>the z coordinates of the ray tracing path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_segments">
+<code class="sig-name descname"><span class="pre">get_path_segments</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_path_segments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_segments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the different segments of the path that makes up the full ray tracing path
+One segment per bottom reflection.</p>
+<dl class="simple">
+<dt>x1: tuple</dt><dd><p>(y, z) coordinate of start value</p>
+</dd>
+<dt>x2: tuple</dt><dd><p>(y, z) coordinate of stop value</p>
+</dd>
+<dt>C_0: float</dt><dd><p>C_0 parameter of analytic ray path function</p>
+</dd>
+<dt>reflection: int (default 0)</dt><dd><p>the number of bottom reflections to consider</p>
+</dd>
+<dt>reflection_case: int (default 1)</dt><dd><p>only relevant if <cite>reflection</cite> is larger than 0
+* 1: rays start upwards
+* 2: rays start downwards</p>
+</dd>
+</dl>
+<p>(original x1, x1 of path segment, original x2, x2 of path segment, C_0, C_1 of path segment)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_receive_angle">
+<code class="sig-name descname"><span class="pre">get_receive_angle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_receive_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_receive_angle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_reflection_angle">
+<code class="sig-name descname"><span class="pre">get_reflection_angle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_reflection_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_reflection_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the angle under which the ray reflects off the surface. If not reflection occurs, None is returned</p>
+<p>If reflections off the bottom (e.g. Moore’s Bay) are simulated, an array with reflection angles (one for
+each track segment) is returned</p>
+<dl class="simple">
+<dt>x1: tuple</dt><dd><p>(y, z) start position of ray</p>
+</dd>
+<dt>x2: tuple</dt><dd><p>(y, z) stop position of the ray</p>
+</dd>
+<dt>C_0: float</dt><dd><p>C_0 parameter of analytic ray path function</p>
+</dd>
+<dt>reflection: int (default 0)</dt><dd><p>the number of bottom reflections to consider</p>
+</dd>
+<dt>reflection_case: int (default 1)</dt><dd><p>only relevant if <cite>reflection</cite> is larger than 0
+* 1: rays start upwards
+* 2: rays start downwards</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_reflection_point">
+<code class="sig-name descname"><span class="pre">get_reflection_point</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_reflection_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_reflection_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the point where the signal gets reflected off the bottom of the ice shelf</p>
+<p>Returns tuple (y,z)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_surf_skim_angle">
+<code class="sig-name descname"><span class="pre">get_surf_skim_angle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_surf_skim_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_surf_skim_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>For a given position x1 = [x,z] and depth profile self.n(), find the angle at which a beam must be
+emitted to “skim the surface”, i.e. arrive horizontally (angle = 90 deg) at the surface;
+This is used to find the refraction zone.</p>
+<dl class="simple">
+<dt>returns:</dt><dd><p>C0crit: C0 of critical angle
+thcrit: critical angle</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_surface_pulse">
+<code class="sig-name descname"><span class="pre">get_surface_pulse</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infirn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'critical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chdraw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_surface_pulse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_surface_pulse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the time for a ray to travel from x1 to the surface and arriving at the surface
+with (a) critical angle or (b) Brewster angle, propagating in a straight line along the surface
+in air (n=1) in the firn at z=0 (n=self.n(0)) and then reaching the receiver by returning into the
+firn just at the point to reach the receiver at x2, entering the firn at the surface at the same
+angle it reached the surface from x1..</p>
+<dl>
+<dt>Input:</dt><dd><p>x1, x2: Arrays with x and z positions of emitter x1 and receiver x2
+infirn: Boolean. Set to True if surface ray travels in the firn, set to False (default) if it travels</p>
+<blockquote>
+<div><p>in air.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>angle:  String specifying angle at which ray reaches/leaves the surface. Can be ‘Brewster’ or ‘critical’</dt><dd><p>If neither of these is chosen, a warning is printed and angle is set to ‘critical’</p>
+</dd>
+<dt>chdraw: If None, do not draw the path of the ray. If the ray should be drawn, a string consistent with</dt><dd><p>the matplotlib.pyplot library has to be specified, e.g. ‘r:’ to draw a dotted red line.
+It is assumed that an appropriate figure on which to draw the ray has been created and set as
+current figure by the user before calling this method.</p>
+</dd>
+</dl>
+<p>label:  Label for plot</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_tof_for_straight_line">
+<code class="sig-name descname"><span class="pre">get_tof_for_straight_line</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_tof_for_straight_line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_tof_for_straight_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the time of flight for a hypothatical ray travelling from x1 to x2 in a straight line.
+Such an array in general is not a solution consistant with Fermat’s principle. It is however
+useful as a reference time or approximation for signals not explicable with geometric optics.</p>
+<dl class="simple">
+<dt>output:</dt><dd><p>time of flight for a ray travelling straight from x1 to x2</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_travel_time">
+<code class="sig-name descname"><span class="pre">get_travel_time</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_travel_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_travel_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_travel_time_analytic">
+<code class="sig-name descname"><span class="pre">get_travel_time_analytic</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_travel_time_analytic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_travel_time_analytic" title="Permalink to this definition">¶</a></dt>
+<dd><p>analytic solution to calculate the time of flight. This code is based on the analytic solution found
+by Ben Hokanson-Fasing and the pyrex implementation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_turning_point">
+<code class="sig-name descname"><span class="pre">get_turning_point</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_turning_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_turning_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the turning point, i.e. the maximum of the ray tracing path;
+parameter is c = self.medium.n_ice ** 2 - C_0 ** -2</p>
+<p>This is either the point of reflection off the ice surface
+or the point where the saddle point of the ray (transition from upward to downward going)</p>
+<p>Technically, the turning point is set to z=0 if the saddle point is above the surface.</p>
+<dl class="simple">
+<dt>c: float</dt><dd><p>related to C_0 parameter via c = self.medium.n_ice ** 2 - C_0 ** -2</p>
+</dd>
+</dl>
+<p>typle (gamma, z coordinate of turning point)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_y">
+<code class="sig-name descname"><span class="pre">get_y</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_y" title="Permalink to this definition">¶</a></dt>
+<dd><p>analytic form of the ray tracing part given an exponential index of refraction profile</p>
+<dl class="simple">
+<dt>gamma: (float or array)</dt><dd><p>gamma is a function of the depth z</p>
+</dd>
+<dt>C_0: (float)</dt><dd><p>first parameter</p>
+</dd>
+<dt>C_1: (float)</dt><dd><p>second parameter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_y_diff">
+<code class="sig-name descname"><span class="pre">get_y_diff</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_raw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_y_diff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_y_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>derivative dy(z)/dz</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_y_turn">
+<code class="sig-name descname"><span class="pre">get_y_turn</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_y_turn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_y_turn" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the y-coordinate of the turning point. This is either the point of reflection off the ice surface
+or the point where the saddle point of the ray (transition from upward to downward going)</p>
+<dl class="simple">
+<dt>C_0: float</dt><dd><p>C_0 parameter of function</p>
+</dd>
+<dt>x1: typle</dt><dd><p>(y, z) start position of ray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_y_with_z_mirror">
+<code class="sig-name descname"><span class="pre">get_y_with_z_mirror</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_y_with_z_mirror"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_y_with_z_mirror" title="Permalink to this definition">¶</a></dt>
+<dd><p>analytic form of the ray tracing part given an exponential index of refraction profile</p>
+<p>this function automatically mirrors z values that are above the turning point,
+so that this function is defined for all z</p>
+<dl class="simple">
+<dt>z: (float or array)</dt><dd><p>depth z</p>
+</dd>
+<dt>C_0: (float)</dt><dd><p>first parameter</p>
+</dd>
+<dt>C_1: (float)</dt><dd><p>second parameter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_z_from_n">
+<code class="sig-name descname"><span class="pre">get_z_from_n</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_z_from_n"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_z_from_n" title="Permalink to this definition">¶</a></dt>
+<dd><p>get z from given n - equation from get_n solved for z</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_z_mirrored">
+<code class="sig-name descname"><span class="pre">get_z_mirrored</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_z_mirrored"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_z_mirrored" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the mirrored x2 position so that y(z) can be used as a continuous function</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_z_unmirrored">
+<code class="sig-name descname"><span class="pre">get_z_unmirrored</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_z_unmirrored"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_z_unmirrored" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the unmirrored z position</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.is_in_refraction_zone">
+<code class="sig-name descname"><span class="pre">is_in_refraction_zone</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C0crit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.is_in_refraction_zone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.is_in_refraction_zone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find if receiver at x2 is in the refraction zone of emitter at x1. The refraction zone
+is the oposite of the shadow zone.</p>
+<p>If the C0 of the critical angle, C0crit, is provided, it will not be calculated. This is useful
+in case find_solutions() is called and C0crit is calculated in the process of determining the
+initial value for the minimization procedure.</p>
+<p>Returns True if x2 is in the refraction zone of x1 - note that the inverse statement is not
+necessarily true, i.e. when False is returned, it is possible that x2 is in the refraction
+zone nonetheless</p>
+<p>TODO:
+Why does the reference point not seem to lie exactly on the mirrored path?
+Instead of returning True/False, it might be useful to return  ycheck - x2[0] (in case x2[0]&gt;ycrit),
+which gives some idea of how close the receiver is to the refraction zone. This could be used to
+define a “gray zone’ and a ‘far zone’, in which the receiver is most definitely in the shadow zone</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.n">
+<code class="sig-name descname"><span class="pre">n</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.n"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.n" title="Permalink to this definition">¶</a></dt>
+<dd><p>refractive index as a function of depth</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.obj_delta_y">
+<code class="sig-name descname"><span class="pre">obj_delta_y</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logC_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.obj_delta_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.obj_delta_y" title="Permalink to this definition">¶</a></dt>
+<dd><p>function to find solution for C0, returns distance in y between function and x2 position
+result is signed! (important to use a root finder)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.obj_delta_y_square">
+<code class="sig-name descname"><span class="pre">obj_delta_y_square</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logC_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.obj_delta_y_square"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.obj_delta_y_square" title="Permalink to this definition">¶</a></dt>
+<dd><p>objective function to find solution for C0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.plot_result">
+<code class="sig-name descname"><span class="pre">plot_result</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.plot_result"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.plot_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>helper function to visualize results</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.SignalProp.directRayTracing">
+<span id="nuradiomc-signalprop-directraytracing-module"></span><h2>NuRadioMC.SignalProp.directRayTracing module<a class="headerlink" href="#module-NuRadioMC.SignalProp.directRayTracing" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.directRayTracing.</span></code><code class="sig-name descname"><span class="pre">directRayTracing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reflections</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.apply_propagation_effects">
+<code class="sig-name descname"><span class="pre">apply_propagation_effects</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">efield</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.apply_propagation_effects"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.apply_propagation_effects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.find_solutions">
+<code class="sig-name descname"><span class="pre">find_solutions</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.find_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.find_solutions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_config">
+<code class="sig-name descname"><span class="pre">get_config</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.get_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_launch_vector">
+<code class="sig-name descname"><span class="pre">get_launch_vector</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.get_launch_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_launch_vector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_number_of_raytracing_solutions">
+<code class="sig-name descname"><span class="pre">get_number_of_raytracing_solutions</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.get_number_of_raytracing_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_number_of_raytracing_solutions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_number_of_solutions">
+<code class="sig-name descname"><span class="pre">get_number_of_solutions</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.get_number_of_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_number_of_solutions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_output_parameters">
+<code class="sig-name descname"><span class="pre">get_output_parameters</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.get_output_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_output_parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_path">
+<code class="sig-name descname"><span class="pre">get_path</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.get_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_path_length">
+<code class="sig-name descname"><span class="pre">get_path_length</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.get_path_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_path_length" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_raytracing_output">
+<code class="sig-name descname"><span class="pre">get_raytracing_output</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i_solution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.get_raytracing_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_raytracing_output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_receive_vector">
+<code class="sig-name descname"><span class="pre">get_receive_vector</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.get_receive_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_receive_vector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_reflection_angle">
+<code class="sig-name descname"><span class="pre">get_reflection_angle</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.get_reflection_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_reflection_angle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_results">
+<code class="sig-name descname"><span class="pre">get_results</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.get_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_solution_type">
+<code class="sig-name descname"><span class="pre">get_solution_type</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.get_solution_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_solution_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_travel_time">
+<code class="sig-name descname"><span class="pre">get_travel_time</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.get_travel_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.get_travel_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.has_solution">
+<code class="sig-name descname"><span class="pre">has_solution</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.has_solution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.has_solution" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.set_config">
+<code class="sig-name descname"><span class="pre">set_config</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.set_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.set_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function only exists to fit the template, the raytracer is so simple it does not need a config</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.set_start_and_end_point">
+<code class="sig-name descname"><span class="pre">set_start_and_end_point</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/directRayTracing.html#directRayTracing.set_start_and_end_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.set_start_and_end_point" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="NuRadioMC.SignalProp.directRayTracing.directRayTracing.solution_types">
+<code class="sig-name descname"><span class="pre">solution_types</span></code><em class="property"> <span class="pre">=</span> <span class="pre">{1:</span> <span class="pre">'direct',</span> <span class="pre">2:</span> <span class="pre">'refracted',</span> <span class="pre">3:</span> <span class="pre">'reflected'}</span></em><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.directRayTracing.solution_types" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.SignalProp.propagation">
+<span id="nuradiomc-signalprop-propagation-module"></span><h2>NuRadioMC.SignalProp.propagation module<a class="headerlink" href="#module-NuRadioMC.SignalProp.propagation" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="NuRadioMC.SignalProp.propagation.get_propagation_module">
+<code class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.propagation.</span></code><code class="sig-name descname"><span class="pre">get_propagation_module</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'analytic'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation.html#get_propagation_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation.get_propagation_module" title="Permalink to this definition">¶</a></dt>
+<dd><p>wrapper around all propagation modules</p>
+<p>The function returns the python class of the 
+respective propagation module</p>
+<dl class="simple">
+<dt>name: string</dt><dd><ul class="simple">
+<li><p>analytic: analytic ray tracer</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.SignalProp.propagation_base_class">
+<span id="nuradiomc-signalprop-propagation-base-class-module"></span><h2>NuRadioMC.SignalProp.propagation_base_class module<a class="headerlink" href="#module-NuRadioMC.SignalProp.propagation_base_class" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.propagation_base_class.</span></code><code class="sig-name descname"><span class="pre">ray_tracing_base</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SP1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>base class of ray tracer. All ray tracing modules need to prodide the following functions</p>
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.apply_propagation_effects">
+<code class="sig-name descname"><span class="pre">apply_propagation_effects</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">efield</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i_solution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.apply_propagation_effects"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.apply_propagation_effects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply propagation effects to the electric field
+Note that the 1/r weakening of the electric field is already accounted for in the signal generation</p>
+<dl class="simple">
+<dt>efield: ElectricField object</dt><dd><p>The electric field that the effects should be applied to</p>
+</dd>
+<dt>i_solution: int</dt><dd><p>Index of the raytracing solution the propagation effects should be based on</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>efield: ElectricField object</dt><dd><p>The modified ElectricField object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.find_solutions">
+<code class="sig-name descname"><span class="pre">find_solutions</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.find_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.find_solutions" title="Permalink to this definition">¶</a></dt>
+<dd><p>find all solutions between x1 and x2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_attenuation">
+<code class="sig-name descname"><span class="pre">get_attenuation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_detector_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.get_attenuation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_attenuation" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the signal attenuation due to attenuation in the medium (ice)</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+<dt>frequency: array of floats</dt><dd><p>the frequencies for which the attenuation is calculated</p>
+</dd>
+<dt>max_detector_freq: float or None</dt><dd><p>the maximum frequency of the final detector sampling
+(the simulation is internally run with a higher sampling rate, but the relevant part of the attenuation length
+calculation is the frequency interval visible by the detector, hence a finer calculation is more important)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>attenuation: array of floats</dt><dd><p>the fraction of the signal that reaches the observer
+(only ice attenuation, the 1/R signal falloff not considered here)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_config">
+<code class="sig-name descname"><span class="pre">get_config</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.get_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that returns the configuration currently used by the raytracer</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_launch_vector">
+<code class="sig-name descname"><span class="pre">get_launch_vector</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.get_launch_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_launch_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the launch vector (in 3D) of solution iS</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>launch_vector: 3dim np.array</dt><dd><p>the launch vector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_number_of_raytracing_solutions">
+<code class="sig-name descname"><span class="pre">get_number_of_raytracing_solutions</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.get_number_of_raytracing_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_number_of_raytracing_solutions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that returns the maximum number of raytracing solutions that can exist between each given
+pair of start and end points</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_number_of_solutions">
+<code class="sig-name descname"><span class="pre">get_number_of_solutions</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.get_number_of_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_number_of_solutions" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the number of solutions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_output_parameters">
+<code class="sig-name descname"><span class="pre">get_output_parameters</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.get_output_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_output_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list with information about parameters to include in the output data structure that are specific
+to this raytracer</p>
+<dl class="simple">
+<dt>list with entries of form [{‘name’: str, ‘ndim’: int}]</dt><dd><p>‘name’: Name of the new parameter to include in the data structure
+‘ndim’: Dimension of the data structure for the parameter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_path">
+<code class="sig-name descname"><span class="pre">get_path</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.get_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>helper function that returns the 3D ray tracing path of solution iS</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>ray tracing solution</p>
+</dd>
+<dt>n_points: int</dt><dd><p>number of points of path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_path_length">
+<code class="sig-name descname"><span class="pre">get_path_length</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analytic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.get_path_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_path_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the path length of solution iS</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+<dt>analytic: bool</dt><dd><p>If True the analytic solution is used. If False, a numerical integration is used. (default: True)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>distance: float</dt><dd><p>distance from x1 to x2 along the ray path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_raytracing_output">
+<code class="sig-name descname"><span class="pre">get_raytracing_output</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i_solution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.get_raytracing_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_raytracing_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write parameters that are specific to this raytracer into the output data.</p>
+<dl class="simple">
+<dt>i_solution: int</dt><dd><p>The index of the raytracing solution</p>
+</dd>
+</dl>
+<p>dictionary with the keys matching the parameter names specified in get_output_parameters and the values being
+the results from the raytracing</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_receive_vector">
+<code class="sig-name descname"><span class="pre">get_receive_vector</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.get_receive_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_receive_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the receive vector (in 3D) of solution iS</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>receive_vector: 3dim np.array</dt><dd><p>the receive vector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_reflection_angle">
+<code class="sig-name descname"><span class="pre">get_reflection_angle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.get_reflection_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_reflection_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the angle of reflection at the surface (in case of a reflected ray)</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>reflection_angle: float or None</dt><dd><p>the reflection angle (for reflected rays) or None for direct and refracted rays</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_results">
+<code class="sig-name descname"><span class="pre">get_results</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.get_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_solution_type">
+<code class="sig-name descname"><span class="pre">get_solution_type</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.get_solution_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_solution_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the type of the solution</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>solution_type: int</dt><dd><ul class="simple">
+<li><p>1: ‘direct’</p></li>
+<li><p>2: ‘refracted’</p></li>
+<li><p>3: ‘reflected</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_travel_time">
+<code class="sig-name descname"><span class="pre">get_travel_time</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analytic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.get_travel_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_travel_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the travel time of solution iS</p>
+<dl class="simple">
+<dt>iS: int</dt><dd><p>choose for which solution to compute the launch vector, counting
+starts at zero</p>
+</dd>
+<dt>analytic: bool</dt><dd><p>If True the analytic solution is used. If False, a numerical integration is used. (default: True)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>time: float</dt><dd><p>travel time</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.has_solution">
+<code class="sig-name descname"><span class="pre">has_solution</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.has_solution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.has_solution" title="Permalink to this definition">¶</a></dt>
+<dd><p>checks if ray tracing solution exists</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.set_config">
+<code class="sig-name descname"><span class="pre">set_config</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.set_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.set_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to change the configuration file used by the raytracer</p>
+<dl class="simple">
+<dt>config: dict</dt><dd><p>The new configuration settings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.set_start_and_end_point">
+<code class="sig-name descname"><span class="pre">set_start_and_end_point</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.set_start_and_end_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.set_start_and_end_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the start and end points between which raytracing solutions shall be found
+It is recommended to also reset the solutions from any previous raytracing to avoid
+confusing them with the current solution</p>
+<dl class="simple">
+<dt>x1: 3D array</dt><dd><p>Start point of the ray</p>
+</dd>
+<dt>x2: 3D array</dt><dd><p>End point of the ray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-NuRadioMC.SignalProp">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-NuRadioMC.SignalProp" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="NuRadioMC.SignalProp.CPPAnalyticRayTracing.html" class="btn btn-neutral float-right" title="NuRadioMC.SignalProp.CPPAnalyticRayTracing package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioMC.SignalGen.ARZ.html" class="btn btn-neutral float-left" title="NuRadioMC.SignalGen.ARZ package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, The NuRadio Group.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

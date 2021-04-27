@@ -1,0 +1,864 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>NuRadioMC.examples.Sensitivities.E2_fluxes2 &mdash; NuRadio 2.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="/home/christoph/Software/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../main.html" class="icon icon-home"> NuRadio
+          
+
+          
+            
+            <img src="../../../../_static/logo_small.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../NuRadioReco/pages/welcome_page.html">NuRadioReco Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/installation.html">Installing NuRadioReco</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/installation.html#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/installation.html#manual-installation">Manual Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/installation.html#dependencies">Dependencies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/installation.html#core-dependencies">Core Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/installation.html#optional-dependencies">Optional Dependencies</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html">Data Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#nur-files-and-how-to-use-them">.nur Files and How to Use Them</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#philosophy-and-basic-structure">Philosophy and Basic Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#reading-and-writing-nur-files">Reading and Writing .nur Files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#parameter-storage">Parameter Storage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#list-of-data-classes">List of Data Classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#basetrace">BaseTrace</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#electric-field">Electric Field</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#channel">Channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#hybrid-information">Hybrid Information</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#hybrid-shower">Hybrid Shower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#hybrid-detector">Hybrid Detector</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/detector.html">Detector Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/detector.html#the-detector-class">The Detector Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/detector.html#detector-description-formats">Detector Description Formats</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/detector.html#database">DataBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/detector.html#json">JSON</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/detector.html#dictionary">Dictionary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/detector.html#signal-chain-responses">Signal Chain Responses</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/detector.html#id1">GenericDetector</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/detector.html#event-specific-changes">Event-Specific Changes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/detector.html#detector-description-in-event-files">Detector Description in Event Files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/detector.html#writing-the-detector">Writing the Detector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/detector.html#reading-the-detector">Reading the Detector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/detector.html#detector-viewer">Detector Viewer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/event_display.html">Event Display</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/utilities.html">Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/utilities.html#unit-system">Unit System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/utilities.html#fourier-transformation">Fourier Transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/utilities.html#metaclasses">Metaclasses</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/utilities.html#singleton">Singleton</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/contributing.html">Contributing to NuRadioReco</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/contributing.html#workflow">Workflow</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/contributing.html#filing-tickets">Filing Tickets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/contributing.html#submitting-pull-requests">Submitting Pull Requests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/contributing.html#coding-conventions">Coding Conventions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/contributing.html#versioning">Versioning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/contributing.html#unit-tests">Unit Tests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/contributing.html#coding-standards-and-linting">Coding Standards and Linting</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/contributing.html#documentation">Documentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/contributing.html#writing-docstrings">Writing Docstrings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/contributing.html#deploying-the-documentation">Deploying the Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/contributing.html#technical-implementation">Technical Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/contributing.html#usage-convention">Usage convention</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/code_documentation.html">Code Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html">NuRadioReco.framework package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.base_shower">NuRadioReco.framework.base_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.base_station">NuRadioReco.framework.base_station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.base_trace">NuRadioReco.framework.base_trace module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.channel">NuRadioReco.framework.channel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.electric_field">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.event">NuRadioReco.framework.event module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.hybrid_information">NuRadioReco.framework.hybrid_information module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.hybrid_shower">NuRadioReco.framework.hybrid_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.parameter_serialization">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.parameters">NuRadioReco.framework.parameters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.radio_shower">NuRadioReco.framework.radio_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.sim_channel">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.sim_station">NuRadioReco.framework.sim_station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.station">NuRadioReco.framework.station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework.trigger">NuRadioReco.framework.trigger module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.framework.html#module-NuRadioReco.framework">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html">NuRadioReco.modules package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.analogToDigitalConverter">NuRadioReco.modules.analogToDigitalConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.beamFormingDirectionFitter">NuRadioReco.modules.beamFormingDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelAddCableDelay">NuRadioReco.modules.channelAddCableDelay module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelAntennaDedispersion">NuRadioReco.modules.channelAntennaDedispersion module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelBandPassFilter">NuRadioReco.modules.channelBandPassFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelgalacticnoiseadder-module">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelGenericNoiseAdder">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelLengthAdjuster">NuRadioReco.modules.channelLengthAdjuster module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelMeasuredNoiseAdder">NuRadioReco.modules.channelMeasuredNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelResampler">NuRadioReco.modules.channelResampler module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelSignalReconstructor">NuRadioReco.modules.channelSignalReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelStopFilter">NuRadioReco.modules.channelStopFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelTemplateCorrelation">NuRadioReco.modules.channelTemplateCorrelation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelTimeOffsetCalculator">NuRadioReco.modules.channelTimeOffsetCalculator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.channelTimeWindow">NuRadioReco.modules.channelTimeWindow module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.correlationDirectionFitter">NuRadioReco.modules.correlationDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.cosmicRayEnergyReconstructor">NuRadioReco.modules.cosmicRayEnergyReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.efieldAirToIcePropagator">NuRadioReco.modules.efieldAirToIcePropagator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.efieldTimeDirectionFitter">NuRadioReco.modules.efieldTimeDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.efieldToVoltageConverter">NuRadioReco.modules.efieldToVoltageConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.efieldToVoltageConverterPerEfield">NuRadioReco.modules.efieldToVoltageConverterPerEfield module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.electricFieldBandPassFilter">NuRadioReco.modules.electricFieldBandPassFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.electricFieldResampler">NuRadioReco.modules.electricFieldResampler module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.electricFieldSignalReconstructor">NuRadioReco.modules.electricFieldSignalReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.eventTypeIdentifier">NuRadioReco.modules.eventTypeIdentifier module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.templateDirectionFitter">NuRadioReco.modules.templateDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.triggerTimeAdjuster">NuRadioReco.modules.triggerTimeAdjuster module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.voltageToAnalyticEfieldConverter">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.voltageToEfieldConverter">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules.voltageToEfieldConverterPerChannel">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.modules.html#module-NuRadioReco.modules">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.detector.html">NuRadioReco.detector package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.detector.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.detector.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.amp">NuRadioReco.detector.amp module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.antennapattern">NuRadioReco.detector.antennapattern module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.detector">NuRadioReco.detector.detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-detector-sql-module">NuRadioReco.detector.detector_sql module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.detector_sys_uncertainties">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.filterresponse">NuRadioReco.detector.filterresponse module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector.generic_detector">NuRadioReco.detector.generic_detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-sql-to-json-module">NuRadioReco.detector.sql_to_json module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-test-detector-db-module">NuRadioReco.detector.test_detector_db module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-visualize-detector-module">NuRadioReco.detector.visualize_detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.detector.html#module-NuRadioReco.detector">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html">NuRadioReco.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.analytic_pulse">NuRadioReco.utilities.analytic_pulse module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.bandpass_filter">NuRadioReco.utilities.bandpass_filter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.diodeSimulator">NuRadioReco.utilities.diodeSimulator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.fft">NuRadioReco.utilities.fft module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.geometryUtilities">NuRadioReco.utilities.geometryUtilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.ice">NuRadioReco.utilities.ice module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.io_utilities">NuRadioReco.utilities.io_utilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.metaclasses">NuRadioReco.utilities.metaclasses module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.noise">NuRadioReco.utilities.noise module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.templates">NuRadioReco.utilities.templates module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.timing">NuRadioReco.utilities.timing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.traceWindows">NuRadioReco.utilities.traceWindows module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.trace_utilities">NuRadioReco.utilities.trace_utilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.units">NuRadioReco.utilities.units module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities.version">NuRadioReco.utilities.version module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/NuRadioReco.utilities.html#module-NuRadioReco.utilities">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/detector_database_fields.html">Properties of Detector Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/detector_database_fields.html#antenna-table">Antenna Table</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/detector_database_fields.html#further-discussion-on-antenna-coordinates">Further Discussion on Antenna Coordinates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/detector_database_fields.html#adc-table">ADC Table</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/howto_documentation.html">How To</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/how_to/vertex_reconstruction.html">Use the Vertex Reconstruction Modules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#d-vs-3d-vertex-reconstructor">2D vs. 3D Vertex Reconstructor</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../NuRadioMC/pages/welcome_page.html">NuRadioMC Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioMC/pages/code_documentation.html">Code Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.EvtGen.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.EvtGen.html#nuradiomc-evtgen-nuradiomctoarasim-module">NuRadioMC.EvtGen.NuRadioMCtoAraSim module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.EvtGen.html#nuradiomc-evtgen-nuradioproposal-module">NuRadioMC.EvtGen.NuRadioProposal module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.EvtGen.html#nuradiomc-evtgen-create-tau-tab-module">NuRadioMC.EvtGen.create_tau_tab module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.generate_cylinder">NuRadioMC.EvtGen.generate_cylinder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.generate_unforced">NuRadioMC.EvtGen.generate_unforced module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.generator">NuRadioMC.EvtGen.generator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.generator_ASCII">NuRadioMC.EvtGen.generator_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.EvtGen.html#nuradiomc-evtgen-generator-skeleton-module">NuRadioMC.EvtGen.generator_skeleton module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.EvtGen.html#nuradiomc-evtgen-hdf5-to-ascii-module">NuRadioMC.EvtGen.hdf5_to_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.readARAEventList">NuRadioMC.EvtGen.readARAEventList module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen.readEventList_ASCII">NuRadioMC.EvtGen.readEventList_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.EvtGen.html#module-NuRadioMC.EvtGen">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalGen.html">NuRadioMC.SignalGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalGen.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalGen.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalGen.html#module-NuRadioMC.SignalGen.HCRB2017">NuRadioMC.SignalGen.HCRB2017 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalGen.html#module-NuRadioMC.SignalGen.askaryan">NuRadioMC.SignalGen.askaryan module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalGen.html#module-NuRadioMC.SignalGen.parametrizations">NuRadioMC.SignalGen.parametrizations module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalGen.html#module-NuRadioMC.SignalGen">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalProp.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalProp.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalProp.html#module-NuRadioMC.SignalProp.analyticraytracing">NuRadioMC.SignalProp.analyticraytracing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalProp.html#module-NuRadioMC.SignalProp.directRayTracing">NuRadioMC.SignalProp.directRayTracing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalProp.html#module-NuRadioMC.SignalProp.propagation">NuRadioMC.SignalProp.propagation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalProp.html#module-NuRadioMC.SignalProp.propagation_base_class">NuRadioMC.SignalProp.propagation_base_class module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.SignalProp.html#module-NuRadioMC.SignalProp">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.simulation.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.simulation.html#nuradiomc-simulation-e04runstrawmensim2-module">NuRadioMC.simulation.E04RunStrawmenSim2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.simulation.html#nuradiomc-simulation-t04visualize-sim-input-module">NuRadioMC.simulation.T04visualize_sim_input module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.simulation.html#nuradiomc-simulation-t04visualize-sim-inputextend-module">NuRadioMC.simulation.T04visualize_sim_inputExtend module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.simulation.html#nuradiomc-simulation-t05visualize-sim-output-module">NuRadioMC.simulation.T05visualize_sim_output module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.simulation.html#nuradiomc-simulation-t05visualize-sim-outputextend-module">NuRadioMC.simulation.T05visualize_sim_outputExtend module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.simulation.html#nuradiomc-simulation-t06read-sim-output-module">NuRadioMC.simulation.T06read_sim_output module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.simulation.html#nuradiomc-simulation-t07plot-ray-tracing-solutions-module">NuRadioMC.simulation.T07plot_ray_tracing_solutions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.simulation.html#module-NuRadioMC.simulation.simulation">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.simulation.html#module-NuRadioMC.simulation">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.utilities.html">NuRadioMC.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.utilities.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.utilities.html#module-NuRadioMC.utilities.Veff">NuRadioMC.utilities.Veff module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.utilities.html#module-NuRadioMC.utilities.attenuation">NuRadioMC.utilities.attenuation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.utilities.html#module-NuRadioMC.utilities.cross_sections">NuRadioMC.utilities.cross_sections module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.utilities.html#module-NuRadioMC.utilities.dump_hdf5">NuRadioMC.utilities.dump_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.utilities.html#module-NuRadioMC.utilities.earth_attenuation">NuRadioMC.utilities.earth_attenuation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.utilities.html#module-NuRadioMC.utilities.fluxes">NuRadioMC.utilities.fluxes module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.utilities.html#module-NuRadioMC.utilities.inelasticities">NuRadioMC.utilities.inelasticities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.utilities.html#module-NuRadioMC.utilities.medium">NuRadioMC.utilities.medium module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.utilities.html#module-NuRadioMC.utilities.merge_hdf5">NuRadioMC.utilities.merge_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.utilities.html#module-NuRadioMC.utilities.plotting">NuRadioMC.utilities.plotting module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.utilities.html#module-NuRadioMC.utilities.split_hdf5">NuRadioMC.utilities.split_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.utilities.html#module-NuRadioMC.utilities">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.studies.html">NuRadioMC.studies package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.studies.html#module-NuRadioMC.studies">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.examples.html">NuRadioMC.examples package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.examples.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/NuRadioMC.examples.html#module-NuRadioMC.examples">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../main.html">NuRadio</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../main.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>NuRadioMC.examples.Sensitivities.E2_fluxes2</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for NuRadioMC.examples.Sensitivities.E2_fluxes2</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span> <span class="nn">NuRadioMC.utilities</span> <span class="kn">import</span> <span class="n">fluxes</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">energyBinsPerDecade</span> <span class="o">=</span> <span class="mf">2.</span>
+<span class="n">plotUnitsEnergy</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span>
+<span class="n">plotUnitsFlux</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span><span class="o">**-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span><span class="o">**-</span><span class="mi">1</span>
+
+<span class="c1"># Unless you would like to work with the layout or the models/data from other experiments,</span>
+<span class="c1"># you don&#39;t need to change anything below here</span>
+<span class="c1"># --------------------------------------------------------------------</span>
+<span class="c1"># Other planned experiments</span>
+
+<span class="c1"># GRAND white paper,</span>
+<span class="c1"># numerical values, Bustamante</span>
+<span class="n">GRAND_energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(([</span><span class="mf">48192296.5</span><span class="p">,</span> <span class="mf">67644231.1</span><span class="p">,</span> <span class="mf">94947581.6</span><span class="p">,</span> <span class="mf">133271428.0</span><span class="p">,</span> <span class="mf">187063990.0</span><span class="p">,</span> <span class="mf">262568931.0</span><span class="p">,</span> <span class="mf">368550053.0</span><span class="p">,</span> <span class="mf">517308507.0</span><span class="p">,</span> <span class="mf">726110577.0</span><span class="p">,</span> <span class="mf">1019191760.0</span><span class="p">,</span> <span class="mf">1430569790.0</span><span class="p">,</span> <span class="mf">2007992980.0</span><span class="p">,</span> <span class="mf">2818482440.0</span><span class="p">,</span> <span class="mf">3956111070.0</span><span class="p">,</span> <span class="mf">5552922590.0</span><span class="p">,</span> <span class="mf">7794257720.0</span><span class="p">,</span> <span class="mf">10940266600.0</span><span class="p">,</span> <span class="mf">15356104100.0</span><span class="p">,</span> <span class="mf">21554313200.0</span><span class="p">,</span> <span class="mf">30254315500.0</span><span class="p">,</span> <span class="mf">42465913900.0</span><span class="p">,</span>
+                          <span class="mf">59606499400.0</span><span class="p">,</span> <span class="mf">83665567300.0</span><span class="p">,</span> <span class="mf">117435636000.0</span><span class="p">,</span> <span class="mf">164836371000.0</span><span class="p">,</span> <span class="mf">231369543000.0</span><span class="p">,</span> <span class="mf">324757606000.0</span><span class="p">,</span> <span class="mf">455840043000.0</span><span class="p">,</span> <span class="mf">639831498000.0</span><span class="p">,</span> <span class="mf">898087721000.0</span><span class="p">,</span> <span class="mf">1260584320000.0</span><span class="p">,</span> <span class="mf">1769396010000.0</span><span class="p">,</span> <span class="mf">2483580190000.0</span><span class="p">,</span> <span class="mf">3486031680000.0</span><span class="p">,</span> <span class="mf">4893104280000.0</span><span class="p">,</span> <span class="mf">6868115880000.0</span><span class="p">,</span> <span class="mf">9640304610000.0</span><span class="p">,</span> <span class="mf">13531436400000.0</span><span class="p">,</span> <span class="mf">18993151900000.0</span><span class="p">,</span> <span class="mf">26659388600000.0</span><span class="p">]))</span>
+
+<span class="n">GRAND_energy</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span>
+
+<span class="n">GRAND_10k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(([</span><span class="mf">8.41513361e-08</span><span class="p">,</span> <span class="mf">7.38147706e-08</span><span class="p">,</span> <span class="mf">5.69225180e-08</span><span class="p">,</span> <span class="mf">3.46647934e-08</span><span class="p">,</span>
+                       <span class="mf">1.95651137e-08</span><span class="p">,</span> <span class="mf">1.40651565e-08</span><span class="p">,</span> <span class="mf">1.25782087e-08</span><span class="p">,</span> <span class="mf">1.24621707e-08</span><span class="p">,</span>
+                       <span class="mf">1.31123151e-08</span><span class="p">,</span> <span class="mf">1.45812119e-08</span><span class="p">,</span> <span class="mf">1.65528260e-08</span><span class="p">,</span> <span class="mf">1.91930521e-08</span><span class="p">,</span>
+                       <span class="mf">2.31554429e-08</span><span class="p">,</span> <span class="mf">2.87477813e-08</span><span class="p">,</span> <span class="mf">3.55164030e-08</span><span class="p">,</span> <span class="mf">4.42563884e-08</span><span class="p">,</span>
+                       <span class="mf">5.63965197e-08</span><span class="p">,</span> <span class="mf">7.45183330e-08</span><span class="p">,</span> <span class="mf">1.01159657e-07</span><span class="p">,</span> <span class="mf">1.39040439e-07</span><span class="p">,</span>
+                       <span class="mf">1.98526677e-07</span><span class="p">,</span> <span class="mf">2.61742251e-07</span><span class="p">,</span> <span class="mf">3.40870828e-07</span><span class="p">,</span> <span class="mf">4.82745531e-07</span><span class="p">,</span>
+                       <span class="mf">6.55876763e-07</span><span class="p">,</span> <span class="mf">9.07706655e-07</span><span class="p">,</span> <span class="mf">1.67125879e-06</span><span class="p">,</span> <span class="mf">1.76142511e-05</span><span class="p">,</span>
+                       <span class="mf">2.55022320e-04</span><span class="p">,</span> <span class="mf">1.88371074e-03</span><span class="p">,</span> <span class="mf">6.71431813e-03</span><span class="p">,</span> <span class="mf">1.14286198e-02</span><span class="p">,</span>
+                       <span class="mf">1.14294614e-02</span><span class="p">,</span> <span class="mf">1.72447830e-02</span><span class="p">,</span> <span class="mf">7.48579143e-02</span><span class="p">,</span> <span class="mf">3.31883351e-01</span><span class="p">,</span>
+                       <span class="mf">8.57786094e-01</span><span class="p">,</span> <span class="mf">1.24824516e+00</span><span class="p">,</span> <span class="mf">1.42294586e+00</span><span class="p">,</span> <span class="mf">1.80135089e+00</span><span class="p">]))</span>
+
+<span class="n">GRAND_10k</span> <span class="o">*=</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span><span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span><span class="o">**-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span><span class="o">**-</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1">#GRAND_10k /= 2 #halfdecade bins</span>
+<span class="n">GRAND_10k</span> <span class="o">*=</span> <span class="n">energyBinsPerDecade</span>
+
+<span class="n">GRAND_200k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(([</span><span class="mf">4.26219753e-09</span><span class="p">,</span> <span class="mf">3.58147708e-09</span><span class="p">,</span> <span class="mf">2.75670137e-09</span><span class="p">,</span> <span class="mf">1.85254042e-09</span><span class="p">,</span>
+                        <span class="mf">1.13825106e-09</span><span class="p">,</span> <span class="mf">7.70141315e-10</span><span class="p">,</span> <span class="mf">6.51758930e-10</span><span class="p">,</span> <span class="mf">6.35878242e-10</span><span class="p">,</span>
+                        <span class="mf">6.69261628e-10</span><span class="p">,</span> <span class="mf">7.37439217e-10</span><span class="p">,</span> <span class="mf">8.38784832e-10</span><span class="p">,</span> <span class="mf">9.81688683e-10</span><span class="p">,</span>
+                        <span class="mf">1.18493794e-09</span><span class="p">,</span> <span class="mf">1.45699379e-09</span><span class="p">,</span> <span class="mf">1.80867621e-09</span><span class="p">,</span> <span class="mf">2.26948852e-09</span><span class="p">,</span>
+                        <span class="mf">2.91952068e-09</span><span class="p">,</span> <span class="mf">3.86790849e-09</span><span class="p">,</span> <span class="mf">5.24530715e-09</span><span class="p">,</span> <span class="mf">7.31211288e-09</span><span class="p">,</span>
+                        <span class="mf">9.98848945e-09</span><span class="p">,</span> <span class="mf">1.33523293e-08</span><span class="p">,</span> <span class="mf">1.80893102e-08</span><span class="p">,</span> <span class="mf">2.46582187e-08</span><span class="p">,</span>
+                        <span class="mf">3.41054825e-08</span><span class="p">,</span> <span class="mf">5.39140368e-08</span><span class="p">,</span> <span class="mf">3.36553610e-07</span><span class="p">,</span> <span class="mf">4.57179717e-06</span><span class="p">,</span>
+                        <span class="mf">3.59391218e-05</span><span class="p">,</span> <span class="mf">1.47550853e-04</span><span class="p">,</span> <span class="mf">3.33777479e-04</span><span class="p">,</span> <span class="mf">4.92873322e-04</span><span class="p">,</span>
+                        <span class="mf">6.68381070e-04</span><span class="p">,</span> <span class="mf">1.72553598e-03</span><span class="p">,</span> <span class="mf">7.06643413e-03</span><span class="p">,</span> <span class="mf">2.10754560e-02</span><span class="p">,</span>
+                        <span class="mf">4.06319101e-02</span><span class="p">,</span> <span class="mf">5.88162853e-02</span><span class="p">,</span> <span class="mf">7.45423652e-02</span><span class="p">,</span> <span class="mf">8.83700084e-02</span><span class="p">]))</span>
+
+<span class="n">GRAND_200k</span> <span class="o">*=</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span><span class="o">**-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span><span class="o">**-</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># RADAR proposed from https://arxiv.org/pdf/1710.02883.pdf</span>
+
+<span class="n">Radar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(([</span>
+    <span class="p">(</span><span class="mf">1.525e+01</span><span class="p">,</span> <span class="mf">6.870e-09</span><span class="p">,</span> <span class="mf">3.430e-07</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.575e+01</span><span class="p">,</span> <span class="mf">9.797e-10</span><span class="p">,</span> <span class="mf">3.113e-08</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.625e+01</span><span class="p">,</span> <span class="mf">4.728e-09</span><span class="p">,</span> <span class="mf">1.928e-07</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.675e+01</span><span class="p">,</span> <span class="mf">6.359e-09</span><span class="p">,</span> <span class="mf">3.706e-07</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.725e+01</span><span class="p">,</span> <span class="mf">9.128e-09</span><span class="p">,</span> <span class="mf">8.517e-07</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.775e+01</span><span class="p">,</span> <span class="mf">1.619e-08</span><span class="p">,</span> <span class="mf">1.835e-06</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.825e+01</span><span class="p">,</span> <span class="mf">2.995e-08</span><span class="p">,</span> <span class="mf">2.766e-06</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.875e+01</span><span class="p">,</span> <span class="mf">5.562e-08</span><span class="p">,</span> <span class="mf">8.253e-06</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.925e+01</span><span class="p">,</span> <span class="mf">1.072e-07</span><span class="p">,</span> <span class="mf">1.849e-05</span><span class="p">)]))</span>
+
+<span class="n">Radar</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">Radar</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
+<span class="n">Radar</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span><span class="o">**-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span><span class="o">**-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">Radar</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span><span class="o">**-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span><span class="o">**-</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># --------------------------------------------------------------------</span>
+<span class="c1"># Published data and limits</span>
+
+<span class="c1"># IceCube</span>
+<span class="c1"># log (E^2 * Phi [GeV cm^02 s^-1 sr^-1]) : log (E [Gev])</span>
+<span class="c1"># Phys Rev D 98 062003 (2018)</span>
+<span class="c1"># Numbers private correspondence Shigeru Yoshida</span>
+<span class="n">ice_cube_limit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(([</span>
+    <span class="p">(</span><span class="mf">6.199999125</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.698484687</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">6.299999496</span><span class="p">,</span> <span class="o">-</span><span class="mf">8.162876678</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">6.400000617</span><span class="p">,</span> <span class="o">-</span><span class="mf">8.11395291</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">6.500000321</span><span class="p">,</span> <span class="o">-</span><span class="mf">8.063634144</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">6.599999814</span><span class="p">,</span> <span class="o">-</span><span class="mf">8.004841781</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">6.699999798</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.944960162</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">6.799999763</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.924197388</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">6.899999872</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.899315263</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">7.299999496</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.730561153</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">7.699999798</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.670680637</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">8.100001583</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.683379711</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">8.500000321</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.748746801</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">8.899999872</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.703060304</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">9.299999496</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.512907553</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">9.699999798</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.370926525</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">10.10000158</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.134626026</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">10.50000032</span><span class="p">,</span> <span class="o">-</span><span class="mf">6.926516638</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">10.89999987</span><span class="p">,</span> <span class="o">-</span><span class="mf">6.576523031</span><span class="p">)</span>
+<span class="p">]))</span>
+
+<span class="n">ice_cube_limit</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">ice_cube_limit</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span>
+<span class="n">ice_cube_limit</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">ice_cube_limit</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span><span class="o">**-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span><span class="o">**-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ice_cube_limit</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="n">energyBinsPerDecade</span>
+
+<span class="c1"># Fig. 2 from PoS ICRC2017 (2018) 981</span>
+<span class="c1"># IceCube preliminary</span>
+<span class="c1"># E (GeV); E^2 dN/dE (GeV cm^-2 s-1 sr-1); yerror down; yerror up</span>
+<span class="n">ice_cube_hese</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(([</span>
+
+    <span class="p">(</span><span class="mf">6.526e+04</span><span class="p">,</span>  <span class="mf">2.248e-08</span><span class="p">,</span>  <span class="mf">9.96e-9</span><span class="p">,</span>  <span class="mf">1.123e-8</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.409e+05</span><span class="p">,</span>  <span class="mf">2.692e-08</span><span class="p">,</span>  <span class="mf">5.91e-9</span><span class="p">,</span>  <span class="mf">7.56e-9</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">3.041e+05</span><span class="p">,</span>  <span class="mf">7.631e-09</span><span class="p">,</span>  <span class="mf">3.746e-9</span><span class="p">,</span> <span class="mf">4.61e-9</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">6.644e+05</span><span class="p">,</span>  <span class="mf">2.022e-09</span><span class="p">,</span>  <span class="mf">7.03e-10</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.434e+06</span><span class="p">,</span>  <span class="mf">5.205e-09</span><span class="p">,</span>  <span class="mf">3.183e-9</span><span class="p">,</span>  <span class="mf">4.57e-9</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">3.096e+06</span><span class="p">,</span>  <span class="mf">4.347e-09</span><span class="p">,</span>  <span class="mf">3.142e-9</span><span class="p">,</span>  <span class="mf">5.428e-9</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">6.684e+06</span><span class="p">,</span>  <span class="mf">1.544e-09</span><span class="p">,</span>  <span class="mf">5.37e-10</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.46e+07</span><span class="p">,</span>  <span class="mf">4.063e-09</span><span class="p">,</span>   <span class="mf">1.353e-9</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">3.153e+07</span><span class="p">,</span>  <span class="mf">6.093e-09</span><span class="p">,</span>  <span class="mf">2.03e-9</span><span class="p">,</span>  <span class="mf">0.</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">6.806e+07</span><span class="p">,</span>  <span class="mf">1.046e-08</span><span class="p">,</span>  <span class="mf">3.641e-9</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
+<span class="p">]))</span>
+
+
+
+<span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span>
+<span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span><span class="o">**-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span><span class="o">**-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="mi">3</span>
+<span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span><span class="o">**-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span><span class="o">**-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*=</span>  <span class="mi">3</span>
+<span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span><span class="o">**-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span><span class="o">**-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">*=</span> <span class="mi">3</span>
+
+<span class="c1"># Ice cube</span>
+
+
+<div class="viewcode-block" id="ice_cube_nu_fit"><a class="viewcode-back" href="../../../../NuRadioMC/NuRadioMC.examples.Sensitivities.html#NuRadioMC.examples.Sensitivities.E2_fluxes2.ice_cube_nu_fit">[docs]</a><span class="k">def</span> <span class="nf">ice_cube_nu_fit</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">slope</span><span class="o">=-</span><span class="mf">2.13</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
+    <span class="n">flux</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">offset</span> <span class="o">*</span> <span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">TeV</span><span class="p">))</span><span class="o">**</span><span class="n">slope</span> <span class="o">*</span> <span class="mf">1e-18</span> <span class="o">*</span> \
+        <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span><span class="o">**-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span><span class="o">**-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span><span class="o">**-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flux</span></div>
+
+
+<div class="viewcode-block" id="get_ice_cube_mu_range"><a class="viewcode-back" href="../../../../NuRadioMC/NuRadioMC.examples.Sensitivities.html#NuRadioMC.examples.Sensitivities.E2_fluxes2.get_ice_cube_mu_range">[docs]</a><span class="k">def</span> <span class="nf">get_ice_cube_mu_range</span><span class="p">():</span>
+    <span class="n">energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">1e5</span><span class="p">,</span> <span class="mf">5e6</span><span class="p">,</span> <span class="mf">1e5</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span>
+    <span class="n">upper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">ice_cube_nu_fit</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">slope</span><span class="o">=-</span><span class="mf">2.</span><span class="p">),</span> <span class="n">ice_cube_nu_fit</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">slope</span><span class="o">=-</span><span class="mf">2.13</span><span class="p">))</span>
+    <span class="n">upper</span> <span class="o">*=</span> <span class="n">energy</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">lower</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">ice_cube_nu_fit</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">slope</span><span class="o">=-</span><span class="mf">2.26</span><span class="p">),</span>
+                       <span class="n">ice_cube_nu_fit</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">0.63</span><span class="p">,</span> <span class="n">slope</span><span class="o">=-</span><span class="mf">2.13</span><span class="p">))</span>
+    <span class="n">lower</span> <span class="o">*=</span> <span class="n">energy</span><span class="o">**</span><span class="mi">2</span>
+    <span class="k">return</span> <span class="n">energy</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">lower</span></div>
+
+
+<div class="viewcode-block" id="get_ice_cube_hese_range"><a class="viewcode-back" href="../../../../NuRadioMC/NuRadioMC.examples.Sensitivities.html#NuRadioMC.examples.Sensitivities.E2_fluxes2.get_ice_cube_hese_range">[docs]</a><span class="k">def</span> <span class="nf">get_ice_cube_hese_range</span><span class="p">():</span>
+    <span class="n">energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">1e5</span><span class="p">,</span> <span class="mf">5e6</span><span class="p">,</span> <span class="mf">1e5</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span>
+    <span class="n">upper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">ice_cube_nu_fit</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">2.46</span><span class="p">,</span> <span class="n">slope</span><span class="o">=-</span><span class="mf">2.63</span><span class="p">),</span>
+                       <span class="n">ice_cube_nu_fit</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">2.76</span><span class="p">,</span> <span class="n">slope</span><span class="o">=-</span><span class="mf">2.92</span><span class="p">))</span>
+    <span class="n">upper</span> <span class="o">*=</span> <span class="n">energy</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">lower</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">ice_cube_nu_fit</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">2.46</span><span class="p">,</span> <span class="n">slope</span><span class="o">=-</span><span class="mf">3.25</span><span class="p">),</span>
+                       <span class="n">ice_cube_nu_fit</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">2.16</span><span class="p">,</span> <span class="n">slope</span><span class="o">=-</span><span class="mf">2.92</span><span class="p">))</span>
+    <span class="n">lower</span> <span class="o">*=</span> <span class="n">energy</span><span class="o">**</span><span class="mi">2</span>
+    <span class="k">return</span> <span class="n">energy</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">lower</span></div>
+
+
+<span class="c1"># ANITA I - III</span>
+<span class="c1"># Phys. Rev. D 98, 022001 (2018)</span>
+<span class="n">anita_limit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(([</span>
+    <span class="p">(</span><span class="mf">9.94e17</span><span class="p">,</span>	<span class="mf">3.79e-14</span> <span class="o">*</span> <span class="mf">9.94e17</span> <span class="o">/</span> <span class="mf">1e9</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">2.37e18</span><span class="p">,</span>	<span class="mf">2.15e-15</span> <span class="o">*</span> <span class="mf">2.37e18</span> <span class="o">/</span> <span class="mf">1e9</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">5.19e18</span><span class="p">,</span>	<span class="mf">2.33e-16</span> <span class="o">*</span> <span class="mf">5.19e18</span> <span class="o">/</span> <span class="mf">1e9</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.10e19</span><span class="p">,</span>	<span class="mf">3.64e-17</span> <span class="o">*</span> <span class="mf">1.10e19</span> <span class="o">/</span> <span class="mf">1e9</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">3.55e19</span><span class="p">,</span>	<span class="mf">4.45e-18</span> <span class="o">*</span> <span class="mf">3.55e19</span> <span class="o">/</span> <span class="mf">1e9</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.11e20</span><span class="p">,</span>	<span class="mf">9.22e-19</span> <span class="o">*</span> <span class="mf">1.11e20</span> <span class="o">/</span> <span class="mf">1e9</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">4.18e20</span><span class="p">,</span>	<span class="mf">2.97e-19</span> <span class="o">*</span> <span class="mf">4.18e20</span> <span class="o">/</span> <span class="mf">1e9</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">9.70e20</span><span class="p">,</span>	<span class="mf">1.62e-19</span> <span class="o">*</span> <span class="mf">9.70e20</span> <span class="o">/</span> <span class="mf">1e9</span><span class="p">)</span>
+<span class="p">]))</span>
+
+<span class="n">anita_limit</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
+<span class="n">anita_limit</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span><span class="o">**-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span><span class="o">**-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">anita_limit</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/=</span> <span class="mi">2</span>
+<span class="n">anita_limit</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="n">energyBinsPerDecade</span>
+
+
+<span class="c1"># Auger neutrino limit</span>
+<span class="c1"># Auger 9 years, all flavour (x3)</span>
+<span class="n">auger_limit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(([</span>
+    <span class="p">(</span><span class="mf">16.7523809524</span><span class="p">,</span> <span class="mf">4.462265901e-07</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">17.2523809524</span><span class="p">,</span> <span class="mf">1.103901153e-07</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">17.7523809524</span><span class="p">,</span> <span class="mf">6.487559078e-08</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">18.2380952381</span><span class="p">,</span> <span class="mf">7.739545498e-08</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">18.7523809524</span><span class="p">,</span> <span class="mf">1.387743075e-07</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">19.2571428571</span><span class="p">,</span> <span class="mf">3.083827665e-07</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">19.7523809524</span><span class="p">,</span> <span class="mf">7.467202523e-07</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">20.2476190476</span><span class="p">,</span> <span class="mf">1.998499395e-06</span><span class="p">)</span>
+<span class="p">]))</span>
+<span class="n">auger_limit</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">auger_limit</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
+<span class="n">auger_limit</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span><span class="o">**-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span><span class="o">**-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">auger_limit</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/=</span> <span class="mi">2</span>  <span class="c1"># half-decade binning</span>
+<span class="n">auger_limit</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="n">energyBinsPerDecade</span>
+
+<span class="c1"># get 10% proton flux</span>
+<div class="viewcode-block" id="get_proton_10"><a class="viewcode-back" href="../../../../NuRadioMC/NuRadioMC.examples.Sensitivities.html#NuRadioMC.examples.Sensitivities.E2_fluxes2.get_proton_10">[docs]</a><span class="k">def</span> <span class="nf">get_proton_10</span><span class="p">(</span><span class="n">energy</span><span class="p">):</span>
+    <span class="n">vanVliet_reas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;ReasonableNeutrinos1.txt&quot;</span><span class="p">))</span>
+    <span class="n">E</span> <span class="o">=</span> <span class="n">vanVliet_reas</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">plotUnitsEnergy</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">vanVliet_reas</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">plotUnitsFlux</span> <span class="o">/</span> <span class="n">E</span><span class="o">**</span><span class="mi">2</span>
+    <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
+    <span class="n">getE</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">E</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">getE</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span></div>
+    
+
+
+<div class="viewcode-block" id="get_E2_limit_figure"><a class="viewcode-back" href="../../../../NuRadioMC/NuRadioMC.examples.Sensitivities.html#NuRadioMC.examples.Sensitivities.E2_fluxes2.get_E2_limit_figure">[docs]</a><span class="k">def</span> <span class="nf">get_E2_limit_figure</span><span class="p">(</span><span class="n">show_ice_cube_EHE_limit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">show_ice_cube_HESE</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">show_ice_cube_mu</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">show_anita_I_III_limit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">show_auger_limit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">show_neutrino_best_fit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">show_neutrino_best_case</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">show_neutrino_worst_case</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">show_grand_10k</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">show_grand_200k</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">show_radar</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+    <span class="c1"># Limit E2 Plot</span>
+    <span class="c1"># ---------------------------------------------------------------------------</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+    <span class="c1"># Neutrino Models</span>
+
+    <span class="n">Heinze_band</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;talys_neu_bands.out&quot;</span><span class="p">))</span>
+    <span class="n">best_fit</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Heinze_band</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">Heinze_band</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">Heinze_band</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>
+                        <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;Best fit UHECR ($\pm$ 3$\sigma$), Heinze et al.&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-.&#39;</span><span class="p">)</span>
+
+    <span class="n">Heinze_evo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;talys_neu_evolutions.out&quot;</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">Heinze_evo</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">Heinze_evo</span><span class="p">[:,</span> <span class="mi">5</span><span class="p">]</span> <span class="o">*</span> <span class="n">Heinze_evo</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">**</span>
+                    <span class="mi">2</span><span class="p">,</span> <span class="n">Heinze_evo</span><span class="p">[:,</span> <span class="mi">6</span><span class="p">]</span> <span class="o">*</span> <span class="n">Heinze_evo</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;0.8&#39;</span><span class="p">)</span>
+
+    <span class="n">vanVliet_max_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;MaxNeutrinos1.txt&quot;</span><span class="p">))</span>
+    <span class="n">vanVliet_max_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;MaxNeutrinos2.txt&quot;</span><span class="p">))</span>
+    <span class="n">vanVliet_reas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;ReasonableNeutrinos1.txt&quot;</span><span class="p">))</span>
+
+    <span class="n">vanVliet_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">vanVliet_max_1</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="n">vanVliet_max_2</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+
+    <span class="n">prot10</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">vanVliet_reas</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">vanVliet_reas</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span>
+                      <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;10% protons in UHECRs, van Vliet et al.&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkmagenta&#39;</span><span class="p">)</span>
+
+    <span class="n">prot</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">vanVliet_max_1</span><span class="p">[</span><span class="mi">0</span><span class="p">,:],</span><span class="n">vanVliet_max</span><span class="p">,</span><span class="n">vanVliet_reas</span><span class="p">[</span><span class="mi">1</span><span class="p">,:]</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;thistle&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;not excluded from UHECRs&#39;</span><span class="p">)</span>
+
+    <span class="n">first_legend</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="p">[</span><span class="n">best_fit</span><span class="p">,</span> <span class="n">prot</span><span class="p">,</span> <span class="n">prot10</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">add_artist</span><span class="p">(</span><span class="n">first_legend</span><span class="p">)</span>
+    <span class="c1">#-----------------------------------------------------------------------</span>
+
+    <span class="k">if</span> <span class="n">show_grand_10k</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">GRAND_energy</span> <span class="o">/</span> <span class="n">plotUnitsEnergy</span><span class="p">,</span> <span class="n">GRAND_10k</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;saddlebrown&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;GRAND 10k&#39;</span><span class="p">,</span>
+                    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">0.3e10</span><span class="p">,</span> <span class="mf">1.1e-7</span> <span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">energyBinsPerDecade</span><span class="p">),</span> <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span>
+                    <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;saddlebrown&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">show_grand_200k</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">GRAND_energy</span> <span class="o">/</span> <span class="n">plotUnitsEnergy</span><span class="p">,</span> <span class="n">GRAND_200k</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;saddlebrown&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;GRAND 200k&#39;</span><span class="p">,</span>
+                    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">1e10</span><span class="p">,</span> <span class="mf">6e-9</span> <span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">energyBinsPerDecade</span><span class="p">),</span> <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span>
+                    <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;saddlebrown&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">show_radar</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">Radar</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsEnergy</span><span class="p">,</span> <span class="n">Radar</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span>
+                        <span class="n">Radar</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">hatch</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;0.8&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;Radar&#39;</span><span class="p">,</span>
+                    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">1e9</span><span class="p">,</span> <span class="mf">4.5e-8</span><span class="p">),</span> <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span>
+                    <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;0.7&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">show_ice_cube_EHE_limit</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ice_cube_limit</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsEnergy</span><span class="p">,</span> <span class="n">ice_cube_limit</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;dodgerblue&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;IceCube&#39;</span><span class="p">,</span>
+                    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">3e5</span><span class="p">,</span> <span class="mf">1e-7</span><span class="p">),</span> <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span>
+                    <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;dodgerblue&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">show_ice_cube_HESE</span><span class="p">:</span>
+        <span class="c1"># data points</span>
+        <span class="n">uplimit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="n">uplimit</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">uplimit</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="mf">0.</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsEnergy</span><span class="p">,</span> <span class="n">ice_cube_hese</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">ice_cube_hese</span><span class="p">[:,</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span>
+                    <span class="n">uplims</span><span class="o">=</span><span class="n">uplimit</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;dodgerblue&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">ecolor</span><span class="o">=</span><span class="s1">&#39;dodgerblue&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">)</span>
+
+        <span class="c1"># hese fit</span>
+        <span class="n">ice_cube_hese_range</span> <span class="o">=</span> <span class="n">get_ice_cube_hese_range</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">ice_cube_hese_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsEnergy</span><span class="p">,</span> <span class="n">ice_cube_hese_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span>
+                        <span class="n">ice_cube_hese_range</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span> <span class="n">hatch</span><span class="o">=</span><span class="s1">&#39;//&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;dodgerblue&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;azure&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ice_cube_hese_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsEnergy</span><span class="p">,</span> <span class="n">ice_cube_nu_fit</span><span class="p">(</span><span class="n">ice_cube_hese_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                                           <span class="n">offset</span><span class="o">=</span><span class="mf">2.46</span><span class="p">,</span> <span class="n">slope</span><span class="o">=-</span><span class="mf">2.92</span><span class="p">)</span> <span class="o">*</span> <span class="n">ice_cube_hese_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;dodgerblue&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">show_ice_cube_mu</span><span class="p">:</span>
+        <span class="c1"># mu fit</span>
+        <span class="n">ice_cube_mu_range</span> <span class="o">=</span> <span class="n">get_ice_cube_mu_range</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">ice_cube_mu_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsEnergy</span><span class="p">,</span> <span class="n">ice_cube_mu_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span>
+                        <span class="n">ice_cube_mu_range</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span> <span class="n">hatch</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;dodgerblue&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;azure&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ice_cube_mu_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsEnergy</span><span class="p">,</span>
+                 <span class="n">ice_cube_nu_fit</span><span class="p">(</span><span class="n">ice_cube_mu_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">offset</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">slope</span><span class="o">=-</span><span class="mf">2.13</span><span class="p">)</span> <span class="o">*</span> <span class="n">ice_cube_mu_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span>
+                 <span class="n">color</span><span class="o">=</span><span class="s1">&#39;dodgerblue&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">show_anita_I_III_limit</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">anita_limit</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsEnergy</span><span class="p">,</span> <span class="n">anita_limit</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkorange&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;ANITA I - III&#39;</span><span class="p">,</span>
+                    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">5e9</span><span class="p">,</span> <span class="mf">0.5e-6</span> <span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">energyBinsPerDecade</span><span class="p">),</span> <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span>
+                    <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkorange&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">show_auger_limit</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">auger_limit</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsEnergy</span><span class="p">,</span> <span class="n">auger_limit</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;forestgreen&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;Auger&#39;</span><span class="p">,</span>
+                    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">1.2e8</span><span class="p">,</span> <span class="mf">2.1e-7</span> <span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">energyBinsPerDecade</span><span class="p">),</span> <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span>
+                    <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Neutrino Energy [GeV]&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$E^2\Phi$ [GeV cm$^{-2}$ s$^{-1}$ sr$^{-1}$]&#39;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">1e-11</span><span class="p">,</span> <span class="mf">2e-6</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mf">1e5</span><span class="p">,</span> <span class="mf">1e11</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div>
+
+
+<div class="viewcode-block" id="add_limit"><a class="viewcode-back" href="../../../../NuRadioMC/NuRadioMC.examples.Sensitivities.html#NuRadioMC.examples.Sensitivities.E2_fluxes2.add_limit">[docs]</a><span class="k">def</span> <span class="nf">add_limit</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">limit_labels</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">Veff</span><span class="p">,</span> <span class="n">n_stations</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">livetime</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C0&#39;</span><span class="p">):</span>
+    <span class="n">E</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
+    <span class="n">Veff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Veff</span><span class="p">)</span>
+    <span class="n">limit</span> <span class="o">=</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">get_limit_e2_flux</span><span class="p">(</span><span class="n">energy</span> <span class="o">=</span> <span class="n">E</span><span class="p">,</span>
+                                     <span class="n">veff</span> <span class="o">=</span> <span class="n">Veff</span><span class="p">,</span>
+                                     <span class="n">livetime</span> <span class="o">=</span> <span class="n">livetime</span><span class="p">,</span>
+                                     <span class="n">signalEff</span> <span class="o">=</span> <span class="n">n_stations</span><span class="p">,</span>
+                                     <span class="n">energyBinsPerDecade</span><span class="o">=</span><span class="n">energyBinsPerDecade</span><span class="p">,</span>
+                                     <span class="n">upperLimOnEvents</span><span class="o">=</span><span class="mf">2.44</span><span class="p">,</span>
+                                     <span class="n">nuCrsScn</span><span class="o">=</span><span class="s1">&#39;ctw&#39;</span><span class="p">)</span>
+
+    <span class="n">_plt</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">E</span><span class="o">/</span><span class="n">plotUnitsEnergy</span><span class="p">,</span><span class="n">limit</span><span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span> <span class="n">fmt</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{2}</span><span class="s2">: </span><span class="si">{0}</span><span class="s2"> stations, </span><span class="si">{1}</span><span class="s2"> years&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_stations</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">livetime</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">year</span><span class="p">),</span><span class="n">label</span><span class="p">),</span>
+                    <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">limit_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_plt</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">limit_labels</span></div>
+
+<div class="viewcode-block" id="add_limit_band"><a class="viewcode-back" href="../../../../NuRadioMC/NuRadioMC.examples.Sensitivities.html#NuRadioMC.examples.Sensitivities.E2_fluxes2.add_limit_band">[docs]</a><span class="k">def</span> <span class="nf">add_limit_band</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">limit_labels</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">Veff1</span><span class="p">,</span> <span class="n">Veff2</span><span class="p">,</span> <span class="n">n_stations</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">livetime</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C0&#39;</span><span class="p">):</span>
+    <span class="n">E</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
+    <span class="n">Veff1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Veff1</span><span class="p">)</span>
+    <span class="n">Veff2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Veff2</span><span class="p">)</span>
+    <span class="n">limit1</span> <span class="o">=</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">get_limit_e2_flux</span><span class="p">(</span><span class="n">energy</span> <span class="o">=</span> <span class="n">E</span><span class="p">,</span>
+                                     <span class="n">veff</span> <span class="o">=</span> <span class="n">Veff1</span><span class="p">,</span>
+                                     <span class="n">livetime</span> <span class="o">=</span> <span class="n">livetime</span><span class="p">,</span>
+                                     <span class="n">signalEff</span> <span class="o">=</span> <span class="n">n_stations</span><span class="p">,</span>
+                                     <span class="n">energyBinsPerDecade</span><span class="o">=</span><span class="n">energyBinsPerDecade</span><span class="p">,</span>
+                                     <span class="n">upperLimOnEvents</span><span class="o">=</span><span class="mf">2.44</span><span class="p">,</span>
+                                     <span class="n">nuCrsScn</span><span class="o">=</span><span class="s1">&#39;ctw&#39;</span><span class="p">)</span>
+    <span class="n">limit2</span> <span class="o">=</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">get_limit_e2_flux</span><span class="p">(</span><span class="n">energy</span> <span class="o">=</span> <span class="n">E</span><span class="p">,</span>
+                                      <span class="n">veff</span> <span class="o">=</span> <span class="n">Veff2</span><span class="p">,</span>
+                                     <span class="n">livetime</span> <span class="o">=</span> <span class="n">livetime</span><span class="p">,</span>
+                                     <span class="n">signalEff</span> <span class="o">=</span> <span class="n">n_stations</span><span class="p">,</span>
+                                     <span class="n">energyBinsPerDecade</span><span class="o">=</span><span class="n">energyBinsPerDecade</span><span class="p">,</span>
+                                     <span class="n">upperLimOnEvents</span><span class="o">=</span><span class="mf">2.44</span><span class="p">,</span>
+                                     <span class="n">nuCrsScn</span><span class="o">=</span><span class="s1">&#39;ctw&#39;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">E</span><span class="o">/</span><span class="n">plotUnitsEnergy</span><span class="p">,</span><span class="n">limit1</span><span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span><span class="n">limit2</span><span class="o">/</span> <span class="n">plotUnitsFlux</span><span class="p">,</span>
+                            <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> 
+                            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{2}</span><span class="s2">: </span><span class="si">{0}</span><span class="s2"> stations, </span><span class="si">{1}</span><span class="s2"> years&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_stations</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">livetime</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">year</span><span class="p">),</span><span class="n">label</span><span class="p">))</span>
+<span class="c1">#     limit_labels.append(_plt)</span>
+    <span class="k">return</span> <span class="n">limit_labels</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span><span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">strawman_veff_pa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span> <span class="p">[</span><span class="mf">1.00000000e+16</span><span class="p">,</span> <span class="mf">3.16227766e+16</span><span class="p">,</span> <span class="mf">1.00000000e+17</span><span class="p">,</span> <span class="mf">3.16227766e+17</span><span class="p">,</span> <span class="mf">1.00000000e+18</span><span class="p">,</span> <span class="mf">3.16227766e+18</span><span class="p">,</span> <span class="mf">1.00000000e+19</span><span class="p">,</span> <span class="mf">3.16227766e+19</span><span class="p">],</span>
+                              <span class="p">[</span><span class="mf">1.82805666e+07</span><span class="p">,</span> <span class="mf">1.34497197e+08</span><span class="p">,</span> <span class="mf">6.32044851e+08</span><span class="p">,</span> <span class="mf">2.20387046e+09</span><span class="p">,</span> <span class="mf">4.86050340e+09</span><span class="p">,</span> <span class="mf">8.18585201e+09</span><span class="p">,</span> <span class="mf">1.25636305e+10</span><span class="p">,</span> <span class="mf">1.83360237e+10</span><span class="p">]))</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="n">strawman_veff_pa</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
+    <span class="n">strawman_veff_pa</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span>
+    
+    <span class="n">strawman_pa_label</span> <span class="o">=</span> <span class="s1">&#39;Strawman + PA@15m@2s&#39;</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">get_E2_limit_figure</span><span class="p">()</span>
+    <span class="n">labels</span> <span class="o">=</span><span class="p">[]</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">add_limit</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">strawman_veff_pa</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">strawman_veff_pa</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="mi">270</span><span class="p">,</span> <span class="n">strawman_pa_label</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, The NuRadio Group.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
