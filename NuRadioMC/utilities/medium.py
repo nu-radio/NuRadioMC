@@ -1,4 +1,14 @@
 from NuRadioMC.utilities import medium_base
+import numpy as np
+from NuRadioReco.utilities import units
+import logging
+logging.basicConfig()
+
+try:
+    import radiopropa as RP
+    radiopropa_is_imported = True
+except ImportError:
+    radiopropa_is_imported = False
 
 """
 1) When implementing a new model it should at least inherit from
