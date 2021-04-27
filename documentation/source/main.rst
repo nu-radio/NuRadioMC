@@ -11,8 +11,7 @@ Welcome to NuRadio's documentation!
    :caption: Contents:
 
    NuRadioReco/pages/welcome_page.rst
-
-
+   NuRadioMC/pages/welcome_page.rst
 
 Indices and tables
 ==================
