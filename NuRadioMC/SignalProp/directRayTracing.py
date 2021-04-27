@@ -33,9 +33,19 @@ class directRayTracing():
         self._x1 = x1
         self._x2 = x2
 
-    def set_shower_axis(self,shower_axis=None):
-        self._shower_axis = shower_axis
+    def set_optional_parameter(self,parameter_name,parameter_value=None):
+        """
+        Set additional parameters which may be different for each ray tracer. 
+        If the name if not present for the ray tracer the function does nothing.
 
+        Parameters
+        ----------
+        parameter_name: string
+                        name of the parameter to set
+        parameter_value: object of right type for parameter
+                         value the parameter should be set to
+        """
+        pass
         
     def find_solutions(self):
         results = []

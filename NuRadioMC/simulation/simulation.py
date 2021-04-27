@@ -566,7 +566,6 @@ class simulation():
                     # i.e., opposite to the direction of propagation. We need the propagation direction here,
                     # so we multiply the shower axis with '-1'
                     self._shower_axis = -1 * hp.spherical_to_cartesian(self._zenith_shower, self._azimuth_shower)
-                    self._raytracer.set_shower_axis(self._shower_axis)
 
                     # calculate correct chereknov angle for ice density at vertex position
                     n_index = self._ice.get_index_of_refraction(x1)
@@ -596,6 +595,7 @@ class simulation():
                             distance_cut_time += time.time() - t_tmp
 
                         self._raytracer.set_start_and_end_point(x1, x2)
+                        self._raytracer.set_optional_parameter('shower_axis',self._shower_axis)
                         if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                             if self._cfg['propagation']['module'] == 'radiopropa':
                                 logger.error('Presimulation can not be used with the radiopropa ray tracer module')

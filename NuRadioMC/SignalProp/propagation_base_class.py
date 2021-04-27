@@ -60,14 +60,17 @@ class ray_tracing_base:
         """
         pass
 
-    def set_shower_axis(self,shower_axis=None):
+    def set_optional_parameter(self,parameter_name,parameter_value=None):
         """
-        Set the the shower axis. This is oposite to the neutrino arrival direction
+        Set additional parameters which may be different for each ray tracer. 
+        If the name if not present for the ray tracer the function does nothing.
 
         Parameters
         ----------
-        shower_axis: np.array of shape (3,), unit not relevant (preferably meter)
-            the direction of where the shower is moving towards to in cartesian coordinates
+        parameter_name: string
+                        name of the parameter to set
+        parameter_value: object of right type for parameter
+                         value the parameter should be set to
         """
         pass
 
