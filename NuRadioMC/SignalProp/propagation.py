@@ -19,7 +19,7 @@ def get_propagation_module(name='analytic'):
         from NuRadioMC.SignalProp.directRayTracing import directRayTracing
         return directRayTracing
     elif(name=='radiopropa'):
-        from NuRadioMC.SignalProp.radiopropatracing import radiopropa_ray_tracing
+        from NuRadioMC.SignalProp.radioproparaytracing import radiopropa_ray_tracing
         return radiopropa_ray_tracing
         
     else:
