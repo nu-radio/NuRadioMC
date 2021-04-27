@@ -158,8 +158,8 @@ class IceModelSimple(IceModel):
                     averaged index of refraction between the two points
         """
         if ((position1[2] - self.z_air_boundary) <=0) and ((position2[2] - self.z_air_boundary) <=0):
-            return self.n_ice - self.delta_n * self.z_0 / (position2[2] - position1[2]) 
-                    * (np.exp((position2[2]-self.z_shift) / self.z_0) - np.exp((position1[2]-self.z_shift) / self.z_0))
+            return (self.n_ice - self.delta_n * self.z_0 / (position2[2] - position1[2]) 
+                    * (np.exp((position2[2]-self.z_shift) / self.z_0) - np.exp((position1[2]-self.z_shift) / self.z_0)))
         else:
             return None
 
