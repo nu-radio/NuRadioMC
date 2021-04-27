@@ -1629,6 +1629,20 @@ class ray_tracing:
         self.__x1 = np.array([X1r[0], X1r[2]])
         self.__x2 = np.array([X2r[0], X2r[2]])
         self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
+
+    def set_optional_parameter(self,parameter_name,parameter_value=None):
+        """
+        Set additional parameters which may be different for each ray tracer. 
+        If the name if not present for the ray tracer the function does nothing.
+
+        Parameters
+        ----------
+        parameter_name: string
+                        name of the parameter to set
+        parameter_value: object of right type for parameter
+                         value the parameter should be set to
+        """
+        pass
         
     def set_solution(self, raytracing_results):
         """
