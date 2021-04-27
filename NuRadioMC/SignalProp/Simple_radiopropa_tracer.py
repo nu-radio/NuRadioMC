@@ -13,6 +13,26 @@ from scipy.interpolate import interp1d
 import logging
 logging.basicConfig()
 
+"""
+RadioPropa is a C++ module dedicated for ray tracing. It is a seperate module and
+it has its own unit system. However, all object within NuRadio ecosystem are in the
+NuRadio uit system. Therefore, when passing argument from NuRadio to RadioPropa, or
+when receiving object from RadioPropa into NuRadio the units of object needed to be 
+converted to the right unit system. Below is an example given for an object 'distance'
+
+- from NuRadio to RadioPropa:
+    distance_in_meter = distance_in_nuradio / units.meter
+    --> this converts the distance from NuRadio units into SI unit meter  
+    distance_in_radiopropa = distance_in_meter * radiopropa.meter
+    --> this converts the distance from SI unit meter into RadioPropa units
+
+- from RadioPropa to NuRadio:
+    distance_in_meter = distance_in_radiopropa / radiopropa.meter
+    --> this converts the distance from RadioPropa units into SI unit meter  
+    distance_in_nuradio = distance_in_meter * units.meter
+    --> this converts the distance from SI unit meter into NuRadio units
+"""
+
 
 class radiopropa_ray_tracing:
 

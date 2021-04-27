@@ -1,4 +1,4 @@
-from NuRadioMC.utilities.medium_base import*
+from NuRadioMC.utilities import medium_base
 
 """
 1) When implementing a new model it should at least inherit from
@@ -33,7 +33,7 @@ in the a RadioPropaIceWrapper object, you can do this by redefining the
             return ice
 """
 
-class southpole_simple(IceModel_Simple):
+class southpole_simple(medium_base.IceModel_Simple):
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 RICE2014/SP model
         # define model parameters (RICE 2014/southpole)
@@ -44,7 +44,7 @@ class southpole_simple(IceModel_Simple):
             delta_n = 0.426)
 
 
-class southpole_2015(IceModel_Simple):
+class southpole_2015(medium_base.IceModel_Simple):
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 SPICE2015/SP model
         super().__init__(
@@ -54,7 +54,7 @@ class southpole_2015(IceModel_Simple):
             delta_n = 0.423)
 
 
-class ARAsim_southpole(IceModel_Simple):
+class ARAsim_southpole(medium_base.IceModel_Simple):
     def __init__(self):
         # define model parameters (SPICE 2015/southpole)
         super().__init__(
@@ -64,7 +64,7 @@ class ARAsim_southpole(IceModel_Simple):
             delta_n = 0.43)
 
 
-class mooresbay_simple(IceModel_Simple):
+class mooresbay_simple(medium_base.IceModel_Simple):
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 MB1 model
         super().__init__(
@@ -79,7 +79,7 @@ class mooresbay_simple(IceModel_Simple):
             refl_phase_shift = 180*units.deg)
 
 
-class mooresbay_simple_2(IceModel_Simple):
+class mooresbay_simple_2(medium_base.IceModel_Simple):
     def __init__(self):\
         # from https://doi.org/10.1088/1475-7516/2018/07/055 MB2 model
         super().__init__(
@@ -94,7 +94,7 @@ class mooresbay_simple_2(IceModel_Simple):
             refl_phase_shift = 180*units.deg)
 
 
-class greenland_simple(IceModel_Simple):
+class greenland_simple(medium_base.IceModel_Simple):
     def __init__(self):
         # from C. Deaconu, fit to data from Hawley '08, Alley '88
         # rho(z) = 917 - 602 * exp (-z/37.25), using n = 1 + 0.78 rho(z)/rho_0
@@ -104,14 +104,14 @@ class greenland_simple(IceModel_Simple):
             z_0 = 37.25*units.meter, 
             delta_n = 0.51)
 
-class greenland_firn(IceModel):
+class greenland_firn(medium_base.IceModel):
     """
     This model can only be used with the radiopropa raytracer.
     Therefor, the model is implemented through radiopropa.
     """
     def __init__(self):
-        if not radiopropa_is_imported:
-            logger.error('This ice model depends fully on RadioPropa, which was not import, and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
+        if not medium_base.radiopropa_is_imported:
+            medium_base.logger.error('This ice model depends fully on RadioPropa, which was not import, and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('This ice model depends fully on RadioPropa, which could not be imported')
 
         super().__init__(z_bottom = -3000*units.meter)
@@ -202,7 +202,7 @@ class greenland_firn(IceModel):
         ice:    RadioPropaIceWrapper
                 object holding the radiopropa scalarfield and modules
         """
-        ice = RadioPropaIceWrapper(self,self._scalarfield)
+        ice = medium_base.RadioPropaIceWrapper(self,self._scalarfield)
         if discontinuity == True:
             firn_boundary_pos = RP.Vector3d(0,0,self.z_firn*(RP.meter/units.meter))
             step = RP.Vector3d(0,0,1e-9*RP.meter)
@@ -218,12 +218,12 @@ class greenland_firn(IceModel):
 
 def get_ice_model(name):
     """
-    function to access the right ice model by name
+    function to access the right ice model class by name of the class
 
     Parameter
     ---------
     name: string
-          name of the requested ice model
+          name of the class of the requested ice model
 
     Returns
     -------
@@ -231,7 +231,7 @@ def get_ice_model(name):
                object of the class with the name of the requested model
     """
     if globals()[name]() == None:
-        logger.error('The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.')
+        medium_base.logger.error('The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.')
         raise NotImplementedError('The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.')
     else:
         return globals()[name]()
