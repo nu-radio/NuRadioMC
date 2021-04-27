@@ -150,6 +150,23 @@ class radiopropa_ray_tracing:
         if self.__auto_step and self.__x1!=None and self.__x2!=None: self.set_auto_step_sizes()
         
 
+    def set_optional_parameter(self,parameter_name,parameter_value=None):
+        """
+        Set additional parameters which may be different for each ray tracer. 
+        If the name if not present for the ray tracer the function does nothing.
+
+        Parameters
+        ----------
+        parameter_name: string
+                        name of the parameter to set
+        parameter_value: object of right type for parameter
+                         value the parameter should be set to
+        """
+        if parameter_name == 'shower_axis':
+            self.set_shower_axis(parameter_value)
+        else:
+            pass
+
     def set_shower_axis(self,shower_axis):
         """
         Set the the shower axis. This is oposite to the neutrino arrival direction

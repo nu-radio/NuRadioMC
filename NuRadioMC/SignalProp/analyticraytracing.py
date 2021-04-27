@@ -1629,17 +1629,6 @@ class ray_tracing:
         self.__x1 = np.array([X1r[0], X1r[2]])
         self.__x2 = np.array([X2r[0], X2r[2]])
         self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
-
-    def set_shower_axis(self,shower_axis):
-        """
-        Set the the shower axis. This is oposite to the neutrino arrival direction
-
-        Parameters
-        ----------
-        shower_axis: np.array of shape (3,), unit not relevant (preferably meter)
-            the direction of where the shower is moving towards to in cartesian coordinates
-        """ 
-        self.__shower_axis = shower_axis/np.linalg.norm(shower_axis)
         
     def set_solution(self, raytracing_results):
         """

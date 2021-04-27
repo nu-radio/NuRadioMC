@@ -595,7 +595,7 @@ class simulation():
                             distance_cut_time += time.time() - t_tmp
 
                         self._raytracer.set_start_and_end_point(x1, x2)
-                        self._raytracer.set_shower_axis(self._shower_axis)
+                        self._raytracer.set_optional_parameter('shower_axis',self._shower_axis)
                         if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                             if self._cfg['propagation']['module'] == 'radiopropa':
                                 logger.error('Presimulation can not be used with the radiopropa ray tracer module')
