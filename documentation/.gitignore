@@ -1,2 +1,3 @@
 build/*
-arianna_detector_db.json    
+arianna_detector_db.json
+decay_library.hdf5

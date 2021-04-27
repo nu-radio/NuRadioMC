@@ -8,4 +8,3 @@ Code Documentation
    ../NuRadioReco.modules
    ../NuRadioReco.detector
    ../NuRadioReco.utilities
-   includeme

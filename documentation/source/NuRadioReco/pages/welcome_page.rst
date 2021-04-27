@@ -17,8 +17,3 @@ NuRadioReco Documentation
    detector_database_fields.rst
    howto_documentation.rst
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`search`
