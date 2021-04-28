@@ -22,6 +22,7 @@ class Event:
         self.__radio_showers = collections.OrderedDict()
         self.__sim_showers = collections.OrderedDict()
         self.__event_time = 0
+        self.__sim_particles = collections.OrderedDict()
         self.__sim_particle = NuRadioReco.framework.sim_particle.SimParticle()
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
@@ -122,6 +123,7 @@ class Event:
     def set_station(self, station):
         self.__stations[station.get_id()] = station
 
+    # stuff related to simulated MC particles/cascade
     def set_sim_params(self, params):
         for p in params:
             print("setting param {} to {}".format(p, params[p]))
@@ -132,6 +134,60 @@ class Event:
 
     def get_sim_particle(self):
         return self.__sim_particle
+
+    def add_sim_particle(self, sim_particle):
+        """
+        Adds a MC particle to the event
+
+        Parameters
+        ------------------------
+        sim_particle: SimParticle object
+            The MC particle to be added to the event
+        """
+        if(sim_particle.get_id() in self.__sim_particles):
+            logger.error("MC particle with id {sim_particle.get_id()} already exists. Simulated particle id needs to be unique per event")
+            raise AttributeError("MC particle with id {sim_particle.get_id()} already exists. Simulated particle id needs to be unique per event")
+        self.__sim_particles[sim_particle.get_id()] = sim_particle
+
+    def get_sim_particles(self):
+        """
+        Returns an iterator over the MC particles stored in the event
+        """
+        for sim_particle in self.__sim_particles.values():
+            yield sim_particle
+
+    def get_sim_particle(self, sim_particle_id):
+        """
+        returns a specific MC particle identified by its unique id
+        """
+        if(sim_particle_id not in self.__sim_particles):
+            raise AttributeError(f"MC particle with id {sim_particle_id} not present")
+        return self.__sim_particles[sim_particle_id]
+
+    def get_primary(self):
+        """
+        returns a first MC particle
+        """
+        if len(self.__sim_particles) == 0:
+            return None
+
+        return self.get_sim_particle(0)   
+
+    def has_sim_particle(self, sim_particle_id=None):
+        """
+        Returns true if at least one MC particle is stored in the event
+
+        If sim_particle_id is given, it checks if this particular MC particle exists
+        """
+        if(sim_particle_id is None):
+            return len(self.__sim_particles) > 0
+        else:
+            return sim_particle_id in self.__sim_particles.keys()
+
+
+
+
+
 
     def add_shower(self, shower):
         """
