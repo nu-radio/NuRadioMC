@@ -9,8 +9,8 @@ logger = logging.getLogger('SimParticle')
 
 class SimParticle:
 
-    def __init__(self, event_id=0):
-        self._id = event_id
+    def __init__(self, particle_id=0):
+        self._id = particle_id
         self._parameters = {}
     
     def __setitem__(self, key, value):
@@ -52,14 +52,14 @@ class SimParticle:
         hdf5_dict['event_group_ids'] = self.get_id()
         hdf5_dict['flavors'] = self.get_parameter(parameters.simParticleParameters.flavor)
         hdf5_dict['inelasticity'] = self.get_parameter(parameters.simParticleParameters.inelasticity)
-        #hdf5_dict['interaction_type'] = self.get_parameter(parameters.simParticleParameters.interaction_type)
-        #TODO hdf5_dict['n_interaction'] = self.get_parameter(parameters.simParticleParameters.n_interaction)
-        #TODO hdf5_dict['vertex_times'] = self.get_parameter(parameters.simParticleParameters.vertex_time)
+        hdf5_dict['interaction_type'] = self.get_parameter(parameters.simParticleParameters.interaction_type)
+        hdf5_dict['n_interaction'] = self.get_parameter(parameters.simParticleParameters.n_interaction)
+        hdf5_dict['vertex_times'] = self.get_parameter(parameters.simParticleParameters.vertex_time)
         hdf5_dict['weights'] = self.get_parameter(parameters.simParticleParameters.weight)
-        hdf5_dict['xx'] = self.get_parameter(parameters.simParticleParameters.x)
-        hdf5_dict['yy'] = self.get_parameter(parameters.simParticleParameters.y)
+        hdf5_dict['xx'] = self.get_parameter(parameters.simParticleParameters.vertex[0])
+        hdf5_dict['yy'] = self.get_parameter(parameters.simParticleParameters.vertex[1])
         hdf5_dict['zeniths'] = self.get_parameter(parameters.simParticleParameters.zenith)
-        hdf5_dict['zz'] = self.get_parameter(parameters.simParticleParameters.z)
+        hdf5_dict['zz'] = self.get_parameter(parameters.simParticleParameters.vertex[2])
         return(hdf5_dict)
 
     def serialize(self):

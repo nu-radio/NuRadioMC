@@ -493,6 +493,19 @@ class simulation():
                 if('station_{:d}'.format(self._station_id) in self._fin_stations):
                     ray_tracing_performed = (self._raytracer.get_output_parameters()[0]['name'] in self._fin_stations['station_{:d}'.format(self._station_id)]) and (self._was_pre_simulated)
                 self._evt_tmp = NuRadioReco.framework.event.Event(0, 0)
+                # read all quantities from hdf5 file and store them in local variables
+                self._read_input_neutrino_properties()
+                # calculate the weight of the primary particle
+                self.primary[simp.weight] = get_weight(self.primary[simp.zenith],
+                                                         self.primary[simp.energy],
+                                                         self.primary[simp.flavor],
+                                                         mode=self._cfg['weights']['weight_mode'],
+                                                         cross_section_type=self._cfg['weights']['cross_section_type'],
+                                                         vertex_position=self.primary[simp.vertex],
+                                                         phi_nu=self.primary[simp.azimuth])
+
+                self._evt_tmp.add_sim_particle(self.primary)
+
                 self._create_sim_station()
                 # loop over all showers in event group
                 # create output data structure for this channel
@@ -525,10 +538,9 @@ class simulation():
                                     100 * distance_cut_time / total_time,
                                     100 * (total_time - total_time_sum) / total_time))
 
-                    # read all quantities from hdf5 file and store them in local variables
-                    self._read_input_neutrino_properties()
+
                     logger.debug(f"simulating shower {self._shower_index}: {self._shower_type} with E = {self._shower_energy/units.eV:.2g}eV")
-                    x1 = np.array([self._x, self._y, self._z])  # the interaction point
+                    x1 = self.primary[simp.vertex]  # the interaction point
 
                     if self._cfg['speedup']['distance_cut']:
                         t_tmp = time.time()
@@ -571,7 +583,7 @@ class simulation():
                     # so we multiply the shower axis with '-1'
                     self._shower_axis = -1 * hp.spherical_to_cartesian(self._zenith_shower, self._azimuth_shower)
 
-                    # calculate correct chereknov angle for ice density at vertex position
+                    # calculate correct Cherenkov angle for ice density at vertex position
                     n_index = self._ice.get_index_of_refraction(x1)
                     cherenkov_angle = np.arccos(1. / n_index)
 
@@ -581,7 +593,7 @@ class simulation():
 
                     for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                         x2 = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
-                        logger.debug(f"simulationg channel {channel_id} at {x2}")
+                        logger.debug(f"simulating channel {channel_id} at {x2}")
 
                         if self._cfg['speedup']['distance_cut']:
                             t_tmp = time.time()
@@ -818,19 +830,10 @@ class simulation():
                         logger.info(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
                     self._evt = NuRadioReco.framework.event.Event(self._event_group_id, iEvent)  # create new event
 
-                    self._evt.set_sim_params({
-                        simp.zenith: self._zenith_shower,
-                        simp.azimuth: self._azimuth_shower,
-                        simp.energy: self._energy,
-                        simp.flavor: self._flavor,
-                        simp.x: self._x, 
-                        simp.y: self._y,
-                        simp.z: self._z,
-                        simp.weight: self._mout['weights'][self._event_group_id],
-                        simp.vertex_time: self._vertex_time,
-                        simp.inelasticity: self._inelasticity,
-                        #TODO simp.interaction_type: self._interaction_type,
-                        })
+                    # add MC particles that belong to this (sub) event to event structure
+                    # add only primary and parent?
+                    # or all particles? usually not so many in our case...
+                    self._evt.add_sim_particle(self._evt_tmp.get_primary())
 
                     self._station = NuRadioReco.framework.station.Station(self._station_id)
                     sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
@@ -1018,9 +1021,9 @@ class simulation():
         if(not has_fiducial):
             return True
 
-        r = (self._x ** 2 + self._y ** 2) ** 0.5
+        r = (self.primary[simp.vertex][0]** 2 + self.primary[simp.vertex][1] ** 2) ** 0.5
         if(r >= self._fin_attrs['fiducial_rmin'] and r <= self._fin_attrs['fiducial_rmax']):
-            if(self._z >= self._fin_attrs['fiducial_zmin'] and self._z <= self._fin_attrs['fiducial_zmax']):
+            if(self.primary[simp.vertex][2] >= self._fin_attrs['fiducial_zmin'] and self.primary[simp.vertex][2] <= self._fin_attrs['fiducial_zmax']):
                 return True
         return False
 
@@ -1226,22 +1229,35 @@ class simulation():
         return sg
 
     def _read_input_neutrino_properties(self):
-        self._event_group_id = self._fin['event_group_ids'][self._shower_index]
-        self._flavor = self._fin['flavors'][self._shower_index]
-        self._energy = self._fin['energies'][self._shower_index]
-        self._inttype = self._fin['interaction_type'][self._shower_index]
-        self._x = self._fin['xx'][self._shower_index]
-        self._y = self._fin['yy'][self._shower_index]
-        self._z = self._fin['zz'][self._shower_index]
-        self._shower_type = self._fin['shower_type'][self._shower_index]
-        self._shower_energy = self._fin['shower_energies'][self._shower_index]
-        self._vertex_time = 0
-        if 'vertex_times' in self._fin:
-            self._vertex_time = self._fin['vertex_times'][self._shower_index]
-        self._zenith_shower = self._fin['zeniths'][self._shower_index]
-        self._azimuth_shower = self._fin['azimuths'][self._shower_index]
-        self._inelasticity = self._fin['inelasticity'][self._shower_index]
-        self._n_interaction = self._fin['n_interaction'][self._shower_index]
+            #if self._inputfiletype = "h5":
+            self._n_interaction = self._fin['n_interaction'][self._shower_index]
+
+            self.primary = NuRadioReco.framework.sim_particle.SimParticle(0)
+
+            self._event_group_id = self._fin['event_group_ids'][self._shower_index]
+
+            self.primary[simp.flavor] = self._fin['flavors'][self._shower_index]
+            self.primary[simp.energy] = self._fin['energies'][self._shower_index]
+            self.primary[simp.interaction_type] = self._fin['interaction_type'][self._shower_index]
+            self.primary[simp.vertex] = np.array([self._fin['xx'][self._shower_index],
+                                                  self._fin['yy'][self._shower_index],
+                                                  self._fin['zz'][self._shower_index]])
+            self.primary[simp.zenith] = self._fin['zeniths'][self._shower_index]
+            self.primary[simp.azimuth] = self._fin['azimuths'][self._shower_index]
+            self.primary[simp.inelasticity] = self._fin['inelasticity'][self._shower_index]
+            self.primary[simp.parent_id] = None # primary does not have a parent
+
+            self._shower_type = self._fin['shower_type'][self._shower_index]
+            self._shower_energy = self._fin['shower_energies'][self._shower_index]
+            self.primary[simp.vertex_time] = 0
+            if 'vertex_times' in self._fin:
+                self.primary[simp.vertex_time] = self._fin['vertex_times'][self._shower_index]
+            self._vertex_time = self.primary[simp.vertex_time]
+            self._zenith_shower = self._fin['zeniths'][self._shower_index]
+            self._azimuth_shower = self._fin['azimuths'][self._shower_index]
+            self.primary[simp.inelasticity] = self._fin['inelasticity'][self._shower_index]
+            #TODO ensure this is handled correctly
+            self.primary[simp.parent_id] = None
 
     def _create_sim_station(self):
         """
@@ -1253,17 +1269,17 @@ class simulation():
 
     def _create_sim_shower(self):
         """
-        creates a sim_shower object and saves the meta arguments such as neutrino direction, self._energy and self._flavor
+        creates a sim_shower object and saves the meta arguments such as neutrino direction, shower energy and self.primary[flavor]
         """
         # create NuRadioReco event structure
         self._sim_shower = NuRadioReco.framework.radio_shower.RadioShower(self._shower_ids[self._shower_index])
         # save relevant neutrino properties
-        self._sim_shower[shp.zenith] = self._zenith_shower
-        self._sim_shower[shp.azimuth] = self._azimuth_shower
+        self._sim_shower[shp.zenith] = self.primary[simp.zenith]
+        self._sim_shower[shp.azimuth] = self.primary[simp.azimuth]
         self._sim_shower[shp.energy] = self._shower_energy
-        self._sim_shower[shp.flavor] = self._flavor
-        self._sim_shower[shp.interaction_type] = self._inttype
-        self._sim_shower[shp.vertex] = np.array([self._x, self._y, self._z])
+        self._sim_shower[shp.flavor] = self.primary[simp.flavor]
+        self._sim_shower[shp.interaction_type] = self.primary[simp.interaction_type]
+        self._sim_shower[shp.vertex] = self.primary[simp.vertex]
         self._sim_shower[shp.vertex_time] = self._vertex_time
         self._sim_shower[shp.type] = self._shower_type
 
