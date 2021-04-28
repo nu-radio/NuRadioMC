@@ -262,11 +262,6 @@ class Event:
     def serialize(self, mode):
         stations_pkl = []
         try:
-            commit_hash = NuRadioReco.utilities.version.get_NuRadioReco_commit_hash()
-            self.set_parameter(parameters.eventParameters.hash_NuRadioReco, commit_hash)
-        except:
-            self.set_parameter(parameters.eventParameters.hash_NuRadioReco, None)
-        try:
             commit_hash = NuRadioReco.utilities.version.get_NuRadioMC_commit_hash()
             self.set_parameter(parameters.eventParameters.hash_NuRadioMC, commit_hash)
         except:
