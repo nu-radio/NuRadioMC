@@ -110,18 +110,19 @@ class showerParameters(Enum):
     flavor = 111  # the flavor of the particle initiating the shower
 
 class simParticleParameters(Enum):
-    zenith = 1  # the zenith angle of the incoming neutrino direction
-    azimuth = 2  # the azimuth angle of the incoming neutrino direction
-    energy = 3  # the energy of the neutrino
-    flavor = 4  # the flavor of the neutrino
-    #vertex = 5  # the neutrino vertex position
-    x = 5
-    y = 6
-    z = 7
-    weight = 8
+    parent_id = 1
+    zenith = 2  # the zenith angle of the incoming neutrino direction
+    azimuth = 3  # the azimuth angle of the incoming neutrino direction
+    energy = 4  # the energy of the neutrino
+    flavor = 5  # the flavor of the neutrino
+    #vertex = 6  # the neutrino vertex position
+    x = 6
+    y = 7
+    z = 8
     vertex_time = 9
-    inelasticity = 10  # inelasticity ot neutrino interaction
-    interaction_type = 11  # interaction type, e.g., cc, nc, tau_em, tau_had
+    weight = 10
+    inelasticity = 11  # inelasticity ot neutrino interaction
+    interaction_type = 12  # interaction type, e.g., cc, nc, tau_em, tau_had
     #cr_energy = 9  # the cosmic-ray energy
     #cr_zenith = 10  # zenith angle of the cosmic-ray incoming direction
     #cr_azimuth = 11  # azimuth angle of the cosmic-ray incoming direction
