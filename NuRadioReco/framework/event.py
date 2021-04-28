@@ -23,7 +23,6 @@ class Event:
         self.__sim_showers = collections.OrderedDict()
         self.__event_time = 0
         self.__sim_particles = collections.OrderedDict()
-        self.__sim_particle = NuRadioReco.framework.sim_particle.SimParticle()
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
         self.__modules_station = {}  # saves which modules were executed with what parameters on station level
@@ -129,12 +128,6 @@ class Event:
             print("setting param {} to {}".format(p, params[p]))
             self.__sim_particle.set_parameter(p, params[p])
             
-    def set_sim_particle(self, sim_particle):
-        self.__sim_particle = sim_particle
-
-    def get_sim_particle(self):
-        return self.__sim_particle
-
     def add_sim_particle(self, sim_particle):
         """
         Adds a MC particle to the event
@@ -345,6 +338,9 @@ class Event:
         sim_showers_pkl = []
         for shower in self.get_sim_showers():
             sim_showers_pkl.append(shower.serialize())
+        sim_particles_pkl = []
+        for sim_particle in self.get_sim_particles():
+            sim_particles_pkl.append(sim_particle.serialize())
         hybrid_info = self.__hybrid_information.serialize()
         modules_out_event = []
         for value in self.__modules_event:  # remove module instances (this will just blow up the file size)
@@ -363,7 +359,7 @@ class Event:
                 'stations': stations_pkl,
                 'showers': showers_pkl,
                 'sim_showers': sim_showers_pkl,
-                'sim_particle': self.__sim_particle,
+                'sim_particles': sim_particles_pkl,
                 'hybrid_info': hybrid_info,
                 '__modules_event': modules_out_event,
                 '__modules_station': modules_out_station
@@ -387,6 +383,11 @@ class Event:
                 shower = NuRadioReco.framework.radio_shower.RadioShower(None)
                 shower.deserialize(shower_pkl)
                 self.add_sim_shower(shower)
+        if 'sim_particles' in data.keys():
+            for sim_particle_pkl in data['sim_particles']:
+                sim_particle = NuRadioReco.framework.sim_particle.SimParticle(None)
+                sim_particle.deserialize(sim_particle_pkl)
+                self.add_sim_particle(sim_particle)
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         if 'hybrid_info' in data.keys():
             self.__hybrid_information.deserialize(data['hybrid_info'])
@@ -394,8 +395,6 @@ class Event:
         self.__run_number = data['__run_number']
         self._id = data['_id']
         self.__event_time = data['__event_time']
-
-        self.__sim_particle = data['sim_particle']
 
         if("__modules_event" in data):
             self.__modules_event = data['__modules_event']

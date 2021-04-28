@@ -115,10 +115,10 @@ class simParticleParameters(Enum):
     azimuth = 3  # the azimuth angle of the incoming neutrino direction
     energy = 4  # the energy of the neutrino
     flavor = 5  # the flavor of the neutrino
-    #vertex = 6  # the neutrino vertex position
-    x = 6
-    y = 7
-    z = 8
+    vertex = 6  # the neutrino vertex position
+    #x = 6
+    #y = 7
+    #z = 8
     vertex_time = 9
     weight = 10
     inelasticity = 11  # inelasticity ot neutrino interaction
