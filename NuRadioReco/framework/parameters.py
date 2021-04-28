@@ -91,6 +91,7 @@ class showerParameters(Enum):
     shower_maximum = 9  # position of shower maximum in slant depth, e.g., Xmax
     distance_shower_maximum_geometric = 10  # distance to xmax in meter
     distance_shower_maximum_grammage = 11  # distance to xmax in g / cm^2
+    parent_id = 12 # id of parent in sim particles
 
     # dedicated parameter for sim showers
     refractive_index_at_ground = 100  # refractivity at sea level
