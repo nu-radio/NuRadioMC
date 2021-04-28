@@ -13,12 +13,13 @@ from NuRadioReco.detector import detector_mongo as det
 from NuRadioReco.detector.webinterface.utils.table import get_table
 from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 
-sparameters_layout = html.Div([
+sparameters_layout = html.Div([html.Br(),
     dcc.Checklist(id="function-test",
         options=[
             {'label': 'cable is working', 'value': 'working'}
             ],
-        value=['working']
+        value=['working'],
+        style={'width': '10%'}
     ), html.Br(),
 
     html.Div("specify data format:"),
