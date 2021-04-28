@@ -20,7 +20,8 @@ sparameters_layout = html.Div([
         options=[
             {'label': 'channel is working', 'value': 'working'}
             ],
-        value=['working']
+        value=['working'],
+        style={'width': '10%'}
     ), html.Br(),
 
     html.Div("specify data format:"),
