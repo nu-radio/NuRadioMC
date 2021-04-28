@@ -234,9 +234,9 @@ class Event:
         If shower_id is given, it checks if this particular shower exists
         """
         if(shower_id is None):
-            return shower_id in self.__radio_showers.keys()
-        else:
             return len(self.__radio_showers) > 0
+        else:
+            return shower_id in self.__radio_showers.keys()
 
     def get_first_shower(self, ids=None):
         """
