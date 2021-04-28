@@ -148,7 +148,7 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, un
         else:
             content_type, content_string = contents.split(',')
             S_datas = base64.b64decode(content_string)
-            S_data_io = StringIO(contents)
+            S_data_io = StringIO(S_datas)
             S_data = np.genfromtxt(S_data_io, skip_header=7, skip_footer=1, delimiter=sep).T
             S_data[0] *= str_to_unit[unit_ff]
             for i in range(4):

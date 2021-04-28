@@ -5,11 +5,9 @@ from NuRadioReco.utilities import units
 from plotly import subplots
 import numpy as np
 import plotly.graph_objs as go
-import json
 import sys
 import base64
 from io import StringIO
-import csv
 from NuRadioReco.detector.webinterface.app import app
 from NuRadioReco.detector import detector_mongo as det
 from NuRadioReco.detector.webinterface.utils.table import get_table
