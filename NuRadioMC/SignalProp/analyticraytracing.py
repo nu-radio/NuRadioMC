@@ -1630,19 +1630,30 @@ class ray_tracing:
         self.__x2 = np.array([X2r[0], X2r[2]])
         self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
 
-    def set_optional_parameter(self,parameter_name,parameter_value=None):
+    def use_optional_function(self, function_name, *args, **kwargs):
         """
-        Set additional parameters which may be different for each ray tracer. 
-        If the name if not present for the ray tracer the function does nothing.
+        Use optional function which may be different for each ray tracer. 
+        If the name of the function is not present for the ray tracer this function does nothing.
 
         Parameters
         ----------
         parameter_name: string
                         name of the parameter to set
-        parameter_value: object of right type for parameter
-                         value the parameter should be set to
+        *args: type of the argument required by function
+               all the neseccary arguments for the function separated by a comma
+        **kwargs: type of keyword argument of function
+                  all all the neseccary keyword arguments for the function in the
+                  form of key=argument and separated by a comma
+
+        Example
+        -------
+        use_optional_function('set_shower_axis',np.array([0,0,1]))
+        use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
         """
-        pass
+        if not hasattr(self,function_name):
+            pass
+        else:
+            getattr(self,function_name)(*args,**kwargs)
         
     def set_solution(self, raytracing_results):
         """
