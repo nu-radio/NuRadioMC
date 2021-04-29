@@ -617,7 +617,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	// revealed this case where only checking -1 didn't get us close enough
 	// for the method (which is admittedly a *polishing* algorithm) to find the root.
 
-	for (double x_guess_start = 0; x_guess_start>-3; x_guess_start-=1){
+	for (double x_guess_start = -1; x_guess_start>-3; x_guess_start-=1){
 		if(found_root_1) break;
 		double x_guess = x_guess_start;
 		sfdf = gsl_root_fdfsolver_alloc(Tfdf);
