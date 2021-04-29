@@ -607,7 +607,6 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	FDF.fdf = &obj_delta_y_square_fdf;
 	FDF.params = &params;
 	Tfdf = gsl_root_fdfsolver_secant;
-	sfdf = gsl_root_fdfsolver_alloc(Tfdf);
 	gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
 	
 	// We have to guess at the location of the first root (if it it exists at all).
@@ -618,9 +617,10 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	// revealed this case where only checking -1 didn't get us close enough
 	// for the method (which is admittedly a *polishing* algorithm) to find the root.
 
-	for (double x_guess_start = 0; x_guess_start>-4; x_guess_start-=1){
+	for (double x_guess_start = 0; x_guess_start>-3; x_guess_start-=1){
 		if(found_root_1) break;
 		double x_guess = x_guess_start;
+		sfdf = gsl_root_fdfsolver_alloc(Tfdf);
 		gsl_root_fdfsolver_set(sfdf,&FDF,x_guess);
 		do{
 			iter++;
@@ -640,14 +640,13 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 				found_root_1=true;
 			}
 		} while (status == GSL_CONTINUE && iter < max_iter && num_badfunc_tries<max_badfunc_tries);
-		
+		gsl_root_fdfsolver_free (sfdf);		
 		if(!found_root_1){ //reset
 			num_badfunc_tries=0;
 			iter=0;
 			status = GSL_CONTINUE;
 		}
 	}
-	gsl_root_fdfsolver_free (sfdf);
 	gsl_set_error_handler (myhandler); //restore original error handler
 
 	if(!found_root_1) {
