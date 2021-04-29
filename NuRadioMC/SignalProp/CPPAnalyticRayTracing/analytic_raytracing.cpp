@@ -594,7 +594,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	int status;
 	int iter=0, max_iter=200;
 	double precision_fit = 1e-9;
-	double x_guess = -5;
+	double x_guess = -2;
 	bool found_root_1=false;
 	double root_1=-10000000; //some insane value we'd never believe
 
