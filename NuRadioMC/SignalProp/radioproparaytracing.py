@@ -138,7 +138,7 @@ class radiopropa_ray_tracing:
         x2: np.array of shape (3,), default unit 
             stop point of the ray
         """
-        #self.reset_solutions()
+        self.reset_solutions()
         self.__x1 = np.array(x1, dtype =np.float)
         self.__x2 = np.array(x2, dtype = np.float)
         if (self.__n_reflections):
