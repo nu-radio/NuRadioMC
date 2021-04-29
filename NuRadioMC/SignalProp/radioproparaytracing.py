@@ -108,6 +108,8 @@ class radiopropa_ray_tracing:
             self.__cut_viewing_angle = 40*units.degree
         ## maximal length to what the trajectory will be calculated
         self.__max_traj_length = 10000*units.meter
+        self.set_sphere_sizes()
+        self.deactivate_auto_step_size()
         self.set_iterative_steps()
         self.__x1 = None 
         self.__x2 = None
@@ -127,7 +129,6 @@ class radiopropa_ray_tracing:
         self.__shower_axis = None
         self.__results = None
         self.__rays = None
-        self.set_iterative_steps()
 
     def set_start_and_end_point(self, x1=None, x2=None):
         """
@@ -141,6 +142,7 @@ class radiopropa_ray_tracing:
         self.reset_solutions()
         self.__x1 = np.array(x1, dtype =np.float)
         self.__x2 = np.array(x2, dtype = np.float)
+        self.set_iterative_step_sizes(step_sizes=self.__step_sizes) #if auto is on this set the automated step size, otherwise nothing happens
         if (self.__n_reflections):
             if (x1[2] < self.__medium.reflection or x2[2] < self.__medium.reflection):
                 self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(
@@ -148,25 +150,30 @@ class radiopropa_ray_tracing:
                 raise AttributeError("start or stop point is below the reflective layer at {:.1f}m".format(
                     self.__medium.reflection / units.m))
         
-        if self.__auto_step and self.__x1!=None and self.__x2!=None: self.set_auto_step_sizes()
-        
-
-    def set_optional_parameter(self, parameter_name, parameter_value=None):
+    def use_optional_function(self, function_name, *args, **kwargs):
         """
-        Set additional parameters which may be different for each ray tracer. 
-        If the name if not present for the ray tracer the function does nothing.
+        Use optional function which may be different for each ray tracer. 
+        If the name of the function is not present for the ray tracer this function does nothing.
 
         Parameters
         ----------
         parameter_name: string
                         name of the parameter to set
-        parameter_value: object of right type for parameter
-                         value the parameter should be set to
+        *args: type of the argument required by function
+               all the neseccary arguments for the function separated by a comma
+        **kwargs: type of keyword argument of function
+                  all all the neseccary keyword arguments for the function in the
+                  form of key=argument and separated by a comma
+
+        Example
+        -------
+        use_optional_function('set_shower_axis',np.array([0,0,1]))
+        use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
         """
-        if parameter_name == 'shower_axis':
-            self.set_shower_axis(parameter_value)
-        else:
+        if not hasattr(self,function_name):
             pass
+        else:
+            geattr(self,function_name)(*args,**kwargs)
 
     def set_shower_axis(self, shower_axis):
         """
@@ -179,12 +186,25 @@ class radiopropa_ray_tracing:
         """ 
         self.__shower_axis = shower_axis / np.linalg.norm(shower_axis)
 
-    def set_iterative_steps(self, 
-                            sphere_sizes=np.array([25., 2., .5])*units.meter,
-                            step_sizes=np.array([.5, .05, .01])*units.degree, 
-                            auto_step=False):
+    def set_iterative_sphere_sizes(self, sphere_sizes=np.array([25., 2., .5])*units.meter):
         """
-        Set the sphere_sizes and steps_sizes for the iterative ray tracer
+        Set the sphere_sizes for the iterative ray tracer
+
+        Parameters
+        ----------
+        sphere_sizes: np.array of size (n,), default unit
+                      the sphere size used by the iterative ray tracer
+                      iteration from big to small observer around channel
+        """
+        if (sphere_sizes.ndim == 1):
+            self.__sphere_sizes = sphere_sizes
+        else:
+            self.__logger.error('sphere_sizes array should be 1 dimensional')
+            raise ValueError('sphere_sizes array should be 1 dimensional')
+
+    def set_iterative_step_sizes(self, step_sizes=np.array([.5, .05, .01])*units.degree):
+        """
+        Set the steps_sizes for the iterative ray tracer
 
         Parameters
         ----------
@@ -197,23 +217,27 @@ class radiopropa_ray_tracing:
         auto_step:  boolean
                     defines whether or not an automatic step_size should be calculated for each
                     sphere_size depending on the horizontal distance of the event
-        """ 
-        if (sphere_sizes.ndim == 1) and (sphere_sizes.shape == step_sizes.shape):
-            self.__sphere_sizes = sphere_sizes        
-            self.__step_sizes = step_sizes
+        """         
+        if self.__auto_step:
+            if (self.__x1 != None) and (self.__x2 != None):
+                for s, sphere_size in enumerate(self.__sphere_sizes):
+                    self.__step_sizes[s] = min(abs(self.delta_theta_reflective(dz=sphere_size, n_bottom_reflections=self.__n_reflections)),
+                                               self.__step_sizes[s])
+            else:
+                return
         else:
-            self.__logger.error('sphere_sizes array and step_sizes array should be 14 dimensional and should have the same length')
-            raise ValueError('sphere_sizes array and step_sizes array should be 14 dimensional and should have the same length')
-        
-        self.__auto_step = auto_step
+            if (self.__sphere_sizes.shape == step_sizes.shape):      
+                self.__step_sizes = step_sizes
+            else:
+                self.__logger.error('sphere_sizes array and step_sizes array should have the same dimensions')
+                raise ValueError('sphere_sizes array and step_sizes array should have the same dimensions')
 
-        if self.__auto_step and (self.__x1 != None) and (self.__x2 != None): self.set_auto_step_size()
+    def activate_auto_step_size(self):
+        self.__auto_step = True
+        self.set_iterative_step_sizes()
 
-    def set_auto_step_size(self):
-        for s, sphere_size in enumerate(self.__sphere_sizes):
-                self.__step_sizes[s] = min(abs(self.delta_theta_reflective(dz=sphere_size, n_bottom_reflections=self.__n_reflections)),
-                                           self.__step_sizes[s],
-                                           )
+    def deactivate_auto_step_size(self):
+        self.__auto_step = False
 
 
     def set_cut_viewing_angle(self, cut):
