@@ -173,7 +173,7 @@ class radiopropa_ray_tracing:
         if not hasattr(self,function_name):
             pass
         else:
-            geattr(self,function_name)(*args,**kwargs)
+            getattr(self,function_name)(*args,**kwargs)
 
     def set_shower_axis(self, shower_axis):
         """
