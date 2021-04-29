@@ -83,7 +83,7 @@ class ray_tracing_base:
         if not hasattr(self,function_name):
             pass
         else:
-            geattr(self,function_name)(*args,**kwargs)
+            getattr(self,function_name)(*args,**kwargs)
 
     def find_solutions(self):
         """

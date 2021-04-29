@@ -1653,7 +1653,7 @@ class ray_tracing:
         if not hasattr(self,function_name):
             pass
         else:
-            geattr(self,function_name)(*args,**kwargs)
+            getattr(self,function_name)(*args,**kwargs)
         
     def set_solution(self, raytracing_results):
         """
