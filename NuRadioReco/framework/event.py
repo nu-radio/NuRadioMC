@@ -166,6 +166,15 @@ class Event:
 
         return self.get_sim_particle(0)   
 
+    def get_parent(self, sim_particle):
+        """
+        returns the parent of a sim_particle or a shower
+        """
+        parent_id = parameters.simParticleParameters.parent_id
+        if parent_id is None:
+            return None
+        return self.get_sim_particle(sim_particle[parameters.simParticleParameters.parent_id])
+
     def has_sim_particle(self, sim_particle_id=None):
         """
         Returns true if at least one MC particle is stored in the event
