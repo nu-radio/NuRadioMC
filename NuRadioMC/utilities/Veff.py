@@ -209,17 +209,18 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     if('thetamax' in fin.attrs):
         thetamax = fin.attrs['thetamax']
 
-    # restrict the theta range, if requested
     theta_width_file = abs(np.cos(thetamin) - np.cos(thetamax))
+    # restrict the theta range, if requested
     if min(bounds_theta) > thetamin:
-        logger.info("restricting thetamin from sim file from {} to {}".format(thetamin, min(bounds_theta)))
+        logger.info("restricting thetamin from {} to {}".format(thetamin, min(bounds_theta)))
         thetamin = min(bounds_theta)
     if max(bounds_theta) < thetamax:
-        logger.info("restricting thetamax from sim file from {} to {}".format(thetamax, max(bounds_theta)))
+        logger.info("restricting thetamax from {} to {}".format(thetamax, max(bounds_theta)))
         thetamax = max(bounds_theta)
-    # assumes isotropic event generation in cos(theta) band
+    # The restriction assumes isotropic event generation in cos(theta) band
     theta_fraction = abs(np.cos(thetamin) - np.cos(thetamax))/theta_width_file
     if theta_fraction<1:
+        # adjust n_events to account for solid angle fraction in the requested theta range
         n_events *= theta_fraction
 
     if('phimin' in fin.attrs):
@@ -273,9 +274,11 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
         logger.warning(f"file {filename} has no triggering events. Using trigger names from a different file: {trigger_names}")
 
     weights = np.array(fin['weights'])
-    # if zenith range is restricted, multiply with zenith mask inside bounds
+    # if theta range is restricted, select events in that range
     if theta_fraction < 1:
+        # generate boolean mask for events in fin inside selected theta range
         mask_theta = np.array((fin['zeniths']>thetamin) & (fin['zeniths']<thetamax))
+        # multiply events with mask, events outside are zero-weighted
         weights *= mask_theta
 
     if(triggered.size == 0):

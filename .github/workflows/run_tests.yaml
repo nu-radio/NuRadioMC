@@ -83,19 +83,19 @@ jobs:
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
-        pip install proposal
+        pip install proposal==6.1.6
         NuRadioMC/test/examples/test_veff_example.sh
     - name: "Test calibration pulser example"
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
-        pip install proposal
+        pip install proposal==6.1.6
         NuRadioMC/test/examples/test_cal_pulser_example.sh
     - name: "Test webinar examples"
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
-        pip install proposal
+        pip install proposal==6.1.6
         NuRadioMC/test/examples/test_webinar.sh
     - name: "Veff test"
       run: |
@@ -109,7 +109,7 @@ jobs:
         NuRadioMC/test/Veff/1e18eV/test_build_noise.sh
     - name: "Atmospheric Aeff test" 
       run: |
-        pip install proposal
+        pip install proposal==6.1.6
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/atmospheric_Aeff/1e18eV/test_build.sh
