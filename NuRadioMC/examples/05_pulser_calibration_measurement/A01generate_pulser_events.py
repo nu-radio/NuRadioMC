@@ -64,7 +64,7 @@ def generate_my_events(filename, n_events):
 
     # again these parameters are irrelevant for our simulation but still need to be set
     data_sets["flavors"] = np.array([12 for i in range(n_events)])
-    data_sets["energies"] = np.ones(n_events) * 1 * units.eV
+    data_sets["energies"] = np.ones(n_events) * 1e18 * units.eV
     data_sets["inelasticity"] = np.ones(n_events) * 0.5
     data_sets["shower_energies"] = data_sets["inelasticity"] * data_sets["energies"]
     data_sets["shower_type"] = np.array(['had'] * n_events)
