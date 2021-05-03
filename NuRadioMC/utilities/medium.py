@@ -23,6 +23,7 @@ model in IceModel.cpp and IceModel.h. Then edit the function to get the
 radiopropa ice model, so it can be used in NuRadioMC. For example
 
         def get_ice_model_radiopropa(self):
+            #args is a placeholder for the arguments needed by the specific module
             scalar field = radiopropa.New_IceModel(*args)
             return RadioPropaIceWrapper(self,scalar_field)
 
