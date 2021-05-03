@@ -3,6 +3,7 @@ import numpy as np
 from radiotools import helper as hp
 import logging
 from NuRadioMC.utilities import attenuation as attenuation_util
+from NuRadioMC.utilities import medium_base
 from scipy import interpolate, optimize
 import NuRadioReco.utilities.geometryUtilities
 from NuRadioReco.utilities import units
@@ -108,9 +109,9 @@ class radiopropa_ray_tracing:
             self.__cut_viewing_angle = 40*units.degree
         ## maximal length to what the trajectory will be calculated
         self.__max_traj_length = 10000*units.meter
-        self.set_sphere_sizes()
+        self.set_iterative_sphere_sizes()
         self.deactivate_auto_step_size()
-        self.set_iterative_steps()
+        self.set_iterative_step_sizes()
         self.__x1 = None 
         self.__x2 = None
         self.__shower_axis = None ## this is given so we can limit the rays that are checked around the cherenkov angle
@@ -346,10 +347,13 @@ class radiopropa_ray_tracing:
 
             for theta in theta_scanning_range:
                 ray_dir = hp.spherical_to_cartesian(theta, phi_direct)
-                viewing = np.arccos(np.dot(self.__shower_axis, ray_dir)) * units.radian
-                delta = viewing - cherenkov_angle
-                #only include rays with angle wrt cherenkov angle smaller than the cut in the config file
-                if (abs(delta) < self.__cut_viewing_angle):
+                
+                def delta(ray_dir,shower_dir):
+                    viewing = np.arccos(np.dot(shower_dir, ray_dir)) * units.radian
+                    return viewing - cherenkov_angle
+
+                #only include rays with angle wrt cherenkov angle smaller than 20 degrees 
+                if self.__shower_axis==None or (abs(delta(ray_dir,shower_dir)) < self.__cut_viewing_angle): ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
                     source = radiopropa.Source()
                     source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*x1)))
                     source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*ray_dir)))
@@ -441,7 +445,7 @@ class radiopropa_ray_tracing:
         detected_rays = []
         detected_theta = []
         results = []
-        tol = 1e-2*units.meter
+        tol = 1e-3*units.meter
         res_angle = 1*units.degree/units.radian
 
         def ray(theta,phi):
@@ -458,39 +462,33 @@ class radiopropa_ray_tracing:
             sim.run(_ray, True)
             return _ray
 
-        def delta_z(theta,save_rays):
+        def delta_z(theta):
             ray = shoot_ray(theta)
             ray_endpoint = self.get_path_candidate(ray)[-1]
-            if (ray_endpoint-self.__x2)[2] < tol: save_rays.append(ray)
             return (ray_endpoint-self.__x2)[2]
 
-        def delta_z_squared(theta,save_rays):
-            return delta_z(theta,save_rays)**2
+        def delta_z_squared(theta):
+            return delta_z(theta)**2
         
-        save_rays = []
-        root1 = optimize.root_scalar(delta_z_squared,x0=theta_direct,x1=theta_direct-res_angle,args=(save_rays),xtol=tol**2)
-        if root1.converged:
-            detected_theta.append(root1.root)
-            detected_rays.append(save_rays[-1]) #the last candidate is at the root
-            results.append({'reflection':0,
-                            'reflection_case':1})
+        
+        root1 = optimize.root(delta_z_squared,x0=theta_direct,tol=tol**2)
+        if root1.success:
+            detected_theta.append(root1.x)
+            detected_rays.append(shoot_ray(root1.x))
 
-            theta_min = root1.root - res_angle
-            theta_plus = root1.root + res_angle
-            delta_z_min = delta_z(theta_min,save_rays)
-            delta_z_plus = delta_z(theta_plus,save_rays)
-            delta_z_vertical = delta_z(0*units.degree,save_rays)
-            delta_z_direct = delta_z(theta_direct,save_rays)
+            theta_min = root1.x - res_angle
+            theta_plus = root1.x + res_angle
+            delta_z_min = delta_z(theta_min)
+            delta_z_plus = delta_z(theta_plus)
+            delta_z_vertical = delta_z(0*units.degree)
+            delta_z_direct = delta_z(theta_direct)
             
             def find_second_root(theta_a,theta_b):
                 try:
-                    save_rays = []
-                    root2 = optimize.brentq(delta_z, a=theta_a, b=theta_b, args=(save_rays),xtol=tol)
+                    root2 = optimize.brentq(delta_z, a=theta_a, b=theta_b,xtol=tol)
                     if(np.round(root2, 2) not in np.round(detected_theta, 2)):
                         detected_theta.append(root2)
-                        detected_rays.append(save_rays[-1]) #the last candidate is at the root
-                        results.append({'reflection':0,
-                                        'reflection_case':1})
+                        detected_rays.append(shoot_ray(root2))
                 except RuntimeError:
                     pass
         
@@ -500,7 +498,6 @@ class radiopropa_ray_tracing:
                 find_second_root(theta_a = theta_plus, theta_b = theta_direct)
         
         self.__rays = detected_rays
-        self.__results = results
 
 
     def set_solutions(self,raytracing_results):
@@ -534,7 +531,7 @@ class radiopropa_ray_tracing:
         results = []
         rays_results = []
         
-        if self.__config['propagation']['ice_model'] == 'greenland_simple':
+        if isinstance(self.__medium, medium_base.IceModelSimple):
             self.raytracer_minimizer()
             for iS in range(len(self.__rays)):
                 results.append({'type':self.get_solution_type(iS), 
