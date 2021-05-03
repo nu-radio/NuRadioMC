@@ -108,9 +108,9 @@ class radiopropa_ray_tracing:
             self.__cut_viewing_angle = 40*units.degree
         ## maximal length to what the trajectory will be calculated
         self.__max_traj_length = 10000*units.meter
-        self.set_sphere_sizes()
+        self.set_iterative_sphere_sizes()
         self.deactivate_auto_step_size()
-        self.set_iterative_steps()
+        self.set_iterative_step_sizes()
         self.__x1 = None 
         self.__x2 = None
         self.__shower_axis = None ## this is given so we can limit the rays that are checked around the cherenkov angle
