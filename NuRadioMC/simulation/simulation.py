@@ -576,7 +576,6 @@ class simulation():
 #                     input_time += (time.time() - t1)
 
                     for channel_id in range(self._det.get_number_of_channels(self._station_id)):
-                        self._raytracer.reset_solutions()
                         x2 = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
                         logger.debug(f"simulationg channel {channel_id} at {x2}")
 
