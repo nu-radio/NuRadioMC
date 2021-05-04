@@ -77,6 +77,8 @@ class readRNOGData:
 
         """
         read_branches = ['run_number', 'event_number', 'station_number', 'radiant_data[24][2048]']
+        # TODO for trigger info, can simulataneously iterate also over header tree, trigger info is stored in True/False flags for individual triggers there
+        #      time is stored in header->readout_time as posix.
         for uproot_event in uproot.iterate({self.input_files, self.input_tree}, read_branches, step_size=1, how=dict, library="np"):
             self.__id_current_event += 1
             if(self.__id_current_event >= self.n_events):
