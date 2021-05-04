@@ -55,12 +55,10 @@ class readRNOGData:
 
         self.n_events = 0
         # get the total number of events of all input files
-        # reverse the list to have the file[0] loaded as precaution, however
-        # self.f, self.data_tree should not be needed, since with uproot iterate the files are read again
-        for f in input_files.reverse():
-            self.f = uproot.open(input_files[0])
-            self.data_tree = self.f[self.input_tree]
-            self.n_events += self.data_tree.num_entries
+        for the_f in input_files:
+            the_f = uproot.open(input_files[0])
+            the_data_tree = the_f[self.input_tree]
+            self.n_events += the_data_tree.num_entries
 
         return self.n_events
 
@@ -119,54 +117,6 @@ class readRNOGData:
                 station.add_channel(channel)
                 evt.set_station(station)
             yield evt
-
-        """
-        while True:
-            self.__id_current_event += 1
-            if(self.__id_current_event >= self.n_events):
-                # all events processed
-                break
-            if(self.__id_current_event % 1000 == 0):
-                progress = 1. * self.__id_current_event / self.n_events
-                eta = 0
-                if(self.__id_current_event > 0):
-                    eta = (time.time() - self.__t) / self.__id_current_event * (self.n_events - self.__id_current_event) / 60.
-                self.logger.warning("reading in event {}/{} ({:.0f}%) ETA: {:.1f} minutes".format(self.__id_current_event, self.n_events, 100 * progress, eta))
-
-
-            run_number = self._current_branch_value("run_number")
-            evt_number = self._current_branch_value("event_number")
-            station_id = self._current_branch_value("station_number")
-            self.logger.info("Reading Run: {0}, Event {1}, Station {2}".format(run_number, evt_number, station_id))
-
-            evt = NuRadioReco.framework.event.Event(run_number, evt_number)
-            station = NuRadioReco.framework.station.Station(station_id)
-            # TODO in future: do need to apply calibrations?
-
-            radiant_data = self._current_branch_value("radiant_data[24][2048]") # returns array of n_channels, n_points
-            # Loop over all channels in data
-            for iCh in range(n_channels):
-
-                channel = NuRadioReco.framework.channel.Channel(iCh)
-
-                # Get data from array via graph method
-                voltage = np.array(radiant_data[iCh]) * units.mV
-                times = np.arange(len(voltage)) * sampling
-
-
-                if voltage.shape[0] % 2 != 0:
-                    voltage = voltage[:-1]
-                sampling_rate = times[1] - times[0]
-
-                channel.set_trace(voltage, sampling_rate)
-                station.add_channel(channel)
-                evt.set_station(station)
-            yield evt
-            """
-
-    def _current_branch_value(self, branch_name):
-        return self.data_tree[branch_name].array(entry_start = self.__id_current_event, entry_stop = self.__id_current_event+1)[0]
-
 
     def end(self):
         pass
