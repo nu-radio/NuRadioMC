@@ -378,13 +378,13 @@ class simulation():
         self._shower_ids = np.array(self._fin['shower_ids'])
         self._shower_index_array = {}  # this array allows to convert the shower id to an index that starts from 0 to be used to access the arrays in the hdf5 file.
 
-        self._raytracer= self._prop(
+        self._raytracer = self._prop(
             self._ice, self._cfg['propagation']['attenuation_model'],
             log_level=self._log_level_ray_propagation,
             n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
             n_reflections=self._n_reflections,
             config=self._cfg,
-            detector = self._det
+            detector=self._det
         )
         r = self._raytracer
         for shower_index, shower_id in enumerate(self._shower_ids):
@@ -432,7 +432,10 @@ class simulation():
             t1 = time.time()
             iE_mother = event_indices[0]
             x_int_mother = np.array([self._fin['xx'][iE_mother], self._fin['yy'][iE_mother], self._fin['zz'][iE_mother]])
-            self._mout['weights'][event_indices] = get_weight(self._fin['zeniths'][iE_mother],
+            if("weights" in self._fin):
+                self._mout['weights'] = self._fin["weights"]
+            else:
+                self._mout['weights'][event_indices] = get_weight(self._fin['zeniths'][iE_mother],
                                                          self._fin['energies'][iE_mother],
                                                          self._fin['flavors'][iE_mother],
                                                          mode=self._cfg['weights']['weight_mode'],

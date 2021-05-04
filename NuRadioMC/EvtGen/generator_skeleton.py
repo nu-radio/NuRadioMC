@@ -87,6 +87,10 @@ def generate_my_events(filename, n_events):
     # the neutrino energy. This field is also only used for the weight calculation.
     data_sets["energies"] = np.ones(n_events) * 1 * units.EeV
 
+    # optionally one can also directly set the event weight here (useful if particles other than neutrinos, or calibration
+    # setups are simulated
+    # data_sets["weights"] = np.ones(n_events)
+
     # the interaction type. For neutrino interactions is can be either CC or NC. This parameter is not used but passed
     # to the output file for information purposes.
     data_sets["interaction_type"] = np.ones(n_events, dtype='S2')
