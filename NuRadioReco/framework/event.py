@@ -3,7 +3,7 @@ import pickle
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.framework.hybrid_information
-import NuRadioReco.framework.sim_particle
+import NuRadioReco.framework.particle
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.utilities.version
 from six import itervalues
@@ -22,7 +22,7 @@ class Event:
         self.__radio_showers = collections.OrderedDict()
         self.__sim_showers = collections.OrderedDict()
         self.__event_time = 0
-        self.__sim_particles = collections.OrderedDict()
+        self.__particles = collections.OrderedDict()
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
         self.__modules_station = {}  # saves which modules were executed with what parameters on station level
@@ -126,65 +126,65 @@ class Event:
     def set_sim_params(self, params):
         for p in params:
             print("setting param {} to {}".format(p, params[p]))
-            self.__sim_particle.set_parameter(p, params[p])
+            self.__particle.set_parameter(p, params[p])
             
-    def add_sim_particle(self, sim_particle):
+    def add_particle(self, particle):
         """
         Adds a MC particle to the event
 
         Parameters
         ------------------------
-        sim_particle: SimParticle object
+        particle: Particle object
             The MC particle to be added to the event
         """
-        if(sim_particle.get_id() in self.__sim_particles):
-            logger.error("MC particle with id {sim_particle.get_id()} already exists. Simulated particle id needs to be unique per event")
-            raise AttributeError("MC particle with id {sim_particle.get_id()} already exists. Simulated particle id needs to be unique per event")
-        self.__sim_particles[sim_particle.get_id()] = sim_particle
+        if(particle.get_id() in self.__particles):
+            logger.error("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
+            raise AttributeError("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
+        self.__particles[particle.get_id()] = particle
 
-    def get_sim_particles(self):
+    def get_particles(self):
         """
         Returns an iterator over the MC particles stored in the event
         """
-        for sim_particle in self.__sim_particles.values():
-            yield sim_particle
+        for particle in self.__particles.values():
+            yield particle
 
-    def get_sim_particle(self, sim_particle_id):
+    def get_particle(self, particle_id):
         """
         returns a specific MC particle identified by its unique id
         """
-        if(sim_particle_id not in self.__sim_particles):
-            raise AttributeError(f"MC particle with id {sim_particle_id} not present")
-        return self.__sim_particles[sim_particle_id]
+        if(particle_id not in self.__particles):
+            raise AttributeError(f"MC particle with id {particle_id} not present")
+        return self.__particles[particle_id]
 
     def get_primary(self):
         """
         returns a first MC particle
         """
-        if len(self.__sim_particles) == 0:
+        if len(self.__particles) == 0:
             return None
 
-        return self.get_sim_particle(0)   
+        return self.get_particle(0)   
 
-    def get_parent(self, sim_particle):
+    def get_parent(self, particle):
         """
-        returns the parent of a sim_particle or a shower
+        returns the parent of a particle or a shower
         """
-        parent_id = parameters.simParticleParameters.parent_id
+        parent_id = parameters.particleParameters.parent_id
         if parent_id is None:
             return None
-        return self.get_sim_particle(sim_particle[parameters.simParticleParameters.parent_id])
+        return self.get_particle(particle[parameters.particleParameters.parent_id])
 
-    def has_sim_particle(self, sim_particle_id=None):
+    def has_particle(self, particle_id=None):
         """
         Returns true if at least one MC particle is stored in the event
 
-        If sim_particle_id is given, it checks if this particular MC particle exists
+        If particle_id is given, it checks if this particular MC particle exists
         """
-        if(sim_particle_id is None):
-            return len(self.__sim_particles) > 0
+        if(particle_id is None):
+            return len(self.__particles) > 0
         else:
-            return sim_particle_id in self.__sim_particles.keys()
+            return particle_id in self.__particles.keys()
 
 
 
@@ -347,9 +347,9 @@ class Event:
         sim_showers_pkl = []
         for shower in self.get_sim_showers():
             sim_showers_pkl.append(shower.serialize())
-        sim_particles_pkl = []
-        for sim_particle in self.get_sim_particles():
-            sim_particles_pkl.append(sim_particle.serialize())
+        particles_pkl = []
+        for particle in self.get_particles():
+            particles_pkl.append(particle.serialize())
         hybrid_info = self.__hybrid_information.serialize()
         modules_out_event = []
         for value in self.__modules_event:  # remove module instances (this will just blow up the file size)
@@ -368,7 +368,7 @@ class Event:
                 'stations': stations_pkl,
                 'showers': showers_pkl,
                 'sim_showers': sim_showers_pkl,
-                'sim_particles': sim_particles_pkl,
+                'particles': particles_pkl,
                 'hybrid_info': hybrid_info,
                 '__modules_event': modules_out_event,
                 '__modules_station': modules_out_station
@@ -392,11 +392,11 @@ class Event:
                 shower = NuRadioReco.framework.radio_shower.RadioShower(None)
                 shower.deserialize(shower_pkl)
                 self.add_sim_shower(shower)
-        if 'sim_particles' in data.keys():
-            for sim_particle_pkl in data['sim_particles']:
-                sim_particle = NuRadioReco.framework.sim_particle.SimParticle(None)
-                sim_particle.deserialize(sim_particle_pkl)
-                self.add_sim_particle(sim_particle)
+        if 'particles' in data.keys():
+            for particle_pkl in data['particles']:
+                particle = NuRadioReco.framework.particle.Particle(None)
+                particle.deserialize(particle_pkl)
+                self.add_particle(particle)
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         if 'hybrid_info' in data.keys():
             self.__hybrid_information.deserialize(data['hybrid_info'])

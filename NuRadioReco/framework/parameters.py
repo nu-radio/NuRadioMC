@@ -109,7 +109,7 @@ class showerParameters(Enum):
     k_L = 110  # the k_L parameter of the Alvarez2009 parameter that controls the longitudional width of the charge excess profile
     flavor = 111  # the flavor of the particle initiating the shower
 
-class simParticleParameters(Enum):
+class particleParameters(Enum):
     parent_id = 1
     zenith = 2  # the zenith angle of the incoming neutrino direction
     azimuth = 3  # the azimuth angle of the incoming neutrino direction
