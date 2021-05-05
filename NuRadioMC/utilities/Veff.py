@@ -180,7 +180,8 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
         * "aeff_surface_muons"
     bounds_theta: list of floats
         restrict theta to sub-range wrt. the simulated range in the file
-        bounds_theta should be a two-item list, but will care only about the min/max values
+        Note: assumes events were simulated uniformly in cos(theta)
+        bounds_theta should be a (two-item) list, but will care only about the min/max values
     Returns
     ----------
     list of dictionary. Each file is one entry. The dictionary keys store all relevant properties
@@ -479,6 +480,7 @@ def get_Veff_Aeff(folder,
         calculate the effective volume for finer binning (<oversampling_theta> data points per file):
         * 1: no oversampling
         * >1: oversampling with <oversampling_theta> equal-size cos(theta) bins within thetamin/max of the input file
+        Note: oversampling assumes that events were simulated uniformly in cos(theta)
     Returns
     ----------
     list of dictionary. Each file is one entry. The dictionary keys store all relevant properties
