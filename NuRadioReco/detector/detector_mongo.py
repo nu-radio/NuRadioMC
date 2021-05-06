@@ -16,11 +16,20 @@ logger.setLevel(logging.DEBUG)
 # client = MongoClient("localhost")
 
 # use db connection from environment, pw and user need to be percent escaped
-MONGODB_URL = os.environ.get('MONGODB_URL')
-if MONGODB_URL is None:
-    logging.warning('MONGODB_URL not set, defaulting to "localhost"')
-    MONGODB_URL = 'localhost'
-client = MongoClient(MONGODB_URL)
+#MONGODB_URL = os.environ.get('MONGODB_URL')
+# if MONGODB_URL is None:
+#     logging.warning('MONGODB_URL not set, defaulting to "localhost"')
+#     MONGODB_URL = 'localhost'
+# client = MongoClient(MONGODB_URL)
+mongo_password = urllib.parse.quote_plus(os.environ.get('mongo_password'))
+mongo_user = urllib.parse.quote_plus(os.environ.get('mongo_user'))
+mongo_server = os.environ.get('mongo_server')
+if mongo_server is None:
+    logging.warning('variable "mongo_server" not set')
+if None in [mongo_user, mongo_server]:
+    logging.warning('"mongo_user" or "mongo_password" not set')
+# start client
+client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
 db = client.RNOG_test
 
 
