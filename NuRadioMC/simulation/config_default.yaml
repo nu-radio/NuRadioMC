@@ -1,5 +1,5 @@
 weights:
-  weight_mode: core_mantle_crust # core_mantle_crust: use the three layer earth model, which considers the different densities of the core, mantle and crust. simple: use the simple earth model, which apply a constant earth density
+  weight_mode: core_mantle_crust # options are 'null': all weights will be set to 1. 'existing': weights from the input file will be used, 'core_mantle_crust': use the three layer earth model, which considers the different densities of the core, mantle and crust. simple: use the simple earth model, which apply a constant earth density, more options are available, check utilities.earth_attenuation for all available models
   cross_section_type: ctw # neutrino cross section: ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998, ctw    : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011)., csms: A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
 
 noise: False  # specify if simulation should be run with or without noise
