@@ -26,13 +26,16 @@ import NuRadioReco.detector.detector as detector
 import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
-import NuRadioReco.framework.sim_particle
+import NuRadioReco.framework.particle
 import NuRadioReco.framework.event
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
-from NuRadioReco.framework.parameters import simParticleParameters as simp
+# parameters describing simulated Monte Carlo particles
+from NuRadioReco.framework.parameters import particleParameters as simp
+# parameters set in the event generator
+from NuRadioReco.framework.parameters import generatorParameters as genp
 import datetime
 import logging
 from six import iteritems
@@ -504,7 +507,7 @@ class simulation():
                                                          vertex_position=self.primary[simp.vertex],
                                                          phi_nu=self.primary[simp.azimuth])
 
-                self._evt_tmp.add_sim_particle(self.primary)
+                self._evt_tmp.add_particle(self.primary)
 
                 self._create_sim_station()
                 # loop over all showers in event group
@@ -833,7 +836,10 @@ class simulation():
                     # add MC particles that belong to this (sub) event to event structure
                     # add only primary and parent?
                     # or all particles? usually not so many in our case...
-                    self._evt.add_sim_particle(self._evt_tmp.get_primary())
+                    self._evt.add_particle(self._evt_tmp.get_primary())
+                    # copy over generator information from temporary event to event
+                    self._evt._generator_information = self._generator_information
+
 
                     self._station = NuRadioReco.framework.station.Station(self._station_id)
                     sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
@@ -1066,6 +1072,13 @@ class simulation():
                     self._fin[key] = np.array(value)
         for key, value in iteritems(fin.attrs):
             self._fin_attrs[key] = value
+
+        # copy information over to generator attributes
+        self._generator_information = {}
+        for enum_entry in genp:
+            if enum_entry.name in self._fin_attrs:
+                self._generator_information[enum_entry] = self._fin_attrs[enum_entry.name]
+            
         fin.close()
 
     def _check_vertex_times(self):
@@ -1228,36 +1241,36 @@ class simulation():
                 sg[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS, parameter_entry['ndim'])) * np.nan
         return sg
 
+
     def _read_input_neutrino_properties(self):
-            #if self._inputfiletype = "h5":
-            self._n_interaction = self._fin['n_interaction'][self._shower_index]
+        self._n_interaction = self._fin['n_interaction'][self._shower_index]
 
-            self.primary = NuRadioReco.framework.sim_particle.SimParticle(0)
+        self.primary = NuRadioReco.framework.particle.Particle(0)
 
-            self._event_group_id = self._fin['event_group_ids'][self._shower_index]
+        self._event_group_id = self._fin['event_group_ids'][self._shower_index]
 
-            self.primary[simp.flavor] = self._fin['flavors'][self._shower_index]
-            self.primary[simp.energy] = self._fin['energies'][self._shower_index]
-            self.primary[simp.interaction_type] = self._fin['interaction_type'][self._shower_index]
-            self.primary[simp.vertex] = np.array([self._fin['xx'][self._shower_index],
+        self.primary[simp.flavor] = self._fin['flavors'][self._shower_index]
+        self.primary[simp.energy] = self._fin['energies'][self._shower_index]
+        self.primary[simp.interaction_type] = self._fin['interaction_type'][self._shower_index]
+        self.primary[simp.vertex] = np.array([self._fin['xx'][self._shower_index],
                                                   self._fin['yy'][self._shower_index],
                                                   self._fin['zz'][self._shower_index]])
-            self.primary[simp.zenith] = self._fin['zeniths'][self._shower_index]
-            self.primary[simp.azimuth] = self._fin['azimuths'][self._shower_index]
-            self.primary[simp.inelasticity] = self._fin['inelasticity'][self._shower_index]
-            self.primary[simp.parent_id] = None # primary does not have a parent
+        self.primary[simp.zenith] = self._fin['zeniths'][self._shower_index]
+        self.primary[simp.azimuth] = self._fin['azimuths'][self._shower_index]
+        self.primary[simp.inelasticity] = self._fin['inelasticity'][self._shower_index]
+        self.primary[simp.parent_id] = None # primary does not have a parent
 
-            self._shower_type = self._fin['shower_type'][self._shower_index]
-            self._shower_energy = self._fin['shower_energies'][self._shower_index]
-            self.primary[simp.vertex_time] = 0
-            if 'vertex_times' in self._fin:
-                self.primary[simp.vertex_time] = self._fin['vertex_times'][self._shower_index]
-            self._vertex_time = self.primary[simp.vertex_time]
-            self._zenith_shower = self._fin['zeniths'][self._shower_index]
-            self._azimuth_shower = self._fin['azimuths'][self._shower_index]
-            self.primary[simp.inelasticity] = self._fin['inelasticity'][self._shower_index]
-            #TODO ensure this is handled correctly
-            self.primary[simp.parent_id] = None
+        self._shower_type = self._fin['shower_type'][self._shower_index]
+        self._shower_energy = self._fin['shower_energies'][self._shower_index]
+        self.primary[simp.vertex_time] = 0
+        if 'vertex_times' in self._fin:
+            self.primary[simp.vertex_time] = self._fin['vertex_times'][self._shower_index]
+        self._vertex_time = self.primary[simp.vertex_time]
+        self._zenith_shower = self._fin['zeniths'][self._shower_index]
+        self._azimuth_shower = self._fin['azimuths'][self._shower_index]
+        self.primary[simp.inelasticity] = self._fin['inelasticity'][self._shower_index]
+        #TODO ensure this is handled correctly
+        self.primary[simp.parent_id] = None
 
     def _create_sim_station(self):
         """
@@ -1282,6 +1295,8 @@ class simulation():
         self._sim_shower[shp.vertex] = self.primary[simp.vertex]
         self._sim_shower[shp.vertex_time] = self._vertex_time
         self._sim_shower[shp.type] = self._shower_type
+        #TODO parent does not necessarily need to be the neutrino primary!
+        self._sim_shower[shp.parent_id] = self.primary.get_id()
 
     def _write_output_file(self, empty=False):
         folder = os.path.dirname(self._outputfilename)
