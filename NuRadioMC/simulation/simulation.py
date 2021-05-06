@@ -1217,8 +1217,10 @@ class simulation():
 
     def _read_input_neutrino_properties(self):
         self._event_group_id = self._fin['event_group_ids'][self._shower_index]
-        self._flavor = self._fin['flavors'][self._shower_index]
-        self._energy = self._fin['energies'][self._shower_index]
+        if 'flavor' in self._fin:
+            self._flavor = self._fin['flavors'][self._shower_index]
+        else:
+            self._flavor = None
         self._inttype = self._fin['interaction_type'][self._shower_index]
         self._x = self._fin['xx'][self._shower_index]
         self._y = self._fin['yy'][self._shower_index]
