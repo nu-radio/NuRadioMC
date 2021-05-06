@@ -33,6 +33,30 @@ class directRayTracing():
         self._x1 = x1
         self._x2 = x2
 
+    def use_optional_function(self, function_name, *args, **kwargs):
+        """
+        Use optional function which may be different for each ray tracer. 
+        If the name of the function is not present for the ray tracer this function does nothing.
+
+        Parameters
+        ----------
+        function_name: string
+                       name of the function to use
+        *args: type of the argument required by function
+               all the neseccary arguments for the function separated by a comma
+        **kwargs: type of keyword argument of function
+                  all all the neseccary keyword arguments for the function in the
+                  form of key=argument and separated by a comma
+
+        Example
+        -------
+        use_optional_function('set_shower_axis',np.array([0,0,1]))
+        use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
+        """
+        if not hasattr(self,function_name):
+            pass
+        else:
+            getattr(self,function_name)(*args,**kwargs)
         
     def find_solutions(self):
         results = []
