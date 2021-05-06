@@ -23,7 +23,7 @@ class Event:
         self.__sim_showers = collections.OrderedDict()
         self.__event_time = 0
         self.__particles = collections.OrderedDict()
-        self._generator_information = {}
+        self._generator_info = {}
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
         self.__modules_station = {}  # saves which modules were executed with what parameters on station level
@@ -102,23 +102,23 @@ class Event:
         return key in self._parameters
 
 
-    def get_generator_information(self, key):
-        if not isinstance(key, parameters.generatorParameters):
-            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorParameters")
-            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorParameters")
-        return self._generator_information[key]
+    def get_generator_info(self, key):
+        if not isinstance(key, parameters.generatorAttributes):
+            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
+            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
+        return self._generator_info[key]
 
-    def set_generator_information(self, key, value):
-        if not isinstance(key, parameters.generatorParameters):
-            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorParameters")
-            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorParameters")
-        self._generator_information[key] = value
+    def set_generator_info(self, key, value):
+        if not isinstance(key, parameters.generatorAttributes):
+            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
+            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
+        self._generator_info[key] = value
 
-    def has_generator_information(self, key):
-        if not isinstance(key, parameters.generatorParameters):
-            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorParameters")
-            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorParameters")
-        return key in self._generator_information
+    def has_generator_info(self, key):
+        if not isinstance(key, parameters.generatorAttributes):
+            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
+            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
+        return key in self._generator_info
 
 
 
@@ -215,8 +215,19 @@ class Event:
         else:
             return particle_id in self.__particles.keys()
 
-
-
+    def get_interaction_products(self, particle, showers = True, particles = True):
+        secondaries = []
+        parent_id = particle.get_id()
+        # iterate over sim_showers to look for parent id
+        if showers == True:
+            for shower in self.get_showers():
+                if shower[parameters.showerParameters.parent_id] == parent_id:
+                    yield shower
+        # iterate over secondary particles to look for parent id
+        if particles == True:
+            for particle in self.get_particles():
+                if particle[parameters.particleParameters.parent_id] == parent_id:
+                    yield particle
 
 
 
@@ -399,7 +410,7 @@ class Event:
                 'sim_showers': sim_showers_pkl,
                 'particles': particles_pkl,
                 'hybrid_info': hybrid_info,
-                'generator_information': self._generator_information,
+                'generator_info': self._generator_info,
                 '__modules_event': modules_out_event,
                 '__modules_station': modules_out_station
                 }
@@ -434,7 +445,7 @@ class Event:
         self.__run_number = data['__run_number']
         self._id = data['_id']
         self.__event_time = data['__event_time']
-        self._generator_information = data['generator_information']
+        self._generator_info = data['generator_info']
 
         if("__modules_event" in data):
             self.__modules_event = data['__modules_event']
