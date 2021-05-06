@@ -23,6 +23,7 @@ class Event:
         self.__sim_showers = collections.OrderedDict()
         self.__event_time = 0
         self.__particles = collections.OrderedDict()
+        self._generator_information = {}
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
         self.__modules_station = {}  # saves which modules were executed with what parameters on station level
@@ -100,6 +101,27 @@ class Event:
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
         return key in self._parameters
 
+
+    def get_generator_information(self, key):
+        if not isinstance(key, parameters.generatorParameters):
+            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorParameters")
+            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorParameters")
+        return self._generator_information[key]
+
+    def set_generator_information(self, key, value):
+        if not isinstance(key, parameters.generatorParameters):
+            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorParameters")
+            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorParameters")
+        self._generator_information[key] = value
+
+    def has_generator_information(self, key):
+        if not isinstance(key, parameters.generatorParameters):
+            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorParameters")
+            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorParameters")
+        return key in self._generator_information
+
+
+
     def get_id(self):
         return self._id
 
@@ -166,14 +188,21 @@ class Event:
 
         return self.get_particle(0)   
 
-    def get_parent(self, particle):
+    def get_parent(self, particle_or_shower):
         """
         returns the parent of a particle or a shower
         """
-        parent_id = parameters.particleParameters.parent_id
-        if parent_id is None:
+        if isinstance(particle_or_shower, NuRadioReco.framework.base_shower.BaseShower):
+            par_id = particle_or_shower[parameters.showerParameters.parent_id]
+            
+        elif isinstance(particle_or_shower, NuRadioReco.framework.particle.Particle):
+            par_id = particle_or_shower[parameters.particleParameters.parent_id]
+        else:
+            raise ValueError("particle_or_shower needs to be an instance of NuRadioReco.framework.base_shower.BaseShower or NuRadioReco.framework.particle.Particle")
+        if par_id is None:
             return None
-        return self.get_particle(particle[parameters.particleParameters.parent_id])
+        print(par_id)
+        return self.get_particle(par_id)
 
     def has_particle(self, particle_id=None):
         """
@@ -370,6 +399,7 @@ class Event:
                 'sim_showers': sim_showers_pkl,
                 'particles': particles_pkl,
                 'hybrid_info': hybrid_info,
+                'generator_information': self._generator_information,
                 '__modules_event': modules_out_event,
                 '__modules_station': modules_out_station
                 }
@@ -404,6 +434,7 @@ class Event:
         self.__run_number = data['__run_number']
         self._id = data['_id']
         self.__event_time = data['__event_time']
+        self._generator_information = data['generator_information']
 
         if("__modules_event" in data):
             self.__modules_event = data['__modules_event']

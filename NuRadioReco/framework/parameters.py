@@ -131,6 +131,41 @@ class particleParameters(Enum):
     ##shower_ids
     ##shower_realization_Alvarez2009
 
+class generatorParameters(Enum):
+    Emax = 1
+    Emin = 2
+    NuRadioMC_EvtGen_version = 101
+    NuRadioMC_EvtGen_version_hash = 102
+    #NuRadioMC_version = 103
+    #NuRadioMC_version_hash = 104
+    #Tnoise
+    #Vrms
+    area = 3
+    deposited = 4
+    #detector
+    dt = 5
+    fiducial_rmax = 6
+    fiducial_rmin = 7
+    fiducial_zmax = 8
+    fiducial_zmin = 9
+    flavors = 10
+    header = 11
+    n_events = 12
+    n_samples = 13
+    phimax = 14
+    phimin = 15
+    rmax = 16
+    rmin = 17
+    start_event_id = 18
+    thetamax = 19
+    thetamin = 20
+    total_number_of_events = 21
+    trigger_names = 22
+    volume = 23
+    zmax = 24
+    zmin = 25
+
+
 class eventParameters(Enum):
     sim_config = 1  # contents of the config file that the NuRadioMC simulation was run with
     hash_NuRadioReco = 2    # deprecated, since NuRadioReco is no longer its own repository
