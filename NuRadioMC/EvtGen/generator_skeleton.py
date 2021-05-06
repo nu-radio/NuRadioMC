@@ -1,13 +1,6 @@
-from __future__ import absolute_import, division, print_function
 import numpy as np
 from NuRadioReco.utilities import units
-from six import iterkeys, iteritems
-from scipy import constants
-from scipy.integrate import quad
-from scipy.interpolate import interp1d
-from scipy.optimize import fsolve
-import h5py
-from NuRadioMC.EvtGen.generator import write_events_to_hdf5, split_hdf5_input_file
+from NuRadioMC.EvtGen.generator import write_events_to_hdf5
 import logging
 logger = logging.getLogger("EventGen")
 logging.basicConfig()
@@ -45,9 +38,22 @@ def generate_my_events(filename, n_events):
     attributes['rmax'] = 1 * units.km
     attributes['zmin'] = 0 * units.m
     attributes['zmax'] = -2 * units.km
+
+    attributes['volume'] = attributes['rmax'] ** 2 * np.pi * np.abs(attributes['zmax'])
+
+    # if only interactions on a surface (e.g. for muons from air showers) are generated, the surface area needs to be
+    # specified attributes['area']
+
     # define the minumum and maximum energy
     attributes['Emin'] = 1 * units.EeV
     attributes['Emax'] = 1 * units.EeV
+
+    # the interval of zenith directions
+    attributes['thetamin'] = 0
+    attributes['thetamax'] = np.pi
+    # the interval of azimuths directions
+    attributes['phimin'] = 0
+    attributes['phimax'] = 2 * np.pi
 
     # now generate the events and fill all required data sets
     # here we fill all data sets with dummy values
@@ -93,10 +99,16 @@ def generate_my_events(filename, n_events):
 
     # the interaction type. For neutrino interactions is can be either CC or NC. This parameter is not used but passed
     # to the output file for information purposes.
-    data_sets["interaction_type"] = np.ones(n_events, dtype='S2')
+    data_sets["interaction_type"] = np.full(n_events, "NC", dtype='S2')
     # The inelasiticiy, i.e. the fraction of the neutrino energy that is transferred into the hadronic shower.
     # This parameter is not used but saved into the output file for information purposes.
     data_sets["inelasticity"] = np.ones(n_events) * 0.5
 
     # write events to file
     write_events_to_hdf5(filename, data_sets, attributes)
+
+
+# add some test code
+if __name__ == "__main__":
+    generate_my_events("testfile.hdf5", 20)
+
