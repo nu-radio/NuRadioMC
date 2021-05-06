@@ -35,7 +35,7 @@ from NuRadioReco.framework.parameters import showerParameters as shp
 # parameters describing simulated Monte Carlo particles
 from NuRadioReco.framework.parameters import particleParameters as simp
 # parameters set in the event generator
-from NuRadioReco.framework.parameters import generatorParameters as genp
+from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 import datetime
 import logging
 from six import iteritems
@@ -838,7 +838,7 @@ class simulation():
                     # or all particles? usually not so many in our case...
                     self._evt.add_particle(self._evt_tmp.get_primary())
                     # copy over generator information from temporary event to event
-                    self._evt._generator_information = self._generator_information
+                    self._evt._generator_info = self._generator_info
 
 
                     self._station = NuRadioReco.framework.station.Station(self._station_id)
@@ -1074,10 +1074,10 @@ class simulation():
             self._fin_attrs[key] = value
 
         # copy information over to generator attributes
-        self._generator_information = {}
-        for enum_entry in genp:
+        self._generator_info = {}
+        for enum_entry in genattrs:
             if enum_entry.name in self._fin_attrs:
-                self._generator_information[enum_entry] = self._fin_attrs[enum_entry.name]
+                self._generator_info[enum_entry] = self._fin_attrs[enum_entry.name]
             
         fin.close()
 
