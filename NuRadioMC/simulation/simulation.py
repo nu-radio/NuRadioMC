@@ -432,8 +432,14 @@ class simulation():
             t1 = time.time()
             iE_mother = event_indices[0]
             x_int_mother = np.array([self._fin['xx'][iE_mother], self._fin['yy'][iE_mother], self._fin['zz'][iE_mother]])
-            if("weights" in self._fin):
-                self._mout['weights'] = self._fin["weights"]
+            if(self._cfg['weights']['weight_mode'] == "existing"):
+                if("weights" in self._fin):
+                    self._mout['weights'] = self._fin["weights"]
+                else:
+                    logger.error("config file specifies to use weights from the input hdf5 file but the input file does not contain this information.")
+                    raise AttributeError("config file specifies to use weights from the input hdf5 file but the input file does not contain this information.")
+            elif(self._cfg['weights']['weight_mode'] is None):
+                self._mout['weights'] = np.ones(self._n_showers)
             else:
                 self._mout['weights'][event_indices] = get_weight(self._fin['zeniths'][iE_mother],
                                                          self._fin['energies'][iE_mother],
