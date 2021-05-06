@@ -34,14 +34,14 @@ layout = html.Div([
     html.Br(),
     html.Br(),
     html.Div([html.Div("Select existing cable or enter new cable info:", style={'float':'left'}),
-        dcc.Dropdown(
-            id='cable-list',
-            options=[
-                {'label': 'new CABLE', 'value': "new"}
-            ],
-            value="new",
-            style={'width': '200px', 'float':'left'}
-        ),
+        # dcc.Dropdown(
+        #     id='cable-list',
+        #     options=[
+        #         {'label': 'new CABLE', 'value': "new"}
+        #     ],
+        #     value="new",
+        #     style={'width': '200px', 'float':'left'}
+        # ),
         dcc.Dropdown(
             id='cable-color-input',
             options=[
@@ -97,40 +97,40 @@ layout = html.Div([
     dcc.Graph(id='figure-cable', style={"height": "1000px", "width" : "100%"})
     ], id=table_name + "-main")])])
 
-
-@app.callback(
-    # [Output('cable-color-input', 'value'),  # 'disabled'),
-    #  Output('cable-station-input', 'value'),  # 'disabled'),
-    #  Output('cable-string-input', 'value'),  # 'disabled'),
-    [Output(table_name + "override-warning", "children")],
-    [Input('cable-list', 'value')])
-def enable_cable_name_input(value):
-    """
-    enable dropdowns for new cable name
-    """
-    if(value == "new"):
-        return False, ""
-    else:
-        return True, f"You are about to override the CABLE unit {value}!"
-
-
-@app.callback(
-    Output("cable-list", "options"),
-    [Input("trigger", "children")],
-    [State("cable-list", "options"),
-     State("table-name", "children")]
-)
-def update_dropdown_cable_names(n_intervals, options, table_name):
-    """
-    updates the dropdown menu with existing cable names from the database
-    """
-    if(get_table(table_name) is not None):
-        for cable_name in get_table(table_name).distinct("name"):
-            options.append(
-                {"label": cable_name, "value": cable_name}
-            )
-        return options
-
+#
+# @app.callback(
+#     # [Output('cable-color-input', 'value'),  # 'disabled'),
+#     #  Output('cable-station-input', 'value'),  # 'disabled'),
+#     #  Output('cable-string-input', 'value'),  # 'disabled'),
+#     [Output(table_name + "override-warning", "children")],
+#     [Input('cable-list', 'value')])
+# def enable_cable_name_input(value):
+#     """
+#     enable dropdowns for new cable name
+#     """
+#     if(value == "new"):
+#         return False, ""
+#     else:
+#         return True, f"You are about to override the CABLE unit {value}!"
+#
+#
+# @app.callback(
+#     Output("cable-list", "options"),
+#     [Input("trigger", "children")],
+#     [State("cable-list", "options"),
+#      State("table-name", "children")]
+# )
+# def update_dropdown_cable_names(n_intervals, options, table_name):
+#     """
+#     updates the dropdown menu with existing cable names from the database
+#     """
+#     if(get_table(table_name) is not None):
+#         for cable_name in get_table(table_name).distinct("name"):
+#             options.append(
+#                 {"label": cable_name, "value": cable_name}
+#             )
+#         return options
+#
 
 @app.callback(
     [
@@ -140,20 +140,19 @@ def update_dropdown_cable_names(n_intervals, options, table_name):
         Output(table_name + '-button-insert', 'disabled')
     ],
     [Input("validation-S21data-output", "data-validated"),
-     Input('cable-list', 'value'),
      Input('cable-color-input', 'value'),
      Input('cable-station-input', 'value'),
      Input('cable-string-input', 'value'),
      Input("function-test", "value")])
-def validate_global(Sdata_validated, cable_dropdown, color, station, string, function_test):
+def validate_global(Sdata_validated, color, station, string, function_test):
     """
     validates all three inputs, this callback is triggered by the individual input validation
     """
-    new_cable_name = str(station + string + color)
-    if(cable_dropdown == ""):
-        return "cable name not set", {"color": "Red"}, False, True
-    if(cable_dropdown == "new" and (new_cable_name is None or new_cable_name == "")):
-        return "cable name dropdown set to new but no new cable name was entered", {"color": "Red"}, False, True
+    # new_cable_name = str(station) + str(string) + str(color)
+    # if(cable_dropdown == "):
+    #     return "cable name not set", {"color": "Red"}, False, True
+    # if(cable_dropdown == "new" and (new_cable_name is None or new_cable_name == "")):
+    #     return "cable name dropdown set to new but no new cable name was entered", {"color": "Red"}, False, True
 
     print(function_test)
     if('working' not in function_test):
@@ -167,8 +166,7 @@ def validate_global(Sdata_validated, cable_dropdown, color, station, string, fun
 @app.callback([Output(table_name + '-main', 'style'),
                Output(table_name + '-menu', 'style')],
               [Input(table_name + '-button-insert', 'n_clicks')],
-              [State('cable-list', 'value'),
-               State('cable-color-input', 'value'),
+              [State('cable-color-input', 'value'),
                State('cable-station-input', 'value'),
                State('cable-string-input', 'value'),
              State('S21_mag_data', 'contents'),
@@ -178,14 +176,14 @@ def validate_global(Sdata_validated, cable_dropdown, color, station, string, fun
              State('dropdown-phase', 'value'),
              State('separator', 'value'),
              State("function-test", "value")])
-def insert_to_db(n_clicks, cable_dropdown, color, station, string, S21_mag_data, S21_phase_data, unit_ff, unit_mag, unit_phase, sep, function_test):
-    new_cable_name = str(station + string + color)
+def insert_to_db(n_clicks, color, station, string, S21_mag_data, S21_phase_data, unit_ff, unit_mag, unit_phase, sep, function_test):
+    cable_name = str(station) + str(string) + str(color)
     print(f"n_clicks is {n_clicks}")
     if(not n_clicks is None):
         print("insert to db")
-        cable_name = cable_dropdown
-        if(cable_dropdown == "new"):
-            cable_name = new_cable_name
+        # cable_name = cable_dropdown
+        # if(cable_dropdown == "new"):
+        #     cable_name = new_cable_name
         if('working' not in function_test):
             print(cable_name)
             det.CABLE_set_not_working(cable_name)
