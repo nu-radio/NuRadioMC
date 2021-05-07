@@ -11,7 +11,7 @@ RUN pip install aenum astropy matplotlib numpy radiotools scipy tinydb tinydb-se
 RUN pip install dash gunicorn h5py peakutils plotly pymongo sphinx
 
 # Install NuRadioReco
-ADD NuRadioReco /usr/local/lib/python3.6/site-packages/NuRadioMC
+ADD NuRadioMC /usr/local/lib/python3.6/site-packages/NuRadioMC
 
 RUN useradd nuradio
 
