@@ -1,0 +1,4 @@
+eventlist: ['../example_data/example_event.h5']
+
+output_filename: 'output_air_shower_reco/air_shower_reco_'
+
