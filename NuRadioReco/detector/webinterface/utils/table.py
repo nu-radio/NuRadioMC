@@ -8,3 +8,9 @@ def get_table(name):
         return det.db.DRAB
     elif(name == "IGLO"):
         return det.db.IGLO
+    elif(name == "CABLE"):
+        return det.db.CABLE
+    elif(name == "VPol"):
+        return det.db.VPol
+    elif(name == "PULSER"):
+        return det.db.PULSER
