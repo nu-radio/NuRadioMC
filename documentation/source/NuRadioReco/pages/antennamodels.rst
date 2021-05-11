@@ -448,8 +448,8 @@ Last updated: 2020
 
 SKALA_infFirn
 --------------
-LPDA
+Log-periodic antenna for SKA-low, called SKALA-2.
 The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-Theta range [0, 90] Phi range [0, 360] Freq range [50, 350]MHz
-
+Theta range [0, 90]; Phi range [0, 360]; Freq range [50, 350]MHz
+For more information, see: https://ieeexplore.ieee.org/abstract/document/7297231/authors#authors
 Last updated: 2021
