@@ -28,14 +28,9 @@ from NuRadioReco.modules.io.snowshovel.arianna_uproot_params import ariannaTempe
 from NuRadioReco.modules.io.snowshovel.arianna_uproot_params import ariannaConfigTreeParameters as par_config
 
 
-def convert_unix_time_stamp(unix_time):
-    """ Conversion of unix time stamp to datetime object """
-    return datetime.datetime.fromtimestamp(unix_time)
-
-convert_unix_times = np.vectorize(convert_unix_time_stamp)
 
 #def find_first_stop(stop_array):
-#    # stop array consists of 32 8bit blocks
+#    # stop array consists of  8bit blocks
 #    # find block numbers with stop bit set
 #    stop_set = np.flatnonzero(stop_array)
 #    if len(stop_set) == 0:
@@ -46,19 +41,31 @@ convert_unix_times = np.vectorize(convert_unix_time_stamp)
 #        found_stop = (stop_set+1)*8-np.floor(np.log2(stop_array[stop_set])+1)
 #        return int(found_stop[0])
 
-def find_stops(stop_block):
-    # implementation matches the one ARIANNA ROOT software
+def find_stops(stop_block_array):
+    """
+    find the stop bits set in an array of stop blocks
+    implementation matches the one ARIANNA ROOT software
+    
+    Paramteters
+    -----------
+    stop_block_array: array of 8 bit blocks where (typically 1 or 2) stop bits are nonzero
+
+    Returns
+    -------
+    array of found stop positions
+    """
+
     # mask to find set bits within a block
     bitcomparison_mask = 2**np.arange(8)
 
 
-    # stop block consists of 32 8bit blocks
+    # stop block consists of 8bit blocks
     # find blocks with stop bit set
     found_stops = []
-    stop_set = np.flatnonzero(stop_block)
+    stop_set = np.flatnonzero(stop_block_array)
     # loop over blocks with a stop set
     for block_i in stop_set:
-        bits_set = np.flatnonzero(stop_block[block_i]&bitcomparison_mask)
+        bits_set = np.flatnonzero(stop_block_array[block_i]&bitcomparison_mask)
         for bit_i in bits_set:
             found_stops.append((block_i+1)*8 - (bit_i+1))
     return np.array(found_stops)
@@ -66,8 +73,8 @@ def find_stops(stop_block):
 
 class readARIANNAData:
     """
-    Reads ARIANNA data as preprocessed in snowShovel. Can read RawData, FPNCorrectedData
-    and CalibratedData.
+    Reads ARIANNA data as preprocessed in snowShovel. Can read Raw Data, FPN Corrected Data
+    and Calibrated Data.
     """
 
     def __init__(self):
@@ -128,6 +135,7 @@ class readARIANNAData:
         self.skipped_events = 0
         self.skipped_events_stop = 0
 
+        # shuffle order in which events are read in if requested
         self._evt_range = np.arange(self.n_events, dtype=np.int)
         if(random_iterator):
             np.random.shuffle(self._evt_range)
@@ -136,11 +144,12 @@ class readARIANNAData:
         # config tree information is small, so one may read it right away.
         self.config = [self._read_config(f) for f in self.__uproot_files]
 
-        # temperature is not sampled for every event
-        self._temperatures = [self._read_temperature(f) for f in self.__uproot_files]
-        # battery info is not stored per event
-        self._power_info = [self._read_power(f) for f in self.__uproot_files]
+        ## temperature is not sampled for every event
+        #self._temperatures = [self._read_temperature(f) for f in self.__uproot_files]
+        ## battery info is not stored per event
+        #self._power_info = [self._read_power(f) for f in self.__uproot_files]
         
+        # use interpolators to interpolate the taken temperature/power values to the event times
         self.interpol_temperature = [self._temperature_interpolator(f) for f in self.__uproot_files]
         self.interpol_V1 = [self._power_interpolator(f, 'V1') for f in self.__uproot_files]
         self.interpol_V2 = [self._power_interpolator(f, 'V2') for f in self.__uproot_files]        
@@ -192,9 +201,9 @@ class readARIANNAData:
             current = self._read_event_info(self.__file_calib, self.__current_event_num_in_file)
 
 
-            # convert event unix time to datetime
+            # convert event unix time to datetime time is a tuple of [[sec][nanosec]] when interpreted as numpy array
             unix_time = current[par_data.time][0][0]
-            evt_time = datetime.datetime.fromtimestamp(unix_time)
+            evt_time = datetime.datetime.utcfromtimestamp(unix_time)
             if(self.__time_interval is not None):
                 if(evt_time < self.__time_interval[0]):
                     continue
@@ -206,9 +215,11 @@ class readARIANNAData:
                 use_event = False
                 for trigger in self.__trigger_types:
                     if(trigger == 'thermal'):
+                        # bitwise comparison of mask with thermal trigger bit
                         if(current[par_data.trigger_mask] & ARIANNA_TRIGGER['thermal']):
                             use_event = True
                     if(trigger == 'forced'):
+                        # bitwise comparison of mask with forced trigger bit
                         if(current[par_data.trigger_mask] & ARIANNA_TRIGGER['forced']):
                             use_event = True
                 if(use_event is False):
@@ -242,7 +253,7 @@ class readARIANNAData:
                 self.skipped_events += 1
                 continue
 
-            # extend the current event info by the config info....
+            # extend the current event info by the entry in the config info.... maybe not fastest performing, but makes code below hopefully more readable.
             current.update({cfg: self.__file_config[cfg][cfgi] for cfg in self.__file_config})
             if not (current[par_config.run_number] == run_number):
                 raise Exception("config entry has no matching run {}. Skipping event...".format(run_number))
@@ -294,8 +305,8 @@ class readARIANNAData:
             
             station.set_ARIANNA_parameter(ARIpar.seq_num, seq_number)
             # read and save start and stop time of a sequence
-            start = datetime.datetime.fromtimestamp(current[par_config.TrigStartClock_CurrTime].fSec[0])
-            stop = datetime.datetime.fromtimestamp(current[par_config.TrigStopClock_CurrTime].fSec[0])
+            start = datetime.datetime.utcfromtimestamp(current[par_config.TrigStartClock_CurrTime].fSec[0])
+            stop = datetime.datetime.utcfromtimestamp(current[par_config.TrigStopClock_CurrTime].fSec[0])
             if(start < datetime.datetime(1971, 1, 1)):
                 start = None
             if(stop < datetime.datetime(1971, 1, 1)):
@@ -306,7 +317,7 @@ class readARIANNAData:
             station.set_ARIANNA_parameter(ARIpar.comm_duration, current[par_config.DAQConfig_ComWin].fDur[0] * units.s)
             station.set_ARIANNA_parameter(ARIpar.comm_period, current[par_config.DAQConfig_ComWin].fPer[0] * units.s)
 
-            station.set_ARIANNA_parameter(ARIpar.l1_supression_value, np.nan) #skip for now, because of uproot not liking the trigger info map, should be DAQConfig.GetL1SingleFreqRatioCut())
+            station.set_ARIANNA_parameter(ARIpar.l1_supression_value, np.nan) #TODO skip for now, because of uproot not liking the trigger info map, should be DAQConfig.GetL1SingleFreqRatioCut())
 
             station.set_ARIANNA_parameter(ARIpar.internal_clock_time, current[par_data.DTms] * units.ms)
 
@@ -334,6 +345,20 @@ class readARIANNAData:
 
 
     def _read_event_info(self, tree, entry_num):
+        """ read the calib data tree information for one event
+
+        Note: uproot.iterate would be much more convenient, but custom interpretations are necessary due to odd header bytes in the root files
+        
+        Parameters
+        ----------
+        tree: the Calib tree of an uproot file
+        entry_num: number of entry in the tree to read
+
+        Returns
+        -------
+        current: dict of parameters, values for the requested current event
+        """
+
         current = {}
         for param, (trash, branch, interpretation) in arianna_calib_dict.items():
             current[param] = np.array(tree[branch].array(entry_start = entry_num, entry_stop = entry_num+1, interpretation=interpretation))[0]
@@ -343,23 +368,26 @@ class readARIANNAData:
         return current
 
     def _read_in_dict(self, opened_file, arianna_dict):
-        out_dict = {}
-        #print(arianna_dict)
-        for param, (tree, branch, interpretation) in arianna_dict.items():
-            #print(param)
-            out_dict[param] = opened_file[tree][branch].array(interpretation=interpretation)
-            ##if interpretation==ARIANNA_uproot_interpretation['com_win']:
-            ##    # skip everything after the two 4 byte variables
-            ##    temp_array = np.array(temp_array[:,:8])
-            ##    duration = extract_duration(temp_array)
-            ##    period = extract_period(temp_array)
-            ##    rec = awkward.Array({"period": p, "duration": d} for p,d in zip(period, duration))
+        """ read in information for a dict of parameter from an entire opened uproot file
 
-            ##    temp_array = rec
-            ##    # store 2-valued array in same order as in memory, 0: period, 1: duration
-            ##    #temp_array = np.column_stack([period, duration])
+        Note: uproot.iterate would be much more convenient, but custom interpretations are necessary due to odd header bytes in the root files
         
-        #out_dict[param] = temp_array
+        Parameters
+        ----------
+        opened_file: a root file opened with uproot.open
+        arianna_dict: a dictionary for each key being a 3-item list of
+            #: tree name
+            #: branch name
+            #: uproot interpretation, None if automatically discovered (non None should ideally never occur, but this is not the case for ARIANNA branches)
+
+        Returns
+        -------
+        out_dict: dict of parameters, values for the events of the file
+        """
+        out_dict = {}
+        for param, (tree, branch, interpretation) in arianna_dict.items():
+            out_dict[param] = opened_file[tree][branch].array(interpretation=interpretation)
+        
         return out_dict
 
     def _read_power(self, opened_file):
