@@ -12,10 +12,11 @@ RUN pip install dash gunicorn h5py peakutils plotly pymongo sphinx
 
 # Install NuRadioReco
 ADD NuRadioMC /usr/local/lib/python3.6/site-packages/NuRadioMC
+ADD NuRadioReco /usr/local/lib/python3.6/site-packages/NuRadioReco
 
 RUN useradd nuradio
 
 USER   nuradio
 EXPOSE 8050
-WORKDIR /usr/local/lib/python3.6/site-packages/NuRadioMC/NuRadioReco/detector/webinterface
+WORKDIR /usr/local/lib/python3.6/site-packages/NuRadioReco/detector/webinterface
 CMD [ "python", "./index.py" ]
