@@ -79,22 +79,22 @@ class ariannaTemperatureTreeParameters(Enum):
 
 class ariannaCalibTreeParameters(Enum):
     run_number = 1
-    station_mac = auto()
-    sequence_number = auto()
-    time = auto()
-    event_id = auto()
-    trigger_mask = auto()
-    DTms = auto()
+    station_mac = auto() # mac address of the station
+    sequence_number = auto() # sequence (for each sequence there is a corresponding ConfigTree entry)
+    time = auto() # time of the event
+    event_id = auto() # number of the event
+    trigger_mask = auto() #trigger bit mask, for definition see the ARIANNA_TRIGGER dict
+    DTms = auto() #station internal time since last trigger
 
-    RawData_data = 101
-    RawData_stop_bits = auto()
-    RawData_CRC = auto()
+    RawData_data = 101 # raw traces, without subtracting the baseline and taking into account calibrations
+    RawData_stop_bits = auto() #array of 8bit blocks, holding (typically 1 or 2) nonzero stop bits of the ARS for rolling the array
+    RawData_CRC = auto() 
     RawData_StationCRC = auto()
 
-    PFNSubData_data = 201
+    PFNSubData_data = 201 # trace data with baseline subtracted
     PFNSubData_error = auto()
 
-    AmpOutData_data = 301
+    AmpOutData_data = 301 # calibrated data
     AmpOutData_error = auto()
 
 class ariannaConfigTreeParameters(Enum):
@@ -102,23 +102,23 @@ class ariannaConfigTreeParameters(Enum):
     station_mac = auto()
     sequence_number = auto()
 
-    ReadoutConfig_Type = 101
-    ReadoutConfig_Nchans = auto()
-    ReadoutConfig_Nsamps = auto()
+    ReadoutConfig_Type = 101 # config type of the readout, cf. EStdConfig for details
+    ReadoutConfig_Nchans = auto() # number of channels
+    ReadoutConfig_Nsamps = auto() # number of samples
     ReadoutConfig_MaxPlas = auto()
-    ReadoutConfig_SampDT = auto()
+    ReadoutConfig_SampDT = auto() # sampling rate in ns
 
     DAQConfig_Label = 201
     DAQConfig_Usage = auto()
     DAQConfig_User = auto()
     DAQConfig_Desc = auto()
     DAQConfig_Built = auto()
-    DAQConfig_Dacs = auto()
+    DAQConfig_Dacs = auto() # voltage thresholds for the trigger
     DAQConfig_Plas = auto()
     DAQConfig_TrigSet = auto()
-    DAQConfig_ComWin = auto()
-    DAQConfig_LPComWin = auto()
-    DAQConfig_RunMode = auto()
+    DAQConfig_ComWin = auto() # period and duration of the commisioning window
+    DAQConfig_LPComWin = auto() # same as above but for low power periods
+    DAQConfig_RunMode = auto() 
     DAQConfig_HrtBt = auto()
     DAQConfig_StreamHiLoPlas = auto()
     DAQConfig_WvLoseLSB = auto()
@@ -140,11 +140,11 @@ class ariannaConfigTreeParameters(Enum):
 
     TrigStartClock_PrevTime = 401
     TrigStartClock_SetTime = auto()
-    TrigStartClock_CurrTime = auto()
+    TrigStartClock_CurrTime = auto() # time of the trigger start in the sequence
     TrigStartClock_USsinceSet = auto()
     TrigStopClock_PrevTime = auto()
     TrigStopClock_SetTime = auto()
-    TrigStopClock_CurrTime = auto()
+    TrigStopClock_CurrTime = auto() # time of the trigger stop in the sequence
     TrigStopClock_USsinceSet = auto() 
 
 par_data = ariannaCalibTreeParameters
