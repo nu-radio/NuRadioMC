@@ -20,7 +20,7 @@ layout = html.Div([
     html.H3('Add S21 measurments for a CABLE', id='trigger'),
     html.Div(table_name, id='table-name'),
     dcc.Link('Go back to menu', href='/apps/menu'),
-    html.Div([html.Div(dcc.Link('Add another CABLE measurement', href='/apps/add_CABLE', refresh=true), id=table_name + "-menu"),
+    html.Div([html.Div(dcc.Link('Add another CABLE measurement', href='/apps/add_CABLE', refresh=True), id=table_name + "-menu"),
               html.Div([
     html.H3('', id=table_name + 'override-warning', style={"color": "Red"}),
     html.Div([
@@ -29,9 +29,8 @@ layout = html.Div([
         options=[
             {'label': 'Allow override of existing entries', 'value': 1}
         ],
-        value=[],
-        style={'width': '15%'}
-    ], style={'width':'100%', 'float': 'hidden'}),
+        value=[])
+    ], style={'width':'20%', 'float': 'hidden'}),
     html.Br(),
     html.Br(),
     html.Div([html.Div("Select existing cable or enter new cable info:", style={'float':'left'}),

@@ -32,9 +32,8 @@ layout = html.Div([
         options=[
             {'label': 'Allow override of existing entries', 'value': 1}
         ],
-        value=[],
-        style={'width': '15%'}
-    ], style={'width':'100%', 'float': 'hidden'}),
+        value=[])
+    ], style={'width':'20%', 'float': 'hidden'}),
     html.Br(),
     html.Br(),
     html.Div([html.Div("Select existing antenna or enter unique name of new antenna:", style={'float':'left'}),
