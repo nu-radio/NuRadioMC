@@ -5,7 +5,7 @@ Overview of available Antenna Models
 --------------------------------------
 
 The following antenna models are available in NuRadioReco.
-The headings are the unique identifiers of the antenna model that need to specified as  ``antenna_type in`` the detector description.
+The headings are the unique identifiers of the antenna model that need to specified as  ``antenna_type`` in the detector description.
 
 All antenna models are stored on a central data server and are downloaded automatically on-demand
 whenever the user requests the antenna model for the first time.
@@ -14,6 +14,8 @@ For developers:
 If you add new an antenna model please add the sha1sum = hashlib.sha1() to this list and send Christian
 the antenna model so that he can put it on our central server.
 
+Inf means usually an infinite medium, firn has a refractive index n = 1.3-1.4. Since this is a bit imprecise
+we changed the naming to the actual refractive index.
 
 bicone_v8_infAir
 -----------------
@@ -446,7 +448,7 @@ Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
 
 Last updated: 2020
 
-SKALA_infFirn
+SKALA_1.3
 --------------
 Log-periodic antenna for SKA-low, called SKALA-2.
 The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
