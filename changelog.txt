@@ -5,6 +5,8 @@ please update the categories "new features" and "bugfixes" before a pull request
 version 2.0.1
 new features
 - Veff utility can now calculate effective volumes for fine zenith angle binning
+- Uproot readout for ARIANNA .root files (ROOT install not needed to read)
+- Uproot noise importer to import from .root file
 bugfixes:
 - fixed rare cases where the Cpp implementation of the analytic ray tracer did not find a solution
 
