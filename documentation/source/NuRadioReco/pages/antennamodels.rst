@@ -448,7 +448,7 @@ Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
 
 Last updated: 2020
 
-SKALA_1.3
+SKALA_InAir
 --------------
 Log-periodic antenna for SKA-low, called SKALA-2.
 The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
