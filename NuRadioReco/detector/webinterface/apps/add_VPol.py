@@ -23,7 +23,7 @@ layout = html.Div([
     html.H3('Add S11 measurment of VPol Antenna', id='trigger'),
     html.Div(table_name, id='table-name'),
     dcc.Link('Go back to menu', href='/apps/menu'),
-    html.Div([html.Div(dcc.Link('Add another VPol unit measurement', href='/apps/add_VPol'), id=table_name + "-menu"),
+    html.Div([html.Div(dcc.Link('Add another VPol unit measurement', href='/apps/add_VPol', refresh=True), id=table_name + "-menu"),
               html.Div([
     html.H3('', id=table_name + 'override-warning', style={"color": "Red"}),
     html.Div([
@@ -33,7 +33,7 @@ layout = html.Div([
             {'label': 'Allow override of existing entries', 'value': 1}
         ],
         value=[])
-    ], style={'width':'100%', 'float': 'hidden'}),
+    ], style={'width':'20%', 'float': 'hidden'}),
     html.Br(),
     html.Br(),
     html.Div([html.Div("Select existing antenna or enter unique name of new antenna:", style={'float':'left'}),
