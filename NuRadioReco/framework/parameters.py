@@ -78,6 +78,12 @@ class ARIANNAParameters(Enum):  # this class stores parameters specific to the A
     l1_supression_value = 7  # This provieds the L1 supression value for given event
     internal_clock_time = 8  # time since last trigger with ms precision
 
+    interpolated_temperature = 101 # temperatures read from TemperatureTree and interpolated to the event time (extrapolation == max/min time value)
+    interpolated_v1 = 102 # battery V1 read from VoltageTree and interpolated to the event time (extrapolation == max/min time value)
+    interpolated_v2 = 103 # battery V2 read from TemperatureTree and interpolated to the event time (extrapolation == max/min time value)
+    trigger_mask = 104 # ARIANNA trigger mask, cf ARIANNA_TRIGGER dict in NuRadioReco/modules/io/snowshovel/arianna_uproot_params.py for definition of bits
+    power_mode = 105 # the power mode in which the station is run
+    readout_config_type = 106 # config type string of the station
 
 class showerParameters(Enum):
     zenith = 1  # zenith angle of the shower axis pointing towards xmax
