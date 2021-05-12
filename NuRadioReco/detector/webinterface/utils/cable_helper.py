@@ -19,7 +19,7 @@ sparameters_layout = html.Div([html.Br(),
             {'label': 'cable is working', 'value': 'working'}
             ],
         value=['working'],
-        style={'width': '10%'}
+        style={'width': '15%'}
     ), html.Br(),
 
     html.Div("specify data format:"),
