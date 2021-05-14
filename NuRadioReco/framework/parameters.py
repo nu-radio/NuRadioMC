@@ -28,7 +28,17 @@ class stationParameters(Enum):
     cr_xmax = 28  # Depth of shower maximum of the air shower
     vertex_2D_fit = 29  # horizontal distance and z coordinate of the reconstructed vertex of the neutrino
     distance_correlations = 30
-
+    raytype = 31
+    pulse_position = 32
+    extra_channels = 33
+    over_rec = 34
+    chi2 = 35
+    launch_vector = 36
+    polarization = 37
+    viewing_angle = 38
+    first_step = 39
+    area_sim = 40
+    area_rec = 41
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
@@ -107,7 +117,6 @@ class showerParameters(Enum):
     interaction_type = 109  # the interaction type, e.g. cc or nc
     k_L = 110  # the k_L parameter of the Alvarez2009 parameter that controls the longitudional width of the charge excess profile
     flavor = 111  # the flavor of the particle initiating the shower
-
 
 class eventParameters(Enum):
     sim_config = 1  # contents of the config file that the NuRadioMC simulation was run with
