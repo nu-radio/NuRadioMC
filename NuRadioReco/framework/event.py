@@ -101,7 +101,6 @@ class Event:
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
         return key in self._parameters
 
-
     def get_generator_info(self, key):
         if not isinstance(key, parameters.generatorAttributes):
             logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
@@ -153,7 +152,7 @@ class Event:
         particle: Particle object
             The MC particle to be added to the event
         """
-        if(particle.get_id() in self.__particles):
+        if particle.get_id() in self.__particles:
             logger.error("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
             raise AttributeError("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
         self.__particles[particle.get_id()] = particle
@@ -169,7 +168,7 @@ class Event:
         """
         returns a specific MC particle identified by its unique id
         """
-        if(particle_id not in self.__particles):
+        if particle_id not in self.__particles:
             raise AttributeError(f"MC particle with id {particle_id} not present")
         return self.__particles[particle_id]
 
@@ -180,7 +179,7 @@ class Event:
         if len(self.__particles) == 0:
             return None
 
-        return self.get_particle(0)   
+        return self.get_particle(0)
 
     def get_parent(self, particle_or_shower):
         """
@@ -188,7 +187,6 @@ class Event:
         """
         if isinstance(particle_or_shower, NuRadioReco.framework.base_shower.BaseShower):
             par_id = particle_or_shower[parameters.showerParameters.parent_id]
-            
         elif isinstance(particle_or_shower, NuRadioReco.framework.particle.Particle):
             par_id = particle_or_shower[parameters.particleParameters.parent_id]
         else:
@@ -204,21 +202,20 @@ class Event:
 
         If particle_id is given, it checks if this particular MC particle exists
         """
-        if(particle_id is None):
+        if particle_id is None:
             return len(self.__particles) > 0
-        else:
-            return particle_id in self.__particles.keys()
+        
+        return particle_id in self.__particles.keys()
 
-    def get_interaction_products(self, particle, showers = True, particles = True):
-        secondaries = []
-        parent_id = particle.get_id()
+    def get_interaction_products(self, parent_particle, showers = True, particles = True):
+        parent_id = parent_particle.get_id()
         # iterate over sim_showers to look for parent id
-        if showers == True:
+        if showers is True:
             for shower in self.get_showers():
                 if shower[parameters.showerParameters.parent_id] == parent_id:
                     yield shower
         # iterate over secondary particles to look for parent id
-        if particles == True:
+        if particles is True:
             for particle in self.get_particles():
                 if particle[parameters.particleParameters.parent_id] == parent_id:
                     yield particle
