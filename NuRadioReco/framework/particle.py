@@ -22,11 +22,6 @@ class Particle:
     def get_id(self):
         return self._id
 
-    def get_energy(self):
-        return self.get_parameter(parameters.particleParameters.energy)
-    def get_weight(self):
-        return self.get_parameter(parameters.particleParameters.weight)
-
     def get_parameter(self, key):
         if not isinstance(key, parameters.particleParameters):
             logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.particleParameters")
@@ -45,7 +40,7 @@ class Particle:
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.particleParameters")
         return key in self._parameters
     
-    def as_dict(self):
+    def as_hdf5_dict(self):
         hdf5_dict = collections.OrderedDict()
         hdf5_dict['azimuths'] = self.get_parameter(parameters.particleParameters.azimuth)
         hdf5_dict['energies'] = self.get_parameter(parameters.particleParameters.energy)
