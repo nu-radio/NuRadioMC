@@ -192,8 +192,8 @@ class Event:
         else:
             raise ValueError("particle_or_shower needs to be an instance of NuRadioReco.framework.base_shower.BaseShower or NuRadioReco.framework.particle.Particle")
         if par_id is None:
+            logger.info("did not find parent for {particle_or_shower}")
             return None
-        print(par_id)
         return self.get_particle(par_id)
 
     def has_particle(self, particle_id=None):
