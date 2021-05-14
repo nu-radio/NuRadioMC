@@ -3,6 +3,9 @@ Changelog - to keep track of all relevant changes
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
 version 2.0.1
+new features:
+- Veff utility can now calculate effective volumes for fine zenith angle binning
+- Monte Carlo info introduced in .nur files via Particle and generator_info
 bugfixes:
 - fixed rare cases where the Cpp implementation of the analytic ray tracer did not find a solution
 
