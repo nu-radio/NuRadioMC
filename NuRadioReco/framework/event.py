@@ -144,12 +144,6 @@ class Event:
     def set_station(self, station):
         self.__stations[station.get_id()] = station
 
-    # stuff related to simulated MC particles/cascade
-    def set_sim_params(self, params):
-        for p in params:
-            print("setting param {} to {}".format(p, params[p]))
-            self.__particle.set_parameter(p, params[p])
-            
     def add_particle(self, particle):
         """
         Adds a MC particle to the event
@@ -445,7 +439,9 @@ class Event:
         self.__run_number = data['__run_number']
         self._id = data['_id']
         self.__event_time = data['__event_time']
-        self._generator_info = data['generator_info']
+
+        if 'generator_info' in data.keys():
+            self._generator_info = data['generator_info']
 
         if("__modules_event" in data):
             self.__modules_event = data['__modules_event']
