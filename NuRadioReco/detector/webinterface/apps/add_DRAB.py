@@ -18,6 +18,7 @@ from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 from NuRadioReco.detector.webinterface.app import app
 
 table_name = "DRAB"
+number_of_channels = 4
 
 layout = html.Div([
     html.H3('Add S parameter measurement of DRAB unit', id='trigger'),
@@ -50,6 +51,28 @@ layout = html.Div([
                   placeholder='new unique DRAB name',
                   style={'width': '200px',
                          'float': 'left'}),
+        dcc.Dropdown(
+            id=table_name + 'channel-id',
+            options=[{'label': x, 'value': x} for x in range(number_of_channels)],
+            placeholder='channel-id',
+            style={'width': '200px', 'float':'left'}
+        ),
+        dcc.Dropdown(
+            id='temperature-list',
+            options=[
+                {'label': 'room temp (20* C)', 'value': "20"},
+                {'label': '-50*C', 'value': "-50"},
+                {'label': '-40*C', 'value': "-40"},
+                {'label': '-30*C', 'value': "-30"},
+                {'label': '-20*C', 'value': "-20"},
+                {'label': '-10*C', 'value': "-10"},
+                {'label': '0*C', 'value': "0"},
+                {'label': '10*C', 'value': "0"},
+                {'label': '30*C', 'value': "0"},
+                {'label': '40*C', 'value': "0"},
+            ],
+            value="20",
+            style={'width': '200px', 'float':'left'})
     ], style={'width':'100%', 'float': 'hidden'}),
     html.Br(),
     html.Br(),

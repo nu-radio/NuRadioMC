@@ -64,6 +64,22 @@ layout = html.Div([
             placeholder='DRAB-id',
             style={'width': '200px', 'float':'left'}
         ),
+        dcc.Dropdown(
+            id='temperature-list',
+            options=[
+                {'label': 'room temp (20* C)', 'value': "20"},
+                {'label': '-50*C', 'value': "-50"},
+                {'label': '-40*C', 'value': "-40"},
+                {'label': '-30*C', 'value': "-30"},
+                {'label': '-20*C', 'value': "-20"},
+                {'label': '-10*C', 'value': "-10"},
+                {'label': '0*C', 'value': "0"},
+                {'label': '10*C', 'value': "0"},
+                {'label': '30*C', 'value': "0"},
+                {'label': '40*C', 'value': "0"},
+            ],
+            value="20",
+            style={'width': '200px', 'float':'left'})
     ], style={'width':'100%', 'float': 'hidden'}),
     html.Br(),
     html.Br(),
