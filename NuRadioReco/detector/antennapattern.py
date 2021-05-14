@@ -115,7 +115,7 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
     all paramters of the file
     """""
 
-    with open(path_gain, 'r') as fin:
+    with open(path_gain, 'r', encoding = 'mac_roman') as fin:
         ff = []
         phis = []
         thetas = []
@@ -142,10 +142,10 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
         for row in csv_reader:
             if 1:  # (line_count % 2) == 0:
                 if line_count != 0:
-                    complex_phi = float(row[3]) + 1j * float(row[4])
-                    phase_phi.append(cmath.phase(complex_phi))
-                    complex_theta = float(row[5] + 1j * float(row[6]))
-                    phase_theta.append(cmath.phase(complex_theta))
+                    complex = float(row[3]) + 1j * float(row[4])
+                    phase_phi.append(cmath.phase(complex))
+                    complex = float(row[5]) + 1j * float(row[6])
+                    phase_theta.append(cmath.phase(complex))
 
             line_count += 1
 
