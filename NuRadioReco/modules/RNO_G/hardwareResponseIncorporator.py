@@ -24,7 +24,7 @@ class hardwareResponseIncorporator:
     def begin(self, debug=False):
         self.__debug = debug
 
-    def get_filter(self, frequencies, station_id, channel_id, det, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
+    def get_filter(self, frequencies, station_id, channel_id, det, temp, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
         """
         helper function to return the filter that the module applies.
 
@@ -38,6 +38,7 @@ class hardwareResponseIncorporator:
             the channel id
         det: detector instance
             the detector
+        temp: temperature in Celsius, better in the range [-50°, 50°]
         sim_to_data: bool (default False)
             if False, deconvolve the hardware response
             if True, convolve with the hardware response
@@ -65,7 +66,7 @@ class hardwareResponseIncorporator:
         """
         amp_type = det.get_amplifier_type(station_id, channel_id)
         amp_response = analog_components.load_amp_response(amp_type)  # it reads the log file. change this to load_amp_measurement if you want the RI file
-        amp_response = amp_response['gain'](frequencies) * amp_response['phase'](frequencies)
+        amp_response = amp_response['gain'](temp, frequencies) * amp_response['phase'](frequencies)
 
         if mingainlin is not None:
             mingainlin = float(mingainlin)
@@ -86,7 +87,7 @@ class hardwareResponseIncorporator:
             return 1. / (amp_response * cable_response)
 
     @register_run()
-    def run(self, evt, station, det, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
+    def run(self, evt, station, det, temp=20, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
         """
         Switch sim_to_data to go from simulation to data or otherwise.
         The option zero_noise can be used to zero the noise around the pulse. It is unclear, how useful this is.
@@ -131,7 +132,7 @@ class hardwareResponseIncorporator:
             frequencies = channel.get_frequencies()
             trace_fft = channel.get_frequency_spectrum()
 
-            trace_fft *= self.get_filter(frequencies, station.get_id(), channel.get_id(), det, sim_to_data, phase_only, mode, mingainlin)
+            trace_fft *= self.get_filter(frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin)
             # zero first bins to avoid DC offset
             trace_fft[0] = 0
 
