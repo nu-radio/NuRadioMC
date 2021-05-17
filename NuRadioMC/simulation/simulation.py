@@ -356,7 +356,7 @@ class simulation():
             logger.status(f"writing empty hdf5 output file")
             self._write_ouput_file(empty=True)
             logger.status(f"terminating simulation")
-            return -1
+            return 0
         logger.status(f"Starting NuRadioMC simulation")
         t_start = time.time()
         t_last_update = t_start
@@ -378,13 +378,13 @@ class simulation():
         self._shower_ids = np.array(self._fin['shower_ids'])
         self._shower_index_array = {}  # this array allows to convert the shower id to an index that starts from 0 to be used to access the arrays in the hdf5 file.
 
-        self._raytracer= self._prop(
+        self._raytracer = self._prop(
             self._ice, self._cfg['propagation']['attenuation_model'],
             log_level=self._log_level_ray_propagation,
             n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
             n_reflections=self._n_reflections,
             config=self._cfg,
-            detector = self._det
+            detector=self._det
         )
         r = self._raytracer
         for shower_index, shower_id in enumerate(self._shower_ids):
