@@ -280,7 +280,7 @@ class ARZ(object):
         profiles = self._library[shower_type][energies[iE]]
         N_profiles = len(profiles['charge_excess'])
 
-        if(iN is None):
+        if(iN is None or np.isnan(iN)):
             if(same_shower):
                 if(shower_type in self._random_numbers):
                     iN = self._random_numbers[shower_type]
