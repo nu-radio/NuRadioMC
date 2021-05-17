@@ -352,8 +352,7 @@ class radiopropa_ray_tracing:
                     viewing = np.arccos(np.dot(shower_dir, ray_dir)) * units.radian
                     return viewing - cherenkov_angle
 
-                #only include rays with angle wrt cherenkov angle smaller than 20 degrees 
-                if self.__shower_axis==None or (abs(delta(ray_dir,shower_dir)) < self.__cut_viewing_angle): ## if we add this, we need to make sure that the solution is not near the boundary, because we're taking the median solution now.
+                if (self.__shower_axis is None) or (abs(delta(ray_dir,self.__shower_axis)) < self.__cut_viewing_angle):
                     source = radiopropa.Source()
                     source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*x1)))
                     source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*ray_dir)))
@@ -404,6 +403,7 @@ class radiopropa_ray_tracing:
 
         self.__rays = detected_rays
         self.__results = results
+        self.__used_method = 'iterator'
         launch_bundles = np.transpose([launch_lower, launch_upper])
         return launch_bundles
         
@@ -498,6 +498,8 @@ class radiopropa_ray_tracing:
                 find_second_root(theta_a = theta_plus, theta_b = theta_direct)
         
         self.__rays = detected_rays
+        self.__results = [{'reflection':0,'reflection_case':1} for ray in detected_rays]
+        self.__used_method = 'minimizer'
 
 
     def set_solutions(self,raytracing_results):
@@ -532,7 +534,8 @@ class radiopropa_ray_tracing:
         rays_results = []
         
         if isinstance(self.__medium, medium_base.IceModelSimple):
-            self.raytracer_minimizer()
+            self.raytracer_minimizer(n_reflections=self.__n_reflections)
+            results = []
             for iS in range(len(self.__rays)):
                 results.append({'type':self.get_solution_type(iS), 
                                 'reflection':0,
@@ -852,7 +855,9 @@ class radiopropa_ray_tracing:
             raise IndexError
 
         path_length = self.__rays[iS].getTrajectoryLength() * (units.meter/radiopropa.meter)
-        return path_length + self.get_correction_path_length(iS)
+        if self.__used_method == 'iterator':
+            path_length += self.get_correction_path_length(iS)
+        return path_length
 
     def get_travel_time(self, iS):
         """
@@ -875,7 +880,9 @@ class radiopropa_ray_tracing:
             raise IndexError
 
         travel_time = self.__rays[iS].getPropagationTime() * (units.second/radiopropa.second)
-        return travel_time + self.get_correction_travel_time(iS)
+        if self.__used_method == 'iterator':
+            travel_time += self.get_correction_travel_time(iS)
+        return travel_time
 
 
     def get_frequencies_for_attenuation(self, frequency, max_detector_freq):
