@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger('analog_components')
 
 
-def load_amp_response(amp_type='rno_surface', path=os.path.dirname(os.path.realpath(__file__))):  # use this function to read in log data
+def load_amp_response(amp_type='rno_surface', temp=293.15, freqs = 100*units.MHz,  path=os.path.dirname(os.path.realpath(__file__))):  # use this function to read in log data
     """
     Read out amplifier gain and phase. Currently only examples have been implemented.
     Needs a better structure in the future, possibly with database.
@@ -15,13 +15,13 @@ def load_amp_response(amp_type='rno_surface', path=os.path.dirname(os.path.realp
     in modules/RNO_G/hardweareResponseIncorporator.py l. 52, amp response.
     """
 
-    # definition correction functions: temp in Celsius, freq in GHz
-    # functions defined in temp range [-50°, +50°]
+    # definition correction functions: temp in Kelvin, freq in GHz
+    # functions defined in temperature range [223.15 K , 323.15 K]
 
     def surface_correction_func(temp, freqs):
-        return 1.0377798029 - 0.00135258197 * temp + (0.4788208019 - 0.01790064797 * temp) * (freqs ** 5)
+        return 1.0377798029 - 0.00135258197 * (temp-273.15) + (0.4788208019 - 0.01790064797 * (temp-273.15)) * (freqs ** 5)
     def iglu_correction_func(temp, freqs):
-        return 1.1139014286 - 0.00004392995 * (temp + 28.8331610295) ** 2 + (0.6301058083 - 0.0208741539 * temp) * (freqs ** 5)
+        return 1.1139014286 - 0.00004392995 * ((temp-273.15) + 28.8331610295) ** 2 + (0.6301058083 - 0.0208741539 * (temp-273.15)) * (freqs ** 5)
     amp_response = {}
     if amp_type == 'rno_surface':
         ph = os.path.join(path, 'HardwareResponses/surface_chan0_LinA.csv')
@@ -45,7 +45,7 @@ def load_amp_response(amp_type='rno_surface', path=os.path.dirname(os.path.realp
     amp_gain_f = interp1d(ff, amp_gain_discrete, bounds_error=False, fill_value=1)
     # all requests outside of measurement range are set to 0
 
-    def get_amp_gain(temp, freqs):
+    def get_amp_gain(freqs, temp):
         amp_gain = correction_function(temp, freqs) * amp_gain_f(freqs)
         return amp_gain
 
