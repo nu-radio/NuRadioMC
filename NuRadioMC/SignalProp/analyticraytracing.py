@@ -571,7 +571,7 @@ class ray_tracing_2D(ray_tracing_base):
 
             if(cpp_available):
                 mask = frequency > 0
-                freqs = self._get_frequencies_for_attenuation(frequency, max_detector_freq)
+                freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
                 tmp = np.zeros_like(freqs)
                 for i, f in enumerate(freqs):
                     tmp[i] = wrapper.get_attenuation_along_path(
@@ -590,7 +590,7 @@ class ray_tracing_2D(ray_tracing_base):
                 # to speed up things we only calculate the attenuation for a few frequencies
                 # and interpolate linearly between them
                 mask = frequency > 0
-                freqs = self._get_frequencies_for_attenuation(frequency, max_detector_freq)
+                freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
                 gamma_turn, z_turn = self.get_turning_point(self._medium.n_ice ** 2 - C_0 ** -2)
                 points = None
                 if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
