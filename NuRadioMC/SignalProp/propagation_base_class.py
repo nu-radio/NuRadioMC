@@ -77,7 +77,7 @@ class ray_tracing_base:
         self.__X2 = None
         self.__results = None
 
-    def reset_solutions():
+    def reset_solutions(self):
         self.__X1 = None
         self.__X2 = None
         self.__results = None
