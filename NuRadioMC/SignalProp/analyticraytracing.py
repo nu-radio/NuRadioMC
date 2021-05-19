@@ -13,6 +13,7 @@ except ImportError:
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 
 import logging
 logging.basicConfig()
@@ -43,9 +44,7 @@ analytic ray tracing solution
 """
 speed_of_light = scipy.constants.c * units.m / units.s
 
-solution_types = {1: 'direct',
-                  2: 'refracted',
-                  3: 'reflected'}
+solution_types = ray_tracing_base.solution_types
 
 
 @lru_cache(maxsize=32)
@@ -1505,18 +1504,15 @@ class ray_tracing_2D():
         return result
 
 
-class ray_tracing:
+class ray_tracing(ray_tracing_base):
     """
     utility class (wrapper around the 2D analytic ray tracing code) to get
     ray tracing solutions in 3D for two arbitrary points x1 and x2
     """
-    solution_types = {1: 'direct',
-                      2: 'refracted',
-                      3: 'reflected'}
-
+    
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
-                 n_frequencies_integration=100,
-                 n_reflections=0, config=None, detector=None):
+                 n_frequencies_integration=100, n_reflections=0, config=None, 
+                 detector=None):
         """
         class initilization
 
@@ -1526,6 +1522,8 @@ class ray_tracing:
             class describing the index-of-refraction profile
         attenuation_model: string
             signal attenuation model
+        log_name:  string
+            name under which things should be logged
         log_level: logging object
             specify the log level of the ray tracing class
             * logging.ERROR
@@ -1537,41 +1535,28 @@ class ray_tracing:
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
-
         n_reflections: int (default 0)
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
-
+        config: nested dictionary
+            loaded yaml config file
+        detector: detector object
         """
-        # make sure that arrays are floats
-        self.__logger = logging.getLogger('ray_tracing')
-        self.__logger.setLevel(log_level)
-        self.__medium = medium
-        self.__attenuation_model = attenuation_model
-        self.__n_frequencies_integration = n_frequencies_integration
-        if(n_reflections):
-            if(not hasattr(self.__medium, "reflection") or self.__medium.reflection is None):
-                self.__logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
-                n_reflections = 0
-        self.__n_reflections = n_reflections
+        super().__init__(medium=medium, 
+                         attenuation_model=attenuation_model,
+                         log_level=log_level,
+                         n_frequencies_integration=n_frequencies_integration, 
+                         n_reflections=n_reflections,
+                         config=config, 
+                         detector=detector)
+
         self.__r2d = ray_tracing_2D(self.__medium, self.__attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self.__n_frequencies_integration)
-        self.__config = config
-        self.__detector = detector
-        self.__max_detector_frequency = None
-        if self.__detector is not None:
-            for station_id in self.__detector.get_station_ids():
-                sampling_frequency = self.__detector.get_sampling_frequency(station_id, 0)
-                if self.__max_detector_frequency is None or sampling_frequency * .5 > self.__max_detector_frequency:
-                    self.__max_detector_frequency = sampling_frequency * .5
-        self.__X1 = None
-        self.__X2 = None
+
         self.__swap = None
         self.__dPhi = None
         self.__R = None
         self.__x1 = None
         self.__x2 = None
-        self.__shower_axis = None
-        self.__results = None
 
     def reset_solutions(self):
         """
@@ -1579,14 +1564,12 @@ class ray_tracing:
         points in order to not accidentally use results from previous raytracings.
 
         """
-        self.__X1 = None
-        self.__X2 = None
+        super().reset_solutions()
+        self.__x1 = None
+        self.__x2 = None
         self.__swap = None
         self.__dPhi = None
         self.__R = None
-        self.__x1 = None
-        self.__x2 = None
-        self.__results = None
 
     def set_start_and_end_point(self, x1, x2):
         """
@@ -1600,23 +1583,15 @@ class ray_tracing:
             stop point of the ray
         """
 
-        self.reset_solutions()
-        x1 = np.array(x1, dtype=np.float)
-        x2 = np.array(x2, dtype=np.float)
+        super()set_start_and_end_point()
+
         self.__swap = False
-        self.__X1 = x1
-        self.__X2 = x2
-        if(x2[2] < x1[2]):
+        if(self.__X2[2] < self.__X1[2]):
             self.__swap = True
             self.__logger.debug('swap = True')
-            self.__X2 = x1
-            self.__X1 = x2
-        if (self.__n_reflections):
-            if (x1[2] < self.__medium.reflection or x2[2] < self.__medium.reflection):
-                self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(
-                    self.__medium.reflection / units.m))
-                raise AttributeError("start or stop point is below the reflective layer at {:.1f}m".format(
-                    self.__medium.reflection / units.m))
+            self.__X2 = np.array(x1, dtype =np.float)
+            self.__X1 = np.array(x2, dtype =np.float)
+
         dX = self.__X2 - self.__X1
         self.__dPhi = -np.arctan2(dX[1], dX[0])
         c, s = np.cos(self.__dPhi), np.sin(self.__dPhi)
@@ -1629,31 +1604,6 @@ class ray_tracing:
         self.__x1 = np.array([X1r[0], X1r[2]])
         self.__x2 = np.array([X2r[0], X2r[2]])
         self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
-
-    def use_optional_function(self, function_name, *args, **kwargs):
-        """
-        Use optional function which may be different for each ray tracer. 
-        If the name of the function is not present for the ray tracer this function does nothing.
-
-        Parameters
-        ----------
-        function_name: string
-                       name of the function to use
-        *args: type of the argument required by function
-               all the neseccary arguments for the function separated by a comma
-        **kwargs: type of keyword argument of function
-                  all all the neseccary keyword arguments for the function in the
-                  form of key=argument and separated by a comma
-
-        Example
-        -------
-        use_optional_function('set_shower_axis',np.array([0,0,1]))
-        use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
-        """
-        if not hasattr(self,function_name):
-            pass
-        else:
-            getattr(self,function_name)(*args,**kwargs)
         
     def set_solution(self, raytracing_results):
         """
@@ -1695,24 +1645,6 @@ class ray_tracing:
             self.__logger.error(f"{self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed! Returning zero solutions")
             self.__results = []
 
-    def has_solution(self):
-        """
-        checks if ray tracing solution exists
-        """
-        return len(self.__results) > 0
-
-    def get_number_of_solutions(self):
-        """
-        returns the number of solutions
-        """
-        return len(self.__results)
-
-    def get_results(self):
-        """
-        returns dictionary of results (the parameters of the analytic ray path function)
-        """
-        return self.__results
-
     def get_solution_type(self, iS):
         """ returns the type of the solution
 
@@ -1725,9 +1657,7 @@ class ray_tracing:
         Returns
         -------
         solution_type: int
-            * 1: 'direct'
-            * 2: 'refracted'
-            * 3: 'reflected
+                       integer corresponding to the types in the dictionary solution_types
         """
         return self.__r2d.determine_solution_type(self.__x1, self.__x2, self.__results[iS]['C0'])
 
@@ -2031,9 +1961,6 @@ class ray_tracing:
             {'name': 'ray_tracing_solution_type', 'ndim': 1}
         ]
 
-    def get_number_of_raytracing_solutions(self):
-        return 2 + 4 * self.__n_reflections  # number of possible ray-tracing solutions
-
     def get_raytracing_output(self, i_solution):
         if self.__config['propagation']['focusing']:    
             focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
@@ -2114,20 +2041,3 @@ class ray_tracing:
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
-
-    def set_config(self, config):
-        """
-        Change the configuration file used by the raytracer
-
-        Parameters:
-        ------------------
-        config: dict
-            The new configuration settings
-        """
-        self.__config = config
-
-    def get_config(self):
-        """
-        Returns the current configuration file
-        """
-        return self.__config
