@@ -1581,7 +1581,7 @@ class ray_tracing(ray_tracing_base):
             stop point of the ray
         """
 
-        super()set_start_and_end_point()
+        super().set_start_and_end_point()
 
         self.__swap = False
         if(self.__X2[2] < self.__X1[2]):
