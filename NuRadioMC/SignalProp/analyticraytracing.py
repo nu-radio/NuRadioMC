@@ -67,7 +67,7 @@ def get_z_deep(ice_params):
     return res
 
 
-class ray_tracing_2D():
+class ray_tracing_2D(ray_tracing_base):
 
     def __init__(self, medium, attenuation_model="SP1",
                  log_level=logging.WARNING,
