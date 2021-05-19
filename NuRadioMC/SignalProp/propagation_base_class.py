@@ -1,4 +1,6 @@
 from __future__ import absolute_import, division, print_function
+from NuRadioReco.utilities import units
+import numpy as np
 import logging
 logging.basicConfig()
 
