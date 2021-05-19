@@ -42,7 +42,9 @@ class radiopropa_ray_tracing:
 
     solution_types = {1: 'direct',
                   2: 'refracted',
-                  3: 'reflected'}
+                  3: 'reflected',
+                  4: 'horizontal',
+                  5: 'surface'}
 
 
     def __init__(self, medium, attenuation_model="GL1", log_level=logging.WARNING,
@@ -317,7 +319,17 @@ class radiopropa_ray_tracing:
             sim = radiopropa.ModuleList()
             sim.add(radiopropa.PropagationCK(self.__ice_model.get_scalar_field(), 1E-8, .001, 1.)) ## add propagation to module list
             for module in self.__ice_model.get_modules().values(): 
-                sim.add(module)
+                if isinstance(module, radiopropa.PerturbationLayer): 
+                    if self.__config['propagation']['horizontal']: 
+                        new_thickness = max(sphere_size, module.getThickness())
+                        new_perturbation = module.clone()
+                        new_perturbation.setThickness(new_thickness)
+                        sim.add(new_perturbation)
+                elif isinstance(module, radiopropa.Discontinuity):
+                    if self.__config['propagation']['surface']: module.setSurfacemode(True)
+                    else: module.setSurfacemode(False)
+                else:
+                    sim.add(module)
             sim.add(radiopropa.MaximumTrajectoryLength(self.__max_traj_length * (radiopropa.meter/units.meter)))
 
             ## define observer for detection (channel)            
@@ -508,6 +520,76 @@ class radiopropa_ray_tracing:
         path_y = np.array([y * (units.meter/radiopropa.meter) for y in candidate.getPathY()])
         path_z = np.array([z * (units.meter/radiopropa.meter) for z in candidate.getPathZ()])
         return np.stack([path_x, path_y, path_z], axis=1)
+
+    def get_path_mask_horizontal(self, iS):
+        """
+        helper function that returns a mask for the original path to obtain only the
+        segment of the path which resides in a horizontal perturbation.
+
+        Parameters
+        ----------
+        iS: int
+            ray tracing solution
+
+        Returns
+        -------
+        path: 1D np.array of shape (n_points,)
+              mask of the original path for the horizontal perturbed segment
+        """
+        path = self.get_path_original(iS)*radiopropa.meter/units.meter
+        n_points = path.shape[0]
+        mask_horizontal = (np.arange(0,n_points) < 0)
+        if self.get_solution_type(iS) == 4:
+            for module in self.__ice_model.get_modules().values():
+                if isinstance(module, radiopropa.PerturbationLayer):
+                    mask_in_layer = (np.arange(0,n_points) < 0)
+                    mask_parallel = (np.arange(0,n_points) < 0)
+                    for i in range(n_points):
+                        position = radiopropa.Vector3d(*path[i])
+                        if i !=n_points-1: direction = radiopropa.Vector3d(*(path[i+1]-path[i]))
+                        else: direction = radiopropa.Vector3d(*(-self.get_receive_vector(iS)))
+
+                        mask_in_layer[i] = module.inLayer(position)
+                        mask_parallel[i] = module.parallelToLayer(position,direction)
+
+                    mask_horizontal = (mask_horizontal | (mask_in_layer & mask_parallel))
+        
+        return mask_horizontal
+
+    def get_path_mask_surface(self, iS):
+        """
+        helper function that returns a mask for the original path to obtain only the
+        segment of the path which follows the surface of a discontinuity.
+
+        Parameters
+        ----------
+        iS: int
+            ray tracing solution
+
+        Returns
+        -------
+        path: 1D np.array of shape (n_points,)
+              mask of the original path for the surface segment
+        """
+        path = self.get_path_original(iS)*radiopropa.meter/units.meter
+        n_points = path.shape[0]
+        mask_surface = (np.arange(0,n_points) < 0)
+        if self.get_solution_type(iS) == 5:
+            for module in self.__ice_model.get_modules().values():
+                if isinstance(module, radiopropa.Discontinuity):
+                    mask_at_surface = (np.arange(0,n_points) < 0)
+                    mask_parallel = (np.arange(0,n_points) < 0)
+                    for i in range(n_points):
+                        position = radiopropa.Vector3d(*path[i])
+                        if i !=n_points-1: direction = radiopropa.Vector3d(*(path[i+1]-path[i]))
+                        else: direction = radiopropa.Vector3d(*(-self.get_receive_vector(iS)))
+
+                        mask_at_surface[i] = module.atSurface(position)
+                        mask_parallel[i] = module.parallelToSurface(position,direction)
+
+                    mask_surface = (mask_surface | (mask_at_surface & mask_parallel))
+        
+        return mask_surface
     
     def get_path(self, iS, n_points=None):
         """
@@ -566,20 +648,35 @@ class radiopropa_ray_tracing:
         solution_type: int
             * 1: 'direct'
             * 2: 'refracted'
-            * 3: 'reflected
+            * 3: 'reflected'
+            * 4: 'horizontal'
+            * 5: 'surface'
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        pathz = self.get_path(iS)[:, 2]
-        if (self.__results[iS]['reflection'] != 0) or (self.get_reflection_angle(iS) != None):
-            solution_type = 3
-        elif(pathz[-1] < max(pathz)):
-            solution_type = 2
+        horizontal_ray = False
+        surface_ray = False
+        for module in self.__ice_model.get_modules().values():
+            if isinstance(module, radiopropa.PerturbationLayer) and self.__config['propagation']['horizontal']:
+                horizontal_ray = (module.createdInLayer(self.__rays[iS].get()) or horizontal_ray)
+            elif isinstance(module, radiopropa.Discontinuity) and self.__config['propagation']['surface']:
+                surface_ray = (module.createdAtSurface(self.__rays[iS].get()) or surface_ray)
+
+        if horizontal_ray:
+            solution_type = 4
+        elif surface_ray:
+            solution_types = 5
         else:
-            solution_type = 1
+            pathz = self.get_path(iS)[:, 2]
+            if (self.__results[iS]['reflection'] != 0) or (self.get_reflection_angle(iS) != None):
+                solution_type = 3
+            elif(pathz[-1] < max(pathz)):
+                solution_type = 2
+            else:
+                solution_type = 1
 
         return solution_type
 
@@ -746,6 +843,36 @@ class radiopropa_ray_tracing:
         path_length = self.__rays[iS].getTrajectoryLength() * (units.meter/radiopropa.meter)
         return path_length + self.get_correction_path_length(iS)
 
+    def get_path_length_segment(self, iS, mask):
+        """
+        calculates the path length of of a segment of solution iS.
+        The segment is defined by the given mask
+
+        Parameters
+        ----------
+        iS: int
+            choose for which solution to compute the path length, 
+            counting starts at zero
+        mask: 1D np.array of booleans
+              used to mask the original path, returning the right segment points
+
+        Returns
+        -------
+        path_length_segment: float
+                             total length of the segment of the path
+        """
+        n = self.get_number_of_solutions()
+        if(iS >= n):
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            raise IndexError
+
+        path_masked = self.get_path_original(iS)[mask]
+        path_length_segment = 0
+        for ip in range(path_masked.shape[0]-1):
+            step = np.linalg.norm(path_masked[ip+1]+path_masked[ip])
+            path_length_segment += step
+        return path_length_segment
+
     def get_travel_time(self, iS):
         """
         calculates the travel time of solution iS
@@ -833,15 +960,23 @@ class radiopropa_ray_tracing:
         path = self.get_path(iS)
 
         mask = frequency > 0
+        mask_horizontal = self.get_path_mask_horizontal(iS)
+        mask_surface = self.get_path_mask_surface(iS)
         freqs = self.get_frequencies_for_attenuation(frequency, self.__max_detector_frequency)
         integral = np.zeros(len(freqs))
         
-        def dt(depth, freqs):
-            ds = np.sqrt((path[:, 0][depth] - path[:, 0][depth+1])**2 + (path[:, 1][depth] - path[:, 1][depth+1])**2 + (path[:, 2][depth] - path[:, 2][depth+1])**2) # get step size
-            return ds / attenuation_util.get_attenuation_length(path[:, 2][depth], freqs, self.__attenuation_model)
+        def dt(index, freqs):
+            ds = np.sqrt((path[index, 0] - path[index+1, 0])**2 + (path[index, 1] - path[index+1, 1])**2 + (path[index, 2] - path[index+1, 2])**2) # get step size
+            attenuation_length = attenuation_util.get_attenuation_length(path[index, 2], freqs, self.__attenuation_model)
+            #correction for attenuation length, see ArXiv 1805.12576 table IV last row
+            if index in np.arange(0,path.shape[0])[mask_horizontal]: 
+                attenuation_length /= 2
+            elif index in np.arange(0,path.shape[0])[mask_surface]: 
+                attenuation_length /= 2
+            return ds / attenuation_length
         
-        for z_position in range(len(path[:, 2]) - 1):
-            integral += dt(z_position, freqs)
+        for i in range(len(path) - 1):
+            integral += dt(i, freqs)
         
         att_func = interp1d(freqs, integral)
         tmp = att_func(frequency[mask])
@@ -969,6 +1104,25 @@ class radiopropa_ray_tracing:
         if self.__config != None and self.__config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
             spec[1:] *= focusing
+
+        ## apply coupling horizontal propagation
+        if self.get_solution_type(i_solution)==4:
+            for module in self.__ice_model.get_modules().values():
+                if isinstance(module, radiopropa.PerturbationLayer) and module.createdInLayer(self.__rays[i_solution].get()): 
+                    spec *= module.getFraction()
+
+        ## apply coupling surface propagation
+        if self.get_solution_type(i_solution)==5:
+            for module in self.__ice_model.get_modules().values():
+                if isinstance(module, radiopropa.Discontinuity) and module.createdAtSurface(self.__rays[i_solution].get()): 
+                    spec *= module.getFraction()
+                    
+                    #correction of 1/r, see ArXiv 1805.12576
+                    #horizontal has 1/r, as usual, but surface is more likely to have 1/sqrt(r)
+                    r = self.get_path_length(i_solution)
+                    r_surface = self.get_path_length_segment(i_solution,self.get_path_mask_surface(i_solution))
+                    r_bulk = r - r_surface
+                    spec *= r/(np.sqrt(r_bulk)*np.sqrt(r_bulk+r_surface))
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
