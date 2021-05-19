@@ -14,10 +14,10 @@ def get_propagation_module(name=None):
     """
     if name is None:
         from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
-        return base_ray_tracing
+        return ray_tracing_base
     elif(name=='analytic'):
         from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
-        return analytic_ray_tracing
+        return ray_tracing
     elif(name=='direct_ray'):
         from NuRadioMC.SignalProp.directraytracing import direct_ray_tracing
         return direct_ray_tracing

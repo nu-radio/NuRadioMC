@@ -16,8 +16,8 @@ class direct_ray_tracing(ray_tracing_base):
         
     def find_solutions(self):
         results = []
-        for iS in range(self.get_number_of_solutions())
-        results.append({'type': self.get_solution_type(iS), 'reflection':0})
+        for iS in range(self.get_number_of_solutions()):
+            results.append({'type': self.get_solution_type(iS), 'reflection':0})
         self._results = results
         return results    
     
