@@ -1640,8 +1640,8 @@ class ray_tracing:
 
         Parameters
         ----------
-        parameter_name: string
-                        name of the parameter to set
+        function_name: string
+                       name of the function to use
         *args: type of the argument required by function
                all the neseccary arguments for the function separated by a comma
         **kwargs: type of keyword argument of function
