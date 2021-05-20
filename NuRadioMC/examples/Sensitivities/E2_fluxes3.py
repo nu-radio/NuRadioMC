@@ -277,8 +277,8 @@ ara_1year[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr *
 ara_1year[:, 1] /= 1  # binning is dLogE = 1
 ara_1year[:, 1] *= energyBinsPerDecade
 
-# Ongoing analysis 2sta x 4yr *trigger* level projected limit (analysis
-# level not fully defined yet)
+# Analysis from https://doi.org/10.1103/PhysRevD.102.043021  https://arxiv.org/abs/1912.00987
+# 2 stations (A2 and A3), approx 1100 days of livetime per station
 ara_4year_E, ara_4year_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), "limit_a23.txt"), unpack=True)
 ara_4year_E *= units.eV
 ara_4year_limit *= units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
