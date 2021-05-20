@@ -210,7 +210,18 @@ class Event:
         
         return particle_id in self.__particles.keys()
 
-    def get_interaction_products(self, parent_particle, showers = True, particles = True):
+    def get_interaction_products(self, parent_particle, showers=True, particles=True):
+        """
+        Return all the daughter particles and showers generated in the interaction of the <parent_particle>
+  
+        Parameters
+        ----------
+        showers: bool
+              Include simulated showers in the list
+        showers: bool
+            Include simulated particles in the list
+        """
+
         parent_id = parent_particle.get_id()
         # iterate over sim_showers to look for parent id
         if showers is True:
