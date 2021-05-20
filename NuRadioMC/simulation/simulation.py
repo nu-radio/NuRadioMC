@@ -437,8 +437,8 @@ class simulation():
             t1 = time.time()
             self._primary_index = event_indices[0]
             # set the shower index to the index of the primary particle to read in the neutrino properties from there
-            self._shower_index = self._primary_index
-            self._read_input_particle_properties() # this sets the self.input_particle for self._shower_index
+            self._particle_index = self._primary_index
+            self._read_input_particle_properties() # this sets the self.input_particle for self._particle_index
             # calculate the weight for the primary particle
             self.primary = self.input_particle
             self.primary[simp.weight] = get_weight(self.primary[simp.zenith],
@@ -448,7 +448,7 @@ class simulation():
                                                    cross_section_type=self._cfg['weights']['cross_section_type'],
                                                    vertex_position=self.primary[simp.vertex],
                                                    phi_nu=self.primary[simp.azimuth])
-            # all shower corresponding to the primary get the calculated primary's weight
+            # all entries for the event for this primary get the calculated primary's weight
             self._mout['weights'][event_indices] = self.primary[simp.weight]
 
             weightTime += time.time() - t1
@@ -540,8 +540,8 @@ class simulation():
 
                     logger.debug(f"simulating shower {self._shower_index}: {self._shower_type} with E = {self._shower_energy/units.eV:.2g}eV")
                     #  should be of the shower, therefore we need to update the _read_neutrino_properties to the current shower
-                    self._read_input_particle_properties()
-                    x1 = self.input_particle[simp.vertex]  # the interaction point
+                    self._read_input_shower_properties()
+                    x1 = self._shower_vertex  # the interaction point
 
                     if self._cfg['speedup']['distance_cut']:
                         t_tmp = time.time()
@@ -1025,9 +1025,9 @@ class simulation():
         if(not has_fiducial):
             return True
 
-        r = (self.input_particle[simp.vertex][0]** 2 + self.input_particle[simp.vertex][1] ** 2) ** 0.5
+        r = (self._shower_vertex[0]** 2 + self._shower_vertex[1] ** 2) ** 0.5
         if(r >= self._fin_attrs['fiducial_rmin'] and r <= self._fin_attrs['fiducial_rmax']):
-            if(self.input_particle[simp.vertex][2] >= self._fin_attrs['fiducial_zmin'] and self.input_particle[simp.vertex][2] <= self._fin_attrs['fiducial_zmax']):
+            if(self._shower_vertex[2] >= self._fin_attrs['fiducial_zmin'] and self._shower_vertex[2] <= self._fin_attrs['fiducial_zmax']):
                 return True
         return False
 
@@ -1071,7 +1071,7 @@ class simulation():
         for key, value in iteritems(fin.attrs):
             self._fin_attrs[key] = value
 
-        # copy information over to generator attributes
+        # store all relevant attributes of the input file in a dictionary
         self._generator_info = {}
         for enum_entry in genattrs:
             if enum_entry.name in self._fin_attrs:
@@ -1240,31 +1240,41 @@ class simulation():
         return sg
 
     def _read_input_particle_properties(self):
+        self._n_interaction = self._fin['n_interaction'][self._particle_index]
+        self._event_group_id = self._fin['event_group_ids'][self._particle_index]
+
+        self.input_particle = NuRadioReco.framework.particle.Particle(0)
+        self.input_particle[simp.flavor] = self._fin['flavors'][self._particle_index]
+        self.input_particle[simp.energy] = self._fin['energies'][self._particle_index]
+        self.input_particle[simp.interaction_type] = self._fin['interaction_type'][self._particle_index]
+        self.input_particle[simp.inelasticity] = self._fin['inelasticity'][self._particle_index]
+        self.input_particle[simp.vertex] = np.array([self._fin['xx'][self._particle_index],
+                                                  self._fin['yy'][self._particle_index],
+                                                  self._fin['zz'][self._particle_index]])
+        self.input_particle[simp.zenith] = self._fin['zeniths'][self._particle_index]
+        self.input_particle[simp.azimuth] = self._fin['azimuths'][self._particle_index]
+        self.input_particle[simp.inelasticity] = self._fin['inelasticity'][self._particle_index]
+        self.input_particle[simp.parent_id] = None # primary does not have a parent
+        
+        self.input_particle[simp.vertex_time] = 0
+        if 'vertex_times' in self._fin:
+            self.input_particle[simp.vertex_time] = self._fin['vertex_times'][self._particle_index]        
+
+    def _read_input_shower_properties(self):
+        """ read in the properties of the shower with index _shower_index from input """
         self._n_interaction = self._fin['n_interaction'][self._shower_index]
         self._event_group_id = self._fin['event_group_ids'][self._shower_index]
 
-        self.input_particle = NuRadioReco.framework.particle.Particle(0)
-        self.input_particle[simp.flavor] = self._fin['flavors'][self._shower_index]
-        self.input_particle[simp.energy] = self._fin['energies'][self._shower_index]
-        self.input_particle[simp.interaction_type] = self._fin['interaction_type'][self._shower_index]
-        self.input_particle[simp.inelasticity] = self._fin['inelasticity'][self._shower_index]
-        self.input_particle[simp.vertex] = np.array([self._fin['xx'][self._shower_index],
-                                                  self._fin['yy'][self._shower_index],
-                                                  self._fin['zz'][self._shower_index]])
-        self.input_particle[simp.zenith] = self._fin['zeniths'][self._shower_index]
-        self.input_particle[simp.azimuth] = self._fin['azimuths'][self._shower_index]
-        self.input_particle[simp.inelasticity] = self._fin['inelasticity'][self._shower_index]
-        self.input_particle[simp.parent_id] = None # primary does not have a parent
-
         self._shower_type = self._fin['shower_type'][self._shower_index]
         self._shower_energy = self._fin['shower_energies'][self._shower_index]
+        self._shower_vertex = np.array([self._fin['xx'][self._shower_index],
+                                        self._fin['yy'][self._shower_index],
+                                        self._fin['zz'][self._shower_index]])
 
-        self.input_particle[simp.vertex_time] = 0
+        self._vertex_time = 0
         if 'vertex_times' in self._fin:
-            self.input_particle[simp.vertex_time] = self._fin['vertex_times'][self._shower_index]
-        self._vertex_time = self.input_particle[simp.vertex_time]
+            self._vertex_time = self._fin['vertex_times'][self._shower_index]
 
-        # showers have same zenith and azimuth as primary particle
         self._zenith_shower = self._fin['zeniths'][self._shower_index]
         self._azimuth_shower = self._fin['azimuths'][self._shower_index]
 
