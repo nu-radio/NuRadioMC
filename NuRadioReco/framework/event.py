@@ -22,8 +22,8 @@ class Event:
         self.__radio_showers = collections.OrderedDict()
         self.__sim_showers = collections.OrderedDict()
         self.__event_time = 0
-        self.__particles = collections.OrderedDict()
-        self._generator_info = {}
+        self.__particles = collections.OrderedDict() # stores a dictionary of simulated MC particles in an event
+        self._generator_info = {} # copies over the relevant information on event generation from the input file attributes
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
         self.__modules_station = {}  # saves which modules were executed with what parameters on station level
@@ -152,6 +152,9 @@ class Event:
         particle: Particle object
             The MC particle to be added to the event
         """
+        if not isinstance(particle, Particle):
+            logger.error("Requested to add non-Particle item to the list of particles. {particle} needs to be an instance of Particle.")
+            raise TypeError("Requested to add non-Particle item to the list of particles. {particle}   needs to be an instance of Particle.")
         if particle.get_id() in self.__particles:
             logger.error("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
             raise AttributeError("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
