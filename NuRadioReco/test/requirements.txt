@@ -1,0 +1,17 @@
+#
+###### Requirements without Version Specifiers ######
+pyyaml
+numpy
+astropy
+tinydb
+tinydb-serialization
+h5py
+matplotlib
+scipy
+aenum
+cython
+requests
+future
+radiotools
+# proposal
+###### Requirements with Version Specifiers ######

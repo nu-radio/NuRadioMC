@@ -10,10 +10,25 @@ home-page = "https://github.com/nu-radio/NuRadioMC"
 classifiers = ["License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"]
 
 requires = [
+	"numpy",
+	"scipy",
+    "tinydb>=4.1.1",
+    "tinydb-serialization",
+	"pickle",
+    "aenum",
+    "astropy",
     "radiotools >=0.2.0",
     "h5py",
-    "NuRadioReco >=1.2",
     "pyyaml",
-    "cython"
+    "cython",
+    "peakutils",
+    "requests",
+    "pymongo",
+    "dash",
+    "plotly",
+    "sphinx"
 ]
 requires-python=">=3.6"
+
+[tool.flit.metadata.requires-extra]
+doc = ["sphinx"]
