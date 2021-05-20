@@ -152,7 +152,7 @@ class Event:
         particle: Particle object
             The MC particle to be added to the event
         """
-        if not isinstance(particle, Particle):
+        if not isinstance(particle, NuRadioReco.framework.particle.Particle):
             logger.error("Requested to add non-Particle item to the list of particles. {particle} needs to be an instance of Particle.")
             raise TypeError("Requested to add non-Particle item to the list of particles. {particle}   needs to be an instance of Particle.")
         if particle.get_id() in self.__particles:
