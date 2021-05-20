@@ -1,0 +1,3 @@
+trigger:
+  bandwidth: None #0.17222 # null or floaat in GHz (the effective bandwidth. It is used to calculate the Vrms from the noise temperature. If None, the bandwidth is calculated from the sampling rate assuming that the bandwidth is 0Hz to the Nyquist frequency
+  

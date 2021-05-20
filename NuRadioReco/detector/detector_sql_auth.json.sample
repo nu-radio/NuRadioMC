@@ -1,0 +1,6 @@
+{
+    "host": "hostname.uci.edu",
+    "user": "username",
+    "pass": "password",
+    "DB": "database_name"
+}
