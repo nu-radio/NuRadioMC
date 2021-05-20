@@ -279,21 +279,10 @@ ara_1year[:, 1] *= energyBinsPerDecade
 
 # Ongoing analysis 2sta x 4yr *trigger* level projected limit (analysis
 # level not fully defined yet)
-
-ara_4year = np.array((
-
-[9.91245E+15, 3.11814E+16, 9.80021E+16, 3.10745E+17, 9.94099E+17, 3.0936E+18, 9.71449E+18, 3.07805E+19, 9.75192E+19],
-# [1.01518E+16,1.01357E+17,1.01748E+18,1.0234E+19,1.03113E+20],
-# [7.27626e-06,5.06909e-07,2.13658e-07,2.02468e-07,4.46012e-07]
-[5.35394e-06, 1.24309e-06, 4.20315e-07, 2.24199e-07, 1.61582e-07, 1.50329e-07, 1.63715e-07, 2.24543e-07, 3.36398e-07]
-))
-
-ara_4year = ara_4year.T
-
-ara_4year[:, 0] *= units.eV
-ara_4year[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-ara_4year[:, 1] /= 1  # binning is dLogE = 1
-ara_4year[:, 1] *= energyBinsPerDecade
+ara_4year_E, ara_4year_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), "limit_a23.txt"), unpack=True)
+ara_4year_E *= units.eV
+ara_4year_limit *= units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
+ara_4year_limit *= energyBinsPerDecade
 
 ARIANNA_HRA = np.array([[1.00000003e+07, 3.16228005e+07, 9.99999984e+07, 3.16227997e+08,
                          9.99999984e+08, 3.16228010e+09, 9.99999998e+09, 3.16228010e+10,
@@ -356,6 +345,7 @@ def get_E2_limit_figure(diffuse=True,
                         show_RNOG=False,
                         show_IceCubeGen2=False,
                         shower_Auger=True,
+                        show_ara_1year=False,
                         show_prediction_arianna_200=False):
 
     # Limit E2 Plot
@@ -558,8 +548,19 @@ def get_E2_limit_figure(diffuse=True,
                         xy=(2e8 * units.GeV / plotUnitsEnergy, 6e-8), xycoords='data',
                         horizontalalignment='left', color='forestgreen', rotation=0, fontsize=legendfontsize)
 
-    if show_ara:
+    if show_ara_1year:
         ax.plot(ara_1year[:, 0] / plotUnitsEnergy, ara_1year[:, 1] / plotUnitsFlux, color='indigo')
+#         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
+        if energyBinsPerDecade == 2:
+            ax.annotate('ARA',
+                        xy=(5e8 * units.GeV / plotUnitsEnergy, 6e-7), xycoords='data',
+                        horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
+        else:
+            ax.annotate('ARA',
+                    xy=(2e10 * units.GeV / plotUnitsEnergy, 1.05e-6), xycoords='data',
+                    horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
+    if show_ara:
+        ax.plot(ara_4year_E / plotUnitsEnergy, ara_4year_limit / plotUnitsFlux, color='indigo')
 #         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
         if energyBinsPerDecade == 2:
             ax.annotate('ARA',
@@ -578,7 +579,7 @@ def get_E2_limit_figure(diffuse=True,
                         horizontalalignment='left', color='red', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('ARIANNA',
-                    xy=(3e8 * units.GeV / plotUnitsEnergy, 1.05e-6), xycoords='data',
+                    xy=(1e8 * units.GeV / plotUnitsEnergy, 1.05e-6), xycoords='data',
                     horizontalalignment='right', color='red', rotation=0, fontsize=legendfontsize)
 
     if show_IceCubeGen2:
@@ -622,7 +623,7 @@ def get_E2_limit_figure(diffuse=True,
 
     if show_prediction_arianna_200:
         # 10 year sensitivity
-        arianna_200 = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), "expected_sensivity_ARIANNAA-200.txt"))
+        arianna_200 = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), "expected_sensivity_ARIANNA-200.txt"))
         arianna_200[:, 0] *= units.GeV
         arianna_200[:, 1] *= units.GeV * units.cm ** -2 * units.s ** -1
         print(arianna_200)
