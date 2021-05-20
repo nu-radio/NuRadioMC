@@ -251,7 +251,8 @@ class simulation():
         self._Vrms = 1
         for iSt, self._station_id in enumerate(self._station_ids):
             self._shower_index = 0
-            self._evt = NuRadioReco.framework.event.Event(0, self._shower_index)
+            self._particle_index = 0
+            self._evt = NuRadioReco.framework.event.Event(0, self._particle_index)
             # read all quantities from hdf5 file and store them in local variables
             self._read_input_particle_properties()
 
@@ -1258,7 +1259,7 @@ class simulation():
         
         self.input_particle[simp.vertex_time] = 0
         if 'vertex_times' in self._fin:
-            self.input_particle[simp.vertex_time] = self._fin['vertex_times'][self._particle_index]        
+            self.input_particle[simp.vertex_time] = self._fin['vertex_times'][self._particle_index]
 
     def _read_input_shower_properties(self):
         """ read in the properties of the shower with index _shower_index from input """
