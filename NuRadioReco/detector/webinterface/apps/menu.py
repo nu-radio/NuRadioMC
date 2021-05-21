@@ -9,6 +9,8 @@ layout = html.Div([
     html.Br(),
     dcc.Link('Add S21 Cable measurments', href='/apps/add_CABLE'),
     html.Br(),
+    dcc.Link('Add S21 SURFACE Cable measurments', href='/apps/add_surf_CABLE'),
+    html.Br(),
     dcc.Link('Add S11 VPol measurment', href='/apps/add_VPol'),
     html.Br(),
     dcc.Link('Add S parameter measurement of IGLO board', href='/apps/add_IGLO'),

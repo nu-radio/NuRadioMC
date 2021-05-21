@@ -7,6 +7,7 @@ from NuRadioReco.detector.webinterface.apps import add_DRAB
 from NuRadioReco.detector.webinterface.apps import add_IGLO
 from NuRadioReco.detector.webinterface.apps import add_VPol
 from NuRadioReco.detector.webinterface.apps import add_CABLE
+from NuRadioReco.detector.webinterface.apps import add_surf_CABLE
 from NuRadioReco.detector.webinterface.apps import add_Pulser
 from NuRadioReco.detector.webinterface.apps import add_HPol
 from NuRadioReco.detector.webinterface.apps import add_DAQ
@@ -31,6 +32,8 @@ def display_page(pathname):
         return add_IGLO.layout
     elif pathname == '/apps/add_CABLE':
         return add_CABLE.layout
+    elif pathname == '/apps/add_surf_CABLE':
+        return add_surf_CABLE.layout
     elif pathname == '/apps/add_VPol':
         return add_VPol.layout
     elif pathname == '/apps/add_Pulser':
@@ -44,6 +47,6 @@ def display_page(pathname):
 
 
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', debug=True)
+    #app.run_server(host='0.0.0.0', debug=True)
     #for running locally switch with comment below
-    #app.run_server(debug=True)
+    app.run_server(debug=True)
