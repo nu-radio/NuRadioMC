@@ -6,6 +6,7 @@ version 2.1.0
 new features:
 - add a numerical raytracer depending on the radiopropa code
 - major change in the declaration of mediums at the back end, at the front end nothing changed.
+- inheritance of ray tracers form a base class
 
 
 version 2.0.1
