@@ -12,11 +12,11 @@ logger = logging.getLogger("database")
 logger.setLevel(logging.DEBUG)
 
 # connect to MongoDB, change the << MONGODB URL >> to reflect your own connection string
-# client = MongoClient("mongodb+srv://detector_write:detector_write@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+#client = MongoClient("mongodb+srv://detector_write:detector_write@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
 # client = MongoClient("localhost")
 
 # use db connection from environment, pw and user need to be percent escaped
-#MONGODB_URL = os.environ.get('MONGODB_URL')
+# MONGODB_URL = os.environ.get('MONGODB_URL')
 # if MONGODB_URL is None:
 #     logging.warning('MONGODB_URL not set, defaulting to "localhost"')
 #     MONGODB_URL = 'localhost'
@@ -30,7 +30,7 @@ if None in [mongo_user, mongo_server]:
     logging.warning('"mongo_user" or "mongo_password" not set')
 # start client
 client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
-db = client.RNOG_test
+db = client.RNOG_live
 
 
 def get_surface_board_names():
