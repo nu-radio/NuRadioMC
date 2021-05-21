@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
-def get_propagation_module(name='analytic'):
+def get_propagation_module(name=None):
     """
     wrapper around all propagation modules
     
@@ -12,12 +12,15 @@ def get_propagation_module(name='analytic'):
     name: string
         * analytic: analytic ray tracer
     """
-    if(name=='analytic'):
+    if name is None:
+        from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
+        return ray_tracing_base
+    elif(name=='analytic'):
         from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
         return ray_tracing
     elif(name=='direct_ray'):
-        from NuRadioMC.SignalProp.directRayTracing import directRayTracing
-        return directRayTracing
+        from NuRadioMC.SignalProp.directraytracing import direct_ray_tracing
+        return direct_ray_tracing
     elif(name=='radiopropa'):
         from NuRadioMC.SignalProp.radioproparaytracing import radiopropa_ray_tracing
         return radiopropa_ray_tracing
