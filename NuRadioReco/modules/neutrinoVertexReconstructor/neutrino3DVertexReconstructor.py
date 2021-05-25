@@ -577,14 +577,17 @@ class neutrino3DVertexReconstructor:
         return travel_times
 
     def __draw_2d_correlation_map(self, event, correlation_map, slope, offset, max_z_offset, min_z_offset):
-        fig4 = plt.figure(figsize=(6, 4))
+        fig4 = plt.figure(figsize=(6, 3.5))
         ax4_1 = fig4.add_subplot(111)
         d_0, z_0 = np.meshgrid(self.__distances_2d, self.__z_coordinates_2d)
-        ax4_1.pcolor(
+        cplot = ax4_1.pcolor(
             d_0,
             z_0,
-            np.max(correlation_map, axis=2).T
+            np.max(correlation_map, axis=2).T / np.max(correlation_map),
+            vmin=.5,
+            vmax=1
         )
+        plt.colorbar(cplot, ax=ax4_1).set_label('correlation sum', fontsize=14)
         ax4_1.plot(
             self.__distances_2d,
             self.__distances_2d * slope + offset + max_z_offset,
@@ -660,8 +663,8 @@ class neutrino3DVertexReconstructor:
             marker='o',
             s=50
         )
-        ax4_1.set_xlabel('d [m]', fontsize=10)
-        ax4_1.set_ylabel('z [m]', fontsize=10)
+        ax4_1.set_xlabel('d [m]', fontsize=14)
+        ax4_1.set_ylabel('z [m]', fontsize=14)
         fig4.tight_layout()
         fig4.savefig('{}/{}_{}_2D_correlation_maps.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
 
@@ -842,11 +845,11 @@ class neutrino3DVertexReconstructor:
             median_theta,
             i_max
     ):
-        fig6 = plt.figure(figsize=(8, 8))
+        fig6 = plt.figure(figsize=(6, 6))
         ax6_1 = fig6.add_subplot(222)
-        vmin = .6
+        vmin = .5
         vmax = 1.
-        colormap = cm.get_cmap('viridis', 16)
+        colormap = cm.get_cmap('viridis')
         sim_vertex = None
         for sim_shower in event.get_sim_showers():
             sim_vertex = sim_shower.get_parameter(shp.vertex)
@@ -955,7 +958,7 @@ class neutrino3DVertexReconstructor:
             marker='o',
             s=20
         )
-        fontsize = 10
+        fontsize = 12
         ax6_1.set_xlabel('r [m]', fontsize=fontsize)
         ax6_1.set_ylabel(r'$\Delta z$ [m]', fontsize=fontsize)
         ax6_2.set_xlabel('r [m]', fontsize=fontsize)
@@ -986,15 +989,16 @@ class neutrino3DVertexReconstructor:
             i_max,
             i_max_dnr
     ):
-        fig8 = plt.figure(figsize=(8, 12))
+        fig8 = plt.figure(figsize=(6, 8))
         ax8_1 = fig8.add_subplot(312)
         # ax8_2 = fig8.add_subplot(235)
         ax8_3 = fig8.add_subplot(313)
         # ax8_4 = fig8.add_subplot(236)
         ax8_5 = fig8.add_subplot(311)
         # ax8_6 = fig8.add_subplot(234)
-        colormap = cm.get_cmap('viridis', 16)
-        vmin = .2
+        colormap = cm.get_cmap('viridis')
+        fontsize = 14
+        vmin = .5
         vmax = 1.
         cplot1 = ax8_1.pcolor(
             x_0[0],
@@ -1004,7 +1008,7 @@ class neutrino3DVertexReconstructor:
             vmin=vmin,
             vmax=vmax
         )
-        plt.colorbar(cplot1, ax=ax8_1).set_label('correlation sum')
+        plt.colorbar(cplot1, ax=ax8_1).set_label('correlation sum', fontsize=fontsize)
         # cplot2 = ax8_2.pcolor(
         #     x_0[:, :, 0],
         #     y_0[:, :, 0],
@@ -1023,7 +1027,7 @@ class neutrino3DVertexReconstructor:
             vmin=vmin,
             vmax=vmax
         )
-        plt.colorbar(cplot3, ax=ax8_3).set_label('correlation sum')
+        plt.colorbar(cplot3, ax=ax8_3).set_label('correlation sum', fontsize=fontsize)
         # cplot4 = ax8_4.pcolor(
         #     x_0[:, :, 0],
         #     y_0[:, :, 0],
@@ -1041,7 +1045,7 @@ class neutrino3DVertexReconstructor:
             vmin=vmin,
             vmax=vmax
         )
-        plt.colorbar(cplot5, ax=ax8_5).set_label('correlation sum')
+        plt.colorbar(cplot5, ax=ax8_5).set_label('correlation sum', fontsize=fontsize)
         # cplot6 = ax8_6.pcolor(
         #     x_0[:, :, 0],
         #     y_0[:, :, 0],
@@ -1113,15 +1117,15 @@ class neutrino3DVertexReconstructor:
         ax8_1.grid()
         ax8_3.grid()
         ax8_5.grid()
-        ax8_5.set_title('channel correlation')
-        ax8_1.set_title('DnR correlation')
-        ax8_3.set_title('channel + DnR correlation')
-        ax8_1.set_xlabel('r [m]')
-        ax8_1.set_ylabel(r'$\Delta z$ [m]')
-        ax8_3.set_xlabel('r [m]')
-        ax8_3.set_ylabel(r'$\Delta z$ [m]')
-        ax8_5.set_xlabel('r [m]')
-        ax8_5.set_ylabel(r'$\Delta z$ [m]')
+        ax8_5.set_title('channel correlation', fontsize=fontsize)
+        ax8_1.set_title('DnR correlation', fontsize=fontsize)
+        ax8_3.set_title('channel + DnR correlation', fontsize=fontsize)
+        ax8_1.set_xlabel('r [m]', fontsize=fontsize)
+        ax8_1.set_ylabel(r'$\Delta z$ [m]', fontsize=fontsize)
+        ax8_3.set_xlabel('r [m]', fontsize=fontsize)
+        ax8_3.set_ylabel(r'$\Delta z$ [m]', fontsize=fontsize)
+        ax8_5.set_xlabel('r [m]', fontsize=fontsize)
+        ax8_5.set_ylabel(r'$\Delta z$ [m]', fontsize=fontsize)
         # ax8_2.grid()
         fig8.tight_layout()
         fig8.savefig('{}/{}_{}_dnr_reco.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
