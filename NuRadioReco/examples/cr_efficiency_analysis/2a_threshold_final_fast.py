@@ -26,7 +26,7 @@ Therefor I commit this job 100 times to the cluster with an iteration of 20000.
 
 the sampling rate has a huge influence on the threshold, because the trace has more time to exceed the threshold
 for a sampling rate of 1GHz, 1955034 iterations yields a resolution of 0.5 Hz
-if galactic noise is used it adds a factor of 10 to the number of iterations because it dices the phase 10 times. 
+if galactic noise is used it adds a factor of 10 (n_random_phase) to the number of iterations because it dices the phase 10 times. 
 This is done due to computation efficiency
 
 For on passband I used something on the cluster like:
@@ -51,7 +51,7 @@ parser.add_argument('input_filename', type=str, nargs='?',
                     default='output_threshold_estimate/estimate_threshold_envelope_fast_pb_80_180_i20.pickle',
                     help='input filename from which the calculation starts.')
 parser.add_argument('iterations', type=int, nargs='?', default=20,
-                    help='number of iterations within the script. Has to be a multiple of 10')
+                    help='number of iterations within the script. Has to be a multiple of 10 (n_random_phase)')
 parser.add_argument('number', type=int, nargs='?', default=1,
                     help='specify how often you would like to run the hole script. Important for cluster use')
 parser.add_argument('output_path', type=os.path.abspath, nargs='?', default='',
@@ -63,8 +63,6 @@ args = parser.parse_args()
 output_path = args.output_path
 abs_output_path = os.path.abspath(args.output_path)
 input_filename = args.input_filename
-iterations = args.iterations / 10  # the factor of 10 is added with the phase of the galactic noise
-iterations = int(iterations)
 number = args.number
 threshold_steps = args.threshold_steps
 
@@ -84,6 +82,8 @@ T_noise_min_freq = data['T_noise_min_freq']
 T_noise_max_freq = data['T_noise_max_freq ']
 
 galactic_noise_n_side = data['galactic_noise_n_side']
+galactic_noise_interpolation_frequencies_start = data['galactic_noise_interpolation_frequencies_start']
+galactic_noise_interpolation_frequencies_stop = data['galactic_noise_interpolation_frequencies_stop']
 galactic_noise_interpolation_frequencies_step = data['galactic_noise_interpolation_frequencies_step']
 
 passband_trigger = data['passband_trigger']
@@ -96,6 +96,9 @@ trigger_efficiency = data['efficiency']
 trigger_rate = data['trigger_rate']
 
 hardware_response = data['hardware_response']
+n_random_phase = data['n_random_phase']
+iterations = args.iterations / n_random_phase  # the factor of 10 is added with the phase of the galactic noise
+iterations = int(iterations)
 
 trigger_thresholds = (np.arange(check_trigger_thresholds[-4],
                                 check_trigger_thresholds[-4] + 0.00003,
@@ -113,8 +116,10 @@ channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelG
 channelGenericNoiseAdder.begin()
 
 channelGalacticNoiseAdder = NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder()
-channelGalacticNoiseAdder.begin(n_side=4,
-                interpolation_frequencies=np.arange(10, 1100, galactic_noise_interpolation_frequencies_step) * units.MHz)
+channelGalacticNoiseAdder.begin(n_side=galactic_noise_n_side,
+            interpolation_frequencies=np.arange(galactic_noise_interpolation_frequencies_start,
+                                                galactic_noise_interpolation_frequencies_stop,
+                                                galactic_noise_interpolation_frequencies_step) * units.MHz)
 hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
 
 triggerSimulator = NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator()
@@ -149,7 +154,7 @@ for n_it in range(iterations):
     if hardware_response == True:
         hardwareResponseIncorporator.run(event, station, det, sim_to_data=True)
 
-    for i_phase in range(10):
+    for i_phase in range(n_random_phase):
         channel = hcr.add_random_phase(station, sampling_rate)
 
         trigger_status_all_thresholds = []
@@ -201,6 +206,8 @@ dic['T_noise_min_freq'] = T_noise_min_freq
 dic['T_noise_max_freq '] = T_noise_max_freq
 dic['Vrms_thermal_noise'] = Vrms_thermal_noise
 dic['galactic_noise_n_side'] = galactic_noise_n_side
+dic['galactic_noise_interpolation_frequencies_start'] = galactic_noise_interpolation_frequencies_start
+dic['galactic_noise_interpolation_frequencies_stop'] = galactic_noise_interpolation_frequencies_stop
 dic['galactic_noise_interpolation_frequencies_step'] = galactic_noise_interpolation_frequencies_step
 dic['station_time'] = station_time
 dic['station_time_random'] = station_time_random
@@ -208,7 +215,7 @@ dic['passband_trigger'] = passband_trigger
 dic['coinc_window'] = coinc_window
 dic['order_trigger'] = order_trigger
 dic['number_coincidences'] = number_coincidences
-dic['iteration'] = iterations * 10
+dic['iteration'] = iterations * n_random_phase
 dic['threshold'] = trigger_thresholds
 dic['trigger_status'] = trigger_status
 dic['triggered_true'] = triggered_trigger
@@ -216,6 +223,7 @@ dic['triggered_all'] = len(trigger_status)
 dic['efficiency'] = trigger_efficiency
 dic['trigger_rate'] = trigger_rate
 dic['hardware_response'] = hardware_response
+dic['n_random_phase'] = n_random_phase
 
 if os.path.isdir('output_threshold_final') == False:
     os.mkdir('output_threshold_final')

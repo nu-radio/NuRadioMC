@@ -3,6 +3,7 @@ import os, scipy, sys
 import bz2
 import _pickle as cPickle
 import yaml
+import helper_cr_eff as hcr
 import scipy.constants
 import datetime
 import matplotlib.pyplot as plt
@@ -41,7 +42,7 @@ the trigger parameters calculated in step 1-3. Please set triggered channels man
 
 parser = argparse.ArgumentParser(description='Run air shower Reconstruction')
 parser.add_argument('config_file', type=str, nargs='?', default = 'config_file_air_shower_reco.yml', help = 'config file with eventlist')
-parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/example_dict_ntr_high_low_pb_80_180.pbz2', help = 'settings from the ntr results')
+parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/dict_ntr_high_low_pb_80_180.pbz2', help = 'settings from the ntr results')
 parser.add_argument('number', type=int, nargs='?', default = 0, help = 'number of element in eventlist')
 
 args = parser.parse_args()
@@ -54,6 +55,7 @@ with open(config_file, 'r') as ymlfile:
 
 eventlist = cfg['eventlist']
 output_filename = cfg['output_filename']
+os.makedirs(output_filename, exist_ok=True)
 
 bz2 = bz2.BZ2File(result_dict, 'rb')
 data = cPickle.load(bz2)
@@ -70,6 +72,8 @@ T_noise_min_freq = data['T_noise_min_freq'] * units.megahertz
 T_noise_max_freq = data['T_noise_max_freq '] * units.megahertz
 
 galactic_noise_n_side = data['galactic_noise_n_side']
+galactic_noise_interpolation_frequencies_start = data['galactic_noise_interpolation_frequencies_start']
+galactic_noise_interpolation_frequencies_stop = data['galactic_noise_interpolation_frequencies_stop']
 galactic_noise_interpolation_frequencies_step = data['galactic_noise_interpolation_frequencies_step']
 
 trigger_name = data['trigger_name']
@@ -124,7 +128,11 @@ hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorpo
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 channelGenericNoiseAdder.begin()
 channelGalacticNoiseAdder = NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder()
-channelGalacticNoiseAdder.begin(n_side=4, interpolation_frequencies=np.arange(10, 1100, galactic_noise_interpolation_frequencies_step) * units.MHz)
+channelGalacticNoiseAdder.begin(n_side=galactic_noise_n_side,
+                                interpolation_frequencies=
+                                np.arange(galactic_noise_interpolation_frequencies_start,
+                                          galactic_noise_interpolation_frequencies_stop,
+                                          galactic_noise_interpolation_frequencies_step) * units.MHz)
 if trigger_name == 'high_low':
     triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
     triggerSimulator.begin()
@@ -158,17 +166,12 @@ i = 0
 for evt in readCoREASStation.run(det):
     for sta in evt.get_stations():
         #if i == 30: # use this if you want to test something or if you want only 30 position
-         #   break
+        #   break
         logger.info("processing event {:d} with id {:d}".format(i, evt.get_id()))
 
         station = evt.get_station(default_station)
         if station_time_random == True:
-            random_generator_hour = np.random.RandomState()
-            hour = random_generator_hour.randint(0, 24)
-            if hour < 10:
-                station.set_station_time(astropy.time.Time('2019-01-01T0{}:00:00'.format(hour)))
-            elif hour >= 10:
-                station.set_station_time(astropy.time.Time('2019-01-01T{}:00:00'.format(hour)))
+            station = hcr.set_random_station_time(station)
 
         efieldToVoltageConverter.run(evt, sta, det)
         eventTypeIdentifier.run(evt, sta, "forced", 'cosmic_ray')
@@ -179,6 +182,9 @@ for evt in readCoREASStation.run(det):
 
         if hardware_response == True:
             hardwareResponseIncorporator.run(evt, sta, det, sim_to_data=True)
+
+        # The bandpass for the envelope trigger is included in the trigger module,
+        # in the high low the filter is applied externally
         if trigger_name == 'high_low':
             channelBandPassFilter.run(evt, sta, det, passband=passband_trigger,
                                       filter_type='butter', order=order_trigger)
