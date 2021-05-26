@@ -25,7 +25,8 @@ number_coincidences_list = []
 coinc_windows = []
 passband_trigger = np.zeros((n_passbands, 2))
 trigger_threshold = np.zeros((n_passbands))
-triggered_trigger = np.zeros((n_passbands, n_energy_bins, n_zenith_bins, n_distance_bins)) # number of passbands, energy bins, zenith angle bins, distance bins
+# number of passbands, energy bins, zenith angle bins, distance bins
+triggered_trigger = np.zeros((n_passbands, n_energy_bins, n_zenith_bins, n_distance_bins))
 trigger_weight = np.zeros((n_passbands, n_energy_bins, n_zenith_bins, n_distance_bins))
 masked_events = np.zeros((n_passbands, n_energy_bins, n_zenith_bins, n_distance_bins))
 trigger_efficiency = np.zeros((n_passbands, n_energy_bins, n_zenith_bins, n_distance_bins))
@@ -57,21 +58,21 @@ for pos, file in enumerate(os.listdir('results/air_shower/')):
 zenith_start = int(0 /10)
 zenith_stop = int(90 /10)
 
-trigger_efficiency = trigger_efficiency[:,:,zenith_start:zenith_stop]
-triggered_trigger = triggered_trigger[:,:,zenith_start:zenith_stop]
-masked_events = masked_events[:,:,zenith_start:zenith_stop]
-trigger_effective_area = trigger_effective_area[:,:,zenith_start:zenith_stop]
-trigger_effective_area_err = trigger_effective_area_err[:,:,zenith_start:zenith_stop]
-zenith_bin = np.arange(zenith_start,zenith_stop,10)
+trigger_efficiency = trigger_efficiency[:, :, zenith_start:zenith_stop]
+triggered_trigger = triggered_trigger[:, :, zenith_start:zenith_stop]
+masked_events = masked_events[:, :, zenith_start:zenith_stop]
+trigger_effective_area = trigger_effective_area[:, :, zenith_start:zenith_stop]
+trigger_effective_area_err = trigger_effective_area_err[:, :, zenith_start:zenith_stop]
+zenith_bin = np.arange(zenith_start, zenith_stop, 10)
 
 weight_area = (-(np.cos((zenith_bin+10)*units.deg)**2)/2) - (-(np.cos(zenith_bin*units.deg)**2)/2) #integral of sin*cos is the weight
 aeff_zenith = trigger_effective_area * weight_area
 total_aeff = np.sum(aeff_zenith, axis=2)  # sum over all zenith bins to get number of cr for each energy bin
 
-x_min = np.min(passband_trigger[:,0])/units.megahertz
-x_max = np.max(passband_trigger[:,0])/units.megahertz
-y_min = np.min(passband_trigger[:,1])/units.megahertz
-y_max = np.max(passband_trigger[:,1])/units.megahertz
+x_min = np.min(passband_trigger[:, 0])/units.megahertz
+x_max = np.max(passband_trigger[:, 0])/units.megahertz
+y_min = np.min(passband_trigger[:, 1])/units.megahertz
+y_max = np.max(passband_trigger[:, 1])/units.megahertz
 
 binWidth = 10
 binLength = 10
@@ -79,13 +80,15 @@ x_edges = np.arange(x_min-5, x_max+15, binWidth)
 y_edges = np.arange(y_min-5, y_max+15, binLength)
 
 for count_energy, energy_bin in enumerate([1e16, 1e17, 1e18]):
-    x = passband_trigger[:,0] / units.megahertz
-    y = passband_trigger[:,1] / units.megahertz
-    #for count_zenith, zenith_b in enumerate(zenith_bin):
-    #z = aeff_zenith
+    x = passband_trigger[:, 0] / units.megahertz
+    y = passband_trigger[:, 1] / units.megahertz
+    # for count_zenith, zenith_b in enumerate(zenith_bin):
+    # z = aeff_zenith
     z = total_aeff[:,count_energy]/units.km**2
 
-    counts, xbins, ybins, image = plt.hist2d(x, y, bins=[x_edges, y_edges], weights=z, vmin=min(z), vmax=max(z), cmap=plt.cm.jet, cmin = 1e-9)
+    counts, xbins, ybins, image = plt.hist2d(x, y,
+                                             bins=[x_edges, y_edges], weights=z,
+                                             vmin=min(z), vmax=max(z), cmap=plt.cm.jet, cmin = 1e-9)
     plt.colorbar(label=r'Effective area [$km^2$]')
     plt.title(r'Energy {}, zenith {}$^\circ$ $-$ {}$^\circ$  '.format(energy_bin, zenith_start*10, zenith_stop*10))
     plt.xlim(x_min - 5, x_max + 5)
@@ -95,5 +98,6 @@ for count_energy, energy_bin in enumerate([1e16, 1e17, 1e18]):
     # plt.legend()
     plt.tight_layout()
     # plt.show()
-    plt.savefig('results/air_shower/fig_pb_thresh_signal_area_energy_{}_{}_{}.png'.format(energy_bin, zenith_start*10, zenith_stop*10))
+    plt.savefig('results/air_shower/fig_pb_thresh_signal_area_energy_{}_{}_{}.png'.format(
+        energy_bin, zenith_start*10, zenith_stop*10))
     plt.close()

@@ -24,11 +24,11 @@ import sys
 
 
 parser = argparse.ArgumentParser(description='Nurfile analyser')
-parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/example_dict_ntr_high_low_pb_80_180.pbz2', help = 'settings from the results from threshold analysis')
+parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/dict_ntr_high_low_pb_80_180.pbz2', help = 'settings from the results from threshold analysis')
 parser.add_argument('input_filepath', type=str, nargs='?', default = 'output_air_shower_reco/', help = 'input path were results from air shower analysis are stored')
 parser.add_argument('energy_bins', type=list, nargs='?', default = [16.5, 20, 6], help = 'energy bins as log() with start, stop, number of bins (np.logspace)')
 parser.add_argument('zenith_bins', type=list, nargs='?', default = [0, 100, 10], help = 'zenith bins in deg with start, stop, step (np.arange)')
-parser.add_argument('distance_bins', type=int, nargs='?', default = [0, 700, 4000], help = 'distance bins as list')
+parser.add_argument('distance_bins', type=int, nargs='?', default = [0, 700, 4000], help = 'distance bin edges as list')
 
 #please set number of stations within one event here
 number_of_sta_in_evt = 72
@@ -40,14 +40,19 @@ energy_bins = args.energy_bins
 zenith_bins = args.zenith_bins
 distance_bins = args.distance_bins
 
+# the entries of this list are defined in the input argument energy_bins.
+# [0] is the start value, [1] is the stop value, [2] is the number of samples generated
 energy_bins = np.logspace(energy_bins[0], energy_bins[1], energy_bins[2])
 energy_bins_low = energy_bins[0:-2]
 energy_bins_high = energy_bins[1:-1]
 
+# the entries of this list are defined in the input argument zenith_bins.
+# [0] is the start value, [1] is the stop value, [2] is step size
 zenith_bins = np.arange(zenith_bins[0], zenith_bins[1], zenith_bins[2]) * units.deg
 zenith_bins_low = zenith_bins[0:-2]
 zenith_bins_high = zenith_bins[1:-1]
 
+# the entries of this list are defined in the input argument distance_bins.
 distance_bins_low = np.array(distance_bins[0:-2])
 distance_bins_high = np.array(distance_bins[1:-1])
 
@@ -66,6 +71,8 @@ T_noise_min_freq = data['T_noise_min_freq'] * units.megahertz
 T_noise_max_freq = data['T_noise_max_freq '] * units.megahertz
 
 galactic_noise_n_side = data['galactic_noise_n_side']
+galactic_noise_interpolation_frequencies_start = data['galactic_noise_interpolation_frequencies_start']
+galactic_noise_interpolation_frequencies_stop = data['galactic_noise_interpolation_frequencies_stop']
 galactic_noise_interpolation_frequencies_step = data['galactic_noise_interpolation_frequencies_step']
 
 passband_trigger = data['passband_trigger']
@@ -85,7 +92,7 @@ trigger_threshold = threshold_tested[first_zero] * units.volt
 
 nur_file_list = []  # get non corrupted input files with specified passband
 i = 0
-for nur_file in glob.glob('{}*.nur'.input_filepath):
+for nur_file in glob.glob('{}*.nur'.format(input_filepath)):
     if os.path.isfile(nur_file) and str(int(passband_trigger[0]/units.MHz)) + '_' + str(int(passband_trigger[1]/units.MHz)) in nur_file:
         i = i+1
         if os.path.getsize(nur_file) > 0:
@@ -114,7 +121,7 @@ for evt in evtReader.run(): # loop over all events, one event is one station
     num += 1
     event_id = evt.get_id()
     events.append(evt)
-    det_position = det.get_absolute_position(det, station_id=default_station)
+    det_position = det.get_absolute_position(station_id=default_station)
     sta = evt.get_station(station_id=default_station)
     sim_station = sta.get_sim_station()
     energy.append(sim_station.get_parameter(stnp.cr_energy))
@@ -142,17 +149,21 @@ n_events = len(events)
 
 #here we reshape the array in a form that the shower parameter are stored once instead one entry for each station.
 # Energy and Zenith are shower parameters.
-energy_shower = np.array(energy).reshape(int(len(energy)/number_of_sta_in_evt), number_of_sta_in_evt)[:,0]
-zenith_shower = np.array(zenith).reshape(int(len(zenith)/number_of_sta_in_evt), number_of_sta_in_evt)[:,0]
+energy_shower = np.array(energy).reshape(int(len(energy)/number_of_sta_in_evt), number_of_sta_in_evt)[:, 0]
+zenith_shower = np.array(zenith).reshape(int(len(zenith)/number_of_sta_in_evt), number_of_sta_in_evt)[:, 0]
 
 # here we calculate the footprint of the shower, e.g. the area which is covered by the shower
 footprint_shower = np.sum(np.array(weight).reshape(int(len(weight)/number_of_sta_in_evt), number_of_sta_in_evt), axis=1)
 
 # here we calculate the area of the footprint where the shower triggers a station
-footprint_triggered_area_shower = np.sum(np.array(trigger_status_weight).reshape(int(len(trigger_status_weight)/number_of_sta_in_evt), number_of_sta_in_evt), axis=1)
+footprint_triggered_area_shower = np.sum(np.array(trigger_status_weight).
+                                         reshape(int(len(trigger_status_weight)/number_of_sta_in_evt),
+                                                 number_of_sta_in_evt), axis=1)
 
 # here is the trigger status sorted by shower
-trigger_status_shower = np.sum(np.array(trigger_status).reshape(int(len(trigger_status)/number_of_sta_in_evt), number_of_sta_in_evt), axis=1)
+trigger_status_shower = np.sum(np.array(trigger_status).
+                               reshape(int(len(trigger_status)/number_of_sta_in_evt),
+                                       number_of_sta_in_evt), axis=1)
 
 # here we create empty array which will be filled in the following loop. The first axis contains all parameters in
 # the energy bin, the second axis the zenthis bins and the third axis the distance bins
@@ -249,5 +260,7 @@ dic['zenith_bins_high'] = zenith_bins_high
 if os.path.isdir('results/air_shower/') == False:
     os.mkdir('results/air_shower/')
 
-with open('results/air_shower/dict_air_shower_pb_{:.0f}_{:.0f}_e{}_z{}_d{}_{}.pickle'.format(passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz, len(energy_bins_low), len(zenith_bins_low), len(distance_bins_low), max(distance_bins)), 'wb') as pickle_out:
+with open('results/air_shower/dict_air_shower_pb_{:.0f}_{:.0f}_e{}_z{}_d{}_{}.pickle'.format(
+        passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz,
+        len(energy_bins_low), len(zenith_bins_low), len(distance_bins_low), max(distance_bins)), 'wb') as pickle_out:
     pickle.dump(dic, pickle_out)

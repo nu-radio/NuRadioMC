@@ -42,7 +42,7 @@ Afterwards you have to use 3_create_one_dict_and_plot.py to get a dictionary and
 
 the sampling rate has a huge influence on the threshold, because the trace has more time to exceed the threshold
 for a sampling rate of 1GHz, 1955034 iterations yields a resolution of 0.5 Hz
-if galactic noise is used it adds a factor of 10 to the number of iterations because it dices the phase 10 times. 
+if galactic noise is used it adds a factor of 10 (n_random_phase) to the number of iterations because it dices the phase 10 times. 
 This is done due to computation efficiency
 
 For different passbands on the cluster I used something like this:
@@ -63,7 +63,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('output_path', type=os.path.abspath, nargs='?', default='',
                     help='Path to save output, most likely the path to the cr_efficiency_analysis directory')
 parser.add_argument('n_iterations', type=int, nargs='?', default=20,
-                    help='number of iterations each threshold should be iterated over. Has to be a multiple of 10')
+                    help='number of iterations each threshold should be iterated over. '
+                         'Has to be a multiple of 10 (n_random_phase)')
 parser.add_argument('number_of_allowed_trigger', type=int, nargs='?', default=1,
                     help='number of allowed_trigger out of the iteration number')
 parser.add_argument('passband_low', type=int, nargs='?', default=80,
@@ -92,6 +93,10 @@ parser.add_argument('T_noise_max_freq', type=int, nargs='?', default=800,
                     help='max freq of thermal noise in MHz')
 parser.add_argument('galactic_noise_n_side', type=int, nargs='?', default=4,
                     help='The n_side parameter of the healpix map. Has to be power of 2, basicly the resolution')
+parser.add_argument('galactic_noise_interpolation_frequencies_start', type=int, nargs='?', default=10,
+                    help='start frequency the galactic noise is interpolated over in MHz')
+parser.add_argument('galactic_noise_interpolation_frequencies_stop', type=int, nargs='?', default=1100,
+                    help='stop frequency the galactic noise is interpolated over in MHz')
 parser.add_argument('galactic_noise_interpolation_frequencies_step', type=int, nargs='?', default=100,
                     help='frequency steps the galactic noise is interpolated over in MHz')
 parser.add_argument('threshold_start', type=int, nargs='?', default=0,
@@ -105,10 +110,12 @@ parser.add_argument('station_time_random', type=bool, nargs='?', default=True,
 parser.add_argument('hardware_response', type=bool, nargs='?', default=False,
                     help='choose if the hardware response (amp) should be True or False')
 
+n_random_phase = 10
+
 args = parser.parse_args()
 output_path = args.output_path
 abs_output_path = os.path.abspath(args.output_path)
-n_iterations = args.n_iterations / 10
+n_iterations = args.n_iterations / n_random_phase
 n_iterations = int(n_iterations)
 number_of_allowed_trigger = args.number_of_allowed_trigger
 passband_low = args.passband_low
@@ -125,6 +132,8 @@ Tnoise = args.Tnoise * units.kelvin
 T_noise_min_freq = args.T_noise_min_freq * units.megahertz
 T_noise_max_freq = args.T_noise_max_freq * units.megahertz
 galactic_noise_n_side = args.galactic_noise_n_side
+galactic_noise_interpolation_frequencies_start = args.galactic_noise_interpolation_frequencies_start
+galactic_noise_interpolation_frequencies_stop = args.galactic_noise_interpolation_frequencies_stop
 galactic_noise_interpolation_frequencies_step = args.galactic_noise_interpolation_frequencies_step
 threshold_start = args.threshold_start * units.volt
 threshold_step = args.threshold_step *units.volt
@@ -145,8 +154,10 @@ eventTypeIdentifier = NuRadioReco.modules.eventTypeIdentifier.eventTypeIdentifie
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 channelGenericNoiseAdder.begin()
 channelGalacticNoiseAdder = NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder()
-channelGalacticNoiseAdder.begin(n_side=4,
-                interpolation_frequencies=np.arange(10, 1100, galactic_noise_interpolation_frequencies_step) * units.MHz)
+channelGalacticNoiseAdder.begin(n_side=galactic_noise_n_side,
+            interpolation_frequencies=np.arange(galactic_noise_interpolation_frequencies_start,
+                                                galactic_noise_interpolation_frequencies_stop,
+                                                galactic_noise_interpolation_frequencies_step) * units.MHz)
 hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
 
 triggerSimulator = NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator()
@@ -191,7 +202,7 @@ while number_of_trigger > number_of_allowed_trigger:
 
         # This loop changes the phase of a frequency spectrum, this is because the GalacticNoiseAdder needs some time.
         # The current number of iteration can be calculated with i_phase + n_i
-        for i_phase in range(10):
+        for i_phase in range(n_random_phase):
             channel = hcr.add_random_phase(station, sampling_rate)
 
             trigger_status_one_it = []
@@ -253,7 +264,7 @@ while number_of_trigger > number_of_allowed_trigger:
             dic['thresholds'] = thresholds
             dic['efficiency'] = trigger_efficiency
             dic['trigger_rate'] = trigger_rate
-            dic['n_iterations'] = n_iterations * 10 # from phase change in galactic noise
+            dic['n_iterations'] = n_iterations * n_random_phase # from phase change in galactic noise
             dic['passband_trigger'] = passband_trigger
             dic['coinc_window'] = coinc_window
             dic['order_trigger'] = order_trigger
@@ -265,10 +276,13 @@ while number_of_trigger > number_of_allowed_trigger:
             dic['T_noise_min_freq'] = T_noise_min_freq
             dic['T_noise_max_freq '] = T_noise_max_freq
             dic['galactic_noise_n_side'] = galactic_noise_n_side
+            dic['galactic_noise_interpolation_frequencies_start'] = galactic_noise_interpolation_frequencies_start
+            dic['galactic_noise_interpolation_frequencies_stop'] = galactic_noise_interpolation_frequencies_stop
             dic['galactic_noise_interpolation_frequencies_step'] = galactic_noise_interpolation_frequencies_step
             dic['station_time'] = station_time
             dic['station_time_random'] = station_time_random
             dic['hardware_response'] = hardware_response
+            dic['n_random_phase'] = n_random_phase
 
             if os.path.isdir('output_threshold_estimate') == False:
                 os.mkdir('output_threshold_estimate')

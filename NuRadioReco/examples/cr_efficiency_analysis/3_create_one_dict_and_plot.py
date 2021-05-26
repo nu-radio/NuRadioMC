@@ -26,7 +26,6 @@ n_files = number_of_files
 
 input_filename = 'output_threshold_final/final_threshold_high_low_pb_{:.0f}_{:.0f}_i20_1.pickle'.format(passband_low,
                                                                                                       passband_high)
-
 data = []
 data = io_utilities.read_pickle(input_filename)
 
@@ -44,6 +43,8 @@ T_noise_min_freq = data['T_noise_min_freq']
 T_noise_max_freq = data['T_noise_max_freq ']
 
 galactic_noise_n_side = data['galactic_noise_n_side']
+galactic_noise_interpolation_frequencies_start = data['galactic_noise_interpolation_frequencies_start']
+galactic_noise_interpolation_frequencies_stop = data['galactic_noise_interpolation_frequencies_stop']
 galactic_noise_interpolation_frequencies_step = data['galactic_noise_interpolation_frequencies_step']
 
 passband_trigger = data['passband_trigger']
@@ -61,9 +62,10 @@ trigger_rate = np.zeros_like(triggered_true)
 
 
 for i_file in range(number_of_files):
-    input_filename = 'output_threshold_final/final_threshold_{}_pb_{:.0f}_{:.0f}_i20_{}.pickle'.format(trigger_name, passband_low,
+    input_filename = 'output_threshold_final/final_threshold_{}_pb_{:.0f}_{:.0f}_i20_{}.pickle'.format(trigger_name,
+                                                                                                       passband_low,
                                                                                                       passband_high,
-                                                                                            i_file+1)
+                                                                                                       i_file+1)
     data = []
     data = io_utilities.read_pickle(input_filename, encoding='latin1')
     trigger_efficiency[i_file] = data['efficiency']
@@ -71,7 +73,6 @@ for i_file in range(number_of_files):
     triggered_true[i_file]= data['triggered_true']
     triggered_all[i_file] = data['triggered_all']
     trigger_status[i_file] = data['trigger_status']
-
 
 triggered_true_all = np.sum(triggered_true, axis=0)
 trigger_efficiency_all = np.sum(trigger_efficiency, axis=0) / n_files
@@ -87,6 +88,8 @@ dic['T_noise_min_freq'] = T_noise_min_freq
 dic['T_noise_max_freq '] = T_noise_max_freq
 dic['Vrms_thermal_noise'] = Vrms_thermal_noise
 dic['galactic_noise_n_side'] = galactic_noise_n_side
+dic['galactic_noise_interpolation_frequencies_start'] = galactic_noise_interpolation_frequencies_start
+dic['galactic_noise_interpolation_frequencies_stop'] = galactic_noise_interpolation_frequencies_stop
 dic['galactic_noise_interpolation_frequencies_step'] = galactic_noise_interpolation_frequencies_step
 dic['station_time'] = station_time
 dic['station_time_random'] = station_time_random
@@ -102,7 +105,8 @@ dic['trigger_rate'] = trigger_rate_all
 dic['hardware_response'] = hardware_response
 dic['trigger_name'] = trigger_name
 
-os.mkdir('results/ntr/')
+os.makedirs('results/ntr/', exist_ok=True)
+
 filename = 'results/ntr/dict_ntr_{}_pb_{:.0f}_{:.0f}.pbz2'.format(trigger_name, passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz)
 with bz2.BZ2File(filename, 'w') as f:
     cPickle.dump(dic, f)
