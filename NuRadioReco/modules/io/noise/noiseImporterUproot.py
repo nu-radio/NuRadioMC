@@ -59,7 +59,7 @@ class noiseImporter:
     if run several times.
     """
 
-    def begin(self, noise_files):
+    def begin(self, noise_files, read_temperatures=False, read_power=False):
         data = []
         trigger = []
         posix_times = []
@@ -92,25 +92,29 @@ class noiseImporter:
                 event_times_file = np.array(nt_uproot['EventHeader.']['EventHeader.fTime'].array(interpretation = ARIANNA_uproot_interpretation['time']))[:,0]
                 posix_times.append(event_times_file)
                 # read the temperature
-                logger.debug("reading temperature")                
-                (temp_times, interpolated_temperatures) = self._read_temperature_curve(nf_uproot, event_times_file)
-                temperature.append(interpolated_temperatures)
+                if read_temperatures:
+                    logger.debug("reading temperature")                
+                    (temp_times, interpolated_temperatures) = self._read_temperature_curve(nf_uproot, event_times_file)
+                    temperature.append(interpolated_temperatures)
                 # read the run number
                 run.append(np.array(nt_uproot['EventMetadata./EventMetadata.fRun'].array()))
                 # read the station id
                 station_id.append(np.array(nt_uproot['EventMetadata./EventMetadata.fStnId'].array()))
                 # read DTms value
                 dtms.append(np.array(nt_uproot['EventHeader./EventHeader.fDTms'].array()))
-                # read station voltages
-                (temp_times, interpolated_voltages) = self._read_power_curve(nf_uproot, event_times_file)
-                power_voltage.append(interpolated_voltages)
+                if read_power:
+                    # read station voltages
+                    (temp_times, interpolated_voltages) = self._read_power_curve(nf_uproot, event_times_file)
+                    power_voltage.append(interpolated_voltages)
 
         self.data = np.concatenate(data)
         self.posix_time = np.concatenate(posix_times)
         self.datetime = np.array([np.datetime64(int(t), 's') for t in self.posix_time])
         self.trigger = np.concatenate(trigger)
-        self.temperature = np.concatenate(temperature)
-        self.power = np.concatenate(power_voltage)
+        if read_temperature:
+            self.temperature = np.concatenate(temperature)
+        if read_power:
+            self.power = np.concatenate(power_voltage)
         self.station_id = np.concatenate(station_id)
         self.dtms = np.concatenate(dtms)
         self.run_number = np.concatenate(run)
