@@ -13,8 +13,12 @@ def load_amp_response(amp_type='rno_surface', temp=293.15, freqs = 100*units.MHz
     The hardware response incorporator currently reads in the load amp response.
     If you want to read in the RI function fur your reconstruction it needs to be changed
     in modules/RNO_G/hardweareResponseIncorporator.py l. 52, amp response.
-    """
 
+    Temperature dependence: the function loads a reference measurement made at room temperature
+    and will correct it for the temperature. The correction function is obtained empirically for
+    one amplifier of reference (one Surface board and one DRAB + fiber + IGLU chain)
+    by studying its gain in a climate chamber at different temperatures.
+    """
     # definition correction functions: temp in Kelvin, freq in GHz
     # functions defined in temperature range [223.15 K , 323.15 K]
 
