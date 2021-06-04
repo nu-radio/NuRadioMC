@@ -28,7 +28,7 @@ if mongo_server is None:
     logging.warning('variable "mongo_server" not set')
 if None in [mongo_user, mongo_server]:
     logging.warning('"mongo_user" or "mongo_password" not set')
-# start client
+# # start client
 client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
 db = client.RNOG_live
 
@@ -245,6 +245,48 @@ def CABLE_add_Sparameters(cable_name, Sm_data, Sp_data):
     """
 
     db.CABLE.insert_one({'name': cable_name,
+                                'last_updated': datetime.datetime.utcnow(),
+                                 'function_test': True,
+                                 'S_parameter': 'S21',
+                                 'frequencies': list(Sm_data[0]),
+                                 'mag': list(Sm_data[1]),
+                                 'phase': list(Sp_data[1]),
+                              })
+
+def surfCable_set_not_working(cable_name):
+    """
+    inserts that the cable is broken.
+    If the cable dosn't exist yet, it will be created.
+
+    Parameters
+    ---------
+    cable_name: string
+        the unique identifier of the board
+    """
+    db.surfCABLE.insert_one({'name': cable_name,
+                          'last_updated': datetime.datetime.utcnow(),
+                          'function_test': False,
+                              })
+
+
+def surfCABLE_add_Sparameters(cable_name, Sm_data, Sp_data):
+    """
+    inserts a new S21 measurement of a SURFACE (11m) cable.
+    If the cable dosn't exist yet, it will be created.
+
+    Parameters
+    ---------
+    cable_name: string
+        the unique identifier of the antenna
+    S_data: array of floats
+        1st collumn: frequencies
+        2nd collumn: S21 mag (dB)
+        3nd collumn: S21 phase (deg)
+
+
+    """
+
+    db.surfCABLE.insert_one({'name': cable_name,
                                 'last_updated': datetime.datetime.utcnow(),
                                  'function_test': True,
                                  'S_parameter': 'S21',

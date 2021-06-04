@@ -229,7 +229,7 @@ def plot_Sparameters(val_Sdata, S21_mag_data, S21_phase_data, unit_ff, unit_mag,
                         ), 1, 1)
             fig.append_trace(go.Scatter(
                             x=Sm_data[0] /units.MHz,
-                            y=Sp_data[1],
+                            y=Sp_data[1] /units.deg,
                             opacity=0.7,
                             marker={
                                 'color': "red",
@@ -240,7 +240,7 @@ def plot_Sparameters(val_Sdata, S21_mag_data, S21_phase_data, unit_ff, unit_mag,
             fig['layout']['xaxis1'].update(title='frequency [MHz]')
             fig['layout']['yaxis1'].update(title='mag[dB]')
             fig['layout']['xaxis2'].update(title='frequency [MHz]')
-            fig['layout']['yaxis2'].update(title='phase [rad]')
+            fig['layout']['yaxis2'].update(title='phase [degrees]')
             return fig
     else:
             return {"data": []}
