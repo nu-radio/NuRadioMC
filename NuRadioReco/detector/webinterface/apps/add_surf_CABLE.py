@@ -47,7 +47,7 @@ layout = html.Div([
             options=[
                 {'label': '11 meter signal', 'value': "11"}
             ],
-            # value="new",
+            value="11",
             # disabled=False,
             style={'width': '200px', 'float':'left'}
         ),
@@ -187,7 +187,7 @@ def insert_to_db(n_clicks, color, station, string, S21_mag_data, S21_phase_data,
         #     cable_name = new_cable_name
         if('working' not in function_test):
             print(cable_name)
-            det.CABLE_set_not_working(cable_name)
+            det.surfCABLE_set_not_working(cable_name)
 
         else:
             mag_type, mag_string = S21_mag_data.split(',')
@@ -202,7 +202,7 @@ def insert_to_db(n_clicks, color, station, string, S21_mag_data, S21_phase_data,
             Sm_data[1] *= str_to_unit[unit_mag]
             Sp_data[1] *= str_to_unit[unit_phase]
             print(cable_name, Sm_data, Sp_data[1])
-            det.CABLE_add_Sparameters(cable_name, Sm_data, Sp_data)
+            det.surfCABLE_add_Sparameters(cable_name, Sm_data, Sp_data)
 
         return {'display': 'none'}, {}
     else:
