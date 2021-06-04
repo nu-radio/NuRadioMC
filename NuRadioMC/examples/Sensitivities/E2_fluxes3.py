@@ -42,6 +42,8 @@ GRAND_10k = np.array(([8.41513361e-08, 7.38147706e-08, 5.69225180e-08, 3.4664793
 GRAND_10k *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 # GRAND_10k /= 2 #halfdecade bins
 GRAND_10k *= energyBinsPerDecade
+# The expected sensitivities for GRAND are given for 3 years, rescaling them to 10 years
+GRAND_10k *= 3 / 10
 
 GRAND_200k = np.array(([4.26219753e-09, 3.58147708e-09, 2.75670137e-09, 1.85254042e-09,
                         1.13825106e-09, 7.70141315e-10, 6.51758930e-10, 6.35878242e-10,
@@ -57,6 +59,8 @@ GRAND_200k = np.array(([4.26219753e-09, 3.58147708e-09, 2.75670137e-09, 1.852540
 GRAND_200k *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 # GRAND_200k /= 2 #halfdecade bins
 GRAND_200k *= energyBinsPerDecade
+# The expected sensitivities for GRAND are given for 3 years, rescaling them to 10 years
+GRAND_200k *= 3 / 10
 
 # RADAR proposed from https://arxiv.org/pdf/1710.02883.pdf
 
@@ -374,8 +378,8 @@ def get_E2_limit_figure(diffuse=True,
 
         if(show_Heinze):
             Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_bands.out"))
-            best_fit, = ax.plot(Heinze_band[:, 0] * units.GeV / plotUnitsEnergy, Heinze_band[:, 1] * Heinze_band[:, 0] ** 2, c='k',
-                                label=r'UHECR (Auger) combined fit, Heinze et al.', linestyle='-.')
+#             best_fit, = ax.plot(Heinze_band[:, 0] * units.GeV / plotUnitsEnergy, Heinze_band[:, 1] * Heinze_band[:, 0] ** 2, c='k',
+#                                 label=r'UHECR (Auger) combined fit, Heinze et al.', linestyle='-.')
 
 #             Auger_bestfit = ax.fill_between(Heinze_band[:, 0],
 #                                      Heinze_band[:, 2] * Heinze_band[:, 0] ** 2, Heinze_band[:, 3] * Heinze_band[:, 0] ** 2,
@@ -454,11 +458,11 @@ def get_E2_limit_figure(diffuse=True,
         if energyBinsPerDecade == 2:
             ax.annotate('GRAND 10k',
                             xy=(1e10 * units.GeV / plotUnitsEnergy, 1.1e-7), xycoords='data',
-                            horizontalalignment='left', color='saddlebrown', rotation=40, fontsize=legendfontsize)
+                            horizontalalignment='left', color='saddlebrown', rotation=50, fontsize=legendfontsize)
         else:
             ax.annotate('GRAND 10k',
-                xy=(5e9 * units.GeV / plotUnitsEnergy, 7e-8), xycoords='data',
-                horizontalalignment='left', color='saddlebrown', rotation=40, fontsize=legendfontsize)
+                xy=(5e9 * units.GeV / plotUnitsEnergy, 2e-8), xycoords='data',
+                horizontalalignment='left', va="top", color='saddlebrown', rotation=47, fontsize=legendfontsize)
 
     if show_grand_200k:
         ax.plot(GRAND_energy / plotUnitsEnergy, GRAND_200k / plotUnitsFlux, linestyle=":", color='saddlebrown')
@@ -476,11 +480,11 @@ def get_E2_limit_figure(diffuse=True,
         ax.plot(ice_cube_limit[2:, 0] / plotUnitsEnergy, ice_cube_limit[2:, 1] / plotUnitsFlux, color='dodgerblue')
         if energyBinsPerDecade == 2:
             ax.annotate('IceCube',
-                    xy=(0.7e7 * units.GeV / plotUnitsEnergy, 4e-8), xycoords='data',
+                    xy=(0.6e7 * units.GeV / plotUnitsEnergy, 2e-8), xycoords='data',
                     horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('IceCube',
-                    xy=(4e6 * units.GeV / plotUnitsEnergy, 4e-8), xycoords='data',
+                    xy=(3e6 * units.GeV / plotUnitsEnergy, 2e-8), xycoords='data',
                     horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
 
     if show_ice_cube_HESE_data:
@@ -508,7 +512,7 @@ def get_E2_limit_figure(diffuse=True,
                  color='dodgerblue')
 
         ax.annotate('IceCube',
-                    xy=(4e6 * units.GeV / plotUnitsEnergy, 4e-8), xycoords='data',
+                    xy=(3e6 * units.GeV / plotUnitsEnergy, 2e-8), xycoords='data',
                     horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
 
         # Extrapolation
@@ -619,7 +623,7 @@ def get_E2_limit_figure(diffuse=True,
 #         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
         ax.annotate('RNO-G',
                     xy=(1e18 * units.eV / plotUnitsEnergy, 0.7e-8), xycoords='data',
-                    horizontalalignment='left', color='red', rotation=0, fontsize=legendfontsize)
+                    horizontalalignment='center', color='red', rotation=0, fontsize=legendfontsize)
 
     if show_prediction_arianna_200:
         # 10 year sensitivity
