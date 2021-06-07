@@ -231,23 +231,69 @@ def get_ice_cube_hese_range():
     return energy, upper, lower
 
 
+'''
+Regarding ANITA Limits
+====================================================
+
+ANITA uses a *super* unusual differential limit bin width.
+
+A limit is generally given by:
+
+   E dN                         Sup
+-----------  = ------------------------------------
+dE dA dO dt     T  * Efficiency * Aeff * BinWidth
+
+For most experiments, BinWidth is transformed into log space for convenience:
+               BinWidth = LN(10) * dlog10(E)
+And then a decade wide binning is assumed: dlog10(E) = 1
+
+But, in ANITA, they set BinWidth = 4 (!!!!!!!!!!!!!!)
+See eq D1 of the ANITA-III paper.
+"... the factor Delta = 4 follows the normalization convention..."
+
+This means that the ANITA limit is a factor of LN(10)/4 too strong
+when naively compared to other experiments, e.g. IceCube.
+So, below, we multply by by 4/LN(10) to fix the bin width.
+'''
+
 # ANITA I - III
+# https://arxiv.org/abs/1803.02719
 # Phys. Rev. D 98, 022001 (2018)
 anita_limit = np.array(([
-    (9.94e17, 	3.79e-14 * 9.94e17 / 1e9),
-    (2.37e18, 	2.15e-15 * 2.37e18 / 1e9),
-    (5.19e18, 	2.33e-16 * 5.19e18 / 1e9),
-    (1.10e19, 	3.64e-17 * 1.10e19 / 1e9),
-    (3.55e19, 	4.45e-18 * 3.55e19 / 1e9),
-    (1.11e20, 	9.22e-19 * 1.11e20 / 1e9),
-    (4.18e20, 	2.97e-19 * 4.18e20 / 1e9),
-    (9.70e20, 	1.62e-19 * 9.70e20 / 1e9)
+    (9.94e17,   3.79e-14 * 9.94e17 / 1e9),
+    (2.37e18,   2.15e-15 * 2.37e18 / 1e9),
+    (5.19e18,   2.33e-16 * 5.19e18 / 1e9),
+    (1.10e19,   3.64e-17 * 1.10e19 / 1e9),
+    (3.55e19,   4.45e-18 * 3.55e19 / 1e9),
+    (1.11e20,   9.22e-19 * 1.11e20 / 1e9),
+    (4.18e20,   2.97e-19 * 4.18e20 / 1e9),
+    (9.70e20,   1.62e-19 * 9.70e20 / 1e9)
 ]))
-
 anita_limit[:, 0] *= units.eV
 anita_limit[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-anita_limit[:, 1] /= 2
+anita_limit[:, 1] *= (4 / np.log(10)) # see discussion above about strange anita binning
 anita_limit[:, 1] *= energyBinsPerDecade
+
+
+# ANITA I - IV
+# https://arxiv.org/abs/1902.04005
+# Phys. Rev. D 99, 122001 (2019)
+# NB: The ANITA I-IV is indeed weaker than the ANITA I-III limit (!!)
+# The reason is not understood, but can be seen easily comparing the two limits side-by-side
+anita_i_iv_limit = np.array(([
+    (1.000e+18, 3.1098E+04),
+    (3.162e+18, 3.7069E+03),
+    (1.000e+19, 6.0475E+02),
+    (3.162e+19, 2.5019E+02),
+    (1.000e+20, 1.4476E+02),
+    (3.162e+20, 1.5519E+02),
+    (1.000e+21, 2.0658E+02)
+]))
+anita_i_iv_limit[:, 0] *= units.eV
+anita_i_iv_limit[:, 1] *= (units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+anita_i_iv_limit[:, 1] *= (4 / np.log(10)) # see discussion above about strange anita binning
+anita_i_iv_limit[:, 1] *= energyBinsPerDecade
+
 
 # Auger neutrino limit
 # Auger 9 years, all flavour (x3)
@@ -334,7 +380,8 @@ def get_E2_limit_figure(diffuse=True,
                         show_ice_cube_HESE_data=True,
                         show_ice_cube_HESE_fit=True,
                         show_ice_cube_mu=True,
-                        show_anita_I_III_limit=True,
+                        show_anita_I_III_limit=False,
+                        show_anita_I_IV_limit=True,
                         show_auger_limit=True,
                         show_ara=True,
                         show_arianna=True,
@@ -351,6 +398,8 @@ def get_E2_limit_figure(diffuse=True,
                         shower_Auger=True,
                         show_ara_1year=False,
                         show_prediction_arianna_200=False):
+
+
 
     # Limit E2 Plot
     # ---------------------------------------------------------------------------
@@ -538,6 +587,17 @@ def get_E2_limit_figure(diffuse=True,
                         horizontalalignment='left', color='darkorange', fontsize=legendfontsize)
         else:
             ax.annotate('ANITA I - III',
+                        xy=(7e9 * units.GeV / plotUnitsEnergy, 5e-7), xycoords='data',
+                        horizontalalignment='left', color='darkorange', fontsize=legendfontsize)
+
+    if show_anita_I_IV_limit:
+        ax.plot(anita_i_iv_limit[:, 0] / plotUnitsEnergy, anita_i_iv_limit[:, 1] / plotUnitsFlux, color='darkorange')
+        if energyBinsPerDecade == 2:
+            ax.annotate('ANITA I - IV',
+                        xy=(7e9 * units.GeV / plotUnitsEnergy, 1e-6), xycoords='data',
+                        horizontalalignment='left', color='darkorange', fontsize=legendfontsize)
+        else:
+            ax.annotate('ANITA I - IV',
                         xy=(7e9 * units.GeV / plotUnitsEnergy, 5e-7), xycoords='data',
                         horizontalalignment='left', color='darkorange', fontsize=legendfontsize)
 
