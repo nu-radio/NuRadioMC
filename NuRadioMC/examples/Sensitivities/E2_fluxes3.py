@@ -334,6 +334,13 @@ ara_4year_E *= units.eV
 ara_4year_limit *= units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
 ara_4year_limit *= energyBinsPerDecade
 
+# ARA 2023 projection
+# the file is a single event sensitivity at analysis level
+ara_2023_E, ara_2023_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), "limit_ara_2023_projected.txt"), unpack=True)
+ara_2023_E *= units.GeV
+ara_2023_limit *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
+ara_2023_limit *= energyBinsPerDecade
+
 ARIANNA_HRA = np.array([[1.00000003e+07, 3.16228005e+07, 9.99999984e+07, 3.16227997e+08,
                          9.99999984e+08, 3.16228010e+09, 9.99999998e+09, 3.16228010e+10,
                          1.00000002e+11, 3.16227988e+11, 1.00000002e+12],
@@ -384,6 +391,7 @@ def get_E2_limit_figure(diffuse=True,
                         show_anita_I_IV_limit=True,
                         show_auger_limit=True,
                         show_ara=True,
+                        show_ara_2023=False,
                         show_arianna=True,
                         show_neutrino_best_fit=True,
                         show_neutrino_best_case=True,
@@ -634,6 +642,18 @@ def get_E2_limit_figure(diffuse=True,
             ax.annotate('ARA',
                     xy=(2e10 * units.GeV / plotUnitsEnergy, 1.05e-6), xycoords='data',
                     horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
+    if show_ara_2023:
+        ax.plot(ara_2023_E / plotUnitsEnergy, ara_2023_limit / plotUnitsFlux, color='grey', linestyle='--')
+        if energyBinsPerDecade == 2:
+            ax.annotate('ARA 2023 \n(TL, SES)',
+                        xy=(1E16 * units.eV / plotUnitsEnergy, 6e-7), xycoords='data',
+                        horizontalalignment='left', color='grey', rotation=0, fontsize=legendfontsize)
+        else:
+            ax.annotate('ARA 2023 \n(TL, SES)',
+                    xy=(1E16 * units.eV / plotUnitsEnergy, 6e-8), xycoords='data',
+                    horizontalalignment='left', color='grey', rotation=0, fontsize=legendfontsize)
+
+
     if show_arianna:
         ax.plot(ARIANNA_HRA[:, 0] / plotUnitsEnergy, ARIANNA_HRA[:, 1] / plotUnitsFlux, color='red')
 #         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
