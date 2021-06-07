@@ -186,8 +186,8 @@ nu_mu_data[:, 0] = 10 ** nu_mu_data[:, 0] * units.GeV
 
 
 def ice_cube_nu_fit(energy, slope=-2.37, offset=1.36):
-    # ApJ slope=-2.13, offset=0.9
-    # ICR2019 slope=-2.19, offset=1.01
+    # ApJ slope=-2.13, offset=0.9 (https://arxiv.org/pdf/1607.08006.pdf)
+    # ICR2017 slope=-2.19, offset=1.01 (https://pos.sissa.it/301/1005/)
     # 9.5 years analysis 2.37+0.08-0.09, offset 1.36 + 0.24 - 0.25, Astrophysical normalization @ 100TeV: 1.36 × 10−8GeV−1cm−2s−1sr−1
     flux = 3 * offset * (energy / (100 * units.TeV)) ** slope * 1e-18 * \
         (units.GeV ** -1 * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
