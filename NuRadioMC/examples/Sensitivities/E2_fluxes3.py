@@ -239,9 +239,9 @@ ANITA uses a *super* unusual differential limit bin width.
 
 A limit is generally given by:
 
-   E dN                         Sup
------------  = ------------------------------------
-dE dA dO dt     T  * Efficiency * Aeff * BinWidth
+     E dN                           Sup
+---------------  =   -----------------------------------
+dE dA dOmega dt       T  * Efficiency * Aeff * BinWidth
 
 For most experiments, BinWidth is transformed into log space for convenience:
                BinWidth = LN(10) * dlog10(E)
