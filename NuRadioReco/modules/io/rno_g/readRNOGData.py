@@ -72,15 +72,15 @@ class readRNOGData:
         return self.n_events
 
     def _set_iterators(self, cut=None):
-         """
-          Set uproot iterators to loop over event trees
+        """
+        Set uproot iterators to loop over event trees
   
-          Parameters
-          ----------
-          cut: str
-              cut string to apply (e.g. for initial event selection based on event_number, ...
-              e.g. "(event_number==1)" or "(run_number==1)&(event_number<10)" 
-          """
+        Parameters
+        ----------
+        cut: str
+            cut string to apply (e.g. for initial event selection based on event_number, ...
+            e.g. "(event_number==1)" or "(run_number==1)&(event_number<10)" 
+        """
         self.__id_current_event = -1
 
         datadict = OrderedDict()
@@ -140,7 +140,10 @@ class readRNOGData:
 
         self._set_iterators(cut=self.cut_string)
 
-        for event_header, event in zip(self._iterator_header, self._iterator_data):
+        # Note: reading single events is inefficient...
+        # for event_header, event in zip(self._iterator_header, self._iterator_data):
+        for event_headers, events in zip(self.uproot_iterator_header, self.uproot_iterator_data):
+          for event_header, event in zip(event_headers, events):
             self.__id_current_event += 1
             #if self.__id_current_event >= self.n_events:
             #    # all events processed, but iterator should stop before anyways.
@@ -152,20 +155,20 @@ class readRNOGData:
                     eta = (time.time() - self.__t) / self.__id_current_event * (self.n_events - self.__id_current_event) / 60.
                 self.logger.warning("reading in event {}/{} ({:.0f}%) ETA: {:.1f} minutes".format(self.__id_current_event, self.n_events, 100 * progress, eta))
                 
-            run_number = event["run_number"][0]
-            evt_number = event["event_number"][0]
-            station_id = event["station_number"][0]
+            run_number = event["run_number"]
+            evt_number = event["event_number"]
+            station_id = event["station_number"]
             self.logger.info("Reading Run: {run_number}, Event {evt_number}, Station {station_id}")
 
             evt = NuRadioReco.framework.event.Event(run_number, evt_number)
             station = NuRadioReco.framework.station.Station(station_id)
             #TODO in future: do need to apply calibrations?
 
-            unix_time = event_header["readout_time"][0]
+            unix_time = event_header["readout_time"]
             event_time = astropy.time.Time(unix_time, format='unix')
 
             station.set_station_time(event_time)
-            radiant_data = event["radiant_data[24][2048]"][0] # returns array of n_channels, n_points
+            radiant_data = event["radiant_data[24][2048]"] # returns array of n_channels, n_points
             # Loop over all requested channels in data
             for chan in channels:
                 channel = NuRadioReco.framework.channel.Channel(chan)
@@ -179,7 +182,7 @@ class readRNOGData:
                 sampling_rate = 1./sampling
 
                 #TODO: need to subtract mean... probably not if running signal reconstructor?
-                #channel.set_trace(voltage-np.mean(voltage), sampling_rate)
+                channel.set_trace(voltage-np.mean(voltage), sampling_rate)
                 station.add_channel(channel)
             evt.set_station(station)
             # we want to have access to basic signal quantities with implementation from NuRadioReco
