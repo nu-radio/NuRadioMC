@@ -304,7 +304,8 @@ The net factor of 3/2, on a log-log plot, leaves the limit's position (relative
 to other experiments) essentially unchanged.
 '''
 
-# Auger neutrino limit [9 year]
+# Auger neutrino limit (2019, 14.7 years)
+# JCAP 10 (2019) 022
 # https://arxiv.org/abs/1906.07422
 auger_limit = np.array(([
     (5.677E+16, 9.398E-08),
