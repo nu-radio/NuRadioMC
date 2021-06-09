@@ -236,7 +236,7 @@ def get_ice_cube_hese_range():
 # https://icecube.wisc.edu/data-releases/2021/03/icecube-data-for-the-first-glashow-resonance-candidate/
 # NB: the csv file gives per-flavor, but we want all flavor, so multiply by 3
 
-i3_glashow_data = np.genfromtxt(os.path.join(os.path.dirname(__file__), "icecube_glashow.csv"),
+i3_glashow_data = np.genfromtxt(os.path.join(os.path.dirname(__file__), 'data', "icecube_glashow.csv"),
     skip_header=2, delimiter=',', names=['E_min', 'E_max', 'y', 'y_lower', 'y_upper'])
 i3_glashow_emin = i3_glashow_data['E_min'] * units.GeV / plotUnitsEnergy
 i3_glashow_emax = i3_glashow_data['E_max'] * units.GeV / plotUnitsEnergy
@@ -357,7 +357,7 @@ ara_1year[:, 1] *= energyBinsPerDecade
 
 # Analysis from https://doi.org/10.1103/PhysRevD.102.043021  https://arxiv.org/abs/1912.00987
 # 2 stations (A2 and A3), approx 1100 days of livetime per station
-ara_4year_E, ara_4year_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), "limit_a23.txt"), unpack=True)
+ara_4year_E, ara_4year_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "limit_a23.txt"), unpack=True)
 ara_4year_E *= units.eV
 ara_4year_limit *= units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
 ara_4year_limit *= energyBinsPerDecade
@@ -377,7 +377,7 @@ so, an additional 4 years of A1, A2, A3, A4, and A5
 We do including different effeective areas for A1, A2/3/4, and A5,
 since A1 is smaller (only being at 100m), while A5 is larger (having the phased array).
 '''
-ara_2023_E, ara_2023_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), "limit_ara_2023_projected.txt"), unpack=True)
+ara_2023_E, ara_2023_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__),'data', "limit_ara_2023_projected.txt"), unpack=True)
 ara_2023_E *= units.GeV
 ara_2023_limit *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
 ara_2023_limit *= energyBinsPerDecade
@@ -400,7 +400,7 @@ from scipy.interpolate import interp1d
 
 def get_TAGZK_flux(energy):
 # GZK neutrino flux from TA best fit
-    TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), "TA_combined_fit_m3.txt"))
+    TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_combined_fit_m3.txt"))
     E = TA_data[:, 0] * units.GeV
     f = TA_data[:, 1] * plotUnitsFlux / E ** 2
     get_TAGZK_flux = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
@@ -409,7 +409,7 @@ def get_TAGZK_flux(energy):
 
 # get 10% proton flux
 def get_proton_10(energy):
-    vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), "ReasonableNeutrinos1.txt"))
+    vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "ReasonableNeutrinos1.txt"))
     E = vanVliet_reas[0, :] * units.GeV
     f = vanVliet_reas[1, :] * plotUnitsFlux / E ** 2
     getE = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
@@ -417,7 +417,7 @@ def get_proton_10(energy):
 
 
 def get_GZK_Auger_best_fit(energy):
-    Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_bands.out"))
+    Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "talys_neu_bands.out"))
     E = Heinze_band[:, 0] * units.GeV
     f = Heinze_band[:, 1] / units.GeV / units.cm ** 2 / units.s / units.sr
     getE = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
@@ -460,9 +460,9 @@ def get_E2_limit_figure(diffuse=True,
         legends = []
         if(shower_Auger):
 
-            vanVliet_max_1 = np.loadtxt(os.path.join(os.path.dirname(__file__), "MaxNeutrinos1.txt"))
-            vanVliet_max_2 = np.loadtxt(os.path.join(os.path.dirname(__file__), "MaxNeutrinos2.txt"))
-            vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), "ReasonableNeutrinos1.txt"))
+            vanVliet_max_1 = np.loadtxt(os.path.join(os.path.dirname(__file__),'data', "MaxNeutrinos1.txt"))
+            vanVliet_max_2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "MaxNeutrinos2.txt"))
+            vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "ReasonableNeutrinos1.txt"))
 
             vanVliet_max = np.maximum(vanVliet_max_1[1, :], vanVliet_max_2[1, :])
 
@@ -475,7 +475,7 @@ def get_E2_limit_figure(diffuse=True,
             legends.append(prot)
 
         if(show_Heinze):
-            Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_bands.out"))
+            Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "talys_neu_bands.out"))
 #             best_fit, = ax.plot(Heinze_band[:, 0] * units.GeV / plotUnitsEnergy, Heinze_band[:, 1] * Heinze_band[:, 0] ** 2, c='k',
 #                                 label=r'UHECR (Auger) combined fit, Heinze et al.', linestyle='-.')
 
@@ -483,7 +483,7 @@ def get_E2_limit_figure(diffuse=True,
 #                                      Heinze_band[:, 2] * Heinze_band[:, 0] ** 2, Heinze_band[:, 3] * Heinze_band[:, 0] ** 2,
 #                               label=r'UHECRs Auger combined fit, Heinze et al.', color='C1', alpha=0.5, zorder=1)
 
-            Heinze_evo = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_evolutions.out"))
+            Heinze_evo = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "talys_neu_evolutions.out"))
             Auger_bestfit = ax.fill_between(Heinze_evo[:, 0] * units.GeV / plotUnitsEnergy,
                                      Heinze_evo[:, 3] * Heinze_band[:, 0] ** 2, Heinze_evo[:, 4] * Heinze_band[:, 0] ** 2,
                               label=r'UHECRs Auger combined fit (3$\sigma$), Heinze et al.', color='C1', alpha=0.5, zorder=1)
@@ -496,8 +496,8 @@ def get_E2_limit_figure(diffuse=True,
 
         # TA combined fit
         if(show_TA):
-            TA_data_low = np.loadtxt(os.path.join(os.path.dirname(__file__), "TA_combined_fit_low_exp_uncertainty.txt"))
-            TA_data_high = np.loadtxt(os.path.join(os.path.dirname(__file__), "TA_combined_fit_high_exp_uncertainty.txt"))
+            TA_data_low = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_combined_fit_low_exp_uncertainty.txt"))
+            TA_data_high = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_combined_fit_high_exp_uncertainty.txt"))
             TA_m3 = ax.fill_between(TA_data_low[:, 0] * units.GeV / plotUnitsEnergy,
                                      TA_data_low[:, 1], TA_data_high[:, 1],
                               label=r'UHECRs TA combined fit (1$\sigma$), Bergman et al.', color='C0', alpha=0.5, zorder=-1)
@@ -761,7 +761,7 @@ def get_E2_limit_figure(diffuse=True,
 
     if show_prediction_arianna_200:
         # 10 year sensitivity
-        arianna_200 = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), "expected_sensivity_ARIANNA-200.txt"))
+        arianna_200 = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__),'data'), "expected_sensivity_ARIANNA-200.txt"))
         arianna_200[:, 0] *= units.GeV
         arianna_200[:, 1] *= units.GeV * units.cm ** -2 * units.s ** -1
         print(arianna_200)
