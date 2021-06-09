@@ -292,21 +292,34 @@ anita_i_iv_limit[:, 1] *= (units.eV * units.cm ** -2 * units.second ** -1 * unit
 anita_i_iv_limit[:, 1] *= (4 / np.log(10))  # see discussion above about strange anita binning
 anita_i_iv_limit[:, 1] *= energyBinsPerDecade
 
-# Auger neutrino limit
-# Auger 9 years, all flavour (x3)
+'''
+Regarding Auger Limits
+====================================================
+
+Auger publishes a limit that only applies to a single flavor.
+So, to make it an all-flavor limit, the limit must be multiplied by 3.
+Because this is a limit, multiplying by 3 makes the limit *weaker*.
+Also, Auger uses half decade bins, so that must be corrected to a single decade.
+The net factor of 3/2, on a log-log plot, leaves the limit's position (relative
+to other experiments) essentially unchanged.
+'''
+
+# Auger neutrino limit [9 year]
+# https://arxiv.org/abs/1906.07422
 auger_limit = np.array(([
-    (16.7523809524, 4.462265901e-07),
-    (17.2523809524, 1.103901153e-07),
-    (17.7523809524, 6.487559078e-08),
-    (18.2380952381, 7.739545498e-08),
-    (18.7523809524, 1.387743075e-07),
-    (19.2571428571, 3.083827665e-07),
-    (19.7523809524, 7.467202523e-07),
-    (20.2476190476, 1.998499395e-06)
+    (5.677E+16, 9.398E-08),
+    (1.771E+17, 2.298E-08),
+    (5.677E+17, 1.467E-08),
+    (1.771E+18, 1.881E-08),
+    (5.677E+18, 3.382E-08),
+    (1.771E+19, 7.179E-08),
+    (5.677E+19, 1.725E-07),
+    (1.771E+20, 4.412E-07)
 ]))
-auger_limit[:, 0] = 10 ** auger_limit[:, 0] * units.eV
+auger_limit[:, 0] *= units.eV
 auger_limit[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-auger_limit[:, 1] /= 2  # half-decade binning
+auger_limit[:, 1] /= 2 # half-decade binning
+auger_limit[:, 1] *= 3 # correction for 3 flavors
 auger_limit[:, 1] *= energyBinsPerDecade
 
 # ARA Published 2sta x 1yr analysis level limit:
