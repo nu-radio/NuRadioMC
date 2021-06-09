@@ -181,7 +181,6 @@ nu_mu_data[:, 3] = np.abs(nu_mu_data[:, 1] - nu_mu_data[:, 3])
 
 nu_mu_data[-1, 3] = 0
 nu_mu_data[-1, 2] = 2e-9 * 3 * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-print(nu_mu_data[:, 1:] / plotUnitsFlux)
 nu_mu_data[:, 0] = 10 ** nu_mu_data[:, 0] * units.GeV
 
 
@@ -633,7 +632,6 @@ def get_E2_limit_figure(diffuse=True,
         point = 1
         glashow_x = (i3_glashow_emax[point] - i3_glashow_emin[point])/2 + i3_glashow_emin[point]
         glashow_y = i3_glashow_y[point]
-        print(glashow_y)
         ax.errorbar(
             x = glashow_x,
             y = glashow_y,
@@ -868,4 +866,3 @@ if __name__ == "__main__":
     else:
         name_plot = "Limit_sources.pdf"
     plt.savefig(name_plot)
-    plt.show()
