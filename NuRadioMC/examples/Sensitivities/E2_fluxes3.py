@@ -230,6 +230,23 @@ def get_ice_cube_hese_range():
     lower *= energy ** 2
     return energy, upper, lower
 
+# IceCube Glashow
+# Paper: https://doi.org/10.1038/s41586-021-03256-1
+# Dataset: https://doi.org/10.21234/gr2021
+# https://icecube.wisc.edu/data-releases/2021/03/icecube-data-for-the-first-glashow-resonance-candidate/
+# NB: the csv file gives per-flavor, but we want all flavor, so multiply by 3
+
+i3_glashow_data = np.genfromtxt(os.path.join(os.path.dirname(__file__), "icecube_glashow.csv"),
+    skip_header=2, delimiter=',', names=['E_min', 'E_max', 'y', 'y_lower', 'y_upper'])
+i3_glashow_emin = i3_glashow_data['E_min'] * units.GeV / plotUnitsEnergy
+i3_glashow_emax = i3_glashow_data['E_max'] * units.GeV / plotUnitsEnergy
+i3_glashow_y = 3. * i3_glashow_data['y'] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1) * 1E-8  / plotUnitsFlux
+i3_glashow_y_lower = 3. * i3_glashow_data['y_lower'] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1) * 1E-8  / plotUnitsFlux
+i3_glashow_y_upper = 3. * i3_glashow_data['y_upper'] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1) * 1E-8  / plotUnitsFlux
+
+
+
+
 '''
 Regarding ANITA Limits
 ====================================================
@@ -412,6 +429,7 @@ def get_E2_limit_figure(diffuse=True,
                         show_ice_cube_HESE_data=True,
                         show_ice_cube_HESE_fit=True,
                         show_ice_cube_mu=True,
+                        show_icecube_glashow=True,
                         show_anita_I_III_limit=False,
                         show_anita_I_IV_limit=True,
                         show_auger_limit=True,
@@ -609,6 +627,20 @@ def get_E2_limit_figure(diffuse=True,
                     yerr=nu_mu_data[:, 2:].T / plotUnitsFlux, uplims=uplimit, color='dodgerblue',
                     marker='o', ecolor='dodgerblue', linestyle='None', zorder=3,
                     markersize=7)
+
+    if show_icecube_glashow:
+        # only plot the Glashow data point (the first (0) and last (2) entries are upper limits)
+        point = 1
+        glashow_x = (i3_glashow_emax[point] - i3_glashow_emin[point])/2 + i3_glashow_emin[point]
+        glashow_y = i3_glashow_y[point]
+        print(glashow_y)
+        ax.errorbar(
+            x = glashow_x,
+            y = glashow_y,
+            xerr = [[glashow_x-i3_glashow_emin[point]], [i3_glashow_emax[point]-glashow_x]],
+            yerr = [[glashow_y - i3_glashow_y_lower[point]], [i3_glashow_y_upper[point]-glashow_y]],
+            marker='o', markersize=7, color='dodgerblue', ecolor='dodgerblue',
+            )
 
     if show_anita_I_III_limit:
         ax.plot(anita_limit[:, 0] / plotUnitsEnergy, anita_limit[:, 1] / plotUnitsFlux, color='darkorange')
