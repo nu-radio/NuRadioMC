@@ -335,7 +335,20 @@ ara_4year_limit *= units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** 
 ara_4year_limit *= energyBinsPerDecade
 
 # ARA 2023 projection
-# the file is a single event sensitivity at analysis level
+# The estimate is a single event sensitivity at trigger level
+'''
+This estimate is built by using the actual recorded livetime for the ARA stations 
+through the end of 2019. Specifically:
+1216 days of A1
+4598 days of A2 + A3 + A4
+561 days of A5
+
+And then adding four years of projected data:
+so, an additional 4 years of A1, A2, A3, A4, and A5
+
+We do including different effeective areas for A1, A2/3/4, and A5,
+since A1 is smaller (only being at 100m), while A5 is larger (having the phased array).
+'''
 ara_2023_E, ara_2023_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), "limit_ara_2023_projected.txt"), unpack=True)
 ara_2023_E *= units.GeV
 ara_2023_limit *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
