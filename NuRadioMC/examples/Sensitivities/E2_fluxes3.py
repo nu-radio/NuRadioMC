@@ -230,7 +230,6 @@ def get_ice_cube_hese_range():
     lower *= energy ** 2
     return energy, upper, lower
 
-
 '''
 Regarding ANITA Limits
 ====================================================
@@ -260,20 +259,19 @@ So, below, we multply by by 4/LN(10) to fix the bin width.
 # https://arxiv.org/abs/1803.02719
 # Phys. Rev. D 98, 022001 (2018)
 anita_limit = np.array(([
-    (9.94e17,   3.79e-14 * 9.94e17 / 1e9),
-    (2.37e18,   2.15e-15 * 2.37e18 / 1e9),
-    (5.19e18,   2.33e-16 * 5.19e18 / 1e9),
-    (1.10e19,   3.64e-17 * 1.10e19 / 1e9),
-    (3.55e19,   4.45e-18 * 3.55e19 / 1e9),
-    (1.11e20,   9.22e-19 * 1.11e20 / 1e9),
-    (4.18e20,   2.97e-19 * 4.18e20 / 1e9),
-    (9.70e20,   1.62e-19 * 9.70e20 / 1e9)
+    (9.94e17, 3.79e-14 * 9.94e17 / 1e9),
+    (2.37e18, 2.15e-15 * 2.37e18 / 1e9),
+    (5.19e18, 2.33e-16 * 5.19e18 / 1e9),
+    (1.10e19, 3.64e-17 * 1.10e19 / 1e9),
+    (3.55e19, 4.45e-18 * 3.55e19 / 1e9),
+    (1.11e20, 9.22e-19 * 1.11e20 / 1e9),
+    (4.18e20, 2.97e-19 * 4.18e20 / 1e9),
+    (9.70e20, 1.62e-19 * 9.70e20 / 1e9)
 ]))
 anita_limit[:, 0] *= units.eV
 anita_limit[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-anita_limit[:, 1] *= (4 / np.log(10)) # see discussion above about strange anita binning
+anita_limit[:, 1] *= (4 / np.log(10))  # see discussion above about strange anita binning
 anita_limit[:, 1] *= energyBinsPerDecade
-
 
 # ANITA I - IV
 # https://arxiv.org/abs/1902.04005
@@ -291,9 +289,8 @@ anita_i_iv_limit = np.array(([
 ]))
 anita_i_iv_limit[:, 0] *= units.eV
 anita_i_iv_limit[:, 1] *= (units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-anita_i_iv_limit[:, 1] *= (4 / np.log(10)) # see discussion above about strange anita binning
+anita_i_iv_limit[:, 1] *= (4 / np.log(10))  # see discussion above about strange anita binning
 anita_i_iv_limit[:, 1] *= energyBinsPerDecade
-
 
 # Auger neutrino limit
 # Auger 9 years, all flavour (x3)
@@ -353,6 +350,7 @@ ara_2023_E, ara_2023_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__f
 ara_2023_E *= units.GeV
 ara_2023_limit *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
 ara_2023_limit *= energyBinsPerDecade
+ara_2023_limit *= 2.44  # convert to 90%CL limit to be comparable with information from other experiments
 
 ARIANNA_HRA = np.array([[1.00000003e+07, 3.16228005e+07, 9.99999984e+07, 3.16227997e+08,
                          9.99999984e+08, 3.16228010e+09, 9.99999998e+09, 3.16228010e+10,
@@ -419,8 +417,6 @@ def get_E2_limit_figure(diffuse=True,
                         shower_Auger=True,
                         show_ara_1year=False,
                         show_prediction_arianna_200=False):
-
-
 
     # Limit E2 Plot
     # ---------------------------------------------------------------------------
@@ -658,14 +654,13 @@ def get_E2_limit_figure(diffuse=True,
     if show_ara_2023:
         ax.plot(ara_2023_E / plotUnitsEnergy, ara_2023_limit / plotUnitsFlux, color='grey', linestyle='--')
         if energyBinsPerDecade == 2:
-            ax.annotate('ARA 2023 \n(TL, SES)',
+            ax.annotate('ARA 2023 \n(TL)',
                         xy=(1E16 * units.eV / plotUnitsEnergy, 6e-7), xycoords='data',
                         horizontalalignment='left', color='grey', rotation=0, fontsize=legendfontsize)
         else:
-            ax.annotate('ARA 2023 \n(TL, SES)',
+            ax.annotate('ARA 2023 \n(TL)',
                     xy=(1E16 * units.eV / plotUnitsEnergy, 6e-8), xycoords='data',
                     horizontalalignment='left', color='grey', rotation=0, fontsize=legendfontsize)
-
 
     if show_arianna:
         ax.plot(ARIANNA_HRA[:, 0] / plotUnitsEnergy, ARIANNA_HRA[:, 1] / plotUnitsFlux, color='red')
