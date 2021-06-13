@@ -15,6 +15,7 @@ from NuRadioReco.eventbrowser.apps import simulation
 import os
 import argparse
 import NuRadioReco.eventbrowser.dataprovider
+import NuRadioReco.eventbrowser.dataprovider_root
 import logging
 import webbrowser
 from NuRadioReco.modules.base import module
@@ -26,6 +27,7 @@ argparser.add_argument('file_location', type=str, help="Path of folder or filena
 argparser.add_argument('--open-window', const=True, default=False, action='store_const',
                        help="Open the event display in a new browser tab on startup")
 argparser.add_argument('--port', default=8080, help="Specify the port the event display will run on")
+argparser.add_argument('--rnog_file', const=True, default=False, action='store_const')
 
 parsed_args = argparser.parse_args()
 data_folder = os.path.dirname(parsed_args.file_location)
@@ -36,7 +38,9 @@ else:
 if parsed_args.open_window:
     webbrowser.open('http://127.0.0.1:{}/'.format(parsed_args.port))
 
+
 provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
+provider.set_filetype(parsed_args.rnog_file)
 
 app.title = 'NuRadioViewer'
 
@@ -269,7 +273,10 @@ def set_uuid(pathname, juser_id):
 @app.callback(Output('filename', 'options'),
               [Input('datafolder', 'value')])
 def set_filename_dropdown(folder):
-    return [{'label': ll.split('/')[-1], 'value': ll} for ll in sorted(glob.glob(os.path.join(folder, '*.nur*')))]
+    if parsed_args.rnog_file:
+        return [{'label': ll.split('/')[-1], 'value': ll} for ll in sorted(glob.glob(os.path.join(folder, '*.root*')))]
+    else:
+        return [{'label': ll.split('/')[-1], 'value': ll} for ll in sorted(glob.glob(os.path.join(folder, '*.nur*')))]
 
 
 @app.callback(
