@@ -32,7 +32,10 @@ def plot_rec_directions(filename, trigger, jcurrent_selection, station_id, juser
     current_selection = json.loads(jcurrent_selection)
     ariio = provider.get_arianna_io(user_id, filename)
     traces = []
-    keys = ariio.get_header()[station_id].keys()
+    header = ariio.get_header()
+    if header is None:
+        return None
+    keys = header[station_id].keys()
     if stnp.zenith in keys and stnp.azimuth in keys:
         traces.append(plotly.graph_objs.Scatterpolar(
             r=np.rad2deg(ariio.get_header()[station_id][stnp.zenith]),

@@ -20,8 +20,8 @@ import six
 from collections import OrderedDict
 import astropy.time
 
-class readRNOGData:
 
+class readRNOGData:
     """
     This is the data reader for RNO-G. Reads RNO-G data from ROOT format using uproot
     """
@@ -195,6 +195,9 @@ class readRNOGData:
 
     def get_n_events(self):
         return self.n_events
+
+    def get_filenames(self):
+        return self.input_files
 
     def end(self):
         pass
