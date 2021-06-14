@@ -554,7 +554,7 @@ class simulation():
                     # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
                     # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
                     if not self._is_in_fiducial_volume():
-                        logger.debug("event is not in fiducial volume, skipping simulation")
+                        logger.debug(f"event is not in fiducial volume, skipping simulation {self._x}, {self._y}, {self._z}")
                         continue
 
                     # for special cases where only EM or HAD showers are simulated, skip all events that don't fulfill this criterion
