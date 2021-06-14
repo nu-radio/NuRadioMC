@@ -235,16 +235,14 @@ def get_ice_cube_hese_range():
 # https://icecube.wisc.edu/data-releases/2021/03/icecube-data-for-the-first-glashow-resonance-candidate/
 # NB: the csv file gives per-flavor, but we want all flavor, so multiply by 3
 
+
 i3_glashow_data = np.genfromtxt(os.path.join(os.path.dirname(__file__), 'data', "icecube_glashow.csv"),
     skip_header=2, delimiter=',', names=['E_min', 'E_max', 'y', 'y_lower', 'y_upper'])
 i3_glashow_emin = i3_glashow_data['E_min'] * units.GeV / plotUnitsEnergy
 i3_glashow_emax = i3_glashow_data['E_max'] * units.GeV / plotUnitsEnergy
-i3_glashow_y = 3. * i3_glashow_data['y'] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1) * 1E-8  / plotUnitsFlux
-i3_glashow_y_lower = 3. * i3_glashow_data['y_lower'] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1) * 1E-8  / plotUnitsFlux
-i3_glashow_y_upper = 3. * i3_glashow_data['y_upper'] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1) * 1E-8  / plotUnitsFlux
-
-
-
+i3_glashow_y = 3. * i3_glashow_data['y'] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1) * 1E-8 / plotUnitsFlux
+i3_glashow_y_lower = 3. * i3_glashow_data['y_lower'] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1) * 1E-8 / plotUnitsFlux
+i3_glashow_y_upper = 3. * i3_glashow_data['y_upper'] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1) * 1E-8 / plotUnitsFlux
 
 '''
 Regarding ANITA Limits
@@ -335,8 +333,8 @@ auger_limit = np.array(([
 ]))
 auger_limit[:, 0] *= units.eV
 auger_limit[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-auger_limit[:, 1] /= 2 # half-decade binning
-auger_limit[:, 1] *= 3 # correction for 3 flavors
+auger_limit[:, 1] /= 2  # half-decade binning
+auger_limit[:, 1] *= 3  # correction for 3 flavors
 auger_limit[:, 1] *= energyBinsPerDecade
 
 # ARA Published 2sta x 1yr analysis level limit:
@@ -376,7 +374,7 @@ so, an additional 4 years of A1, A2, A3, A4, and A5
 We do including different effeective areas for A1, A2/3/4, and A5,
 since A1 is smaller (only being at 100m), while A5 is larger (having the phased array).
 '''
-ara_2023_E, ara_2023_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__),'data', "limit_ara_2023_projected.txt"), unpack=True)
+ara_2023_E, ara_2023_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "limit_ara_2023_projected.txt"), unpack=True)
 ara_2023_E *= units.GeV
 ara_2023_limit *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
 ara_2023_limit *= energyBinsPerDecade
@@ -443,6 +441,7 @@ def get_E2_limit_figure(diffuse=True,
                         show_radar=False,
                         show_Heinze=True,
                         show_TA=False,
+                        show_TA_nominal=False,
                         show_RNOG=False,
                         show_IceCubeGen2=False,
                         shower_Auger=True,
@@ -457,9 +456,23 @@ def get_E2_limit_figure(diffuse=True,
     # Version for a diffuse flux and for a source dominated flux
     if diffuse:
         legends = []
+        # TA combined fit
+        if(show_TA):
+            TA_data_low = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_combined_fit_low_exp_uncertainty.txt"))
+            TA_data_high = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_combined_fit_high_exp_uncertainty.txt"))
+            TA_m3 = ax.fill_between(TA_data_low[:, 0] * units.GeV / plotUnitsEnergy,
+                                     TA_data_low[:, 1], TA_data_high[:, 1],
+                              label=r'UHECRs TA combined fit (1$\sigma$), Bergman et al.', color='C0', alpha=0.5, zorder=-1)
+            legends.append(TA_m3)
+        if(show_TA_nominal):
+            TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_combined_fit_m3.txt"))
+            E = TA_data[:, 0] * units.GeV
+            f = TA_data[:, 1] * plotUnitsFlux
+            TA_nominal, = ax.plot(E / plotUnitsEnergy, f / plotUnitsFlux, "k-.", label="UHECRs TA combined fit, Bergman et al.")
+            legends.append(TA_nominal)
         if(shower_Auger):
 
-            vanVliet_max_1 = np.loadtxt(os.path.join(os.path.dirname(__file__),'data', "MaxNeutrinos1.txt"))
+            vanVliet_max_1 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "MaxNeutrinos1.txt"))
             vanVliet_max_2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "MaxNeutrinos2.txt"))
             vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "ReasonableNeutrinos1.txt"))
 
@@ -492,15 +505,6 @@ def get_E2_limit_figure(diffuse=True,
 #                             2, color='0.5', label=r'UHECR (Auger) combined fit + 3$\sigma$, Heinze et al.', linestyle='-.')
             legends.append(Auger_bestfit)
 #             legends.append(best_fit_3s)
-
-        # TA combined fit
-        if(show_TA):
-            TA_data_low = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_combined_fit_low_exp_uncertainty.txt"))
-            TA_data_high = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_combined_fit_high_exp_uncertainty.txt"))
-            TA_m3 = ax.fill_between(TA_data_low[:, 0] * units.GeV / plotUnitsEnergy,
-                                     TA_data_low[:, 1], TA_data_high[:, 1],
-                              label=r'UHECRs TA combined fit (1$\sigma$), Bergman et al.', color='C0', alpha=0.5, zorder=-1)
-            legends.append(TA_m3)
 
         first_legend = plt.legend(handles=legends, loc=4, fontsize=legendfontsize, handlelength=4)
 
@@ -630,13 +634,13 @@ def get_E2_limit_figure(diffuse=True,
     if show_icecube_glashow:
         # only plot the Glashow data point (the first (0) and last (2) entries are upper limits)
         point = 1
-        glashow_x = (i3_glashow_emax[point] - i3_glashow_emin[point])/2 + i3_glashow_emin[point]
+        glashow_x = (i3_glashow_emax[point] - i3_glashow_emin[point]) / 2 + i3_glashow_emin[point]
         glashow_y = i3_glashow_y[point]
         ax.errorbar(
-            x = glashow_x,
-            y = glashow_y,
-            xerr = [[glashow_x-i3_glashow_emin[point]], [i3_glashow_emax[point]-glashow_x]],
-            yerr = [[glashow_y - i3_glashow_y_lower[point]], [i3_glashow_y_upper[point]-glashow_y]],
+            x=glashow_x,
+            y=glashow_y,
+            xerr=[[glashow_x - i3_glashow_emin[point]], [i3_glashow_emax[point] - glashow_x]],
+            yerr=[[glashow_y - i3_glashow_y_lower[point]], [i3_glashow_y_upper[point] - glashow_y]],
             marker='o', markersize=7, color='dodgerblue', ecolor='dodgerblue',
             )
 
@@ -759,7 +763,7 @@ def get_E2_limit_figure(diffuse=True,
 
     if show_prediction_arianna_200:
         # 10 year sensitivity
-        arianna_200 = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__),'data'), "expected_sensivity_ARIANNA-200.txt"))
+        arianna_200 = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__), 'data'), "expected_sensivity_ARIANNA-200.txt"))
         arianna_200[:, 0] *= units.GeV
         arianna_200[:, 1] *= units.GeV * units.cm ** -2 * units.s ** -1
         print(arianna_200)
