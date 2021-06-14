@@ -28,6 +28,9 @@ def generate_my_events(filename, n_events):
     attributes['start_event_id'] = 0
     # define the fiducial simulation volume. Instead of specifying fiducial_rmin and fiducial_rmin one can also specify
     # fiducial_xmin, fiducial_xmax, fiducial_ymin and fiducial_ymax
+    # the concept of the diducial volume is described in the NuRadioMC paper. In short: only interactions in this smaller
+    # fiducial volume are saved. This is useful for the simulation of secondary interactions. For this dummy example
+    # the fiduial volume is the same as the full volume.
     attributes['fiducial_rmin'] = 0
     attributes['fiducial_rmax'] = 1 * units.km
     attributes['fiducial_zmin'] = 0 * units.m
