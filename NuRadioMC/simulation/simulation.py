@@ -102,7 +102,8 @@ class simulation():
                  file_overwrite=False,
                  write_detector=True,
                  event_list=None,
-                 log_level_propagation=logging.WARNING):
+                 log_level_propagation=logging.WARNING,
+                 ice_model=None):
         """
         initialize the NuRadioMC end-to-end simulation
 
@@ -149,6 +150,8 @@ class simulation():
             if provided, only the event listed in this list are being simulated
         log_level_propagation: logging.LEVEL
             the log level of the propagation module
+        ice_model: medium object (default None)
+            allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom". 
         """
         logger.setLevel(log_level)
         self._log_level_ray_propagation = log_level_propagation
@@ -189,7 +192,13 @@ class simulation():
         # initialize propagation module
         self._prop = propagation.get_propagation_module(self._cfg['propagation']['module'])
 
-        self._ice = medium.get_ice_model(self._cfg['propagation']['ice_model'])
+        if (self._cfg['propagation']['ice_model'] == "custom"):
+            if ice_model is None:
+                logger.error("ice model is set to 'custom' in config file but no custom ice model is provided.")
+                raise AttributeError("ice model is set to 'custom' in config file but no custom ice model is provided.")
+            self._ice = ice_model
+        else:
+            self._ice = medium.get_ice_model(self._cfg['propagation']['ice_model'])
 
         self._mout = collections.OrderedDict()
         self._mout_groups = collections.OrderedDict()
@@ -378,13 +387,13 @@ class simulation():
         self._shower_ids = np.array(self._fin['shower_ids'])
         self._shower_index_array = {}  # this array allows to convert the shower id to an index that starts from 0 to be used to access the arrays in the hdf5 file.
 
-        self._raytracer= self._prop(
+        self._raytracer = self._prop(
             self._ice, self._cfg['propagation']['attenuation_model'],
             log_level=self._log_level_ray_propagation,
             n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
             n_reflections=self._n_reflections,
             config=self._cfg,
-            detector = self._det
+            detector=self._det
         )
         r = self._raytracer
         for shower_index, shower_id in enumerate(self._shower_ids):
@@ -594,7 +603,7 @@ class simulation():
                             distance_cut_time += time.time() - t_tmp
 
                         self._raytracer.set_start_and_end_point(x1, x2)
-                        self._raytracer.use_optional_function('set_shower_axis',self._shower_axis)
+                        self._raytracer.use_optional_function('set_shower_axis', self._shower_axis)
                         if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
                             if self._cfg['propagation']['module'] == 'radiopropa':
                                 logger.error('Presimulation can not be used with the radiopropa ray tracer module')
