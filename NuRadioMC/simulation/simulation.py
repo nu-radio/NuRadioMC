@@ -109,8 +109,9 @@ class simulation():
 
         Parameters
         ----------
-        inputfilename: string
+        inputfilename: string, or pair
             the path to the hdf5 file containing the list of neutrino events
+            alternatively, the data and attributes dictionary can be passed directly to the method
         outputfilename: string
             specify hdf5 output filename.
         detectorfile: string
