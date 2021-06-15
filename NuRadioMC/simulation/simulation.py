@@ -1353,7 +1353,7 @@ class simulation():
                 if(key.startswith("station_")):
                     continue
                 if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
-                    if self._fin[key].dtype.char == 'U':
+                    if np.array(self._fin[key]).dtype.char == 'U':
                         fout[key] = np.array(self._fin[key], dtype=h5py.string_dtype(encoding='utf-8'))[saved]
 
                     else:
