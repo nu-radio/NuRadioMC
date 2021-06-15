@@ -868,7 +868,7 @@ if __name__ == "__main__":
 
 #     strawman_pa_label = 'Strawman + PA@15m@2s'
 #     strawman_pa_label = 'One current design'
-    fig, ax = get_E2_limit_figure(diffuse=DIFFUSE, show_ara_2023=True)
+    fig, ax = get_E2_limit_figure(diffuse=DIFFUSE)
     labels = []
     labels = add_limit(ax, labels, veff[:, 0], veff[:, 1], n_stations=100, livetime=5 * units.year, label=veff_label)
     labels = add_limit(ax, labels, veff[:, 0], veff[:, 1], n_stations=1000, livetime=5 * units.year, label=veff_label)
