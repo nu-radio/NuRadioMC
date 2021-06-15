@@ -360,21 +360,29 @@ ara_4year_limit *= units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** 
 ara_4year_limit *= energyBinsPerDecade
 
 # ARA 2023 projection
-# The estimate is a single event sensitivity at trigger level
 '''
 This estimate is built by using the actual recorded livetime for the ARA stations 
-through the end of 2019. Specifically:
-1216 days of A1
-4598 days of A2 + A3 + A4
-561 days of A5
+through June 2021. Specifically:
+1747 days of A1
+5627 days of A2 + A3 + A4
+826 days of A5
 
-And then adding four years of projected data:
-so, an additional 4 years of A1, A2, A3, A4, and A5
+And then adding projected livetime
+A1: 7/12 of a year for 2021, then 1 year of 2022, and 1 year of 2023
+A2: no more data for 2021, no data for 2022, 1 year of 2023
+A3: 7/12 of a year for 2021, then 1 year of 2022, and 1 year of 2023
+A4: no more data for 2021, no data for 2022, 1 year of 2023
+A5: 7/12 of a year for 2021, then 1 year of 2022, and 1 year of 2023
 
-We do including different effeective areas for A1, A2/3/4, and A5,
+We do include different effective areas for A1, A2/3/4, and A5,
 since A1 is smaller (only being at 100m), while A5 is larger (having the phased array).
+
+We also included the trigger level and analysis level estimate.
+The analysis level option assumes the A2 analysis efficiency for stations A1-4,
+and a (preliminary) analysis efficiency estimate from the phased-array analysis.
+
 '''
-ara_2023_E, ara_2023_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "limit_ara_2023_projected.txt"), unpack=True)
+ara_2023_E, ara_2023_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "limit_ara_2023_projected_trigger.txt"), unpack=True)
 ara_2023_E *= units.GeV
 ara_2023_limit *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
 ara_2023_limit *= energyBinsPerDecade
@@ -860,7 +868,7 @@ if __name__ == "__main__":
 
 #     strawman_pa_label = 'Strawman + PA@15m@2s'
 #     strawman_pa_label = 'One current design'
-    fig, ax = get_E2_limit_figure(diffuse=DIFFUSE)
+    fig, ax = get_E2_limit_figure(diffuse=DIFFUSE, show_ara_2023=True)
     labels = []
     labels = add_limit(ax, labels, veff[:, 0], veff[:, 1], n_stations=100, livetime=5 * units.year, label=veff_label)
     labels = add_limit(ax, labels, veff[:, 0], veff[:, 1], n_stations=1000, livetime=5 * units.year, label=veff_label)
