@@ -1,10 +1,8 @@
 import numpy as np
-import pickle
-import bz2
-import _pickle as cPickle
+import json
 import os
 import matplotlib.pyplot as plt
-from NuRadioReco.utilities import units, io_utilities
+from NuRadioReco.utilities import units
 
 ''' This script is only necessary if you want to compare the thresholds of different passbands. 
 First you have to run 3_... to have the final results in one dict. Make sure that the dicts for all the passbands 
@@ -19,9 +17,9 @@ passbands = []
 
 for file in os.listdir('results/ntr/'):
     filename = os.path.join('results/ntr/', file)
-    data = []
-    bz2_file = bz2.BZ2File(filename, 'rb')
-    data = cPickle.load(bz2_file)
+
+    with open(filename, 'r') as fp:
+        data = json.load(fp)
 
     trigger_thresholds = data['threshold']
     passband_trigger = data['passband_trigger']
@@ -29,7 +27,7 @@ for file in os.listdir('results/ntr/'):
     passband_high.append(passband_trigger[1])
     passbands.append(passband_trigger)
 
-    trigger_rate = data['trigger_rate']
+    trigger_rate = np.array(data['trigger_rate'])
 
     zeros = np.where(trigger_rate == 0)[0]
     first_zero = zeros[0]
