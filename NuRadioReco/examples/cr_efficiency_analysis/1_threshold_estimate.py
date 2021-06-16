@@ -1,7 +1,7 @@
 import numpy as np
 import helper_cr_eff as hcr
 import time
-import pickle
+import json
 import os
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.channelGalacticNoiseAdder
@@ -57,7 +57,7 @@ parser.add_argument('output_path', type=os.path.abspath, nargs='?', default='',
 parser.add_argument('n_iterations', type=int, nargs='?', default=10,
                     help='number of iterations each threshold should be iterated over. '
                          'Has to be a multiple of 10 (n_random_phase)')
-parser.add_argument('number_of_allowed_trigger', type=int, nargs='?', default=1,
+parser.add_argument('number_of_allowed_trigger', type=int, nargs='?', default=10,
                     help='number of allowed_trigger out of the iteration number')
 parser.add_argument('trigger_name', type=str, nargs='?', default='high_low',
                     help='name of the trigger, high_low or envelope')
@@ -67,7 +67,7 @@ parser.add_argument('passband_high', type=int, nargs='?', default=180,
                     help='higher bound of the passband used for the trigger in MHz')
 parser.add_argument('detector_file', type=str, nargs='?', default='../example_data/arianna_station_32.json',
                     help='detector file, change triggered channels accordingly')
-parser.add_argument('triggered_channels', type=np.ndarray, nargs='?', default=np.array([0, 1, 2, 3]),
+parser.add_argument('triggered_channels', type=np.ndarray, nargs='?', default=np.array([1,2,3,4]),
                     help='channel on which the trigger is applied')
 parser.add_argument('default_station', type=int, nargs='?', default=32,
                     help='default station id')
@@ -75,7 +75,7 @@ parser.add_argument('sampling_rate', type=int, nargs='?', default=1,
                     help='sampling rate in GHz')
 parser.add_argument('coinc_window', type=int, nargs='?', default=80,
                     help='coincidence window within the number coincidence has to occur. In ns')
-parser.add_argument('number_coincidences', type=int, nargs='?', default=2 ,
+parser.add_argument('number_coincidences', type=int, nargs='?', default=1,
                     help='number coincidences of true trigger within on station of the detector')
 parser.add_argument('order_trigger', type=int, nargs='?', default=10,
                     help='order of the filter used in the trigger')
@@ -93,29 +93,30 @@ parser.add_argument('galactic_noise_interpolation_frequencies_stop', type=int, n
                     help='stop frequency the galactic noise is interpolated over in MHz')
 parser.add_argument('galactic_noise_interpolation_frequencies_step', type=int, nargs='?', default=100,
                     help='frequency steps the galactic noise is interpolated over in MHz')
+parser.add_argument('n_random_phase', type=int, nargs='?', default=10,
+                    help='for computing time reasons one galactic noise amplitude is reused '
+                         'n_random_phase times, each time a random phase is added')
 parser.add_argument('threshold_start', type=int, nargs='?', default=0,
-                    help='value of the first tested threshold')
+                    help='value of the first tested threshold in Volt')
 parser.add_argument('threshold_step', type=int, nargs='?', default=1e-6,
-                    help='value of the threshold step')
+                    help='value of the threshold step in Volt')
 parser.add_argument('station_time', type=str, nargs='?', default='2019-01-01T00:00:00',
                     help='station time for calculation of galactic noise')
 parser.add_argument('station_time_random', type=bool, nargs='?', default=True,
                     help='choose if the station time should be random or not')
 parser.add_argument('hardware_response', type=bool, nargs='?', default=False,
                     help='choose if the hardware response (amp) should be True or False')
-
-n_random_phase = 10
-
 args = parser.parse_args()
 output_path = args.output_path
+n_random_phase = args.n_random_phase
 abs_output_path = os.path.abspath(args.output_path)
 n_iterations = args.n_iterations / n_random_phase
 n_iterations = int(n_iterations)
 number_of_allowed_trigger = args.number_of_allowed_trigger
 trigger_name = args.trigger_name
-passband_low = args.passband_low
-passband_high = args.passband_high
-passband_trigger = np.array([passband_low, passband_high]) * units.megahertz
+passband_low = args.passband_low * units.megahertz
+passband_high = args.passband_high * units.megahertz
+passband_trigger = np.array([passband_low, passband_high])
 detector_file = args.detector_file
 triggered_channels = args.triggered_channels
 default_station = args.default_station
@@ -127,22 +128,21 @@ Tnoise = args.Tnoise * units.kelvin
 T_noise_min_freq = args.T_noise_min_freq * units.megahertz
 T_noise_max_freq = args.T_noise_max_freq * units.megahertz
 galactic_noise_n_side = args.galactic_noise_n_side
-galactic_noise_interpolation_frequencies_start = args.galactic_noise_interpolation_frequencies_start
-galactic_noise_interpolation_frequencies_stop = args.galactic_noise_interpolation_frequencies_stop
-galactic_noise_interpolation_frequencies_step = args.galactic_noise_interpolation_frequencies_step
+galactic_noise_interpolation_frequencies_start = args.galactic_noise_interpolation_frequencies_start * units.MHz
+galactic_noise_interpolation_frequencies_stop = args.galactic_noise_interpolation_frequencies_stop * units.MHz
+galactic_noise_interpolation_frequencies_step = args.galactic_noise_interpolation_frequencies_step * units.MHz
 threshold_start = args.threshold_start * units.volt
-threshold_step = args.threshold_step *units.volt
+threshold_step = args.threshold_step * units.volt
 station_time = args.station_time
 station_time_random = args.station_time_random
 hardware_response = args.hardware_response
-
-
 
 det = GenericDetector(json_filename=detector_file, default_station=default_station)
 station_ids = det.get_station_ids()
 channel_ids = det.get_channel_ids(station_ids[0])
 
 logger.info("Apply {} trigger".format(trigger_name))
+logger.info("Apply passband {} ".format(passband_trigger / units.MHz))
 
 # The thermal noise for the ChannelGenericNoiseAdder is calculated here with a given temperature
 Vrms_thermal_noise = hcr.calculate_thermal_noise_Vrms(Tnoise, T_noise_max_freq, T_noise_min_freq)
@@ -157,7 +157,7 @@ channelGalacticNoiseAdder = NuRadioReco.modules.channelGalacticNoiseAdder.channe
 channelGalacticNoiseAdder.begin(n_side=galactic_noise_n_side,
             interpolation_frequencies=np.arange(galactic_noise_interpolation_frequencies_start,
                                                 galactic_noise_interpolation_frequencies_stop,
-                                                galactic_noise_interpolation_frequencies_step) * units.MHz)
+                                                galactic_noise_interpolation_frequencies_step))
 hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelBandPassFilter.begin()
@@ -216,7 +216,7 @@ while number_of_trigger > number_of_allowed_trigger:
         # includes the amplifier response, if set true at the beginning
         if hardware_response == True:
             hardwareResponseIncorporator.run(event, station, det, sim_to_data=True)
-
+        #print(np.sqrt(np.mean((station.get_channel(13).get_trace()/units.mV)**2)))
         # This loop changes the phase of a trace with rand_phase, this is because the GalacticNoiseAdder
         # needs some time and one amplitude is good enough for several traces.
         # The current number of iteration can be calculated with i_phase + n_it*n_random_phase
@@ -296,14 +296,15 @@ while number_of_trigger > number_of_allowed_trigger:
             dic['trigger_name'] = trigger_name
             dic['n_random_phase'] = n_random_phase
 
-            if os.path.isdir('output_threshold_estimate') == False:
-                os.mkdir('output_threshold_estimate')
+            if os.path.isdir(os.path.join(abs_output_path, 'output_threshold_estimate')) == False:
+                os.mkdir(os.path.join(abs_output_path, 'output_threshold_estimate'))
 
-            output_file = 'output_threshold_estimate/estimate_threshold_{}_pb_{:.0f}_{:.0f}_i{}.pickle'.format(
+            output_file = 'output_threshold_estimate/estimate_threshold_{}_pb_{:.0f}_{:.0f}_i{}.json'.format(
                 trigger_name, passband_trigger[0]/units.MHz,passband_trigger[1]/units.MHz, len(trigger_status_per_all_it))
 
             abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
-            with open(abs_path_output_file,'wb') as pickle_out:
-                pickle.dump(dic, pickle_out)
+
+            with open(abs_path_output_file, 'w') as outfile:
+                json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4)
 
 

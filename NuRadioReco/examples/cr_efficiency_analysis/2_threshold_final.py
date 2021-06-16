@@ -1,9 +1,8 @@
 import numpy as np
-from NuRadioReco.utilities import units, io_utilities
 import helper_cr_eff as hcr
+import json
 import os
 import time
-import pickle
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.channelGalacticNoiseAdder
 import NuRadioReco.modules.trigger.envelopeTrigger
@@ -14,8 +13,6 @@ import NuRadioReco.modules.eventTypeIdentifier
 import NuRadioReco.utilities.fft
 from NuRadioReco.detector.generic_detector import GenericDetector
 from NuRadioReco.utilities import units
-from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
-from NuRadioReco.framework.trigger import EnvelopeTrigger
 import argparse
 
 
@@ -48,7 +45,7 @@ done
 
 parser = argparse.ArgumentParser(description='Noise Trigger Rate')
 parser.add_argument('input_filename', type=str, nargs='?',
-                    default='output_threshold_estimate/estimate_threshold_high_low_pb_80_180_i10.pickle',
+                    default='output_threshold_estimate/estimate_threshold_high_low_pb_80_180_i10.json',
                     help='input filename from which the calculation starts.')
 parser.add_argument('iterations', type=int, nargs='?', default=20,
                     help='number of iterations within the script. Has to be a multiple of 10 (n_random_phase)')
@@ -63,12 +60,11 @@ args = parser.parse_args()
 output_path = args.output_path
 abs_output_path = os.path.abspath(args.output_path)
 input_filename = args.input_filename
-
 number = args.number
 threshold_steps = args.threshold_steps
 
-data = []
-data = io_utilities.read_pickle(input_filename, encoding='latin1')
+with open(input_filename, 'r') as fp:
+    data = json.load(fp)
 
 detector_file = data['detector_file']
 triggered_channels = data['triggered_channels']
@@ -105,7 +101,7 @@ iterations = int(iterations)
 
 trigger_thresholds = (np.arange(check_trigger_thresholds[-1] + (15*threshold_steps),
                                 check_trigger_thresholds[-1] + (30*threshold_steps),
-                                threshold_steps)) * units.volt
+                                threshold_steps))
 
 det = GenericDetector(json_filename=detector_file, default_station=default_station) # detector file
 station_ids = det.get_station_ids()
@@ -123,7 +119,7 @@ channelGalacticNoiseAdder = NuRadioReco.modules.channelGalacticNoiseAdder.channe
 channelGalacticNoiseAdder.begin(n_side=galactic_noise_n_side,
             interpolation_frequencies=np.arange(galactic_noise_interpolation_frequencies_start,
                                                 galactic_noise_interpolation_frequencies_stop,
-                                                galactic_noise_interpolation_frequencies_step) * units.MHz)
+                                                galactic_noise_interpolation_frequencies_step))
 hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
 
 if trigger_name == 'high_low':
@@ -223,7 +219,7 @@ dic['order_trigger'] = order_trigger
 dic['number_coincidences'] = number_coincidences
 dic['iteration'] = iterations * n_random_phase
 dic['threshold'] = trigger_thresholds
-dic['trigger_status'] = trigger_status
+#dic['trigger_status'] = trigger_status # booleans of each trigger, needs a lot of storage
 dic['triggered_true'] = triggered_trigger
 dic['triggered_all'] = len(trigger_status)
 dic['efficiency'] = trigger_efficiency
@@ -232,11 +228,12 @@ dic['hardware_response'] = hardware_response
 dic['trigger_name'] = trigger_name
 dic['n_random_phase'] = n_random_phase
 
-if os.path.isdir('output_threshold_final') == False:
-    os.mkdir('output_threshold_final')
+if os.path.isdir(os.path.join(abs_output_path, 'output_threshold_final')) == False:
+    os.mkdir(os.path.join(abs_output_path, 'output_threshold_final'))
 
-output_file = 'output_threshold_final/final_threshold_{}_pb_{:.0f}_{:.0f}_i{}_{}.pickle'.format(trigger_name,
+output_file = 'output_threshold_final/final_threshold_{}_pb_{:.0f}_{:.0f}_i{}_{}.json'.format(trigger_name,
         passband_trigger[0] / units.MHz, passband_trigger[1] / units.MHz,len(trigger_status), number)
+
 abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
-with open(abs_path_output_file, 'wb') as pickle_out:
-    pickle.dump(dic, pickle_out)
+with open(abs_path_output_file, 'w') as outfile:
+    json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4)
