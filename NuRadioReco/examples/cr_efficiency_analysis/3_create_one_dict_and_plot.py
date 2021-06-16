@@ -1,12 +1,10 @@
 import numpy as np
+import helper_cr_eff as hcr
 import matplotlib.pyplot as plt
-import os, sys
-from radiotools import helper as hp
-from NuRadioReco.utilities import units, io_utilities
-import bz2
-import pickle
-import _pickle as cPickle
+import os
+from NuRadioReco.utilities import units
 import argparse
+import json
 
 '''This script reads all dicts for one passbands and writes one new dict which contains then the information for 2e6 interations.
 The last part creates a plot of the final dict. If you just want to plot the dict, comment the first part. 
@@ -16,18 +14,20 @@ parser = argparse.ArgumentParser(description='Noise Trigger Rate')
 parser.add_argument('passband_low', type=int, nargs='?', default = 80, help = 'passband low to check')
 parser.add_argument('passband_high', type=int, nargs='?', default = 180, help = 'passband high to check')
 parser.add_argument('number_of_files', type=int, nargs='?', default = 1, help = 'number of n_files to loop over')
+parser.add_argument('create_plot', type=bool, nargs='?', default =True, help = 'decide if you want to plot the thresholds')
 
 args = parser.parse_args()
 passband_low = args.passband_low
 passband_high = args.passband_high
 number_of_files = args.number_of_files
+create_plot = args.create_plot
 
 n_files = number_of_files
 
-input_filename = 'output_threshold_final/final_threshold_high_low_pb_{:.0f}_{:.0f}_i20_1.pickle'.format(passband_low,
+input_filename = 'output_threshold_final/final_threshold_high_low_pb_{:.0f}_{:.0f}_i20_1.json'.format(passband_low,
                                                                                                       passband_high)
-data = []
-data = io_utilities.read_pickle(input_filename)
+with open(input_filename, 'r') as fp:
+    data = json.load(fp)
 
 detector_file = data['detector_file']
 default_station = data['default_station']
@@ -36,6 +36,7 @@ station_time = data['station_time']
 station_time_random = data['station_time_random']
 hardware_response = data['hardware_response']
 trigger_name = data['trigger_name']
+triggered_channels = data['triggered_channels']
 
 Vrms_thermal_noise = data['Vrms_thermal_noise']
 T_noise = data['T_noise']
@@ -60,14 +61,14 @@ triggered_all = np.zeros_like(triggered_true)
 trigger_efficiency = np.zeros_like(triggered_true)
 trigger_rate = np.zeros_like(triggered_true)
 
-
 for i_file in range(number_of_files):
-    input_filename = 'output_threshold_final/final_threshold_{}_pb_{:.0f}_{:.0f}_i20_{}.pickle'.format(trigger_name,
+    input_filename = 'output_threshold_final/final_threshold_{}_pb_{:.0f}_{:.0f}_i20_{}.json'.format(trigger_name,
                                                                                                        passband_low,
                                                                                                       passband_high,
-                                                                                                       i_file+1)
-    data = []
-    data = io_utilities.read_pickle(input_filename, encoding='latin1')
+                                                                                                      i_file+1)
+    with open(input_filename, 'r') as fp:
+        data = json.load(fp)
+
     trigger_efficiency[i_file] = data['efficiency']
     trigger_rate[i_file] = data['trigger_rate']
     triggered_true[i_file]= data['triggered_true']
@@ -104,46 +105,54 @@ dic['efficiency'] = trigger_efficiency_all
 dic['trigger_rate'] = trigger_rate_all
 dic['hardware_response'] = hardware_response
 dic['trigger_name'] = trigger_name
+dic['triggered_channels'] = triggered_channels
 
 os.makedirs('results/ntr/', exist_ok=True)
 
-filename = 'results/ntr/dict_ntr_{}_pb_{:.0f}_{:.0f}.pbz2'.format(trigger_name, passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz)
-with bz2.BZ2File(filename, 'w') as f:
-    cPickle.dump(dic, f)
+filename_json = 'results/ntr/dict_ntr_{}_pb_{:.0f}_{:.0f}.json'.format(trigger_name, passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz)
 
-bz2_file = bz2.BZ2File(filename, 'rb')
-data = cPickle.load(bz2_file)
+with open(filename_json, 'w') as outfile:
+    json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4)
 
-efficiency= data['efficiency']
-trigger_rate = data['trigger_rate']
-trigger_thresholds = np.array(data['threshold'])
-passband_trigger = data['passband_trigger']
-n_iterations = data['iteration']
-T_noise = data['T_noise']
-coinc_window = data['coinc_window']
-order_trigger = data['order_trigger']
-iterations = data['iteration']
-trigger_name = data['trigger_name']
+if create_plot == True:
 
-from scipy.interpolate import interp1d
-x = trigger_thresholds/units.microvolt
-y = trigger_rate/units.Hz
-f1 = interp1d(x, y, 'cubic')
+    target_trigger_rate = 1 * units.Hz
+    with open(filename_json, 'r') as fp:
+        data = json.load(fp)
 
-thresh = 25.273
-xnew = np.linspace(trigger_thresholds[0]/units.microvolt, trigger_thresholds[12]/units.microvolt)
+    efficiency= data['efficiency']
+    trigger_rate = np.array(data['trigger_rate'])
+    trigger_thresholds = np.array(data['threshold'])
+    passband_trigger = np.array(data['passband_trigger'])
+    n_iterations = data['iteration']
+    T_noise = data['T_noise']
+    coinc_window = data['coinc_window']
+    order_trigger = data['order_trigger']
+    iterations = data['iteration']
+    trigger_name = data['trigger_name']
 
-plt.plot(trigger_thresholds/units.microvolt, trigger_rate/units.Hz, marker='x', label= 'Noise trigger rate', linestyle='none')
-plt.plot(xnew, f1(xnew), '--', label='interp1d f({:.4f}) = {:.4f} Hz'.format(thresh, f1(thresh)))
-plt.title('{}, passband = {} MHz, iterations = {:.1e}'.format(trigger_name ,passband_trigger/units.megahertz, iterations))
-plt.xlabel(r'Threshold [$\mu$V]', fontsize=18)
-#plt.hlines(0, trigger_thresholds[0]/units.microvolt, trigger_thresholds[5]/units.microvolt, label='0 Hz')
-plt.ylabel('Trigger rate [Hz]', fontsize=18)
-plt.tick_params(axis='x', labelsize=16)
-plt.tick_params(axis='y', labelsize=16)
-plt.yscale('log')
-plt.legend()
-plt.tight_layout()
-#plt.show()
-plt.savefig('results/fig_ntr_{}_passband_{:.0f}_{:.0f}.png'.format(trigger_name, passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz))
-plt.close()
+    from scipy.interpolate import interp1d
+    x = trigger_thresholds/units.microvolt
+    y = trigger_rate/units.Hz
+    f1 = interp1d(x, y, 'cubic')
+
+    xnew = np.linspace(trigger_thresholds[0]/units.microvolt, trigger_thresholds[12]/units.microvolt)
+    ynew = f1(xnew)
+    nearest = hcr.find_nearest(ynew, target_trigger_rate)
+    index = np.where(ynew == nearest)
+    thresh = xnew[index]
+
+    plt.plot(trigger_thresholds/units.microvolt, trigger_rate/units.Hz, marker='x', label= 'Noise trigger rate', linestyle='none')
+    plt.plot(xnew, f1(xnew), '--', label='interp1d f({:.4f}) = {:.4f} Hz'.format(thresh[0], f1(thresh[0])))
+    plt.title('{}, passband = {} MHz, iterations = {:.1e}'.format(trigger_name, passband_trigger/units.megahertz, iterations))
+    plt.xlabel(r'Threshold [$\mu$V]', fontsize=18)
+    #plt.hlines(0, trigger_thresholds[0]/units.microvolt, trigger_thresholds[5]/units.microvolt, label='0 Hz')
+    plt.ylabel('Trigger rate [Hz]', fontsize=18)
+    plt.tick_params(axis='x', labelsize=16)
+    plt.tick_params(axis='y', labelsize=16)
+    plt.yscale('log')
+    plt.legend()
+    plt.tight_layout()
+    #plt.show()
+    plt.savefig('results/fig_ntr_{}_passband_{:.0f}_{:.0f}.png'.format(trigger_name, passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz))
+    plt.close()
