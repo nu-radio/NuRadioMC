@@ -182,11 +182,12 @@ class readRNOGData:
                 sampling_rate = 1./sampling
 
                 #TODO: need to subtract mean... probably not if running signal reconstructor?
-                channel.set_trace(voltage-np.mean(voltage), sampling_rate)
+                #channel.set_trace(voltage-np.mean(voltage), sampling_rate)
+                channel.set_trace(voltage, sampling_rate)
                 station.add_channel(channel)
             evt.set_station(station)
             # we want to have access to basic signal quantities with implementation from NuRadioReco
-            #TODO: maybe this should be run in external module
+            #TODO: maybe this should be run in external module?
             signal_reconstructor.run(evt, station, None)
             yield evt
 
