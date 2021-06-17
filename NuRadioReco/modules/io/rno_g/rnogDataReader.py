@@ -85,7 +85,7 @@ class RNOGDataReader:
         #        return self.get_event_i(i_event)
         return None
 
-    def iter_events(self):
+    def get_events(self):
         for ev_i in range(self.get_n_events()):
             yield self.get_event_i(ev_i)
 
