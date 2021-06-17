@@ -4,7 +4,7 @@ import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
 from NuRadioReco.utilities import units
-
+import astropy
 
 class RNOGDataReader:
 
@@ -57,6 +57,12 @@ class RNOGDataReader:
                 file = uproot.open(self.__filenames[i_file])
                 station = NuRadioReco.framework.station.Station((file['waveforms']['station_number'].array(library='np')[i_event_in_file]))
                 station.set_is_neutrino()
+
+                if 'header' in file:
+                    unix_time = file['header']['readout_time'].array(library='np')[i_event_in_file]
+                    event_time = astropy.time.Time(unix_time, format='unix')
+                    station.set_station_time(event_time)
+
                 waveforms = file['waveforms']['radiant_data[24][2048]'].array(library='np', entry_start=i_event_in_file, entry_stop=(i_event_in_file+1))
                 for i_channel in range(waveforms.shape[1]):
                     channel = NuRadioReco.framework.channel.Channel(i_channel)
@@ -78,6 +84,10 @@ class RNOGDataReader:
         #    if event_id[1] == ev_id and event_id[0] == run_numbers[i_event]:
         #        return self.get_event_i(i_event)
         return None
+
+    def iter_events(self):
+        for ev_i in range(self.get_n_events()):
+            yield self.get_event_i(ev_i)
 
     def get_detector(self):
         return None
