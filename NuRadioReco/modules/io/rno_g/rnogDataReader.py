@@ -18,7 +18,7 @@ class RNOGDataReader:
         i_event = 0
         for i_file, filename in enumerate(filenames):
             file = uproot.open(filename)
-            events_in_file = file['waveforms']['event_number'].array(library='np').shape[0]
+            events_in_file = file['waveforms'].num_entries
             self.__i_events_per_file[i_file] = [i_event, i_event + events_in_file]
 
     def get_filenames(self):
@@ -57,10 +57,10 @@ class RNOGDataReader:
                 file = uproot.open(self.__filenames[i_file])
                 station = NuRadioReco.framework.station.Station((file['waveforms']['station_number'].array(library='np')[i_event_in_file]))
                 station.set_is_neutrino()
-                waveforms = file['waveforms']['radiant_data[24][2048]'].array(library='np')
+                waveforms = file['waveforms']['radiant_data[24][2048]'].array(library='np', entry_start=i_event_in_file, entry_stop=(i_event_in_file+1))
                 for i_channel in range(waveforms.shape[1]):
                     channel = NuRadioReco.framework.channel.Channel(i_channel)
-                    channel.set_trace(waveforms[i_event_in_file, i_channel], 2. * units.GHz)
+                    channel.set_trace(waveforms[0, i_channel], 2. * units.GHz)
                     station.add_channel(channel)
                 event.set_station(station)
                 return event
@@ -69,9 +69,14 @@ class RNOGDataReader:
     def get_event(self, event_id):
         run_numbers = self.get_run_numbers()
         event_ids = self.get_event_ids()
-        for i_event, ev_id in enumerate(event_ids):
-            if event_id[1] == ev_id and event_id[0] == run_numbers[i_event]:
+
+        matching_indices = np.where(event_ids == event_id[1])
+        for i_event in matching_indices:
+            if event_id[0] == run_numbers[i_event]:
                 return self.get_event_i(i_event)
+        #for i_event, ev_id in enumerate(event_ids):
+        #    if event_id[1] == ev_id and event_id[0] == run_numbers[i_event]:
+        #        return self.get_event_i(i_event)
         return None
 
     def get_detector(self):
