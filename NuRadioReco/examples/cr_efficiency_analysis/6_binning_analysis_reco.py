@@ -1,22 +1,15 @@
 import numpy as np
 import datetime
-import os, scipy, sys
+import os
 import glob
-import bz2
-import _pickle as cPickle
-import yaml
-import pickle
-import matplotlib.pyplot as plt
+import helper_cr_eff as hcr
+import json
 import NuRadioReco.modules.io.eventReader as eventReader
-from NuRadioReco.framework.event import Event
 from NuRadioReco.detector.generic_detector import GenericDetector
-from NuRadioReco.framework.base_station import BaseStation
-from NuRadioReco.framework.base_shower import BaseShower
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
-from NuRadioReco.utilities import units, io_utilities
+from NuRadioReco.utilities import units
 import argparse
-import sys
 
 '''This script sorts the triggered events into different energy, zenith, and distance bins. Energy means shower energy, 
  zenith bin means inclination of the shower arrival direction and distance means distance between shower core and station.
@@ -24,14 +17,18 @@ import sys
 
 
 parser = argparse.ArgumentParser(description='Nurfile analyser')
-parser.add_argument('result_dict', type=str, nargs='?', default = 'results/ntr/dict_ntr_high_low_pb_80_180.pbz2', help = 'settings from the results from threshold analysis')
-parser.add_argument('input_filepath', type=str, nargs='?', default = 'output_air_shower_reco/', help = 'input path were results from air shower analysis are stored')
-parser.add_argument('energy_bins', type=list, nargs='?', default = [16.5, 20, 6], help = 'energy bins as log() with start, stop, number of bins (np.logspace)')
-parser.add_argument('zenith_bins', type=list, nargs='?', default = [0, 100, 10], help = 'zenith bins in deg with start, stop, step (np.arange)')
-parser.add_argument('distance_bins', type=int, nargs='?', default = [0, 700, 4000], help = 'distance bin edges as list')
-
-#please set number of stations within one event here
-number_of_sta_in_evt = 72
+parser.add_argument('result_dict', type=str, nargs='?',
+                    default='results/ntr/dict_ntr_high_low_pb_80_180.json', help='settings from the results from threshold analysis')
+parser.add_argument('input_filepath', type=str, nargs='?',
+                    default='output_air_shower_reco/', help='input path were results from air shower analysis are stored')
+parser.add_argument('energy_bins', type=list, nargs='?',
+                    default=[16.5, 20, 8], help='energy bins as log() with start, stop, number of bins (np.logspace)')
+parser.add_argument('zenith_bins', type=list, nargs='?',
+                    default=[0, 100, 10], help='zenith bins in deg with start, stop, step (np.arange)')
+parser.add_argument('distance_bins', type=int, nargs='?',
+                    default=[0, 700, 4000], help='distance bin edges as list')
+parser.add_argument('number_of_sta_in_evt', type=int, nargs='?',
+                    default=72, help='number of stations in one event')
 
 args = parser.parse_args()
 result_dict = args.result_dict
@@ -39,36 +36,38 @@ input_filepath = args.input_filepath
 energy_bins = args.energy_bins
 zenith_bins = args.zenith_bins
 distance_bins = args.distance_bins
+number_of_sta_in_evt = args.number_of_sta_in_evt
 
 # the entries of this list are defined in the input argument energy_bins.
 # [0] is the start value, [1] is the stop value, [2] is the number of samples generated
 energy_bins = np.logspace(energy_bins[0], energy_bins[1], energy_bins[2])
-energy_bins_low = energy_bins[0:-2]
-energy_bins_high = energy_bins[1:-1]
+print(energy_bins)
+energy_bins_low = energy_bins[0:-1]
+energy_bins_high = energy_bins[1:]
 
 # the entries of this list are defined in the input argument zenith_bins.
 # [0] is the start value, [1] is the stop value, [2] is step size
 zenith_bins = np.arange(zenith_bins[0], zenith_bins[1], zenith_bins[2]) * units.deg
-zenith_bins_low = zenith_bins[0:-2]
-zenith_bins_high = zenith_bins[1:-1]
+zenith_bins_low = zenith_bins[0:-1]
+zenith_bins_high = zenith_bins[1:]
 
 # the entries of this list are defined in the input argument distance_bins.
-distance_bins_low = np.array(distance_bins[0:-2])
-distance_bins_high = np.array(distance_bins[1:-1])
+distance_bins_low = np.array(distance_bins[0:-1])
+distance_bins_high = np.array(distance_bins[1:])
 
-bz2 = bz2.BZ2File(result_dict, 'rb')
-data = cPickle.load(bz2)
+with open(result_dict, 'r') as fp:
+    data = json.load(fp)
 
 detector_file = data['detector_file']
 default_station = data['default_station']
-sampling_rate = data['sampling_rate'] * units.gigahertz
+sampling_rate = data['sampling_rate']
 station_time = data['station_time']
 station_time_random = data['station_time_random']
 
-Vrms_thermal_noise = data['Vrms_thermal_noise'] * units.volt
-T_noise = data['T_noise'] * units.kelvin
-T_noise_min_freq = data['T_noise_min_freq'] * units.megahertz
-T_noise_max_freq = data['T_noise_max_freq '] * units.megahertz
+Vrms_thermal_noise = data['Vrms_thermal_noise']
+T_noise = data['T_noise']
+T_noise_min_freq = data['T_noise_min_freq']
+T_noise_max_freq = data['T_noise_max_freq ']
 
 galactic_noise_n_side = data['galactic_noise_n_side']
 galactic_noise_interpolation_frequencies_start = data['galactic_noise_interpolation_frequencies_start']
@@ -77,18 +76,19 @@ galactic_noise_interpolation_frequencies_step = data['galactic_noise_interpolati
 
 passband_trigger = data['passband_trigger']
 number_coincidences = data['number_coincidences']
-coinc_window = data['coinc_window'] * units.ns
+coinc_window = data['coinc_window']
 order_trigger = data['order_trigger']
 trigger_thresholds = data['threshold']
 n_iterations = data['iteration']
 hardware_response = data['hardware_response']
 
-trigger_rate = data['trigger_rate']
+trigger_rate = np.array(data['trigger_rate'])
 threshold_tested = data['threshold']
 
 zeros = np.where(trigger_rate == 0)[0]
 first_zero = zeros[0]
-trigger_threshold = threshold_tested[first_zero] * units.volt
+trigger_threshold = threshold_tested[first_zero]
+
 
 nur_file_list = []  # get non corrupted input files with specified passband
 i = 0
@@ -145,7 +145,6 @@ zenith = np.array(zenith)
 zenith_deg = zenith / units.deg # this is necessary to avoid mistakes due to decimals
 distance = np.array(distance)
 energy = np.array(energy)
-n_events = len(events)
 
 #here we reshape the array in a form that the shower parameter are stored once instead one entry for each station.
 # Energy and Zenith are shower parameters.
@@ -242,25 +241,27 @@ dic['order_trigger'] = order_trigger
 dic['number_coincidences'] = number_coincidences
 dic['T_noise_min_freq'] = T_noise_min_freq
 dic['T_noise_max_freq'] = T_noise_max_freq
-dic['max_distance'] = mask_d
-
-dic['trigger_effective_area'] = trigger_effective_area_e
-dic['trigger_effective_area_err'] = trigger_effective_area_err_e
+dic['energy_bins_low'] = energy_bins_low
+dic['energy_bins_high'] = energy_bins_high
+dic['zenith_bins_low'] = zenith_bins_low
+dic['zenith_bins_high'] = zenith_bins_high
+dic['distance_bins_high'] = distance_bins_high
+dic['distance_bins_low'] = distance_bins_low
+dic['trigger_effective_area'] = np.nan_to_num(trigger_effective_area_e)
+dic['trigger_effective_area_err'] = np.nan_to_num(trigger_effective_area_err_e)
 dic['trigger_masked_events'] = np.nan_to_num(masked_events_e)
 dic['triggered_trigger'] = np.nan_to_num(triggered_trigger_e)
 dic['trigger_efficiency'] = np.nan_to_num(trigger_efficiency_e)
 dic['triggered_trigger_weight'] = triggered_trigger_weight_e
-dic['distance_bins_low'] = distance_bins_low
-dic['energy_bins_low'] = energy_bins_low
-dic['zenith_bins_low'] = zenith_bins_low
-dic['distance_bins_high'] = distance_bins_high
-dic['energy_bins_high'] = energy_bins_high
-dic['zenith_bins_high'] = zenith_bins_high
 
 if os.path.isdir('results/air_shower/') == False:
     os.mkdir('results/air_shower/')
 
-with open('results/air_shower/dict_air_shower_pb_{:.0f}_{:.0f}_e{}_z{}_d{}_{}.pickle'.format(
+print(dic)
+
+output_file = 'results/air_shower/dict_air_shower_pb_{:.0f}_{:.0f}_e{}_z{}_d{}_{}.json'.format(
         passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz,
-        len(energy_bins_low), len(zenith_bins_low), len(distance_bins_low), max(distance_bins)), 'wb') as pickle_out:
-    pickle.dump(dic, pickle_out)
+        len(energy_bins_low), len(zenith_bins_low), len(distance_bins_low), max(distance_bins))
+
+with open(output_file, 'w') as outfile:
+    json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4)
