@@ -57,7 +57,7 @@ parser.add_argument('output_path', type=os.path.abspath, nargs='?', default='',
 parser.add_argument('n_iterations', type=int, nargs='?', default=10,
                     help='number of iterations each threshold should be iterated over. '
                          'Has to be a multiple of 10 (n_random_phase)')
-parser.add_argument('number_of_allowed_trigger', type=int, nargs='?', default=10,
+parser.add_argument('number_of_allowed_trigger', type=int, nargs='?', default=1,
                     help='number of allowed_trigger out of the iteration number')
 parser.add_argument('trigger_name', type=str, nargs='?', default='high_low',
                     help='name of the trigger, high_low or envelope')
@@ -190,14 +190,12 @@ channel_sigma = []
 
 # with each iteration the threshold increases one step
 n_thres = 0
-number_of_trigger = number_of_allowed_trigger + n_random_phase
-while number_of_trigger > number_of_allowed_trigger:
-    n_thres += 1
+sum_trigger = number_of_allowed_trigger + 1
+while sum_trigger > number_of_allowed_trigger:
     threshold = threshold_start + (n_thres * threshold_step)
     thresholds.append(threshold)
     logger.info("Processing threshold {}".format(threshold))
     trigger_status_per_all_it = []
-
     # here is number of iteration you want to check on (iteration is just a proxy for the time interval
     # on which you allow a certain number of trigger. In this case is every iteration 1024 ns (tracelength)
     # long and one trigger is allowed)
@@ -245,6 +243,8 @@ while number_of_trigger > number_of_allowed_trigger:
             trigger_status_one_it = station.get_trigger(trigger_name).has_triggered()
             # trigger status for all iteration
             trigger_status_per_all_it.append(trigger_status_one_it)
+            sum_trigger = np.sum(trigger_status_per_all_it)
+            n_thres += 1
 
         # here it is checked, how many of the triggers in n_iteration are triggered true.
         # If it is more than 1, the threshold is increased with n_thres.
@@ -264,10 +264,6 @@ while number_of_trigger > number_of_allowed_trigger:
 
             trigger_rate.append(trigger_rate_per_tt)
             trigger_efficiency.append(trigger_efficiency_per_tt)
-
-            thresholds = np.array(thresholds)
-            trigger_rate = np.array(trigger_rate)
-            trigger_efficiency = np.array(trigger_efficiency)
 
             dic = {}
             dic['T_noise'] = Tnoise
