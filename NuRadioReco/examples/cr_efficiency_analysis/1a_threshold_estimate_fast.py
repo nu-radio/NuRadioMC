@@ -54,7 +54,7 @@ parser.add_argument('output_path', type=os.path.abspath, nargs='?', default='',
 parser.add_argument('n_iterations', type=int, nargs='?', default=20,
                     help='number of iterations each threshold should be iterated over. '
                          'Has to be a multiple of 10 (n_random_phase)')
-parser.add_argument('number_of_allowed_trigger', type=int, nargs='?', default=20,
+parser.add_argument('number_of_allowed_trigger', type=int, nargs='?', default=2,
                     help='number of allowed_trigger out of the iteration number')
 parser.add_argument('passband_low', type=int, nargs='?', default=80,
                     help='lower bound of the passband used for the trigger in MHz')
@@ -171,9 +171,8 @@ thresholds = []
 iterations = []
 
 n_thres = 0
-number_of_trigger = number_of_allowed_trigger + n_random_phase
-while number_of_trigger > number_of_allowed_trigger:
-    n_thres += 1
+sum_trigger = number_of_allowed_trigger + 1
+while sum_trigger > number_of_allowed_trigger:
     threshold = threshold_start + (n_thres * threshold_step)
     thresholds.append(threshold)
     logger.info("Processing threshold {}".format(threshold))
@@ -227,6 +226,9 @@ while number_of_trigger > number_of_allowed_trigger:
 
             trigger_status_one_it.append(has_triggered)
             trigger_status_per_all_it.append(trigger_status_one_it)
+            sum_trigger = np.sum(trigger_status_per_all_it)
+
+            n_thres += 1
 
         if np.sum(trigger_status_per_all_it) > number_of_allowed_trigger:
             number_of_trigger = np.sum(trigger_status_per_all_it)
@@ -244,10 +246,6 @@ while number_of_trigger > number_of_allowed_trigger:
 
             trigger_rate.append(trigger_rate_per_tt)
             trigger_efficiency.append(trigger_efficiency_per_tt)
-
-            thresholds = np.array(thresholds)
-            trigger_rate = np.array(trigger_rate)
-            trigger_efficiency = np.array(trigger_efficiency)
 
             dic = {}
             dic['T_noise'] = Tnoise

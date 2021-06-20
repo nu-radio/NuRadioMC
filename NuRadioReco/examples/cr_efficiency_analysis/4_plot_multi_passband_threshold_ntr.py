@@ -68,5 +68,5 @@ plt.ylabel('Upper cutoff frequency [MHz]')
 #plt.legend()
 plt.tight_layout()
 #plt.show()
-plt.savefig('results/fig_passband_threshold_ntr_2e6.png')
+plt.savefig('results/fig_passband_threshold_ntr.png')
 
