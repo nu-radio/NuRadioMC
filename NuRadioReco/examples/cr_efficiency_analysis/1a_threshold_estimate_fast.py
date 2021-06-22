@@ -230,58 +230,58 @@ while sum_trigger > number_of_allowed_trigger:
 
             n_thres += 1
 
-        if np.sum(trigger_status_per_all_it) > number_of_allowed_trigger:
-            number_of_trigger = np.sum(trigger_status_per_all_it)
-            trigger_efficiency_per_tt = np.sum(trigger_status_per_all_it) / len(trigger_status_per_all_it)
-            trigger_rate_per_tt = (1 / channel_trace_time_interval) * trigger_efficiency_per_tt
+    if np.sum(trigger_status_per_all_it) > number_of_allowed_trigger:
+        number_of_trigger = np.sum(trigger_status_per_all_it)
+        trigger_efficiency_per_tt = np.sum(trigger_status_per_all_it) / len(trigger_status_per_all_it)
+        trigger_rate_per_tt = (1 / channel_trace_time_interval) * trigger_efficiency_per_tt
 
-            trigger_rate.append(trigger_rate_per_tt)
-            trigger_efficiency.append(trigger_efficiency_per_tt)
-            break;
+        trigger_rate.append(trigger_rate_per_tt)
+        trigger_efficiency.append(trigger_efficiency_per_tt)
+        break;
 
-        elif n_it == (n_iterations-1):
-            number_of_trigger = np.sum(trigger_status_per_all_it)
-            trigger_efficiency_per_tt = np.sum(trigger_status_per_all_it) / len(trigger_status_per_all_it)
-            trigger_rate_per_tt = (1 / channel_trace_time_interval) * trigger_efficiency_per_tt
+    elif n_it == (n_iterations-1):
+        number_of_trigger = np.sum(trigger_status_per_all_it)
+        trigger_efficiency_per_tt = np.sum(trigger_status_per_all_it) / len(trigger_status_per_all_it)
+        trigger_rate_per_tt = (1 / channel_trace_time_interval) * trigger_efficiency_per_tt
 
-            trigger_rate.append(trigger_rate_per_tt)
-            trigger_efficiency.append(trigger_efficiency_per_tt)
+        trigger_rate.append(trigger_rate_per_tt)
+        trigger_efficiency.append(trigger_efficiency_per_tt)
 
-            dic = {}
-            dic['T_noise'] = Tnoise
-            dic['Vrms_thermal_noise'] = Vrms_thermal_noise
-            dic['thresholds'] = thresholds
-            dic['efficiency'] = trigger_efficiency
-            dic['trigger_rate'] = trigger_rate
-            dic['n_iterations'] = n_iterations * n_random_phase # from phase change in galactic noise
-            dic['passband_trigger'] = passband_trigger
-            dic['coinc_window'] = coinc_window
-            dic['order_trigger'] = order_trigger
-            dic['number_coincidences'] = number_coincidences
-            dic['detector_file'] = detector_file
-            dic['triggered_channels'] = triggered_channels
-            dic['default_station'] = default_station
-            dic['sampling_rate'] = sampling_rate
-            dic['T_noise_min_freq'] = T_noise_min_freq
-            dic['T_noise_max_freq '] = T_noise_max_freq
-            dic['galactic_noise_n_side'] = galactic_noise_n_side
-            dic['galactic_noise_interpolation_frequencies_start'] = galactic_noise_interpolation_frequencies_start
-            dic['galactic_noise_interpolation_frequencies_stop'] = galactic_noise_interpolation_frequencies_stop
-            dic['galactic_noise_interpolation_frequencies_step'] = galactic_noise_interpolation_frequencies_step
-            dic['station_time'] = station_time
-            dic['station_time_random'] = station_time_random
-            dic['hardware_response'] = hardware_response
-            dic['n_random_phase'] = n_random_phase
+        dic = {}
+        dic['T_noise'] = Tnoise
+        dic['Vrms_thermal_noise'] = Vrms_thermal_noise
+        dic['thresholds'] = thresholds
+        dic['efficiency'] = trigger_efficiency
+        dic['trigger_rate'] = trigger_rate
+        dic['n_iterations'] = n_iterations * n_random_phase # from phase change in galactic noise
+        dic['passband_trigger'] = passband_trigger
+        dic['coinc_window'] = coinc_window
+        dic['order_trigger'] = order_trigger
+        dic['number_coincidences'] = number_coincidences
+        dic['detector_file'] = detector_file
+        dic['triggered_channels'] = triggered_channels
+        dic['default_station'] = default_station
+        dic['sampling_rate'] = sampling_rate
+        dic['T_noise_min_freq'] = T_noise_min_freq
+        dic['T_noise_max_freq '] = T_noise_max_freq
+        dic['galactic_noise_n_side'] = galactic_noise_n_side
+        dic['galactic_noise_interpolation_frequencies_start'] = galactic_noise_interpolation_frequencies_start
+        dic['galactic_noise_interpolation_frequencies_stop'] = galactic_noise_interpolation_frequencies_stop
+        dic['galactic_noise_interpolation_frequencies_step'] = galactic_noise_interpolation_frequencies_step
+        dic['station_time'] = station_time
+        dic['station_time_random'] = station_time_random
+        dic['hardware_response'] = hardware_response
+        dic['n_random_phase'] = n_random_phase
 
-            if os.path.isdir(os.path.join(abs_output_path, 'output_threshold_estimate')) == False:
-                os.mkdir(os.path.join(abs_output_path, 'output_threshold_estimate'))
+        if os.path.isdir(os.path.join(abs_output_path, 'output_threshold_estimate')) == False:
+            os.mkdir(os.path.join(abs_output_path, 'output_threshold_estimate'))
 
-            output_file = 'output_threshold_estimate/estimate_threshold_envelope_fast_pb_{:.0f}_{:.0f}_i{}.json'.format(
-                passband_trigger[0]/units.MHz,passband_trigger[1]/units.MHz, len(trigger_status_per_all_it))
+        output_file = 'output_threshold_estimate/estimate_threshold_envelope_fast_pb_{:.0f}_{:.0f}_i{}.json'.format(
+            passband_trigger[0]/units.MHz,passband_trigger[1]/units.MHz, len(trigger_status_per_all_it))
 
-            abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
+        abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
 
-            with open(abs_path_output_file, 'w') as outfile:
-                json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4)
+        with open(abs_path_output_file, 'w') as outfile:
+            json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4)
 
 

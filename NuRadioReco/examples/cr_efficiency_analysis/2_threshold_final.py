@@ -14,6 +14,9 @@ import NuRadioReco.utilities.fft
 from NuRadioReco.detector.generic_detector import GenericDetector
 from NuRadioReco.utilities import units
 import argparse
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('Threshold final')
 
 
 '''
@@ -99,9 +102,11 @@ trigger_name = data['trigger_name']
 iterations = args.iterations / n_random_phase # the factor of 10 is added with the phase of the galactic noise
 iterations = int(iterations)
 
-trigger_thresholds = (np.arange(check_trigger_thresholds[-1] + (15*threshold_steps),
-                                check_trigger_thresholds[-1] + (30*threshold_steps),
+trigger_thresholds = (np.arange(check_trigger_thresholds[-1] + (threshold_steps),
+                                check_trigger_thresholds[-1] + (20*threshold_steps),
                                 threshold_steps))
+
+logger.info("Processing trigger thresholds {}".format(trigger_thresholds))
 
 det = GenericDetector(json_filename=detector_file, default_station=default_station) # detector file
 station_ids = det.get_station_ids()
@@ -197,6 +202,8 @@ trigger_status = np.array(trigger_status)
 triggered_trigger = np.sum(trigger_status, axis=0)
 trigger_efficiency = triggered_trigger / len(trigger_status)
 trigger_rate = (1 / channel_trace_time_interval) * trigger_efficiency
+
+logger.info("Triggered true per trigger thresholds {}".format(triggered_trigger))
 
 dic = {}
 dic['detector_file'] = detector_file
