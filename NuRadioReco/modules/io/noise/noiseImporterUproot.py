@@ -111,7 +111,7 @@ class noiseImporter:
         self.posix_time = np.concatenate(posix_times)
         self.datetime = np.array([np.datetime64(int(t), 's') for t in self.posix_time])
         self.trigger = np.concatenate(trigger)
-        if read_temperature:
+        if read_temperatures:
             self.temperature = np.concatenate(temperature)
         if read_power:
             self.power = np.concatenate(power_voltage)
