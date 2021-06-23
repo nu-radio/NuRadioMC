@@ -11,7 +11,7 @@ def get_cr_flux(log10_energy, type='auger_19'):
     :param mode:
     :return: scipy interpolation of data in 1/(eV m^2 sr ns) (NuRadio base units)
     """
-    if type == 'auger_19'
+    if type == 'auger_19':
         data = np.loadt_xt('data/Auger_combined_spectrum_ICRC_2019.txt', skiprows=3)
         # from PRL paper 2020 based on ICRC 2019
         E = 10**(data[:, 0]) * units.eV
@@ -34,7 +34,7 @@ def get_flux_per_energy_bin(log10_bin_edge_low, log10_bin_edge_high, type='auger
     :param mode:
     :return: scipy intergration of data in 1/(eV m^2 sr ns) (NuRadio base units)
     """
-    if type == 'auger_19'
+    if type == 'auger_19':
         data = np.loadtxt('data/Auger_combined_spectrum_ICRC_2019.txt', skiprows=3)
         # from PRL paper 2020 based on ICRC 2019
         E = 10**(data[:, 0]) * units.eV
