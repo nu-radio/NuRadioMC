@@ -3,7 +3,7 @@ from NuRadioReco.utilities import units
 import scipy.interpolate as interpolate
 from scipy.integrate import quad
 
-def get_cr_flux(log10_energy, model='auger_19'):
+def get_cr_flux(log10_energy, type='auger_19'):
     """
     Returns an scipy interpolation of the measured data. Output
     units are 1/(eV m^2 sr ns) for cosmic-ray energy in (in log10(E / eV)))
@@ -11,7 +11,7 @@ def get_cr_flux(log10_energy, model='auger_19'):
     :param mode:
     :return: scipy interpolation of data in 1/(eV m^2 sr ns) (NuRadio base units)
     """
-    if model == 'auger_19'
+    if type == 'auger_19'
         data = np.loadt_xt('data/Auger_combined_spectrum_ICRC_2019.txt', skiprows=3)
         # from PRL paper 2020 based on ICRC 2019
         E = 10**(data[:, 0]) * units.eV
@@ -25,7 +25,7 @@ def get_cr_flux(log10_energy, model='auger_19'):
     return get_flux(10**log10_energy)
 
 
-def get_flux_per_energy_bin(log10_bin_edge_low, log10_bin_edge_high, model='auger_19'):
+def get_flux_per_energy_bin(log10_bin_edge_low, log10_bin_edge_high, type='auger_19'):
     """
     Returns an scipy integration of the measured data over given interval. Output
     units are 1/(eV m^2 sr ns) for cosmic-ray energy in (in log10(E / eV)))
@@ -34,7 +34,7 @@ def get_flux_per_energy_bin(log10_bin_edge_low, log10_bin_edge_high, model='auge
     :param mode:
     :return: scipy intergration of data in 1/(eV m^2 sr ns) (NuRadio base units)
     """
-    if model == 'auger_19'
+    if type == 'auger_19'
         data = np.loadtxt('data/Auger_combined_spectrum_ICRC_2019.txt', skiprows=3)
         # from PRL paper 2020 based on ICRC 2019
         E = 10**(data[:, 0]) * units.eV
@@ -51,7 +51,7 @@ def get_analytic_cr_spectrum(log10_energy, type="auger_19"):
     Returns a analytic parametrization of the Auger energy spectrum
     units are 1/(eV m^2 sr ns)  for cosmic-ray energy in log10(E / eV)
     :param log10_energy: Input energies (in log10(E / eV))
-    :param year: take ICRC 15, 17 or 19 data
+    :type: take auger_17, auger_19 or TA_19
     :return: analytic parametrization of spectrum for given input energies in 1/(eV m^2 sr ns) (NuRadio base units)
     """
     # from https://astro.pages.rwth-aachen.de/astrotools/_modules/auger.html#spectrum_analyticq
