@@ -64,14 +64,14 @@ def get_analytic_cr_spectrum(log10_energy, type="auger_19"):
     energy = 10 ** log10_energy  # type: np.ndarray
 
     if type == "auger_17":
-        p = auger.SPECTRA_DICT_ANA[17]  # type: np.ndarray
+        p = SPECTRA_DICT_ANA[17]  # type: np.ndarray
         return (np.where(energy < p[1],
                         p[0] * (energy / p[1]) ** (-p[3]),
                         p[0] * (energy / p[1]) ** (-p[4]) * (1 + (p[1] / p[2]) ** p[5])
                         * (1 + (energy / p[2]) ** p[5]) ** -1)) * units.year * units.km**2
 
     elif type == "auger_19":
-        p = auger.SPECTRA_DICT_ANA[19]  # type: np.ndarray
+        p = SPECTRA_DICT_ANA[19]  # type: np.ndarray
         return ((energy / p[0]) ** (-p[5]) * \
                (1 + (energy / p[1]) ** p[5]) / (1 + (energy / p[1]) ** p[6]) * \
                (1 + (energy / p[2]) ** p[6]) / (1 + (energy / p[2]) ** p[7]) * \
