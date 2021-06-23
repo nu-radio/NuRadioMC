@@ -183,38 +183,48 @@ nu_mu_data[-1, 3] = 0
 nu_mu_data[-1, 2] = 2e-9 * 3 * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 nu_mu_data[:, 0] = 10 ** nu_mu_data[:, 0] * units.GeV
 
+# ApJ slope=-2.13, offset=0.9 (https://arxiv.org/pdf/1607.08006.pdf)
+# ICR2017 slope=-2.19, offset=1.01 (https://pos.sissa.it/301/1005/)
+# ICRC2019 slope=2.28, offset=1.44
+# 9.5 years analysis 2.37+0.08-0.09, offset 1.36 + 0.24 - 0.25, Astrophysical normalization @ 100TeV: 1.36 × 10−8GeV−1cm−2s−1sr−1
 
-def ice_cube_nu_fit(energy, slope=-2.37, offset=1.36):
-    # ApJ slope=-2.13, offset=0.9 (https://arxiv.org/pdf/1607.08006.pdf)
-    # ICR2017 slope=-2.19, offset=1.01 (https://pos.sissa.it/301/1005/)
-    # 9.5 years analysis 2.37+0.08-0.09, offset 1.36 + 0.24 - 0.25, Astrophysical normalization @ 100TeV: 1.36 × 10−8GeV−1cm−2s−1sr−1
+# using ICRC2019 results for now which are the last published results. No Piecewise-Unfolding was already done at that time, so we don't have "data points".
+nu_mu_slope = -2.28
+nu_mu_slope_up = -(2.28 + 0.08)
+nu_mu_slope_down = -(2.28 - 0.09)
+nu_mu_offset = 1.44
+nu_mu_offset_up = 1.44 + 0.25
+nu_mu_offset_down = 1.44 - 0.24
+nu_mu_show_data_points = False
+
+
+def ice_cube_nu_fit(energy, slope=nu_mu_slope, offset=nu_mu_offset):
     flux = 3 * offset * (energy / (100 * units.TeV)) ** slope * 1e-18 * \
         (units.GeV ** -1 * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
     return flux
 
 
 def get_ice_cube_mu_range():
-    energy = np.arange(1e5, 5e6, 1e5) * units.GeV
+    energy = np.arange(1e2, 5e6, 1e5) * units.GeV
 #     upper = np.maximum(ice_cube_nu_fit(energy, offset=0.9, slope=-2.), ice_cube_nu_fit(energy, offset=1.2, slope=-2.13)) # APJ
 #     upper = np.maximum(ice_cube_nu_fit(energy, offset=1.01, slope=-2.09),
 #                     ice_cube_nu_fit(energy, offset=1.27, slope=-2.19), ice_cube_nu_fit(energy, offset=1.27, slope=-2.09))  # ICRC
-    slope = 2.37
-    slope_up = slope + 0.08
-    slope_down = slope - 0.09
-    offset = 1.36
-    offset_up = offset + 0.24
-    offset_down = offset - 0.25
-    upper = np.maximum(ice_cube_nu_fit(energy, offset=offset_up, slope=-slope_up),
-                    ice_cube_nu_fit(energy, offset=offset_up, slope=-slope),
-                    ice_cube_nu_fit(energy, offset=offset_up, slope=-slope_down))  # 9.5 years
+    slope = nu_mu_slope
+    slope_up = nu_mu_slope_up
+    slope_down = nu_mu_slope_down
+    offset_up = nu_mu_offset_up
+    offset_down = nu_mu_offset_down
+    upper = np.maximum(ice_cube_nu_fit(energy, offset=offset_up, slope=slope_up),
+#                     ice_cube_nu_fit(energy, offset=offset_up, slope=slope),
+                    ice_cube_nu_fit(energy, offset=offset_up, slope=slope_down))  # 9.5 years
     upper *= energy ** 2
 #     lower = np.minimum(ice_cube_nu_fit(energy, offset=0.9, slope=-2.26),
 #                        ice_cube_nu_fit(energy, offset=0.63, slope=-2.13)) #ApJ
 #     lower = np.minimum(ice_cube_nu_fit(energy, offset=1.01, slope=-2.29),
 #                        ice_cube_nu_fit(energy, offset=0.78, slope=-2.19))  # ICRC
-    lower = np.minimum(ice_cube_nu_fit(energy, offset=offset_down, slope=-slope_up),
-                       ice_cube_nu_fit(energy, offset=offset_down, slope=-slope),
-                       ice_cube_nu_fit(energy, offset=offset_down, slope=-slope_down))  # 9.5 years
+    lower = np.minimum(ice_cube_nu_fit(energy, offset=offset_down, slope=slope_up),
+#                        ice_cube_nu_fit(energy, offset=offset_down, slope=slope),
+                       ice_cube_nu_fit(energy, offset=offset_down, slope=slope_down))  # 9.5 years
     lower *= energy ** 2
     return energy, upper, lower
 
@@ -382,7 +392,13 @@ The analysis level option assumes the A2 analysis efficiency for stations A1-4,
 and a (preliminary) analysis efficiency estimate from the phased-array analysis.
 
 '''
-ara_2023_E, ara_2023_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "limit_ara_2023_projected_trigger.txt"), unpack=True)
+ara_2023_E_TL, ara_2023_limit_TL, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "limit_ara_2023_projected_trigger.txt"), unpack=True)
+ara_2023_E_TL *= units.GeV
+ara_2023_limit_TL *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
+ara_2023_limit_TL *= energyBinsPerDecade
+ara_2023_limit_TL *= 2.44  # convert to 90%CL limit to be comparable with information from other experiments
+
+ara_2023_E, ara_2023_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "limit_ara_2023_projected_analysis.txt"), unpack=True)
 ara_2023_E *= units.GeV
 ara_2023_limit *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
 ara_2023_limit *= energyBinsPerDecade
@@ -440,6 +456,7 @@ def get_E2_limit_figure(diffuse=True,
                         show_auger_limit=True,
                         show_ara=True,
                         show_ara_2023=False,
+                        show_ara_2023_TL=False,
                         show_arianna=True,
                         show_neutrino_best_fit=True,
                         show_neutrino_best_case=True,
@@ -566,11 +583,11 @@ def get_E2_limit_figure(diffuse=True,
         ax.plot(GRAND_energy / plotUnitsEnergy, GRAND_10k / plotUnitsFlux, linestyle=":", color='saddlebrown')
         if energyBinsPerDecade == 2:
             ax.annotate('GRAND 10k',
-                            xy=(1e10 * units.GeV / plotUnitsEnergy, 1.1e-7), xycoords='data',
+                            xy=(0.9e10 * units.GeV / plotUnitsEnergy, 2e-8), xycoords='data',
                             horizontalalignment='left', color='saddlebrown', rotation=50, fontsize=legendfontsize)
         else:
             ax.annotate('GRAND 10k',
-                xy=(5e9 * units.GeV / plotUnitsEnergy, 2e-8), xycoords='data',
+                xy=(1.2e19 * units.eV / plotUnitsEnergy, 5e-8), xycoords='data',
                 horizontalalignment='left', va="top", color='saddlebrown', rotation=47, fontsize=legendfontsize)
 
     if show_grand_200k:
@@ -593,7 +610,7 @@ def get_E2_limit_figure(diffuse=True,
                     horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('IceCube',
-                    xy=(3e6 * units.GeV / plotUnitsEnergy, 2e-8), xycoords='data',
+                    xy=(3e6 * units.GeV / plotUnitsEnergy, 3e-8), xycoords='data',
                     horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
 
     if show_ice_cube_HESE_data:
@@ -617,27 +634,28 @@ def get_E2_limit_figure(diffuse=True,
         ax.fill_between(ice_cube_mu_range[0] / plotUnitsEnergy, ice_cube_mu_range[1] / plotUnitsFlux,
                         ice_cube_mu_range[2] / plotUnitsFlux, hatch='\\', edgecolor='dodgerblue', facecolor='azure', zorder=2)
         plt.plot(ice_cube_mu_range[0] / plotUnitsEnergy,
-                 ice_cube_nu_fit(ice_cube_mu_range[0], slope=-2.37, offset=1.36) * ice_cube_mu_range[0] ** 2 / plotUnitsFlux,
+                 ice_cube_nu_fit(ice_cube_mu_range[0]) * ice_cube_mu_range[0] ** 2 / plotUnitsFlux,
                  color='dodgerblue')
 
         ax.annotate('IceCube',
-                    xy=(3e6 * units.GeV / plotUnitsEnergy, 2e-8), xycoords='data',
+                    xy=(3e6 * units.GeV / plotUnitsEnergy, 3e-8), xycoords='data',
                     horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
 
         # Extrapolation
         energy_placeholder = np.array(([1e14, 1e19])) * units.eV
         plt.plot(energy_placeholder / plotUnitsEnergy,
-                 ice_cube_nu_fit(energy_placeholder, slope=-2.37, offset=1.36) * energy_placeholder ** 2 / plotUnitsFlux,
+                 ice_cube_nu_fit(energy_placeholder) * energy_placeholder ** 2 / plotUnitsFlux,
                  color='dodgerblue', linestyle=':')
 
         uplimit = np.copy(nu_mu_data[:, 3])
         uplimit[np.where(nu_mu_data[:, 3] == 0)] = 1
         uplimit[np.where(nu_mu_data[:, 3] != 0.)] = 0
 
-        ax.errorbar(nu_mu_data[:, 0] / plotUnitsEnergy, nu_mu_data[:, 1] / plotUnitsFlux,
-                    yerr=nu_mu_data[:, 2:].T / plotUnitsFlux, uplims=uplimit, color='dodgerblue',
-                    marker='o', ecolor='dodgerblue', linestyle='None', zorder=3,
-                    markersize=7)
+        if nu_mu_show_data_points:
+            ax.errorbar(nu_mu_data[:, 0] / plotUnitsEnergy, nu_mu_data[:, 1] / plotUnitsFlux,
+                        yerr=nu_mu_data[:, 2:].T / plotUnitsFlux, uplims=uplimit, color='dodgerblue',
+                        marker='o', ecolor='dodgerblue', linestyle='None', zorder=3,
+                        markersize=7)
 
     if show_icecube_glashow:
         # only plot the Glashow data point (the first (0) and last (2) entries are upper limits)
@@ -678,12 +696,12 @@ def get_E2_limit_figure(diffuse=True,
         ax.plot(auger_limit[:, 0] / plotUnitsEnergy, auger_limit[:, 1] / plotUnitsFlux, color='forestgreen')
         if energyBinsPerDecade == 2:
             ax.annotate('Auger',
-                        xy=(1.1e8 * units.GeV / plotUnitsEnergy, 2.1e-7), xycoords='data',
+                        xy=(6.5e16 * units.eV / plotUnitsEnergy, 2.1e-7), xycoords='data',
                         horizontalalignment='left', color='forestgreen', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('Auger',
-                        xy=(2e8 * units.GeV / plotUnitsEnergy, 6e-8), xycoords='data',
-                        horizontalalignment='left', color='forestgreen', rotation=0, fontsize=legendfontsize)
+                        xy=(7e16 * units.eV / plotUnitsEnergy, 6e-8), xycoords='data',
+                        horizontalalignment='right', color='forestgreen', rotation=0, fontsize=legendfontsize)
 
     if show_ara_1year:
         ax.plot(ara_1year[:, 0] / plotUnitsEnergy, ara_1year[:, 1] / plotUnitsFlux, color='indigo')
@@ -709,6 +727,17 @@ def get_E2_limit_figure(diffuse=True,
                     horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
     if show_ara_2023:
         ax.plot(ara_2023_E / plotUnitsEnergy, ara_2023_limit / plotUnitsFlux, color='grey', linestyle='--')
+        if energyBinsPerDecade == 2:
+            ax.annotate('ARA 2023',
+                        xy=(2E16 * units.eV / plotUnitsEnergy, 6e-7), xycoords='data',
+                        horizontalalignment='left', color='grey', rotation=0, fontsize=legendfontsize)
+        else:
+            ax.annotate('ARA 2023',
+                    xy=(4E17 * units.eV / plotUnitsEnergy, 6e-8), xycoords='data',
+                    horizontalalignment='left', color='grey', rotation=0, fontsize=legendfontsize)
+
+    if show_ara_2023_TL:
+        ax.plot(ara_2023_E_TL / plotUnitsEnergy, ara_2023_limit_TL / plotUnitsFlux, color='grey', linestyle='--')
         if energyBinsPerDecade == 2:
             ax.annotate('ARA 2023 \n(TL)',
                         xy=(1E16 * units.eV / plotUnitsEnergy, 6e-7), xycoords='data',
