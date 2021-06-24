@@ -171,26 +171,28 @@
       "channel_id": 11,
       "station_id": 11
     },
+
     "12": {
-      "amp_type": "rno_surface",
-      "ant_comment": "first arm south from DAQ, antenna west from arm center, pointing downwards",
-      "ant_orientation_phi": 180.0,
-      "ant_orientation_theta": 135.0,
-      "ant_position_x": -1.5,
-      "ant_position_y": -11,
-      "ant_position_z": -2,
-      "ant_rotation_phi": 90.0,
-      "ant_rotation_theta": 90.0,
-      "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
-      "cab_time_delay": 19.8,
-      "commission_time": "{TinyDate}:2017-10-01T00:00:00",
-      "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
-      "channel_id": 12,
-      "station_id": 11
+        "amp_type": "rno_surface",
+        "ant_comment": "first arm north from DAQ, west postition in arm, pointing side-downwards",
+        "ant_orientation_phi": 0.0,
+        "ant_orientation_theta": 135.0,
+        "ant_position_x": 1.5,
+        "ant_position_y": -11,
+        "ant_position_z": -2,
+        "ant_rotation_phi": 90.0,
+        "ant_rotation_theta": 90.0,
+        "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
+        "cab_time_delay": 19.8,
+        "commission_time": "{TinyDate}:2017-10-01T00:00:00",
+        "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
+        "channel_id": 12,
+        "station_id": 11
       },
+
     "13": {
         "amp_type": "rno_surface",
-        "ant_comment": "first arm, middle position in arm, pointing upwards",
+        "ant_comment": "first arm north from DAQ, middle position in arm, pointing upwards",
         "ant_orientation_phi": 0.0,
         "ant_orientation_theta": 0.0,
         "ant_position_x": 0.0,
@@ -205,31 +207,32 @@
         "channel_id": 13,
         "station_id": 11
       },
-    "14": {
-        "amp_type": "rno_surface",
-        "ant_comment": "first arm, east from arm center, pointing side-downwards",
-        "ant_orientation_phi": 0.0,
-        "ant_orientation_theta": 135.0,
-        "ant_position_x": 1.5,
-        "ant_position_y": -11,
-        "ant_position_z": -2,
-        "ant_rotation_phi": 90.0,
-        "ant_rotation_theta": 90.0,
-        "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
-        "cab_time_delay": 19.8,
-        "commission_time": "{TinyDate}:2017-10-01T00:00:00",
-        "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
-        "channel_id": 14,
-        "station_id": 11
+
+     "14": {
+      "amp_type": "rno_surface",
+      "ant_comment": "first arm north from DAQ, east position in arm, pointing side-downwards",
+      "ant_orientation_phi": 180.0,
+      "ant_orientation_theta": 135.0,
+      "ant_position_x": -1.5,
+      "ant_position_y": -11,
+      "ant_position_z": -2,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
+      "cab_time_delay": 19.8,
+      "commission_time": "{TinyDate}:2017-10-01T00:00:00",
+      "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
+      "channel_id": 14,
+      "station_id": 11
       },
     "15": {
         "amp_type": "rno_surface",
-        "ant_comment": "second arm west from DAQ, antenna north from arm center, pointing downwards",
-        "ant_orientation_phi": 60.0,
+        "ant_comment": "second arm south-east from DAQ, north-east position in arm, pointing side-downwards",
+        "ant_orientation_phi": 240.0,
         "ant_orientation_theta": 135.0,
-        "ant_position_x": -8.776,
-        "ant_position_y": 6.8,
-        "ant_position_z": -2,
+        "ant_position_x": -10.276,
+        "ant_position_y": 4.2,
+        "ant_position_z": -2.0,
         "ant_rotation_phi": 330.0,
         "ant_rotation_theta": 90.0,
         "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
@@ -239,9 +242,10 @@
         "channel_id": 15,
         "station_id": 11
       },
+
     "16": {
         "amp_type": "rno_surface",
-        "ant_comment": "second arm, middle position in arm, pointing upwards",
+        "ant_comment": "second arm south-east from DAQ, middle position in arm, pointing upwards",
         "ant_orientation_phi": 0.0,
         "ant_orientation_theta": 0.0,
         "ant_position_x": -9.526,
@@ -256,14 +260,15 @@
         "channel_id": 16,
         "station_id": 11
       },
+
     "17": {
         "amp_type": "rno_surface",
-        "ant_comment": "second arm, antenna south from arm center, pointing side-downwards",
-        "ant_orientation_phi": 240.0,
+        "ant_comment": "second arm south-east from DAQ, south-west position in arm, pointing side-downwards",
+        "ant_orientation_phi": 60.0,
         "ant_orientation_theta": 135.0,
-        "ant_position_x": -10.276,
-        "ant_position_y": 4.2,
-        "ant_position_z": -2.0,
+        "ant_position_x": -8.776,
+        "ant_position_y": 6.8,
+        "ant_position_z": -2,
         "ant_rotation_phi": 330.0,
         "ant_rotation_theta": 90.0,
         "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
@@ -273,9 +278,10 @@
         "channel_id": 17,
         "station_id": 11
       },
+
     "18": {
         "amp_type": "rno_surface",
-        "ant_comment": "third arm east from DAQ, antenna north from arm center, pointing downwards",
+        "ant_comment": "third arm south-west from DAQ, south-east position in arm, pointing side-downwards",
         "ant_orientation_phi": 120.0,
         "ant_orientation_theta": 135.0,
         "ant_position_x": 8.776,
@@ -292,7 +298,7 @@
       },
     "19": {
         "amp_type": "rno_surface",
-        "ant_comment": "third arm, middle position in arm, pointing upwards",
+        "ant_comment": "third arm south-west from DAQ, middle position in arm, pointing upwards ",
         "ant_orientation_phi": 0.0,
         "ant_orientation_theta": 0.0,
         "ant_position_x": 9.526,
@@ -309,7 +315,7 @@
       },
     "20": {
         "amp_type": "rno_surface",
-        "ant_comment": "third arm, antenna south from arm center, pointing side-downwards",
+        "ant_comment": "third arm south-west from DAQ, north-west position in arm, pointing side-downwards",
         "ant_orientation_phi": 300.0,
         "ant_orientation_theta": 135.0,
         "ant_position_x": 10.276,
