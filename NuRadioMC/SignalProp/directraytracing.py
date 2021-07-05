@@ -2,6 +2,7 @@ import scipy.constants
 import numpy as np
 from NuRadioReco.utilities import units
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
+from NuRadioMC.SignalProp.propagation_base_class import solution_types_revert
 
 import logging
 logging.basicConfig()
@@ -29,7 +30,7 @@ class direct_ray_tracing(ray_tracing_base):
         return 1
     
     def get_solution_type(self, iS):
-        return super().solution_types_revert['direct']
+        return solution_types_revert['direct']
     
     def get_path(self, iS, n_points = 1000):
         delta_x = self._x2-self._x1/n_points

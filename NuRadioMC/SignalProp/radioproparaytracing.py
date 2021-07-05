@@ -7,6 +7,7 @@ import NuRadioReco.utilities.geometryUtilities
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
+from NuRadioMC.SignalProp.propagation_base_class import solution_types, solution_types_revert
 import radiopropa
 import scipy.constants 
 import copy
@@ -500,11 +501,11 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         pathz = self.get_path(iS)[:, 2]
         if (self._results[iS]['reflection'] != 0) or (self.get_reflection_angle(iS) != None):
-            solution_type = super().solution_types_revert['reflected']
+            solution_type = solution_types_revert['reflected']
         elif(pathz[-1] < max(pathz)):
-            solution_type = super().solution_types_revert['refracted']
+            solution_type = solution_types_revert['refracted']
         else:
-            solution_type = super().solution_types_revert['direct']
+            solution_type = solution_types_revert['direct']
 
         return solution_type
 
