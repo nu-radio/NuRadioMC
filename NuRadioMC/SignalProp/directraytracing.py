@@ -2,7 +2,7 @@ import scipy.constants
 import numpy as np
 from NuRadioReco.utilities import units
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
-from NuRadioMC.SignalProp.propagation_base_class import solution_types_revert
+from NuRadioMC.SignalProp.propagation import solution_types_revert
 
 import logging
 logging.basicConfig()

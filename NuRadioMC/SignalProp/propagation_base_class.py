@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from NuRadioReco.utilities import units
+from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 import numpy as np
 import logging
 logging.basicConfig()
@@ -7,14 +8,6 @@ logging.basicConfig()
 """
 Structure of a ray-tracing module. For documentation and development purposes.
 """
-solution_types = {1: 'direct',
-                      2: 'refracted',
-                      3: 'reflected'}
-
-solution_types_revert = {v:k for k, v in solution_types.items()}
-
-reflection_case = {1: 'upwards launch vector',
-                   2: 'downward launch vector'}
 
 class ray_tracing_base:
     """

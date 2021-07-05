@@ -14,7 +14,7 @@ from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
-from NuRadioMC.SignalProp.propagation_base_class import solution_types, solution_types_revert
+from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 
 import logging
 logging.basicConfig()

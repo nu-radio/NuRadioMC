@@ -624,7 +624,7 @@ class simulation():
                             viewing_angles.append(viewing_angle)
                             delta_C = (viewing_angle - cherenkov_angle)
                             logger.debug('solution {} {}: viewing angle {:.1f} = delta_C = {:.1f}'.format(
-                                iS, self._prop.solution_types[self._raytracer.get_solution_type(iS)], viewing_angle / units.deg, (viewing_angle - cherenkov_angle) / units.deg))
+                                iS, propagation.solution_types[self._raytracer.get_solution_type(iS)], viewing_angle / units.deg, (viewing_angle - cherenkov_angle) / units.deg))
                             delta_Cs.append(delta_C)
 
                         # discard event if delta_C (angle off cherenkov cone) is too large
@@ -741,7 +741,7 @@ class simulation():
                             electric_field.set_trace_start_time(trace_start_time)
                             electric_field[efp.azimuth] = azimuth
                             electric_field[efp.zenith] = zenith
-                            electric_field[efp.ray_path_type] = self._prop.solution_types[self._raytracer.get_solution_type(iS)]
+                            electric_field[efp.ray_path_type] = propagation.solution_types[self._raytracer.get_solution_type(iS)]
                             electric_field[efp.nu_vertex_distance] = sg['travel_distances'][iSh, channel_id, iS]
                             electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
                             self._sim_station.add_electric_field(electric_field)
