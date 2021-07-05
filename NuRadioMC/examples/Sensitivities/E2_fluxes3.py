@@ -800,7 +800,7 @@ def get_E2_limit_figure(diffuse=True,
 
     if show_prediction_arianna_200:
         # 10 year sensitivity
-        arianna_200 = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__), 'data'), "expected_sensivity_ARIANNA-200.txt"))
+        arianna_200 = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', "expected_sensivity_ARIANNA-200.txt"))
         arianna_200[:, 0] *= units.GeV
         arianna_200[:, 1] *= units.GeV * units.cm ** -2 * units.s ** -1
         print(arianna_200)
