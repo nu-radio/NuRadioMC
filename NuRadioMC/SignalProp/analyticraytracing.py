@@ -14,6 +14,7 @@ from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
+from NuRadioMC.SignalProp.propagation_base_class import solution_types, solution_types_revert
 
 import logging
 logging.basicConfig()
@@ -43,8 +44,6 @@ except:
 analytic ray tracing solution
 """
 speed_of_light = scipy.constants.c * units.m / units.s
-
-solution_types = ray_tracing_base.solution_types
 
 
 @lru_cache(maxsize=32)
@@ -990,12 +989,12 @@ class ray_tracing_2D(ray_tracing_base):
         gamma_turn, z_turn = self.get_turning_point(c)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
         if(x2[0] < y_turn):
-            return 1
+            return solution_types_revert['direct']
         else:
             if(z_turn == 0):
-                return 3
+                return solution_types_revert['reflected']
             else:
-                return 2
+                return solution_types_revert['refracted']
 
     def find_solutions(self, x1, x2, plot=False, reflection=0, reflection_case=1):
         """

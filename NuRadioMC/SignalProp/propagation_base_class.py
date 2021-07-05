@@ -7,20 +7,19 @@ logging.basicConfig()
 """
 Structure of a ray-tracing module. For documentation and development purposes.
 """
+solution_types = {1: 'direct',
+                      2: 'refracted',
+                      3: 'reflected'}
 
+solution_types_revert = {v:k for k, v in solution_types.items()}
+
+reflection_case = {1: 'upwards launch vector',
+                   2: 'downward launch vector'}
 
 class ray_tracing_base:
     """
     base class of ray tracer. All ray tracing modules need to prodide the following functions
     """
-    solution_types = {1: 'direct',
-                      2: 'refracted',
-                      3: 'reflected'}
-
-    solution_types_revert = {v:k for k, v in solution_types.items()}
-
-    reflection_case = {1: 'upwards launch vector',
-                       2: 'downward launch vector'}
 
 
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING, 
