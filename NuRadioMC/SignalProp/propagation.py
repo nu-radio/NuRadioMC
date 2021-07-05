@@ -21,6 +21,8 @@ def get_propagation_module(name='analytic'):
     elif(name=='radiopropa'):
         from NuRadioMC.SignalProp.radioproparaytracing import radiopropa_ray_tracing
         return radiopropa_ray_tracing
-        
+    elif(name=='aniso_ray'):
+        from NuRadioMC.SignalProp.anisoraytracing import aniso_ray_tracing
+        return aniso_ray_tracing
     else:
         raise NotImplementedError("module {} not implemented".format(name))
