@@ -1,5 +1,14 @@
 from __future__ import absolute_import, division, print_function
 
+solution_types = {1: 'direct',
+                      2: 'refracted',
+                      3: 'reflected'}
+
+solution_types_revert = {v:k for k, v in solution_types.items()}
+
+reflection_case = {1: 'upwards launch vector',
+                   2: 'downward launch vector'}
+
 def get_propagation_module(name=None):
     """
     wrapper around all propagation modules

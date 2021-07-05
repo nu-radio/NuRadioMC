@@ -7,7 +7,7 @@ import NuRadioReco.utilities.geometryUtilities
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
-from NuRadioMC.SignalProp.propagation_base_class import solution_types, solution_types_revert
+from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 import radiopropa
 import scipy.constants 
 import copy
