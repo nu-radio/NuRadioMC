@@ -17,18 +17,42 @@ class IceModel():
     Base class from which all ice models should inheret
     """
     def __init__(self, z_air_boundary=0*units.meter, z_bottom=None):
+        """
+        initiaion of a basic ice model
+
+        The bottom defined here is a boundary condition used in simulations and
+        should always be defined. Note: it is not the same as reflective bottom.
+        The latter can be added using the `add_reflective_layer` function.
+
+        Parameters
+        ---------
+        z_air_boundary:  float, NuRadio length units
+                         z coordinate of the surface of the glacier
+        z_bottom:  float, NuRadio length units
+                   z coordinate of the bedrock/bottom of the glacier.
+        """
         self.z_air_boundary = z_air_boundary
         self.z_bottom = z_bottom
 
     def add_reflective_bottom(self, refl_z, refl_coef, refl_phase_shift):
         """
         function which adds a reflective bottom to your ice model
+
+        Parameters
+        ---------
+        refl_z:  float, NuRadio length units
+                 z coordinate of the bottom reflective layer
+        refl_coef:  float between 0 and 1
+                    fraction of the electric field that gets reflected
+        refl_phase_shift:  float, NuRadio angukar units
+                           phase shoft that the reflected electric field receives
         """
         self.reflection = refl_z
         self.reflection_coefficient = refl_coef
         self.reflection_phase_shift = refl_phase_shift
         
         if not ((self.z_bottom != None) and (self.z_bottom < self.reflection)):
+            # bottom should always be below the reflective layer
             self.z_bottom = self.reflection - 1*units.m
 
     def get_index_of_refraction(self, position):
@@ -114,6 +138,36 @@ class IceModelSimple(IceModel):
                  z_shift=0*units.meter,
                  z_air_boundary=0*units.meter,
                  z_bottom=None):
+
+        """
+        initiaion of a simple exponential ice model
+
+        The bottom defined here is a boundary condition used in simulations and
+        should always be defined. Note: it is not the same as reflective bottom.
+        The latter can be added using the `add_reflective_layer` function.
+
+        The z_shift is a variable introduced to be able to shift the exponential
+        up or down along the z direction. For simple models this is almost never
+        but it is used to construct more complex ice models which rely on exp.
+        profiles also
+
+        Parameters
+        ---------
+        z_air_boundary:  float, NuRadio length units
+                         z coordinate of the surface of the glacier
+        z_bottom:  float, NuRadio length units
+                   z coordinate of the bedrock/bottom of the glacier.
+        n_ice:  float, dimensionless
+                refractive index of the deep bulk ice
+        delta_n:  float, NuRadio length units
+                  difference between n_ice and the refractive index
+                  of the snow at the surface
+        z_0:  float, NuRadio length units
+              scale depth of the exponential
+        z_shift:  float, NuRadio length units
+                  up or down shift od the exponential profile
+        """
+
         super().__init__(z_air_boundary, z_bottom)
         self.n_ice = n_ice
         self.delta_n = delta_n
