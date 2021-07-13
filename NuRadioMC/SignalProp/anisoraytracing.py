@@ -469,7 +469,10 @@ class ray:
             print(ntype)
             raise RuntimeError('Please enter a valid index of refraction type (1 or 2)')
         
-        self.eps = eps
+        #TODO: implement permittivity interface with NRMC
+        #self.eps = eps
+        self.eps = lambda a : 1.78-0.43*np.exp(-0.0132*np.abs(a))*np.eye(3)
+
 
         self._travel_time = 0.
         self._arclength = 0.
@@ -783,7 +786,7 @@ class ray:
         
         return e, b
 
-    def _get_ray(self, sf, phi, theta, thetabound):
+    def _get_ray(self, sf, phi, theta):
         '''
             finds ray using rootfinding via the shooting method for BVPs, then computes ray attributes
 
@@ -796,7 +799,7 @@ class ray:
             args = np.array([s, phi, theta])
             return self._distsq(args)
 
-        if self.ray.t == []:
+        if self._ray.t == []:
             minsol = root(self._rootfn, [sf, phi, theta], method='lm', options={'ftol':1e-15, 'xtol':1e-15, 'maxiter':300, 'eps':1e-7, 'diag':[1/1e3, 1/1e-8, 1], 'factor':10})
             print(self.ntype, self.raytype, minsol.success, minsol.message)
             self.copy_ray(self.shoot_ray(*minsol.x))
@@ -809,13 +812,13 @@ class ray:
                 else:
                     self._solution_type = 1
 
-            return self.ray
+            return self._ray
         else:
-            return self.ray
+            return self._ray
     
-    def get_path(self, sg, phig, thetag, thetabound):
-        if self.ray.t == []:     
-            self._get_ray(sg, phig, thetag, thetabound)
+    def get_path(self, sg, phig, thetag):
+        if self._ray.t == []:     
+            self._get_ray(sg, phig, thetag)
             #print(self.ntype, self.raytype, self.xf, self.yf, self.zf, self.ray.y[0, -1], self.ray.y[1,-1], self.ray.y[2,-1])
             return self._ray
         else:
@@ -875,22 +878,23 @@ class rays(ray):
                         self.__xf, self.__yf, self.__zf, i, k, self.__eps)
 
     def set_guess(self):
-        g = analyticraytracing.ray_tracing(np.array([self.__x0, self.__y0, self.__z0]), np.array([self.__xf, self.__yf, self.__zf]), medium.get_ice_model('ARAsim_southpole'), n_frequencies_integration = 1)
+        g = analyticraytracing.ray_tracing(medium.get_ice_model('ARAsim_southpole'), n_frequencies_integration = 1)
+        g.set_start_and_end_point(np.array([self.__x0, self.__y0, self.__z0]), np.array([self.__xf, self.__yf, self.__zf]))
         g.find_solutions()
         self.sg1, self.sg2 = g.get_path_length(0), g.get_path_length(1)
                 
         lv1, lv2 = g.get_launch_vector(0), g.get_launch_vector(1)
         lv1, lv2 = lv1/np.linalg.norm(lv1), lv2/np.linalg.norm(lv2)
         
-        self.phig = np.arctan2((self.yf - self.y0), (self.xf-self.x0))
+        self.phig = np.arctan2((self.__yf - self.__y0), (self.__xf-self.__x0))
         
         self.thetag1, self.thetag2 = np.arccos(lv1[2]), np.arccos(lv2[2])
     
     def get_guess(self, raytype):
         if raytype == 1:
-            return (self.sg1, self.phig, self.thetag1, np.pi)
+            return (self.sg1, self.phig, self.thetag1)
         if raytype == 2:
-            return (self.sg2, self.phig, self.thetag2, self.thetag1)
+            return (self.sg2, self.phig, self.thetag2)
 
     def get_rays(self):
         self.set_guess()
@@ -910,7 +914,7 @@ class rays(ray):
         else:
             for i in [0,1]:
                 for k in [0,1]:
-                    self.r[i, k].get_path(self.get_guess(k+1))
+                    self.r[i, k].get_path(*self.get_guess(k+1))
         
         # check if the order of the rays is right
         for i in [0,1]:
@@ -921,7 +925,7 @@ class rays(ray):
                 del tmp
 
     def get_path(self, i, k):
-        return self.r[i,k].get_path()
+        return self.r[i,k].get_path(*self.get_guess(k+1))
 
     def get_time(self, i, k):
         return self.r[i,k].get_travel_time()
