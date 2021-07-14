@@ -471,8 +471,8 @@ class ray:
         
         #TODO: implement permittivity interface with NRMC
         #self.eps = eps
-        self.eps = lambda a : 1.78-0.43*np.exp(-0.0132*np.abs(a))*np.eye(3)
-
+        
+        self.eps = lambda a : (1.78-0.43*np.exp(-0.0132*np.abs(a[2])))**2*np.eye(3)
 
         self._travel_time = 0.
         self._arclength = 0.
@@ -499,8 +499,9 @@ class ray:
             self.receive_vector = self._unitvect(np.array(self.ray.y[0:3, -1] - self.ray.y[0:3,-2]))
             
             if self._reflected:
-                idxtmp = np.where(self.ray.y[2, :] == 0.)
-                self.reflect_angle = np.arccos(self._unitvect(np.array(self.ray.y[0:3, idxtmp+1] - self.ray.y[0:3, idxtmp])))
+                idxtmp = np.where(self.ray.y[2, :] == 0.)[0][0]
+                print('reflected index', idxtmp)
+                self._reflect_angle = np.arccos(self._unitvect(np.array(self.ray.y[0:3, idxtmp+1] - self.ray.y[0:3, idxtmp])))
 
             self.initial_wavefront = self._unitvect(np.array(self.ray.y[3:6, 0]))
             self.final_wavefront = self._unitvect(np.array(self.ray.y[3:6, -1]))
@@ -800,7 +801,7 @@ class ray:
             return self._distsq(args)
 
         if self._ray.t == []:
-            minsol = root(self._rootfn, [sf, phi, theta], method='lm', options={'ftol':1e-15, 'xtol':1e-15, 'maxiter':300, 'eps':1e-7, 'diag':[1/1e3, 1/1e-8, 1], 'factor':10})
+            minsol = root(self._rootfn, [sf, phi, theta], method='lm', options={'ftol':1e-10, 'xtol':1e-12, 'maxiter':100, 'eps':1e-7, 'diag':[1/1e3, 1/1e-8, 1], 'factor':10})
             print(self.ntype, self.raytype, minsol.success, minsol.message)
             self.copy_ray(self.shoot_ray(*minsol.x))
             
@@ -811,7 +812,7 @@ class ray:
                     self._solution_type = 2
                 else:
                     self._solution_type = 1
-
+            
             return self._ray
         else:
             return self._ray
@@ -886,7 +887,7 @@ class rays(ray):
         lv1, lv2 = g.get_launch_vector(0), g.get_launch_vector(1)
         lv1, lv2 = lv1/np.linalg.norm(lv1), lv2/np.linalg.norm(lv2)
         
-        self.phig = np.arctan2((self.__yf - self.__y0), (self.__xf-self.__x0))
+        self.phig = np.arctan2((self.__yf - self.__y0), (self.__xf - self.__x0))
         
         self.thetag1, self.thetag2 = np.arccos(lv1[2]), np.arccos(lv2[2])
     

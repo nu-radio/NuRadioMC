@@ -5,7 +5,7 @@ speedup:
   delta_C_cut: 0.698  # 40 degree
 propagation:
   module: aniso_ray
-    #module: analytic
+  #module: analytic
   ice_model: southpole_2015
   attenuation_model: SP1
   attenuate_ice: True
