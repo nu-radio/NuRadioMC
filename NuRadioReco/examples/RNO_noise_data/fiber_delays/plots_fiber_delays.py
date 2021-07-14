@@ -39,7 +39,7 @@ for i_fiber, fiber_name in enumerate(fiber_names):
     )
     phase_freqs = phase_data[:, 0] * units.Hz
     phase = np.unwrap(phase_data[:, 1] * units.deg)
-    group_delay = -1. * np.diff(phase) / np.diff(phase_freqs)
+    group_delay = -.5 * np.diff(phase) / np.diff(phase_freqs) / np.pi
     # phase = (phase_data[:, 1] * units.deg)
     freq_mask = phase_freqs > 25 * units.MHz
     ax2_1 = fig2.add_subplot(len(fiber_names), 2, 2 * i_fiber + 1)
@@ -49,7 +49,7 @@ for i_fiber, fiber_name in enumerate(fiber_names):
         phase[freq_mask]
     )
     line_fit = np.polyfit(
-        phase_freqs[freq_mask],
+        phase_freqs[freq_mask] * 2. * np.pi,
         - phase[freq_mask],
         1
     )
