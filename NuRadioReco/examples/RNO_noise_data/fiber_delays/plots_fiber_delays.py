@@ -12,10 +12,18 @@ fiber_names = [
     '7ABLUE',
     '7ABROWN',
     '7AGREEN',
-    '7AORANGE'
+    '7AORANGE',
+    '7B1',
+    '7B2',
+    '7B3',
+    '7B4',
+    '7C1',
+    '7C2',
+    '7C3',
+    '7C4'
 ]
-fig1 = plt.figure(figsize=(8, 15))
-fig2 = plt.figure(figsize=(8, 15))
+fig1 = plt.figure(figsize=(8, 30))
+fig2 = plt.figure(figsize=(8, 30))
 for i_fiber, fiber_name in enumerate(fiber_names):
     log_mag_data = np.genfromtxt(
         'data/{}_FULL_LM.csv'.format(fiber_name),
@@ -61,6 +69,7 @@ for i_fiber, fiber_name in enumerate(fiber_names):
         phase_freqs[freq_mask][:-1] / units.MHz,
         group_delay[freq_mask[:-1]] / units.ns
     )
+    ax2_2.set_title(fiber_name)
     print('Fiber {}: {:.2f}ns'.format(fiber_name, line_fit[0]))
     ax2_2.axhline(
         line_fit[0],
