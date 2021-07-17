@@ -303,6 +303,10 @@ class aniso_ray_tracing:
             the fraction of the signal that reaches the observer
             (only ice attenuation, the 1/R signal falloff not considered here)
         """
+        
+        '''
+        # bob oeyen's attenuation code
+
         n = self.get_number_of_solutions()
         if(iS >= n):
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
@@ -326,7 +330,9 @@ class aniso_ray_tracing:
         attenuation = np.ones_like(frequency)
         tmp = np.exp(-1 * tmp)
         attenuation[mask] = tmp
-        return attenuation
+        '''
+        
+        return np.ones(len(self.get_path().t))
 
     def apply_propagation_effects(self, efield, i_solution):
         """
