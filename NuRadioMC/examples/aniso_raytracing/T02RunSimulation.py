@@ -33,6 +33,7 @@ class mySimulation(simulation.simulation):
                              trigger_name='simple_threshold')  # the name of the trigger
 
         # run a high/low trigger on the 4 downward pointing LPDAs
+        '''
         highLowThreshold.run(evt, station, det,
                                     threshold_high=4 * self._Vrms,
                                     threshold_low=-4 * self._Vrms,
@@ -49,7 +50,7 @@ class mySimulation(simulation.simulation):
                                     number_concidences=4,  # 4/4 majority logic
                                     trigger_name='surface_dipoles_4of4_3sigma',
                                     set_not_triggered=(not station.has_triggered("simple_threshold")))  # calculate more time consuming ARIANNA trigger only if station passes simple trigger
-
+        '''
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('inputfilename', type=str,

@@ -27,6 +27,10 @@ class aniso_ray_tracing:
     Raytracer class for NuRMC. Most of the implementations are written in the ray 
     class, and this class acts as a wrapper.
     """
+    
+    solution_types = {1: 'direct',
+                  2: 'refracted',
+                  3: 'reflected'}
 
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=6, config=None, n_reflections=0, detector=None):
@@ -52,7 +56,6 @@ class aniso_ray_tracing:
             is obtained via linear interpolation.
 
         """
-
         self.__anisorays = rays(medium)
         self.__config = config
 
@@ -127,6 +130,12 @@ class aniso_ray_tracing:
         find all solutions between x1 and x2
         """
         self.__anisorays.get_rays()
+        
+        results = []
+        for i in range(4):
+            results.append(self.get_raytracing_output(i))
+        
+        self.__results = results
 
     def has_solution(self):
         """
@@ -144,6 +153,7 @@ class aniso_ray_tracing:
         """
 
         """
+
         return self.__results
 
     def get_solution_type(self, iS):
@@ -162,7 +172,7 @@ class aniso_ray_tracing:
             * 2: 'refracted'
             * 3: 'reflected
         """
-        return self.__anisoray.get_solution_type(*self._index_to_tuple(iS))
+        return self.__anisorays.get_solution_type(*self._index_to_tuple(iS))
 
     def get_path(self, iS, n_points=1000):
         """
@@ -175,7 +185,7 @@ class aniso_ray_tracing:
         n_points: int
             number of points of path
         """
-        return self.__anisoray.get_path(*self._index_to_tuple(iS))
+        return self.__anisorays.get_path(*self._index_to_tuple(iS))
 
 
     def get_launch_vector(self, iS):
@@ -193,7 +203,7 @@ class aniso_ray_tracing:
         launch_vector: 3dim np.array
             the launch vector
         """
-        return self.__anisoray.get_launch_vector(*self._index_to_tuple(iS))
+        return self.__anisorays.get_launch_vector(*self._index_to_tuple(iS))
 
     def get_receive_vector(self, iS):
         """
@@ -210,7 +220,7 @@ class aniso_ray_tracing:
         receive_vector: 3dim np.array
             the receive vector
         """
-        return self.__anisoray.get_receive_vector(*self._index_to_tuple(iS))
+        return self.__anisorays.get_receive_vector(*self._index_to_tuple(iS))
 
     def get_reflection_angle(self, iS):
         """
@@ -227,9 +237,9 @@ class aniso_ray_tracing:
         reflection_angle: float or None
             the reflection angle (for reflected rays) or None for direct and refracted rays
         """
-        return self.__anisoray.get_reflection_angle(*self._index_to_tuple(iS))
+        return self.__anisorays.get_reflection_angle(*self._index_to_tuple(iS))
 
-    def get_path_length(self, iS, analytic=False):
+    def get_path_length(self, iS, analytic=True):
         """
         calculates the path length of solution iS
 
@@ -247,7 +257,7 @@ class aniso_ray_tracing:
         distance: float
             distance from x1 to x2 along the ray path
         """
-        return self.__anisoray.get_path_length(*self._index_to_tuple(iS))
+        return self.__anisorays.get_path_length(*self._index_to_tuple(iS))
 
     def get_travel_time(self, iS, analytic=False):
         """
@@ -267,7 +277,7 @@ class aniso_ray_tracing:
         time: float
             travel time
         """
-        return self.__anisoray.get_travel_time(*self._index_to_tuple(iS))
+        return self.__anisorays.get_travel_time(*self._index_to_tuple(iS))
 
     def get_attenuation(self, iS, frequency, max_detector_freq=None):
         """
@@ -355,8 +365,6 @@ class aniso_ray_tracing:
             {'name': 'speed_type','ndim': 1},
             {'name': 'launch_vector', 'ndim': 3},
             {'name': 'focusing_factor', 'ndim': 1},
-            {'name': 'ray_tracing_reflection', 'ndim': 1},
-            {'name': 'ray_tracing_reflection_case', 'ndim': 1},
             {'name': 'ray_tracing_solution_type', 'ndim': 1}
         ]
 
@@ -378,11 +386,9 @@ class aniso_ray_tracing:
         # focusing is not implemented
 
         output_dict = {
-            'speed_type': self.__speed_type,
+            'speed_type': self._index_to_tuple(i_solution)[1] + 1,
             'launch_vector': self.get_launch_vector(i_solution),
             'focusing_factor': 1,
-            'ray_tracing_reflection': self.get_results()[i_solution]['reflection'],
-            'ray_tracing_reflection_case': self.get_results()[i_solution]['reflection_case'],
             'ray_tracing_solution_type': self.get_solution_type(i_solution)            
         }
         return output_dict
@@ -475,7 +481,7 @@ class ray:
         self.eps = lambda a : (1.78-0.43*np.exp(-0.0132*np.abs(a[2])))**2*np.eye(3)
 
         self._travel_time = 0.
-        self._arclength = 0.
+        self._path_length = 0.
         self._ray = OptimizeResult(t=[], y=[])
         self._launch_vector = []
         self._receive_vector = []
@@ -491,20 +497,19 @@ class ray:
 
     def copy_ray(self, odesol):
         if odesol != (None, None):
-            self.ray = odesol
-            self.travel_time = 1e9*odesol.y[-1,-1]/speed_of_light
-            self.arclength = odesol.t
-
-            self.launch_vector = self._unitvect(np.array(self.ray.y[0:3, 1] - self.ray.y[0:3, 0]))
-            self.receive_vector = self._unitvect(np.array(self.ray.y[0:3, -1] - self.ray.y[0:3,-2]))
+            self._ray = odesol
+            self._travel_time = 1e9*odesol.y[-1,-1]/speed_of_light
+            self._path_length = odesol.t[-1]
+            self._launch_vector = self._unitvect(np.array(self._ray.y[0:3, 1] - self._ray.y[0:3, 0]))
+            self._receive_vector = self._unitvect(np.array(self._ray.y[0:3, -1] - self._ray.y[0:3,-2]))
             
             if self._reflected:
-                idxtmp = np.where(self.ray.y[2, :] == 0.)[0][0]
+                idxtmp = np.where(self._ray.y[2, :] == 0.)[0][0]
                 print('reflected index', idxtmp)
-                self._reflect_angle = np.arccos(self._unitvect(np.array(self.ray.y[0:3, idxtmp+1] - self.ray.y[0:3, idxtmp])))
+                self._reflect_angle = np.arccos(self._unitvect(np.array(self._ray.y[0:3, idxtmp+1] - self._ray.y[0:3, idxtmp])))
 
-            self.initial_wavefront = self._unitvect(np.array(self.ray.y[3:6, 0]))
-            self.final_wavefront = self._unitvect(np.array(self.ray.y[3:6, -1]))
+            self.initial_wavefront = self._unitvect(np.array(self._ray.y[3:6, 0]))
+            self.final_wavefront = self._unitvect(np.array(self._ray.y[3:6, -1]))
             
 
             self.initial_E_pol, self.initial_B_pol = self._get_pols(0)
@@ -525,7 +530,7 @@ class ray:
         '''
             RHS of q and p ODE system, with travel time ODE
 
-            takes in values and converts derivatives w.r.t. arclength
+            takes in values and converts derivatives w.r.t. arclength (NuRMC uses pathlength)
         '''
         
         q = u[:3]
@@ -704,8 +709,8 @@ class ray:
             idx : array index
         '''
 
-        q = self.ray.y[0:3, idx]
-        p = self.ray.y[3:6, idx]
+        q = self._ray.y[0:3, idx]
+        p = self._ray.y[3:6, idx]
         #n = np.linalg.norm(p)
         n = self.n(q, p)
 
@@ -808,7 +813,7 @@ class ray:
             if self._reflected:
                 self._solution_type = 3
             else:
-                if self.zf < np.max(self.ray.y[2, :]):
+                if self.zf < np.max(self._ray.y[2, :]):
                     self._solution_type = 2
                 else:
                     self._solution_type = 1
@@ -816,7 +821,7 @@ class ray:
             return self._ray
         else:
             return self._ray
-    
+     
     def get_path(self, sg, phig, thetag):
         if self._ray.t == []:     
             self._get_ray(sg, phig, thetag)
@@ -824,12 +829,15 @@ class ray:
             return self._ray
         else:
             return self._ray
+    
+    def get_ray(self):
+        return self._ray
 
-    def get_time(self):
+    def get_travel_time(self):
         return self._travel_time
 
-    def get_arclength(self):
-        return self._arclength
+    def get_path_length(self):
+        return self._path_length
 
     def get_initial_E_pol(self):
         return self._initial_E_pol
@@ -919,7 +927,7 @@ class rays(ray):
         
         # check if the order of the rays is right
         for i in [0,1]:
-            if max(self.r[i,0].ray.y[2,:]) > max(self.r[i,1].ray.y[2,:]):
+            if max(self.r[i,0].get_ray().y[2,:]) > max(self.r[i,1].get_ray().y[2,:]):
                 tmp = self.r[i,0]
                 self.r[i,0] = self.r[i,1]
                 self.r[i,1] = tmp
@@ -928,11 +936,11 @@ class rays(ray):
     def get_path(self, i, k):
         return self.r[i,k].get_path(*self.get_guess(k+1))
 
-    def get_time(self, i, k):
+    def get_travel_time(self, i, k):
         return self.r[i,k].get_travel_time()
 
-    def get_arclength(self, i, k):
-        return self.r[i,k].get_arclength()
+    def get_path_length(self, i, k):
+        return self.r[i,k].get_path_length()
     
     def get_initial_E_pol(self, i, k):
         return self.r[i,k].get_initial_E_pol()
