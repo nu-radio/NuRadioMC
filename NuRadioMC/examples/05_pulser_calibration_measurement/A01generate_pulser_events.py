@@ -74,4 +74,4 @@ def generate_my_events(filename, n_events):
 
 
 if __name__ == "__main__":
-    generate_my_events("input_spice.hdf5", 1000)
+    generate_my_events("input_spice.hdf5", 10)

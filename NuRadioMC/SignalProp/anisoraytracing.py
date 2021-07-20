@@ -14,6 +14,10 @@ from multiprocessing import Process, Queue
 from NuRadioMC.SignalProp import analyticraytracing
 from NuRadioMC.utilities import medium
 
+#import NuRadioReco.framework.parameters.electricFieldParameters
+
+from NuRadioReco.framework.parameters import electricFieldParameters
+
 solution_types = {1: 'direct',
                   2: 'refracted',
                   3: 'reflected'}
@@ -351,6 +355,7 @@ class aniso_ray_tracing:
         efield: ElectricField object
             The modified ElectricField object
         """
+        print(efield.get_parameter(electricFieldParameters.polarization_angle))
         return efield
 
     def get_output_parameters(self):
@@ -484,7 +489,25 @@ class ray:
         #TODO: implement permittivity interface with NRMC
         #self.eps = eps
         
-        self.eps = lambda a : (1.78-0.43*np.exp(-0.0132*np.abs(a[2])))**2*np.eye(3)
+        #self.eps = lambda a : (1.78-0.43*np.exp(-0.0132*np.abs(a[2])))**2*np.eye(3)
+        
+        def eps(pos):
+            z = -np.abs(pos[2])
+            
+            n11, n22, n33 = 1.7771, 1.7812, 1.7817
+            
+            #from dataset, flow dir
+            nice1 = lambda z:  n11 + (1.35 - n11)*np.exp(0.0132*z)
+            nice2 = lambda z:  n22 + (1.35 - n22)*np.exp(0.0132*z)
+            nice3 = lambda z:  n33 + (1.35 - n33)*np.exp(0.0132*z)
+            
+            n = np.array([[nice1(z), 0., 0.],
+                [0., nice2(z), 0.],
+                [0., 0., nice3(z)]])
+
+            return n**2
+
+        self.eps = eps
 
         self._travel_time = 0.
         self._path_length = 0.
@@ -733,20 +756,20 @@ class ray:
         #print(idx, '\n-------------')
 
         if dJ >= 1e-7:
-            print(self.ntype, self.raytype, 'J is nonsingular', dJ)
-            print(J)
+            #print(self.ntype, self.raytype, 'J is nonsingular', dJ)
+            #print(J)
             e = self.adj(J) @ p
             e = e / np.linalg.norm(e)
             b = np.cross(p, e)
             b = b / np.linalg.norm(b)
             #return e, b
         else:
-            print(self.ntype, self.raytype, 'J is singular')
+            #print(self.ntype, self.raytype, 'J is singular')
             deps = det(self.eps(q))
             M2 = n**2*(np.dot(p, np.dot(self.eps(q),p)))
-            print(self.ntype, self.raytype, np.abs(deps - M2))
+            #print(self.ntype, self.raytype, np.abs(deps - M2))
             if np.abs(deps - M2) < 1e-3:
-                print('isotropic')
+                #print('isotropic')
                 #local plane of incidence defined by p cross grad(n)
                 localgrad = -self.DqH(q, p)
                 localgrad = self._unitvect(localgrad)
@@ -772,9 +795,9 @@ class ray:
                 else:
                     return ValueError('not a valid ntype')
             else:
-                print('anisotropic')
+                #print('anisotropic')
                 vals, vects = np.linalg.eig(self.eps(q))
-                print(self.ntype, self.raytype, n**2 - vals)
+                #print(self.ntype, self.raytype, n**2 - vals)
                 idx = np.where(np.abs(n**2 - vals) == np.abs(n**2 - vals).min())[0]
                 #print(idx)
                 u = np.zeros((3, len(idx)))
@@ -784,10 +807,10 @@ class ray:
 
                 keps = self.eps(q)@self._unitvect(p)
                 #print(u.T@keps)
-                print(u)
-                print(np.dot(u.T, np.dot(self.eps(q), self._unitvect(p))))
+                #print(u)
+                #print(np.dot(u.T, np.dot(self.eps(q), self._unitvect(p))))
                 u = u[:, np.argmin(np.abs((self._unitvect(p)@self.eps(q))@u))]
-                print(u)
+                #print(u)
                 b = np.cross(u, p)
                 b = b / np.linalg.norm(b)
                 e = -np.linalg.inv(self.eps(q)) @ np.cross(p, b)
