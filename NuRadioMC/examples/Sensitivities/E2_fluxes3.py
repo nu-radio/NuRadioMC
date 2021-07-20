@@ -420,7 +420,10 @@ from scipy.interpolate import interp1d
 
 
 def get_TAGZK_flux(energy):
-# GZK neutrino flux from TA best fit
+    """
+    GZK neutrino flux from TA best fit from D. Bergmann privat communications
+    """
+
     TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_combined_fit_m3.txt"))
     E = TA_data[:, 0] * units.GeV
     f = TA_data[:, 1] * plotUnitsFlux / E ** 2
@@ -428,8 +431,22 @@ def get_TAGZK_flux(energy):
     return get_TAGZK_flux(energy)
 
 
-# get 10% proton flux
+def get_TAGZK_flux_ICRC2021(energy):
+    """
+    GZK neutrino flux from TA best fit ICRC2021
+    https://pos.sissa.it/395/338/
+    """
+    TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_GZKprediction_ICRC2021.txt"))
+    E = TA_data[:, 0] * units.GeV
+    f = TA_data[:, 1] * plotUnitsFlux / E ** 2
+    get_TAGZK_flux = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
+    return get_TAGZK_flux(energy)
+
+
 def get_proton_10(energy):
+    """
+    10% proton flux at source for astrophysical parameters determined by Auger data, by van Vliet et al.
+    """
     vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "ReasonableNeutrinos1.txt"))
     E = vanVliet_reas[0, :] * units.GeV
     f = vanVliet_reas[1, :] * plotUnitsFlux / E ** 2
@@ -467,6 +484,7 @@ def get_E2_limit_figure(diffuse=True,
                         show_Heinze=True,
                         show_TA=False,
                         show_TA_nominal=False,
+                        show_TA_ICRC2021=False,
                         show_RNOG=False,
                         show_IceCubeGen2=False,
                         shower_Auger=True,
@@ -491,6 +509,12 @@ def get_E2_limit_figure(diffuse=True,
             legends.append(TA_m3)
         if(show_TA_nominal):
             TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_combined_fit_m3.txt"))
+            E = TA_data[:, 0] * units.GeV
+            f = TA_data[:, 1] * plotUnitsFlux
+            TA_nominal, = ax.plot(E / plotUnitsEnergy, f / plotUnitsFlux, "k-.", label="UHECRs TA combined fit, Bergman et al.")
+            legends.append(TA_nominal)
+        if(show_TA_ICRC2021):
+            TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_GZKprediction_ICRC2021.txt"))
             E = TA_data[:, 0] * units.GeV
             f = TA_data[:, 1] * plotUnitsFlux
             TA_nominal, = ax.plot(E / plotUnitsEnergy, f / plotUnitsFlux, "k-.", label="UHECRs TA combined fit, Bergman et al.")
@@ -696,12 +720,12 @@ def get_E2_limit_figure(diffuse=True,
         ax.plot(auger_limit[:, 0] / plotUnitsEnergy, auger_limit[:, 1] / plotUnitsFlux, color='forestgreen')
         if energyBinsPerDecade == 2:
             ax.annotate('Auger',
-                        xy=(6.5e16 * units.eV / plotUnitsEnergy, 2.1e-7), xycoords='data',
+                        xy=(8e16 * units.eV / plotUnitsEnergy, 2.1e-7), xycoords='data',
                         horizontalalignment='left', color='forestgreen', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('Auger',
-                        xy=(7e16 * units.eV / plotUnitsEnergy, 6e-8), xycoords='data',
-                        horizontalalignment='right', color='forestgreen', rotation=0, fontsize=legendfontsize)
+                        xy=(9.9e16 * units.eV / plotUnitsEnergy, 4e-8), xycoords='data',
+                        horizontalalignment='right', color='forestgreen', rotation=-50, fontsize=legendfontsize)
 
     if show_ara_1year:
         ax.plot(ara_1year[:, 0] / plotUnitsEnergy, ara_1year[:, 1] / plotUnitsFlux, color='indigo')
@@ -795,8 +819,8 @@ def get_E2_limit_figure(diffuse=True,
         ax.plot(RNOG_E / plotUnitsEnergy, RNOG_flux / 0.7 / 2 / plotUnitsFlux, color='red', linestyle="-.")  # uses 70% uptime from RNO-G whitepaper and resacling to 10years
 #         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
         ax.annotate('RNO-G',
-                    xy=(1e18 * units.eV / plotUnitsEnergy, 0.7e-8), xycoords='data',
-                    horizontalalignment='center', color='red', rotation=0, fontsize=legendfontsize)
+                    xy=(8e18 * units.eV / plotUnitsEnergy, 1e-8), xycoords='data',
+                    horizontalalignment='left', va="top", color='red', rotation=10, fontsize=legendfontsize)
 
     if show_prediction_arianna_200:
         # 10 year sensitivity
@@ -807,8 +831,8 @@ def get_E2_limit_figure(diffuse=True,
 
         _plt4, = ax.plot(arianna_200[:, 0] / plotUnitsEnergy, arianna_200[:, 1] / plotUnitsFlux, label='ARIANNA-200 (5 years)', color='blue', linestyle="--")
         ax.annotate('ARIANNA-200',
-                    xy=(.7e19 * units.eV / plotUnitsEnergy, 3e-9), xycoords='data',
-                    horizontalalignment='left', color='blue', rotation=0, fontsize=legendfontsize)
+                    xy=(.9e19 * units.eV / plotUnitsEnergy, 3.15e-9), xycoords='data',
+                    horizontalalignment='left', color='blue', rotation=30, fontsize=legendfontsize)
 
 #         labels.append(_plt4)
 
