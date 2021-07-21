@@ -3,6 +3,7 @@ import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_serialization
 import pickle
 import logging
+from radiotools import helper as hp
 logger = logging.getLogger('Shower')
 
 
@@ -38,6 +39,17 @@ class BaseShower:
             logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.showerParameters")
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.showerParameters")
         return key in self._parameters
+
+    def get_axis(self):
+        if not self.has_parameter(parameters.showerParameters.azimuth) or \
+           not self.has_parameter(parameters.showerParameters.zenith):
+            logger.error(
+                "Azimuth or zenith angle not set! Can not return shower axis.")
+            raise ValueError(
+                "Azimuth or zenith angle not set! Can not return shower axis.")
+
+        return hp.spherical_to_cartesian(self.get_parameter(parameters.showerParameters.zenith),
+                                         self.get_parameter(parameters.showerParameters.azimuth))
 
     def serialize(self):
         data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
