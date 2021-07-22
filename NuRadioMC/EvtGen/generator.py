@@ -992,7 +992,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 proposal_kwargs={},
                                 max_n_events_batch=1e5,
                                 write_events=True,
-                                seed=None):
+                                seed=None,
+                                interaction_type="ccnc"):
     """
     Event generator
 
@@ -1123,6 +1124,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         if False the event datasets + atrributes are returned
     seed: None of int
         seed of the random state
+    interaction_type: string
+        the interaction type. default is "ccnc" which randomly choses neutral current (NC) or charged-current (CC) interactions. 
+        The use can also specify "nc" or "cc" to exclusively simulate NC or CC interactions
     """
     rnd = Generator(Philox(seed))
     t_start = time.time()
@@ -1184,7 +1188,12 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         data_sets["energies"] = get_energies(n_events_batch, Emin, Emax, spectrum, rnd)
         # generate charged/neutral current randomly
         logger.debug("interaction type")
-        data_sets["interaction_type"] = inelasticities.get_ccnc(n_events_batch, rnd=rnd)
+        if(interaction_type == "ccnc"):
+            data_sets["interaction_type"] = inelasticities.get_ccnc(n_events_batch, rnd=rnd)
+        elif(interaction_type == "cc"):
+            data_sets["interaction_type"] = np.full(n_events_batch, "cc", dtype='S2')
+        elif(interaction_type == "nc"):
+            data_sets["interaction_type"] = np.full(n_events_batch, "nc", dtype='S2')
 
         # generate inelasticity
         logger.debug("generating inelasticities")
