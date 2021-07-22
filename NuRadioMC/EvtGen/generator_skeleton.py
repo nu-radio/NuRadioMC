@@ -105,7 +105,7 @@ def generate_my_events(filename, n_events):
     data_sets["interaction_type"] = np.full(n_events, "NC", dtype='S2')
     # The inelasiticiy, i.e. the fraction of the neutrino energy that is transferred into the hadronic shower.
     # This parameter is not used but saved into the output file for information purposes.
-    data_sets["inelasticity"] = np.ones(n_events) * 0.5
+    data_sets["inelasticity"] = np.ones(n_events)
 
     # write events to file
     write_events_to_hdf5(filename, data_sets, attributes)
