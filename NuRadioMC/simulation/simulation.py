@@ -102,14 +102,16 @@ class simulation():
                  file_overwrite=False,
                  write_detector=True,
                  event_list=None,
-                 log_level_propagation=logging.WARNING):
+                 log_level_propagation=logging.WARNING,
+                 ice_model=None):
         """
         initialize the NuRadioMC end-to-end simulation
 
         Parameters
         ----------
-        inputfilename: string
+        inputfilename: string, or pair
             the path to the hdf5 file containing the list of neutrino events
+            alternatively, the data and attributes dictionary can be passed directly to the method
         outputfilename: string
             specify hdf5 output filename.
         detectorfile: string
@@ -149,6 +151,8 @@ class simulation():
             if provided, only the event listed in this list are being simulated
         log_level_propagation: logging.LEVEL
             the log level of the propagation module
+        ice_model: medium object (default None)
+            allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom". 
         """
         logger.setLevel(log_level)
         self._log_level_ray_propagation = log_level_propagation
@@ -189,7 +193,13 @@ class simulation():
         # initialize propagation module
         self._prop = propagation.get_propagation_module(self._cfg['propagation']['module'])
 
-        self._ice = medium.get_ice_model(self._cfg['propagation']['ice_model'])
+        if (self._cfg['propagation']['ice_model'] == "custom"):
+            if ice_model is None:
+                logger.error("ice model is set to 'custom' in config file but no custom ice model is provided.")
+                raise AttributeError("ice model is set to 'custom' in config file but no custom ice model is provided.")
+            self._ice = ice_model
+        else:
+            self._ice = medium.get_ice_model(self._cfg['propagation']['ice_model'])
 
         self._mout = collections.OrderedDict()
         self._mout_groups = collections.OrderedDict()
@@ -544,7 +554,7 @@ class simulation():
                     # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
                     # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
                     if not self._is_in_fiducial_volume():
-                        logger.debug("event is not in fiducial volume, skipping simulation")
+                        logger.debug(f"event is not in fiducial volume, skipping simulation {self._x}, {self._y}, {self._z}")
                         continue
 
                     # for special cases where only EM or HAD showers are simulated, skip all events that don't fulfill this criterion
@@ -594,7 +604,11 @@ class simulation():
                             distance_cut_time += time.time() - t_tmp
 
                         self._raytracer.set_start_and_end_point(x1, x2)
+                        self._raytracer.use_optional_function('set_shower_axis', self._shower_axis)
                         if(pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):  # check if raytracing was already performed
+                            if self._cfg['propagation']['module'] == 'radiopropa':
+                                logger.error('Presimulation can not be used with the radiopropa ray tracer module')
+                                raise Exception('Presimulation can not be used with the radiopropa ray tracer module')
                             sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
                             ray_tracing_solution = {}
                             for output_parameter in self._raytracer.get_output_parameters():
@@ -1339,7 +1353,7 @@ class simulation():
                 if(key.startswith("station_")):
                     continue
                 if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
-                    if self._fin[key].dtype.char == 'U':
+                    if np.array(self._fin[key]).dtype.char == 'U':
                         fout[key] = np.array(self._fin[key], dtype=h5py.string_dtype(encoding='utf-8'))[saved]
 
                     else:
