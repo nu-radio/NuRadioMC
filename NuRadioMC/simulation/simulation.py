@@ -442,7 +442,16 @@ class simulation():
             t1 = time.time()
             iE_mother = event_indices[0]
             x_int_mother = np.array([self._fin['xx'][iE_mother], self._fin['yy'][iE_mother], self._fin['zz'][iE_mother]])
-            self._mout['weights'][event_indices] = get_weight(self._fin['zeniths'][iE_mother],
+            if(self._cfg['weights']['weight_mode'] == "existing"):
+                if("weights" in self._fin):
+                    self._mout['weights'] = self._fin["weights"]
+                else:
+                    logger.error("config file specifies to use weights from the input hdf5 file but the input file does not contain this information.")
+                    raise AttributeError("config file specifies to use weights from the input hdf5 file but the input file does not contain this information.")
+            elif(self._cfg['weights']['weight_mode'] is None):
+                self._mout['weights'] = np.ones(self._n_showers)
+            else:
+                self._mout['weights'][event_indices] = get_weight(self._fin['zeniths'][iE_mother],
                                                          self._fin['energies'][iE_mother],
                                                          self._fin['flavors'][iE_mother],
                                                          mode=self._cfg['weights']['weight_mode'],
@@ -1222,8 +1231,10 @@ class simulation():
 
     def _read_input_neutrino_properties(self):
         self._event_group_id = self._fin['event_group_ids'][self._shower_index]
-        self._flavor = self._fin['flavors'][self._shower_index]
-        self._energy = self._fin['energies'][self._shower_index]
+        if 'flavor' in self._fin:
+            self._flavor = self._fin['flavors'][self._shower_index]
+        else:
+            self._flavor = None
         self._inttype = self._fin['interaction_type'][self._shower_index]
         self._x = self._fin['xx'][self._shower_index]
         self._y = self._fin['yy'][self._shower_index]
