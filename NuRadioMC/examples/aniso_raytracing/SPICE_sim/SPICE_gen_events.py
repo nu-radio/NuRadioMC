@@ -16,7 +16,7 @@ VERSION_MAJOR = 1
 VERSION_MINOR = 1
 
 
-def generate_my_events(filename, n_events=100):
+def generate_my_events(filename, n_events=1):
     """
     Event generator skeleton
 
@@ -52,9 +52,9 @@ def generate_my_events(filename, n_events=100):
     data_sets["azimuths"] = np.ones(n_events)
     data_sets["zeniths"] = np.ones(n_events)
 
-    # define the emitter positions. X/Y are the easting/northing coordinates of the SPICE core
-    data_sets["xx"] = np.ones(n_events) * 42600 * units.feet
-    data_sets["yy"] = np.ones(n_events) * 48800 * units.feet
+    # define the emitter positions. X/Y are the easting/northing coordinates of the SPICE core in the permittivity coordinate system
+    data_sets["xx"] = np.ones(n_events) * -2338 * units.m
+    data_sets["yy"] = np.ones(n_events) * -540 * units.m
     # simualte different depth
     if n_events == 1:
         data_sets["zz"] = np.array([-1000., -1400]) * units.m
@@ -67,7 +67,7 @@ def generate_my_events(filename, n_events=100):
 
     # again these parameters are irrelevant for our simulation but still need to be set
     data_sets["flavors"] = np.array([12 for i in range(n_events)])
-    data_sets["energies"] = np.ones(n_events) * 1 * units.eV
+    data_sets["energies"] = np.ones(n_events) * 1 * units.micro * units.joule
     data_sets["inelasticity"] = np.ones(n_events) * 0.5
     data_sets["shower_energies"] = data_sets["inelasticity"] * data_sets["energies"]
     data_sets["shower_type"] = np.array(['had'] * n_events)

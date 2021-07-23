@@ -355,7 +355,7 @@ class aniso_ray_tracing:
         efield: ElectricField object
             The modified ElectricField object
         """
-        print(efield.get_parameter(electricFieldParameters.polarization_angle))
+        #print(efield.get_parameter(electricFieldParameters.polarization_angle))
         return efield
 
     def get_output_parameters(self):

@@ -12,11 +12,11 @@ signal:
   model: spherical
   zerosignal: False  # if True, the signal is set to zero. This is useful to study 'noise' only simulations
   polarization: custom # can be either 'auto' or 'custom'
-  ePhi: 0.  # only used if 'polarization = custom', fraction of ePhi component, the eTheta component is eTheta = (1 - ePhi**2)**0.5
+  ePhi: 0.5  # only used if 'polarization = custom', fraction of ePhi component, the eTheta component is eTheta = (1 - ePhi**2)**0.5
 
 propagation:
-  module: aniso_ray
-  #module: analytic
+    #module: aniso_ray
+  module: analytic
   ice_model: southpole_2015
   attenuation_model: SP1
   attenuate_ice: True

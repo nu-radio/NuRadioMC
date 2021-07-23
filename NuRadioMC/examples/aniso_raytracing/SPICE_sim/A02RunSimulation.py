@@ -35,8 +35,7 @@ class mySimulation(simulation.simulation):
     
     def _detector_simulation_filter_amp(self, evt, station, det):
         hardwareResponseIncorporator.run(evt, station, det, sim_to_data=False)
-        channelBandPassFilter.run(evt, station, det, passband=[0, 1000 * units.GHz],
-                                  filter_type='butter', order=2)    
+          
     '''
     def _detector_simulation_filter_amp(self, evt, station, det):
             channelBandPassFilter.run(evt, station, det, passband=[0 * units.MHz, 100000 * units.GHz],
@@ -45,10 +44,8 @@ class mySimulation(simulation.simulation):
 
     def _detector_simulation_trigger(self, evt, station, det):
         triggerSimulator.run(evt, station, det,
-                           threshold_high=0.1* units.mV,
-                           threshold_low=-0.1*units.mV,
-                           high_low_window=5 * units.ns,
-                           coinc_window=30 * units.ns,
+                           threshold_high=0.5* units.mV,
+                           threshold_low=-0.5*units.mV,
                            number_concidences=1,
                            triggered_channels=range(16))
         triggerTimeAdjuster.run(evt, station, det)
