@@ -12,12 +12,13 @@ def ReadInData(filename:str):
     
     data = ni.noiseImporter()
     data.begin([filename])
-    return data.nevts,data.data,data.trigger
+    return data.nevts,data.data
 
 
 
 
 def plot_signal(dat,length):
+    '''plots 4 traces with length length'''
     fig, ax= plt.subplots()
     num=np.arange(length)
     for i in range(4):
@@ -25,13 +26,16 @@ def plot_signal(dat,length):
         ax.plot(num,dat[i,:],'-',label='Channel'+str(i))
         ax.set_xlabel('time bin')
         ax.set_ylabel('E')
+    ax.legend()
     return fig
 
 def generator_model(latent_size):
     """ Generator network """
+    '''modify network as you want'''
     latent = layers.Input(shape=(latent_size,), name="noise")
-    z = layers.Dense(latent_size,activation='relu')(latent)
-    z=layers.Dense(256)(z)
+    z = layers.Dense((latent_size),activation='relu')(latent)
+    
+    z=layers.Dense(256)(z) #output layer has to have the same shape as a noise trace 
     return keras.models.Model(latent, z, name="generator")
 
 
@@ -40,7 +44,9 @@ def generator_model(latent_size):
 def critic_model(latent_size):
     image = layers.Input(shape=(256), name="images")
     x=layers.Dense(latent_size,activation='relu')(image)
-    x = layers.Dense(1)(x)  # no activation!
+   
+    x = layers.Dense(1,activation='sigmoid')(x) 
+    # no activation!
     return keras.models.Model(image, x, name="critic")
 
 
@@ -52,7 +58,7 @@ def make_trainable(model, trainable):
             layer.trainable = True
         else:
             layer.trainable = trainable
-            
+ #random weighted average           
 class UniformLineSampler(tf.keras.layers.Layer):
     def __init__(self, batch_size):
         super().__init__()
