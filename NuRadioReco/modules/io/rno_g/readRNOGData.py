@@ -63,10 +63,11 @@ class readRNOGData:
 
         self.n_events = 0
         # get the total number of events of all input files
-        for the_f in input_files:
-            the_f = uproot.open(input_files[0])
-            self.n_events += the_f[self._data_treename].num_entries
-
+        for filename in input_files:
+            file = uproot.open(filename)
+            if 'combined' in file:
+                file = file['combined']
+            self.n_events += file[self._data_treename].num_entries
         self._set_iterators()
 
         return self.n_events
@@ -85,11 +86,17 @@ class readRNOGData:
 
         datadict = OrderedDict()
         for filename in self.input_files:
-            datadict[filename] = self._data_treename
+            if 'combined' in uproot.open(filename):
+                datadict[filename] = 'combined/' + self._data_treename
+            else:
+                datadict[filename] = self._data_treename
 
         headerdict = OrderedDict()
         for filename in self.input_files_header:
-            headerdict[filename] = self._header_treename
+            if 'combined' in uproot.open(filename):
+                headerdict[filename] = 'combined/' + self._header_treename
+            else:
+                headerdict[filename] = self._header_treename
 
         # iterator over single events (step 1), for event looping in NuRadioReco dataformat
         # may restrict which data to read in the iterator by adding second argument
@@ -157,7 +164,7 @@ class readRNOGData:
                 
             run_number = event["run_number"]
             evt_number = event["event_number"]
-            station_id = event["station_number"]
+            station_id = event_header["station_number"]
             self.logger.info("Reading Run: {run_number}, Event {evt_number}, Station {station_id}")
 
             evt = NuRadioReco.framework.event.Event(run_number, evt_number)
