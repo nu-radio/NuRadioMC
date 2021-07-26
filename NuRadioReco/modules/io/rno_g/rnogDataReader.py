@@ -17,7 +17,7 @@ class RNOGDataReader:
         self.__i_events_per_file = np.zeros((len(filenames), 2), dtype=int)
         i_event = 0
         for i_file, filename in enumerate(filenames):
-            file = uproot.open(filename)
+            file = self.__open_file(filename)
             events_in_file = file['waveforms'].num_entries
             self.__i_events_per_file[i_file] = [i_event, i_event + events_in_file]
 
@@ -32,7 +32,7 @@ class RNOGDataReader:
     def __parse_event_ids(self):
         self.__event_ids = np.array([], dtype=int)
         for filename in self.__filenames:
-            file = uproot.open(filename)
+            file = self.__open_file(filename)
             self.__event_ids = np.append(self.__event_ids, file['waveforms']['event_number'].array(library='np').astype(int))
 
     def get_run_numbers(self):
@@ -43,8 +43,14 @@ class RNOGDataReader:
     def __parse_run_numbers(self):
         self.__run_numbers = np.array([], dtype=int)
         for filename in self.__filenames:
-            file = uproot.open(filename)
+            file = self.__open_file(filename)
             self.__run_numbers = np.append(self.__event_ids, file['waveforms']['run_number'].array(library='np').astype(int))
+
+    def __open_file(self, filename):
+        file = uproot.open(filename)
+        if 'combined' in file:
+            file = file['combined']
+        return file
 
     def get_n_events(self):
         return self.get_event_ids().shape[0]
@@ -54,8 +60,11 @@ class RNOGDataReader:
         for i_file, filename in enumerate(self.__filenames):
             if self.__i_events_per_file[i_file, 0] <= i_event < self.__i_events_per_file[i_file, 1]:
                 i_event_in_file = i_event - self.__i_events_per_file[i_file, 0]
-                file = uproot.open(self.__filenames[i_file])
+                file = self.__open_file(self.__filenames[i_file])
                 station = NuRadioReco.framework.station.Station((file['waveforms']['station_number'].array(library='np')[i_event_in_file]))
+                # station not set properly in first runs, try from header
+                if station == 0 and 'header' in file:
+                    station = NuRadioReco.framework.station.Station((file['header']['station_number'].array(library='np')[i_event_in_file]))
                 station.set_is_neutrino()
 
                 if 'header' in file:
