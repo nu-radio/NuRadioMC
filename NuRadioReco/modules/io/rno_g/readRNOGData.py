@@ -29,6 +29,7 @@ class readRNOGData:
         self.logger = logging.getLogger("NuRadioReco.readRNOGdata")
         self.__id_current_event = None
         self.__t = None
+        self.__sampling_rate = 3.2 * units.GHz #TODO: 3.2 at the beginning of deployment. Will change to 2.4 GHz after firmware update eventually, but info not yet contained in the .root files. Read out once available.
         self._iterator_data = None
         self._iterator_header = None
         self._data_treename = "waveforms"
@@ -108,7 +109,7 @@ class readRNOGData:
         self.uproot_iterator_header = uproot.iterate(headerdict, cut=cut, step_size=1000)
 
     @register_run()
-    def run(self, channels=np.arange(24), sampling=0.5 * units.ns, event_numbers=None, run_numbers=None, cut_string=None):
+    def run(self, channels=np.arange(24), event_numbers=None, run_numbers=None, cut_string=None):
         """
         Run function of the RNOG reader
 
@@ -116,9 +117,6 @@ class readRNOGData:
         ----------
         n_channels: int
             number of RNOG channels to loop over, default 24
-
-        sampling: float (units time)
-            default sampling of RNOG detector
 
         event_numbers: None or dict
             if dict, use a dict with run number as key and list of event numbers as items
@@ -186,11 +184,10 @@ class readRNOGData:
 
                 if voltage.shape[0] % 2 != 0:
                     voltage = voltage[:-1]
-                sampling_rate = 1./sampling
 
                 #TODO: need to subtract mean... probably not if running signal reconstructor?
                 #channel.set_trace(voltage-np.mean(voltage), sampling_rate)
-                channel.set_trace(voltage, sampling_rate)
+                channel.set_trace(voltage, self.__sampling_rate)
                 station.add_channel(channel)
             evt.set_station(station)
             # we want to have access to basic signal quantities with implementation from NuRadioReco
