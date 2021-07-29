@@ -12,6 +12,7 @@ class RNOGDataReader:
         self.__filenames = filenames
         self.__event_ids = None
         self.__run_numbers = None
+        self.__sampling_rate = 3.2 * units.GHz #TODO: 3.2 at the beginning of deployment. Will change to 2.4 GHz after firmware update eventually, but info not yet contained in the .root files. Read out once available.
         self.__parse_event_ids()
         self.__parse_run_numbers()
         self.__i_events_per_file = np.zeros((len(filenames), 2), dtype=int)
@@ -75,7 +76,7 @@ class RNOGDataReader:
                 waveforms = file['waveforms']['radiant_data[24][2048]'].array(library='np', entry_start=i_event_in_file, entry_stop=(i_event_in_file+1))
                 for i_channel in range(waveforms.shape[1]):
                     channel = NuRadioReco.framework.channel.Channel(i_channel)
-                    channel.set_trace(waveforms[0, i_channel], 2. * units.GHz)
+                    channel.set_trace(waveforms[0, i_channel], self.__sampling_rate)
                     station.add_channel(channel)
                 event.set_station(station)
                 return event
