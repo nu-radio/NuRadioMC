@@ -53,13 +53,15 @@ def generate_my_events(filename, n_events=1):
     data_sets["zeniths"] = np.ones(n_events)
 
     # define the emitter positions. X/Y are the easting/northing coordinates of the SPICE core in the permittivity coordinate system
-    data_sets["xx"] = np.ones(n_events) * -2338 * units.m
-    data_sets["yy"] = np.ones(n_events) * -540 * units.m
+    data_sets["xx"] = np.ones(n_events) * 0 * units.m
+    data_sets["yy"] = np.ones(n_events) * -3200 * units.m
+    
     # simualte different depth
     if n_events == 1:
-        data_sets["zz"] = np.array([-1000., -1400]) * units.m
+        data_sets["zz"] = np.array([-1400., -1400]) * units.m
     else:
         data_sets["zz"] = -np.linspace(0, 1800, n_events) * units.m
+    
     data_sets["event_group_ids"] = np.arange(n_events)
     data_sets["shower_ids"] = np.arange(n_events)
     data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)

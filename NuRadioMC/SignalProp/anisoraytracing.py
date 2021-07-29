@@ -13,6 +13,7 @@ from multiprocessing import Process, Queue
 
 from NuRadioMC.SignalProp import analyticraytracing
 from NuRadioMC.utilities import medium
+from radiotools import helper as hp
 
 #import NuRadioReco.framework.parameters.electricFieldParameters
 
@@ -37,7 +38,8 @@ class aniso_ray_tracing:
                   3: 'reflected'}
 
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
-                 n_frequencies_integration=6, config=None, n_reflections=0, detector=None):
+                 n_frequencies_integration=6, config=None, n_reflections=0, detector=None,
+                 guess_medium=medium.get_ice_model('ARAsim_southpole')):
         """
         class initilization
 
@@ -60,8 +62,8 @@ class aniso_ray_tracing:
             is obtained via linear interpolation.
 
         """
-        self.__anisorays = rays(medium)
         self.__config = config
+        self.__anisorays = rays(medium, guess_medium=guess_medium, par=self.__config['propagation']['par'])
 
     def set_start_and_end_point(self, x1, x2):
         """
@@ -263,7 +265,7 @@ class aniso_ray_tracing:
         """
         return self.__anisorays.get_path_length(*self._index_to_tuple(iS))
 
-    def get_travel_time(self, iS, analytic=False):
+    def get_travel_time(self, iS, analytic=True):
         """
         calculates the travel time of solution iS
 
@@ -355,7 +357,11 @@ class aniso_ray_tracing:
         efield: ElectricField object
             The modified ElectricField object
         """
-        #print(efield.get_parameter(electricFieldParameters.polarization_angle))
+        
+        #print(self.__anisorays.get_initial_E_pol(*self._index_to_tuple(i_solution)))
+        theta, phi = hp.cartesian_to_spherical(*self.__anisorays.get_initial_E_pol(*self._index_to_tuple(i_solution)))
+        trace = np.outer([0, theta, phi], efield.get_frequency_spectrum()[:-1])
+        efield.set_trace(trace, efield.get_sampling_rate())
         return efield
 
     def get_output_parameters(self):
@@ -382,7 +388,7 @@ class aniso_ray_tracing:
     def get_raytracing_output(self, i_solution):
         """
         Write parameters that are specific to this raytracer into the output data.
-
+#
         Parameters:
         ---------------
         i_solution: int
@@ -534,18 +540,25 @@ class ray:
             
             if self._reflected:
                 idxtmp = np.where(self._ray.y[2, :] == 0.)[0][0]
-                print('reflected index', idxtmp)
+                #print('reflected index', idxtmp)
                 self._reflect_angle = np.arccos(self._unitvect(np.array(self._ray.y[0:3, idxtmp+1] - self._ray.y[0:3, idxtmp])))
 
             self.initial_wavefront = self._unitvect(np.array(self._ray.y[3:6, 0]))
             self.final_wavefront = self._unitvect(np.array(self._ray.y[3:6, -1]))
             
+            self._initial_E_pol, self._initial_B_pol = self._get_pols(0)
+            self._final_E_pol, self._final_B_pol = self._get_pols(-1)
+            
+            if self._reflected:
+                self._solution_type = 3
+            else:
+                if self.zf < np.max(self._ray.y[2, :]):
+                    self._solution_type = 2
+                else:
+                    self._solution_type = 1
 
-            self.initial_E_pol, self.initial_B_pol = self._get_pols(0)
-            self.final_E_pol, self.final_B_pol = self._get_pols(-1)
-
-    def get_ray_parallel(self, q, sguess, phiguess, thetaguess, thetabound):
-        q.put(self.get_ray(sguess, phiguess, thetaguess, thetabound)) 
+    def get_ray_parallel(self, q, sguess, phiguess, thetaguess):
+        q.put(self.get_path(sguess, phiguess, thetaguess))
 
     def hit_top(self, s, u):
         return u[2]
@@ -900,10 +913,11 @@ class rays(ray):
         finds all 4 solutions: 1 refracted and 1 direct for each of the 2 ntype calculations
     '''
 
-    def __init__(self, eps, dr=None, par=False):
+    def __init__(self, eps, dr=None, par=False, guess_medium = medium.get_ice_model('ARAsim_southpole')):
         #naming convention is r_ik, i = ntype, k = raytype
         self.__eps = eps
         self.__par = par
+        self.__guess_medium = guess_medium
     
     def set_start_and_end_point(self, x1, x2):
         self.__x0, self.__y0, self.__z0 = x1
@@ -916,7 +930,7 @@ class rays(ray):
                         self.__xf, self.__yf, self.__zf, i, k, self.__eps)
 
     def set_guess(self):
-        g = analyticraytracing.ray_tracing(medium.get_ice_model('ARAsim_southpole'), n_frequencies_integration = 1)
+        g = analyticraytracing.ray_tracing(self.__guess_medium, n_frequencies_integration = 1)
         g.set_start_and_end_point(np.array([self.__x0, self.__y0, self.__z0]), np.array([self.__xf, self.__yf, self.__zf]))
         g.find_solutions()
         self.sg1, self.sg2 = g.get_path_length(0), g.get_path_length(1)

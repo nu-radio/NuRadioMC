@@ -15,9 +15,9 @@ signal:
   ePhi: 0.5  # only used if 'polarization = custom', fraction of ePhi component, the eTheta component is eTheta = (1 - ePhi**2)**0.5
 
 propagation:
-    #module: aniso_ray
-  module: analytic
-  ice_model: southpole_2015
+  module: aniso_ray
+  #module: analytic
+  ice_model: ARAsim_southpole
   attenuation_model: SP1
   attenuate_ice: True
   n_freq: 25

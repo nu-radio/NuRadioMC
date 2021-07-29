@@ -48,7 +48,7 @@ class mySimulation(simulation.simulation):
                            threshold_low=-0.5*units.mV,
                            number_concidences=1,
                            triggered_channels=range(16))
-        triggerTimeAdjuster.run(evt, station, det)
+        #triggerTimeAdjuster.run(evt, station, det)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
