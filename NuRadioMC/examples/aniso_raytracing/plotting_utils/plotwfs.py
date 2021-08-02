@@ -18,15 +18,13 @@ logging.basicConfig(level=logging.INFO)
 parser = argparse.ArgumentParser(description='NuRadioSim file')
 parser.add_argument('inputfilename', type=str,
                     help='path to NuRadioMC simulation result')
+parser.add_argument('outputfilename', type=str,
+                    help='path to plotwf.py output result')
 args = parser.parse_args()
 
 # initialize modules
 eventReader = NuRadioReco.modules.io.eventReader.eventReader()
 eventReader.begin(args.inputfilename)
-
-#fig, ax = plt.subplots(nrows = 4, ncols = 4)
-
-#a = np.zeros((4,4))
 
 fig, ax = plt.subplots(nrows = 2, ncols = 4, figsize=[16,9])
 
@@ -73,7 +71,7 @@ for event in eventReader.run():
                 for i in range(8):
                     print('ch '+str(8+i)+' and '+str(i), maxtimes[8+i] - maxtimes[i])
 
-fig.suptitle('deep -> ARA02')
+#fig.suptitle('deep -> ARA02')
 fig.tight_layout()
 #plt.show()
-plt.savefig('../waveforms/deep_to_ARA02_test.pdf')
+plt.savefig(args.outputfilename+'.pdf')

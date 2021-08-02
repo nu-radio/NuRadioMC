@@ -8,16 +8,13 @@ from scipy.optimize import minimize, curve_fit, root, root_scalar, OptimizeResul
 from scipy.constants import speed_of_light
 from scipy.linalg import null_space
 from scipy.interpolate import interp1d
-
 from multiprocessing import Process, Queue
 
 from NuRadioMC.SignalProp import analyticraytracing
 from NuRadioMC.utilities import medium
 from radiotools import helper as hp
+from NuRadioMC.utilities import attenuation as attenuation_util
 
-#import NuRadioReco.framework.parameters.electricFieldParameters
-
-from NuRadioReco.framework.parameters import electricFieldParameters
 
 solution_types = {1: 'direct',
                   2: 'refracted',
@@ -64,6 +61,16 @@ class aniso_ray_tracing:
         """
         self.__config = config
         self.__anisorays = rays(medium, guess_medium=guess_medium, par=self.__config['propagation']['par'])
+        
+        self.__attenuation_model = attenuation_model
+        self.__n_frequencies_integration = n_frequencies_integration
+        self.__max_detector_frequency = None
+        self.__detector = detector
+        if self.__detector is not None:
+            for station_id in self.__detector.get_station_ids():
+                sampling_frequency = self.__detector.get_sampling_frequency(station_id, 0)
+                if self.__max_detector_frequency is None or sampling_frequency * .5 > self.__max_detector_frequency:
+                    self.__max_detector_frequency = sampling_frequency * .5
 
     def set_start_and_end_point(self, x1, x2):
         """
@@ -180,7 +187,7 @@ class aniso_ray_tracing:
         """
         return self.__anisorays.get_solution_type(*self._index_to_tuple(iS))
 
-    def get_path(self, iS, n_points=1000):
+    def get_path(self, iS):
         """
         helper function that returns the 3D ray tracing path of solution iS
 
@@ -188,8 +195,6 @@ class aniso_ray_tracing:
         ----------
         iS: int
             ray tracing solution
-        n_points: int
-            number of points of path
         """
         return self.__anisorays.get_path(*self._index_to_tuple(iS))
 
@@ -285,6 +290,33 @@ class aniso_ray_tracing:
         """
         return self.__anisorays.get_travel_time(*self._index_to_tuple(iS))
 
+    def get_frequencies_for_attenuation(self, frequency, max_detector_freq):
+        """
+        helper function to get the frequencies for applying attenuation
+        Parameters
+        ----------
+        frequency: array of float of dim (n,)
+            frequencies of the signal
+        max_detector_freq: float or None
+            the maximum frequency of the final detector sampling
+            (the simulation is internally run with a higher sampling rate, but the relevant part of the attenuation length
+            calculation is the frequency interval visible by the detector, hence a finer calculation is more important)
+        Returns
+        -------
+        freqs: array of float of dim (m,)
+             the frequencies for which the attenuation is calculated
+        """
+        mask = frequency > 0
+        nfreqs = min(self.__n_frequencies_integration, np.sum(mask))
+        freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), nfreqs)
+        if(nfreqs < np.sum(mask) and max_detector_freq is not None):
+            mask2 = frequency <= max_detector_freq
+            nfreqs2 = min(self.__n_frequencies_integration, np.sum(mask2 & mask))
+            freqs = np.linspace(frequency[mask2 & mask].min(), frequency[mask2 & mask].max(), nfreqs2)
+            if(np.sum(~mask2)>1):
+                freqs = np.append(freqs, np.linspace(frequency[~mask2].min(), frequency[~mask2].max(), nfreqs // 2))
+        return freqs
+
     def get_attenuation(self, iS, frequency, max_detector_freq=None):
         """
         calculates the signal attenuation due to attenuation in the medium (ice)
@@ -310,7 +342,6 @@ class aniso_ray_tracing:
             (only ice attenuation, the 1/R signal falloff not considered here)
         """
         
-        '''
         # bob oeyen's attenuation code
 
         n = self.get_number_of_solutions()
@@ -325,10 +356,10 @@ class aniso_ray_tracing:
         integral = np.zeros(len(freqs))
         
         def dt(depth, freqs):
-            ds = np.sqrt((path[:, 0][depth] - path[:, 0][depth+1])**2 + (path[:, 1][depth] - path[:, 1][depth+1])**2 + (path[:, 2][depth] - path[:, 2][depth+1])**2) # get step size
-            return ds / attenuation_util.get_attenuation_length(path[:, 2][depth], freqs, self.__attenuation_model)
+            ds = np.sqrt((path.y[:, 0][depth] - path.y[:, 0][depth+1])**2 + (path.y[:, 1][depth] - path.y[:, 1][depth+1])**2 + (path.y[:, 2][depth] - path.y[:, 2][depth+1])**2) # get step size
+            return ds / attenuation_util.get_attenuation_length(path.y[:, 2][depth], freqs, self.__attenuation_model)
         
-        for z_position in range(len(path[:, 2]) - 1):
+        for z_position in range(len(path.y[:, 2]) - 1):
             integral += dt(z_position, freqs)
         
         att_func = interp1d(freqs, integral)
@@ -336,9 +367,8 @@ class aniso_ray_tracing:
         attenuation = np.ones_like(frequency)
         tmp = np.exp(-1 * tmp)
         attenuation[mask] = tmp
-        '''
         
-        return np.ones(len(self.get_path().t))
+        return attenuation
 
     def apply_propagation_effects(self, efield, i_solution):
         """
@@ -358,9 +388,22 @@ class aniso_ray_tracing:
             The modified ElectricField object
         """
         
+        spec = efield.get_frequency_spectrum()
+        if self.__config is None:
+            apply_attenuation = True
+        else:
+            apply_attenuation = self.__config['propagation']['attenuate_ice']
+        if apply_attenuation:
+            if self.__max_detector_frequency is None:
+                max_freq = np.max(efield.get_frequencies())
+            else:
+                max_freq = self.__max_detector_frequency
+            attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
+            spec *= attenuation
+
         #print(self.__anisorays.get_initial_E_pol(*self._index_to_tuple(i_solution)))
         theta, phi = hp.cartesian_to_spherical(*self.__anisorays.get_initial_E_pol(*self._index_to_tuple(i_solution)))
-        trace = np.outer([0, theta, phi], efield.get_frequency_spectrum()[:-1])
+        trace = np.outer([0, theta, phi], spec[:-1])
         efield.set_trace(trace, efield.get_sampling_rate())
         return efield
 
@@ -849,9 +892,8 @@ class ray:
 
         if self._ray.t == []:
             minsol = root(self._rootfn, [sf, phi, theta], method='lm', options={'ftol':1e-10, 'xtol':1e-12, 'maxiter':100, 'eps':1e-7, 'diag':[1/1e3, 1/1e-8, 1], 'factor':10})
-            print(self.ntype, self.raytype, minsol.success, minsol.message)
+            #print(self.ntype, self.raytype, minsol.success, minsol.message)
             self.copy_ray(self.shoot_ray(*minsol.x))
-            
             if self._reflected:
                 self._solution_type = 3
             else:
@@ -867,7 +909,7 @@ class ray:
     def get_path(self, sg, phig, thetag):
         if self._ray.t == []:     
             self._get_ray(sg, phig, thetag)
-            #print(self.ntype, self.raytype, self.xf, self.yf, self.zf, self.ray.y[0, -1], self.ray.y[1,-1], self.ray.y[2,-1])
+            print(self.ntype, self.raytype, np.sqrt((self.xf - self._ray.y[0, -1])**2 + (self.yf - self._ray.y[1,-1])**2 + (self.zf - self._ray.y[2,-1])**2))
             return self._ray
         else:
             return self._ray
