@@ -389,6 +389,7 @@ class aniso_ray_tracing:
         """
         
         spec = efield.get_frequency_spectrum()
+        #print(efield.get_trace().shape)
         if self.__config is None:
             apply_attenuation = True
         else:
@@ -401,10 +402,28 @@ class aniso_ray_tracing:
             attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
             spec *= attenuation
 
-        #print(self.__anisorays.get_initial_E_pol(*self._index_to_tuple(i_solution)))
-        theta, phi = hp.cartesian_to_spherical(*self.__anisorays.get_initial_E_pol(*self._index_to_tuple(i_solution)))
-        trace = np.outer([0, theta, phi], spec[:-1])
+        epol_cartesian = self.__anisorays.get_final_E_pol(*self._index_to_tuple(i_solution))
+        theta, phi = hp.cartesian_to_spherical(*epol_cartesian)
+        rho = 1 #epol vectors are normalized
+        epol_spherical = np.array([rho, theta, phi]/np.linalg.norm([rho, theta, phi]))
+        
+        trace = efield.get_trace()
+        # test pol separation
+        '''
+        tup = self._index_to_tuple(i_solution)
+        if tup[1] == 0:
+            epol_spherical = [0, 1, 0]
+        elif tup[1] == 1:
+            epol_spherical = [0, 0, 1]
+        '''
+        for i in range(spec.shape[0]):
+            trace[i, :] *= epol_spherical[i]
+        
+        
+
+        efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         efield.set_trace(trace, efield.get_sampling_rate())
+        #print(efield.get_frequency_spectrum().shape)
         return efield
 
     def get_output_parameters(self):
