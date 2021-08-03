@@ -7,6 +7,7 @@ import NuRadioReco.utilities.geometryUtilities
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
+from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 import radiopropa
 import scipy.constants 
 import copy
@@ -151,7 +152,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             self._logger.error('sphere_sizes array should be 1 dimensional')
             raise ValueError('sphere_sizes array should be 1 dimensional')
 
-    def set_iterative_step_sizes(self, step_sizes=np.array([.5, .05, .01])*units.degree):
+    def set_iterative_step_sizes(self, step_sizes=np.array([.5, .05, .005])*units.degree):
         """
         Set the steps_sizes for the iterative ray tracer
 
@@ -305,10 +306,12 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
             for theta in theta_scanning_range:
                 ray_dir = hp.spherical_to_cartesian(theta, phi_direct)
-                viewing = np.arccos(np.dot(self._shower_axis, ray_dir)) * units.radian
-                delta = viewing - cherenkov_angle
-                #only include rays with angle wrt cherenkov angle smaller than the cut in the config file
-                if (abs(delta) < self._cut_viewing_angle):
+                
+                def delta(ray_dir,shower_dir):
+                    viewing = np.arccos(np.dot(shower_dir, ray_dir)) * units.radian
+                    return viewing - cherenkov_angle
+
+                if (self.__shower_axis is None) or (abs(delta(ray_dir,self.__shower_axis)) < self.__cut_viewing_angle):
                     source = radiopropa.Source()
                     source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*X1)))
                     source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*ray_dir)))
