@@ -43,6 +43,7 @@ in the a RadioPropaIceWrapper object, you can do this by redefining the
             ice.add_module(extra_discontinuity)
             return ice
 """
+logger = logging.getLogger('ice_model')
 
 class southpole_simple(medium_base.IceModelSimple):
     def __init__(self):
