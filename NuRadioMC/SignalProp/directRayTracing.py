@@ -33,7 +33,7 @@ class direct_ray_tracing(ray_tracing_base):
         return solution_types_revert['direct']
     
     def get_path(self, iS, n_points = 1000):
-        delta_x = self._x2-self._x1/n_points
+        delta_x =(self._x2-self._x1)/n_points
         path = [[],[],[]]
         for i in range(n_points+1):
             for j in range(3):
