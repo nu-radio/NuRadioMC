@@ -158,8 +158,8 @@ class radiopropa_ray_tracing:
 
         Parameters
         ----------
-        parameter_name: string
-                        name of the parameter to set
+        function_name: string
+                       name of the function to use
         *args: type of the argument required by function
                all the neseccary arguments for the function separated by a comma
         **kwargs: type of keyword argument of function
@@ -203,7 +203,7 @@ class radiopropa_ray_tracing:
             self.__logger.error('sphere_sizes array should be 1 dimensional')
             raise ValueError('sphere_sizes array should be 1 dimensional')
 
-    def set_iterative_step_sizes(self, step_sizes=np.array([.5, .05, .01])*units.degree):
+    def set_iterative_step_sizes(self, step_sizes=np.array([.5, .05, .005])*units.degree):
         """
         Set the steps_sizes for the iterative ray tracer
 

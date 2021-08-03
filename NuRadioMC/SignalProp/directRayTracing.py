@@ -20,7 +20,7 @@ class directRayTracing():
     
     
     
-    def __init__(self, medium, attenuation_model , log_level, n_frequencies_integration, n_reflections , config, detector = None):
+    def __init__(self, medium, attenuation_model = None , log_level = None, n_frequencies_integration = None, n_reflections = None , config = None, detector = None):
         self._medium = medium
         self._attenuation_model = attenuation_model
         self._results = None
@@ -33,19 +33,30 @@ class directRayTracing():
         self._x1 = x1
         self._x2 = x2
 
-    def set_optional_parameter(self,parameter_name,parameter_value=None):
+    def use_optional_function(self, function_name, *args, **kwargs):
         """
-        Set additional parameters which may be different for each ray tracer. 
-        If the name if not present for the ray tracer the function does nothing.
+        Use optional function which may be different for each ray tracer. 
+        If the name of the function is not present for the ray tracer this function does nothing.
 
         Parameters
         ----------
-        parameter_name: string
-                        name of the parameter to set
-        parameter_value: object of right type for parameter
-                         value the parameter should be set to
+        function_name: string
+                       name of the function to use
+        *args: type of the argument required by function
+               all the neseccary arguments for the function separated by a comma
+        **kwargs: type of keyword argument of function
+                  all all the neseccary keyword arguments for the function in the
+                  form of key=argument and separated by a comma
+
+        Example
+        -------
+        use_optional_function('set_shower_axis',np.array([0,0,1]))
+        use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
         """
-        pass
+        if not hasattr(self,function_name):
+            pass
+        else:
+            getattr(self,function_name)(*args,**kwargs)
         
     def find_solutions(self):
         results = []
@@ -78,7 +89,7 @@ class directRayTracing():
         return 1
     
     def get_path(self, iS, n_points = 1000):
-        delta_x = self._x2-self._x1/n_points
+        delta_x =(self._x2-self._x1)/n_points
         path = [[],[],[]]
         for i in range(n_points+1):
             for j in range(3):
