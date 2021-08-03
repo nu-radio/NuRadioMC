@@ -417,9 +417,7 @@ class aniso_ray_tracing:
             epol_spherical = [0, 0, 1]
         '''
         for i in range(spec.shape[0]):
-            trace[i, :] *= epol_spherical[i]
-        
-        
+            trace[i, :] *= epol_spherical[i] 
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         efield.set_trace(trace, efield.get_sampling_rate())
@@ -518,7 +516,7 @@ class ray:
                 NOTE: B and H are parallel since the permeability = 1, generally this is not true
     '''
 
-    def __init__(self, x0, y0, z0, xf, yf, zf, ntype, raytype, eps, label=None):
+    def __init__(self, x0, y0, z0, xf, yf, zf, ntype, raytype, medium, label=None):
         '''
             initializes object
             
@@ -554,28 +552,11 @@ class ray:
             print(ntype)
             raise RuntimeError('Please enter a valid index of refraction type (1 or 2)')
         
-        #TODO: implement permittivity interface with NRMC
-        #self.eps = eps
-        
-        #self.eps = lambda a : (1.78-0.43*np.exp(-0.0132*np.abs(a[2])))**2*np.eye(3)
-        
-        def eps(pos):
-            z = -np.abs(pos[2])
-            
-            n11, n22, n33 = 1.7771, 1.7812, 1.7817
-            
-            #from dataset, flow dir
-            nice1 = lambda z:  n11 + (1.35 - n11)*np.exp(0.0132*z)
-            nice2 = lambda z:  n22 + (1.35 - n22)*np.exp(0.0132*z)
-            nice3 = lambda z:  n33 + (1.35 - n33)*np.exp(0.0132*z)
-            
-            n = np.array([[nice1(z), 0., 0.],
-                [0., nice2(z), 0.],
-                [0., 0., nice3(z)]])
-
-            return n**2
-
-        self.eps = eps
+        self.medium = medium
+        if self.medium.aniso:
+            self.eps = self.medium.get_permittivity_tensor
+        else:
+            self.eps = lambda r : (self.medium.get_index_of_refraction(r))**2
 
         self._travel_time = 0.
         self._path_length = 0.
@@ -728,27 +709,21 @@ class ray:
     
     def n(self, r, rdot):
         '''
-            computes |p| = n using formula given in Chen
+            chooses index of refraction based on 
 
             r : position
             rdot : p direction
         '''
-
-        tmp = self.eps(r)
-        if not isinstance(tmp, np.ndarray):
-            return np.sqrt(tmp)
-        else:
-            rdot = rdot/np.linalg.norm(rdot)
-            A = rdot @ self.eps(r) @ rdot
-            B = rdot @ (np.trace(self.adj(self.eps(r)))*np.eye(3) - self.adj(self.eps(r))) @ rdot
-            C = np.linalg.det(self.eps(r))
-            discr = (B + 2*np.sqrt(A*C))*(B - 2*np.sqrt(A*C))
-            ntmp = (B + np.sqrt(np.abs(discr)))/(2*A)
-            
+        
+        if self.medium.aniso:
+            n1, n2 = self.medium.get_index_of_refraction(r, rdot)
             if self.ntype == 1:
-                return np.sqrt(C/(ntmp*A))
+                return n1
             if self.ntype == 2:
-                return np.sqrt(ntmp)
+                return n2
+        else:
+            return self.medium.get_index_of_refraction(r)
+
 
     def shoot_ray(self, sf, phi0, theta0, solver='RK45'): 
         '''
@@ -966,7 +941,6 @@ class ray:
     def get_reflect_angle(self):
         return self._reflect_angle
 
-
 class rays(ray):
     '''
         wrapper for ray class
@@ -974,9 +948,9 @@ class rays(ray):
         finds all 4 solutions: 1 refracted and 1 direct for each of the 2 ntype calculations
     '''
 
-    def __init__(self, eps, dr=None, par=False, guess_medium = medium.get_ice_model('ARAsim_southpole')):
+    def __init__(self, medium, dr=None, par=False, guess_medium = medium.get_ice_model('ARAsim_southpole')):
         #naming convention is r_ik, i = ntype, k = raytype
-        self.__eps = eps
+        self.__medium = medium
         self.__par = par
         self.__guess_medium = guess_medium
     
@@ -988,7 +962,7 @@ class rays(ray):
         for i in [1,2]:
             for k in [1,2]:
                 self.r[i-1, k-1] = ray(self.__x0, self.__y0, self.__z0, 
-                        self.__xf, self.__yf, self.__zf, i, k, self.__eps)
+                        self.__xf, self.__yf, self.__zf, i, k, self.__medium)
 
     def set_guess(self):
         g = analyticraytracing.ray_tracing(self.__guess_medium, n_frequencies_integration = 1)

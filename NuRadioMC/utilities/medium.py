@@ -235,8 +235,180 @@ class greenland_firn(medium_base.IceModel):
         return ice
 
 
+class southpole_spice_aniso(medium_base.IceModel):
+    
+    aniso = True
+
+    def __init__(self, z_air_boundary=0*units.meter, z_bottom=-2700*units.meter):
+        """
+        initiaion of a basic ice model
+        The bottom defined here is a boundary condition used in simulations and
+        should always be defined. Note: it is not the same as reflective bottom.
+        The latter can be added using the `add_reflective_layer` function.
+        Parameters
+        ---------
+        z_air_boundary:  float, NuRadio length units
+                         z coordinate of the surface of the glacier
+        z_bottom:  float, NuRadio length units
+                   z coordinate of the bedrock/bottom of the glacier.
+        """
+        self.z_air_boundary = z_air_boundary
+        self.z_bottom = z_bottom
+
+    def add_reflective_bottom(self, refl_z, refl_coef, refl_phase_shift):
+        """
+        function which adds a reflective bottom to your ice model
+        Parameters
+        ---------
+        refl_z:  float, NuRadio length units
+                 z coordinate of the bottom reflective layer
+        refl_coef:  float between 0 and 1
+                    fraction of the electric field that gets reflected
+        refl_phase_shift:  float, NuRadio angukar units
+                           phase shift that the reflected electric field receives
+        """
+        self.reflection = refl_z
+        self.reflection_coefficient = refl_coef
+        self.reflection_phase_shift = refl_phase_shift
+
+        if not ((self.z_bottom != None) and (self.z_bottom < self.reflection)):
+            # bottom should always be below the reflective layer
+            self.z_bottom = self.reflection - 1*units.m
+    
+    def get_permittivity_tensor(self, position):
+        """
+        return the permitity tensor at a position, at each position the tensor must be symmetric positive definite
+        
+        based off of SPICE c-axis data, the ARAsim functional form, and the models in Jordan et al 
+        TODO: properly cite
+
+        Parameters
+        ---------
+        position: 1x3 array containing x,y,z cartesian coordinates
+
+        Returns:
+        ---------
+        eps: 3x3 numpy array of floats, the permittivity tensor
+        """
+        
+        def eps(pos):
+            z = -np.abs(pos[2])
+
+            n11, n22, n33 = 1.7771, 1.7812, 1.7817
+
+            #from dataset, flow dir
+            nice1 = lambda z:  n11 + (1.35 - n11)*np.exp(0.0132*z)
+            nice2 = lambda z:  n22 + (1.35 - n22)*np.exp(0.0132*z)
+            nice3 = lambda z:  n33 + (1.35 - n33)*np.exp(0.0132*z)
+
+            n = np.array([[nice1(z), 0., 0.],
+                [0., nice2(z), 0.],
+                [0., 0., nice3(z)]])
+
+            return n**2
+
+        return eps(position)
+    
+    def adj(self, A):
+        '''computes the adjugate for a 3x3 matrix'''
+        return 0.5*np.eye(3)*(np.trace(A)**2 - np.trace(A@A)) - np.trace(A)*A + A@A
+
+    def get_index_of_refraction(self, *args):
+        """
+        returns the 2 indices of refraction at position for a given wave direction.
+
+        Reimplement everytime in the specific model
+        Parameters
+        ---------
+        position:  3dim np.array
+                    point
+        
+        direction: 3dim np.array
+                    point
+
+        Returns:
+        --------
+        n1:  float
+            1st index of refraction
+
+        n2:  float
+            2nd index of refraction
+        """
+        '''
+            computes |p| = n using formula given in Chen
+
+            r : position
+            rdot : p direction
+        '''
+        
+        if len(args) == 1:
+            #this is based off the ARAsim model, use this for the cherenkov angle
+            return get_ice_model('ARAsim_southpole').get_index_of_refraction(args[0])
+        elif len(args) == 2:
+            position, direction = args
+            eps = self.get_permittivity_tensor(position)
+
+            rdot = direction/np.linalg.norm(direction)
+            A = rdot @ eps @ rdot
+            B = rdot @ (np.trace(self.adj(eps))*np.eye(3) - self.adj(eps)) @ rdot
+            C = np.linalg.det(eps)
+            discr = (B + 2*np.sqrt(A*C))*(B - 2*np.sqrt(A*C))
+            ntmp = (B + np.sqrt(np.abs(discr)))/(2*A)
+            
+            n1, n2 = np.sqrt(C/(ntmp*A)), np.sqrt(ntmp)
+
+            return n1, n2
+        else:
+            logger.error('function not defined for parameters given')
+            raise NotImplementedError('function not defined for parameters given')
+
+    def get_average_index_of_refraction(self, position1, position2):
+        """
+        returns the average index of refraction between two points
+        Reimplement everytime in the specific model
+        Parameters
+        ----------
+        position1: 3dim np.array
+                    point
+        position2: 3dim np.array
+                    point
+        Returns
+        -------
+        n_average:  float
+                    averaged index of refraction between the two points
+        """
+        logger.error('function not defined')
+        raise NotImplementedError('function not defined')
+
+    def get_gradient_of_index_of_refraction(self, position):
+        """
+        returns the gradient of index of refraction at position
+        Reimplement everytime in the specific model
+        Parameters
+        ----------
+        position: 3dim np.array
+                    point
+        Returns
+        -------
+        n_nabla:    (3,) np.array
+                    gradient of index of refraction at the point
+        """
+        logger.error('function not defined')
+        raise NotImplementedError('function not defined')
 
 
+    def get_ice_model_radiopropa(self):
+        """
+        if radiopropa is installed this will a RadioPropaIceWrapper object
+        which can then be used to insert in the radiopropa tracer
+        """
+        if radiopropa_is_imported:
+            # when implementing a new ice_model this part of the function should be ice model specific
+            logger.error('function not defined')
+            raise NotImplementedError('function not defined')
+        else:
+            logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
+            raise ImportError('RadioPropa could not be imported')
 
 def get_ice_model(name):
     """
