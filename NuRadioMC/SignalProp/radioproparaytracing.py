@@ -42,7 +42,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
     that have only changing refractive index in z. More information on RadioPropa and
     how to install it can be found at https://github.com/nu-radio/RadioPropa"""
 
-    def __init__(self, medium, attenuation_model="GL1", log_level=logging.WARNING,
+    def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=100, n_reflections=0, config=None, detector=None):
 
         """
