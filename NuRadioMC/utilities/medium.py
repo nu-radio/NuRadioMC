@@ -129,6 +129,42 @@ class greenland_firn(medium_base.IceModel):
     Therefor, the model is implemented through radiopropa.
     """
     def __init__(self):
+        """
+        initiation of a double exponential ice model at summit, Greenland
+
+        The bottom defined here is a boundary condition used in simulations and
+        should always be defined. Note: it is not the same as reflective bottom.
+        The latter can be added using the `add_reflective_layer` function.
+
+        The z_shift is a variable introduced to be able to shift the exponential
+        up or down along the z direction. For simple models this is almost never
+        but it is used to construct more complex ice models which rely on exp.
+        profiles also
+
+        Parameters
+        ---------
+        z_air_boundary:  float, NuRadio length units
+                         z coordinate of the surface of the glacier
+        z_bottom:  float, NuRadio length units
+                   z coordinate of the bedrock/bottom of the glacier.
+        z_firn:  float, NuRadio length units
+                 z coordinate of the transition from the upper 
+                 exponential profile to the lower one
+
+        The following parameters can be found without (lower)
+        and with (upper) the suffix of `_firn`
+
+        n_ice:  float, dimensionless
+                refractive index of the deep bulk ice
+        delta_n:  float, NuRadio length units
+                  difference between n_ice and the refractive index
+                  of the snow at the surface
+        z_0:  float, NuRadio length units
+              scale depth of the exponential
+        z_shift:  float, NuRadio length units
+                  up or down shift od the exponential profile
+        """
+
         if not medium_base.radiopropa_is_imported:
             medium_base.logger.error('This ice model depends fully on RadioPropa, which was not import, and can therefore not be used.'+
                                      '\nMore info on https://github.com/nu-radio/RadioPropa')
@@ -140,11 +176,11 @@ class greenland_firn(medium_base.IceModel):
         self._scalarfield = RP.IceModel_Firn(
             z_surface = self.z_air_boundary*RP.meter/units.meter,
             z_firn = self.z_firn*RP.meter/units.meter, 
-            n_ice = 1.775,  
+            n_ice = 1.78,  
             delta_n = 0.310,  
             z_0 = 40.9*RP.meter,
             z_shift = -14.9*RP.meter,
-            n_ice_firn = 1.775,
+            n_ice_firn = 1.78,
             delta_n_firn = 0.502, 
             z_0_firn = 30.8*RP.meter,
             z_shift_firn = 0.*RP.meter,
@@ -209,7 +245,7 @@ class greenland_firn(medium_base.IceModel):
         return self._scalarfield.getGradient(pos) * (1 / (units.meter/RP.meter))
 
     
-    def get_ice_model_radiopropa(self, discontinuity=False):
+    def get_ice_model_radiopropa(self):
         """
         Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
         that define the medium in radiopropa. It uses the parameters of the medium object to 
@@ -224,14 +260,6 @@ class greenland_firn(medium_base.IceModel):
                 object holding the radiopropa scalarfield and modules
         """
         ice = medium_base.RadioPropaIceWrapper(self, self._scalarfield)
-        if discontinuity == True:
-            firn_boundary_pos = RP.Vector3d(0, 0, self.z_firn * (RP.meter/units.meter))
-            step = RP.Vector3d(0, 0, 1e-9*RP.meter)
-            firn_boundary = RP.Discontinuity(RP.Plane(firn_boundary_pos, RP.Vector3d(0,0,1)), 
-                                             self._scalarfield.getValue(firn_boundary_pos-step),
-                                             self._scalarfield.getValue(firn_boundary_pos+step),
-                                             )
-            ice.add_module('firn boudary', firn_boundary)
         return ice
 
 
