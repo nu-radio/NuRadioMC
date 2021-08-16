@@ -14,6 +14,7 @@ from NuRadioMC.SignalProp import analyticraytracing
 from NuRadioMC.utilities import medium
 from radiotools import helper as hp
 from NuRadioMC.utilities import attenuation as attenuation_util
+from NuRadioReco.utilities import units
 
 
 solution_types = {1: 'direct',
@@ -388,8 +389,8 @@ class aniso_ray_tracing:
             The modified ElectricField object
         """
         
+        #apply attenuation using isotropic approximation
         spec = efield.get_frequency_spectrum()
-        #print(efield.get_trace().shape)
         if self.__config is None:
             apply_attenuation = True
         else:
@@ -402,26 +403,41 @@ class aniso_ray_tracing:
             attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
             spec *= attenuation
 
+        zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
+        for zenith_reflection in zenith_reflections:  # loop through all possible reflections
+            if (zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
+                continue
+            r_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
+                zenith_reflection, n_2=1., n_1=self.__medium.get_index_of_refraction([self.__X2[0], self.__X2[1], -1 * units.cm]))
+            r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
+                zenith_reflection, n_2=1., n_1=self.__medium.get_index_of_refraction([self.__X2[0], self.__X2[1], -1 * units.cm]))
+            efield[efp.reflection_coefficient_theta] = r_theta
+            efield[efp.reflection_coefficient_phi] = r_phi
+
+            spec[1] *= r_theta
+            spec[2] *= r_phi
+            self.__logger.debug(
+                "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
+                    zenith_reflection / units.deg,
+                    r_theta, r_phi))
+        
+        # apply the focusing effect
+        if self.__config['propagation']['focusing']:
+            focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
+            spec[1:] *= focusing
+        
+        #apply anisotropic propagation effects (i.e. eigenpols)
         epol_cartesian = self.__anisorays.get_final_E_pol(*self._index_to_tuple(i_solution))
         theta, phi = hp.cartesian_to_spherical(*epol_cartesian)
         rho = 1 #epol vectors are normalized
         epol_spherical = np.array([rho, theta, phi]/np.linalg.norm([rho, theta, phi]))
-        
-        trace = efield.get_trace()
-        # test pol separation
-        '''
-        tup = self._index_to_tuple(i_solution)
-        if tup[1] == 0:
-            epol_spherical = [0, 1, 0]
-        elif tup[1] == 1:
-            epol_spherical = [0, 0, 1]
-        '''
-        for i in range(spec.shape[0]):
-            trace[i, :] *= epol_spherical[i] 
 
+        trace = efield.get_trace()
+        for i in range(spec.shape[0]):
+            trace[i, :] *= epol_spherical[i]         
+        
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         efield.set_trace(trace, efield.get_sampling_rate())
-        #print(efield.get_frequency_spectrum().shape)
         return efield
 
     def get_output_parameters(self):
@@ -442,6 +458,8 @@ class aniso_ray_tracing:
             {'name': 'speed_type','ndim': 1},
             {'name': 'launch_vector', 'ndim': 3},
             {'name': 'focusing_factor', 'ndim': 1},
+            {'name': 'ray_tracing_reflection', 'ndim': 1},
+            {'name': 'ray_tracing_reflection_case', 'ndim': 1},
             {'name': 'ray_tracing_solution_type', 'ndim': 1}
         ]
 
@@ -461,11 +479,14 @@ class aniso_ray_tracing:
         """
         
         # focusing is not implemented
+        # bottom reflections are not implemented
 
         output_dict = {
             'speed_type': self._index_to_tuple(i_solution)[1] + 1,
             'launch_vector': self.get_launch_vector(i_solution),
             'focusing_factor': 1,
+            'ray_tracing_reflection': 1.0 if self.get_reflection_angle(i_solution) is not None else 0.0,
+            'ray_tracing_reflection_case': 1.0,
             'ray_tracing_solution_type': self.get_solution_type(i_solution)            
         }
         return output_dict
@@ -576,10 +597,12 @@ class ray:
     def copy_ray(self, odesol):
         if odesol != (None, None):
             self._ray = odesol
-            self._travel_time = 1e9*odesol.y[-1,-1]/speed_of_light
+            self._ray.t *= self._ray.t * units.meter
+            self._ray.y *= self._ray.y * units.meter
+            self._travel_time = 1e9*odesol.y[-1,-1]/speed_of_light * units.nanosecond
             self._path_length = odesol.t[-1]
-            self._launch_vector = self._unitvect(np.array(self._ray.y[0:3, 1] - self._ray.y[0:3, 0]))
-            self._receive_vector = self._unitvect(np.array(self._ray.y[0:3, -1] - self._ray.y[0:3,-2]))
+            self._launch_vector = self._unitvect(np.array(self._ray.y[0:3, 1] - self._ray.y[0:3, 0])) * units.radian
+            self._receive_vector = self._unitvect(np.array(self._ray.y[0:3, -1] - self._ray.y[0:3,-2])) * units.radian
             
             if self._reflected:
                 idxtmp = np.where(self._ray.y[2, :] == 0.)[0][0]
@@ -880,10 +903,6 @@ class ray:
             theta : intial guess for zenith angle
         '''
         
-        def distsqarclen(s):
-            args = np.array([s, phi, theta])
-            return self._distsq(args)
-
         if self._ray.t == []:
             minsol = root(self._rootfn, [sf, phi, theta], method='lm', options={'ftol':1e-10, 'xtol':1e-12, 'maxiter':100, 'eps':1e-7, 'diag':[1/1e3, 1/1e-8, 1], 'factor':10})
             #print(self.ntype, self.raytype, minsol.success, minsol.message)
@@ -938,7 +957,7 @@ class ray:
     def get_receive_vector(self):
         return self._receive_vector
 
-    def get_reflect_angle(self):
+    def get_reflection_angle(self):
         return self._reflect_angle
 
 class rays(ray):
@@ -1041,5 +1060,5 @@ class rays(ray):
     def get_receive_vector(self, i, k):
         return self.r[i, k].get_receive_vector()
 
-    def get_reflect_angle(self, i, k):
-        return self.r[i,k].get_reflect_angle()
+    def get_reflection_angle(self, i, k):
+        return self.r[i,k].get_reflection_angle()
