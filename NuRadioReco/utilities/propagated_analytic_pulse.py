@@ -139,7 +139,7 @@ class simulation():
 		for channel_id in use_channels:
 			self._amp[channel_id] = {}
 			
-			self._amp[channel_id] = hardwareResponseIncorporator.get_filter(self._ff, station.get_id(), channel_id, det, sim_to_data)
+			self._amp[channel_id] = hardwareResponseIncorporator.get_filter(self._ff, station.get_id(), channel_id, det, sim_to_data = sim_to_data)
 				
 		order = 8
 		passband = [20* units.MHz, 1150 * units.MHz]

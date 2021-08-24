@@ -65,7 +65,7 @@ class neutrinoDirectionReconstructor:
         return self._launch_vector_sim
     
     def run(self, event, shower_ids, station, det,
-            use_channels=[6, 14], filenumber = 1, debugplots_path = None, template = False, sim_vertex = True, Vrms = 0.0114, only_simulation = False, ch_Vpol = 6, ch_Hpol = 13, full_station = True, not_brute_force = True):
+            use_channels=[6, 14], filenumber = 1, debugplots_path = None, template = False, sim_vertex = True, Vrms = 0.0114, only_simulation = False, ch_Vpol = 6, ch_Hpol = 13, full_station = True, not_brute_force = True, fixed_timing = False):
 
         
         ## there are 3 options for analytic models for the fit: 
@@ -74,9 +74,9 @@ class neutrinoDirectionReconstructor:
         # - ARZ average model 
         
         
-        only_simulation = False# True#False# if True, no fit is performed, but only the script is tested with the simulated values
+        only_simulation =False#False# if True, no fit is performed, but only the script is tested with the simulated values
 
-        restricted_input = False# For testing, we can restrict the neutrino direction with 10 degrees around the simulated one, (60 energy steps). For 2 channels this takes 6 min. Without restrictring it takes 10 min for 2 channels, (10 energy steps)
+        restricted_input = True# For testing, we can restrict the neutrino direction with 10 degrees around the simulated one, (60 energy steps). For 2 channels this takes 6 min. Without restrictring it takes 10 min for 2 channels, (10 energy steps)
         #station[stnp.nu_vertex] = [0,0,0] 
         not_brute_force  = False
         brute_force =True
@@ -91,7 +91,7 @@ class neutrinoDirectionReconstructor:
         else:
             reconstructed_vertex = station[stnp.nu_vertex]
         print("simulated vertex direction reco", event.get_sim_shower(shower_id)[shp.vertex])
-
+        
         print("reconstructed vertex direction reco", reconstructed_vertex)
         simulation = propagated_analytic_pulse.simulation(template, reconstructed_vertex) ### if the templates are used, than the templates for the correct distance are loaded
         rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1 ## raytype from the triggered pulse
@@ -543,7 +543,7 @@ class neutrinoDirectionReconstructor:
                             ax[ich][0].grid()
                             ax[ich][2].grid()
                             ax[ich][0].plot(channel.get_times(), channel.get_trace(), lw = linewidth, label = 'data', color = 'black')
-                            ax[ich][0].fill_between(timingsim[channel.get_id()][0],tracsim[channel.get_id()][0]- sigma, tracsim[channel.get_id()][0] + sigma, color = 'red', alpha = 0.2 )
+                            #ax[ich][0].fill_between(timingsim[channel.get_id()][0],tracsim[channel.get_id()][0]- sigma, tracsim[channel.get_id()][0] + sigma, color = 'red', alpha = 0.2 )
                             ax[ich][0].fill_between(timingdata[channel.get_id()][0], tracrec[channel.get_id()][0] - self._model_sys*tracrec[channel.get_id()][0], tracrec[channel.get_id()][0] + self._model_sys * tracrec[channel.get_id()][0], color = 'green', alpha = 0.2)
                             ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel.get_id()][0]), 1/sampling_rate), abs(fft.time2freq( tracdata[channel.get_id()][0], sampling_rate)), color = 'black', lw = linewidth)
                             ax[ich][0].plot(timingsim[channel.get_id()][0], tracsim[channel.get_id()][0], label = 'simulation', color = 'orange', lw = linewidth)
@@ -635,7 +635,7 @@ class neutrinoDirectionReconstructor:
     #    return Chi2
 
                   
-    def minimizer(self, params, vertex_x, vertex_y, vertex_z, minimize = True, timing_k = False, first_iter = False, banana = False,  direction = [0, 0], ch_Vpol = 6, ch_Hpol = 13, full_station = True, single_pulse = False, channels_step = [3]):
+    def minimizer(self, params, vertex_x, vertex_y, vertex_z, minimize = True, timing_k = False, first_iter = False, banana = False,  direction = [0, 0], ch_Vpol = 6, ch_Hpol = 13, full_station = True, single_pulse = False, channels_step = [3], fixed_timing = False):
             print("params", params)
             sigma = 0.0114 #noise Rms for with amplifier #1.7*10**(-5) * 10000
             model_sys = 0
@@ -822,7 +822,7 @@ class neutrinoDirectionReconstructor:
                                     #library_channels[6] = [1,2,4,5,6,10,11,12,13]
                                     for i_ch in self._use_channels:
                                         library_channels[i_ch] = [i_ch]
-                                    library_channels[ch_Vpol] = [ch_Vpol, ch_Hpol]
+                           #         library_channels[ch_Vpol] = [ch_Vpol, ch_Hpol]
                                     #library_channels[13] = [13]
           #                          else:
           #                              library_channels[6] = [6, 13]
@@ -866,7 +866,6 @@ class neutrinoDirectionReconstructor:
             #dict_dt[11] = dict_dt[6]
             #dict_dt[12] = dict_dt[6]
             #dict_dt[13] = dict_dt[6] 
-            fixed_timing =False
             if fixed_timing:
                 for i_ch in self._use_channels:
                    # print("ich", i_ch)
@@ -958,9 +957,9 @@ class neutrinoDirectionReconstructor:
                                 if fixed_timing:
                                     if SNR > 3.5:
                                         echannel[i_trace] = 1
-                                if  ((channel.get_id() in channels_step ) and (i_trace == trace_ref)) or fixed_timing:
+                                if  ((channel.get_id() == ch_Vpol ) and (i_trace == trace_ref)) or fixed_timing:
                                     if 1:#
-                           #             print("channel", channel.get_id())
+                               #         print("Vpol", ch_Vpol)
                                         trace_trig = i_trace
                            
                                         if not fixed_timing:  echannel[i_trace] = 0
@@ -971,6 +970,7 @@ class neutrinoDirectionReconstructor:
                                         power_rec_6 = np.sum(fft.freq2time(rec_tmp, self._sampling_rate) **2)
                                         #reduced_chi2_Vpol +=  np.sum((rec_trace1 - data_trace_timing)**2 / ((sigma+model_sys*abs(data_trace_timing))**2))/len(rec_trace1)
                                         dof_channel += 1
+                                     
                                         if (i_trace == trace_ref) and (channel.get_id() == 3):
                                             Vpol_ref = np.sum((rec_trace1 - data_trace_timing)**2 / ((sigma+model_sys*abs(data_trace_timing))**2))/len(rec_trace1)
                                             reduced_chi2_Vpol +=  np.sum((rec_trace1 - data_trace_timing)**2 / ((sigma+model_sys*abs(data_trace_timing))**2))/len(rec_trace1)
@@ -979,7 +979,7 @@ class neutrinoDirectionReconstructor:
                                     
                                 elif ((channel.get_id() == ch_Hpol) and (len(channels_step) < 2) and (i_trace == trace_ref) and (not single_pulse)):
                                     if  1:
-                           #             print("Hpol", channel.get_id())
+                              #          print("Hpol", channel.get_id())
                                         echannel[i_trace] = 0
                                         mask_start = 0
                                         mask_end = 400
@@ -1008,6 +1008,7 @@ class neutrinoDirectionReconstructor:
                                         dof_channel += 1
                                     
                                 elif ((SNR > 3.5) and (full_station) and (not single_pulse) and (len(channels_step) < 2)):#and (i_trace ==trace_ref)):
+                                    print("else")
                                     mask_start = 0
                                     echannel[i_trace] = 1
                                     mask_end = 400
@@ -1027,6 +1028,7 @@ class neutrinoDirectionReconstructor:
                                     dof_channel += 1
                 #                    extra_channel += 1
                                 elif ((full_station) and (not single_pulse) and (len(channels_step) < 2)):
+                             #       print("else")
                                     mask_start = 0
                                     mask_end = 400
                                     echannel[i_trace] = 0
@@ -1072,10 +1074,11 @@ class neutrinoDirectionReconstructor:
                                 chi2 += chi2s[trace_ref]# = np.sum((rec_trace1 - data_trace_timing)**2 / ((sigma+model_sys*abs(data_trace_timing))**2))/len(rec_trace1)
                                 reduced_chi2_Vpol = Vpol_ref
                                 dof += 1
-                           # if (channel.get_id() == ch_Hpol):
-                           #     chi2 += chi2s[trace_ref]
-                           #     reduced_chi2_Hpol = Hpol_ref
-                           #     dof += 1
+                            if (channel.get_id() == ch_Hpol):
+                                chi2 += chi2s[trace_ref]
+                                reduced_chi2_Hpol = Hpol_ref
+                           #     dof += 1 
+                            #print("overlap")
         		    #print("overlapping pulses")           
                        
         
