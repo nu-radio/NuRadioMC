@@ -21,6 +21,7 @@ class RNOGDataReader:
             file = self.__open_file(filename)
             events_in_file = file['waveforms'].num_entries
             self.__i_events_per_file[i_file] = [i_event, i_event + events_in_file]
+            i_event += events_in_file
 
     def get_filenames(self):
         return self.__filenames
