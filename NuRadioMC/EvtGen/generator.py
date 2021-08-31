@@ -1191,9 +1191,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         if(interaction_type == "ccnc"):
             data_sets["interaction_type"] = inelasticities.get_ccnc(n_events_batch, rnd=rnd)
         elif(interaction_type == "cc"):
-            data_sets["interaction_type"] = np.full(n_events_batch, "cc", dtype='S2')
+            data_sets["interaction_type"] = np.full(n_events_batch, "cc", dtype='U2')
         elif(interaction_type == "nc"):
-            data_sets["interaction_type"] = np.full(n_events_batch, "nc", dtype='S2')
+            data_sets["interaction_type"] = np.full(n_events_batch, "nc", dtype='U2')
 
         # generate inelasticity
         logger.debug("generating inelasticities")

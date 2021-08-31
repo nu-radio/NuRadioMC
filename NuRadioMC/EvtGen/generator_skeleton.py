@@ -102,7 +102,7 @@ def generate_my_events(filename, n_events):
 
     # the interaction type. For neutrino interactions is can be either CC or NC. This parameter is not used but passed
     # to the output file for information purposes.
-    data_sets["interaction_type"] = np.full(n_events, "NC", dtype='S2')
+    data_sets["interaction_type"] = np.full(n_events, "nc", dtype='U2')
     # The inelasiticiy, i.e. the fraction of the neutrino energy that is transferred into the hadronic shower.
     # This parameter is not used but saved into the output file for information purposes.
     data_sets["inelasticity"] = np.ones(n_events)
