@@ -46,7 +46,7 @@ class RNOGDataReader:
         self.__run_numbers = np.array([], dtype=int)
         for filename in self.__filenames:
             file = self.__open_file(filename)
-            self.__run_numbers = np.append(self.__event_ids, file['waveforms']['run_number'].array(library='np').astype(int))
+            self.__run_numbers = np.append(self.__run_numbers, file['header']['run_number'].array(library='np').astype(int))
 
     def __open_file(self, filename):
         file = uproot.open(filename)
