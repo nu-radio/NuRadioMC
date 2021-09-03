@@ -65,7 +65,7 @@ class RNOGDataReader:
                 file = self.__open_file(self.__filenames[i_file])
                 station = NuRadioReco.framework.station.Station((file['waveforms']['station_number'].array(library='np')[i_event_in_file]))
                 # station not set properly in first runs, try from header
-                if station == 0 and 'header' in file:
+                if station.get_id() == 0 and 'header' in file:
                     station = NuRadioReco.framework.station.Station((file['header']['station_number'].array(library='np')[i_event_in_file]))
                 station.set_is_neutrino()
 
