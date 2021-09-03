@@ -77,7 +77,7 @@ class RNOGDataReader:
                 waveforms = file['waveforms']['radiant_data[24][2048]'].array(library='np', entry_start=i_event_in_file, entry_stop=(i_event_in_file+1))
                 for i_channel in range(waveforms.shape[1]):
                     channel = NuRadioReco.framework.channel.Channel(i_channel)
-                    channel.set_trace(waveforms[0, i_channel], self.__sampling_rate)
+                    channel.set_trace(waveforms[0, i_channel]*units.mV, self.__sampling_rate)
                     station.add_channel(channel)
                 event.set_station(station)
                 return event
