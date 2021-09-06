@@ -12,6 +12,7 @@ import argparse
 from NuRadioMC.utilities import runner
 
 """
+Example of how to use the runner class to run NuRadioMC on a cluster.
 """
 
 
