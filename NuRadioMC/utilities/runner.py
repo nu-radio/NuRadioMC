@@ -11,7 +11,7 @@ class NuRadioMCRunner(object):
     The purpose of this classe is to run NuRadioMC on a cluster using a full node submission, i.e., a full node with X cores is reserved. 
     As NuRadioMC is a single-core process, this class will start multiple NuRadioMC simulations and will distribute them on the X cores. As
     soon as one job is finished, a new one is started so that all X cores are kept busy. 
-    The job ends after a fixed time, or after enough triggered are aquired, or after X crashes occured. 
+    The job ends after a fixed time, or after enough triggers are acquired, or after X crashes occurred.
     """
 
     def __init__(self, n_worker, task, output_path, kwargs={}, max_runtime=3600 * 24 * 8, n_triggers_max=1e6, max_crashes=10):
