@@ -21,5 +21,6 @@ class DataProviderRoot(object):
         if filename != self.__user_instances[user_id].get_filenames()[0]:
             # user is requesting new file -> close current file and open new one
             self.__user_instances[user_id] = NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader([filename])
-            self.__user_instances[user_id].begin(filename)
+            #TODO begin method does not exist in RNOGDataReader
+            #self.__user_instances[user_id].begin(filename)
         return self.__user_instances[user_id]
