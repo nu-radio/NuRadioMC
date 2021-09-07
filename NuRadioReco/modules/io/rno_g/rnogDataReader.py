@@ -86,31 +86,13 @@ class RNOGDataReader:
         return None
 
     def get_event(self, event_id):
-        for header_file_name in self.__filenames:
-            header_file = uproot.open(header_file_name)
-            for header_key in header_file.keys():
-                run_numbers = header_file[header_key]['run_number'].array(library='np').astype(int)
-                event_ids = header_file[header_key]['event_number'].array(library='np').astype(int)
-                event_search = np.where((run_numbers == event_id[0]) & (event_ids == event_id[1]))[0]
-                print(header_file[header_key]['trigger_time'].array())
-                event = NuRadioReco.framework.event.Event(event_id[0], event_id[1])
-                for header_event_index in event_search:
-                    station = NuRadioReco.framework.station.Station(header_file[header_key]['station_number'].array(entry_start=header_event_index, entry_stop=header_event_index + 1, library='np').astype(int)[0])
-                    event.set_station(station)
-                    for waveform_file_name in self.__waveform_files:
-                        waveform_file = uproot.open(waveform_file_name)
-                        for waveform_key in waveform_file.keys():
-                            waveform_run_numbers = waveform_file[waveform_key]['run_number'].array(library='np').astype(int)
-                            waveform_event_ids = waveform_file[waveform_key]['event_number'].array(library='np').astype(int)
-                            waveform_search = np.where((waveform_run_numbers == event_id[0]) & (waveform_event_ids == event_id[1]))[0]
-                            for waveform_event_index in waveform_search:
-                                waveform_data = waveform_file[waveform_key]['radiant_data[24][2048]'].array(entry_start=waveform_event_index, entry_stop=waveform_event_index + 1, library='np')[0]
-                                for i_channel in range(waveform_data.shape[0]):
-                                    channel = NuRadioReco.framework.channel.Channel(i_channel)
-                                    channel.set_trace(waveform_data[i_channel], 3.2)
-                                    station.add_channel(channel)
-                return event
-        return None
+        find_event = np.where((self.get_run_numbers() == event_id[0]) & (self.get_event_ids() == event_id[1]))[0]
+        if len(find_event) == 0:
+            return None
+        elif len(find_event) == 1:
+            return self.get_event_i(find_event[0])
+        else:
+            raise RuntimeError('There are multiple events with the ID [{}, {}] in the file'.format(event_id[0], event_id[1]))
 
     def get_events(self):
         for ev_i in range(self.get_n_events()):
