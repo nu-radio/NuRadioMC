@@ -169,7 +169,7 @@ class readRNOGData:
             station = NuRadioReco.framework.station.Station(station_id)
             #TODO in future: do need to apply calibrations?
 
-            unix_time = event_header["readout_time"]
+            unix_time = event_header["trigger_time"]
             event_time = astropy.time.Time(unix_time, format='unix')
 
             station.set_station_time(event_time)

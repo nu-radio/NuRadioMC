@@ -23,6 +23,7 @@ class RNOGDataReader:
             file = self.__open_file(filename)
             events_in_file = file['waveforms'].num_entries
             self.__i_events_per_file[i_file] = [i_event, i_event + events_in_file]
+            i_event += events_in_file
 
     def get_filenames(self):
         return self.__filenames
@@ -47,8 +48,7 @@ class RNOGDataReader:
         self.__run_numbers = np.array([], dtype=int)
         for filename in self.__filenames:
             file = self.__open_file(filename)
-            self.__run_numbers = np.append(self.__run_numbers, file['waveforms']['run_number'].array(library='np').astype(int))
-            print(self.__run_numbers)
+            self.__run_numbers = np.append(self.__run_numbers, file['header']['run_number'].array(library='np').astype(int))
 
     def __open_file(self, filename):
         file = uproot.open(filename)
@@ -67,19 +67,19 @@ class RNOGDataReader:
                 file = self.__open_file(self.__filenames[i_file])
                 station = NuRadioReco.framework.station.Station((file['waveforms']['station_number'].array(library='np')[i_event_in_file]))
                 # station not set properly in first runs, try from header
-                if station == 0 and 'header' in file:
+                if station.get_id() == 0 and 'header' in file:
                     station = NuRadioReco.framework.station.Station((file['header']['station_number'].array(library='np')[i_event_in_file]))
                 station.set_is_neutrino()
 
                 if 'header' in file:
-                    unix_time = file['header']['readout_time'].array(library='np')[i_event_in_file]
+                    unix_time = file['header']['trigger_time'].array(library='np')[i_event_in_file]
                     event_time = astropy.time.Time(unix_time, format='unix')
                     station.set_station_time(event_time)
 
                 waveforms = file['waveforms']['radiant_data[24][2048]'].array(library='np', entry_start=i_event_in_file, entry_stop=(i_event_in_file+1))
                 for i_channel in range(waveforms.shape[1]):
                     channel = NuRadioReco.framework.channel.Channel(i_channel)
-                    channel.set_trace(waveforms[0, i_channel], self.__sampling_rate)
+                    channel.set_trace(waveforms[0, i_channel]*units.mV, self.__sampling_rate)
                     station.add_channel(channel)
                 event.set_station(station)
                 return event
