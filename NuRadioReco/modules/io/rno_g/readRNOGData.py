@@ -29,6 +29,7 @@ class readRNOGData:
         self.logger = logging.getLogger("NuRadioReco.readRNOGdata")
         self.__id_current_event = None
         self.__t = None
+        self.__sampling_rate = 3.2 * units.GHz #TODO: 3.2 at the beginning of deployment. Will change to 2.4 GHz after firmware update eventually, but info not yet contained in the .root files. Read out once available.
         self._iterator_data = None
         self._iterator_header = None
         self._data_treename = "waveforms"
@@ -63,10 +64,11 @@ class readRNOGData:
 
         self.n_events = 0
         # get the total number of events of all input files
-        for the_f in input_files:
-            the_f = uproot.open(input_files[0])
-            self.n_events += the_f[self._data_treename].num_entries
-
+        for filename in input_files:
+            file = uproot.open(filename)
+            if 'combined' in file:
+                file = file['combined']
+            self.n_events += file[self._data_treename].num_entries
         self._set_iterators()
 
         return self.n_events
@@ -85,11 +87,17 @@ class readRNOGData:
 
         datadict = OrderedDict()
         for filename in self.input_files:
-            datadict[filename] = self._data_treename
+            if 'combined' in uproot.open(filename):
+                datadict[filename] = 'combined/' + self._data_treename
+            else:
+                datadict[filename] = self._data_treename
 
         headerdict = OrderedDict()
         for filename in self.input_files_header:
-            headerdict[filename] = self._header_treename
+            if 'combined' in uproot.open(filename):
+                headerdict[filename] = 'combined/' + self._header_treename
+            else:
+                headerdict[filename] = self._header_treename
 
         # iterator over single events (step 1), for event looping in NuRadioReco dataformat
         # may restrict which data to read in the iterator by adding second argument
@@ -101,7 +109,7 @@ class readRNOGData:
         self.uproot_iterator_header = uproot.iterate(headerdict, cut=cut, step_size=1000)
 
     @register_run()
-    def run(self, channels=np.arange(24), sampling=0.5 * units.ns, event_numbers=None, run_numbers=None, cut_string=None):
+    def run(self, channels=np.arange(24), event_numbers=None, run_numbers=None, cut_string=None):
         """
         Run function of the RNOG reader
 
@@ -109,9 +117,6 @@ class readRNOGData:
         ----------
         n_channels: int
             number of RNOG channels to loop over, default 24
-
-        sampling: float (units time)
-            default sampling of RNOG detector
 
         event_numbers: None or dict
             if dict, use a dict with run number as key and list of event numbers as items
@@ -157,7 +162,7 @@ class readRNOGData:
                 
             run_number = event["run_number"]
             evt_number = event["event_number"]
-            station_id = event["station_number"]
+            station_id = event_header["station_number"]
             self.logger.info("Reading Run: {run_number}, Event {evt_number}, Station {station_id}")
 
             evt = NuRadioReco.framework.event.Event(run_number, evt_number)
@@ -179,11 +184,10 @@ class readRNOGData:
 
                 if voltage.shape[0] % 2 != 0:
                     voltage = voltage[:-1]
-                sampling_rate = 1./sampling
 
                 #TODO: need to subtract mean... probably not if running signal reconstructor?
                 #channel.set_trace(voltage-np.mean(voltage), sampling_rate)
-                channel.set_trace(voltage, sampling_rate)
+                channel.set_trace(voltage, self.__sampling_rate)
                 station.add_channel(channel)
             evt.set_station(station)
             # we want to have access to basic signal quantities with implementation from NuRadioReco

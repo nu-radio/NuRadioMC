@@ -10,70 +10,65 @@ import glob
 
 class RNOGDataReader:
 
-    def __init__(self, folder, header_file='headers*.root', waveforms='waveforms*.root', *args, **kwargs):
-        self.__folder = folder
-        self.__header_files = glob.glob('{}/{}'.format(folder, header_file))
-        self.__waveform_files = glob.glob('{}/{}'.format(folder, waveforms))
-        self.__header_event_ids = None
-        self.__header_run_numbers = None
-        self.__waveform_event_ids = None
-        self.__waveform_run_numbers = None
+    def __init__(self, filenames, *args, **kwargs):
+        self.__filenames = filenames
+        self.__event_ids = None
+        self.__run_numbers = None
+        self.__sampling_rate = 3.2 * units.GHz #TODO: 3.2 at the beginning of deployment. Will change to 2.4 GHz after firmware update eventually, but info not yet contained in the .root files. Read out once available.
         self.__parse_event_ids()
         self.__parse_run_numbers()
-        self.__i_events_per_file = np.zeros((len(self.__header_files), 2), dtype=int)
+        self.__i_events_per_file = np.zeros((len(self.__filenames), 2), dtype=int)
         i_event = 0
-        for i_file, header_filename in enumerate(self.__header_files):
-            file = uproot.open(header_filename)
-            events_in_file = 0
-            for key in file.keys():
-                events_in_file = file[key].num_entries
+        for i_file, filename in enumerate(filenames):
+            file = self.__open_file(filename)
+            events_in_file = file['waveforms'].num_entries
             self.__i_events_per_file[i_file] = [i_event, i_event + events_in_file]
 
     def get_filenames(self):
-        return self.__header_files
+        return self.__filenames
 
     def get_event_ids(self):
-        if self.__header_event_ids is None:
+        if self.__event_ids is None:
             return self.__parse_event_ids()
-        return self.__header_event_ids
+        return self.__event_ids
 
     def __parse_event_ids(self):
         self.__event_ids = np.array([], dtype=int)
-        for filename in self.__header_files:
-            file = uproot.open(filename)
-            for key in file.keys():
-                self.__header_event_ids = np.append(self.__event_ids, file[key]['event_number'].array(library='np').astype(int))
-        for filename in self.__waveform_files:
-            file = uproot.open(filename)
-            for key in file.keys():
-                self.__waveform_event_ids = np.append(self.__event_ids, file[key]['event_number'].array(library='np').astype(int))
+        for filename in self.__filenames:
+            file = self.__open_file(filename)
+            self.__event_ids = np.append(self.__event_ids, file['waveforms']['event_number'].array(library='np').astype(int))
 
     def get_run_numbers(self):
-        if self.__header_run_numbers is None:
+        if self.__run_numbers is None:
             self.__parse_run_numbers()
-        return self.__header_run_numbers
+        return self.__run_numbers
 
     def __parse_run_numbers(self):
         self.__run_numbers = np.array([], dtype=int)
-        for filename in self.__header_files:
-            file = uproot.open(filename)
-            for key in file.keys():
-                self.__header_run_numbers = np.append(self.__run_numbers, file[key]['run_number'].array(library='np').astype(int))
-        for filename in self.__waveform_files:
-            file = uproot.open(filename)
-            for key in file.keys():
-                self.__waveform_run_numbers = np.append(self.__run_numbers, file[key]['run_number'].array(library='np').astype(int))
+        for filename in self.__filenames:
+            file = self.__open_file(filename)
+            self.__run_numbers = np.append(self.__run_numbers, file['waveforms']['run_number'].array(library='np').astype(int))
+            print(self.__run_numbers)
+
+    def __open_file(self, filename):
+        file = uproot.open(filename)
+        if 'combined' in file:
+            file = file['combined']
+        return file
 
     def get_n_events(self):
         return self.get_event_ids().shape[0]
 
     def get_event_i(self, i_event):
         event = NuRadioReco.framework.event.Event(self.get_run_numbers()[i_event], self.get_event_ids()[i_event])
-        for i_header_file, header_filename in enumerate(self.__header_files):
-            if self.__i_events_per_file[i_header_file, 0] <= i_event < self.__i_events_per_file[i_header_file, 1]:
-                i_event_in_file = i_event - self.__i_events_per_file[i_header_file, 0]
-                file = uproot.open(self.__header_files[i_header_file])
+        for i_file, filename in enumerate(self.__filenames):
+            if self.__i_events_per_file[i_file, 0] <= i_event < self.__i_events_per_file[i_file, 1]:
+                i_event_in_file = i_event - self.__i_events_per_file[i_file, 0]
+                file = self.__open_file(self.__filenames[i_file])
                 station = NuRadioReco.framework.station.Station((file['waveforms']['station_number'].array(library='np')[i_event_in_file]))
+                # station not set properly in first runs, try from header
+                if station == 0 and 'header' in file:
+                    station = NuRadioReco.framework.station.Station((file['header']['station_number'].array(library='np')[i_event_in_file]))
                 station.set_is_neutrino()
 
                 if 'header' in file:
@@ -84,14 +79,14 @@ class RNOGDataReader:
                 waveforms = file['waveforms']['radiant_data[24][2048]'].array(library='np', entry_start=i_event_in_file, entry_stop=(i_event_in_file+1))
                 for i_channel in range(waveforms.shape[1]):
                     channel = NuRadioReco.framework.channel.Channel(i_channel)
-                    channel.set_trace(waveforms[0, i_channel], 2. * units.GHz)
+                    channel.set_trace(waveforms[0, i_channel], self.__sampling_rate)
                     station.add_channel(channel)
                 event.set_station(station)
                 return event
         return None
 
     def get_event(self, event_id):
-        for header_file_name in self.__header_files:
+        for header_file_name in self.__filenames:
             header_file = uproot.open(header_file_name)
             for header_key in header_file.keys():
                 run_numbers = header_file[header_key]['run_number'].array(library='np').astype(int)
