@@ -24,7 +24,7 @@ def remove_duplicate_triggers(triggered, gids):
 
     The hdf5 file contains a line per shower. One event can contain many showers, i.e. if we count all triggeres
     from all showers we overestimate the effective volume. This function modifies the triggered array such
-    that it contains not more than one True value for each event group. 
+    that it contains not more than one True value for each event group.
 
     Parameters
     ----------
@@ -33,28 +33,24 @@ def remove_duplicate_triggers(triggered, gids):
     gids: array of ints
         the event group ids
 
-    Returns: array of floats
+    Returns: array of bools
         the corrected triggered array
     """
     gids = np.array(gids)
     triggered = np.array(triggered)
-    uids, unique_mask, inv_mask, counts = np.unique(gids, return_index=True, return_inverse=True, return_counts=True)
-    # speedup for cases with not more than two showers per group event id (gid)
-    if(np.sum(counts > 2)):
-        # this is the slow case, we need to loop over all unique gids and check wether any of the showers triggered
-        for gid in uids[counts > 1]:
-            mask = gids == gid
-            if(np.sum(triggered[mask]) > 1):
-                idx = np.arange(len(triggered), dtype=np.int)[mask][triggered[mask] == True][1:]
-                triggered[idx] = False
-        return triggered
-    else:
-        # this is the fast case where we only have one or two shower per group id (gid)
-        unique_mask2 = unique_mask + counts - 1  # get a mask which selects the inverse of unique_mask
-        t = triggered[unique_mask] | triggered[unique_mask2]  # calculate if an gid was triggered
-        t2 = np.zeros_like(triggered, dtype=bool)  # create an empty array
-        t2[unique_mask] = t  # set the first entry of every gid to True/False depending on wether the gid has a trigger or not.
-        return t2
+
+    # shift the integer gids (just within the function) by 0.5 to avoid zeros
+    gids_shifted = gids + 0.5
+
+    # triggered gids, 0 where not triggered
+    triggered_gids = triggered*gids_shifted
+
+    unique_values, unique_indices = np.unique(triggered_gids, return_index=True)
+    # create output boolean array and set True for first triggered indices
+    first_occurences = np.zeros_like(triggered, dtype=bool)
+    np.put(first_occurences, unique_indices, True)
+    # the line above will also put the first untriggered, hence need to require "& triggered"
+    return first_occurences&triggered
 
 
 def FC_limits(counts):
