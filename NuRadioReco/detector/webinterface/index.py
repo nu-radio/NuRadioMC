@@ -4,13 +4,14 @@ from dash.dependencies import Input, Output
 from NuRadioReco.detector.webinterface.apps import add_surface_board
 from NuRadioReco.detector.webinterface.apps import menu
 from NuRadioReco.detector.webinterface.apps import add_DRAB
-from NuRadioReco.detector.webinterface.apps import add_IGLO
+from NuRadioReco.detector.webinterface.apps import add_IGLU
 from NuRadioReco.detector.webinterface.apps import add_VPol
 from NuRadioReco.detector.webinterface.apps import add_CABLE
 from NuRadioReco.detector.webinterface.apps import add_surf_CABLE
 from NuRadioReco.detector.webinterface.apps import add_Pulser
 from NuRadioReco.detector.webinterface.apps import add_HPol
 from NuRadioReco.detector.webinterface.apps import add_DAQ
+from NuRadioReco.detector.webinterface.apps import reader
 from NuRadioReco.detector.webinterface.app import app
 
 # app.config.suppress_callback_exceptions = True
@@ -28,8 +29,8 @@ def display_page(pathname):
         return add_surface_board.layout
     elif pathname == '/apps/add_DRAB':
         return add_DRAB.layout
-    elif pathname == '/apps/add_IGLO':
-        return add_IGLO.layout
+    elif pathname == '/apps/add_IGLU':
+        return add_IGLU.layout
     elif pathname == '/apps/add_CABLE':
         return add_CABLE.layout
     elif pathname == '/apps/add_surf_CABLE':
@@ -42,6 +43,8 @@ def display_page(pathname):
         return add_HPol.layout
     elif pathname == '/apps/add_DAQ':
         return add_DAQ.layout
+    elif pathname == '/apps/reader':
+        return reader.layout
     else:
         return menu.layout
 

@@ -28,9 +28,9 @@ if mongo_server is None:
     logging.warning('variable "mongo_server" not set')
 if None in [mongo_user, mongo_server]:
     logging.warning('"mongo_user" or "mongo_password" not set')
-# # start client
+# start client
 client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
-db = client.RNOG_live
+db = client.RNOG_test
 
 
 def get_surface_board_names():
@@ -296,8 +296,8 @@ def surfCABLE_add_Sparameters(cable_name, Sm_data, Sp_data):
                               })
 
 
-#### add IGLO board
-def IGLO_board_channel_set_not_working(board_name, channel_id):
+#### add IGLU board
+def IGLU_board_channel_set_not_working(board_name, channel_id):
     """
     inserts a new S parameter measurement of one channel of an amp board
     If the board dosn't exist yet, it will be created.
@@ -316,7 +316,7 @@ def IGLO_board_channel_set_not_working(board_name, channel_id):
         8th/9th collumn: S22 mag/phase
 
     """
-    db.IGLO.update_one({'name': board_name},
+    db.IGLU.update_one({'name': board_name},
                           {"$push" :{'channels': {
                               'id': channel_id,
                               'last_updated': datetime.datetime.utcnow(),
@@ -325,9 +325,9 @@ def IGLO_board_channel_set_not_working(board_name, channel_id):
                          upsert=True)
 
 
-def IGLO_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id, S_data):
+def IGLU_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id, S_data):
     """
-    inserts a new S parameter measurement of one channel of an IGLO board
+    inserts a new S parameter measurement of one channel of an IGLU board
     If the board dosn't exist yet, it will be created.
 
     Parameters
@@ -348,7 +348,7 @@ def IGLO_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id
     """
     S_names = ["S11", "S12", "S21", "S22"]
     for i in range(4):
-        db.IGLO.update_one({'name': board_name},
+        db.IGLU.update_one({'name': board_name},
                                   {"$push" :{'channels': {
                                       'id': channel_id,
                                       'last_updated': datetime.datetime.utcnow(),
@@ -362,9 +362,9 @@ def IGLO_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id
                                  upsert=True)
 
 
-def IGLO_board_channel_add_Sparameters_without_DRAB(board_name, channel_id, S_data):
+def IGLU_board_channel_add_Sparameters_without_DRAB(board_name, channel_id, S_data):
     """
-    inserts a new S parameter measurement of one channel of an IGLO board
+    inserts a new S parameter measurement of one channel of an IGLU board
     If the board dosn't exist yet, it will be created.
 
     Parameters
@@ -383,7 +383,7 @@ def IGLO_board_channel_add_Sparameters_without_DRAB(board_name, channel_id, S_da
     """
     S_names = ["S11", "S12", "S21", "S22"]
     for i in range(4):
-        db.IGLO.update_one({'name': board_name},
+        db.IGLU.update_one({'name': board_name},
                                   {"$push" :{'channels': {
                                       'id': channel_id,
                                       'last_updated': datetime.datetime.utcnow(),
