@@ -5,3 +5,5 @@ python3 T02test_analytic_D_T.py
 python3 T04MooresBay.py
 python3 T05unit_test_C0_SP.py
 python3 T06unit_test_C0_mooresbay.py
+cd ../../SignalProp/examples
+python3 example_3d.py
