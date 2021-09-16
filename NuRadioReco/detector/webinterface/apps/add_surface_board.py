@@ -9,6 +9,7 @@ import json
 import sys
 from io import StringIO
 import csv
+import base64
 
 from NuRadioReco.detector import detector_mongo as det
 from NuRadioReco.detector.webinterface.utils.sparameter_helper import validate_Sdata, update_dropdown_amp_names, enable_board_name_input, plot_Sparameters, sparameters_layout
@@ -175,14 +176,14 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, channel_id,
               [Input(table_name + '-button-insert', 'n_clicks')],
               [State('amp-board-list', 'value'),
                State('new-board-input', 'value'),
-             State('Sdata', 'value'),
+             State('Sdata', 'contents'),
              State('dropdown-frequencies', 'value'),
              State('dropdown-magnitude', 'value'),
              State('dropdown-phase', 'value'),
              State(table_name + "channel-id", "value"),
              State('separator', 'value'),
              State("function-test", "value")])
-def insert_to_db(n_clicks, board_dropdown, new_board_name, Sdata, unit_ff, unit_mag, unit_phase, channel_id, sep, function_test):
+def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, unit_mag, unit_phase, channel_id, sep, function_test):
     print(f"n_clicks is {n_clicks}")
     if(not n_clicks is None):
         print("insert to db")
@@ -192,8 +193,10 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, Sdata, unit_ff, unit_
         if('working' not in function_test):
             det.surface_board_channel_set_not_working(board_name, channel_id)
         else:
-            S_data_io = StringIO(Sdata)
-            S_data = np.genfromtxt(S_data_io, delimiter=sep).T
+            content_type, content_string = contents.split(',')
+            S_datas = base64.b64decode(content_string)
+            S_data_io = StringIO(S_datas.decode('utf-8'))
+            S_data = np.genfromtxt(S_data_io, skip_header=7, skip_footer=1, delimiter=sep).T
             S_data[0] *= str_to_unit[unit_ff]
             for i in range(4):
                 S_data[1 + 2 * i] *= str_to_unit[unit_mag]

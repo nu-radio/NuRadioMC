@@ -18,14 +18,14 @@ from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 from NuRadioReco.detector.webinterface.app import app
 
 number_of_channels = 4  # define number of channels for surface board
-table_name = "IGLO"
+table_name = "IGLU"
 
 layout = html.Div([
-    html.H3('Add S parameter measurement of IGLO board', id='trigger'),
+    html.H3('Add S parameter measurement of IGLU board', id='trigger'),
     html.Div(table_name, id='table-name'),
     html.Div(number_of_channels, id='number-of-channels'),
     dcc.Link('Go back to menu', href='/apps/menu'),
-    html.Div([html.Div(dcc.Link('Add another IGLO board measurement', href='/apps/add_IGLO'), id=table_name + "-menu"),
+    html.Div([html.Div(dcc.Link('Add another IGLU board measurement', href='/apps/add_IGLU'), id=table_name + "-menu"),
               html.Div([
     html.H3('', id=table_name + 'override-warning', style={"color": "Red"}),
     html.Div([
@@ -232,11 +232,11 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, un
         if(board_dropdown == "new"):
             board_name = new_board_name
         if('working' not in function_test):
-            det.IGLO_board_channel_set_not_working(board_name, channel_id)
+            det.IGLU_board_channel_set_not_working(board_name, channel_id)
         else:
             content_type, content_string = contents.split(',')
             S_datas = base64.b64decode(content_string)
-            S_data_io = StringIO(contents)
+            S_data_io = StringIO(S_datas.decode('utf-8'))
             S_data = np.genfromtxt(S_data_io, skip_header=7, skip_footer=1, delimiter=sep).T
             S_data[0] *= str_to_unit[unit_ff]
             for i in range(4):
@@ -244,9 +244,9 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, un
                 S_data[2 + 2 * i] *= str_to_unit[unit_phase]
             print(board_name, channel_id, S_data)
             if(drab_id == "wo_DRAB"):
-                det.IGLO_board_channel_add_Sparameters_without_DRAB(board_name, channel_id, S_data)
+                det.IGLU_board_channel_add_Sparameters_without_DRAB(board_name, channel_id, S_data)
             else:
-                det.IGLO_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id, S_data)
+                det.IGLU_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id, S_data)
 
         return {'display': 'none'}, {}
     else:

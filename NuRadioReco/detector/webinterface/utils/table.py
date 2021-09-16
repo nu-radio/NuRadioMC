@@ -6,8 +6,8 @@ def get_table(name):
         return det.db.surface_boards
     elif(name == "DRAB"):
         return det.db.DRAB
-    elif(name == "IGLO"):
-        return det.db.IGLO
+    elif(name == "IGLU"):
+        return det.db.IGLU
     elif(name == "CABLE"):
         return det.db.CABLE
     elif(name == "VPol"):
