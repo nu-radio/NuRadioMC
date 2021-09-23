@@ -32,6 +32,7 @@ propagation:
   n_reflections: 0  # the maximum number of reflections off a reflective layer at the bottom of the ice layer
 
 signal:
+  type: shower  # specify the signal source. The default is an in-ice particle shower. Can also be 'emitter'
   model: Alvarez2009
   zerosignal: False  # if True, the signal is set to zero. This is useful to study 'noise' only simulations
   polarization: auto # can be either 'auto' or 'custom'
