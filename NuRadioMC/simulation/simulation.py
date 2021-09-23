@@ -2,7 +2,8 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from radiotools import helper as hp
 from radiotools import coordinatesystems as cstrans
-from NuRadioMC.SignalGen import askaryan as signalgen
+from NuRadioMC.SignalGen import askaryan
+from NuRadioMC.SignalGen import emitter
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import fft
@@ -677,53 +678,62 @@ class simulation():
 
                             # get neutrino pulse from Askaryan module
                             t_ask = time.time()
-                            kwargs = {}
-                            # if the input file specifies a specific shower realization, use that realization
-                            if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"] and "shower_realization_ARZ" in self._fin):
-                                kwargs['iN'] = self._fin['shower_realization_ARZ'][self._shower_index]
-                                logger.debug(f"reusing shower {kwargs['iN']} ARZ shower library")
-                            elif(self._cfg['signal']['model'] == "Alvarez2009" and "shower_realization_Alvarez2009" in self._fin):
-                                kwargs['k_L'] = self._fin['shower_realization_Alvarez2009'][self._shower_index]
-                                logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
-                            else:
-                                # check if the shower was already simulated (e.g. for a different channel or ray tracing solution)
+                            
+                            if(self._cfg['signal']['type'] == "shower"):
+                                # first consider in-ice showers 
+                                kwargs = {}
+                                # if the input file specifies a specific shower realization, use that realization
+                                if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"] and "shower_realization_ARZ" in self._fin):
+                                    kwargs['iN'] = self._fin['shower_realization_ARZ'][self._shower_index]
+                                    logger.debug(f"reusing shower {kwargs['iN']} ARZ shower library")
+                                elif(self._cfg['signal']['model'] == "Alvarez2009" and "shower_realization_Alvarez2009" in self._fin):
+                                    kwargs['k_L'] = self._fin['shower_realization_Alvarez2009'][self._shower_index]
+                                    logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
+                                else:
+                                    # check if the shower was already simulated (e.g. for a different channel or ray tracing solution)
+                                    if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]):
+                                        if(self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
+                                            kwargs = {'iN': self._sim_shower.get_parameter(shp.charge_excess_profile_id)}
+                                    if(self._cfg['signal']['model'] == "Alvarez2009"):
+                                        if(self._sim_shower.has_parameter(shp.k_L)):
+                                            kwargs = {'k_L': self._sim_shower.get_parameter(shp.k_L)}
+                                            logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
+    
+                                spectrum, additional_output = askaryan.get_frequency_spectrum(self._shower_energy, viewing_angles[iS],
+                                                self._n_samples, self._dt, self._shower_type, n_index, R,
+                                                self._cfg['signal']['model'], seed=self._cfg['seed'], full_output=True, **kwargs)
+                                # save shower realization to SimShower and hdf5 file
                                 if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]):
-                                    if(self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
-                                        kwargs = {'iN': self._sim_shower.get_parameter(shp.charge_excess_profile_id)}
+                                    if('shower_realization_ARZ' not in self._mout):
+                                        self._mout['shower_realization_ARZ'] = np.zeros(self._n_showers)
+                                    if(not self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
+                                        self._sim_shower.set_parameter(shp.charge_excess_profile_id, additional_output['iN'])
+                                        self._mout['shower_realization_ARZ'][self._shower_index] = additional_output['iN']
+                                        logger.debug(f"setting shower profile for ARZ shower library to i = {additional_output['iN']}")
                                 if(self._cfg['signal']['model'] == "Alvarez2009"):
-                                    if(self._sim_shower.has_parameter(shp.k_L)):
-                                        kwargs = {'k_L': self._sim_shower.get_parameter(shp.k_L)}
-                                        logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
-
-                            spectrum, additional_output = signalgen.get_frequency_spectrum(self._shower_energy, viewing_angles[iS],
-                                            self._n_samples, self._dt, self._shower_type, n_index, R,
-                                            self._cfg['signal']['model'], seed=self._cfg['seed'], full_output=True, **kwargs)
-                            # save shower realization to SimShower and hdf5 file
-                            if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]):
-                                if('shower_realization_ARZ' not in self._mout):
-                                    self._mout['shower_realization_ARZ'] = np.zeros(self._n_showers)
-                                if(not self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
-                                    self._sim_shower.set_parameter(shp.charge_excess_profile_id, additional_output['iN'])
-                                    self._mout['shower_realization_ARZ'][self._shower_index] = additional_output['iN']
-                                    logger.debug(f"setting shower profile for ARZ shower library to i = {additional_output['iN']}")
-                            if(self._cfg['signal']['model'] == "Alvarez2009"):
-                                if('shower_realization_Alvarez2009' not in self._mout):
-                                    self._mout['shower_realization_Alvarez2009'] = np.zeros(self._n_showers)
-                                if(not self._sim_shower.has_parameter(shp.k_L)):
-                                    self._sim_shower.set_parameter(shp.k_L, additional_output['k_L'])
-                                    self._mout['shower_realization_Alvarez2009'][self._shower_index] = additional_output['k_L']
-                                    logger.debug(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
-                            askaryan_time += (time.time() - t_ask)
-
-                            polarization_direction_onsky = self._calculate_polarization_vector()
-                            cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
-                            polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
-                            logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
-                                zenith / units.deg, azimuth / units.deg, polarization_direction_onsky[0],
-                                polarization_direction_onsky[1], polarization_direction_onsky[2],
-                                *polarization_direction_at_antenna))
-                            sg['polarization'][iSh, channel_id, iS] = polarization_direction_at_antenna
-                            eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
+                                    if('shower_realization_Alvarez2009' not in self._mout):
+                                        self._mout['shower_realization_Alvarez2009'] = np.zeros(self._n_showers)
+                                    if(not self._sim_shower.has_parameter(shp.k_L)):
+                                        self._sim_shower.set_parameter(shp.k_L, additional_output['k_L'])
+                                        self._mout['shower_realization_Alvarez2009'][self._shower_index] = additional_output['k_L']
+                                        logger.debug(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
+                                askaryan_time += (time.time() - t_ask)
+    
+                                polarization_direction_onsky = self._calculate_polarization_vector()
+                                cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
+                                polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
+                                logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
+                                    zenith / units.deg, azimuth / units.deg, polarization_direction_onsky[0],
+                                    polarization_direction_onsky[1], polarization_direction_onsky[2],
+                                    *polarization_direction_at_antenna))
+                                sg['polarization'][iSh, channel_id, iS] = polarization_direction_at_antenna
+                                eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
+                            elif(self._cfg['signal']['type'] == "emitter"):
+                                # NuRadioMC also supports the simulation of emitters. In this case, the signal model specifies the electric field polarization
+                                eR, eTheta, ePhi = emitter.get_frequency_spectrum(self._shower_energy, viewing_angles[iS], self._n_samples, self._dt, self._shower_type, n_index, R)
+                            else:
+                                logger.error(f"signal type {self._cfg['signal']['type']} is not implemented.")
+                                raise AttributeError(f"signal type {self._cfg['signal']['type']} is not implemented.")
 
                             if(self._debug):
                                 from matplotlib import pyplot as plt
