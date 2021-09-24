@@ -1,32 +1,52 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units
+import argparse
+import os
 
-fiber_names = [
-    '7A1',
-    '7A2',
-    '7A3',
-    '7A4',
-    '7A5',
-    '7A6',
-    '7ABLUE',
-    '7ABROWN',
-    '7AGREEN',
-    '7AORANGE',
-    '7B1',
-    '7B2',
-    '7B3',
-    '7B4',
-    '7C1',
-    '7C2',
-    '7C3',
-    '7C4'
-]
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--hardware_number', type=int, default = 7)# default is for station 21
+args = parser.parse_args()
+hardware_number = args.hardware_number
+
+fiber_names = []
+# station 21: hardware number 7, station 22: hardware number 6, station 11: hardware number 5
+for file in os.listdir("data"):
+    if file.startswith("{}".format(hardware_number)) and file.endswith("FULL_LM.csv"):
+        fiber_names.append(file.replace("_FULL_LM.csv", ''))
+
+
+
+#fiber_names = [
+#    '7A1',
+#    '7A2',
+#    '7A3',
+#    '7A4',
+#    '7A5',
+#    '7A6',
+#    '7ABLUE',
+#    '7ABROWN',
+#    '7AGREEN',
+#    '7AORANGE',
+#    '7B1',
+#    '7B2',
+#    '7B3',
+#    '7B4',
+#    '7C1',
+#    '7C2',
+#    '7C3',
+#    '7C4'
+#]
+
+
+
 fig1 = plt.figure(figsize=(8, 30))
 fig2 = plt.figure(figsize=(8, 30))
 for i_fiber, fiber_name in enumerate(fiber_names):
     log_mag_data = np.genfromtxt(
-        'data/{}_FULL_LM.csv'.format(fiber_name),
+        'data/{}_FULL_LM.csv'.format(fiber_name), ## data can be downloaded from https://drive.google.com/drive/folders/1mASLMMJhxWzbNFcEOQBc8KWy2cAb99GB
         delimiter=',',
         skip_header=17,
         skip_footer=1
