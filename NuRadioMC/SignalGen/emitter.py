@@ -11,7 +11,7 @@ def set_log_level(level):
     par.set_log_level(level)
 
 
-def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, full_output=False, **kwargs):
+def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     """
     returns the electric field of an emitter
 
@@ -53,16 +53,13 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, full_ou
         only available if `full_output` enabled
 
     """
-    shower_type = shower_type.upper()  # some convenience to be sloppy with upper/lower case
     trace = None
     additional_output = {}
-    if(energy == 0):
+    if(amplitude == 0):
         trace = np.zeros(3, N)
     if(model == 'spherical'):
-        amplitude = 1. * energy / R
-        trace = np.zeros(3, N)
-        trace[1, N // 2] = amplitude / 0.5 ** 2  # equal amplitude in eTheta (p-polarization) and ePhi (s-polarization)
-        trace[2, N // 2] = amplitude / 0.5 ** 2
+        trace = np.zeros(N)
+        trace[N // 2] = amplitude
     else:
         raise NotImplementedError("model {} unknown".format(model))
     if(full_output):
@@ -71,7 +68,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, full_ou
         return trace
 
 
-def get_frequency_spectrum(energy, theta, N, dt, shower_type, n_index, R, model, full_output=False, **kwargs):
+def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs):
     """
     returns the complex amplitudes of the frequency spectrum of an emitter
 
@@ -107,7 +104,7 @@ def get_frequency_spectrum(energy, theta, N, dt, shower_type, n_index, R, model,
         only available if `full_output` enabled
 
     """
-    tmp = get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, full_output=full_output, **kwargs)
+    tmp = get_time_trace(amplitude, N, dt, model, full_output=full_output, **kwargs)
     if(full_output):
         return fft.time2freq(tmp[0], 1 / dt), tmp[1]
     else:
