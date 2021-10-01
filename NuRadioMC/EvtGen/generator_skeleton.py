@@ -79,6 +79,7 @@ def generate_my_events(filename, n_events):
     # give each shower a unique id (we can also have multiple showers for a single event by just giving several showers
     # the same event_group_id)
     data_sets["event_group_ids"] = np.arange(n_events)
+    data_sets["shower_ids"] = np.arange(n_events)
 
     # there are a couple of additional parameters that are required to run a NuRadioMC simulations. These parameters
     # don't influence the simulated radio signals but are required for other post analysis tasks. If these parameters

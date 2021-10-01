@@ -28,6 +28,7 @@ import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.event
+from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
@@ -190,6 +191,8 @@ class simulation():
         self.__write_detector = write_detector
         logger.status("setting event time to {}".format(evt_time))
         self._event_group_list = event_list
+
+        self._antenna_pattern_provider = antennapattern.AntennaPatternProvider()
 
         # initialize propagation module
         self._prop = propagation.get_propagation_module(self._cfg['propagation']['module'])
@@ -678,9 +681,9 @@ class simulation():
 
                             # get neutrino pulse from Askaryan module
                             t_ask = time.time()
-                            
-                            if(self._cfg['signal']['type'] == "shower"):
-                                # first consider in-ice showers 
+
+                            if("simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] == "neutrino"):
+                                # first consider in-ice showers
                                 kwargs = {}
                                 # if the input file specifies a specific shower realization, use that realization
                                 if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"] and "shower_realization_ARZ" in self._fin):
@@ -698,7 +701,7 @@ class simulation():
                                         if(self._sim_shower.has_parameter(shp.k_L)):
                                             kwargs = {'k_L': self._sim_shower.get_parameter(shp.k_L)}
                                             logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
-    
+
                                 spectrum, additional_output = askaryan.get_frequency_spectrum(self._shower_energy, viewing_angles[iS],
                                                 self._n_samples, self._dt, self._shower_type, n_index, R,
                                                 self._cfg['signal']['model'], seed=self._cfg['seed'], full_output=True, **kwargs)
@@ -718,7 +721,7 @@ class simulation():
                                         self._mout['shower_realization_Alvarez2009'][self._shower_index] = additional_output['k_L']
                                         logger.debug(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
                                 askaryan_time += (time.time() - t_ask)
-    
+
                                 polarization_direction_onsky = self._calculate_polarization_vector()
                                 cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
                                 polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
@@ -728,12 +731,34 @@ class simulation():
                                     *polarization_direction_at_antenna))
                                 sg['polarization'][iSh, channel_id, iS] = polarization_direction_at_antenna
                                 eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
-                            elif(self._cfg['signal']['type'] == "emitter"):
+                            elif(self._fin_attrs['simulation_mode'] == "emitter"):
                                 # NuRadioMC also supports the simulation of emitters. In this case, the signal model specifies the electric field polarization
-                                eR, eTheta, ePhi = emitter.get_frequency_spectrum(self._shower_energy, viewing_angles[iS], self._n_samples, self._dt, self._shower_type, n_index, R)
+                                amplitude = self._fin['emitter_amplitudes'][self._shower_index]
+
+                                # get emitting antenna properties
+                                antenna_model = self._fin['emitter_antenna_type'][self._shower_index]
+                                antenna_pattern = self._antenna_pattern_provider.load_antenna_pattern(antenna_model)
+                                ori = [self._fin['emitter_orientation_theta'][self._shower_index], self._fin['emitter_orientation_phi'][self._shower_index],
+                                       self._fin['emitter_rotation_theta'][self._shower_index], self._fin['emitter_rotation_phi'][self._shower_index]]
+
+                                # get voltage output of emitter
+                                voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
+                                                                                          self._fin['emitter_model'][self._shower_index])
+
+                                # convolve voltage output with antenna response to obtain emitted electric field
+                                frequencies = np.fft.rfftfreq(self._n_samples, d=self._dt)
+                                zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
+                                VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
+                                eTheta = VEL['theta'] * voltage_spectrum_emitter  # this calculation is wrong, need to be replaced with correct equation for emitting antenna
+                                ePhi = VEL['phi'] * voltage_spectrum_emitter
+                                eR = np.zeros_like(eTheta)
+
+                                # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
+                                eTheta *= 1 / R
+                                ePhi *= 1 / R
                             else:
-                                logger.error(f"signal type {self._cfg['signal']['type']} is not implemented.")
-                                raise AttributeError(f"signal type {self._cfg['signal']['type']} is not implemented.")
+                                logger.error(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
+                                raise AttributeError(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
 
                             if(self._debug):
                                 from matplotlib import pyplot as plt
@@ -1004,6 +1029,9 @@ class simulation():
         triggered = remove_duplicate_triggers(self._mout['triggered'], self._fin['event_group_ids'])
         n_triggered = np.sum(triggered)
         return n_triggered
+
+    def _calculate_emitter_output(self):
+        pass
 
     def _get_shower_index(self, shower_id):
         if(hasattr(shower_id, "__len__")):
