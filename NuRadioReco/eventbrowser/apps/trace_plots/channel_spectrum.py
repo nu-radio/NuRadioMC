@@ -53,6 +53,7 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
             name='Channel {}'.format(i)
         ), 1, 1)
     fig['layout'].update(default_layout)
+    fig['layout']['legend']['uirevision'] = filename
     fig['layout']['xaxis1'].update(title='frequency [MHz]')
     fig['layout']['yaxis1'].update(title='amplitude [mV]')
     return fig

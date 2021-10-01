@@ -53,6 +53,13 @@ layout = [
                          value=["RMS", "L1"]
                          )
         ], style={'flex': '1'}),
+        # html.Div([
+        #     dcc.Dropdown(id='dropdown-multi-channels',
+        #                  options=[],
+        #                  multi=True,
+        #                  value=[]
+        #                  )
+        # ], style={'flex': '1'}),
     ], style={'display': 'flex'}),
     html.Div([
         html.Div([
@@ -68,6 +75,36 @@ layout = [
     ], style={'display': 'flex'}),
     dcc.Graph(id='time-traces')
 ]
+
+# @app.callback(
+#     [Output('dropdown-multi-channels', 'value'),
+#      Output('dropdown-multi-channels', 'options')],
+#     [Input('event-counter-slider', 'value'),
+#      Input('filename', 'value'),
+#      Input('station-id-dropdown', 'value')],
+#     [State('user_id', 'children'),
+#      State('dropdown-multi-channels', 'value'),
+#      State('dropdown-multi-channels', 'options')]
+# )
+# def get_channel_selection(evt_counter, filename, station_id, juser_id, selected_channels, all_channels):
+#     if filename is None or station_id is None:
+#         return [],[]
+#     user_id = json.loads(juser_id)
+#     ariio = provider.get_arianna_io(user_id, filename)
+#     evt = ariio.get_event_i(evt_counter)
+#     station = evt.get_station(station_id)
+#     channel_ids = sorted([
+#         channel.get_id() for channel in station.iter_channels()]
+#     )
+#     current_channel_ids = sorted([k['value'] for k in all_channels])
+#     if channel_ids == current_channel_ids:
+#         return selected_channels, all_channels
+#     else: # the list of available channels has changed
+#         channel_options = [
+#             {'label':'Ch. {}'.format(channel_id), 'value':channel_id}
+#             for channel_id in channel_ids
+#         ]
+#         return channel_ids, channel_options
 
 
 @app.callback(
@@ -140,7 +177,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
     trace_start_times = []
     fig = plotly.subplots.make_subplots(rows=station.get_number_of_channels(), cols=2,
                                         shared_xaxes=True, shared_yaxes=False,
-                                        vertical_spacing=0.01, subplot_titles=plot_titles)
+                                        vertical_spacing=3e-3, subplot_titles=plot_titles)
     for i, channel in enumerate(station.iter_channels()):
         n_channels += 1
         trace = channel.get_trace() / units.mV
@@ -176,7 +213,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                     'color': colors[i % len(colors)],
                     'line': {'color': colors[i % len(colors)]}
                 },
-                name=channel_id
+                name=str(channel_id)
             ), i + 1, 1)
             if 'RMS' in dropdown_info:
                 fig.append_trace(
@@ -417,7 +454,9 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
     for i, channel_id in enumerate(channel_ids):
         channel = station.get_channel(channel_id)
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(range=[-ymax, ymax])
-        fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(title='voltage [mV]')
+        fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(
+            title='<b>Ch. {}</b><br>voltage [mV]'.format(channel_id)
+        )
 
         if channel.get_trace() is None:
             continue
@@ -444,10 +483,16 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                 ),
                 i + 1, 2)
     if trace_start_time_offset > 0:
-        fig['layout']['xaxis1'].update(title='time [ns] - {:.0f}ns'.format(trace_start_time_offset))
+        fig['layout']['xaxis1'].update(title='time [ns] - {:.0f} ns'.format(trace_start_time_offset))
     else:
         fig['layout']['xaxis1'].update(title='time [ns]')
+    fig['layout']['xaxis1'].update(side='top', showticklabels=True)
+    fig['layout']['xaxis2'].update(side='top', showticklabels=True)
     fig['layout']['xaxis2'].update(title='frequency [MHz]')
+    for i in range(2):
+        last_xaxis = 'xaxis{}'.format(station.get_number_of_channels() * 2 + i - 1)
+        first_xaxis = 'xaxis{}'.format(i+1)
+        fig['layout'][last_xaxis].update(title=fig['layout'][first_xaxis]['title'])
     fig['layout'].update(height=n_channels * 150)
     fig['layout'].update(showlegend=False)
     return fig
