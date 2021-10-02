@@ -1,6 +1,7 @@
 from NuRadioMC.utilities import medium_base
 import numpy as np
 from NuRadioReco.utilities import units
+from scipy import interpolate
 import logging
 logging.basicConfig()
 
@@ -43,6 +44,90 @@ in the a RadioPropaIceWrapper object, you can do this by redefining the
             ice.add_module(extra_discontinuity)
             return ice
 """
+
+
+class birefringence_index:
+       
+    def __init__(self, z):
+        self.z = z    
+             
+    def index(self):
+#-------------------read in interpolation files
+        knots1 = []
+        coeffs1 = []
+
+        number_of_lines1 = len(open("tck1.txt", 'r').readlines())
+        with open("tck1.txt", 'r') as inputfile:
+            for i in range(number_of_lines1):        
+                line = inputfile.readline()
+                line_s = line.split(';')      
+                knots1.append(float(line_s[0]))
+                coeffs1.append(float(line_s[1]))
+
+
+
+        tck1 = (np.array(knots1), np.array(coeffs1), 3)
+        f1_rec = interpolate.UnivariateSpline._from_tck(tck1)
+
+
+        knots2 = []
+        coeffs2 = []
+
+        number_of_lines2 = len(open("tck2.txt", 'r').readlines())
+        with open("tck2.txt", 'r') as inputfile:
+            for i in range(number_of_lines2):        
+                line = inputfile.readline()
+                line_s = line.split(';')      
+                knots2.append(float(line_s[0]))
+                coeffs2.append(float(line_s[1]))
+
+
+
+        tck2 = (np.array(knots2), np.array(coeffs2), 3)
+        f2_rec = interpolate.UnivariateSpline._from_tck(tck2)
+
+
+        knots3 = []
+        coeffs3 = []
+
+        number_of_lines3 = len(open("tck3.txt", 'r').readlines())
+        with open("tck3.txt", 'r') as inputfile:
+            for i in range(number_of_lines3):        
+                line = inputfile.readline()
+                line_s = line.split(';')      
+                knots3.append(float(line_s[0]))
+                coeffs3.append(float(line_s[1]))
+
+
+
+        tck3 = (np.array(knots3), np.array(coeffs3), 3)
+        f3_rec = interpolate.UnivariateSpline._from_tck(tck3)
+        
+#-------------------find the limit of the refractive index
+
+        m = southpole_2015()  
+        comp = m.get_index_of_refraction(np.array([0, 0, -2500]))
+
+#-------------------overlapping the index from southpole_2015 and the Jordan paper 
+
+        b = np.array([0, 0, self.z])
+        
+        n1 = m.get_index_of_refraction(b) + f1_rec(-self.z) - comp
+        n2 = m.get_index_of_refraction(b) + f2_rec(-self.z) - comp
+        n3 = m.get_index_of_refraction(b) + f3_rec(-self.z) - comp   
+    
+        return(n1, n2, n3)
+
+    def index_all(self):
+        
+        n = []
+        xnew = np.arange(self.z, 0, 1)
+                       
+        for i in xnew:
+            n.append(birefringence_index(i).index())
+        
+        return(np.array(n))
+
 
 class southpole_simple(medium_base.IceModelSimple):
     def __init__(self):
