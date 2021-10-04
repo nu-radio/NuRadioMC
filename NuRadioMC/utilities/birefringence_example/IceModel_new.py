@@ -4,6 +4,7 @@ from NuRadioMC.utilities.medium import birefringence_index
 
 depth = -2500
 a = birefringence_index(depth)
+print(a)
   
 n = a.index()
 print(n)
