@@ -128,7 +128,7 @@ class ARZ(object):
             return True
         else:
             import requests
-            URL = 'http://arianna.ps.uci.edu/~arianna/data/ce_shower_library/library_v{:d}.{:d}.pkl'.format(*self._version)
+            URL = 'https://rnog-data.zeuthen.desy.de/shower_library/library_v{:d}.{:d}.pkl'.format(*self._version)
 
             logger.info("downloading shower library {} from {}. This can take a while...".format(self._version, URL))
             r = requests.get(URL)
