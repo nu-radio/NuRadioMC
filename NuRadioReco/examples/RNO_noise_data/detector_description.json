@@ -1363,7 +1363,7 @@
         
         "7": {
             "amp_type": "iglu",
-            "ant_comment": "Helper String B CAL Vpol",
+            "ant_comment": "Surface CAL VPOL",
             "ant_orientation_phi": 0.0,
             "ant_orientation_theta": 0.0,
             "ant_position_x":  18.52,
@@ -1379,7 +1379,7 @@
         
         "8": {
             "amp_type": "iglu",
-            "ant_comment": "Helper String B CAL Vpol",
+            "ant_comment": "Surface CAL Vpol",
             "ant_orientation_phi": 0.0,
             "ant_orientation_theta": 0.0,
             "ant_position_x":  -51.46,
@@ -1395,7 +1395,7 @@
         
         "9": {
             "amp_type": "iglu",
-            "ant_comment": "Helper String B CAL Vpol",
+            "ant_comment": "Surface CAL Vpol",
             "ant_orientation_phi": 0.0,
             "ant_orientation_theta": 0.0,
             "ant_position_x":  -0.16,
