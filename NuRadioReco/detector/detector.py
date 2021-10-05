@@ -240,6 +240,15 @@ class Detector(object):
         return self._channels.search((Channel.station_id == station_id)
                                      & (Channel.commission_time <= self.__current_time.datetime)
                                      & (Channel.decommission_time > self.__current_time.datetime))
+                                     
+    def _query_devices(self, station_id):
+        Device = Query()
+        if self.__current_time is None:
+            raise ValueError(
+                "Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
+        return self._devices.search((Device.station_id == station_id)
+                                     & (Device.commission_time <= self.__current_time.datetime)
+                                     & (Device.decommission_time > self.__current_time.datetime))
 
     def _query_station(self, station_id):
         Station = Query()
