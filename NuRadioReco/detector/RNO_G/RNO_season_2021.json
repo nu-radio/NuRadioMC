@@ -1255,6 +1255,164 @@
       
    
     },
+    
+    "devices":{
+     
+        "1": {
+            "amp_type": "iglu",
+            "ant_comment": "Helper String B CAL Vpol",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x":  17.65,
+            "ant_position_y": -26.72,
+            "ant_position_z": -86.54,
+            "ant_rotation_phi": 90.0,
+            "ant_rotation_theta": 90.0,
+            "commission_time": "{TinyDate}:2021-07-01T00:00:00",
+            "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
+            "device_id": 0,
+            "station_id": 11
+        },
+        
+        
+        "2": {
+            "amp_type": "iglu",
+            "ant_comment": "Helper String C CAL Vpol",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x": 34.17,
+            "ant_position_y": 3.18,
+            "ant_position_z": -95.69,
+            "ant_rotation_phi": 90.0,
+            "ant_rotation_theta": 90.0,
+            "commission_time": "{TinyDate}:2021-07-01T00:00:00",
+            "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
+            "device_id": 1,
+            "station_id": 11
+        },
+        
+       
+        
+        "3": {
+            "amp_type": "iglu",
+            "ant_comment": "Helper String B CAL Vpol",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x": -17.2,
+            "ant_position_y": 29.097,
+            "ant_position_z": -93.72,
+            "ant_rotation_phi": 90.0,
+            "ant_rotation_theta": 90.0,
+            "commission_time": "{TinyDate}:2021-07-01T00:00:00",
+            "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
+            "device_id": 2,
+            "station_id": 21
+        },
+        
+        "4": {
+            "amp_type": "iglu",
+            "ant_comment": "Helper String C CAL Vpol",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x": -33.64,
+            "ant_position_y": -0.8,
+            "ant_position_z": -94.37,
+            "ant_rotation_phi": 90.0,
+            "ant_rotation_theta": 90.0,
+            "commission_time": "{TinyDate}:2021-07-01T00:00:00",
+            "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
+            "device_id": 3,
+            "station_id": 21
+        },
+        
+        
+        
+        "5": {
+            "amp_type": "iglu",
+            "ant_comment": "Helper String B CAL Hpol",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x": -17.51,
+            "ant_position_y": 33.13,
+            "ant_position_z": -93.8,
+            "ant_rotation_phi": 90.0,
+            "ant_rotation_theta": 90.0,
+            "commission_time": "{TinyDate}:2021-07-01T00:00:00",
+            "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
+            "device_id": 4,
+            "station_id": 22
+        },
+        
+        
+        "6": {
+            "amp_type": "iglu",
+            "ant_comment": "Helper String C CAL Vpol",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x":  17.29,
+            "ant_position_y": 26.16,
+            "ant_position_z": -94.62,
+            "ant_rotation_phi": 90.0,
+            "ant_rotation_theta": 90.0,
+            "commission_time": "{TinyDate}:2021-07-01T00:00:00",
+            "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
+            "device_id": 5,
+            "station_id": 22
+            
+        },
+        
+        "7": {
+            "amp_type": "iglu",
+            "ant_comment": "Surface CAL VPOL",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x":  18.52,
+            "ant_position_y": -1.01,
+            "ant_position_z": -5.6,
+            "ant_rotation_phi": 90.0,
+            "ant_rotation_theta": 90.0,
+            "commission_time": "{TinyDate}:2021-07-01T00:00:00",
+            "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
+            "device_id": 6,
+            "station_id": 11
+        },
+        
+        "8": {
+            "amp_type": "iglu",
+            "ant_comment": "Surface CAL Vpol",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x":  -51.46,
+            "ant_position_y": -29.4,
+            "ant_position_z": -1,
+            "ant_rotation_phi": 90.0,
+            "ant_rotation_theta": 90.0,
+            "commission_time": "{TinyDate}:2021-07-01T00:00:00",
+            "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
+            "device_id": 7,
+            "station_id": 21
+        },
+        
+        "9": {
+            "amp_type": "iglu",
+            "ant_comment": "Surface CAL Vpol",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x":  -0.16,
+            "ant_position_y": -33.23,
+            "ant_position_z": -1,
+            "ant_rotation_phi": 90.0,
+            "ant_rotation_theta": 90.0,
+            "commission_time": "{TinyDate}:2021-07-01T00:00:00",
+            "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
+            "device_id": 8,
+            "station_id": 22
+        }
+        
+        
+        
+        
+        },
     "positions": {},
     "stations": {
         "01": {
