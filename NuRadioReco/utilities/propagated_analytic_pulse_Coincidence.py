@@ -162,7 +162,7 @@ class simulation():
 
 
 	def _calculate_polarization_vector(self, channel_id, iS):
-		polarization_direction = np.cross(raytracing[channel_id][iS]["launch vector"], np.cross(self._shower_axis, raytracing[channel_id][iS]["launch vector"]))
+		polarization_direction = np.cross(raytracing[channel_id][iS]["launch vector"], np.cross(self._shower_axis, raytracing[station_id][channel_id][iS]["launch vector"]))
 		polarization_direction /= np.linalg.norm(polarization_direction)
 		cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["launch vector"]))
 		return cs.transform_from_ground_to_onsky(polarization_direction)

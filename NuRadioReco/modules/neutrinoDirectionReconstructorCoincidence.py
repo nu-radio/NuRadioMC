@@ -10,7 +10,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 import h5py
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.utilities import propagated_analytic_pulse_Coincidence
+from NuRadioReco.utilities import propagated_analytic_pulse
 import matplotlib
 from scipy import signal
 from scipy import optimize as opt
@@ -127,7 +127,7 @@ class neutrinoDirectionReconstructor:
         
             print("reconstructed vertex direction reco", reconstructed_vertex)
       
-        simulation = propagated_analytic_pulse_Coincidence.simulation(template, reconstructed_vertex) ### if the templates are used, than the templates for the correct distance are loaded
+        simulation = propagated_analytic_pulse.simulation(template, reconstructed_vertex) ### if the templates are used, than the templates for the correct distance are loaded
         rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1 ## raytype from the triggered pulse
         simulation.begin(det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol)
         self._simulation = simulation
