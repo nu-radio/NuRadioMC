@@ -1,6 +1,7 @@
 import json
 from NuRadioReco.eventbrowser.app import app
-import dash_html_components as html
+from dash import html
+import numpy as np
 from dash.dependencies import Input, Output, State
 import NuRadioReco.eventbrowser.dataprovider
 
@@ -32,10 +33,14 @@ def trigger_overview_properties(filename, evt_counter, station_id, juser_id):
         ]
         trigger = station.get_trigger(trigger_name)
         for setting_name in trigger.get_trigger_settings():
+            display_value = '{}'
+            setting_value = trigger.get_trigger_settings()[setting_name]
+            if type(setting_value) in [float, np.float32, np.float64, np.float128]:
+                display_value = '{:.5g}'
             props.append(
                 html.Div([
                     html.Div('{}'.format(setting_name), className='custom-table-td'),
-                    html.Div('{}'.format(trigger.get_trigger_settings()[setting_name]),
+                    html.Div(display_value.format(setting_value),
                              className='custom-table-td custom-table-td-last')
                 ], className='custom-table-row')
             )

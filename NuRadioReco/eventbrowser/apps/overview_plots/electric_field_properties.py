@@ -1,7 +1,7 @@
 import json
 from NuRadioReco.eventbrowser.app import app
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 from dash.dependencies import Input, Output, State
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp

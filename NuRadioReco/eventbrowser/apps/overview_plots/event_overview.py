@@ -2,8 +2,8 @@ import json
 import plotly
 from NuRadioReco.eventbrowser.app import app
 from dash.dependencies import Input, Output, State
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import eventParameters as evp
@@ -11,6 +11,9 @@ from NuRadioReco.framework.parameters import showerParameters as shp
 import radiotools.helper as hp
 import NuRadioReco.eventbrowser.dataprovider
 import numpy as np
+import logging
+
+logger = logging.getLogger('overview')
 
 provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 
@@ -88,12 +91,33 @@ def plot_event_overview(evt_counter, filename, station_id, station_mode, channel
     evt = ariio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     plots = []
-    if station.is_neutrino():
+    # First check the particle type
+    try:
+        event_is_neutrino = station.is_neutrino() # This throws an error if the particle type has not been set during reconstruction
+        event_is_cosmic_ray = station.is_cosmic_ray()
+    except ValueError:
+        try:
+            sim_station = station.get_sim_station()
+            event_is_neutrino = sim_station.is_neutrino()
+            event_is_cosmic_ray = sim_station.is_cosmic_ray()
+        except ValueError:
+            logger.warning('Particle type has not been set in both the station and the sim_station.')
+            event_is_neutrino = None
+            event_is_cosmic_ray = None
+    
+    if event_is_neutrino:
         if station.has_sim_station():
             sim_station = station.get_sim_station()
-            sim_vertex = sim_station.get_parameter(stnp.nu_vertex)
-            sim_zenith = sim_station.get_parameter(stnp.nu_zenith)
-            sim_azimuth = sim_station.get_parameter(stnp.nu_azimuth)
+            if sim_station.has_parameter(stnp.nu_vertex): # for backwards compatibility, we attempt to get this from the sim_station
+                sim_vertex = sim_station.get_parameter(stnp.nu_vertex)
+                sim_zenith = sim_station.get_parameter(stnp.nu_zenith)
+                sim_azimuth = sim_station.get_parameter(stnp.nu_azimuth)
+            else:
+                # we only look at the first sim_shower -> problem if an event contains multiple, different sim_showers?
+                sim_showers = [sim_shower for sim_shower in evt.get_sim_showers()]
+                sim_vertex = sim_showers[0].get_parameter(shp.vertex)
+                sim_zenith = sim_showers[0].get_parameter(shp.zenith)
+                sim_azimuth = sim_showers[0].get_parameter(shp.azimuth)
             sim_direction = hp.spherical_to_cartesian(sim_zenith, sim_azimuth) * 300. + sim_vertex
             plots.append(plotly.graph_objs.Scatter3d(
                 x=[sim_vertex[0]],
@@ -155,7 +179,7 @@ def plot_event_overview(evt_counter, filename, station_id, station_mode, channel
                     color='red',
                     opacity=.5,
                     name='Cherenkov ring'))
-    if station.is_cosmic_ray():
+    if event_is_cosmic_ray:
         for sim_shower in evt.get_sim_showers():
             sim_core = sim_shower.get_parameter(shp.core)
             sim_zenith = sim_shower.get_parameter(shp.zenith)

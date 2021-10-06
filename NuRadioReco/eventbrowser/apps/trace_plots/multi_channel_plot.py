@@ -12,8 +12,8 @@ from NuRadioReco.utilities import geometryUtilities
 from NuRadioReco.utilities import trace_utilities
 """
 import numpy as np
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 from dash.dependencies import Input, Output, State
 from NuRadioReco.eventbrowser.app import app
 import os
@@ -47,7 +47,8 @@ layout = [
             dcc.Dropdown(id='dropdown-trace-info',
                          options=[
                              {'label': 'RMS', 'value': 'RMS'},
-                             {'label': 'L1', 'value': 'L1'}
+                             {'label': 'L1', 'value': 'L1'},
+                             {'label': 'int. power', 'value':'int_power'}
                          ],
                          multi=True,
                          value=["RMS", "L1"]
@@ -216,12 +217,26 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                 name=str(channel_id)
             ), i + 1, 1)
             if 'RMS' in dropdown_info:
+                fig.add_annotation(
+                    text=r'mu = {:.2g}, STD={:.2g}'.format(np.mean(trace), np.std(trace)),
+                    x=0.99, y=0.98, xanchor='right', yanchor='top', showarrow=False,
+                    xref='x domain', yref='y domain',
+                    row=i+1, col=1)
+                # fig.append_trace(
+                #     plotly.graph_objs.Scatter(
+                #         x=[0.99 * tt.max()],
+                #         y=[0.98 * trace.max()],
+                #         mode='text',
+                #         text=[r'mu = {:.2g}, STD={:.2g}'.format(np.mean(trace), np.std(trace))],
+                #         textposition='bottom left'
+                #     ), i + 1, 1)
+            if 'int_power' in dropdown_info:
                 fig.append_trace(
                     plotly.graph_objs.Scatter(
                         x=[0.99 * tt.max()],
-                        y=[0.98 * trace.max()],
+                        y=[0.7 * trace.min()],
                         mode='text',
-                        text=[r'mu = {:.2g}, STD={:.2g}'.format(np.mean(trace), np.std(trace))],
+                        text=[r'E ~ {:.3g}'.format(np.sum(trace**2))],
                         textposition='bottom left'
                     ), i + 1, 1)
     if 'envelope' in dropdown_traces:

@@ -3,13 +3,16 @@ import plotly
 import numpy as np
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import showerParameters as shp
 import radiotools.helper as hp
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 from dash.dependencies import Input, Output, State
 from NuRadioReco.eventbrowser.app import app
 import NuRadioReco.eventbrowser.dataprovider
+import logging
 
+logger = logging.getLogger('traces')
 provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 
 layout = [
@@ -35,8 +38,12 @@ def update_sim_event_3d(i_event, filename, station_id, juser_id):
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(i_event)
     station = evt.get_station(station_id)
+    det = ariio.get_detector()
+    det.update(station.get_station_time())
     sim_station = station.get_sim_station()
+    sim_showers = [sim_shower for sim_shower in evt.get_sim_showers()]
     if sim_station is None:
+        logger.info("No simulated station for selected event and station")
         return {}
     data = [plotly.graph_objs.Scatter3d(
         x=[0],
@@ -45,28 +52,50 @@ def update_sim_event_3d(i_event, filename, station_id, juser_id):
         mode='markers',
         name='Station'
     )]
-    if sim_station.has_parameter(stnp.nu_vertex):
+    vertex, neutrino_path = None, None
+    if sim_station.has_parameter(stnp.nu_vertex): # look for the neutrino vertex, direction in the sim_station
         vertex = sim_station.get_parameter(stnp.nu_vertex)
-        data.append(plotly.graph_objs.Scatter3d(
-            x=[vertex[0]],
-            y=[vertex[1]],
-            z=[vertex[2]],
-            mode='markers',
-            name='Interaction Vertex'
-        ))
-        plot_range = 1.5 * np.max(np.abs(vertex))
+        event_type = 'Neutrino'
         if sim_station.has_parameter(stnp.nu_zenith) and sim_station.has_parameter(stnp.nu_azimuth):
             neutrino_path = hp.spherical_to_cartesian(sim_station.get_parameter(stnp.nu_zenith),
                                                       sim_station.get_parameter(stnp.nu_azimuth))
+    elif len(sim_showers) > 0: # look in the event sim_showers
+        if sim_station.is_neutrino():
+            event_type = 'Neutrino'
+            vertices = np.unique([ss.get_parameter(shp.vertex) for ss in sim_showers], axis=0)
+        else:
+            event_type = 'Cosmic Ray'
+            vertices = np.unique([ss.get_parameter(shp.core) for ss in sim_showers], axis=0)
+        zeniths = np.unique([ss.get_parameter(shp.zenith) for ss in sim_showers], axis=0)
+        azimuths = np.unique([ss.get_parameter(shp.azimuth) for ss in sim_showers], axis=0)
+        if any([len(k) > 1 for k in [vertices, zeniths, azimuths]]):
+            logger.warning("Event contains more than one shower. Only the first shower will be shown.")
+        if len(vertices):
+            vertex = vertices[0] - det.get_absolute_position(station_id) # shower vertex coordinates are global coordinates
+            if len(zeniths) & len(azimuths):
+                neutrino_path = hp.spherical_to_cartesian(zeniths[0], azimuths[0])
+    else:
+        logger.info("Simulated neutrino vertex not found.")
+        plot_range = 1 * units.km
+    
+    if vertex is not None:
+        data.append(plotly.graph_objs.Scatter3d(
+                x=[vertex[0]],
+                y=[vertex[1]],
+                z=[vertex[2]],
+                mode='markers',
+                name='Interaction Vertex'
+            ))
+        plot_range = 1.5 * np.max(np.abs(vertex))
+        if neutrino_path is not None:
             data.append(plotly.graph_objs.Scatter3d(
                 x=[vertex[0], vertex[0] + .25 * plot_range * neutrino_path[0]],
                 y=[vertex[1], vertex[1] + .25 * plot_range * neutrino_path[1]],
                 z=[vertex[2], vertex[2] + .25 * plot_range * neutrino_path[2]],
-                name='Neutrino Direction',
+                name='{} Direction'.format(event_type),
                 mode='lines'
             ))
-    else:
-        plot_range = 1 * units.km
+        
     fig = plotly.graph_objs.Figure(
         data=data,
         layout=plotly.graph_objs.Layout(
@@ -90,7 +119,7 @@ def update_sim_event_3d(i_event, filename, station_id, juser_id):
                     'range': [-plot_range, plot_range]
                 },
                 'zaxis': {
-                    'range': [-plot_range, 0]
+                    'range': [-plot_range, np.max([0, vertex[2] + .3 * plot_range * neutrino_path[2]])]
                 }
             }
         )
@@ -105,17 +134,24 @@ def update_sim_event_3d(i_event, filename, station_id, juser_id):
               [State('user_id', 'children')])
 def get_sim_station_property_options(i_event, filename, station_id, juser_id):
     if filename is None or station_id is None:
+        logger.info('No file or station selected')
         return []
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(i_event)
     station = evt.get_station(station_id).get_sim_station()
     if station is None:
+        logger.info('No simulated station found')
         return []
     options = []
+    all_params = []
     for parameter in stnp:
+        all_params.append(parameter.name)
         if station.has_parameter(parameter):
             options.append({'label': parameter.name, 'value': parameter.value})
+    found_params = [option['label'] for option in options]
+    not_found_params = [param for param in all_params if param not in found_params]
+    logger.info('Simulated station has the following parameters:\n  {}\nNot defined are:\n  {}'.format(found_params, not_found_params))
     return options
 
 
