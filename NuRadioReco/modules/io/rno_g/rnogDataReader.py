@@ -13,10 +13,10 @@ class RNOGDataReader:
     def __init__(self, filenames, *args, **kwargs):
         self.__filenames = filenames
         self.__event_ids = None
-        self.__run_numbers = None
+        # self.__run_numbers = None
         self.__sampling_rate = 3.2 * units.GHz #TODO: 3.2 at the beginning of deployment. Will change to 2.4 GHz after firmware update eventually, but info not yet contained in the .root files. Read out once available.
         self.__parse_event_ids()
-        self.__parse_run_numbers()
+        # self.__parse_run_numbers()
         self.__i_events_per_file = np.zeros((len(self.__filenames), 2), dtype=int)
         i_event = 0
         for i_file, filename in enumerate(filenames):
@@ -34,21 +34,24 @@ class RNOGDataReader:
         return self.__event_ids
 
     def __parse_event_ids(self):
-        self.__event_ids = np.array([], dtype=int)
+        event_ids = np.array([], dtype=int)
+        run_numbers = np.array([], dtype=int)
         for filename in self.__filenames:
             file = self.__open_file(filename)
-            self.__event_ids = np.append(self.__event_ids, file['waveforms']['event_number'].array(library='np').astype(int))
+            event_ids = np.append(event_ids, file['waveforms']['event_number'].array(library='np').astype(int))
+            run_numbers = np.append(run_numbers, file['header']['run_number'].array(library='np').astype(int))
+        self.__event_ids = np.array([run_numbers, event_ids]).T
 
-    def get_run_numbers(self):
-        if self.__run_numbers is None:
-            self.__parse_run_numbers()
-        return self.__run_numbers
+    # def get_run_numbers(self):
+    #     if self.__run_numbers is None:
+    #         self.__parse_run_numbers()
+    #     return self.__run_numbers
 
-    def __parse_run_numbers(self):
-        self.__run_numbers = np.array([], dtype=int)
-        for filename in self.__filenames:
-            file = self.__open_file(filename)
-            self.__run_numbers = np.append(self.__run_numbers, file['header']['run_number'].array(library='np').astype(int))
+    # def __parse_run_numbers(self):
+    #     self.__run_numbers = np.array([], dtype=int)
+    #     for filename in self.__filenames:
+    #         file = self.__open_file(filename)
+    #         self.__run_numbers = np.append(self.__run_numbers, file['header']['run_number'].array(library='np').astype(int))
 
     def __open_file(self, filename):
         file = uproot.open(filename)
@@ -60,7 +63,7 @@ class RNOGDataReader:
         return self.get_event_ids().shape[0]
 
     def get_event_i(self, i_event):
-        event = NuRadioReco.framework.event.Event(self.get_run_numbers()[i_event], self.get_event_ids()[i_event])
+        event = NuRadioReco.framework.event.Event(*self.get_event_ids()[i_event])
         for i_file, filename in enumerate(self.__filenames):
             if self.__i_events_per_file[i_file, 0] <= i_event < self.__i_events_per_file[i_file, 1]:
                 i_event_in_file = i_event - self.__i_events_per_file[i_file, 0]
@@ -86,7 +89,7 @@ class RNOGDataReader:
         return None
 
     def get_event(self, event_id):
-        find_event = np.where((self.get_run_numbers() == event_id[0]) & (self.get_event_ids() == event_id[1]))[0]
+        find_event = np.where((self.get_event_ids()[:,0] == event_id[0]) & (self.get_event_ids()[:,1] == event_id[1]))[0]
         if len(find_event) == 0:
             return None
         elif len(find_event) == 1:
