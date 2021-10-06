@@ -1,12 +1,12 @@
 from __future__ import absolute_import, division, print_function  # , unicode_literals
-import dash_html_components as html
+from dash import html
 import NuRadioReco.eventbrowser.apps.simulation_plots.sim_electric_field_trace
 import NuRadioReco.eventbrowser.apps.simulation_plots.sim_electric_field_spectrum
 import NuRadioReco.eventbrowser.apps.simulation_plots.sim_event_overview
 import logging
 
 logger = logging.getLogger('traces')
-
+logger.setLevel(logging.DEBUG)
 layout = html.Div([
     html.Div([
         html.Div([

@@ -4,7 +4,7 @@ import plotly.subplots
 from NuRadioReco.utilities import units
 from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
-import dash_core_components as dcc
+from dash import dcc
 from dash.dependencies import State
 from NuRadioReco.eventbrowser.app import app
 import NuRadioReco.eventbrowser.dataprovider
