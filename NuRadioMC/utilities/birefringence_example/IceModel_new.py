@@ -2,21 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 from NuRadioMC.utilities.medium import birefringence_index
 
-depth = -2500
-a = birefringence_index(depth)
-print(a)
+pos = np.array([2000,-100,-2500])
+a = birefringence_index()
   
-n = a.index()
+n = a.get_index_of_refraction(pos)
 print(n)
 
-n_all = a.index_all()
+n_all = a.get_index_of_refraction_all(pos)
 print(n_all)
 
-xnew = np.arange(depth, 0, 1)
+znew = np.arange(pos[2], 0, 1)
 
-plt.plot(xnew, n_all[:,0], label = 'n1 - model')
-plt.plot(xnew, n_all[:,1], label = 'n2 - model')
-plt.plot(xnew, n_all[:,2], label = 'n3 - model')
+plt.plot(znew, n_all[:,0], label = 'n1 - model')
+plt.plot(znew, n_all[:,1], label = 'n2 - model')
+plt.plot(znew, n_all[:,2], label = 'n3 - model')
 
 plt.title('Refractive index model for birefringence')
 plt.xlabel('depth [m]')
