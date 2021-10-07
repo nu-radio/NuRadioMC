@@ -412,34 +412,6 @@ def update_event_info_id_options(run_number, filename, juser_id):
     return [{'label':i, 'value':i} for i in event_ids]
 
 
-# @app.callback(
-#     Output('event-info-run', 'value'),
-#     [Input('event-counter-slider', 'value'),
-#      Input('filename', 'value')],
-#     [State('user_id', 'children')])
-# def update_event_info_run(event_i, filename, juser_id):
-#     if filename is None:
-#         return ""
-#     user_id = json.loads(juser_id)
-#     ariio = provider.get_arianna_io(user_id, filename)
-#     evt = ariio.get_event_i(event_i)
-#     return evt.get_run_number()
-
-
-# @app.callback(
-#     Output('event-info-id', 'children'),
-#     [Input('event-counter-slider', 'value'),
-#      Input('filename', 'value')],
-#     [State('user_id', 'children')])
-# def update_event_info_id(event_i, filename, juser_id):
-#     if filename is None:
-#         return ""
-#     user_id = json.loads(juser_id)
-#     ariio = provider.get_arianna_io(user_id, filename)
-#     evt = ariio.get_event_i(event_i)
-#     return evt.get_id()
-
-
 @app.callback(
     Output('event-info-time', 'children'),
     [Input('event-counter-slider', 'value'),
@@ -460,6 +432,9 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
 if __name__ == '__main__':
     # if int(dash.__version__.split('.')[0]) < 2:
     #     print(
-    #         'WARNING: Dash version 2.00.0 or newer is required, you are running version {}. Please update.'.format(
+    #         'WARNING: Dash version 2.0.0 or newer is required, you are running version {}. Please update.'.format(
     #             dash.__version__))
+    if not parsed_args.debug:
+        werkzeug_logger = logging.getLogger('werkzeug')
+        werkzeug_logger.setLevel(logging.WARNING)
     app.run_server(debug=parsed_args.debug, port=parsed_args.port)
