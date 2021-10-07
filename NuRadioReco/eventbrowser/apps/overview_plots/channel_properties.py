@@ -7,7 +7,9 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import channelParameters as chp
 import NuRadioReco.eventbrowser.apps.common
 import NuRadioReco.eventbrowser.dataprovider
+import logging
 
+logger = logging.getLogger('overview')
 provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 
 layout = [
