@@ -12,6 +12,10 @@ except ImportError:
 
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
+from NuRadioMC.utilities.medium import birefringence_index
+from radiotools import coordinatesystems as cstrans
+from radiotools import helper as hp
+from NuRadioMC.utilities.medium import southpole_2015
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 import logging
@@ -1745,6 +1749,309 @@ class ray_tracing:
         MM = np.matmul(self.__R.T, dP.T)
         path = MM.T + self.__X1
         return path
+         
+    def get_effective_index(self, k, direction, nx, ny, nz, omega):
+
+        """
+        objective function to find the possible values of 'n' into the direction of 'k'
+        the possible values of 'n' are the roots of A+B+C
+    
+        Parameters
+        ------------
+        k: float
+        magnitude of k-vector (multiplied by `c` and divided by `omega` gives the effective index of refraction into this direction)
+        direction: 3-dim array of floats
+        the propagation direction (must be normalized to 1)
+        nx: float
+        the index of refraction into the x direction
+        ny: float
+        the index of refraction into the y direction
+        nz: float
+        the index of refraciton into the z direction
+        omega: float
+        the angular frequency (2 pi times the frequency)
+        
+        """
+        
+        c = speed_of_light        
+        kx = k * direction[0]
+        ky = k * direction[1]
+        kz = k * direction[2]
+        
+        A = omega ** 4 / c ** 4
+        B = -omega ** 2 / c ** 2 * ((kx ** 2 + ky ** 2) / nz ** 2 + (kx ** 2 + kz ** 2) / ny ** 2 + (ky ** 2 + kz ** 2) / nx ** 2)
+        C = (kx ** 2 / (ny ** 2 * nz ** 2) + ky ** 2 / (nx ** 2 * nz ** 2) + kz ** 2 / (nx ** 2 * ny ** 2)) * (kx ** 2 + ky ** 2 + kz ** 2)
+        
+        return A + B + C
+
+    def get_polarization(self, n, direction, nx, ny, nz, rounding=10):
+        
+        """
+        returns the polarization of a wave for the direction of propagation 
+    
+        Parameters
+        ------------
+        n: float
+        the index of effective refraction into the x direction calculated by get_effective_index
+        
+        direction: numpy.array
+        propagation direction of the wave   
+           
+        nx: float
+        the index of refraction into the x direction
+        
+        ny: float
+        the index of refraction into the y direction
+        
+        nz: float
+        the index of refraciton into the z direction 
+        
+        rounding: int
+        the precision of the comparison between n and nx, ny, nz for the special cases    
+        """        
+        
+        if(np.round(n, rounding) in [np.round(nx, rounding), np.round(ny, rounding), np.round(nz, rounding)]):
+        # treat special cases here
+            if(np.isclose(direction[0], 1)):  # propagation into x
+                print(f"propagating into x")
+                if(np.isclose(n, ny)):
+                    return np.array([0, 1, 0])
+                elif(np.isclose(n, nz)):
+                    return np.array([0, 0, 1])
+            elif(np.isclose(direction[1], 1)):  # propagation into y
+                print(f"propagating into x")
+                if(np.isclose(n, nx)):
+                    return np.array([1, 0, 0])
+                elif(np.isclose(n, nz)):
+                    return np.array([0, 0, 1])
+            elif(np.isclose(direction[2], 1)):  # propagation into z
+                print(f"propagating into x")
+                if(np.isclose(n, nx)):
+                    return np.array([1, 0, 0])
+                elif(np.isclose(n, ny)):
+                    return np.array([0, 1, 0])
+        # not treat the cases where the direction is perpendicular to just one of the principal axes
+        # TODO special cases of n1=n2 are not treated properly
+            elif(np.dot(direction, np.array([1, 0, 0])) == 0):  # direction perpendicular to x-axis
+                if(np.isclose(n, nx)):
+                    return np.array([1, 0, 0])
+                else:
+                    print(f"ERROR: propagation direction perpendicular to x-axis but n not equal to n_x {n}")
+                    return [0, 0, 0]
+            elif(np.dot(direction, np.array([0, 1, 0])) == 0):  # direction perpendicular to y-axis
+                if(np.isclose(n, ny)):
+                    return np.array([0, 1, 0])
+                else:
+                    print(f"ERROR: propagation direction perpendicular to y-axis but n not equal to n_y")
+                    return [0, 0, 0]
+            elif(np.dot(direction, np.array([0, 0, 1])) == 0):  # direction perpendicular to z-axis
+                if(np.isclose(n, nz)):
+                    return np.array([0, 0, 1])
+                else:
+                    print(f"ERROR: propagation direction perpendicular to z-axis but n not equal to n_z")
+                    return [0, 0, 0]
+
+            else:
+                print(f"ERROR: non of the special cases worked")
+                print(n, direction, nx, ny, nz)
+                return [0, 0, 0]
+        else:
+            p = np.array([direction[0] / (n ** 2 - nx ** 2), direction[1] / (n ** 2 - ny ** 2), direction[2] / (n ** 2 - nz ** 2)])
+            return p / np.linalg.norm(p)
+
+    def get_3d_trace(self, source, antenna, acc = 1000):
+        
+        """
+        returns the trace of the two possible solutions provided by get_path
+    
+        Parameters
+        ------------
+        source: numpy.array
+        position of the interaction
+        
+        antenna: numpy.array
+        position of the receiving antenna
+        
+        acc: int
+        step number of the ray tracer   
+        """    
+    
+        ice = southpole_2015()
+        p = [] 
+
+        r = ray_tracing(ice)
+        r.set_start_and_end_point(source, antenna)
+        r.find_solutions()
+
+        if(r.has_solution()):
+            for iS in range(r.get_number_of_solutions()):
+                path = r.get_path(iS, n_points=acc)
+                p.append(path)
+    
+        else:
+            print('error: no solution from the ray tracer')
+                        
+        return(np.array(p))
+        
+    def get_birefringence_time_delay(self, source, antenna, omega, path_type=0, acc =1000):
+        
+        """
+        returns the calculated time delay between the two birefringence states 
+        the path of the two rays is approximated to be equal
+
+        Parameters
+        ------------
+        source: numpy.array
+        position of the interaction
+        
+        antenna: numpy.array
+        position of the receiving antenna
+        
+        omega: float
+        frequency of the radio wave
+        
+        path_type: int
+        refers to the short or long path of the radio wave (0 for short, 1 for long)
+        
+        acc: int
+        step number of the ray tracer   
+        """      
+       
+        ice = southpole_2015()
+        ice_n = birefringence_index()
+        r = ray_tracing(ice)
+        p = r.get_3d_trace(source, antenna, acc)
+        c = speed_of_light
+        a = omega / c 
+        
+        t_p = []
+        t_s = []
+    
+        for i in range(acc-1):
+            
+            if path_type == 0:   
+                                
+                n1 = ice_n.get_index_of_refraction(p[0,i])[0]
+                n2 = ice_n.get_index_of_refraction(p[0,i])[1]
+                n3 = ice_n.get_index_of_refraction(p[0,i])[2]                               
+                       
+                dx = p[0,i+1,0] - p[0,i,0]
+                dy = p[0,i+1,1] - p[0,i,1]
+                dz = p[0,i+1,2] - p[0,i,2]
+            
+            elif path_type == 1:
+
+                n1 = ice_n.get_index_of_refraction(p[1,i])[0]
+                n2 = ice_n.get_index_of_refraction(p[1,i])[1]
+                n3 = ice_n.get_index_of_refraction(p[1,i])[2]
+                       
+                dx = p[1,i+1,0] - p[1,i,0]
+                dy = p[1,i+1,1] - p[1,i,1]
+                dz = p[1,i+1,2] - p[1,i,2]
+                
+            else:
+                print('error: wrong path type')
+                              
+            direction = np.array([ dx, dy, dz])  
+            l = np.linalg.norm(direction)  
+            direction = direction / l
+
+            res = optimize.minimize(r.get_effective_index, x0=a, args=(direction, n1, n2, n3, omega))    
+            s1 = optimize.root_scalar(r.get_effective_index, bracket=(a, res.x[0]), args=(direction, n1, n2, n3, omega))
+            s2 = optimize.root_scalar(r.get_effective_index, bracket=(res.x[0], 2 * a), args=(direction, n1, n2, n3, omega))
+
+            n_p = s1.root / a
+            n_s = s2.root / a  
+
+            t_p.append(l * n_p / c)
+            t_s.append(l * n_s / c)
+           
+        Dt = np.sum(t_p) - np.sum(t_s) 
+
+        return(Dt)    
+    
+    def get_path_polarization(self, source, antenna, omega, path_type=0, acc=1000):
+
+        """
+        returns the polarization of the two states of the wave along its path and the path length
+
+        Parameters
+        ------------
+        source: numpy.array
+        position of the interaction
+        
+        antenna: numpy.array
+        position of the receiving antenna
+        
+        omega: float
+        frequency of the radio wave
+        
+        path_type: int
+        refers to the short or long path of the radio wave (0 for short, 1 for long)
+        
+        acc: int
+        step number of the ray tracer   
+        """    
+
+        ice = southpole_2015()
+        ice_n = birefringence_index()
+        r = ray_tracing(ice)
+        p = r.get_3d_trace(source, antenna, acc)
+        c = speed_of_light
+        a = omega / c 
+    
+        l_path = []
+        dist = 0
+    
+        sky_o = []
+        sky_e = []
+
+        for i in range(acc-1):
+        
+            if path_type == 0:   
+                                
+                n1 = ice_n.get_index_of_refraction(p[0,i])[0]
+                n2 = ice_n.get_index_of_refraction(p[0,i])[1]
+                n3 = ice_n.get_index_of_refraction(p[0,i])[2]                               
+                       
+                dx = p[0,i+1,0] - p[0,i,0]
+                dy = p[0,i+1,1] - p[0,i,1]
+                dz = p[0,i+1,2] - p[0,i,2]
+            
+            elif path_type == 1:
+
+                n1 = ice_n.get_index_of_refraction(p[1,i])[0]
+                n2 = ice_n.get_index_of_refraction(p[1,i])[1]
+                n3 = ice_n.get_index_of_refraction(p[1,i])[2]
+                       
+                dx = p[1,i+1,0] - p[1,i,0]
+                dy = p[1,i+1,1] - p[1,i,1]
+                dz = p[1,i+1,2] - p[1,i,2]
+          
+            direction = np.array([ dx, dy, dz])
+            l = np.linalg.norm(direction) 
+            direction = direction / l        
+        
+            dist = dist + l
+            l_path.append(dist)
+        
+            res = optimize.minimize(r.get_effective_index, x0=a, args=(direction, n1, n2, n3, omega))
+    
+            s1 = optimize.root_scalar(r.get_effective_index, bracket=(a, res.x[0]), args=(direction, n1, n2, n3, omega))
+            p1 = r.get_polarization(s1.root / a, direction, n1, n2, n3)
+            s2 = optimize.root_scalar(r.get_effective_index, bracket=(res.x[0], 2 * a), args=(direction, n1, n2, n3, omega))
+            p2 = r.get_polarization(s2.root / a, direction, n1, n2, n3)
+
+            zenith, azimuth = hp.cartesian_to_spherical(*(direction))
+            cs = cstrans.cstrafo(zenith,azimuth)
+        
+            sky1 = cs.transform_from_ground_to_onsky(p1)
+            sky2 = cs.transform_from_ground_to_onsky(p2)
+        
+            sky_o.append(np.abs(np.round(sky1, 10)))
+            sky_e.append(np.abs(np.round(sky2, 10)))
+
+        return(np.array(sky_e), np.array(sky_o), np.array(l_path))     
 
     def get_launch_vector(self, iS):
         """
