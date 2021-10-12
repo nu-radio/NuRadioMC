@@ -1,0 +1,658 @@
+{
+  "channels": {
+    "0": {
+      "ant_comment": "phased array",
+      "amp_type": "iglu",
+      "adc_sampling_frequency": 2.4,
+      "adc_n_samples": 1024,
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 0.0,
+      "ant_position_y": 20.0,
+      "ant_position_z": -97.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "cab_time_delay": 0.0,
+      "channel_id": 0,
+      "station_id": 11
+    },
+    "1": {
+      "ant_comment": "phased array",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 0.0,
+      "ant_position_y": 20.0,
+      "ant_position_z": -96.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "channel_id": 1,
+      "station_id": 11
+    },
+    "2": {
+      "ant_comment": "phased array",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 0.0,
+      "ant_position_y": 20.0,
+      "ant_position_z": -95.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "channel_id": 2,
+      "station_id": 11
+    },
+    "3": {
+      "ant_comment": "phased array",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 0.0,
+      "ant_position_y": 20.0,
+      "ant_position_z": -94.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "channel_id": 3,
+      "station_id": 11
+    },
+    "4": {
+      "ant_comment": "power string Hpol",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 0.0,
+      "ant_position_y": 20.0,
+      "ant_position_z": -93.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74",
+      "channel_id": 4,
+      "station_id": 11
+    },
+    "5": {
+      "ant_comment": "power string Hpol",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 0.0,
+      "ant_position_y": 20.0,
+      "ant_position_z": -92.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74",
+      "channel_id": 5,
+      "station_id": 11
+    },
+    "6": {
+      "ant_comment": "power string Vpol",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 0.0,
+      "ant_position_y": 20.0,
+      "ant_position_z": -80.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "channel_id": 6,
+      "station_id": 11
+    },
+    "7": {
+      "ant_comment": "power string Vpol",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 0.0,
+      "ant_position_y": 20.0,
+      "ant_position_z": -60.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "channel_id": 7,
+      "station_id": 11
+    },
+    "8": {
+      "ant_comment": "power string Vpol",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 0.0,
+      "ant_position_y": 20.0,
+      "ant_position_z": -40.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "channel_id": 8,
+      "station_id": 11
+    },
+    "9": {
+      "ant_comment": "Helper string B",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": -17.3,
+      "ant_position_y": -10.0,
+      "ant_position_z": -96.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "channel_id": 9,
+      "station_id": 11
+    },
+    "10": {
+      "ant_comment": "Helper string B",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": -17.3,
+      "ant_position_y": -10.0,
+      "ant_position_z": -95.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "channel_id": 10,
+      "station_id": 11
+    },
+    "11": {
+      "ant_comment": "Helper string B",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": -17.3,
+      "ant_position_y": -10.0,
+      "ant_position_z": -94.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74",
+      "channel_id": 11,
+      "station_id": 11
+    },
+        "12": {
+        "amp_type": "rno_surface",
+        "ant_comment": "first arm north from DAQ, west postition in arm, pointing side-downwards",
+        "ant_orientation_phi": 0.0,
+        "ant_orientation_theta": 135.0,
+        "ant_position_x": 1.5,
+        "ant_position_y": -11,
+        "ant_position_z": -2,
+        "ant_rotation_phi": 90.0,
+        "ant_rotation_theta": 90.0,
+        "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
+        "cab_time_delay": 19.8,
+        "commission_time": "{TinyDate}:2017-10-01T00:00:00",
+        "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
+        "channel_id": 12,
+        "station_id": 11
+      },
+
+    "13": {
+        "amp_type": "rno_surface",
+        "ant_comment": "first arm north from DAQ, middle position in arm, pointing upwards",
+        "ant_orientation_phi": 0.0,
+        "ant_orientation_theta": 0.0,
+        "ant_position_x": 0.0,
+        "ant_position_y": -11,
+        "ant_position_z": -2.0,
+        "ant_rotation_phi": 90.0,
+        "ant_rotation_theta": 90.0,
+        "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
+        "cab_time_delay": 19.8,
+        "commission_time": "{TinyDate}:2017-10-01T00:00:00",
+        "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
+        "channel_id": 13,
+        "station_id": 11
+      },
+
+     "14": {
+      "amp_type": "rno_surface",
+      "ant_comment": "first arm north from DAQ, east position in arm, pointing side-downwards",
+      "ant_orientation_phi": 180.0,
+      "ant_orientation_theta": 135.0,
+      "ant_position_x": -1.5,
+      "ant_position_y": -11,
+      "ant_position_z": -2,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
+      "cab_time_delay": 19.8,
+      "commission_time": "{TinyDate}:2017-10-01T00:00:00",
+      "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
+      "channel_id": 14,
+      "station_id": 11
+      },
+
+    "15": {
+        "amp_type": "rno_surface",
+        "ant_comment": "second arm south-east from DAQ, north-east position in arm, pointing side-downwards",
+        "ant_orientation_phi": 240.0,
+        "ant_orientation_theta": 135.0,
+        "ant_position_x": -10.276,
+        "ant_position_y": 4.2,
+        "ant_position_z": -2.0,
+        "ant_rotation_phi": 330.0,
+        "ant_rotation_theta": 90.0,
+        "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
+        "cab_time_delay": 19.8,
+        "commission_time": "{TinyDate}:2017-10-01T00:00:00",
+        "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
+        "channel_id": 15,
+        "station_id": 11
+      },
+
+    "16": {
+        "amp_type": "rno_surface",
+        "ant_comment": "second arm south-east from DAQ, middle position in arm, pointing upwards",
+        "ant_orientation_phi": 0.0,
+        "ant_orientation_theta": 0.0,
+        "ant_position_x": -9.526,
+        "ant_position_y": 5.5,
+        "ant_position_z": -2.0,
+        "ant_rotation_phi": 330.0,
+        "ant_rotation_theta": 90.0,
+        "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
+        "cab_time_delay": 19.8,
+        "commission_time": "{TinyDate}:2017-10-01T00:00:00",
+        "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
+        "channel_id": 16,
+        "station_id": 11
+      },
+
+    "17": {
+        "amp_type": "rno_surface",
+        "ant_comment": "second arm south-east from DAQ, south-west position in arm, pointing side-downwards",
+        "ant_orientation_phi": 60.0,
+        "ant_orientation_theta": 135.0,
+        "ant_position_x": -8.776,
+        "ant_position_y": 6.8,
+        "ant_position_z": -2,
+        "ant_rotation_phi": 330.0,
+        "ant_rotation_theta": 90.0,
+        "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
+        "cab_time_delay": 19.8,
+        "commission_time": "{TinyDate}:2017-10-01T00:00:00",
+        "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
+        "channel_id": 17,
+        "station_id": 11
+      },
+
+    "18": {
+        "amp_type": "rno_surface",
+        "ant_comment": "third arm south-west from DAQ, south-east position in arm, pointing side-downwards",
+        "ant_orientation_phi": 120.0,
+        "ant_orientation_theta": 135.0,
+        "ant_position_x": 8.776,
+        "ant_position_y": 6.8,
+        "ant_position_z": -2.0,
+        "ant_rotation_phi": 210.0,
+        "ant_rotation_theta": 90.0,
+        "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
+        "cab_time_delay": 19.8,
+        "commission_time": "{TinyDate}:2017-10-01T00:00:00",
+        "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
+        "channel_id": 18,
+        "station_id": 11
+      },
+    "19": {
+        "amp_type": "rno_surface",
+        "ant_comment": "third arm south-west from DAQ, middle position in arm, pointing upwards ",
+        "ant_orientation_phi": 0.0,
+        "ant_orientation_theta": 0.0,
+        "ant_position_x": 9.526,
+        "ant_position_y": 5.5,
+        "ant_position_z": -2.0,
+        "ant_rotation_phi": 210.0,
+        "ant_rotation_theta": 90.0,
+        "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
+        "cab_time_delay": 19.8,
+        "commission_time": "{TinyDate}:2017-10-01T00:00:00",
+        "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
+        "channel_id": 19,
+        "station_id": 11
+      },
+    "20": {
+        "amp_type": "rno_surface",
+        "ant_comment": "third arm south-west from DAQ, north-west position in arm, pointing side-downwards",
+        "ant_orientation_phi": 300.0,
+        "ant_orientation_theta": 135.0,
+        "ant_position_x": 10.276,
+        "ant_position_y": 4.2,
+        "ant_position_z": -2.0,
+        "ant_rotation_phi": 210.0,
+        "ant_rotation_theta": 90.0,
+        "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
+        "cab_time_delay": 19.8,
+        "commission_time": "{TinyDate}:2017-10-01T00:00:00",
+        "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
+        "channel_id": 20,
+        "station_id": 11
+      },
+    "21": {
+      "ant_comment": "Helper string A",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 17.3,
+      "ant_position_y": -10.0,
+      "ant_position_z": -96.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "channel_id": 21,
+      "station_id": 11
+    },
+    "22": {
+      "ant_comment": "Helper string B",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 17.3,
+      "ant_position_y": -10.0,
+      "ant_position_z": -95.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "channel_id": 22,
+      "station_id": 11
+    },
+    "23": {
+      "ant_comment": "Helper string B",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 17.3,
+      "ant_position_y": -10.0,
+      "ant_position_z": -94.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74",
+      "channel_id": 23,
+      "station_id": 11
+    }
+  },
+  "stations": {
+    "01": {
+      "pos_altitude": -0.523599,
+      "pos_easting": -1401.32,
+      "pos_northing": 1154.08,
+      "pos_site": "summit",
+      "station_id": 11,
+      "station_type": "Nanoq"
+    },
+    "02": {
+      "pos_altitude": -0.93499,
+      "pos_easting": -1197.62,
+      "pos_northing": 2366.47,
+      "pos_site": "summit",
+      "station_id": 12,
+      "station_type": "Terianniaq"
+    },
+    "03": {
+      "pos_altitude": -1.26004,
+      "pos_easting": -993.895,
+      "pos_northing":  	3578.9,
+      "pos_site": "summit",
+      "station_id": 13,
+      "station_type": "Ukaleq"
+    },
+    "04": {
+      "pos_altitude": -2.04136,
+      "pos_easting": -790.163,
+      "pos_northing":  	4791.36,
+      "pos_site": "summit",
+      "station_id": 14,
+      "station_type": "Tuttu"
+    },
+    "05": {
+      "pos_altitude": -2.9854,
+      "pos_easting": -586.42,
+      "pos_northing": 6003.86,
+      "pos_site": "summit",
+      "station_id": 15,
+      "station_type": "Umimmak"
+    },
+    "06": {
+      "pos_altitude": -4.24457,
+      "pos_easting": -382.664,
+      "pos_northing": 7216.39,
+      "pos_site": "summit",
+      "station_id": 16,
+      "station_type": "Aarluk"
+    },
+    "07": {
+      "pos_altitude": -5.64103,
+      "pos_easting": -178.897,
+      "pos_northing": 8428.95,
+      "pos_site": "summit",
+      "station_id": 17,
+      "station_type": "Ussuk"
+    },
+    "08": {
+      "pos_altitude": -0.0504271,
+      "pos_easting": -188.953,
+      "pos_northing": 950.358,
+      "pos_site": "summit",
+      "station_id": 21,
+      "station_type": "Amaroq"
+    },
+    "09": {
+      "pos_altitude": -0.301632,
+      "pos_easting": 14.789,
+      "pos_northing": 2162.74,
+      "pos_site": "summit",
+      "station_id": 22,
+      "station_type": "Avinngaq"
+    },
+    "10": {
+      "pos_altitude": -0.301632,
+      "pos_easting": 218.543,
+      "pos_northing": 3375.16,
+      "pos_site": "summit",
+      "station_id": 23,
+      "station_type": "Ukaliatsiaq"
+    },
+    "11": {
+      "pos_altitude": -1.76302,
+      "pos_easting": 422.309,
+      "pos_northing": 4587.61,
+      "pos_site": "summit",
+      "station_id": 24,
+      "station_type": "Qappik"
+    },
+    "12": {
+      "pos_altitude": -2.7308,
+      "pos_easting": 626.087,
+      "pos_northing": 5800.09,
+      "pos_site": "summit",
+      "station_id": 25,
+      "station_type": "Aataaq"
+    },
+    "13": {
+      "pos_altitude": -3.9465,
+      "pos_easting": 829.877,
+      "pos_northing": 7012.61,
+      "pos_site": "summit",
+      "station_id": 26,
+      "station_type": "Aaveq"
+    },
+    "14": {
+      "pos_altitude": -5.41436,
+      "pos_easting": 1033.68,
+      "pos_northing": 8225.16,
+      "pos_site": "summit",
+      "station_id": 27,
+      "station_type": "Eqalussuaq"
+    },
+    "15": {
+      "pos_altitude": -0.87424,
+      "pos_easting": 1430.97,
+      "pos_northing": 3171.38,
+      "pos_site": "summit",
+      "station_id": 33,
+      "station_type": "Ippernaq"
+    },
+    "16": {
+      "pos_altitude": -1.5485,
+      "pos_easting": 1634.77,
+      "pos_northing": 4383.82,
+      "pos_site": "summit",
+      "station_id": 34,
+      "station_type": "Isunngaq"
+    },
+    "17": {
+      "pos_altitude": -2.68013,
+      "pos_easting": 1838.58,
+      "pos_northing": 5596.29,
+      "pos_site": "summit",
+      "station_id": 35,
+      "station_type": "Natseq"
+    },
+    "18": {
+      "pos_altitude": -3.8269,
+      "pos_easting": 2042.41,
+      "pos_northing": 6808.79,
+      "pos_site": "summit",
+      "station_id": 36,
+      "station_type": "Niisa"
+    },
+    "19": {
+      "pos_altitude": -5.17947,
+      "pos_easting": 2246.24,
+      "pos_northing": 8021.33,
+      "pos_site": "summit",
+      "station_id": 37,
+      "station_type": "Uppik"
+    },
+    "20": {
+      "pos_altitude": -1.83456,
+      "pos_easting": 2847.22,
+      "pos_northing": 4179.99,
+      "pos_site": "summit",
+      "station_id": 44,
+      "station_type": "Nattoralik"
+    },
+    "21": {
+      "pos_altitude": -2.73533,
+      "pos_easting":  3051.07,
+      "pos_northing": 5392.45,
+      "pos_site": "summit",
+      "station_id": 45,
+      "station_type": "Qilanngaq"
+    },
+    "22": {
+      "pos_altitude": -3.84281,
+      "pos_easting": 3254.92,
+      "pos_northing": 6604.95,
+      "pos_site": "summit",
+      "station_id": 46,
+      "station_type": "Aqisseq"
+    },
+    "23": {
+      "pos_altitude": -5.43278,
+      "pos_easting": 3458.79,
+      "pos_northing": 7817.48,
+      "pos_site": "summit",
+      "station_id": 47,
+      "station_type": "Natsersuaq"
+    },
+    "24": {
+      "pos_altitude": -2.01203,
+      "pos_easting": 4059.66,
+      "pos_northing": 3976.14,
+      "pos_site": "summit",
+      "station_id": 54,
+      "station_type": "Qipoqqaq"
+    },
+    "25": {
+      "pos_altitude": -3.17336,
+      "pos_easting": 4263.54,
+      "pos_northing": 5188.58,
+      "pos_site": "summit",
+      "station_id": 55,
+      "station_type": "Arfiviit"
+    },
+    "26": {
+      "pos_altitude": -4.37513,
+      "pos_easting": 4467.43,
+      "pos_northing": 6401.07,
+      "pos_site": "summit",
+      "station_id": 56,
+      "station_type": "Alleq"
+    },
+    "27": {
+      "pos_altitude": -5.65495,
+      "pos_easting": 4671.33,
+      "pos_northing": 7613.58,
+      "pos_site": "summit",
+      "station_id": 57,
+      "station_type": "Qarsaaq"
+    },
+    "28": {
+      "pos_altitude": -2.77052,
+      "pos_easting": 5272.08,
+      "pos_northing": 3772.24,
+      "pos_site": "summit",
+      "station_id": 64,
+      "station_type": "Tikaagullik"
+    },
+    "29": {
+      "pos_altitude": -3.95815,
+      "pos_easting": 5476,
+      "pos_northing": 4984.68,
+      "pos_site": "summit",
+      "station_id": 65,
+      "station_type": "Kapisillik"
+    },
+    "30": {
+      "pos_altitude": -4.76761,
+      "pos_easting": 5679.92,
+      "pos_northing": 6197.15,
+      "pos_site": "summit",
+      "station_id": 66,
+      "station_type": "Eqaluk"
+    },
+    "31": {
+      "pos_altitude": -6.32296,
+      "pos_easting": 5883.86,
+      "pos_northing": 7409.66,
+      "pos_site": "summit",
+      "station_id": 67,
+      "station_type": "Qeeraq"
+    },
+    "32": {
+      "pos_altitude": -3.89625,
+      "pos_easting": 6484.5,
+      "pos_northing": 3568.32,
+      "pos_site": "summit",
+      "station_id": 74,
+      "station_type": "Qaleralik"
+    },
+    "33": {
+      "pos_altitude": -4.72172,
+      "pos_easting": 6688.44,
+      "pos_northing": 4780.74,
+      "pos_site": "summit",
+      "station_id": 75,
+      "station_type": "Uugaq"
+    },
+    "34": {
+      "pos_altitude": -5.79116,
+      "pos_easting": 6892.4,
+      "pos_northing": 5993.2,
+      "pos_site": "summit",
+      "station_id": 76,
+      "station_type": "Amiqok"
+    },
+    "35": {
+      "pos_altitude": -7.1063,
+      "pos_easting": 7096.38,
+      "pos_northing": 7205.69,
+      "pos_site": "summit",
+      "station_id": 77,
+      "station_type": "Nerleq"
+    }
+  }
+}
