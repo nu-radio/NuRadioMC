@@ -10,7 +10,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 import h5py
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.utilities import propagated_analytic_pulse
+from NuRadioReco.utilities import propagated_analytic_pulse_Coincidence
 import matplotlib
 from scipy import signal
 from scipy import optimize as opt
@@ -21,7 +21,7 @@ from NuRadioReco.utilities import units
 import datetime
 
 
-class neutrinoDirectionReconstructor:
+class neutrinoDirectionReconstructorCoincidence:
     
     
     def __init__(self):
@@ -110,7 +110,7 @@ class neutrinoDirectionReconstructor:
         # - ARZ read in by templates
         # - ARZ average model 
         
-        station.set_is_neutrino()
+       # station.set_is_neutrino()
         self._Vrms = Vrms
         self._stations = stations
         self._use_channels = use_channels
@@ -127,9 +127,10 @@ class neutrinoDirectionReconstructor:
         
             print("reconstructed vertex direction reco", reconstructed_vertex)
       
-        simulation = propagated_analytic_pulse.simulation(template, reconstructed_vertex) ### if the templates are used, than the templates for the correct distance are loaded
+        simulation = propagated_analytic_pulse_Coincidence.simulation(template, reconstructed_vertex) ### if the templates are used, than the templates for the correct distance are loaded
+        print('self._stations[0]', self._stations[0])
         rt = ['direct', 'refracted', 'reflected'].index(self._stations[0][stnp.raytype]) + 1 ## raytype from the triggered pulse
-        simulation.begin(det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol)
+        simulation.begin(det, stations[0], use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol)
         self._simulation = simulation
 
         if self._stations[0].has_sim_station():

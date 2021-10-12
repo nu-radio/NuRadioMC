@@ -22,7 +22,7 @@ from NuRadioMC.SignalGen import ARZ
 import NuRadioMC
 
 
-
+amp_response = NuRadioReco.detector.RNO_G.analog_components.load_amp_response('iglu')
 
 receive_pickle, launch_pickle, solution_pickle, zenith_vertex_pickle = pickle.load(open('/lustre/fs22/group/radio/plaisier/software/simulations/planeWaveFit/receive_launch.pkl', 'rb'))
 #(librabry = '/lustre/fs22/group/radio/plaisier/software/NuRadioMC/NuRadioMC/SignalGen/ARZ/average.pkl')
@@ -193,9 +193,7 @@ class simulation():
 		global viewingangle
 		global pol
 		if(first_iter):
-
-
-            ice = medium.get_ice_model('greenland_simple')
+			ice = medium.get_ice_model('greenland_simple')
 			prop = propagation.get_propagation_module('analytic')
 			attenuate_ice = True
 
@@ -280,55 +278,55 @@ class simulation():
 			print("vertex used for reco:", x1)
 
 
-            for station_id in station_ids:
-                raytracing[station_id] = {}
-                for channel_id in use_channels:
+			for station_id in station_ids:
+				raytracing[station_id] = {}
+				for channel_id in use_channels:
                     #print("channel id", channel_id)
                                     
-                    raytracing[station_id][channel_id] = {}
-                    x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
-                    r = prop( ice, 'GL1')
-                    r.set_start_and_end_point(x1, x2)
+					raytracing[station_id][channel_id] = {}
+					x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
+					r = prop( ice, 'GL1')
+					r.set_start_and_end_point(x1, x2)
 
-                    r.find_solutions()
-                    if(not r.has_solution()):
-                        print("warning: no solutions")
-                        continue
+					r.find_solutions()
+					if(not r.has_solution()):
+						print("warning: no solutions")
+						continue
 
                                    
                     # loop through all ray tracing solution
                 
-                    for soltype in range(r.get_number_of_solutions()):
+					for soltype in range(r.get_number_of_solutions()):
                     #	print("channel", channel_id)
                         #iS =  r.get_solution_type(soltype)
-                        iS = soltype
-                    #	print("range {} iS {}".format( range(r.get_number_of_solutions()), iS))
-                        raytracing[station_id][channel_id][iS] = {}
-                        self._launch_vector = r.get_launch_vector(soltype)
-                        raytracing[station_id][channel_id][iS]["launch vector"] = self._launch_vector
-                        R = r.get_path_length(soltype)
-                        raytracing[station_id][channel_id][iS]["trajectory length"] = R
-                        T = r.get_travel_time(soltype)  # calculate travel time
-                        if (R == None or T == None):
-                            ontinue
-                        raytracing[station_id][channel_id][iS]["travel time"] = T
-                        receive_vector = r.get_receive_vector(soltype)
-                        zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
-                        raytracing[station_id][channel_id][iS]["receive vector"] = receive_vector
-                        raytracing[station_id][channel_id][iS]["zenith"] = zenith
-                        raytracing[station_id][channel_id][iS]["azimuth"] = azimuth
-                    
-                        attn = r.get_attenuation(soltype, self._ff)#, 0.5 * self._sampling_rate)
-                    
-                        raytracing[station_id][channel_id][iS]["attenuation"] = attn
-                        raytracing[station_id][channel_id][iS]["raytype"] = r.get_solution_type(soltype)
-                        zenith_reflections = np.atleast_1d(r.get_reflection_angle(soltype))
-                        raytracing[station_id][channel_id][iS]["reflection angle"] = zenith_reflections
-                        viewing_angle = hp.get_angle(self._shower_axis,raytracing[station_id][channel_id][iS]["launch vector"])
-            #			print("VIEWING ANGLE", np.rad2deg(viewing_angle))
-                        if channel_id == self._ch_Vpol:
-                            launch_vectors.append( self._launch_vector)
-                            viewing_angles.append(viewing_angle)
+						iS = soltype
+						#	print("range {} iS {}".format( range(r.get_number_of_solutions()), iS))
+						raytracing[station_id][channel_id][iS] = {}
+						self._launch_vector = r.get_launch_vector(soltype)
+						raytracing[station_id][channel_id][iS]["launch vector"] = self._launch_vector
+						R = r.get_path_length(soltype)
+						raytracing[station_id][channel_id][iS]["trajectory length"] = R
+						T = r.get_travel_time(soltype)  # calculate travel time
+						if (R == None or T == None):
+							ontinue
+						raytracing[station_id][channel_id][iS]["travel time"] = T
+						receive_vector = r.get_receive_vector(soltype)
+						zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
+						raytracing[station_id][channel_id][iS]["receive vector"] = receive_vector
+						raytracing[station_id][channel_id][iS]["zenith"] = zenith
+						raytracing[station_id][channel_id][iS]["azimuth"] = azimuth
+
+						attn = r.get_attenuation(soltype, self._ff)#, 0.5 * self._sampling_rate)
+
+						raytracing[station_id][channel_id][iS]["attenuation"] = attn
+						raytracing[station_id][channel_id][iS]["raytype"] = r.get_solution_type(soltype)
+						zenith_reflections = np.atleast_1d(r.get_reflection_angle(soltype))
+						raytracing[station_id][channel_id][iS]["reflection angle"] = zenith_reflections
+						viewing_angle = hp.get_angle(self._shower_axis,raytracing[station_id][channel_id][iS]["launch vector"])
+						#			print("VIEWING ANGLE", np.rad2deg(viewing_angle))
+						if channel_id == self._ch_Vpol:
+							launch_vectors.append( self._launch_vector)
+							viewing_angles.append(viewing_angle)
 					
 		raytype = {}
 		traces = {}
@@ -337,102 +335,102 @@ class simulation():
 		polarizations = []
 		polarizations_antenna = []
 		
-        for station_id in station_ids:
-            raytracing[station_id] = {}
-            traces[station_id] = {}
-            timing[station_id] = {}
-            
-			
-            for ich, channel_id in enumerate(use_channels):
-                #print("CHANNL ID", channel_id)
-                raytype[station_id][channel_id] = {}
-                traces[station_id][channel_id] = {}
-                timing[station_id][channel_id] = {}
-        
-                for i_s, iS in enumerate(raytracing[station_id][channel_id]):
+		for station_id in station_ids:
+			raytracing[station_id] = {}
+			traces[station_id] = {}
+			timing[station_id] = {}
+
+
+			for ich, channel_id in enumerate(use_channels):
+				#print("CHANNL ID", channel_id)
+				raytype[station_id][channel_id] = {}
+				traces[station_id][channel_id] = {}
+				timing[station_id][channel_id] = {}
+
+				for i_s, iS in enumerate(raytracing[station_id][channel_id]):
                 
-                    raytype[station_id][channel_id][iS] = {}
-                    traces[station_id][channel_id][iS] = {}
-                    timing[station_id][channel_id][iS] = {}
-                    viewing_angle = hp.get_angle(self._shower_axis,raytracing[station_id][channel_id][iS]["launch vector"])
-                #	print("viewing angle utilities", np.rad2deg(viewing_angle))
-                    if self._template:
+					raytype[station_id][channel_id][iS] = {}
+					traces[station_id][channel_id][iS] = {}
+					timing[station_id][channel_id][iS] = {}
+					viewing_angle = hp.get_angle(self._shower_axis,raytracing[station_id][channel_id][iS]["launch vector"])
+					#	print("viewing angle utilities", np.rad2deg(viewing_angle))
+					if self._template:
 
                         
-                        template_viewingangle = self._templates_viewingangles[np.abs(np.array(self._templates_viewingangles) - np.rad2deg(viewing_angle)).argmin()] ### viewing angle template which is closest to wanted viewing angle
-                        self._templates[template_viewingangle]
-                        template_energy = self._templates_energies[np.abs(np.array(self._templates_energies) - energy).argmin()]
-                        print("template energy", template_energy)
-                        print("template viewing angle", template_viewingangle)
-                        spectrum = self._templates[template_viewingangle][template_energy]
-                        spectrum = np.array(list(spectrum)[0])
-                        spectrum *= self._templates_R
-                        spectrum /= raytracing[station_id][channel_id][iS]["trajectory length"]
-                        
-                        spectrum *= template_energy ### this needs to be added otherwise energy is wrongly determined
-                        #spectrum /= 4
-                        spectrum /= energy
-                        spectrum= fft.time2freq(spectrum, 1/self._dt)
+						template_viewingangle = self._templates_viewingangles[np.abs(np.array(self._templates_viewingangles) - np.rad2deg(viewing_angle)).argmin()] ### viewing angle template which is closest to wanted viewing angle
+						self._templates[template_viewingangle]
+						template_energy = self._templates_energies[np.abs(np.array(self._templates_energies) - energy).argmin()]
+						print("template energy", template_energy)
+						print("template viewing angle", template_viewingangle)
+						spectrum = self._templates[template_viewingangle][template_energy]
+						spectrum = np.array(list(spectrum)[0])
+						spectrum *= self._templates_R
+						spectrum /= raytracing[station_id][channel_id][iS]["trajectory length"]
+
+						spectrum *= template_energy ### this needs to be added otherwise energy is wrongly determined
+						#spectrum /= 4
+						spectrum /= energy
+						spectrum= fft.time2freq(spectrum, 1/self._dt)
+
+					else:
                     
-                    else:
-                    
-                        spectrum = signalgen.get_frequency_spectrum(energy , viewing_angle, self._n_samples, self._dt, "HAD", n_index, raytracing[station_id][channel_id][iS]["trajectory length"],model)
+						spectrum = signalgen.get_frequency_spectrum(energy , viewing_angle, self._n_samples, self._dt, "HAD", n_index, raytracing[station_id][channel_id][iS]["trajectory length"],model)
                 
                         
                         
                     
                     # apply frequency dependent attenuation
                     #viewingangles[i_station, ich, i_s] = viewing_angle #station, channel, raytype
-                    if attenuate_ice:
-                        spectrum *= raytracing[station_id][channel_id][iS]["attenuation"]
+					if attenuate_ice:
+						spectrum *= raytracing[station_id][channel_id][iS]["attenuation"]
                         
-                    if polarization:
+					if polarization:
         
-                        polarization_direction_onsky = self._calculate_polarization_vector(channel_id, iS)
-                #		print("polarization direction onsky", polarization_direction_onsky)
-                        cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[station_id][channel_id][iS]["receive vector"]))
-                        polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
-                        logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
-                            raytracing[station_id][channel_id][iS]["zenith"] / units.deg, raytracing[station_id][channel_id][iS]["azimuth"] / units.deg, polarization_direction_onsky[0],
-                            polarization_direction_onsky[1], polarization_direction_onsky[2],
-                            *polarization_direction_at_antenna))
-                    eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
-                
-            
-                    if channel_id == self._ch_Vpol:
-                        polarizations.append( self._calculate_polarization_vector(self._ch_Vpol, iS))
-                        polarizations_antenna.append(polarization_direction_at_antenna)
-                    ## correct for reflection 
-                    r_theta = None
-                    r_phi = None
-                    
-                    n_surface_reflections = np.sum(raytracing[station_id][channel_id][iS]["reflection angle"] != None)
-                    if reflection:
-                        x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
-                        for zenith_reflection in raytracing[station_id][channel_id][iS]["reflection angle"]:  # loop through all possible reflections
-                                if(zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
-                                    continue
-                                r_theta = geo_utl.get_fresnel_r_p(
-                                    zenith_reflection, n_2=1., n_1=ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
-                                r_phi = geo_utl.get_fresnel_r_s(
-                                    zenith_reflection, n_2=1., n_1=ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
+						polarization_direction_onsky = self._calculate_polarization_vector(channel_id, iS)
+						#		print("polarization direction onsky", polarization_direction_onsky)
+						cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[station_id][channel_id][iS]["receive vector"]))
+						polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
+						logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
+							raytracing[station_id][channel_id][iS]["zenith"] / units.deg, raytracing[station_id][channel_id][iS]["azimuth"] / units.deg, polarization_direction_onsky[0],
+							polarization_direction_onsky[1], polarization_direction_onsky[2],
+							*polarization_direction_at_antenna))
+					eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
 
-                                eTheta *= r_theta
-                                ePhi *= r_phi
-                                logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection / units.deg,
-                                    r_theta, r_phi))
-                    
-                                
+            
+					if channel_id == self._ch_Vpol:
+						polarizations.append( self._calculate_polarization_vector(self._ch_Vpol, iS))
+						polarizations_antenna.append(polarization_direction_at_antenna)
+					## correct for reflection 
+					r_theta = None
+					r_phi = None
+
+					n_surface_reflections = np.sum(raytracing[station_id][channel_id][iS]["reflection angle"] != None)
+					if reflection:
+						x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
+						for zenith_reflection in raytracing[station_id][channel_id][iS]["reflection angle"]:  # loop through all possible reflections
+								if(zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
+									continue
+								r_theta = geo_utl.get_fresnel_r_p(
+									zenith_reflection, n_2=1., n_1=ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
+								r_phi = geo_utl.get_fresnel_r_s(
+									zenith_reflection, n_2=1., n_1=ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
+
+								eTheta *= r_theta
+								ePhi *= r_phi
+								logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection / units.deg,
+									r_theta, r_phi))
+
+
             
                     
                     ##### Get filter (this is the filter used for the trigger for RNO-G)
                     
                     #### get antenna respons for direction
                     
-                    efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, self._ff, [channel_id], det, raytracing[station_id][channel_id][iS]["zenith"],  raytracing[station_id][channel_id][iS]["azimuth"], self.antenna_provider)
-                    
-                    ### convolve efield with antenna reponse
-                    analytic_trace_fft = np.sum(efield_antenna_factor[0] * np.array([eTheta, ePhi]), axis = 0)
+					efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, self._ff, [channel_id], det, raytracing[station_id][channel_id][iS]["zenith"],  raytracing[station_id][channel_id][iS]["azimuth"], self.antenna_provider)
+
+					### convolve efield with antenna reponse
+					analytic_trace_fft = np.sum(efield_antenna_factor[0] * np.array([eTheta, ePhi]), axis = 0)
                     
                     ### filter the trace
 
@@ -440,21 +438,21 @@ class simulation():
                     
             #### add amplifier
 
-                    analytic_trace_fft *= self._amp[channel_id]
+					analytic_trace_fft *= self._amp[channel_id]
 
-                    analytic_trace_fft[0] = 0
+					analytic_trace_fft[0] = 0
                              
             #### filter becuase of amplifier response 
                     
 
-                #	analytic_trace_fft *= self._f
-                    analytic_trace_fft *= self._h
-                    ### store traces
-                    ## rotate trace such that 
-                    traces[station_id][channel_id][iS] = np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
-                    ### store timing
-                    timing[station_id][channel_id][iS] =raytracing[station_id][channel_id][iS]["travel time"]
-                    raytype[station_id][channel_id][iS] = raytracing[station_id][channel_id][iS]["raytype"]
+					#	analytic_trace_fft *= self._f
+					analytic_trace_fft *= self._h
+					### store traces
+					## rotate trace such that 
+					traces[station_id][channel_id][iS] = np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
+					### store timing
+					timing[station_id][channel_id][iS] =raytracing[station_id][channel_id][iS]["travel time"]
+					raytype[station_id][channel_id][iS] = raytracing[station_id][channel_id][iS]["raytype"]
                                # if channel.get_id() == 6:
                                     ### apply filter to voltage traces
                                 #    filtered_trace = analytic_trace_fft * self._pol_filt
