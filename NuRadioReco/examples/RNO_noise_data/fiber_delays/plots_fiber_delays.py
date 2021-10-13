@@ -12,6 +12,7 @@ args = parser.parse_args()
 hardware_number = args.hardware_number
 
 fiber_names = []
+# if you want the data, ask Dan or Zack!
 # station 21: hardware number 7, station 22: hardware number 6, station 11: hardware number 5
 for file in os.listdir("data"):
     if file.startswith("{}".format(hardware_number)) and file.endswith("FULL_LM.csv"):

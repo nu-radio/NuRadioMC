@@ -453,7 +453,7 @@ class Detector(object):
         
     def get_device(self, station_id, device_id):
         """
-        returns a dictionary of all channel parameters
+        returns a dictionary of all device parameters
 
         Parameters
         ---------

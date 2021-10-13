@@ -21,14 +21,14 @@ for file in os.listdir("data/station_{}".format(hardware_number)):
         coax_names.append(file.replace("_LOG.csv", ''))
 
 
-## dict ({hardwarenumber: {cable number: number of jumber cables}}) with number of jumber cables (taken from: https://radio.uchicago.edu/wiki/index.php/File:ChannelMapping_v1.xlsx)
+## dict ({hardwarenumber: {cable number: number of jumper cables}}) with number of jumper cables (taken from: https://radio.uchicago.edu/wiki/index.php/File:ChannelMapping_v1.xlsx)
 
-jumber_cables = {'5': {'1':0,'2': 0, '3': 0 , '4': 0 , '5': 0 , '6': 0 , '7': 0 , '8': 0 , '9':0  },
+jumper_cables = {'5': {'1':0,'2': 0, '3': 0 , '4': 0 , '5': 0 , '6': 0 , '7': 0 , '8': 0 , '9':0  },
 '6': {'1': 1, '2': 0, '3':2  , '4': 2 , '5': 0 , '6':2  , '7': 1 , '8': 0 , '9': 1 },
 '7': {'1': 1, '2': 0, '3': 1 , '4':1  , '5':0  , '6':1  , '7':1  , '8':0  , '9':1  }
 }
 
-jumber_cable_delay = 3.97*0.89 #3.97 ns/m #cables of 35 inch/0.89 cm, https://www.timesmicrowave.com/DataSheets/CableProducts/LMR-240.pdf
+jumper_cable_delay = 3.97*0.89 #3.97 ns/m #cables of 35 inch/0.89 m, https://www.timesmicrowave.com/DataSheets/CableProducts/LMR-240.pdf
 
 fig1 = plt.figure(figsize=(9, 30))
 fig2 = plt.figure(figsize=(9, 30))
@@ -78,7 +78,7 @@ for i_coax, coax_name in enumerate(coax_names):
         group_delay[freq_mask[:-1]] / units.ns
     )
     ax2_2.set_title(coax_name)
-    print('Coax {}: {:.2f}ns + {} * {} = {}'.format(coax_name, line_fit[0], jumber_cables[str(hardware_number)][str(coax_name)], jumber_cable_delay, line_fit[0] + jumber_cables[str(hardware_number)][str(coax_name)]*jumber_cable_delay))
+    print('Coax {}: {:.2f}ns + {} * {} = {}'.format(coax_name, line_fit[0], jumper_cables[str(hardware_number)][str(coax_name)], jumper_cable_delay, line_fit[0] + jumper_cables[str(hardware_number)][str(coax_name)]*jumper_cable_delay))
     ax2_2.axhline(
         line_fit[0],
         color='r',

@@ -2,7 +2,8 @@ import numpy as np
 
 site = 2
 ## site 1: station 21, site 2: station 11, site 3: station 22
-
+## csv file with data can be found here: https://radio.uchicago.edu/wiki/index.php/Deployment
+## Station positions are with respect the GPS base station on the MSF roof
 data = np.genfromtxt(
         'data/survey_results.csv',
         delimiter=',',
