@@ -15,6 +15,7 @@ from NuRadioMC.utilities import medium
 from radiotools import helper as hp
 from NuRadioMC.utilities import attenuation as attenuation_util
 from NuRadioReco.utilities import units
+import NuRadioReco
 
 
 solution_types = {1: 'direct',
@@ -574,7 +575,12 @@ class ray:
             raise RuntimeError('Please enter a valid index of refraction type (1 or 2)')
         
         self.medium = medium
-        if self.medium.aniso:
+
+        self.isaniso = hasattr(self.medium, 'aniso')
+        if self.isaniso:
+            self.isaniso = self.medium.aniso
+
+        if self.isaniso:
             self.eps = self.medium.get_permittivity_tensor
         else:
             self.eps = lambda r : (self.medium.get_index_of_refraction(r))**2
@@ -738,7 +744,7 @@ class ray:
             rdot : p direction
         '''
         
-        if self.medium.aniso:
+        if self.isaniso:
             n1, n2 = self.medium.get_index_of_refraction(r, rdot)
             if self.ntype == 1:
                 return n1
