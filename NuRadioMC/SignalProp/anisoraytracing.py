@@ -16,7 +16,7 @@ from radiotools import helper as hp
 from NuRadioMC.utilities import attenuation as attenuation_util
 from NuRadioReco.utilities import units
 import NuRadioReco
-
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 solution_types = {1: 'direct',
                   2: 'refracted',
