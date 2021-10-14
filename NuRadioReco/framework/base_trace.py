@@ -3,6 +3,7 @@ import numpy as np
 import logging
 import fractions
 import decimal
+import numbers
 from NuRadioReco.utilities import fft, bandpass_filter
 import scipy.signal
 import copy
@@ -280,3 +281,30 @@ class BaseTrace:
         new_trace.set_trace(early_trace + late_trace_object.get_trace(), sampling_rate)
         new_trace.set_trace_start_time(trace_start)
         return new_trace
+
+    def __mul__(self, x):
+        if isinstance(x, numbers.Number):
+            if self._time_trace is not None:
+                self._time_trace *= x
+                return self
+            if self._frequency_spectrum is not None:
+                self._frequency_spectrum *= x
+                return self
+            raise ValueError('Cant multiply baseTrace with number because no value is set for trace.')
+        else:
+            raise TypeError('Multiplication of baseTrace object with object of type {} is not defined'.format(type(x)))
+
+    def __rmul__(self, x):
+        return self.__mul__(x)
+
+    def __truediv__(self, x):
+        if isinstance(x, numbers.Number):
+            if self._time_trace is not None:
+                self._time_trace = self._time_trace / x
+                return self
+            if self._frequency_spectrum is not None:
+                self._frequency_spectrum = self._frequency_spectrum / x
+                return self
+            raise ValueError('Cant divide baseTrace by number because no value is set for trace.')
+        else:
+            raise TypeError('Division of baseTrace object with object of type {} is not defined'.format(type(x)))
