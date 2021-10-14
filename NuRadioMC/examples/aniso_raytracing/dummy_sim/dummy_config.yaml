@@ -1,0 +1,36 @@
+noise: False  # specify if simulation should be run with or without noise
+sampling_rate: 5.  # sampling rate in GHz used internally in the simulation.
+
+speedup:
+  minimum_weight_cut: 0 # disable neutrino weight cut -> we're not simulating neutrinos here
+  delta_C_cut: 10  # more than 360deg, disable cone angle cut
+  min_efield_amplitude: 0
+  distance_cut: False
+ 
+signal:
+    #model: Alvarez2009
+  model: spherical
+  zerosignal: False  # if True, the signal is set to zero. This is useful to study 'noise' only simulations
+  polarization: custom # can be either 'auto' or 'custom'
+  ePhi: 0.5  # only used if 'polarization = custom', fraction of ePhi component, the eTheta component is eTheta = (1 - ePhi**2)**0.5
+
+propagation:
+  module: aniso_ray
+  #module: analytic
+  ice_model: southpole_spice_aniso
+  attenuation_model: SP1
+  attenuate_ice: True
+  n_freq: 25
+  focusing: False
+  focusing_limit: 2
+  n_reflections: 0
+  par: True
+
+  #trigger:
+  #  noise_temperature: 300  # in Kelvin
+
+  #weights:
+  #  weight_mode: core_mantle_crust # core_mantle_crust: use the three
+  #layer earth model, which considers the different densities of the
+  #core, mantle and crust. simple: use the simple earth model, which
+  #apply a constant earth density
