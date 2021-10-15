@@ -80,13 +80,13 @@ class BaseTrace:
             if trace.shape[trace.ndim - 1] % 2 != 0:
                 raise ValueError('Attempted to set trace with an uneven number ({}) of samples. Only traces with an even number of samples are allowed.'.format(trace.shape[trace.ndim - 1]))
         self.__time_domain_up_to_date = True
-        self._time_trace = trace
+        self._time_trace = np.copy(trace)
         self._sampling_rate = sampling_rate
         self._frequency_spectrum = None
 
     def set_frequency_spectrum(self, frequency_spectrum, sampling_rate):
         self.__time_domain_up_to_date = False
-        self._frequency_spectrum = frequency_spectrum
+        self._frequency_spectrum = np.copy(frequency_spectrum)
         self._sampling_rate = sampling_rate
         self._time_trace = None
 
