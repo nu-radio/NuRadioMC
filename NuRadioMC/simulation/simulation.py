@@ -362,6 +362,7 @@ class simulation():
 
             self._get_distance_cut = get_distance_cut
 
+
     def run(self):
         """
         run the NuRadioMC simulation
@@ -734,7 +735,8 @@ class simulation():
                             elif(self._fin_attrs['simulation_mode'] == "emitter"):
                                 # NuRadioMC also supports the simulation of emitters. In this case, the signal model specifies the electric field polarization
                                 amplitude = self._fin['emitter_amplitudes'][self._shower_index]
-
+                                freq = self._fin['freq'][self._shower_index]
+                                half_width=self._fin['half_of_pulse_width'][self._shower_index]
                                 # get emitting antenna properties
                                 antenna_model = self._fin['emitter_antenna_type'][self._shower_index]
                                 antenna_pattern = self._antenna_pattern_provider.load_antenna_pattern(antenna_model)
@@ -743,19 +745,23 @@ class simulation():
 
                                 # get voltage output of emitter
                                 voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
-                                                                                          self._fin['emitter_model'][self._shower_index])
-
+                                                                                          self._fin['emitter_model'][self._shower_index],half_width,freq)
+                                           
                                 # convolve voltage output with antenna response to obtain emitted electric field
                                 frequencies = np.fft.rfftfreq(self._n_samples, d=self._dt)
                                 zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
                                 VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
-                                eTheta = VEL['theta'] * voltage_spectrum_emitter  # this calculation is wrong, need to be replaced with correct equation for emitting antenna
-                                ePhi = VEL['phi'] * voltage_spectrum_emitter
+                                c=3*(10)**8*units.m/units.s
+                                k=2*np.pi*frequencies*n_index/c
+                                efield=-1j*voltage_spectrum_emitter*frequencies*n_index*np.exp(-1j*k*R)
+                                
+                                eTheta = VEL['theta'] *efield 
+                                ePhi= VEL['phi'] *efield
                                 eR = np.zeros_like(eTheta)
 
                                 # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
-                                eTheta *= 1 / R
-                                ePhi *= 1 / R
+                                eTheta *= 1 / (R*c)
+                                ePhi *= 1/(R*c)
                             else:
                                 logger.error(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
                                 raise AttributeError(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
