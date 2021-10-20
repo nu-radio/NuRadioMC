@@ -611,8 +611,9 @@ class Detector(object):
         """
         res = self.__get_channel(station_id, channel_id)
         if 'cab_time_delay' not in res.keys():
-            res['cab_time_delay'] = 0
-        return res['cab_time_delay']
+            return 0
+        else:
+            return res['cab_time_delay']
 
     def get_cable_type_and_length(self, station_id, channel_id):
         """
