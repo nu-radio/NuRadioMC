@@ -1,23 +1,18 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import h5py
-import os
-import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from NuRadioReco.utilities import units, fft
 from NuRadioMC.SignalGen import parametrizations as par
 import logging
 logger = logging.getLogger("SignalGen.emitter")
-plotDir = "./Signals/" 
-if (not os.path.exists(plotDir)):
-    os.makedirs(plotDir)
 
 def set_log_level(level):
     logger.setLevel(level)
     par.set_log_level(level)
 
 
-def get_time_trace(amplitude, N, dt, model,half_width,freq, full_output=False, **kwargs):
+def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     """
     returns the electric field of an emitter
 
@@ -59,6 +54,13 @@ def get_time_trace(amplitude, N, dt, model,half_width,freq, full_output=False, *
         only available if `full_output` enabled
 
     """
+   
+    half_width = kwargs.get("half_width")
+    freq = kwargs.get("freq")
+
+
+    if(half_width> int(N/2)):
+        raise NotImplementedError("half_width {} not applicable".format(half_width))
     trace = None
     additional_output = {}
     if(amplitude == 0):
@@ -66,62 +68,47 @@ def get_time_trace(amplitude, N, dt, model,half_width,freq, full_output=False, *
     if(model == 'spherical'):
         trace = np.zeros(N)
         trace[N // 2] = amplitude
-    elif(model=='cw'):
+    elif(model=='cw'):   # generates a continuous signal of given frequency
         f=freq*units.GHz
         t=np.linspace(0,(N-1/2)*dt,N)*units.ns
         trace=amplitude*np.sin(2*np.pi*f*t)
-    elif(model=='square'):
+    elif(model=='square'):  #generates a rectangular pulse of given width 
         t=np.linspace(-N*dt/(2),(N-1)*dt/(2),N)*units.ns
         shift=half_width*units.ns
-        Amplitude=1*units.volt
         Voltage=np.zeros(N)
         for i in range(0,N):
             if t[i]>=-shift and t[i]<=shift:
-                Voltage[i]=Amplitude
-        trace=amplitude*Voltage
-        plt.plot(t,trace)
-        plt.title('Time Domain Signal')
-        plt.ylabel('Voltage(Volts)')
-        plt.xlabel('time(ns)')
-        plt.savefig(str(plotDir) + "/Vt" + ".png", bbox_inches = "tight")
-        plt.close()        
+                Voltage[i]=amplitude
+        trace=Voltage*units.volt
 
-    elif(model=='tone_burst'):
+    elif(model=='tone_burst'):  # a continuos signal that uses desired frequency and width
         width=2*half_width*units.ns
         f=freq*units.GHz
         t=np.linspace(-(width*dt),(width*dt),int(2*width))*units.ns
         Voltage=amplitude*np.sin(2*np.pi*f*t)
-        number=int((N-2*width)/2)
-        trace=np.pad(Voltage, (number, number), 'constant', constant_values=(0, 0))
-        time=np.linspace(-N*dt/2, (N-1)*dt/2, N)
-        plt.plot(time, trace)
-        plt.savefig(str(plotDir) + "Vt" +".png", bbox_inches = "tight")
-        plt.clf()
-        plt.close()
-        
+        add_zeros=int((N-2*width)/2)
+        trace=np.pad(Voltage, (add_zeros, add_zeros), 'constant', constant_values=(0, 0))             
     elif(model=='hvsp2'):
-        hf = h5py.File('hvsp2_final_data.hdf5', 'r')
-        Voltage = hf.get('dataset_1')
-        time= hf.get('dataset_2')
-        trace= amplitude*Voltage
-        plt.plot(time,trace)
-        plt.title('Time Domain Signal')
-        plt.ylabel('Voltage(Volts)')
-        plt.xlabel('time(ns)')
-        plt.savefig(str(plotDir) + "/Vt" + ".png", bbox_inches = "tight")
-        plt.close()
-
+        hf = h5py.File('hvsp2_data.hdf5', 'r')
+        time=hf.get('dataset_1')
+        t=np.linspace(time[0],time[len(time)-1],int(len(time)*dt))
+        Voltage1=hf.get('dataset_2')
+        interpolation=interp1d(time,Voltage1,kind='cubic')
+        Voltage2=amplitude*interpolation(t)
+        add_zeros=int((N-len(Voltage2))/2)
+        trace=amplitude*np.pad(Voltage2, (add_zeros, add_zeros), 'constant', constant_values=(0, 0))
+        trace=np.roll(trace,58)
     elif(model=='idl'):
-        hf = h5py.File('idl_final_data.hdf5', 'r')
-        Voltage = hf.get('dataset_1')
-        trace = amplitude*Voltage
-        time= hf.get('dataset_2')
-        plt.plot(time,trace)
-        plt.title('Time Domain Signal')
-        plt.ylabel('Voltage(Volts)')
-        plt.xlabel('time(ns)')
-        plt.savefig(str(plotDir) + "/Vt" + ".png", bbox_inches = "tight")
-        plt.close()
+        hf = h5py.File('idl_data.hdf5', 'r')
+        time=hf.get('dataset_1')
+        t=np.linspace(time[0],time[len(time)-1],int(len(time)*dt))
+        Voltage1=hf.get('dataset_2')
+        interpolation=interp1d(time,Voltage1,kind='cubic')
+        Voltage2=amplitude*interpolation(t)
+        add_zeros=int((N-len(Voltage2))/2)
+        trace=amplitude*np.pad(Voltage2, (add_zeros, add_zeros), 'constant', constant_values=(0, 0))
+        trace=np.roll(trace,77)
+               
     else:
         raise NotImplementedError("model {} unknown".format(model))
     if(full_output):
@@ -132,7 +119,7 @@ def get_time_trace(amplitude, N, dt, model,half_width,freq, full_output=False, *
         return trace
 
 
-def get_frequency_spectrum(amplitude, N, dt, model,half_width,freq, full_output=False, **kwargs):
+def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs):
     """
     returns the complex amplitudes of the frequency spectrum of an emitter
 
@@ -168,18 +155,10 @@ def get_frequency_spectrum(amplitude, N, dt, model,half_width,freq, full_output=
         only available if `full_output` enabled
 
     """
-    tmp = get_time_trace(amplitude, N, dt, model, half_width,freq, full_output=full_output, **kwargs)
+    tmp = get_time_trace(amplitude, N, dt, model, full_output=full_output, **kwargs)
     if(full_output):
         return fft.time2freq(tmp[0], 1 / dt), tmp[1]
     else:
-        Vf=fft.time2freq(tmp, 1 / dt)
-        freqs=np.fft.rfftfreq(N,dt)
-        plt.plot(freqs,np.abs(Vf))
-        plt.title('Voltage Domain Signal')
-        plt.ylabel('Voltage(Volts)')
-        plt.xlabel('freqs(GHz)')
-        plt.savefig(str(plotDir) + "/Vf" + ".png", bbox_inches = "tight")
-        plt.close()
         return fft.time2freq(tmp, 1 / dt)
 
-plt.clf()
+
