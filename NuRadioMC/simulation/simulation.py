@@ -745,7 +745,7 @@ class simulation():
 
                                 # get voltage output of emitter
                                 voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
-                                                                                          self._fin['emitter_model'][self._shower_index],half_width,freq)
+                                                                                          self._fin['emitter_model'][self._shower_index], half_width=half_width,freq=freq)
                                            
                                 # convolve voltage output with antenna response to obtain emitted electric field
                                 frequencies = np.fft.rfftfreq(self._n_samples, d=self._dt)
@@ -754,14 +754,13 @@ class simulation():
                                 c=3*(10)**8*units.m/units.s
                                 k=2*np.pi*frequencies*n_index/c
                                 efield=-1j*voltage_spectrum_emitter*frequencies*n_index*np.exp(-1j*k*R)
-                                
                                 eTheta = VEL['theta'] *efield 
                                 ePhi= VEL['phi'] *efield
                                 eR = np.zeros_like(eTheta)
-
                                 # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
                                 eTheta *= 1 / (R*c)
                                 ePhi *= 1/(R*c)
+
                             else:
                                 logger.error(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
                                 raise AttributeError(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
