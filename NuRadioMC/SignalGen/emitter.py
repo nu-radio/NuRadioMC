@@ -11,7 +11,6 @@ def set_log_level(level):
     logger.setLevel(level)
     par.set_log_level(level)
 
-
 def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     """
     returns the electric field of an emitter
@@ -54,11 +53,8 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         only available if `full_output` enabled
 
     """
-   
     half_width = kwargs.get("half_width")
     freq = kwargs.get("freq")
-
-
     if(half_width> int(N/2)):
         raise NotImplementedError("half_width {} not applicable".format(half_width))
     trace = None
@@ -80,7 +76,6 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
             if t[i]>=-shift and t[i]<=shift:
                 Voltage[i]=amplitude
         trace=Voltage*units.volt
-
     elif(model=='tone_burst'):  # a continuos signal that uses desired frequency and width
         width=2*half_width*units.ns
         f=freq*units.GHz
@@ -97,7 +92,8 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         Voltage2=amplitude*interpolation(t)
         add_zeros=int((N-len(Voltage2))/2)
         trace=amplitude*np.pad(Voltage2, (add_zeros, add_zeros), 'constant', constant_values=(0, 0))
-        trace=np.roll(trace,58)
+        min_amplitude_index=np.where(trace==np.min(trace))[0][0]
+        trace=np.roll(trace,int(N/2)-min_amplitude_index)
     elif(model=='idl'):
         hf = h5py.File('idl_data.hdf5', 'r')
         time=hf.get('dataset_1')
@@ -107,14 +103,12 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         Voltage2=amplitude*interpolation(t)
         add_zeros=int((N-len(Voltage2))/2)
         trace=amplitude*np.pad(Voltage2, (add_zeros, add_zeros), 'constant', constant_values=(0, 0))
-        trace=np.roll(trace,77)
-               
+        max_amplitude_index=np.where(trace==np.min(trace))[0][0]
+        trace=np.roll(trace,int(N/2)+max_amplitude_index)
     else:
         raise NotImplementedError("model {} unknown".format(model))
     if(full_output):
         return trace, additional_output
-   
-    
     else:
         return trace
 
