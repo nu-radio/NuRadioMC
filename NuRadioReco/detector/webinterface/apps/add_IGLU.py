@@ -67,18 +67,18 @@ layout = html.Div([
         dcc.Dropdown(
             id='temperature-list',
             options=[
-                {'label': 'room temp (20* C)', 'value': "20"},
-                {'label': '-50*C', 'value': "-50"},
-                {'label': '-40*C', 'value': "-40"},
-                {'label': '-30*C', 'value': "-30"},
-                {'label': '-20*C', 'value': "-20"},
-                {'label': '-10*C', 'value': "-10"},
-                {'label': '0*C', 'value': "0"},
-                {'label': '10*C', 'value': "0"},
-                {'label': '30*C', 'value': "0"},
-                {'label': '40*C', 'value': "0"},
+                {'label': 'room temp (20* C)', 'value': 20},
+                {'label': '-50*C', 'value': -50},
+                {'label': '-40*C', 'value': -40},
+                {'label': '-30*C', 'value': -30},
+                {'label': '-20*C', 'value': -20},
+                {'label': '-10*C', 'value': -10},
+                {'label': '0*C', 'value': 0},
+                {'label': '10*C', 'value': 0},
+                {'label': '30*C', 'value': 0},
+                {'label': '40*C', 'value': 0},
             ],
-            value="20",
+            value=20,
             style={'width': '200px', 'float':'left'})
     ], style={'width':'100%', 'float': 'hidden'}),
     html.Br(),
@@ -223,8 +223,9 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, channel_id,
              State(table_name + "channel-id", "value"),
              State("DRAB-id", "value"),
              State('separator', 'value'),
+             State('temperature-list', 'value'),
              State("function-test", "value")])
-def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, unit_mag, unit_phase, channel_id, drab_id, sep, function_test):
+def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, unit_mag, unit_phase, channel_id, drab_id, sep, temp, function_test):
     print(f"n_clicks is {n_clicks}")
     if(not n_clicks is None):
         print("insert to db")
