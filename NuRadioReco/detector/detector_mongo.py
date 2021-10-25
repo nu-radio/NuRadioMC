@@ -35,7 +35,7 @@ db = client.RNOG_test
 
 def get_surface_board_names():
     """
-    returns the unique names of all amplifier boards
+    returns the unique names of all surface boards
 
     Returns list of strings
     """
@@ -86,7 +86,7 @@ def surface_board_channel_set_not_working(board_name, channel_id):
                                  upsert=True)
 
 
-def surface_board_channel_add_Sparameters(board_name, channel_id, S_data):
+def surface_board_channel_add_Sparameters(board_name, channel_id, temp, S_data):
     """
     inserts a new S parameter measurement of one channel of an amp board
     If the board dosn't exist yet, it will be created.
@@ -108,10 +108,11 @@ def surface_board_channel_add_Sparameters(board_name, channel_id, S_data):
     S_names = ["S11", "S12", "S21", "S22"]
     for i in range(4):
         db.surface_boards.update_one({'name': board_name},
-                                  {"$push" :{'channels': {
-                                      'id': channel_id,
+                                {"$push": {'channels': {
+                                      'surface_channel_id': channel_id,
                                       'last_updated': datetime.datetime.utcnow(),
                                       'function_test': True,
+                                      'measurement_temp': temp,
                                       'S_parameter': S_names[i],
                                       'frequencies': list(S_data[0]),
                                       'mag': list(S_data[2 * i + 1]),
@@ -138,7 +139,7 @@ def DRAB_set_not_working(board_name):
                               })
 
 
-def DRAB_add_Sparameters(board_name, S_data):
+def DRAB_add_Sparameters(board_name, channel_id, temp, S_data):
     """
     inserts a new S parameter measurement of one channel of an amp board
     If the board dosn't exist yet, it will be created.
@@ -157,14 +158,18 @@ def DRAB_add_Sparameters(board_name, S_data):
     """
     S_names = ["S11", "S12", "S21", "S22"]
     for i in range(4):
-        db.DRAB.insert_one({'name': board_name,
-                                    'last_updated': datetime.datetime.utcnow(),
-                                     'function_test': True,
-                                     'S_parameter': S_names[i],
-                                     'frequencies': list(S_data[0]),
-                                     'mag': list(S_data[2 * i + 1]),
-                                     'phase': list(S_data[2 * i + 2])
-                                  })
+        db.DRAB.update_one({'name': board_name},
+                                {"$push": {'channels': {
+                                      'drab_channel_id': channel_id,
+                                      'last_updated': datetime.datetime.utcnow(),
+                                      'function_test': True,
+                                      'measurement_temp': temp,
+                                      'S_parameter': S_names[i],
+                                      'frequencies': list(S_data[0]),
+                                      'mag': list(S_data[2 * i + 1]),
+                                      'phase': list(S_data[2 * i + 2])
+                                      }}},
+                                 upsert=True)
 
 # VPol
 
@@ -318,14 +323,14 @@ def IGLU_board_channel_set_not_working(board_name, channel_id):
     """
     db.IGLU.update_one({'name': board_name},
                           {"$push" :{'channels': {
-                              'id': channel_id,
+                              'iglue_channel_id': channel_id,
                               'last_updated': datetime.datetime.utcnow(),
                               'function_test': False,
                               }}},
                          upsert=True)
 
 
-def IGLU_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id, S_data):
+def IGLU_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id, temp, S_data):
     """
     inserts a new S parameter measurement of one channel of an IGLU board
     If the board dosn't exist yet, it will be created.
@@ -350,10 +355,11 @@ def IGLU_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id
     for i in range(4):
         db.IGLU.update_one({'name': board_name},
                                   {"$push" :{'channels': {
-                                      'id': channel_id,
+                                      'iglu_channel_id': channel_id,
                                       'last_updated': datetime.datetime.utcnow(),
                                       'function_test': True,
                                       'DRAB-id': drab_id,
+                                      'measurement_temp': temp,
                                       'S_parameter_DRAB': S_names[i],
                                       'frequencies': list(S_data[0]),
                                       'mag': list(S_data[2 * i + 1]),
@@ -362,7 +368,7 @@ def IGLU_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id
                                  upsert=True)
 
 
-def IGLU_board_channel_add_Sparameters_without_DRAB(board_name, channel_id, S_data):
+def IGLU_board_channel_add_Sparameters_without_DRAB(board_name, channel_id, temp, S_data):
     """
     inserts a new S parameter measurement of one channel of an IGLU board
     If the board dosn't exist yet, it will be created.
@@ -385,9 +391,10 @@ def IGLU_board_channel_add_Sparameters_without_DRAB(board_name, channel_id, S_da
     for i in range(4):
         db.IGLU.update_one({'name': board_name},
                                   {"$push" :{'channels': {
-                                      'id': channel_id,
+                                      'iglu_channel_id': channel_id,
                                       'last_updated': datetime.datetime.utcnow(),
                                       'function_test': True,
+                                      'measurement_temp': temp,
                                       'S_parameter_wo_DRAB': S_names[i],
                                       'frequencies': list(S_data[0]),
                                       'mag': list(S_data[2 * i + 1]),
