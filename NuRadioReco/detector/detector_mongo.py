@@ -14,8 +14,10 @@ logging.basicConfig()
 logger = logging.getLogger("database")
 logger.setLevel(logging.DEBUG)
 
+
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class Detector(object):
+
     def __init__(self):
         # connect to MongoDB, change the << MONGODB URL >> to reflect your own connection string
         # client = MongoClient("localhost")
@@ -52,7 +54,6 @@ class Detector(object):
         logger.info("updating detector time to {}".format(timestamp))
         self.__current_time = timestamp
 
-
     def get_surface_board_names(self):
         """
         returns the unique names of all surface boards
@@ -76,7 +77,6 @@ class Detector(object):
     #                                   'phase': list(phase)
     #                                   }}},
     #                              upsert=True)
-
 
     def surface_board_channel_set_not_working(self, board_name, channel_id):
         """
@@ -104,7 +104,6 @@ class Detector(object):
                                           'function_test': False,
                                           }}},
                                      upsert=True)
-
 
     def surface_board_channel_add_Sparameters(self, board_name, channel_id, temp, S_data):
         """
@@ -142,7 +141,6 @@ class Detector(object):
 
     # DRAB
 
-
     def DRAB_set_not_working(self, board_name):
         """
         inserts a new S parameter measurement of one channel of an amp board
@@ -157,7 +155,6 @@ class Detector(object):
                               'last_updated': datetime.datetime.utcnow(),
                               'function_test': False,
                                   })
-
 
     def DRAB_add_Sparameters(self, board_name, channel_id, iglu_id, temp, S_data):
         """
@@ -194,7 +191,6 @@ class Detector(object):
 
     # VPol
 
-
     def VPol_set_not_working(self, VPol_name):
         """
         inserts that the VPol is broken.
@@ -209,7 +205,6 @@ class Detector(object):
                               'last_updated': datetime.datetime.utcnow(),
                               'function_test': False,
                                   })
-
 
     def VPol_add_Sparameters(self, VPol_name, S_data):
         """
@@ -237,7 +232,6 @@ class Detector(object):
 
     # Cables
 
-
     def Cable_set_not_working(self, cable_name):
         """
         inserts that the cable is broken.
@@ -252,7 +246,6 @@ class Detector(object):
                               'last_updated': datetime.datetime.utcnow(),
                               'function_test': False,
                                   })
-
 
     def CABLE_add_Sparameters(self, cable_name, Sm_data, Sp_data):
         """
@@ -280,7 +273,6 @@ class Detector(object):
                                      'phase': list(Sp_data[1]),
                                   })
 
-
     def surfCable_set_not_working(self, cable_name):
         """
         inserts that the cable is broken.
@@ -295,7 +287,6 @@ class Detector(object):
                               'last_updated': datetime.datetime.utcnow(),
                               'function_test': False,
                                   })
-
 
     def surfCABLE_add_Sparameters(self, cable_name, Sm_data, Sp_data):
         """
@@ -323,7 +314,6 @@ class Detector(object):
                                      'phase': list(Sp_data[1]),
                                   })
 
-
     #### add IGLU board
     def IGLU_board_channel_set_not_working(self, board_name):
         """
@@ -342,7 +332,6 @@ class Detector(object):
                                   'function_test': False,
                                   }}},
                              upsert=True)
-
 
     def IGLU_board_channel_add_Sparameters_with_DRAB(self, board_name, drab_id, temp, S_data):
         """
@@ -380,7 +369,6 @@ class Detector(object):
                                           }}},
                                      upsert=True)
 
-
     def IGLU_board_channel_add_Sparameters_without_DRAB(self, board_name, temp, S_data):
         """
         inserts a new S parameter measurement of one channel of an IGLU board
@@ -416,14 +404,19 @@ class Detector(object):
 
     def add_station(self,
                     station_id,
-                    position, # in GPS UTM coordinates
+                    station_name,
+                    position,  # in GPS UTM coordinates
                     commission_time,
                     decommission_time=datetime.datetime(2080, 1, 1)):
-        self.db.station.insert_one({'station_id': station_id,
-                                    'position': list(position),
-                                    'commission_time': commission_time,
-                                    'decommission_time': decommission_time
-                                    })
+        if(self.db.station.count_documents({'id': station_id}) > 0):
+            logger.error(f"station with id {station_id} already exists. Doing nothing.")
+        else:
+            self.db.station.insert_one({'id': station_id,
+                                        'name': station_name,
+                                        'position': list(position),
+                                        'commission_time': commission_time,
+                                        'decommission_time': decommission_time
+                                        })
 
     def add_channel_to_station(self,
                                station_id,
@@ -438,10 +431,13 @@ class Detector(object):
                                channel_type,
                                commission_time,
                                decommission_time=datetime.datetime(2080, 1, 1)):
-        unique_station_id = self.db.station.find_one({'station_id': station_id})['_id']
+        unique_station_id = self.db.station.find_one({'id': station_id})['_id']
+        if(self.db.station.count_documents({'id': station_id, "channels.id": channel_id}) > 0):
+            logger.warning(f"channel with id {channel_id} already exists")
+
         self.db.station.update_one({'_id': unique_station_id},
-                               {"$push": {'channels': [{
-                                   'channel_id': channel_id,
+                               {"$push": {'channels': {
+                                   'id': channel_id,
                                    'ant_name': ant_name,
                                    'ant_position': list(ant_position),
                                    'ant_ori_theta': ant_ori_theta,
@@ -452,11 +448,10 @@ class Detector(object):
                                    'commission_time': commission_time,
                                    'decommission_time': decommission_time,
                                    'signal_ch': signal_chain
-                                   }]}
+                                   }}
                                })
 
-
-    #TODO add functions from detector class
+    # TODO add functions from detector class
     def get_channel(self, station_id, channel_id):
         """
         returns a dictionary of all channel parameters
@@ -473,7 +468,6 @@ class Detector(object):
         dict of channel parameters
         """
         return None
-
 
     def get_absolute_position(self, station_id):
         """
@@ -493,7 +487,6 @@ class Detector(object):
         unit_xy = units.m
         return np.array([easting, northing, altitude])
 
-
     def get_relative_position(self, station_id, channel_id):
         """
         get the relative position of a specific channels/antennas with respect to the station center
@@ -510,7 +503,6 @@ class Detector(object):
         3-dim array of relative station position
         """
         return np.array([None, None, None])
-
 
     def get_number_of_channels(self, station_id):
         """
@@ -539,7 +531,6 @@ class Detector(object):
         """
         channel_ids = []
         return sorted(channel_ids)
-
 
     def get_cable_delay(self, station_id, channel_id):
         """
@@ -688,7 +679,7 @@ class Detector(object):
         amp_phase = np.zeros_like(frequencies)
         return amp_gain * amp_phase
 
-    #TODO: needed?
+    # TODO: needed?
     def get_antenna_model(self, station_id, channel_id, zenith=None):
         """
         determines the correct antenna model from antenna type, position and orientation of antenna
@@ -707,11 +698,11 @@ class Detector(object):
         Returns string
         """
 
-        #antenna_type = get_antenna_type(station_id, channel_id)
-        #antenna_relative_position = get_relative_position(station_id, channel_id)
+        # antenna_type = get_antenna_type(station_id, channel_id)
+        # antenna_relative_position = get_relative_position(station_id, channel_id)
         return None
 
-    #TODO: needed?
+    # TODO: needed?
     def get_noise_temperature(self, station_id, channel_id):
         """
         returns the noise temperature of the channel
@@ -725,7 +716,6 @@ class Detector(object):
 
         """
         return None
-
 
     def get_signal_chain(self, station_id, channel_id):
         """
