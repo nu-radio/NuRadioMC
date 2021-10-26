@@ -20,7 +20,7 @@ from NuRadioReco.detector.webinterface.app import app
 det = detector_mongo.Detector()
 
 number_of_channels = 5  # define number of channels for surface board
-table_name = "surface_boards"
+table_name = "SURFACE"
 
 layout = html.Div([
     html.H3('Add S parameter measurement of surface board', id='trigger'),
