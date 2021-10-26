@@ -58,6 +58,12 @@ layout = html.Div([
             style={'width': '200px', 'float':'left'}
         ),
         dcc.Dropdown(
+            id='IGLU-id',
+            options=[],
+            value='Golden_IGLU',
+            style={'width': '200px', 'float':'left'}
+        ),
+        dcc.Dropdown(
             id='temperature-list',
             options=[
                 {'label': 'room temp (20* C)', 'value': 20},
@@ -91,6 +97,7 @@ layout = html.Div([
     [Output('new-drab-input', 'disabled'),
      Output(table_name + "override-warning", "children")],
     [Input('drab-list', 'value')])
+
 def enable_board_name_input(value):
     """
     enable text field for new DRAB unit
@@ -116,6 +123,24 @@ def update_dropdown_drab_names(n_intervals, options, table_name):
             options.append(
                 {"label": amp_name, "value": amp_name}
             )
+        return options
+
+@app.callback(
+    Output("IGLU-id", "options"),
+    [Input("trigger", "children")],
+    [State("table-name", "children")]
+)
+def update_dropdown_iglu_names(n_intervals, table_name):
+    """
+    updates the dropdown menu with existing board names from the database
+    """
+    if(get_table(table_name) is not None):
+        options = []
+        for amp_name in get_table("IGLU").distinct("name"):
+            options.append(
+                {"label": amp_name, "value": amp_name}
+            )
+        options.append({"label": "without IGLU", "value": "wo_Iglu"})
         return options
 
 
@@ -158,10 +183,11 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, function_te
              State('dropdown-magnitude', 'value'),
              State('dropdown-phase', 'value'),
              State(table_name + "channel-id", "value"),
+             State("IGLU-id", "value"),
              State('separator', 'value'),
              State('temperature-list', 'value'),
              State("function-test", "value")])
-def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, unit_mag, unit_phase, channel_id, sep, temp, function_test):
+def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, unit_mag, unit_phase, channel_id, iglu_id, sep, temp, function_test):
     print(f"n_clicks is {n_clicks}")
     if(not n_clicks is None):
         print("insert to db")
@@ -181,7 +207,7 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, un
                 S_data[2 + 2 * i] *= str_to_unit[unit_phase]
             print("channelid" + str(channel_id))
             print(board_name, S_data)
-            det.DRAB_add_Sparameters(board_name, channel_id, temp, S_data)
+            det.DRAB_add_Sparameters(board_name, channel_id, iglu_id, temp, S_data)
 
         return {'display': 'none'}, {}
     else:
