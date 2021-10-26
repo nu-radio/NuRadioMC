@@ -60,7 +60,7 @@ class Detector(object):
 
         Returns list of strings
         """
-        return self.db.surface_boards.distinct("name")
+        return self.db.SURFACE.distinct("name")
 
     # def insert_amp_board_channel_S12(self, board_name, Sparameter, channel_id, ff, mag, phase):
     #     """
@@ -97,7 +97,7 @@ class Detector(object):
             8th/9th collumn: S22 mag/phase
 
         """
-        self.db.surface_boards.update_one({'name': board_name},
+        self.db.SURFACE.update_one({'name': board_name},
                                       {"$push":{'channels': {
                                           'id': channel_id,
                                           'last_updated': datetime.datetime.utcnow(),
@@ -126,7 +126,7 @@ class Detector(object):
         """
         S_names = ["S11", "S12", "S21", "S22"]
         for i in range(4):
-            self.db.surface_boards.update_one({'name': board_name},
+            self.db.SURFACE.update_one({'name': board_name},
                                     {"$push": {'channels': {
                                           'surface_channel_id': channel_id,
                                           'last_updated': datetime.datetime.utcnow(),
