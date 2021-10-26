@@ -426,7 +426,7 @@ class Detector(object):
                                     })
 
     def add_channel_to_station(self,
-                               unique_station_id,
+                               station_id,
                                channel_id,
                                signal_chain,
                                ant_name,
@@ -438,6 +438,7 @@ class Detector(object):
                                channel_type,
                                commission_time,
                                decommission_time=datetime.datetime(2080, 1, 1)):
+        unique_station_id = self.db.station.find_one({'station_id': station_id})['_id']
         self.db.station.update_one({'_id': unique_station_id},
                                {"$push": {'channels': [{
                                    'channel_id': channel_id,
