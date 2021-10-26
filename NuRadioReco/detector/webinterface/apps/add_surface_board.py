@@ -27,7 +27,7 @@ layout = html.Div([
     html.Div(table_name, id='table-name'),
     html.Div(number_of_channels, id='number-of-channels'),
     dcc.Link('Go back to menu', href='/apps/menu'),
-    html.Div([html.Div(dcc.Link('Add another surface board measurement', href='/apps/add_surface_board'), id=table_name + "-menu"),
+    html.Div([html.Div(dcc.Link('Add another surface board measurement', href='/apps/add_surface_board', refresh=True), id=table_name + "-menu"),
               html.Div([
     html.H3('', id=table_name + 'override-warning', style={"color": "Red"}),
     html.Div([
