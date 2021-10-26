@@ -14,7 +14,7 @@ logger = logging.getLogger("database")
 logger.setLevel(logging.DEBUG)
 
 # connect to MongoDB, change the << MONGODB URL >> to reflect your own connection string
-#client = MongoClient("mongodb+srv://detector_write:detector_write@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+client = MongoClient("mongodb+srv://detector_write:detector_write@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
 # client = MongoClient("localhost")
 
 # use db connection from environment, pw and user need to be percent escaped
@@ -31,7 +31,7 @@ if mongo_server is None:
 if None in [mongo_user, mongo_server]:
     logging.warning('"mongo_user" or "mongo_password" not set')
 # start client
-client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
+# client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
 db = client.RNOG_test
 
 
@@ -80,7 +80,7 @@ def surface_board_channel_set_not_working(board_name, channel_id):
 
     """
     db.surface_boards.update_one({'name': board_name},
-                                  {"$push" :{'channels': {
+                                  {"$push":{'channels': {
                                       'id': channel_id,
                                       'last_updated': datetime.datetime.utcnow(),
                                       'function_test': False,
@@ -218,6 +218,7 @@ def VPol_add_Sparameters(VPol_name, S_data):
 
 # Cables
 
+
 def Cable_set_not_working(cable_name):
     """
     inserts that the cable is broken.
@@ -259,6 +260,7 @@ def CABLE_add_Sparameters(cable_name, Sm_data, Sp_data):
                                  'mag': list(Sm_data[1]),
                                  'phase': list(Sp_data[1]),
                               })
+
 
 def surfCable_set_not_working(cable_name):
     """
@@ -324,7 +326,7 @@ def IGLU_board_channel_set_not_working(board_name, channel_id):
 
     """
     db.IGLU.update_one({'name': board_name},
-                          {"$push" :{'channels': {
+                          {"$push":{'channels': {
                               'iglue_channel_id': channel_id,
                               'last_updated': datetime.datetime.utcnow(),
                               'function_test': False,
@@ -356,7 +358,7 @@ def IGLU_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id
     S_names = ["S11", "S12", "S21", "S22"]
     for i in range(4):
         db.IGLU.update_one({'name': board_name},
-                                  {"$push" :{'channels': {
+                                  {"$push":{'channels': {
                                       'iglu_channel_id': channel_id,
                                       'last_updated': datetime.datetime.utcnow(),
                                       'function_test': True,
@@ -392,7 +394,7 @@ def IGLU_board_channel_add_Sparameters_without_DRAB(board_name, channel_id, temp
     S_names = ["S11", "S12", "S21", "S22"]
     for i in range(4):
         db.IGLU.update_one({'name': board_name},
-                                  {"$push" :{'channels': {
+                                  {"$push":{'channels': {
                                       'iglu_channel_id': channel_id,
                                       'last_updated': datetime.datetime.utcnow(),
                                       'function_test': True,
@@ -403,6 +405,19 @@ def IGLU_board_channel_add_Sparameters_without_DRAB(board_name, channel_id, temp
                                       'phase': list(S_data[2 * i + 2])
                                       }}},
                                  upsert=True)
+
+
+def add_channel_to_station(station_id,
+                           channel_id,
+                           signal_chain,
+                           ant_name,
+                           ant_ori_theta,
+                           ant_ori_phi,
+                           ant_rot_theta,
+                           ant_rot_phi,
+                           ant_position,
+                           type):
+    pass
 
 
 #TODO add functions from detector class
@@ -655,6 +670,7 @@ def get_noise_temperature(station_id, channel_id):
 
     """
     return None
+
 
 def get_signal_chain(station_id, channel_id):
     """
