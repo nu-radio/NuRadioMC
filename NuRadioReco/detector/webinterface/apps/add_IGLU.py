@@ -17,7 +17,7 @@ from NuRadioReco.detector.webinterface.utils.table import get_table
 from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 from NuRadioReco.detector.webinterface.app import app
 
-number_of_channels = 4  # define number of channels for surface board
+number_of_channels = 1  # define number of channels for surface board
 table_name = "IGLU"
 
 layout = html.Div([
@@ -51,17 +51,13 @@ layout = html.Div([
                   disabled=True,
                   placeholder='new unique board name',
                   style={'width': '200px',
-                         'float': 'left'}),
-        dcc.Dropdown(
-            id=table_name + 'channel-id',
-            options=[{'label': x, 'value': x} for x in range(number_of_channels)],
-            placeholder='channel-id',
-            style={'width': '200px', 'float':'left'}
+                         'float': 'left'}
         ),
+
         dcc.Dropdown(
             id='DRAB-id',
             options=[],
-            placeholder='DRAB-id',
+            value='Golden_DRAB',
             style={'width': '200px', 'float':'left'}
         ),
         dcc.Dropdown(
@@ -96,11 +92,10 @@ layout = html.Div([
 
 @app.callback(
     Output(table_name + "override-warning", "children"),
-    [Input(table_name + "channel-id", "value"),
-     Input("DRAB-id", "value")],
+    [Input("DRAB-id", "value")],
      [State("amp-board-list", "value"),
       State("table-name", "children")])
-def warn_override(channel_id, drab_id, amp_name, table_name):
+def warn_override(drab_id, amp_name, table_name):
     """
     in case the user selects a channel that is already existing in the DB, a big warning is issued
     """
@@ -110,50 +105,44 @@ def warn_override(channel_id, drab_id, amp_name, table_name):
         existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.S_parameter_wo_DRAB": {"$in": ["S11", "S12", "S21", "S22"]}})
     else:
         existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.S_parameter_DRAB": {"$in": ["S11", "S12", "S21", "S22"]}})
-    if(channel_id in existing_ids):
-        return f"You are about to override the S parameters of channel {channel_id} of board {amp_name}!"
-    else:
-        return ""
 
 
-@app.callback(
-    [Output(table_name + "channel-id", "options"),
-     Output(table_name + "channel-id", "value")],
-    [Input("trigger", "children"),
-    Input("amp-board-list", "value"),
-    Input("allow-override", "value"),
-    Input("DRAB-id", "value")
-    ],
-    [State("table-name", "children"),
-     State("number-of-channels", "children")]
-)
-def update_dropdown_channel_ids(n_intervals, amp_name, allow_override_checkbox, drab_id, table_name, number_of_channels):
-    """
-    disable all channels that are already in the database for that amp board and S parameter
-    """
-    number_of_channels = int(number_of_channels)
-    print("update_dropdown_channel_ids")
-    allow_override = False
-    if 1 in allow_override_checkbox:
-        allow_override = True
-
-    if(drab_id is None):
-        return [], ""
-    if(drab_id == "wo_DRAB"):
-        existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.S_parameter_wo_DRAB": {"$in": ["S11", "S12", "S21", "S22"]}})
-    else:
-        existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.S_parameter_DRAB": {"$in": ["S11", "S12", "S21", "S22"]}})
-    print(f"existing ids for amp {amp_name}: {existing_ids}")
-    options = []
-    for i in range(number_of_channels):
-        if(i in existing_ids):
-            if(allow_override):
-                options.append({"label": f"{i} (already exists)", "value": i})
-            else:
-                options.append({"label": i, "value": i, 'disabled': True})
-        else:
-            options.append({"label": i, "value": i})
-    return options, ""
+# @app.callback(
+#     [Input("trigger", "children"),
+#     Input("amp-board-list", "value"),
+#     Input("allow-override", "value"),
+#     Input("DRAB-id", "value")
+#     ],
+#     [State("table-name", "children"),
+#      State("number-of-channels", "children")]
+#)
+# def update_dropdown_channel_ids(n_intervals, amp_name, allow_override_checkbox, drab_id, table_name, number_of_channels):
+#     """
+#     disable all channels that are already in the database for that amp board and S parameter
+#     """
+#     number_of_channels = int(number_of_channels)
+#     print("update_dropdown_channel_ids")
+#     allow_override = False
+#     if 1 in allow_override_checkbox:
+#         allow_override = True
+#
+#     if(drab_id is None):
+#         return [], ""
+#     if(drab_id == "wo_DRAB"):
+#         existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.S_parameter_wo_DRAB": {"$in": ["S11", "S12", "S21", "S22"]}})
+#     else:
+#         existing_ids = get_table(table_name).distinct("channels.id", {"name": amp_name, "channels.S_parameter_DRAB": {"$in": ["S11", "S12", "S21", "S22"]}})
+#     print(f"existing ids for amp {amp_name}: {existing_ids}")
+#     options = []
+#     for i in range(number_of_channels):
+#         if(i in existing_ids):
+#             if(allow_override):
+#                 options.append({"label": f"{i} (already exists)", "value": i})
+#             else:
+#                 options.append({"label": i, "value": i, 'disabled': True})
+#         else:
+#             options.append({"label": i, "value": i})
+#     return options, ""
 
 
 @app.callback(
@@ -185,10 +174,9 @@ def update_dropdown_drab_names(n_intervals, table_name):
     [Input("validation-Sdata-output", "data-validated"),
      Input('amp-board-list', 'value'),
      Input('new-board-input', 'value'),
-     Input(table_name + "channel-id", "value"),
      Input("DRAB-id", "value"),
      Input("function-test", "value")])
-def validate_global(Sdata_validated, board_dropdown, new_board_name, channel_id, drab_id, function_test):
+def validate_global(Sdata_validated, board_dropdown, new_board_name, drab_id, function_test):
     """
     validates all three inputs, this callback is triggered by the individual input validation
     """
@@ -197,8 +185,6 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, channel_id,
         return "board name not set", {"color": "Red"}, False, True
     if(board_dropdown == "new" and (new_board_name is None or new_board_name == "")):
         return "board name dropdown set to new but no new board name was entered", {"color": "Red"}, False, True
-    if(channel_id not in range(100)):
-        return "no channel id selected", {"color": "Red"}, False, True
     if(drab_id is None):
         return "no DRAB unit selected", {"color": "Red"}, False, True
 
@@ -220,12 +206,11 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, channel_id,
              State('dropdown-frequencies', 'value'),
              State('dropdown-magnitude', 'value'),
              State('dropdown-phase', 'value'),
-             State(table_name + "channel-id", "value"),
              State("DRAB-id", "value"),
              State('separator', 'value'),
              State('temperature-list', 'value'),
              State("function-test", "value")])
-def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, unit_mag, unit_phase, channel_id, drab_id, sep, temp, function_test):
+def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, unit_mag, unit_phase, drab_id, sep, temp, function_test):
     print(f"n_clicks is {n_clicks}")
     if(not n_clicks is None):
         print("insert to db")
@@ -233,7 +218,7 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, un
         if(board_dropdown == "new"):
             board_name = new_board_name
         if('working' not in function_test):
-            det.IGLU_board_channel_set_not_working(board_name, channel_id)
+            det.IGLU_board_channel_set_not_working(board_name)
         else:
             content_type, content_string = contents.split(',')
             S_datas = base64.b64decode(content_string)
@@ -243,11 +228,11 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, un
             for i in range(4):
                 S_data[1 + 2 * i] *= str_to_unit[unit_mag]
                 S_data[2 + 2 * i] *= str_to_unit[unit_phase]
-            print(board_name, channel_id, S_data)
+            print(board_name, S_data)
             if(drab_id == "wo_DRAB"):
-                det.IGLU_board_channel_add_Sparameters_without_DRAB(board_name, channel_id, S_data)
+                det.IGLU_board_channel_add_Sparameters_without_DRAB(board_name, temp, S_data)
             else:
-                det.IGLU_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id, S_data)
+                det.IGLU_board_channel_add_Sparameters_with_DRAB(board_name, drab_id, temp, S_data)
 
         return {'display': 'none'}, {}
     else:
