@@ -1,4 +1,6 @@
-from NuRadioReco.detector import detector_mongo as det
+from NuRadioReco.detector import detector_mongo
+
+det = detector_mongo.Detector()
 
 
 def get_table(name):

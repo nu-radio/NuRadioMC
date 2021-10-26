@@ -37,7 +37,7 @@ class Detector(object):
 
         self.__mongo_client = MongoClient("mongodb+srv://detector_write:detector_write@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
 
-        self.__db = self.__mongo_client.RNOG_test
+        self.db = self.__mongo_client.RNOG_test
         logger.info("database connection to {} established".format("RNOG_test"))
 
         self.__current_time = None
@@ -59,14 +59,14 @@ class Detector(object):
 
         Returns list of strings
         """
-        return self.__db.surface_boards.distinct("name")
+        return self.db.surface_boards.distinct("name")
 
     # def insert_amp_board_channel_S12(self, board_name, Sparameter, channel_id, ff, mag, phase):
     #     """
     #     inserts a new S12 measurement of one channel of an amp board
     #     If the board dosn't exist yet, it will be created.
     #     """
-    #     self.__db.amp_boards.update_one({'name': board_name},
+    #     self.db.amp_boards.update_one({'name': board_name},
     #                               {"$push" :{'channels': {
     #                                   'id': channel_id,
     #                                   'last_updated': datetime.datetime.utcnow(),
@@ -97,7 +97,7 @@ class Detector(object):
             8th/9th collumn: S22 mag/phase
 
         """
-        self.__db.surface_boards.update_one({'name': board_name},
+        self.db.surface_boards.update_one({'name': board_name},
                                       {"$push":{'channels': {
                                           'id': channel_id,
                                           'last_updated': datetime.datetime.utcnow(),
@@ -127,7 +127,7 @@ class Detector(object):
         """
         S_names = ["S11", "S12", "S21", "S22"]
         for i in range(4):
-            self.__db.surface_boards.update_one({'name': board_name},
+            self.db.surface_boards.update_one({'name': board_name},
                                     {"$push": {'channels': {
                                           'surface_channel_id': channel_id,
                                           'last_updated': datetime.datetime.utcnow(),
@@ -153,7 +153,7 @@ class Detector(object):
         board_name: string
             the unique identifier of the board
         """
-        self.__db.DRAB.insert_one({'name': board_name,
+        self.db.DRAB.insert_one({'name': board_name,
                               'last_updated': datetime.datetime.utcnow(),
                               'function_test': False,
                                   })
@@ -178,7 +178,7 @@ class Detector(object):
         """
         S_names = ["S11", "S12", "S21", "S22"]
         for i in range(4):
-            self.__db.DRAB.update_one({'name': board_name},
+            self.db.DRAB.update_one({'name': board_name},
                                     {"$push": {'channels': {
                                           'drab_channel_id': channel_id,
                                           'last_updated': datetime.datetime.utcnow(),
@@ -205,7 +205,7 @@ class Detector(object):
         VPol_name: string
             the unique identifier of the board
         """
-        self.__db.VPol.insert_one({'name': VPol_name,
+        self.db.VPol.insert_one({'name': VPol_name,
                               'last_updated': datetime.datetime.utcnow(),
                               'function_test': False,
                                   })
@@ -227,7 +227,7 @@ class Detector(object):
 
         """
 
-        self.__db.VPol.insert_one({'name': VPol_name,
+        self.db.VPol.insert_one({'name': VPol_name,
                                     'last_updated': datetime.datetime.utcnow(),
                                      'function_test': True,
                                      'S_parameter': 'S11',
@@ -248,7 +248,7 @@ class Detector(object):
         cable_name: string
             the unique identifier of the board
         """
-        self.__db.CABLE.insert_one({'name': cable_name,
+        self.db.CABLE.insert_one({'name': cable_name,
                               'last_updated': datetime.datetime.utcnow(),
                               'function_test': False,
                                   })
@@ -271,7 +271,7 @@ class Detector(object):
 
         """
 
-        self.__db.CABLE.insert_one({'name': cable_name,
+        self.db.CABLE.insert_one({'name': cable_name,
                                     'last_updated': datetime.datetime.utcnow(),
                                      'function_test': True,
                                      'S_parameter': 'S21',
@@ -291,7 +291,7 @@ class Detector(object):
         cable_name: string
             the unique identifier of the board
         """
-        self.__db.surfCABLE.insert_one({'name': cable_name,
+        self.db.surfCABLE.insert_one({'name': cable_name,
                               'last_updated': datetime.datetime.utcnow(),
                               'function_test': False,
                                   })
@@ -314,7 +314,7 @@ class Detector(object):
 
         """
 
-        self.__db.surfCABLE.insert_one({'name': cable_name,
+        self.db.surfCABLE.insert_one({'name': cable_name,
                                     'last_updated': datetime.datetime.utcnow(),
                                      'function_test': True,
                                      'S_parameter': 'S21',
@@ -336,7 +336,7 @@ class Detector(object):
             the unique identifier of the board
 
         """
-        self.__db.IGLU.update_one({'name': board_name},
+        self.db.IGLU.update_one({'name': board_name},
                               {"$push":{'channels': {
                                   'last_updated': datetime.datetime.utcnow(),
                                   'function_test': False,
@@ -367,7 +367,7 @@ class Detector(object):
         """
         S_names = ["S11", "S12", "S21", "S22"]
         for i in range(4):
-            self.__db.IGLU.update_one({'name': board_name},
+            self.db.IGLU.update_one({'name': board_name},
                                       {"$push":{'channels': {
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': True,
@@ -402,7 +402,7 @@ class Detector(object):
         """
         S_names = ["S11", "S12", "S21", "S22"]
         for i in range(4):
-            self.__db.IGLU.update_one({'name': board_name},
+            self.db.IGLU.update_one({'name': board_name},
                                       {"$push":{'channels': {
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': True,
@@ -415,7 +415,7 @@ class Detector(object):
                                      upsert=True)
 
 
-    def add_channel_to_station(self, 
+    def add_channel_to_station(self,
                                station_id,
                                channel_id,
                                signal_chain,
@@ -428,7 +428,7 @@ class Detector(object):
                                channel_type,
                                commission_time,
                                decommission_time=datetime.datetime(2080, 1, 1)):
-        self.__db.station.update_one({'station_id': station_id},
+        self.db.station.update_one({'station_id': station_id},
                                {"$push": {'channels': [{
                                    'channel_id': channel_id,
                                    'ant_name': ant_name,
@@ -612,7 +612,7 @@ class Detector(object):
         return None, None, None, None
 
     def get_antenna(self, station_id, channel_id):
-        """ 
+        """
         returns the antenna that belongs to a channel
 
         Parameters
@@ -624,7 +624,7 @@ class Detector(object):
             the channel id
 
         Returns
-        ---------------    
+        ---------------
         antenna from db
         """
 
