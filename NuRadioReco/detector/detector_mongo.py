@@ -598,6 +598,25 @@ def get_antenna_orientation(station_id, channel_id):
     """
     return None, None, None, None
 
+def get_antenna(station_id, channel_id):
+    """ 
+    returns the antenna that belongs to a channel
+
+    Parameters
+    Parameters
+    ---------
+    station_id: int
+        the station id
+    channel_id: int
+        the channel id
+
+    Returns
+    ---------------    
+    antenna from db
+    """
+
+    return None
+
 def get_amplifier_type(station_id, channel_id):
     """
     returns the type of the amplifier
