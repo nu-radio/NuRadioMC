@@ -26,7 +26,7 @@ layout = html.Div([
     html.H3('Add S parameter measurement of DRAB unit', id='trigger'),
     html.Div(table_name, id='table-name'),
     dcc.Link('Go back to menu', href='/apps/menu'),
-    html.Div([html.Div(dcc.Link('Add another DRAB unit measurement', href='/apps/add_DRAB'), id=table_name + "-menu"),
+    html.Div([html.Div(dcc.Link('Add another DRAB unit measurement', href='/apps/add_DRAB', refresh=True), id=table_name + "-menu"),
               html.Div([
     html.H3('', id=table_name + 'override-warning', style={"color": "Red"}),
     html.Div([
