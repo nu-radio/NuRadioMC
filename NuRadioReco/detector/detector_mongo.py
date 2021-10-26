@@ -414,9 +414,19 @@ class Detector(object):
                                           }}},
                                      upsert=True)
 
+    def add_station(self,
+                    station_id,
+                    position, # in GPS UTM coordinates
+                    commission_time,
+                    decommission_time=datetime.datetime(2080, 1, 1)):
+        self.db.station.insert_one({'station_id': station_id,
+                                    'position': list(position),
+                                    'commission_time': commission_time,
+                                    'decommission_time': decommission_time
+                                    })
 
     def add_channel_to_station(self,
-                               station_id,
+                               unique_station_id,
                                channel_id,
                                signal_chain,
                                ant_name,
@@ -428,7 +438,7 @@ class Detector(object):
                                channel_type,
                                commission_time,
                                decommission_time=datetime.datetime(2080, 1, 1)):
-        self.db.station.update_one({'station_id': station_id},
+        self.db.station.update_one({'_id': unique_station_id},
                                {"$push": {'channels': [{
                                    'channel_id': channel_id,
                                    'ant_name': ant_name,
@@ -442,7 +452,7 @@ class Detector(object):
                                    'decommission_time': decommission_time,
                                    'signal_ch': signal_chain
                                    }]}
-                               }, upsert=True)
+                               })
 
 
     #TODO add functions from detector class
