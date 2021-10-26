@@ -6,6 +6,8 @@ import datetime
 from pprint import pprint
 import logging
 import urllib.parse
+import numpy as np
+from NuRadioReco.utilities import units
 
 logging.basicConfig()
 logger = logging.getLogger("database")
@@ -401,3 +403,272 @@ def IGLU_board_channel_add_Sparameters_without_DRAB(board_name, channel_id, temp
                                       'phase': list(S_data[2 * i + 2])
                                       }}},
                                  upsert=True)
+
+
+#TODO add functions from detector class
+def get_channel(station_id, channel_id):
+    """
+    returns a dictionary of all channel parameters
+
+    Parameters
+    ---------
+    station_id: int
+        the station id
+    channel_id: int
+        the channel id
+
+    Return
+    -------------
+    dict of channel parameters
+    """
+    return None
+
+
+def get_absolute_position(station_id):
+    """
+    get the absolute position of a specific station
+
+    Parameters
+    ---------
+    station_id: int
+        the station id
+
+    Returns
+    ----------------
+    3-dim array of absolute station position in easting, northing and depth wrt. to snow level at
+    time of measurement
+    """
+    easting, northing, altitude = 0, 0, 0
+    unit_xy = units.m
+    return np.array([easting, northing, altitude])
+
+
+def get_relative_position(station_id, channel_id):
+    """
+    get the relative position of a specific channels/antennas with respect to the station center
+
+    Parameters
+    ---------
+    station_id: int
+        the station id
+    channel_id: int
+        the channel id
+
+    Returns
+    ---------------
+    3-dim array of relative station position
+    """
+    return np.array([None, None, None])
+
+
+def get_number_of_channels(station_id):
+    """
+    Get the number of channels per station
+
+    Parameters
+    ---------
+    station_id: int
+        the station id
+
+    Returns int
+    """
+    res = []
+    return len(res)
+
+def get_channel_ids(station_id):
+    """
+    get the channel ids of a station
+
+    Parameters
+    ---------
+    station_id: int
+        the station id
+
+    Returns list of ints
+    """
+    channel_ids = []
+    return sorted(channel_ids)
+
+
+def get_cable_delay(station_id, channel_id):
+    """
+    returns the cable delay of a channel
+
+    Parameters
+    ---------
+    station_id: int
+        the station id
+    channel_id: int
+        the channel id
+
+    Returns float (delay time)
+    """
+    return None
+
+def get_cable_type_and_length(station_id, channel_id):
+    """
+    returns the cable type (e.g. LMR240) and its length
+
+    Parameters
+    ---------
+    station_id: int
+        the station id
+    channel_id: int
+        the channel id
+
+    Returns tuple (string, float)
+    """
+    return None, None
+
+def get_antenna_type(station_id, channel_id):
+    """
+    returns the antenna type
+
+    Parameters
+    ---------
+    station_id: int
+        the station id
+    channel_id: int
+        the channel id
+
+    Returns string
+    """
+    return None
+
+def get_antenna_deployment_time(station_id, channel_id):
+    """
+    returns the time of antenna deployment
+
+    Parameters
+    ---------
+    station_id: int
+        the station id
+    channel_id: int
+        the channel id
+
+    Returns datetime
+    """
+    return None
+
+def get_antenna_orientation(station_id, channel_id):
+    """
+    returns the orientation of a specific antenna
+
+    Parameters
+    ---------
+    station_id: int
+        the station id
+    channel_id: int
+        the channel id
+
+    Returns
+    ---------------
+    tuple of floats
+        * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuth  al symmetry
+        * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symme  try
+        * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+        * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+    """
+    return None, None, None, None
+
+def get_amplifier_type(station_id, channel_id):
+    """
+    returns the type of the amplifier
+
+    Parameters
+    ---------
+    station_id: int
+        the station id
+    channel_id: int
+        the channel id
+
+    Returns string
+    """
+    return None
+
+def get_amplifier_measurement(station_id, channel_id):
+    """
+    returns a unique reference to the amplifier measurement
+
+    Parameters
+    ---------
+    station_id: int
+        the station id
+    channel_id: int
+        the channel id
+
+    Returns string
+    """
+    return None
+
+def get_amplifier_response(station_id, channel_id, frequencies):
+    """
+    Returns the amplifier response for the amplifier of a given channel
+
+    Parameters:
+    ---------------
+    station_id: int
+        The ID of the station
+    channel_id: int
+        The ID of the channel
+    frequencies: array of floats
+        The frequency array for which the amplifier response shall be returned
+    """
+    amp_gain = np.zeros_like(frequencies)
+    amp_phase = np.zeros_like(frequencies)
+    return amp_gain * amp_phase
+
+#TODO: needed?
+def get_antenna_model(station_id, channel_id, zenith=None):
+    """
+    determines the correct antenna model from antenna type, position and orientation of antenna
+
+    so far only infinite firn and infinite air cases are differentiated
+
+    Parameters
+    ---------
+    station_id: int
+        the station id
+    channel_id: int
+        the channel id
+    zenith: float or None (default)
+        the zenith angle of the incoming signal direction
+
+    Returns string
+    """
+
+    #antenna_type = get_antenna_type(station_id, channel_id)
+    #antenna_relative_position = get_relative_position(station_id, channel_id)
+    return None
+
+#TODO: needed?
+def get_noise_temperature(station_id, channel_id):
+    """
+    returns the noise temperature of the channel
+
+    Parameters
+    ----------
+    station_id: int
+        station id
+    channel_id: int
+        the channel id
+
+    """
+    return None
+
+def get_signal_chain(station_id, channel_id):
+    """
+    returns a dictionary of all signal chain items
+
+    Parameters
+    ---------
+    station_id: int
+        the station id
+    channel_id: int
+        the channel id
+
+    Return
+    -------------
+    dict of signal chain items
+    """
+    return None
