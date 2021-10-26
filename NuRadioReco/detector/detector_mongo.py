@@ -23,13 +23,13 @@ client = MongoClient("mongodb+srv://detector_write:detector_write@cluster0-fc0my
 #     logging.warning('MONGODB_URL not set, defaulting to "localhost"')
 #     MONGODB_URL = 'localhost'
 # client = MongoClient(MONGODB_URL)
-mongo_password = urllib.parse.quote_plus(os.environ.get('mongo_password'))
-mongo_user = urllib.parse.quote_plus(os.environ.get('mongo_user'))
-mongo_server = os.environ.get('mongo_server')
-if mongo_server is None:
-    logging.warning('variable "mongo_server" not set')
-if None in [mongo_user, mongo_server]:
-    logging.warning('"mongo_user" or "mongo_password" not set')
+# mongo_password = urllib.parse.quote_plus(os.environ.get('mongo_password'))
+# mongo_user = urllib.parse.quote_plus(os.environ.get('mongo_user'))
+# mongo_server = os.environ.get('mongo_server')
+# if mongo_server is None:
+#     logging.warning('variable "mongo_server" not set')
+# if None in [mongo_user, mongo_server]:
+#     logging.warning('"mongo_user" or "mongo_password" not set')
 # start client
 # client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
 db = client.RNOG_test
@@ -417,6 +417,18 @@ def add_channel_to_station(station_id,
                            ant_rot_phi,
                            ant_position,
                            type):
+    db.station.update_one({'station_id': station_id,
+                           'channels': [{
+                               'channel_id': channel_id,
+                               'ant_name': ant_name, 
+                               'ant_position': ant_position,
+                               'ant_ori_theta': ant_ori_theta,
+                               'ant_ori_phi': ant_ori_phi,
+                               'ant_rot_theta': ant_rot_theta,
+                               'ant_rot_phi': ant_rot_phi,
+                               'signal_ch':"a"
+                               }]
+                           })
     pass
 
 
