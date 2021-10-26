@@ -141,7 +141,7 @@ def DRAB_set_not_working(board_name):
                               })
 
 
-def DRAB_add_Sparameters(board_name, channel_id, temp, S_data):
+def DRAB_add_Sparameters(board_name, channel_id, iglu_id, temp, S_data):
     """
     inserts a new S parameter measurement of one channel of an amp board
     If the board dosn't exist yet, it will be created.
@@ -165,6 +165,7 @@ def DRAB_add_Sparameters(board_name, channel_id, temp, S_data):
                                       'drab_channel_id': channel_id,
                                       'last_updated': datetime.datetime.utcnow(),
                                       'function_test': True,
+                                      'IGLU_id': iglu_id,
                                       'measurement_temp': temp,
                                       'S_parameter': S_names[i],
                                       'frequencies': list(S_data[0]),
@@ -306,7 +307,7 @@ def surfCABLE_add_Sparameters(cable_name, Sm_data, Sp_data):
 
 
 #### add IGLU board
-def IGLU_board_channel_set_not_working(board_name, channel_id):
+def IGLU_board_channel_set_not_working(board_name):
     """
     inserts a new S parameter measurement of one channel of an amp board
     If the board dosn't exist yet, it will be created.
@@ -315,26 +316,18 @@ def IGLU_board_channel_set_not_working(board_name, channel_id):
     ---------
     board_name: string
         the unique identifier of the board
-    channel_id: int
-        the channel id
-    S_data: array of floats
-        1st collumn: frequencies
-        2nd/3rd collumn: S11 mag/phase
-        4th/5th collumn: S12 mag/phase
-        6th/7th collumn: S21 mag/phase
-        8th/9th collumn: S22 mag/phase
 
     """
     db.IGLU.update_one({'name': board_name},
                           {"$push":{'channels': {
-                              'iglue_channel_id': channel_id,
+                              'iglu_channel_id': channel_id,
                               'last_updated': datetime.datetime.utcnow(),
                               'function_test': False,
                               }}},
                          upsert=True)
 
 
-def IGLU_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id, temp, S_data):
+def IGLU_board_channel_add_Sparameters_with_DRAB(board_name, drab_id, temp, S_data):
     """
     inserts a new S parameter measurement of one channel of an IGLU board
     If the board dosn't exist yet, it will be created.
@@ -343,10 +336,10 @@ def IGLU_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id
     ---------
     board_name: string
         the unique identifier of the board
-    channel_id: int
-        the channel id
     drab_id: string
         the unique name of the DRAB unit
+    temp: int
+        the temperature at which the measurement was taken
     S_data: array of floats
         1st collumn: frequencies
         2nd/3rd collumn: S11 mag/phase
@@ -372,7 +365,7 @@ def IGLU_board_channel_add_Sparameters_with_DRAB(board_name, channel_id, drab_id
                                  upsert=True)
 
 
-def IGLU_board_channel_add_Sparameters_without_DRAB(board_name, channel_id, temp, S_data):
+def IGLU_board_channel_add_Sparameters_without_DRAB(board_name, temp, S_data):
     """
     inserts a new S parameter measurement of one channel of an IGLU board
     If the board dosn't exist yet, it will be created.
@@ -381,8 +374,8 @@ def IGLU_board_channel_add_Sparameters_without_DRAB(board_name, channel_id, temp
     ---------
     board_name: string
         the unique identifier of the board
-    channel_id: int
-        the channel id
+    temp: int
+        the temperature at which the measurement was taken
     S_data: array of floats
         1st collumn: frequencies
         2nd/3rd collumn: S11 mag/phase
@@ -416,20 +409,24 @@ def add_channel_to_station(station_id,
                            ant_rot_theta,
                            ant_rot_phi,
                            ant_position,
-                           type):
-    db.station.update_one({'station_id': station_id,
-                           'channels': [{
+                           channel_type,
+                           commission_time,
+                           decommission_time=datetime.datetime(2080, 1, 1)):
+    db.station.update_one({'station_id': station_id},
+                           {"$push": {'channels': [{
                                'channel_id': channel_id,
-                               'ant_name': ant_name, 
-                               'ant_position': ant_position,
+                               'ant_name': ant_name,
+                               'ant_position': list(ant_position),
                                'ant_ori_theta': ant_ori_theta,
                                'ant_ori_phi': ant_ori_phi,
                                'ant_rot_theta': ant_rot_theta,
                                'ant_rot_phi': ant_rot_phi,
-                               'signal_ch':"a"
-                               }]
-                           })
-    pass
+                               'type': channel_type,
+                               'commission_time': commission_time,
+                               'decommission_time': decommission_time,
+                               'signal_ch': signal_chain
+                               }]}
+                           }, upsert=True)
 
 
 #TODO add functions from detector class
