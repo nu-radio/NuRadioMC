@@ -414,17 +414,22 @@ def add_channel_to_station(station_id,
                            ant_rot_theta,
                            ant_rot_phi,
                            ant_position,
-                           type):
-    db.station.update_one({'station_id': station_id,
-                           'channels': [{
+                           channel_type,
+                           commission_time,
+                           decommission_time=datetime.datetime(2080, 1, 1)):
+    db.station.update_one({'station_id': station_id},
+                           {"$push": {'channels': [{
                                'channel_id': channel_id,
-                               'ant_name': ant_name, 
-                               'ant_position': ant_position,
+                               'ant_name': ant_name,
+                               'ant_position': list(ant_position),
                                'ant_ori_theta': ant_ori_theta,
                                'ant_ori_phi': ant_ori_phi,
                                'ant_rot_theta': ant_rot_theta,
                                'ant_rot_phi': ant_rot_phi,
-                               'signal_ch':"a"
-                               }]
-                           })
-    pass
+                               'type': channel_type,
+                               'commission_time': commission_time,
+                               'decommission_time': decommission_time,
+                               'signal_ch': signal_chain
+                               }]}
+                           }, upsert=True)
+
