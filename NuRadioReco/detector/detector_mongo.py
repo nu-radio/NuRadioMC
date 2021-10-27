@@ -547,6 +547,7 @@ class Detector(object):
         """
         return None
 
+    #TODO this should go to the signal chain I guess... there could be more than one cable
     def get_cable_type_and_length(self, station_id, channel_id):
         """
         returns the cable type (e.g. LMR240) and its length
@@ -575,7 +576,8 @@ class Detector(object):
 
         Returns string
         """
-        return None
+        db_chan = self.find_db_channel(station_id, channel_id)
+        return  db_chan['type']
 
     def get_antenna_deployment_time(self, station_id, channel_id):
         """
@@ -590,7 +592,8 @@ class Detector(object):
 
         Returns datetime
         """
-        return None
+        db_chan = self.find_db_channel(station_id, channel_id)
+        return db_chan['commission_time']
 
     def get_antenna_orientation(self, station_id, channel_id):
         """
@@ -611,7 +614,8 @@ class Detector(object):
             * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
             * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         """
-        return None, None, None, None
+        db_chan = self.find_db_channel(station_id, channel_id)
+        return db_chan["ant_ori_theta"], db_chan["ant_ori_phi"], db_chan["ant_rot_theta"], db_chan["ant_rot_phi"]
 
     def get_antenna(self, station_id, channel_id):
         """
@@ -732,4 +736,47 @@ class Detector(object):
         -------------
         dict of signal chain items
         """
-        return None
+        db_entry = self.find_db_entry(station_id, channel_id)
+        return db_entry["signal_ch"]
+
+
+    def find_db_entry(self, station_id, channel_id):
+        """
+        returns a dictionary with a database entry
+
+        Parameters
+        ---------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+  
+        Return
+        -------------
+        dict with database entry
+        """
+        
+        aggregation = [agg_station(station_id),
+                      agg_unwind_channels(),
+                      agg_channel(channel_id, self.__current_time),
+                      agg_first()]
+        res = self.db.station.aggregate(aggregation).next()
+        return res
+
+    def find_db_channel(self, station_id, channel_id):
+        return self.find_db_entry(station_id, channel_id)["channels"]
+
+def agg_channel(channel_id, time):
+    time_filter = {"$match": {'channels.id': channel_id,
+                              'channels.commission_time': {"$lte" : time},
+                              'channels.decommission_time': {"$gte" : time}}}
+    return time_filter
+
+def agg_station(station_id):
+    return {"$match": {"id": station_id}}
+
+def agg_first():
+    return {"$limit": 1}
+
+def agg_unwind_channels():
+    return {"$unwind": '$channels'}
