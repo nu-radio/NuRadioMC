@@ -61,7 +61,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     additional_output = {}
     if(amplitude == 0):
         trace = np.zeros(3, N)
-    if(model == 'spherical'):
+    if(model == 'spherical'):         # This takes spherical signal as input voltage
         trace = np.zeros(N)
         trace[N // 2] = amplitude
     elif(model=='cw'):   # generates a continuous signal of given frequency
@@ -83,24 +83,24 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         Voltage=amplitude*np.sin(2*np.pi*f*t)
         add_zeros=int((N-2*width)/2)
         trace=np.pad(Voltage, (add_zeros, add_zeros), 'constant', constant_values=(0, 0))             
-    elif(model=='hvsp2'):
+    elif(model=='hvsp2'):            # The hvsp2 lab data from KU stored in hdf5 file
         hf = h5py.File('hvsp2_data.hdf5', 'r')
         time=hf.get('dataset_1')
         t=np.linspace(time[0],time[len(time)-1],int(len(time)*dt))
         Voltage1=hf.get('dataset_2')
         interpolation=interp1d(time,Voltage1,kind='cubic')
-        Voltage2=amplitude*interpolation(t)
+        Voltage2=interpolation(t)
         add_zeros=int((N-len(Voltage2))/2)
         trace=amplitude*np.pad(Voltage2, (add_zeros, add_zeros), 'constant', constant_values=(0, 0))
         min_amplitude_index=np.where(trace==np.min(trace))[0][0]
         trace=np.roll(trace,int(N/2)-min_amplitude_index)
-    elif(model=='idl'):
+    elif(model=='idl'):             # The idl lab data from KU stored in hdf5 file
         hf = h5py.File('idl_data.hdf5', 'r')
         time=hf.get('dataset_1')
         t=np.linspace(time[0],time[len(time)-1],int(len(time)*dt))
         Voltage1=hf.get('dataset_2')
         interpolation=interp1d(time,Voltage1,kind='cubic')
-        Voltage2=amplitude*interpolation(t)
+        Voltage2=interpolation(t)
         add_zeros=int((N-len(Voltage2))/2)
         trace=amplitude*np.pad(Voltage2, (add_zeros, add_zeros), 'constant', constant_values=(0, 0))
         max_amplitude_index=np.where(trace==np.min(trace))[0][0]
