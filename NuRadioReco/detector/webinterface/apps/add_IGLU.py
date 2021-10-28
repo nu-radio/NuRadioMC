@@ -240,7 +240,7 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, un
                 S_data[2 + 2 * i] *= str_to_unit[unit_phase]
             if(drab_id == "wo_DRAB"):
                 det.IGLU_board_channel_add_Sparameters_without_DRAB(board_name,
-                temp, S_data, measurment_time)
+                temp, S_data, measurement_time)
             else:
                 det.IGLU_board_channel_add_Sparameters_with_DRAB(board_name, drab_id, temp, S_data, measurement_time)
         return {'display': 'none'}, {}
