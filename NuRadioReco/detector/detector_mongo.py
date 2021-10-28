@@ -18,35 +18,44 @@ logger.setLevel(logging.DEBUG)
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class Detector(object):
 
-    def __init__(self):
-        # connect to MongoDB, change the << MONGODB URL >> to reflect your own connection string
-        # client = MongoClient("localhost")
-        # use db connection from environment, pw and user need to be percent escaped
-        # MONGODB_URL = os.environ.get('MONGODB_URL')
-        # if MONGODB_URL is None:
-        #     logging.warning('MONGODB_URL not set, defaulting to "localhost"')
-        #     MONGODB_URL = 'localhost'
-        # client = MongoClient(MONGODB_URL)
-        # mongo_password = urllib.parse.quote_plus(os.environ.get('mongo_password'))
-        # mongo_user = urllib.parse.quote_plus(os.environ.get('mongo_user'))
-        # mongo_server = os.environ.get('mongo_server')
-        # if mongo_server is None:
-        #     logging.warning('variable "mongo_server" not set')
-        # if None in [mongo_user, mongo_server]:
-        #     logging.warning('"mongo_user" or "mongo_password" not set')
-        # start client
-        # client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
+    def __init__(self, database_connection="test"):
 
-        self.__mongo_client = MongoClient("mongodb+srv://detector_write:detector_write@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+        if database_connection == "local":
+            MONGODB_URL = "localhost"
+            self.__mongo_client = MongoClient(MONGODB_URL)
+        elif database_connection == "env_url":
+            # connect to MongoDB, change the << MONGODB_URL >> to reflect your own connection string
+            MONGODB_URL = os.environ.get('MONGODB_URL')
+            if MONGODB_URL is None:
+                logger.warning('MONGODB_URL not set, defaulting to "localhost"')
+                MONGODB_URL = 'localhost'
+            self.__mongo_client = MongoClient(MONGODB_URL)
+        elif database_connection == "env_pw_user":
+            # use db connection from environment, pw and user need to be percent escaped
+            mongo_password = urllib.parse.quote_plus(os.environ.get('mongo_password'))
+            mongo_user = urllib.parse.quote_plus(os.environ.get('mongo_user'))
+            mongo_server = os.environ.get('mongo_server')
+            if mongo_server is None:
+                logger.warning('variable "mongo_server" not set')
+            if None in [mongo_user, mongo_server]:
+                logger.warning('"mongo_user" or "mongo_password" not set')
+            # start client
+            self.__mongo_client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
+        elif database_connection == "test":
+            self.__mongo_client = MongoClient("mongodb+srv://detector_write:detector_write@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+        else:
+            logger.error('specify a defined database connection ["local", "env_url", "env_pw_user", "test"]')
 
+        #TODO: no idea if all databases are called RNOG_test, otherwise move to if/elif above.
         self.db = self.__mongo_client.RNOG_test
-        logger.info("database connection to {} established".format("RNOG_test"))
+        logger.info("database connection to {} established".format(self.db.name))
 
         self.__current_time = None
         # just for testing
         logger.info("setting detector time to current time")
         self.__current_time = datetime.datetime.now()
 
+    # TODO do we need this?
     def __error(self, frame):
         pass
 
@@ -474,7 +483,8 @@ class Detector(object):
         -------------
         dict of channel parameters
         """
-        return None
+        chan = self.find_db_entry(station_id, channel_id)["channels"]
+        return chan
 
     def get_absolute_position(self, station_id):
         """
@@ -490,8 +500,7 @@ class Detector(object):
         3-dim array of absolute station position in easting, northing and depth wrt. to snow level at
         time of measurement
         """
-        easting, northing, altitude = 0, 0, 0
-        unit_xy = units.m
+        easting, northing, altitude = self.find_db_entry(station_id, None)['position']
         return np.array([easting, northing, altitude])
 
     def get_relative_position(self, station_id, channel_id):
@@ -509,7 +518,9 @@ class Detector(object):
         ---------------
         3-dim array of relative station position
         """
-        return np.array([None, None, None])
+        chan = self.get_channel(station_id, channel_id)
+        rel_pos = np.array(chan["ant_position"])
+        return rel_pos
 
     def get_number_of_channels(self, station_id):
         """
@@ -583,8 +594,8 @@ class Detector(object):
 
         Returns string
         """
-        db_chan = self.find_db_channel(station_id, channel_id)
-        return  db_chan['type']
+        chan = self.get_channel(station_id, channel_id)
+        return  chan['type']
 
     def get_antenna_deployment_time(self, station_id, channel_id):
         """
@@ -599,8 +610,8 @@ class Detector(object):
 
         Returns datetime
         """
-        db_chan = self.find_db_channel(station_id, channel_id)
-        return db_chan['commission_time']
+        chan = self.get_channel(station_id, channel_id)
+        return chan['commission_time']
 
     def get_antenna_orientation(self, station_id, channel_id):
         """
@@ -621,8 +632,8 @@ class Detector(object):
             * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
             * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         """
-        db_chan = self.find_db_channel(station_id, channel_id)
-        return db_chan["ant_ori_theta"], db_chan["ant_ori_phi"], db_chan["ant_rot_theta"], db_chan["ant_rot_phi"]
+        chan = self.get_channel(station_id, channel_id)
+        return chan["ant_ori_theta"], chan["ant_ori_phi"], chan["ant_rot_theta"], chan["ant_rot_phi"]
 
     def get_antenna(self, station_id, channel_id):
         """
@@ -747,7 +758,7 @@ class Detector(object):
         return db_entry["signal_ch"]
 
 
-    def find_db_entry(self, station_id, channel_id):
+    def find_db_entry(self, station_id, channel_id=None):
         """
         returns a dictionary with a database entry
 
@@ -762,16 +773,15 @@ class Detector(object):
         -------------
         dict with database entry
         """
-        
-        aggregation = [agg_station(station_id),
+        if channel_id is None:
+            aggregation = [agg_station(station_id), agg_first()]
+        else:
+            aggregation = [agg_station(station_id),
                       agg_unwind_channels(),
                       agg_channel(channel_id, self.__current_time),
                       agg_first()]
         res = self.db.station.aggregate(aggregation).next()
         return res
-
-    def find_db_channel(self, station_id, channel_id):
-        return self.find_db_entry(station_id, channel_id)["channels"]
 
 def agg_channel(channel_id, time):
     time_filter = {"$match": {'channels.id': channel_id,
