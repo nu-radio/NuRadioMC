@@ -349,7 +349,8 @@ class Detector(object):
                                   }}},
                              upsert=True)
 
-    def IGLU_board_channel_add_Sparameters_with_DRAB(self, board_name, drab_id, temp, S_data):
+    def IGLU_board_channel_add_Sparameters_with_DRAB(self, board_name, drab_id, temp, S_data,
+                                                     measurement_time):
         """
         inserts a new S parameter measurement of one channel of an IGLU board
         If the board dosn't exist yet, it will be created.
@@ -368,6 +369,8 @@ class Detector(object):
             4th/5th collumn: S12 mag/phase
             6th/7th collumn: S21 mag/phase
             8th/9th collumn: S22 mag/phase
+        measurement_time: timestamp
+            the time of the measurment
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
@@ -385,7 +388,8 @@ class Detector(object):
                                           }}},
                                      upsert=True)
 
-    def IGLU_board_channel_add_Sparameters_without_DRAB(self, board_name, temp, S_data):
+    def IGLU_board_channel_add_Sparameters_without_DRAB(self, board_name, temp, S_data,
+                                                        measurement_time):
         """
         inserts a new S parameter measurement of one channel of an IGLU board
         If the board dosn't exist yet, it will be created.
@@ -402,6 +406,8 @@ class Detector(object):
             4th/5th collumn: S12 mag/phase
             6th/7th collumn: S21 mag/phase
             8th/9th collumn: S22 mag/phase
+        measurement_time: timestamp
+            the time of the measurment
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
