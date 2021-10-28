@@ -206,7 +206,7 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, un
             date_string = header[2]
             date_string_cropped = date_string[16:-2]
             date_string_fixed = date_string_cropped.replace(",", "")
-            measurment_time = datetime.strptime(date_string_fixed, '%B %d %Y %X')
+            measurement_time = datetime.strptime(date_string_fixed, '%B %d %Y %X')
             S_data = np.genfromtxt(S_data_io, skip_footer=1, delimiter=sep).T
             S_data[0] *= str_to_unit[unit_ff]
             for i in range(4):

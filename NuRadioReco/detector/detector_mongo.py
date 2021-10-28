@@ -133,7 +133,7 @@ class Detector(object):
             6th/7th collumn: S21 mag/phase
             8th/9th collumn: S22 mag/phase
         measurement_time: timestamp
-            the time of the measurment.
+            the time of the measurement.
         time_delay: array of floats
             the absolute time delay of each S parameter measurement (e.g. the group delay at
             a reference frequency)
@@ -189,7 +189,7 @@ class Detector(object):
             6th/7th collumn: S21 mag/phase
             8th/9th collumn: S22 mag/phase
         measurement_time: timestamp
-            the time of the measurment
+            the time of the measurement
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
@@ -374,7 +374,7 @@ class Detector(object):
             6th/7th collumn: S21 mag/phase
             8th/9th collumn: S22 mag/phase
         measurement_time: timestamp
-            the time of the measurment
+            the time of the measurement
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
@@ -412,7 +412,7 @@ class Detector(object):
             6th/7th collumn: S21 mag/phase
             8th/9th collumn: S22 mag/phase
         measurement_time: timestamp
-            the time of the measurment
+            the time of the measurement
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
