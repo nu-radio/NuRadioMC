@@ -381,6 +381,7 @@ class Detector(object):
                                           'function_test': True,
                                           'DRAB-id': drab_id,
                                           'measurement_temp': temp,
+                                          'measurement_time': measurement_time,
                                           'S_parameter_DRAB': S_names[i],
                                           'frequencies': list(S_data[0]),
                                           'mag': list(S_data[2 * i + 1]),
@@ -417,6 +418,7 @@ class Detector(object):
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': True,
                                           'measurement_temp': temp,
+                                          'measurement_time': measurement_time,
                                           'S_parameter_wo_DRAB': S_names[i],
                                           'frequencies': list(S_data[0]),
                                           'mag': list(S_data[2 * i + 1]),
@@ -774,7 +776,7 @@ class Detector(object):
             the station id
         channel_id: int
             the channel id
-  
+
         Return
         -------------
         dict with database entry

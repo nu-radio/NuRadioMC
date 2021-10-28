@@ -223,11 +223,6 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, un
         if('working' not in function_test):
             det.IGLU_board_channel_set_not_working(board_name)
         else:
-            # with open(contents, newline='') as f:
-            #     csv_reader = csv.reader(f)
-            #     csv_headings = next(csv_reader)
-            #     first_line = next(csv_reader)
-            #     second_line = next(csv_reader)
             content_type, content_string = contents.split(',')
             S_datas = base64.b64decode(content_string)
             S_data_io = StringIO(S_datas.decode('utf-8'))
