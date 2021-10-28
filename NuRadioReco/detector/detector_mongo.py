@@ -172,7 +172,8 @@ class Detector(object):
                               'function_test': False,
                                   })
 
-    def DRAB_add_Sparameters(self, board_name, channel_id, iglu_id, temp, S_data):
+    def DRAB_add_Sparameters(self, board_name, channel_id, iglu_id, temp, S_data,
+                             measurement_time):
         """
         inserts a new S parameter measurement of one channel of an amp board
         If the board dosn't exist yet, it will be created.
@@ -187,6 +188,8 @@ class Detector(object):
             4th/5th collumn: S12 mag/phase
             6th/7th collumn: S21 mag/phase
             8th/9th collumn: S22 mag/phase
+        measurement_time: timestamp
+            the time of the measurment
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
@@ -198,6 +201,7 @@ class Detector(object):
                                           'function_test': True,
                                           'IGLU_id': iglu_id,
                                           'measurement_temp': temp,
+                                          'measurement_time': measurement_time,
                                           'S_parameter': S_names[i],
                                           'frequencies': list(S_data[0]),
                                           'mag': list(S_data[2 * i + 1]),
