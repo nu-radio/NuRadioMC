@@ -751,7 +751,7 @@ class simulation():
                                 frequencies = np.fft.rfftfreq(self._n_samples, d=self._dt)
                                 zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
                                 VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
-                                c=3*(10)**8*units.m/units.s
+                                c = constants.c * units.m / units.s
                                 k=2*np.pi*frequencies*n_index/c
                                 efield=-1j*voltage_spectrum_emitter*frequencies*n_index*np.exp(-1j*k*R)
                                 eTheta = VEL['theta'] *efield 
