@@ -23,6 +23,7 @@ class Detector(object):
         if database_connection == "local":
             MONGODB_URL = "localhost"
             self.__mongo_client = MongoClient(MONGODB_URL)
+            self.db = self.__mongo_client.RNOG_live
         elif database_connection == "env_url":
             # connect to MongoDB, change the << MONGODB_URL >> to reflect your own connection string
             MONGODB_URL = os.environ.get('MONGODB_URL')
@@ -30,6 +31,7 @@ class Detector(object):
                 logger.warning('MONGODB_URL not set, defaulting to "localhost"')
                 MONGODB_URL = 'localhost'
             self.__mongo_client = MongoClient(MONGODB_URL)
+            self.db = self.__mongo_client.RNOG_live
         elif database_connection == "env_pw_user":
             # use db connection from environment, pw and user need to be percent escaped
             mongo_password = urllib.parse.quote_plus(os.environ.get('mongo_password'))
@@ -41,6 +43,7 @@ class Detector(object):
                 logger.warning('"mongo_user" or "mongo_password" not set')
             # start client
             self.__mongo_client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
+            self.db = self.__mongo_client.RNOG_live
         elif database_connection == "test":
             self.__mongo_client = MongoClient("mongodb+srv://RNOG_test:TTERqY1YWBYB0KcL@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
             self.db = self.__mongo_client.RNOG_test
