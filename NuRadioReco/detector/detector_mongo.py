@@ -23,6 +23,7 @@ class Detector(object):
         if database_connection == "local":
             MONGODB_URL = "localhost"
             self.__mongo_client = MongoClient(MONGODB_URL)
+            self.db = self.__mongo_client.RNOG_live
         elif database_connection == "env_url":
             # connect to MongoDB, change the << MONGODB_URL >> to reflect your own connection string
             MONGODB_URL = os.environ.get('MONGODB_URL')
@@ -30,6 +31,7 @@ class Detector(object):
                 logger.warning('MONGODB_URL not set, defaulting to "localhost"')
                 MONGODB_URL = 'localhost'
             self.__mongo_client = MongoClient(MONGODB_URL)
+            self.db = self.__mongo_client.RNOG_live
         elif database_connection == "env_pw_user":
             # use db connection from environment, pw and user need to be percent escaped
             mongo_password = urllib.parse.quote_plus(os.environ.get('mongo_password'))
@@ -41,13 +43,16 @@ class Detector(object):
                 logger.warning('"mongo_user" or "mongo_password" not set')
             # start client
             self.__mongo_client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
+            self.db = self.__mongo_client.RNOG_live
         elif database_connection == "test":
-            self.__mongo_client = MongoClient("mongodb+srv://detector_write:detector_write@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+            self.__mongo_client = MongoClient("mongodb+srv://RNOG_test:TTERqY1YWBYB0KcL@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+            self.db = self.__mongo_client.RNOG_test
+        elif database_connection == "RNOG_public":
+            self.__mongo_client = MongoClient("mongodb+srv://RNOG_read:7-fqTRedi$_f43Q@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+            self.db = self.__mongo_client.RNOG_live
         else:
             logger.error('specify a defined database connection ["local", "env_url", "env_pw_user", "test"]')
 
-        #TODO: no idea if all databases are called RNOG_test, otherwise move to if/elif above.
-        self.db = self.__mongo_client.RNOG_test
         logger.info("database connection to {} established".format(self.db.name))
 
         self.__current_time = None
@@ -135,7 +140,7 @@ class Detector(object):
             6th/7th collumn: S21 mag/phase
             8th/9th collumn: S22 mag/phase
         measurement_time: timestamp
-            the time of the measurment.
+            the time of the measurement.
         time_delay: array of floats
             the absolute time delay of each S parameter measurement (e.g. the group delay at
             a reference frequency)
@@ -174,7 +179,8 @@ class Detector(object):
                               'function_test': False,
                                   })
 
-    def DRAB_add_Sparameters(self, board_name, channel_id, iglu_id, temp, S_data):
+    def DRAB_add_Sparameters(self, board_name, channel_id, iglu_id, temp, S_data,
+                             measurement_time):
         """
         inserts a new S parameter measurement of one channel of an amp board
         If the board dosn't exist yet, it will be created.
@@ -189,6 +195,8 @@ class Detector(object):
             4th/5th collumn: S12 mag/phase
             6th/7th collumn: S21 mag/phase
             8th/9th collumn: S22 mag/phase
+        measurement_time: timestamp
+            the time of the measurement
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
@@ -200,6 +208,7 @@ class Detector(object):
                                           'function_test': True,
                                           'IGLU_id': iglu_id,
                                           'measurement_temp': temp,
+                                          'measurement_time': measurement_time,
                                           'S_parameter': S_names[i],
                                           'frequencies': list(S_data[0]),
                                           'mag': list(S_data[2 * i + 1]),
@@ -351,7 +360,8 @@ class Detector(object):
                                   }}},
                              upsert=True)
 
-    def IGLU_board_channel_add_Sparameters_with_DRAB(self, board_name, drab_id, temp, S_data):
+    def IGLU_board_channel_add_Sparameters_with_DRAB(self, board_name, drab_id, temp, S_data,
+                                                     measurement_time):
         """
         inserts a new S parameter measurement of one channel of an IGLU board
         If the board dosn't exist yet, it will be created.
@@ -370,6 +380,8 @@ class Detector(object):
             4th/5th collumn: S12 mag/phase
             6th/7th collumn: S21 mag/phase
             8th/9th collumn: S22 mag/phase
+        measurement_time: timestamp
+            the time of the measurement
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
@@ -380,6 +392,7 @@ class Detector(object):
                                           'function_test': True,
                                           'DRAB-id': drab_id,
                                           'measurement_temp': temp,
+                                          'measurement_time': measurement_time,
                                           'S_parameter_DRAB': S_names[i],
                                           'frequencies': list(S_data[0]),
                                           'mag': list(S_data[2 * i + 1]),
@@ -387,7 +400,8 @@ class Detector(object):
                                           }}},
                                      upsert=True)
 
-    def IGLU_board_channel_add_Sparameters_without_DRAB(self, board_name, temp, S_data):
+    def IGLU_board_channel_add_Sparameters_without_DRAB(self, board_name, temp, S_data,
+                                                        measurement_time):
         """
         inserts a new S parameter measurement of one channel of an IGLU board
         If the board dosn't exist yet, it will be created.
@@ -404,6 +418,8 @@ class Detector(object):
             4th/5th collumn: S12 mag/phase
             6th/7th collumn: S21 mag/phase
             8th/9th collumn: S22 mag/phase
+        measurement_time: timestamp
+            the time of the measurement
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
@@ -413,6 +429,7 @@ class Detector(object):
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': True,
                                           'measurement_temp': temp,
+                                          'measurement_time': measurement_time,
                                           'S_parameter_wo_DRAB': S_names[i],
                                           'frequencies': list(S_data[0]),
                                           'mag': list(S_data[2 * i + 1]),
@@ -770,7 +787,7 @@ class Detector(object):
             the station id
         channel_id: int
             the channel id
-  
+
         Return
         -------------
         dict with database entry
