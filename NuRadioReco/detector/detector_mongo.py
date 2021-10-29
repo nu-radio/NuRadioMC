@@ -42,12 +42,14 @@ class Detector(object):
             # start client
             self.__mongo_client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
         elif database_connection == "test":
-            self.__mongo_client = MongoClient("mongodb+srv://detector_write:detector_write@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+            self.__mongo_client = MongoClient("mongodb+srv://RNOG_test:TTERqY1YWBYB0KcL@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+            self.db = self.__mongo_client.RNOG_test
+        elif database_connection == "RNOG_public":
+            self.__mongo_client = MongoClient("mongodb+srv://RNOG_read:7-fqTRedi$_f43Q@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+            self.db = self.__mongo_client.RNOG_live
         else:
             logger.error('specify a defined database connection ["local", "env_url", "env_pw_user", "test"]')
 
-        #TODO: no idea if all databases are called RNOG_test, otherwise move to if/elif above.
-        self.db = self.__mongo_client.RNOG_test
         logger.info("database connection to {} established".format(self.db.name))
 
         self.__current_time = None
