@@ -113,6 +113,7 @@ class neutrinoDirectionReconstructorCoincidence:
        # station.set_is_neutrino()
         self._Vrms = Vrms
         self._stations = stations
+        station = self._stations[0]
         self._use_channels = use_channels
         self._det = det
         self._model_sys = 0.0 ## test amplitude effect of systematics on the model
@@ -148,7 +149,7 @@ class neutrinoDirectionReconstructorCoincidence:
             self.__simulated_energy = simulated_energy
             simulated_vertex = event.get_sim_shower(shower_id)[shp.vertex]
             ### values for simulated vertex and simulated direction
-            tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(det, station, event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], simulated_zenith, simulated_azimuth, simulated_energy, use_channels, first_iter = True) 
+            tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(det, stations, event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], simulated_zenith, simulated_azimuth, simulated_energy, use_channels, first_iter = True) 
        
             ## check SNR of channels
             SNR = []
@@ -193,7 +194,7 @@ class neutrinoDirectionReconstructorCoincidence:
             
             #### values for reconstructed vertex and simulated direction
             if sim_station:
-                traces_sim, timing_sim, self._launch_vector, viewingangles_sim, rayptypes, a = simulation.simulation( det, station, event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], simulated_zenith, simulated_azimuth, simulated_energy, use_channels, first_iter = True)
+                traces_sim, timing_sim, self._launch_vector, viewingangles_sim, rayptypes, a = simulation.simulation( det, stations, event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], simulated_zenith, simulated_azimuth, simulated_energy, use_channels, first_iter = True)
 
          
                 fsimsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  True, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)
@@ -540,52 +541,53 @@ class neutrinoDirectionReconstructorCoincidence:
                        
                         ax_sim[ich].plot(channel.get_times(), channel.get_trace())
                         ax_sim[ich].plot(sim_trace.get_times(), sim_trace.get_trace())
-                       
-                        if len(tracdata[channel.get_id()]) > 0:
+                    #    print('channel id', channel.get_id())
+                    #    print("tracdata", tracdata)
+                        if len(tracdata[station.get_id()][channel.get_id()]) > 0:
                             ax[ich][0].grid()
                             ax[ich][2].grid()
                             ax[ich][0].set_xlabel("timing [ns]", fontsize = 30)
                             ax[ich][0].plot(channel.get_times(), channel.get_trace(), lw = linewidth, label = 'data', color = 'black')
                             #ax[ich][0].fill_between(timingsim[channel.get_id()][0],tracsim[channel.get_id()][0]- sigma, tracsim[channel.get_id()][0] + sigma, color = 'red', alpha = 0.2 )
-                            ax[ich][0].fill_between(timingdata[channel.get_id()][0], tracrec[channel.get_id()][0] - self._model_sys*tracrec[channel.get_id()][0], tracrec[channel.get_id()][0] + self._model_sys * tracrec[channel.get_id()][0], color = 'green', alpha = 0.2)
-                            ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel.get_id()][0]), 1/sampling_rate), abs(fft.time2freq( tracdata[channel.get_id()][0], sampling_rate)), color = 'black', lw = linewidth)
-                            ax[ich][0].plot(timingsim[channel.get_id()][0], tracsim[channel.get_id()][0], label = 'simulation', color = 'orange', lw = linewidth)
+                            ax[ich][0].fill_between(timingdata[station.get_id()][channel.get_id()][0], tracrec[station.get_id()][channel.get_id()][0] - self._model_sys*tracrec[station.get_id()][channel.get_id()][0], tracrec[station.get_id()][channel.get_id()][0] + self._model_sys * tracrec[station.get_id()][channel.get_id()][0], color = 'green', alpha = 0.2)
+                            ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[station.get_id()][channel.get_id()][0]), 1/sampling_rate), abs(fft.time2freq( tracdata[station.get_id()][channel.get_id()][0], sampling_rate)), color = 'black', lw = linewidth)
+                            ax[ich][0].plot(timingsim[station.get_id()][channel.get_id()][0], tracsim[station.get_id()][channel.get_id()][0], label = 'simulation', color = 'orange', lw = linewidth)
                             ax[ich][0].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
 
                             #ax[ich][0].plot(timingsim_recvertex[channel.get_id()][0], tracsim_recvertex[channel.get_id()][0], label = 'simulation rec vertex', color = 'lightblue' , lw = linewidth, ls = '--')
 
-                            ax[ich][0].set_xlim((timingsim[channel.get_id()][0][0], timingsim[channel.get_id()][0][-1]))
+                            ax[ich][0].set_xlim((timingsim[station.get_id()][channel.get_id()][0][0], timingsim[station.get_id()][channel.get_id()][0][-1]))
             
                             if 1:
-                                 ax[ich][0].plot(timingdata[channel.get_id()][0], tracrec[channel.get_id()][0], label = 'reconstruction', lw = linewidth, color = 'green')
+                                 ax[ich][0].plot(timingdata[station.get_id()][channel.get_id()][0], tracrec[station.get_id()][channel.get_id()][0], label = 'reconstruction', lw = linewidth, color = 'green')
                                 # ax[ich][0].plot(timingdata[channel.get_id()][0], tracrec[channel.get_id()][0], label = 'reconstruction', color = 'green')
 
                             ax[ich][2].plot( np.fft.rfftfreq(len(sim_trace.get_trace()), 1/sampling_rate), abs(fft.time2freq(sim_trace.get_trace(), sampling_rate)), lw = linewidth, color = 'red')
-                            ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel.get_id()][0]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel.get_id()][0], sampling_rate)), lw = linewidth, color = 'orange')
+                            ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[station.get_id()][channel.get_id()][0]), 1/sampling_rate), abs(fft.time2freq(tracsim[station.get_id()][channel.get_id()][0], sampling_rate)), lw = linewidth, color = 'orange')
                             if 1:
-                                 ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel.get_id()][0]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel.get_id()][0], sampling_rate)), color = 'green', lw = linewidth)
+                                 ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[station.get_id()][channel.get_id()][0]), 1/sampling_rate), abs(fft.time2freq(tracrec[station.get_id()][channel.get_id()][0], sampling_rate)), color = 'green', lw = linewidth)
                                  ax[ich][2].set_xlim((0, 1))
                                  ax[ich][2].set_xlabel("frequency [GHz]", fontsize = 10)        
             #                ax[ich][0].legend(fontsize = 30)
                            
-                        if len(tracdata[channel.get_id()]) > 1:
+                        if len(tracdata[station.get_id()][channel.get_id()]) > 1:
                             ax[ich][1].grid()
                             ax[ich][1].set_xlabel("timing [ns]")
                             ax[ich][1].plot(channel.get_times(), channel.get_trace(), label = 'data', lw = linewidth, color = 'black')
-                            ax[ich][1].fill_between(timingsim[channel.get_id()][1],tracsim[channel.get_id()][1]- Vrms, tracsim[channel.get_id()][1] + Vrms, color = 'red', alpha = 0.2 )
-                            ax[ich][2].plot(np.fft.rfftfreq(len(timingsim[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel.get_id()][1], sampling_rate)), lw = linewidth, color = 'red')
-                            ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracdata[channel.get_id()][1], sampling_rate)), color = 'black', lw = linewidth)
-                            ax[ich][1].plot(timingsim[channel.get_id()][1], tracsim[channel.get_id()][1], label = 'simulation', color = 'orange', lw = linewidth)
+                            ax[ich][1].fill_between(timingsim[station.get_id()][channel.get_id()][1],tracsim[station.get_id()][channel.get_id()][1]- Vrms, tracsim[station.get_id()][channel.get_id()][1] + Vrms, color = 'red', alpha = 0.2 )
+                            ax[ich][2].plot(np.fft.rfftfreq(len(timingsim[station.get_id()][channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[station.get_id()][channel.get_id()][1], sampling_rate)), lw = linewidth, color = 'red')
+                            ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[station.get_id()][channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracdata[station.get_id()][channel.get_id()][1], sampling_rate)), color = 'black', lw = linewidth)
+                            ax[ich][1].plot(timingsim[station.get_id()][channel.get_id()][1], tracsim[station.get_id()][channel.get_id()][1], label = 'simulation', color = 'orange', lw = linewidth)
                             ax[ich][1].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
                             if 1:#channel.get_id() in [6]:#,7,8,9]: 
-                                ax[ich][1].plot(timingdata[channel.get_id()][1], tracrec[channel.get_id()][1], label = 'reconstruction', color = 'green', lw = linewidth)
-                                ax[ich][1].fill_between(timingdata[channel.get_id()][1], tracrec[channel.get_id()][1] - self._model_sys*tracrec[channel.get_id()][1], tracrec[channel.get_id()][1] + self._model_sys * tracrec[channel.get_id()][1], color = 'green', alpha = 0.2)
+                                ax[ich][1].plot(timingdata[station.get_id()][channel.get_id()][1], tracrec[station.get_id()][channel.get_id()][1], label = 'reconstruction', color = 'green', lw = linewidth)
+                                ax[ich][1].fill_between(timingdata[station.get_id()][channel.get_id()][1], tracrec[station.get_id()][channel.get_id()][1] - self._model_sys*tracrec[station.get_id()][channel.get_id()][1], tracrec[station.get_id()][channel.get_id()][1] + self._model_sys * tracrec[station.get_id()][channel.get_id()][1], color = 'green', alpha = 0.2)
                         
-                            ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel.get_id()][1], sampling_rate)), lw = linewidth, color = 'orange')
+                            ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[station.get_id()][channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[station.get_id()][channel.get_id()][1], sampling_rate)), lw = linewidth, color = 'orange')
                             #ax[ich][1].plot(timingsim_recvertex[channel.get_id()][1], tracsim_recvertex[channel.get_id()][1], label = 'simulation rec vertex', color = 'lightblue', lw = linewidth, ls = '--')
-                            ax[ich][1].set_xlim((timingsim[channel.get_id()][1][0], timingsim[channel.get_id()][1][-1]))
+                            ax[ich][1].set_xlim((timingsim[station.get_id()][channel.get_id()][1][0], timingsim[station.get_id()][channel.get_id()][1][-1]))
                             if 1:#channel.get_id() in [6]:
-                                 ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel.get_id()][1], sampling_rate)), color = 'green', lw = linewidth)
+                                 ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[station.get_id()][channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracrec[station.get_id()][channel.get_id()][1], sampling_rate)), color = 'green', lw = linewidth)
                             
                         
                         
@@ -602,7 +604,7 @@ class neutrinoDirectionReconstructorCoincidence:
 
 
              ### values for reconstructed vertex and reconstructed direction
-            traces_rec, timing_rec, launch_vector_rec, viewingangle_rec, a, pol_rec =  simulation.simulation( det, station, reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], rec_zenith, rec_azimuth, rec_energy, use_channels, first_iter = True)
+            traces_rec, timing_rec, launch_vector_rec, viewingangle_rec, a, pol_rec =  simulation.simulation( det, stations, reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], rec_zenith, rec_azimuth, rec_energy, use_channels, first_iter = True)
 
             ###### STORE PARAMTERS AND PRINT PARAMTERS #########
             station.set_parameter(stnp.extra_channels, extra_channel)
@@ -737,17 +739,17 @@ class neutrinoDirectionReconstructorCoincidence:
             rec_traces = {} ## to store reconstructed traces
             data_traces = {} ## to store data traces
             data_timing = {} ## to store timing
-        
+           # print("raytypes", raytypes)
 
             #get timing and pulse position for raytype of triggered pulse
-            for iS in raytypes[ch_Vpol]:
-                if raytypes[ch_Vpol][iS] == ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1:
-                    solution_number = iS#for reconstructed vertex it can happen that the ray solution does not exist 
-            T_ref = timing[ch_Vpol][solution_number]
+            #for iS in raytypes[ch_Vpol]:
+             #   if raytypes[ch_Vpol][iS] == ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1:
+             #       solution_number = iS#for reconstructed vertex it can happen that the ray solution does not exist 
+            #T_ref = timing[ch_Vpol][solution_number]
 
-            k_ref = self._station[stnp.pulse_position]# get pulse position for triggered pulse
+           # k_ref = self._station[stnp.pulse_position]# get pulse position for triggered pulse
           
-            ks = {}
+          #  ks = {}
             
 
             ich = -1
@@ -757,8 +759,22 @@ class neutrinoDirectionReconstructorCoincidence:
             channels_Hpol = [ch_Hpol] 
             dict_dt = {}
             for station in self._stations:
-                rec_traces[station.get_id()] = {}
                 data_traces[station.get_id()] = {}
+                rec_traces[station.get_id()] = {}
+                data_timing[station.get_id()] = {}
+            for station in self._stations:
+                print('station!', station.get_id())
+                for iS in raytypes[station.get_id()][ch_Vpol]:
+                    if raytypes[station.get_id()][ch_Vpol][iS] == ['direct', 'refracted', 'reflected'].index(station[stnp.raytype]) + 1:
+                        solution_number = iS
+                T_ref = timing[station.get_id()][ch_Vpol][solution_number]
+                k_ref = station[stnp.pulse_position]
+                ks = {}
+
+
+                rec_traces[station.get_id()] = {}
+              #  data_traces[station.get_id()] = {}
+               # print('data traces stationid >>>>>>>>>>>>>>>>>>>>>>....................>>>>')
                 data_timing[station.get_id()] = {}
                 dict_dt[station.get_id()] = {}
                 for ch in self._use_channels:
@@ -884,10 +900,13 @@ class neutrinoDirectionReconstructorCoincidence:
 
 
                 dof = 0
+               # rec_trace = {}
+               
                 for channel in station.iter_channels():
-                    rec_trace[station.get_id()] = {}
-                    data_traces[station.get_id()] = {}
-                    data_timing[station.get_id()] = {}
+                    #print(" ##########################  rec trace", rec_trace)
+                    #rec_traces[station.get_id()] = {}
+                    #data_traces[station.get_id()] = {}
+                    #data_timing[station.get_id()] = {}
                     if channel.get_id() in self._use_channels:
                         chi2s = np.zeros(2)
                         echannel = np.zeros(2)
@@ -916,7 +935,7 @@ class neutrinoDirectionReconstructorCoincidence:
                                 if ((dk > self._sampling_rate *60)&(dk < len(np.copy(data_trace)) - self._sampling_rate * 100)):
                                     data_trace_timing = np.copy(data_trace) ## cut data around timing
                                     ## DETERMIINE PULSE REGION DUE TO REFERENCE TIMING
-                                    
+              #                      print("######################################################")     
                                     data_timing_timing = np.copy(channel.get_times())#np.arange(0, len(channel.get_trace()), 1)#
                                     dk_1 = data_timing_timing[dk]
                                     data_timing_timing = data_timing_timing[dk - 60*5 : dk + 100*5]
@@ -925,7 +944,7 @@ class neutrinoDirectionReconstructorCoincidence:
                                     data_trace_timing_1[data_timing_timing < (dk_1 - 30 * 5)] = 0
                                     data_trace_timing_1[data_timing_timing > (dk_1 + 70* 5)] = 0
                                     
-                                    dt = dict_dt[channel.get_id()][i_trace]
+                                    dt = dict_dt[station.get_id()][channel.get_id()][i_trace]
                                 
                                     rec_trace1 = np.roll(rec_trace1, math.ceil(-1*dt))
                                      
@@ -934,9 +953,12 @@ class neutrinoDirectionReconstructorCoincidence:
                                     data_timing_timing = data_timing_timing[30 *5 :  130* 5]
                                     delta_k.append(int(k_ref + delta_toffset + dt )) ## for overlapping pulses this does not work
                                     ks[channel.get_id()] = delta_k
-                                    rec_traces[channel.get_id()][i_trace] = rec_trace1
-                                    data_traces[channel.get_id()][i_trace] = data_trace_timing
-                                    data_timing[channel.get_id()][i_trace] = data_timing_timing
+                                    rec_traces[station.get_id()][channel.get_id()][i_trace] = rec_trace1
+                                    data_traces[station.get_id()][channel.get_id()][i_trace] = data_trace_timing
+             #                       print("data traces station id {}, channel id {}, i_trace {}".format(station.get_id(), channel.get_id(), i_trace))
+                                    #print("data trace timing", data_trace_timing)
+            #                        print('data traces', data_traces)
+                                    data_timing[station.get_id()][channel.get_id()][i_trace] = data_timing_timing
                                     SNR = abs(max(data_trace_timing) - min(data_trace_timing) ) / (2*self._Vrms)
                                
                                     #### add filter
@@ -1006,8 +1028,8 @@ class neutrinoDirectionReconstructorCoincidence:
                                         add = True
                                         dof_channel += 1
                                         
-                                    elif ((SNR > 3.5) and (not single_pulse) and (len(channels_step) < 2)):#and (i_trace ==trace_ref)):
-                        #                print("else")
+                                    elif ((SNR > .1) and (not single_pulse) and (len(channels_step) < 2) and (i_trace ==trace_ref)):
+                                        print("channel id included", channel.get_id())
                                         mask_start = 0
                                         echannel[i_trace] = 1
                                         mask_end = 80 * int(self._sampling_rate)
@@ -1050,8 +1072,8 @@ class neutrinoDirectionReconstructorCoincidence:
                             data_timing[station.get_id()][channel.get_id()][1] = np.zeros(80 * int(self._sampling_rate))
 
                         #### if the pulses are overlapping, than we don't include them in the fit because the timing is not exactly known. Only for channel 6 and 13 we use 1 single pulse.
-                        if max(data_timing[channel.get_id()][0]) > min(data_timing[channel.get_id()][1]):
-                            if int(min(data_timing[channel.get_id()][1])) != 0:
+                        if max(data_timing[station.get_id()][channel.get_id()][0]) > min(data_timing[station.get_id()][channel.get_id()][1]):
+                            if int(min(data_timing[station.get_id()][channel.get_id()][1])) != 0:
             #
                                 if (channel.get_id() == ch_Vpol):
                                     chi2 += chi2s[trace_ref]# = np.sum((rec_trace1 - data_trace_timing)**2 / ((sigma+model_sys*abs(data_trace_timing))**2))/len(rec_trace1)
@@ -1074,6 +1096,7 @@ class neutrinoDirectionReconstructorCoincidence:
                                 all_chi2.append(chi2s[1])
                 
             self.__dof = dof
+            #print("data traces", data_traces)
             if timing_k:
                 return ks
             if not minimize:

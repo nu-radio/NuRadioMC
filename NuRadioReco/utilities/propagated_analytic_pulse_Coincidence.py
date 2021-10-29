@@ -161,13 +161,13 @@ class simulation():
 		pass
 
 
-	def _calculate_polarization_vector(self, channel_id, iS):
+	def _calculate_polarization_vector(self, station_id, channel_id, iS):
 		polarization_direction = np.cross(raytracing[station_id][channel_id][iS]["launch vector"], np.cross(self._shower_axis, raytracing[station_id][channel_id][iS]["launch vector"]))
 		polarization_direction /= np.linalg.norm(polarization_direction)
 		cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[station_id][channel_id][iS]["launch vector"]))
 		return cs.transform_from_ground_to_onsky(polarization_direction)
 	
-	def simulation(self, det, station, vertex_x, vertex_y, vertex_z, nu_zenith, nu_azimuth, energy, use_channels, fit = 'seperate', first_iter = False, model = 'Alvarez2009'):
+	def simulation(self, det, stations, vertex_x, vertex_y, vertex_z, nu_zenith, nu_azimuth, energy, use_channels, fit = 'seperate', first_iter = False, model = 'Alvarez2009'):
 		ice = medium.get_ice_model('greenland_simple')
 		prop = propagation.get_propagation_module('analytic')
 		attenuate_ice = True
@@ -193,6 +193,7 @@ class simulation():
 		global viewingangle
 		global pol
 		if(first_iter):
+			station = stations[0]
 			ice = medium.get_ice_model('greenland_simple')
 			prop = propagation.get_propagation_module('analytic')
 			attenuate_ice = True
@@ -278,7 +279,8 @@ class simulation():
 			print("vertex used for reco:", x1)
 
 
-			for station_id in station_ids:
+			for station in stations:
+				station_id = station.get_id()
 				raytracing[station_id] = {}
 				for channel_id in use_channels:
                     #print("channel id", channel_id)
@@ -335,8 +337,9 @@ class simulation():
 		polarizations = []
 		polarizations_antenna = []
 		
-		for station_id in station_ids:
-			raytracing[station_id] = {}
+		for station in stations:
+			station_id = station.get_id()
+			raytype[station_id] = {}
 			traces[station_id] = {}
 			timing[station_id] = {}
 
@@ -386,7 +389,7 @@ class simulation():
                         
 					if polarization:
         
-						polarization_direction_onsky = self._calculate_polarization_vector(channel_id, iS)
+						polarization_direction_onsky = self._calculate_polarization_vector(station_id, channel_id, iS)
 						#		print("polarization direction onsky", polarization_direction_onsky)
 						cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[station_id][channel_id][iS]["receive vector"]))
 						polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
@@ -398,7 +401,7 @@ class simulation():
 
             
 					if channel_id == self._ch_Vpol:
-						polarizations.append( self._calculate_polarization_vector(self._ch_Vpol, iS))
+						polarizations.append( self._calculate_polarization_vector(station_id, self._ch_Vpol, iS))
 						polarizations_antenna.append(polarization_direction_at_antenna)
 					## correct for reflection 
 					r_theta = None
@@ -475,9 +478,9 @@ class simulation():
 			maximum_channel = 0
 			#print("raytracing", raytracing)
 			#print("self._ch_Vpol", self._ch_Vpol)
-			for i, iS in enumerate(raytracing[station_ids[0]][self._ch_Vpol]):
+			for i, iS in enumerate(raytracing[stations[0].get_id()][self._ch_Vpol]):
 			
-				if raytype[station_ids[0]][self._ch_Vpol][iS] == self._raytypesolution:
+				if raytype[stations[0].get_id()][self._ch_Vpol][iS] == self._raytypesolution:
 					launch_vector = launch_vectors[i]
 					viewingangle = viewing_angles[i]
 					pol = polarizations[i]

@@ -370,8 +370,8 @@ class simulation():
 					spectrum= fft.time2freq(spectrum, 1/self._dt)
 				
 				else:
-		#			print("MODEL IS USED {}".format(model))
-				
+					#print("MODEL IS USED {}".format(model))				
+					print('energy', energy)
 					spectrum = signalgen.get_frequency_spectrum(energy , viewing_angle, self._n_samples, self._dt, "HAD", n_index, raytracing[channel_id][iS]["trajectory length"],model)
             
 					
@@ -385,7 +385,7 @@ class simulation():
 				if polarization:
 	
 					polarization_direction_onsky = self._calculate_polarization_vector(channel_id, iS)
-			#		print("polarization direction onsky", polarization_direction_onsky)
+					print("polarization direction onsky {}, channel id {}".format(polarization_direction_onsky, channel_id))
 					cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["receive vector"]))
 					polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
 					logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
@@ -432,7 +432,7 @@ class simulation():
 				
                 ### filter the trace
 
-		#		analytic_trace_fft *=self._h
+				analytic_trace_fft *=self._h
 				
 		#### add amplifier
 
@@ -443,8 +443,8 @@ class simulation():
 		#### filter becuase of amplifier response 
 				
 
-			#	analytic_trace_fft *= self._f
-				analytic_trace_fft *= self._h
+				#analytic_trace_fft *= self._f
+#				analytic_trace_fft *= self._h
                 ### store traces
 				## rotate trace such that 
 				traces[channel_id][iS] = np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
