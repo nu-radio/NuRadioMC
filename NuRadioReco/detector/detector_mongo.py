@@ -55,6 +55,8 @@ class Detector(object):
         logger.info("setting detector time to current time")
         self.__current_time = datetime.datetime.now()
 
+        self.__modification_timestamps = self._query_modification_timestamps()
+        self.__buffered_period = {}
     # TODO do we need this?
     def __error(self, frame):
         pass
@@ -782,6 +784,58 @@ class Detector(object):
                       agg_first()]
         res = self.db.station.aggregate(aggregation).next()
         return res
+
+    def _update_buffer(self, station_id):
+        """
+        updates the buffer for a station if need be
+
+        Parameters
+        ---------
+        station_id: int
+            the station id
+
+        """
+
+        # digitize the current time of the detector to check if this period is already buffered or not
+        current_period = np.digitize(self.__current_time.timestamp(), self.__modification_timestamps[station_id])
+        if station_id in self.__buffered_period and self.__buffered_period[station_id] == current_period:
+            logger.info("period for station {} already buffered".format(station_id))
+        else:
+            #TODO do buffering, needs to be implemented
+            logger.info("buffering period for station {}".format(station_id))
+            self.__buffered_period[station_id] = current_period
+
+    def _query_modification_timestamps(self):
+        """
+        collects all the timestamps from the database for which some modifications happened
+        ((de)commissioning of stations and channels).
+
+        Return
+        -------------
+        dict with modification timestamps per station.id
+        """
+        # get distinct set of stations:
+        station_ids = self.db.station.distinct("id")
+        modification_timestamps = {}
+
+        for station_id in station_ids:
+            logger.info("getting set of (de)commission times for stations")
+            station_times_comm = self.db.station.distinct("commission_time", {"id": station_id})
+            station_times_decomm = self.db.station.distinct("decommission_time", {"id": station_id})
+            print(station_times_comm, station_times_decomm)
+
+            logger.info("getting set of (de)commission times for channels")
+            channel_times_comm = self.db.station.distinct("channels.commission_time", {"id": station_id})
+            channel_times_decomm = self.db.station.distinct("channels.decommission_time", {"id": station_id})
+            print(channel_times_comm, channel_times_decomm)
+            mod_set = np.unique([*station_times_comm,
+                                 *station_times_decomm,
+                                 *channel_times_comm,
+                                 *channel_times_decomm])
+            print(mod_set)
+            mod_set.sort()
+            modification_timestamps[station_id]= [mod_t.timestamp() for mod_t in mod_set]
+        return modification_timestamps
 
 def agg_channel(channel_id, time):
     time_filter = {"$match": {'channels.id': channel_id,
