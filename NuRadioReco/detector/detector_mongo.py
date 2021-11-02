@@ -1001,7 +1001,7 @@ def get_hardware_component_from_buffer(hardware_db, name):
 
 def get_hardware_channel_from_buffer(hardware_db, name, channel_id):
     hardware_component = get_hardware_component_from_buffer(hardware_db, name)
-    print(hardware_component)
+    #print(hardware_component)
     channel_documents = list(filter(lambda document: document['id'] == channel_id, hardware_component))
     if len(channel_documents) == 0:
         print("ERROR: channel not found")
