@@ -990,8 +990,7 @@ def get_channel_from_buffer(db, station_id, channel_id):
     return channel_documents[0]
 
 def get_hardware_component_from_buffer(hardware_db, name):
-    drabs = list(hardware_db.find())
-    hardware_documents = list(filter(lambda document: document['name'] == name, drabs))
+    hardware_documents = list(filter(lambda document: document['name'] == name, hardware_db))
     if len(hardware_documents) == 0:
         print("ERROR: hardware component not found")
         return None
