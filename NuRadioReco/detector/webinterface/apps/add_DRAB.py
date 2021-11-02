@@ -223,7 +223,7 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff,
                 S_data[2 + 2 * i] *= str_to_unit[unit_phase]
             print("channelid" + str(channel_id))
             print(board_name, S_data)
-            time_delay = [0, corr_group_delay * units.ns, 0, 0]
+            time_delay = [0, 0, corr_group_delay * units.ns, 0]
             det.DRAB_add_Sparameters(board_name, channel_id, iglu_id, temp,
                 S_data, measurement_time, primary_measurement, time_delay)
 
