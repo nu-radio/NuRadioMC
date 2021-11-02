@@ -192,7 +192,12 @@ class planeWaveFitterRNOG:
                     zz[iz, ia] = c
   
             fig = plt.figure()
-            plt.pcolor( zz)
+            plt.pcolor(zens, azs,  zz.T)
+            plt.xlabel("zenith [degrees]")
+            plt.ylabel("azimuth [azimuth]")
+            plt.axhline(np.rad2deg(signal_azimuth), color = 'orange')
+            plt.axvline(np.rad2deg(signal_zenith), color = 'orange', label = 'simulated values')
+            plt.legend()
             fig.savefig("/lustre/fs22/group/radio/plaisier/software/simulations/planeWaveFit/plots/zz.pdf")
         rec_zenith = ll[0]
         rec_azimuth = ll[1]
