@@ -1525,7 +1525,7 @@ class ray_tracing:
         medium: medium class
             class describing the index-of-refraction profile
         attenuation_model: string
-            signal attenuation model (so far only "SP1" is implemented)
+            signal attenuation model
         log_level: logging object
             specify the log level of the ray tracing class
             * logging.ERROR
@@ -1570,6 +1570,7 @@ class ray_tracing:
         self.__R = None
         self.__x1 = None
         self.__x2 = None
+        self.__shower_axis = None
         self.__results = None
 
     def reset_solutions(self):
@@ -1629,6 +1630,31 @@ class ray_tracing:
         self.__x2 = np.array([X2r[0], X2r[2]])
         self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
 
+    def use_optional_function(self, function_name, *args, **kwargs):
+        """
+        Use optional function which may be different for each ray tracer. 
+        If the name of the function is not present for the ray tracer this function does nothing.
+
+        Parameters
+        ----------
+        function_name: string
+                       name of the function to use
+        *args: type of the argument required by function
+               all the neseccary arguments for the function separated by a comma
+        **kwargs: type of keyword argument of function
+                  all all the neseccary keyword arguments for the function in the
+                  form of key=argument and separated by a comma
+
+        Example
+        -------
+        use_optional_function('set_shower_axis',np.array([0,0,1]))
+        use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
+        """
+        if not hasattr(self,function_name):
+            pass
+        else:
+            getattr(self,function_name)(*args,**kwargs)
+        
     def set_solution(self, raytracing_results):
         """
         Read an already calculated raytracing solution from the input array
@@ -1665,8 +1691,8 @@ class ray_tracing:
                 self.__results.extend(self.__r2d.find_solutions(self.__x1, self.__x2, reflection=i + 1, reflection_case=j + 1))
 
         # check if not too many solutions were found (the same solution can potentially found twice because of numerical imprecision)
-        if(self.get_number_of_solutions() > (2 + 4 * self.__n_reflections)):
-            self.__logger.error(f"{self.get_number_of_solutions()} were found but only {(2 + 4 * self.__n_reflections)} are allowed! Returning zero solutions")
+        if(self.get_number_of_solutions() > self.get_number_of_raytracing_solutions()):
+            self.__logger.error(f"{self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed! Returning zero solutions")
             self.__results = []
 
     def has_solution(self):
@@ -2009,7 +2035,10 @@ class ray_tracing:
         return 2 + 4 * self.__n_reflections  # number of possible ray-tracing solutions
 
     def get_raytracing_output(self, i_solution):
-        focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
+        if self.__config['propagation']['focusing']:    
+            focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
+        else: 
+            focusing = 1
         output_dict = {
             'ray_tracing_C0': self.get_results()[i_solution]['C0'],
             'ray_tracing_C1': self.get_results()[i_solution]['C1'],
