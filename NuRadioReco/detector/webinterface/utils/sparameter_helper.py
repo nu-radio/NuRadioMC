@@ -71,6 +71,13 @@ sparameters_layout = html.Div([
             }
         ),
     html.Br(),
+    html.Div("Enter group delay correction [ns] at around 200 MHz"),
+    dcc.Input(id="group_delay_corr",
+              type="number",
+              placeholder=0,
+              style={'width': '200px',
+                     'float': 'left'}),
+    html.Br(),
     html.Br(),
     html.Div([
         dcc.Upload(
@@ -171,13 +178,14 @@ def validate_Sdata(contents, unit_ff, unit_A, unit_phase, sep):
 
 @app.callback(
     Output('figure-amp', 'figure'),
-    [Input("validation-Sdata-output", "data-validated")],
+    [Input("validation-Sdata-output", "data-validated"),
+     Input('group_delay_corr', 'value')],
     [State('Sdata', 'contents'),
              State('dropdown-frequencies', 'value'),
              State('dropdown-magnitude', 'value'),
              State('dropdown-phase', 'value'),
              State('separator', 'value')])
-def plot_Sparameters(val_Sdata, contents, unit_ff, unit_mag, unit_phase, sep):
+def plot_Sparameters(val_Sdata, corr_group_delay, contents, unit_ff, unit_mag, unit_phase, sep):
     print("display_value")
     if(val_Sdata):
         content_type, content_string = contents.split(',')
@@ -188,7 +196,51 @@ def plot_Sparameters(val_Sdata, contents, unit_ff, unit_mag, unit_phase, sep):
         for i in range(4):
             S_data[1 + 2 * i] *= str_to_unit[unit_mag]
             S_data[2 + 2 * i] *= str_to_unit[unit_phase]
-        fig = subplots.make_subplots(rows=4, cols=2)
+        phase = S_data[6]
+        freq = S_data[0]
+        delta_freq = freq[1] - freq[0]
+        if corr_group_delay is None:
+            correction = 0
+        else:
+            correction = corr_group_delay
+        phase_corr = phase + correction * freq * 2 * np.pi
+        phase_corr_0 = phase + 0 * freq * 2 * np.pi
+        calc_corr_group_delay = -np.diff(np.unwrap(phase_corr)) / delta_freq / 2 / np.pi
+        calc_corr_group_delay_0 = -np.diff(np.unwrap(phase_corr_0)) / delta_freq / 2 / np.pi
+        fig = subplots.make_subplots(rows=7, cols=2,
+                                     specs=[[{"rowspan": 3}, {"rowspan": 3}],
+                                     [None, None],
+                                     [None, None],
+                                     [{}, {}],
+                                     [{}, {}],
+                                     [{}, {}],
+                                     [{}, {}]],
+                                     subplot_titles=("Group Delay", "Corrected Group Delay",
+                                                     "S11 Mag", "S11 Phase",
+                                                     "S12 Mag", "S12 Phase",
+                                                     "S21 Mag", "S21 Phase",
+                                                     "S22 Mag", "S22 Phase")
+                                     )
+        fig.append_trace(go.Scatter(
+                    x=S_data[0] / units.MHz,
+                    y=calc_corr_group_delay_0 / units.ns,
+                    opacity=0.7,
+                    marker={
+                        'color': "red",
+                        'line': {'color': "red"}
+                    },
+                    name='uncorrected group delay'
+                ), 1, 1)
+        fig.append_trace(go.Scatter(
+                    x=S_data[0] / units.MHz,
+                    y=calc_corr_group_delay / units.ns,
+                    opacity=0.7,
+                    marker={
+                        'color': "green",
+                        'line': {'color': "green"}
+                    },
+                    name='corrected group delay'
+                ), 1, 2)
         for i in range(4):
             fig.append_trace(go.Scatter(
                         x=S_data[0] / units.MHz,
@@ -199,21 +251,24 @@ def plot_Sparameters(val_Sdata, contents, unit_ff, unit_mag, unit_phase, sep):
                             'line': {'color': "blue"}
                         },
                         name='magnitude'
-                    ), i + 1, 1)
+                    ), i + 4, 1)
             fig.append_trace(go.Scatter(
                         x=S_data[0] / units.MHz,
                         y=S_data[i * 2 + 2] / units.deg,
                         opacity=0.7,
                         marker={
-                            'color': "blue",
-                            'line': {'color': "blue"}
+                            'color': "red",
+                            'line': {'color': "red"}
                         },
                         name='phase'
-                    ), i + 1, 2)
+                    ), i + 4, 2)
         fig['layout']['xaxis1'].update(title='frequency [MHz]')
-        fig['layout']['yaxis1'].update(title='magnitude [V]')
-        fig['layout']['yaxis2'].update(title='phase [deg]')
+        fig['layout']['yaxis1'].update(title='Group Delay [ns]')
+        fig['layout']['yaxis2'].update(title='Group Delay [ns]')
+        fig['layout']['yaxis3'].update(title='magnitude [V]')
+        fig['layout']['yaxis4'].update(title='phase [deg]')
         fig['layout']['xaxis2'].update(title='frequency [MHz]')
+        fig.update_layout(showlegend=False)
         return fig
     else:
         return {"data": []}
