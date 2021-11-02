@@ -57,13 +57,13 @@ class Detector(object):
         logger.info("database connection to {} established".format(self.db.name))
 
         self.__current_time = None
-        # just for testing
-        logger.info("setting detector time to current time")
-        self.__current_time = datetime.datetime.now()
 
         self.__modification_timestamps = self._query_modification_timestamps()
         self.__buffered_period = None
 
+        # just for testing
+        logger.info("setting detector time to current time")
+        self.update(datetime.datetime.now())
     # TODO do we need this?
     #def __error(self, frame):
     #    pass
@@ -533,7 +533,7 @@ class Detector(object):
         -------------
         dict of channel parameters
         """
-        return self.get_station(station_id)[channel_id]
+        return self.get_station(station_id)["channels"][channel_id]
 
     def get_absolute_position(self, station_id):
         """
@@ -878,7 +878,7 @@ class Detector(object):
         stations_for_buffer = list(self.db.station.aggregate(time_filter))
 
         # convert nested lists of dicts to nested dicts of dicts
-        self.__db["stations"] = dictionarize_nested_lists(stations_for_buffer, parent_key="id", nested_key="channels")
+        self.__db["stations"] = dictionarize_nested_lists(stations_for_buffer, parent_key="id", nested_field="channels", nested_key="id")
 
 
     def _find_hardware_components(self):
@@ -921,12 +921,12 @@ class Detector(object):
 
         for hardware_type in component_dict:
             #TODO select more accurately. is there a "primary" mesurement field? is S_parameter_XXX matching possible to reduce data?
-            matching_components = self.db[hardware_type].aggregate([{"$match": {"name": {"$in": component_dict[hardware_type]}}},
-                                       {"$unwind": "$channels"}])
+            matching_components = list(self.db[hardware_type].aggregate([{"$match": {"name": {"$in": component_dict[hardware_type]}}}]))#,
+                                       #{"$unwind": "$channels"}])
                                        #{"$match": {"channels.S_parameter_DRAB": "S12"}}])
                                        #{"$limit": 1}])
             #list to dict conversion using "id" as keys
-            self.__db[hardware_type] = dictionarize_nested_lists(stations_for_buffer, parent_key="name", nested_key="channels")
+            self.__db[hardware_type] = dictionarize_nested_lists(matching_components, parent_key="name", nested_field="channels", nested_key="id")
 
     def get_hardware_component(self, hardware_type, name):
         """
@@ -1030,17 +1030,22 @@ class Detector(object):
         modification_timestamps = [mod_t.timestamp() for mod_t in mod_set]
         return modification_timestamps
 
-def dictionarize_nested_lists(nested_lists, parent_key="id", nested_key="channels"):
+def dictionarize_nested_lists(nested_lists, parent_key="id", nested_field="channels", nested_key="id"):
     """ mongodb aggregate returns lists of dicts, which can be converted to dicts of dicts """
-    nested_dicts = {}
+    res = {}
     for parent in nested_lists:
-        nested_dicts[parent[parent_key]] = parent
-        if nested_key in parent:
-            daughter_list = parent[nested_key]
-            daughter_dict = {d[perent_key]: d for d in daughter_list}
+        res[parent[parent_key]] = parent
+        if nested_field in parent:
+            daughter_list = parent[nested_field]
+            daughter_dict = {}
+            for daughter in daughter_list:
+                if nested_key in daughter:
+                    daughter_dict[daughter[nested_key]] = daughter
+                else:
+                    logger.warning(f"trying to access unavailable nested key {nested_key} in field {nested_field}. Nothing to be done.")
             # replace list with dict
-            nested_dicts[parent[parent_key]][nested_key] = daughter_dict
-    return nested_dicts
+            res[parent[parent_key]][nested_field] = daughter_dict
+    return res
 
 ### some aggregation dicts, TODO can remove these? only used in _find....() member function, which is not used any more
 ### (might want to write expressions into member functions directly if only used once)
