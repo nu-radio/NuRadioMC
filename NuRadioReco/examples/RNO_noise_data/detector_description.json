@@ -128,7 +128,7 @@
             "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
             "cab_time_delay": 583.35,
             "channel_id": 5,
-            "station_id": 22
+            "station_id": 11
         },
         
         "7": {
@@ -146,7 +146,7 @@
             "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
             "cab_time_delay": 484.26,
             "channel_id": 6,
-            "station_id": 22
+            "station_id": 11
         },
         
         
@@ -165,7 +165,7 @@
             "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
             "cab_time_delay": 387.12,
             "channel_id": 7,
-            "station_id": 22
+            "station_id": 11
         },
         
  
