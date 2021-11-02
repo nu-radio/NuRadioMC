@@ -48,7 +48,8 @@ layout = [
                          options=[
                              {'label': 'RMS', 'value': 'RMS'},
                              {'label': 'L1', 'value': 'L1'},
-                             {'label': 'int. power', 'value':'int_power'}
+                             {'label': 'int. power', 'value':'int_power'},
+                             {'label':'frequency RMS', 'value':'freq_RMS'}
                          ],
                          multi=True,
                          value=["RMS", "L1"]
@@ -176,9 +177,10 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
     n_channels = 0
     plot_titles = []
     trace_start_times = []
-    fig = plotly.subplots.make_subplots(rows=station.get_number_of_channels(), cols=2,
+    n_rows = station.get_number_of_channels()
+    fig = plotly.subplots.make_subplots(rows=n_rows, cols=2,
                                         shared_xaxes=True, shared_yaxes=False,
-                                        vertical_spacing=3e-3, subplot_titles=plot_titles)
+                                        vertical_spacing=0.05/n_rows, subplot_titles=plot_titles)
     for i, channel in enumerate(station.iter_channels()):
         n_channels += 1
         trace = channel.get_trace() / units.mV
@@ -222,23 +224,12 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                     x=0.99, y=0.98, xanchor='right', yanchor='top', showarrow=False,
                     xref='x domain', yref='y domain',
                     row=i+1, col=1)
-                # fig.append_trace(
-                #     plotly.graph_objs.Scatter(
-                #         x=[0.99 * tt.max()],
-                #         y=[0.98 * trace.max()],
-                #         mode='text',
-                #         text=[r'mu = {:.2g}, STD={:.2g}'.format(np.mean(trace), np.std(trace))],
-                #         textposition='bottom left'
-                #     ), i + 1, 1)
             if 'int_power' in dropdown_info:
-                fig.append_trace(
-                    plotly.graph_objs.Scatter(
-                        x=[0.99 * tt.max()],
-                        y=[0.7 * trace.min()],
-                        mode='text',
-                        text=[r'E ~ {:.3g}'.format(np.sum(trace**2))],
-                        textposition='bottom left'
-                    ), i + 1, 1)
+                fig.add_annotation(
+                    text=r'E ~ {:.3g}'.format(np.sum(trace**2)),
+                    x=0.99, y=0.3, xanchor='right', yanchor='top', showarrow=False,
+                    xref='x domain', yref='y domain',
+                    row=i+1, col=1)
     if 'envelope' in dropdown_traces:
         for i, channel_id in enumerate(channel_ids):
             channel = station.get_channel(channel_id)
@@ -497,6 +488,11 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                     textposition='top center'
                 ),
                 i + 1, 2)
+        if 'freq_RMS' in dropdown_info:
+            fig.add_hline(
+                .25 * np.max(np.abs(spec)[5:]) / units.MHz,
+                row=i+1, col=2
+            )
     if trace_start_time_offset > 0:
         fig['layout']['xaxis1'].update(title='time [ns] - {:.0f} ns'.format(trace_start_time_offset))
     else:
