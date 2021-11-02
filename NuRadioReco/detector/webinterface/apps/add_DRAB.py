@@ -188,8 +188,11 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, function_te
              State("IGLU-id", "value"),
              State('separator', 'value'),
              State('temperature-list', 'value'),
-             State("function-test", "value")])
-def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, unit_mag, unit_phase, channel_id, iglu_id, sep, temp, function_test):
+             State("function-test", "value"),
+             State("group_delay_corr", "value")])
+def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff,
+                 unit_mag, unit_phase, channel_id, iglu_id, sep, temp,
+                 function_test, corr_group_delay):
     print(f"n_clicks is {n_clicks}")
     if(not n_clicks is None):
         print("insert to db")
@@ -220,7 +223,9 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, un
                 S_data[2 + 2 * i] *= str_to_unit[unit_phase]
             print("channelid" + str(channel_id))
             print(board_name, S_data)
-            det.DRAB_add_Sparameters(board_name, channel_id, iglu_id, temp, S_data, measurement_time, primary_measurement)
+            time_delay = [0, corr_group_delay * units.ns, 0, 0]
+            det.DRAB_add_Sparameters(board_name, channel_id, iglu_id, temp,
+                S_data, measurement_time, primary_measurement, time_delay)
 
         return {'display': 'none'}, {}
     else:
