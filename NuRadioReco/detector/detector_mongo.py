@@ -126,7 +126,7 @@ class Detector(object):
                                      upsert=True)
 
     def surface_board_channel_add_Sparameters(self, board_name, channel_id, temp, S_data,
-                                              measurement_time, time_delay=[0, 0, 0, 0]):
+                                              measurement_time, primary_measurement, time_delay=[0, 0, 0, 0]):
         """
         inserts a new S parameter measurement of one channel of an amp board
         If the board dosn't exist yet, it will be created.
@@ -144,7 +144,9 @@ class Detector(object):
             6th/7th collumn: S21 mag/phase
             8th/9th collumn: S22 mag/phase
         measurement_time: timestamp
-            the time of the measurement.
+            the time of the measurement
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
         time_delay: array of floats
             the absolute time delay of each S parameter measurement (e.g. the group delay at
             a reference frequency)
@@ -158,6 +160,7 @@ class Detector(object):
                                           'function_test': True,
                                           'measurement_temp': temp,
                                           'measurement_time': measurement_time,
+                                          'primary_measurement': primary_measurement,
                                           'time_delay': time_delay[i],
                                           'S_parameter': S_names[i],
                                           'frequencies': list(S_data[0]),
@@ -184,7 +187,7 @@ class Detector(object):
                                   })
 
     def DRAB_add_Sparameters(self, board_name, channel_id, iglu_id, temp, S_data,
-                             measurement_time):
+                             measurement_time, primary_measurement):
         """
         inserts a new S parameter measurement of one channel of an amp board
         If the board dosn't exist yet, it will be created.
@@ -201,6 +204,8 @@ class Detector(object):
             8th/9th collumn: S22 mag/phase
         measurement_time: timestamp
             the time of the measurement
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
@@ -210,6 +215,7 @@ class Detector(object):
                                           'drab_channel_id': channel_id,
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': True,
+                                          'primary_measurement': primary_measurement,
                                           'IGLU_id': iglu_id,
                                           'measurement_temp': temp,
                                           'measurement_time': measurement_time,
@@ -365,7 +371,7 @@ class Detector(object):
                              upsert=True)
 
     def IGLU_board_channel_add_Sparameters_with_DRAB(self, board_name, drab_id, temp, S_data,
-                                                     measurement_time):
+                                                     measurement_time, primary_measurement):
         """
         inserts a new S parameter measurement of one channel of an IGLU board
         If the board dosn't exist yet, it will be created.
@@ -386,6 +392,8 @@ class Detector(object):
             8th/9th collumn: S22 mag/phase
         measurement_time: timestamp
             the time of the measurement
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
@@ -397,6 +405,7 @@ class Detector(object):
                                           'DRAB-id': drab_id,
                                           'measurement_temp': temp,
                                           'measurement_time': measurement_time,
+                                          'primary_measurement': primary_measurement,
                                           'S_parameter_DRAB': S_names[i],
                                           'frequencies': list(S_data[0]),
                                           'mag': list(S_data[2 * i + 1]),
@@ -405,7 +414,7 @@ class Detector(object):
                                      upsert=True)
 
     def IGLU_board_channel_add_Sparameters_without_DRAB(self, board_name, temp, S_data,
-                                                        measurement_time):
+                                                        measurement_time, primary_measurement):
         """
         inserts a new S parameter measurement of one channel of an IGLU board
         If the board dosn't exist yet, it will be created.
@@ -424,6 +433,8 @@ class Detector(object):
             8th/9th collumn: S22 mag/phase
         measurement_time: timestamp
             the time of the measurement
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
@@ -434,6 +445,7 @@ class Detector(object):
                                           'function_test': True,
                                           'measurement_temp': temp,
                                           'measurement_time': measurement_time,
+                                          'primary_measurement': primary_measurement,
                                           'S_parameter_wo_DRAB': S_names[i],
                                           'frequencies': list(S_data[0]),
                                           'mag': list(S_data[2 * i + 1]),
