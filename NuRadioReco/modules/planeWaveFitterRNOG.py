@@ -181,7 +181,19 @@ class planeWaveFitterRNOG:
         ll = opt.brute(likelihood, ranges=(slice(zen_start, zen_end, 0.01), slice(az_start, az_end, 0.01)), finish = opt.fmin)
         
 
-
+        if debug:
+            zens = np.arange(0, 90, 1)
+            azs = np.arange(-180, 180, 1)
+            xx, yy = np.meshgrid(zens, azs)
+            zz = np.zeros((len(zens), len(azs)))
+            for iz, z in enumerate(zens):
+                for ia, a in enumerate(azs):
+                    c = likelihood([np.deg2rad(z), np.deg2rad(a)])
+                    zz[iz, ia] = c
+  
+            fig = plt.figure()
+            plt.pcolor( zz)
+            fig.savefig("/lustre/fs22/group/radio/plaisier/software/simulations/planeWaveFit/plots/zz.pdf")
         rec_zenith = ll[0]
         rec_azimuth = ll[1]
         
@@ -192,6 +204,7 @@ class planeWaveFitterRNOG:
 
         station[stnp.nu_zenith] = signal_zenith
         station[stnp.nu_azimuth] = signal_azimuth
+   
 
 
     def end(self):
