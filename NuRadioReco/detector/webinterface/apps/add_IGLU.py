@@ -232,9 +232,9 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff,
             for i in range(7):
                 header.append(S_data_io.readline())
             date_string = header[2]
-            date_string_cropped = date_string[15:-2]
+            date_string_cropped = date_string[7:-2]
             date_string_fixed = date_string_cropped.replace(",", "")
-            measurement_time = datetime.strptime(date_string_fixed, '%B %d %Y %X')
+            measurement_time = datetime.strptime(date_string_fixed, '%A %B %d %Y %X')
             if('primary' not in function_test):
                 primary_measurement = False
             else:
