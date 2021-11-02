@@ -561,7 +561,7 @@ def get_pickle_antenna_response(path):
         # does not exist yet -> download file
         import requests
         antenna_pattern_name = os.path.splitext(os.path.basename(path))[0]
-        URL = 'http://arianna.ps.uci.edu/~arianna/data/AntennaModels/{name}/{name}.pkl'.format(
+        URL = 'https://rnog-data.zeuthen.desy.de/AntennaModels/{name}/{name}.pkl'.format(
             name=antenna_pattern_name)
 
         folder = os.path.dirname(path)
